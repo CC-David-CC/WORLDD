@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-12: M06 compositor process extraction passes focused checks
+
+RenderProcess now owns compositor launch, transport endpoints, termination, and reaping.
+RenderWorker retains the checked command protocol and still owns RenderProcess.
+Both hosts pass four selected suites in Debug and ASan/UBSan.
+Each profile passes 45 checks: 180 executions across both hosts and profiles, with no failures or skips.
+The artifact review found no sanitizer findings in 76 retained logs.
+Read evidence/m06-render-owner-2026-10-12/primary-review.txt for scope and evidence limits.
+This preparatory refactor does not implement persistent presentation or world switching.
+M06 remains in progress. M01-M05 remain qualified. M07-M16 remain pending qualification.
+Next: preserve per-world native input cleanup while separating persistent graphics ownership from world lifetime.
+Read docs/M06_TRANSITIONS.txt for the transition invariants and ownership constraints.
+
 ## 2026-10-12: M05 qualified on both hosts
 
 Frozen source 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47 passed both full local profiles and cross-host qualification.

@@ -1,0 +1,53 @@
+M06 preparatory compositor lifecycle review, 2026-10-12
+
+Result: selected regressions pass. M06 remains incomplete.
+Baseline: a513bd7b84ef1814b579a8a5945b80920253059b.
+Branch: m06/world-transitions.
+Each host audit.json pins all five changed build/source files.
+
+Change reviewed
+Move fork, exec, parent-death protection, socketpair, pidfd, termination, and reaping into RenderProcess.
+RenderWorker retains protocol validation, readiness, request sequencing, frame identity, deadlines, and scheduler callbacks.
+Its constructor failure terminates the child. Member destruction closes endpoints and reaps the child.
+RenderProcess handles pidfd allocation failure before construction completes.
+The ordinary shutdown path and timeout termination retain their previous behavior.
+CMake includes the new implementation in spatial-core.
+The primary agent reviewed all five changed build/source files and the transition plan.
+No production protocol, server policy, authority contract, or locked acceptance assertion changed.
+
+Executed evidence
+Both sb16 and sb16-2 used isolated m06-20261012 worktrees with the same five source hashes.
+Each host built Debug and ASan-UBSan with SPATIAL_INPUT_TESTS=ON.
+The runner records complete commands, profile environments, elapsed time, and exit codes.
+Each profile ran these four suites:
+  render-observation-client: 9 checks.
+  render-runtime: 15 checks.
+  worldd-lifecycle: 11 checks.
+  actor-runtime: 10 checks.
+Total: 45 checks per profile, 180 across two hosts and two profiles.
+All four profiles report zero failures and zero skips.
+The auditor verifies suite identity, individual unittest totals, successful completion, source hashes, and sanitizer logs.
+Each profile has 19 retained .log files. All 76 logs were scanned without sanitizer findings.
+Runtime checks include real rendering, compositor death, parent death, graceful graphics shutdown, and motion expiry during compositor stalls.
+The frozen M05 native server launcher supplies the matching Debug or sanitizer server.
+
+Evidence handling
+CTest truncates successful JUnit system-out to 1024 bytes.
+The first auditor rejected the missing unittest summary in that truncated output.
+The corrected auditor reads each suite's complete, prefixed output from focused.log.
+It still requires matching JUnit success, exact suite names, no skips, and successful unittest summaries.
+No test or runtime change was made for this auditor correction.
+run.json, audit.json, configure.log, build.log, focused.log, and results.xml are retained here.
+The audit hashes also cover remote graphics artifacts and runtime fixture files.
+Those files remain under each host's local/m06-render-owner-01 directory.
+Runtime databases and generated captures are not added to Git.
+
+Limits and next work
+RenderWorker still owns RenderProcess. The compositor still follows its current world owner's lifetime.
+This is a tested extraction, not proof of world switching or persistent presentation.
+The full M06 gate, cross-world switching, input settlement, stale binding rejection, and recovery tests remain unrun.
+Current native scope receipts bind world cleanup to compositor credential revocation.
+The next increment must preserve that independently enforced cleanup under a persistent graphics owner.
+Source inspection found per-connection server seat ownership and actor-ID-only compositor seat indexing.
+The new binding must separate worlds and prevent revoked input connections from killing persistent graphics.
+The transition plan records these constraints. It does not claim that they are implemented.

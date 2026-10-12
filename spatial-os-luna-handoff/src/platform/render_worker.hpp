@@ -1,5 +1,6 @@
 #pragma once
 #include "core/protocol.hpp"
+#include "platform/render_process.hpp"
 #include <filesystem>
 #include <chrono>
 #include <functional>
@@ -19,16 +20,16 @@ public:
     void check_alive() const;
     bool busy() const { return busy_; }
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
-    pid_t pid() const { return pid_; }
-    const std::string& display() const { return display_; }
+    pid_t pid() const { return process_.pid(); }
+    const std::string& display() const { return process_.display(); }
 private:
     void wait(short events);
     void read_all(char* out, std::size_t size);
     wire::RenderResult receive();
     wire::RenderResult exchange(wire::RenderCommand command, const std::function<void()>& before_send = {});
-    int socket_ = -1, pidfd_ = -1;
-    pid_t pid_ = -1;
-    std::string display_;
+    RenderProcess process_;
+    // Borrowed endpoints. RenderProcess closes and reaps them.
+    const int socket_, pidfd_;
     std::uint64_t sequence_ = 0;
     std::uint64_t frame_id_ = 0;
     bool busy_ = false;
