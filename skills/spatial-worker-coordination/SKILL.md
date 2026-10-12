@@ -111,6 +111,8 @@ Keep evidence from earlier failures.
 Freeze source hashes or a commit before distributing binaries.
 Verify artifact hashes after transfer to each test host.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
+Inspect imported fixtures for generated bindings, executable-adjacent runtime configuration, and helper binaries before packaging.
+Declare required generated-file targets in CMake. A successful executable build does not prove its test bundle is complete.
 Do not unset required security configuration merely to make an artifact bundle self-contained.
 Record missing prerequisites as setup failures. Preserve the production security boundary when correcting the launcher.
 Run focused Debug and sanitizer checks on both test hosts when the affected boundary requires them.
