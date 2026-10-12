@@ -1,5 +1,6 @@
 #include "world/identity_sessions.hpp"
 #include "world/geometry_view_validation.hpp"
+#include "world/diagnostic_timing.hpp"
 #include "world/authority.hpp"
 #include "world/actor_tls.hpp"
 #include "platform/broker.hpp"
@@ -112,6 +113,7 @@ struct IdentitySessions::Impl {
     std::map<std::string, std::set<std::string>> grants;
     std::string audience;
     Clock::time_point last_exchange = Clock::now();
+    world_diagnostic::LastSuccessfulExchange last_successful_exchange;
     bool ready = false, broken = false, ticking = false;
 
     Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution, int listener_fd, const std::filesystem::path& tls_config)
@@ -284,18 +286,25 @@ struct IdentitySessions::Impl {
     pb::IssuerReply exchange(pb::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
         request.set_protocol_version(1);
+        const auto operation = request.has_info() ? "info" :
+            request.has_credential_check() ? "credential_check" :
+            request.has_actor_status() ? "actor_status" : "other";
+        const auto since_last_success = last_successful_exchange.elapsed_ms(Clock::now());
         pb::IssuerReply reply;
         try { reply = client->call(std::move(request)); }
         catch (const CancellationFailure&) {
-            std::cerr << "worldd: issuer exchange failed " << client->failure_diagnostic() << '\n';
+            std::cerr << world_diagnostic::issuer_failure_line(operation, since_last_success)
+                << " " << client->failure_diagnostic() << '\n';
             throw;
         }
         catch (const std::exception&) {
-            std::cerr << "worldd: issuer exchange failed " << client->failure_diagnostic() << '\n';
+            std::cerr << world_diagnostic::issuer_failure_line(operation, since_last_success)
+                << " " << client->failure_diagnostic() << '\n';
             fail(); throw WorldError(wire::UNAVAILABLE, "World issuer connection failed");
         }
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
         last_exchange = Clock::now();
+        last_successful_exchange.record_success(last_exchange);
         if (reply.has_error()) {
             const auto code = reply.error().code();
             if (code == wire::STORAGE_ERROR || code == wire::INTERNAL_ERROR || code == wire::UNAVAILABLE) fail();
@@ -553,11 +562,26 @@ struct IdentitySessions::Impl {
                     (authority ? !authority->allowed(actor, "observe") : !grants[status.actor_id()].contains("observe")))
                     throw WorldError(wire::FORBIDDEN, "Actor lacks active world observation authority");
                 if (channel.view_sequence == UINT64_MAX) throw WorldError(wire::STALE_SEQUENCE, "Geometry view sequence exhausted");
-                *reply.mutable_geometry_view() = actors.geometry_view(channel.token, world.info().world_id(),
-                    "identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()), channel.view_id,
-                    generation, ++channel.view_sequence);
+                const auto geometry_started = Clock::now();
+                std::uint64_t construction_ms = 0;
+                try {
+                    *reply.mutable_geometry_view() = actors.geometry_view(channel.token, world.info().world_id(),
+                        "identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()), channel.view_id,
+                        generation, ++channel.view_sequence);
+                    construction_ms = world_diagnostic::bounded_ms(Clock::now() - geometry_started);
+                } catch (...) {
+                    construction_ms = world_diagnostic::bounded_ms(Clock::now() - geometry_started);
+                    std::cerr << world_diagnostic::geometry_failure_line("construction", construction_ms, std::nullopt) << '\n';
+                    throw;
+                }
                 reply.mutable_geometry_view()->set_authority_service_incarnation(participant->service_incarnation());
-                validate_geometry_view(reply.geometry_view());
+                const auto validation_started = Clock::now();
+                try { validate_geometry_view(reply.geometry_view()); }
+                catch (...) {
+                    const auto validation_ms = world_diagnostic::bounded_ms(Clock::now() - validation_started);
+                    std::cerr << world_diagnostic::geometry_failure_line("validation", construction_ms, validation_ms) << '\n';
+                    throw;
+                }
                 channel.needs_geometry_observation = true;
             } else if (request.has_complete()) {
                 auto pending = std::move(channel.pending); channel.pending.reset();

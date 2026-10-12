@@ -392,6 +392,10 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(world-diagnostic-timing-test tests/core/world_diagnostic_timing.cpp)
+    target_include_directories(world-diagnostic-timing-test PRIVATE src)
+    add_dependencies(spatial-test-host world-diagnostic-timing-test)
+    add_test(NAME world-diagnostic-timing COMMAND $<TARGET_FILE:world-diagnostic-timing-test>)
     protobuf_generate_cpp(actor_transition_integration_sources actor_transition_integration_headers
         tests/proto/actor_transition_integration.proto)
     add_executable(spatial-actor-transition-integration-driver src/testing/actor_transition_integration_driver.cpp
