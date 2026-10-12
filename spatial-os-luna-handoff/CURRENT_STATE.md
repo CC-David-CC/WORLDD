@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-12: Geometry Debug passes; sanitizer issuer disconnect under diagnosis
+
+All nine selected Debug suites passed on both hosts across two corrected attempts.
+The first corrected attempt passed six suites, then exposed a missing process-scope helper in the bundle.
+A reviewed helper supplement let the remaining three suites pass. Earlier failures remain preserved.
+The combined geometry and host-session candidate is checkpointed as 9f790f4 on box-git.
+Its four Debug/ASan ON/OFF builds passed. Target-only builds also verified the missing helper dependency.
+This candidate remains unqualified and is not integrated into the milestone branch.
+Both sanitizer runs passed world-authority and eight of nine geometry cases.
+The geometry count-limit case received EOF instead of its expected controlled rejection on both hosts.
+Both affected world logs report identity-service failure at identity_sessions.cpp:290, during an issuer exchange.
+The underlying exchange failure remains under diagnosis. No timeout or authorization contract has changed.
+Later sanitizer suites remain unrun. Combined-source runtime checks and native geometry presentation remain pending.
+M01-M05 remain qualified. M06 remains active. The full M06 gate and M07-M16 remain pending.
+
 ## 2026-10-12: Geometry Debug fixtures require correction
 
 Combined host-session builds passed all four Debug/ASan ON/OFF profiles. Evidence is committed as 1ecd27f.
