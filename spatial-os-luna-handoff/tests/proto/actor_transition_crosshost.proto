@@ -1,0 +1,84 @@
+syntax = "proto3";
+package spatial.testing.v1;
+
+import "core.proto";
+import "actor_transition.proto";
+import "world_session.proto";
+
+message ActorTransitionCrosshostPlan {
+  uint32 protocol_version = 1;
+  repeated ActorTransitionCrosshostRequest cases = 2;
+}
+message ActorTransitionDurableReadRequest {
+  uint32 protocol_version = 1;
+  string database_path = 2;
+  string actor_id = 3;
+  string expected_world_id = 4;
+}
+message ActorTransitionDurableReadReply {
+  uint32 protocol_version = 1;
+  bytes entity = 2;
+  string error = 3;
+  string world_id = 4;
+  uint64 world_revision = 5;
+  bool actor_present = 6;
+}
+
+// Paths point to private ActorSessionClient TLS textproto files on the driver host.
+message ActorTransitionCrosshostRequest {
+  uint32 protocol_version = 1;
+  string source_tls_config_path = 2;
+  string source_world_id = 3;
+  repeated ActorTransitionCrosshostStep steps = 4;
+  repeated spatial.core.v1.ActorActionRequest initial_actions = 5;
+  string source_host = 6;
+  enum Scenario { SCENARIO_UNSPECIFIED = 0; ROUND_TRIP = 1; PRIVATE_DENIAL = 2; DESTINATION_UNAVAILABLE = 3; }
+  Scenario scenario = 7;
+  optional string expected_source_room = 8;
+  optional spatial.core.v1.Pose expected_source_pose = 9;
+  string source_database_path = 10;
+  // Trusted setup only. Real TLS authentication followed by durable departure.
+  // This is separate from the six coordinator cases.
+  message SeedContext {
+    string room = 1;
+    spatial.core.v1.Pose pose = 2;
+    bytes departure_id = 3;
+  }
+  SeedContext seed_context = 11;
+}
+message ActorTransitionCrosshostStep {
+  string destination_tls_config_path = 1;
+  string destination_world_id = 2;
+  bytes transition_id = 3;
+  uint64 departure_sequence = 4;
+  optional string destination_room = 5;
+  optional spatial.core.v1.Pose destination_pose = 6;
+  repeated spatial.core.v1.ActorActionRequest after_actions = 7;
+  string destination_host = 8;
+  repeated spatial.core.v1.ActorActionRequest source_after_failure_actions = 9;
+  optional string expected_destination_room = 10;
+  optional spatial.core.v1.Pose expected_destination_pose = 11;
+  string destination_database_path = 12;
+}
+message ActorTransitionCrosshostObservation {
+  string expected_world_id = 1;
+  bool client_failed = 2;
+  optional spatial.core.v1.ActorStateReply state = 3;
+  string inspection_error = 4;
+}
+message ActorTransitionCrosshostReply {
+  uint32 protocol_version = 1;
+  spatial.identity.v1.WorldSessionOpened initial_opened = 2;
+  repeated spatial.identity.v1.ActorTransitionResult results = 3;
+  repeated ActorTransitionCrosshostObservation observations = 4;
+  string active_world_id = 5;
+  string driver_error = 6;
+  bool done = 7;
+  repeated spatial.core.v1.ActorActionReply action_replies = 8;
+  uint32 boundary_index = 9;
+  spatial.identity.v1.WorldSessionDeparted seeded_departure = 10;
+}
+message ActorTransitionCrosshostAck {
+  uint32 protocol_version = 1;
+  uint32 boundary_index = 2;
+}

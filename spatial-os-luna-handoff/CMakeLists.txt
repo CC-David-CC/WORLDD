@@ -34,6 +34,8 @@ protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/id
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
 protobuf_generate_cpp(actor_client_tls_proto_sources actor_client_tls_proto_headers proto/spatial/identity/v1/actor_session_client.proto)
 protobuf_generate_cpp(actor_transition_proto_sources actor_transition_proto_headers proto/spatial/identity/v1/actor_transition.proto)
+protobuf_generate_cpp(actor_transition_crosshost_proto_sources actor_transition_crosshost_proto_headers
+    tests/proto/actor_transition_crosshost.proto)
 protobuf_generate_cpp(host_actor_controller_proto_sources host_actor_controller_proto_headers proto/spatial/identity/v1/host_actor_controller.proto)
 protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
 protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
@@ -208,6 +210,31 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_topology_pb2
 add_custom_target(world-topology-python-protobuf ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/world_topology_pb2.py")
 
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_crosshost_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/actor_transition_crosshost.proto
+    DEPENDS tests/proto/actor_transition_crosshost.proto proto/spatial/core/v1/core.proto
+        proto/spatial/identity/v1/actor_transition.proto proto/spatial/identity/v1/world_session.proto protobuf::protoc VERBATIM)
+add_custom_target(actor-transition-crosshost-python-protobuf ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_crosshost_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/actor_session_client_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/actor_session_client.proto
+    DEPENDS proto/spatial/identity/v1/actor_session_client.proto proto/spatial/identity/v1/issuer.proto
+        proto/spatial/authority/v1/grants.proto proto/spatial/identity/v1/key.proto
+        proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+add_custom_target(actor-session-client-python-protobuf ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/actor_session_client_pb2.py")
+
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 option(SPATIAL_INPUT_TESTS "Require the project XLibre actor-input counterexamples" OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror)
@@ -351,6 +378,7 @@ add_dependencies(spatial-test-host worldd workspaced)
 
 include(CTest)
 if(BUILD_TESTING)
+    find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
     protobuf_generate_cpp(actor_transition_integration_sources actor_transition_integration_headers
         tests/proto/actor_transition_integration.proto)
     add_executable(spatial-actor-transition-integration-driver src/testing/actor_transition_integration_driver.cpp
@@ -384,7 +412,6 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-actor-transition-coordinator-probe PRIVATE spatial-actor-transition Threads::Threads)
     add_test(NAME actor-transition-coordinator COMMAND $<TARGET_FILE:spatial-actor-transition-coordinator-probe>)
     set_tests_properties(actor-transition-coordinator PROPERTIES TIMEOUT 30)
-    find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
     add_test(NAME actor-transition-real-world COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
@@ -393,6 +420,22 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-actor-transition-integration-driver>)
     set_tests_properties(actor-transition-real-world PROPERTIES TIMEOUT 300
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_executable(spatial-actor-transition-crosshost-probe src/testing/actor_transition_crosshost_probe.cpp)
+    add_library(spatial-actor-transition-crosshost-test-protobuf STATIC
+        ${actor_transition_crosshost_proto_sources} ${actor_transition_crosshost_proto_headers})
+    target_link_libraries(spatial-actor-transition-crosshost-test-protobuf PUBLIC spatial-protobuf)
+    target_link_libraries(spatial-actor-transition-crosshost-probe PRIVATE
+        spatial-actor-transition spatial-actor-transition-crosshost-test-protobuf)
+    add_dependencies(spatial-actor-transition-crosshost-probe actor-transition-crosshost-python-protobuf)
+    add_dependencies(spatial-actor-transition-crosshost-probe actor-session-client-python-protobuf)
+    set(SPATIAL_ACTOR_TRANSITION_PLAN "" CACHE FILEPATH "Private protobuf plan for real cross-host actor qualification")
+    if(SPATIAL_ACTOR_TRANSITION_PLAN)
+        add_test(NAME actor-transition-crosshost COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_transition_crosshost.py"
+            $<TARGET_FILE:spatial-actor-transition-crosshost-probe> "${SPATIAL_ACTOR_TRANSITION_PLAN}")
+        set_tests_properties(actor-transition-crosshost PROPERTIES TIMEOUT 720
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
     add_executable(spatial-app-initializer-probe src/testing/app_initializer_probe.cpp)
     target_link_libraries(spatial-app-initializer-probe PRIVATE spatial-app-initializer)
     add_dependencies(spatial-app-initializer-probe broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
@@ -1213,6 +1256,9 @@ if(BUILD_TESTING)
     add_custom_target(host-actor-python-protobuf DEPENDS
         "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
         "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_pb2.py")
+    add_dependencies(spatial-actor-transition-crosshost-probe host-actor-python-protobuf
+        world-session-python-protobuf issuer-python-protobuf key-python-protobuf
+        grants-python-protobuf security-python-protobuf python-protobuf)
     add_executable(spatial-host-actor-native-runner src/testing/host_actor_native_runner.cpp)
     target_link_libraries(spatial-host-actor-native-runner PRIVATE spatial-host-actor-controller)
     add_dependencies(spatial-host-actor-native-runner host-actor-python-protobuf world-session-python-protobuf

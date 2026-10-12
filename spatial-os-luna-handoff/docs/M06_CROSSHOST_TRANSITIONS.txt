@@ -1,0 +1,121 @@
+M06 cross-host actor transitions, run01
+
+Run02 review note (2026-10-12)
+
+Run01's plan host labels were caller-controlled and its durable witness read only final
+actor rows. Run02 checks the remote kernel hostname and machine ID, maps the configured
+listener port to one worldd PID and /proc start identity, and ties its state directory
+to world.db. The witness now checks persisted world_id and world_revision. The C++
+driver pauses before and after each transition for independent read-only snapshots.
+The harness checks those snapshots against actor inspection and source preservation.
+
+Run02 still lacks an automated, production two-authority provisioning fixture. The
+existing Python world fixtures launch one local worldd. Neither can register and
+launch a second authoritative worldd on the other host with its own persistent state,
+issuer participant binding, mutual TLS, and private actor grants. The commands below
+describe run01 and are retained as historical instructions; they are not a runnable
+run02 launcher. Runtime qualification remains UNRUN until that fixture and a matching
+private plan are delivered.
+
+The compile-only run02 handoff contains `local/m06-crosshost/run02-bundle` and
+`local/m06-crosshost/run02-launch-preprovisioned.sh`. The latter runs the Debug and
+ASan/UBSan six-case plan with a 720-second bound per profile on a test host. It assumes
+both real authorities, issuer, certificates, credentials, and plan already exist.
+It does not create or clean up those authorities. Only fixture-created processes and
+directories with recorded PID start identities may be removed. Preserve all server
+logs and durable state before cleanup. No such cleanup command is safe to issue from
+this handoff because no production fixture ownership record exists yet.
+
+Status: implementation draft; real-host runtime cases are UNRUN. This is not M06 or
+Spatial-M1 qualification. The actor transition probe invokes the production
+ActorSessionClient and ActorTransitionCoordinator. It does not implement transition
+state or actor proof signing.
+
+Invariant and test record
+
+See local/m06-crosshost/run01-invariants-tests.txt for the pre-implementation invariant
+list and selected checks. The plan, driver response, and read-only durable witness use
+versioned protobuf messages in tests/proto/actor_transition_crosshost.proto. TLS config paths refer to private textproto
+files consumed by the production TLS client. Fixture credentials and plans stay outside Git.
+
+The Python harness accepts only `sb16` and `sb16-2` host names. A deployment plan must
+use distinct actual world IDs and include round-trip, private-denial, and unavailable
+destination cases. Include both host directions to demonstrate reversible roles.
+Every source authentication and destination preparation uses a fresh TLS client. The
+client verifies configured CA and certificate server name; worldd requires the configured
+client certificate. The production client signs the current world challenge with the
+enrolled actor key. A successful response must match the configured actor and world.
+Before invoking the driver, the harness checks each numeric TLS endpoint against the
+selected host's reported addresses through bounded SSH orchestration. The durable witness
+runs on that host and reads only the named actor row from world.db with SQLite mode=ro.
+It receives and returns bounded protobuf frames. It cannot issue actor actions.
+
+The round-trip case performs A-to-B-to-A through the production coordinator and compares
+the initial and returned A actor ID, room, and pose. The denial and unavailable cases
+must report preparation rejection without departure or activation. The driver then
+inspects and performs the plan's authorized follow-up source actions. No application
+streaming, application input, compositor continuity, or crash recovery is asserted.
+
+Compile-only host commands
+
+Run from the repository root on middle-child. Keep one build process per directory.
+The task built the Debug profile first and the sanitizer profile second. Both use -j2.
+Logs and exit records are under local/m06-crosshost/run01-logs. The SHA-256 source
+and artifact manifest is local/m06-crosshost/run01-source-artifacts.sha256. The new
+CTest entry was listed with ctest -N only. Runtime cases remain UNRUN.
+
+    flock local/m06-crosshost/run01-debug.lock cmake -S spatial-os-luna-handoff -B local/m06-crosshost/run01-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=OFF -DSPATIAL_ACTOR_TRANSITION_PLAN=/absolute/private/path/plan.pb
+    flock local/m06-crosshost/run01-debug.lock cmake --build local/m06-crosshost/run01-debug --target worldd identityd spatial-issuer-client spatial-actor-transition-crosshost-probe -j2
+    flock local/m06-crosshost/run01-debug.lock ctest --test-dir local/m06-crosshost/run01-debug -N -R '^actor-transition-crosshost$'
+
+    flock local/m06-crosshost/run01-asan.lock cmake -S spatial-os-luna-handoff -B local/m06-crosshost/run01-asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=ON -DSPATIAL_ACTOR_TRANSITION_PLAN=/absolute/private/path/plan.pb
+    flock local/m06-crosshost/run01-asan.lock cmake --build local/m06-crosshost/run01-asan --target worldd identityd spatial-issuer-client spatial-actor-transition-crosshost-probe -j2
+    flock local/m06-crosshost/run01-asan.lock ctest --test-dir local/m06-crosshost/run01-asan -N -R '^actor-transition-crosshost$'
+
+For the actual run, replace `/absolute/private/path/plan.pb` with the same private
+protobuf deployment plan on the test host. Build artifacts and their generated Python
+bindings must be deployed together with the complete source test and harness modules.
+Keep matching Debug or ASan artifacts on the driver host and worldd artifacts on both
+world hosts. Do not run a service from a development host.
+
+Test-host launch sequence
+
+Primary must provision two isolated, persistent world state directories and actual
+production identity/participant registration for each persisted world ID. Each world
+must have a TLS listener reachable from the driver host, a server certificate matching
+its configured server name, client CA trust, and registered actor credentials. Start
+worldd on sb16 and sb16-2 under separate tmux sessions with their generated identity,
+authority, runtime, and TLS configs. Record the exact PIDs, session names, state paths,
+ports, world IDs, and hashes in the run evidence. Set the TLS client configs' numeric
+addresses, ports, expected world IDs, CA, client cert/key, actor signing key, and
+issuer-signed actor credential. Do not use a fixture peer as the transition engine.
+
+After constructing the private protobuf plan, run exactly one profile at a time from
+the designated driver host:
+
+    ctest --test-dir local/m06-crosshost/run01-debug --output-on-failure -R '^actor-transition-crosshost$'
+    ctest --test-dir local/m06-crosshost/run01-asan --output-on-failure -R '^actor-transition-crosshost$'
+
+Each plan must contain all six cases: the three bounded cases with A=sb16/B=sb16-2,
+then the same three cases with A=sb16-2/B=sb16. CMake embeds the private plan path at
+configure time. Set `SPATIAL_ACTOR_TRANSITION_PLAN` to that plan in each profile's
+configure command above.
+
+Run each plan with A=sb16/B=sb16-2 and then A=sb16-2/B=sb16. Save stdout, stderr,
+exit status, server logs, actor inspections, actual world IDs, peer host mapping, source
+and artifact hashes. The harness timeout is 90 seconds per coordinator invocation.
+
+Recovery is limited to test-owned processes and paths. Stop the exact recorded tmux
+sessions, then verify their exact PIDs exited. Remove only the recorded test state,
+configs, certificates, keys, and plan after preserving evidence. Never use broad
+process-name kills or delete an unrecorded world path.
+
+Deployment limitation
+
+This checkout has no production cross-host world provisioning CLI. The existing
+test_world_shared_crosshost.py starts one local world and a TLS witness; it does not
+launch a second authoritative worldd on the peer. Primary must construct the two-world
+production fixture using the normal issuer registration and test-host orchestration
+before executing the plan. A plan containing arbitrary world IDs or symbolic domains
+does not satisfy this test. Until the production launch records and both runtime
+profiles are attached, all runtime cases remain UNRUN.
