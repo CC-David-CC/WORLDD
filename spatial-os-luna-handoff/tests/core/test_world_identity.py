@@ -54,12 +54,13 @@ class SessionPeer:
 
 
 class WorldProcess:
-    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None):
+    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None, fixture_faults=False):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
         if runtime_config: command+=['--config',str(runtime_config)]
+        if fixture_faults: command+=['--fixture-faults']
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
         if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(getattr(broker,'pid',broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
@@ -127,7 +128,7 @@ class WorldIdentityFixture(ClientFixture):
         self.assertEqual(result.returncode,0,result.stderr)
         reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
-    def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None):
+    def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None, count=2, fixture_faults=False):
         client_path=self.config_file()
         client=text_format.Parse(client_path.read_text(),pb.IssuerTlsClientConfig())
         client.ClearField('io_timeout_ms')
@@ -138,7 +139,8 @@ class WorldIdentityFixture(ClientFixture):
         state=state or self.root/f'world-state-{len(self.worlds)}'
         self.configure_world_participant(config,state)
         path=self.root/f'world-{len(self.worlds)}.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
-        world=WorldProcess(self,path,state or self.root/f'world-state-{len(self.worlds)}',native)
+        world=WorldProcess(self,path,state,native,count=count,fixture_faults=fixture_faults)
+        world.state_path=state; world.config_path=path
         self.worlds.append(world);world.management('system.hello');return world
     def authenticate(self, peer, record=None, key=None, public=None, **spawn):
         result=peer.call(begin=session.WorldAuthenticationBegin(credential=(record or self.record).credential,**spawn))
