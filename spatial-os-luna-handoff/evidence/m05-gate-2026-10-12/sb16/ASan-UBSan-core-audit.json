@@ -1,0 +1,14 @@
+{
+  "host": "sb16",
+  "candidate": "6b9619e5b00be3011068b11c2c7d8ed48d5a0c47",
+  "profile": "ASan-UBSan",
+  "scope": "core_only",
+  "phase_complete": false,
+  "suites": 142,
+  "failed": 0,
+  "skipped": 0,
+  "artifacts": {
+    "core.xml": "e5cccc826ce42a049801d7efd51f94dbea0bc22720b905e4160dada5b6d8a83f",
+    "inventory.log": "99ca39b341cb659688ff7f021d2b0b706cd6ea2dc21d1f8bb209b30d61747636"
+  }
+}

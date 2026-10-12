@@ -1,0 +1,42 @@
+{
+  "host": "sb16-2",
+  "peer": "sb16",
+  "candidate": "6b9619e5b00be3011068b11c2c7d8ed48d5a0c47",
+  "status": "crosshost_artifacts_verified",
+  "phase_complete": false,
+  "cases": 16,
+  "failed": 0,
+  "skipped": 0,
+  "files": 178,
+  "logs": 174,
+  "remote_key_receipts": 12,
+  "endpoints": [
+    {
+      "profile": "Debug",
+      "generation": 1,
+      "host": "sb16",
+      "pid": 1500497
+    },
+    {
+      "profile": "Debug",
+      "generation": 2,
+      "host": "sb16",
+      "pid": 1501782
+    },
+    {
+      "profile": "ASan-UBSan",
+      "generation": 1,
+      "host": "sb16",
+      "pid": 1511628
+    },
+    {
+      "profile": "ASan-UBSan",
+      "generation": 2,
+      "host": "sb16",
+      "pid": 1512839
+    }
+  ],
+  "leftover_fixture_directories": [],
+  "run_sha256": "30a7e227cdb8eeadb14078a74c6ea914ee8b812dc2ccd9f560745ba339e8b792",
+  "auditor_sha256": "8150d26be05e43f6e6f2daaa9f38709b2eb032d391e01c7a2c40b14cd8f6fd5b"
+}

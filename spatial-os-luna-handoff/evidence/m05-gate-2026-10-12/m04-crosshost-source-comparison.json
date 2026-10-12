@@ -1,0 +1,24 @@
+{
+    "base":  "04e10296943013da3a29035f00b520907b97f3ca",
+    "candidate":  "6b9619e5b00be3011068b11c2c7d8ed48d5a0c47",
+    "checked_paths":  [
+                          "spatial-os-luna-handoff/src/identity",
+                          "spatial-os-luna-handoff/src/supervisor",
+                          "spatial-os-luna-handoff/src/platform",
+                          "spatial-os-luna-handoff/src/x11",
+                          "spatial-os-luna-handoff/src/render",
+                          "spatial-os-luna-handoff/src/world",
+                          "spatial-os-luna-handoff/server",
+                          "spatial-os-luna-handoff/tests/native/crosshost_revocation.py",
+                          "spatial-os-luna-handoff/tests/native/test_session_application.py",
+                          "spatial-os-luna-handoff/tests/native/test_storage_session.py",
+                          "spatial-os-luna-handoff/tests/native/storage_session_volume.py",
+                          "spatial-os-luna-handoff/tests/proto/crosshost_revocation.proto"
+                      ],
+    "checked_file_count":  109,
+    "changed_files":  [
+                          "spatial-os-luna-handoff/src/world/actors.cpp"
+                      ],
+    "unchanged_file_count":  108,
+    "status":  "source_comparison_complete_runtime_gate_pending"
+}

@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-12: M05 qualified on both hosts
+
+Frozen source 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47 passed both full local profiles and cross-host qualification.
+Each host/profile passed 142 core suites, 51 harness tests, 151 acceptance cases, and five storage scenarios.
+All 32 cross-host case executions passed. Artifact hashes, remote-key removal, and cleanup receipts were reviewed.
+No failures, skips, or sanitizer findings occurred in the frozen matrix.
+Read evidence/m05-gate-2026-10-12/M05-final-review.txt for requirement coverage, commands, provenance, and limits.
+
+M01-M05 are qualified. M06 actor world transitions is next; M06-M16 remain pending qualification.
+Transitions must preserve XLibre and compositor identities and restore per-world actor context.
+Current M05 evidence does not qualify that transition behavior or physical hardware.
+The historical entries below preserve earlier checkpoints and their then-pending work.
+
 ## 2026-10-12: M05 simultaneous private/shared topology passes focused checks
 
 One private authority runs on each host while a third shared authority serves both actors.

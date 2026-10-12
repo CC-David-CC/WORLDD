@@ -1,0 +1,39 @@
+M04 cross-host evidence reassessment for M05
+Status: conditional source review. The frozen M05 runtime gate is still running.
+Base: 04e10296943013da3a29035f00b520907b97f3ca
+Candidate: 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47
+
+Original evidence
+evidence/m04-gate-2026-10-11/crosshost-primary-review.txt records eight passed scenarios.
+Those runs cover delayed and crashed authority participants in both directions and profiles.
+They verify native input release, surviving applications, exact reservation cleanup,
+issuer acknowledgement or retirement, and the four-obligation revocation barrier.
+They are historical executions. This review does not relabel them as executions of M05 binaries.
+
+Source comparison
+m04-crosshost-source-comparison.json compares 109 relevant files.
+The identity, supervisor, broker/platform, X11, renderer implementation, and XLibre paths are unchanged.
+The cross-host fixture, application fixture, storage fixture, and its transport schema are unchanged.
+The only changed file in that set is src/world/actors.cpp.
+Its change copies live actor entities into a snapshot used by Actors::scene.
+It does not change cancellation, grant refresh, input release, control routing, or authority retirement.
+The separate src/core/scene.cpp change renders other actors as markers.
+The additive core.proto migration supplies actor marker configuration and the RenderScene actor list.
+These rendering changes are covered by the new local and cross-host actor-visibility checks.
+
+Affected-path review
+SharedSession in crosshost_revocation.py starts one actor per independently authoritative world.
+held_application sends real input to its confined application through the existing actor route.
+The scene excludes the observing actor's own marker. These fixtures do not add another actor to that world.
+Cancellation checks read the native witness and actual retained reservations.
+Crash recovery checks production cleanup and issuer retirement receipts, not scene pixels.
+The new test-only optional replacement listener is unused by this earlier matrix.
+Its production validation path has separate positive and negative cross-host recovery coverage.
+
+Decision
+Retain the eight prior scenarios as evidence for their unchanged M04 cancellation and retirement contracts.
+Require the full frozen M05 local matrix and new frozen M05 cross-host layer before qualification.
+Do not use this carry-forward decision as evidence of shared persistent-world behavior.
+That behavior requires the topology, remote-key, shared-state, and supervised-recovery cases.
+Any failure in the new gate that affects these unchanged paths reopens this decision.
+M05 is not qualified by this document.
