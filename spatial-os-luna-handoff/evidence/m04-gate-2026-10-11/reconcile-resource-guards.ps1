@@ -46,5 +46,6 @@ $review = [ordered]@{
         'Other authentication and resource callback changes have separate fresh mutation runs.',
         'This reassessment does not complete M04 or qualify later milestones.')
 }
-$review | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $PSScriptRoot 'resource-guard-reassessment.json') -Encoding UTF8
+$json = ($review | ConvertTo-Json -Depth 6).Replace("`r`n", "`n") + "`n"
+[IO.File]::WriteAllText((Join-Path $PSScriptRoot 'resource-guard-reassessment.json'), $json, (New-Object Text.UTF8Encoding $false))
 Write-Output 'Two historical DIX guard mutations reassessed; current gate remains pending.'
