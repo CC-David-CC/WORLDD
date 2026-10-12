@@ -1,4 +1,19 @@
-2026-10-12: M06 resumed. Main branch checkpoint: 96b16e3 on box-git.
+Current checkpoint, 2026-10-12:
+M06 client integrated as e28b20c on m06/world-transitions and pushed to box-git.
+Worker source checkpoint:4f403b7b9 on m06/actor-session-client.
+All43 client cases passed on both test hosts in Debug and ASan/UBSan:172 executions.
+Evidence: spatial-os-luna-handoff/evidence/m06-actor-client-2026-10-12.
+middle-child: Luna medium, branch m06/actor-client-tls, tmux spatial-m06-client-tls01.
+Task: mutual TLS actor transport and regression fixtures. Logs: local/m06-client-tls.
+a5500: Luna medium, branch m06/transition-coordinator, tmux spatial-m06-sequence01.
+Task: actor transition sequencing using the reviewed client. Logs: local/m06-transition-sequence.
+Host foreground selection integration, real-world transitions, recovery and full M06 qualification remain pending.
+Both test-host probe jobs finished. No new test jobs remain running.
+The redundant primary-build queue was canceled before it compiled anything; normal worker builds supplied the tested artifacts.
+CallbackList work remains deferred. XACE is the active baseline.
+
+Historical setup and recovery details follow.
+2026-10-12: M06 resumed. Initial main branch checkpoint:96b16e3 on box-git.
 Previous goal turn: progress. Host SSH access and isolated worker tasks established.
 
 middle-child:
@@ -52,6 +67,17 @@ Keep XACE as the active project baseline. Preserve CallbackList source and evide
 No CallbackList worker should be restarted without a new request or reaching the deferred stage.
 M06 client hostile-peer regression task escalated to Sol medium after two incomplete Luna attempts.
 Current M06 tmux session: spatial-m06-client-04. Logs use run04 under the same worker directory.
+Primary build queue: spatial-m06-primary-build on middle-child.
+It waits for worker completion, freezes four source hashes, then builds normal CMake Debug and sanitizer probe targets.
+Installed libxdamage-dev on middle-child to resolve missing Xdamage headers and imported target.
+Transaction log: local/m06-client-worker/dependency-install02.log in the middle-child checkout.
+Removal command if required: sudo apt-get remove libxdamage-dev
+Check package consumers before removal.
+Normal project CMake configuration now succeeds without the temporary imported-target prelude.
+a5500 M06 checkout: /home/dflanag3/src/spacial-m06-coordination-20261012
+a5500 branch: m06/transition-coordinator, base4176354.
+Luna coordinator-contract task finished. Its document is proposed and not integrated.
+Primary review must correct its stale renderer-status claim and resolve authority ordering before implementation.
 M06 gate is pending. M07-M16 and full Spatial-M1 qualification remain pending.
 Inspect live tmux/process state and completion files before restarting any job.
 
