@@ -1,0 +1,48 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 14
+    Start 14: authority-supervisor-fencing
+
+14: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-supervisor-fencing-303048865a9a88d069fc74e5d23cec33cafb9c4150fbad371495619b9b342c12" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_fencing.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+14: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+14: Test timeout computed to be: 180
+14: Running as unit: spatial-supervisor-fencing-303048865a9a88d069fc74e5d23cec33cafb9c4150fbad371495619b9b342c12.service; invocation ID: 262cad27a45a4d7e81df01a500dddf80
+14: test_supervisor_fences_its_actual_activated_child_before_checked_cleanup (__main__.SupervisorFencingBaselineTests.test_supervisor_fences_its_actual_activated_child_before_checked_cleanup) ... ok
+14: test_pending_revocation_survives_fenced_cleanup (__main__.SupervisorFenceFailures.test_pending_revocation_survives_fenced_cleanup) ... ok
+14: test_unconsumed_authorization_cannot_be_fenced (__main__.SupervisorFenceFailures.test_unconsumed_authorization_cannot_be_fenced) ... ok
+14: test_replaced_signing_key_cannot_fence_owned_launch (__main__.SupervisorFenceFailures.test_replaced_signing_key_cannot_fence_owned_launch) ... ok
+14: test_native_cleanup_uncertainty_preserves_committed_fence (__main__.SupervisorFenceFailures.test_native_cleanup_uncertainty_preserves_committed_fence) ... ok
+14: test_failed_local_commit_never_reports_success (__main__.SupervisorFenceFailures.test_failed_local_commit_never_reports_success) ... ok
+14: test_matching_fence_retry_preserves_record_and_rejects_further_participant_commands (__main__.CoordinatorFenceTests.test_matching_fence_retry_preserves_record_and_rejects_further_participant_commands) ... ok
+14: test_lost_local_commit_can_retry_exact_remote_fence_with_retained_ownership (__main__.CoordinatorFenceTests.test_lost_local_commit_can_retry_exact_remote_fence_with_retained_ownership) ... ok
+14: test_released_generation_cannot_be_fenced (__main__.CoordinatorFenceTests.test_released_generation_cannot_be_fenced) ... ok
+14: test_reopened_journal_rejects_mismatched_fence_and_cannot_reconstruct_ownership (__main__.CoordinatorFenceTests.test_reopened_journal_rejects_mismatched_fence_and_cannot_reconstruct_ownership) ... ok
+14: 
+14: ----------------------------------------------------------------------
+14: Ran 10 tests in 14.302s
+14: 
+14: OK
+14: Finished with result: success
+14: Main processes terminated with: code=exited/status=0
+14: Service runtime: 14.417s
+14: CPU time consumed: 5.402s
+14: Memory peak: 768.0K
+14: Memory swap peak: 0B
+1/1 Test #14: authority-supervisor-fencing .....   Passed   14.44 sec
+
+The following tests passed:
+	authority-supervisor-fencing
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  14.45 sec

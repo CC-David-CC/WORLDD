@@ -1,0 +1,20 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_event_metadata.py",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+  ],
+  "exit_code": 1,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build/hw/vfb/Xvfb",
+    "sha256": "8c8540666b53dbaa638913b7f6bd53c64b2d233618433a12efa9ce489d53f96f"
+  },
+  "test_sha256": "36225137db4ef0e01dea0fb4237e4be2bd81dfa5a584c97479806cf9e4d894af",
+  "log_sha256": "e25b32988d51de0f45c06dcc09490e823bdb9f11b3f86b43cbbc53b1f017ab18",
+  "environment": {
+    "PYTHONPATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/python:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+    "SPATIAL_TEST_XSERVER": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build/hw/vfb/Xvfb",
+    "SPATIAL_SECURITY_EVIDENCE": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-event-metadata-2026-10-11/baseline-01/native-server"
+  }
+}

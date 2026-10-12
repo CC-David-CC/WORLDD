@@ -1,0 +1,7 @@
+[ 64%] Built target spatial-protobuf
+[ 82%] Built target spatial-scene
+[ 88%] Built target spatial-storage-channel
+[ 94%] Built target spatial-storage-client
+[ 94%] Building CXX object CMakeFiles/spatial-storage-client-probe.dir/src/testing/storage_client_probe.cpp.o
+[100%] Linking CXX executable spatial-storage-client-probe
+[100%] Built target spatial-storage-client-probe

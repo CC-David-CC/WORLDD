@@ -1,0 +1,187 @@
+{
+  "status": "failed",
+  "phase_complete": false,
+  "host": "sb16-2",
+  "results": {},
+  "commands": [
+    {
+      "argv": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-broker-launch-02/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop13\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-q",
+        "-f",
+        "/dev/loop13"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid",
+        "/dev/loop13",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-broker-launch-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop13"
+      ],
+      "exit_code": 0,
+      "stdout": "056aa1ef-eda7-44c0-af83-025b12239858\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemd-run",
+        "--unit=spatial-m03-storage-launch-witness-d728d987aeaf412c9cba790cbd57f7d9.service",
+        "--collect",
+        "--service-type=exec",
+        "--uid=dflanag3",
+        "-p",
+        "Delegate=cpu memory pids io",
+        "-p",
+        "DelegateSubgroup=manager",
+        "-p",
+        "MemoryMax=1536M",
+        "-p",
+        "MemorySwapMax=0",
+        "-p",
+        "TasksMax=256",
+        "-p",
+        "CPUQuota=400%",
+        "-p",
+        "RuntimeMaxSec=180",
+        "--",
+        "/usr/bin/sleep",
+        "180"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Running as unit: spatial-m03-storage-launch-witness-d728d987aeaf412c9cba790cbd57f7d9.service; invocation ID: f6b12dfe35e04e48b5756770900bca2e\n"
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-launch-witness-d728d987aeaf412c9cba790cbd57f7d9.service",
+        "-p",
+        "ControlGroup",
+        "--value"
+      ],
+      "exit_code": 0,
+      "stdout": "/system.slice/spatial-m03-storage-launch-witness-d728d987aeaf412c9cba790cbd57f7d9.service\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-7f5300b31bc2b617a3bdba0566f05a02.service",
+        "-p",
+        "MainPID",
+        "--value"
+      ],
+      "exit_code": 0,
+      "stdout": "27781\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-7f5300b31bc2b617a3bdba0566f05a02.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "stop",
+        "spatial-m03-storage-launch-witness-d728d987aeaf412c9cba790cbd57f7d9.service"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-launch-witness-d728d987aeaf412c9cba790cbd57f7d9.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-broker-launch-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-d",
+        "/dev/loop13"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-broker-launch-02/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "runner_sha256": "e00efaa934c51162157aa6a036c58cd1b26426767e382b03525d429cbc83067d",
+  "failure": "AssertionError('Direct broker left a resource group')",
+  "owner_cleanup": {
+    "spatial-storage-owner-7f5300b31bc2b617a3bdba0566f05a02.service": "LoadState=not-found\nActiveState=inactive"
+  },
+  "delegate_after": "LoadState=not-found\nActiveState=inactive",
+  "mounted": false,
+  "loop_attached": false
+}

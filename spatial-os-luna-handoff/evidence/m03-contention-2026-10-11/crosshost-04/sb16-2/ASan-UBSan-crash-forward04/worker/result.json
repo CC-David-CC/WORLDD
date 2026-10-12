@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "host": "sb16-2",
+  "scenario": "crash",
+  "production_issuer": "da68c179e054679db10ad4f04b5884b5d0cfcc6e87d1f99012f781c26f3068a0",
+  "ready": true,
+  "crashed": true,
+  "recovered": true,
+  "retired": true
+}

@@ -1,0 +1,43 @@
+{
+  "command": [
+    "cmake",
+    "-S",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+    "-B",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/atom-cmake-registration-01",
+    "-G",
+    "Ninja",
+    "-DSPATIAL_INPUT_TESTS=ON",
+    "-DCMAKE_BUILD_TYPE=Debug"
+  ],
+  "exit_code": 0,
+  "registered_count": 136,
+  "atom_test": [
+    {
+      "backtrace": 193,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_atom_privacy.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/atom-cmake-registration-01/spatial-security-auth"
+      ],
+      "name": "native-atom-privacy",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/atom-cmake-registration-01/python:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 180.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/atom-cmake-registration-01"
+        }
+      ]
+    }
+  ],
+  "status": "passed"
+}

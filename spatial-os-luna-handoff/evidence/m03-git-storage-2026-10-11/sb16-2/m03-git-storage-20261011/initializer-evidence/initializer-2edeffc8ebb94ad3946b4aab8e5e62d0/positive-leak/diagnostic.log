@@ -1,0 +1,13 @@
+
+=================================================================
+==2634914==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 73 byte(s) in 1 object(s) allocated from:
+    #0 0x77cb5eefe6c8 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:98
+    #1 0x5c5c763137be in leak_witness /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/testing/app_initializer_probe.cpp:8
+    #2 0x5c5c76313a4d in main /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/testing/app_initializer_probe.cpp:17
+    #3 0x77cb5da2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x77cb5da2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x5c5c763136e4 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-app-initializer-probe+0x10cc6e4) (BuildId: 1fb5f35fbd78ec9170038b6356783c0e68794d88)
+
+SUMMARY: AddressSanitizer: 73 byte(s) leaked in 1 allocation(s).

@@ -1,0 +1,10 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth"
+  ],
+  "exit_code": 1,
+  "server_sha256": "79fc4e9ef59145d107422715e38100ebb6c0f9214c47946fbc4868f13dcda2dd",
+  "witness_sha256": "86bae321d829d3d4c11f7404797f297c58de59b8accc9696de3b2716580886f5"
+}

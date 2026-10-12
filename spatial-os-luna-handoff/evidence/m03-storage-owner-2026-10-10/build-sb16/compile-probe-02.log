@@ -1,0 +1,12 @@
+[ 73%] Built target spatial-protobuf
+[ 86%] Built target spatial-scene
+[ 93%] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[ 93%] Linking CXX static library libspatial-storage-owner.a
+[ 93%] Built target spatial-storage-owner
+[100%] Building CXX object CMakeFiles/spatial-storage-owner-probe.dir/src/testing/storage_owner_probe.cpp.o
+[100%] Linking CXX executable spatial-storage-owner-probe
+[100%] Built target spatial-storage-owner-probe
+[100%] Generating python/grants_pb2.py
+[100%] Built target grants-python-protobuf
+[100%] Generating python/storage_pb2.py
+[100%] Built target storage-python-protobuf

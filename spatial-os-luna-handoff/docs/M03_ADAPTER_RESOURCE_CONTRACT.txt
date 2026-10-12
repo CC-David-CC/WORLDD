@@ -1,0 +1,27 @@
+M03 adapter resource configuration
+
+BrokerProcessConfig identifies a delegated parent cgroup and an unbound BrokerResourceConfig template.
+Set protocol_version to 1. Leave resources.delegated_cgroup empty.
+The launcher creates a new owned child scope under the configured parent.
+It binds and seals the resource template for that child before releasing broker startup.
+The broker consumes the sealed descriptor through its existing resource interface.
+The world process remains outside the broker scope.
+
+The non-native spatial-test-host adapter reads SPATIAL_TEST_BROKER_CONFIG as an explicit configuration file path.
+Its protobuf transport and required --state-dir invocation remain unchanged.
+The production BrokerProcess API receives this path explicitly. It does not read environment configuration itself.
+Missing configuration permits existing metadata operations but denies new application execution.
+Invalid configuration fails startup. It does not activate a fallback budget.
+Resource ceilings do not grant workspace authority.
+
+Normal adapter channel closure invokes checked process-scope cleanup.
+SIGKILL cannot run an adapter destructor. The owning delegated service contains abrupt adapter death.
+The test provisioner requires all broker groups to become empty before removing residual directories.
+It reports surviving processes as failure and kills only its own retained subtree for recovery.
+Native sessions continue to use their retained authority supervisor and coordinator.
+Adapter service cleanup does not replace native-session ownership or recovery.
+
+The workspace-context, workspace-processes, and adapter-resources suites use explicit transient resource provisioning.
+Existing context and process test assertions remain unchanged.
+This additive configuration does not change locked acceptance tests, issuer deadlines, or database durability.
+Other entry points, persistent storage quotas, broker I/O accounting, and full M03 qualification remain pending.

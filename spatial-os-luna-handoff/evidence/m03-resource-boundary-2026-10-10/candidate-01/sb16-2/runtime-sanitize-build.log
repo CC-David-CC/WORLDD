@@ -1,0 +1,35 @@
+[0/2] Re-checking globbed directories...
+[1/34] Generating python/process_scope_pb2.py
+[2/34] Generating python/security_pb2.py
+[3/34] Generating python/core_pb2.py
+[4/34] Running cpp protocol buffer compiler on proto/spatial/render/v1/compositor_native.proto
+[5/34] Running cpp protocol buffer compiler on proto/spatial/supervisor/v1/native_scope.proto
+[6/34] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[7/34] Running cpp protocol buffer compiler on proto/spatial/identity/v1/key.proto
+[8/34] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[9/34] Running cpp protocol buffer compiler on proto/spatial/identity/v1/world_session.proto
+[10/34] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants.proto
+[11/34] Running cpp protocol buffer compiler on proto/spatial/identity/v1/issuer.proto
+[12/34] Running cpp protocol buffer compiler on proto/spatial/security/v1/security.proto
+[13/34] Running cpp protocol buffer compiler on proto/spatial/supervisor/v1/process_scope.proto
+[14/34] Building CXX object CMakeFiles/spatial-protobuf.dir/compositor_native.pb.cc.o
+[15/34] Building CXX object CMakeFiles/spatial-protobuf.dir/native_scope.pb.cc.o
+[16/34] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[17/34] Building CXX object CMakeFiles/spatial-protobuf.dir/key.pb.cc.o
+[18/34] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[19/34] Building CXX object CMakeFiles/spatial-protobuf.dir/world_session.pb.cc.o
+[20/34] Building CXX object CMakeFiles/spatial-protobuf.dir/issuer.pb.cc.o
+[21/34] Building CXX object CMakeFiles/spatial-protobuf.dir/grants.pb.cc.o
+[22/34] Building CXX object CMakeFiles/spatial-protobuf.dir/security.pb.cc.o
+[23/34] Building CXX object CMakeFiles/spatial-protobuf.dir/process_scope.pb.cc.o
+[24/34] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[25/34] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[26/34] Linking CXX static library libspatial-protobuf.a
+[27/34] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[28/34] Building CXX object CMakeFiles/spatial-scene.dir/src/core/navigation.cpp.o
+[29/34] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[30/34] Linking CXX static library libspatial-scene.a
+[31/34] Building CXX object CMakeFiles/spatial-process-scope.dir/src/supervisor/process_scope.cpp.o
+[32/34] Linking CXX static library libspatial-process-scope.a
+[33/34] Building CXX object CMakeFiles/spatial-process-scope-probe.dir/src/testing/process_scope_probe.cpp.o
+[34/34] Linking CXX executable spatial-process-scope-probe

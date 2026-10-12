@@ -1,0 +1,24 @@
+M05 abrupt authority loss
+
+Run test_committed_shared_edit_survives_abrupt_authority_loss in both directions.
+Use Debug and ASan/UBSan production binaries from the actor population increment.
+The remote actor commits one move, then holds another uncommitted preview and lease.
+Kill only the exact fixture worldd PID with SIGKILL. Do not checkpoint or close it first.
+Require local and remote sessions to fail and the dead listener to refuse connections.
+Restart the same persistent state and require the same world identity.
+Require fresh authentication, preservation of the acknowledged edit, loss of the preview,
+and release of the abandoned manipulation lease.
+Retain helper EOF diagnostics as expected crash evidence, not sanitizer findings.
+Inspect service logs, process return values, source hashes, and temporary credential cleanup.
+No injected delay, deadline change, or bypass of authority is part of this test.
+
+After the direct-launch fixture exposed the active-generation guard, extend session-replacement.
+Its production supervisor obtains checked process/native cleanup and explicit issuer retirement.
+Run test_crash_replacement_keeps_committed_edit_and_discards_preview with the existing three replacement regressions.
+Run both Debug and ASan/UBSan on sb16 and sb16-2.
+This first supervised case uses the local actor channel. Cross-host supervised recovery remains pending.
+
+The direct-launch case is now named test_abrupt_authority_loss_requires_supervised_retirement.
+It verifies both dead transports and the exact active-generation rejection.
+It does not stand in for the supervised persistence test or cross-host supervised recovery.
+Run this separate negative case in both directions and both profiles.

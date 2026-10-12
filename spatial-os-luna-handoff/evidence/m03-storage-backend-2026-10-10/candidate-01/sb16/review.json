@@ -1,0 +1,345 @@
+{
+  "host": "sb16",
+  "status": "failed",
+  "started": 1791683375.0683582,
+  "qualification": false,
+  "commands": [
+    {
+      "argv": [
+        "dpkg-query",
+        "-W",
+        "-f=${Package} ${Version}\n",
+        "btrfs-progs",
+        "libreiserfscore0t64"
+      ],
+      "exit_code": 0,
+      "stdout": "btrfs-progs 6.6.3-1.1build2\nlibreiserfscore0t64 1:3.6.27-7.1build1\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE,FSTYPE,OPTIONS",
+        "/"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "fallocate",
+        "-l",
+        "536870912",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-f",
+        "-d",
+        "single",
+        "-m",
+        "single",
+        "-L",
+        "spatial-m03-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "btrfs-progs v6.6.3\nSee https://btrfs.readthedocs.io for more information.\n\nNOTE: several default settings have changed in version 5.15, please make sure\n      this does not affect your deployments:\n      - DUP for metadata (-m dup)\n      - enabled no-holes (-O no-holes)\n      - enabled free-space-tree (-R free-space-tree)\n\nLabel:              spatial-m03-probe\nUUID:               868c29a5-3df4-43e3-91ee-d72839ae36b5\nNode size:          16384\nSector size:        4096\nFilesystem size:    512.00MiB\nBlock group profiles:\n  Data:             single            8.00MiB\n  Metadata:         single            8.00MiB\n  System:           single            4.00MiB\nSSD detected:       no\nZoned device:       no\nIncompat features:  extref, skinny-metadata, no-holes, free-space-tree\nRuntime features:   free-space-tree\nChecksum:           crc32c\nNumber of devices:  1\nDevices:\n   ID        SIZE  PATH                                                                                             \n    1   512.00MiB  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume.im\n\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid,compress=no",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE",
+        "--target",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "quota",
+        "enable",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "create",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "67108864",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "create",
+        "1/200",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "33554432",
+        "1/200",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "create",
+        "2/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "67108864",
+        "2/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "1/200",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume/project"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume/project'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume/project"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume/project"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "ERROR: Could not search B-tree: Operation not permitted\n"
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE",
+        "--target",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE,FSTYPE",
+        "--target",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/nvme0n1p2 ext4\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": {},
+  "runner_sha256": "1da4d6532e50909270b65e28b50e9f7bd9a2e027ddab79bdc255bb4235a23b81",
+  "package_versions": "btrfs-progs 6.6.3-1.1build2\nlibreiserfscore0t64 1:3.6.27-7.1build1\n",
+  "root_mount_before": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+  "loop": "/dev/loop12",
+  "recovery": [
+    [
+      "sudo",
+      "-n",
+      "umount",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume"
+    ],
+    [
+      "sudo",
+      "-n",
+      "losetup",
+      "-d",
+      "/dev/loop12"
+    ]
+  ],
+  "error": "AssertionError({'argv': ['btrfs', 'subvolume', 'show', '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume/project'], 'exit_code': 1, 'stdout': '', 'stderr': 'ERROR: Could not search B-tree: Operation not permitted\\n'})",
+  "ended": 1791683375.6941135,
+  "unmounted": true,
+  "image_bytes": 536870912,
+  "mount_after_cleanup": "/dev/nvme0n1p2 ext4\n",
+  "loop_after_cleanup": ""
+}

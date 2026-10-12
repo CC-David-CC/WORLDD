@@ -1,0 +1,12 @@
+{
+  "original_sha256": "4efe1a117d1af7c09e6bda126a908a7ddddbc2d7242c48474bcddd344ca4467d",
+  "compressed_sha256": "27b860e9e0fd860705f841fb6aa34260102c55d6bdba8479628b661076057066",
+  "original_bytes": 536870912,
+  "compressed_bytes": 2349945,
+  "verified": true,
+  "recovery": [
+    "gzip",
+    "-dk",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-01/volume.img.gz"
+  ]
+}

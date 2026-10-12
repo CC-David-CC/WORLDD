@@ -114,7 +114,7 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         ids = self.message(proc.stdout, core.Reply).identities
         self.assertGreater(ids.worldd_pid, 1); self.assertGreater(ids.spatialwm_pid, 1)
         self.assertNotEqual(ids.worldd_pid, ids.spatialwm_pid)
-        self.assertEqual(ids.workspaced_pid, int((self.cgroup / self.read_record().process.scope_name / 'cgroup.procs').read_text().strip()))
+        self.assertEqual(ids.workspaced_pid, int((self.broker_process_group() / 'cgroup.procs').read_text().strip()))
         members = set(map(int, (self.cgroup / record.process.scope_name / 'cgroup.procs').read_text().split()))
         self.assertEqual(members, {ids.worldd_pid, ids.spatialwm_pid})
         self.world_ids = ids
@@ -122,6 +122,9 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
             saved = launch.AuthorityLaunchRecord.FromString(db.execute("SELECT record FROM launch WHERE singleton=1").fetchone()[0])
         self.assertEqual(saved, record)
         return proc, owner, record
+
+    def broker_process_group(self):
+        return self.cgroup / self.read_record().process.scope_name
 
     def assert_private_channels_stay_in_coordinator(self, proc):
         pids = [proc.pid, self.world_ids.worldd_pid, self.world_ids.spatialwm_pid]

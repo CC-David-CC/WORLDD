@@ -1,0 +1,641 @@
+{
+  "host": "sb16-2",
+  "candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "phase_complete": false,
+  "profiles": {
+    "Debug": [
+      {
+        "id": "application.actor_binding",
+        "suites": [
+          "native-actor-binding"
+        ],
+        "missing_ids": [],
+        "named_cases": 25,
+        "required_evidence": [
+          "Baseline failures and positive controls on both hosts.",
+          "Debug, runtime sanitizer, and native-server sanitizer checks on both hosts.",
+          "Real native input release, device rebinding, grabs, and lifecycle observations."
+        ],
+        "contract": null,
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.atom_privacy",
+        "suites": [
+          "native-atom-privacy"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Foreign-name enumeration and existence probes fail on the unchanged native baseline on both hosts.",
+          "Corrected Debug and core-X native-server ASan/UBSan checks pass on both hosts.",
+          "Both native byte orders and full workspace/application identity separation are checked.",
+          "Same-application peers, explicit declarations, predefined atoms, and privileged compositor inspection remain usable.",
+          "Creator and final connection closure release declaration ownership correctly.",
+          "The 65536-entry declaration limit returns BadAlloc without preventing another application's declaration.",
+          "Related resource, selection, extension, identity, private-input, and actor-binding regressions pass.",
+          "Full native graphics sanitizer qualification remains mandatory at the M04 gate."
+        ],
+        "contract": "docs/NATIVE_ATOM_PRIVACY.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.broker_access",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 28,
+        "required_evidence": [],
+        "contract": "docs/APPLICATION_ACCESS.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.control_client",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 54,
+        "required_evidence": [],
+        "contract": "docs/BROKER_CONTROL_CLIENT.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.control_lease",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 25,
+        "required_evidence": [],
+        "contract": "docs/APPLICATION_CONTROL_LEASES.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.device_administration",
+        "suites": [
+          "native-device-administration"
+        ],
+        "missing_ids": [],
+        "named_cases": 13,
+        "required_evidence": [
+          "New counterexamples fail on both pre-patch servers while positive controls pass.",
+          "The patched native suites pass in Debug and native-server ASan/UBSan on both hosts.",
+          "Public mapping tables and privileged configuration controls remain real and functional.",
+          "All six configuration requests reject unprivileged callers before effects.",
+          "Both native byte orders and broker/workspace-membership denials pass.",
+          "An isolated bypass for each of the six protected requests is detected.",
+          "Locked P00-P10 tests remain unchanged and pass against the patched server.",
+          "Source and tested binary hashes match both hosts."
+        ],
+        "contract": "docs/NATIVE_DEVICE_ADMINISTRATION.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.event_metadata",
+        "suites": [
+          "native-event-metadata"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Two privacy failures and one positive control on both unchanged baseline hosts.",
+          "Corrected nearest-authorized sibling metadata in both byte orders.",
+          "Privileged recipients retain their original event.",
+          "Debug and core-X native-server ASan/UBSan on both hosts.",
+          "Related input, identity, resource, selection and extension checks."
+        ],
+        "contract": null,
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.extension_isolation",
+        "suites": [
+          "native-extension-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Missing-feature failures against the preceding native server",
+          "Direct forbidden opcodes rejected despite hidden discovery",
+          "Actual owned RENDER pixels, SHAPE operations, and cursor creation",
+          "Foreign pictures, glyph aliases, and cursor resources rejected",
+          "Window-picture source and alpha-map denial prevents shared-framebuffer exposure",
+          "Animated cursor timer cleanup after retained use and final cursor destruction",
+          "Unchanged locked P00-P10 assertions",
+          "Focused native server sanitizers with the GLX limitation recorded",
+          "Independent mutation detection"
+        ],
+        "contract": "docs/NATIVE_EXTENSION_POLICY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.global_administration",
+        "suites": [
+          "native-global-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 19,
+        "required_evidence": [
+          "New counterexamples fail against the pre-patch server while positive controls pass.",
+          "Patched global, selection, extension, resource, and identity suites pass in Debug on both hosts.",
+          "The same native suites pass under ASan/UBSan on both hosts, with the GLX limit recorded.",
+          "Actual font names and font information remain available.",
+          "Explicit UngrabServer and KillClient AllTemporary enforce authority before effects.",
+          "The -ac flag cannot bypass host access administration authority.",
+          "Isolated bypass mutations for the server callback, screen-saver callback, explicit ungrab guard, temporary-resource reap guard, and -ac authority ordering are detected.",
+          "Locked P00-P10 assertions remain unchanged and pass against the patched server.",
+          "Source inputs and tested binary hashes match both hosts."
+        ],
+        "contract": "docs/NATIVE_GLOBAL_POLICY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.native_launch",
+        "suites": [
+          "native-application-launch"
+        ],
+        "missing_ids": [],
+        "named_cases": 19,
+        "required_evidence": [
+          "Independent native identity and real Xlib output from confined applications.",
+          "Namespace, descriptor, read-only profile, and denied-launch checks.",
+          "Failed-exec, completion, execution revocation, and broker-loss cleanup.",
+          "Debug, runtime sanitizer, and native-server sanitizer profiles on both hosts.",
+          "Cumulative core, harness, and P10 regression checks."
+        ],
+        "contract": "docs/NATIVE_APPLICATION_LAUNCH.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.parent_metadata",
+        "suites": [
+          "native-parent-metadata"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Missing-feature failures and passing controls on both preceding native servers.",
+          "Both byte orders for unauthorized parent and child-event metadata.",
+          "Public root, same-application, and privileged positive controls.",
+          "Debug and GLX-enabled native-server ASan/UBSan checks on both hosts.",
+          "Related native identity, resource, event, selection, extension, and input regressions.",
+          "Three isolated native bypass mutations with exact failure IDs."
+        ],
+        "contract": "docs/NATIVE_PARENT_METADATA.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.private_input",
+        "suites": [
+          "native-application-input"
+        ],
+        "missing_ids": [],
+        "named_cases": 15,
+        "required_evidence": [
+          "Missing-feature failures and positive controls on both previous servers.",
+          "Debug and native-server ASan/UBSan on both hosts.",
+          "Last-connection cleanup and allocation failure recovery.",
+          "Registered core, harness and P10 regression checks."
+        ],
+        "contract": null,
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.resource_access",
+        "suites": [
+          "native-resource-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Missing-feature failures against the preceding native server",
+          "Positive same-application access and negative cross-application access",
+          "Root enumeration filtering and root pixel/property denial",
+          "Independent native attacks against windows, pixmaps, graphics contexts, properties, and events",
+          "Connection teardown, revocation, and retained-resource denial",
+          "Native byte-order coverage",
+          "Unchanged locked P00-P10 assertions",
+          "Focused instrumented native server checks with the GLX limitation recorded",
+          "Independent mutation detection"
+        ],
+        "contract": "docs/NATIVE_RESOURCE_POLICY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.security_identity",
+        "suites": [
+          "native-security-identity"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Both authorized hosts in Debug and ASan/UBSan",
+          "The native server is instrumented for focused core-X checks, with all identity assertions enabled and GLX disabled",
+          "Full P00-P10 baseline and unchanged locked assertions",
+          "Sealed protobuf bootstrap and strict authentication before host-access fallback",
+          "Immutable application labels and distinct native connection identities",
+          "Supervisor, broker, compositor, and application role separation",
+          "Revocation, issuer disconnect, descendant cancellation, and independent credential survival",
+          "Bounded credential storage, safe slot reuse, and new server generations",
+          "Ordinary Xlib authentication and both native byte orders",
+          "Malformed protobuf, unknown fields, invalid labels, replay, and unsupported version rejection",
+          "Independent mutations detect authentication bypass and missing disconnect revocation"
+        ],
+        "contract": "docs/NATIVE_SECURITY_IDENTITY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.selection_namespace",
+        "suites": [
+          "native-selection-namespace"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Seven namespace failures and one sharing positive control on each unchanged baseline host.",
+          "Independent PRIMARY and SECONDARY owners, clearing and conversion.",
+          "Both native byte orders and full workspace/application separation.",
+          "Real SelectionRequest, SelectionClear and SelectionNotify with public atoms.",
+          "Explicit trusted scope switching preserves immutable identity.",
+          "Application and broker scope requests are forbidden.",
+          "Invalid scope input preserves the previous view.",
+          "Foreign owner/requestor windows remain denied.",
+          "Destruction and revocation clean owners without affecting other namespaces.",
+          "Debug and native core-X ASan/UBSan on both hosts."
+        ],
+        "contract": "docs/SELECTION_NAMESPACE_MIGRATION.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.selection_owner_access",
+        "suites": [
+          "native-selection-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 14,
+        "required_evidence": [
+          "Version-1 behavior and sources preserved before migration.",
+          "Independent namespace baseline fails on both hosts.",
+          "Other application activity does not change query, claim, clear, or conversion behavior.",
+          "Same-application conversion emits a real SelectionRequest with public atom values.",
+          "Full workspace/application identity separation and both native byte orders.",
+          "Explicit supervisor and compositor scope selection; application and broker refusal.",
+          "Debug and core-X native-server ASan/UBSan checks on both hosts.",
+          "Full M04 graphics, locked acceptance, and integration gates remain required."
+        ],
+        "contract": "docs/SELECTION_NAMESPACE_MIGRATION.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.world_control",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 25,
+        "required_evidence": [],
+        "contract": "docs/WORLD_APPLICATION_CONTROL.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.world_observation",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 16,
+        "required_evidence": [],
+        "contract": "docs/APPLICATION_OBSERVATION.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "surface.application_groups",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 14,
+        "required_evidence": [],
+        "contract": "docs/WORLD_SURFACE_GROUPS.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "surface.native_identity",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 22,
+        "required_evidence": [],
+        "contract": "docs/NATIVE_SURFACE_IDENTITY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      }
+    ],
+    "ASan-UBSan": [
+      {
+        "id": "application.actor_binding",
+        "suites": [
+          "native-actor-binding"
+        ],
+        "missing_ids": [],
+        "named_cases": 25,
+        "required_evidence": [
+          "Baseline failures and positive controls on both hosts.",
+          "Debug, runtime sanitizer, and native-server sanitizer checks on both hosts.",
+          "Real native input release, device rebinding, grabs, and lifecycle observations."
+        ],
+        "contract": null,
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.atom_privacy",
+        "suites": [
+          "native-atom-privacy"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Foreign-name enumeration and existence probes fail on the unchanged native baseline on both hosts.",
+          "Corrected Debug and core-X native-server ASan/UBSan checks pass on both hosts.",
+          "Both native byte orders and full workspace/application identity separation are checked.",
+          "Same-application peers, explicit declarations, predefined atoms, and privileged compositor inspection remain usable.",
+          "Creator and final connection closure release declaration ownership correctly.",
+          "The 65536-entry declaration limit returns BadAlloc without preventing another application's declaration.",
+          "Related resource, selection, extension, identity, private-input, and actor-binding regressions pass.",
+          "Full native graphics sanitizer qualification remains mandatory at the M04 gate."
+        ],
+        "contract": "docs/NATIVE_ATOM_PRIVACY.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.broker_access",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 28,
+        "required_evidence": [],
+        "contract": "docs/APPLICATION_ACCESS.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.control_client",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 54,
+        "required_evidence": [],
+        "contract": "docs/BROKER_CONTROL_CLIENT.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.control_lease",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 25,
+        "required_evidence": [],
+        "contract": "docs/APPLICATION_CONTROL_LEASES.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.device_administration",
+        "suites": [
+          "native-device-administration"
+        ],
+        "missing_ids": [],
+        "named_cases": 13,
+        "required_evidence": [
+          "New counterexamples fail on both pre-patch servers while positive controls pass.",
+          "The patched native suites pass in Debug and native-server ASan/UBSan on both hosts.",
+          "Public mapping tables and privileged configuration controls remain real and functional.",
+          "All six configuration requests reject unprivileged callers before effects.",
+          "Both native byte orders and broker/workspace-membership denials pass.",
+          "An isolated bypass for each of the six protected requests is detected.",
+          "Locked P00-P10 tests remain unchanged and pass against the patched server.",
+          "Source and tested binary hashes match both hosts."
+        ],
+        "contract": "docs/NATIVE_DEVICE_ADMINISTRATION.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.event_metadata",
+        "suites": [
+          "native-event-metadata"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Two privacy failures and one positive control on both unchanged baseline hosts.",
+          "Corrected nearest-authorized sibling metadata in both byte orders.",
+          "Privileged recipients retain their original event.",
+          "Debug and core-X native-server ASan/UBSan on both hosts.",
+          "Related input, identity, resource, selection and extension checks."
+        ],
+        "contract": null,
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.extension_isolation",
+        "suites": [
+          "native-extension-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Missing-feature failures against the preceding native server",
+          "Direct forbidden opcodes rejected despite hidden discovery",
+          "Actual owned RENDER pixels, SHAPE operations, and cursor creation",
+          "Foreign pictures, glyph aliases, and cursor resources rejected",
+          "Window-picture source and alpha-map denial prevents shared-framebuffer exposure",
+          "Animated cursor timer cleanup after retained use and final cursor destruction",
+          "Unchanged locked P00-P10 assertions",
+          "Focused native server sanitizers with the GLX limitation recorded",
+          "Independent mutation detection"
+        ],
+        "contract": "docs/NATIVE_EXTENSION_POLICY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.global_administration",
+        "suites": [
+          "native-global-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 19,
+        "required_evidence": [
+          "New counterexamples fail against the pre-patch server while positive controls pass.",
+          "Patched global, selection, extension, resource, and identity suites pass in Debug on both hosts.",
+          "The same native suites pass under ASan/UBSan on both hosts, with the GLX limit recorded.",
+          "Actual font names and font information remain available.",
+          "Explicit UngrabServer and KillClient AllTemporary enforce authority before effects.",
+          "The -ac flag cannot bypass host access administration authority.",
+          "Isolated bypass mutations for the server callback, screen-saver callback, explicit ungrab guard, temporary-resource reap guard, and -ac authority ordering are detected.",
+          "Locked P00-P10 assertions remain unchanged and pass against the patched server.",
+          "Source inputs and tested binary hashes match both hosts."
+        ],
+        "contract": "docs/NATIVE_GLOBAL_POLICY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.native_launch",
+        "suites": [
+          "native-application-launch"
+        ],
+        "missing_ids": [],
+        "named_cases": 19,
+        "required_evidence": [
+          "Independent native identity and real Xlib output from confined applications.",
+          "Namespace, descriptor, read-only profile, and denied-launch checks.",
+          "Failed-exec, completion, execution revocation, and broker-loss cleanup.",
+          "Debug, runtime sanitizer, and native-server sanitizer profiles on both hosts.",
+          "Cumulative core, harness, and P10 regression checks."
+        ],
+        "contract": "docs/NATIVE_APPLICATION_LAUNCH.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.parent_metadata",
+        "suites": [
+          "native-parent-metadata"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Missing-feature failures and passing controls on both preceding native servers.",
+          "Both byte orders for unauthorized parent and child-event metadata.",
+          "Public root, same-application, and privileged positive controls.",
+          "Debug and GLX-enabled native-server ASan/UBSan checks on both hosts.",
+          "Related native identity, resource, event, selection, extension, and input regressions.",
+          "Three isolated native bypass mutations with exact failure IDs."
+        ],
+        "contract": "docs/NATIVE_PARENT_METADATA.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.private_input",
+        "suites": [
+          "native-application-input"
+        ],
+        "missing_ids": [],
+        "named_cases": 15,
+        "required_evidence": [
+          "Missing-feature failures and positive controls on both previous servers.",
+          "Debug and native-server ASan/UBSan on both hosts.",
+          "Last-connection cleanup and allocation failure recovery.",
+          "Registered core, harness and P10 regression checks."
+        ],
+        "contract": null,
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.resource_access",
+        "suites": [
+          "native-resource-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Missing-feature failures against the preceding native server",
+          "Positive same-application access and negative cross-application access",
+          "Root enumeration filtering and root pixel/property denial",
+          "Independent native attacks against windows, pixmaps, graphics contexts, properties, and events",
+          "Connection teardown, revocation, and retained-resource denial",
+          "Native byte-order coverage",
+          "Unchanged locked P00-P10 assertions",
+          "Focused instrumented native server checks with the GLX limitation recorded",
+          "Independent mutation detection"
+        ],
+        "contract": "docs/NATIVE_RESOURCE_POLICY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.security_identity",
+        "suites": [
+          "native-security-identity"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Both authorized hosts in Debug and ASan/UBSan",
+          "The native server is instrumented for focused core-X checks, with all identity assertions enabled and GLX disabled",
+          "Full P00-P10 baseline and unchanged locked assertions",
+          "Sealed protobuf bootstrap and strict authentication before host-access fallback",
+          "Immutable application labels and distinct native connection identities",
+          "Supervisor, broker, compositor, and application role separation",
+          "Revocation, issuer disconnect, descendant cancellation, and independent credential survival",
+          "Bounded credential storage, safe slot reuse, and new server generations",
+          "Ordinary Xlib authentication and both native byte orders",
+          "Malformed protobuf, unknown fields, invalid labels, replay, and unsupported version rejection",
+          "Independent mutations detect authentication bypass and missing disconnect revocation"
+        ],
+        "contract": "docs/NATIVE_SECURITY_IDENTITY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.selection_namespace",
+        "suites": [
+          "native-selection-namespace"
+        ],
+        "missing_ids": [],
+        "named_cases": 0,
+        "required_evidence": [
+          "Seven namespace failures and one sharing positive control on each unchanged baseline host.",
+          "Independent PRIMARY and SECONDARY owners, clearing and conversion.",
+          "Both native byte orders and full workspace/application separation.",
+          "Real SelectionRequest, SelectionClear and SelectionNotify with public atoms.",
+          "Explicit trusted scope switching preserves immutable identity.",
+          "Application and broker scope requests are forbidden.",
+          "Invalid scope input preserves the previous view.",
+          "Foreign owner/requestor windows remain denied.",
+          "Destruction and revocation clean owners without affecting other namespaces.",
+          "Debug and native core-X ASan/UBSan on both hosts."
+        ],
+        "contract": "docs/SELECTION_NAMESPACE_MIGRATION.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.selection_owner_access",
+        "suites": [
+          "native-selection-isolation"
+        ],
+        "missing_ids": [],
+        "named_cases": 14,
+        "required_evidence": [
+          "Version-1 behavior and sources preserved before migration.",
+          "Independent namespace baseline fails on both hosts.",
+          "Other application activity does not change query, claim, clear, or conversion behavior.",
+          "Same-application conversion emits a real SelectionRequest with public atom values.",
+          "Full workspace/application identity separation and both native byte orders.",
+          "Explicit supervisor and compositor scope selection; application and broker refusal.",
+          "Debug and core-X native-server ASan/UBSan checks on both hosts.",
+          "Full M04 graphics, locked acceptance, and integration gates remain required."
+        ],
+        "contract": "docs/SELECTION_NAMESPACE_MIGRATION.txt",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.world_control",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 25,
+        "required_evidence": [],
+        "contract": "docs/WORLD_APPLICATION_CONTROL.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "application.world_observation",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 16,
+        "required_evidence": [],
+        "contract": "docs/APPLICATION_OBSERVATION.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "surface.application_groups",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 14,
+        "required_evidence": [],
+        "contract": "docs/WORLD_SURFACE_GROUPS.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      },
+      {
+        "id": "surface.native_identity",
+        "suites": [],
+        "missing_ids": [],
+        "named_cases": 22,
+        "required_evidence": [],
+        "contract": "docs/NATIVE_SURFACE_IDENTITY.md",
+        "limitation": "Execution mapping only; primary requirement and historical evidence review still required."
+      }
+    ]
+  },
+  "errors": [],
+  "status": "execution_mapping_complete"
+}

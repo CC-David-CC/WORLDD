@@ -1,0 +1,13 @@
+{
+  "host": "sb16-2",
+  "status": "qualified_source_checkout_created",
+  "commit": "a99b7e46c5151ba47d0a53797b470cae6aaa5d13",
+  "branch": "m03/qualified-20261011",
+  "target": "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011",
+  "verified_source_inputs": 398,
+  "ordinary_checkout_head_preserved": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "ordinary_tracked_changes_preserved": "",
+  "normal_login_changed": false,
+  "runtime_restarted": false,
+  "operator_runtime_validation": "pending"
+}

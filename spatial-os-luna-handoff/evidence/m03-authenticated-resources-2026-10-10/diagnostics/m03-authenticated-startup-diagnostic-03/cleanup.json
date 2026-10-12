@@ -1,0 +1,21 @@
+{
+  "units": [
+    "spatial-m03-resources-5defc23d299248c9bfc0a22096a78d27.service"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-5defc23d299248c9bfc0a22096a78d27.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    }
+  ]
+}

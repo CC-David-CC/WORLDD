@@ -1,0 +1,148 @@
+{
+  "host": "sb16-2",
+  "recorded": 1791700688.7982528,
+  "boot_id": "82b6b2cf-0183-4174-b69a-b86592a6bfba",
+  "uptime": "361884.53 2703073.53",
+  "sudo_uid": 0,
+  "test_jobs_active": [],
+  "spatial_units": [],
+  "findmnt": "{\n   \"filesystems\": [\n\n   ]\n}\n",
+  "loop_state": {
+    "loopdevices": [
+      {
+        "name": "/dev/loop1",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/core24_2124.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop8",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/firmware-updater_226.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop6",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/gtk-common-themes_1535.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop4",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/firefox_8863.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop11",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snap-store_1447.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop2",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/mesa-2404_1839.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop0",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/bare_5.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop9",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snapd-desktop-integration_391.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop7",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snapd_27738.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop5",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/gnome-46-2404_164.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop12",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/firefox_9036.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop3",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snap-store_1390.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop10",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snapd_28254.snap",
+        "dio": false,
+        "log-sec": 512
+      }
+    ]
+  },
+  "checkout_head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "checkout_status": "## main...origin/main\n",
+  "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "free_bytes": 64781238272
+}

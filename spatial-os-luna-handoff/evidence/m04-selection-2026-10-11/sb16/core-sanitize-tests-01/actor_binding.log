@@ -1,0 +1,30 @@
+test_actor_close_returns_application_to_idle (__main__.ActorBindingTests.test_actor_close_returns_application_to_idle) ... ok
+test_application_dialog_uses_same_lease (__main__.ActorBindingTests.test_application_dialog_uses_same_lease) ... ok
+test_application_focus_change_stays_within_group (__main__.ActorBindingTests.test_application_focus_change_stays_within_group) ... ok
+test_application_uses_genuine_actor_device (__main__.ActorBindingTests.test_application_uses_genuine_actor_device) ... ok
+test_binding_releases_idle_active_grabs (__main__.ActorBindingTests.test_binding_releases_idle_active_grabs) ... ok
+test_busy_acquisition_preserves_existing_application (__main__.ActorBindingTests.test_busy_acquisition_preserves_existing_application) ... ok
+test_cancel_clears_locked_and_held_modifiers (__main__.ActorBindingTests.test_cancel_clears_locked_and_held_modifiers) ... ok
+test_cancel_delivers_button_release (__main__.ActorBindingTests.test_cancel_delivers_button_release) ... ok
+test_cancel_drains_frozen_key_events_before_transfer (__main__.ActorBindingTests.test_cancel_drains_frozen_key_events_before_transfer) ... ok
+test_cancel_preserves_other_actor (__main__.ActorBindingTests.test_cancel_preserves_other_actor) ... ok
+test_cancel_releases_active_grabs (__main__.ActorBindingTests.test_cancel_releases_active_grabs) ... ok
+test_cancel_releases_real_key_before_returning_to_idle (__main__.ActorBindingTests.test_cancel_releases_real_key_before_returning_to_idle) ... ok
+test_controller_disconnect_releases_binding (__main__.ActorBindingTests.test_controller_disconnect_releases_binding) ... ok
+test_different_applications_have_simultaneous_controllers (__main__.ActorBindingTests.test_different_applications_have_simultaneous_controllers) ... ok
+test_group_connections_share_actor_focus_and_keys (__main__.ActorBindingTests.test_group_connections_share_actor_focus_and_keys) ... ok
+test_late_connection_inherits_current_actor (__main__.ActorBindingTests.test_late_connection_inherits_current_actor) ... ok
+test_new_application_does_not_inherit_motion_history (__main__.ActorBindingTests.test_new_application_does_not_inherit_motion_history) ... ok
+test_passive_key_grab_survives_actor_close (__main__.ActorBindingTests.test_passive_key_grab_survives_actor_close) ... ok
+test_revoked_target_connection_cancels_without_closing_peer (__main__.ActorBindingTests.test_revoked_target_connection_cancels_without_closing_peer) ... ok
+test_second_actor_cannot_take_same_application (__main__.ActorBindingTests.test_second_actor_cannot_take_same_application) ... ok
+test_service_window_cannot_receive_application_binding (__main__.ActorBindingTests.test_service_window_cannot_receive_application_binding) ... ok
+test_swapped_application_observes_actor_state (__main__.ActorBindingTests.test_swapped_application_observes_actor_state) ... ok
+test_transfer_to_new_application_releases_old_keys (__main__.ActorBindingTests.test_transfer_to_new_application_releases_old_keys) ... ok
+test_transfer_to_second_actor_after_cancel (__main__.ActorBindingTests.test_transfer_to_second_actor_after_cancel) ... ok
+test_unmap_releases_binding (__main__.ActorBindingTests.test_unmap_releases_binding) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 2.361s
+
+OK

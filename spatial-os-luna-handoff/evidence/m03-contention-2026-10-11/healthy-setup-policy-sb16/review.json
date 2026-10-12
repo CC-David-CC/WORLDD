@@ -1,0 +1,57 @@
+{
+  "host": "sb16",
+  "status": "passed",
+  "source_files": {
+    "tests/native/healthy_issuer_setup.py": "608a4c9b2f99039fc378dffbd6bf9b75e9603ae3fea96cbc5addbb738d78fdbe",
+    "tests/native/test_authority_supervisor.py": "22dc62ea618f0201273df7c1717b41ec52705015835c1699e24cb25b47cae4ed"
+  },
+  "purpose": "Three bounded setup-peer regressions from staged files. Production source and binaries remain unchanged.",
+  "results": [
+    {
+      "profile": "Debug",
+      "command": [
+        "systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-fixture-policy-205e51733afa4ebc8297ef291a5d5406",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-healthy-setup-policy-03/staged/tests/native",
+        "python3",
+        "-c",
+        "import runpy,sys,unittest;sys.argv=sys.argv[1:];module=runpy.run_path(sys.argv[0],run_name='fixture_policy_module');result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(module['HealthySetupPolicyTests']));raise SystemExit(not result.wasSuccessful())",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-healthy-setup-policy-03/staged/tests/native/test_authority_supervisor.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "seconds": 0.3742934470064938
+    },
+    {
+      "profile": "ASan-UBSan",
+      "command": [
+        "systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-fixture-policy-c4f25035d5f64139af941ad7385c5534",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-healthy-setup-policy-03/staged/tests/native",
+        "python3",
+        "-c",
+        "import runpy,sys,unittest;sys.argv=sys.argv[1:];module=runpy.run_path(sys.argv[0],run_name='fixture_policy_module');result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(module['HealthySetupPolicyTests']));raise SystemExit(not result.wasSuccessful())",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-healthy-setup-policy-03/staged/tests/native/test_authority_supervisor.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "seconds": 0.38150404499901924
+    }
+  ]
+}

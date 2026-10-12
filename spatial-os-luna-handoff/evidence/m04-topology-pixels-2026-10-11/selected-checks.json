@@ -1,0 +1,16 @@
+{
+  "selected_before_execution": true,
+  "phase": "M04",
+  "invariant": "Owned parent-window reads must not expose another application through a trusted foreign-child graft. Owned pixels outside that child remain readable. Same-application children and privileged readers retain actual pixels.",
+  "checks": [
+    "Both native byte orders for foreign-child parent reads",
+    "Owned unobscured pixel positive control",
+    "Same-application child positive control",
+    "Privileged actual-content positive control"
+  ],
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "baseline_commit": "16bd70e93a32b1213b11d4b6069ad9fa1e88bef3"
+}

@@ -1,0 +1,107 @@
+{
+  "host": "sb16-2",
+  "candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "profiles": [
+    "Debug"
+  ],
+  "phase_complete": false,
+  "nodes": [
+    {
+      "case": "Debug-delay-forward01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16-2",
+        "scenario": "delay",
+        "production_issuer": "9bbab2def92c28359d5972aad9ea472887078977d8912d02699acb6164d8e7ff",
+        "ready": true,
+        "cancelled": true
+      }
+    },
+    {
+      "case": "Debug-delay-reverse01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16-2",
+        "scenario": "delay",
+        "production_issuer": "30e219c1f7b78e37125a76cb91b77ce48526df4d32fb0af5b6b26b12cdcce313",
+        "ready": true,
+        "cancelled": true
+      }
+    },
+    {
+      "case": "Debug-crash-forward01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16-2",
+        "scenario": "crash",
+        "production_issuer": "176c37b9c1242f2e6aea2cbe5299313d19ac21ddb7a4d59e8856a4636ffdb269",
+        "ready": true,
+        "crashed": true,
+        "recovered": true,
+        "retired": true
+      }
+    },
+    {
+      "case": "Debug-crash-reverse01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16-2",
+        "scenario": "crash",
+        "production_issuer": "2ee4a56c3a9593f33634a292fc6504887e8324ab14b4b1d7fba2776f2bbcb31c",
+        "ready": true,
+        "cancelled": true
+      }
+    }
+  ],
+  "files": {
+    "runs/Debug-delay-forward01/worker-review.json": "ef97da3b6707073e8b4ade7d7eb6f0da7bbf515ca03b60812ad5fa5eca37eafb",
+    "runs/Debug-delay-forward01/worker/result.json": "3457f7c0cac8e9911d6146b73a72f35089f0460e381ee17034c5276018bd1452",
+    "runs/Debug-delay-reverse01/worker-review.json": "c070460132a40c64191c5919cdb72679e9287c5ba95fd263c917fa58cf6d7ab8",
+    "runs/Debug-delay-reverse01/worker/result.json": "dbe3d2855eea5e9145f6f24b2b56e835dfa8d0ac8940ab11005b8efe91e48c15",
+    "runs/Debug-crash-forward01/worker-review.json": "0750e5ef94615dd45c0eabafbde168934b0e6e9fa27c4daf2db39848be0df7c3",
+    "runs/Debug-crash-forward01/worker/result.json": "252c4c1b942bd6c8e6e340e24a830f59764ec539060e380c83c3089fa91a534a",
+    "runs/Debug-crash-reverse01/worker-review.json": "a7ebcb79f9b95d8fe09c21c3bbb3b70a873a4837a7504611d1731b309ebbc359",
+    "runs/Debug-crash-reverse01/worker/result.json": "4cf72babcdf8110adcb66880d3746988d051762d60eec93a1ffddb0b52bd2d39",
+    "runs/Debug-delay-forward01/worker.log": "0cf05976bef72d917e1434985cef2d3d3340655408fc6a74d5ac0a203afb7f72",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2-coordinator.log": "c956c3aeb69fae238467450587040757e486be7559fb73520faf152c45d51b17",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2-bootstrap-broker.log": "60cb476e0505f790d3e8a8e9f43dd4cbc2958ae4219975af162ab044835ec95b",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2-server-0.log": "6fce78ca0fdb8456cd4bf203d8b320f0df17d20d45d8232d2a8178d11f206da8",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2-confinement.json.log": "f34f1dae5dfb740ade61df2c01876c9aef6061b72bb0dfa6412f7aba1436fb82",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2/prepare.log": "c0f55f6ad1d066a1d69c661b074150f0f739c8cdbfb26fb5d2ac4571218e6ce9",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-2/cleanup.log": "fa3935fb146bb2643256adc9bc576175765177b88b997e3b52942398660fb2b8",
+    "runs/Debug-crash-forward01/worker.log": "8560537c80ea0ddb62a269a2e4bef7c714cd13a6ac368de17830c81b61f42f3e",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2-coordinator.log": "312c7ca79075b92f622c89e31ca6cc521dd5f24ec41e502b87653d58f264ab61",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2-bootstrap-broker.log": "3e32f28c16143d6d426323790eb8b011bed5921514912ad699d38a02b3e7f3c8",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2-server-0.log": "af660d31918f485e35663443fde7e987723f5493fd51be2b636666ba6aefd94f",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2-confinement.json.log": "f34f1dae5dfb740ade61df2c01876c9aef6061b72bb0dfa6412f7aba1436fb82",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2/prepare.log": "6b6c138fc008298eb7ff12346a749f084848b1515ba004171f3b19d11c8c7d7b",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-2/cleanup.log": "344ae471dfa308c7dd18dec04c4868aceeaa1fc1a93a107f344134e9230cf07e",
+    "runs/Debug-crash-reverse01/worker.log": "749efa1749c1d5008d117830510ea0cd5521a58a8b7f60bfa8c97fd2a5b9ce06",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2-coordinator.log": "394f8b7964b515081328de9f9e60b967cb41c426891ee2c60daac05c123d7757",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2-probe.jsonl.log": "78e1d2dff47dcdfcc31a114b8c7576b123e755cb3d29ba5e579dcede33fbcf56",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2-bootstrap-broker.log": "ea69b0e1469c16cc3c08f17a827d7b47c33b505475fa102b91957c1f2e1f7d1b",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2-server-0.log": "5df6d456e02e3ab3fa6d3b447611543537789ef46cdfe8c37f73b2da9683c5b9",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2-confinement.json.log": "f34f1dae5dfb740ade61df2c01876c9aef6061b72bb0dfa6412f7aba1436fb82",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2/prepare.log": "d449e93ab5f31c1878ce83a1ed3ee684d1675e9992475b2917c7fcd17f1704de",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-2/cleanup.log": "2c24ec99677341934025759ec712e8b9ca892d676c5ffd8cde89916ca3c6b471",
+    "runs/Debug-delay-reverse01/worker.log": "a32c70266307fe5711323d0f6c6e652f1c0f537e6f5073c11474c139d80494f0",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2-coordinator.log": "dce99e405fa4a93ee62164ecc3eb45014a96a3ec7fe2bd4767964ce9b068dd65",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2-bootstrap-broker.log": "071e987908186eadbe53b6781a78b0bff3f6de582a454f9cdbf432df511ad6e6",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2-server-0.log": "3af4f08a00bee99ba87278622f918acb72a012ca192a561e38f3a08c252c5a26",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2-confinement.json.log": "f34f1dae5dfb740ade61df2c01876c9aef6061b72bb0dfa6412f7aba1436fb82",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2/prepare.log": "abaf0b3a52c52d433f754125d70e2247a25f0f53998fc76fde494edb9d4eb6bb",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-2/cleanup.log": "a61159b3f8ac825df067c4dcae678f43d704f5882085fa238daa58ba8bad821b"
+  },
+  "status": "ready_for_primary_review",
+  "excluded_directories": [
+    "private-bundle",
+    "volume"
+  ]
+}

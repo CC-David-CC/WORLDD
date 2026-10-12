@@ -1,0 +1,9 @@
+{
+  "environment": {
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/candidate-02/vendor.json",
+    "LD_LIBRARY_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0"
+  },
+  "vendor_path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0",
+  "vendor_sha256": "fa3f7f4c3a7e3cddfe09ec93d5e1f66878bd07a28643523f06bf13e64345f6b1",
+  "reason": "Exercise all 47 parent-event checks, including 19 additions, with native ASan/UBSan and GLX."
+}

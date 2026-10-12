@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe",
+    "32"
+  ],
+  "exit_code": 0,
+  "client_driver": "installed GLX; private server EGL override removed",
+  "cycles": 32
+}

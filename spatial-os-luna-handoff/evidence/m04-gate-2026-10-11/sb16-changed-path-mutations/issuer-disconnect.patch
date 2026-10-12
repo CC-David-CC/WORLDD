@@ -1,0 +1,11 @@
+--- spatialsecurity.c
++++ spatialsecurity.c
+@@ -381,7 +381,7 @@
+     release_atoms(info->client, TRUE);
+     state->closed = TRUE;
+     for (unsigned i = 1; i < MAX_CREDENTIALS; ++i)
+-        if (grants[i].active && grants[i].issuer == state->connection) grants[i].active = FALSE;
++        if (FALSE && grants[i].active && grants[i].issuer == state->connection) grants[i].active = FALSE;
+     close_revoked();
+ }
+ 

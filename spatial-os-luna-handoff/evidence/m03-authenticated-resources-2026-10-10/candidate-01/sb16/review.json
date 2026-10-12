@@ -1,0 +1,56 @@
+{
+  "host": "sb16",
+  "status": "failed",
+  "started": 1791681834.7973375,
+  "commands": [
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791681834.8073356,
+      "exit_code": 0,
+      "ended": 1791681844.0464249,
+      "sha256": "c14e8905016724713791fe7689b56f5810f5efb715071f295ae55de1bb343a6c"
+    },
+    {
+      "label": "baseline",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-01/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd",
+        "WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process"
+      ],
+      "started": 1791681844.0468605,
+      "exit_code": 1,
+      "ended": 1791681844.3685198,
+      "sha256": "f8ea47fa5cd34c3feed757b041aff9e2f071b51733725d39feddec08c3a6f8fa"
+    }
+  ],
+  "profiles": {},
+  "phase_complete": false,
+  "manifest_sha256": "a6f5599a62774a7cfe361f49a8630ef7cb2fe380bf2359eed0c405fe79bc3e8d",
+  "runner_sha256": "3a0776898b08111bc7a5327f5e154635398eb30f80c2e4e7ae155f057c95bfe6",
+  "production_basis": "m03-adapter-resources-01",
+  "attachments": {
+    "runner.py": "3a0776898b08111bc7a5327f5e154635398eb30f80c2e4e7ae155f057c95bfe6",
+    "debug-build.log": "c14e8905016724713791fe7689b56f5810f5efb715071f295ae55de1bb343a6c",
+    "baseline.log": "f8ea47fa5cd34c3feed757b041aff9e2f071b51733725d39feddec08c3a6f8fa",
+    "manifest.json": "a6f5599a62774a7cfe361f49a8630ef7cb2fe380bf2359eed0c405fe79bc3e8d"
+  },
+  "error": "AssertionError()",
+  "ended": 1791681844.3688803
+}

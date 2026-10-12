@@ -14,8 +14,160 @@
 #include "dix/screensaver_priv.h"
 #include "render/picturestr_priv.h"
 #include "Xext/xacestr.h"
+#include "regionstr.h"
 #include "windowstr.h"
 #include "spatialsecurity.h"
+
+static DevPrivateKeyRec selection_namespace_key;
+
+static Bool has_foreign_viewable_child(ClientPtr client, WindowPtr parent)
+{
+    WindowPtr child = parent->firstChild;
+    while (child) {
+        if (child->viewable) {
+            if (!SpatialSecurityVisibleResource(client, child->drawable.id) &&
+                RegionNotEmpty(&child->borderClip))
+                return TRUE;
+            if (child->firstChild) {
+                child = child->firstChild;
+                continue;
+            }
+        }
+
+        while (child != parent && !child->nextSib)
+            child = child->parent;
+        if (child == parent)
+            break;
+        child = child->nextSib;
+    }
+    return FALSE;
+}
+
+Bool SpatialSecurityHasForeignInferiors(ClientPtr client, DrawablePtr drawable)
+{
+    if (!SpatialSecurityEnabled() || SpatialSecurityPrivileged(client) ||
+        drawable->type != DRAWABLE_WINDOW)
+        return FALSE;
+    return has_foreign_viewable_child(client, (WindowPtr) drawable);
+}
+
+static Bool filter_window_pixel_regions(ClientPtr client, WindowPtr parent,
+                                        RegionPtr filtered)
+{
+    WindowPtr child = parent->firstChild;
+    while (child) {
+        if (child->viewable) {
+            /* Apply ancestors before descendants. An authorized ancestor's
+             * borderClip includes foreign descendants and must not restore
+             * their pixels after those descendants have been excluded.
+             */
+            Bool owned = SpatialSecurityVisibleResource(client, child->drawable.id);
+            if (!(owned ? RegionUnion(filtered, filtered, &child->borderClip)
+                        : RegionSubtract(filtered, filtered, &child->borderClip)))
+                return FALSE;
+            if (child->firstChild) {
+                child = child->firstChild;
+                continue;
+            }
+        }
+
+        while (child != parent && !child->nextSib)
+            child = child->parent;
+        if (child == parent)
+            break;
+        child = child->nextSib;
+    }
+    return TRUE;
+}
+
+int SpatialSecurityFilterWindowImage(ClientPtr client, DrawablePtr drawable,
+                                     RegionPtr *filtered_region)
+{
+    RegionPtr filtered;
+    *filtered_region = NULL;
+    if (!SpatialSecurityEnabled() || SpatialSecurityPrivileged(client) ||
+        drawable->type != DRAWABLE_WINDOW)
+        return Success;
+
+    filtered = RegionDuplicate(&((WindowPtr) drawable)->borderClip);
+    if (!filtered)
+        goto bad_alloc;
+    if (!filter_window_pixel_regions(client, (WindowPtr) drawable, filtered) ||
+        !RegionIntersect(filtered, filtered, &((WindowPtr) drawable)->borderClip))
+        goto bad_alloc;
+
+    *filtered_region = filtered;
+    return Success;
+
+bad_alloc:
+    if (filtered) RegionDestroy(filtered);
+    return BadAlloc;
+}
+
+static void window_image_access(CallbackListPtr *list, void *unused, void *data)
+{
+    XaceWindowImageAccessRec *rec = data;
+    RegionPtr filtered = NULL;
+    (void)list; (void)unused;
+
+    rec->status = SpatialSecurityFilterWindowImage(rec->client,
+                                                   &rec->pWin->drawable,
+                                                   &filtered);
+    if (rec->status != Success || !filtered)
+        return;
+
+    if (!RegionCopy(rec->pVisibleRegion, filtered))
+        rec->status = BadAlloc;
+    RegionDestroy(filtered);
+}
+
+static void drawable_access(CallbackListPtr *list, void *unused, void *data)
+{
+    XaceDrawableAccessRec *rec = data;
+    (void)list; (void)unused;
+
+    if (rec->pGC->subWindowMode == IncludeInferiors &&
+        SpatialSecurityHasForeignInferiors(rec->client, rec->pDraw))
+        rec->status = BadAccess;
+}
+
+Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered)
+{
+    if (SpatialSecurityPrivileged(client)) return FALSE;
+    if ((event->u.u.type & 0x7f) == ConfigureRequest) {
+        XID sibling = event->u.configureRequest.sibling;
+        if (sibling == None || SpatialSecurityVisibleResource(client, sibling)) return FALSE;
+        *filtered = *event;
+        filtered->u.configureRequest.sibling = None;
+        filtered->u.configureRequest.valueMask &= ~CWSibling;
+        return TRUE;
+    }
+    if ((event->u.u.type & 0x7f) == ReparentNotify) {
+        XID parent_id = event->u.reparent.parent;
+        if (parent_id == None || SpatialSecurityVisibleResource(client, parent_id)) return FALSE;
+        WindowPtr parent;
+        if (dixLookupWindow(&parent, parent_id, serverClient, DixReadAccess) == Success &&
+            parent == parent->drawable.pScreen->root) return FALSE;
+        *filtered = *event;
+        filtered->u.reparent.parent = None;
+        return TRUE;
+    }
+    if ((event->u.u.type & 0x7f) != ConfigureNotify ||
+        event->u.configureNotify.aboveSibling == None ||
+        SpatialSecurityVisibleResource(client, event->u.configureNotify.aboveSibling)) return FALSE;
+    *filtered = *event;
+    filtered->u.configureNotify.aboveSibling = None;
+    WindowPtr window;
+    if (dixLookupWindow(&window, event->u.configureNotify.window, serverClient, DixReadAccess) == Success) {
+        for (WindowPtr sibling = window->nextSib; sibling; sibling = sibling->nextSib) {
+            if (SpatialSecurityVisibleResource(client, sibling->drawable.id)) {
+                filtered->u.configureNotify.aboveSibling = sibling->drawable.id;
+                break;
+            }
+        }
+    }
+    return TRUE;
+}
 
 static Bool subset(Mask requested, Mask allowed)
 {
@@ -59,6 +211,15 @@ static void resource_access(CallbackListPtr *list, void *unused, void *data)
                 return;
             }
         }
+        if (rec->rtype == PictureType) {
+            PicturePtr picture = rec->res;
+            if (picture->pDrawable && picture->pDrawable->type == DRAWABLE_WINDOW &&
+                picture->subWindowMode == IncludeInferiors &&
+                SpatialSecurityHasForeignInferiors(rec->client, picture->pDrawable)) {
+                rec->status = BadAccess;
+                return;
+            }
+        }
         if ((rec->access_mode & DixCreateAccess) && rec->rtype == X11_RESTYPE_WINDOW)
             ((WindowPtr)rec->res)->forcedBG = TRUE;
         return;
@@ -98,11 +259,43 @@ static void selection_access(CallbackListPtr *list, void *unused, void *data)
 {
     XaceSelectionAccessRec *rec = data;
     (void)list; (void)unused;
-    if (SpatialSecurityPrivileged(rec->client)) return;
     Selection *selection = *rec->ppSel;
-    if (selection && selection->client &&
-        !SpatialSecuritySameApplication(rec->client, selection->client))
+    SpatialSelectionNamespace wanted;
+    if (!selection || !SpatialSecuritySelectionNamespace(rec->client, &wanted)) {
         rec->status = BadAccess;
+        return;
+    }
+    if (!SpatialSecurityPrivileged(rec->client) &&
+        !SpatialSecurityAtomVisible(rec->client, selection->selection)) {
+        rec->status = BadAtom;
+        return;
+    }
+    /* DIX finds a selection by public atom first. Refine that lookup using
+     * immutable application labels before it can observe or change ownership.
+     */
+    for (Selection *candidate = CurrentSelections; candidate; candidate = candidate->next) {
+        if (candidate->selection != selection->selection) continue;
+        SpatialSelectionNamespace *label = dixLookupPrivate(&candidate->devPrivates,
+                                                            &selection_namespace_key);
+        if (label->workspace_size == wanted.workspace_size &&
+            label->application_size == wanted.application_size &&
+            !memcmp(label->workspace, wanted.workspace, wanted.workspace_size) &&
+            !memcmp(label->application, wanted.application, wanted.application_size)) {
+            *rec->ppSel = candidate;
+            return;
+        }
+    }
+    Selection *created = dixAllocateObjectWithPrivates(Selection, PRIVATE_SELECTION);
+    if (!created) {
+        rec->status = BadAlloc;
+        return;
+    }
+    created->selection = selection->selection;
+    *(SpatialSelectionNamespace *)dixLookupPrivate(&created->devPrivates,
+                                                   &selection_namespace_key) = wanted;
+    created->next = CurrentSelections;
+    CurrentSelections = created;
+    *rec->ppSel = created;
 }
 
 static void send_access(CallbackListPtr *list, void *unused, void *data)
@@ -120,7 +313,36 @@ static void receive_access(CallbackListPtr *list, void *unused, void *data)
 {
     XaceReceiveAccessRec *rec = data;
     (void)list; (void)unused;
-    if (!SpatialSecurityVisibleResource(rec->client, rec->pWin->drawable.id)) rec->status = BadAccess;
+    if (!SpatialSecurityVisibleResource(rec->client, rec->pWin->drawable.id)) {
+        rec->status = BadAccess;
+        return;
+    }
+    /* A subscription to an owned parent does not grant its foreign children.
+     * Inspect native core fields before any per-recipient byte swapping.
+     * Generic extension events do not use this core layout.
+     */
+    for (int i = 0; i < rec->count; ++i) {
+        const xEvent *event = &rec->events[i];
+        XID subject = None;
+        switch (event->u.u.type & 0x7f) {
+        case CreateNotify: subject = event->u.createNotify.window; break;
+        case DestroyNotify: subject = event->u.destroyNotify.window; break;
+        case UnmapNotify: subject = event->u.unmapNotify.window; break;
+        case MapNotify: subject = event->u.mapNotify.window; break;
+        case MapRequest: subject = event->u.mapRequest.window; break;
+        case ReparentNotify: subject = event->u.reparent.window; break;
+        case ConfigureNotify: subject = event->u.configureNotify.window; break;
+        case ConfigureRequest: subject = event->u.configureRequest.window; break;
+        case GravityNotify: subject = event->u.gravity.window; break;
+        case ResizeRequest: subject = event->u.resizeRequest.window; break;
+        case CirculateNotify:
+        case CirculateRequest: subject = event->u.circulate.window; break;
+        }
+        if (subject != None && !SpatialSecurityVisibleResource(rec->client, subject)) {
+            rec->status = BadAccess;
+            return;
+        }
+    }
 }
 
 static void server_access(CallbackListPtr *list, void *unused, void *data)
@@ -247,7 +469,11 @@ static void extension_dispatch(CallbackListPtr *list, void *unused, void *data)
 
 void SpatialSecurityPolicyInit(void)
 {
-    if (!XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
+    if (!dixRegisterPrivateKey(&selection_namespace_key, PRIVATE_SELECTION,
+                               sizeof(SpatialSelectionNamespace)) ||
+        !XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
+        !XaceRegisterCallback(XACE_WINDOW_IMAGE_ACCESS, window_image_access, NULL) ||
+        !XaceRegisterCallback(XACE_DRAWABLE_ACCESS, drawable_access, NULL) ||
         !XaceRegisterCallback(XACE_PROPERTY_ACCESS, property_access, NULL) ||
         !XaceRegisterCallback(XACE_SELECTION_ACCESS, selection_access, NULL) ||
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||
@@ -264,6 +490,8 @@ void SpatialSecurityPolicyInit(void)
 void SpatialSecurityPolicyReset(void)
 {
     XaceDeleteCallback(XACE_RESOURCE_ACCESS, resource_access, NULL);
+    XaceDeleteCallback(XACE_WINDOW_IMAGE_ACCESS, window_image_access, NULL);
+    XaceDeleteCallback(XACE_DRAWABLE_ACCESS, drawable_access, NULL);
     XaceDeleteCallback(XACE_PROPERTY_ACCESS, property_access, NULL);
     XaceDeleteCallback(XACE_SELECTION_ACCESS, selection_access, NULL);
     XaceDeleteCallback(XACE_SEND_ACCESS, send_access, NULL);

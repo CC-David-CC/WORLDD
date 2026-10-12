@@ -1,0 +1,10 @@
+{
+  "pid": 770575,
+  "samples": [
+    {
+      "elapsed": 0.00015520900342380628,
+      "wchan": "ep_poll",
+      "status": "Name:\tXvfb\nUmask:\t0002\nState:\tR (running)\nTgid:\t770575\nNgid:\t0\nPid:\t770575\nPPid:\t770329\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t64\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t770575\nNSpid:\t770575\nNSpgid:\t770210\nNSsid:\t770210\nKthread:\t0\nVmPeak:\t21474981084 kB\nVmSize:\t21474964664 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   76792 kB\nVmRSS:\t   76792 kB\nRssAnon:\t   39132 kB\nRssFile:\t   37660 kB\nRssShmem:\t       0 kB\nVmData:\t15032463936 kB\nVmStk:\t     132 kB\nVmExe:\t   11944 kB\nVmLib:\t   11552 kB\nVmPTE:\t    1716 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000000418064ee\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t4\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n"
+    }
+  ]
+}

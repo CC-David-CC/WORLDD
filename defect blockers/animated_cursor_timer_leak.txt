@@ -1,0 +1,40 @@
+﻿Defect: Animated cursor timer leak
+Status: Confirmed. A tested fix is in open PR #3860.
+Affected file: Xext/render/animcur.c
+Affected function: AnimCurUnrealizeCursor
+Cause: AnimCursorCreate allocates a timer. Final cursor destruction does not free it.
+Impact: Each destroyed animated cursor leaks 40 bytes on the tested LP64 build.
+The leak occurs during ordinary operation, including cursors that were never displayed.
+Evidence: Fresh upstream master 71f28aec8b45f52051c5264ca5a40c5babad369d leaked 2600 bytes in 65 timer allocations.
+Fix: Call TimerFree(ac->timer) inside the existing screen-zero cleanup block, before freeing frame cursors.
+Validation: The minimal fix passed 32 unused and 32 displayed cursor lifecycles on one screen without sanitizer errors.
+Limit: Two-screen testing still fails in separate Xvfb cleanup. It does not establish full two-screen acceptance.
+PR: https://github.com/X11Libre/xserver/pull/3860
+Branch: fix/animated-cursor-timer-leak
+Pushed commit: df4104269a2bde4ec1a87dbfaac3d25ac377cbb6
+Proposed patch name: render: free animated cursor timers on destruction
+Raw baseline evidence on sb16: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-cursor-upstream-missing-03
+Raw minimal-fix evidence on sb16: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-cursor-minimal-witness-01
+Scope: This fix releases the timer. It does not resolve shared-pointer animation or device-disable defects.
+
+Release backports:
+- release/25.0: fix/animated-cursor-timer-leak-25.0, commit 626fce12562ca431394a1bd6d7ec2ea6fb35af9e on sb16.
+- release/25.1: fix/animated-cursor-timer-leak-25.1, commit 8859d2e50d49aab3024c6c198dd1f23eb3cd27d6 on sb16-2.
+- release/25.2: fix/animated-cursor-timer-leak-25.2, commit 9b7a0c16305d600de7333f42de63e20c27183b9c on sb16-2.
+
+Validation: ASan/UBSan Xvfb builds passed with GLX disabled. Each release passed the existing cursor-witness lifetime test. Each test completed 32 unused and 32 retained/displayed cursor lifecycles without a sanitizer report. Builds used host-local xorgproto 2024.1. System packages stayed unchanged.
+
+The release branches remain local. No release backport PRs exist. AGENTS.md line 368 prohibits GitHub publishing for this task.
+
+Proposed patch:
+1. In AnimCurUnrealizeCursor(), inside the existing pScreen->myNum == 0 block, call TimerFree(ac->timer) before releasing frame cursor references.
+2. Keep the screen-0 guard so cleanup runs once across screens.
+3. Do not use TimerCancel(); it removes the timer from the queue but does not free its allocation.
+
+Regression checks:
+- Create and destroy an animated cursor without displaying it.
+- Display, cancel, then destroy an animated cursor.
+- Repeat creation and destruction and confirm no OsTimerRec leak.
+- Run with multiple screens and confirm no double-free.
+
+Status: minimal fix is already in PR #3860: https://github.com/X11Libre/xserver/pull/3860. The disposable upstream witness passed one-screen lifetime cases after the fix. The two-screen shutdown test exposes a separate Xvfb defect.

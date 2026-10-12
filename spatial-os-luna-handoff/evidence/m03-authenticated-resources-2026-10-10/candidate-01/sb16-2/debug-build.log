@@ -1,0 +1,9 @@
+[0/2] Re-checking globbed directories...
+[1/8] Building CXX object CMakeFiles/spatial-issuer-client.dir/src/identity/client_main.cpp.o
+[2/8] Linking CXX executable spatial-issuer-client
+[3/8] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/issuer.cpp.o
+[4/8] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[5/8] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/tls_server.cpp.o
+[6/8] Linking CXX static library libspatial-issuer.a
+[7/8] Building CXX object CMakeFiles/identityd.dir/src/identity/issuer_main.cpp.o
+[8/8] Linking CXX executable identityd

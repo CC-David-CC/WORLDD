@@ -1,0 +1,14 @@
+{
+  "selected_before_execution": true,
+  "phase": "M04",
+  "checks": [
+    "Remove QueryTree parent filter: expect exactly two parent-query failures.",
+    "Bypass ReparentNotify parent filter: expect exactly two parent-event failures.",
+    "Bypass core child-event authorization: expect exactly twelve child-event failures."
+  ],
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "limits": "Mutations use isolated copied source and ordinary Debug servers. Run sequentially after primary builds finish. Preserve raw failures. Original source must remain unchanged."
+}

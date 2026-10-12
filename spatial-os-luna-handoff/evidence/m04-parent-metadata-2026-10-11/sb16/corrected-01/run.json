@@ -1,0 +1,116 @@
+{
+  "phase_complete": false,
+  "inputs_sha256": {
+    "CMakeLists.txt": "0854bb4215ae873b52cf84a810999f9bfe1afe9003374c69e365cefc38399d6f",
+    "server/base.lock.json": "62549c50b5f9ca9ec4c73ea5e52106adb7c408f226cb53eb114188cc9aa88d4f",
+    "server/xlibre/spatialpolicy.c": "eb2060a9787ac5606a854f59dc7bbaf7561a7febb165ab535e166e93913dfb95",
+    "server/patches/0010-private-parent-metadata.patch": "e6aef6659ad89d227ed4d4cf11492d651822fa44ae44eb3b17506a04f5704483",
+    "tests/native/test_parent_metadata.py": "86bae321d829d3d4c11f7404797f297c58de59b8accc9696de3b2716580886f5",
+    "tools/qualify_atom_increment.py": "3d592761fcbbaffbae3a95e50b6b5212b27f4d1be67700e8a2b288b26fe9c097"
+  },
+  "environment": {
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-diagnosis-2026-10-11/patched-ab-02/vendor.json",
+    "LD_LIBRARY_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/src/gallium/targets/dri:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/src/gbm:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/subprojects/expat-2.5.0"
+  },
+  "commands": [
+    {
+      "name": "debug-build",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tools/build_xserver.py",
+        "--evidence-dir",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/debug-build"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "debug-runtime-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "debug-helper-build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+        "-j2",
+        "--target",
+        "spatial-security-auth",
+        "spatial-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "debug-selected",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tools/qualify_atom_increment.py",
+        "--server-build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/debug-build/run.json",
+        "--runtime-build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+        "--evidence",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/debug-selected"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "sanitize-build",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tools/build_xserver.py",
+        "--evidence-dir",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/sanitize-build",
+        "--sanitize"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "sanitize-runtime-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "sanitize-helper-build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "-j2",
+        "--target",
+        "spatial-security-auth",
+        "spatial-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "sanitize-selected",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tools/qualify_atom_increment.py",
+        "--server-build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/sanitize-build/run.json",
+        "--runtime-build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "--evidence",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/sanitize-selected"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_unchanged": true,
+  "status": "passed"
+}

@@ -177,6 +177,39 @@ class SessionReplacementTests(existing.SessionApplicationTests):
         self.assertEqual(receipt.request.owner, self.owner.launch)
         self.finish_session()
 
+    def test_crash_replacement_keeps_committed_edit_and_discards_preview(self):
+        self.held_application()
+        world = self.management('world.info')
+        self.management('world.create', entity=dict(id='crash-object', kind='object',
+            room=world['entry_room'], pose=pose((.25, 0, -1))))
+        self.act(object_grab=core.ObjectGrabRequest(id='crash-object'))
+        committed = core.Pose(position=core.Vec3(x=.35, z=-1), orientation=core.Quaternion(w=1))
+        self.act(object_move=core.ObjectMoveRequest(pose=committed))
+        self.act(object_release=core.ObjectReleaseRequest(commit=True))
+        def observed():
+            visible = self.act(observe=core.ActorObserveRequest(width=127, height=95)).observation.visible
+            return next(item.pose for item in visible if item.id == 'crash-object')
+        self.assertEqual(observed(), committed)
+        self.act(object_grab=core.ObjectGrabRequest(id='crash-object'))
+        preview = core.Pose(position=core.Vec3(x=-.35, z=-1), orientation=core.Quaternion(w=1))
+        self.act(object_move=core.ObjectMoveRequest(pose=preview))
+        self.assertEqual(observed(), preview)
+        request = self.replacement()
+        # No checkpoint or graceful world shutdown occurs before SIGKILL.
+        self.retire_old_world()
+        self.assertEqual(select.select([self.old_stream], [], [], 3)[0], [self.old_stream])
+        self.assertEqual(self.old_stream.recv(1), b'')
+        self.start_replacement(request)
+        denied = self.actor_call(self.stream, inspect=session.WorldSessionInspect())
+        self.assertEqual(denied.error.code, core.UNAUTHORIZED)
+        self.assertEqual(self.authenticate().world_id, world['world_id'])
+        self.assertEqual(observed(), committed)
+        self.act(object_grab=core.ObjectGrabRequest(id='crash-object'))
+        self.act(object_release=core.ObjectReleaseRequest(commit=False))
+        self.assertEqual(self.request(retire_world=self.old_owner).retirement, self.retirement)
+        self.released()
+        self.stop_replacement()
+
     def test_replacement_synchronizes_revocation_before_actor_admission(self):
         self.held_application(); request = self.replacement(); self.retire_old_world()
         operation = identity.IssuerOperation(identity_revoke=identity.IdentityRevoke(

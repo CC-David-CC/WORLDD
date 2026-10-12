@@ -5,6 +5,7 @@ import "native_scope.proto";
 import "issuer.proto";
 import "grants.proto";
 import "broker.proto";
+import "storage.proto";
 
 // Private supervisor context. Recording this does not authorize issuer activation.
 message AuthorityLaunchBinding {
@@ -67,6 +68,12 @@ message AuthoritySupervisorConfig {
   repeated uint32 inherited_source_fds = 10;
   optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
   optional uint32 compositor_native_target_fd = 12; // Sealed issued compositor credential; never the supervisor credential.
+  // Policy template. delegated_cgroup must be empty; the supervisor binds its owned scope.
+  spatial.workspace.v1.BrokerResourceConfig broker_resources = 13;
+  optional uint32 broker_resource_target_fd = 14; // Sealed binary policy consumed by the broker.
+  spatial.workspace.v1.StorageOwnerLaunchConfig broker_storage_owner = 15;
+  optional uint32 broker_storage_target_fd = 16; // Private owner channel; never inherited by applications.
+  bool require_broker_confinement = 17; // Mandatory resource and storage profile for an operator broker.
 }
 message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
 message AuthorityLaunchQuery {}

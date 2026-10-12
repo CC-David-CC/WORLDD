@@ -1,5 +1,6 @@
 #include "workspace/process.hpp"
 #include "workspace/native_launch.hpp"
+#include "workspace/resources.hpp"
 #include "core/protocol.hpp"
 #include <cerrno>
 #include <cstddef>
@@ -24,7 +25,7 @@ void deny(int syscall_number) {
 }
 int main(int argc,char** argv) {
     try {
-        if (argc != 5) throw std::invalid_argument("Expected project, repository, state, and fault mode");
+        if (argc != 6) throw std::invalid_argument("Expected project, repository, state, fault mode, and resource configuration");
         const std::string mode=argv[4];
         if (mode!="normal" && mode!="deny-wait" && mode!="deny-signal" && mode!="destructor-deny-wait" && mode!="destructor-deny-signal")
             throw std::invalid_argument("Invalid fixture fault");
@@ -33,7 +34,11 @@ int main(int argc,char** argv) {
         spatial::wire::ProcessLaunchRequest request;
         if (!request.ParseFromString(bytes)) throw std::invalid_argument("Invalid launch request");
         spatial::validate_message(request);
-        spatial::ApplicationProcess process(argv[1],argv[2],argv[3],true,request);
+        spatial::WorkspaceResources resources(argv[5]);
+        spatial::workspace::v1::LaunchRequest launch;
+        launch.set_workspace("fixture"); launch.set_actor("fixture"); *launch.mutable_command() = request;
+        auto reservation = resources.prepare(launch, {argv[1], argv[2], argv[3]});
+        spatial::ApplicationProcess process(argv[1],argv[2],argv[3],true,request,[] {},{},std::move(reservation));
         spatial::workspace::v1::AppEvent ready;ready.set_protocol_version(1);ready.set_started(true);
         spatial::write_frame(std::cout,ready);
         if (!spatial::read_frame(std::cin,bytes)) throw std::runtime_error("Missing stop request");

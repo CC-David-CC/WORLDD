@@ -1,0 +1,7 @@
+{
+  "synthetic_counterexample": "Append one additional positive-case unittest ERROR to the actual query-parent mutation log.",
+  "original_condition": "detected = result.returncode != 0 and failures == expected and count and int(count[1]) == 28",
+  "original_runner_sha256": "02f4ad4d3212623d1c298052008f016ad583ebfcf05329181623afe027030c0d",
+  "old_result": true,
+  "corrected_result": false
+}

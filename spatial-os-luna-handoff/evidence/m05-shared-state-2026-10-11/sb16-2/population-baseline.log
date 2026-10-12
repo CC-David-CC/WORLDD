@@ -1,0 +1,14 @@
+test_actor_population_is_visible_in_shared_room (__main__.SharedCrossHostTests.test_actor_population_is_visible_in_shared_room) ... FAIL
+
+======================================================================
+FAIL: test_actor_population_is_visible_in_shared_room (__main__.SharedCrossHostTests.test_actor_population_is_visible_in_shared_room)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-qualified-20261011/spatial-os-luna-handoff/local/m05-shared-01/test_world_shared_state.py", line 193, in test_actor_population_is_visible_in_shared_room
+    self.assertIn(opened.opened.actor_id, actors)
+AssertionError: 'identity:88ad1fe107b529b8c79e3ae34689da9d60d4c0f767f77c6a337f1d336704f1bb:eafa14cf34ee41ceb52dc0e13cedf92af27b54ca5b707ec62ed6e08208ebd53b' not found in {}
+
+----------------------------------------------------------------------
+Ran 1 test in 4.645s
+
+FAILED (failures=1)

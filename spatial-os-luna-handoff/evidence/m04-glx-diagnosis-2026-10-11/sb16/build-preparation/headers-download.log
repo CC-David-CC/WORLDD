@@ -1,0 +1,4 @@
+Get:1 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libgles-dev amd64 1.7.0-1build1 [50.5 kB]
+Get:2 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libglvnd-core-dev amd64 1.7.0-1build1 [13.6 kB]
+Get:3 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libglvnd-dev amd64 1.7.0-1build1 [3,198 B]
+Fetched 67.2 kB in 0s (232 kB/s)

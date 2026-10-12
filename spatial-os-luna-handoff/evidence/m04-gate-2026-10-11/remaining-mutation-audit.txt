@@ -1,0 +1,38 @@
+M04 remaining mutation audit
+
+Candidate: f74c6b579c6149f41e1cbd17b025eb92fd453009.
+Status: pending reassessment. This file does not qualify a requirement.
+
+Parent/event mutations are reconciled with the frozen candidate.
+Read event-mutation-reconciliation.json for source hashes and exact failures.
+
+Other task requirements explicitly require independent mutation detection.
+The complete CTest gate checks ordinary behavior. It does not repeat these mutations.
+Do not treat ordinary gate success as proof that a bypass mutation is detected.
+
+Identity: authentication bypass and missing issuer-disconnect revocation.
+Historical evidence: evidence/native-security-identity-2026-10-07/sb16/mutation.
+
+Resource access: missing resource denial, root enumeration filtering, and parent-relative pixel authorization.
+Historical evidence: evidence/native-resource-access-2026-10-07/sb16/mutation-02.
+
+Device administration: one isolated bypass for each of six protected configuration requests.
+Historical evidence: evidence/native-device-administration-2026-10-08/<host>/mutations.
+
+Global administration: server callback, screen-saver callback, explicit ungrab guard,
+temporary-resource reap guard, and authority ordering before the -ac shortcut.
+Historical evidence: evidence/native-global-administration-2026-10-08/<host>/mutations.
+
+Extension isolation: independent mutation detection is required by application.extension_isolation.
+Locate and inspect its exact recorded changes and failures before assessing reuse.
+
+Next action after the running local gate
+
+Compare each historical mutation, affected production path, and witness with the frozen candidate.
+Reconcile unchanged checks with their recorded source and raw failure evidence.
+Repeat checks whose affected logic or witness changed, using isolated source copies.
+Record the selected mutations and expected failures before execution.
+Keep the frozen production source unchanged. Preserve both failing mutants and passing controls.
+Run Linux builds only on sb16 and sb16-2.
+Do not use a build failure or fixture failure as evidence of mutation detection.
+Audit these results with the complete gate and cross-host evidence before closing M04.

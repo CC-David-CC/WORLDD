@@ -1,0 +1,20 @@
+M03 storage-launch checkpoint, 2026-10-11
+
+M01 and M02 are qualified. M03 remains active. M04-M16 remain incomplete.
+
+Both hosts passed 106 focused regression cases.
+Both passed five real storage/Git integration scenarios.
+Kernel witnesses confirmed the root owner's resource limits and retained broker identity.
+The memory-admission correction preserves all hard limits.
+
+Evidence: spatial-os-luna-handoff/evidence/m03-storage-launch-2026-10-11/primary-review.json.
+The existing m03/resource-boundary branch contains this coherent increment.
+Publish reviewed commits to box-git. New GitHub publishing is not authorized.
+
+Remaining work
+Wire the launcher into normal session and direct broker entry points.
+Provision the operator data volume and require the storage profile.
+Run the launch-failure matrix and record exact cleanup/recovery results.
+Test issuer availability and immediate revocation under competing storage writes.
+Freeze the candidate and run the complete M03 gate on both hosts.
+Advance to M04 only after M03 qualifies.

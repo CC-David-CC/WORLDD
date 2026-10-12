@@ -1,0 +1,19 @@
+test_include_inferiors_copy_does_not_read_foreign_child (__main__.TopologyPixelTests.test_include_inferiors_copy_does_not_read_foreign_child) ... ok
+test_include_inferiors_copy_plane_does_not_read_foreign_child (__main__.TopologyPixelTests.test_include_inferiors_copy_plane_does_not_read_foreign_child) ... ok
+test_include_inferiors_fill_does_not_write_foreign_child (__main__.TopologyPixelTests.test_include_inferiors_fill_does_not_write_foreign_child) ... ok
+test_parent_get_image_does_not_read_foreign_child_pixels (__main__.TopologyPixelTests.test_parent_get_image_does_not_read_foreign_child_pixels) ... ok
+test_parent_get_image_preserves_owned_pixels_outside_foreign_child (__main__.TopologyPixelTests.test_parent_get_image_preserves_owned_pixels_outside_foreign_child) ... ok
+test_privileged_parent_get_image_reads_actual_child (__main__.TopologyPixelTests.test_privileged_parent_get_image_reads_actual_child) ... ok
+test_privileged_render_include_inferiors_keeps_access (__main__.TopologyPixelTests.test_privileged_render_include_inferiors_keeps_access) ... ok
+test_render_include_inferiors_fill_cannot_write_foreign_child (__main__.TopologyPixelTests.test_render_include_inferiors_fill_cannot_write_foreign_child) ... ok
+test_render_include_inferiors_keeps_same_application_behavior (__main__.TopologyPixelTests.test_render_include_inferiors_keeps_same_application_behavior) ... ok
+test_same_application_include_inferiors_copy_plane_remains_usable (__main__.TopologyPixelTests.test_same_application_include_inferiors_copy_plane_remains_usable) ... ok
+test_same_application_include_inferiors_copy_remains_usable (__main__.TopologyPixelTests.test_same_application_include_inferiors_copy_remains_usable) ... ok
+test_same_application_include_inferiors_fill_remains_usable (__main__.TopologyPixelTests.test_same_application_include_inferiors_fill_remains_usable) ... ok
+test_same_application_parent_get_image_reads_its_child (__main__.TopologyPixelTests.test_same_application_parent_get_image_reads_its_child) ... ok
+test_swapped_parent_get_image_does_not_read_foreign_child_pixels (__main__.TopologyPixelTests.test_swapped_parent_get_image_does_not_read_foreign_child_pixels) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.343s
+
+OK

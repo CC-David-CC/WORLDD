@@ -1,0 +1,12 @@
+{
+  "host": "sb16",
+  "boot_id": "c6ca5c10-cda1-47b2-9bdd-9e45cf3e2651",
+  "uptime_seconds": 14.11,
+  "sudo_uid": 0,
+  "source_preserved": true,
+  "verified_at": "2026-10-11T06:40:51.351216+00:00",
+  "previous_boot_id": "74ac716f-83ac-4d1c-9e61-045a5c6f8179",
+  "reboot_confirmed": true,
+  "ssh_passwordless": true,
+  "sudo_passwordless": true
+}

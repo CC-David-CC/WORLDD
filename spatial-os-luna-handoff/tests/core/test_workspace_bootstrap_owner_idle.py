@@ -5,6 +5,17 @@ import test_workspace_bootstrap as existing
 
 
 class BootstrapOwnerIdleTests(existing.BootstrapWorkspaceFixture):
+    def config_file(self, endpoint_port=None, **overrides):
+        overrides.setdefault('io_timeout_ms', 5000)
+        return super().config_file(endpoint_port, **overrides)
+
+    def connect(self, *args, **kwargs):
+        # A durable profile write can exceed the old two-second peer timeout.
+        # Keep the server idle deadline and the explicit idle wait unchanged.
+        peer = super().connect(*args, **kwargs)
+        peer.stream.settimeout(5)
+        return peer
+
     def workspace(self, *args, **kwargs):
         world = super().workspace(*args, **kwargs)
         time.sleep(self.config.idle_timeout_ms / 1000 + .2)

@@ -1,0 +1,15 @@
+{
+  "host": "sb16",
+  "status": "verified_failed_first_sanitizer_matrix",
+  "attachments_verified": 4406,
+  "core_suites": 135,
+  "failed_suites": [
+    "authority-supervisor",
+    "authority-broker-handoff-regressions",
+    "authenticated-resources",
+    "native-application-launch",
+    "core-protocol"
+  ],
+  "phase_complete": false,
+  "disposition": "Combined correction running. Original sources and failed results remain preserved."
+}

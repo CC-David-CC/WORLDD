@@ -1,0 +1,11 @@
+{
+  "status": "collected_completed_failed_sanitizer_profile",
+  "phase_complete": false,
+  "cause": "CMake-embedded prior evidence paths cause four setup suites to hit FileExistsError.",
+  "files": {
+    "ASan-UBSan/core.log": "bc973ce8b0047c353d96ab3cc4d05d566ef3096363d0b912a8ecb0eba750b2b9",
+    "ASan-UBSan/core.xml": "a4368ae8c2443999a18e69bf0741c69b6661d9cd42da25c35bc58edff4e17b4b",
+    "ASan-UBSan/inventory.json": "83435ea2866064b26a0e1d6ded96e0eff213fc2c0e7be21d64e5f8d2815df913",
+    "review.json": "9d73e9003b5a040765b5beb20751b344c211f4736e5b8eb637fdcdd76c727e13"
+  }
+}

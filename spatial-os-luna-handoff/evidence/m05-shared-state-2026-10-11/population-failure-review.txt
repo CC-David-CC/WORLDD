@@ -1,0 +1,34 @@
+Actor population failure review
+
+The original M04 binaries fail the new visible-actor assertion on both hosts.
+The authenticated second actor is absent from compositor-derived visible representations.
+The production scene builder omitted ACTOR entities.
+The correction adds actor geometry and overlays current actor poses on the persistent snapshot.
+
+Early Debug attempts retained in population-first-Debug.log
+The new render configuration omitted required motion parameters. These are now explicit.
+Two new fixture entities omitted required labels. Labels are now supplied.
+A second aim request reused sequence 1. It now uses sequence 2.
+Non-finite sizes fail at protobuf validation before actor-specific validation.
+The test now checks that exact non-finite rejection reason.
+No rejection assertion was removed.
+
+The older rotated-camera test excludes a disconnected actor from its color map.
+Persistent actor geometry deliberately changes that behavior.
+The expected color map now includes that actor. Exact pixel and picking checks remain.
+Read docs/M05_ACTOR_REPRESENTATION.txt for the explicit contract increment.
+
+Timing failures during concurrent compilation
+sb16 timed out while registering an authority participant.
+The issuer log records a 2201 ms event-loop work interval.
+sb16-2 failed participant activation at its configured reply-header deadline.
+Its log records elapsed_ms=705 and a 767 ms issuer event-loop work interval.
+These are distinct setup paths before the tested authority invariant.
+The sb16 correction run also encountered a five-second private-world TLS handshake timeout.
+That run passed the expanded actor-population test, including movement, restoration, and occlusion.
+The exact cause of the handshake delay is not established.
+
+Do not relabel these original runs as passing.
+Repeat the selected suites after both builds finish, retaining fresh output names.
+No production or test deadline is changed by the actor representation fix.
+Passing idle reruns will not establish operation under arbitrary compiler or I/O load.

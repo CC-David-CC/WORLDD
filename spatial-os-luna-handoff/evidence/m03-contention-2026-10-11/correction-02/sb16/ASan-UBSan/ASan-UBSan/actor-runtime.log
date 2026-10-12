@@ -1,0 +1,43 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 108
+    Start 108: actor-runtime
+
+108: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_actors.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd"
+108: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+108: Environment variables: 
+108:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+108: Test timeout computed to be: 60
+108: test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+108: test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+108: test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+108: test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+108: test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+108: test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+108: test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallows_clock_override) ... ok
+108: test_runtime_configuration_changes_motion (__main__.ActorRuntimeTests.test_runtime_configuration_changes_motion) ... ok
+108: test_sequence_zero_missing_and_foreign_tokens (__main__.ActorRuntimeTests.test_sequence_zero_missing_and_foreign_tokens) ... ok
+108: test_uncheckpointed_motion_and_old_token_do_not_survive (__main__.ActorRuntimeTests.test_uncheckpointed_motion_and_old_token_do_not_survive) ... ok
+108: 
+108: ----------------------------------------------------------------------
+108: Ran 10 tests in 2.729s
+108: 
+108: OK
+1/1 Test #108: actor-runtime ....................   Passed    2.80 sec
+
+The following tests passed:
+	actor-runtime
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   2.81 sec

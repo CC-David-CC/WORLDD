@@ -1,0 +1,2 @@
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed
+authority supervisor: Issuer rejected owned authority fence challenge

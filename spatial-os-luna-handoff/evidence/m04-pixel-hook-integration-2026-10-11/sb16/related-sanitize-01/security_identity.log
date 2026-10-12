@@ -1,0 +1,27 @@
+test_application_cannot_revoke_any_credentials (__main__.SecurityIdentityTests.test_application_cannot_revoke_any_credentials) ... ok
+test_application_labels_are_immutable_and_connections_are_distinct (__main__.SecurityIdentityTests.test_application_labels_are_immutable_and_connections_are_distinct) ... ok
+test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) ... ok
+test_bootstrap_binds_supervisor_before_native_requests (__main__.SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests) ... ok
+test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads (__main__.SecurityIdentityTests.test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads) ... ok
+test_bootstrap_requires_sealed_valid_protobuf (__main__.SecurityIdentityTests.test_bootstrap_requires_sealed_valid_protobuf) ... ok
+test_broker_can_issue_only_application_credentials (__main__.SecurityIdentityTests.test_broker_can_issue_only_application_credentials) ... ok
+test_compositor_cannot_issue_credentials (__main__.SecurityIdentityTests.test_compositor_cannot_issue_credentials) ... ok
+test_credential_ownership_prevents_other_broker_revocation (__main__.SecurityIdentityTests.test_credential_ownership_prevents_other_broker_revocation) ... ok
+test_invalid_labels_and_roles_are_rejected_without_changing_identity (__main__.SecurityIdentityTests.test_invalid_labels_and_roles_are_rejected_without_changing_identity) ... ok
+test_issuing_connection_loss_revokes_its_credentials (__main__.SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials) ... ok
+test_malformed_and_unsupported_requests_leave_connection_usable (__main__.SecurityIdentityTests.test_malformed_and_unsupported_requests_leave_connection_usable) ... ok
+test_new_server_generation_rejects_old_application_cookie (__main__.SecurityIdentityTests.test_new_server_generation_rejects_old_application_cookie) ... ok
+test_ordinary_xlib_application_uses_private_xauthority (__main__.SecurityIdentityTests.test_ordinary_xlib_application_uses_private_xauthority) ... ok
+test_registry_is_bounded_and_revoked_slots_are_reusable (__main__.SecurityIdentityTests.test_registry_is_bounded_and_revoked_slots_are_reusable) ... ok
+test_revocation_closes_existing_connections_and_blocks_reuse (__main__.SecurityIdentityTests.test_revocation_closes_existing_connections_and_blocks_reuse) ... ok
+test_revoking_broker_cascades_without_harming_independent_credentials (__main__.SecurityIdentityTests.test_revoking_broker_cascades_without_harming_independent_credentials) ... ok
+test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential (__main__.SecurityIdentityTests.test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential) ... ok
+test_supervisor_connections_have_separate_issuance_lifetimes (__main__.SecurityIdentityTests.test_supervisor_connections_have_separate_issuance_lifetimes) ... ok
+test_swapped_native_client_has_the_same_identity_checks (__main__.SecurityIdentityTests.test_swapped_native_client_has_the_same_identity_checks) ... ok
+test_unknown_fields_and_replayed_request_ids_are_rejected (__main__.SecurityIdentityTests.test_unknown_fields_and_replayed_request_ids_are_rejected) ... ok
+test_valid_maximum_opaque_labels_round_trip (__main__.SecurityIdentityTests.test_valid_maximum_opaque_labels_round_trip) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 2.202s
+
+OK

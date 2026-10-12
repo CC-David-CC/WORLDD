@@ -1,0 +1,35 @@
+{
+  "host": "sb16-2",
+  "verification": "passed",
+  "passes": [
+    {
+      "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-test-data-cleanup-applied-20261011.json",
+      "receipt_sha256": "98b13366cb83e57d174f137b8c1c00b000749a8ab671a2986e52717e02249035",
+      "deleted": 21117,
+      "retained_evidence_verified": 5109,
+      "reclaimed_gib": 30.476566314697266,
+      "protected_paths_verified": 5,
+      "blocked": []
+    },
+    {
+      "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-test-builds-cleanup-applied-20261011.json",
+      "receipt_sha256": "90acc23c6d25e204ad816fdf92c811498262f0d5f1e06444d0548651a89c359b",
+      "deleted": 115,
+      "retained_evidence_verified": 526,
+      "reclaimed_gib": 79.43142318725586,
+      "protected_paths_verified": 5,
+      "blocked": []
+    },
+    {
+      "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-diagnostic-builds-cleanup-applied-20261011.json",
+      "receipt_sha256": "445e9867905d505b35886521c326197b29ae4f1e102187374c27436f2642584c",
+      "deleted": 5,
+      "retained_evidence_verified": 13,
+      "reclaimed_gib": 8.984367370605469,
+      "protected_paths_verified": 5,
+      "blocked": []
+    }
+  ],
+  "total_reclaimed_gib": 118.8923568725586,
+  "free_gib": 167.90421295166016
+}

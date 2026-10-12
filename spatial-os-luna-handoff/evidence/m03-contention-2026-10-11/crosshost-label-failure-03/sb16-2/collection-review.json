@@ -1,0 +1,12 @@
+{
+  "status": "collected_terminal_crosshost_setup_failure",
+  "phase_complete": false,
+  "cause": "Storage volume helper rejects fixture label runTest before volume preparation.",
+  "files": {
+    "worker.log": "e2ca56fe588e32e6784ff57c2464d5b56d6197b00f2b428ad55b60973dcf5f52",
+    "worker-review.json": "0cf75530e63ff8b589a49815b6c446176159880a912946569339439049da4915",
+    "worker/result.json": "bb5e5b10d150a1768286a8d36305ae36e2ebd42f5c8592a2c2c3913ba701033a",
+    "fixture.py": "155161bad1fdf56af6a1882b5361f93c3828cf3690cba7b38af63966014d7059"
+  },
+  "private_bundle_excluded": true
+}

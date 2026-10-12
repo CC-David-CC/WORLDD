@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/storage_session_volume.py", line 119, in <module>
+    run(['umount', volume])
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/storage_session_volume.py", line 34, in run
+    assert result.returncode == 0, record['commands'][-1]
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'argv': ['umount', '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-02/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume'], 'exit_code': 32, 'stdout': '', 'stderr': 'umount: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-02/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume: target is busy.\n'}

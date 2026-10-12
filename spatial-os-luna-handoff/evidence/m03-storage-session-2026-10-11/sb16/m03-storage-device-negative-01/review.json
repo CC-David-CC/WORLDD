@@ -1,0 +1,174 @@
+{
+  "status": "failed",
+  "phase_complete": false,
+  "host": "sb16",
+  "results": {},
+  "commands": [
+    {
+      "argv": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-negative-01/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-q",
+        "-f",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-negative-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "26f69de2-80d0-4bc7-bcb9-fd280aca5a9f\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemd-run",
+        "--unit=spatial-m03-storage-launch-witness-facc099722014af6b64b9848201fb03a.service",
+        "--collect",
+        "--service-type=exec",
+        "--uid=dflanag3",
+        "-p",
+        "Delegate=cpu memory pids io",
+        "-p",
+        "DelegateSubgroup=manager",
+        "-p",
+        "MemoryMax=1536M",
+        "-p",
+        "MemorySwapMax=0",
+        "-p",
+        "TasksMax=256",
+        "-p",
+        "CPUQuota=400%",
+        "-p",
+        "RuntimeMaxSec=180",
+        "--",
+        "/usr/bin/sleep",
+        "180"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Running as unit: spatial-m03-storage-launch-witness-facc099722014af6b64b9848201fb03a.service; invocation ID: 33fea0435e604d4bbb61bf0028208fba\n"
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-launch-witness-facc099722014af6b64b9848201fb03a.service",
+        "-p",
+        "ControlGroup",
+        "--value"
+      ],
+      "exit_code": 0,
+      "stdout": "/system.slice/spatial-m03-storage-launch-witness-facc099722014af6b64b9848201fb03a.service\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-cc5826043f724343a1e2632f45082423.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "stop",
+        "spatial-m03-storage-launch-witness-facc099722014af6b64b9848201fb03a.service"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-launch-witness-facc099722014af6b64b9848201fb03a.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-negative-01/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-negative-01/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "runner_sha256": "535e7e536d57318dafe7d8e074bbeae1df2105b7b50b1412250364efe5bb48c4",
+  "failure": "AssertionError('Storage owner accepted an uncovered volume: owner-wrong-device protocol_version: 1\\nrequest_id: 17\\nhello {\\n  protocol: \"spatial-protobuf/1\"\\n  build_id: \"sha256:9d009d2f9d8fe67fcd84275586b226fe8307bfad23b9e06991927fe45798babc\"\\n  capabilities: \"workspace.git-create/v1\"\\n  implementation: \"production\"\\n}\\n')",
+  "owner_cleanup": {
+    "spatial-storage-owner-cc5826043f724343a1e2632f45082423.service": "LoadState=not-found\nActiveState=inactive"
+  },
+  "delegate_after": "LoadState=not-found\nActiveState=inactive",
+  "mounted": false,
+  "loop_attached": false
+}

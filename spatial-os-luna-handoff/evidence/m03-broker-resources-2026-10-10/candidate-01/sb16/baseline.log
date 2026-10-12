@@ -1,0 +1,14 @@
+{"unit": "spatial-m03-resources-186f1112f3ea47d9a58a83c02209685c.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-186f1112f3ea47d9a58a83c02209685c.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/baseline-witnesses", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/debug/build/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/workspaced", "BrokerResourceTests.test_missing_configuration_denies_before_pending_record"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-186f1112f3ea47d9a58a83c02209685c.service"]}
+Running as unit: spatial-m03-resources-186f1112f3ea47d9a58a83c02209685c.service; invocation ID: 0a64128106d8432db1b51408e1eab7c1
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source/tests/core/test_broker_resources.py", line 15, in <module>
+    import broker_pb2 as broker
+ModuleNotFoundError: No module named 'broker_pb2'
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 159ms
+CPU time consumed: 121ms
+Memory peak: 2.4M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-186f1112f3ea47d9a58a83c02209685c.service: Unit spatial-m03-resources-186f1112f3ea47d9a58a83c02209685c.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

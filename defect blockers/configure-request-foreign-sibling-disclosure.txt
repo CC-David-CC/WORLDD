@@ -1,0 +1,32 @@
+ConfigureRequest foreign sibling disclosure
+
+Confirmed on sb16 and sb16-2 against production source 5185d9b.
+Status: correction passes focused checks on both hosts.
+
+A trusted compositor can request stacking relative to a foreign window.
+An application selecting SubstructureRedirect on its own parent receives that foreign sibling ID.
+The existing ConfigureNotify filter does not process ConfigureRequest.
+Both native and swapped clients reproduce the disclosure.
+
+The final baseline fails two privacy assertions and passes six controls per host.
+The earlier baseline failed fixture setup because the compositor credential carried application labels.
+That setup failure is preserved and excluded from the product defect count.
+
+Correction:
+Copy the event for the recipient. Set an unauthorized sibling to None and clear CWSibling from valueMask.
+Preserve other request fields, same-application siblings, and privileged recipients.
+Use the existing recipient filter before byte swapping. Do not mutate the shared event packet.
+
+Validation plan:
+Run all 11 selected native suites: 236 checks per host and profile.
+Run Debug and native-server ASan/UBSan builds and unit checks on both hosts.
+Preserve the original failures and unchanged locked acceptance contracts.
+
+Evidence: spatial-os-luna-handoff/evidence/m04-configure-request-2026-10-11.
+
+Results:
+Both hosts pass 236 selected checks in Debug and GLX-enabled native-server ASan/UBSan, for 944 total.
+Each host also passes 32 pixel-checked GLX cycles and 100 shutdown repetitions with the verified private EGL candidate.
+Source and copied evidence hashes match. All 41 locked files remain unchanged.
+No sanitizer findings appear in the collected logs.
+Full M04 and physical graphics qualification remain pending.

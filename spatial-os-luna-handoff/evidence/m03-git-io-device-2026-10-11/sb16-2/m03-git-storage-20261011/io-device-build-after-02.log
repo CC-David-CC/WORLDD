@@ -1,0 +1,33 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+[0/2] Re-checking globbed directories...
+[1/21] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[2/21] Building CXX object CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o
+[3/21] Linking CXX static library libspatial-workspace-resources.a
+[4/21] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[5/21] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[6/21] Linking CXX static library libspatial-core.a
+[7/21] Linking CXX executable worldd
+[8/21] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git_command.cpp.o
+[9/21] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[10/21] Building CXX object CMakeFiles/spatial-process-termination-probe.dir/src/testing/process_termination_probe.cpp.o
+[11/21] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[12/21] Linking CXX executable workspaced
+[13/21] Linking CXX executable spatial-test-host
+[14/21] Building CXX object CMakeFiles/spatial-process-termination-probe.dir/src/workspace/process.cpp.o
+[15/21] Building CXX object CMakeFiles/spatial-git-boundary-probe.dir/src/testing/git_boundary_probe.cpp.o
+[16/21] Building CXX object CMakeFiles/spatial-git-boundary-probe.dir/src/workspace/git_command.cpp.o
+[17/21] Linking CXX executable spatial-git-boundary-probe
+FAILED: spatial-git-boundary-probe 
+: && /usr/bin/c++ -g -fsanitize=address,undefined CMakeFiles/spatial-git-boundary-probe.dir/src/testing/git_boundary_probe.cpp.o CMakeFiles/spatial-git-boundary-probe.dir/src/workspace/git_command.cpp.o -o spatial-git-boundary-probe  libspatial-scene.a  libspatial-process-scope.a  libspatial-scene.a  libspatial-protobuf.a  /usr/lib/x86_64-linux-gnu/libprotobuf.so && :
+/usr/bin/ld: CMakeFiles/spatial-git-boundary-probe.dir/src/workspace/git_command.cpp.o: in function `spatial::git_command(spatial::WorkspaceResources&, std::filesystem::__cxx11::path const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<spatial::GitMount, std::allocator<spatial::GitMount> > const&, std::chrono::duration<long, std::ratio<1l, 1l> >)::{lambda(std::span<int const, 18446744073709551615ul>)#1}::operator()(std::span<int const, 18446744073709551615ul>) const':
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/git_command.cpp:223:(.text+0xbf48): undefined reference to `spatial::WorkspaceResources::prepare_git_job(std::span<int const, 18446744073709551615ul>)'
+/usr/bin/ld: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/git_command.cpp:224:(.text+0xc0d3): undefined reference to `spatial::GitJobResources::scope()'
+/usr/bin/ld: CMakeFiles/spatial-git-boundary-probe.dir/src/workspace/git_command.cpp.o: in function `std::default_delete<spatial::GitJobResources>::operator()(spatial::GitJobResources*) const':
+/usr/include/c++/13/bits/unique_ptr.h:99:(.text._ZNKSt14default_deleteIN7spatial15GitJobResourcesEEclEPS1_[_ZNKSt14default_deleteIN7spatial15GitJobResourcesEEclEPS1_]+0x47): undefined reference to `spatial::GitJobResources::~GitJobResources()'
+collect2: error: ld returned 1 exit status
+[18/21] Linking CXX executable spatial-process-termination-probe
+ninja: build stopped: subcommand failed.

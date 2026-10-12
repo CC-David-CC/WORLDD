@@ -1,0 +1,14 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -1091,7 +1091,10 @@
+ 
+     xQueryTreeReply reply = {
+         .root = pWin->drawable.pScreen->root->drawable.id,
+-        .parent = (pWin->parent) ? pWin->parent->drawable.id : (Window) None,
++        .parent = (pWin->parent &&
++                   (pWin->parent == pWin->drawable.pScreen->root ||
++                    SpatialSecurityVisibleResource(client, pWin->parent->drawable.id)))
++                    ? pWin->parent->drawable.id : (Window) None,
+         .nChildren = numChildren,
+     };
+ 

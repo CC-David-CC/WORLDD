@@ -1,0 +1,2 @@
+patching file src/egl/main/eglglobals.c
+patching file src/egl/main/eglglvnd.c

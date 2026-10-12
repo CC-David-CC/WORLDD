@@ -1,0 +1,12 @@
+Oct 11 02:21:38 sb16-2 kernel: anon 33271808
+Oct 11 02:21:38 sb16-2 kernel: file 0
+Oct 11 02:21:38 sb16-2 kernel: kernel 282624
+Oct 11 02:21:38 sb16-2 kernel: kernel_stack 16384
+Oct 11 02:21:38 sb16-2 kernel: file_mapped 0
+Oct 11 02:21:38 sb16-2 kernel: file_dirty 0
+Oct 11 02:21:38 sb16-2 kernel: file_writeback 0
+Oct 11 02:21:38 sb16-2 kernel: anon_thp 0
+Oct 11 02:21:38 sb16-2 kernel: file_thp 0
+Oct 11 02:21:38 sb16-2 kernel: Memory cgroup out of memory: Killed process 2644617 (python3) total-vm:129272kB, anon-rss:32304kB, file-rss:7036kB, shmem-rss:0kB, UID:1000 pgtables:128kB oom_score_adj:0
+Oct 11 02:21:38 sb16-2 kernel: Memory cgroup out of memory: Killed process 2644617 (python3) total-vm:129272kB, anon-rss:32304kB, file-rss:7036kB, shmem-rss:0kB, UID:1000 pgtables:128kB oom_score_adj:0
+Oct 11 02:21:38 sb16-2 kernel: Memory cgroup out of memory: Killed process 2644619 (python3) total-vm:30964kB, anon-rss:4724kB, file-rss:2540kB, shmem-rss:0kB, UID:1000 pgtables:64kB oom_score_adj:0

@@ -1,0 +1,359 @@
+{
+  "phase": "M04",
+  "phase_complete": false,
+  "task_count": 19,
+  "tasks": [
+    {
+      "id": "application.actor_binding",
+      "task": "tasks/m1/application.actor_binding.json",
+      "invariant": "One application group uses one controlling actor device pair; cancellation releases old input before the devices can serve another group.",
+      "current_candidate_evidence": "Focused native suites passed on both hosts in Debug and core-X ASan/UBSan; full GLX sanitizer failed.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Baseline failures and positive controls on both hosts.",
+        "Debug, runtime sanitizer, and native-server sanitizer checks on both hosts.",
+        "Real native input release, device rebinding, grabs, and lifecycle observations."
+      ],
+      "limitations_to_reassess": [
+        "Trusted compositor still needs production application-authority integration.",
+        "This component does not complete M04, M09, or Spatial-M1."
+      ]
+    },
+    {
+      "id": "application.broker_access",
+      "task": "tasks/m1/application.broker_access.json",
+      "invariant": "The broker authorizes observation and control only for a live native application within explicit workspace grants and the actor effective execution authority.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Worldd application observation, control, and revocation integration remain required.",
+        "This private broker suite does not prove actor-channel enforcement.",
+        "M04, M09, and Spatial-M1 remain incomplete."
+      ]
+    },
+    {
+      "id": "application.control_client",
+      "task": "tasks/m1/application.control_client.json",
+      "invariant": "The client preserves broker revocation across idle periods and active requests without accepting mismatched lease authority.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Worldd native cancellation integration remains pending.",
+        "Local validity requires regular notification polling."
+      ]
+    },
+    {
+      "id": "application.control_lease",
+      "task": "tasks/m1/application.control_lease.json",
+      "invariant": "A broker application has one control reservation, and revoked reservations require cancellation acknowledgement before handoff.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Worldd subscription handling and native input cancellation remain pending.",
+        "Broker release trusts the world cancellation acknowledgement.",
+        "M04, M09, and Spatial-M1 remain incomplete."
+      ]
+    },
+    {
+      "id": "application.device_administration",
+      "task": "tasks/m1/application.device_administration.json",
+      "invariant": "Unprivileged applications and broker connections cannot configure shared input devices; public static mapping reads remain available.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "New counterexamples fail on both pre-patch servers while positive controls pass.",
+        "The patched native suites pass in Debug and native-server ASan/UBSan on both hosts.",
+        "Public mapping tables and privileged configuration controls remain real and functional.",
+        "All six configuration requests reject unprivileged callers before effects.",
+        "Both native byte orders and broker/workspace-membership denials pass.",
+        "An isolated bypass for each of the six protected requests is detected.",
+        "Locked P00-P10 tests remain unchanged and pass against the patched server.",
+        "Source and tested binary hashes match both hosts."
+      ],
+      "limitations_to_reassess": [
+        "This component does not complete device authority, input privacy, M04, or Spatial-M1.",
+        "Actor-seat reads, application input binding, focus/pointer queries, grabs, and asynchronous metadata remain unqualified.",
+        "Native-server GLX-disabled checks do not qualify full runtime profiles or physical hardware."
+      ]
+    },
+    {
+      "id": "application.extension_isolation",
+      "task": "tasks/m1/application.extension_isolation.json",
+      "invariant": "Immutable connection roles authorize extension discovery and dispatch; admitted requests cannot bypass resource or pixel authority.",
+      "current_candidate_evidence": "Focused native suites passed on both hosts in Debug and core-X ASan/UBSan; full GLX sanitizer failed.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Missing-feature failures against the preceding native server",
+        "Direct forbidden opcodes rejected despite hidden discovery",
+        "Actual owned RENDER pixels, SHAPE operations, and cursor creation",
+        "Foreign pictures, glyph aliases, and cursor resources rejected",
+        "Window-picture source and alpha-map denial prevents shared-framebuffer exposure",
+        "Animated cursor timer cleanup after retained use and final cursor destruction",
+        "Unchanged locked P00-P10 assertions",
+        "Focused native server sanitizers with the GLX limitation recorded",
+        "Independent mutation detection"
+      ],
+      "limitations_to_reassess": [
+        "This component does not complete M04 or enable untrusted native sessions.",
+        "Application window pictures are drawing destinations only; trusted services retain window-picture access.",
+        "Unqualified extension families remain denied until their resource and device boundaries pass independent checks.",
+        "Full qualification still requires both authorized hosts and both automated build modes."
+      ]
+    },
+    {
+      "id": "application.global_administration",
+      "task": "tasks/m1/application.global_administration.json",
+      "invariant": "Ordinary application and broker connections cannot administer shared X server state; public font definitions remain accessible to applications.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "New counterexamples fail against the pre-patch server while positive controls pass.",
+        "Patched global, selection, extension, resource, and identity suites pass in Debug on both hosts.",
+        "The same native suites pass under ASan/UBSan on both hosts, with the GLX limit recorded.",
+        "Actual font names and font information remain available.",
+        "Explicit UngrabServer and KillClient AllTemporary enforce authority before effects.",
+        "The -ac flag cannot bypass host access administration authority.",
+        "Isolated bypass mutations for the server callback, screen-saver callback, explicit ungrab guard, temporary-resource reap guard, and -ac authority ordering are detected.",
+        "Locked P00-P10 assertions remain unchanged and pass against the patched server.",
+        "Source inputs and tested binary hashes match both hosts."
+      ],
+      "limitations_to_reassess": [
+        "This component does not complete M04 or authorize untrusted native sessions.",
+        "Device authority, focus/pointer queries, atom privacy, selection namespaces, and asynchronous metadata remain unqualified.",
+        "Broker provisioning and compositor authority integration remain required.",
+        "Focused native-server sanitizers do not replace full runtime or hardware qualification."
+      ]
+    },
+    {
+      "id": "application.native_launch",
+      "task": "tasks/m1/application.native_launch.json",
+      "invariant": "Each authorized confined application receives only its own native credential and the pinned native socket; process completion and authority loss revoke native access.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Independent native identity and real Xlib output from confined applications.",
+        "Namespace, descriptor, read-only profile, and denied-launch checks.",
+        "Failed-exec, completion, execution revocation, and broker-loss cleanup.",
+        "Debug, runtime sanitizer, and native-server sanitizer profiles on both hosts.",
+        "Cumulative core, harness, and P10 regression checks."
+      ],
+      "limitations_to_reassess": [
+        "Native-session service provisioning and compositor/worldd application-control authority remain required.",
+        "This component does not complete M04, M09, or Spatial-M1."
+      ]
+    },
+    {
+      "id": "application.private_input",
+      "task": "tasks/m1/application.private_input.json",
+      "invariant": "Connections with the same immutable workspace/application identity share genuine private idle devices; other applications cannot observe or change that state.",
+      "current_candidate_evidence": "Focused native suites passed on both hosts in Debug and core-X ASan/UBSan; full GLX sanitizer failed.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Missing-feature failures and positive controls on both previous servers.",
+        "Debug and native-server ASan/UBSan on both hosts.",
+        "Last-connection cleanup and allocation failure recovery.",
+        "Registered core, harness and P10 regression checks."
+      ],
+      "limitations_to_reassess": [
+        "Actor-device binding and lease transfer remain required.",
+        "This component does not complete M04 or Spatial-M1."
+      ]
+    },
+    {
+      "id": "application.resource_access",
+      "task": "tasks/m1/application.resource_access.json",
+      "invariant": "Native resource lookups enforce application identity and explicit public-resource exceptions.",
+      "current_candidate_evidence": "Focused native suites passed on both hosts in Debug and core-X ASan/UBSan; full GLX sanitizer failed.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Missing-feature failures against the preceding native server",
+        "Positive same-application access and negative cross-application access",
+        "Root enumeration filtering and root pixel/property denial",
+        "Independent native attacks against windows, pixmaps, graphics contexts, properties, and events",
+        "Connection teardown, revocation, and retained-resource denial",
+        "Native byte-order coverage",
+        "Unchanged locked P00-P10 assertions",
+        "Focused instrumented native server checks with the GLX limitation recorded",
+        "Independent mutation detection"
+      ],
+      "limitations_to_reassess": [
+        "This component does not complete native resource isolation or M04.",
+        "Extension dispatch, atoms, selections, device access, aliases, and asynchronous metadata still require qualification.",
+        "Strict mode remains explicit. Trusted diagnostic mode is not an application security boundary.",
+        "Do not connect untrusted applications before the complete native boundary and broker provisioning pass."
+      ]
+    },
+    {
+      "id": "application.security_identity",
+      "task": "tasks/m1/application.security_identity.json",
+      "invariant": "In strict mode, every native connection receives its immutable security identity before ordinary X requests run.",
+      "current_candidate_evidence": "Focused native suites passed on both hosts in Debug and core-X ASan/UBSan; full GLX sanitizer failed.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Both authorized hosts in Debug and ASan/UBSan",
+        "The native server is instrumented for focused core-X checks, with all identity assertions enabled and GLX disabled",
+        "Full P00-P10 baseline and unchanged locked assertions",
+        "Sealed protobuf bootstrap and strict authentication before host-access fallback",
+        "Immutable application labels and distinct native connection identities",
+        "Supervisor, broker, compositor, and application role separation",
+        "Revocation, issuer disconnect, descendant cancellation, and independent credential survival",
+        "Bounded credential storage, safe slot reuse, and new server generations",
+        "Ordinary Xlib authentication and both native byte orders",
+        "Malformed protobuf, unknown fields, invalid labels, replay, and unsupported version rejection",
+        "Independent mutations detect authentication bypass and missing disconnect revocation"
+      ],
+      "limitations_to_reassess": [
+        "This component does not enforce workspace resource isolation.",
+        "Strict mode is explicit; existing trusted diagnostic mode remains available.",
+        "Broker credential delivery and compositor security integration remain pending.",
+        "Retained resources require the forthcoming resource policy.",
+        "Instrumented GLX lifecycle checks expose installed graphics-driver leaks and remain failed pending a separate fix.",
+        "Native GPU and physical-device qualification remain pending."
+      ]
+    },
+    {
+      "id": "application.selection_owner_access",
+      "task": "tasks/m1/application.selection_owner_access.json",
+      "invariant": "Each full application identity has independent native selection ownership and events. Trusted services must explicitly select the application namespace.",
+      "current_candidate_evidence": "Focused current candidate passes on both hosts in Debug reassessment and native core-X ASan/UBSan. Full phase remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Version-1 behavior and sources preserved before migration.",
+        "Independent namespace baseline fails on both hosts.",
+        "Other application activity does not change query, claim, clear, or conversion behavior.",
+        "Same-application conversion emits a real SelectionRequest with public atom values.",
+        "Full workspace/application identity separation and both native byte orders.",
+        "Explicit supervisor and compositor scope selection; application and broker refusal.",
+        "Debug and core-X native-server ASan/UBSan checks on both hosts.",
+        "Full M04 graphics, locked acceptance, and integration gates remain required."
+      ],
+      "limitations_to_reassess": [
+        "Version 2 deliberately replaces global owned-selection error behavior with application-private state.",
+        "Asynchronous metadata beyond selection events remains unqualified.",
+        "Focused core-X sanitizer runs disable GLX and do not qualify graphics-provider cleanup."
+      ]
+    },
+    {
+      "id": "application.world_control",
+      "task": "tasks/m1/application.world_control.json",
+      "invariant": "Only an authorized actor controls a native application, and confirmed native cancellation precedes reservation release.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Instrumented native-server GLX cleanup remains unqualified.",
+        "Physical input and full Spatial-M1 qualification remain pending."
+      ]
+    },
+    {
+      "id": "application.world_observation",
+      "task": "tasks/m1/application.world_observation.json",
+      "invariant": "Authenticated actors receive labeled application scene metadata only through current broker observation authority, including after rendering and before queued writes.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Authenticated application input and pixel delivery remain pending.",
+        "Native-server sanitizer GLX coverage remains unrun.",
+        "M04, M09, M10, and Spatial-M1 remain incomplete."
+      ]
+    },
+    {
+      "id": "surface.application_groups",
+      "task": "tasks/m1/surface.application_groups.json",
+      "invariant": "Worldd accepts parent relationships only within one native application identity and keys its control lease by that identity.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Actors use explicit management fixtures in these tests.",
+        "Workspace application grants and filtered actor metadata remain required.",
+        "M04, M09, and Spatial-M1 remain incomplete."
+      ]
+    },
+    {
+      "id": "surface.native_identity",
+      "task": "tasks/m1/surface.native_identity.json",
+      "invariant": "The compositor obtains application attribution from the native window owner in the same checked reply as target generation and geometry.",
+      "current_candidate_evidence": "Historical implementation exists. Current M04 source and evidence audit remains pending.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [],
+      "limitations_to_reassess": [
+        "Worldd application grants and actor metadata filtering remain required.",
+        "Session provisioning and physical native qualification remain required.",
+        "This component does not complete M04, M09, or Spatial-M1."
+      ]
+    },
+    {
+      "id": "application.atom_privacy",
+      "task": "tasks/m1/application.atom_privacy.json",
+      "invariant": "Dynamic atom names and existence probes require declaration by the immutable application identity. Predefined atoms remain usable.",
+      "current_candidate_evidence": "Focused native suites passed on both hosts in Debug and core-X ASan/UBSan; full GLX sanitizer failed.",
+      "phase_gate_status": "pending",
+      "remaining_contract_evidence": [
+        "Foreign-name enumeration and existence probes fail on the unchanged native baseline on both hosts.",
+        "Corrected Debug and core-X native-server ASan/UBSan checks pass on both hosts.",
+        "Both native byte orders and full workspace/application identity separation are checked.",
+        "Same-application peers, explicit declarations, predefined atoms, and privileged compositor inspection remain usable.",
+        "Creator and final connection closure release declaration ownership correctly.",
+        "The 65536-entry declaration limit returns BadAlloc without preventing another application's declaration.",
+        "Related resource, selection, extension, identity, private-input, and actor-binding regressions pass.",
+        "Full native graphics sanitizer qualification remains mandatory at the M04 gate."
+      ],
+      "limitations_to_reassess": [
+        "GLX-enabled native-server sanitizer suites fail through software-provider shutdown allocations.",
+        "Independent selection namespaces and asynchronous metadata remain pending.",
+        "Global atom allocation and timing side channels are not qualified by this component.",
+        "Focused checks do not complete M04 or Spatial-M1."
+      ]
+    },
+    {
+      "id": "application.selection_namespace",
+      "task": "tasks/m1/application.selection_namespace.json",
+      "phase_gate_status": "pending",
+      "invariant": "Application selection ownership, timestamps and events are separated by the complete immutable application identity. Trusted services choose explicit selection views without changing identity.",
+      "remaining_contract_evidence": [
+        "Seven namespace failures and one sharing positive control on each unchanged baseline host.",
+        "Independent PRIMARY and SECONDARY owners, clearing and conversion.",
+        "Both native byte orders and full workspace/application separation.",
+        "Real SelectionRequest, SelectionClear and SelectionNotify with public atoms.",
+        "Explicit trusted scope switching preserves immutable identity.",
+        "Application and broker scope requests are forbidden.",
+        "Invalid scope input preserves the previous view.",
+        "Foreign owner/requestor windows remain denied.",
+        "Destruction and revocation clean owners without affecting other namespaces.",
+        "Debug and native core-X ASan/UBSan on both hosts."
+      ],
+      "limitations_to_reassess": [
+        "Full GLX/provider qualification remains open.",
+        "Other asynchronous event metadata remains unqualified.",
+        "Focused component checks do not complete M04."
+      ],
+      "current_candidate_evidence": "Focused current candidate passes on both hosts in Debug reassessment and native core-X ASan/UBSan. Full phase remains pending."
+    },
+    {
+      "id": "application.event_metadata",
+      "task": "tasks/m1/application.event_metadata.json",
+      "phase_gate_status": "pending",
+      "invariant": "Core ConfigureNotify reports only authorized sibling IDs and preserves each recipient's correct byte order. Filtering does not change a privileged recipient's packet.",
+      "remaining_contract_evidence": [
+        "Two privacy failures and one positive control on both unchanged baseline hosts.",
+        "Corrected nearest-authorized sibling metadata in both byte orders.",
+        "Privileged recipients retain their original event.",
+        "Debug and core-X native-server ASan/UBSan on both hosts.",
+        "Related input, identity, resource, selection and extension checks."
+      ],
+      "limitations_to_reassess": [
+        "This component covers ConfigureNotify sibling metadata.",
+        "Other asynchronous event paths remain pending.",
+        "Graphics-provider cleanup and the full M04 phase gate remain pending."
+      ],
+      "current_candidate_evidence": "Focused current candidate passes on both hosts in Debug reassessment and native core-X ASan/UBSan. Full phase remains pending."
+    }
+  ],
+  "next_coherent_increment": "Audit remaining asynchronous metadata paths, run independent boundary mutations, and diagnose graphics-provider ownership before the full M04 gate.",
+  "latest_focused_review": "evidence/m04-event-metadata-2026-10-11/primary-review.json"
+}

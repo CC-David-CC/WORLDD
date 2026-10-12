@@ -1,0 +1,85 @@
+test_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_configure_notify_does_not_disclose_foreign_sibling) ... ok
+test_configure_notify_preserves_authorized_same_application_sibling (__main__.EventMetadataTests.test_configure_notify_preserves_authorized_same_application_sibling) ... ok
+test_configure_request_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_configure_request_does_not_disclose_foreign_sibling) ... FAIL
+test_configure_request_preserves_privileged_sibling (__main__.EventMetadataTests.test_configure_request_preserves_privileged_sibling) ... FAIL
+test_configure_request_preserves_same_application_sibling (__main__.EventMetadataTests.test_configure_request_preserves_same_application_sibling) ... FAIL
+test_filter_does_not_change_the_privileged_recipients_event (__main__.EventMetadataTests.test_filter_does_not_change_the_privileged_recipients_event) ... ok
+test_swapped_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_swapped_configure_notify_does_not_disclose_foreign_sibling) ... ok
+test_swapped_configure_request_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_swapped_configure_request_does_not_disclose_foreign_sibling) ... FAIL
+
+======================================================================
+FAIL: test_configure_request_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_configure_request_does_not_disclose_foreign_sibling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 69, in test_configure_request_does_not_disclose_foreign_sibling
+    sibling, mask = self.redirected_configure()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 55, in redirected_configure
+    requester = self.connect(supervisor.issue(role=resources.pb.COMPOSITOR).cookie)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 92, in issue
+    if reply.code != pb.OK or not reply.HasField('credential'): raise AssertionError(reply)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 4
+code: INVALID_ARGUMENT
+
+
+======================================================================
+FAIL: test_configure_request_preserves_privileged_sibling (__main__.EventMetadataTests.test_configure_request_preserves_privileged_sibling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 84, in test_configure_request_preserves_privileged_sibling
+    sibling, mask = self.redirected_configure(privileged=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 55, in redirected_configure
+    requester = self.connect(supervisor.issue(role=resources.pb.COMPOSITOR).cookie)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 92, in issue
+    if reply.code != pb.OK or not reply.HasField('credential'): raise AssertionError(reply)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 4
+code: INVALID_ARGUMENT
+
+
+======================================================================
+FAIL: test_configure_request_preserves_same_application_sibling (__main__.EventMetadataTests.test_configure_request_preserves_same_application_sibling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 79, in test_configure_request_preserves_same_application_sibling
+    sibling, mask = self.redirected_configure(same_application=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 55, in redirected_configure
+    requester = self.connect(supervisor.issue(role=resources.pb.COMPOSITOR).cookie)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 92, in issue
+    if reply.code != pb.OK or not reply.HasField('credential'): raise AssertionError(reply)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 4
+code: INVALID_ARGUMENT
+
+
+======================================================================
+FAIL: test_swapped_configure_request_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_swapped_configure_request_does_not_disclose_foreign_sibling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 74, in test_swapped_configure_request_does_not_disclose_foreign_sibling
+    sibling, mask = self.redirected_configure(endian='>')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 55, in redirected_configure
+    requester = self.connect(supervisor.issue(role=resources.pb.COMPOSITOR).cookie)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 92, in issue
+    if reply.code != pb.OK or not reply.HasField('credential'): raise AssertionError(reply)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 4
+code: INVALID_ARGUMENT
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.492s
+
+FAILED (failures=4)

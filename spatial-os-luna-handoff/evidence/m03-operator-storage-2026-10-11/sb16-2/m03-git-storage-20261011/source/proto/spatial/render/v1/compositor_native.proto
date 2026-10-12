@@ -1,0 +1,12 @@
+syntax = "proto3";
+package spatial.render.v1;
+
+// Private sealed handoff. Never expose this message through management replies.
+message NativeCompositorConfig {
+  uint32 protocol_version = 1;
+  optional uint32 display_number = 2;
+  bytes compositor_cookie = 3;
+  bytes server_id = 4;
+  optional uint32 server_pid = 5;
+  optional uint32 server_uid = 6;
+}

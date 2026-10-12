@@ -1,0 +1,269 @@
+{
+  "status": "reviewed_focused_checks_passed",
+  "milestone": "M03",
+  "milestone_complete": false,
+  "reviewer": "Primary agent; no local model or subagents",
+  "base_commit": "c66d394a495836a3dfd1cff8ef305c323a9cbbec",
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "515185520a252595bae9d2349091903c7c82b65e10e5faf75d8cbad8ed0bb8cd",
+      "verified_attachments": 759,
+      "matched_source_inputs": 374,
+      "profiles": {
+        "ASan/UBSan": {
+          "checks": 115,
+          "native_cases": {
+            "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "02b75ddcf99d6a3fb86e6e6fa68217504bbd0074b040dbb669058f65f5ad1fc4"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "23291f162947e706f0ed7d2ccef69e14d13ff34d1ecfcf819cc814e78d4dcddf"
+              }
+            },
+            "test_native_storage_session_retains_owner_and_confined_application": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "13e57ab80fcadd4209cdd5481283b39a8cf8a5456cbf13247f17f0651682451b"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "73e6cf7076915e049075bc30674cd8115c680718acd490fe33145e0b9b7c7f31"
+              }
+            }
+          },
+          "operator": {
+            "filesystem_id": "7699c8b8be404da0a8747a7823e74aef",
+            "image_inode": 138322,
+            "project_inode": 259,
+            "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+            "status": "passed",
+            "volume": "/var/lib/spatial/volumes/m03-qual-ff265661c6f34fcdaab9/mount"
+          },
+          "volume_detached": true,
+          "source_inputs": 374
+        },
+        "Debug": {
+          "checks": 115,
+          "native_cases": {
+            "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "95f4db5f3b14d57eccecfa024b70d569c8fbd116a3f214f20cc298e92067721f"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "e438f917726047dd133445b521d631f38e1ebcf61e578d3307ad66f824cac71d"
+              }
+            },
+            "test_native_storage_session_retains_owner_and_confined_application": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "3548aa3093ea338f41c4df8cdd5d4a5fd5206163718c95599babc81bec440b7a"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "191b96605da2d79c90038bad740bcab9f3e8919d9f1ce01523a151c0b5587683"
+              }
+            }
+          },
+          "operator": {
+            "filesystem_id": "a46e8c7dbc874b0d84512e6d26cd2a2c",
+            "image_inode": 138328,
+            "project_inode": 259,
+            "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+            "status": "passed",
+            "volume": "/var/lib/spatial/volumes/m03-qual-0fac4e9af1724689a064/mount"
+          },
+          "volume_detached": true,
+          "source_inputs": 374
+        }
+      },
+      "installed_owner_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f",
+      "post_run_lock_review": {
+        "checked_files": 41,
+        "errors": [],
+        "restored_locked_documents": [
+          "docs/CONTRACT.md",
+          "docs/PROTOBUF_MIGRATION.md",
+          "docs/WORLDD.md",
+          "docs/ACTORS.md"
+        ],
+        "restored_before_full_gate": true
+      },
+      "operator_provisioning": {
+        "filesystem_id": "751283e0f22e4580a2ce9d8324d032f0",
+        "root": "/var/lib/spatial/volumes/david/mount",
+        "bytes": 4294967296,
+        "broker_started": false,
+        "quota_activation": "Occurs when the checked root owner starts the broker; provisioning alone does not activate quota accounting.",
+        "recovery": [
+          "sudo",
+          "-n",
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/provision_storage.py",
+          "unmount",
+          "--bindings-dir",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python",
+          "--name",
+          "david",
+          "--apply"
+        ]
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "d502c6c781276e49c7449534d5ccab761290505fc8d7bee07f6f2027cb557bfc",
+      "verified_attachments": 759,
+      "matched_source_inputs": 374,
+      "profiles": {
+        "ASan/UBSan": {
+          "checks": 115,
+          "native_cases": {
+            "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "579b455d4b4a256c665fc93c09a85a9a13a6f3db01008f1d521cef8ed90f8031"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "8c7330b8bd50664f26d0e21c25ea00bd705ace5c7451304e661a7e577ae2ab92"
+              }
+            },
+            "test_native_storage_session_retains_owner_and_confined_application": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "1316a8ce3ecd1b31ba845cf7c16ac7cf14c4703c87f1a54861024c85ae263c02"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "fc6bac8145906e9a33d19469eeb8f07f4380ec9c51544bad7b0f1a49aefbaebd"
+              }
+            }
+          },
+          "operator": {
+            "filesystem_id": "422aa6377b8d45f1b9fb1c1210271270",
+            "image_inode": 5774369,
+            "project_inode": 259,
+            "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+            "status": "passed",
+            "volume": "/var/lib/spatial/volumes/m03-qual-8ac4a29c06654a5090f0/mount"
+          },
+          "volume_detached": true,
+          "source_inputs": 374
+        },
+        "Debug": {
+          "checks": 115,
+          "native_cases": {
+            "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "da016c79f02d9d495db1794a8cc576af91e93aec2b11da29de48f2db07a5a18b"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "e50e8f4ed5c08227b86ba133b5a10743abba6f6b0d64c037e9717c10e1241f3f"
+              }
+            },
+            "test_native_storage_session_retains_owner_and_confined_application": {
+              "broker-cleanup": {
+                "stage": 5,
+                "launch_id": "6519f2620b627c381b15902603f86f309d2fa1ba8284c96950ba84279c43f203"
+              },
+              "world-cleanup": {
+                "stage": 5,
+                "launch_id": "1a20ccdc70ef121cba6071e8299f6cf9033cd31874af11411c2af31314e257a8"
+              }
+            }
+          },
+          "operator": {
+            "filesystem_id": "19ca5ad108c44fd89d7f208f9c4f82d7",
+            "image_inode": 5774375,
+            "project_inode": 259,
+            "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+            "status": "passed",
+            "volume": "/var/lib/spatial/volumes/m03-qual-37617d1ed4ec47439dc1/mount"
+          },
+          "volume_detached": true,
+          "source_inputs": 374
+        }
+      },
+      "installed_owner_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f",
+      "post_run_lock_review": {
+        "checked_files": 41,
+        "errors": [],
+        "restored_locked_documents": [
+          "docs/CONTRACT.md",
+          "docs/PROTOBUF_MIGRATION.md",
+          "docs/WORLDD.md",
+          "docs/ACTORS.md"
+        ],
+        "restored_before_full_gate": true
+      },
+      "operator_provisioning": {
+        "filesystem_id": "d06ad251f0ad40de95b001046d7b22ab",
+        "root": "/var/lib/spatial/volumes/david/mount",
+        "bytes": 4294967296,
+        "broker_started": false,
+        "quota_activation": "Occurs when the checked root owner starts the broker; provisioning alone does not activate quota accounting.",
+        "recovery": [
+          "sudo",
+          "-n",
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/provision_storage.py",
+          "unmount",
+          "--bindings-dir",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python",
+          "--name",
+          "david",
+          "--apply"
+        ]
+      }
+    }
+  },
+  "locked_files_unchanged": 41,
+  "existing_native_test_bodies_unchanged": 2,
+  "selected_checks_per_profile_per_host": 115,
+  "selected_checks_total": 460,
+  "findings": [
+    "Operator provisioning creates a fully allocated dedicated image and refuses overwrite.",
+    "The root-owned persistent record fixes inode, capacity, definition, and Btrfs UUID.",
+    "Each mount reconstructs both loop and backing queue ceilings in binary protobuf runtime configuration.",
+    "The direct private controller and retained supervisor can require sealed aggregate resources and checked storage ownership.",
+    "Production rejects fixture faults, live migration, mutable resource paths, and legacy resource envelopes before state mutation.",
+    "Real Git, workspace identity, project bytes and inodes survive checked unmount and remount.",
+    "The recovered Git defect came from redundant namespace ancestor arguments. Immediate parent creation preserves existing argument, byte, namespace, network, and resource bounds.",
+    "Both hosts passed native actor input, owner-loss termination, and protobuf cleanup under the required confinement profile.",
+    "The installed root owner reuses the previous reviewed binary; its storage wire schema and implementation did not change.",
+    "Dedicated 4 GiB David volumes were provisioned and inspected on both hosts without starting an operator broker or changing normal login. Quota accounting activates when its checked owner starts."
+  ],
+  "failure_dispositions": {
+    "before": "Both previous binaries lack the required production flag; six new checks fail on each host.",
+    "attempt_01": "Relative evidence directory yielded a correctly rejected relative configuration path.",
+    "attempt_02": "Non-private fixture configuration parent was correctly rejected.",
+    "attempt_03": "Both hosts reproduced the Git sandbox argument count defect after the production handshake.",
+    "attempt_04": "All nine selected suites passed on both hosts under sanitizers.",
+    "debug_01": "All nine selected suites passed on both hosts in Debug."
+  },
+  "contract_record": {
+    "changed": [
+      "Add BrokerProcessConfig.require_confinement.",
+      "Add AuthoritySupervisorConfig.require_broker_confinement.",
+      "Add StorageVolumeDefinition, StorageVolumeRecord, and StorageVolumeRuntime.",
+      "Add explicit workspaced --production confinement profile."
+    ],
+    "unchanged": [
+      "Existing protobuf fields and numbers.",
+      "Locked acceptance files and existing native test method bodies.",
+      "SQLite durability and existing client or fault deadlines.",
+      "Normal login, inference configuration, and existing operator checkout state."
+    ]
+  },
+  "artifact_collection_note": "The isolated source slices omitted four locked documents during these focused runs. Canonical documents remain unchanged. They were restored and all 41 host locks passed before full-gate preparation. These focused runs do not prove a complete phase gate.",
+  "unrun": [
+    "Issuer availability and immediate revocation under bounded competing writes.",
+    "Complete M03 Debug, sanitizer, harness, acceptance, cross-host and native phase gate.",
+    "Physical GPU output, devices, performance and later milestones."
+  ]
+}

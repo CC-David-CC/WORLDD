@@ -1,0 +1,50 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 24
+    Start 24: process-termination
+
+24: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_process_termination.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-termination-probe"
+24: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+24: Environment variables: 
+24:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+24:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+24:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+24: Test timeout computed to be: 150
+24: {"unit": "spatial-m03-resources-28611c08823a489593b7ee4f908d2dad.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-28611c08823a489593b7ee4f908d2dad.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-02/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-02/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_process_termination.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-termination-probe"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-28611c08823a489593b7ee4f908d2dad.service"]}
+24: Running as unit: spatial-m03-resources-28611c08823a489593b7ee4f908d2dad.service; invocation ID: 8032353843944c71a04be9121d873ff1
+24: test_already_exited_process_can_be_stopped_twice (__main__.ProcessTerminationTests.test_already_exited_process_can_be_stopped_twice) ... ok
+24: test_confirmed_stop_has_already_terminated_detached_descendants (__main__.ProcessTerminationTests.test_confirmed_stop_has_already_terminated_detached_descendants) ... ok
+24: test_destructor_signal_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_signal_error_cannot_return_broker_success) ... ok
+24: test_destructor_wait_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_wait_error_cannot_return_broker_success) ... ok
+24: test_signal_error_returns_failure_without_waiting_for_live_child (__main__.ProcessTerminationTests.test_signal_error_returns_failure_without_waiting_for_live_child) ... ok
+24: test_wait_error_cannot_be_reported_as_confirmed_stop (__main__.ProcessTerminationTests.test_wait_error_cannot_be_reported_as_confirmed_stop) ... ok
+24: 
+24: ----------------------------------------------------------------------
+24: Ran 6 tests in 1.031s
+24: 
+24: OK
+24: Finished with result: success
+24: Main processes terminated with: code=exited/status=0
+24: Service runtime: 1.147s
+24: CPU time consumed: 911ms
+24: Memory peak: 2.4M
+24: Memory swap peak: 0B
+24: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #24: process-termination ..............   Passed    1.27 sec
+
+The following tests passed:
+	process-termination
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   1.28 sec

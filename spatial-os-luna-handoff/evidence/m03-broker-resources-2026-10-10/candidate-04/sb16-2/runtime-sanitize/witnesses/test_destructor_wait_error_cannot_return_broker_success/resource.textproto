@@ -1,0 +1,43 @@
+protocol_version: 1
+delegated_cgroup: "/sys/fs/cgroup/system.slice/spatial-m03-resources-726db7366238423e99b121b3eb9c94b0.service/termination-tmpq5f3lhs0"
+default_policy {
+  total {
+    memory_bytes: 134217728
+    swap_bytes: 0
+    processes: 16
+    cpu_microseconds: 100000
+    io {
+      major: 259
+      minor: 0
+      read_bytes_per_second: 67108864
+      write_bytes_per_second: 16777216
+    }
+  }
+  actor_default {
+    memory_bytes: 134217728
+    swap_bytes: 0
+    processes: 16
+    cpu_microseconds: 100000
+    io {
+      major: 259
+      minor: 0
+      read_bytes_per_second: 67108864
+      write_bytes_per_second: 16777216
+    }
+  }
+  profiles {
+    name: "development"
+    maximum {
+      memory_bytes: 134217728
+      swap_bytes: 0
+      processes: 16
+      cpu_microseconds: 100000
+      io {
+        major: 259
+        minor: 0
+        read_bytes_per_second: 67108864
+        write_bytes_per_second: 16777216
+      }
+    }
+  }
+}

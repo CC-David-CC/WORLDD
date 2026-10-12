@@ -1,0 +1,113 @@
+{
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "host": "sb16",
+  "status": "failed",
+  "started": 1791679647.613341,
+  "pid": 3017042,
+  "manifest_sha256": "eb58392086014597e81bd2a67862aa40e822f79996dac25a35e117fb75c04f60",
+  "runner_sha256": "86db5d84bcccef45e41b37c62de7e596075418993093d3996f35249b74fdc478",
+  "commands": [
+    {
+      "label": "debug-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=OFF",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "started": 1791679647.622825,
+      "exit_code": 0,
+      "ended": 1791679648.5902543,
+      "sha256": "63cc3f10fc67a4d581c5eb2981f40c2106a62cd83dc867f07b5775c314cb48c8"
+    },
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build",
+        "--target",
+        "workspaced",
+        "spatial-process-scope-probe",
+        "spatial-process-termination-probe",
+        "spatial-authority-supervisor",
+        "spatial-authority-launch-probe",
+        "spatial-session-application-probe",
+        "spatial-security-auth",
+        "identityd",
+        "spatial-issuer-client",
+        "spatial-participant-runtime-probe",
+        "worldd",
+        "spatialwm",
+        "spatial-confined-xprobe",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791679648.600054,
+      "exit_code": 0,
+      "ended": 1791679766.7113419,
+      "sha256": "98dbad033cd569ffce8cf3c10ccb6a3202d3eac11a2357733cc4e033ed0ddfad"
+    },
+    {
+      "label": "debug-sync",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01"
+      ],
+      "started": 1791679766.721568,
+      "exit_code": 0,
+      "ended": 1791679768.1540835,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "baseline",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source/tests/native/test_session_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-issuer-client",
+        "--baseline-supervisor",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/spatial-authority-supervisor",
+        "test_supervisor_binds_sealed_resource_policy"
+      ],
+      "started": 1791679768.1636758,
+      "exit_code": 1,
+      "ended": 1791679769.937821,
+      "sha256": "6df1d146e50dd275377b89cf6ab0ee6eb48300d17a9d502c9b65c78a7e868bb6"
+    }
+  ],
+  "profiles": {},
+  "phase_complete": false,
+  "scope": "Session resource provisioning. Storage and full M03 gate remain pending.",
+  "error": "AssertionError: ",
+  "ended": 1791679769.9385874,
+  "attachments": {
+    "debug-configure.log": "63cc3f10fc67a4d581c5eb2981f40c2106a62cd83dc867f07b5775c314cb48c8",
+    "runner.py": "86db5d84bcccef45e41b37c62de7e596075418993093d3996f35249b74fdc478",
+    "debug-build.log": "98dbad033cd569ffce8cf3c10ccb6a3202d3eac11a2357733cc4e033ed0ddfad",
+    "baseline.log": "6df1d146e50dd275377b89cf6ab0ee6eb48300d17a9d502c9b65c78a7e868bb6",
+    "debug-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "manifest.json": "eb58392086014597e81bd2a67862aa40e822f79996dac25a35e117fb75c04f60",
+    "baseline-native/runTest-issuer-3017977.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-native/test_supervisor_binds_sealed_resource_policy-server-0.log": "63e41750561b4e8279e38bc6e9003784fd467a4110eda000952e3be893b1a170",
+    "baseline-native/test_supervisor_binds_sealed_resource_policy-supervisor-348655021295159.log": "7fde8cf80cae07140491529d2dcfe363921351a878663e29d5a8ece658de15d9"
+  }
+}

@@ -1,0 +1,791 @@
+{
+  "host": "sb16",
+  "status": "capability_checks_complete",
+  "started": 1791683408.6367524,
+  "qualification": false,
+  "commands": [
+    {
+      "argv": [
+        "dpkg-query",
+        "-W",
+        "-f=${Package} ${Version}\n",
+        "btrfs-progs",
+        "libreiserfscore0t64"
+      ],
+      "exit_code": 0,
+      "stdout": "btrfs-progs 6.6.3-1.1build2\nlibreiserfscore0t64 1:3.6.27-7.1build1\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE,FSTYPE,OPTIONS",
+        "/"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "fallocate",
+        "-l",
+        "536870912",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-f",
+        "-d",
+        "single",
+        "-m",
+        "single",
+        "-L",
+        "spatial-m03-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "btrfs-progs v6.6.3\nSee https://btrfs.readthedocs.io for more information.\n\nNOTE: several default settings have changed in version 5.15, please make sure\n      this does not affect your deployments:\n      - DUP for metadata (-m dup)\n      - enabled no-holes (-O no-holes)\n      - enabled free-space-tree (-R free-space-tree)\n\nLabel:              spatial-m03-probe\nUUID:               578af361-f520-4b50-847d-00b0a98ec4b7\nNode size:          16384\nSector size:        4096\nFilesystem size:    512.00MiB\nBlock group profiles:\n  Data:             single            8.00MiB\n  Metadata:         single            8.00MiB\n  System:           single            4.00MiB\nSSD detected:       no\nZoned device:       no\nIncompat features:  extref, skinny-metadata, no-holes, free-space-tree\nRuntime features:   free-space-tree\nChecksum:           crc32c\nNumber of devices:  1\nDevices:\n   ID        SIZE  PATH                                                                                             \n    1   512.00MiB  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume.im\n\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid,compress=no",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE",
+        "--target",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "quota",
+        "enable",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "create",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "67108864",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "create",
+        "1/200",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "33554432",
+        "1/200",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "create",
+        "2/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "67108864",
+        "2/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "1/200",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/project"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/project'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/project"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/project"
+      ],
+      "exit_code": 0,
+      "stdout": "project\n\tName: \t\t\tproject\n\tUUID: \t\t\t7a355b4d-959e-b44e-9d29-a24db5b07406\n\tParent UUID: \t\t-\n\tReceived UUID: \t\t-\n\tCreation time: \t\t2026-10-10 21:50:08 -0400\n\tSubvolume ID: \t\t256\n\tGeneration: \t\t9\n\tGen at creation: \t9\n\tParent ID: \t\t5\n\tTop level ID: \t\t5\n\tFlags: \t\t\t-\n\tSend transid: \t\t0\n\tSend time: \t\t2026-10-10 21:50:08 -0400\n\tReceive transid: \t0\n\tReceive time: \t\t-\n\tSnapshot(s):\n\tQuota group:\t\t0/256\n\t  Limit referenced:\t-\n\t  Limit exclusive:\t-\n\t  Usage referenced:\t0.00B\n\t  Usage exclusive:\t0.00B\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "0/256",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/repository"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/repository'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/repository"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/repository"
+      ],
+      "exit_code": 0,
+      "stdout": "repository\n\tName: \t\t\trepository\n\tUUID: \t\t\t634876fc-b407-be42-87e1-ce4c8b25a2db\n\tParent UUID: \t\t-\n\tReceived UUID: \t\t-\n\tCreation time: \t\t2026-10-10 21:50:09 -0400\n\tSubvolume ID: \t\t257\n\tGeneration: \t\t9\n\tGen at creation: \t9\n\tParent ID: \t\t5\n\tTop level ID: \t\t5\n\tFlags: \t\t\t-\n\tSend transid: \t\t0\n\tSend time: \t\t2026-10-10 21:50:09 -0400\n\tReceive transid: \t0\n\tReceive time: \t\t-\n\tSnapshot(s):\n\tQuota group:\t\t0/257\n\t  Limit referenced:\t-\n\t  Limit exclusive:\t-\n\t  Usage referenced:\t0.00B\n\t  Usage exclusive:\t0.00B\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "0/257",
+        "2/100",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application"
+      ],
+      "exit_code": 0,
+      "stdout": "application\n\tName: \t\t\tapplication\n\tUUID: \t\t\tab9d0b02-c94b-7844-b6f7-160c4dce0e40\n\tParent UUID: \t\t-\n\tReceived UUID: \t\t-\n\tCreation time: \t\t2026-10-10 21:50:09 -0400\n\tSubvolume ID: \t\t258\n\tGeneration: \t\t9\n\tGen at creation: \t9\n\tParent ID: \t\t5\n\tTop level ID: \t\t5\n\tFlags: \t\t\t-\n\tSend transid: \t\t0\n\tSend time: \t\t2026-10-10 21:50:09 -0400\n\tReceive transid: \t0\n\tReceive time: \t\t-\n\tSnapshot(s):\n\tQuota group:\t\t0/258\n\t  Limit referenced:\t-\n\t  Limit exclusive:\t-\n\t  Usage referenced:\t0.00B\n\t  Usage exclusive:\t0.00B\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "0/258",
+        "1/200",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "25165824",
+        "0/258",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application2"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application2'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application2"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application2"
+      ],
+      "exit_code": 0,
+      "stdout": "application2\n\tName: \t\t\tapplication2\n\tUUID: \t\t\ta9c55801-bc68-5c43-b2e2-17f22f68d11b\n\tParent UUID: \t\t-\n\tReceived UUID: \t\t-\n\tCreation time: \t\t2026-10-10 21:50:09 -0400\n\tSubvolume ID: \t\t259\n\tGeneration: \t\t9\n\tGen at creation: \t9\n\tParent ID: \t\t5\n\tTop level ID: \t\t5\n\tFlags: \t\t\t-\n\tSend transid: \t\t0\n\tSend time: \t\t2026-10-10 21:50:09 -0400\n\tReceive transid: \t0\n\tReceive time: \t\t-\n\tSnapshot(s):\n\tQuota group:\t\t0/259\n\t  Limit referenced:\t-\n\t  Limit exclusive:\t-\n\t  Usage referenced:\t0.00B\n\t  Usage exclusive:\t0.00B\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "0/259",
+        "1/200",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "25165824",
+        "0/259",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/sibling"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/sibling'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "chown",
+        "1000:1000",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/sibling"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/sibling"
+      ],
+      "exit_code": 0,
+      "stdout": "sibling\n\tName: \t\t\tsibling\n\tUUID: \t\t\t10810250-0172-6a4b-ad35-475b6e187a39\n\tParent UUID: \t\t-\n\tReceived UUID: \t\t-\n\tCreation time: \t\t2026-10-10 21:50:09 -0400\n\tSubvolume ID: \t\t260\n\tGeneration: \t\t9\n\tGen at creation: \t9\n\tParent ID: \t\t5\n\tTop level ID: \t\t5\n\tFlags: \t\t\t-\n\tSend transid: \t\t0\n\tSend time: \t\t2026-10-10 21:50:09 -0400\n\tReceive transid: \t0\n\tReceive time: \t\t-\n\tSnapshot(s):\n\tQuota group:\t\t0/260\n\t  Limit referenced:\t-\n\t  Limit exclusive:\t-\n\t  Usage referenced:\t0.00B\n\t  Usage exclusive:\t0.00B\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "0/260",
+        "2/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "quota",
+        "rescan",
+        "-w",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "quota rescan started\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "btrfs",
+        "subvolume",
+        "create",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application/unconfined-subvolume"
+      ],
+      "exit_code": 0,
+      "stdout": "Create subvolume '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application/unconfined-subvolume'\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "subvolume",
+        "show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume/application/unconfined-subvolume"
+      ],
+      "exit_code": 0,
+      "stdout": "application/unconfined-subvolume\n\tName: \t\t\tunconfined-subvolume\n\tUUID: \t\t\t8089958f-e2a1-8c44-af2e-e52a926ab186\n\tParent UUID: \t\t-\n\tReceived UUID: \t\t-\n\tCreation time: \t\t2026-10-10 21:50:09 -0400\n\tSubvolume ID: \t\t261\n\tGeneration: \t\t11\n\tGen at creation: \t11\n\tParent ID: \t\t258\n\tTop level ID: \t\t258\n\tFlags: \t\t\t-\n\tSend transid: \t\t0\n\tSend time: \t\t2026-10-10 21:50:09 -0400\n\tReceive transid: \t0\n\tReceive time: \t\t-\n\tSnapshot(s):\n\tQuota group:\t\t0/261\n\t  Limit referenced:\t-\n\t  Limit exclusive:\t-\n\t  Usage referenced:\t0.00B\n\t  Usage exclusive:\t0.00B\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "quota",
+        "rescan",
+        "-w",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "quota rescan started\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "filesystem",
+        "sync",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "filesystem",
+        "sync",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "show",
+        "--sync",
+        "--raw",
+        "-p",
+        "-r",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "Qgroupid    Referenced    Exclusive  Max referenced Parent     Path \n--------    ----------    ---------  -------------- ------     ---- \n0/5              16384        16384            none -          <toplevel>\n0/256          1064960      1064960            none 2/100      project\n0/257            16384        16384            none 2/100      repository\n0/258         25149440     25149440        25165824 1/200      application\n0/259          8388608      8388608        25165824 1/200      application2\n0/260          4210688      4210688            none 2/101      sibling\n0/261          4210688      4210688            none -          application/unconfined-subvolume\n1/200         33538048     33538048        33554432 2/100      2/100<1 member qgroup\u0000>\n2/100         34619392     34619392        67108864 -          <0 member qgroups>\n2/101          4210688      4210688        67108864 -          <0 member qgroups>\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid,compress=no",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "show",
+        "--sync",
+        "--raw",
+        "-p",
+        "-r",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "Qgroupid    Referenced    Exclusive  Max referenced Parent     Path \n--------    ----------    ---------  -------------- ------     ---- \n0/5              16384        16384            none -          <toplevel>\n0/256          1064960      1064960            none 2/100      project\n0/257            16384        16384            none 2/100      repository\n0/258         25149440     25149440        25165824 1/200      application\n0/259          8388608      8388608        25165824 1/200      application2\n0/260          4210688      4210688            none 2/101      sibling\n0/261          4210688      4210688            none -          application/unconfined-subvolume\n1/200         33538048     33538048        33554432 2/100      2/100<1 member qgroup\u0000>\n2/100         34619392     34619392        67108864 -          <0 member qgroups>\n2/101          4210688      4210688        67108864 -          <0 member qgroups>\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE,FSTYPE,OPTIONS",
+        "/"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE",
+        "--target",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "SOURCE,FSTYPE",
+        "--target",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/nvme0n1p2 ext4\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": {
+    "unprivileged_subvolume_creation": {
+      "exit_code": 0,
+      "group": "0/261"
+    },
+    "application_limit": {
+      "bytes_written": 25133056,
+      "write_errno": 122,
+      "fsync_errno": null
+    },
+    "actor_aggregate_limit": {
+      "bytes_written": 8372224,
+      "write_errno": 122,
+      "fsync_errno": null
+    },
+    "workspace_aggregate_limit": {
+      "bytes_written": 33521664,
+      "write_errno": 122,
+      "fsync_errno": null
+    },
+    "independent_workspace": {
+      "bytes_written": 4194304,
+      "write_errno": null,
+      "fsync_errno": null
+    },
+    "unconfined_quota_bypass": {
+      "bytes_written": 4194304,
+      "write_errno": null,
+      "fsync_errno": null
+    },
+    "capacity_recovered": {
+      "bytes_written": 1048576,
+      "write_errno": null,
+      "fsync_errno": null
+    }
+  },
+  "runner_sha256": "b35944c1ff51e05dc715e53dd2370f7313501977c96379afae3b04da6a06ac5c",
+  "package_versions": "btrfs-progs 6.6.3-1.1build2\nlibreiserfscore0t64 1:3.6.27-7.1build1\n",
+  "root_mount_before": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+  "loop": "/dev/loop12",
+  "recovery": [
+    [
+      "sudo",
+      "-n",
+      "umount",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+    ],
+    [
+      "sudo",
+      "-n",
+      "losetup",
+      "-d",
+      "/dev/loop12"
+    ]
+  ],
+  "qgroups_before_remount": "Qgroupid    Referenced    Exclusive  Max referenced Parent     Path \n--------    ----------    ---------  -------------- ------     ---- \n0/5              16384        16384            none -          <toplevel>\n0/256          1064960      1064960            none 2/100      project\n0/257            16384        16384            none 2/100      repository\n0/258         25149440     25149440        25165824 1/200      application\n0/259          8388608      8388608        25165824 1/200      application2\n0/260          4210688      4210688            none 2/101      sibling\n0/261          4210688      4210688            none -          application/unconfined-subvolume\n1/200         33538048     33538048        33554432 2/100      2/100<1 member qgroup\u0000>\n2/100         34619392     34619392        67108864 -          <0 member qgroups>\n2/101          4210688      4210688        67108864 -          <0 member qgroups>\n",
+  "qgroups_after_remount": "Qgroupid    Referenced    Exclusive  Max referenced Parent     Path \n--------    ----------    ---------  -------------- ------     ---- \n0/5              16384        16384            none -          <toplevel>\n0/256          1064960      1064960            none 2/100      project\n0/257            16384        16384            none 2/100      repository\n0/258         25149440     25149440        25165824 1/200      application\n0/259          8388608      8388608        25165824 1/200      application2\n0/260          4210688      4210688            none 2/101      sibling\n0/261          4210688      4210688            none -          application/unconfined-subvolume\n1/200         33538048     33538048        33554432 2/100      2/100<1 member qgroup\u0000>\n2/100         34619392     34619392        67108864 -          <0 member qgroups>\n2/101          4210688      4210688        67108864 -          <0 member qgroups>\n",
+  "root_mount_after": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+  "ended": 1791683410.7175279,
+  "unmounted": true,
+  "image_bytes": 536870912,
+  "mount_after_cleanup": "/dev/nvme0n1p2 ext4\n",
+  "loop_after_cleanup": ""
+}

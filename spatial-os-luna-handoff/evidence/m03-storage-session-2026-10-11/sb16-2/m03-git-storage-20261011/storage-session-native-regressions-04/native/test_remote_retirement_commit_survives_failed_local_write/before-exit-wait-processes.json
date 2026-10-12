@@ -1,0 +1,87 @@
+{
+  "monotonic": 10067.873967703,
+  "broker_pid": 58972,
+  "broker_supervisor_pid": 58970,
+  "processes": [
+    {
+      "pid": 58970,
+      "pidfd": 31,
+      "exited": false,
+      "status": "Name:\tspatial-authori\nUmask:\t0022\nState:\tS (sleeping)\nTgid:\t58970\nNgid:\t0\nPid:\t58970\nPPid:\t58969\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58970\nNSpid:\t58970\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nVmPeak:\t21475010676 kB\nVmSize:\t21474999284 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t  118308 kB\nVmRSS:\t  115604 kB\nRssAnon:\t   62060 kB\nRssFile:\t   53544 kB\nRssShmem:\t       0 kB\nVmData:\t15032485536 kB\nVmStk:\t     132 kB\nVmExe:\t   15860 kB\nVmLib:\t   11872 kB\nVmPTE:\t    1864 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000044c2\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t605\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/manager\n"
+    },
+    {
+      "pid": 59014,
+      "pidfd": 32,
+      "exited": true,
+      "status": "Name:\tspatial-bwrap\nState:\tZ (zombie)\nTgid:\t59014\nNgid:\t0\nPid:\t59014\nPPid:\t1\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t59014\nNSpid:\t59014\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000010000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000000000000\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t3\nnonvoluntary_ctxt_switches:\t2\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "ProcessLookupError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 59015,
+      "pidfd": 33,
+      "exited": false,
+      "status": "Name:\tspatial-bwrap\nState:\tS (sleeping)\nTgid:\t59015\nNgid:\t0\nPid:\t59015\nPPid:\t1\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t59015\t1\nNSpid:\t59015\t1\nNSpgid:\t59015\t1\nNSsid:\t59015\t1\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000010000\nSigIgn:\t0000000000011000\nSigCgt:\t0000000000000000\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t1\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t5\nnonvoluntary_ctxt_switches:\t1\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "do_wait",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/launch-tmp020nsarx/authority-115bf49ec29c3241a9c6d381260e434af2c44abc24af92c6cbd32224bc118f57/authority-d9961ffe94f8434a6468c0a60a07620f7940df0d1bbf5dff9e0a5e78195e1274/authority-fd317d95618d2edc98b6a18214f2c60b999b1e97ad36c0f38416841929d317a4/authority-f705fb3805a77b5c463ed2b0c088bf3ac30df686adc92cfe4ebcd5734f990f6f\n"
+    },
+    {
+      "pid": 59016,
+      "pidfd": 34,
+      "exited": false,
+      "status": "Name:\tspatial-app-ini\nUmask:\t0077\nState:\tR (running)\nTgid:\t59016\nNgid:\t0\nPid:\t59016\nPPid:\t59015\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t64\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t59016\t2\nNSpid:\t59016\t2\nNSpgid:\t59015\t1\nNSsid:\t59015\t1\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000000000004c0\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t1\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t2\nnonvoluntary_ctxt_switches:\t1\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/launch-tmp020nsarx/authority-115bf49ec29c3241a9c6d381260e434af2c44abc24af92c6cbd32224bc118f57/authority-d9961ffe94f8434a6468c0a60a07620f7940df0d1bbf5dff9e0a5e78195e1274/authority-fd317d95618d2edc98b6a18214f2c60b999b1e97ad36c0f38416841929d317a4/authority-f705fb3805a77b5c463ed2b0c088bf3ac30df686adc92cfe4ebcd5734f990f6f\n"
+    },
+    {
+      "pid": 59017,
+      "pidfd": 35,
+      "exited": false,
+      "status": "Name:\tpython3\nUmask:\t0077\nState:\tR (running)\nTgid:\t59017\nNgid:\t0\nPid:\t59017\nPPid:\t59016\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t64\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t59017\t3\nNSpid:\t59017\t3\nNSpgid:\t59015\t1\nNSsid:\t59015\t1\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000000000\nSigIgn:\t0000000001001000\nSigCgt:\t0000000000000002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t1\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t66\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/launch-tmp020nsarx/authority-115bf49ec29c3241a9c6d381260e434af2c44abc24af92c6cbd32224bc118f57/authority-d9961ffe94f8434a6468c0a60a07620f7940df0d1bbf5dff9e0a5e78195e1274/authority-fd317d95618d2edc98b6a18214f2c60b999b1e97ad36c0f38416841929d317a4/authority-f705fb3805a77b5c463ed2b0c088bf3ac30df686adc92cfe4ebcd5734f990f6f\n"
+    },
+    {
+      "pid": 59018,
+      "pidfd": 36,
+      "exited": true,
+      "status": "Name:\tprobe\nState:\tZ (zombie)\nTgid:\t59018\nNgid:\t0\nPid:\t59018\nPPid:\t59017\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t59018\t4\nNSpid:\t59018\t4\nNSpgid:\t59015\t1\nNSsid:\t59015\t1\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000000000\nSigCgt:\t0000000000000000\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t1\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t24\nnonvoluntary_ctxt_switches:\t1\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "ProcessLookupError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 58972,
+      "pidfd": 38,
+      "exited": false,
+      "status": "Name:\tworkspaced\nState:\tZ (zombie)\nTgid:\t58972\nNgid:\t0\nPid:\t58972\nPPid:\t58970\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58972\nNSpid:\t58972\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nThreads:\t2\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000004c0\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t312\nnonvoluntary_ctxt_switches:\t11\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/launch-tmp020nsarx/authority-115bf49ec29c3241a9c6d381260e434af2c44abc24af92c6cbd32224bc118f57/broker-manager\n"
+    },
+    {
+      "pid": 58976,
+      "pidfd": 40,
+      "exited": false,
+      "status": "Name:\tworldd\nUmask:\t0077\nState:\tR (running)\nTgid:\t58976\nNgid:\t0\nPid:\t58976\nPPid:\t58974\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58976\nNSpid:\t58976\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000100\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000004c0\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t235\nnonvoluntary_ctxt_switches:\t1\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/launch-tmp020nsarx/authority-05ecaa25b172fca5c8d55d49b7426d19203027827534769019df8316d922f006\n"
+    },
+    {
+      "pid": 58977,
+      "pidfd": 41,
+      "exited": false,
+      "status": "Name:\tspatialwm\nUmask:\t0077\nState:\tR (running)\nTgid:\t58977\nNgid:\t0\nPid:\t58977\nPPid:\t58976\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t256\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58977\nNSpid:\t58977\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nVmPeak:\t21475517320 kB\nVmSize:\t21475517320 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t  164652 kB\nVmRSS:\t  164652 kB\nRssAnon:\t   88316 kB\nRssFile:\t   76036 kB\nRssShmem:\t     300 kB\nVmData:\t15032864776 kB\nVmStk:\t     132 kB\nVmExe:\t    6168 kB\nVmLib:\t  170760 kB\nVmPTE:\t    2568 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t18\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000004c0\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t195\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/launch-tmp020nsarx/authority-05ecaa25b172fca5c8d55d49b7426d19203027827534769019df8316d922f006\n"
+    },
+    {
+      "pid": 58974,
+      "pidfd": 52,
+      "exited": false,
+      "status": "Name:\tspatial-authori\nUmask:\t0022\nState:\tS (sleeping)\nTgid:\t58974\nNgid:\t0\nPid:\t58974\nPPid:\t58969\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58974\nNSpid:\t58974\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nVmPeak:\t21475010676 kB\nVmSize:\t21474999284 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t  116524 kB\nVmRSS:\t  114624 kB\nRssAnon:\t   61028 kB\nRssFile:\t   53596 kB\nRssShmem:\t       0 kB\nVmData:\t15032485280 kB\nVmStk:\t     132 kB\nVmExe:\t   15860 kB\nVmLib:\t   11872 kB\nVmPTE:\t    1848 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000044c2\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t450\nnonvoluntary_ctxt_switches:\t2\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/manager\n"
+    }
+  ]
+}

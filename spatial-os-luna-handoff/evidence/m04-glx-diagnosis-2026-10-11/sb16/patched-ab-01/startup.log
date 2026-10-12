@@ -1,0 +1,6 @@
+test_bootstrap_binds_supervisor_before_native_requests (__main__.StartupDiagnostic.test_bootstrap_binds_supervisor_before_native_requests) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.105s
+
+OK

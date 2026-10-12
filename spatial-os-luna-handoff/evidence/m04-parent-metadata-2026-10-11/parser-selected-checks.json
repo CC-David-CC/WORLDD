@@ -1,0 +1,10 @@
+{
+  "selected_before_execution": true,
+  "purpose": "Reject mutation evidence that contains additional unittest errors. Reassess all three raw native mutation logs with the stricter parser.",
+  "tests": [
+    "Five parser regressions in both configured profiles on both hosts",
+    "Three recorded native mutation outcomes per host",
+    "CTest registration inventory after the test-only CMake addition"
+  ],
+  "source_change": "Only verifier logic and its regression registration changed after the 214-case native qualification. Production policy and native witness bytes remain unchanged."
+}

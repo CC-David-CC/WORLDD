@@ -1,0 +1,18 @@
+[0/2] Re-checking globbed directories...
+[1/17] Building CXX object CMakeFiles/spatial-issuer-client.dir/src/identity/client_main.cpp.o
+[2/17] Linking CXX executable spatial-issuer-client
+[3/17] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/issuer.cpp.o
+[4/17] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[5/17] Building CXX object CMakeFiles/identityd.dir/src/identity/issuer_main.cpp.o
+[6/17] Building C object CMakeFiles/spatial-confined-xprobe.dir/native/xprobe.c.o
+[7/17] Linking C executable spatial-confined-xprobe
+[8/17] Building C object CMakeFiles/spatial-security-auth.dir/native/security_auth.c.o
+[9/17] Linking C executable spatial-security-auth
+[10/17] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/tls_server.cpp.o
+[11/17] Linking CXX static library libspatial-issuer.a
+[12/17] Linking CXX executable identityd
+[13/17] Generating python/launch_pb2.py
+[14/17] Building CXX object CMakeFiles/spatial-authority-launch-probe.dir/src/testing/authority_launch_probe.cpp.o
+[15/17] Building CXX object CMakeFiles/spatial-session-launch-exit-probe.dir/src/testing/session_launch_exit_probe.cpp.o
+[16/17] Linking CXX executable spatial-session-launch-exit-probe
+[17/17] Linking CXX executable spatial-authority-launch-probe

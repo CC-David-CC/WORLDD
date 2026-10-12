@@ -1,0 +1,42 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 9
+    Start 9: authority-approval-interruption
+
+9: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-approval-interruption-303048865a9a88d069fc74e5d23cec33cafb9c4150fbad371495619b9b342c12" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_approval_interruption.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+9: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+9: Test timeout computed to be: 120
+9: Running as unit: spatial-approval-interruption-303048865a9a88d069fc74e5d23cec33cafb9c4150fbad371495619b9b342c12.service; invocation ID: 5c9c3fc0301a4c89ac91e9dfc729e7a6
+9: test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch (__main__.ApprovalInterruptionTests.test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch) ... ok
+9: test_participant_timeout_during_approval_never_executes (__main__.ApprovalInterruptionTests.test_participant_timeout_during_approval_never_executes) ... ok
+9: test_lost_committed_approval_reply_never_retries_or_executes (__main__.ApprovalInterruptionTests.test_lost_committed_approval_reply_never_retries_or_executes) ... ok
+9: test_active_revocation_timeout_stops_scopes_without_completing_barrier (__main__.ApprovalInterruptionTests.test_active_revocation_timeout_stops_scopes_without_completing_barrier) ... ok
+9: 
+9: ----------------------------------------------------------------------
+9: Ran 4 tests in 7.755s
+9: 
+9: OK
+9: Finished with result: success
+9: Main processes terminated with: code=exited/status=0
+9: Service runtime: 7.877s
+9: CPU time consumed: 2.408s
+9: Memory peak: 512.0K
+9: Memory swap peak: 0B
+1/1 Test #9: authority-approval-interruption ...   Passed    7.90 sec
+
+The following tests passed:
+	authority-approval-interruption
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   7.91 sec

@@ -1,0 +1,121 @@
+{
+  "host": "sb16",
+  "status": "complete_diagnostic",
+  "started": 1791682274.5001864,
+  "source_basis": "m03-authenticated-resources-03",
+  "source_manifest_sha256": "8de1c453190fba86db9a1c39035278f34bf99da75254be2e99b75a0085f8f4d4",
+  "runner_sha256": "9a1751dcd5ab61f0d81c301113c45750987cde112455767860c2dea020336df9",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "strace",
+        "-f",
+        "-ttt",
+        "-T",
+        "-e",
+        "trace=fsync,fdatasync",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-startup-diagnostic-01/trial-1/sync.log",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+      ],
+      "started": 1791682274.5334618,
+      "exit_code": 1,
+      "ended": 1791682275.2501817
+    },
+    {
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "strace",
+        "-f",
+        "-ttt",
+        "-T",
+        "-e",
+        "trace=fsync,fdatasync",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-startup-diagnostic-01/trial-2/sync.log",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+      ],
+      "started": 1791682275.2506816,
+      "exit_code": 1,
+      "ended": 1791682275.9743125
+    },
+    {
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "strace",
+        "-f",
+        "-ttt",
+        "-T",
+        "-e",
+        "trace=fsync,fdatasync",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-startup-diagnostic-01/trial-3/sync.log",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+      ],
+      "started": 1791682275.9750066,
+      "exit_code": 1,
+      "ended": 1791682276.6982276
+    }
+  ],
+  "trials": [
+    {
+      "number": 1,
+      "exit_code": 1
+    },
+    {
+      "number": 2,
+      "exit_code": 1
+    },
+    {
+      "number": 3,
+      "exit_code": 1
+    }
+  ],
+  "qualification": false,
+  "ended": 1791682276.6986191,
+  "attachments": {
+    "trial-2/case.log": "e9813af6078f07a76dd941a1923b753f4cc0066607abe2b3e6f519c2894fcf50",
+    "trial-2/sync.log": "0450b20a9157702b0ee21d72c6a9a22a7415e34a0b7f142354068da885456282",
+    "trial-1/case.log": "eb2238f402273f26b8a2616a2932de6868ff76e3a2574b3871a0438d8f5dd57e",
+    "trial-1/sync.log": "7387a85a9da6597f5485e55b78a57aa3e26606a50cd490ea3f3059ca68af5ab7",
+    "trial-3/case.log": "4589111c9ca58d8d197fa7aec6cec4fd97827718dc8b6ffd5b6e44a6b0220832",
+    "trial-3/sync.log": "316d05024d097878938f1d4c50cfe0ed53057d40d878ead9f229a13475e353cf",
+    "trial-2/witnesses/adapter-provisioning-adapter-b80feb12e2e546d1bff2f9e5e0c81550.json": "e43bfff8a8d2f0645a28859de12b5a23b87788c4a65c199af28afc6e74c41b50",
+    "trial-1/witnesses/adapter-provisioning-adapter-013366c395b4400eb4f4bb0e3863b2b9.json": "49d590d62e13e078e39e7ce9959c8ea7b5ec0066415452221440bba4be118a21",
+    "trial-3/witnesses/adapter-provisioning-adapter-3e3b8c274e534a1a88d394c1c64c1b4d.json": "366bd0ab864b097700f36f6cb811c7ce5b3fef42140ddbc92fad6790c0fae80c"
+  }
+}

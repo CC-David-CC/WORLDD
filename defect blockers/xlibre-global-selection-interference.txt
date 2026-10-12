@@ -1,0 +1,18 @@
+Defect: Core-X selections shared ownership across application identities.
+Status: Corrected in focused Debug and core-X sanitizer checks on both hosts.
+
+The old policy denied a query or claim when another application owned PRIMARY.
+The error exposed ownership activity and prevented independent use.
+Each baseline host failed seven independent namespace checks and passed one sharing control.
+
+The correction labels real DIX selection records by full workspace/application identity.
+Same-application peers share a namespace. Other applications have independent owners and timestamps.
+Supervisor and compositor connections select a view through checked SelectionScope protobuf.
+Applications and brokers cannot change their namespace.
+Destruction and revocation clear owners through normal DIX cleanup.
+
+Migration: spatial-os-luna-handoff/docs/SELECTION_NAMESPACE_MIGRATION.txt.
+Evidence: spatial-os-luna-handoff/evidence/m04-selection-2026-10-11/.
+The original schema, policy, task and fourteen-test witness remain preserved.
+The combined event-metadata candidate rechecks this correction on both hosts and profiles.
+M04 remains incomplete.

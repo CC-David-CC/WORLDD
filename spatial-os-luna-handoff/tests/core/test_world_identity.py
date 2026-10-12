@@ -61,7 +61,7 @@ class WorldProcess:
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
         if runtime_config: command+=['--config',str(runtime_config)]
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
-        if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(broker.proc.pid)]
+        if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(getattr(broker,'pid',broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
             pass_fds=tuple(server.fileno() for _,server in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))
@@ -128,7 +128,11 @@ class WorldIdentityFixture(ClientFixture):
         reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None):
-        config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(self.config_file()),admission=admission)
+        client_path=self.config_file()
+        client=text_format.Parse(client_path.read_text(),pb.IssuerTlsClientConfig())
+        client.ClearField('io_timeout_ms')
+        client_path.write_text(text_format.MessageToString(client))
+        config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(client_path),admission=admission)
         if admitted:config.admitted_actor_ids.append(self.identity.actor_id)
         if grants:config.actor_grants.add(actor_id=self.identity.actor_id,grants=grants)
         state=state or self.root/f'world-state-{len(self.worlds)}'

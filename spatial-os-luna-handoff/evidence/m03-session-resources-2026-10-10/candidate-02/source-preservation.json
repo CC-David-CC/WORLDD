@@ -1,0 +1,7 @@
+{
+  "basis": "Candidate03 manifest. Other source bytes are identical.",
+  "archive_sha256": "e4fada20e0ee08d409790b9964eda826a4f72fbc233c4aae44112a555e0d235a",
+  "deltas": {
+    "tests/native/test_session_resources.py": "b07044b4b7d4851c5cbafa957332b18cbce73c91f1415025bab38fb14e734f8d"
+  }
+}

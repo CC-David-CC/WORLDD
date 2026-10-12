@@ -1,0 +1,134 @@
+{
+  "status": "primary_review_complete",
+  "phase": "M03",
+  "phase_complete": false,
+  "base_commit": "cf4b7f72ff0303c50f1bef1d1525d082ae572c42",
+  "passed": 176,
+  "failed_final": 0,
+  "skipped": 0,
+  "selected_per_host_profile": 44,
+  "source_archives": {
+    "01": "23ef0aff0fb3c57037d7cabd7cce2276967fe7e95e98c07359d09f0858157e78",
+    "02": "3b3dff2b2fdcf68039f58b86b730e3c4fe68680b3bfd9aa95a07b196702e1c49",
+    "03": "44ad39a1595bb6ad2bb1c3d9cfafd0eac438268dc51c2d674872f08efa9a470e",
+    "04": "c9d836f9afef8f59c178dd3a5410743275d5becf7f9ccf587b1d631d4f27a334"
+  },
+  "source_files": 359,
+  "locked_files": 41,
+  "verified_attachments": 439,
+  "hosts": {
+    "sb16": {
+      "profiles": {
+        "debug": {
+          "passed": 44,
+          "failed": 0,
+          "skipped": 0,
+          "main_log": "candidate-02\\sb16\\debug-checks.log",
+          "termination_log": "candidate-03\\sb16\\debug-checks.log",
+          "application_io": {
+            "seconds": 3.9610795689513907,
+            "kernel_bytes": 16777216,
+            "configured_bps": 4194304
+          },
+          "binaries": {
+            "workspaced": "65e40deb42486c58d9638fc50deeacd764cc7899786c41ef2a0071ce526eebe8",
+            "spatial-process-scope-probe": "4d9027c2d42e561ddc7a527b1133d0f3709867f5f8573ba09da95bb07c7d6846",
+            "spatial-app-init": "36990b19342e92af4e803ef9079a8a53811bdcc69232faa4e7ece70b3a74ae21"
+          },
+          "qualified_termination_probe": "50782dc0f779223e74934a0a7d035dc16f9ac1ad22155c394dc2c7ce2461ca9f"
+        },
+        "runtime-sanitize": {
+          "passed": 44,
+          "failed": 0,
+          "skipped": 0,
+          "main_log": "candidate-02\\sb16\\runtime-sanitize-checks.log",
+          "termination_log": "candidate-03\\sb16\\runtime-sanitize-checks.log",
+          "application_io": {
+            "seconds": 4.030787785013672,
+            "kernel_bytes": 16777216,
+            "configured_bps": 4194304
+          },
+          "binaries": {
+            "workspaced": "04c244aa9607cfdb68a8d23b060069cfe78b8ec048eb5d55c06d26426f1a1b57",
+            "spatial-process-scope-probe": "2702b50c09f1770cdca316985de1fcaaa3a8042b775b38f6c274448bc2f22737",
+            "spatial-app-init": "2891283f5d386be1fb21dad69e1d65e1c4386ca08cf057a99e28d1e7464506cf"
+          },
+          "qualified_termination_probe": "544b4c9202a0f1551c1b1dca0b5cfcc3db06b9e0710c441895f21fb1d1c962be"
+        }
+      },
+      "unloaded_units": 16,
+      "recovery_sha256": "f54ca0b376b25968cbeeb7d5228b8bba447b4cd4bea6b431c73294aca6df8e4d"
+    },
+    "sb16-2": {
+      "profiles": {
+        "debug": {
+          "passed": 44,
+          "failed": 0,
+          "skipped": 0,
+          "main_log": "candidate-02\\sb16-2\\debug-checks.log",
+          "termination_log": "candidate-03\\sb16-2\\debug-checks.log",
+          "application_io": {
+            "seconds": 4.016035367036238,
+            "kernel_bytes": 16777216,
+            "configured_bps": 4194304
+          },
+          "binaries": {
+            "workspaced": "65e40deb42486c58d9638fc50deeacd764cc7899786c41ef2a0071ce526eebe8",
+            "spatial-process-scope-probe": "4d9027c2d42e561ddc7a527b1133d0f3709867f5f8573ba09da95bb07c7d6846",
+            "spatial-app-init": "36990b19342e92af4e803ef9079a8a53811bdcc69232faa4e7ece70b3a74ae21"
+          },
+          "qualified_termination_probe": "50782dc0f779223e74934a0a7d035dc16f9ac1ad22155c394dc2c7ce2461ca9f"
+        },
+        "runtime-sanitize": {
+          "passed": 44,
+          "failed": 0,
+          "skipped": 0,
+          "main_log": "candidate-02\\sb16-2\\runtime-sanitize-checks.log",
+          "termination_log": "candidate-04\\sb16-2\\runtime-sanitize-checks.log",
+          "application_io": {
+            "seconds": 4.0238562829908915,
+            "kernel_bytes": 16777216,
+            "configured_bps": 4194304
+          },
+          "binaries": {
+            "workspaced": "04c244aa9607cfdb68a8d23b060069cfe78b8ec048eb5d55c06d26426f1a1b57",
+            "spatial-process-scope-probe": "2702b50c09f1770cdca316985de1fcaaa3a8042b775b38f6c274448bc2f22737",
+            "spatial-app-init": "2891283f5d386be1fb21dad69e1d65e1c4386ca08cf057a99e28d1e7464506cf"
+          },
+          "qualified_termination_probe": "dee152ead28b94611d685e37bd3ec900128850232f9281de23c8a84e37fe1c9e"
+        }
+      },
+      "unloaded_units": 15,
+      "recovery_sha256": "f10f4a1902e516c02773e8c0ec1997f94627b645a050ab31f9f0f2f2fa97ac19"
+    }
+  },
+  "qualification": "Composed immutable evidence: candidate02 broker and scope tests; candidate03/04 termination; candidate04 application I/O.",
+  "review": "Primary agent reviewed all changed production, schema, fixture, test, CMake, and evidence code. No local-model or subagent review.",
+  "sanitizer_logs_scanned": 304,
+  "sanitizer_matches": 0,
+  "preserved_failures": [
+    "Candidate01: both builds succeeded; tests could not import omitted Python protobuf bindings. No test case ran.",
+    "Candidate02: the old broker launched without resource configuration on both hosts. Expected baseline failures remain preserved.",
+    "Candidate03 sb16-2 Debug: initial io.stat lacked wbytes; the new witness raised KeyError before writing. No original raw counter snapshot was captured.",
+    "Candidate04 records initial and final counters. An absent initial wbytes contributes zero; final wbytes and all 16 MiB remain mandatory."
+  ],
+  "limitations": [
+    "M03 is incomplete. Normal host checkouts remain unchanged and this branch is not adopted.",
+    "Session launchers and existing application fixtures still need explicit resource configuration and project-scoped controller provisioning.",
+    "This increment does not qualify live authenticated resource policies, native GUI launch, or full existing confinement and escape suites.",
+    "Resource ceilings are operator configuration; they grant no execution or file authority.",
+    "Persistent storage quotas, broker Git/file I/O accounting, and whole-session resource ceilings remain pending.",
+    "Direct application I/O throttling does not prove issuer fdatasync latency or availability under contention.",
+    "No full M03 gate, physical devices, GPU performance, live-model acceptance, or power-loss tests ran.",
+    "Current-source workspaced was not rebuilt after test-only candidate03/04 changes. All production sources match candidate02.",
+    "Two candidate03 I/O passes were superseded by four corrected candidate04 measurements; duplicate passes are excluded from 176."
+  ],
+  "references": [
+    "https://docs.kernel.org/admin-guide/cgroup-v2.html#io-interface-files"
+  ],
+  "next": [
+    "Provision resource configuration through production session launchers.",
+    "Connect existing application and authority integration fixtures to the same provisioned production boundary.",
+    "Implement bounded persistent storage and broker effects accounting, then qualify issuer contention recovery."
+  ]
+}

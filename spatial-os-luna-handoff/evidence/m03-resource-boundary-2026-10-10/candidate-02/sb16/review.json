@@ -1,0 +1,232 @@
+{
+  "host": "sb16",
+  "status": "passed_review_pending",
+  "started": 1791675999.6869352,
+  "pid": 3006261,
+  "manifest_sha256": "08e0fc9c0aa8eefb31e8f001d56b1fb4ec4bef0244f6717e926ffd6e0b08da52",
+  "runner_sha256": "b27e360f7a1ff5f3bc39d4ae003d80915021f55b22b495194d71be42f4e5960b",
+  "commands": [
+    {
+      "label": "debug-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=OFF",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "started": 1791675999.6963382,
+      "exit_code": 0,
+      "ended": 1791676000.663185,
+      "sha256": "a946ab2ee5b278ed99f7a93ea8f056a5de8da438fcae31423c25ae622952625a"
+    },
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/debug/build",
+        "--target",
+        "spatial-process-scope-probe",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791676000.6730897,
+      "exit_code": 0,
+      "ended": 1791676020.3328545,
+      "sha256": "7bc5484267364c3907694175e9cb69530eef390a86148288400f7ce3636aeae7"
+    },
+    {
+      "label": "debug-sync",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02"
+      ],
+      "started": 1791676020.3426454,
+      "exit_code": 0,
+      "ended": 1791676020.8114035,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "baseline",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/source/tests/core/test_process_scope_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/debug/build/spatial-process-scope-probe",
+        "ResourceScopeTests.test_missing_device_component_does_not_select_device_zero"
+      ],
+      "started": 1791676020.82671,
+      "exit_code": 1,
+      "ended": 1791676021.0923617,
+      "sha256": "dc09398cce934ff70904acadab4f79d54c97f28bc6d5ce101fd33d30d6a4b4fb"
+    },
+    {
+      "label": "debug-checks",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/debug/build",
+        "-V",
+        "--output-on-failure",
+        "-R",
+        "^(process-scope-resources|authority-process-scope|authority-prepared-launch)$"
+      ],
+      "started": 1791676021.1078033,
+      "exit_code": 0,
+      "ended": 1791676029.1023557,
+      "sha256": "a73ec693d87a1825f3caf185ba817fef864e6bb2c0218920171a419f0b230769"
+    },
+    {
+      "label": "runtime-sanitize-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/runtime-sanitize/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=OFF",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "started": 1791676029.1192243,
+      "exit_code": 0,
+      "ended": 1791676030.0860229,
+      "sha256": "cb8c654ed728433593e0875b6a833afb2bb7a513e1e5f322adf5c8f6d75cef69"
+    },
+    {
+      "label": "runtime-sanitize-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/runtime-sanitize/build",
+        "--target",
+        "spatial-process-scope-probe",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791676030.0969381,
+      "exit_code": 0,
+      "ended": 1791676070.8143225,
+      "sha256": "3240aa4eebb567cdd3e310b05001a086f76cd971abcd26455c83cd5ea1ee12ee"
+    },
+    {
+      "label": "runtime-sanitize-sync",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02"
+      ],
+      "started": 1791676070.824683,
+      "exit_code": 0,
+      "ended": 1791676071.7503877,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "runtime-sanitize-checks",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-02/runtime-sanitize/build",
+        "-V",
+        "--output-on-failure",
+        "-R",
+        "^(process-scope-resources|authority-process-scope|authority-prepared-launch)$"
+      ],
+      "started": 1791676071.7620413,
+      "exit_code": 0,
+      "ended": 1791676080.1623008,
+      "sha256": "d411e3b2a22b5345c164f9b17713f589a568abec4f5705e6238e560cb3a13fe2"
+    }
+  ],
+  "profiles": {
+    "debug": {
+      "passed": 27,
+      "suite_counts": [
+        8,
+        10,
+        9
+      ],
+      "failed": 0,
+      "skipped": 0,
+      "binary_sha256": "d5f24ec310a81b777ee4357792f955b19ffd04ebb28cbb85c9798c185afd1c36"
+    },
+    "runtime-sanitize": {
+      "passed": 27,
+      "suite_counts": [
+        8,
+        10,
+        9
+      ],
+      "failed": 0,
+      "skipped": 0,
+      "binary_sha256": "90b7597fcbf8561f1e2ce51bbb037c3ced6fc96dd8c122bc86c2655db3538b41"
+    }
+  },
+  "phase_complete": false,
+  "scope": "Aggregate process-scope primitive. Broker integration and bounded storage remain pending.",
+  "baseline": {
+    "status": "expected_missing_device_presence_failure",
+    "old_binary_sha256": "3bbb164c1cb78ec7b90f7984934acb88576c0248f3bbd221a34542eeacdb2e2c"
+  },
+  "sanitizer_logs_scanned": 30,
+  "sanitizer_matches": 0,
+  "ended": 1791676080.2225754,
+  "attachments": {
+    "debug-configure.log": "a946ab2ee5b278ed99f7a93ea8f056a5de8da438fcae31423c25ae622952625a",
+    "runtime-sanitize-configure.log": "cb8c654ed728433593e0875b6a833afb2bb7a513e1e5f322adf5c8f6d75cef69",
+    "debug-checks.log": "a73ec693d87a1825f3caf185ba817fef864e6bb2c0218920171a419f0b230769",
+    "runtime-sanitize-build.log": "3240aa4eebb567cdd3e310b05001a086f76cd971abcd26455c83cd5ea1ee12ee",
+    "runtime-sanitize-checks.log": "d411e3b2a22b5345c164f9b17713f589a568abec4f5705e6238e560cb3a13fe2",
+    "runtime-sanitize-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-build.log": "7bc5484267364c3907694175e9cb69530eef390a86148288400f7ce3636aeae7",
+    "baseline.log": "dc09398cce934ff70904acadab4f79d54c97f28bc6d5ce101fd33d30d6a4b4fb",
+    "debug-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "manifest.json": "08e0fc9c0aa8eefb31e8f001d56b1fb4ec4bef0244f6717e926ffd6e0b08da52",
+    "runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344958235640897.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344958236049814.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json": "aadcf809e180044eda83f29027509da284897d3f23b16b14ff79ca6694e1d1d5",
+    "runtime-sanitize/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal344958049700917.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/fork.json": "f45187fb13df274269807e118f8b3a686014fb5f925bf8a6e153d8772176e90b",
+    "runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/normal344958143857166.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal344958208957461.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_missing_io_controller_fails_before_execution/normal344958518740930.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_real_writes_obey_io_budget/normal344958539601975.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_real_writes_obey_io_budget/kernel-io.json": "8a102573aab5858faa084c9d92912b1781ff996c9d2b204c5e6b7abf03628e08",
+    "runtime-sanitize/witnesses/test_real_writes_obey_io_budget/io.json": "5bd1c7ca9e940253cf24ad4840357adf8daef13efd4be61e95b060777c395c31",
+    "runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/cpu.json": "eede1235a101dbb17451d7937d8b154b2c669964bbe7d971d47480c7d0ca1ed9",
+    "runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/kernel-cpu.json": "23553b0fde4604885ef6c615fe2772eec1a6b1c3471b609c0b055ecb1f116734",
+    "runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/normal344962579049670.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_missing_device_component_does_not_select_device_zero/normal344958498186575.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_controls_exist_before_child_execution/normal344958089453011.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-witnesses/test_missing_device_component_does_not_select_device_zero/normal344906211640761.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344907120993747.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344907120668454.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json": "8a75118b04d4a3d523fd253cd17640c8db8d0d07d44e5cff290f58d21134c9f4",
+    "debug/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal344907005661051.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_fork_and_detachment_share_one_process_budget/normal344907058529075.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_fork_and_detachment_share_one_process_budget/fork.json": "2ace92922053d721da4c74ad8b6db2fe8a433a17e12e7db3e5135a9d28cdd3b5",
+    "debug/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal344907109677033.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_missing_io_controller_fails_before_execution/normal344907361493537.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_real_writes_obey_io_budget/normal344907367321048.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_real_writes_obey_io_budget/kernel-io.json": "8a102573aab5858faa084c9d92912b1781ff996c9d2b204c5e6b7abf03628e08",
+    "debug/witnesses/test_real_writes_obey_io_budget/io.json": "d761995a15e28182c2fe54b22c11d4d92337b1f4c8583b5e8f72fc5f899960ce",
+    "debug/witnesses/test_two_busy_children_share_cpu_quota/cpu.json": "eede1235a101dbb17451d7937d8b154b2c669964bbe7d971d47480c7d0ca1ed9",
+    "debug/witnesses/test_two_busy_children_share_cpu_quota/normal344911395817853.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_two_busy_children_share_cpu_quota/kernel-cpu.json": "c06cac68e03c7efea3ea977126f8af3e7bc70df6a78b3d718257b20800b1fd0d",
+    "debug/witnesses/test_missing_device_component_does_not_select_device_zero/normal344907356156389.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_controls_exist_before_child_execution/normal344907019055022.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

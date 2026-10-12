@@ -1,0 +1,87 @@
+{
+  "status": "preserved_evidence_verified_current_qualification_pending",
+  "milestone": "M03",
+  "milestone_complete": false,
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "b0c9e2218d17b8b9587d4f07d7cd7fac5e4d02f4ebeeff6fceb391304b3681d1",
+      "verified_attachments": 56,
+      "import_counterexample_and_correction": {
+        "storage-contention-06": {
+          "exit_during_git": {
+            "seconds": 2.001861821998318,
+            "exited": 0,
+            "expected": 9,
+            "git_still_running": [],
+            "pending_reply": true
+          },
+          "broker_kernel_wait": {
+            "exit_code": 0,
+            "stdout": "{\"wchan\": \"folio_wait_bit_common\", \"syscall\": \"74 0x27 0x0 0x0 0x0 0x0 0x1000256b6388 0x7ffd2b5f1ca0 0x72092c71f0dc\\n\", \"stack\": \"[<0>] folio_wait_bit_common+0x13d/0x360\\n[<0>] folio_wait_bit+0x18/0x30\\n[<0>] folio_wait_writeback+0x3d/0xb0\\n[<0>] __filemap_fdatawait_range+0x8b/0x100\\n[<0>] filemap_fdatawait_range+0x12/0x60\\n[<0>] btrfs_wait_ordered_range+0x85/0x120 [btrfs]\\n[<0>] btrfs_sync_file+0x12f/0x630 [btrfs]\\n[<0>] do_fsync+0x5a/0xe0\\n[<0>] __x64_sys_fsync+0x13/0x20\\n[<0>] x64_sys_call+0x1445/0x26e0\\n[<0>] do_syscall_64+0xd9/0x5b0\\n[<0>] entry_SYSCALL_64_after_hwframe+0x76/0x7e\\n\"}\n",
+            "stderr": ""
+          },
+          "nested_execution_rejected_without_effect": null
+        },
+        "storage-contention-checks-07": {
+          "exit_during_git": {
+            "seconds": 0.3712779860034061,
+            "exited": 9,
+            "expected": 9,
+            "git_still_running": [],
+            "pending_reply": true
+          },
+          "broker_kernel_wait": {
+            "exit_code": 0,
+            "stdout": "{\"wchan\": \"folio_wait_bit_common\", \"syscall\": \"75 0x13 0x0 0x0 0x0 0x0 0x10006f73d9ea 0x7fff7ba2d160 0x7f885511ea4c\\n\", \"stack\": \"[<0>] folio_wait_bit_common+0x13d/0x360\\n[<0>] folio_wait_bit+0x18/0x30\\n[<0>] write_all_supers+0x407/0x590 [btrfs]\\n[<0>] btrfs_sync_log+0xd79/0x1090 [btrfs]\\n[<0>] btrfs_sync_file+0x46a/0x630 [btrfs]\\n[<0>] do_fsync+0x5a/0xe0\\n[<0>] __x64_sys_fdatasync+0x16/0x30\\n[<0>] x64_sys_call+0x22ed/0x26e0\\n[<0>] do_syscall_64+0xd9/0x5b0\\n[<0>] entry_SYSCALL_64_after_hwframe+0x76/0x7e\\n\"}\n",
+            "stderr": ""
+          },
+          "nested_execution_rejected_without_effect": true
+        }
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "a1d596edc1ead5a057aa78acefc65dcdbf694051e17554c0b92eb0af867e6a8a",
+      "verified_attachments": 55,
+      "import_counterexample_and_correction": {
+        "storage-contention-06": {
+          "exit_during_git": {
+            "seconds": 2.002174485998694,
+            "exited": 0,
+            "expected": 9,
+            "git_still_running": [],
+            "pending_reply": true
+          },
+          "broker_kernel_wait": {
+            "exit_code": 0,
+            "stdout": "{\"wchan\": \"folio_wait_bit_common\", \"syscall\": \"74 0x27 0x0 0x0 0x0 0x0 0x10004562ef04 0x7ffe2b1b7880 0x7f7be491f0dc\\n\", \"stack\": \"[<0>] folio_wait_bit_common+0x13d/0x360\\n[<0>] folio_wait_bit+0x18/0x30\\n[<0>] folio_wait_writeback+0x3d/0xb0\\n[<0>] __filemap_fdatawait_range+0x8b/0x100\\n[<0>] filemap_fdatawait_range+0x12/0x60\\n[<0>] btrfs_wait_ordered_range+0x85/0x120 [btrfs]\\n[<0>] btrfs_sync_file+0x12f/0x630 [btrfs]\\n[<0>] do_fsync+0x5a/0xe0\\n[<0>] __x64_sys_fsync+0x13/0x20\\n[<0>] x64_sys_call+0x1445/0x26e0\\n[<0>] do_syscall_64+0xd9/0x5b0\\n[<0>] entry_SYSCALL_64_after_hwframe+0x76/0x7e\\n\"}\n",
+            "stderr": ""
+          },
+          "nested_execution_rejected_without_effect": null
+        },
+        "storage-contention-checks-07": {
+          "exit_during_git": {
+            "seconds": 0.7376739589999488,
+            "exited": 9,
+            "expected": 9,
+            "git_still_running": [],
+            "pending_reply": true
+          },
+          "broker_kernel_wait": {
+            "exit_code": 0,
+            "stdout": "{\"wchan\": \"folio_wait_bit_common\", \"syscall\": \"75 0x10 0x0 0x0 0x2400 0x0 0xa647fffa987 0x7ffd9a6bc210 0x76dc2871ea4c\\n\", \"stack\": \"[<0>] folio_wait_bit_common+0x13d/0x360\\n[<0>] folio_wait_bit+0x18/0x30\\n[<0>] folio_wait_writeback+0x3d/0xb0\\n[<0>] __filemap_fdatawait_range+0x8b/0x100\\n[<0>] filemap_fdatawait_range+0x12/0x60\\n[<0>] btrfs_wait_ordered_range+0x85/0x120 [btrfs]\\n[<0>] btrfs_sync_file+0x12f/0x630 [btrfs]\\n[<0>] do_fsync+0x5a/0xe0\\n[<0>] __x64_sys_fdatasync+0x16/0x30\\n[<0>] x64_sys_call+0x22ed/0x26e0\\n[<0>] do_syscall_64+0xd9/0x5b0\\n[<0>] entry_SYSCALL_64_after_hwframe+0x76/0x7e\\n\"}\n",
+            "stderr": ""
+          },
+          "nested_execution_rejected_without_effect": true
+        }
+      }
+    }
+  },
+  "locked_files_verified": 41,
+  "existing_test_bodies_unchanged": 112,
+  "remaining": [
+    "Current-source related Debug and sanitizer checks.",
+    "Complete M03 gate on both hosts.",
+    "Cross-host reassessment, final primary review and coherent origin checkpoint.",
+    "Earlier unexplained startup timeout remains preserved."
+  ]
+}

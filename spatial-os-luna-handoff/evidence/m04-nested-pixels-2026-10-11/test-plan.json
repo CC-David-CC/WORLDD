@@ -1,0 +1,24 @@
+﻿{
+    "phase":  "M04",
+    "defect":  "Owned ancestor restores foreign descendant pixels",
+    "baseline_commit":  "a89ec13",
+    "changed_files":  [
+                          "server/xlibre/spatialpolicy.c",
+                          "tests/native/test_topology_pixels.py"
+                      ],
+    "hosts":  [
+                  "sb16",
+                  "sb16-2"
+              ],
+    "selected_checks":  [
+                            "18 native topology pixel checks including two reproduced failures and two nested positive controls",
+                            "All 11 related native security suites: 232 checks per host and profile",
+                            "Native server unit checks after each build"
+                        ],
+    "profiles":  [
+                     "Debug with GLX enabled",
+                     "ASan/UBSan core-X with GLX disabled"
+                 ],
+    "purpose":  "Verify ordered region ownership, temporary-region lifetime, and related XACE authority paths.",
+    "full_phase_gate":  "pending"
+}

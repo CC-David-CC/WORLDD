@@ -1,0 +1,51 @@
+﻿{
+    "status":  "passed-focused-correction",
+    "phase_complete":  false,
+    "baseline":  "baseline-02: two foreign-sibling failures and six passing controls on each host",
+    "invalid_fixture_attempt":  "baseline-01 retained; not product failure evidence",
+    "correction":  "Filter ConfigureRequest on a recipient copy; clear foreign sibling and CWSibling while preserving other fields.",
+    "reports":  [
+                    {
+                        "host":  "sb16",
+                        "profile":  "related-debug-01",
+                        "passed":  236,
+                        "source_and_log_hashes_verified":  true,
+                        "native_server_sanitizers":  false,
+                        "glx_enabled":  true
+                    },
+                    {
+                        "host":  "sb16",
+                        "profile":  "glx-sanitize-01/selected-results",
+                        "passed":  236,
+                        "source_and_log_hashes_verified":  true,
+                        "native_server_sanitizers":  true,
+                        "glx_enabled":  true
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "profile":  "related-debug-01",
+                        "passed":  236,
+                        "source_and_log_hashes_verified":  true,
+                        "native_server_sanitizers":  false,
+                        "glx_enabled":  true
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "profile":  "glx-sanitize-01/selected-results",
+                        "passed":  236,
+                        "source_and_log_hashes_verified":  true,
+                        "native_server_sanitizers":  true,
+                        "glx_enabled":  true
+                    }
+                ],
+    "graphics_per_host":  {
+                              "private_vendor_verified":  true,
+                              "context_cycles":  32,
+                              "shutdown_repetitions":  100
+                          },
+    "locked_files_unchanged":  41,
+    "limitations":  [
+                        "Private software graphics only; native GPU qualification remains pending.",
+                        "Remaining event coverage and full M04 gate remain pending."
+                    ]
+}

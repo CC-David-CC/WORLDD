@@ -1,0 +1,18 @@
+Cross-host shared-state increment
+
+Run the shared object and restart case with the owner connected locally.
+The second host runs world_tls_witness.py and opens TLS directly to worldd.
+It forwards bounded production WorldSessionRequest and WorldSessionReply frames.
+SSH performs test orchestration only. It does not provide a privileged actor action path.
+Retain the remote socket endpoints and TLS version in witness logs.
+Provision only disposable fixture TLS credentials in a private temporary directory.
+Remove those credentials during fixture cleanup. Keep the authorized project SSH keys.
+
+Run Debug with the authority on sb16, then reverse authority and witness hosts.
+Run ASan/UBSan in both directions after reviewing Debug results.
+Use the existing assertions for shared edits, lease conflict, persistence, and fresh authentication.
+Check helper exit status and scan retained service logs for sanitizer findings.
+
+Limits: this increment does not provision private authorities on both hosts together.
+Fixture actor proofs are signed on the controller host.
+Remote actor-key provisioning, actor population, crash recovery, and the full M05 gate remain pending.

@@ -1,0 +1,18 @@
+﻿Defect: disabling an additional master pointer during animated-cursor display can leave the timer callback using a freed or null sprite.
+
+Baseline evidence: the sanitized native witness exited with client=1. UBSan reported a null _SpriteRec access in AnimCurTimerNotify.
+
+Patch: FreeSprite() routes NullCursor through dixScreenRaiseDisplayCursor() before releasing the owner sprite. The Render wrapper cancels the active timer and clears animation state. DevHasCursor() limits this cleanup to the sprite owner.
+
+Local-model review: after reviewing the actual display-wrapper path and witness results, the local model confirmed the patch is needed and correct for this defect.
+
+Validation:
+- Built upstream XLibre commit 71f28aec8b45f52051c5264ca5a40c5babad369d with ASan/UBSan on sb16. GLX was disabled.
+- Focused disable witness with LeakSanitizer disabled: client=0, server=0, no ASan/UBSan diagnostic.
+- LeakSanitizer-enabled witness: client=0, server=23, 1,256 bytes in 7 allocations. This includes the separate 40-byte animated-cursor timer leak and 1,216-byte device-init/sprite leak. No null-sprite or use-after-free diagnostic occurred.
+- `meson test --suite unit` reported no suitable tests.
+
+Status: signed-off commit 3eb9751cf6b845918567f703fe979d4e0a12b2c6 is pushed to branch fix/disable-device-animated-cursor in CC-David-CC/xserver. PR creation is pending David.
+Compare: https://github.com/X11Libre/xserver/compare/master...CC-David-CC:fix/disable-device-animated-cursor?expand=1
+
+Separate findings remain: the 40-byte animated-cursor timer leak is in PR #3860. The 1,216-byte device-init/sprite leak needs separate ownership analysis. Shared-cursor timer behavior and two-screen Xvfb shutdown also remain unresolved.

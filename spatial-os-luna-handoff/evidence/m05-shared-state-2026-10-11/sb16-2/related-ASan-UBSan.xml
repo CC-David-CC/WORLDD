@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="3"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16-2"
+	time="163"
+	timestamp="2026-10-11T22:56:27"
+	>
+	<testcase name="world-remote-security" classname="world-remote-security" time="53.4319" status="run">
+		<properties/>
+		<system-out>test_plaintext_is_rejected_without_disrupting_an_actor (__main__.RemoteSecurityTests.test_plaintext_is_rejected_without_disrupting_an_actor) ... ok
+test_missing_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_missing_client_certificate_is_rejected) ... ok
+test_untrusted_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_untrusted_client_certificate_is_rejected) ... ok
+test_server_name_mismatch_fails_verification (__main__.RemoteSecurityTests.test_server_name_mismatch_fails_verification) ... ok
+test_untrusted_server_fails_verification (__main__.RemoteSecurityTests.test_untrusted_server_fails_verification) ... ok
+test_tls12_cannot_reach_actor_dispatch (__main__.RemoteSecurityTests.test_tls12_cannot_reach_actor_dispatch) ... ok
+test_fragmented_frame_reaches_existing_actor (__main__.RemoteSecurityTests.test_fragmented_frame_reaches_existing_actor) ... ok
+test_excessive_frame_closes_only_its_remote_channel (__main__.RemoteSecurityTests.test_excessive_frame_closes_only_its_remote_ch...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-remote-lifecycle" classname="world-remote-lifecycle" time="24.9471" status="run">
+		<properties/>
+		<system-out>test_stalled_handshake_expires_and_does_not_block_valid_actor (__main__.RemoteLifecycleTests.test_stalled_handshake_expires_and_does_not_block_valid_actor) ... ok
+test_connection_limit_rejects_excess_and_recovers_after_close (__main__.RemoteLifecycleTests.test_connection_limit_rejects_excess_and_recovers_after_close) ... ok
+test_disconnect_stops_real_motion_before_motion_expiry (__main__.RemoteLifecycleTests.test_disconnect_stops_real_motion_before_motion_expiry) ... ok
+test_credential_revocation_cancels_idle_remote_actor (__main__.RemoteLifecycleTests.test_credential_revocation_cancels_idle_remote_actor) ... ok
+test_replayed_proof_cannot_reopen_closed_session (__main__.RemoteLifecycleTests.test_replayed_proof_cannot_reopen_closed_session) ... ok
+test_restart_preserves_checkpoint_and_rejects_old_challenge (__main__.RemoteLifecycleTests.test_restart_preserves_checkpoint_and_rejects_old_challenge) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 24.840s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-authority" classname="world-authority" time="85.2755" status="run">
+		<properties/>
+		<system-out>test_administration_and_held_rights_do_not_imply_delegation (__main__.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+test_ancestor_credential_revocation_preserves_delegated_actor_rights (__main__.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ......
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

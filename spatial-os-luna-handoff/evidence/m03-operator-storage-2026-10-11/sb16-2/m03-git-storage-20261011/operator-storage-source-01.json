@@ -1,0 +1,16 @@
+{
+  "CMakeLists.txt": "ed0ec9425a25028e3aaa2624bc4e0214fa35acc58786cb6272e7b54dd3172ecd",
+  "proto/spatial/supervisor/v1/launch.proto": "fd4b443f49836b816a659ba1560d5800cec28affdbf442e2b45f75aeab670586",
+  "proto/spatial/workspace/v1/broker.proto": "549c83797893a7735a0eb2939ffc5cc2b62fe1e55ff3591cccbc6507ab52acc4",
+  "src/platform/broker.cpp": "afc3aabb84cc1d8001be708d83fdb7d57fdb27522aa49b41e342f1b05125e9c7",
+  "src/supervisor/main.cpp": "1b64727423f9fb6effd7af229bc06b363c0312bff4022ffde7265aae60bf22c2",
+  "src/workspace/main.cpp": "cdc394ad6292c8721fe716a580c08693b928022be831a134e303f60a07fb26ff",
+  "src/workspace/resources.cpp": "c87a674091d3aa71e72e6dc4de691aae7c38aa04f673297e56341c876c737972",
+  "src/workspace/resources.hpp": "cc4570bbf412702987af292e6d719da33e0bdccdb4e17fb97bc2393b3e816b27",
+  "tests/native/test_storage_session.py": "95943103b24e65e24d29f7a9adfedf7fd207a91c136c438947fd95936818de2a",
+  "config/operator-storage.textproto": "b64d85ebc8a0e581cc6163b597d2096142e28fe95f72f7a52608b494054323e1",
+  "docs/OPERATOR_STORAGE.md": "597e3ef5714325c33a36b3345083ef513ee13eee8b9864c6afa3bcc8d59cfdae",
+  "tests/core/test_production_profile.py": "e7ecf9dc7ff1ce48bbd6dffb3e98d2a6af656fa8907528560a1c260e9582ba2e",
+  "tests/native/test_operator_storage.py": "5bbfba2354c81661ce10200c2ad3ce04f3698b07c4eeb8481af087379f4e7546",
+  "tools/provision_storage.py": "7c9f9a9a57926d643712d328354bd79babbcc916569badb4e037aeaa20dddf9e"
+}

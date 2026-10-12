@@ -1,0 +1,45 @@
+M04 qualification audit
+
+Reviewed production source: 5185d9b.
+M01-M03 remain qualified. M04 is not complete.
+The requirement is immutable X identities and independent attacks against all specified X authority boundaries.
+
+Current focused evidence
+
+Connection identity: test_security_identity.py covers strict authentication, immutable labels, revocation, and connection lifecycle.
+Resource inheritance and access: test_resource_isolation.py covers native resource ownership, properties, pixels, mutation, and enumeration.
+Selections: test_selection_isolation.py and test_selection_namespace.py cover independent application namespaces and trusted scope changes.
+Metadata: atom_privacy, event_metadata, and parent_metadata cover atoms, sibling and parent IDs, and six child-event types.
+Pixels: topology_pixels covers direct and nested foreign children, both byte orders, and same-application and privileged controls.
+Extensions: extension_isolation covers admitted Render and Shape paths and denial of unqualified dispatch families.
+Input: application_input and actor_binding cover independent application input, binding, grabs, and cancellation.
+These 11 suites pass 232 checks per host in Debug and native-server ASan/UBSan.
+Read evidence/m04-nested-pixels-2026-10-11/primary-review.json.
+
+Graphics reassessment
+
+The current instrumented server passes all 232 selected checks with GLX enabled on both hosts.
+Each host passes 32 real GLX context cycles with pixel checks and 100 shutdown repetitions.
+The private EGL candidate matches its earlier verified hash and initializes and unloads in the current run.
+Read evidence/m04-current-glx-2026-10-11/primary-review.json.
+This evidence covers the private candidate with software graphics, not the installed vendor or physical GPU.
+The historical shutdown timeout remains unexplained. Current repetitions pass.
+
+Remaining work before completion
+
+1. Core structure-event coverage now passes its expanded checks and independent mutations.
+   MapRequest, ConfigureRequest, GravityNotify, ResizeRequest, and Circulate paths have added coverage.
+   ConfigureRequest sibling disclosure was reproduced and corrected after the initial audit.
+   Read evidence/m04-configure-request-2026-10-11 and evidence/m04-event-coverage-2026-10-11.
+   Unrelated extension events and physical input retain their separate requirements.
+2. Reassess global and device administration, launch-broker integration, and actor observation/control on the frozen gate candidate.
+   They are outside the current 11-suite selection and require the cumulative gate.
+3. Reconcile independent bypass-mutation evidence with the final source.
+4. Freeze one candidate and its graphics configuration on both hosts.
+5. Run complete Debug, runtime sanitizer, native-server sanitizer, harness, and P00-P10 qualification.
+   Use the complete M03 gate structure and add M04 coverage. The legacy qualify_core.py stops at P07.
+6. Review required cross-host and native integration evidence against that same candidate.
+7. Audit every M04 requirement before marking the milestone complete and advancing to M05.
+
+Physical GPU, device, performance, and soak requirements remain mandatory in M14-M15 and overall Spatial-M1 qualification.
+This audit does not waive any full-phase or native integration requirement.

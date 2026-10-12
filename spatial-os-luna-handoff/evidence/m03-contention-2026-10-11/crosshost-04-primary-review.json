@@ -1,0 +1,58 @@
+{
+  "status": "primary_review_crosshost_qualification_passed",
+  "phase_complete": false,
+  "cases_passed": 8,
+  "nodes_passed": 24,
+  "attachments_verified": 230,
+  "sanitizer_error_patterns": 0,
+  "actual_volumes_released": 16,
+  "actual_uuid_services_unloaded": 24,
+  "cases": [
+    {
+      "case": "ASan-UBSan-crash-forward04",
+      "scenario": "crash",
+      "completion": "fenced_retirement"
+    },
+    {
+      "case": "ASan-UBSan-crash-reverse04",
+      "scenario": "crash",
+      "completion": "fenced_retirement"
+    },
+    {
+      "case": "ASan-UBSan-delay-forward04",
+      "scenario": "delay",
+      "completion": "acknowledgement"
+    },
+    {
+      "case": "ASan-UBSan-delay-reverse04",
+      "scenario": "delay",
+      "completion": "acknowledgement"
+    },
+    {
+      "case": "Debug-crash-forward04",
+      "scenario": "crash",
+      "completion": "fenced_retirement"
+    },
+    {
+      "case": "Debug-crash-reverse04",
+      "scenario": "crash",
+      "completion": "fenced_retirement"
+    },
+    {
+      "case": "Debug-delay-forward04",
+      "scenario": "delay",
+      "completion": "acknowledgement"
+    },
+    {
+      "case": "Debug-delay-reverse04",
+      "scenario": "delay",
+      "completion": "acknowledgement"
+    }
+  ],
+  "fixture_sha256": "809cc55e22f7540fb938c0c7c4d26f8828e756578421af56b41ca0456159aea2",
+  "original_function_bodies_unchanged": true,
+  "root_volume_safety_guards_unchanged": true,
+  "private_bundles_excluded": true,
+  "remaining": "Nine-requirement M03 audit and source adoption; M04-M16 remain incomplete.",
+  "expected_git_diagnostic": "The private broker log reports status 1 for show-ref --verify --quiet when the requested new branch is absent. store.cpp checks that status before branch creation. This is an expected existence probe."
+}

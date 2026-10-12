@@ -1,0 +1,366 @@
+{
+  "status": "reviewed_focused_checks_passed",
+  "milestone": "M03",
+  "milestone_complete": false,
+  "reviewer": "Primary agent",
+  "base_commit": "c243b7083631980d8637f13bbfc8b493dd32ec6a",
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "dabfe7d5ab428ccf4756ded9a1d19ff24ba0a6e21c0580838e80bce6604be429",
+      "verified_attachments": 1563,
+      "matched_source_inputs": 368,
+      "current_cases": {
+        "broker-resources": 18,
+        "process-scope-resources": 9,
+        "process-termination": 6,
+        "workspace-context": 13,
+        "workspace-git": 49,
+        "worldd-lifecycle": 11,
+        "session-application": 3,
+        "session-operator-revocation": 3,
+        "session-resources": 13
+      },
+      "current_regression_total": 125,
+      "direct_scenarios": {
+        "owner-wrong-device_rejected_before_catalog": {
+          "passed": true
+        },
+        "owner-missing-backing_rejected_before_catalog": {
+          "passed": true
+        },
+        "normal_retained_direct_launch_and_cleanup": {
+          "passed": true,
+          "broker_pid": 68422,
+          "owner_pid": 68426
+        },
+        "cancelled_startup_confirms_owner_cleanup": {
+          "passed": true,
+          "unit": "spatial-storage-owner-9affcaec56c87a8a7325eee5822ad413.service",
+          "state": "LoadState=not-found\nActiveState=inactive"
+        },
+        "idle_owner_death_stops_actual_broker": {
+          "passed": true
+        },
+        "wrong-uid_rejected_with_checked_cleanup": {
+          "passed": true
+        },
+        "wrong-volume_rejected_with_checked_cleanup": {
+          "passed": true
+        }
+      },
+      "owner_kernel_witness": {
+        "cgroup": "0::/system.slice/spatial-storage-owner-5d177be4c91fd16d4288bdba88e79075.service\n",
+        "controls": {
+          "io.max": "7:12 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+          "memory.max": "268435456\n",
+          "memory.swap.max": "0\n",
+          "pids.max": "16\n",
+          "cpu.max": "100000 100000\n"
+        },
+        "broker_pidfd": [
+          "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t90268\nPid:\t68422\nNSpid:\t68422\n",
+          "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t90268\nPid:\t68422\nNSpid:\t68422\n",
+          "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t90268\nPid:\t68422\nNSpid:\t68422\n"
+        ],
+        "executable_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+      },
+      "installed_binary": {
+        "host": "sb16",
+        "target": "/usr/local/libexec/spatial-storage-owner",
+        "sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f",
+        "previous_sha256": "23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+        "applied": true,
+        "backup": "/usr/local/libexec/spatial-storage-owner.previous-23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+        "recovery": [
+          "sudo",
+          "cp",
+          "--",
+          "/usr/local/libexec/spatial-storage-owner.previous-23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+          "/usr/local/libexec/spatial-storage-owner"
+        ]
+      },
+      "original_device_failure": "AssertionError('Storage owner accepted an uncovered volume: owner-wrong-device protocol_version: 1\\nrequest_id: 17\\nhello {\\n  protocol: \"spatial-protobuf/1\"\\n  build_id: \"sha256:9d009d2f9d8fe67fcd84275586b226fe8307bfad23b9e06991927fe45798babc\"\\n  capabilities: \"workspace.git-create/v1\"\\n  implementation: \"production\"\\n}\\n')",
+      "sanitizer_findings": 0,
+      "scanned_successful_logs": 21,
+      "historical_reports": {
+        "storage-session-regressions-02": {
+          "status": "failed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "broker-resources",
+            "workspace-git",
+            "process-scope-resources",
+            "process-termination",
+            "workspace-context",
+            "worldd-lifecycle",
+            "authority-supervisor",
+            "session-broker",
+            "session-resources"
+          ],
+          "failed_suite": "session-application",
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_session_application.py",
+            "tests/native/test_session_resources.py",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        },
+        "storage-session-native-regressions-03": {
+          "status": "failed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "session-resources",
+            "session-application",
+            "session-dependent-cleanup",
+            "session-coordinator-retirement"
+          ],
+          "failed_suite": "session-broker-cleanup",
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_session_application.py",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        },
+        "storage-session-native-regressions-04": {
+          "status": "passed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "session-broker-cleanup",
+            "session-broker-retirement",
+            "session-stopped-broker-dependency",
+            "session-deferred-fence",
+            "session-replacement",
+            "session-broker-replacement"
+          ],
+          "failed_suite": null,
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        },
+        "storage-session-operator-regression-06": {
+          "status": "passed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "session-operator-revocation"
+          ],
+          "failed_suite": null,
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        }
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "efdbc3bb55b26beda70ed210cccef2bd4091181d6274c47756b65ef868ec85e8",
+      "verified_attachments": 1559,
+      "matched_source_inputs": 368,
+      "current_cases": {
+        "broker-resources": 18,
+        "process-scope-resources": 9,
+        "process-termination": 6,
+        "workspace-context": 13,
+        "workspace-git": 49,
+        "worldd-lifecycle": 11,
+        "session-application": 3,
+        "session-operator-revocation": 3,
+        "session-resources": 13
+      },
+      "current_regression_total": 125,
+      "direct_scenarios": {
+        "owner-wrong-device_rejected_before_catalog": {
+          "passed": true
+        },
+        "owner-missing-backing_rejected_before_catalog": {
+          "passed": true
+        },
+        "normal_retained_direct_launch_and_cleanup": {
+          "passed": true,
+          "broker_pid": 64459,
+          "owner_pid": 64463
+        },
+        "cancelled_startup_confirms_owner_cleanup": {
+          "passed": true,
+          "unit": "spatial-storage-owner-c979fa5c59716f0833aa88b48c2a59dd.service",
+          "state": "LoadState=not-found\nActiveState=inactive"
+        },
+        "idle_owner_death_stops_actual_broker": {
+          "passed": true
+        },
+        "wrong-uid_rejected_with_checked_cleanup": {
+          "passed": true
+        },
+        "wrong-volume_rejected_with_checked_cleanup": {
+          "passed": true
+        }
+      },
+      "owner_kernel_witness": {
+        "cgroup": "0::/system.slice/spatial-storage-owner-07da5cb80ff701580da591d6778cbdc3.service\n",
+        "controls": {
+          "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+          "memory.max": "268435456\n",
+          "memory.swap.max": "0\n",
+          "pids.max": "16\n",
+          "cpu.max": "100000 100000\n"
+        },
+        "broker_pidfd": [
+          "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t74024\nPid:\t64459\nNSpid:\t64459\n",
+          "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t74024\nPid:\t64459\nNSpid:\t64459\n",
+          "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t74024\nPid:\t64459\nNSpid:\t64459\n"
+        ],
+        "executable_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+      },
+      "installed_binary": {
+        "host": "sb16-2",
+        "target": "/usr/local/libexec/spatial-storage-owner",
+        "sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f",
+        "previous_sha256": "23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+        "applied": true,
+        "backup": "/usr/local/libexec/spatial-storage-owner.previous-23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+        "recovery": [
+          "sudo",
+          "cp",
+          "--",
+          "/usr/local/libexec/spatial-storage-owner.previous-23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+          "/usr/local/libexec/spatial-storage-owner"
+        ]
+      },
+      "original_device_failure": "AssertionError('Storage owner accepted an uncovered volume: owner-wrong-device protocol_version: 1\\nrequest_id: 17\\nhello {\\n  protocol: \"spatial-protobuf/1\"\\n  build_id: \"sha256:9d009d2f9d8fe67fcd84275586b226fe8307bfad23b9e06991927fe45798babc\"\\n  capabilities: \"workspace.git-create/v1\"\\n  implementation: \"production\"\\n}\\n')",
+      "sanitizer_findings": 0,
+      "scanned_successful_logs": 21,
+      "historical_reports": {
+        "storage-session-regressions-02": {
+          "status": "failed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "broker-resources",
+            "workspace-git",
+            "process-scope-resources",
+            "process-termination",
+            "workspace-context",
+            "worldd-lifecycle",
+            "authority-supervisor",
+            "session-broker",
+            "session-resources"
+          ],
+          "failed_suite": "session-application",
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_session_application.py",
+            "tests/native/test_session_resources.py",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        },
+        "storage-session-native-regressions-03": {
+          "status": "failed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "session-resources",
+            "session-application",
+            "session-dependent-cleanup",
+            "session-coordinator-retirement"
+          ],
+          "failed_suite": "session-broker-cleanup",
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_session_application.py",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        },
+        "storage-session-native-regressions-04": {
+          "status": "passed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "session-broker-cleanup",
+            "session-broker-retirement",
+            "session-stopped-broker-dependency",
+            "session-deferred-fence",
+            "session-replacement",
+            "session-broker-replacement"
+          ],
+          "failed_suite": null,
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        },
+        "storage-session-operator-regression-06": {
+          "status": "passed",
+          "successful_suites": [
+            "configure",
+            "build-native",
+            "session-operator-revocation"
+          ],
+          "failed_suite": null,
+          "source_differences_from_latest": [
+            "CMakeLists.txt",
+            "src/workspace/resources.cpp",
+            "src/workspace/storage_main.cpp",
+            "src/workspace/storage_owner.cpp",
+            "src/workspace/storage_owner.hpp",
+            "tests/native/test_storage_broker_launch.py"
+          ]
+        }
+      }
+    }
+  },
+  "unrun": [
+    "Native retained session with configured storage owner.",
+    "Operator data-volume provisioning and mandatory production profile adoption.",
+    "Issuer availability and immediate revocation under bounded competing storage writes.",
+    "Full M03 Debug, sanitizer, harness, acceptance, cross-host and native gate on both hosts."
+  ],
+  "locked_files_unchanged": 41,
+  "original_test_bodies_unchanged": {
+    "tests/native/test_session_application.py": 3,
+    "tests/native/test_session_resources.py": 5
+  },
+  "findings": [
+    "Both hosts reproduced owner startup with missing volume-device I/O coverage before the fix.",
+    "Production owner validates finite kernel io.max read/write limits against the pinned volume before catalog or quota mutation.",
+    "Applications, administrative Git and storage ownership share the retained-directory device resolver.",
+    "125 current regression cases and seven direct-launch scenarios passed on each host under runtime ASan/UBSan builds.",
+    "Historical native crash/replacement results retain original source pins; affected native resource/application/operator suites were rerun after extraction.",
+    "Bootstrap, fixture-cleanup and missing-binary failures remain preserved. Existing test bodies and all locked files remain unchanged.",
+    "Startup cancellation reports confirmed cleanup. The retained supervisor withholds receipts when cleanup remains unresolved.",
+    "The root executable replacement is scoped and recoverable through a hash-pinned backup.",
+    "Diagnostic owner construction does not establish production-profile qualification.",
+    "Native storage-backed session, operator provisioning, contention/revocation and complete M03 qualification remain pending."
+  ]
+}

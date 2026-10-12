@@ -1,0 +1,15 @@
+{
+  "command": [
+    "ninja",
+    "-C",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08",
+    "-j2",
+    "src/egl/libEGL_mesa.so.0.0.0"
+  ],
+  "exit_code": 1,
+  "environment": {
+    "PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/parser-tools/image/usr/bin:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-tools/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+    "PKG_CONFIG_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glvnd-headers/image/usr/lib/x86_64-linux-gnu/pkgconfig",
+    "BISON_PKGDATADIR": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/parser-tools/image/usr/share/bison"
+  }
+}

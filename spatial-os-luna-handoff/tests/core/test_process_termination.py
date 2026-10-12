@@ -7,21 +7,59 @@ import sys
 import tempfile
 import time
 import unittest
+from google.protobuf import text_format
 import core_pb2 as core
 import broker_pb2 as broker
+import process_scope_pb2 as scope
 from harness.wire import frame,read_message
 
 PROBE=Path(sys.argv.pop(1))
+CGROUP=Path('/sys/fs/cgroup')/Path('/proc/self/cgroup').read_text().strip().split('::',1)[1].lstrip('/')
+assert CGROUP.name=='manager', 'Run with the dedicated resource delegate'
+CGROUP=CGROUP.parent
+(CGROUP/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
 
 class ProcessTerminationTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)
+        self.cgroup=CGROUP/('termination-'+self.root.name);self.cgroup.mkdir()
+        def cleanup_group():
+            (self.cgroup/'cgroup.kill').write_text('1\n')
+            deadline=time.monotonic()+3
+            while 'populated 1' in (self.cgroup/'cgroup.events').read_text():
+                self.assertLess(time.monotonic(),deadline);time.sleep(.01)
+            for path in sorted((p for p in self.cgroup.rglob('*') if p.is_dir()),key=lambda p:len(p.parts),reverse=True):path.rmdir()
+            self.cgroup.rmdir()
+        self.addCleanup(cleanup_group)
+        device=(Path('/sys/dev/block')/f'{os.major(self.root.stat().st_dev)}:{os.minor(self.root.stat().st_dev)}').resolve(strict=True)
+        if (device/'partition').exists():device=device.parent
+        major,minor=map(int,(device/'dev').read_text().strip().split(':'))
+        budget=scope.ProcessScopeBudget(memory_bytes=128*1024*1024,swap_bytes=0,processes=16,cpu_microseconds=100000,
+            io=[dict(major=major,minor=minor,read_bytes_per_second=64*1024*1024,write_bytes_per_second=16*1024*1024)])
+        config=broker.BrokerResourceConfig(protocol_version=2,delegated_cgroup=str(self.cgroup),
+            broker_budget=scope.ProcessScopeBudget(memory_bytes=1024*1024*1024,swap_bytes=0,processes=128,
+                cpu_microseconds=400000,io=budget.io),
+            manager_budget=scope.ProcessScopeBudget(memory_bytes=256*1024*1024,swap_bytes=0,processes=32,
+                cpu_microseconds=200000,io=budget.io),
+            default_policy=broker.WorkspaceResourcePolicy(total=budget,actor_default=budget,
+                profiles=[broker.ApplicationResourceProfile(name='development',maximum=budget)]))
+        self.config=self.root/'resource.textproto';self.config.write_text(text_format.MessageToString(config));self.config.chmod(0o600)
+        def preserve():
+            if os.environ.get('SPATIAL_SCOPE_EVIDENCE'):
+                import shutil
+                target=Path(os.environ['SPATIAL_SCOPE_EVIDENCE'])/self._testMethodName;target.mkdir(parents=True,exist_ok=True)
+                for path in self.root.rglob('*.log'):shutil.copy2(path,target/path.name)
+                shutil.copy2(self.config,target/self.config.name)
+        self.addCleanup(preserve)
         for n in ['project','repository','state','state/home','state/tmp','state/cache','state/config','state/data']:
             (self.root/n).mkdir()
     def run_boundary(self,mode,code):
         log=(self.root/'probe.log').open('wb');self.addCleanup(log.close)
-        proc=subprocess.Popen([str(PROBE),str(self.root/'project'),str(self.root/'repository'),str(self.root/'state'),mode],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log)
+        command=[str(PROBE),str(self.root/'project'),str(self.root/'repository'),str(self.root/'state'),mode,str(self.config)]
+        # Trusted test provisioning; the production boundary still performs all application launches.
+        enter=f'import pathlib,os;pathlib.Path({str(self.cgroup/"cgroup.procs")!r}).write_text("0\\n");os.execv({str(PROBE)!r},{command!r})'
+        proc=subprocess.Popen(['/usr/bin/python3','-c',enter],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log)
         def cleanup():
             if proc.poll() is None:proc.kill();proc.wait(timeout=3)
             proc.stdin.close();proc.stdout.close()

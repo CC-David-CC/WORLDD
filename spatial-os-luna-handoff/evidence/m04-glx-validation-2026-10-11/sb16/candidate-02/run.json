@@ -1,0 +1,64 @@
+{
+  "host": "sb16",
+  "results": {
+    "compile": {
+      "command": [
+        "cc",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe.c",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe",
+        "-lGL",
+        "-lX11"
+      ],
+      "exit_code": 0
+    },
+    "render": {
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/test_glx_lifecycle.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe"
+      ],
+      "exit_code": 0
+    },
+    "shutdown": {
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/repeat_shutdown.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    "full-selected": {
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tools/qualify_atom_increment.py",
+        "--server-build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-event-metadata-2026-10-11/sanitize-build-02/run.json",
+        "--runtime-build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "--evidence",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/candidate-02/full-selected"
+      ],
+      "exit_code": 0
+    }
+  },
+  "vendor_initialized_and_unloaded": true,
+  "environment": {
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-diagnosis-2026-10-11/patched-ab-02/vendor.json",
+    "LD_LIBRARY_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/src/gallium/targets/dri:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/src/gbm:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/subprojects/expat-2.5.0"
+  },
+  "server_sha256": "79fc4e9ef59145d107422715e38100ebb6c0f9214c47946fbc4868f13dcda2dd",
+  "vendor_sha256": "f4ffb9d5394629b6c2382422a5843671e28fed2ec7f26a9f1263f8f07be5f988",
+  "probe_sha256": "0db13ecdbb684aa56e3e232bd449e62c41ccc06ad0827dccaadbcd63d1fd735c",
+  "inputs_sha256": {
+    "glx_lifecycle_probe.c": "9871b7b4caee44abe0e28dfb31a5ef6202d5d571c56456020efe222a6b0bb465",
+    "test_glx_lifecycle.py": "a14257f581c6ff49d2a35650c82957d9d3cd2579e4a9c2b728ea15c0447418b8",
+    "repeat_shutdown.py": "2e7c53855734ef11435413e5a8f63c5f9796642b2afd602ee6733735400f1008"
+  },
+  "phase_complete": false
+}

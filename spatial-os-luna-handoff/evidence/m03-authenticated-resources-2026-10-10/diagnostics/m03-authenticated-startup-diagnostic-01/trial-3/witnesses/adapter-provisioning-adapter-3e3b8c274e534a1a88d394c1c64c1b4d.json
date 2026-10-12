@@ -1,0 +1,26 @@
+{
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-64ab3c7240e9416c9c029165c94126b6.service/adapter-3e3b8c274e534a1a88d394c1c64c1b4d",
+  "device": 31,
+  "inode": 805176,
+  "removed": [],
+  "unexpected_population": false,
+  "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-64ab3c7240e9416c9c029165c94126b6.service/adapter-3e3b8c274e534a1a88d394c1c64c1b4d\"\nresources {\n  protocol_version: 1\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n}\n",
+  "command": [
+    "strace",
+    "-f",
+    "-ttt",
+    "-T",
+    "-e",
+    "trace=fsync,fdatasync",
+    "-o",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-startup-diagnostic-01/trial-3/sync.log",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+    "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+  ],
+  "exit_code": 1,
+  "scope_removed": true
+}

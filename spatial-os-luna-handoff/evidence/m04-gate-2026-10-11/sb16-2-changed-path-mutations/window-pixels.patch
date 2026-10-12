@@ -1,0 +1,11 @@
+--- spatialpolicy.c
++++ spatialpolicy.c
+@@ -204,7 +204,7 @@
+          * Only pixmap and procedural pictures are untrusted RENDER sources.
+          * This also rejects window alpha maps when they are bound.
+          */
+-        if (rec->rtype == PictureType && (rec->access_mode & DixReadAccess)) {
++        if (FALSE && rec->rtype == PictureType && (rec->access_mode & DixReadAccess)) {
+             PicturePtr picture = rec->res;
+             if (picture->pDrawable && picture->pDrawable->type == DRAWABLE_WINDOW) {
+                 rec->status = BadAccess;

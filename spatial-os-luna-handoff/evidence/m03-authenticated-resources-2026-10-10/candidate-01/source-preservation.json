@@ -1,0 +1,12 @@
+{
+  "basis_commit": "6ebd4ebd32934e6f3360eadda0f697e193321911",
+  "archive_sha256": "a3db04e790a04eb55c78d19488722664383ee26d9e6b96fad078fcd715bd87f0",
+  "preserved_changed_source": {
+    "CMakeLists.txt": "012ff64e3f4410ab0405b0392f8f7fac0dd3a446eb1efff2c4b63b27bab0f071",
+    "tests/core/test_world_identity.py": "98dc199bbc4082d4ce2c5b991b81072bd99035268bd7d519c6fc9cd73b36bcc8",
+    "tests/core/test_workspace_authority.py": "e874cb618b55f1d44036b79240d2ad59a493c3a9bb155441562dd56eff8299ca",
+    "harness/resource_broker.py": "e6af19295cf5dc29cc1a36924924a215a6e36367c65f4abc4b629c7772de125a",
+    "tests/core/test_authenticated_resources.py": "45e0063a530efc769a5d669433ca8e4fefb8cb81f1df477741942ff6fe8bd0d4",
+    "docs/M03_AUTHENTICATED_RESOURCE_CHECKS.txt": "afb42c7d79efe95c441584454b9e27ea43df955c5031be45e41a8f7bfe085ee0"
+  }
+}

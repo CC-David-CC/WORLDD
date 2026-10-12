@@ -1,0 +1,31 @@
+Blocker: Full M03 sanitizer qualification hits issuer setup deadlines.
+Status: Reproduced on sb16. Initialization cause remains unknown.
+
+The authority-supervisor suite has two setup errors on the frozen gate-02 source.
+The raw TLS peer has a two-second socket deadline. Its issuer logs 2437 ms of event-loop work.
+The separate initializer exceeds its five-second subprocess deadline before the test body starts.
+Both tests passed in the focused qualification. Do not treat that earlier success as a full-gate pass.
+
+Evidence: spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/full-gate-02-supervisor-failure-sb16/collection-review.json.
+The archive contains the complete failed block and exact source.
+The read-only kernel-wait monitor completed 524 samples on sb16.
+Later initializer and serving processes waited for ext4 journal commits.
+The original killed initializer remains untraced.
+Do not infer an fdatasync cause from the timeout alone.
+Preserve SQLite durability, existing fault deadlines, and the accepted five-second production client default.
+Diagnose initialization before changing its startup policy or production code.
+
+A scoped healthy supervisor fixture correction is prepared.
+It uses absolute five-second requests and a separate fifteen-second initializer allowance.
+It preserves production deadlines, base fixtures, durability, and explicit fault settings.
+Three added fixture checks passed on both hosts with both build profiles' bindings.
+Those Python fixture checks do not execute sanitizer binaries.
+Thirty-three related real-runtime suites are queued in both profiles on both hosts.
+Each queue preserves its host's completed frozen gate before source changes.
+The other host's source remains unchanged while its own gate runs.
+The defect remains open until real-runtime qualification and evidence review pass.
+
+2026-10-11: Scoped correction passes 33 suites and 282 checks in all four host/profile combinations.
+All fourteen original supervisor test bodies and all forty-one locked files remain unchanged.
+The original killed initializer remains untraced. The successful correction does not prove its cause.
+Status: Corrected setup policy is qualified. Original failure evidence remains preserved.

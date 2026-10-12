@@ -1,0 +1,25 @@
+{
+  "status": "failed",
+  "phase_complete": false,
+  "host": "sb16",
+  "results": {},
+  "commands": [
+    {
+      "argv": [
+        "df",
+        "--output=avail",
+        "-B1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-integration-08"
+      ],
+      "exit_code": 0,
+      "stdout": "     Avail\n3936227328\n",
+      "stderr": ""
+    }
+  ],
+  "runner_sha256": "d0a61281e1a865f44b06bf619dd3333ac7e95625f4316e42e89d37d8af50b5fd",
+  "started": 1791702564.3008206,
+  "failure": "AssertionError()",
+  "application_diagnostics": {},
+  "mounted": false,
+  "elapsed": 0.0029408931732177734
+}

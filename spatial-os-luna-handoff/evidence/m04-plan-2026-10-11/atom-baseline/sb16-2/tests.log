@@ -1,0 +1,53 @@
+test_explicitly_interned_name_remains_usable (__main__.AtomPrivacyTests.test_explicitly_interned_name_remains_usable) ... ok
+test_foreign_atom_existence_is_not_disclosed (__main__.AtomPrivacyTests.test_foreign_atom_existence_is_not_disclosed) ... FAIL
+test_foreign_atom_name_is_not_disclosed (__main__.AtomPrivacyTests.test_foreign_atom_name_is_not_disclosed) ... FAIL
+test_matching_application_name_in_other_workspace_is_private (__main__.AtomPrivacyTests.test_matching_application_name_in_other_workspace_is_private) ... FAIL
+test_predefined_atoms_remain_public (__main__.AtomPrivacyTests.test_predefined_atoms_remain_public) ... ok
+test_same_application_connections_share_atom_names (__main__.AtomPrivacyTests.test_same_application_connections_share_atom_names) ... ok
+test_same_workspace_does_not_disclose_atom_name (__main__.AtomPrivacyTests.test_same_workspace_does_not_disclose_atom_name) ... FAIL
+test_swapped_client_cannot_disclose_atom_name (__main__.AtomPrivacyTests.test_swapped_client_cannot_disclose_atom_name) ... FAIL
+
+======================================================================
+FAIL: test_foreign_atom_existence_is_not_disclosed (__main__.AtomPrivacyTests.test_foreign_atom_existence_is_not_disclosed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011/spatial-os-luna-handoff/local/m04-atom-baseline-20261011/test_atom_privacy.py", line 43, in test_foreign_atom_existence_is_not_disclosed
+    self.assertEqual(self.intern(self.other, name, only_existing=True), 0)
+AssertionError: 232 != 0
+
+======================================================================
+FAIL: test_foreign_atom_name_is_not_disclosed (__main__.AtomPrivacyTests.test_foreign_atom_name_is_not_disclosed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011/spatial-os-luna-handoff/local/m04-atom-baseline-20261011/test_atom_privacy.py", line 37, in test_foreign_atom_name_is_not_disclosed
+    self.assertEqual(self.name(self.other, atom), 5, 'Expected native BadAtom')
+AssertionError: b'private-project-44cf2a8820bb4f66bb50aff4d5461d91' != 5 : Expected native BadAtom
+
+======================================================================
+FAIL: test_matching_application_name_in_other_workspace_is_private (__main__.AtomPrivacyTests.test_matching_application_name_in_other_workspace_is_private)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011/spatial-os-luna-handoff/local/m04-atom-baseline-20261011/test_atom_privacy.py", line 53, in test_matching_application_name_in_other_workspace_is_private
+    self.assertEqual(self.name(self.other, atom), 5)
+AssertionError: b'private-project-fa481a98bd404f64b2c3614193bbc845' != 5
+
+======================================================================
+FAIL: test_same_workspace_does_not_disclose_atom_name (__main__.AtomPrivacyTests.test_same_workspace_does_not_disclose_atom_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011/spatial-os-luna-handoff/local/m04-atom-baseline-20261011/test_atom_privacy.py", line 48, in test_same_workspace_does_not_disclose_atom_name
+    self.assertEqual(self.name(self.other, atom), 5)
+AssertionError: b'private-project-a6642037730f40e39cce6ab2be0f73ef' != 5
+
+======================================================================
+FAIL: test_swapped_client_cannot_disclose_atom_name (__main__.AtomPrivacyTests.test_swapped_client_cannot_disclose_atom_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011/spatial-os-luna-handoff/local/m04-atom-baseline-20261011/test_atom_privacy.py", line 58, in test_swapped_client_cannot_disclose_atom_name
+    self.assertEqual(self.name(self.other, atom), 5)
+AssertionError: b'private-project-b77706bde4a442d79cad67ccd5c060c2' != 5
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.582s
+
+FAILED (failures=5)

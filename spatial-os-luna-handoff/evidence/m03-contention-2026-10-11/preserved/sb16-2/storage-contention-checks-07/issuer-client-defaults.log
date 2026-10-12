@@ -1,0 +1,36 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 73
+    Start 73: issuer-client-defaults
+
+73: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_issuer_client_defaults.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+73: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+73: Environment variables: 
+73:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+73: Test timeout computed to be: 30
+73: test_explicit_short_timeout_is_preserved_and_never_replays (__main__.ClientDefaultTests.test_explicit_short_timeout_is_preserved_and_never_replays) ... ok
+73: test_omitted_timeout_accepts_valid_reply_after_two_seconds (__main__.ClientDefaultTests.test_omitted_timeout_accepts_valid_reply_after_two_seconds) ... ok
+73: test_omitted_timeout_is_bounded_and_never_replays (__main__.ClientDefaultTests.test_omitted_timeout_is_bounded_and_never_replays) ... ok
+73: 
+73: ----------------------------------------------------------------------
+73: Ran 3 tests in 8.948s
+73: 
+73: OK
+1/1 Test #73: issuer-client-defaults ...........   Passed    9.06 sec
+
+The following tests passed:
+	issuer-client-defaults
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   9.08 sec

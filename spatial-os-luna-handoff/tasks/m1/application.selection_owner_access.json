@@ -1,19 +1,21 @@
 {
   "id": "application.selection_owner_access",
   "phase": "M04",
-  "scope": "Owned native selection access under immutable application identities",
+  "scope": "Private native selection namespaces under immutable application identities",
   "profile": "tasks/spatial-m1.json",
-  "contract": "docs/NATIVE_RESOURCE_POLICY.md",
-  "invariant": "Owned selections deny access across full workspace and application identities, except for supervisor and compositor connections.",
+  "contract": "docs/SELECTION_NAMESPACE_MIGRATION.txt",
+  "invariant": "Each full application identity has independent native selection ownership and events. Trusted services must explicitly select the application namespace.",
   "production_roots": [
-    "server/xlibre/spatialpolicy.c"
+    "server/xlibre/spatialpolicy.c",
+    "server/xlibre/spatialsecurity.c",
+    "proto/spatial/security/v1/selection_scope.proto"
   ],
   "counterexample_suite": "tests/native/test_selection_isolation.py",
   "test_ids": [
-    "SelectionIsolationTests.test_foreign_owner_query_is_denied",
-    "SelectionIsolationTests.test_foreign_owner_replacement_is_denied",
-    "SelectionIsolationTests.test_foreign_owner_clear_is_denied",
-    "SelectionIsolationTests.test_foreign_conversion_is_denied",
+    "SelectionIsolationTests.test_foreign_owner_query_returns_an_empty_private_namespace",
+    "SelectionIsolationTests.test_independent_claim_preserves_the_foreign_owner",
+    "SelectionIsolationTests.test_private_clear_preserves_the_foreign_owner",
+    "SelectionIsolationTests.test_private_empty_conversion_returns_selection_notify",
     "SelectionIsolationTests.test_workspace_membership_does_not_grant_selection_access",
     "SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity",
     "SelectionIsolationTests.test_same_application_connections_can_query_owner",
@@ -21,22 +23,21 @@
     "SelectionIsolationTests.test_supervisor_can_query_owner",
     "SelectionIsolationTests.test_compositor_can_query_owner",
     "SelectionIsolationTests.test_broker_cannot_query_application_selection",
-    "SelectionIsolationTests.test_swapped_client_cannot_bypass_selection_policy",
+    "SelectionIsolationTests.test_swapped_client_has_independent_selection_ownership",
     "SelectionIsolationTests.test_ownerless_selection_can_be_queried_and_claimed",
     "SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access"
   ],
   "focused_command": "ctest --test-dir build -V -R '^native-(selection-isolation|extension-isolation|resource-isolation|security-identity)$'",
   "preceding_gate": "P10",
   "required_evidence": [
-    "The new counterexample suite fails on the rebuilt pre-patch baseline and passes with the patched policy; policy source hashes match both builds.",
-    "Foreign queries, replacement, clearing, and conversion rejected",
-    "Same-application conversion emits a real SelectionRequest",
-    "Workspace membership and matching application names across workspaces grant no access",
-    "Supervisor and compositor positive controls; broker denial",
-    "Both native byte orders and independently owned PRIMARY and SECONDARY selections",
-    "Debug and ASan/UBSan native server checks on both authorized hosts",
-    "Independent selection-policy bypass mutation detected",
-    "Locked P00-P10 tests remain unchanged and pass against the patched server."
+    "Version-1 behavior and sources preserved before migration.",
+    "Independent namespace baseline fails on both hosts.",
+    "Other application activity does not change query, claim, clear, or conversion behavior.",
+    "Same-application conversion emits a real SelectionRequest with public atom values.",
+    "Full workspace/application identity separation and both native byte orders.",
+    "Explicit supervisor and compositor scope selection; application and broker refusal.",
+    "Debug and core-X native-server ASan/UBSan checks on both hosts.",
+    "Full M04 graphics, locked acceptance, and integration gates remain required."
   ],
   "next_components": [
     "application.global_isolation",
@@ -44,8 +45,9 @@
     "authority.application"
   ],
   "limitations": [
-    "This component checks owned selections; it does not complete selection privacy or M04.",
-    "Atom-name privacy, independent application selection namespaces, and asynchronous metadata remain unqualified.",
+    "Version 2 deliberately replaces global owned-selection error behavior with application-private state.",
+    "Asynchronous metadata beyond selection events remains unqualified.",
     "Focused core-X sanitizer runs disable GLX and do not qualify graphics-provider cleanup."
-  ]
+  ],
+  "policy_version": 2
 }

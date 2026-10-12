@@ -1,0 +1,62 @@
+{
+    "status":  "parent_event_mutations_reconciled",
+    "candidate":  "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+    "phase_complete":  false,
+    "results":  [
+                    {
+                        "host":  "sb16",
+                        "mutation":  "query-parent",
+                        "checks":  47,
+                        "exact_expected_failures":  2,
+                        "input_files_matched":  83,
+                        "report_sha256":  "c7ce6273837d8cd25f79cbc11f6a66c02c29824d10d80ea8364817608717bad6",
+                        "log_sha256":  "fd66a047132b07c17d675e407b67f098138a1d869c8601471398f190cfd1b00a"
+                    },
+                    {
+                        "host":  "sb16",
+                        "mutation":  "reparent-event",
+                        "checks":  47,
+                        "exact_expected_failures":  2,
+                        "input_files_matched":  83,
+                        "report_sha256":  "c7ce6273837d8cd25f79cbc11f6a66c02c29824d10d80ea8364817608717bad6",
+                        "log_sha256":  "42b966535ce6e2b3f0fcbaa45b6e8d21e186f91be44447fbf4a764efc375b855"
+                    },
+                    {
+                        "host":  "sb16",
+                        "mutation":  "child-event",
+                        "checks":  47,
+                        "exact_expected_failures":  22,
+                        "input_files_matched":  83,
+                        "report_sha256":  "c7ce6273837d8cd25f79cbc11f6a66c02c29824d10d80ea8364817608717bad6",
+                        "log_sha256":  "81966985990a22da7bf9cc2e7fd84bd254e35470a4c69d1217247920f2d7de6e"
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "mutation":  "query-parent",
+                        "checks":  47,
+                        "exact_expected_failures":  2,
+                        "input_files_matched":  83,
+                        "report_sha256":  "99743d7daa60c662bc3e20017ebc64b2d59ed7088448dfe0bea847d16d20c674",
+                        "log_sha256":  "e4060d2628e0a98f833d01207e172d0718e29f7dcf16a3b0a67b81d3755e6926"
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "mutation":  "reparent-event",
+                        "checks":  47,
+                        "exact_expected_failures":  2,
+                        "input_files_matched":  83,
+                        "report_sha256":  "99743d7daa60c662bc3e20017ebc64b2d59ed7088448dfe0bea847d16d20c674",
+                        "log_sha256":  "46c0a10fdac6b247de90e56254efa2492ab4e1632840ad771b5b683bbccaa1f9"
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "mutation":  "child-event",
+                        "checks":  47,
+                        "exact_expected_failures":  22,
+                        "input_files_matched":  83,
+                        "report_sha256":  "99743d7daa60c662bc3e20017ebc64b2d59ed7088448dfe0bea847d16d20c674",
+                        "log_sha256":  "7ca126747e4d8ad016598b687bb2fcfa4e691fe86e9de514ae8ab6c7e1249a21"
+                    }
+                ],
+    "scope":  "Three parent/event bypass mutations only. Source hashes and raw expected failures match. This does not replace full qualification or prove mutation coverage for all isolation boundaries."
+}

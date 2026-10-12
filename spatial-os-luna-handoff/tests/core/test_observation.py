@@ -126,7 +126,8 @@ class ObservationTests(unittest.TestCase):
         self.call('actor.close', token=self.actor['token'])
         camera = pose([3, -2, 5], axis_angle([0, 1, 0], math.pi/2))
         self.actor = self.call('actor.open', id='rotated', pose=camera, grants=['navigate'])
-        colors = {'side': (67, 131, 229), 'sliver': (19, 113, 59)}
+        # The disconnected observer remains a persistent actor in this room.
+        colors = {'side': (67, 131, 229), 'sliver': (19, 113, 59), 'observer': (96, 176, 224)}
         self.panel('side', placement=pose(transform(camera, [3, 0, -3]), camera['q']), size=(1, 1), color=colors['side'])
         self.panel('sliver', placement=pose(transform(camera, [.3, .2, -2]), camera['q']), size=(.05, .6), color=colors['sliver'])
         for width, height in [(256, 96), (96, 256), (127, 95)]:

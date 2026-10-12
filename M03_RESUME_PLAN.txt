@@ -1,0 +1,111 @@
+Paused M03 checkpoint, 2026-10-11
+
+Resumed on 2026-10-11 at David's request. The active goal supersedes the historical pause below.
+Resume steps 1 through 6 are complete for the Git I/O-device correction.
+Both hosts passed 106 selected regressions and repeated the real quota-volume integration.
+Next: step 7, production-required storage-owner launch and explicit operator provisioning.
+Read spatial-os-luna-handoff/evidence/m03-git-io-device-2026-10-11/primary-review.json.
+
+David requested a pause, a checkpoint on both Git remotes, and reboot of both world hosts.
+The overall goal is paused. Do not resume implementation until David requests it.
+The checkpoint branch is m03/resource-boundary. This is unfinished development work.
+Do not merge it into main or call it a qualified M03 release.
+GitHub destination: git@github.com:CC-David-CC/WORLDD.git.
+box-git destination: dflanag3@box-git:/srv/data/git/spacial_desktop.git.
+This request authorizes publishing this pause checkpoint to those configured remotes.
+Source checkpoint: 334816db1a9b3f8e7d5607e0ce657ebcf585465c. It was pushed to both remotes.
+Both hosts rebooted successfully. Their boot identities changed, and passwordless SSH and sudo work again.
+sb16-2 initially required its LAN route. Its normal SSH alias then recovered without configuration changes.
+The before-reboot.json and after-reboot.json files record the observations for each host.
+
+Milestone position
+M01 and M02 are qualified. M03 is active but paused. M04 through M16 remain incomplete.
+Some later components already exist. Existing components do not establish complete milestone acceptance.
+Use spatial-os-luna-handoff/docs/MILESTONES.md for the complete requirements.
+
+Verified gains in this checkpoint
+Both hosts imported and retired a real 288 MiB repository with the 256 MiB Git hard limit.
+Git uses a persistent bounded parent for cache, plus a separate child cgroup for each command.
+memory.high is 192 MiB. memory.max is 256 MiB. Swap is disabled.
+The checks preserved source hashes, retained file inodes, and writes through an already-open file descriptor.
+Both hosts passed application and actor quota exhaustion, read-only denial, sibling survival, and storage restart.
+The final integration reports contain no unexpected sanitizer diagnostics and no observed Git OOM.
+All 49 workspace-git regressions passed on both hosts after fixture cleanup correction.
+Process-scope resources, process termination, workspace context, and worldd lifecycle passed on both hosts.
+Each host passed 42 initializer cases and detected the deliberate 73-byte LeakSanitizer counterexample.
+The hardened initializer retains ASan/UBSan. Full LSan covers its shared body outside the ptrace-denying sandbox.
+Do not claim full in-sandbox LSan coverage.
+
+Exact open regression at pause
+Administrative Git accepts a resource policy that covers a different block device.
+Both hosts reproduced a successful repository import when the actual disk had no matching I/O budget.
+The new test deliberately fails until production validates every Git mount's storage devices.
+Read defect blockers/git-worker-uncovered-io-device.txt.
+No production correction for this defect was applied before the pause.
+
+Other test status
+The last full broker-resources run passed 16 of 17 cases.
+Its uncovered-device fixture selected a partition that could not accept io.max.
+The corrected fixture selects another existing whole device. Its focused application-denial case passes on both hosts.
+The additional Git-device case is the confirmed production failure above. The current suite has 18 cases.
+Run the complete affected suite after the production correction. Do not relabel previous failed runs.
+The complete M03 Debug, sanitizer, harness, acceptance, native, and cross-host gate has not run for this draft.
+
+Resume M03 in this order
+1. Read root AGENTS.md, CURRENT_STATE.md, this file, and the new defect record.
+2. Verify the checkpoint commit and both remote branch tips. Preserve each host's existing checkout.
+3. Check SSH, passwordless sudo, mount cleanup, and free disk space on both hosts after reboot.
+4. Reproduce test_uncovered_git_device_denies_before_repository_mutation from the saved source.
+5. Validate all administrative Git source and destination devices against the broker I/O budget before starting Git.
+   Reuse the real device-resolution logic, including Btrfs, loop storage, and the backing SSD.
+   Keep namespace isolation, resource caps, deadlines, and no-network policy unchanged.
+6. Run the affected Git/resource checks and the real quota-volume integration on both hosts.
+7. Finish production-required storage-owner launch and explicit operator provisioning.
+   The optional --storage-fd path is still development plumbing, not completed deployment.
+8. Verify revocation during slow storage effects and durable acknowledgements under bounded competing writes.
+   Retain the accepted five-second allowance. Preserve fault deadlines and explicit uncertain outcomes.
+9. Review the complete coherent M03 increment. Freeze one candidate and record all source hashes.
+10. Run the full required M03 gate on both hosts, including Debug and runtime sanitizers.
+11. Fix reproduced failures. Rerun affected evidence after each fix. Run the final combined gate before qualification.
+12. Mark M03 qualified only when its full requirements pass. Then advance to M04.
+
+Later milestones, in order
+M04: XLibre workspace isolation and independent native-client attacks.
+M05: Persistent private worlds on both hosts and one shared world.
+M06: World transitions, saved actor context, and per-world workspace selection.
+M07: Workspace identity, explicit availability, presentations, and independent copies.
+M08: Cabinets, real file operations, trash, restore, and separate spatial/file authority.
+M09: Application-group control leases, balanced input release, and immediate revocation.
+M10: Shared human and agent actions through one authorized actor path.
+M11: Provider-independent inference, credential boundaries, and useful model-off operation.
+M12: A real model completes a bounded task after scripted actor regressions.
+M13: Application restoration, declarative bootstrap, migrations, and effect recovery.
+M14: Real native session, GPU output, keyboard, mouse, SpaceMouse, and reboot recovery.
+M15: 1,000 surface cycles, a 30-minute session, and measured 1080p performance.
+M16: Reproducibility, source/configuration pins, recovery, and complete qualification records.
+
+Resume locations and evidence
+Windows canonical source: C:\Users\dflanag3\Documents\spacial_desktop.
+Both isolated host builds:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011
+The source directory is source. The runtime-sanitizer build directory is sanitize.
+Evidence: spatial-os-luna-handoff/evidence/m03-git-storage-2026-10-11.
+Final functional integration: each host's m03-git-storage-integration-07/review.json.
+Git regression pass: each host's m03-git-storage-20261011/regressions-02/workspace-git.log.
+Open defect reproduction: each host's m03-git-storage-20261011/io-device-before.
+Earlier failures remain preserved. The baseline on sb16 used stale source; only sb16-2 reproduced the retirement-ID defect.
+
+Host storage caution
+sb16 had about 2.6 GiB free before reboot. sb16-2 had about 61 GiB free.
+Do not start another large volume or full build without checking free space.
+Failed sb16 volume images 03, 04, and 05 have verified gzip archives and exact recovery commands.
+Keep their volume-archive.json receipts. Do not delete source, runtime state, or failure evidence.
+The ordinary sb16 checkout contains older uncommitted development files. Do not reset or overwrite it.
+The ordinary sb16-2 checkout was clean before reboot. Use isolated builds for resumption.
+
+Testing schedule
+Use substantial coherent increments. Run focused checks for changed behavior and adjacent authority boundaries.
+Run the complete required gate at each milestone boundary on both hosts.
+Record passed, failed, pending, blocked, and unrun requirements separately.
+Do not restart local-model review. The primary agent reviews the changes.
+Do not return to unrelated XLibre repairs unless a reproduced M03 or later milestone blocker requires them.

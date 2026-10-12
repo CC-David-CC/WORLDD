@@ -31,6 +31,12 @@ RIGHTS = [grants.WORKSPACE_ACCESS, grants.FILE_BROWSE, grants.FILE_READ,
     grants.FILE_COPY, grants.FILE_TRASH, grants.FILE_RESTORE, grants.FILE_PERMANENT_DELETE,
     grants.PROCESS_EXECUTE, grants.APPLICATION_OBSERVE, grants.APPLICATION_CONTROL]
 
+# The fixture manager stays in its own child. Native authorities use the empty delegate.
+scopes = existing.base.baseline.supervisor.owned.existing
+if os.environ.get('SPATIAL_TEST_BROKER_CONFIG'):
+    if scopes.CGROUP.name == 'manager': scopes.CGROUP = scopes.CGROUP.parent
+    assert scopes.CGROUP.name.startswith('spatial-m03-resources-')
+
 
 def register_workspace(fixture):
     participant = identity.AuthorityParticipant(id=b'p' * 32, public_key=fixture.public,
@@ -51,6 +57,9 @@ class SessionApplicationTests(existing.SessionActorTests):
     def setUp(self):
         registry = existing.base.baseline.supervisor.owned.registry.SupervisorRegistryTests
         with patch.object(registry, 'register', register_workspace): super().setUp()
+        if os.environ.get('SPATIAL_TEST_BROKER_CONFIG'):
+            self.assertTrue({'cpu','memory','pids','io'} <= set((self.cgroup/'cgroup.controllers').read_text().split()))
+            (self.cgroup/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
         self.actor = self.enrolled_actor()
         self.claims = self.issuer.claims(self.actor, self.issuer.info)
         self.principal = grants.ActorRef(issuer_id=self.claims.issuer_id, actor_id=self.claims.actor_id)
@@ -79,14 +88,48 @@ class SessionApplicationTests(existing.SessionActorTests):
         path.write_text(text_format.MessageToString(value)); path.chmod(0o600)
         return path
 
+    def broker_process_group(self):
+        return super().broker_process_group() / 'broker-manager'
+
+    def cleanup_cgroups(self):
+        # Fixture recovery after deliberate owner death. This creates no production receipt.
+        for path in [p for p in self.cgroup.iterdir() if p.is_dir()]:
+            (path/'cgroup.kill').write_text('1\n')
+            deadline = time.monotonic()+3
+            while 'populated 1' in (path/'cgroup.events').read_text():
+                self.assertLess(time.monotonic(),deadline); time.sleep(.01)
+            for child in sorted((p for p in path.rglob('*') if p.is_dir()), key=lambda p: len(p.parts), reverse=True):
+                self.assertEqual(child.stat().st_uid,os.getuid()); child.rmdir()
+            self.assertEqual(path.stat().st_uid,os.getuid()); path.rmdir()
+        self.cgroup.rmdir()
+
     def broker_config(self, target=38):
         config = super().broker_config(target)
         binary = config.launch.executable
-        bootstrap = subprocess.Popen([binary, '--state-dir', str(self.execution)],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        resource_path = os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+        if not resource_path: raise RuntimeError('Native bootstrap requires an owned broker resource template')
+        resource = broker.BrokerProcessConfig()
+        text_format.Parse(Path(resource_path).read_text(), resource)
+        self.assertEqual(resource.protocol_version, 1)
+        self.assertFalse(resource.resources.delegated_cgroup)
+        config.broker_resources.CopyFrom(resource.resources)
+        config.broker_resource_target_fd = 255
+        logpath = self.root / 'bootstrap-broker.log'
+        log = logpath.open('wb')
+        bootstrap = subprocess.Popen([str(Path(binary).with_name('spatial-storage-broker-launch-probe')),
+            str(self.execution), resource_path, '--broker-envelope'],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log)
         def cleanup():
             if bootstrap.poll() is None: bootstrap.kill()
             bootstrap.communicate(timeout=5)
+            log.close()
+            target = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+            if target:
+                Path(target).mkdir(parents=True, exist_ok=True)
+                (Path(target)/(self._testMethodName+'-bootstrap-broker.log')).write_bytes(logpath.read_bytes())
+            text = logpath.read_text(errors='replace')
+            for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'):
+                self.assertNotIn(marker, text)
         self.addCleanup(cleanup)
         channel = existing.base.BrokerPipe(self, bootstrap)
         repo = GitRepo(self.root)

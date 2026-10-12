@@ -1,0 +1,44 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 79
+    Start 79: worldd-lifecycle
+
+79: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_worldd.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd"
+79: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+79: Environment variables: 
+79:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+79: Test timeout computed to be: 90
+79: test_database_symlink_is_refused (__main__.WorldDaemonTests.test_database_symlink_is_refused) ... ok
+79: test_duplicate_authority_refused_without_mutation (__main__.WorldDaemonTests.test_duplicate_authority_refused_without_mutation) ... ok
+79: test_idle_proxy_closes_when_worker_dies_and_recovers_state (__main__.WorldDaemonTests.test_idle_proxy_closes_when_worker_dies_and_recovers_state) ... ok
+79: test_parent_only_kill_terminates_worker_and_releases_lock (__main__.WorldDaemonTests.test_parent_only_kill_terminates_worker_and_releases_lock) ... ok
+79: test_portal_references_and_invalid_enum_rejected_atomically (__main__.WorldDaemonTests.test_portal_references_and_invalid_enum_rejected_atomically) ... ok
+79: test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate (__main__.WorldDaemonTests.test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate) ... ok
+79: test_sqlite_write_failure_rolls_back_entity_and_world_revision (__main__.WorldDaemonTests.test_sqlite_write_failure_rolls_back_entity_and_world_revision) ... ok
+79: test_standalone_worldd_restart_delete_and_independent_worlds (__main__.WorldDaemonTests.test_standalone_worldd_restart_delete_and_independent_worlds) ... ok
+79: test_unknown_schema_and_corrupt_protobuf_fail_closed (__main__.WorldDaemonTests.test_unknown_schema_and_corrupt_protobuf_fail_closed) ... ok
+79: test_worker_is_real_separate_executable_and_owns_database (__main__.WorldDaemonTests.test_worker_is_real_separate_executable_and_owns_database) ... ok
+79: test_zero_field_replacement_and_immutable_zero_presence (__main__.WorldDaemonTests.test_zero_field_replacement_and_immutable_zero_presence) ... ok
+79: 
+79: ----------------------------------------------------------------------
+79: Ran 11 tests in 3.431s
+79: 
+79: OK
+1/1 Test #79: worldd-lifecycle .................   Passed    3.50 sec
+
+The following tests passed:
+	worldd-lifecycle
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   3.51 sec

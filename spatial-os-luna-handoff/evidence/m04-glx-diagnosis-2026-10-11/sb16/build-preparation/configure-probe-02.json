@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-tools/bin/meson",
+    "setup",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-02",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/mesa-25.2.8",
+    "--prefix=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/image",
+    "-Dgallium-drivers=[]",
+    "-Dvulkan-drivers=[]",
+    "-Degl=enabled",
+    "-Dgbm=enabled",
+    "-Dglx=disabled",
+    "-Dplatforms=x11",
+    "-Dllvm=disabled",
+    "-Dglvnd=enabled",
+    "-Dgles1=disabled",
+    "-Dgles2=enabled",
+    "-Dvideo-codecs=[]",
+    "-Dbuild-tests=false"
+  ],
+  "exit_code": 1
+}

@@ -1,0 +1,15 @@
+{"unit": "spatial-m03-resources-c4391dd1b3ac4649a6f8ec8db3f4b42b.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-c4391dd1b3ac4649a6f8ec8db3f4b42b.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/debug/witnesses", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/debug/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source/tests/native/test_session_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-issuer-client", "test_native_application_has_kernel_budgets_inside_broker_scope"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-c4391dd1b3ac4649a6f8ec8db3f4b42b.service"]}
+Running as unit: spatial-m03-resources-c4391dd1b3ac4649a6f8ec8db3f4b42b.service; invocation ID: 1d7c1287c1934f1a96e7bba85ee98985
+test_native_application_has_kernel_budgets_inside_broker_scope (__main__.SessionResourceTests.test_native_application_has_kernel_budgets_inside_broker_scope) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.155s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 4.387s
+CPU time consumed: 2.483s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

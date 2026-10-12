@@ -1,0 +1,64 @@
+[
+  {
+    "command": [
+      "losetup",
+      "--find",
+      "--show",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume.img"
+    ],
+    "code": 0,
+    "stdout": "/dev/loop12\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "mount",
+      "-t",
+      "btrfs",
+      "-o",
+      "ro,nodev,nosuid",
+      "/dev/loop12",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+    ],
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "sudo",
+      "-n",
+      "-u",
+      "dflanag3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-m03-storage-devices",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+    ],
+    "code": 0,
+    "stdout": "uid=1000 filesystem_st_dev=83\nFS_INFO=0 errno=0 Success num=1 max=1\nDEV_INFO=0 errno=0 Success path=/dev/loop12\n",
+    "stderr": ""
+  },
+  {
+    "sysfs": "/sys/devices/virtual/block/loop12/loop/backing_file",
+    "backing_file": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume.img",
+    "absolute": true
+  },
+  {
+    "command": [
+      "umount",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+    ],
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "losetup",
+      "-d",
+      "/dev/loop12"
+    ],
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,33 @@
+M03 Git worker and resource-limit check
+Date: 2026-10-11
+
+The broker now runs each administrative Git command in a dedicated worker.
+The worker reuses spatial-bwrap and ProcessScope. It has its own cgroup, a 256 MiB memory limit, zero swap, 16 processes, and two CPUs.
+The worker receives only pinned repository, worktree, and staging directory handles.
+The worker has no network namespace access and sees a clean Git environment.
+Git hooks and system and global Git configuration remain disabled.
+Imports have a five-minute deadline. Other Git calls have a 60-second deadline.
+The outer broker resource envelope remains 1 GiB. The broker manager cap remains 256 MiB.
+
+On sb16, the full workspace-git suite passed all 46 tests in 56.42 seconds.
+On sb16-2, the same suite passed all 46 tests in 89.64 seconds.
+The tests include real broker operations, worktree create and removal, crash recovery, cgroup limits, process cleanup, and hostile Git filter containment.
+The independent filter probe could not read a synthetic secret outside its explicit mounts.
+It could not write a synthetic marker outside those mounts.
+The normal broker API still rejects repositories with a configured filter.
+
+Both hosts then passed workspace-context and worldd-lifecycle regressions.
+On sb16, workspace-context passed in 15.78 seconds and worldd-lifecycle passed in 3.50 seconds.
+On sb16-2, workspace-context passed in 25.11 seconds and worldd-lifecycle passed in 3.50 seconds.
+The test harness removed its delegated cgroups and reported no remaining processes.
+
+The original 40-byte cursor timer leak and other XLibre work remain separate M01 scope.
+This gate does not complete M03 or Spatial-M1.
+Large-repository import capacity, storage-owner integration, full M03 qualification, and later milestones remain pending.
+Paused checkpoint update, 2026-10-11
+The later 288 MiB Git/quota integration passed on both hosts with the 256 MiB hard limit.
+The bounded Git parent and 192 MiB memory.high corrected the reproduced writeback/cache failures.
+All 49 workspace-git tests passed on both hosts. M03 remains unqualified.
+A new negative test confirmed missing administrative Git I/O-device validation. It remains unfixed at the pause.
+Read ../M03_RESUME_PLAN.txt and evidence/m03-git-storage-2026-10-11/primary-review.json.
+

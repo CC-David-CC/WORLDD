@@ -1,0 +1,14 @@
+{
+    "status":  "reviewed_local_M04_gate_with_fixture_corrections",
+    "host":  "sb16",
+    "candidate":  "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+    "gate_sha256":  "9d7c748039beb444aacf9436e14e7debf3dffe3ea130d650e53d0d76049d4fba",
+    "artifact_check_sha256":  "6ca2b5e525a924f17a6aebb358222428f91f8a751097e6a9edb8f99624fc4a88",
+    "corrections":  {
+                        "deadlines":  "a0e6b1550e13cc88c5c690836d9f5a241f5d4c07e20b0679eea95dfa44581572",
+                        "storage":  "b4f63d7c77f0052edc8bfa18b084a90ef4f05848e66b1aa2180502e03c4fc57f"
+                    },
+    "phase_complete":  false,
+    "review":  "sb16-correction-review.txt",
+    "limitation":  "sb16 local evidence only; both-host final candidate reconciliation, crosshost and mutations remain pending"
+}

@@ -1,0 +1,92 @@
+{
+  "status": "passed_needs_primary_review",
+  "host": "sb16",
+  "candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "draft_sha256": {
+    "test_world_revision_interleave.py": "11322317f24766f6fc36d35baf94c1af3a9acc5e0127db79298c4c232d2d1fe1",
+    "test_workspace_bootstrap_owner_idle.py": "808a8904ca7884b3bffbbe9d973ba7d2e8ce882f9dce8f04aaf70db5dba87d88"
+  },
+  "phase_complete": false,
+  "gate_sha256": "9d7c748039beb444aacf9436e14e7debf3dffe3ea130d650e53d0d76049d4fba",
+  "results": [
+    {
+      "profile": "Debug",
+      "suite": "world-revision-interleave",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-fixture-correction-01/test_world_revision_interleave.py",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/worldd"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 4,
+      "seconds": 8.121617023993167,
+      "log_sha256": "ff2c532bc15e7f30d8e73e824ad515f6173bd22d54156ad6f2fd2ef3214270ab"
+    },
+    {
+      "profile": "Debug",
+      "suite": "workspace-bootstrap-owner-idle",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-fixture-correction-01/test_workspace_bootstrap_owner_idle.py",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/worldd"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 1,
+      "seconds": 7.478560735995416,
+      "log_sha256": "79343736aa107e5cc652004902971040f7265e09e3ea209ae21084ab13964481"
+    },
+    {
+      "profile": "ASan-UBSan",
+      "suite": "world-revision-interleave",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-fixture-correction-01/test_world_revision_interleave.py",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/worldd"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 4,
+      "seconds": 10.557255449995864,
+      "log_sha256": "bdb0a1400dd1873efdf4db97b3ce8ee6311cce8e094c60cdf3825952503efc17"
+    },
+    {
+      "profile": "ASan-UBSan",
+      "suite": "workspace-bootstrap-owner-idle",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-fixture-correction-01/test_workspace_bootstrap_owner_idle.py",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/worldd"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 1,
+      "seconds": 8.666386992001208,
+      "log_sha256": "05adfd3e427608e77e9e3bfd90850a61df71430b7c17b3d6ae40300fb104012b"
+    }
+  ],
+  "runner_pid": 1197049
+}

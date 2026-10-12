@@ -28,6 +28,7 @@ while True:
 class BrokerProcess(workspace.BrokerProcess):
     def close(self):
         if self.stream.fileno()<0:return
+        if self.resources:return workspace.BrokerProcess.close(self)
         if self.proc.poll() is None:
             try:self.stream.shutdown(socket.SHUT_WR)
             except OSError:pass

@@ -1,0 +1,109 @@
+"""Actual retained native broker with its bounded root storage owner."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import select
+import socket
+import subprocess
+import sys
+import unittest
+from google.protobuf import text_format
+import test_session_application as existing
+import broker_pb2 as broker
+import core_pb2 as core
+import launch_pb2 as launch
+
+
+class NativeStorageSessionTests(existing.SessionApplicationTests):
+    def setUp(self):
+        super().setUp()
+        assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
+        self.volume_root = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/self._testMethodName
+        self.volume_root.mkdir(parents=True, exist_ok=False)
+        self.build = existing.scopes.PROBE.parent
+        self.volume_helper = Path(__file__).with_name('storage_session_volume.py')
+        self.previous_config = os.environ['SPATIAL_TEST_BROKER_CONFIG']
+        self.addCleanup(self.cleanup_volume)
+        self.volume_command('prepare', self.previous_config)
+        self.execution = self.volume_root/'volume'
+        self.configuration = broker.BrokerProcessConfig()
+        text_format.Parse((self.volume_root/'broker.textproto').read_text(), self.configuration)
+        os.environ['SPATIAL_TEST_BROKER_CONFIG'] = str(self.volume_root/'broker.textproto')
+
+    def volume_command(self, operation, *arguments):
+        command = ['sudo', '-n', sys.executable, str(self.volume_helper), operation,
+                   str(self.build), str(self.volume_root), *arguments]
+        result = subprocess.run(command, capture_output=True, text=True, timeout=45)
+        (self.volume_root/(operation+'.log')).write_text(result.stdout+result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        return json.loads(result.stdout)
+
+    def cleanup_volume(self):
+        os.environ['SPATIAL_TEST_BROKER_CONFIG'] = self.previous_config
+        if (self.volume_root/'volume-setup.json').exists(): self.volume_command('cleanup')
+
+    def broker_config(self, target=38):
+        config = super().broker_config(target)
+        config.broker_storage_owner.CopyFrom(self.configuration.storage_owner)
+        config.broker_storage_target_fd = 254
+        return config
+
+    def active_owner(self):
+        units = set(re.findall(r'Storage owner unit: (spatial-storage-owner-[a-f0-9]{32}\.service)', self.logpath.read_text()))
+        self.assertEqual(len(units), 1, self.logpath.read_text())
+        unit = units.pop()
+        inspected = self.volume_command('inspect', unit, str(self.world_ids.workspaced_pid))['owner_witness']
+        pid, handles = inspected['owner_pid'], inspected['broker_pidfd']
+        group = Path('/sys/fs/cgroup/system.slice')/unit
+        io = (group/'io.max').read_text()
+        setup = json.loads((self.volume_root/'volume-setup.json').read_text())
+        observed = {line.split()[0]:dict(part.split('=') for part in line.split()[1:]) for line in io.splitlines()}
+        for major, minor in setup['devices']:
+            self.assertEqual(observed[f'{major}:{minor}']['rbps'], str(64*2**20))
+            self.assertEqual(observed[f'{major}:{minor}']['wbps'], str(16*2**20))
+        (self.volume_root/'owner-kernel.json').write_text(json.dumps(dict(unit=unit, owner_pid=pid,
+            broker_pid=self.world_ids.workspaced_pid, broker_pidfd=handles, io_max=io,
+            executable_sha256=hashlib.sha256(Path('/usr/local/libexec/spatial-storage-owner').read_bytes()).hexdigest()), indent=2))
+        return unit
+
+    def assert_owner_stopped(self, unit):
+        state = subprocess.check_output(['systemctl', 'show', unit, '-p', 'MainPID', '-p', 'ActiveState'], text=True)
+        self.assertIn('MainPID=0\n', state); self.assertIn('ActiveState=inactive\n', state)
+        (self.volume_root/'owner-after.txt').write_text(state)
+
+    def test_native_storage_session_retains_owner_and_confined_application(self):
+        self.held_application()
+        unit = self.active_owner()
+        marker = self.project/'native-storage-checkpoint.txt'; marker.write_text('durable workspace data\n')
+        self.act(stop=core.ActorStopRequest()); self.released()
+        self.finish_session()
+        self.assert_owner_stopped(unit)
+        self.assertEqual(marker.read_text(), 'durable workspace data\n')
+        self.assertTrue((self.app_data/'confinement.json').is_file())
+        self.assertFalse(self.broker_process_group().parent.exists())
+
+    def test_native_storage_owner_loss_stops_execution_and_records_cleanup(self):
+        self.held_application()
+        unit = self.active_owner()
+        group = self.broker_process_group().parent
+        pids = {int(pid) for path in [group, *(p for p in group.rglob('*') if p.is_dir())]
+                for pid in (path/'cgroup.procs').read_text().split()}
+        self.assertIn(self.world_ids.workspaced_pid, pids); self.assertGreater(len(pids), 1)
+        pins = [os.pidfd_open(pid) for pid in pids]
+        try:
+            result = subprocess.run(['sudo', '-n', 'systemctl', 'stop', unit], capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for pin in pins: self.assertEqual(select.select([pin], [], [], 8)[0], [pin])
+            self.assertEqual(self.coordinator.wait(timeout=15), 2, self.logpath.read_text())
+            self.assertEqual(self.checked_cleanup().stage, launch.OWNED_SCOPES_STOPPED)
+            self.assertFalse(group.exists())
+            self.assert_owner_stopped(unit)
+        finally:
+            for pin in pins: os.close(pin)
+
+
+if __name__ == '__main__':
+    suite = unittest.TestSuite(NativeStorageSessionTests(name) for name in NativeStorageSessionTests.__dict__ if name.startswith('test_'))
+    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

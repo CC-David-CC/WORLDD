@@ -134,6 +134,42 @@ class RenderRuntimeTests(unittest.TestCase):
         self.assertEqual(image.pixel(2, 2), (31, 47, 61))
         self.assertEqual(self.aim(client, actor)['id'], 'panel')
 
+    def test_actor_marker_configuration_and_room_filtering(self):
+        config = self.root / 'actors.textproto'
+        config.write_text('linear_gain: 1 angular_gain: 1 deadzone: 0.05 input_timeout: 0.25\n'
+                          'render { vertical_fov: 1.5707963267948966 near_clip: 0.1 far_clip: 100 '
+                          'background { red: 10 green: 12 blue: 16 } actor_size: 1 '
+                          'actor_color { red: 43 green: 97 blue: 151 } }')
+        client = self.start([DAEMON, '--display', DISPLAY, '--config', str(config), '--fixture-clock'])
+        observer = self.actor(client, 'observer')
+        self.actor(client, 'visible-actor', pose_=pose([0, 0, -3]))
+        image, _ = self.capture(client, observer)
+        self.assertEqual(image.pixel(64, 64), (43, 97, 151))
+        self.assertEqual(image.pixel(74, 64), (43, 97, 151))
+        self.assertEqual(image.pixel(80, 64), (10, 12, 16))
+        self.assertEqual(self.aim(client, observer)['id'], 'visible-actor')
+        client.call('world.create', {'entity': {'id': 'other-room', 'kind': 'room', 'label': 'Other room'}})
+        client.call('actor.open', {'id': 'other-room-actor', 'room': 'other-room',
+                                  'pose': pose([0, 0, -1]), 'grants': ['observe']})
+        image, _ = self.capture(client, observer)
+        self.assertEqual(image.pixel(80, 64), (10, 12, 16))
+        self.assertEqual(self.aim(client, observer, seq=2)['id'], 'visible-actor')
+
+    def test_invalid_actor_marker_configuration_is_rejected(self):
+        for number, field in enumerate(('actor_size: 0', 'actor_size: -1', 'actor_size: nan',
+                                        'actor_size: inf', 'actor_size: 1001',
+                                        'actor_color { red: 256 }')):
+            with self.subTest(field=field):
+                config = self.root / f'invalid-actor-{number}.textproto'
+                config.write_text('linear_gain: 1 angular_gain: 1 deadzone: 0.05 input_timeout: 0.25\n'
+                                  'render { vertical_fov: 1 near_clip: 0.1 far_clip: 100 '
+                                  'background { red: 10 green: 12 blue: 16 } ' + field + ' }')
+                result = subprocess.run([DAEMON, '--state-dir', str(self.root / f'invalid-state-{number}'),
+                                         '--config', str(config)], input=b'', capture_output=True, timeout=5)
+                self.assertNotEqual(result.returncode, 0, result.stderr)
+                expected = b'Non-finite protobuf number' if field in ('actor_size: nan', 'actor_size: inf') else b'Invalid actor'
+                self.assertIn(expected, result.stderr)
+
     def test_inclusive_clip_planes_and_quad_crossing_camera_plane(self):
         config = self.root / 'clip.textproto'
         config.write_text('linear_gain: 1 angular_gain: 1 deadzone: 0.05 input_timeout: 0.25\n'

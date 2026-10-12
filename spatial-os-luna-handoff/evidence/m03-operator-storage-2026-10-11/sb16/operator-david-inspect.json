@@ -1,0 +1,56 @@
+{
+  "host": "sb16",
+  "command": [
+    "sudo",
+    "-n",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/provision_storage.py",
+    "inspect",
+    "--bindings-dir",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python",
+    "--name",
+    "david"
+  ],
+  "observation": {
+    "host": "sb16",
+    "operation": "inspect",
+    "name": "david",
+    "image": "/var/lib/spatial/volumes/david/volume.img",
+    "volume": "/var/lib/spatial/volumes/david/mount",
+    "applied": false,
+    "commands": [
+      {
+        "argv": [
+          "blkid",
+          "-p",
+          "-s",
+          "UUID",
+          "-o",
+          "value",
+          "/var/lib/spatial/volumes/david/volume.img"
+        ],
+        "returncode": 0,
+        "stdout": "751283e0-f22e-4580-a2ce-9d8324d032f0\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "losetup",
+          "--json",
+          "--list",
+          "--output",
+          "NAME,BACK-FILE"
+        ],
+        "returncode": 0,
+        "stdout": "{\n   \"loopdevices\": [\n      {\n         \"name\": \"/dev/loop1\",\n         \"back-file\": \"/var/lib/snapd/snaps/core24_2124.snap\"\n      },{\n         \"name\": \"/dev/loop8\",\n         \"back-file\": \"/var/lib/snapd/snaps/snap-store_1447.snap\"\n      },{\n         \"name\": \"/dev/loop6\",\n         \"back-file\": \"/var/lib/snapd/snaps/mesa-2404_1839.snap\"\n      },{\n         \"name\": \"/dev/loop4\",\n         \"back-file\": \"/var/lib/snapd/snaps/gnome-46-2404_164.snap\"\n      },{\n         \"name\": \"/dev/loop11\",\n         \"back-file\": \"/var/lib/snapd/snaps/snapd-desktop-integration_391.snap\"\n      },{\n         \"name\": \"/dev/loop2\",\n         \"back-file\": \"/var/lib/snapd/snaps/firefox_8863.snap\"\n      },{\n         \"name\": \"/dev/loop0\",\n         \"back-file\": \"/var/lib/snapd/snaps/bare_5.snap\"\n      },{\n         \"name\": \"/dev/loop9\",\n         \"back-file\": \"/var/lib/snapd/snaps/snapd_27738.snap\"\n      },{\n         \"name\": \"/dev/loop7\",\n         \"back-file\": \"/var/lib/snapd/snaps/snap-store_1390.snap\"\n      },{\n         \"name\": \"/dev/loop5\",\n         \"back-file\": \"/var/lib/snapd/snaps/gtk-common-themes_1535.snap\"\n      },{\n         \"name\": \"/dev/loop12\",\n         \"back-file\": \"/var/lib/spatial/volumes/david/volume.img\"\n      },{\n         \"name\": \"/dev/loop3\",\n         \"back-file\": \"/var/lib/snapd/snaps/firmware-updater_226.snap\"\n      },{\n         \"name\": \"/dev/loop10\",\n         \"back-file\": \"/var/lib/snapd/snaps/snapd_28254.snap\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      }
+    ],
+    "filesystem_id": "751283e0f22e4580a2ce9d8324d032f0",
+    "mounted": true,
+    "loop": "/dev/loop12",
+    "status": "verified"
+  },
+  "broker_started": false,
+  "quota_activation": "Occurs when the checked root owner starts the broker; provisioning alone does not activate quota accounting."
+}

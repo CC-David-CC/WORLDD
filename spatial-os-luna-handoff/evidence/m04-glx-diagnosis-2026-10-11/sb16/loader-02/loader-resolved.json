@@ -1,0 +1,162 @@
+[
+  {
+    "allocation": "Direct leak of 2680 byte(s) in 1 object(s) allocated from:",
+    "frames": [
+      {
+        "module": "libasan.so.8",
+        "offset": "0xfd340",
+        "frame": "#0 0x75ed8eafd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1f21e",
+        "frame": "#1 0x75ed8c77d21e  (<unknown module>)"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1f81f",
+        "frame": "#2 0x75ed8c77d81f  (<unknown module>)"
+      },
+      {
+        "module": "libEGL.so.1",
+        "offset": "0x7144",
+        "frame": "#3 0x75ed8cd07144  (<unknown module>)"
+      },
+      {
+        "module": "/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so",
+        "offset": "0x84a7",
+        "frame": "#4 0x75ed8cb9c4a7  (<unknown module>)"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a1c9",
+        "frame": "#13 0x75ed8d82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a28a",
+        "frame": "#14 0x75ed8d82a28a in __libc_start_main_impl ../csu/libc-start.c:360"
+      }
+    ]
+  },
+  {
+    "allocation": "Direct leak of 104 byte(s) in 1 object(s) allocated from:",
+    "frames": [
+      {
+        "module": "libasan.so.8",
+        "offset": "0xfd340",
+        "frame": "#0 0x75ed8eafd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1eccd",
+        "frame": "#1 0x75ed8c77cccd  (<unknown module>)"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1487f",
+        "frame": "#2 0x75ed8c77287f  (<unknown module>)"
+      },
+      {
+        "module": "/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so",
+        "offset": "0x84c0",
+        "frame": "#3 0x75ed8cb9c4c0  (<unknown module>)"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a1c9",
+        "frame": "#12 0x75ed8d82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a28a",
+        "frame": "#13 0x75ed8d82a28a in __libc_start_main_impl ../csu/libc-start.c:360"
+      }
+    ]
+  },
+  {
+    "allocation": "Indirect leak of 288 byte(s) in 2 object(s) allocated from:",
+    "frames": [
+      {
+        "module": "libasan.so.8",
+        "offset": "0xfd340",
+        "frame": "#0 0x75ed8eafd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77"
+      },
+      {
+        "module": "libdrm.so.2",
+        "offset": "0x6f36",
+        "frame": "#1 0x75ed8cb70f36  (<unknown module>)"
+      },
+      {
+        "module": "libdrm.so.2",
+        "offset": "0x72b3",
+        "frame": "#2 0x75ed8cb712b3  (<unknown module>)"
+      },
+      {
+        "module": "libdrm.so.2",
+        "offset": "0xbcd8",
+        "frame": "#3 0x75ed8cb75cd8  (<unknown module>)"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1ec5c",
+        "frame": "#4 0x75ed8c77cc5c  (<unknown module>)"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1487f",
+        "frame": "#5 0x75ed8c77287f  (<unknown module>)"
+      },
+      {
+        "module": "/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so",
+        "offset": "0x84c0",
+        "frame": "#6 0x75ed8cb9c4c0  (<unknown module>)"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a1c9",
+        "frame": "#15 0x75ed8d82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a28a",
+        "frame": "#16 0x75ed8d82a28a in __libc_start_main_impl ../csu/libc-start.c:360"
+      }
+    ]
+  },
+  {
+    "allocation": "Indirect leak of 104 byte(s) in 1 object(s) allocated from:",
+    "frames": [
+      {
+        "module": "libasan.so.8",
+        "offset": "0xfd340",
+        "frame": "#0 0x75ed8eafd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1eccd",
+        "frame": "#1 0x75ed8c77cccd  (<unknown module>)"
+      },
+      {
+        "module": "libEGL_mesa.so.0",
+        "offset": "0x1487f",
+        "frame": "#2 0x75ed8c77287f  (<unknown module>)"
+      },
+      {
+        "module": "/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so",
+        "offset": "0x84c0",
+        "frame": "#3 0x75ed8cb9c4c0  (<unknown module>)"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a1c9",
+        "frame": "#12 0x75ed8d82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58"
+      },
+      {
+        "module": "libc.so.6",
+        "offset": "0x2a28a",
+        "frame": "#13 0x75ed8d82a28a in __libc_start_main_impl ../csu/libc-start.c:360"
+      }
+    ]
+  }
+]

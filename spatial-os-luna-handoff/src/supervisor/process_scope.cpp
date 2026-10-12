@@ -5,6 +5,7 @@
 #include <climits>
 #include <csignal>
 #include <cstring>
+#include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -62,12 +63,69 @@ void control(int directory, const char* name, const std::string& value) {
     check(size == static_cast<ssize_t>(value.size()), "Cannot write cgroup control");
 }
 void tick() { poll(nullptr, 0, 5); }
+void remove_empty_children(int directory, unsigned depth = 0) {
+    valid(depth <= 8, "Excessive owned cgroup nesting");
+    Fd duplicate(openat(directory, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
+    check(duplicate.value >= 0, "Cannot enumerate owned cgroups");
+    DIR* entries = fdopendir(duplicate.value);
+    check(entries != nullptr, "Cannot read owned cgroups");
+    duplicate.value = -1;
+    try {
+        for (;;) {
+            errno = 0; const auto* entry = readdir(entries);
+            if (!entry) { check(errno == 0, "Cannot enumerate owned cgroups"); break; }
+            const std::string name = entry->d_name;
+            if (name == "." || name == "..") continue;
+            struct stat info{};
+            check(fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) == 0, "Cannot inspect owned cgroup child");
+            if (!S_ISDIR(info.st_mode)) continue;
+            valid(info.st_uid == geteuid(), "Foreign cgroup child prevents cleanup");
+            Fd child(openat(directory, name.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+            check(child.value >= 0, "Cannot pin owned cgroup child");
+            struct stat retained{};
+            check(fstat(child.value, &retained) == 0, "Cannot inspect retained cgroup child");
+            valid(retained.st_dev == info.st_dev && retained.st_ino == info.st_ino, "Cgroup child identity changed");
+            remove_empty_children(child.value, depth+1);
+            check(fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) == 0, "Cannot recheck cgroup child");
+            valid(retained.st_dev == info.st_dev && retained.st_ino == info.st_ino, "Cgroup child identity changed before removal");
+            check(unlinkat(directory, name.c_str(), AT_REMOVEDIR) == 0, "Cannot remove empty owned cgroup child");
+        }
+    } catch (...) { closedir(entries); throw; }
+    closedir(entries);
+}
 [[noreturn]] void child_failure(int gate, int error) {
     (void)send(gate, &error, sizeof(error), MSG_NOSIGNAL); _exit(126);
 }
 }
 
-std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root) {
+void validate_budget(const v1::ProcessScopeBudget& value) {
+        const auto* budget = &value;
+        validate_message(*budget);
+        const auto page = sysconf(_SC_PAGESIZE);
+        valid(page > 0, "Cannot determine memory page size");
+        constexpr std::uint64_t maximum = 1ULL << 50;
+        valid(budget->has_memory_bytes() && budget->memory_bytes() >= static_cast<std::uint64_t>(page) &&
+              budget->memory_bytes() <= maximum && budget->memory_bytes() % page == 0,
+              "Memory budget must be an explicit positive page multiple");
+        valid(budget->has_swap_bytes() && budget->swap_bytes() <= maximum && budget->swap_bytes() % page == 0,
+              "Swap budget must be an explicit nonnegative page multiple");
+        valid(budget->has_processes() && budget->processes() > 0 && budget->processes() <= 1048576,
+              "Process budget must be explicit and bounded");
+        valid(budget->has_cpu_microseconds() && budget->cpu_microseconds() >= 1000 &&
+              budget->cpu_microseconds() <= 6400000, "CPU budget must be explicit and bounded");
+        valid(budget->io_size() > 0 && budget->io_size() <= 64, "Expected explicit I/O device budgets");
+        std::set<std::pair<unsigned, unsigned>> devices;
+        for (const auto& io : budget->io()) {
+            valid(io.has_major() && io.has_minor() && io.major() > 0 && io.major() <= 4095 && io.minor() <= 1048575 &&
+                  devices.emplace(io.major(), io.minor()).second, "Invalid or duplicate I/O device");
+            valid(io.read_bytes_per_second() > 0 && io.read_bytes_per_second() <= maximum &&
+                  io.write_bytes_per_second() > 0 && io.write_bytes_per_second() <= maximum,
+                  "I/O rates must be positive and bounded");
+        }
+}
+std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root,
+                                                  const v1::ProcessScopeBudget* budget) {
+    if (budget) validate_budget(*budget);
     auto result = std::unique_ptr<ProcessScope>(new ProcessScope);
     result->parent_ = open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     check(result->parent_ >= 0, "Cannot open delegated cgroup");
@@ -96,7 +154,28 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
     check(result->scope_ >= 0, "Cannot retain authority scope");
     struct stat owned{}; check(fstat(result->scope_, &owned) == 0, "Cannot identify authority scope");
     result->identity_.set_device(owned.st_dev); result->identity_.set_inode(owned.st_ino);
+    if (budget) {
+        // This empty scope cannot run a child until every required controller accepts its limit.
+        control(result->scope_, "memory.max", std::to_string(budget->memory_bytes()) + "\n");
+        control(result->scope_, "memory.swap.max", std::to_string(budget->swap_bytes()) + "\n");
+        control(result->scope_, "memory.oom.group", "1\n");
+        control(result->scope_, "pids.max", std::to_string(budget->processes()) + "\n");
+        control(result->scope_, "cpu.max", std::to_string(budget->cpu_microseconds()) + " 100000\n");
+        for (const auto& io : budget->io())
+            control(result->scope_, "io.max", std::to_string(io.major()) + ":" + std::to_string(io.minor()) +
+                    " rbps=" + std::to_string(io.read_bytes_per_second()) +
+                    " wbps=" + std::to_string(io.write_bytes_per_second()) + "\n");
+    }
     return result;
+}
+
+void ProcessScope::enable_children() {
+    valid(!started_ && !removed_ && !populated(), "Child controllers require an empty prepared scope");
+    control(scope_, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
+}
+pid_t ProcessScope::direct_child_pid() const {
+    valid(started_ && !removed_ && !reaped_ && child_ > 0, "No retained direct child");
+    return child_;
 }
 
 std::unique_ptr<ProcessScope> ProcessScope::launch(const std::filesystem::path& root,
@@ -227,6 +306,27 @@ bool ProcessScope::exited_successfully() const {
     check(result == 0, "Cannot inspect retained child exit status");
     return info.si_pid == child_ && info.si_code == CLD_EXITED && info.si_status == 0;
 }
+int ProcessScope::exit_status() const {
+    valid(started_ && child_ > 0 && !reaped_, "No retained child exit status");
+    siginfo_t info{};
+    int result;
+    do { result = waitid(P_PID, static_cast<id_t>(child_), &info, WEXITED | WNOHANG | WNOWAIT); }
+    while (result < 0 && errno == EINTR);
+    check(result == 0, "Cannot inspect retained child exit status");
+    valid(info.si_pid == child_, "Authority child has not exited");
+    if (info.si_code == CLD_EXITED) return info.si_status;
+    if (info.si_code == CLD_KILLED || info.si_code == CLD_DUMPED) return 128 + info.si_status;
+    throw std::runtime_error("Unknown child exit state");
+}
+void ProcessScope::throttle_memory(std::uint64_t bytes) {
+    valid(!started_ && !removed_ && scope_ >= 0 && bytes > 0 && !populated(),
+          "Memory throttle requires an empty prepared scope");
+    const auto maximum = contents(scope_, "memory.max");
+    valid(maximum != "max\n" && bytes <= std::stoull(maximum), "Memory throttle must fit the hard budget");
+    const auto value = std::to_string(bytes) + "\n";
+    control(scope_, "memory.high", value);
+    valid(contents(scope_, "memory.high") == value, "Memory throttle was not applied");
+}
 v1::ProcessScopeStopped ProcessScope::stop() {
     if (!removed_) {
         if (scope_ >= 0) control(scope_, "cgroup.kill", "1\n");
@@ -246,6 +346,7 @@ v1::ProcessScopeStopped ProcessScope::stop() {
             if (waited == child_) { reaped_ = true; break; }
             valid(Clock::now() < deadline, "Authority child reap deadline exceeded"); tick();
         }
+        if (scope_ >= 0) remove_empty_children(scope_);
         if (!identity_.scope_name().empty()) {
             struct stat named{};
             check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,

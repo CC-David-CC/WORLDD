@@ -1,0 +1,252 @@
+{
+  "status": "reviewed_focused_checks_passed",
+  "milestone": "M03",
+  "milestone_complete": false,
+  "reviewer": "Primary agent",
+  "base_commit": "be35ee63845ff05e65fa8bdd01a568d378eeb2d7",
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "3a328c002243853ab2582851d8371dd0c715f0cb72d84fe6e44e7159d96ee618",
+      "verified_attachments": 150,
+      "matched_source_inputs": 364,
+      "regression_cases": {
+        "broker-resources": 18,
+        "process-scope-resources": 9,
+        "process-termination": 6,
+        "workspace-context": 13,
+        "workspace-git": 49,
+        "worldd-lifecycle": 11
+      },
+      "integration_attempt": "m03-git-storage-integration-15",
+      "integration_scenarios": {
+        "large_import_retirement": {
+          "passed": true,
+          "bytes": 301989888,
+          "import_seconds": 36.97929614499935,
+          "source_unchanged": true,
+          "retained_inodes": true
+        },
+        "application_and_actor_quota": {
+          "passed": true,
+          "first": {
+            "bytes": 33521664,
+            "errno": 122
+          },
+          "second": {
+            "bytes": 16760832,
+            "errno": 122
+          },
+          "applications": [
+            "dc66b2227ef099fe54389166fddde115",
+            "a169101ce503beabe99a3990276a29cc"
+          ]
+        },
+        "read_only": {
+          "passed": true,
+          "witness": {
+            "read": "storage integration\n",
+            "write_errno": 30
+          }
+        },
+        "sibling_survival": {
+          "passed": true,
+          "bytes": 4194304
+        },
+        "restart": {
+          "passed": true
+        }
+      },
+      "kernel_owner_witnesses": [
+        {
+          "pid": 26213,
+          "unit": "spatial-storage-owner-bc47c26079eaf42ffdeef00517ff0d67.service",
+          "controls": {
+            "memory.max": "268435456",
+            "memory.high": "201326592",
+            "memory.swap.max": "0",
+            "pids.max": "16",
+            "cpu.max": "100000 100000",
+            "io.max": "7:12 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+          },
+          "retained_broker_handles": {
+            "1": "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t15809\nPid:\t26208\nNSpid:\t26208\n",
+            "5": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t15809\nPid:\t26208\nNSpid:\t26208\n",
+            "6": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t15809\nPid:\t26208\nNSpid:\t26208\n"
+          },
+          "private_network": true
+        },
+        {
+          "pid": 26639,
+          "unit": "spatial-storage-owner-722cfbb2713fa773f33532aad312f706.service",
+          "controls": {
+            "memory.max": "268435456",
+            "memory.high": "201326592",
+            "memory.swap.max": "0",
+            "pids.max": "16",
+            "cpu.max": "100000 100000",
+            "io.max": "7:12 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+          },
+          "retained_broker_handles": {
+            "1": "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t15872\nPid:\t26634\nNSpid:\t26634\n",
+            "5": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t15872\nPid:\t26634\nNSpid:\t26634\n",
+            "6": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t15872\nPid:\t26634\nNSpid:\t26634\n"
+          },
+          "private_network": true
+        }
+      ],
+      "elapsed_seconds": 119.72160601615906,
+      "application_diagnostic_files": 12,
+      "scanned_outer_logs": 10,
+      "sanitizer_findings": 0,
+      "installed_binary": {
+        "host": "sb16",
+        "target": "/usr/local/libexec/spatial-storage-owner",
+        "sha256": "23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+        "previous_sha256": null,
+        "applied": true,
+        "recovery": [
+          "sudo",
+          "rm",
+          "--",
+          "/usr/local/libexec/spatial-storage-owner"
+        ]
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "9526365a542e34bc3bcf0c8cbcb6fdc809f1f048160c1a174332f23ea21995d8",
+      "verified_attachments": 150,
+      "matched_source_inputs": 364,
+      "regression_cases": {
+        "broker-resources": 18,
+        "process-scope-resources": 9,
+        "process-termination": 6,
+        "workspace-context": 13,
+        "workspace-git": 49,
+        "worldd-lifecycle": 11
+      },
+      "integration_attempt": "m03-git-storage-integration-14",
+      "integration_scenarios": {
+        "large_import_retirement": {
+          "passed": true,
+          "bytes": 301989888,
+          "import_seconds": 34.13819380099994,
+          "source_unchanged": true,
+          "retained_inodes": true
+        },
+        "application_and_actor_quota": {
+          "passed": true,
+          "first": {
+            "bytes": 33521664,
+            "errno": 122
+          },
+          "second": {
+            "bytes": 16760832,
+            "errno": 122
+          },
+          "applications": [
+            "fb49d92e80bb05e151bcac4978f395aa",
+            "b95d73908e65753bc9265984eb042dd8"
+          ]
+        },
+        "read_only": {
+          "passed": true,
+          "witness": {
+            "read": "storage integration\n",
+            "write_errno": 30
+          }
+        },
+        "sibling_survival": {
+          "passed": true,
+          "bytes": 4194304
+        },
+        "restart": {
+          "passed": true
+        }
+      },
+      "kernel_owner_witnesses": [
+        {
+          "pid": 24177,
+          "unit": "spatial-storage-owner-77d7ce2f26d04d7475ceb6d607b47cce.service",
+          "controls": {
+            "memory.max": "268435456",
+            "memory.high": "201326592",
+            "memory.swap.max": "0",
+            "pids.max": "16",
+            "cpu.max": "100000 100000",
+            "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+          },
+          "retained_broker_handles": {
+            "1": "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t3224\nPid:\t24172\nNSpid:\t24172\n",
+            "5": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t3224\nPid:\t24172\nNSpid:\t24172\n",
+            "6": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t3224\nPid:\t24172\nNSpid:\t24172\n"
+          },
+          "private_network": true
+        },
+        {
+          "pid": 24557,
+          "unit": "spatial-storage-owner-dfb3e64af76a947fdceffb34725cde9e.service",
+          "controls": {
+            "memory.max": "268435456",
+            "memory.high": "201326592",
+            "memory.swap.max": "0",
+            "pids.max": "16",
+            "cpu.max": "100000 100000",
+            "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+          },
+          "retained_broker_handles": {
+            "1": "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t11423\nPid:\t24552\nNSpid:\t24552\n",
+            "5": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t11423\nPid:\t24552\nNSpid:\t24552\n",
+            "6": "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t11423\nPid:\t24552\nNSpid:\t24552\n"
+          },
+          "private_network": true
+        }
+      ],
+      "elapsed_seconds": 122.46099376678467,
+      "application_diagnostic_files": 12,
+      "scanned_outer_logs": 10,
+      "sanitizer_findings": 0,
+      "installed_binary": {
+        "host": "sb16-2",
+        "target": "/usr/local/libexec/spatial-storage-owner",
+        "sha256": "23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+        "previous_sha256": null,
+        "applied": true,
+        "recovery": [
+          "sudo",
+          "rm",
+          "--",
+          "/usr/local/libexec/spatial-storage-owner"
+        ]
+      }
+    }
+  },
+  "unrun": [
+    "Normal session and direct BrokerProcess storage-owner wiring.",
+    "Operator data-volume provisioning and mandatory profile adoption.",
+    "Launch failure matrix: peer UID, bad policy, missing binary, service death, cleanup retry.",
+    "Competing-storage availability and immediate revocation qualification.",
+    "Full M03 Debug, sanitizer, harness, acceptance and native gate on both hosts."
+  ],
+  "locked_files_unchanged": 41,
+  "findings": [
+    "The memory-admission correction counts live reservation-funded usage once; unchanged kernel limits remain authoritative.",
+    "Independent kernel witnesses confirm the owner memory, swap, CPU, process and both-device I/O controls.",
+    "Each owner has a private network namespace and retains the original live broker pidfd.",
+    "Root-owned owner binary installation is the only persistent system change in this increment; receipts contain exact recovery commands.",
+    "Earlier attempts 10-15 remain preserved, including setup failures and the reproduced admission failure.",
+    "This is a reviewed launcher component checkpoint; normal production session adoption and M03 qualification remain incomplete."
+  ],
+  "file_review": {
+    "CMakeLists.txt": "Generated storage bindings resolve the ProcessScope import. The launcher and witness build under sanitizers and -Werror.",
+    "proto/spatial/workspace/v1/storage.proto": "Additive private launch/control schemas. Existing production storage message fields remain unchanged.",
+    "src/workspace/resources.cpp": "Pinned cgroup descriptors retain accounting identity. Funded usage is clamped per reservation. Unfunded charges and unchanged kernel hard limits remain enforced.",
+    "src/workspace/storage_channel.hpp": "Optional borrowed pidfd preserves existing callers and adds retained-handle ownership.",
+    "src/workspace/storage_channel.cpp": "Duplicates and validates the transferred live pidfd with the expected peer PID. Existing Unix sender credential checks remain active.",
+    "src/workspace/storage_main.cpp": "Validates paired descriptor arguments and protected policy. Runtime broker UID and retained pidfd must match before storage service creation.",
+    "src/supervisor/storage_launch.hpp": "One retained launcher owns one private service and exposes checked stop and liveness.",
+    "src/supervisor/storage_launch.cpp": "Canonical protected inputs, private Unix credentials, explicit argv/environment, finite control waits, fixed executable, bounded root service, and exact-unit cleanup. Negative-path qualification remains pending.",
+    "src/testing/storage_launch_probe.cpp": "Thin protobuf lifecycle witness calls the production launcher. Its policy is a trusted private fixture, not an actor interface.",
+    "tools/bootstrap_storage.py": "Reviewed operator-only installer. Root atomic replacement records the source digest and preserves an explicitly approved prior executable. Both actual first installations are witnessed.",
+    "tests/native/test_storage_git_integration.py": "Existing five behavior assertions remain. Production-owner mode adds live service identity/resource witnesses and checked owner teardown. No locked test changed."
+  }
+}

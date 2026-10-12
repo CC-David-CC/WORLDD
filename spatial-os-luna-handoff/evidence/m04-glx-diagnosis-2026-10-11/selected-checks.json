@@ -1,0 +1,11 @@
+{
+  "phase": "M04",
+  "phase_complete": false,
+  "status": "selected_before_execution",
+  "purpose": "Reproduce GLX shutdown allocations on the current candidate and preserve loaded module mappings before unload.",
+  "hosts": ["sb16", "sb16-2"],
+  "test": "SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests",
+  "profile": "Current native-server ASan/UBSan with GLX enabled",
+  "source_change": "None. A diagnostic subclass saves /proc maps after startup without changing the inherited assertion or cleanup.",
+  "next_step": "Resolve each allocation address to the actual loaded module. Establish ownership before proposing a production correction."
+}

@@ -1,0 +1,23 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py",
+    "--",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/workspaced",
+    "BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record",
+    "BrokerResourceTests.test_uncovered_git_device_denies_before_repository_mutation",
+    "-v"
+  ],
+  "started": 1791700276.2965927,
+  "source_hashes": {
+    "src/workspace/resources.cpp": "550da38d6fe34f3d497848b84fd62c96f917f93d59698e77b16072946b849d7c",
+    "src/workspace/store.cpp": "98bc250ec2a78eddb0a7c1dd40f019b6ef249ebaabe43f6a08d5121c3e9f8aca",
+    "tests/core/test_broker_resources.py": "c8a83828916fede617528f072283f6269913dbb39069bebccfe77d73c37eb114"
+  },
+  "exit_code": 1,
+  "elapsed": 3.075986623764038
+}

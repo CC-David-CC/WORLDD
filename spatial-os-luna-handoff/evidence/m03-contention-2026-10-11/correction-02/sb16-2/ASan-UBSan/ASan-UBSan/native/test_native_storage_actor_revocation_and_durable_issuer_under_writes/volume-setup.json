@@ -1,0 +1,122 @@
+{
+  "status": "prepared",
+  "mounted": false,
+  "loop": "/dev/loop14",
+  "policy_directory": "/run/spatial-m03-native-storage-46193e8b6e864f3cbdf49fb1e0ecf64c",
+  "commands": [
+    {
+      "argv": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop14\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-q",
+        "-f",
+        "/dev/loop14"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid",
+        "/dev/loop14",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop14"
+      ],
+      "exit_code": 0,
+      "stdout": "38a24206-c402-47cc-aba0-27ba83c4418a\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "--noheadings",
+        "--output",
+        "BACK-FILE",
+        "/dev/loop14"
+      ],
+      "exit_code": 0,
+      "stdout": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume.img\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop14: [66306]:11036951 (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume.img)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-d",
+        "/dev/loop14"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "configuration": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/broker.textproto",
+  "volume": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume",
+  "devices": [
+    [
+      259,
+      0
+    ],
+    [
+      7,
+      14
+    ]
+  ],
+  "loop_attached": false,
+  "cleanup_confirmed": true
+}

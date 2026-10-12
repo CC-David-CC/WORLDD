@@ -1,5 +1,946 @@
 # Implementation status
 
+## 2026-10-11: M05 supervised crash persistence passes focused checks
+
+Both hosts pass the four-case session replacement suite in Debug and ASan/UBSan.
+The new case verifies committed object edits survive SIGKILL while uncommitted previews and abandoned leases do not.
+Recovery uses production fencing, checked cleanup, dependent recovery, and explicit issuer retirement.
+The separate cross-host negative case confirms direct restart cannot bypass the active-generation guard.
+These total twenty case executions. Source and copied output hashes match; no sanitizer findings appear in the scanned logs.
+Read evidence/m05-shared-state-2026-10-11/crash-primary-review.txt.
+
+Supervised recovery with cross-host actors, the full private/shared topology, remote key provisioning,
+and the complete M05 gate remain pending. M05 is not qualified yet.
+
+## 2026-10-11: M05 actor representations pass focused qualification
+
+Actors now have real compositor-rendered markers with live authoritative poses.
+The observer's own marker and actors in other rooms are excluded.
+Visibility, movement, occlusion, configured appearance, and persistent restoration pass selected checks.
+Both hosts pass seven related suites in Debug and ASan/UBSan: 28 suite executions.
+Both directions pass two cross-host cases in both profiles: eight additional case executions.
+Source and report hashes match. Neither host's 318 scanned logs contains sanitizer findings.
+The additive protobuf migration is explicit and descriptor-checked at d8cbcbd.
+Original failures and fixture corrections remain recorded.
+Read evidence/m05-shared-state-2026-10-11/population-primary-review.txt.
+
+M01-M04 remain qualified. M05 is in progress, not complete.
+The full private/shared topology, independent remote actor-key provisioning, abrupt authority failure,
+and complete both-host M05 gate remain pending. M06-M16 remain pending.
+
+## 2026-10-11: M04 qualified; M05 is next
+
+M04 is qualified at adopted source 04e10296943013da3a29035f00b520907b97f3ca on both hosts.
+Dedicated checkouts are at /home/dflanag3/src/spacial_desktop-m04-qualified-20261011.
+All 411 recorded source inputs are reconciled. All 41 locked files remain unchanged.
+Retained runtime binaries use f74c6b5; only three tested fixture files differ in the adopted source.
+The complete both-host Debug and sanitizer matrix, focused corrections, and eight cross-host scenarios passed review.
+All twenty M04 task entries have execution coverage. Independent bypass evidence is reviewed or explicitly reassessed.
+Original failed gate reports remain preserved with their correction evidence.
+Read evidence/m04-gate-2026-10-11/M04-final-review.txt for requirements, exact counts, source pins, and limits.
+
+This qualifies the strict native security configuration with the verified private software EGL candidate.
+Installed graphics vendors, physical GPU/device acceptance, application compatibility, performance, and soak retain their later requirements.
+M01-M04 are qualified. M05-M16 and complete Spatial-M1 qualification remain incomplete.
+M05 must prove independent private worlds and one shared persistent world across both hosts.
+
+## 2026-10-11: Both local M04 gates completed; fixture corrections reviewed
+
+Both hosts completed Debug and ASan/UBSan qualification on frozen candidate f74c6b5.
+Each profile executed 141 core suites, 51 harness checks, 151 acceptance cases, and five storage scenarios.
+Harness, acceptance, and storage scenarios passed in all four host/profile combinations.
+The original core runs failed two storage fixture suites on both hosts.
+The sb16 sanitizer run also failed two authority setup suites on their old healthy-client deadlines.
+Original failures remain preserved. No additional artifact-audit errors or sanitizer markers were found.
+
+The storage fixture now resolves its permitted local directory from its own checkout.
+Two setup fixtures now use the accepted five-second healthy-client budget.
+Explicit deadline overrides, assertions, relay ordering, and server idle deadlines remain intact.
+Both correction groups passed on both hosts in both profiles: 40 checks total.
+The primary review verified copied log hashes and integrated the deadline changes at 04e1029.
+Read evidence/m04-gate-2026-10-11/sb16-correction-review.txt and sb16-2-correction-review.txt.
+
+Four changed-path bypass mutations passed review on sb16. The corresponding sb16-2 runs are active.
+Cross-host scenarios and final source/requirement reconciliation remain pending.
+M04 remains incomplete. M05 and later milestones retain their full requirements.
+
+## 2026-10-11: Expanded core event checks detect isolated bypasses
+
+Nineteen added checks cover map/configure redirection, gravity, circulation, and resize redirection.
+The 47-case parent-event suite passes on both hosts in Debug and GLX-enabled native-server ASan/UBSan.
+These runs total 188 checks. The five mutation-parser checks pass on each host.
+All three isolated bypasses produce exactly their expected failures on both hosts.
+Query-parent and reparent-event bypasses each produce two failures. The child-event bypass produces 22.
+Every mutation run executes all 47 cases. The primary source remains unchanged during the runs.
+
+No new production change is required for this event-coverage increment.
+M04 remains incomplete. A full gate runner now records frozen source and graphics configuration for both profiles.
+The complete gate, cross-host reassessment, and native qualification still require evidence.
+Read evidence/m04-event-coverage-2026-10-11/primary-review.json.
+
+## 2026-10-11: Redirected configure requests no longer disclose foreign siblings
+
+The event audit reproduced ConfigureRequest sibling disclosure in both byte orders on both hosts.
+The corrected baseline fails two privacy checks and passes six controls per host.
+An earlier credential-fixture error remains preserved and is excluded from the product failure count.
+
+SpatialSecurity now clears unauthorized sibling IDs and CWSibling on a private recipient event copy.
+Other fields, same-application requests, and privileged requests remain intact.
+Each host passes 236 selected checks in Debug and GLX-enabled native-server ASan/UBSan, for 944 total.
+Each host also passes 32 pixel-checked GLX cycles and 100 shutdown repetitions with the verified private EGL candidate.
+Source and copied log hashes match. No sanitizer findings appear in the collected logs.
+All 41 locked files remain unchanged.
+
+Remaining event coverage and the full M04 gate are pending. Software graphics do not qualify physical GPU output.
+Read evidence/m04-configure-request-2026-10-11/primary-review.json.
+
+## 2026-10-11: Current native security passes private-vendor GLX sanitizers
+
+The current instrumented server passes 232 GLX-enabled security checks on each host.
+Each host also passes 32 pixel-checked GLX context cycles and 100 shutdown repetitions.
+The private EGL candidate matches its previously verified hash and initializes and unloads during the rendering probe.
+Copied evidence hashes match. No sanitizer findings appear in the collected logs.
+Source 5185d9b includes both the XACE integration and nested-window correction.
+
+This qualifies the selected software-graphics checks with the private EGL candidate.
+It does not qualify the installed graphics vendor, native GPU output, or the full M04 gate.
+The historical shutdown timeout remains unexplained and did not recur in these repetitions.
+Read evidence/m04-current-glx-2026-10-11/primary-review.json.
+Read docs/M04_QUALIFICATION_AUDIT.txt for the remaining event, integration, mutation, and full-gate work.
+
+## 2026-10-11: Nested window pixel disclosure corrected
+
+The M04 audit reproduced another GetImage disclosure on both hosts.
+An owned child's region restored pixels belonging to a foreign grandchild.
+Native and swapped clients failed the new privacy checks. Sixteen other pixel checks passed.
+
+SpatialSecurity now applies region authority in ancestor-before-descendant order.
+Authorized descendants remain readable inside foreign ancestors. Foreign descendants remain excluded inside owned ancestors.
+The final result stays within the original parent region.
+The traversal remains iterative and fails closed on region allocation errors.
+
+Each host passes 232 selected checks in Debug and core-X ASan/UBSan, for 928 total.
+Both server builds pass unit checks. Current source hashes match the tested receipts.
+Copied suite logs match their recorded hashes. No sanitizer findings appear in the collected logs.
+All 41 locked acceptance files remain unchanged.
+This correction belongs to the downstream policy and requires no new upstream XACE hook.
+
+M04 remains incomplete. Sanitizer runs exclude GLX; full graphics and phase qualification remain pending.
+Read evidence/m04-nested-pixels-2026-10-11/primary-review.json.
+
+## 2026-10-11: XACE pixel hooks pass related Debug and sanitizer regressions
+
+SpatialSecurity now registers window-image and drawable-access callbacks.
+The pinned XLibre patch provides generic XACE hooks instead of direct SpatialSecurity calls in DIX.
+GetImage excludes foreign child pixels. IncludeInferiors requests cannot access foreign child regions.
+Same-application and privileged controls remain usable.
+
+Both hosts build the Debug and ASan/UBSan servers and pass server unit checks.
+Each host passes 228 selected checks in each profile, for 912 total.
+The checks cover pixels, resources, identities, metadata, selections, extensions, and input authority.
+Copied suite logs match their recorded hashes. Source hashes remain unchanged during each run.
+No sanitizer findings appear in the collected logs.
+Sanitizer runs disable GLX because the installed-vendor teardown limitation remains recorded.
+These checks do not qualify native graphics or complete M04.
+
+M01-M03 remain qualified. M04 requires a remaining-requirements audit and its full phase gate.
+Read evidence/m04-pixel-hook-integration-2026-10-11/regression-review.json.
+
+## 2026-10-11: Parent and child-event metadata pass focused native qualification
+
+Owned windows no longer disclose unauthorized parents through QueryTree or ReparentNotify.
+Core structure-event delivery checks its subject window before recipient byte swapping.
+An owned parent's event subscription does not grant observation of foreign children.
+Public roots, same-application views, and privileged recipients remain usable.
+The additive policy is recorded in docs/NATIVE_PARENT_METADATA.txt.
+No Protocol Buffer schema or locked acceptance requirement changes.
+
+The final baseline reproduces 16 security failures and 12 passing controls per host.
+The first witness's extra privileged-case fixture failure remains preserved and excluded from that defect count.
+Each host passes 214 selected native checks in Debug and ASan/UBSan with GLX enabled.
+The combined increment has 856 passed native checks across four profiles.
+All three isolated bypasses produce their exact expected failures on each host.
+The stricter mutation parser also rejects extra unittest errors.
+Its five regression checks pass in both configured profiles on both hosts.
+The parser rechecks the saved native outcomes without rebuilding unchanged production source.
+CMake registers 140 core suites. The complete cumulative matrix remains unrun.
+All forty-one locked files remain unchanged.
+
+The event witness covers six child-event types in both byte orders.
+Other asynchronous paths, broader integration, and the full M04 gate remain pending.
+The private Mesa graphics limits and unexplained original shutdown timeout remain recorded.
+M01-M03 remain qualified. M04 remains incomplete.
+Read evidence/m04-parent-metadata-2026-10-11/primary-review.json.
+
+## 2026-10-11: Private Mesa candidate renders and passes selected checks on both hosts
+
+Each host passes 186 GLX-enabled native security checks with the cleanup candidate.
+Each host also passes 100 unchanged selection/revocation shutdown repetitions.
+The independent compositor witness renders and checks 32 varied frames per host.
+It requires direct OpenGL 3.3 contexts and FP64 support.
+Both hosts report installed Mesa llvmpipe with OpenGL 4.5 and FP64.
+Loader logs confirm each candidate vendor initializes and unloads.
+
+sb16-2 builds its own candidate from the pinned source and recorded local tools.
+The source archive hash matches the reviewed Mesa 25.2.8 release.
+All 1254 copied evidence files match their remote hashes.
+All forty-one locked files remain unchanged.
+System graphics libraries and normal login remain unchanged.
+
+The original four-second shutdown timeout remains preserved and unexplained.
+It did not recur in these checks. The cleanup deadline remains four seconds.
+The private EGL build supports GBM/surfaceless and softpipe.
+These results do not qualify native GPU sessions or the installed vendor configuration.
+M04 remains incomplete. Broader metadata attacks, bypass mutations, and the complete phase gate remain pending.
+Read evidence/m04-glx-validation-2026-10-11/primary-review.json.
+
+## 2026-10-11: GLX leak diagnosis reaches a Mesa cleanup candidate
+
+Fresh startup/shutdown checks reproduce the 3176-byte leak on both hosts.
+Loader diagnostics identify Mesa EGL display and device records, including their libdrm allocations.
+The Mesa 25.2.8 release source retains default cleanup functions without a registration caller.
+A separate two-file GLVND cleanup candidate now exists under server/mesa.
+
+A controlled sb16 comparison uses the same native server and matching library dependencies.
+Both vendor libraries initialize and unload. The unpatched library leaks; the candidate reports no sanitizer error.
+Earlier apparent passes used a copied library with a missing dependency. Those results are invalid and preserved.
+The corrected broader native run fails one four-second shutdown assertion in the selection suite.
+The unchanged 23-case selection recheck passes. The initial timeout remains unresolved.
+
+The candidate build uses local tools and extracted development packages. System graphics libraries remain unchanged.
+This prototype supports GBM/surfaceless and softpipe. It does not qualify the installed vendor setup or native GPU sessions.
+Cross-host candidate validation, actual GLX rendering, lifecycle checks, and timeout diagnosis remain required.
+M04 remains incomplete. Read evidence/m04-glx-diagnosis-2026-10-11/primary-review.json.
+
+## 2026-10-11: M04 selection namespaces and event metadata pass focused review
+
+Application selections now have independent namespace labels in real DIX records.
+Seven baseline namespace failures per host remain preserved.
+Trusted services choose a view through operation 1 and selection_scope.proto.
+Operation 0 retains the locked security.proto contract exactly.
+The first schema draft changed a locked file. The lock audit caught and rejected that draft before integration.
+All forty-one locked files are restored and unchanged.
+
+ConfigureNotify now reports the nearest authorized sibling on a private event copy.
+Both byte orders pass. A privileged recipient retains the original packet.
+The two baseline disclosure failures per host and the missing-header build failures remain preserved.
+
+Each host has 186 passed focused checks in Debug and core-X native-server ASan/UBSan.
+The combined candidate has 744 passed checks across both hosts and profiles.
+Debug reassessment uses 149 unchanged cases and 37 corrected scope/selection rechecks.
+Native server unit checks pass. C++ and Python bindings compile in both profiles.
+The source now registers 138 core suites. The full M04 matrix remains unrun.
+
+M01-M03 remain qualified. M04 remains incomplete.
+Other asynchronous metadata, independent bypass mutations, and full graphics qualification remain pending.
+The GLX/provider shutdown leak remains open. Core-X results do not qualify that path.
+Read evidence/m04-event-metadata-2026-10-11/primary-review.json.
+
+## 2026-10-11: M04 atom metadata correction passes focused qualification
+
+Independent native clients reproduce five atom disclosure paths on both hosts.
+The unchanged M03 server passes three positive controls and fails five privacy checks per host.
+The correction filters dynamic atom names through immutable workspace and application identities.
+Same-application connections share declarations. Predefined and explicitly declared names remain usable.
+Reference-counted declaration memory survives peer closure and ends at final connection closure.
+Each application declaration set has a tested 65536-entry limit.
+
+Debug and core-X native-server ASan/UBSan profiles pass 159 checks each on both hosts.
+The combined increment has 636 passed checks. Both native-server builds pass their unit checks.
+CMake registers the new native-atom-privacy suite. The suite inventory grows from 135 to 136.
+All forty-one locked files remain unchanged.
+
+Full GLX-enabled sanitizer runs fail on both hosts through software-provider shutdown allocations.
+The reports show 3176 bytes in five allocations. The exact ownership cause remains undiagnosed.
+Those failures remain preserved. Core-X profiles disable GLX and do not qualify graphics cleanup.
+
+M01-M03 remain qualified. M04 remains incomplete.
+Independent selection namespaces, asynchronous metadata, and complete graphics qualification remain ahead.
+Read evidence/m04-atom-2026-10-11/primary-review.json.
+
+## 2026-10-11: M03 is qualified and adopted on both hosts
+
+The final audit passes all nine M03 requirements.
+Both hosts have reviewed Debug and ASan/UBSan qualification.
+Each profile covers 135 core suites and 1740 Python checks, plus the standalone initializer-lifecycle suite.
+Each includes passed full harness, 151 acceptance cases, and five bounded-storage scenarios.
+All eight cross-host cases pass. Independent cleanup confirms sixteen released volumes and twenty-four unloaded services.
+
+Qualified source a99b7e46c5151ba47d0a53797b470cae6aaa5d13 is adopted in dedicated worktrees on both hosts.
+The path is /home/dflanag3/src/spacial_desktop-m03-qualified-20261011.
+All 398 source inputs match qualification. Adopted-source operator, storage, and resource checks pass in both profiles.
+These focused adoption checks total 64. Ordinary checkout changes and normal login remain preserved.
+
+The original killed initializer remains untraced. Its failure evidence remains available.
+The bounded setup correction passes. This does not claim repaired worst-case storage latency.
+The tested Git worker hierarchy has an effective 256 MiB memory cap.
+
+M01, M02, and M03 are qualified. Development advances to M04.
+M04-M16, physical-input/performance gates, real-model acceptance, and full LOCAL_READY remain incomplete.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+
+## 2026-10-11: All eight production cross-host cases pass primary review
+
+Debug and ASan/UBSan pass delayed-delivery and crash scenarios in both directions.
+All twenty-four controller and worker nodes exit successfully.
+Primary review verified 230 evidence attachments and found no sanitizer error patterns.
+Delayed cases finish through acknowledgement. Crash cases require checked recovery and fenced retirement.
+Both applications remain responsive after cancellation. Native key and button release is required on both hosts.
+Independent cleanup verifies sixteen released volumes and twenty-four unloaded UUID services.
+
+The cross-host fixture uses NativeStorageSessionTests and the production storage owner.
+An added setup hook supplies the required test-volume label. Root helper safety guards remain unchanged.
+All original top-level and class function bodies remain unchanged.
+The initial failed setup attempt and exact fixture source remain preserved.
+
+Both complete local gates are reviewed. The nine-requirement M03 audit and source adoption remain pending.
+The ordinary sb16 checkout has local modifications. Preserve them during source adoption.
+M03 remains incomplete. M04-M16 remain ahead.
+Read evidence/m03-contention-2026-10-11/crosshost-04-primary-review.json.
+
+## 2026-10-11: Scoped healthy issuer setup passes qualification on both hosts
+
+Both hosts pass all 33 related suites and 282 checks in Debug and ASan/UBSan.
+Primary review verified 903 attachments per profile and zero sanitizer error patterns.
+All fourteen original supervisor bodies and all forty-one locked files remain unchanged.
+Production binaries, production deadlines, durability, base fixtures, and explicit fault settings stay unchanged.
+The raw healthy peer uses one five-second request deadline. Initialization has a separate fifteen-second fixture allowance.
+The original killed initializer's cause remains unknown. Its failure evidence is preserved.
+
+Complete local gate reassessment covers 135 suites and 1740 Python checks per host/profile.
+Each retains passed full harness, acceptance, and bounded-storage evidence.
+The corrected runner uses fresh evidence paths. Its earlier path-collision failures remain preserved.
+
+Both cross-host preflights pass with matching source and fixture digests.
+No cross-host scenario has run on this candidate yet.
+The separately staged production-storage cross-host fixture remains uncommitted until its scenarios pass.
+Eight cross-host cases and the final nine-requirement M03 adoption audit remain required.
+M03 remains incomplete. M04-M16 remain ahead.
+Read evidence/m03-contention-2026-10-11/healthy-setup-primary-source-review.json.
+
+## 2026-10-11: Three corrected profiles pass; the last sanitizer profile runs on sb16-2
+
+Both corrected sb16 profiles and corrected sb16-2 Debug pass 33 related suites and 282 checks each.
+Primary review verified 903 attachments per corrected profile.
+The fresh native import revocation witnesses stop nine applications in 0.456, 0.802, and 0.434 seconds.
+Each import reply remains pending during the stop measurement.
+
+The complete frozen sb16-2 sanitizer profile also passed.
+It includes 135 core suites, 51 harness checks, 151 acceptance cases, and five bounded-storage scenarios.
+Primary review verified 4884 attachments, zero sanitizer error patterns, and independent kernel measurements.
+Its scoped fixture correction now runs with fresh evidence paths in the final sanitizer profile.
+
+The cross-host runner checks completed local receipts, source inputs, bindings, server bytes, and installed helper bytes.
+The sb16 preflight passed. No cross-host scenario has run on this candidate.
+Commit the fixture correction after both hosts pass its selected profiles.
+Then run the eight cross-host cases and complete the nine-requirement M03 adoption audit.
+M03 remains incomplete. M04-M16 remain ahead.
+
+## 2026-10-11: Both corrected profiles and complete local gate reassessment pass on sb16
+
+Debug and ASan/UBSan each pass all 33 related suites and 282 checks.
+Primary review verified 903 attachments per profile and no sanitizer error patterns.
+The native import revocation witness reports nine exits in 0.456 seconds for Debug and 0.802 seconds for sanitizers.
+The import reply remains pending during both stop measurements. Nested execution has no filesystem effect.
+
+Local gate reassessment combines 33 fresh suites with 102 unaffected frozen suites per profile.
+Production binaries, unchanged component sources, and locked contracts match their frozen pins.
+Each combined profile covers 135 suites and 1740 Python checks, plus the standalone initializer-lifecycle suite.
+Both profiles retain passed full harness, acceptance, and bounded-storage integration evidence.
+The earlier failed supervisor result remains preserved and is replaced only by its fresh qualified result.
+This is local sb16 qualification. It does not complete M03.
+
+The sb16-2 full sanitizer core matrix passed all 135 suites. Its remaining gate commands are active.
+Its corrected fixture queue still waits for exact terminal completion.
+Both corrected sb16-2 profiles, eight cross-host scenarios, and the final M03 adoption audit remain required.
+The scoped fixture correction remains uncommitted until selected checks pass on both hosts and profiles.
+Read evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-primary-reassessment.json.
+
+## 2026-10-11: Corrected healthy-setup Debug qualification passes on sb16
+
+The corrected runner uses fresh CMake test environments and retains unchanged production binary hashes.
+All 33 selected Debug suites pass: 282 checks, zero failures, and zero skips.
+Primary review verified 903 archived attachments and three native storage-contention witnesses.
+Actor revocation stops all nine affected applications in 0.456 seconds while the import reply remains pending.
+The test also rejects nested execution without a filesystem effect.
+All fourteen original supervisor bodies and all forty-one locked files remain unchanged.
+
+The corresponding sb16 sanitizer run remains active.
+The sb16-2 frozen sanitizer gate remains active. Its correction queue waits for exact terminal completion.
+No new fixture commit is integrated before selected qualification passes on both hosts and profiles.
+Final gate reassessment and eight cross-host scenarios remain required. M03 remains incomplete.
+Read evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-debug-review.json.
+
+## 2026-10-11: Both full Debug profiles pass; scoped issuer setup correction is under qualification
+
+Both hosts passed 135 core suites, 51 harness checks, 151 acceptance cases, and five bounded-storage scenarios.
+Primary review verified all 4884 archived attachments per Debug profile.
+Each Debug core transcript contains 1737 Python checks and one additional initializer-lifecycle suite.
+
+The complete sb16 sanitizer core run passed 134 suites and failed authority-supervisor in two setup operations.
+Its harness, acceptance, and bounded-storage checks passed. Review verified 4879 archived attachments.
+The retained logs contain no AddressSanitizer, LeakSanitizer, or UBSan error patterns.
+This is a failed profile. Do not count its failed supervisor suite as qualified.
+The sb16-2 sanitizer gate remains active.
+
+The completed read-only monitor captured later initializer and request-handling waits in ext4 journal commit paths.
+It does not establish the original killed initializer's exact cause.
+A scoped healthy supervisor fixture now uses absolute five-second requests and a separate fifteen-second initialization allowance.
+All fourteen original supervisor test bodies and all forty-one locked files remain unchanged.
+Base fixtures, production deadlines, durability, and explicit fault settings stay unchanged.
+Three fixture checks passed with both hosts' build bindings. Those checks do not execute sanitizer binaries.
+
+Thirty-three related real-runtime suites are under qualification in Debug and ASan/UBSan on both hosts.
+The sb16 queue started after preserving its terminal frozen gate. The sb16-2 queue waits for its own frozen gate.
+The first correction runner retained old evidence paths embedded by CMake.
+Four Debug suites hit existing-directory setup errors. The complete supervisor suite passed in both profiles.
+Runner-04 regenerates test commands with fresh evidence paths and verifies unchanged binary hashes.
+Its queues wait for each exact predecessor before configuration. Prior archives remain intact.
+Complete evidence reassessment, eight cross-host scenarios, and M03 adoption remain pending.
+M03 remains incomplete. M04-M16 remain ahead.
+Read evidence/m03-contention-2026-10-11/healthy-setup-primary-source-review.json.
+
+## 2026-10-11: M03 contention increment passes selected qualification on both hosts
+
+Both hosts pass 216 related checks and all 151 acceptance cases in Debug and ASan/UBSan.
+The sb16 Debug result reuses the unchanged nine-suite prefix and checks the corrected remainder.
+Both sanitizer archives contain zero detected sanitizer errors. All current attachments passed hash verification.
+All forty-one locked files and 185 existing test bodies remain unchanged.
+The authenticated owner/child witness has one explicit correction that strengthens its kernel identity checks.
+
+Independent cleanup checks confirm ten released test volumes per host.
+They confirm 36 recorded UUID services unloaded on sb16 and 38 on sb16-2.
+Stable user-service names reused by live gates are outside those cleanup snapshots.
+
+Both corrected full gates are active. Eight production-profile cross-host cases remain unrun.
+The local cross-host fixture extension remains outside this checkpoint until it passes those cases.
+M03 remains incomplete. Read evidence/m03-contention-2026-10-11/primary-review.json.
+
+## 2026-10-11: Corrected M03 checks pass on sb16; full gate remains active
+
+Corrected sb16 qualification passes 216 related checks and 151 acceptance cases per build profile.
+Debug reuses nine unchanged passed suites from the first correction and verifies the corrected remainder.
+All twenty affected sanitizer suites passed. The archived sanitizer logs contain no detected sanitizer errors.
+The first correction and its descriptor-capacity failure remain preserved.
+
+The corrected complete gate now runs on sb16 with frozen source.
+The first sb16-2 sanitizer gate completed with four known failed suites.
+Its production bounded-storage Git checks passed in both profiles. Corrected combined checks now run.
+Both corrected full gates and eight production-profile cross-host cases remain required.
+M03 remains incomplete. M01 and M02 remain qualified.
+
+Read evidence/m03-contention-2026-10-11/correction-02-sb16-debug-review.json.
+Read correction-02-sb16-sanitizer-review.json and integration-source-review.json in the same directory.
+The separately staged cross-host fixture change remains unrun. Its thirty existing function bodies are unchanged.
+
+## 2026-10-11: First complete M03 gate found remaining integration defects
+
+Both hosts passed all 29 selected Debug suites: 367 checks per host.
+Both also passed 205 affected sanitizer checks across the combined correction.
+The first full M03 candidate now runs on both hosts with 135 registered suites.
+
+sb16 completed its Debug matrix with six failed suites.
+The standalone production bounded-storage Git integration passed.
+P10 executed all 151 cases. Thirty-three native cases lacked the independent witness path.
+The resource delegate must forward SPATIAL_XPROBE to the trusted qualification process.
+This changes no application environment or acceptance assertion.
+
+The gate reproduced a malformed-frame proxy regression.
+The timeout classifier rejected a complete payload before authoritative validation.
+The staged correction forwards it with the ordinary timeout.
+Truncated and oversized transport remains fatal. Git deadlines remain unchanged.
+Read ../defect blockers/world-proxy-closes-on-malformed-protobuf.txt.
+
+Two older native broker fixtures lack explicit Git worker resource provisioning.
+The staged fixtures use the existing retained resource handoff and dedicated delegate.
+The authenticated kernel witness now checks the actual broker and its actual scope-owner parent.
+Its earlier proc attribute refers to the retained broker, not the owner.
+Healthy supervisor and world startup use the existing production timeout default.
+Explicit approval-interruption fault deadlines remain 700 ms and 3000 ms.
+Server loop-work logs exceed the old healthy 700 ms allowance.
+Those logs do not identify the underlying kernel syscall.
+
+The nine-file correction is staged and unrun.
+Each correction queue holds the actual first-gate process handle.
+It waits for terminal completion, preserves source, and runs twenty related suites plus P10 in both profiles.
+Only a successful correction run starts the next full candidate.
+The current remote candidate remains frozen throughout its first complete matrix.
+
+Production-profile cross-host tests are prepared as a separate fixture extension.
+They require successful full current-source gates before execution.
+All thirty existing cross-host function bodies and assertions remain unchanged.
+M03 remains incomplete. M01 and M02 remain qualified.
+
+## 2026-10-11: M03 contention correction passes native sanitizer regressions
+
+Both hosts reproduced actor revocation blocked behind a broker Btrfs filesystem flush.
+The correction runs filesystem flushes in a joined worker and services authority during pending effects.
+SQLite remains on the broker thread. Durable flush ordering remains unchanged.
+Checked control channels remain available. Nested execution and management receive BUSY.
+The effect wait retains the existing issuer keepalive cadence and deadline.
+
+The preserved baseline retains all nine application processes after two seconds.
+Corrected checks stop all nine within 0.371 seconds on sb16 and 0.738 seconds on sb16-2.
+Both import replies remain pending during those exit measurements.
+Both hosts pass the three new native contention cases under ASan/UBSan.
+Read evidence/m03-contention-2026-10-11/preserved-review.json for source and failure evidence.
+
+Broader regression found fixture provisioning, descriptor retention, and reservation mismatches.
+The private scope probe now releases supplied child endpoints after checked launch.
+Both hosts pass its 13 scope checks and all 30 control-owner checks.
+Observation fixtures explicitly fund their three existing applications without changing individual profiles.
+Both hosts pass all 16 observation checks and all 25 world application-control checks.
+All 41 locked files and 112 existing test bodies remain unchanged.
+
+Current-source final sanitizer and Debug checks remain in progress.
+The complete M03 gate is queued behind checked focused-run completion on each host.
+A failed focused result prevents that host gate from starting.
+Cross-host reassessment and final primary review remain required.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+## 2026-10-11: Operator storage and production confinement passed focused qualification
+
+Both hosts passed 115 selected checks in Debug and ASan/UBSan. Total: 460 passes.
+Persistent operator-volume provisioning fixes image identity, capacity, and Btrfs UUID.
+Remount reconstructs current loop and backing-device I/O limits.
+The production broker profile requires sealed aggregate resources and checked storage ownership.
+The direct private controller and retained native supervisor use that profile.
+Real Git and workspace files retain bytes and inodes across checked unmount and remount.
+Native actor input, owner loss, and protobuf cleanup passed under the profile.
+
+The new volume regression reproduced a Git sandbox argument-count defect on both hosts.
+The correction emits only immediate mount parents. Bubblewrap creates their missing ancestors.
+Argument, byte, namespace, resource, network, and deadline bounds remain unchanged.
+Earlier fixture failures and exact source remain preserved.
+
+The primary review verified 1,518 archived attachments and 374 matching source inputs per host.
+The isolated source slices lacked four locked documents during these focused runs.
+Their canonical copies remain unchanged. All four were restored before full-gate preparation.
+Both hosts now pass all 41 lock checks. No acceptance assertions changed.
+
+Both hosts have a mounted, dedicated 4 GiB David volume with distinct persistent identities.
+Provisioning does not start an operator broker or activate its quotas by itself.
+Normal desktop sessions remain unchanged. Read docs/OPERATOR_STORAGE.md for use and recovery.
+Read evidence/m03-operator-storage-2026-10-11/primary-review.json and ../M03_OPERATOR_STORAGE_NOTES.txt.
+
+Competing-write availability, immediate revocation, and the complete M03 phase gate remain pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+## 2026-10-11: Obsolete test data removed from both hosts
+
+The user authorized cleanup of old test data.
+Guarded deletion freed 161.9 GiB on sb16 and 118.9 GiB on sb16-2.
+All selected deletion paths were confirmed absent.
+All 11,650 retained evidence files passed hash verification.
+Current source, builds, pinned XLibre, and recovery baselines remain intact.
+Read evidence/test-data-cleanup-2026-10-11/primary-review.json and ../TEST_DATA_CLEANUP_NOTES.txt.
+No production implementation or test contract changed.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+## 2026-10-11: Retained native storage-session checks passed on both hosts
+
+Both hosts passed two native storage-owner cases under ASan/UBSan.
+The real retained broker uses its private bounded root owner on a dedicated Btrfs volume.
+Real actor input reaches the confined native application through the existing production paths.
+The root observer verified the actual broker pidfd. Independent reads verified both device I/O ceilings.
+
+Graceful teardown preserves project data and confirms native world and broker cleanup.
+Owner loss stops the retained broker and application processes.
+The coordinator remains available for explicit checked world and broker recovery.
+Both protobuf cleanup receipts are preserved with their exact process and native identities.
+All test volumes are unmounted and detached. Test owner services are inactive.
+
+The primary review verified 1,056 attachments and 370 matching source inputs per host.
+All 41 locked files remain unchanged. No production C++ implementation changed in this increment.
+Earlier fixture and incorrect new-assertion failures retain exact source snapshots.
+Read evidence/m03-native-storage-session-2026-10-11/primary-review.json.
+Read ../M03_NATIVE_STORAGE_SESSION_NOTES.txt for limitations and failure dispositions.
+
+The renderer used llvmpipe. Physical GPU output, device acceptance, and performance remain unqualified.
+Persistent operator volume provisioning and mandatory production-profile adoption remain pending.
+Bounded-write contention/revocation and the complete M03 gate remain pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+## 2026-10-11: Storage-owner wiring and device coverage passed focused checks
+
+Direct BrokerProcess and retained supervisor paths now support an explicit bounded storage owner.
+They retain the actual broker pidfd and private credential-checked storage channel.
+Idle owner death stops the broker. Startup cleanup failures cannot produce a confirmed cleanup receipt.
+The direct path can verify actual broker exit and finish its owned scopes.
+
+Both hosts reproduced startup with an uncovered owner volume device before correction.
+The production owner now validates kernel io.max against its pinned volume before catalog or quota changes.
+Applications, administrative Git, and storage ownership share the same device resolver.
+Both loop and backing filesystem queues require finite read and write ceilings.
+
+Both hosts passed 125 selected current regression cases under ASan/UBSan.
+Both passed seven actual direct-launch scenarios, including both uncovered-device rejections.
+Independent witnesses read the owner's actual limits and retained broker pidfd.
+The primary review verified 3,122 attachments. All 41 locked files remain unchanged.
+Original native application and resource test bodies remain unchanged.
+Earlier failures and native crash/replacement results retain their original source pins.
+Related native resource, application, and operator-revocation suites were rerun after resolver extraction.
+Read evidence/m03-storage-session-2026-10-11/primary-review.json.
+
+The root-owned owner executable replacement has a hash-pinned backup and exact recovery commands.
+Test owner services are unloaded. Test volumes are unmounted and detached.
+Normal login and SSH remain available. No normal session restarted.
+
+Native retained sessions with configured storage ownership remain unqualified.
+Operator volume provisioning, mandatory production adoption, and contention/revocation qualification remain pending.
+The full M03 Debug, sanitizer, harness, acceptance, cross-host, and native gate remains pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+## 2026-10-11: Bounded storage-owner launcher passed focused checks on both hosts
+
+Both hosts passed 106 selected regression cases under ASan/UBSan.
+Both passed the production-owner integration with a real 288 MiB Git import.
+All five scenarios passed: import/retirement, application/actor quotas, read-only access, sibling survival, and restart.
+Independent kernel witnesses checked both owner incarnations on each host.
+They confirmed memory, swap, CPU, process, I/O, private-network, and retained broker-pidfd boundaries.
+Owner and delegation units are unloaded. Test volumes are unmounted and detached.
+The reviewed evidence contains 300 verified attachments and 364 matching source inputs per host.
+All 41 locked files remain unchanged. Read evidence/m03-storage-launch-2026-10-11/primary-review.json.
+
+The reproduced memory-admission double count is corrected within this tested scope.
+The one-GiB broker envelope and 256-MiB manager/Git limits remain unchanged.
+Both hosts now have the root-owned owner executable at /usr/local/libexec/spatial-storage-owner.
+Installation receipts record its hash and exact removal command. Normal login remains available.
+
+The launcher component is implemented. Normal supervisor and BrokerProcess adoption remain pending.
+Operator data-volume provisioning, the launch-failure matrix, contention/revocation checks, and the full M03 gate remain pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+## 2026-10-11: M03 resumed at Git I/O-device validation
+
+David resumed the full project goal. The earlier pause record remains historical.
+Both hosts retain their isolated builds and passwordless SSH/sudo access after reboot.
+Both reproduced the uncovered Git-device import failure from the saved checkpoint.
+The production correction validates the same pinned mount descriptors before reserving a Git worker.
+Both hosts passed 106 selected regression cases under ASan/UBSan, including all 18 broker-resource cases.
+Both passed the repeated 288 MiB Btrfs/Git/application integration with complete application-log inspection.
+The primary review verified 270 attachments and matched 361 source inputs on each host.
+All 41 locked files remain unchanged. Read evidence/m03-git-io-device-2026-10-11/primary-review.json.
+The uncovered-device defect is corrected within this tested scope. M03 remains incomplete.
+Next, finish mandatory storage provisioning and contention/revocation evidence, then run the complete M03 gate.
+
+## 2026-10-11: M03 paused for checkpoint and host reboot
+
+David requested a pause and reboot of sb16 and sb16-2.
+Both hosts rebooted. New boot identities, passwordless SSH, and passwordless sudo were verified.
+Source checkpoint 334816d was pushed to box-git and CC-David-CC/WORLDD on m03/resource-boundary.
+The goal is paused. Read ../M03_RESUME_PLAN.txt before resuming.
+The current branch contains unfinished M03 source and preserved failure evidence.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+Both hosts passed the combined 288 MiB Git import, retained removal, application quotas, read-only access, sibling survival, and restart checks.
+The Git hard cap remains 256 MiB. A bounded cache parent and memory.high at 192 MiB corrected the reproduced OOM/admission failures.
+All 49 workspace-git tests passed on both hosts. Four adjacent process/workspace suites also passed.
+Each initializer probe passed 42 cases and detected the deliberate 73-byte leak.
+Actual confined initializer logs passed ASan/UBSan inspection. Full in-sandbox LSan coverage is not claimed.
+
+An additional negative test confirmed an open Git I/O-device validation defect on both hosts.
+Git imports succeed when the configured I/O budget names a different disk. Application launches reject the same mismatch.
+Read ../defect blockers/git-worker-uncovered-io-device.txt. The production fix is not applied.
+The last full broker-resources run passed 16 of 17 cases. Its remaining fixture issue now passes a focused corrected test.
+The current 18-case suite includes the new failing Git-device regression. It requires correction and a complete rerun.
+
+Read evidence/m03-git-storage-2026-10-11 for the preserved results.
+Production-required storage provisioning, contention/revocation evidence, and the full M03 phase gate remain pending.
+The user authorized this checkpoint on box-git and the configured CC-David-CC/WORLDD GitHub remote.
+This publication does not qualify the draft or advance the milestone count.
+
+## 2026-10-11: Git worker boundary and regression gate passed on both hosts
+
+Administrative Git now runs in a dedicated spatial-bwrap and ProcessScope worker.
+Each worker has a separate cgroup, explicit directory mounts, no network access, a 256 MiB memory cap, zero swap, 16 processes, and two CPUs.
+Git hooks and ambient configuration remain disabled. Imports use a five-minute deadline; other Git jobs use 60 seconds.
+The worktree retirement path keeps Git's rename within one bind mount, then retains project data and removes only validated worktree metadata.
+
+The full workspace-git suite passed 46 tests on sb16 and sb16-2.
+The malicious-filter containment test passed on both hosts.
+The workspace-context and worldd-lifecycle regressions also passed on both hosts.
+Read M03_GIT_256M_TEST.txt and M03_GIT_BOUNDARY_FINDINGS.txt for details.
+
+M03 is still in progress. Large-repository import capacity, storage-owner integration, and full M03 qualification remain pending.
+
+## 2026-10-10: Real application storage checks passed; initializer sanitizer qualification failed
+
+The draft resource code now maps Btrfs volumes to their real block devices.
+It checks both loop and backing SSD budgets. Backing-file inspection uses metadata-only handles.
+The broker records private internal exception diagnostics while preserving filtered actor errors.
+
+Actual confined Python applications on sb16 produced quota, escape-rejection, reflink, and descriptor witnesses.
+The kernel witness confirmed 128 MiB memory, sixteen processes, one CPU, and both I/O-device ceilings.
+Application writes reached EDQUOT. A second application reached the persistent actor aggregate limit.
+A read-only actor could read the project and received EROFS when writing it.
+An independent sibling workspace wrote four MiB after actor exhaustion.
+Read evidence/m03-storage-applications-2026-10-10/primary-review.json.
+
+The complete application diagnostic scan found three LeakSanitizer fatal errors in hardened initializer setup logs.
+The earlier functional-only runner omitted these setup logs. Its passed result does not qualify sanitizers.
+The exact LeakSanitizer mechanism remains unverified. No confirmed heap-leak report was produced.
+The initializer is non-dumpable and its seccomp policy denies ptrace. No tracer ran during these tests.
+Read the workspace-root M03_SANITIZER_LIMITATION.txt. Do not claim a clean application sanitizer run.
+
+All test mounts and loop devices are detached. Recorded transient services stopped; later queries show unloaded units.
+Three additional 512 MiB images remain under ignored local/m03-storage-applications-01 through -03.
+No normal host session or checkout changed. The combined draft remains uncommitted.
+
+David accepts the five-second allowance. Latency optimization is deferred.
+Durability, authority, resource accounting, uncertainty, and recovery remain required.
+Initializer sanitizer coverage, worker confinement, deployment, and full M03 qualification remain pending.
+M01 and M02 remain qualified. M03-M16 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Private storage transport and broker Git integration passed focused checks
+
+The combined M03 draft now has an owner service and a production client over a private inherited Unix stream.
+Kernel credentials identify each received fragment. Pidfds pin the owner and broker processes.
+The client verifies the dedicated volume UUID and validates reply identity.
+Broker calls provision repository, project, application-state, workspace, and retirement storage.
+Storage waits run the broker's existing authority and process enforcement callback.
+Repository and project use verifies recorded kernel limits and parent membership.
+Workspace creation does not hold its database transaction across storage provisioning.
+
+sb16 passed nine initial Debug scenarios and thirteen final runtime-sanitizer scenarios.
+The final candidate passed wrong-sender, framing, ancillary-descriptor, and substituted-owner response checks.
+Real Git clone, linked worktrees, retained removal, and workspace binding passed inside the quota volume.
+No selected ASan, UBSan, or LeakSanitizer finding was recorded.
+Read evidence/m03-storage-transport-2026-10-10/primary-review.json.
+
+The Debug runner initially left its mount busy. Its report remains unchanged.
+The runner now explicitly closes its SQLite connection. Exact recovery detached the original volume.
+The sanitizer runner unmounted and detached its volume successfully.
+Two additional 512 MiB sb16 images remain under ignored local/m03-storage-transport-01 and local/m03-storage-transport-sanitizers-01.
+Normal operator sessions and checkouts remain unchanged.
+
+Storage descriptor adoption is still optional draft plumbing. Existing ext4 fixtures are not storage qualification.
+Confined applications, full launch fixtures, worker confinement, fault recovery, and competing-I/O checks remain pending.
+Revocation during slow storage calls remains unrun. No fdatasync latency conclusion follows from these checks.
+The sb16-2 matrix and full M03 gate remain pending. M03-M16 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Storage owner library passed sb16 development checks
+
+The combined M03 draft now includes a privileged storage owner library and a test-only protobuf probe.
+It pins a fixed Btrfs volume, provisions hierarchical quotas, and preserves an operator-private SQLite catalog.
+It verifies catalog limits and kernel parent membership before storage reuse.
+Repository and project replies report their effective parent ceiling.
+The catalog uses SQLite Unix I/O through a private VFS that preserves its pinned directory path.
+
+Debug compilation and the fourth native-volume check passed on sb16.
+Application, actor, and workspace writes reached EDQUOT. An independent workspace remained writable.
+Deletion restored capacity. Catalog restart retained identities and limits.
+Altered limits and removed membership returned UNCERTAIN.
+Earlier compilation, SQLite path, and positive ioctl-return failures remain preserved.
+Read evidence/m03-storage-owner-2026-10-10/primary-review.json.
+
+Production authenticated transport, broker/Git integration, fault recovery, and combined qualification remain pending.
+These checks did not run on sb16-2 or under sanitizers. No production runtime changed.
+All four new sb16 test volumes are unmounted and their loop devices detached.
+Four additional 512 MiB images remain under ignored local/m03-storage-owner-runtime-01 through -04.
+M03 and full Spatial-M1 remain incomplete. The fdatasync pressure issue remains unresolved.
+
+
+## 2026-10-10: Combined M03 storage and broker-I/O implementation started
+
+Native backend checks on both hosts confirmed application, actor, and workspace quota exhaustion with independent-workspace survival.
+Deletion restored capacity. Quota configuration remained after remount.
+The checks also reproduced ordinary-user subvolume creation outside the configured quota graph.
+All test volumes are unmounted and loop devices detached. Normal roots remain ext4.
+Read evidence/m03-storage-backend-2026-10-10/primary-review.json.
+
+The combined draft adds private storage protobuf types, application filesystem-control restrictions, and broker configuration version 2.
+Its aggregate broker envelope covers metadata work and descendants. Manager reservations protect admission capacity.
+The storage owner and broker filesystem/Git integration remain pending. Draft source is uncompiled and unqualified.
+Read docs/M03_COMBINED_IMPLEMENTATION.txt for the version change, exact limits, system changes, and next integration work.
+No operator checkout or runtime changed. No issuer pressure or fdatasync latency measurement ran.
+M01 and M02 remain qualified. M03-M16 and full Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Authenticated resource fixture passed focused qualification
+
+The fixture now provisions authenticated launches through the production process-scope owner and sealed policy interface.
+Worlds receive the actual broker PID. Checked shutdown removes the owned broker scope.
+The kernel witness confirms application limits after a real actor launch and confirms policy descriptor closure.
+Production source and protobuf schemas remain unchanged. Forty existing test bodies remain unchanged.
+
+Candidate04 passed 36 selected checks per host/profile: 144 passes, zero failures or skips.
+Both hosts passed Debug and runtime sanitizers with issuer, broker, owner, and world logs retained.
+The audit verified 980 attachments and scanned 934 logs without selected sanitizer findings.
+All 369 frozen inputs and 41 locked files matched their hashes.
+All 32 exact transient services are unloaded. Normal checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+Read evidence/m03-authenticated-resources-2026-10-10/primary-review.json.
+
+Earlier candidate02's sb16 world startup EOF remains unexplained. Its detailed service logs were deleted by a runner omission.
+The original transcript and scope receipt remain preserved. Later diagnostics and qualification do not erase that failure.
+Candidate01's missing Python binding and the ptrace/LeakSanitizer diagnostic conflict also remain preserved.
+No claim of repaired fdatasync latency follows from these passes.
+Five native world-identity cases were not selected. Other fixtures and operator deployment remain pending.
+Current CMake registration was reviewed; selected tests ran through explicit CLI commands with qualified production binaries.
+No operator runtime changed. Timeouts and database durability remain unchanged.
+
+David requested larger coherent changes followed by regression work on 2026-10-10.
+Next, implement the remaining M03 execution, bounded storage, and competing-I/O scope as one combined increment.
+Run regressions across that increment, then the complete M03 phase gate before proceeding to M04.
+Read docs/M03_REMAINING_INCREMENT.txt for the combined scope and qualification boundary.
+M01 and M02 remain qualified. M03-M16 and full Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Authenticated resource fixture remains a draft during startup diagnosis
+
+The draft fixture binds explicit broker resources through the existing production process-scope owner.
+It sends a sealed policy descriptor and passes the actual broker PID to the world.
+All forty existing workspace-authority and world-identity test bodies remain unchanged.
+Production source and protobuf schemas remain unchanged from the qualified adapter increment.
+
+Both hosts passed 36 selected Debug checks. sb16-2 passed all 36 selected sanitizer checks.
+The sb16 sanitizer workspace suite passed nineteen cases and errored during one world startup.
+The failure occurred before that revocation test launched an application. Its exact server cause remains unknown.
+The runner omitted the existing service-log retention variable. Those detailed failure logs cannot be recovered.
+The failed suite transcript and scope receipt remain preserved.
+Read evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+
+The new kernel witness passed alone in both profiles on both hosts after evidence-directory creation was corrected.
+Three isolated sb16 diagnostics passed with full sanitizers and retained service logs.
+A complete twenty-case sb16 sanitizer diagnostic also passed. These passes do not erase the original startup error.
+An earlier tracer diagnostic failed because LeakSanitizer cannot run under ptrace. Its evidence remains preserved.
+
+Candidate04 now runs fresh qualification on both hosts with service-log retention enabled.
+Build writeback is flushed before checks. Application budgets, issuer deadlines, and database durability remain unchanged.
+The fixture remains uncommitted. No operator checkout or runtime changed.
+M03 remains incomplete. Storage quotas, broker Git/file accounting, remaining fixtures, and contention recovery remain pending.
+M01 and M02 remain qualified at their recorded pins. M04-M16 and full Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Non-native broker adapter resource provisioning passed focused qualification
+
+The adapter now binds explicit broker resource policy to an owned process scope before broker startup.
+It uses the existing production broker and sealed binary protobuf handoff.
+The world process stays outside the broker's application groups.
+Missing policy denies new applications. Invalid delegation fails before broker state creation.
+Read docs/M03_ADAPTER_RESOURCE_CONTRACT.txt for the additive configuration contract.
+
+Both hosts passed 50 selected checks in Debug and runtime sanitizers: 200 passes, zero failures or skips.
+The audit verified 540 attachments and scanned 438 logs without selected sanitizer findings.
+All 365 frozen inputs and 41 locked files matched their hashes.
+All 46 existing broker-resource, workspace-context, and process-confinement test bodies remain unchanged.
+Four new checks cover kernel limits, policy descriptor closure, missing policy, invalid delegation, and clean shutdown.
+The old adapter failed the new kernel check on both hosts. Its failure evidence remains preserved.
+Read evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+Clean channel closure removes the retained broker tree and terminates its application descendants.
+Abrupt adapter death leaves empty groups for the owning delegated test service to reclaim.
+The provisioner rejects surviving processes. This cleanup does not replace retained native-session supervision.
+All 18 exact transient services are unloaded. Controller delegation returned to its prior values.
+Both normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No operator runtime changed.
+
+M03 remains incomplete. Remaining authenticated/direct-broker fixtures and operator deployment still need explicit provisioning.
+Storage quotas, broker Git/file accounting, and issuer contention recovery remain pending.
+Existing confinement and syscall escape checks passed. Complete M03 escape and exhaustion qualification remains pending.
+The five-second issuer default passed one earlier pressure trial. It does not repair slow fdatasync or establish worst-case latency.
+This increment changes neither issuer timeouts nor database durability. No new contention trial ran.
+No full M03 gate, physical input, native GPU performance, live-model, or power-loss qualification ran.
+M01 and M02 remain qualified at their recorded earlier pins. M03-M16 and full Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Supervised session resource handoff passed focused qualification
+
+The retained supervisor now binds explicit broker resource policy to its prepared process scope.
+It sends that policy through a sealed binary protobuf descriptor before application execution.
+The broker consumes the descriptor and creates its nested resource groups inside the retained scope.
+SessionBroker reserves a separate administration descriptor. Resource policy grants no actor authority.
+Read docs/M03_SESSION_RESOURCE_CONTRACT.txt for the additive configuration contract.
+
+Both hosts passed 43 selected checks in Debug and runtime sanitizers: 172 final passes, zero failures or skips.
+The audit verified 714 attachments and scanned 588 logs without selected sanitizer findings.
+All 361 frozen inputs and 41 locked files matched their hashes.
+The native suite runs the production coordinator, supervisor, broker, world, compositor, and confined X client.
+Real kernel observations confirm application limits. Existing application recovery test bodies remain unchanged.
+Four additional broker checks cover sealed policy consumption, mutable policy, wrong roots, and conflicting arguments.
+Fourteen existing supervisor checks and six existing process-termination checks passed in both profiles.
+Read evidence/m03-session-resources-2026-10-10/primary-review.json.
+
+Candidate01's evidence filename error remains preserved. Both Debug builds completed before that runner failure.
+Candidate02 passed 42 cases per host. The new kernel witness omitted world shutdown before broker shutdown.
+The runtime rejected that order. Candidate03 adds and checks world shutdown before broker shutdown.
+Debug qualification reuses unchanged candidate01 production binaries and candidate02 unaffected results.
+Candidate03 reruns the corrected Debug case and builds all selected sanitizer binaries from current production source.
+All 22 exact transient services are unloaded. Root and user delegation returned to their prior values.
+Both normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No operator runtime changed.
+
+M03 remains incomplete. Remaining entry points and older application fixtures still need controller and policy provisioning.
+Storage quotas, broker Git/file accounting, independent escape qualification, and issuer contention recovery remain pending.
+No full M03 gate, physical input, GPU performance, live-model, or power-loss qualification ran.
+Native evidence uses the modified XLibre software display. It does not prove physical-session performance.
+This increment does not prove fdatasync latency is fixed. Timeout and durability settings remain unchanged.
+M01 and M02 remain qualified at their earlier pins. M03-M16 and full Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Broker resource enforcement passed focused qualification
+
+The work branch assigns workspace, actor, and application cgroups before releasing application startup.
+Explicit operator policy supplies memory, swap, process, CPU, and per-device I/O ceilings.
+The broker intersects these ceilings and reserves capacity before creating a pending process record.
+Missing configuration, unavailable controllers, and uncovered writable storage devices deny new application execution.
+Resource policy grants no execution or file authority. Existing authority checks remain separate.
+
+The selected evidence covers 44 checks per host/profile, or 176 passes with zero final failures and skips.
+Both hosts passed Debug and runtime sanitizers. The audit verified 439 attachments and scanned 304 logs.
+All 359 candidate source inputs and 41 locked files matched their recorded hashes.
+The witnesses cover kernel limits, capacity return, read-only access, revocation, and broker-crash cleanup.
+All six existing process-termination test bodies remain unchanged and passed with explicit resource provisioning.
+A real application wrote 16 MiB in 3.96 to 4.03 seconds under its 4 MiB/s limit.
+Kernel accounting recorded all 16 MiB on both hosts in both profiles.
+Read evidence/m03-broker-resources-2026-10-10/primary-review.json.
+
+Candidate01's missing Python protobuf dependency remains preserved as a fixture failure on both hosts.
+Candidate02 reproduced the old broker's unbudgeted launch before passing its ten new broker checks.
+Candidate03 exposed a witness error when the initial io.stat omitted wbytes on sb16-2.
+Candidate04 preserves raw initial and final counters. Final write accounting remains mandatory.
+The original candidate03 raw counter line was not captured; its exact contents cannot be reconstructed.
+
+Qualification combines candidate02 runtime results with additive candidate03/04 termination and I/O evidence.
+Production source matches candidate02. Current-source workspaced was not rebuilt after the test-only additions.
+All 31 exact transient services are unloaded. Controller delegation returned to its prior values.
+Normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No runtime or operator state changed.
+
+M03 remains incomplete. Session launchers and older application fixtures still need explicit resource provisioning.
+The current branch denies their unconfigured application launches until that integration is complete.
+Storage quotas, broker Git/file I/O accounting, independent escape tests, and contention recovery remain pending.
+The full M03 gate, native GUI resource integration, physical devices, GPU, and live-model qualification remain unrun.
+These results do not prove that issuer fdatasync latency is resolved. Timeout and durability settings remain unchanged.
+M01 and M02 remain qualified at their recorded earlier pins. M03-M16 and full Spatial-M1 remain incomplete.
+
+## 2026-10-10: Aggregate process-scope limits passed focused qualification
+
+The production process-scope primitive now accepts explicit memory, swap, process, CPU, and per-device I/O budgets.
+It applies every limit before child startup. Missing controllers and incomplete device identities fail without executing a child.
+The owner cannot replace a prepared scope's budget through this interface.
+
+Candidate02 passed 27 checks per host/profile: nine resource checks and eighteen existing lifecycle checks.
+Both hosts passed Debug and runtime sanitizers: 108 checks, zero failures, and zero skips.
+All 91 collected attachments verified. Sixty logs lacked selected sanitizer markers.
+The witnesses measured detached fork limits, group memory exhaustion, sibling survival, CPU throttling, and real disk writes.
+Each 16 MiB write used the configured 4 MiB/s limit and matching kernel I/O accounting.
+Read evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+
+Review found omitted-minor acceptance after candidate01's initial 104 focused passes.
+Both hosts reproduced that defect against the old binary. Candidate02 requires both device components explicitly.
+Candidate01's exact changed source bytes, logs, and passing results remain preserved beside the final evidence.
+All 41 locked files remain unchanged.
+
+The tests used six transient resource services per host across both candidates.
+All twelve services are unloaded and inactive. Root and user controller delegation returned to their prior values.
+Normal login and SSH recovery remain available. No persistent unit or root filesystem change was made.
+
+M03 remains incomplete. The production broker does not yet assign these aggregate budgets to workspace applications.
+Next: derive effective budgets, create workspace parents, and attach applications before held startup.
+Bounded persistent storage, escape attempts, contention recovery, and the complete M03 gate remain mandatory.
+The existing five-second issuer timeout and durability settings remain unchanged.
+M01 and M02 are qualified at their recorded earlier pins. Spatial-M1 remains incomplete.
+
 ## 2026-10-10: M01 identity qualification reassessed and complete
 
 All nine M01 components now have reviewed evidence at the adopted M02 source.

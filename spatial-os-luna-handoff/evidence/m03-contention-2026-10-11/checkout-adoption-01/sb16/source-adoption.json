@@ -1,0 +1,13 @@
+{
+  "host": "sb16",
+  "status": "qualified_source_checkout_created",
+  "commit": "a99b7e46c5151ba47d0a53797b470cae6aaa5d13",
+  "branch": "m03/qualified-20261011",
+  "target": "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011",
+  "verified_source_inputs": 398,
+  "ordinary_checkout_head_preserved": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "ordinary_tracked_changes_preserved": "M spatial-os-luna-handoff/CMakeLists.txt\n M spatial-os-luna-handoff/docs/ISSUER_TIMEOUT_POLICY.txt\n M spatial-os-luna-handoff/docs/M01_QUALIFICATION_AUDIT.txt\n M spatial-os-luna-handoff/docs/M02_QUALIFICATION_AUDIT.txt\n M spatial-os-luna-handoff/docs/M03_QUALIFICATION_AUDIT.txt\n M spatial-os-luna-handoff/docs/MILESTONES.md\n M spatial-os-luna-handoff/proto/spatial/supervisor/v1/launch.proto\n M spatial-os-luna-handoff/proto/spatial/supervisor/v1/process_scope.proto\n M spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto\n M spatial-os-luna-handoff/src/platform/broker.cpp\n M spatial-os-luna-handoff/src/platform/broker.hpp\n M spatial-os-luna-handoff/src/platform/worker.cpp\n M spatial-os-luna-handoff/src/platform/worker.hpp\n M spatial-os-luna-handoff/src/supervisor/main.cpp\n M spatial-os-luna-handoff/src/supervisor/process_scope.cpp\n M spatial-os-luna-handoff/src/supervisor/process_scope.hpp\n M spatial-os-luna-handoff/src/supervisor/session_broker.cpp\n M spatial-os-luna-handoff/src/testing/git_job_probe.cpp\n M spatial-os-luna-handoff/src/testing/main.cpp\n M spatial-os-luna-handoff/src/testing/process_scope_probe.cpp\n M spatial-os-luna-handoff/src/testing/process_termination_probe.cpp\n M spatial-os-luna-handoff/src/workspace/app_init.cpp\n M spatial-os-luna-handoff/src/workspace/git_command.cpp\n M spatial-os-luna-handoff/src/workspace/git_command.hpp\n M spatial-os-luna-handoff/src/workspace/main.cpp\n M spatial-os-luna-handoff/src/workspace/process.cpp\n M spatial-os-luna-handoff/src/workspace/process.hpp\n M spatial-os-luna-handoff/src/workspace/status.cpp\n M spatial-os-luna-handoff/src/workspace/store.cpp\n M spatial-os-luna-handoff/src/workspace/store.hpp\n M spatial-os-luna-handoff/tests/core/test_process_termination.py\n M spatial-os-luna-handoff/tests/core/test_workspace_authority.py\n M spatial-os-luna-handoff/tests/core/test_workspace_git.py\n M spatial-os-luna-handoff/tests/core/test_workspaces.py\n M spatial-os-luna-handoff/tests/core/test_world_identity.py\n M spatial-os-luna-handoff/tests/native/test_session_world.py",
+  "normal_login_changed": false,
+  "runtime_restarted": false,
+  "operator_runtime_validation": "pending"
+}

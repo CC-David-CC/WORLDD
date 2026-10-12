@@ -1,0 +1,18 @@
+{
+  "status": "reviewed_failed_runner_profile",
+  "passed_suites": 29,
+  "failed_suites": [
+    "session-operator-revocation",
+    "session-storage-owner",
+    "session-storage-contention",
+    "session-deferred-fence"
+  ],
+  "cause": "Retained CMake evidence paths. Each failed suite contains FileExistsError during fixture setup.",
+  "source_or_assertion_change_required": false,
+  "all_17_supervisor_checks_passed": true,
+  "original_full_gate_archives_preserved": {
+    "Debug": "86ee27b25148fbbbd50cf1abaf3dcb4494f9f951b1c3fbdaa70c096a24ef0190",
+    "ASan-UBSan": "03bb4f90771f802a73883b37ede28bb245203014170ced24adf96fe22711669e"
+  },
+  "remaining": "Candidate04 fresh-path Debug and sanitizer checks on both hosts; final phase reassessment and eight cross-host cases."
+}

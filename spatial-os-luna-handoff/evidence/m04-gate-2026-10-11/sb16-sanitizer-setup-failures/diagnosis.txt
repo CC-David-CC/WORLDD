@@ -1,0 +1,25 @@
+Candidate f74c6b5, sb16 ASan-UBSan, full gate 01.
+Status: two unresolved failures. The gate remains running.
+
+world-revision-interleave: one of four cases errors during scoped world setup.
+The world log records authority activation failure after a 704 ms reply-header wait.
+The fixture's ClientFixture.config_file uses io_timeout_ms=700.
+The failed case has not yet armed the deliberate revocation interleaving.
+
+workspace-bootstrap-owner-idle: its TLS request times out while publishing the bootstrap profile.
+The base TLS fixture uses a two-second socket timeout.
+The issuer log records one 2382 ms loop-work interval.
+The test intentionally sleeps past the configured idle deadline before starting a fresh proof.
+Preserve that idle-deadline behavior in any correction.
+
+These observations establish deadline failures, not the cause of the service delay.
+No evidence here establishes fdatasync as that cause.
+Do not mark either failure passed from a retry alone.
+
+Selected follow-up after the existing gate finishes:
+Run the unchanged two suites with retained service logs and timing evidence.
+Compare their setup deadlines with the established five-second healthy setup policy.
+Keep explicit fault-injection deadlines and all race/authorization assertions intact.
+If a scoped healthy-fixture correction is justified, test both suites on both hosts
+in Debug and ASan/UBSan, and reassess any shared fixture callers it changes.
+Do not change the active frozen source or the locked acceptance tests.

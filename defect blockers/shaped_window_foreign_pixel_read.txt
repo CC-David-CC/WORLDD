@@ -1,0 +1,18 @@
+﻿Confirmed project policy blocker: the shaped-window pixel-read path exposes foreign window pixels under the current implementation.
+
+The required isolation policy denies unauthorized cross-workspace pixel reads. The project change is blocked by the resource policy decision recorded in the project work. Keep this issue separate from XLibre animated-cursor defects.
+
+Status: identified in project testing. Implementation remains blocked by the resource policy decision. No upstream XLibre PR is prepared. Review the current policy decision and its evidence before resuming.
+
+Proposed patch:
+1. Trace the Render shaped-window pixel-read path that returns pixels from a foreign window.
+2. Before reading or returning pixels, check the requesting X connection's immutable workspace identity against the target window's security identity and the active workspace policy.
+3. Deny the read when policy does not grant cross-workspace observation. Do not expose pixel data through alternate request paths.
+4. Add a focused native X-client regression test for an unauthorized foreign-window read and an authorized same-workspace read.
+
+Regression checks:
+- Unauthorized cross-workspace shaped-window pixel reads fail without returning pixels.
+- Authorized reads continue to work.
+- Test relevant related pixel-read paths for equivalent access-control bypasses.
+
+Status: project isolation defect was identified, but the required resource policy decision is recorded as unresolved in project work. This is a proposed enforcement shape, not a verified code-level patch. Confirm the policy contract and exact request path before implementation. No upstream XLibre PR exists.

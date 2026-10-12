@@ -1,0 +1,178 @@
+{
+  "status": "passed",
+  "qualification": false,
+  "host": "sb16",
+  "profile": "runtime-sanitizers",
+  "results": {
+    "first_application_reply": {
+      "reply": "protocol_version: 1\nrequest_id: 1002\nlaunched {\n  process_id: \"46a2d0249d9a6e2a91bfd48f2b17608e\"\n  workspace: \"workspace-a\"\n}\n"
+    },
+    "kernel_application_budget": {
+      "passed": true,
+      "state": {
+        "memory.max": "134217728\n",
+        "pids.max": "16\n",
+        "cpu.max": "100000 100000\n",
+        "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n7:12 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+        "io.stat": "259:0 \n7:12 \n",
+        "cgroup.procs": "3071023\n3071024\n3071025\n3071026\n"
+      }
+    },
+    "confined_application": {
+      "passed": true,
+      "witness": {
+        "subvolume": {
+          "errno": 1
+        },
+        "unknown-btrfs-control": {
+          "errno": 1
+        },
+        "reflink": "ordinary reflink copy",
+        "quota": {
+          "bytes_written": 25128960,
+          "errno": 122
+        },
+        "inherited": {
+          "0": "/dev/null",
+          "1": "/state/stdout",
+          "2": "/state/stderr"
+        }
+      }
+    },
+    "broker_git": {
+      "passed": true,
+      "repository": "id: \"repo-a\"\npath: \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume/repositories/4dfd95d26580bfa427a779a96be57f8b.git\"\nsource: \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/source\"\n",
+      "project": "id: \"tree-b\"\nrepo: \"repo-a\"\npath: \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume/worktrees/6df6da8e374c8cdb84e7b0cd4ab5a716\"\n",
+      "workspace": "id: \"workspace-a\"\nworktree: \"tree-b\"\npolicy: WORKSPACE_SELECT\npolicy: FILES_READ\npolicy: FILES_WRITE\npolicy: PROCESS_LAUNCH\nrevision: 2\n",
+      "objects": 6
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid,compress=no",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "b54917f9-8716-4ce5-8608-608744d87535\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemd-run",
+        "--unit=spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service",
+        "--collect",
+        "--service-type=exec",
+        "--uid=dflanag3",
+        "-p",
+        "Delegate=cpu memory pids io",
+        "-p",
+        "DelegateSubgroup=manager",
+        "-p",
+        "MemoryMax=1536M",
+        "-p",
+        "MemorySwapMax=0",
+        "-p",
+        "TasksMax=256",
+        "-p",
+        "CPUQuota=400%",
+        "-p",
+        "RuntimeMaxSec=120",
+        "-p",
+        "TimeoutStopSec=5s",
+        "--",
+        "/usr/bin/sleep",
+        "120"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Running as unit: spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service; invocation ID: cbeb141e08b246969094ab7c61c49f29\n"
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service",
+        "-p",
+        "ControlGroup",
+        "--value"
+      ],
+      "exit_code": 0,
+      "stdout": "/system.slice/spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-c",
+        "from pathlib import Path; d=Path('/sys/fs/cgroup/system.slice/spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service'); (d/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\\n'); Path('/sys/fs/cgroup/system.slice/spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service/broker-bc598c4c054f4d90be554bc930dcb71e').mkdir()"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "runner_sha256": "cefda0c2417cb3b489487629d1a9cb33a17e421b114987be7266ee02676c2228",
+  "recovery": [
+    [
+      "sudo",
+      "-n",
+      "umount",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+    ],
+    [
+      "sudo",
+      "-n",
+      "losetup",
+      "-d",
+      "/dev/loop12"
+    ]
+  ],
+  "resource_policy": "protocol_version: 2\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service/broker-bc598c4c054f4d90be554bc930dcb71e\"\ndefault_policy {\n  total {\n    memory_bytes: 536870912\n    swap_bytes: 0\n    processes: 64\n    cpu_microseconds: 200000\n    io {\n      major: 7\n      minor: 12\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  actor_default {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 100000\n    io {\n      major: 7\n      minor: 12\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  profiles {\n    name: \"development\"\n    maximum {\n      memory_bytes: 134217728\n      swap_bytes: 0\n      processes: 16\n      cpu_microseconds: 100000\n      io {\n        major: 7\n        minor: 12\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n  }\n  profiles {\n    name: \"read-only\"\n    maximum {\n      memory_bytes: 134217728\n      swap_bytes: 0\n      processes: 16\n      cpu_microseconds: 100000\n      io {\n        major: 7\n        minor: 12\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n  }\n}\nbroker_budget {\n  memory_bytes: 1073741824\n  swap_bytes: 0\n  processes: 128\n  cpu_microseconds: 400000\n  io {\n    major: 7\n    minor: 12\n    read_bytes_per_second: 67108864\n    write_bytes_per_second: 16777216\n  }\n  io {\n    major: 259\n    minor: 0\n    read_bytes_per_second: 67108864\n    write_bytes_per_second: 16777216\n  }\n}\nmanager_budget {\n  memory_bytes: 268435456\n  swap_bytes: 0\n  processes: 32\n  cpu_microseconds: 200000\n  io {\n    major: 7\n    minor: 12\n    read_bytes_per_second: 67108864\n    write_bytes_per_second: 16777216\n  }\n  io {\n    major: 259\n    minor: 0\n    read_bytes_per_second: 67108864\n    write_bytes_per_second: 16777216\n  }\n}\n",
+  "unit": "spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service",
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service/broker-bc598c4c054f4d90be554bc930dcb71e",
+  "unit_stop": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "unmount": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "detach": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "cleanup": {
+    "mounted": false
+  }
+}

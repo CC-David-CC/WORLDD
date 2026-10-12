@@ -1,0 +1,30 @@
+M04 downstream prerequisites
+Date: 2026-10-11
+
+The original gate stays immutable and failed.
+Downstream checks can use a separate primary review of its exact corrected failures.
+reviewed_local_gate.py requires pinned gate, audit, correction reports, and correction test logs.
+It rejects unreviewed status, missing cases, uncovered suite failures, and other audit errors.
+It also checks the frozen source manifest before admission.
+Existing downstream binary, graphics, and helper checks remain in their callers.
+Admission permits further checks. It does not declare M04 complete.
+
+The sb16 review references the evidence in sb16-correction-review.txt.
+check-reviewed-local-gate.py accepts that real evidence and rejects four invalid review variants.
+The rejected variants change the gate hash, review status, audit hash, and storage correction hash.
+The check passed on sb16. It modifies no evidence files.
+
+Cross-host storage requires the corrected fixture's own local directory.
+The cross-host runner checks that only storage_session_volume.py differs from the frozen source manifest.
+Its hash must match the completed storage correction report.
+Cross-host output now uses the corrected checkout's local directory.
+The coordinator uses the same destination. It still launches the runner from the frozen checkout.
+Runtime binaries remain those from the frozen gate.
+The sb16 Debug controller check-only invocation passed.
+PowerShell parsing passed for the changed coordinator.
+Cross-host runtime scenarios remain unrun pending the sb16-2 review.
+
+The four changed-path mutations started on sb16 after its local correction review.
+Each mutant uses an isolated server source copy and an independent native witness.
+Do not count a build failure or fixture error as detection.
+Review exact assertions and raw logs before accepting mutation results.

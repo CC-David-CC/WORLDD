@@ -1,0 +1,33 @@
+test_application_discovery_exposes_only_approved_extensions (__main__.ExtensionIsolationTests.test_application_discovery_exposes_only_approved_extensions) ... FAIL
+
+======================================================================
+FAIL: test_application_discovery_exposes_only_approved_extensions (__main__.ExtensionIsolationTests.test_application_discovery_exposes_only_approved_extensions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_extension_isolation.py", line 67, in test_application_discovery_exposes_only_approved_extensions
+    self.assertEqual(set(self.other.extensions()), {'BIG-REQUESTS', 'XC-MISC', 'RENDER', 'SHAPE', 'SPATIAL-SECURITY'})
+AssertionError: Items in the first set but not the second:
+'Composite'
+'DAMAGE'
+'XInputExtension'
+'XKEYBOARD'
+'DOUBLE-BUFFER'
+'X-Resource'
+'XVideo'
+'Generic Event Extension'
+'MIT-SCREEN-SAVER'
+'SYNC'
+'RECORD'
+'SPATIAL-INPUT'
+'XTEST'
+'RANDR'
+'XINERAMA'
+'Present'
+'GLX'
+'XFIXES'
+'MIT-SHM'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.069s
+
+FAILED (failures=1)

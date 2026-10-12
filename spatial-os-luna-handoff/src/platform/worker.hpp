@@ -7,7 +7,8 @@ class BrokerProcess;
 // Owns exactly one subprocess, with inherited process-group membership.
 class WorldWorker {
 public:
-    WorldWorker(const std::filesystem::path& executable, const std::filesystem::path& state);
+    WorldWorker(const std::filesystem::path& executable, const std::filesystem::path& state,
+                const std::filesystem::path& broker_resources = {});
     ~WorldWorker();
     WorldWorker(const WorldWorker&) = delete;
     WorldWorker& operator=(const WorldWorker&) = delete;

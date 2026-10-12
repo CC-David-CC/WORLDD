@@ -1,0 +1,49 @@
+test_foreign_child_configure_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_configure_event_is_not_delivered) ... ok
+test_foreign_child_create_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_create_event_is_not_delivered) ... ok
+test_foreign_child_destroy_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_destroy_event_is_not_delivered) ... ok
+test_foreign_child_map_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_map_event_is_not_delivered) ... ok
+test_foreign_child_reparent_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_reparent_event_is_not_delivered) ... ok
+test_foreign_child_unmap_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_unmap_event_is_not_delivered) ... ok
+test_query_tree_hides_foreign_parent (__main__.ParentMetadataTests.test_query_tree_hides_foreign_parent) ... ok
+test_query_tree_preserves_privileged_view (__main__.ParentMetadataTests.test_query_tree_preserves_privileged_view) ... ok
+test_query_tree_preserves_public_root_parent (__main__.ParentMetadataTests.test_query_tree_preserves_public_root_parent) ... ok
+test_query_tree_preserves_same_application_parent (__main__.ParentMetadataTests.test_query_tree_preserves_same_application_parent) ... ok
+test_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_reparent_notify_hides_foreign_parent) ... FAIL
+test_reparent_notify_preserves_privileged_view (__main__.ParentMetadataTests.test_reparent_notify_preserves_privileged_view) ... ok
+test_reparent_notify_preserves_public_root_parent (__main__.ParentMetadataTests.test_reparent_notify_preserves_public_root_parent) ... ok
+test_reparent_notify_preserves_same_application_parent (__main__.ParentMetadataTests.test_reparent_notify_preserves_same_application_parent) ... ok
+test_same_application_child_create_event_is_delivered (__main__.ParentMetadataTests.test_same_application_child_create_event_is_delivered) ... ok
+test_same_application_configure_event_is_delivered (__main__.ParentMetadataTests.test_same_application_configure_event_is_delivered) ... ok
+test_same_application_destroy_event_is_delivered (__main__.ParentMetadataTests.test_same_application_destroy_event_is_delivered) ... ok
+test_same_application_map_event_is_delivered (__main__.ParentMetadataTests.test_same_application_map_event_is_delivered) ... ok
+test_same_application_reparent_event_is_delivered (__main__.ParentMetadataTests.test_same_application_reparent_event_is_delivered) ... ok
+test_same_application_unmap_event_is_delivered (__main__.ParentMetadataTests.test_same_application_unmap_event_is_delivered) ... ok
+test_swapped_foreign_child_configure_event_is_not_delivered (__main__.ParentMetadataTests.test_swapped_foreign_child_configure_event_is_not_delivered) ... ok
+test_swapped_foreign_child_create_event_is_not_delivered (__main__.ParentMetadataTests.test_swapped_foreign_child_create_event_is_not_delivered) ... ok
+test_swapped_foreign_child_destroy_event_is_not_delivered (__main__.ParentMetadataTests.test_swapped_foreign_child_destroy_event_is_not_delivered) ... ok
+test_swapped_foreign_child_map_event_is_not_delivered (__main__.ParentMetadataTests.test_swapped_foreign_child_map_event_is_not_delivered) ... ok
+test_swapped_foreign_child_reparent_event_is_not_delivered (__main__.ParentMetadataTests.test_swapped_foreign_child_reparent_event_is_not_delivered) ... ok
+test_swapped_foreign_child_unmap_event_is_not_delivered (__main__.ParentMetadataTests.test_swapped_foreign_child_unmap_event_is_not_delivered) ... ok
+test_swapped_query_tree_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_query_tree_hides_foreign_parent) ... ok
+test_swapped_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_reparent_notify_hides_foreign_parent) ... FAIL
+
+======================================================================
+FAIL: test_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_reparent_notify_hides_foreign_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/parent-mutations-mutations-01/reparent-event/tests/native/test_parent_metadata.py", line 60, in test_reparent_notify_hides_foreign_parent
+    self.assertEqual(self.reparent_event(self.other, self.other_window, self.window, supervisor), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_swapped_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_reparent_notify_hides_foreign_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/parent-mutations-mutations-01/reparent-event/tests/native/test_parent_metadata.py", line 64, in test_swapped_reparent_notify_hides_foreign_parent
+    self.assertEqual(self.reparent_event(self.other, self.other_window, self.window, supervisor), 0)
+AssertionError: 4194305 != 0
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.839s
+
+FAILED (failures=2)

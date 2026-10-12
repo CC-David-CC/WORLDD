@@ -1,0 +1,11 @@
+{
+  "url": "https://archive.mesa3d.org/mesa-25.2.8.tar.xz",
+  "sha256": "097842f3e49d996868b38688db87b006f7d4541e93ce86d2f341d8b3e7be7c93",
+  "bytes": 43813260,
+  "members": [
+    "mesa-25.2.8/VERSION",
+    "mesa-25.2.8/src/gallium/targets/dril/dri.sym.in",
+    "mesa-25.2.8/src/gallium/targets/dril/dril_target.c",
+    "mesa-25.2.8/src/gallium/targets/dril/meson.build"
+  ]
+}

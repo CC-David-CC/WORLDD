@@ -529,6 +529,8 @@ wire::RenderScene Actors::scene(const std::string& token) {
     refresh_objects();
     auto snapshot = store_.snapshot();
     for (auto& entity : *snapshot.mutable_entities()) {
+        if (const auto live = actors_.find(entity.id()); live != actors_.end())
+            entity = live->second.entity;
         const auto holder = object_leases_.find(entity.id());
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }

@@ -1,0 +1,11 @@
+{
+  "basis": "candidate-04 manifest; unchanged files match integrated source",
+  "archive_sha256": "3b3dff2b2fdcf68039f58b86b730e3c4fe68680b3bfd9aa95a07b196702e1c49",
+  "deltas": {
+    "CMakeLists.txt": "ef3dd0f17144dbc893a6ba182339d937d74871d8408a1408e676cdb822f93cf1",
+    "docs/M03_BROKER_RESOURCE_CHECKS.txt": "b5c41b4d554c1e77a76cecd09466d7d96ba57b2bfa89d234ef7d5108f45763a8",
+    "src/testing/process_termination_probe.cpp": "3c665f5812e03b32a05e2ddda8450c63014eecb87c35df9ecca040e9565e387c",
+    "tests/core/test_broker_resources.py": "6b7c9bc955db8159c8008fc4afd3bdc3ef203baba18a64dac466c79982155682",
+    "tests/core/test_process_termination.py": "d897331cb0ffef2aab886547e281496404a4676422d617ab3c09fc6db1b766d2"
+  }
+}

@@ -1,0 +1,288 @@
+{
+  "samples": [
+    {
+      "time": 41321.768723686,
+      "writers": [
+        {
+          "completed": 1,
+          "bytes": 4194304
+        }
+      ]
+    },
+    {
+      "time": 41321.778488165,
+      "writers": [
+        {
+          "completed": 1,
+          "bytes": 4194304
+        }
+      ]
+    },
+    {
+      "time": 41321.982411213,
+      "writers": [
+        {
+          "completed": 1,
+          "bytes": 4194304
+        }
+      ]
+    },
+    {
+      "time": 41322.029629911,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 41322.079164234,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 41322.08035182,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 41322.331384925,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.33278592,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.344276619,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.356126763,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.367770411,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.379442228,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.391288874,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.40352189,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.416653005,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.430080987,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.44317769,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.456349892,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.469496644,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.483438397,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    },
+    {
+      "time": 41322.501435425,
+      "writers": [
+        {
+          "completed": 4,
+          "bytes": 16777216
+        }
+      ]
+    }
+  ],
+  "phase_complete": false,
+  "controls": {
+    ".": {
+      "memory.max": "1073741824",
+      "pids.max": "128",
+      "cpu.max": "400000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-b441131920ec36e7f551f8a7746e25bd76e00c2f7c78a380436087a6a22f9042": {
+      "memory.max": "268435456",
+      "pids.max": "16",
+      "cpu.max": "200000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "broker-manager": {
+      "memory.max": "268435456",
+      "pids.max": "32",
+      "cpu.max": "200000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c9fdf1df570d5215a1f9aecbcac3e455511f9cdd1236f68195bd4cfdf4d4a2f7": {
+      "memory.max": "536870912",
+      "pids.max": "64",
+      "cpu.max": "200000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c9fdf1df570d5215a1f9aecbcac3e455511f9cdd1236f68195bd4cfdf4d4a2f7/authority-503c50892898ec1625ccbc54494d836b97e44671a36e1df630ca54bda79706d7": {
+      "memory.max": "268435456",
+      "pids.max": "32",
+      "cpu.max": "100000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c9fdf1df570d5215a1f9aecbcac3e455511f9cdd1236f68195bd4cfdf4d4a2f7/authority-503c50892898ec1625ccbc54494d836b97e44671a36e1df630ca54bda79706d7/authority-d56398c38a1df9e9268e16b7ce4a4eb1beed70844e44bf6c171bcde5e11587eb": {
+      "memory.max": "134217728",
+      "pids.max": "16",
+      "cpu.max": "100000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c9fdf1df570d5215a1f9aecbcac3e455511f9cdd1236f68195bd4cfdf4d4a2f7/authority-503c50892898ec1625ccbc54494d836b97e44671a36e1df630ca54bda79706d7/authority-a143f29c257549acf2df8eec072a98100133d2ff50fccfd58ee8f7f89571827c": {
+      "memory.max": "134217728",
+      "pids.max": "16",
+      "cpu.max": "100000 100000",
+      "io.max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    }
+  },
+  "application_pids": [
+    678125,
+    678126,
+    678127,
+    678128,
+    678129,
+    678147,
+    678148,
+    678149,
+    678150
+  ],
+  "issuer_operations": [
+    {
+      "operation": "policy_set",
+      "seconds": 0.0677113069978077,
+      "reply": "080110046a100a0c08011208656d7074792d76311002"
+    },
+    {
+      "operation": "policy_set",
+      "seconds": 0.04512887199962279,
+      "reply": "080110066a100a0c08011208656d7074792d76311003"
+    },
+    {
+      "operation": "policy_set",
+      "seconds": 0.046611559999291785,
+      "reply": "080110086a100a0c08011208656d7074792d76311004"
+    },
+    {
+      "operation": "identity_revoke",
+      "seconds": 0.04672833000222454,
+      "reply": "0801100a82016c0a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede84122010420ebfaa764dde8719b51135382aa87daff4589410dc99e7b98b79dfb3213b1a20aa06e03486dd75d1a25aa26e56c37e28cd6583d5740087741e3eb3365b4cd718200130014001"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.035440627005300485,
+      "reply": "0801100cca01ae030a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a2408011220aa06e03486dd75d1a25aa26e56c37e28cd6583d5740087741e3eb3365b4cd718200228023aa3010a7d0a570a20707070707070707070707070707070707070707070707070707070707070707012203c0f49cc6ad70b7141368915749fa2f6ce5b60b921ad0dc3d2fb941597078c031a110802120d776f726b73706163652d6f6e6510011a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a20c4bee507181f7c5bb1912e131c9c4c02d0a62f99ff86279325d6b7b841329ef13ab7010a90010a6a0a20777777777777777777777777777777777777777777777777777777777777777712201e646f47fff93c6de1710d7d49bdaa54434551c6778a5c44f896fe8570dd203e1a2408011220353738663935303135353431363834626435623565666133336237383538663710021a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a207eb9e2ebb0be6ae8883ee5f4da21eee602459da3b4aa5eedf3840e8eb2e170c1"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.03381236700079171,
+      "reply": "0801100eca01ae030a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a2408011220aa06e03486dd75d1a25aa26e56c37e28cd6583d5740087741e3eb3365b4cd718200228023aa3010a7d0a570a20707070707070707070707070707070707070707070707070707070707070707012203c0f49cc6ad70b7141368915749fa2f6ce5b60b921ad0dc3d2fb941597078c031a110802120d776f726b73706163652d6f6e6510011a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a20c4bee507181f7c5bb1912e131c9c4c02d0a62f99ff86279325d6b7b841329ef13ab7010a90010a6a0a20777777777777777777777777777777777777777777777777777777777777777712201e646f47fff93c6de1710d7d49bdaa54434551c6778a5c44f896fe8570dd203e1a2408011220353738663935303135353431363834626435623565666133336237383538663710021a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a207eb9e2ebb0be6ae8883ee5f4da21eee602459da3b4aa5eedf3840e8eb2e170c1"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.0767978049989324,
+      "reply": "08011010ca01b6030a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a2408011220aa06e03486dd75d1a25aa26e56c37e28cd6583d5740087741e3eb3365b4cd718200230013aa7010a7d0a570a20707070707070707070707070707070707070707070707070707070707070707012203c0f49cc6ad70b7141368915749fa2f6ce5b60b921ad0dc3d2fb941597078c031a110802120d776f726b73706163652d6f6e6510011a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a20c4bee507181f7c5bb1912e131c9c4c02d0a62f99ff86279325d6b7b841329ef1200128013abb010a90010a6a0a20777777777777777777777777777777777777777777777777777777777777777712201e646f47fff93c6de1710d7d49bdaa54434551c6778a5c44f896fe8570dd203e1a2408011220353738663935303135353431363834626435623565666133336237383538663710021a20873730ddc8868afd74a88b6cc5f511146c71b5d4003c3c607e2acaf6be8ede8410011a207eb9e2ebb0be6ae8883ee5f4da21eee602459da3b4aa5eedf3840e8eb2e170c120012801"
+    }
+  ],
+  "durable_policy_revision": 4,
+  "credential_loss_execution_continues": true
+}

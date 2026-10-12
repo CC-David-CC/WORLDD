@@ -1,0 +1,77 @@
+{
+  "host": "sb16-2",
+  "status": "verified",
+  "profiles": {
+    "ASan/UBSan": {
+      "checks": 115,
+      "native_cases": {
+        "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+          "broker-cleanup": {
+            "stage": 5,
+            "launch_id": "579b455d4b4a256c665fc93c09a85a9a13a6f3db01008f1d521cef8ed90f8031"
+          },
+          "world-cleanup": {
+            "stage": 5,
+            "launch_id": "8c7330b8bd50664f26d0e21c25ea00bd705ace5c7451304e661a7e577ae2ab92"
+          }
+        },
+        "test_native_storage_session_retains_owner_and_confined_application": {
+          "broker-cleanup": {
+            "stage": 5,
+            "launch_id": "1316a8ce3ecd1b31ba845cf7c16ac7cf14c4703c87f1a54861024c85ae263c02"
+          },
+          "world-cleanup": {
+            "stage": 5,
+            "launch_id": "fc6bac8145906e9a33d19469eeb8f07f4380ec9c51544bad7b0f1a49aefbaebd"
+          }
+        }
+      },
+      "operator": {
+        "filesystem_id": "422aa6377b8d45f1b9fb1c1210271270",
+        "image_inode": 5774369,
+        "project_inode": 259,
+        "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+        "status": "passed",
+        "volume": "/var/lib/spatial/volumes/m03-qual-8ac4a29c06654a5090f0/mount"
+      },
+      "volume_detached": true,
+      "source_inputs": 374
+    },
+    "Debug": {
+      "checks": 115,
+      "native_cases": {
+        "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+          "broker-cleanup": {
+            "stage": 5,
+            "launch_id": "da016c79f02d9d495db1794a8cc576af91e93aec2b11da29de48f2db07a5a18b"
+          },
+          "world-cleanup": {
+            "stage": 5,
+            "launch_id": "e50e8f4ed5c08227b86ba133b5a10743abba6f6b0d64c037e9717c10e1241f3f"
+          }
+        },
+        "test_native_storage_session_retains_owner_and_confined_application": {
+          "broker-cleanup": {
+            "stage": 5,
+            "launch_id": "6519f2620b627c381b15902603f86f309d2fa1ba8284c96950ba84279c43f203"
+          },
+          "world-cleanup": {
+            "stage": 5,
+            "launch_id": "1a20ccdc70ef121cba6071e8299f6cf9033cd31874af11411c2af31314e257a8"
+          }
+        }
+      },
+      "operator": {
+        "filesystem_id": "19ca5ad108c44fd89d7f208f9c4f82d7",
+        "image_inode": 5774375,
+        "project_inode": 259,
+        "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+        "status": "passed",
+        "volume": "/var/lib/spatial/volumes/m03-qual-37617d1ed4ec47439dc1/mount"
+      },
+      "volume_detached": true,
+      "source_inputs": 374
+    }
+  },
+  "installed_owner_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+}

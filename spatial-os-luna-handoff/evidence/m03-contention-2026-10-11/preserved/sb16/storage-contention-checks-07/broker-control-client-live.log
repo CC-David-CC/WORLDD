@@ -1,0 +1,68 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 79
+    Start 79: broker-control-client-live
+
+79: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_control_client_live.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"
+79: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+79: Environment variables: 
+79:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+79: Test timeout computed to be: 180
+79: {"unit": "spatial-m03-resources-430613e6a61f48f3844cf7e235f1a1d4.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-430613e6a61f48f3844cf7e235f1a1d4.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-checks-07/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-checks-07/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_control_client_live.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-430613e6a61f48f3844cf7e235f1a1d4.service"]}
+79: Running as unit: spatial-m03-resources-430613e6a61f48f3844cf7e235f1a1d4.service; invocation ID: 7997898ab41a4bb68c26b38632cc3311
+79: test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_during_an_unrelated_process_wait) ... ok
+79: test_actor_revocation_notifies_idle_controller (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_idle_controller) ... ok
+79: test_application_exit_notifies_without_an_actor_wait_request (__main__.BrokerControlClientLiveTests.test_application_exit_notifies_without_an_actor_wait_request) ... ok
+79: test_control_revocation_emits_event_and_keeps_execution (__main__.BrokerControlClientLiveTests.test_control_revocation_emits_event_and_keeps_execution) ... ok
+79: test_explicit_control_acquires_live_application (__main__.BrokerControlClientLiveTests.test_explicit_control_acquires_live_application) ... ok
+79: test_independent_applications_have_independent_controllers (__main__.BrokerControlClientLiveTests.test_independent_applications_have_independent_controllers) ... ok
+79: test_independent_control_grant_survives_other_grant_revocation (__main__.BrokerControlClientLiveTests.test_independent_control_grant_survives_other_grant_revocation) ... ok
+79: test_missing_principal_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_missing_principal_cannot_acquire_control) ... ok
+79: test_nonnative_application_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_nonnative_application_cannot_acquire_control) ... ok
+79: test_observation_does_not_grant_control (__main__.BrokerControlClientLiveTests.test_observation_does_not_grant_control) ... ok
+79: test_observation_revocation_invalidates_control_reservation (__main__.BrokerControlClientLiveTests.test_observation_revocation_invalidates_control_reservation) ... ok
+79: test_one_application_has_only_one_controller_until_release (__main__.BrokerControlClientLiveTests.test_one_application_has_only_one_controller_until_release) ... ok
+79: test_other_actor_cannot_release_reservation (__main__.BrokerControlClientLiveTests.test_other_actor_cannot_release_reservation) ... ok
+79: test_partial_private_request_does_not_block_revocation_notification (__main__.BrokerControlClientLiveTests.test_partial_private_request_does_not_block_revocation_notification) ... ok
+79: test_readonly_actor_can_control_readonly_application (__main__.BrokerControlClientLiveTests.test_readonly_actor_can_control_readonly_application) ... ok
+79: test_readonly_actor_cannot_control_writable_application (__main__.BrokerControlClientLiveTests.test_readonly_actor_cannot_control_writable_application) ... ok
+79: test_released_id_cannot_release_a_new_reservation (__main__.BrokerControlClientLiveTests.test_released_id_cannot_release_a_new_reservation) ... ok
+79: test_repeated_acquire_preserves_the_same_live_reservation (__main__.BrokerControlClientLiveTests.test_repeated_acquire_preserves_the_same_live_reservation) ... ok
+79: test_revocation_event_is_emitted_once (__main__.BrokerControlClientLiveTests.test_revocation_event_is_emitted_once) ... ok
+79: test_revoked_actor_can_acknowledge_input_cancellation (__main__.BrokerControlClientLiveTests.test_revoked_actor_can_acknowledge_input_cancellation) ... ok
+79: test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation (__main__.BrokerControlClientLiveTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation) ... ok
+79: test_revoked_reservation_does_not_resurrect_when_permission_returns (__main__.BrokerControlClientLiveTests.test_revoked_reservation_does_not_resurrect_when_permission_returns) ... ok
+79: test_unknown_and_malformed_release_cannot_change_reservation (__main__.BrokerControlClientLiveTests.test_unknown_and_malformed_release_cannot_change_reservation) ... ok
+79: test_unowned_and_wrongly_attributed_applications_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control) ... ok
+79: test_workspace_access_revocation_releases_control_without_stopping_execution (__main__.BrokerControlClientLiveTests.test_workspace_access_revocation_releases_control_without_stopping_execution) ... ok
+79: 
+79: ----------------------------------------------------------------------
+79: Ran 25 tests in 72.389s
+79: 
+79: OK
+79: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-430613e6a61f48f3844cf7e235f1a1d4.service/adapter-03b93c95aecd40d5a61c2a1e52589f9b", "device": 31, "inode": 2025131, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-430613e6a61f48f3844cf7e235f1a1d4.service/adapter-03b93c95aecd40d5a61c2a1e52589f9b\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_control_client_live.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "exit_code": 0, "scope_removed": true}
+79: Finished with result: success
+79: Main processes terminated with: code=exited/status=0
+79: Service runtime: 1min 12.612s
+79: CPU time consumed: 31.578s
+79: Memory peak: 2.5M
+79: Memory swap peak: 0B
+79: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #79: broker-control-client-live .......   Passed   72.74 sec
+
+The following tests passed:
+	broker-control-client-live
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  72.75 sec

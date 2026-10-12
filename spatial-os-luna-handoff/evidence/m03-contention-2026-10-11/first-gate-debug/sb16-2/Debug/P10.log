@@ -1,0 +1,630 @@
+{"unit": "spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-phase-gate-01/Debug/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-phase-gate-01/Debug/native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-test-host\"]", "--report", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-phase-gate-01/Debug/P10.json"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service"]}
+Running as unit: spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service; invocation ID: bd85279294d94de1b1b60c96c299168d
+test_capabilities_are_unique_and_explicit (tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit) ... ok
+test_concurrent_calls_keep_their_responses (tests.acceptance.test_00_protocol.ProtocolTests.test_concurrent_calls_keep_their_responses) ... ok
+test_hello_has_version_and_build (tests.acceptance.test_00_protocol.ProtocolTests.test_hello_has_version_and_build) ... ok
+test_missing_parameter_rejected (tests.acceptance.test_00_protocol.ProtocolTests.test_missing_parameter_rejected) ... ok
+test_unknown_method_is_typed_error (tests.acceptance.test_00_protocol.ProtocolTests.test_unknown_method_is_typed_error) ... ok
+test_axis_r0_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_neg) ... ok
+test_axis_r0_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_pos) ... ok
+test_axis_r1_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_neg) ... ok
+test_axis_r1_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_pos) ... ok
+test_axis_r2_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_neg) ... ok
+test_axis_r2_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_pos) ... ok
+test_axis_t0_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_neg) ... ok
+test_axis_t0_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_pos) ... ok
+test_axis_t1_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_neg) ... ok
+test_axis_t1_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_pos) ... ok
+test_axis_t2_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_neg) ... ok
+test_axis_t2_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_pos) ... ok
+test_center_ray_returns_top_left_uv_convention (tests.acceptance.test_01_geometry.GeometryTests.test_center_ray_returns_top_left_uv_convention) ... ok
+test_identity (tests.acceptance.test_01_geometry.GeometryTests.test_identity) ... ok
+test_inverse_known_and_seeded_cases (tests.acceptance.test_01_geometry.GeometryTests.test_inverse_known_and_seeded_cases) ... ok
+test_negative_time_rejected (tests.acceptance.test_01_geometry.GeometryTests.test_negative_time_rejected) ... ok
+test_parallel_behind_backface_and_outside_are_misses (tests.acceptance.test_01_geometry.GeometryTests.test_parallel_behind_backface_and_outside_are_misses) ... ok
+test_q_and_negative_q_equivalent (tests.acceptance.test_01_geometry.GeometryTests.test_q_and_negative_q_equivalent) ... ok
+test_rotated_panel_uses_its_local_frame (tests.acceptance.test_01_geometry.GeometryTests.test_rotated_panel_uses_its_local_frame) ... ok
+test_same_twist_same_result_at_different_tick_rates (tests.acceptance.test_01_geometry.GeometryTests.test_same_twist_same_result_at_different_tick_rates) ... ok
+test_simultaneous_turn_and_forward_follow_arc (tests.acceptance.test_01_geometry.GeometryTests.test_simultaneous_turn_and_forward_follow_arc) ... ok
+test_translation_not_direction (tests.acceptance.test_01_geometry.GeometryTests.test_translation_not_direction) ... ok
+test_uv_is_half_open_and_never_clamped_into_target (tests.acceptance.test_01_geometry.GeometryTests.test_uv_is_half_open_and_never_clamped_into_target) ... ok
+test_yaw_turns_forward_to_left (tests.acceptance.test_01_geometry.GeometryTests.test_yaw_turns_forward_to_left) ... ok
+test_zero_and_nonunit_quaternion_rejected (tests.acceptance.test_01_geometry.GeometryTests.test_zero_and_nonunit_quaternion_rejected) ... ok
+test_zero_direction_and_invalid_extents (tests.acceptance.test_01_geometry.GeometryTests.test_zero_direction_and_invalid_extents) ... ok
+test_zero_time_is_identity (tests.acceptance.test_01_geometry.GeometryTests.test_zero_time_is_identity) ... ok
+test_create_get_list (tests.acceptance.test_02_world.WorldTests.test_create_get_list) ... ok
+test_delete_and_missing_get (tests.acceptance.test_02_world.WorldTests.test_delete_and_missing_get) ... ok
+test_duplicate_id_rejected_without_mutation (tests.acceptance.test_02_world.WorldTests.test_duplicate_id_rejected_without_mutation) ... ok
+test_exactly_one_compare_and_swap_wins (tests.acceptance.test_02_world.WorldTests.test_exactly_one_compare_and_swap_wins) ... ok
+test_identity_and_kind_cannot_be_patched (tests.acceptance.test_02_world.WorldTests.test_identity_and_kind_cannot_be_patched) ... ok
+test_invalid_pose_does_not_partially_update_label (tests.acceptance.test_02_world.WorldTests.test_invalid_pose_does_not_partially_update_label) ... ok
+test_labels_are_data_including_unicode (tests.acceptance.test_02_world.WorldTests.test_labels_are_data_including_unicode) ... ok
+test_nonempty_room_delete_rejected (tests.acceptance.test_02_world.WorldTests.test_nonempty_room_delete_rejected) ... ok
+test_object_cannot_point_at_missing_room (tests.acceptance.test_02_world.WorldTests.test_object_cannot_point_at_missing_room) ... ok
+test_real_process_restart_preserves_objects (tests.acceptance.test_02_world.WorldTests.test_real_process_restart_preserves_objects) ... ok
+test_room_move_is_one_reference_change (tests.acceptance.test_02_world.WorldTests.test_room_move_is_one_reference_change) ... ok
+test_sigkill_preserves_acknowledged_mutation (tests.acceptance.test_02_world.WorldTests.test_sigkill_preserves_acknowledged_mutation) ... ok
+test_stale_revision_does_not_overwrite (tests.acceptance.test_02_world.WorldTests.test_stale_revision_does_not_overwrite) ... ok
+test_update_advances_revision_once (tests.acceptance.test_02_world.WorldTests.test_update_advances_revision_once) ... ok
+test_axis_count_and_range_checked (tests.acceptance.test_03_actors.ActorTests.test_axis_count_and_range_checked) ... ok
+test_checkpoint_restores_pose_but_not_held_input_or_token (tests.acceptance.test_03_actors.ActorTests.test_checkpoint_restores_pose_but_not_held_input_or_token) ... ok
+test_deadzone_is_rescaled_not_subtracted_every_tick (tests.acceptance.test_03_actors.ActorTests.test_deadzone_is_rescaled_not_subtracted_every_tick) ... ok
+test_disconnect_revokes_token_and_stops_motion (tests.acceptance.test_03_actors.ActorTests.test_disconnect_revokes_token_and_stops_motion) ... ok
+test_forward_uses_camera_orientation (tests.acceptance.test_03_actors.ActorTests.test_forward_uses_camera_orientation) ... ok
+test_human_and_agent_have_independent_state (tests.acceptance.test_03_actors.ActorTests.test_human_and_agent_have_independent_state) ... ok
+test_missing_navigation_grant_blocks_motion (tests.acceptance.test_03_actors.ActorTests.test_missing_navigation_grant_blocks_motion) ... ok
+test_motion_matches_with_different_clock_partitions (tests.acceptance.test_03_actors.ActorTests.test_motion_matches_with_different_clock_partitions) ... ok
+test_new_sample_refreshes_deadman_not_unrelated_commands (tests.acceptance.test_03_actors.ActorTests.test_new_sample_refreshes_deadman_not_unrelated_commands) ... ok
+test_payload_cannot_impersonate_another_actor (tests.acceptance.test_03_actors.ActorTests.test_payload_cannot_impersonate_another_actor) ... ok
+test_replayed_sequence_not_applied_twice (tests.acceptance.test_03_actors.ActorTests.test_replayed_sequence_not_applied_twice) ... ok
+test_stale_input_stops_at_exact_timeout_boundary (tests.acceptance.test_03_actors.ActorTests.test_stale_input_stops_at_exact_timeout_boundary) ... ok
+test_stop_is_immediate_and_idempotent (tests.acceptance.test_03_actors.ActorTests.test_stop_is_immediate_and_idempotent) ... ok
+test_translation_axes_not_normalized_to_a_single_axis (tests.acceptance.test_03_actors.ActorTests.test_translation_axes_not_normalized_to_a_single_axis) ... ok
+test_back_facing_panel_not_visible_or_selectable (tests.acceptance.test_04_render.RenderTests.test_back_facing_panel_not_visible_or_selectable) ... ok
+test_deleted_surface_disappears_from_pixels_and_pick (tests.acceptance.test_04_render.RenderTests.test_deleted_surface_disappears_from_pixels_and_pick) ... ok
+test_fixed_fov_projects_known_quad_bounds (tests.acceptance.test_04_render.RenderTests.test_fixed_fov_projects_known_quad_bounds) ... ok
+test_frame_is_readable_and_has_monotonic_identity (tests.acceptance.test_04_render.RenderTests.test_frame_is_readable_and_has_monotonic_identity) ... ok
+test_independent_cameras_produce_different_frames (tests.acceptance.test_04_render.RenderTests.test_independent_cameras_produce_different_frames) ... ok
+test_nearer_surface_occludes_farther_independent_of_creation_order (tests.acceptance.test_04_render.RenderTests.test_nearer_surface_occludes_farther_independent_of_creation_order) ... ok
+test_other_room_is_not_visible_even_at_same_coordinates (tests.acceptance.test_04_render.RenderTests.test_other_room_is_not_visible_even_at_same_coordinates) ... ok
+test_output_aspect_does_not_stretch_square (tests.acceptance.test_04_render.RenderTests.test_output_aspect_does_not_stretch_square) ... ok
+test_pick_returns_visible_nearest_surface (tests.acceptance.test_04_render.RenderTests.test_pick_returns_visible_nearest_surface) ... ok
+test_scene_edit_appears_in_next_fenced_frame (tests.acceptance.test_04_render.RenderTests.test_scene_edit_appears_in_next_fenced_frame) ... ok
+test_all_four_quadrants_reach_correct_frame_locations (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_all_four_quadrants_reach_correct_frame_locations) ... ERROR
+test_child_follows_parent_room_and_transform (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_child_follows_parent_room_and_transform) ... ERROR
+test_destroy_drops_resource_and_pick (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_destroy_drops_resource_and_pick) ... ERROR
+test_independent_x_window_becomes_surface (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_independent_x_window_becomes_surface) ... ERROR
+test_native_readback_sees_the_compositor_output (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_native_readback_sees_the_compositor_output) ... ERROR
+test_random_client_paint_appears_in_compositor (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_random_client_paint_appears_in_compositor) ... ERROR
+test_resize_changes_pixmap_generation_not_world_identity (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_resize_changes_pixmap_generation_not_world_identity) ... ERROR
+test_resize_storm_has_no_outstanding_retired_resources (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_resize_storm_has_no_outstanding_retired_resources) ... ERROR
+test_transient_is_attached_not_orphaned (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_transient_is_attached_not_orphaned) ... ERROR
+test_unmapped_not_visible_or_interactive_then_returns (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_unmapped_not_visible_or_interactive_then_returns) ... ERROR
+test_actor_without_interaction_grant_cannot_type (tests.acceptance.test_06_input.InputTests.test_actor_without_interaction_grant_cannot_type) ... ERROR
+test_click_reaches_real_client_at_expected_pixel (tests.acceptance.test_06_input.InputTests.test_click_reaches_real_client_at_expected_pixel) ... ERROR
+test_destroy_during_drag_clears_held_state_without_retargeting (tests.acceptance.test_06_input.InputTests.test_destroy_during_drag_clears_held_state_without_retargeting) ... ERROR
+test_disconnect_releases_in_native_client (tests.acceptance.test_06_input.InputTests.test_disconnect_releases_in_native_client) ... ERROR
+test_double_click_is_two_real_balanced_clicks (tests.acceptance.test_06_input.InputTests.test_double_click_is_two_real_balanced_clicks) ... ERROR
+test_drag_release_goes_to_original_target (tests.acceptance.test_06_input.InputTests.test_drag_release_goes_to_original_target) ... ERROR
+test_each_mouse_button_preserves_identity (tests.acceptance.test_06_input.InputTests.test_each_mouse_button_preserves_identity) ... ERROR
+test_hidden_client_does_not_receive_click (tests.acceptance.test_06_input.InputTests.test_hidden_client_does_not_receive_click) ... ERROR
+test_interaction_does_not_move_native_window_to_private_slot (tests.acceptance.test_06_input.InputTests.test_interaction_does_not_move_native_window_to_private_slot) ... ERROR
+test_keyboard_is_received_by_focused_client (tests.acceptance.test_06_input.InputTests.test_keyboard_is_received_by_focused_client) ... ERROR
+test_miss_does_not_fall_through_to_x_root_geometry (tests.acceptance.test_06_input.InputTests.test_miss_does_not_fall_through_to_x_root_geometry) ... ERROR
+test_modifier_state_affects_real_client_text (tests.acceptance.test_06_input.InputTests.test_modifier_state_affects_real_client_text) ... ERROR
+test_resize_invalidates_previously_aimed_target (tests.acceptance.test_06_input.InputTests.test_resize_invalidates_previously_aimed_target) ... ERROR
+test_stop_releases_keys_and_buttons_in_real_client (tests.acceptance.test_06_input.InputTests.test_stop_releases_keys_and_buttons_in_real_client) ... ERROR
+test_two_actors_cannot_mutate_one_surface_at_once (tests.acceptance.test_06_input.InputTests.test_two_actors_cannot_mutate_one_surface_at_once) ... ERROR
+test_two_agents_type_concurrently_without_stealing_focus (tests.acceptance.test_06_input.InputTests.test_two_agents_type_concurrently_without_stealing_focus) ... ERROR
+test_typing_without_focus_is_rejected (tests.acceptance.test_06_input.InputTests.test_typing_without_focus_is_rejected) ... ERROR
+test_vertical_scroll_generates_balanced_client_scroll_events (tests.acceptance.test_06_input.InputTests.test_vertical_scroll_generates_balanced_client_scroll_events) ... ERROR
+test_back_to_front_crossing_does_not_activate_one_way_portal (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_back_to_front_crossing_does_not_activate_one_way_portal) ... ok
+test_cancel_restores_original_pose (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_cancel_restores_original_pose) ... ok
+test_disconnect_rolls_back_uncommitted_drag_and_releases_lease (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_disconnect_rolls_back_uncommitted_drag_and_releases_lease) ... ok
+test_exactly_one_of_two_agents_can_grab (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_exactly_one_of_two_agents_can_grab) ... ok
+test_grab_move_commit_persists_pose (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_grab_move_commit_persists_pose) ... ok
+test_motion_slides_along_wall (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_motion_slides_along_wall) ... ok
+test_movement_outside_portal_rectangle_does_not_switch_rooms (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_movement_outside_portal_rectangle_does_not_switch_rooms) ... ok
+test_navigation_only_actor_cannot_change_world (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_navigation_only_actor_cannot_change_world) ... ok
+test_object_in_other_room_cannot_be_grabbed (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_object_in_other_room_cannot_be_grabbed) ... ok
+test_observation_contains_own_pose_and_only_visible_room_entities (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_observation_contains_own_pose_and_only_visible_room_entities) ... ok
+test_out_of_reach_objects_cannot_be_grabbed (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_out_of_reach_objects_cannot_be_grabbed) ... ok
+test_referenced_destination_cannot_be_deleted (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_referenced_destination_cannot_be_deleted) ... ok
+test_thin_wall_cannot_be_tunnelled_through_in_one_tick (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_thin_wall_cannot_be_tunnelled_through_in_one_tick) ... ok
+test_walk_to_other_room_turn_and_walk_back (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_walk_to_other_room_turn_and_walk_back) ... ok
+test_walking_through_portal_preserves_remaining_displacement (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_walking_through_portal_preserves_remaining_displacement) ... ok
+test_actor_without_git_grant_cannot_create_worktree (tests.acceptance.test_08_git_processes.GitTests.test_actor_without_git_grant_cannot_create_worktree) ... ok
+test_application_profile_and_actor_rights_both_limit_writes (tests.acceptance.test_08_git_processes.GitTests.test_application_profile_and_actor_rights_both_limit_writes) ... ok
+test_child_process_cannot_read_or_write_outside_workspace (tests.acceptance.test_08_git_processes.GitTests.test_child_process_cannot_read_or_write_outside_workspace) ... ok
+test_clean_removal_leaves_branch_intact (tests.acceptance.test_08_git_processes.GitTests.test_clean_removal_leaves_branch_intact) ... ok
+test_create_is_a_real_git_worktree (tests.acceptance.test_08_git_processes.GitTests.test_create_is_a_real_git_worktree) ... ok
+test_direct_git_commit_updates_world_view (tests.acceptance.test_08_git_processes.GitTests.test_direct_git_commit_updates_world_view) ... ok
+test_dirty_worktree_is_never_silently_discarded (tests.acceptance.test_08_git_processes.GitTests.test_dirty_worktree_is_never_silently_discarded) ... ok
+test_independent_workspaces_cannot_share_writable_git_metadata (tests.acceptance.test_08_git_processes.GitTests.test_independent_workspaces_cannot_share_writable_git_metadata) ... ok
+test_invalid_branch_name_fails_without_side_effect (tests.acceptance.test_08_git_processes.GitTests.test_invalid_branch_name_fails_without_side_effect) ... ok
+test_launch_retry_cannot_change_workspace_context (tests.acceptance.test_08_git_processes.GitTests.test_launch_retry_cannot_change_workspace_context) ... ok
+test_launched_process_runs_in_selected_workspaces_project (tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_selected_workspaces_project) ... ok
+test_ordinary_git_in_workspace_updates_real_worktree (tests.acceptance.test_08_git_processes.GitTests.test_ordinary_git_in_workspace_updates_real_worktree) ... ok
+test_portal_entry_keeps_selection_and_does_not_restart_runtime (tests.acceptance.test_08_git_processes.GitTests.test_portal_entry_keeps_selection_and_does_not_restart_runtime) ... ok
+test_process_launch_retry_does_not_spawn_twice (tests.acceptance.test_08_git_processes.GitTests.test_process_launch_retry_does_not_spawn_twice) ... ok
+test_repository_branch_commit_and_worktree_are_distinct (tests.acceptance.test_08_git_processes.GitTests.test_repository_branch_commit_and_worktree_are_distinct) ... ok
+test_restart_reconciles_real_worktrees (tests.acceptance.test_08_git_processes.GitTests.test_restart_reconciles_real_worktrees) ... ok
+test_retry_same_operation_does_not_duplicate_worktree (tests.acceptance.test_08_git_processes.GitTests.test_retry_same_operation_does_not_duplicate_worktree) ... ok
+test_reused_operation_id_with_different_payload_rejected (tests.acceptance.test_08_git_processes.GitTests.test_reused_operation_id_with_different_payload_rejected) ... ok
+test_same_branch_cannot_be_force_checked_out_twice (tests.acceptance.test_08_git_processes.GitTests.test_same_branch_cannot_be_force_checked_out_twice) ... ok
+test_two_agents_do_not_share_working_files (tests.acceptance.test_08_git_processes.GitTests.test_two_agents_do_not_share_working_files) ... ok
+test_two_workspaces_use_same_project_path_in_distinct_mount_namespaces (tests.acceptance.test_08_git_processes.GitTests.test_two_workspaces_use_same_project_path_in_distinct_mount_namespaces) ... ok
+test_unavailability_and_revocation_clear_selection (tests.acceptance.test_08_git_processes.GitTests.test_unavailability_and_revocation_clear_selection) ... ok
+test_untracked_and_modified_are_distinct (tests.acceptance.test_08_git_processes.GitTests.test_untracked_and_modified_are_distinct) ... ok
+test_workspace_creation_availability_and_selection_are_separate (tests.acceptance.test_08_git_processes.GitTests.test_workspace_creation_availability_and_selection_are_separate) ... ok
+test_world_presence_and_global_grants_do_not_grant_workspace_access (tests.acceptance.test_08_git_processes.GitTests.test_world_presence_and_global_grants_do_not_grant_workspace_access) ... ok
+test_commit_survives_lost_reply (tests.acceptance.test_09_recovery.RecoveryTests.test_commit_survives_lost_reply) ... ok
+test_crash_before_commit_keeps_old_state (tests.acceptance.test_09_recovery.RecoveryTests.test_crash_before_commit_keeps_old_state) ... ok
+test_crash_does_not_commit_preview_transform (tests.acceptance.test_09_recovery.RecoveryTests.test_crash_does_not_commit_preview_transform) ... ok
+test_git_effect_completed_before_db_ack_is_reconciled_once (tests.acceptance.test_09_recovery.RecoveryTests.test_git_effect_completed_before_db_ack_is_reconciled_once) ... ok
+test_injected_write_failure_does_not_ack_or_partially_update (tests.acceptance.test_09_recovery.RecoveryTests.test_injected_write_failure_does_not_ack_or_partially_update) ... ok
+test_repeated_sigkills_preserve_last_acknowledged_revision (tests.acceptance.test_09_recovery.RecoveryTests.test_repeated_sigkills_preserve_last_acknowledged_revision) ... ok
+test_worker_death_invalidates_session_then_restart_recovers (tests.acceptance.test_09_recovery.RecoveryTests.test_worker_death_invalidates_session_then_restart_recovers) ... ok
+test_worker_identities_refer_to_real_owned_processes (tests.acceptance.test_09_recovery.RecoveryTests.test_worker_identities_refer_to_real_owned_processes) ... ok
+test_old_surface_handle_cannot_control_new_window (tests.acceptance.test_09_recovery.SlotRecoveryTests.test_old_surface_handle_cannot_control_new_window) ... ERROR
+test_replacement_x_window_attaches_to_durable_slot_not_old_xid (tests.acceptance.test_09_recovery.SlotRecoveryTests.test_replacement_x_window_attaches_to_durable_slot_not_old_xid) ... ERROR
+test_agent_observation_and_received_input_agree_on_target (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_agent_observation_and_received_input_agree_on_target) ... ERROR
+test_cancelled_agent_leaves_human_usable (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable) ... ERROR
+test_walk_to_room_use_real_window_work_in_selected_workspace_and_return (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return) ... ERROR
+
+======================================================================
+ERROR: test_all_four_quadrants_reach_correct_frame_locations (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_all_four_quadrants_reach_correct_frame_locations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 13, in test_all_four_quadrants_reach_correct_frame_locations
+    self.probe();self.fence();image,_=self.capture(self.a)
+    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_child_follows_parent_room_and_transform (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_child_follows_parent_room_and_transform)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 53, in test_child_follows_parent_room_and_transform
+    p,s=self.probe();p.command("popup",80,60);self.room("room-b");self.fence()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_destroy_drops_resource_and_pick (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_destroy_drops_resource_and_pick)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 42, in test_destroy_drops_resource_and_pick
+    p,s=self.probe();p.command("destroy");self.fence()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_independent_x_window_becomes_surface (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_independent_x_window_becomes_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 9, in test_independent_x_window_becomes_surface
+    p,s=self.probe();self.assertEqual(s["pixels"],[320,240]);self.assertTrue(s["mapped"])
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_native_readback_sees_the_compositor_output (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_native_readback_sees_the_compositor_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 65, in test_native_readback_sees_the_compositor_output
+    p,s=self.probe();color=[secrets.randbelow(180)+30 for _ in range(3)]
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_random_client_paint_appears_in_compositor (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_random_client_paint_appears_in_compositor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 18, in test_random_client_paint_appears_in_compositor
+    p,s=self.probe()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_resize_changes_pixmap_generation_not_world_identity (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_resize_changes_pixmap_generation_not_world_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 25, in test_resize_changes_pixmap_generation_not_world_identity
+    p,s=self.probe();before=self.surface(s["id"])
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_resize_storm_has_no_outstanding_retired_resources (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_resize_storm_has_no_outstanding_retired_resources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 72, in test_resize_storm_has_no_outstanding_retired_resources
+    p,s=self.probe()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_transient_is_attached_not_orphaned (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_transient_is_attached_not_orphaned)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 46, in test_transient_is_attached_not_orphaned
+    p,s=self.probe();p.command("popup",80,60)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_unmapped_not_visible_or_interactive_then_returns (tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_unmapped_not_visible_or_interactive_then_returns)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_05_xsurfaces.py", line 34, in test_unmapped_not_visible_or_interactive_then_returns
+    p,s=self.probe();oldgen=s["generation"];p.command("unmap")
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_actor_without_interaction_grant_cannot_type (tests.acceptance.test_06_input.InputTests.test_actor_without_interaction_grant_cannot_type)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 94, in test_actor_without_interaction_grant_cannot_type
+    p,s=self.probe();b=self.actor("denied",grants=["navigate"]);mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_click_reaches_real_client_at_expected_pixel (tests.acceptance.test_06_input.InputTests.test_click_reaches_real_client_at_expected_pixel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 10, in test_click_reaches_real_client_at_expected_pixel
+    p,s=self.probe();self.aim(direction=(-.5,.5,-4));mark=len(p.events);self.click()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_destroy_during_drag_clears_held_state_without_retargeting (tests.acceptance.test_06_input.InputTests.test_destroy_during_drag_clears_held_state_without_retargeting)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 122, in test_destroy_during_drag_clears_held_state_without_retargeting
+    p,s=self.probe();self.aim();self.a.act("pointer",button=1,pressed=True)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_disconnect_releases_in_native_client (tests.acceptance.test_06_input.InputTests.test_disconnect_releases_in_native_client)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 84, in test_disconnect_releases_in_native_client
+    p,s=self.probe();self.aim();self.click();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_double_click_is_two_real_balanced_clicks (tests.acceptance.test_06_input.InputTests.test_double_click_is_two_real_balanced_clicks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 23, in test_double_click_is_two_real_balanced_clicks
+    p,s=self.probe();self.aim();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_drag_release_goes_to_original_target (tests.acceptance.test_06_input.InputTests.test_drag_release_goes_to_original_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 68, in test_drag_release_goes_to_original_target
+    left,ls=self.probe(p=(-2,0,-4));right,rs=self.probe(p=(2,0,-4))
+            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_each_mouse_button_preserves_identity (tests.acceptance.test_06_input.InputTests.test_each_mouse_button_preserves_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 16, in test_each_mouse_button_preserves_identity
+    p,s=self.probe();self.aim();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_hidden_client_does_not_receive_click (tests.acceptance.test_06_input.InputTests.test_hidden_client_does_not_receive_click)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 48, in test_hidden_client_does_not_receive_click
+    far,fs=self.probe(p=(0,0,-5));near,ns=self.probe(p=(0,0,-3));self.aim()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_interaction_does_not_move_native_window_to_private_slot (tests.acceptance.test_06_input.InputTests.test_interaction_does_not_move_native_window_to_private_slot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 99, in test_interaction_does_not_move_native_window_to_private_slot
+    p,s=self.probe();before=p.geometry();self.aim();self.click();after=p.geometry()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_keyboard_is_received_by_focused_client (tests.acceptance.test_06_input.InputTests.test_keyboard_is_received_by_focused_client)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 29, in test_keyboard_is_received_by_focused_client
+    p,s=self.probe();self.aim();self.click();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_miss_does_not_fall_through_to_x_root_geometry (tests.acceptance.test_06_input.InputTests.test_miss_does_not_fall_through_to_x_root_geometry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 54, in test_miss_does_not_fall_through_to_x_root_geometry
+    p,s=self.probe();self.aim(direction=(1,0,0));mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_modifier_state_affects_real_client_text (tests.acceptance.test_06_input.InputTests.test_modifier_state_affects_real_client_text)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 36, in test_modifier_state_affects_real_client_text
+    p,s=self.probe();self.aim();self.click();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_resize_invalidates_previously_aimed_target (tests.acceptance.test_06_input.InputTests.test_resize_invalidates_previously_aimed_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 59, in test_resize_invalidates_previously_aimed_target
+    p,s=self.probe();self.aim();p.command("resize",640,480)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_stop_releases_keys_and_buttons_in_real_client (tests.acceptance.test_06_input.InputTests.test_stop_releases_keys_and_buttons_in_real_client)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 76, in test_stop_releases_keys_and_buttons_in_real_client
+    p,s=self.probe();self.aim();self.click();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_two_actors_cannot_mutate_one_surface_at_once (tests.acceptance.test_06_input.InputTests.test_two_actors_cannot_mutate_one_surface_at_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 127, in test_two_actors_cannot_mutate_one_surface_at_once
+    p,s=self.probe();b=self.actor("other");self.aim();self.click();self.aim(b)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_two_agents_type_concurrently_without_stealing_focus (tests.acceptance.test_06_input.InputTests.test_two_agents_type_concurrently_without_stealing_focus)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 104, in test_two_agents_type_concurrently_without_stealing_focus
+    p1,s1=self.probe(p=(-2,0,-4));p2,s2=self.probe(p=(2,0,-4))
+          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_typing_without_focus_is_rejected (tests.acceptance.test_06_input.InputTests.test_typing_without_focus_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 43, in test_typing_without_focus_is_rejected
+    p,s=self.probe();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_vertical_scroll_generates_balanced_client_scroll_events (tests.acceptance.test_06_input.InputTests.test_vertical_scroll_generates_balanced_client_scroll_events)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_06_input.py", line 89, in test_vertical_scroll_generates_balanced_client_scroll_events
+    p,s=self.probe();self.aim();mark=len(p.events)
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_old_surface_handle_cannot_control_new_window (tests.acceptance.test_09_recovery.SlotRecoveryTests.test_old_surface_handle_cannot_control_new_window)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_09_recovery.py", line 94, in test_old_surface_handle_cannot_control_new_window
+    p,s=self.probe();old={"id":s["id"],"generation":s["generation"]};self.aim()
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_replacement_x_window_attaches_to_durable_slot_not_old_xid (tests.acceptance.test_09_recovery.SlotRecoveryTests.test_replacement_x_window_attaches_to_durable_slot_not_old_xid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_09_recovery.py", line 84, in test_replacement_x_window_attaches_to_durable_slot_not_old_xid
+    p,s=self.probe();self.call("surface.attach_slot",id=s["id"],slot=slot["id"])
+        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_agent_observation_and_received_input_agree_on_target (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_agent_observation_and_received_input_agree_on_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_10_walkthrough.py", line 48, in test_agent_observation_and_received_input_agree_on_target
+    native,s=self.probe();agent=self.actor("worker")
+             ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_cancelled_agent_leaves_human_usable (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_10_walkthrough.py", line 59, in test_cancelled_agent_leaves_human_usable
+    native,s=self.probe();agent=self.actor("worker");self.aim(agent);self.click(agent)
+             ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+======================================================================
+ERROR: test_walk_to_room_use_real_window_work_in_selected_workspace_and_return (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/acceptance/test_10_walkthrough.py", line 22, in test_walk_to_room_use_real_window_work_in_selected_workspace_and_return
+    native,surf=self.probe(room="lab")
+                ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/xbase.py", line 13, in probe
+    probe=Probe(self.run_dir,xi2=self.xi2,display=self.display)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/probe.py", line 16, in __init__
+    raise RuntimeError("Independent native probe missing: run python tools/build_probe.py --xi2")
+RuntimeError: Independent native probe missing: run python tools/build_probe.py --xi2
+
+----------------------------------------------------------------------
+Ran 151 tests in 72.008s
+
+FAILED (errors=33)
+GATE P10: FAILED (151/151 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-phase-gate-01/Debug/P10.json
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service/adapter-d8bc576d0d684c4e95cbc9cc7c359b6e", "device": 31, "inode": 3948449, "removed": ["authority-e58d769f059bf82294feda6657a2e918a876ed644e5f53ecaec8df215b2e5eb5/authority-19d7f2e0cbf53d5066e53ff118b8fba40478a444d820061e9905552b9619e4e5", "authority-e58d769f059bf82294feda6657a2e918a876ed644e5f53ecaec8df215b2e5eb5/broker-manager", "authority-11fb65d85b99fce65b7d0a122d179c2667709d32ebfd22edde6bcbb09da9778c/broker-manager", "authority-9f83ec1ebfa66bd9bc58f263706fafe48e94df99159717b2309b248a679f68b3/authority-31842d75d24f56f64e8e102a905b466b466e52f3a999cba8cba389eb1ec4b067", "authority-9f83ec1ebfa66bd9bc58f263706fafe48e94df99159717b2309b248a679f68b3/broker-manager", "authority-ee264bdd61008c666e70821d61bbaf95a9b5166d8d243a8f741b049984a2a661/broker-manager", "authority-0a5850aa2083dafca087e63e84c0d2380f5779cb2257a17a663e40a6010d9d56/broker-manager", "authority-6d846efc7166fd2c8814c25379b0f4202b3367ab6aa31d9420476e050e9a0a75/broker-manager", "authority-c68acfa1c6a2d4490b1fe256ecbf03c207e6a8e7ee816ae8aa64ec4a35af4518/broker-manager", "authority-a4bfd1a4782ae4427d72f2c463707be03421a974176fd17a1954fc4f253e290f/broker-manager", "authority-b563bae0b1352236a40ff770301f5312df97397a41956f62af34ef4dbe73aa08/broker-manager", "authority-498456eb495c245c13383a9251f875777dbaf7bc9bf161ee5238f37bb8cee65d/broker-manager", "authority-c9998e6698b132f841e8cc1fdddc2e1601470310182d4971c8133d2b3f4ad15d/authority-50746d9a6cfcf9b8878b8c217e423240776d4a707744e521677a8c11d3978f6b", "authority-c9998e6698b132f841e8cc1fdddc2e1601470310182d4971c8133d2b3f4ad15d/broker-manager", "authority-866d2a2075c66f18bf846cb9c9b1cd31268c131cc49141a78aa11d8ca29d9362/broker-manager", "authority-866d2a2075c66f18bf846cb9c9b1cd31268c131cc49141a78aa11d8ca29d9362/authority-8641fb87c2e1f2c731a5bc459399ae164f249be7207295dc2cf1e4264b2d3c9b", "authority-d9016fe75c41c3e16f5736c43ea137f8a1e5401825a7c441163639076ff4ae0d/broker-manager", "authority-3ea444d40c62c454488c8aeb23220d0b9190300e47c2b4b0d31a5d729a79c349/broker-manager", "authority-1fed44cc36add4d86941bae7888724a2106da3b45603aa35e738f508e17e6954/broker-manager", "authority-2ff04ac8de3fa1856e77d99e13b056248bbedf93b6aacbef9628f8391c7be4bf/broker-manager", "authority-d35aa7b9f55a70684b898c4283fa847ff826735663db1ce62bace5ef2bcea73f/authority-108e4e8ddd4c7e5a4a879a960794c931dfaa7b4594e6076989dc2f59191f4e57", "authority-d35aa7b9f55a70684b898c4283fa847ff826735663db1ce62bace5ef2bcea73f/broker-manager", "authority-bd7d4e2ea1493f816e28b3d5d9b2e6adf5b0be8b7bcbb785135edabb151375a9/broker-manager", "authority-cd95afae23afbebf2677962683553ab96889fc119778112a571496a74af46876/broker-manager", "authority-9943e2c5db16a651f4306fcaf0f4b8aa4de5e0b178fbacf4dac455b6f6dbfaa8/authority-6bd5fe2c95dfb1a99f80c045b253c7bcc126cd8269780b83776581750ad392ef", "authority-9943e2c5db16a651f4306fcaf0f4b8aa4de5e0b178fbacf4dac455b6f6dbfaa8/broker-manager", "authority-3c0f27a38198f67c77cee806c46140b3b34903cfb8d1bfe5655de48ece7682ef/broker-manager", "authority-6e418f56d5d0b91479af75207f504603718387ccea5413e1bd97782b75fd8460/broker-manager", "authority-90085b0e92463a1c41f218f113067e884b8a5b9acecfa1149b0de4541855e455/broker-manager", "authority-241ee3f36b63ce76399b7befb395da6efb6f937ff17240cb1c8f6903e49b02c3/broker-manager", "authority-5b3b65aafe2e3d262f46d3bbe53aa293b8fa0e60876ec237a391f002bdb7a2d1/broker-manager", "authority-5b3b65aafe2e3d262f46d3bbe53aa293b8fa0e60876ec237a391f002bdb7a2d1/authority-2d43ada9f309ffe3429e58bc5c42fa6968b3cd72c63b689b2bd0e89eb1a548e9", "authority-911bd419467bc939532c28fc17d6d05143497accb9bbf58a56e9b7058ab41681/broker-manager", "authority-c92affebba7c03b74c0d8edec7447139368e37aecb0440eb04e1d10583c44d71/broker-manager", "authority-bdb095968c2e9279b4c1d1f05f677814baced067c4ea6ed747c99b0d9eb7b114/broker-manager", "authority-80fbd921220bb65d87e255fc29c52e5109258ea0f1efd6132170499c6d5a613e/broker-manager", "authority-ed1a9ec9b578607d0e149bdee5fc80149133b6e85db4071e743bea85a4182934/broker-manager", "authority-3381b4b280e733c0a718115a54bfba675df018100da2781ff25d2f2c561832ba/broker-manager", "authority-7c1360e37ccd1262acc8c41fb748a86042ccf144933e42d6fc61d30c292c7395/broker-manager", "authority-f1e816ca463107aed34cc3c5153e3e9c45fdc34c30a9b9031079277a90c40311/broker-manager", "authority-960487f4ddffee0763bb3cd6cb9a6cb1806c62bd12558cdaf37b5e466d6dbb91/authority-7b3ddbedfd8a9319eb94e8065472ce6db4fa54cb2c051beedf0eef97d734c619", "authority-960487f4ddffee0763bb3cd6cb9a6cb1806c62bd12558cdaf37b5e466d6dbb91/broker-manager", "authority-7cc28c78a6086001dcca22454467e4df592dfc9f2dcce9301a1b016e248c1364/broker-manager", "authority-925f371f5fcbe27e6ad46b31f022ae02c59333eebaaba7889c8d80d4427d4f88/broker-manager", "authority-469c0f99a078f783294209ee459f3c4a94a35d451e349827ecd78b73f70c8fcf/broker-manager", "authority-f368d1e31637f52d9a87ca39fd64901045bbe127019ede7d84c9ab2f74c21d23/broker-manager", "authority-3e97d545e70a59ac71fba96715a9cef482d34f642116f8431a23806bdfe24456/broker-manager", "authority-d677ee353a9ef2369b70df5d134f563aa0a8da3669423ecb0a627b298fe4ffa0/broker-manager", "authority-554ce05f5783e593fc8289141704eac28eac2aea8afe759b20d5fc94923abbbc/broker-manager", "authority-554ce05f5783e593fc8289141704eac28eac2aea8afe759b20d5fc94923abbbc/authority-1f8af52d7eecc4e8ad5bd0427afe8643a68ebe8d067629f32637b71ca58933eb", "authority-1fee5c56166abb81c926101f7c3e0586a5c187d8117bfedb14fee1e12dc6ebb1/broker-manager", "authority-f1678f841c20d524ef53e55d6f6e874a112772bc1a448ebf777fbc1177a097de/broker-manager", "authority-19160f1f7d364da4d7356f745021ca77193ba2ae251f4a89ca55029bad8a8eb5/broker-manager", "authority-e513884e76bc0d353eaf74cc04a7c1f062aaeef4444b7c799065f7b39e4b6529/broker-manager", "authority-6fcb07e365d2bc3d0428fe5938a9c09bee7840f959fb872129d48c2499c6b19b/broker-manager", "authority-b4c4f564542e9e2d747e265f141dcba9ffbb7f1a0ace96d1395de9e9563ce355/broker-manager", "authority-bdd9b2a9f52207efdf637960e4358e90cd83ca11a83765d18c7c24002f781f0a/broker-manager", "authority-91895803ddb563832a2249f05b003d0e91a9e33ff053f4074b877e212695c85b/broker-manager", "authority-8eb50b5588a6c849e926235a668d7a3e98201f7c945d1c6c489ed5f77ff68097/authority-1b75cc8ee3390fe1a6d25c528e8060d82d3c6801c29c27752a12cbb2adab243b", "authority-8eb50b5588a6c849e926235a668d7a3e98201f7c945d1c6c489ed5f77ff68097/broker-manager", "authority-d951389134ce4af93ef81fdf604eee778dff954ca98dfee01f1ae30ce5484ef0/authority-73d1025839a174e215b3d2143e20849c55e97d9e432d5b1d0c5c9047869a4820", "authority-d951389134ce4af93ef81fdf604eee778dff954ca98dfee01f1ae30ce5484ef0/broker-manager", "authority-38afc9b199cee69e48c13c5b648169da162b47a3ed23a628658b32dd38a05bd5/broker-manager", "authority-24060ff747b348e27b4f8cf6d137fc033ecef87944a25a6074bea6ef46a1b000/broker-manager", "authority-7a153a6058c8fcbb15d662a340037a1493deb3259309eb2c00d10bcadcfe1005/broker-manager", "authority-ebd3282c29310fccf1a01704e440313bf4a9d3fdf6a9a2ce8399f4f42e88cd00/broker-manager", "authority-0cbced30e461eff60e9fd834ac700f1f82a795386f6623fc49203d492547f8ec/broker-manager", "authority-04345838becd73768896d7873ad1f8599a31e42686e1c0614d4d9f3212790da3/broker-manager", "authority-3acf6188930029a7de74d5041aab284c33250d70c8cf88caadee1b2e6f7bb256/broker-manager", "authority-ea47f126b33db3d7e6b3e165614772fabf73d7518ed2b78c8c40bd10ab4c98bc/broker-manager", "authority-4d7d90379825b87a390f6dd7d0592a37253800f4089d5009c9d9592c6e74e171/broker-manager", "authority-357e01bb0a053171b4ba521eb12eb5de6ffe2b12c7409c5f49e89183f7f2db68/broker-manager", "authority-8348eb4e48375f56853dea18898eb0ad473e22490928ec74e69f661234b4211d/broker-manager", "authority-6ce7058f0f9fe11b60c4dea3afa02e9021e058205ea0e2a8d5361013df4289af/broker-manager", "authority-ca9fc6df738f6d32d9cc986237934a322fb1894b2a11bfb7d13a534b3830c45f/broker-manager", "authority-0a47b549d867c3763a532f11b3894593a52ed8a5a831f52f67c4d9fb97b4d1a4/broker-manager", "authority-aace57d3e9a7a4ee648f93f4f0e716c1929aca88881dcc75ec4bd4b264718e9e/broker-manager", "authority-e019e45b2620b9659744d8c3325d6792a111141e8109b9c09ea8e7829e2a7de1/broker-manager", "authority-67e568b2caf0b16ef7583f2dd159e1a77812ffe12384c69901d601a59f96d0e9/broker-manager", "authority-b1f38adcc6d79aeaf54731327e761273e6b1c061d10c0d11cab041b3f8a0b216/broker-manager", "authority-65e517d43e0ce6414da4a178e99a4fc685b505cbffc16fd4b7e2494555476f04/broker-manager", "authority-d22eed74a18bd8db250d50b15dde1625599deecf754d0a0224761dfe164e3b15/broker-manager", "authority-8cbd78e34cfe7131f74c7a990a76506d01417b0f762473fb0601289d58fdee64/broker-manager", "authority-2c0f571f1b39c677d518fcdb96966dc3685085a78fafbdbee44789e7650e8ddb/broker-manager", "authority-67c8908c581bf474d70ccb5416e0469db59e2a515539e990a423ecb812076512/broker-manager", "authority-c553995699e0d0da8153761cec0c7fdd861a5aa7445af9a0dc7a55e72c9f0514/broker-manager", "authority-2991cc6ddf99fc54b7accca661575833b505f1bf12d265daa9d98059211b54c9/broker-manager", "authority-687ecce6540984940773a425cc4064e84e8c9547a36ff50da2c94f4cea9538c0/broker-manager", "authority-dd078de354670832eaff815902cb69e02929a42d251c34ab473373e5f23d51ff/broker-manager", "authority-7d4739f8d4fa43d6a99530c4a70d1552af9c54159d673a5ecbbb983672fd38c2/authority-9dabf009ce6a5225802053b8911e533023c33b8432b6a4579be0632d85738b54", "authority-7d4739f8d4fa43d6a99530c4a70d1552af9c54159d673a5ecbbb983672fd38c2/broker-manager", "authority-07b7df232303a2986e609b54b8e84df436eb1a9986f04cde19aba11accac1998/broker-manager", "authority-77534c2269509ef71fe197fb9cd7fd60f80f7eac7bdad74e7eb743acf2496b8b/broker-manager", "authority-cd2a7208de7a1224b72363c77f193d17ac518fa74e1ee10e9c4364c8e5b2c71d/broker-manager", "authority-e19bf6ac6ecf740014265b17e374710823552fe851039693b2fa7e94b53aa4f8/broker-manager", "authority-012bdea74a6d0d2f8a037b1e26c9fbdd32a5e90a6c5fcf4d96490a4a9081b72f/broker-manager", "authority-90fc439c5e2d736e89c9e43b52249a124fcc4fd9adff93abb981d675732371c5/broker-manager", "authority-1e945149778c34f5069cb0c023e3a4d07992c8cf3452538e17ffe8bc5eb2548e/broker-manager", "authority-6b9e415e1a1b283fe9af73cb2f6221ad1fe5456b959cd082670f6cea7dcd2195/broker-manager", "authority-e5ed935ce5d8ad75cd6dac17147543e560d23457c52e2a2bbfc27222371c8f40/broker-manager", "authority-2a06a97ea13b21506e8a12bd1e820990ec178ca4d3ac37f59888b51150d8453e/broker-manager", "authority-3b09a4b21e6072940a44c90e28f5703657fe7d3816608d7e7002f6365f9f8255/authority-450f63bf664631a0d89bb2581509200ab990187ed515518d3ecfb7512fe944e0", "authority-3b09a4b21e6072940a44c90e28f5703657fe7d3816608d7e7002f6365f9f8255/broker-manager", "authority-eadc50f76df49b5b68182d7a7ef7ed058feeb188519a7f8f884aac1b1048b447/broker-manager", "authority-ec2a78dc9f2ab7bfe8ec4a5e5baad14889d0562f8a862e6af3f9d18bfb9bd20e/broker-manager", "authority-53bfe03dc78d51fd513116a469793ee88c4019445933d62fc1fcc6e777f2b2dc/authority-60cde7e7f812b8a9ed3cfa389788bb14250cb21cdf93cf9842e170863de1aa15", "authority-53bfe03dc78d51fd513116a469793ee88c4019445933d62fc1fcc6e777f2b2dc/broker-manager", "authority-0e35821dbec6d4712edb29885b7532eb6afb5b78c486e41bbff36eebb513eed9/authority-f0cdb747f0a9fea06b91eb993766b7c7897464f4346156ce6a84ab1dc086ebed", "authority-0e35821dbec6d4712edb29885b7532eb6afb5b78c486e41bbff36eebb513eed9/broker-manager", "authority-81fc94794b0d6db47f9e8bfdd7726c8e9f694a179cf239b5c7d6cae0b643bc17/broker-manager", "authority-61d91dd59fec5add567e69478ffb4d24a7342ef555dccaecd8dbc994c6f010f9/broker-manager", "authority-539b387aa9da596fcb081705105cbb82d9224d574c1630a177815340543b2315/broker-manager", "authority-539b387aa9da596fcb081705105cbb82d9224d574c1630a177815340543b2315/authority-a1d9c77b76395fac4d53c65913932dfe3fe224a4d4675e01759dd149493b4365", "authority-eb4eaa347791f463bacc93879a69f6ba9526a97fe22b9b25d4d9cac17b0d1413/broker-manager", "authority-7d9b88c34196a5157579ada23b6cba214528fdafd49670ec684f43e377a8a2b9/broker-manager", "authority-01699e3ac056d61de2f4d0bd895fa7d49c326ae620b8ac7bcaeef74116df1ca5/broker-manager", "authority-c528d87c9bb0c0556491bea9abab4395c9b8f668d7a41a1a9c97e3c96563a7b5/broker-manager", "authority-5f714ab5e50f008138893b25befac5ecdea627ac04dc32358cade93d44025725/broker-manager", "authority-f3c57a76075d3c7113711fcd2bbca570d68db2f49ad57858742625ed4b851545/authority-6954ee5870e346e5183fe95d5dc7a2af7534ff017c7a667922d1d9e83ae91289", "authority-f3c57a76075d3c7113711fcd2bbca570d68db2f49ad57858742625ed4b851545/broker-manager", "authority-f1c5ee1b4a8a03277cc66150db7c3ec14cf810bbf5327728d5f8e7fedf961eac/broker-manager", "authority-ebba28354ce0f4d0a2afff9d1d029b8967aa17b748175ec1f1208e25da7a18a0/broker-manager", "authority-b33ba3e5af1bfd9afa8d36cdc5cdba575b26227a8f87b068cf18dcdf96785c78/broker-manager", "authority-f09a9df9251da451bff5e1515d02930d33dfd145173f51b83cbf40a308d8e826/broker-manager", "authority-d3eeb2e079194978342f2a073184d5fbfaed2211a257ac63239fe92ecd7aa5e2/broker-manager", "authority-bc076cfa1a4fe81aa4bc422e7bb37667c62040b25ec095b377806b75cd3bf0c6/broker-manager", "authority-1d618be0661e67c714391accc3c9bff9b52a2da1499f00f48f783dd80750fb04/broker-manager", "authority-fc859ba616f9ae7be9eace066eea9120ec21a02b7d9e36076291509f85c265e9/broker-manager", "authority-0250ed28ca1e1d9cd6f528234d886f925e8b4e6e953eeebc116d9efe670dff40/broker-manager", "authority-d4e38a6cacb186b2831d3888943e1020164e59ea372826325b2fa6dfa7fdfe09/authority-c2f255febf393533d26b3bd0c0d383f50248a2e8114b139b2727b69ba01e785d", "authority-d4e38a6cacb186b2831d3888943e1020164e59ea372826325b2fa6dfa7fdfe09/broker-manager", "authority-1fe824658c42a93de7adbaac7570f4d997da14e6081b0aded38f36f93f45a628/broker-manager", "authority-24ac01bf6342c0d93a114cf8e6c1fd489dea8a7e3127a6b7b01ef5a825a8c95b/broker-manager", "authority-fc67b22059b80bb0298895fdd9e0f2ef138bf54769b7818ede855959ce3f5ca3/broker-manager", "authority-66bf96595f60b1e85c10aba0f2ff927d04e9c4a133857a0a8a9004074c9a5794/broker-manager", "authority-c9038fa0ab8ad776b0975a4583ffce0304ea43cc991096ce1c3d924b45dfa890/authority-c29fdcd1d3c3aaca26655cb0ce999b4bbe76bcf0c83ab29bb9f1cc70eba6ec98", "authority-c9038fa0ab8ad776b0975a4583ffce0304ea43cc991096ce1c3d924b45dfa890/broker-manager", "authority-4514332889563de9b5fb55518f6882bc20d83f6d129b6482b16f509a2dec927c/broker-manager", "authority-fd0ce70fa87ed4a6a85a20898f3ccfc362c7f6ebc4996828e922169a92d81b60/broker-manager", "authority-fd0ce70fa87ed4a6a85a20898f3ccfc362c7f6ebc4996828e922169a92d81b60/authority-683cd70ca2729f850cc545566ee2664d0c30e8f5139ed09bab64b5414e15762e", "authority-339941c01d1fcca183a021c93a03df52c01064d67efea6a3de2102464c97bbd1/broker-manager", "authority-97dfd885cb364c7c5e6798a1c88acd08653f410789b0f0ea817772a7eb744e76/broker-manager", "authority-bb0d9deb1b60be9de84d59e738290bef3f45a6044d6a8c0d5088ec687f593962/broker-manager", "authority-2fdf491b9f1a6c87e87a9f684c7cdf8ddbee0fe4e9b85e074e6c4d792b858dfe/broker-manager", "authority-2c7b59bddc965e004453df7e3c18ac568b146bffca4ec404ac6667366f121e71/authority-4ade30de4ea605399d6f4bc6e5d2889ab3befbe6c52db897771a066e170682fe", "authority-2c7b59bddc965e004453df7e3c18ac568b146bffca4ec404ac6667366f121e71/broker-manager", "authority-39a8a3c620e2f583677f84842c79b1ffbfced094b70f7cb8ac969bfbaef526b1/broker-manager", "authority-736997f16d4d1e41faf11b780249983fec13d5abe2ecd2e4393963caf4e04dc6/authority-409187413188ec82b3e38376c6ee45bfa45fb6c1b4af6b4b559a025c7b5e7631", "authority-736997f16d4d1e41faf11b780249983fec13d5abe2ecd2e4393963caf4e04dc6/broker-manager", "authority-c39aacd7887a42036570b6a7a1332ba9ee4a21c21b935c01151f9afa78bf5f17/broker-manager", "authority-067d5c6730aea967ab373134ec5dabfbef5db10adc1348b0c3e14c77b5f8d6e2/broker-manager", "authority-24365400f5210d05dce139eb6dc9f3f888b428b490bdc30d52ff7b4e90e17713/broker-manager", "authority-e03a08d973027aa5ca2055af6dcaa4779b07a16f8867b98b9f62be234fad953a/broker-manager", "authority-2f28197df60374a964c981013f8bef6fb07cb586aae31996985c7d73062d15ea/broker-manager", "authority-7784b8809b04a07be60ec0e8ef28108e301a5c27cf80de66729dc04d5541cdcf/broker-manager", "authority-6535e9be8963eedeacdefbc70b11d74d767e0626cd3cc17415940a311f34940f/broker-manager", "authority-16bee2a83c2874213428e1ad1b06881cd73d95470501511464d7d12f7561dc98/broker-manager", "authority-9665dd4cea938419b4631870b398842f077929a4985beea935f484beb7ffae84/broker-manager", "authority-2a0316a6306267e08ca37839960780669757fadd23c4aede01a0ac0fa6c1b242/broker-manager", "authority-2a0316a6306267e08ca37839960780669757fadd23c4aede01a0ac0fa6c1b242/authority-c6f2414ed66d47662834dd4bbe36f9b1d748b524c0a845e5da174407f7e3c3f7", "authority-e604685b7c8bd8e18d0b859690f14b3697506cfd5bab6efe17976b5270135587/broker-manager", "authority-d66ef0ea701c6cb4b5d47b536ed069138fd8ffce7ce0f04cc17bb052e1dc6c33/authority-c488369775fcce40bba93231484e0e1fa10c85acc3e746268634b6c8b4a69975", "authority-d66ef0ea701c6cb4b5d47b536ed069138fd8ffce7ce0f04cc17bb052e1dc6c33/broker-manager", "authority-f8afd546c9d66fc1fa8af6fb2f953e07edb54c33b5f879144414ba08f3376136/broker-manager", "authority-8ec7fff8d28aa970becca96493e48d719d34a01c4bc9d8b76afdbe1354988921/broker-manager", "authority-bd2774b7fd3a1fec271e0690fbd4708e454dbb9d8a1e0951bd061487d9b6ffed/broker-manager", "authority-11908c184fbd6886efa00dc87e17163ddbfde6ee85fecd52d258391a20b086bd/broker-manager", "authority-ddbc0f6783234d3ca6ecdd295e7967b2e28ba5cdecaef638c1bb30a3488dd3d1/broker-manager", "authority-ec3b53e5a95a351fd9956369f0594629a1d68d7c582a64f33bed048c891259ff/broker-manager", "authority-c5bfd0785c75e21904dc902f61a01f83283f122624ae7c91feb9a0759a03e933/broker-manager", "authority-16cf0abc5b1786f57d96b99792ae4969656f9a24d8971136f5ef3442a0aa8fd1/broker-manager", "authority-a73db1b9e0cd657d526281e7559f44a72e0b186b847ee9dcb98823fe943b92b4/broker-manager", "authority-e052e3ce9b7aa5888a0a85013de1abb58359a0ec5dee4a72aaaa1a5e6d7d2e3f/broker-manager", "authority-ddf41aea2e4069f0dafefb6a0941ed88dbd6917a7ca14cf9c8e97c6deca4e537/broker-manager", "authority-7dacb4df5d80228e3d5bf53c2d8fc6582d3dd4556f50a752baa6dfdb63d66612/broker-manager", "authority-ef0f82dba2c4f77fa3a3b843d6ce46b7670794bea2adb7f5b95ae069c5d90b1d/authority-2b80ca04d4112f8c48d65533bcf64bf0ae18670e974a4b6d77713d8ada169cdb", "authority-ef0f82dba2c4f77fa3a3b843d6ce46b7670794bea2adb7f5b95ae069c5d90b1d/broker-manager", "authority-d39d88ac9851d5cc64116bbbd9ea9416c864ce6ab0b3e8fbc90a63911995fcaf/broker-manager", "authority-f05c158a32cbd6adc4cce42e54be896869d828ea602d93a12e880c7dc68b08e5/broker-manager", "authority-ad541edd98117131e11ff43aa9f2b6f95c08a3b75e0261433b89927e80d18080/broker-manager", "authority-d743ec02e2286efb46a2f7953407c31c00b9048bd2886b93f7db81af416d927b/broker-manager", "authority-4df6918298f4911ed28e2b59543fc305941b8e8d8d44fb93de724e779e01e669/broker-manager", "authority-e5d4a7b7ef9a9b3abe693d7bc0971cada13aa976b1bbaba718c8601ab59481c4/authority-75620ee717ba8a1640baa83bbe2a9d11108327e585609864c66f005c4df31a88", "authority-e5d4a7b7ef9a9b3abe693d7bc0971cada13aa976b1bbaba718c8601ab59481c4/broker-manager", "authority-beb7f5aa1e33f8df43e9ee882ed0b2f534a9a8523ee9ff48d0eb1fd2f58d956d/authority-2a562a3e7113cffea6b28001856b3b0bec98d4620a71283f0d64cc654a4cf761", "authority-beb7f5aa1e33f8df43e9ee882ed0b2f534a9a8523ee9ff48d0eb1fd2f58d956d/broker-manager", "authority-23c23d8a6f51349f5661adae6e25251dc860b5b349c3911e0fb08bd7f70ba3d7/broker-manager", "authority-cb94ef8c230efb1aec2986f7525e04decf47ed276563ddbab4bfa92273590e9e/broker-manager", "authority-1b3c5a229481c509c96159d679157a949f7cbf99ad3257235e29d849b9abb2a3/broker-manager", "authority-74b9e9a0397625f16b0d7ed014938a9de74dc8986a0816dbc137c03c490374b8/broker-manager", "authority-2ea3660dba1867823c5115a26fc4d8e917de31e6fd672a8bddaf971348344a3c/broker-manager", "authority-96e6780294cb7de9c7a9f323cb19d26c81d604a93dc59ef5ff96b909c5c206f0/broker-manager", "authority-da84881e21d1a47e08f0f242d70ddfaeeeb044f07dcaefbb6c602ea54fa8bc58/broker-manager", "authority-e58d769f059bf82294feda6657a2e918a876ed644e5f53ecaec8df215b2e5eb5", "authority-11fb65d85b99fce65b7d0a122d179c2667709d32ebfd22edde6bcbb09da9778c", "authority-9f83ec1ebfa66bd9bc58f263706fafe48e94df99159717b2309b248a679f68b3", "authority-ee264bdd61008c666e70821d61bbaf95a9b5166d8d243a8f741b049984a2a661", "authority-0a5850aa2083dafca087e63e84c0d2380f5779cb2257a17a663e40a6010d9d56", "authority-6d846efc7166fd2c8814c25379b0f4202b3367ab6aa31d9420476e050e9a0a75", "authority-c68acfa1c6a2d4490b1fe256ecbf03c207e6a8e7ee816ae8aa64ec4a35af4518", "authority-a4bfd1a4782ae4427d72f2c463707be03421a974176fd17a1954fc4f253e290f", "authority-b563bae0b1352236a40ff770301f5312df97397a41956f62af34ef4dbe73aa08", "authority-498456eb495c245c13383a9251f875777dbaf7bc9bf161ee5238f37bb8cee65d", "authority-c9998e6698b132f841e8cc1fdddc2e1601470310182d4971c8133d2b3f4ad15d", "authority-866d2a2075c66f18bf846cb9c9b1cd31268c131cc49141a78aa11d8ca29d9362", "authority-d9016fe75c41c3e16f5736c43ea137f8a1e5401825a7c441163639076ff4ae0d", "authority-3ea444d40c62c454488c8aeb23220d0b9190300e47c2b4b0d31a5d729a79c349", "authority-1fed44cc36add4d86941bae7888724a2106da3b45603aa35e738f508e17e6954", "authority-2ff04ac8de3fa1856e77d99e13b056248bbedf93b6aacbef9628f8391c7be4bf", "authority-d35aa7b9f55a70684b898c4283fa847ff826735663db1ce62bace5ef2bcea73f", "authority-bd7d4e2ea1493f816e28b3d5d9b2e6adf5b0be8b7bcbb785135edabb151375a9", "authority-cd95afae23afbebf2677962683553ab96889fc119778112a571496a74af46876", "authority-9943e2c5db16a651f4306fcaf0f4b8aa4de5e0b178fbacf4dac455b6f6dbfaa8", "authority-3c0f27a38198f67c77cee806c46140b3b34903cfb8d1bfe5655de48ece7682ef", "authority-6e418f56d5d0b91479af75207f504603718387ccea5413e1bd97782b75fd8460", "authority-90085b0e92463a1c41f218f113067e884b8a5b9acecfa1149b0de4541855e455", "authority-241ee3f36b63ce76399b7befb395da6efb6f937ff17240cb1c8f6903e49b02c3", "authority-5b3b65aafe2e3d262f46d3bbe53aa293b8fa0e60876ec237a391f002bdb7a2d1", "authority-911bd419467bc939532c28fc17d6d05143497accb9bbf58a56e9b7058ab41681", "authority-c92affebba7c03b74c0d8edec7447139368e37aecb0440eb04e1d10583c44d71", "authority-bdb095968c2e9279b4c1d1f05f677814baced067c4ea6ed747c99b0d9eb7b114", "authority-80fbd921220bb65d87e255fc29c52e5109258ea0f1efd6132170499c6d5a613e", "authority-ed1a9ec9b578607d0e149bdee5fc80149133b6e85db4071e743bea85a4182934", "authority-3381b4b280e733c0a718115a54bfba675df018100da2781ff25d2f2c561832ba", "authority-7c1360e37ccd1262acc8c41fb748a86042ccf144933e42d6fc61d30c292c7395", "authority-f1e816ca463107aed34cc3c5153e3e9c45fdc34c30a9b9031079277a90c40311", "authority-960487f4ddffee0763bb3cd6cb9a6cb1806c62bd12558cdaf37b5e466d6dbb91", "authority-7cc28c78a6086001dcca22454467e4df592dfc9f2dcce9301a1b016e248c1364", "authority-925f371f5fcbe27e6ad46b31f022ae02c59333eebaaba7889c8d80d4427d4f88", "authority-469c0f99a078f783294209ee459f3c4a94a35d451e349827ecd78b73f70c8fcf", "authority-f368d1e31637f52d9a87ca39fd64901045bbe127019ede7d84c9ab2f74c21d23", "authority-3e97d545e70a59ac71fba96715a9cef482d34f642116f8431a23806bdfe24456", "authority-d677ee353a9ef2369b70df5d134f563aa0a8da3669423ecb0a627b298fe4ffa0", "authority-554ce05f5783e593fc8289141704eac28eac2aea8afe759b20d5fc94923abbbc", "authority-1fee5c56166abb81c926101f7c3e0586a5c187d8117bfedb14fee1e12dc6ebb1", "authority-f1678f841c20d524ef53e55d6f6e874a112772bc1a448ebf777fbc1177a097de", "authority-19160f1f7d364da4d7356f745021ca77193ba2ae251f4a89ca55029bad8a8eb5", "authority-e513884e76bc0d353eaf74cc04a7c1f062aaeef4444b7c799065f7b39e4b6529", "authority-6fcb07e365d2bc3d0428fe5938a9c09bee7840f959fb872129d48c2499c6b19b", "authority-b4c4f564542e9e2d747e265f141dcba9ffbb7f1a0ace96d1395de9e9563ce355", "authority-bdd9b2a9f52207efdf637960e4358e90cd83ca11a83765d18c7c24002f781f0a", "authority-91895803ddb563832a2249f05b003d0e91a9e33ff053f4074b877e212695c85b", "authority-8eb50b5588a6c849e926235a668d7a3e98201f7c945d1c6c489ed5f77ff68097", "authority-d951389134ce4af93ef81fdf604eee778dff954ca98dfee01f1ae30ce5484ef0", "authority-38afc9b199cee69e48c13c5b648169da162b47a3ed23a628658b32dd38a05bd5", "authority-24060ff747b348e27b4f8cf6d137fc033ecef87944a25a6074bea6ef46a1b000", "authority-7a153a6058c8fcbb15d662a340037a1493deb3259309eb2c00d10bcadcfe1005", "authority-ebd3282c29310fccf1a01704e440313bf4a9d3fdf6a9a2ce8399f4f42e88cd00", "authority-0cbced30e461eff60e9fd834ac700f1f82a795386f6623fc49203d492547f8ec", "authority-04345838becd73768896d7873ad1f8599a31e42686e1c0614d4d9f3212790da3", "authority-3acf6188930029a7de74d5041aab284c33250d70c8cf88caadee1b2e6f7bb256", "authority-ea47f126b33db3d7e6b3e165614772fabf73d7518ed2b78c8c40bd10ab4c98bc", "authority-4d7d90379825b87a390f6dd7d0592a37253800f4089d5009c9d9592c6e74e171", "authority-357e01bb0a053171b4ba521eb12eb5de6ffe2b12c7409c5f49e89183f7f2db68", "authority-8348eb4e48375f56853dea18898eb0ad473e22490928ec74e69f661234b4211d", "authority-6ce7058f0f9fe11b60c4dea3afa02e9021e058205ea0e2a8d5361013df4289af", "authority-ca9fc6df738f6d32d9cc986237934a322fb1894b2a11bfb7d13a534b3830c45f", "authority-0a47b549d867c3763a532f11b3894593a52ed8a5a831f52f67c4d9fb97b4d1a4", "authority-aace57d3e9a7a4ee648f93f4f0e716c1929aca88881dcc75ec4bd4b264718e9e", "authority-e019e45b2620b9659744d8c3325d6792a111141e8109b9c09ea8e7829e2a7de1", "authority-67e568b2caf0b16ef7583f2dd159e1a77812ffe12384c69901d601a59f96d0e9", "authority-b1f38adcc6d79aeaf54731327e761273e6b1c061d10c0d11cab041b3f8a0b216", "authority-65e517d43e0ce6414da4a178e99a4fc685b505cbffc16fd4b7e2494555476f04", "authority-d22eed74a18bd8db250d50b15dde1625599deecf754d0a0224761dfe164e3b15", "authority-8cbd78e34cfe7131f74c7a990a76506d01417b0f762473fb0601289d58fdee64", "authority-2c0f571f1b39c677d518fcdb96966dc3685085a78fafbdbee44789e7650e8ddb", "authority-67c8908c581bf474d70ccb5416e0469db59e2a515539e990a423ecb812076512", "authority-c553995699e0d0da8153761cec0c7fdd861a5aa7445af9a0dc7a55e72c9f0514", "authority-2991cc6ddf99fc54b7accca661575833b505f1bf12d265daa9d98059211b54c9", "authority-687ecce6540984940773a425cc4064e84e8c9547a36ff50da2c94f4cea9538c0", "authority-dd078de354670832eaff815902cb69e02929a42d251c34ab473373e5f23d51ff", "authority-7d4739f8d4fa43d6a99530c4a70d1552af9c54159d673a5ecbbb983672fd38c2", "authority-07b7df232303a2986e609b54b8e84df436eb1a9986f04cde19aba11accac1998", "authority-77534c2269509ef71fe197fb9cd7fd60f80f7eac7bdad74e7eb743acf2496b8b", "authority-cd2a7208de7a1224b72363c77f193d17ac518fa74e1ee10e9c4364c8e5b2c71d", "authority-e19bf6ac6ecf740014265b17e374710823552fe851039693b2fa7e94b53aa4f8", "authority-012bdea74a6d0d2f8a037b1e26c9fbdd32a5e90a6c5fcf4d96490a4a9081b72f", "authority-90fc439c5e2d736e89c9e43b52249a124fcc4fd9adff93abb981d675732371c5", "authority-1e945149778c34f5069cb0c023e3a4d07992c8cf3452538e17ffe8bc5eb2548e", "authority-6b9e415e1a1b283fe9af73cb2f6221ad1fe5456b959cd082670f6cea7dcd2195", "authority-e5ed935ce5d8ad75cd6dac17147543e560d23457c52e2a2bbfc27222371c8f40", "authority-2a06a97ea13b21506e8a12bd1e820990ec178ca4d3ac37f59888b51150d8453e", "authority-3b09a4b21e6072940a44c90e28f5703657fe7d3816608d7e7002f6365f9f8255", "authority-eadc50f76df49b5b68182d7a7ef7ed058feeb188519a7f8f884aac1b1048b447", "authority-ec2a78dc9f2ab7bfe8ec4a5e5baad14889d0562f8a862e6af3f9d18bfb9bd20e", "authority-53bfe03dc78d51fd513116a469793ee88c4019445933d62fc1fcc6e777f2b2dc", "authority-0e35821dbec6d4712edb29885b7532eb6afb5b78c486e41bbff36eebb513eed9", "authority-81fc94794b0d6db47f9e8bfdd7726c8e9f694a179cf239b5c7d6cae0b643bc17", "authority-61d91dd59fec5add567e69478ffb4d24a7342ef555dccaecd8dbc994c6f010f9", "authority-539b387aa9da596fcb081705105cbb82d9224d574c1630a177815340543b2315", "authority-eb4eaa347791f463bacc93879a69f6ba9526a97fe22b9b25d4d9cac17b0d1413", "authority-7d9b88c34196a5157579ada23b6cba214528fdafd49670ec684f43e377a8a2b9", "authority-01699e3ac056d61de2f4d0bd895fa7d49c326ae620b8ac7bcaeef74116df1ca5", "authority-c528d87c9bb0c0556491bea9abab4395c9b8f668d7a41a1a9c97e3c96563a7b5", "authority-5f714ab5e50f008138893b25befac5ecdea627ac04dc32358cade93d44025725", "authority-f3c57a76075d3c7113711fcd2bbca570d68db2f49ad57858742625ed4b851545", "authority-f1c5ee1b4a8a03277cc66150db7c3ec14cf810bbf5327728d5f8e7fedf961eac", "authority-ebba28354ce0f4d0a2afff9d1d029b8967aa17b748175ec1f1208e25da7a18a0", "authority-b33ba3e5af1bfd9afa8d36cdc5cdba575b26227a8f87b068cf18dcdf96785c78", "authority-f09a9df9251da451bff5e1515d02930d33dfd145173f51b83cbf40a308d8e826", "authority-d3eeb2e079194978342f2a073184d5fbfaed2211a257ac63239fe92ecd7aa5e2", "authority-bc076cfa1a4fe81aa4bc422e7bb37667c62040b25ec095b377806b75cd3bf0c6", "authority-1d618be0661e67c714391accc3c9bff9b52a2da1499f00f48f783dd80750fb04", "authority-fc859ba616f9ae7be9eace066eea9120ec21a02b7d9e36076291509f85c265e9", "authority-0250ed28ca1e1d9cd6f528234d886f925e8b4e6e953eeebc116d9efe670dff40", "authority-d4e38a6cacb186b2831d3888943e1020164e59ea372826325b2fa6dfa7fdfe09", "authority-1fe824658c42a93de7adbaac7570f4d997da14e6081b0aded38f36f93f45a628", "authority-24ac01bf6342c0d93a114cf8e6c1fd489dea8a7e3127a6b7b01ef5a825a8c95b", "authority-fc67b22059b80bb0298895fdd9e0f2ef138bf54769b7818ede855959ce3f5ca3", "authority-66bf96595f60b1e85c10aba0f2ff927d04e9c4a133857a0a8a9004074c9a5794", "authority-c9038fa0ab8ad776b0975a4583ffce0304ea43cc991096ce1c3d924b45dfa890", "authority-4514332889563de9b5fb55518f6882bc20d83f6d129b6482b16f509a2dec927c", "authority-fd0ce70fa87ed4a6a85a20898f3ccfc362c7f6ebc4996828e922169a92d81b60", "authority-339941c01d1fcca183a021c93a03df52c01064d67efea6a3de2102464c97bbd1", "authority-97dfd885cb364c7c5e6798a1c88acd08653f410789b0f0ea817772a7eb744e76", "authority-bb0d9deb1b60be9de84d59e738290bef3f45a6044d6a8c0d5088ec687f593962", "authority-2fdf491b9f1a6c87e87a9f684c7cdf8ddbee0fe4e9b85e074e6c4d792b858dfe", "authority-2c7b59bddc965e004453df7e3c18ac568b146bffca4ec404ac6667366f121e71", "authority-39a8a3c620e2f583677f84842c79b1ffbfced094b70f7cb8ac969bfbaef526b1", "authority-736997f16d4d1e41faf11b780249983fec13d5abe2ecd2e4393963caf4e04dc6", "authority-c39aacd7887a42036570b6a7a1332ba9ee4a21c21b935c01151f9afa78bf5f17", "authority-067d5c6730aea967ab373134ec5dabfbef5db10adc1348b0c3e14c77b5f8d6e2", "authority-24365400f5210d05dce139eb6dc9f3f888b428b490bdc30d52ff7b4e90e17713", "authority-e03a08d973027aa5ca2055af6dcaa4779b07a16f8867b98b9f62be234fad953a", "authority-2f28197df60374a964c981013f8bef6fb07cb586aae31996985c7d73062d15ea", "authority-7784b8809b04a07be60ec0e8ef28108e301a5c27cf80de66729dc04d5541cdcf", "authority-6535e9be8963eedeacdefbc70b11d74d767e0626cd3cc17415940a311f34940f", "authority-16bee2a83c2874213428e1ad1b06881cd73d95470501511464d7d12f7561dc98", "authority-9665dd4cea938419b4631870b398842f077929a4985beea935f484beb7ffae84", "authority-2a0316a6306267e08ca37839960780669757fadd23c4aede01a0ac0fa6c1b242", "authority-e604685b7c8bd8e18d0b859690f14b3697506cfd5bab6efe17976b5270135587", "authority-d66ef0ea701c6cb4b5d47b536ed069138fd8ffce7ce0f04cc17bb052e1dc6c33", "authority-f8afd546c9d66fc1fa8af6fb2f953e07edb54c33b5f879144414ba08f3376136", "authority-8ec7fff8d28aa970becca96493e48d719d34a01c4bc9d8b76afdbe1354988921", "authority-bd2774b7fd3a1fec271e0690fbd4708e454dbb9d8a1e0951bd061487d9b6ffed", "authority-11908c184fbd6886efa00dc87e17163ddbfde6ee85fecd52d258391a20b086bd", "authority-ddbc0f6783234d3ca6ecdd295e7967b2e28ba5cdecaef638c1bb30a3488dd3d1", "authority-ec3b53e5a95a351fd9956369f0594629a1d68d7c582a64f33bed048c891259ff", "authority-c5bfd0785c75e21904dc902f61a01f83283f122624ae7c91feb9a0759a03e933", "authority-16cf0abc5b1786f57d96b99792ae4969656f9a24d8971136f5ef3442a0aa8fd1", "authority-a73db1b9e0cd657d526281e7559f44a72e0b186b847ee9dcb98823fe943b92b4", "authority-e052e3ce9b7aa5888a0a85013de1abb58359a0ec5dee4a72aaaa1a5e6d7d2e3f", "authority-ddf41aea2e4069f0dafefb6a0941ed88dbd6917a7ca14cf9c8e97c6deca4e537", "authority-7dacb4df5d80228e3d5bf53c2d8fc6582d3dd4556f50a752baa6dfdb63d66612", "authority-ef0f82dba2c4f77fa3a3b843d6ce46b7670794bea2adb7f5b95ae069c5d90b1d", "authority-d39d88ac9851d5cc64116bbbd9ea9416c864ce6ab0b3e8fbc90a63911995fcaf", "authority-f05c158a32cbd6adc4cce42e54be896869d828ea602d93a12e880c7dc68b08e5", "authority-ad541edd98117131e11ff43aa9f2b6f95c08a3b75e0261433b89927e80d18080", "authority-d743ec02e2286efb46a2f7953407c31c00b9048bd2886b93f7db81af416d927b", "authority-4df6918298f4911ed28e2b59543fc305941b8e8d8d44fb93de724e779e01e669", "authority-e5d4a7b7ef9a9b3abe693d7bc0971cada13aa976b1bbaba718c8601ab59481c4", "authority-beb7f5aa1e33f8df43e9ee882ed0b2f534a9a8523ee9ff48d0eb1fd2f58d956d", "authority-23c23d8a6f51349f5661adae6e25251dc860b5b349c3911e0fb08bd7f70ba3d7", "authority-cb94ef8c230efb1aec2986f7525e04decf47ed276563ddbab4bfa92273590e9e", "authority-1b3c5a229481c509c96159d679157a949f7cbf99ad3257235e29d849b9abb2a3", "authority-74b9e9a0397625f16b0d7ed014938a9de74dc8986a0816dbc137c03c490374b8", "authority-2ea3660dba1867823c5115a26fc4d8e917de31e6fd672a8bddaf971348344a3c", "authority-96e6780294cb7de9c7a9f323cb19d26c81d604a93dc59ef5ff96b909c5c206f0", "authority-da84881e21d1a47e08f0f242d70ddfaeeeb044f07dcaefbb6c602ea54fa8bc58"], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service/adapter-d8bc576d0d684c4e95cbc9cc7c359b6e\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-test-host\"]", "--report", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-phase-gate-01/Debug/P10.json"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1min 12.624s
+CPU time consumed: 52.970s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service: Unit spatial-m03-resources-9d33ef8f6f6947efb547b6578ecd50e0.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

@@ -30,6 +30,10 @@ void validate_render_config(const wire::RenderConfig& value) {
     if (value.has_object_size()) require(value.object_size() > 0 && value.object_size() <= 1000, "Invalid object size");
     if (value.has_object_color()) require(value.object_color().red() <= 255 && value.object_color().green() <= 255 &&
                                           value.object_color().blue() <= 255, "Invalid object color");
+    if (value.has_actor_size()) require(std::isfinite(value.actor_size()) && value.actor_size() > 0 &&
+                                        value.actor_size() <= 1000, "Invalid actor size");
+    if (value.has_actor_color()) require(value.actor_color().red() <= 255 && value.actor_color().green() <= 255 &&
+                                         value.actor_color().blue() <= 255, "Invalid actor color");
 }
 void validate_render_extent(std::uint32_t width, std::uint32_t height) {
     require(width > 0 && height > 0 && width <= 4096 && height <= 4096 &&
@@ -51,6 +55,7 @@ wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire:
         else if (entity.kind() == wire::BARRIER) *result.add_barriers() = entity;
         else if (entity.kind() == wire::PORTAL) *result.add_portals() = entity;
         else if (entity.kind() == wire::OBJECT) *result.add_objects() = entity;
+        else if (entity.kind() == wire::ACTOR && entity.id() != actor.id()) *result.add_actors() = entity;
     }
     return result;
 }
@@ -197,6 +202,21 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
         auto converted = scene_panels(single);
         for (auto& face : converted) {
             face.representation.set_kind(wire::OBJECT); face.representation.set_generation(object.revision());
+            result.push_back(std::move(face));
+        }
+    }
+    for (const auto& actor : scene.actors()) {
+        require(actor.kind() == wire::ACTOR && actor.has_pose(), "Invalid scene actor");
+        wire::RenderScene single;
+        *single.mutable_camera() = scene.camera(); *single.mutable_config() = scene.config();
+        auto* marker = single.add_objects(); *marker = actor; marker->set_kind(wire::OBJECT);
+        single.mutable_config()->set_object_size(scene.config().has_actor_size() ? scene.config().actor_size() : .4);
+        auto* color = single.mutable_config()->mutable_object_color();
+        if (scene.config().has_actor_color()) *color = scene.config().actor_color();
+        else { color->set_red(96); color->set_green(176); color->set_blue(224); }
+        auto converted = scene_panels(single);
+        for (auto& face : converted) {
+            face.representation.set_kind(wire::ACTOR);
             result.push_back(std::move(face));
         }
     }

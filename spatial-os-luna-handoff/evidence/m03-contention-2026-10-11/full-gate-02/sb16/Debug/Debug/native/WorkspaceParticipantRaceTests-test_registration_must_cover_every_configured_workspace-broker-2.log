@@ -1,0 +1,2 @@
+authority participant failed: code=1 request=0 stage=identity_check cause=Registered authority domains or identity do not match runtime
+workspaced: Workspace participation is unavailable

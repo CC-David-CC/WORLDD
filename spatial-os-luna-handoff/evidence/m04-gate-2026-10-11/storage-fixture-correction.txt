@@ -1,0 +1,27 @@
+M04 storage fixture path correction
+
+Frozen candidate f74c6b5 fails sb16 Debug suites session-storage-owner and session-storage-contention.
+The root helper rejects the gate worktree before it creates any storage volume.
+Its fixed path permits only the original checkout's local directory.
+Read sb16-debug-storage-setup-failure.log for the extracted raw CTest failure lines.
+The full raw log remains in the gate's Debug/core.log on sb16.
+
+Correction: derive the permitted local directory from this helper's resolved source path.
+Retain the resolved-target containment check, test-name prefix, root UID, and authorized-host checks.
+Do not widen the boundary to the parent source directory or an environment-selected path.
+No acceptance assertion or production policy changes.
+
+Selected path regression checks execute the actual helper's AST guard statements.
+They do not mount volumes or execute privileged filesystem operations.
+Both sb16 and sb16-2 pass these six checks:
+Valid frozen worktree; sibling checkout rejection; outside-local rejection;
+wrong-prefix rejection; local-root rejection; resolved symlink-escape rejection.
+Read check-volume-root.py for the executed check.
+
+Selected integration regressions, still unrun with the corrected helper:
+session-storage-owner and session-storage-contention, Debug and ASan/UBSan on both hosts.
+These must exercise real storage preparation, ownership, revocation, contention, and cleanup.
+Keep the ongoing f74c6b5 runs intact and preserve all their results.
+Use an isolated corrected checkout for the focused rerun after each host's gate finishes.
+Reassess source hashes and affected evidence explicitly before any gate approval.
+The original gate failures must remain visible. M04 is not complete.

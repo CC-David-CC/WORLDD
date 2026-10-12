@@ -1,0 +1,239 @@
+{
+  "status": "reviewed_focused_native_checks_passed",
+  "milestone": "M03",
+  "milestone_complete": false,
+  "reviewer": "Primary agent",
+  "base_commit": "3190927a6693d975ccba480903e6ef0f0fa702bc",
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "95c846278157ec8b0535744119c2db0305f98017952d12ba04e6f13a34304b37",
+      "verified_attachments": 528,
+      "matched_source_inputs": 370,
+      "native_cases_passed": 2,
+      "cases": {
+        "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+          "records": {
+            "broker-cleanup": {
+              "stage": 5,
+              "launch_id": "2397efe0436735eb7ac2f84734ceb7902203b03bba1d1971859d463d11af7b11",
+              "scope": "authority-2397efe0436735eb7ac2f84734ceb7902203b03bba1d1971859d463d11af7b11"
+            },
+            "world-cleanup": {
+              "stage": 5,
+              "launch_id": "5d3cdb19b3549ca793fedc358edc25a268f223cde7fb01b6581fbbd50f521eff",
+              "scope": "authority-5d3cdb19b3549ca793fedc358edc25a268f223cde7fb01b6581fbbd50f521eff"
+            }
+          },
+          "owner_after": "MainPID=0\nActiveState=inactive\n",
+          "volume_cleanup_confirmed": true,
+          "read_only_recovery": [
+            "sudo",
+            "mount",
+            "-t",
+            "btrfs",
+            "-o",
+            "loop,ro,nodev,nosuid",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume.img",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume"
+          ],
+          "recovery_unmount": [
+            "sudo",
+            "umount",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume"
+          ]
+        },
+        "test_native_storage_session_retains_owner_and_confined_application": {
+          "records": {
+            "broker-cleanup": {
+              "stage": 5,
+              "launch_id": "90831ae40d47607db4873bb971da34999d1367215d315fcb7c70f6ea561597f8",
+              "scope": "authority-90831ae40d47607db4873bb971da34999d1367215d315fcb7c70f6ea561597f8"
+            },
+            "world-cleanup": {
+              "stage": 5,
+              "launch_id": "cf6409e4217c6e210adeaeeaf8a1fd8129f1b0e30770878b183c502fddab241e",
+              "scope": "authority-cf6409e4217c6e210adeaeeaf8a1fd8129f1b0e30770878b183c502fddab241e"
+            }
+          },
+          "owner_after": "MainPID=0\nActiveState=inactive\n",
+          "volume_cleanup_confirmed": true,
+          "read_only_recovery": [
+            "sudo",
+            "mount",
+            "-t",
+            "btrfs",
+            "-o",
+            "loop,ro,nodev,nosuid",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume.img",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+          ],
+          "recovery_unmount": [
+            "sudo",
+            "umount",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+          ]
+        }
+      },
+      "sanitizer_findings": 0,
+      "scanned_successful_logs": 21,
+      "historical_attempts": {
+        "1": {
+          "status": "failed",
+          "source_sha256": "13133e8a784bd543fe30761bad6e62397152f31d1fd581adde86a072ad6c8da1",
+          "elapsed": 10.28197693824768
+        },
+        "2": {
+          "status": "failed",
+          "source_sha256": "40f26dbad703d640e76833e4af4d8e2557fc275e017d6564a094cdb4aee805d9",
+          "elapsed": 13.034658432006836
+        },
+        "3": {
+          "status": "failed",
+          "source_sha256": "2292cbb64abb44b9698c74c58bde5a49226a352ac891e1328eacb90478402cde",
+          "elapsed": 12.823999881744385
+        },
+        "4": {
+          "status": "failed",
+          "source_sha256": "7fd2a01d95bf05fd4cfc3542ccdc2b3cd3f33b9f196102c8378ba8b3dab37ab8",
+          "elapsed": 36.6084623336792
+        },
+        "5": {
+          "status": "passed",
+          "source_sha256": "8b2a97d7760975b6f1a541ca91e85adf7cf6b6d0188cb3d4722fbd1ab61e0dd4",
+          "elapsed": 21.836525201797485
+        },
+        "6": {
+          "status": "passed",
+          "source_sha256": "b517cff3a2d596368072f4db3bc50681f6681b4cd5a91940eaac1f3289d03150",
+          "elapsed": 23.14214563369751
+        }
+      },
+      "installed_owner_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+    },
+    "sb16-2": {
+      "archive_sha256": "f6f7d57f5bc52c8f519e9e6902e3767fa0b2a0492f622c66e1214d9945b85eac",
+      "verified_attachments": 528,
+      "matched_source_inputs": 370,
+      "native_cases_passed": 2,
+      "cases": {
+        "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+          "records": {
+            "broker-cleanup": {
+              "stage": 5,
+              "launch_id": "e145a048a2bcfce549ba22f3d75ae73478fad92d28a2b3dd51237884b58ba62a",
+              "scope": "authority-e145a048a2bcfce549ba22f3d75ae73478fad92d28a2b3dd51237884b58ba62a"
+            },
+            "world-cleanup": {
+              "stage": 5,
+              "launch_id": "881215ccc6bc1e6aa52933a95e3d4cfaba1de47cdadd4f78a600d22f8b5eb19e",
+              "scope": "authority-881215ccc6bc1e6aa52933a95e3d4cfaba1de47cdadd4f78a600d22f8b5eb19e"
+            }
+          },
+          "owner_after": "MainPID=0\nActiveState=inactive\n",
+          "volume_cleanup_confirmed": true,
+          "read_only_recovery": [
+            "sudo",
+            "mount",
+            "-t",
+            "btrfs",
+            "-o",
+            "loop,ro,nodev,nosuid",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume.img",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume"
+          ],
+          "recovery_unmount": [
+            "sudo",
+            "umount",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume"
+          ]
+        },
+        "test_native_storage_session_retains_owner_and_confined_application": {
+          "records": {
+            "broker-cleanup": {
+              "stage": 5,
+              "launch_id": "699a087f0f7e6b307cc854e6740c5d44bb35d30c53335c48769d5b78c8c8af0d",
+              "scope": "authority-699a087f0f7e6b307cc854e6740c5d44bb35d30c53335c48769d5b78c8c8af0d"
+            },
+            "world-cleanup": {
+              "stage": 5,
+              "launch_id": "74b6c65b17b8dd087b0051a64f7a62e92553d145e8ffde0b6df4cdf7cc85f637",
+              "scope": "authority-74b6c65b17b8dd087b0051a64f7a62e92553d145e8ffde0b6df4cdf7cc85f637"
+            }
+          },
+          "owner_after": "MainPID=0\nActiveState=inactive\n",
+          "volume_cleanup_confirmed": true,
+          "read_only_recovery": [
+            "sudo",
+            "mount",
+            "-t",
+            "btrfs",
+            "-o",
+            "loop,ro,nodev,nosuid",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume.img",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+          ],
+          "recovery_unmount": [
+            "sudo",
+            "umount",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+          ]
+        }
+      },
+      "sanitizer_findings": 0,
+      "scanned_successful_logs": 21,
+      "historical_attempts": {
+        "1": {
+          "status": "failed",
+          "source_sha256": "13133e8a784bd543fe30761bad6e62397152f31d1fd581adde86a072ad6c8da1",
+          "elapsed": 11.542503356933594
+        },
+        "2": {
+          "status": "failed",
+          "source_sha256": "40f26dbad703d640e76833e4af4d8e2557fc275e017d6564a094cdb4aee805d9",
+          "elapsed": 12.509224653244019
+        },
+        "3": {
+          "status": "failed",
+          "source_sha256": "2292cbb64abb44b9698c74c58bde5a49226a352ac891e1328eacb90478402cde",
+          "elapsed": 13.407187700271606
+        },
+        "4": {
+          "status": "failed",
+          "source_sha256": "7fd2a01d95bf05fd4cfc3542ccdc2b3cd3f33b9f196102c8378ba8b3dab37ab8",
+          "elapsed": 36.82928419113159
+        },
+        "5": {
+          "status": "passed",
+          "source_sha256": "8b2a97d7760975b6f1a541ca91e85adf7cf6b6d0188cb3d4722fbd1ab61e0dd4",
+          "elapsed": 21.387150287628174
+        },
+        "6": {
+          "status": "passed",
+          "source_sha256": "b517cff3a2d596368072f4db3bc50681f6681b4cd5a91940eaac1f3289d03150",
+          "elapsed": 22.199190616607666
+        }
+      },
+      "installed_owner_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+    }
+  },
+  "unrun": [
+    "Persistent operator data volume and mandatory production resource/storage adoption.",
+    "Issuer availability and revocation under bounded competing writes.",
+    "Complete M03 Debug, sanitizer, harness, acceptance, cross-host and native gate.",
+    "Physical scanout, GPU performance and physical input qualification."
+  ],
+  "locked_files_unchanged": 41,
+  "production_cpp_changed": false,
+  "findings": [
+    "Both hosts ran the genuine retained native broker with its bounded root owner on a dedicated real Btrfs volume.",
+    "Native actor input and confined application output used the existing production runtime and semantic actor path.",
+    "The root observer confirmed the actual broker pidfd and the test independently checked both device ceilings.",
+    "Owner loss killed the retained broker/application processes. The coordinator remained available for explicit checked recovery.",
+    "World and broker cleanup receipts are preserved as Protocol Buffers. Both identities match their recorded process and native cleanup identities.",
+    "Project files survived graceful execution teardown. All test volumes are unmounted and detached.",
+    "Earlier private-parent, descriptor-cleanup, closed fixture-peer and incorrect new lifecycle-assertion failures remain preserved with exact source snapshots.",
+    "The tests reconnect before fresh signed issuer challenges and collect only unreachable fixture SQLite objects. Existing deadlines, tests and production behavior are unchanged.",
+    "The native renderer used llvmpipe. This does not qualify physical GPU output or performance.",
+    "The installed owner reuses the reviewed previous component binary. This test-only increment changes no production C++ implementation."
+  ]
+}

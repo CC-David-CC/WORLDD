@@ -1,3 +1,68 @@
+Final M03 qualification, 2026-10-11
+
+All nine requirements pass the final primary audit.
+Both hosts pass complete local Debug and runtime sanitizer qualification after affected evidence reassessment.
+Eight production-profile cross-host cases pass. All twenty-four nodes exit successfully.
+Qualified source a99b7e46c5151ba47d0a53797b470cae6aaa5d13 is adopted in dedicated worktrees on both hosts.
+Sixty-four focused adopted-source runtime checks pass. Ordinary checkouts and normal login remain preserved.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+Earlier sections below record historical gaps and failures. They do not describe the final qualified state.
+
+Authenticated resource fixture final checkpoint, 2026-10-10
+
+Candidate04 passed 144 selected checks across both hosts and build profiles.
+The primary audit verified 980 attachments and scanned 934 logs. All 41 locked files remain unchanged.
+All 32 transient services are unloaded. Normal operator checkouts and runtime remain unchanged.
+Read evidence/m03-authenticated-resources-2026-10-10/primary-review.json.
+The earlier startup EOF remains unexplained. Its missing detailed logs cannot be recovered.
+This qualification does not claim repaired storage latency or a completed M03 phase.
+David requested larger coherent milestone increments and regression work before moving on.
+Read docs/M03_REMAINING_INCREMENT.txt. Complete its combined scope and full M03 gate before M04.
+
+Authenticated fixture draft checkpoint, 2026-10-10
+
+The draft resource fixture uses the production owner, sealed policy, and actual broker PID.
+Forty existing test bodies remain unchanged. Production source remains unchanged.
+Candidate02 passed Debug on both hosts and sanitizer qualification on sb16-2.
+One sb16 sanitizer world startup closed its channel before an application launch.
+The failed suite transcript is preserved. Detailed service logs were lost because the runner omitted retention configuration.
+Do not claim a known fdatasync cause for that failure.
+Isolated and complete-suite diagnostics passed with full sanitizers and service logs retained.
+Fresh candidate04 qualification runs on both hosts. The fixture remains uncommitted pending review.
+Read evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+
+Current M03 checkpoint, 2026-10-10
+
+Aggregate resource primitives, broker policy enforcement, and retained native-session handoff passed focused qualification.
+The non-native adapter now provisions the same broker with an explicit owned scope and sealed resource policy.
+Its selected broker, context, confinement, and adapter suites passed 200 checks across both hosts and build profiles.
+All 46 existing test bodies remain unchanged. Four new adapter checks passed in each host/profile combination.
+Read evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+The work branch has resource enforcement. Normal operator checkouts retain their earlier qualified source.
+Authenticated/direct-broker fixtures and operator deployment still need explicit policy and controller provisioning.
+Bounded persistent storage and broker Git/file accounting remain pending.
+Repeat issuer contention and durable acknowledgement checks after containing competing writes.
+The existing five-second client default passed one pressure trial. It is not proof of repaired storage latency.
+Keep SQLite durability and existing fault deadlines unchanged.
+The complete M03 phase gate, independent exhaustion and escape qualification remain required.
+
+Earlier sections below are historical observations. Their implementation gaps describe the source inspected at those checkpoints.
+
+Focused process-scope resource qualification, 2026-10-10
+
+The production primitive applies explicit aggregate limits before startup.
+Candidate02 passed 108 focused checks across both hosts and both build profiles.
+The kernel witnesses cover bounded process and memory exhaustion, sibling survival, CPU throttling, and disk writes.
+Review reproduced and corrected omitted I/O device-minor acceptance before integration.
+All earlier source and failure evidence remains preserved.
+Read evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+
+This is a qualified primitive, not completed workspace resource enforcement.
+Workspaced still needs policy intersection, workspace parents, application attachment, and bounded persistent storage.
+Broker Git and file effects must use the same workspace budgets.
+Retain independent escape, recovery, availability, and complete M03 phase-gate requirements.
+
 Read-only I/O delegation inspection, 2026-10-10
 
 M02 source adoption and its scoped qualification are complete. M03 resource implementation is now active.

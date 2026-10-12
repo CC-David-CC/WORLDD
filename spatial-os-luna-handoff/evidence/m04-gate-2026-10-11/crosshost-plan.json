@@ -1,0 +1,25 @@
+﻿{
+    "candidate":  "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+    "status":  "prepared_not_executed",
+    "prerequisite":  "Both local gates pass artifact checks and primary review.",
+    "cases":  [
+                  "Debug-delay-forward",
+                  "Debug-delay-reverse",
+                  "Debug-crash-forward",
+                  "Debug-crash-reverse",
+                  "ASan-UBSan-delay-forward",
+                  "ASan-UBSan-delay-reverse",
+                  "ASan-UBSan-crash-forward",
+                  "ASan-UBSan-crash-reverse"
+              ],
+    "fixture":  "tests/native/crosshost_revocation.py in the frozen candidate",
+    "source_and_binary_checks":  "Each node verifies the reviewed gate receipt, source inputs, runtime binaries, server binary, server launcher, and installed helpers.",
+    "private_material":  "Disposable private bundles stay under ignored local directories. Exclude them from collected evidence.",
+    "cleanup_review":  "Verify the exact created storage volumes and UUID services are released after the matrix.",
+    "syntax_checks":  [
+                          "Python crosshost-node.py --help on sb16",
+                          "Python check-local-results.py py_compile on sb16",
+                          "PowerShell coordinator and batch AST parsing"
+                      ],
+    "execution":  "crosshost-batch.ps1 after local review artifacts exist"
+}

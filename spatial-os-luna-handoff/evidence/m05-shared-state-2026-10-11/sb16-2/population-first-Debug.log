@@ -1,0 +1,159 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug
+Test project /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug
+    Start  58: render-observation-client
+1/7 Test  #58: render-observation-client ........   Passed    0.69 sec
+    Start  75: render-runtime
+2/7 Test  #75: render-runtime ...................***Failed    3.17 sec
+test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering) ... ERROR
+test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+test_inclusive_clip_planes_and_quad_crossing_camera_plane (__main__.RenderRuntimeTests.test_inclusive_clip_planes_and_quad_crossing_camera_plane) ... ok
+test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) ... 
+  test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) (field='actor_size: nan') ... FAIL
+  test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) (field='actor_size: inf') ... FAIL
+test_invalid_dimensions_tokens_and_aim_do_not_mutate_world (__main__.RenderRuntimeTests.test_invalid_dimensions_tokens_and_aim_do_not_mutate_world) ... ok
+test_no_explicit_display_does_not_adopt_environment_display (__main__.RenderRuntimeTests.test_no_explicit_display_does_not_adopt_environment_display) ... ok
+test_parent_death_reaps_graphics_and_releases_display (__main__.RenderRuntimeTests.test_parent_death_reaps_graphics_and_releases_display) ... ok
+test_real_clock_expires_while_renderer_is_stopped (__main__.RenderRuntimeTests.test_real_clock_expires_while_renderer_is_stopped) ... ok
+test_rotated_translated_camera_matches_aim (__main__.RenderRuntimeTests.test_rotated_translated_camera_matches_aim) ... ok
+test_visible_drawable_matches_randomized_capture_and_resize (__main__.RenderRuntimeTests.test_visible_drawable_matches_randomized_capture_and_resize) ... ok
+
+======================================================================
+ERROR: test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_render.py", line 151, in test_actor_marker_configuration_and_room_filtering
+    client.call('world.create', {'entity': {'id': 'other-room', 'kind': 'room'}})
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: INVALID_ARGUMENT: Missing entity label
+
+======================================================================
+FAIL: test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) (field='actor_size: nan')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_render.py", line 170, in test_invalid_actor_marker_configuration_is_rejected
+    self.assertIn(b'Invalid actor', result.stderr)
+AssertionError: b'Invalid actor' not found in b'worldd: Non-finite protobuf number\n'
+
+======================================================================
+FAIL: test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) (field='actor_size: inf')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_render.py", line 170, in test_invalid_actor_marker_configuration_is_rejected
+    self.assertIn(b'Invalid actor', result.stderr)
+AssertionError: b'Invalid actor' not found in b'worldd: Non-finite protobuf number\n'
+
+----------------------------------------------------------------------
+Ran 15 tests in 2.925s
+
+FAILED (failures=2, errors=1)
+
+    Start  77: actor-observation
+3/7 Test  #77: actor-observation ................   Passed    2.45 sec
+    Start  78: actor-collision
+4/7 Test  #78: actor-collision ..................   Passed    3.19 sec
+    Start 108: world-authority
+5/7 Test #108: world-authority ..................***Failed   56.27 sec
+test_administration_and_held_rights_do_not_imply_delegation (__main__.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+test_ancestor_credential_revocation_preserves_delegated_actor_rights (__main__.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ERROR
+test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ... ok
+test_grants_survive_world_restart (__main__.WorldAuthorityTests.test_grants_survive_world_restart) ... ok
+test_independent_navigation_grant_survives_revocation (__main__.WorldAuthorityTests.test_independent_navigation_grant_survives_revocation) ... ok
+test_invalid_delegation_consumes_actor_sequence (__main__.WorldAuthorityTests.test_invalid_delegation_consumes_actor_sequence) ... ok
+test_malformed_recipient_consumes_sequence_without_disconnect (__main__.WorldAuthorityTests.test_malformed_recipient_consumes_sequence_without_disconnect) ... ok
+test_missing_authority_store_does_not_initialize_implicitly (__main__.WorldAuthorityTests.test_missing_authority_store_does_not_initialize_implicitly) ... ok
+test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... ok
+test_observation_revocation_cancels_object_lease (__main__.WorldAuthorityTests.test_observation_revocation_cancels_object_lease) ... ok
+test_persistent_config_rejects_static_authority_and_wrong_world (__main__.WorldAuthorityTests.test_persistent_config_rejects_static_authority_and_wrong_world) ... ok
+test_private_admission_requires_persistent_enter_grant (__main__.WorldAuthorityTests.test_private_admission_requires_persistent_enter_grant) ... ok
+test_private_admission_revocation_closes_only_affected_session (__main__.WorldAuthorityTests.test_private_admission_revocation_closes_only_affected_session) ... ok
+test_public_admission_does_not_create_action_grants (__main__.WorldAuthorityTests.test_public_admission_does_not_create_action_grants) ... ok
+test_revocation_cancels_object_draft_and_releases_lease (__main__.WorldAuthorityTests.test_revocation_cancels_object_draft_and_releases_lease) ... ok
+test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... ok
+test_revoked_ancestor_without_world_session_stops_descendant (__main__.WorldAuthorityTests.test_revoked_ancestor_without_world_session_stops_descendant) ... ok
+test_seed_validation_installs_no_partial_root_grants (__main__.WorldAuthorityTests.test_seed_validation_installs_no_partial_root_grants) ... ok
+test_stale_revision_changes_no_grants_and_consumes_sequence (__main__.WorldAuthorityTests.test_stale_revision_changes_no_grants_and_consumes_sequence) ... ok
+test_unauthenticated_channels_cannot_list_or_change_grants (__main__.WorldAuthorityTests.test_unauthenticated_channels_cannot_list_or_change_grants) ... ok
+test_unknown_and_foreign_recipients_receive_no_grant (__main__.WorldAuthorityTests.test_unknown_and_foreign_recipients_receive_no_grant) ... ok
+test_world_administration_does_not_mint_workspace_authority (__main__.WorldAuthorityTests.test_world_administration_does_not_mint_workspace_authority) ... ok
+test_world_observation_omits_native_application_surfaces (__main__.WorldAuthorityTests.test_world_observation_omits_native_application_surfaces) ... ok
+
+======================================================================
+ERROR: test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 181, in test_delegation_uses_authenticated_principal
+    self.enroll_second(); world = self.scoped_world(session.REGISTERED_ACTORS)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 126, in scoped_world
+    self.worlds.append(world); world.management('system.hello')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 72, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 27 tests in 56.028s
+
+FAILED (errors=1)
+
+    Start 109: world-shared-state
+6/7 Test #109: world-shared-state ...............***Failed   20.27 sec
+test_actor_population_is_visible_in_shared_room (__main__.SharedWorldStateTests.test_actor_population_is_visible_in_shared_room) ... FAIL
+test_private_worlds_keep_distinct_identity_and_independent_persistent_state (__main__.SharedWorldStateTests.test_private_worlds_keep_distinct_identity_and_independent_persistent_state) ... ok
+test_public_admission_does_not_create_private_admission_or_action_authority (__main__.SharedWorldStateTests.test_public_admission_does_not_create_private_admission_or_action_authority) ... ok
+test_two_tls_actors_share_committed_object_and_recover_same_world (__main__.SharedWorldStateTests.test_two_tls_actors_share_committed_object_and_recover_same_world) ... ok
+
+======================================================================
+FAIL: test_actor_population_is_visible_in_shared_room (__main__.SharedWorldStateTests.test_actor_population_is_visible_in_shared_room)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_state.py", line 209, in test_actor_population_is_visible_in_shared_room
+    restored.management('world.create', entity=dict(id='occluder', kind='panel',
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 73, in management
+    if reply.HasField('error'): raise AssertionError(reply)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Missing entity label"
+}
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 20.023s
+
+FAILED (failures=1)
+
+    Start 110: actor-objects
+7/7 Test #110: actor-objects ....................   Passed    4.52 sec
+
+57% tests passed, 3 tests failed out of 7
+
+Total Test time (real) =  90.57 sec
+
+The following tests FAILED:
+	 75 - render-runtime (Failed)
+	108 - world-authority (Failed)
+	109 - world-shared-state (Failed)
+Errors while running CTest

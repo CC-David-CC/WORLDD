@@ -1,0 +1,11 @@
+--- spatialsecurity.c
++++ spatialsecurity.c
+@@ -325,7 +325,7 @@
+     /* Scan the entire bounded table; never compare secret bytes with strcmp. */
+     for (unsigned i = 0; i < MAX_CREDENTIALS; ++i)
+         if (same_key(grants[i].cookie, (const uint8_t *)cookie) && grants[i].active) match = &grants[i];
+-    if (!match) return denial;
++    if (!match) return NULL;
+     state->label = match->label;
+     state->connection = ++next_connection;
+     if (!SpatialInputAuthorizeClient(client)) {

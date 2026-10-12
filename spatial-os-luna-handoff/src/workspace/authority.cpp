@@ -1,4 +1,5 @@
 #include "workspace/authority.hpp"
+#include <iostream>
 #include "workspace/store.hpp"
 #include "authority/store.hpp"
 #include "identity/issuer_client.hpp"
@@ -399,7 +400,11 @@ std::uint64_t WorkspaceAuthority::cancellation_sequence() const { return impl_->
 void WorkspaceAuthority::keepalive() {
     if (!impl_->broken && Clock::now()-impl_->last_exchange >= std::chrono::seconds(1)) {
         id::IssuerRequest request; request.mutable_info();
-        try { impl_->exchange(std::move(request)); } catch (const WorldError&) { impl_->fail(); }
+        try { impl_->exchange(std::move(request)); }
+        catch (const WorldError&) {
+            std::cerr << "Workspace issuer keepalive failed; authority is unavailable\n";
+            impl_->fail();
+        }
     }
 }
 bool WorkspaceAuthority::consume_changes() { const bool result = impl_->changed; impl_->changed = false; return result; }

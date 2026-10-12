@@ -1,0 +1,192 @@
+test_foreign_child_configure_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_configure_event_is_not_delivered) ... FAIL
+test_foreign_child_create_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_create_event_is_not_delivered) ... FAIL
+test_foreign_child_destroy_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_destroy_event_is_not_delivered) ... FAIL
+test_foreign_child_map_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_map_event_is_not_delivered) ... FAIL
+test_foreign_child_reparent_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_reparent_event_is_not_delivered) ... FAIL
+test_foreign_child_unmap_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_unmap_event_is_not_delivered) ... FAIL
+test_query_tree_hides_foreign_parent (__main__.ParentMetadataTests.test_query_tree_hides_foreign_parent) ... FAIL
+test_query_tree_preserves_privileged_view (__main__.ParentMetadataTests.test_query_tree_preserves_privileged_view) ... ok
+test_query_tree_preserves_public_root_parent (__main__.ParentMetadataTests.test_query_tree_preserves_public_root_parent) ... ok
+test_query_tree_preserves_same_application_parent (__main__.ParentMetadataTests.test_query_tree_preserves_same_application_parent) ... ok
+test_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_reparent_notify_hides_foreign_parent) ... FAIL
+test_reparent_notify_preserves_privileged_view (__main__.ParentMetadataTests.test_reparent_notify_preserves_privileged_view) ... ok
+test_reparent_notify_preserves_public_root_parent (__main__.ParentMetadataTests.test_reparent_notify_preserves_public_root_parent) ... ok
+test_reparent_notify_preserves_same_application_parent (__main__.ParentMetadataTests.test_reparent_notify_preserves_same_application_parent) ... ok
+test_same_application_child_create_event_is_delivered (__main__.ParentMetadataTests.test_same_application_child_create_event_is_delivered) ... ok
+test_swapped_query_tree_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_query_tree_hides_foreign_parent) ... FAIL
+test_swapped_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_reparent_notify_hides_foreign_parent) ... FAIL
+
+======================================================================
+FAIL: test_foreign_child_configure_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_configure_event_is_not_delivered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 114, in test_foreign_child_configure_event_is_not_delivered
+    self.foreign_substructure('configure')
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 99, in foreign_substructure
+    self.assertEqual(self.owner.inspect().role, resources.pb.APPLICATION)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 86, in inspect
+    reply = self.call(inspect=pb.Inspect())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 83, in call
+    return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 73, in exchange
+    header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 64, in request
+    if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native request returned error/event: b'\x16\x00\x0b\x00'
+
+======================================================================
+FAIL: test_foreign_child_create_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_create_event_is_not_delivered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 102, in test_foreign_child_create_event_is_not_delivered
+    self.foreign_substructure('create')
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 99, in foreign_substructure
+    self.assertEqual(self.owner.inspect().role, resources.pb.APPLICATION)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 86, in inspect
+    reply = self.call(inspect=pb.Inspect())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 83, in call
+    return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 73, in exchange
+    header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 64, in request
+    if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native request returned error/event: b'\x10\x00\x0b\x00'
+
+======================================================================
+FAIL: test_foreign_child_destroy_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_destroy_event_is_not_delivered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 111, in test_foreign_child_destroy_event_is_not_delivered
+    self.foreign_substructure('destroy')
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 99, in foreign_substructure
+    self.assertEqual(self.owner.inspect().role, resources.pb.APPLICATION)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 86, in inspect
+    reply = self.call(inspect=pb.Inspect())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 83, in call
+    return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 73, in exchange
+    header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 64, in request
+    if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native request returned error/event: b'\x11\x00\x0b\x00'
+
+======================================================================
+FAIL: test_foreign_child_map_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_map_event_is_not_delivered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 105, in test_foreign_child_map_event_is_not_delivered
+    self.foreign_substructure('map')
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 99, in foreign_substructure
+    self.assertEqual(self.owner.inspect().role, resources.pb.APPLICATION)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 86, in inspect
+    reply = self.call(inspect=pb.Inspect())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 83, in call
+    return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 73, in exchange
+    header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 64, in request
+    if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native request returned error/event: b'\x13\x00\x0b\x00'
+
+======================================================================
+FAIL: test_foreign_child_reparent_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_reparent_event_is_not_delivered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 117, in test_foreign_child_reparent_event_is_not_delivered
+    self.foreign_substructure('reparent')
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 99, in foreign_substructure
+    self.assertEqual(self.owner.inspect().role, resources.pb.APPLICATION)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 86, in inspect
+    reply = self.call(inspect=pb.Inspect())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 83, in call
+    return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 73, in exchange
+    header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 64, in request
+    if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native request returned error/event: b'\x15\x00\x0b\x00'
+
+======================================================================
+FAIL: test_foreign_child_unmap_event_is_not_delivered (__main__.ParentMetadataTests.test_foreign_child_unmap_event_is_not_delivered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 108, in test_foreign_child_unmap_event_is_not_delivered
+    self.foreign_substructure('unmap')
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 99, in foreign_substructure
+    self.assertEqual(self.owner.inspect().role, resources.pb.APPLICATION)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 86, in inspect
+    reply = self.call(inspect=pb.Inspect())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 83, in call
+    return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 73, in exchange
+    header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 64, in request
+    if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native request returned error/event: b'\x12\x00\x0b\x00'
+
+======================================================================
+FAIL: test_query_tree_hides_foreign_parent (__main__.ParentMetadataTests.test_query_tree_hides_foreign_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 40, in test_query_tree_hides_foreign_parent
+    self.assertEqual(self.parent(self.other, self.other_window), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_reparent_notify_hides_foreign_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 60, in test_reparent_notify_hides_foreign_parent
+    self.assertEqual(self.reparent_event(self.other, self.other_window, self.window, supervisor), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_swapped_query_tree_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_query_tree_hides_foreign_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 44, in test_swapped_query_tree_hides_foreign_parent
+    self.assertEqual(self.parent(self.other, self.other_window), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_swapped_reparent_notify_hides_foreign_parent (__main__.ParentMetadataTests.test_swapped_reparent_notify_hides_foreign_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_parent_metadata.py", line 64, in test_swapped_reparent_notify_hides_foreign_parent
+    self.assertEqual(self.reparent_event(self.other, self.other_window, self.window, supervisor), 0)
+AssertionError: 4194305 != 0
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.621s
+
+FAILED (failures=10)

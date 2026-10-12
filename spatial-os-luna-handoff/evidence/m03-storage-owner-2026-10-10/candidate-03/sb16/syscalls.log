@@ -1,0 +1,94 @@
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libprotobuf.so.32", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libsqlite3.so.0", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libstdc++.so.6", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libgcc_s.so.1", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libz.so.1", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libm.so.6", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-03/operator.pb", O_RDONLY) = 3
+openat(AT_FDCWD, "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-03/volume", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 4
+ioctl(4, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac15e0) = 0
+ioctl(4, BTRFS_IOC_FS_INFO, {max_id=1, num_devices=1, fsid=36d8cbe3-331f-4663-a4fd-5928505a2670, nodesize=16384, sectorsize=4096, clone_alignment=4096, flags=0}) = 0
+ioctl(4, BTRFS_IOC_DEV_INFO, {devid=makedev(0, 0x1)} => {uuid=08211273-14d7-49a4-b405-92e9627cd8e5, bytes_used=20971520, total_bytes=536870912, path="/dev/loop12"}) = 0
+openat(4, ".storage-owner", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 5
+openat(5, "owner.lock", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 6
+openat(AT_FDCWD, "/proc/self/fd/4", O_RDONLY|O_CLOEXEC|O_DIRECTORY) = 7
+ioctl(4, BTRFS_IOC_QUOTA_CTL, {cmd=BTRFS_QUOTA_CTL_ENABLE}) = 0
+ioctl(4, BTRFS_IOC_QUOTA_RESCAN_WAIT)   = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+openat(5, "catalog.db", O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC, 0600) = 7
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0644) = 8
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 9
+openat(AT_FDCWD, "/dev/urandom", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 10
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+ioctl(4, BTRFS_IOC_QGROUP_CREATE, {create=1, qgroupid=844424930131969}) = 0
+ioctl(4, BTRFS_IOC_QGROUP_LIMIT, {qgroupid=844424930131969, lim={flags=BTRFS_QGROUP_LIMIT_MAX_RFER, max_rfer=402653184, max_excl=0, rsv_rfer=0, rsv_excl=0}}) = 0
+ioctl(4, BTRFS_IOC_QGROUP_LIMIT, {qgroupid=5, lim={flags=BTRFS_QGROUP_LIMIT_MAX_RFER, max_rfer=67108864, max_excl=0, rsv_rfer=0, rsv_excl=0}}) = 0
+openat(4, "repositories", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 9
+ioctl(9, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac15e0) = 0
+openat(4, "worktrees", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 9
+ioctl(9, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac15e0) = 0
+openat(4, "applications", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 9
+ioctl(9, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac15e0) = 0
+openat(4, "retired", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 9
+ioctl(9, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac15e0) = 0
+openat(4, "effects", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 9
+ioctl(9, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac15e0) = 0
+ioctl(4, BTRFS_IOC_SYNC)                = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 7
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 7
+ioctl(4, BTRFS_IOC_QGROUP_CREATE, {create=1, qgroupid=562949953421412}) = 0
+ioctl(4, BTRFS_IOC_QGROUP_LIMIT, {qgroupid=562949953421412, lim={flags=BTRFS_QGROUP_LIMIT_MAX_RFER, max_rfer=67108864, max_excl=0, rsv_rfer=0, rsv_excl=0}}) = 0
+ioctl(4, BTRFS_IOC_QGROUP_ASSIGN, {assign=1, src=562949953421412, dst=844424930131969}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=0, max_offset=0, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_STATUS_KEY, max_type=BTRFS_QGROUP_STATUS_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=5, max_offset=5, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=562949953421412, max_offset=562949953421412, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_INFO_KEY, max_type=BTRFS_QGROUP_INFO_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=0, max_objectid=0, min_offset=562949953421412, max_offset=562949953421412, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_LIMIT_KEY, max_type=BTRFS_QGROUP_LIMIT_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=562949953421412, max_objectid=562949953421412, min_offset=844424930131969, max_offset=844424930131969, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_RELATION_KEY, max_type=BTRFS_QGROUP_RELATION_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+ioctl(4, BTRFS_IOC_TREE_SEARCH, {key={tree_id=BTRFS_QUOTA_TREE_OBJECTID, min_objectid=844424930131969, max_objectid=844424930131969, min_offset=562949953421412, max_offset=562949953421412, min_transid=0, max_transid=UINT64_MAX, min_type=BTRFS_QGROUP_RELATION_KEY, max_type=BTRFS_QGROUP_RELATION_KEY, nr_items=1}} => {key={nr_items=1}, ...}) = 0
+openat(AT_FDCWD, "/proc/self/fd/5/catalog.db-journal", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 7
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 9
+openat(AT_FDCWD, "/proc/self/fd/5", O_RDONLY|O_CLOEXEC) = 7
+openat(4, "repositories", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 7
+ioctl(7, BTRFS_IOC_SUBVOL_CREATE_V2, {fd=0, flags=BTRFS_SUBVOL_QGROUP_INHERIT, size=80, qgroup_inherit={flags=0, num_qgroups=1, num_ref_copies=0, num_excl_copies=0, lim={flags=0, max_rfer=0, max_excl=0, rsv_rfer=0, rsv_excl=0}, ...}, name="da1f02a4e0e24fc4b19af6063e02a117.git"} => {transid=0}) = 0
+openat(7, "da1f02a4e0e24fc4b19af6063e02a117.git", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 9
+ioctl(9, BTRFS_IOC_GET_SUBVOL_INFO, 0x7fffd9ac1b80) = 1
++++ exited with 0 +++

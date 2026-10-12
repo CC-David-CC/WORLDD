@@ -1,0 +1,1 @@
+storage launch probe: filesystem error: cannot make canonical path: Permission denied [/run/spatial-storage-policy-a40b96e066d848a49f48a2a2959da58f/first-operator.pb]

@@ -1,0 +1,11 @@
+1/2 xserver / modesetting symbol test OK              0.06s
+2/2 xserver / unit                    OK              2.89s
+
+Ok:                 2   
+Expected Fail:      0   
+Fail:               0   
+Unexpected Pass:    0   
+Skipped:            0   
+Timeout:            0   
+
+Full log written to /home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/local/xlibre-patched/78810378b4bfb87b34806e84427f7e63387dfee3df8e2bf09ea01104a91cb709/source/build-sanitize/meson-logs/testlog.txt

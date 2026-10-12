@@ -5,6 +5,7 @@ import "grants.proto";
 import "issuer.proto";
 import "native_scope.proto";
 import "process_scope.proto";
+import "storage.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -17,6 +18,70 @@ message NativeLaunchConfig {
 }
 
 message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
+// Owner configuration. Resource ceilings do not grant workspace rights.
+message ApplicationResourceProfile {
+  string name = 1;
+  spatial.supervisor.v1.ProcessScopeBudget maximum = 2;
+}
+message ActorResourceLimit {
+  oneof subject {
+    spatial.authority.v1.ActorRef principal = 1;
+    string fixture_actor = 2;
+  }
+  spatial.supervisor.v1.ProcessScopeBudget maximum = 3;
+}
+message WorkspaceResourcePolicy {
+  string workspace = 1; // Empty only for the default policy.
+  spatial.supervisor.v1.ProcessScopeBudget total = 2;
+  spatial.supervisor.v1.ProcessScopeBudget actor_default = 3;
+  repeated ActorResourceLimit actors = 4;
+  repeated ApplicationResourceProfile profiles = 5;
+}
+message BrokerResourceConfig {
+  uint32 protocol_version = 1;
+  string delegated_cgroup = 2;
+  WorkspaceResourcePolicy default_policy = 3;
+  repeated WorkspaceResourcePolicy workspaces = 4;
+  // Version 2 requires this aggregate envelope for broker work and all descendants.
+  spatial.supervisor.v1.ProcessScopeBudget broker_budget = 5;
+  // Reserved control-plane capacity. Applied to the manager before store initialization.
+  spatial.supervisor.v1.ProcessScopeBudget manager_budget = 6;
+}
+// Parent launch configuration. The child resource template must leave its root empty.
+message BrokerProcessConfig {
+  uint32 protocol_version = 1;
+  string delegated_cgroup = 2;
+  BrokerResourceConfig resources = 3;
+  StorageOwnerLaunchConfig storage_owner = 4;
+  // Production confinement rejects fixture faults and requires aggregate resources plus storage.
+  bool require_confinement = 5;
+}
+// Declarative operator input. Fixed paths and live I/O devices are supplied by provisioning.
+message StorageVolumeDefinition {
+  uint32 protocol_version = 1;
+  string name = 2;
+  StorageOwnerConfig owner_policy = 3;
+  BrokerResourceConfig resources = 4;
+  spatial.supervisor.v1.ProcessScopeBudget owner_budget = 5;
+  uint64 read_bytes_per_second = 6;
+  uint64 write_bytes_per_second = 7;
+}
+// Root-owned persistent identity. This contains no active processes or credentials.
+message StorageVolumeRecord {
+  uint32 protocol_version = 1;
+  StorageVolumeDefinition definition = 2;
+  bytes filesystem_id = 3;
+  uint64 image_device = 4;
+  uint64 image_inode = 5;
+}
+// Recreated after each mount. Loop device identities must never be assumed after reboot.
+message StorageVolumeRuntime {
+  uint32 protocol_version = 1;
+  string volume_root = 2;
+  BrokerResourceConfig resources = 3;
+  StorageOwnerLaunchConfig storage_owner = 4;
+  bool require_confinement = 5;
+}
 message WorkspaceAuthorityConfig {
   string participant_runtime_config = 4;
   uint32 protocol_version = 1;

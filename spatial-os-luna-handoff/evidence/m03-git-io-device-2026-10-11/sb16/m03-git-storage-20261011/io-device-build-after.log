@@ -1,0 +1,73 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+[0/2] Re-checking globbed directories...
+[1/21] Building CXX object CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o
+FAILED: CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o 
+ccache /usr/bin/c++  -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize -g -std=c++20 -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -MD -MT CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o -MF CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o.d -o CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o -c /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp
+In file included from /usr/include/c++/13/memory:69,
+                 from /usr/include/google/protobuf/stubs/common.h:41,
+                 from /usr/include/google/protobuf/io/coded_stream.h:131,
+                 from /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/broker.pb.h:23,
+                 from /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.hpp:2,
+                 from /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp:1:
+/usr/include/c++/13/bits/stl_uninitialized.h: In instantiation of ‘constexpr bool std::__check_constructible() [with _ValueType = spatial::identity::tls_detail::Fd; _Tp = spatial::identity::tls_detail::Fd&&]’:
+/usr/include/c++/13/bits/stl_uninitialized.h:182:4:   required from ‘_ForwardIterator std::uninitialized_copy(_InputIterator, _InputIterator, _ForwardIterator) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*]’
+/usr/include/c++/13/bits/stl_uninitialized.h:373:37:   required from ‘constexpr _ForwardIterator std::__uninitialized_copy_a(_InputIterator, _InputIterator, _ForwardIterator, allocator<_Tp>&) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Tp = spatial::identity::tls_detail::Fd]’
+/usr/include/c++/13/bits/stl_uninitialized.h:399:2:   required from ‘constexpr _ForwardIterator std::__uninitialized_move_if_noexcept_a(_InputIterator, _InputIterator, _ForwardIterator, _Allocator&) [with _InputIterator = spatial::identity::tls_detail::Fd*; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Allocator = allocator<spatial::identity::tls_detail::Fd>]’
+/usr/include/c++/13/bits/vector.tcc:493:3:   required from ‘constexpr void std::vector<_Tp, _Alloc>::_M_realloc_insert(iterator, _Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; iterator = std::vector<spatial::identity::tls_detail::Fd>::iterator]’
+/usr/include/c++/13/bits/vector.tcc:123:21:   required from ‘constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; reference = spatial::identity::tls_detail::Fd&]’
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp:191:27:   required from here
+/usr/include/c++/13/bits/stl_uninitialized.h:90:56: error: static assertion failed: result type must be constructible from input type
+   90 |       static_assert(is_constructible<_ValueType, _Tp>::value,
+      |                                                        ^~~~~
+/usr/include/c++/13/bits/stl_uninitialized.h:90:56: note: ‘std::integral_constant<bool, false>::value’ evaluates to false
+In file included from /usr/include/c++/13/bits/char_traits.h:57,
+                 from /usr/include/c++/13/string:42,
+                 from /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/broker.pb.h:8:
+/usr/include/c++/13/bits/stl_construct.h: In instantiation of ‘constexpr void std::_Construct(_Tp*, _Args&& ...) [with _Tp = spatial::identity::tls_detail::Fd; _Args = {spatial::identity::tls_detail::Fd}]’:
+/usr/include/c++/13/bits/stl_uninitialized.h:120:21:   required from ‘constexpr _ForwardIterator std::__do_uninit_copy(_InputIterator, _InputIterator, _ForwardIterator) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*]’
+/usr/include/c++/13/bits/stl_uninitialized.h:371:30:   required from ‘constexpr _ForwardIterator std::__uninitialized_copy_a(_InputIterator, _InputIterator, _ForwardIterator, allocator<_Tp>&) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Tp = spatial::identity::tls_detail::Fd]’
+/usr/include/c++/13/bits/stl_uninitialized.h:399:2:   required from ‘constexpr _ForwardIterator std::__uninitialized_move_if_noexcept_a(_InputIterator, _InputIterator, _ForwardIterator, _Allocator&) [with _InputIterator = spatial::identity::tls_detail::Fd*; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Allocator = allocator<spatial::identity::tls_detail::Fd>]’
+/usr/include/c++/13/bits/vector.tcc:493:3:   required from ‘constexpr void std::vector<_Tp, _Alloc>::_M_realloc_insert(iterator, _Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; iterator = std::vector<spatial::identity::tls_detail::Fd>::iterator]’
+/usr/include/c++/13/bits/vector.tcc:123:21:   required from ‘constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; reference = spatial::identity::tls_detail::Fd&]’
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp:191:27:   required from here
+/usr/include/c++/13/bits/stl_construct.h:115:28: error: no matching function for call to ‘construct_at(spatial::identity::tls_detail::Fd*&, spatial::identity::tls_detail::Fd)’
+  115 |           std::construct_at(__p, std::forward<_Args>(__args)...);
+      |           ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/13/bits/stl_construct.h:94:5: note: candidate: ‘template<class _Tp, class ... _Args> constexpr decltype (::new(void*(0)) _Tp) std::construct_at(_Tp*, _Args&& ...)’
+   94 |     construct_at(_Tp* __location, _Args&&... __args)
+      |     ^~~~~~~~~~~~
+/usr/include/c++/13/bits/stl_construct.h:94:5: note:   template argument deduction/substitution failed:
+/usr/include/c++/13/bits/stl_construct.h: In substitution of ‘template<class _Tp, class ... _Args> constexpr decltype (::new(void*(0)) _Tp) std::construct_at(_Tp*, _Args&& ...) [with _Tp = spatial::identity::tls_detail::Fd; _Args = {spatial::identity::tls_detail::Fd}]’:
+/usr/include/c++/13/bits/stl_construct.h:115:21:   required from ‘constexpr void std::_Construct(_Tp*, _Args&& ...) [with _Tp = spatial::identity::tls_detail::Fd; _Args = {spatial::identity::tls_detail::Fd}]’
+/usr/include/c++/13/bits/stl_uninitialized.h:120:21:   required from ‘constexpr _ForwardIterator std::__do_uninit_copy(_InputIterator, _InputIterator, _ForwardIterator) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*]’
+/usr/include/c++/13/bits/stl_uninitialized.h:371:30:   required from ‘constexpr _ForwardIterator std::__uninitialized_copy_a(_InputIterator, _InputIterator, _ForwardIterator, allocator<_Tp>&) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Tp = spatial::identity::tls_detail::Fd]’
+/usr/include/c++/13/bits/stl_uninitialized.h:399:2:   required from ‘constexpr _ForwardIterator std::__uninitialized_move_if_noexcept_a(_InputIterator, _InputIterator, _ForwardIterator, _Allocator&) [with _InputIterator = spatial::identity::tls_detail::Fd*; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Allocator = allocator<spatial::identity::tls_detail::Fd>]’
+/usr/include/c++/13/bits/vector.tcc:493:3:   required from ‘constexpr void std::vector<_Tp, _Alloc>::_M_realloc_insert(iterator, _Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; iterator = std::vector<spatial::identity::tls_detail::Fd>::iterator]’
+/usr/include/c++/13/bits/vector.tcc:123:21:   required from ‘constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; reference = spatial::identity::tls_detail::Fd&]’
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp:191:27:   required from here
+/usr/include/c++/13/bits/stl_construct.h:96:17: error: use of deleted function ‘spatial::identity::tls_detail::Fd::Fd(const spatial::identity::tls_detail::Fd&)’
+   96 |     -> decltype(::new((void*)0) _Tp(std::declval<_Args>()...))
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp:3:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/identity/tls_support.hpp:15:5: note: declared here
+   15 |     Fd(const Fd&) = delete;
+      |     ^~
+/usr/include/c++/13/bits/stl_construct.h: In instantiation of ‘constexpr void std::_Construct(_Tp*, _Args&& ...) [with _Tp = spatial::identity::tls_detail::Fd; _Args = {spatial::identity::tls_detail::Fd}]’:
+/usr/include/c++/13/bits/stl_uninitialized.h:120:21:   required from ‘constexpr _ForwardIterator std::__do_uninit_copy(_InputIterator, _InputIterator, _ForwardIterator) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*]’
+/usr/include/c++/13/bits/stl_uninitialized.h:371:30:   required from ‘constexpr _ForwardIterator std::__uninitialized_copy_a(_InputIterator, _InputIterator, _ForwardIterator, allocator<_Tp>&) [with _InputIterator = move_iterator<spatial::identity::tls_detail::Fd*>; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Tp = spatial::identity::tls_detail::Fd]’
+/usr/include/c++/13/bits/stl_uninitialized.h:399:2:   required from ‘constexpr _ForwardIterator std::__uninitialized_move_if_noexcept_a(_InputIterator, _InputIterator, _ForwardIterator, _Allocator&) [with _InputIterator = spatial::identity::tls_detail::Fd*; _ForwardIterator = spatial::identity::tls_detail::Fd*; _Allocator = allocator<spatial::identity::tls_detail::Fd>]’
+/usr/include/c++/13/bits/vector.tcc:493:3:   required from ‘constexpr void std::vector<_Tp, _Alloc>::_M_realloc_insert(iterator, _Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; iterator = std::vector<spatial::identity::tls_detail::Fd>::iterator]’
+/usr/include/c++/13/bits/vector.tcc:123:21:   required from ‘constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {int}; _Tp = spatial::identity::tls_detail::Fd; _Alloc = std::allocator<spatial::identity::tls_detail::Fd>; reference = spatial::identity::tls_detail::Fd&]’
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/workspace/resources.cpp:191:27:   required from here
+/usr/include/c++/13/bits/stl_construct.h:119:7: error: use of deleted function ‘spatial::identity::tls_detail::Fd::Fd(const spatial::identity::tls_detail::Fd&)’
+  119 |       ::new((void*)__p) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/identity/tls_support.hpp:15:5: note: declared here
+   15 |     Fd(const Fd&) = delete;
+      |     ^~
+[2/21] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+ninja: build stopped: subcommand failed.

@@ -1,0 +1,387 @@
+{
+  "host": "sb16",
+  "utc": "2026-10-11T19:35:08.013975+00:00",
+  "status": "passed",
+  "base_lock": {
+    "format": 1,
+    "xserver": {
+      "repository": "https://github.com/X11Libre/xserver.git",
+      "ref": "refs/tags/xlibre-xserver-25.1.9",
+      "commit": "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+    },
+    "xorgproto": {
+      "repository": "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git",
+      "ref": "refs/tags/xorgproto-2024.1",
+      "commit": "67469711055522b8adb2d795b01e7ba98cb8816c"
+    },
+    "reason": "Use the inspected stable XLibre release for shared DIX input routing in native Xorg and diagnostic Xvfb. Its Present and DRI3 protocols require project-local xorgproto 2024.1 headers.",
+    "inspected_utc_date": "2026-10-07",
+    "meson_options": [
+      "--buildtype=debug",
+      "-Dxorg=true",
+      "-Dxvfb=true",
+      "-Dxephyr=false",
+      "-Dxnest=false",
+      "-Dxwin=false",
+      "-Dxquartz=false",
+      "-Ddocs=false",
+      "-Ddevel-docs=false",
+      "-Dtests=true",
+      "-Dsystemd_logind=true",
+      "-Dseatd_libseat=false",
+      "-Dxkb_dir=/usr/share/X11/xkb",
+      "-Dxkb_bin_dir=/usr/bin",
+      "-Dfontrootdir=/usr/share/fonts/X11"
+    ],
+    "patches": [
+      "server/patches/0001-spatial-input.patch",
+      "server/patches/0002-spatial-security.patch",
+      "server/patches/0003-server-shutdown.patch",
+      "server/patches/0004-spatial-resource-policy.patch",
+      "server/patches/0005-animated-cursor-cleanup.patch",
+      "server/patches/0006-global-server-access.patch",
+      "server/patches/0007-xkb-doodad-copy-cleanup.patch",
+      "server/patches/0008-application-atom-privacy.patch"
+    ],
+    "overlays": {
+      "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
+      "server/xlibre/spatialinput.h": "include/spatialinput.h",
+      "server/xlibre/meson.build": "Xext/spatial/meson.build",
+      "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto",
+      "server/xlibre/spatialsecurity.c": "Xext/spatial/spatialsecurity.c",
+      "server/xlibre/spatialpolicy.c": "Xext/spatial/spatialpolicy.c",
+      "server/xlibre/spatialsecurity.h": "include/spatialsecurity.h",
+      "proto/spatial/security/v1/security.proto": "Xext/spatial/security.proto"
+    }
+  },
+  "lock_sha256": "3fa09c1693e1ee4ed5875e7ae9286783c3b182bca48a9b3b675d51b0d0951a81",
+  "builder_sha256": "584e37bf02885484d4b23ed495039119fa7edbf853e93ac950fda6178046eaa2",
+  "sanitizers": false,
+  "commands": [
+    {
+      "name": "xorgproto-pristine",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xorgproto",
+        "diff",
+        "--exit-code",
+        "HEAD"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "xserver-pristine",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre",
+        "diff",
+        "--exit-code",
+        "HEAD"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-worktree",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre",
+        "worktree",
+        "add",
+        "--detach",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-0",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0001-spatial-input.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-0",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0001-spatial-input.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-1",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0002-spatial-security.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-1",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0002-spatial-security.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-2",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0003-server-shutdown.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-2",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0003-server-shutdown.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-3",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0004-spatial-resource-policy.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-3",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0004-spatial-resource-policy.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-4",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0005-animated-cursor-cleanup.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-4",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0005-animated-cursor-cleanup.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-5",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0006-global-server-access.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-5",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0006-global-server-access.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-6",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0007-xkb-doodad-copy-cleanup.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-6",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0007-xkb-doodad-copy-cleanup.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-7",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0008-application-atom-privacy.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-7",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/server/patches/0008-application-atom-privacy.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "protocol-configure",
+      "argv": [
+        "meson",
+        "setup",
+        "--reconfigure",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xorgproto/build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xorgproto",
+        "--prefix=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-deps"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "protocol-install",
+      "argv": [
+        "meson",
+        "install",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xorgproto/build"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-configure",
+      "argv": [
+        "meson",
+        "setup",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source",
+        "--prefix=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/image",
+        "--buildtype=debug",
+        "-Dxorg=true",
+        "-Dxvfb=true",
+        "-Dxephyr=false",
+        "-Dxnest=false",
+        "-Dxwin=false",
+        "-Dxquartz=false",
+        "-Ddocs=false",
+        "-Ddevel-docs=false",
+        "-Dtests=true",
+        "-Dsystemd_logind=true",
+        "-Dseatd_libseat=false",
+        "-Dxkb_dir=/usr/share/X11/xkb",
+        "-Dxkb_bin_dir=/usr/bin",
+        "-Dfontrootdir=/usr/share/fonts/X11",
+        "-Dxkb_output_dir=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled",
+        "-Db_sanitize=none"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-build",
+      "argv": [
+        "ninja",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build",
+        "-j2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-unit",
+      "argv": [
+        "meson",
+        "test",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build",
+        "--no-rebuild",
+        "--print-errorlogs",
+        "unit",
+        "modesetting symbol test"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "binaries": {
+    "Xvfb": {
+      "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build/hw/vfb/Xvfb",
+      "sha256": "8c8540666b53dbaa638913b7f6bd53c64b2d233618433a12efa9ce489d53f96f"
+    },
+    "Xorg": {
+      "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source/build/hw/xfree86/Xorg",
+      "sha256": "98ec1a89d528a4c652a4ab8d281d53ff3e45ae1258812af2c573983ce2a1848a"
+    }
+  },
+  "extension_sources": {
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/patches/0002-spatial-security.patch": "c5c94cd1cb375e829db7b0e0478dacb916dc9890e71b3c94243e701c3c99cb0b",
+    "server/patches/0003-server-shutdown.patch": "195e4b5475fb124535a5be1abbf1ea12723d6c8ba39ec5f463f5d3c24f6dd6b7",
+    "server/patches/0004-spatial-resource-policy.patch": "ad72bc7de29196c2fbec843df7d7eecf2de70e7a246b2bcf9b4f63cc30af1544",
+    "server/patches/0005-animated-cursor-cleanup.patch": "a51fa2ba79da0a92396b3675dcadccdd598cb78155c451b738d368ac5af12356",
+    "server/patches/0006-global-server-access.patch": "e98932d02c432f298b257b6f5f4dafb59fecfecacf1056ee1023753b0e940b07",
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch": "21e9efe8bcb7a23f0f7dbdb219a0ff8c986d30339a96988e017fa6ae46a95d29",
+    "server/patches/0008-application-atom-privacy.patch": "ec66f9c1536954df7c3c724f4f63b4a47145a1b98eb4ad3457f835ae245d579f",
+    "server/xlibre/spatialinput.c": "00e4bd9a42a8414916f9167d2e6fe2b51b683930da265ee70a84b5ce60ed391b",
+    "server/xlibre/spatialinput.h": "4d80f8ef30fcec45205f00249fecf96054d76d5c93771b6595e7c87bdb9206c1",
+    "server/xlibre/meson.build": "cec579e24b9a7ae8a196721e1613fbf8533498bd503435924e004d54eaec52ba",
+    "proto/spatial/input/v1/input.proto": "83958a6050992e5629e151af93a9af8620876dc9f8899016933cd8e8782990ce",
+    "server/xlibre/spatialsecurity.c": "eeb8a51eefeed386f0fa49505907d8d0718c077eef7ad3dc67dd6d86e58bbfc0",
+    "server/xlibre/spatialpolicy.c": "5b897c5fe5141ff2f5c69e8687f08bc0ccc4703d9d58e6cb3858e58eeb945c15",
+    "server/xlibre/spatialsecurity.h": "94303f62215dd6451b9bef888d1cf210404f22eba211c9d8db35f1edc33f42f6",
+    "proto/spatial/security/v1/security.proto": "974df1172137104831f1a40151486f6cf8ebc9fe6e0dddf07a85d0954ae0ebcb"
+  },
+  "effective_source": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/c392f068e99f1e3ae8ae782393febdc00ef203c3bfc618a96d1c2beb2bc6a973/source"
+}

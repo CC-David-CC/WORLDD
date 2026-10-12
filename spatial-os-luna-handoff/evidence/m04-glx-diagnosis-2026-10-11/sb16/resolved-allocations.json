@@ -1,0 +1,352 @@
+[
+  {
+    "allocation": "Direct leak of 2680 byte(s) in 1 object(s) allocated from:",
+    "frames": [
+      {
+        "frame": "#0 0x70c9a44fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77",
+        "module": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+        "offset": "0xfd340",
+        "symbol": "___interceptor_calloc\n/build/gcc-14-FpLBWZ/gcc-14-14.2.0/build/x86_64-linux-gnu/libsanitizer/asan/../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77 (discriminator 3)"
+      },
+      {
+        "frame": "#4 0x70c9a250e4a7  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/dri/libdril_dri.so",
+        "offset": "0x84a7",
+        "symbol": "??\n??:0"
+      },
+      {
+        "frame": "#5 0x569d9d1f96b6 in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a9a6b6",
+        "symbol": "__glXDRIscreenProbe\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glx_dri/glxdriswrast.c:439"
+      },
+      {
+        "frame": "#6 0x569d9d1f32e3 in xorgGlxServerInit ../glx/glxext.c:527",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a942e3",
+        "symbol": "xorgGlxServerInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glxext.c:527 (discriminator 10)"
+      },
+      {
+        "frame": "#7 0x569d9c999bad in _CallCallbacks ../dix/dixutils.c:707",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x123abad",
+        "symbol": "_CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/dixutils.c:707"
+      },
+      {
+        "frame": "#8 0x569d9d2db90f in CallCallbacks ../include/callback.h:79",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7c90f",
+        "symbol": "CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:79"
+      },
+      {
+        "frame": "#9 0x569d9d2dd09d in GlxExtensionInit ../glx/vndext.c:247",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7e09d",
+        "symbol": "GlxExtensionInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:247"
+      },
+      {
+        "frame": "#10 0x569d9c757780 in InitExtensions ../mi/miinitext.c:271",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8780",
+        "symbol": "InitExtensions\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../mi/miinitext.c:271"
+      },
+      {
+        "frame": "#11 0x569d9c991c3a in dix_main ../dix/main.c:199",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1232c3a",
+        "symbol": "dix_main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/main.c:199"
+      },
+      {
+        "frame": "#12 0x569d9c757dac in main ../dix/stubmain.c:34",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8dac",
+        "symbol": "main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/stubmain.c:34"
+      },
+      {
+        "frame": "#13 0x70c9a322a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a1c9",
+        "symbol": "__libc_start_call_main\n./csu/../sysdeps/x86/libc-start.c:58"
+      },
+      {
+        "frame": "#14 0x70c9a322a28a in __libc_start_main_impl ../csu/libc-start.c:360",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a28a",
+        "symbol": "__libc_start_main_impl\n./csu/../csu/libc-start.c:360"
+      },
+      {
+        "frame": "#15 0x569d9c746424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb+0xfe7424) (BuildId: 489cd8ec89e0f230109bafc667bb6dd1e8936801)",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xfe7424",
+        "symbol": "_start\n??:?"
+      }
+    ]
+  },
+  {
+    "allocation": "Direct leak of 104 byte(s) in 1 object(s) allocated from:",
+    "frames": [
+      {
+        "frame": "#0 0x70c9a44fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77",
+        "module": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+        "offset": "0xfd340",
+        "symbol": "___interceptor_calloc\n/build/gcc-14-FpLBWZ/gcc-14-14.2.0/build/x86_64-linux-gnu/libsanitizer/asan/../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77 (discriminator 3)"
+      },
+      {
+        "frame": "#3 0x70c9a250e4c0  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/dri/libdril_dri.so",
+        "offset": "0x84c0",
+        "symbol": "??\n??:0"
+      },
+      {
+        "frame": "#4 0x569d9d1f96b6 in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a9a6b6",
+        "symbol": "__glXDRIscreenProbe\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glx_dri/glxdriswrast.c:439"
+      },
+      {
+        "frame": "#5 0x569d9d1f32e3 in xorgGlxServerInit ../glx/glxext.c:527",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a942e3",
+        "symbol": "xorgGlxServerInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glxext.c:527 (discriminator 10)"
+      },
+      {
+        "frame": "#6 0x569d9c999bad in _CallCallbacks ../dix/dixutils.c:707",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x123abad",
+        "symbol": "_CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/dixutils.c:707"
+      },
+      {
+        "frame": "#7 0x569d9d2db90f in CallCallbacks ../include/callback.h:79",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7c90f",
+        "symbol": "CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:79"
+      },
+      {
+        "frame": "#8 0x569d9d2dd09d in GlxExtensionInit ../glx/vndext.c:247",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7e09d",
+        "symbol": "GlxExtensionInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:247"
+      },
+      {
+        "frame": "#9 0x569d9c757780 in InitExtensions ../mi/miinitext.c:271",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8780",
+        "symbol": "InitExtensions\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../mi/miinitext.c:271"
+      },
+      {
+        "frame": "#10 0x569d9c991c3a in dix_main ../dix/main.c:199",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1232c3a",
+        "symbol": "dix_main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/main.c:199"
+      },
+      {
+        "frame": "#11 0x569d9c757dac in main ../dix/stubmain.c:34",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8dac",
+        "symbol": "main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/stubmain.c:34"
+      },
+      {
+        "frame": "#12 0x70c9a322a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a1c9",
+        "symbol": "__libc_start_call_main\n./csu/../sysdeps/x86/libc-start.c:58"
+      },
+      {
+        "frame": "#13 0x70c9a322a28a in __libc_start_main_impl ../csu/libc-start.c:360",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a28a",
+        "symbol": "__libc_start_main_impl\n./csu/../csu/libc-start.c:360"
+      },
+      {
+        "frame": "#14 0x569d9c746424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb+0xfe7424) (BuildId: 489cd8ec89e0f230109bafc667bb6dd1e8936801)",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xfe7424",
+        "symbol": "_start\n??:?"
+      }
+    ]
+  },
+  {
+    "allocation": "Indirect leak of 288 byte(s) in 2 object(s) allocated from:",
+    "frames": [
+      {
+        "frame": "#0 0x70c9a44fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77",
+        "module": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+        "offset": "0xfd340",
+        "symbol": "___interceptor_calloc\n/build/gcc-14-FpLBWZ/gcc-14-14.2.0/build/x86_64-linux-gnu/libsanitizer/asan/../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77 (discriminator 3)"
+      },
+      {
+        "frame": "#1 0x70c9a23dcf36  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0",
+        "offset": "0x6f36",
+        "symbol": "??\n??:0"
+      },
+      {
+        "frame": "#2 0x70c9a23dd2b3  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0",
+        "offset": "0x72b3",
+        "symbol": "??\n??:0"
+      },
+      {
+        "frame": "#3 0x70c9a23e1cd8  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0",
+        "offset": "0xbcd8",
+        "symbol": "drmGetDevices2\n??:?"
+      },
+      {
+        "frame": "#6 0x70c9a250e4c0  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/dri/libdril_dri.so",
+        "offset": "0x84c0",
+        "symbol": "??\n??:0"
+      },
+      {
+        "frame": "#7 0x569d9d1f96b6 in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a9a6b6",
+        "symbol": "__glXDRIscreenProbe\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glx_dri/glxdriswrast.c:439"
+      },
+      {
+        "frame": "#8 0x569d9d1f32e3 in xorgGlxServerInit ../glx/glxext.c:527",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a942e3",
+        "symbol": "xorgGlxServerInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glxext.c:527 (discriminator 10)"
+      },
+      {
+        "frame": "#9 0x569d9c999bad in _CallCallbacks ../dix/dixutils.c:707",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x123abad",
+        "symbol": "_CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/dixutils.c:707"
+      },
+      {
+        "frame": "#10 0x569d9d2db90f in CallCallbacks ../include/callback.h:79",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7c90f",
+        "symbol": "CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:79"
+      },
+      {
+        "frame": "#11 0x569d9d2dd09d in GlxExtensionInit ../glx/vndext.c:247",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7e09d",
+        "symbol": "GlxExtensionInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:247"
+      },
+      {
+        "frame": "#12 0x569d9c757780 in InitExtensions ../mi/miinitext.c:271",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8780",
+        "symbol": "InitExtensions\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../mi/miinitext.c:271"
+      },
+      {
+        "frame": "#13 0x569d9c991c3a in dix_main ../dix/main.c:199",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1232c3a",
+        "symbol": "dix_main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/main.c:199"
+      },
+      {
+        "frame": "#14 0x569d9c757dac in main ../dix/stubmain.c:34",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8dac",
+        "symbol": "main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/stubmain.c:34"
+      },
+      {
+        "frame": "#15 0x70c9a322a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a1c9",
+        "symbol": "__libc_start_call_main\n./csu/../sysdeps/x86/libc-start.c:58"
+      },
+      {
+        "frame": "#16 0x70c9a322a28a in __libc_start_main_impl ../csu/libc-start.c:360",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a28a",
+        "symbol": "__libc_start_main_impl\n./csu/../csu/libc-start.c:360"
+      },
+      {
+        "frame": "#17 0x569d9c746424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb+0xfe7424) (BuildId: 489cd8ec89e0f230109bafc667bb6dd1e8936801)",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xfe7424",
+        "symbol": "_start\n??:?"
+      }
+    ]
+  },
+  {
+    "allocation": "Indirect leak of 104 byte(s) in 1 object(s) allocated from:",
+    "frames": [
+      {
+        "frame": "#0 0x70c9a44fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77",
+        "module": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+        "offset": "0xfd340",
+        "symbol": "___interceptor_calloc\n/build/gcc-14-FpLBWZ/gcc-14-14.2.0/build/x86_64-linux-gnu/libsanitizer/asan/../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77 (discriminator 3)"
+      },
+      {
+        "frame": "#3 0x70c9a250e4c0  (<unknown module>)",
+        "module": "/usr/lib/x86_64-linux-gnu/dri/libdril_dri.so",
+        "offset": "0x84c0",
+        "symbol": "??\n??:0"
+      },
+      {
+        "frame": "#4 0x569d9d1f96b6 in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a9a6b6",
+        "symbol": "__glXDRIscreenProbe\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glx_dri/glxdriswrast.c:439"
+      },
+      {
+        "frame": "#5 0x569d9d1f32e3 in xorgGlxServerInit ../glx/glxext.c:527",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1a942e3",
+        "symbol": "xorgGlxServerInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/glxext.c:527 (discriminator 10)"
+      },
+      {
+        "frame": "#6 0x569d9c999bad in _CallCallbacks ../dix/dixutils.c:707",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x123abad",
+        "symbol": "_CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/dixutils.c:707"
+      },
+      {
+        "frame": "#7 0x569d9d2db90f in CallCallbacks ../include/callback.h:79",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7c90f",
+        "symbol": "CallCallbacks\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:79"
+      },
+      {
+        "frame": "#8 0x569d9d2dd09d in GlxExtensionInit ../glx/vndext.c:247",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1b7e09d",
+        "symbol": "GlxExtensionInit\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../glx/vndext.c:247"
+      },
+      {
+        "frame": "#9 0x569d9c757780 in InitExtensions ../mi/miinitext.c:271",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8780",
+        "symbol": "InitExtensions\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../mi/miinitext.c:271"
+      },
+      {
+        "frame": "#10 0x569d9c991c3a in dix_main ../dix/main.c:199",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0x1232c3a",
+        "symbol": "dix_main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/main.c:199"
+      },
+      {
+        "frame": "#11 0x569d9c757dac in main ../dix/stubmain.c:34",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xff8dac",
+        "symbol": "main\n/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/../dix/stubmain.c:34"
+      },
+      {
+        "frame": "#12 0x70c9a322a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a1c9",
+        "symbol": "__libc_start_call_main\n./csu/../sysdeps/x86/libc-start.c:58"
+      },
+      {
+        "frame": "#13 0x70c9a322a28a in __libc_start_main_impl ../csu/libc-start.c:360",
+        "module": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "offset": "0x2a28a",
+        "symbol": "__libc_start_main_impl\n./csu/../csu/libc-start.c:360"
+      },
+      {
+        "frame": "#14 0x569d9c746424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb+0xfe7424) (BuildId: 489cd8ec89e0f230109bafc667bb6dd1e8936801)",
+        "module": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+        "offset": "0xfe7424",
+        "symbol": "_start\n??:?"
+      }
+    ]
+  }
+]

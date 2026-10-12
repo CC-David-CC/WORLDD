@@ -1,0 +1,27 @@
+M03 session resource provisioning
+
+Invariant
+The supervisor binds explicit broker policy to its retained process scope before child startup.
+Operator templates must not supply a preselected broker cgroup.
+Use a sealed binary protobuf descriptor for the bound policy.
+Reject descriptor collisions, repeated policy arguments, malformed policy, and mutable handoffs.
+Consume the policy descriptor before serving application requests.
+Keep application groups inside the retained broker subtree through shutdown and revocation.
+Resource ceilings do not grant execution, file, native display, or administrative authority.
+
+Selected checks
+Reproduce unsupported resource provisioning against the prior production supervisor.
+Test sealed and mutable handoffs through the real broker.
+Test conflicting configuration arguments and wrong cgroup binding.
+Use the production SessionCoordinator, supervisor, broker, world, compositor, and confined X client.
+Preserve the three existing connected-application recovery assertions.
+Inspect real kernel hierarchy, process membership, and application descriptor isolation.
+Reject reserved descriptor collisions and policy overrides before creating launch ownership.
+Run related supervisor and resource lifecycle checks in Debug and runtime sanitizers on both hosts.
+Keep locked acceptance files and issuer timeout settings unchanged.
+
+Limits
+This increment does not qualify persistent storage quotas or issuer latency under contention.
+The complete M03 gate and physical qualification remain pending.
+Use transient delegated test services. Preserve normal login and SSH recovery.
+Record exact native server, runtime, source, and fixture pins for each attempt.

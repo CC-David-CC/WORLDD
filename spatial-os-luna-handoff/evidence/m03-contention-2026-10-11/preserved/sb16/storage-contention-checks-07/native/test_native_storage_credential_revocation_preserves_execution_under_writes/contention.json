@@ -1,0 +1,239 @@
+{
+  "samples": [
+    {
+      "time": 24231.615548865,
+      "writers": [
+        {
+          "completed": 1,
+          "bytes": 4194304
+        }
+      ]
+    },
+    {
+      "time": 24231.624523881,
+      "writers": [
+        {
+          "completed": 1,
+          "bytes": 4194304
+        }
+      ]
+    },
+    {
+      "time": 24231.885545856,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24231.940381634,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.00007487,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.000516563,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.248513441,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.249193335,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.259813255,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.270547955,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.281153375,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.291803646,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.302513215,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.353091457,
+      "writers": [
+        {
+          "completed": 2,
+          "bytes": 8388608
+        }
+      ]
+    },
+    {
+      "time": 24232.36425441,
+      "writers": [
+        {
+          "completed": 3,
+          "bytes": 12582912
+        }
+      ]
+    }
+  ],
+  "phase_complete": false,
+  "controls": {
+    ".": {
+      "memory.max": "1073741824",
+      "pids.max": "128",
+      "cpu.max": "400000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c0d63f4b49650eddc7a40f581d7b03664328559b7cc4b935d085625538c0841e": {
+      "memory.max": "536870912",
+      "pids.max": "64",
+      "cpu.max": "200000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-75570f8dd6f1e0720c89854b0b192c51989e1a1a2b0196788d5fdfe99741d80b": {
+      "memory.max": "268435456",
+      "pids.max": "16",
+      "cpu.max": "200000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "broker-manager": {
+      "memory.max": "268435456",
+      "pids.max": "32",
+      "cpu.max": "200000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c0d63f4b49650eddc7a40f581d7b03664328559b7cc4b935d085625538c0841e/authority-36bdec17c3d539a7c4409b76c943859364b0507639f7bfa3cc8413988ec30ca2": {
+      "memory.max": "268435456",
+      "pids.max": "32",
+      "cpu.max": "100000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c0d63f4b49650eddc7a40f581d7b03664328559b7cc4b935d085625538c0841e/authority-36bdec17c3d539a7c4409b76c943859364b0507639f7bfa3cc8413988ec30ca2/authority-e55fea7be64ba41cc21dc5a873e010a3245994467a4703916ad18c7b7d6a3e29": {
+      "memory.max": "134217728",
+      "pids.max": "16",
+      "cpu.max": "100000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    },
+    "authority-c0d63f4b49650eddc7a40f581d7b03664328559b7cc4b935d085625538c0841e/authority-36bdec17c3d539a7c4409b76c943859364b0507639f7bfa3cc8413988ec30ca2/authority-227181194d4a392b9a49a555f71fd295938bd3c1b72a4dfbebfb397d48137600": {
+      "memory.max": "134217728",
+      "pids.max": "16",
+      "cpu.max": "100000 100000",
+      "io.max": "7:13 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+    }
+  },
+  "application_pids": [
+    161528,
+    161529,
+    161530,
+    161531,
+    161532,
+    161551,
+    161552,
+    161553,
+    161554
+  ],
+  "issuer_operations": [
+    {
+      "operation": "policy_set",
+      "seconds": 0.12462489300014568,
+      "reply": "080110046a100a0c08011208656d7074792d76311002"
+    },
+    {
+      "operation": "policy_set",
+      "seconds": 0.05239048399744206,
+      "reply": "080110066a100a0c08011208656d7074792d76311003"
+    },
+    {
+      "operation": "policy_set",
+      "seconds": 0.0583180440007709,
+      "reply": "080110086a100a0c08011208656d7074792d76311004"
+    },
+    {
+      "operation": "identity_revoke",
+      "seconds": 0.05565877000117325,
+      "reply": "0801100a82016c0a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a02065122008d42506b6780793f8a2c27142be6ef592c0be8bd11c888595e953d4b3f52f4d1a2034839ef8d4d5f6c20880851ffe4b3206f4300fedd05c095400a0bc71a3ec9f37200130014001"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.02935084300042945,
+      "reply": "0801100cca01ae030a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a240801122034839ef8d4d5f6c20880851ffe4b3206f4300fedd05c095400a0bc71a3ec9f37200228023aa3010a7d0a570a2070707070707070707070707070707070707070707070707070707070707070701220130211b0f2f23daeccf5b8e9baeac138e8506dd68f5021475b575a97d7caa7b21a110802120d776f726b73706163652d6f6e6510011a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a200d4612a306a3510cfb5b17be98ca47e1ca99267243967a87e5f9a1e142dc57c73ab7010a90010a6a0a2077777777777777777777777777777777777777777777777777777777777777771220a26630478cb8563409addb661f55b31114aa31dea595169727fe0818ac2a787e1a2408011220613162336162366165626364626533633232653635396235663361356337343710021a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a20238a5fc79701cadb543dd620263d29787e88698babe3fe3f9d1e530d57663164"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.028821842999604996,
+      "reply": "0801100eca01ae030a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a240801122034839ef8d4d5f6c20880851ffe4b3206f4300fedd05c095400a0bc71a3ec9f37200228023aa3010a7d0a570a2070707070707070707070707070707070707070707070707070707070707070701220130211b0f2f23daeccf5b8e9baeac138e8506dd68f5021475b575a97d7caa7b21a110802120d776f726b73706163652d6f6e6510011a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a200d4612a306a3510cfb5b17be98ca47e1ca99267243967a87e5f9a1e142dc57c73ab7010a90010a6a0a2077777777777777777777777777777777777777777777777777777777777777771220a26630478cb8563409addb661f55b31114aa31dea595169727fe0818ac2a787e1a2408011220613162336162366165626364626533633232653635396235663361356337343710021a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a20238a5fc79701cadb543dd620263d29787e88698babe3fe3f9d1e530d57663164"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.026755529001093237,
+      "reply": "08011010ca01ae030a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a240801122034839ef8d4d5f6c20880851ffe4b3206f4300fedd05c095400a0bc71a3ec9f37200228023aa3010a7d0a570a2070707070707070707070707070707070707070707070707070707070707070701220130211b0f2f23daeccf5b8e9baeac138e8506dd68f5021475b575a97d7caa7b21a110802120d776f726b73706163652d6f6e6510011a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a200d4612a306a3510cfb5b17be98ca47e1ca99267243967a87e5f9a1e142dc57c73ab7010a90010a6a0a2077777777777777777777777777777777777777777777777777777777777777771220a26630478cb8563409addb661f55b31114aa31dea595169727fe0818ac2a787e1a2408011220613162336162366165626364626533633232653635396235663361356337343710021a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a20238a5fc79701cadb543dd620263d29787e88698babe3fe3f9d1e530d57663164"
+    },
+    {
+      "operation": "barrier_read",
+      "seconds": 0.059876081002585124,
+      "reply": "08011012ca01b6030a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a240801122034839ef8d4d5f6c20880851ffe4b3206f4300fedd05c095400a0bc71a3ec9f37200230013aa7010a7d0a570a2070707070707070707070707070707070707070707070707070707070707070701220130211b0f2f23daeccf5b8e9baeac138e8506dd68f5021475b575a97d7caa7b21a110802120d776f726b73706163652d6f6e6510011a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a200d4612a306a3510cfb5b17be98ca47e1ca99267243967a87e5f9a1e142dc57c7200128013abb010a90010a6a0a2077777777777777777777777777777777777777777777777777777777777777771220a26630478cb8563409addb661f55b31114aa31dea595169727fe0818ac2a787e1a2408011220613162336162366165626364626533633232653635396235663361356337343710021a207fe9771db5d74e2feb445d2ba6da0264592e0b09fbf369b703973f5b05a0206510011a20238a5fc79701cadb543dd620263d29787e88698babe3fe3f9d1e530d5766316420012801"
+    }
+  ],
+  "durable_policy_revision": 4,
+  "credential_loss_execution_continues": true
+}

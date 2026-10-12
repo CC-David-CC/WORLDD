@@ -1,0 +1,294 @@
+{
+  "status": "reviewed_corrected_Debug_profile_passed",
+  "host": "sb16",
+  "phase_complete": false,
+  "attachments_verified": 324,
+  "sources_verified": 396,
+  "source_exceptions": [
+    {
+      "path": "tests/native/crosshost_revocation.py",
+      "frozen": "073f5b4a198b7ddd8b763df582f7229e2df74721cd17af8035d40df8257c5e22",
+      "local": "155161bad1fdf56af6a1882b5361f93c3828cf3690cba7b38af63966014d7059"
+    }
+  ],
+  "exception_disposition": "The separately staged production-profile cross-host fixture remains unrun. Frozen source matches HEAD for that file. All other current candidate sources match.",
+  "reused_Debug_prefix": "Nine unchanged passed suites from correction-01 must remain separately evidenced. Full gate-02 reassesses all suites.",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0,
+      "seconds": 0.3658756139993784,
+      "counts": []
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "seconds": 3.47394820000045,
+      "counts": []
+    },
+    {
+      "name": "authority-broker-handoff-regressions",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^authority-broker-handoff-regressions$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 9.016259119998722,
+      "counts": [
+        "11"
+      ]
+    },
+    {
+      "name": "authority-world-handoff",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^authority-world-handoff$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 1.121609019999596,
+      "counts": [
+        "1"
+      ]
+    },
+    {
+      "name": "authority-world-handoff-regressions",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^authority-world-handoff-regressions$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 7.605475024000043,
+      "counts": [
+        "13"
+      ]
+    },
+    {
+      "name": "authority-supervisor-fencing",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^authority-supervisor-fencing$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 11.490480415999627,
+      "counts": [
+        "10"
+      ]
+    },
+    {
+      "name": "authority-control-binding",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^authority-control-binding$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 6.006376224999258,
+      "counts": [
+        "6"
+      ]
+    },
+    {
+      "name": "authority-supervisor-crash-fencing",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^authority-supervisor-crash-fencing$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 11.690754768998886,
+      "counts": [
+        "10"
+      ]
+    },
+    {
+      "name": "session-application",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^session-application$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 12.333406015000946,
+      "counts": [
+        "3"
+      ]
+    },
+    {
+      "name": "session-storage-owner",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^session-storage-owner$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 16.01663240599737,
+      "counts": [
+        "2"
+      ]
+    },
+    {
+      "name": "session-storage-contention",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^session-storage-contention$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 42.771203673000855,
+      "counts": [
+        "3"
+      ]
+    },
+    {
+      "name": "session-resources",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^session-resources$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 28.029326440999284,
+      "counts": [
+        "13"
+      ]
+    },
+    {
+      "name": "workspace-git",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build",
+        "-R",
+        "^workspace-git$",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 39.31960175399945,
+      "counts": [
+        "49"
+      ]
+    },
+    {
+      "name": "P10",
+      "command": [
+        "python3",
+        "tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "tools/with_test_display.py",
+        "--",
+        "python3",
+        "tools/gate.py",
+        "--through",
+        "P10",
+        "--sut",
+        "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-test-host\"]",
+        "--report",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/Debug/P10.json"
+      ],
+      "exit_code": 0,
+      "seconds": 58.27731082199898,
+      "counts": [
+        "151"
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes",
+      "evidence": "evidence\\m03-contention-2026-10-11\\correction-02\\sb16\\Debug\\Debug\\native\\test_native_storage_actor_revocation_and_durable_issuer_under_writes\\contention.json",
+      "durable_policy_revision": 4,
+      "revocation_complete": true
+    },
+    {
+      "test": "test_native_storage_actor_revocation_during_bounded_git_import",
+      "evidence": "evidence\\m03-contention-2026-10-11\\correction-02\\sb16\\Debug\\Debug\\native\\test_native_storage_actor_revocation_during_bounded_git_import\\contention.json",
+      "nested_execution_rejected_without_effect": true,
+      "exit_during_git": {
+        "seconds": 0.4801217700005509,
+        "exited": 9,
+        "expected": 9,
+        "git_still_running": [],
+        "pending_reply": true
+      }
+    },
+    {
+      "test": "test_native_storage_credential_revocation_preserves_execution_under_writes",
+      "evidence": "evidence\\m03-contention-2026-10-11\\correction-02\\sb16\\Debug\\Debug\\native\\test_native_storage_credential_revocation_preserves_execution_under_writes\\contention.json",
+      "durable_policy_revision": 4,
+      "credential_loss_execution_continues": true
+    }
+  ],
+  "reused_prefix_attachments_verified": 213,
+  "reused_prefix_checks": 95,
+  "reused_prefix_changes": [
+    "tests/native/test_supervisor_broker_handoff_regressions.py"
+  ],
+  "reused_prefix_evidence": "evidence/m03-contention-2026-10-11/correction-Debug-prefix/sb16",
+  "affected_suite_checks": 216,
+  "acceptance_passed": 151
+}

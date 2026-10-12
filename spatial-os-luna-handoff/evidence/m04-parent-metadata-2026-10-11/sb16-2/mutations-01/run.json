@@ -1,0 +1,170 @@
+{
+  "phase_complete": false,
+  "inputs_sha256": {
+    "server/base.lock.json": "62549c50b5f9ca9ec4c73ea5e52106adb7c408f226cb53eb114188cc9aa88d4f",
+    "tools/build_xserver.py": "584e37bf02885484d4b23ed495039119fa7edbf853e93ac950fda6178046eaa2",
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/patches/0002-spatial-security.patch": "c5c94cd1cb375e829db7b0e0478dacb916dc9890e71b3c94243e701c3c99cb0b",
+    "server/patches/0003-server-shutdown.patch": "195e4b5475fb124535a5be1abbf1ea12723d6c8ba39ec5f463f5d3c24f6dd6b7",
+    "server/patches/0004-spatial-resource-policy.patch": "ad72bc7de29196c2fbec843df7d7eecf2de70e7a246b2bcf9b4f63cc30af1544",
+    "server/patches/0005-animated-cursor-cleanup.patch": "a51fa2ba79da0a92396b3675dcadccdd598cb78155c451b738d368ac5af12356",
+    "server/patches/0006-global-server-access.patch": "e98932d02c432f298b257b6f5f4dafb59fecfecacf1056ee1023753b0e940b07",
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch": "21e9efe8bcb7a23f0f7dbdb219a0ff8c986d30339a96988e017fa6ae46a95d29",
+    "server/patches/0008-application-atom-privacy.patch": "ec66f9c1536954df7c3c724f4f63b4a47145a1b98eb4ad3457f835ae245d579f",
+    "server/patches/0009-private-configure-event-metadata.patch": "3ad2a6c8d120cd9c5f55a5a904b993610851b0e948c6ea0d42a4567c018c466f",
+    "server/patches/0010-private-parent-metadata.patch": "e6aef6659ad89d227ed4d4cf11492d651822fa44ae44eb3b17506a04f5704483",
+    "server/xlibre/spatialinput.c": "00e4bd9a42a8414916f9167d2e6fe2b51b683930da265ee70a84b5ce60ed391b",
+    "server/xlibre/spatialinput.h": "4d80f8ef30fcec45205f00249fecf96054d76d5c93771b6595e7c87bdb9206c1",
+    "server/xlibre/meson.build": "549e8f4f936b59327e9a66941b977bb2a219c54cb7a165112ba441b44ed96f9e",
+    "proto/spatial/input/v1/input.proto": "83958a6050992e5629e151af93a9af8620876dc9f8899016933cd8e8782990ce",
+    "server/xlibre/spatialsecurity.c": "ee9efd3c09f598154676f95fa6b42f12b6c4bba196297ebbde4b5222849a3d63",
+    "server/xlibre/spatialpolicy.c": "eb2060a9787ac5606a854f59dc7bbaf7561a7febb165ab535e166e93913dfb95",
+    "server/xlibre/spatialsecurity.h": "49b1751c45b365faad3ed7cf05248c2aefaa2d0a714ac72d442a104ea73a02c3",
+    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48",
+    "proto/spatial/security/v1/selection_scope.proto": "e6782b2424f2f2f2a39c4edfa2a4eaf2888a1b60a325a9bdb68184aa26a46e9d",
+    "tests/native/test_actor_binding.py": "f5ee80df455f8c551b1f23fded906698cee3fc3bc459efa0da6ead47a15e930a",
+    "tests/native/test_authority_owned_participant.py": "fcb1c2e79d5e3dacc34faa524f1d87c17124b1f993a2713f2ffc4e08b1931f54",
+    "tests/native/test_surface_identity.py": "18686fd922e6c1794f2d432beb1f663268d0a9568bd503a79585d3399ea0b682",
+    "tests/native/test_resource_isolation.py": "ef50b936d30ab18a2d70fa2d22b6cffcd91b95e5419b2192b144ec08177c0da8",
+    "tests/native/test_coordinator_retirement.py": "0c15c1772eda28cbf46ae831a68074324ffb0b79628a10643d110ccc54394cf2",
+    "tests/native/test_storage_session.py": "95943103b24e65e24d29f7a9adfedf7fd207a91c136c438947fd95936818de2a",
+    "tests/native/test_atom_privacy.py": "8d70dfb81b39eb17fb456729c18f8a267aaea7d7e7f769185b023e59e3d997d2",
+    "tests/native/test_supervisor_broker_handoff_regressions.py": "7be7aa5c9d62a81d971c162c8015ba3f08eceadcd810523a906618fbc2fdb02d",
+    "tests/native/test_stopped_broker_dependency.py": "fac589a3dd486f4bbf1f1f550fff0e84a17bbbe36cdaa8e180a9d4564f985fbe",
+    "tests/native/test_display_ready.py": "9eb48eee45eb2198d36cca46b62be0160c5a2a0062d7d8082c81e1938e596589",
+    "tests/native/test_security_identity.py": "5b2ca730013fad4a9c09f78c62b910d9cd266b48a242df00a6e5ad9332b5dd5b",
+    "tests/native/test_storage_broker_launch.py": "0a9fb95dcf724b335dbbb231381f206e9c3382e0eb5a8c00eee088666f1d3c55",
+    "tests/native/test_native_launch.py": "6c62ad8252781076dc932b48fd7e873e83b193394bbda7bc628ef8be6452da20",
+    "tests/native/test_session_resources.py": "cad65b803ad43b94e8c9420f7f3ef39ea2de52f04fd1fe5c14c79952dcb2b32a",
+    "tests/native/test_authority_supervisor.py": "22dc62ea618f0201273df7c1717b41ec52705015835c1699e24cb25b47cae4ed",
+    "tests/native/test_supervisor_world_handoff_regressions.py": "1cb3ae947c0c9cda7eece0d572abdbbec912472b018e6d80fc0801ddf2fc7357",
+    "tests/native/test_storage_contention.py": "255c4991be7ea2c3408829565c22b066efbde6b76de0eac14cf49b99c220ba27",
+    "tests/native/test_authority_native_scope.py": "3bdace11a967d90c3f368c968e7ae3cc7b99fcb1f5886f3d418a39ed0c2e4cab",
+    "tests/native/healthy_issuer_setup.py": "608a4c9b2f99039fc378dffbd6bf9b75e9603ae3fea96cbc5addbb738d78fdbe",
+    "tests/native/test_session_broker_cleanup.py": "9d2833071401f7f6857eddc4b1e5ad99a9db325f6a86078a7b7bf2da5f09f8f4",
+    "tests/native/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/native/test_input_extension.py": "9f4bdcb159450f36f09e23001d7ec23922ea6f0335b9c13ef0870605568e338e",
+    "tests/native/test_compositor_identity.py": "ac4e87b4b5c70cb70ab186b3ee3474471e7a92d7693ccf4c3a78b4e520b821cd",
+    "tests/native/test_session_replacement.py": "e016619e46cb8e77d074ac64bcd84aad67012d7bf80062546d19eb9c0bba207a",
+    "tests/native/test_session_broker.py": "de9ef8c20199422ef54dd4cfaadf0cbc23528cfc5dd4c53f9251f56964741338",
+    "tests/native/test_selection_isolation.py": "867f5d09e5c346ed9f1633f877efa0a834ed59d151c9102f1084434aed9791ca",
+    "tests/native/storage_session_volume.py": "e9dc18b7dcd03378966639212df42b219980aaf92c1089ba6068095c1ba44a2a",
+    "tests/native/test_session_world.py": "56fd36b27cd8cda3e4f943083c573f3b3e7723368fddad3244de55f2881b5609",
+    "tests/native/test_storage_git_integration.py": "b4bad247f24d5f380f9baed306a00ed994f618340443936b416ba5eed057340c",
+    "tests/native/test_supervisor_world_handoff.py": "eb79e4eb116c90ac8f57302a442bd1f73d042a49268b2d82832a2b94bddada93",
+    "tests/native/test_world_surface_groups.py": "80774ab0258bfa041910bd3608f45f2efded372e4b2f4aaafa545739dbeac94a",
+    "tests/native/test_authority_launch.py": "db5e98a424dbcf3f5184c3d1e63d5d32d28d3300ff5f91eb8e1a637a0fc55489",
+    "tests/native/test_supervisor_fencing.py": "6a1012756848bf249c4652b22ec70cd5673e65a5cb11a9fe6c7b4bb71fb14d86",
+    "tests/native/test_parent_metadata.py": "86bae321d829d3d4c11f7404797f297c58de59b8accc9696de3b2716580886f5",
+    "tests/native/selection_scope_client.py": "edb0bb137dbe5aee28a74d8dbf50e4237708723802965eb9c34de5829b8c170d",
+    "tests/native/test_dependent_cleanup.py": "bbafa929d617b962a39fb44341d89d5cfc31df9d7c95ed790afc5717ed40ebf5",
+    "tests/native/test_application_input.py": "237b8c62ce112c785bffb76a030e0b870def50b5a7879dfdc165d80c2cb5c791",
+    "tests/native/test_selection_namespace.py": "c832ffe37d329480106f162a5e5fed71851014de22dd895570b6ed3f8e4761f6",
+    "tests/native/test_session_application.py": "d49cbfb003b7bfcf6e290bdf0d6837c82ec44901b71c32c2b7140cb34b7bebb5",
+    "tests/native/test_operator_revocation.py": "0289ce0e77b48ae215a096b22d8665fa51c492f6ca31d99ca199f0de347c3729",
+    "tests/native/test_supervisor_handoff_lifetime.py": "c718c1f2f61224f129b03b3a0790c3ad6b81903c56e18e57f8dad8f34a5189bf",
+    "tests/native/test_approval_interruption.py": "4f4cc2d1bd2ba88fafb0e9a817949fa40d8410396db7899c81a0647694dcef18",
+    "tests/native/test_supervisor_crash_fencing.py": "ba469bbe319bf85bac359249aa53bb0a083249a76c31e6b5eeacbbc8ec2f090a",
+    "tests/native/test_broker_retirement.py": "12d5aa58c9822523b3f162fd8d12026b7329d36486262c27527a015452ca5085",
+    "tests/native/test_broker_replacement.py": "c11cd78fde9180df0e2ba6f6e0297cbca186767d574d928181fcc43b80464883",
+    "tests/native/test_supervisor_broker_handoff.py": "b4f68ee6e1a98593fa12a041a3ee8b8ca5d39130661d0bc67386baf351f8f6f2",
+    "tests/native/display_ready.py": "742d307c9cf1404616ea6ff0bcd61536db5751ba05a29d232128e7dc0fc735cb",
+    "tests/native/test_authority_participant_relay.py": "ee76917ffcfaa43ff4127e19d38b50343f7a3c5f2b232bca8c439dc33ca23663",
+    "tests/native/test_native_scope_config_ownership.py": "39323ca49f8abf300ddd77a4558cf3648e467069d66a04f2eac85c22da3d5627",
+    "tests/native/test_deferred_fence.py": "94a4d6489db0124025c0e3299f6126b326d936a1697e1187da7d97ae47b0c5d0",
+    "tests/native/test_event_metadata.py": "880b6fd685ec6280401f642122d574a6561837ce06da224a6c25b4a844b80b72",
+    "tests/native/crosshost_revocation.py": "809cc55e22f7540fb938c0c7c4d26f8828e756578421af56b41ca0456159aea2",
+    "tests/native/test_device_administration.py": "60ca3b3712237a8bc031f30f033cc4179aca09fdaac8f77b849b546337ce82af",
+    "tests/native/test_control_owner_binding.py": "9e2066f909726b6865e27e57ec0862a001b0fa5f3a87505aa6b1302fe6b9f976",
+    "tests/native/test_probe_smoke.py": "90844827e64208f1226d5a4368ed6f03472197e615ad51678d6cc3df144032b8",
+    "tests/native/test_supervisor_child_handle.py": "81af63aeddf1861a01837d585bbe4e8b2c2447c74eb15d88c7fa089ad94a19e1",
+    "tests/native/test_global_isolation.py": "19a4732cfadd41269efc6dd11d013c6e62f4681575d1a4d72064ef75ee7006a5",
+    "tests/native/test_extension_isolation.py": "7588f868251ce1ea70e95693316fd00d5859396a64ff54eb5b6f8a0b36811492",
+    "tests/native/test_operator_storage.py": "a018d7a1d6d7fdb4953a6888770b7b94fac8fe2324a2b5b6a44fc0fa4a66755c"
+  },
+  "environment": {
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/candidate-02/vendor.json",
+    "LD_LIBRARY_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0"
+  },
+  "mutations": [
+    {
+      "name": "query-parent",
+      "expected_failures": [
+        "test_query_tree_hides_foreign_parent",
+        "test_swapped_query_tree_hides_foreign_parent"
+      ],
+      "observed_failures": [
+        "test_query_tree_hides_foreign_parent",
+        "test_swapped_query_tree_hides_foreign_parent"
+      ],
+      "detected": true,
+      "exit_code": 1,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/parent-mutations-mutations-01/query-parent/local/xlibre-patched/2853d9f4fd70bf6d6634cf71054a4d55b63131534bb20d0bb52b7b84b7a6503b/source/build/hw/vfb/Xvfb",
+        "sha256": "bbed9ac1ba6c6b8ac52e9d813a8a246e4c843d687b263ecf9d7dd51968242759"
+      },
+      "policy_sha256": "eb2060a9787ac5606a854f59dc7bbaf7561a7febb165ab535e166e93913dfb95",
+      "lock_sha256": "e97eabe96e7996884ad4d329f82d970a176e114fc59d166d16f370473e46c116"
+    },
+    {
+      "name": "reparent-event",
+      "expected_failures": [
+        "test_reparent_notify_hides_foreign_parent",
+        "test_swapped_reparent_notify_hides_foreign_parent"
+      ],
+      "observed_failures": [
+        "test_reparent_notify_hides_foreign_parent",
+        "test_swapped_reparent_notify_hides_foreign_parent"
+      ],
+      "detected": true,
+      "exit_code": 1,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/parent-mutations-mutations-01/reparent-event/local/xlibre-patched/ee143cae132200decb851ccf7bb4e79aa7de1426ca1db7a6952c62575e383269/source/build/hw/vfb/Xvfb",
+        "sha256": "60b9e68c49110f805293b00615de09793a26be378b7cb544150aaa928b9d08de"
+      },
+      "policy_sha256": "769a3d7a64efdaf61b89c371abfe5be382b641e00fc66316a137cc8a156a1434",
+      "lock_sha256": "62549c50b5f9ca9ec4c73ea5e52106adb7c408f226cb53eb114188cc9aa88d4f"
+    },
+    {
+      "name": "child-event",
+      "expected_failures": [
+        "test_foreign_child_configure_event_is_not_delivered",
+        "test_foreign_child_create_event_is_not_delivered",
+        "test_foreign_child_destroy_event_is_not_delivered",
+        "test_foreign_child_map_event_is_not_delivered",
+        "test_foreign_child_reparent_event_is_not_delivered",
+        "test_foreign_child_unmap_event_is_not_delivered",
+        "test_swapped_foreign_child_configure_event_is_not_delivered",
+        "test_swapped_foreign_child_create_event_is_not_delivered",
+        "test_swapped_foreign_child_destroy_event_is_not_delivered",
+        "test_swapped_foreign_child_map_event_is_not_delivered",
+        "test_swapped_foreign_child_reparent_event_is_not_delivered",
+        "test_swapped_foreign_child_unmap_event_is_not_delivered"
+      ],
+      "observed_failures": [
+        "test_foreign_child_configure_event_is_not_delivered",
+        "test_foreign_child_create_event_is_not_delivered",
+        "test_foreign_child_destroy_event_is_not_delivered",
+        "test_foreign_child_map_event_is_not_delivered",
+        "test_foreign_child_reparent_event_is_not_delivered",
+        "test_foreign_child_unmap_event_is_not_delivered",
+        "test_swapped_foreign_child_configure_event_is_not_delivered",
+        "test_swapped_foreign_child_create_event_is_not_delivered",
+        "test_swapped_foreign_child_destroy_event_is_not_delivered",
+        "test_swapped_foreign_child_map_event_is_not_delivered",
+        "test_swapped_foreign_child_reparent_event_is_not_delivered",
+        "test_swapped_foreign_child_unmap_event_is_not_delivered"
+      ],
+      "detected": true,
+      "exit_code": 1,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/parent-mutations-mutations-01/child-event/local/xlibre-patched/064116dcd3d4bb065176bb6ca4a87ac9344c28d63db3f14928a34fc881922f30/source/build/hw/vfb/Xvfb",
+        "sha256": "6c9467c590b0a7f53274103a10bb018fe6693071a190329e55a7ae44f5270f7d"
+      },
+      "policy_sha256": "5c5f7ceb27945e63f234667f3ce21d7ed0fd41edb7a107a6f64592a993ea726f",
+      "lock_sha256": "62549c50b5f9ca9ec4c73ea5e52106adb7c408f226cb53eb114188cc9aa88d4f"
+    }
+  ],
+  "source_unchanged": true,
+  "status": "passed"
+}

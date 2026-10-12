@@ -1,0 +1,26 @@
+Running as unit: spatial-supervisor-cc29074f7b6cf092bcc765510f4a591b01f61bfb75fce2559f60b7e9fe0809b9.service; invocation ID: ddf8235b399b46fbb0cac8053e57fa14
+test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... ok
+test_real_child_activates_releases_and_exits_without_manual_pumping (__main__.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping) ... ok
+test_revocation_requires_child_acknowledgement_with_automatic_delivery (__main__.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+test_management_cannot_inject_participant_commands_or_repeat_start (__main__.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start) ... ok
+test_explicit_stop_preserves_unresolved_issuer_generation (__main__.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_generation) ... ok
+test_management_loss_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_management_loss_stops_owned_child_and_records_cleanup) ... ok
+test_child_death_is_failure_with_checked_cleanup (__main__.AuthoritySupervisorTests.test_child_death_is_failure_with_checked_cleanup) ... ok
+test_nonzero_exit_after_release_is_not_successful_completion (__main__.AuthoritySupervisorTests.test_nonzero_exit_after_release_is_not_successful_completion) ... ok
+test_excessive_management_frame_stops_owned_execution (__main__.AuthoritySupervisorTests.test_excessive_management_frame_stops_owned_execution) ... ok
+test_termination_signal_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_termination_signal_stops_owned_child_and_records_cleanup) ... ok
+test_existing_child_configuration_is_preserved_and_prevents_execution (__main__.AuthoritySupervisorTests.test_existing_child_configuration_is_preserved_and_prevents_execution) ... ok
+test_privileged_descriptor_mapping_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_mapping_is_rejected_before_ownership) ... ok
+test_privileged_descriptor_alias_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_alias_is_rejected_before_ownership) ... ok
+test_reopened_journal_cannot_replay_execution (__main__.AuthoritySupervisorTests.test_reopened_journal_cannot_replay_execution) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 18.831s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 19.001s
+CPU time consumed: 11.982s
+Memory peak: 1.4M
+Memory swap peak: 0B

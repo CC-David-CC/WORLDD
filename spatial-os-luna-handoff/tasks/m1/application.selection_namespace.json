@@ -1,0 +1,31 @@
+{
+  "id": "application.selection_namespace",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "policy_version": 2,
+  "contract": "docs/SELECTION_NAMESPACE_MIGRATION.txt",
+  "invariant": "Application selection ownership, timestamps and events are separated by the complete immutable application identity. Trusted services choose explicit selection views without changing identity.",
+  "production_roots": [
+    "server/xlibre/spatialpolicy.c",
+    "server/xlibre/spatialsecurity.c",
+    "proto/spatial/security/v1/selection_scope.proto"
+  ],
+  "counterexample_suite": "tests/native/test_selection_namespace.py",
+  "required_evidence": [
+    "Seven namespace failures and one sharing positive control on each unchanged baseline host.",
+    "Independent PRIMARY and SECONDARY owners, clearing and conversion.",
+    "Both native byte orders and full workspace/application separation.",
+    "Real SelectionRequest, SelectionClear and SelectionNotify with public atoms.",
+    "Explicit trusted scope switching preserves immutable identity.",
+    "Application and broker scope requests are forbidden.",
+    "Invalid scope input preserves the previous view.",
+    "Foreign owner/requestor windows remain denied.",
+    "Destruction and revocation clean owners without affecting other namespaces.",
+    "Debug and native core-X ASan/UBSan on both hosts."
+  ],
+  "limitations": [
+    "Full GLX/provider qualification remains open.",
+    "Other asynchronous event metadata remains unqualified.",
+    "Focused component checks do not complete M04."
+  ]
+}

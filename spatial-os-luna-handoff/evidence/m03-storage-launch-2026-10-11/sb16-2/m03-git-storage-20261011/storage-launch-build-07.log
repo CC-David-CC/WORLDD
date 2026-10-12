@@ -1,0 +1,22 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+[0/2] Re-checking globbed directories...
+[1/16] Building CXX object CMakeFiles/spatial-storage-launch.dir/src/supervisor/storage_launch.cpp.o
+[2/16] Linking CXX static library libspatial-storage-launch.a
+[3/16] Linking CXX executable spatial-storage-launch-probe
+[4/16] Linking CXX executable spatial-process-scope-probe
+[5/16] Building CXX object CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o
+[6/16] Linking CXX static library libspatial-workspace-resources.a
+[7/16] Linking CXX executable spatialwm
+[8/16] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[9/16] Linking CXX static library libspatial-core.a
+[10/16] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[11/16] Linking CXX executable worldd
+[12/16] Linking CXX executable workspaced
+[13/16] Linking CXX executable spatial-process-termination-probe
+[14/16] Linking CXX executable spatial-test-host
+[15/16] Linking CXX executable spatial-git-boundary-probe
+[16/16] Linking CXX executable spatial-git-job-probe

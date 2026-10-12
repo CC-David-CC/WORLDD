@@ -1,0 +1,44 @@
+M03 broker resource integration
+
+Invariant
+Launch applications only with an explicit resource policy and an owned cgroup hierarchy.
+Keep the broker outside application exhaustion groups but inside its supervisor-owned subtree.
+Place workspaces, launching actors, and applications in nested groups.
+Intersect workspace, actor, and profile limits before allocating an application scope.
+Reserve aggregate memory, swap, and process capacity before startup.
+Reject insufficient capacity without launching a child or replaying a prior operation.
+Release reservations only after checked child cleanup.
+Existing authority checks still decide whether the actor may execute or write.
+Resource configuration grants no execution or filesystem authority.
+
+Configuration
+Use a private, owner-controlled protobuf text configuration.
+Bind its cgroup root to the broker's actual, exclusively occupied cgroup.
+Move the broker into a manager subgroup before enabling domain controllers.
+Keep all application subgroups below the original supervisor-owned root.
+No resource configuration means no new application execution.
+Do not retain an unlimited compatibility path.
+This increment does not replace required launcher provisioning or bounded filesystem storage.
+
+Selected checks
+Exercise production workspaced through its private protobuf channel with fixture human identities.
+Verify kernel hierarchy, budget intersection, and descendant membership after real application startup.
+Measure a real 16 MiB direct application write against its 4 MiB/s broker limit and kernel accounting.
+Verify controller files and descriptors are inaccessible inside the confined application.
+Verify actor and workspace reservation exhaustion before any application effect.
+Verify capacity returns after observed process exit and checked cancellation.
+Verify read-only file authority and unrelated application survival after revocation.
+Verify missing resource configuration rejects execution without allocating a pending process.
+Verify broker death terminates applications and lets the retained supervisor remove nested groups.
+Verify normal shutdown restores the broker root without orphaned groups.
+Run the existing process-scope and prepared-launch checks after nested cleanup changes.
+Provision the existing process-termination fixture with explicit resource configuration.
+Preserve all six cleanup assertions, including real kernel-denied signal and wait operations.
+Run focused Debug and sanitizer checks on both authorized hosts.
+Keep the full M03 gate pending until launcher, storage, and independent attack integration is complete.
+
+Recovery
+Use the disposable delegated service from the resource primitive checks.
+Record its exact unit and recovery command before each run.
+Do not change persistent system units, root filesystem features, or the normal login session.
+Preserve failed runs and their exact candidate source.

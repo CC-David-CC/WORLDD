@@ -1,0 +1,11 @@
+{
+  "phase": "M04",
+  "phase_complete": false,
+  "status": "selected_before_execution",
+  "invariant": "ConfigureNotify must not disclose a foreign application's sibling window ID. Authorized same-application sibling metadata remains accurate.",
+  "suite": "tests/native/test_event_metadata.py",
+  "hosts": ["sb16", "sb16-2"],
+  "baseline": "The frozen Debug selection-namespace candidate.",
+  "purpose": "Audit a server-generated asynchronous metadata path that bypasses filtered QueryTree. Use real StructureNotify on owned windows, both byte orders, and a same-application positive control.",
+  "source_change": "Only a new independent witness. No production source change during selection qualification."
+}

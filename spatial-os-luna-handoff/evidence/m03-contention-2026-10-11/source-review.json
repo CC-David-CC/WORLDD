@@ -1,0 +1,68 @@
+{
+  "status": "draft_runtime_qualification_pending",
+  "locked_files_verified": 41,
+  "existing_test_bodies_unchanged": 112,
+  "source_checkpoint": "32d8242f9641e96d7d9a6cc9281a473c7dde3d00",
+  "source_changed": [
+    "spatial-os-luna-handoff/CMakeLists.txt",
+    "spatial-os-luna-handoff/docs/WORKSPACE_PROCESSES.md",
+    "spatial-os-luna-handoff/harness/resource_broker.py",
+    "spatial-os-luna-handoff/proto/spatial/supervisor/v1/process_scope.proto",
+    "spatial-os-luna-handoff/src/testing/process_scope_probe.cpp",
+    "spatial-os-luna-handoff/src/workspace/authority.cpp",
+    "spatial-os-luna-handoff/src/workspace/git_command.cpp",
+    "spatial-os-luna-handoff/src/workspace/git_command.hpp",
+    "spatial-os-luna-handoff/src/workspace/main.cpp",
+    "spatial-os-luna-handoff/src/workspace/store.cpp",
+    "spatial-os-luna-handoff/src/workspace/store.hpp",
+    "spatial-os-luna-handoff/tests/core/test_application_access.py",
+    "spatial-os-luna-handoff/tests/core/test_authority_process_scope.py",
+    "spatial-os-luna-handoff/tests/core/test_control_owner_channels.py",
+    "spatial-os-luna-handoff/tests/core/test_workspace_authority.py",
+    "spatial-os-luna-handoff/tests/core/test_workspace_participant.py",
+    "spatial-os-luna-handoff/tests/native/storage_session_volume.py",
+    "spatial-os-luna-handoff/tests/native/test_storage_contention.py",
+    "spatial-os-luna-handoff/tests/core/test_application_observation.py"
+  ],
+  "primary_review": "Owner, descriptor bindings, actual broker PID and retained exit status, source/fixture separation, cooperative effect boundaries, and failure evidence reviewed. Runtime matrix remains pending.",
+  "review_findings_corrected": [
+    "Removal-receipt flush now uses the joined filesystem worker.",
+    "Private process-scope probe releases supplied child endpoints after checked launch. An additive real-socket regression covers launch and prepare/start."
+  ],
+  "runtime_status": "Both hosts pass 205 affected sanitizer checks across the final source corrections. Current-source Debug tests run. Full gates wait on checked focused-run completion.",
+  "fixture_budget_contract": "Observation, world-control, and actor-pixel scenarios explicitly fund three application reservations: actor 384 MiB and 48 processes within the existing workspace 512 MiB and 64 processes. Per-application 128 MiB and 16 processes remain unchanged.",
+  "test_body_audit_files": [
+    "tests/core/test_application_access.py",
+    "tests/core/test_application_observation.py",
+    "tests/core/test_authority_process_scope.py",
+    "tests/core/test_control_owner_channels.py",
+    "tests/core/test_workspace_authority.py",
+    "tests/core/test_workspace_participant.py",
+    "tests/native/test_storage_session.py"
+  ],
+  "affected_sanitizer_composition": {
+    "storage-contention-final-flush-03": {
+      "passed_suites": [
+        "authority-process-scope",
+        "control-owner-channels",
+        "application-control-lease"
+      ],
+      "passed_checks": 68,
+      "application-observation_failure": "Corrected by explicit fixture reservation in final-flush-04."
+    },
+    "storage-contention-final-flush-04": {
+      "passed_suites": [
+        "application-observation",
+        "world-application-control",
+        "actor-pixels",
+        "application-access",
+        "workspace-git",
+        "session-storage-contention",
+        "session-storage-owner"
+      ],
+      "passed_checks": 137
+    },
+    "per_host_passed_checks": 205,
+    "full_phase_gate_complete": false
+  }
+}

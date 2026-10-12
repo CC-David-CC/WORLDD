@@ -1,0 +1,18 @@
+{
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-8d14c996b58a4c9b9fc74e890dd162b5.service/adapter-8e62f5f10da747bab46952beaec4d369",
+  "device": 31,
+  "inode": 751444,
+  "removed": [],
+  "unexpected_population": false,
+  "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-8d14c996b58a4c9b9fc74e890dd162b5.service/adapter-8e62f5f10da747bab46952beaec4d369\"\nresources {\n  protocol_version: 1\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n}\n",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_adapter_resources.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/workspaced",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/worldd",
+    "test_explicit_configuration_reaches_kernel_and_closes_private_descriptor"
+  ],
+  "exit_code": 1,
+  "scope_removed": true
+}

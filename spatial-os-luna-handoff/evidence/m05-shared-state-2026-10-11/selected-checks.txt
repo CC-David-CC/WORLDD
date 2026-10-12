@@ -1,0 +1,18 @@
+M05 shared-state baseline
+
+Selected suite: tests/core/test_world_shared_state.py (three cases).
+Use real identityd, worldd, TLS actor sessions, signed identities, persistent grants, and native spatialwm for shared geometry.
+Use retained M04 production binaries because this increment initially adds only tests and test registration.
+Run Debug on sb16 and sb16-2, then ASan/UBSan on both hosts.
+Preserve every failed attempt before making a correction.
+
+Shared state: distinct authenticated actors observe one object, enforce its exclusive manipulation lease,
+commit a move, restart the authority, reject an old proof, restore actor context, and observe the committed pose.
+Private state: two authorities retain distinct world IDs and independent rooms/actor poses after restart.
+Admission: registered public entry grants neither private entry nor navigation, observation, or workspace selection.
+
+These first checks use local TLS clients on each host. They do not prove the M05 cross-host topology.
+The next integration must run actors from both hosts against one shared authority and one private authority per host.
+Keep private keys outside Git. Use production protobuf actions and real geometry, not management calls for actor edits.
+Run related remote-security, remote-lifecycle, and world-authority regressions before integration.
+Run the full both-host phase gate only after the coherent M05 increment is ready.

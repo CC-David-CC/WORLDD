@@ -1,0 +1,26 @@
+{
+  "host": "sb16-2",
+  "status": "failed",
+  "command": [
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py",
+    "--native",
+    "--",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py",
+    "--",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_contention.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client",
+    "StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import"
+  ],
+  "profile": "ASan/UBSan",
+  "source_file_sha256": "a31658dc0b3f6a379a317dec0233ae0f3d59d5aaae9a5586ec33b3f177f70562",
+  "helper_sha256": "e9dc18b7dcd03378966639212df42b219980aaf92c1089ba6068095c1ba44a2a",
+  "exit_code": 1,
+  "seconds": 37.51296266999998
+}

@@ -12,6 +12,12 @@ Keep native hardware, authority, confinement, shared worlds, cabinets, and provi
 
 ## Current qualification
 
+M04 is qualified at adopted source 04e10296943013da3a29035f00b520907b97f3ca on both hosts.
+Read evidence/m04-gate-2026-10-11/M04-final-review.txt for the complete requirement audit and limits.
+Both full local profiles, reviewed fixture corrections, and eight cross-host cases provide the qualification evidence.
+The native server uses the verified private software EGL configuration. Physical GPU and device gates remain mandatory.
+M05 is next. The older M04 paragraphs below describe historical checkpoints.
+
 M02 is qualified and adopted on both hosts at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
 Read evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json for exact scope and pins.
 Both hosts passed complete Debug and runtime-sanitize gates. All eight cross-host scenarios passed.
@@ -22,10 +28,31 @@ Current-source binaries were not rebuilt after that test-only addition.
 
 M01 is qualified at the same adopted source after its identity audit and M02 cancellation dependency review.
 Read evidence/m01-audit-2026-10-10/primary-review.json. The review reuses complete gates; it does not count new runs.
-M03-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
+M05-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
 The mandatory profile remains tasks/spatial-m1.json.
 
-Current development moves to M03 aggregate execution budgets, bounded storage, and competing I/O containment.
+M03 is qualified and adopted at a99b7e46c5151ba47d0a53797b470cae6aaa5d13 in dedicated worktrees on both hosts.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+All nine requirements, eight cross-host cases, and focused source-adoption checks pass.
+Current development advances to M04. Ordinary checkout changes and normal login remain preserved.
+
+M04 atom metadata filtering passes focused Debug and core-X sanitizer checks on both hosts.
+The increment has 636 passed checks. Full GLX-enabled sanitizer runs remain failed and preserved.
+M04 still needs selection privacy, asynchronous metadata, and its complete phase gate.
+Read evidence/m04-atom-2026-10-11/primary-review.json for the component limits.
+
+Selection namespaces and ConfigureNotify metadata also pass focused review on both hosts.
+The combined candidate has 744 passed checks in Debug and core-X native-server sanitizers.
+All forty-one locked files remain unchanged. Original failures and rejected interface drafts remain preserved.
+Other asynchronous metadata, independent bypass mutations, and graphics qualification remain pending before the M04 gate.
+The private Mesa cleanup candidate now passes actual GLX rendering and selected sanitizers on both hosts.
+Each host passes 186 selected native checks, 100 shutdown repetitions, and 32 pixel-checked context cycles.
+The original shutdown timeout remains unexplained. Native GPU and full M04 gates remain pending.
+Read evidence/m04-glx-validation-2026-10-11/primary-review.json.
+Parent query and core child-event metadata now pass 214 selected checks per host and profile.
+Three isolated bypasses are detected on each host. CMake registers 140 core suites.
+Read evidence/m04-parent-metadata-2026-10-11/primary-review.json.
+Additional event paths, broader integration, native graphics, and the complete M04 gate remain pending.
 The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
 One successful five-second pressure trial does not establish a worst-case latency bound.
 Storage-pressure availability remains mandatory M03 and M1 performance work.

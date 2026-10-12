@@ -1,0 +1,84 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug
+Test project /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug
+    Start  75: render-runtime
+1/3 Test  #75: render-runtime ...................***Failed    3.75 sec
+test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering) ... ERROR
+test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+test_inclusive_clip_planes_and_quad_crossing_camera_plane (__main__.RenderRuntimeTests.test_inclusive_clip_planes_and_quad_crossing_camera_plane) ... ok
+test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) ... ok
+test_invalid_dimensions_tokens_and_aim_do_not_mutate_world (__main__.RenderRuntimeTests.test_invalid_dimensions_tokens_and_aim_do_not_mutate_world) ... ok
+test_no_explicit_display_does_not_adopt_environment_display (__main__.RenderRuntimeTests.test_no_explicit_display_does_not_adopt_environment_display) ... ok
+test_parent_death_reaps_graphics_and_releases_display (__main__.RenderRuntimeTests.test_parent_death_reaps_graphics_and_releases_display) ... ok
+test_real_clock_expires_while_renderer_is_stopped (__main__.RenderRuntimeTests.test_real_clock_expires_while_renderer_is_stopped) ... ok
+test_rotated_translated_camera_matches_aim (__main__.RenderRuntimeTests.test_rotated_translated_camera_matches_aim) ... ok
+test_visible_drawable_matches_randomized_capture_and_resize (__main__.RenderRuntimeTests.test_visible_drawable_matches_randomized_capture_and_resize) ... ok
+
+======================================================================
+ERROR: test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_render.py", line 156, in test_actor_marker_configuration_and_room_filtering
+    self.assertEqual(self.aim(client, observer)['id'], 'visible-actor')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_render.py", line 59, in aim
+    return client.call('actor.act', {'token': actor['token'], 'seq': seq, 'op': 'aim',
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STALE_SEQUENCE: Actor sequence already consumed
+
+----------------------------------------------------------------------
+Ran 15 tests in 3.567s
+
+FAILED (errors=1)
+
+    Start  77: actor-observation
+2/3 Test  #77: actor-observation ................   Passed    2.80 sec
+    Start 109: world-shared-state
+3/3 Test #109: world-shared-state ...............***Failed   36.37 sec
+test_actor_population_is_visible_in_shared_room (__main__.SharedWorldStateTests.test_actor_population_is_visible_in_shared_room) ... ok
+test_private_worlds_keep_distinct_identity_and_independent_persistent_state (__main__.SharedWorldStateTests.test_private_worlds_keep_distinct_identity_and_independent_persistent_state) ... ERROR
+test_public_admission_does_not_create_private_admission_or_action_authority (__main__.SharedWorldStateTests.test_public_admission_does_not_create_private_admission_or_action_authority) ... ok
+test_two_tls_actors_share_committed_object_and_recover_same_world (__main__.SharedWorldStateTests.test_two_tls_actors_share_committed_object_and_recover_same_world) ... ok
+
+======================================================================
+ERROR: test_private_worlds_keep_distinct_identity_and_independent_persistent_state (__main__.SharedWorldStateTests.test_private_worlds_keep_distinct_identity_and_independent_persistent_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_state.py", line 161, in test_private_worlds_keep_distinct_identity_and_independent_persistent_state
+    peer = world.connect(self)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_state.py", line 59, in connect
+    stream = context.wrap_socket(raw, server_hostname='world.test')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 455, in wrap_socket
+    return self.sslsocket_class._create(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1042, in _create
+    self.do_handshake()
+  File "/usr/lib/python3.12/ssl.py", line 1320, in do_handshake
+    self._sslobj.do_handshake()
+TimeoutError: _ssl.c:983: The handshake operation timed out
+
+----------------------------------------------------------------------
+Ran 4 tests in 36.148s
+
+FAILED (errors=1)
+
+
+33% tests passed, 2 tests failed out of 3
+
+Total Test time (real) =  42.93 sec
+
+The following tests FAILED:
+	 75 - render-runtime (Failed)
+	109 - world-shared-state (Failed)
+Errors while running CTest

@@ -1,0 +1,34 @@
+Healthy issuer setup correction, 2026-10-11.
+
+Invariant: Healthy supervisor setup has bounded initialization, connection, and request deadlines.
+One request deadline covers send, header, and payload. Partial replies cannot extend it.
+No timed-out signed request or initializer is retried.
+
+The raw fixture previously used a two-second socket timeout.
+A preserved failed request logged 2437 ms of issuer event-loop work.
+The healthy C++ client already uses the accepted five-second production default.
+The scoped raw peer now uses one absolute five-second deadline.
+
+Issuer initialization is a separate operation. issuer_main.cpp defines no five-second initialization contract.
+The existing fixture's five-second subprocess cap includes key creation, durable initialization, and sanitizer exit.
+The scoped supervisor initializer receives fifteen seconds. This is a fixture policy, not a production deadline.
+Timeout captures process stat, wchan, syscall, and cgroup before termination where permissions permit.
+Timing records contain operation names, durations, deadlines, and outcomes. They contain no request or credential data.
+The original killed initializer's exact cause remains unknown.
+The completed read-only monitor captures later fsync/fdatasync waits in ext4 journal commit paths.
+Those later observations do not identify the original killed process.
+
+Read-only helper review recommended scoped healthy setup with separate bounded initialization.
+The primary agent reviewed and implemented this correction.
+Base IssuerFixture, base TlsFixture, production code, durability, and fault configuration stay unchanged.
+All fourteen original authority-supervisor test bodies stay unchanged.
+Three added fixture regressions check trickled deadlines, valid fragments, and rejected reply identity without replay.
+
+Before deployment, finish and preserve the frozen gate-02 run on each affected host.
+Do not mutate source or binaries used by a live gate.
+Run the three new fixture regressions separately from staged files on both hosts and both profiles.
+Then run all registered suites which import test_authority_supervisor, directly or transitively.
+Also run issuer initialization, TLS faults, client deadlines/defaults, registry, owned participant, and participant relay.
+Use Debug and ASan/LeakSanitizer/UBSan on both hosts.
+Record exact suite names and source/binary pins before executing the selected integration matrix.
+Keep complete qualification and eight cross-host scenarios pending until evidence reassessment passes.

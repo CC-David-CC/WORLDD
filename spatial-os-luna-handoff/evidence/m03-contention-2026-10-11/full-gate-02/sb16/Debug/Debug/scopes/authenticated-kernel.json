@@ -1,0 +1,42 @@
+{
+  "broker_pid": 510206,
+  "owner_pid": 510205,
+  "manager": "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/broker-manager",
+  "application": "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8/authority-a9aee1f2471c6f8fa5759b1793eb60726a49db26068edbefcf5f4ec53f290ff9/authority-610654e681236f1c26482548407b9616fa32612f98307d35e1a5b1b1525c99a1",
+  "limits": {
+    "memory.max": "134217728",
+    "memory.swap.max": "0",
+    "pids.max": "16",
+    "cpu.max": "100000 100000",
+    "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max"
+  },
+  "broker_fds": [
+    "socket:[6814168]",
+    "socket:[6814168]",
+    "/tmp/spatial-issuer-co5z1xov/broker-1.log",
+    "/tmp/spatial-issuer-co5z1xov/execution/execution.lock",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/broker-manager",
+    "/tmp/spatial-issuer-co5z1xov/execution/execution.db",
+    "/tmp/spatial-issuer-co5z1xov/workspace-authority",
+    "/tmp/spatial-issuer-co5z1xov/workspace-authority/authority.lock",
+    "/tmp/spatial-issuer-co5z1xov/workspace-authority/authority.db",
+    "socket:[6816631]",
+    "socket:[6808372]",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-a9af1ae44f65e9acc20b578db9f664d3f01f0f3f8f2217ffd0eb35086ff937cd",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-a9af1ae44f65e9acc20b578db9f664d3f01f0f3f8f2217ffd0eb35086ff937cd",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8/authority-a9aee1f2471c6f8fa5759b1793eb60726a49db26068edbefcf5f4ec53f290ff9",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8/authority-a9aee1f2471c6f8fa5759b1793eb60726a49db26068edbefcf5f4ec53f290ff9",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8/authority-a9aee1f2471c6f8fa5759b1793eb60726a49db26068edbefcf5f4ec53f290ff9",
+    "anon_inode:[pidfd]",
+    "/sys/fs/cgroup/system.slice/spatial-m03-resources-e390612b8b6042ceae74f365bb6b03b7.service/adapter-c8d6bc5cccde42f59a879db8333db0af/authority-440c55ad11d7a23507876a42e18243e0956f1875abd675fde60702a47c8fbc59/authority-b1761873afde40617d03114440619a872035650e396562c27ef6adc6f83e2cf8/authority-a9aee1f2471c6f8fa5759b1793eb60726a49db26068edbefcf5f4ec53f290ff9/authority-610654e681236f1c26482548407b9616fa32612f98307d35e1a5b1b1525c99a1",
+    "pipe:[6815541]",
+    "anon_inode:[pidfd]",
+    "anon_inode:[pidfd]"
+  ]
+}

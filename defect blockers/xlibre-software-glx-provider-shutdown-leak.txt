@@ -1,0 +1,40 @@
+Defect: Native-server software GLX provider leaks during shutdown.
+Status: Installed-vendor leak reproduced on both hosts. Private cleanup candidate passes selected checks on both hosts.
+
+2026-10-11 diagnosis narrows the allocation owners to Mesa EGL global display and device records.
+The candidate passes a loaded-vendor A/B check on sb16 and selected checks on both hosts.
+Full graphics qualification remains pending.
+Read mesa-egl-default-cleanup-not-registered.txt for the exact limits.
+
+GLX-enabled ASan/UBSan Xvfb reports 3176 bytes in five allocations.
+Stacks pass through __glXDRIscreenProbe and glxdriswrast.c:439.
+Several allocation frames come from unloaded provider modules.
+The original unsymbolized stacks did not identify allocation ownership.
+Later loader diagnostics identify Mesa EGL display and device records.
+Do not claim an upstream production fix from a private candidate alone.
+
+Evidence: spatial-os-luna-handoff/evidence/m04-atom-2026-10-11/.
+Each host preserves sanitize-tests-01 and native-server shutdown logs.
+The failure occurs in all five selected native suites.
+The source is the M04 application-atom candidate.
+Earlier application.security_identity qualification also records a GLX lifecycle failure.
+
+Separate core-X sanitizer profiles disable GLX and keep leak detection enabled.
+Those profiles qualify only the selected core-X behavior.
+They do not repair or qualify the GLX provider.
+Applications cannot use GLX under the current strict extension policy.
+The trusted compositor graphics path still requires separate qualification.
+
+Remaining qualification:
+Validate the intended installed-vendor configuration and native GPU path.
+Keep the original shutdown timeout evidence until its cause is established.
+Run the full M04 gate after the remaining security increments.
+Keep normal login and system graphics packages unchanged.
+
+2026-10-11 validation update:
+The candidate passes 186 GLX-enabled native security checks on each host.
+Direct GLX and FP64 rendering pass 32 varied pixel checks per host.
+One hundred targeted shutdown repetitions pass per host with the original deadline.
+The original shutdown timeout remains preserved and unexplained.
+System graphics libraries remain unchanged. This is not a completed graphics phase gate.
+Current evidence: spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/primary-review.json.

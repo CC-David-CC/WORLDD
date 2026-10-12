@@ -1,0 +1,17 @@
+{
+  "status": "collected_completed_failed_Debug_profile",
+  "phase_complete": false,
+  "cause": "CMake-embedded prior evidence paths cause four fixture setup suites to hit FileExistsError.",
+  "files": {
+    "Debug/core.log": "446eba3bcd55ec25ba17e3f7acd9f5edba9150216279c531169f07f16938a584",
+    "Debug/core.xml": "cf1110d38f0be3d655287902ea63d02176f487f00e2c9357c9c4a67ebc19c013",
+    "Debug/inventory.json": "21bba3193614c7e2164fbb9364544042d95756f7d926473b0be6bc66db9f6167",
+    "review.json": "ebfef44ac818c8a0a89e93f3dc304c3d164d493e753b4c17357bd4058c0f9631",
+    "source/tests/native/healthy_issuer_setup.py": "608a4c9b2f99039fc378dffbd6bf9b75e9603ae3fea96cbc5addbb738d78fdbe",
+    "source/tests/native/test_authority_supervisor.py": "22dc62ea618f0201273df7c1717b41ec52705015835c1699e24cb25b47cae4ed"
+  },
+  "original_gate_archives_intact": {
+    "Debug": "86ee27b25148fbbbd50cf1abaf3dcb4494f9f951b1c3fbdaa70c096a24ef0190",
+    "ASan-UBSan": "03bb4f90771f802a73883b37ede28bb245203014170ced24adf96fe22711669e"
+  }
+}

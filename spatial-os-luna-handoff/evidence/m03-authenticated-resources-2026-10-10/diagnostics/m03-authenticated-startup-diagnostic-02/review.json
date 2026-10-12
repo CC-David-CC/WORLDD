@@ -1,0 +1,118 @@
+{
+  "host": "sb16",
+  "status": "complete_diagnostic",
+  "started": 1791682319.6190014,
+  "source_basis": "m03-authenticated-resources-03",
+  "source_manifest_sha256": "8de1c453190fba86db9a1c39035278f34bf99da75254be2e99b75a0085f8f4d4",
+  "runner_sha256": "f0f5e348f2339356a900ce406375cd9f1d736cc7d03b28043dfd70d11409d92a",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+      ],
+      "started": 1791682319.6524186,
+      "exit_code": 0,
+      "ended": 1791682324.1901295
+    },
+    {
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+      ],
+      "started": 1791682324.1905637,
+      "exit_code": 0,
+      "ended": 1791682328.8363225
+    },
+    {
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+      ],
+      "started": 1791682328.8370967,
+      "exit_code": 0,
+      "ended": 1791682333.4785554
+    }
+  ],
+  "trials": [
+    {
+      "number": 1,
+      "exit_code": 0
+    },
+    {
+      "number": 2,
+      "exit_code": 0
+    },
+    {
+      "number": 3,
+      "exit_code": 0
+    }
+  ],
+  "qualification": false,
+  "ended": 1791682333.4788556,
+  "attachments": {
+    "trial-2/case.log": "6c70481d600e27c3209e803858d212f4c5f97880713f42aaccffa3c4b04a1287",
+    "trial-1/case.log": "64bb84977f001ef29cb9548e418b0533721d43156244cad7cbb4bd285b680d50",
+    "trial-3/case.log": "332b3d77db937b8a0985135c1fc17a67515fb554cf3a7bc1c3043a72e8c32852",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-owner-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-world-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/test_grant_revocation_kills_confined_process_without_recipient_request-issuer-3040902.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-2/witnesses/adapter-provisioning-adapter-e0514489d74b49378b158915ecc52c95.json": "5621bd96a60ba2afbe6d3421681c7688d76aea79e63f01e622636e5ca183f2c4",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/test_grant_revocation_kills_confined_process_without_recipient_request-issuer-3040771.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-owner-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-world-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-1/witnesses/adapter-provisioning-adapter-bd53e552d1754eb39350c97631c3998c.json": "21e4f932448e2debd1e5758cdc19b6bac345cd4aaf7960483216c2313b54820f",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/adapter-provisioning-adapter-4d90222f5c4647cc8bdf082d437f3886.json": "04f01707f93c1b6255559397933716279397b047fb374e5be6e96d8e354a9aae",
+    "trial-3/witnesses/test_grant_revocation_kills_confined_process_without_recipient_request-issuer-3041035.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-broker-owner-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trial-3/witnesses/WorkspaceAuthorityTests-test_grant_revocation_kills_confined_process_without_recipient_request-world-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

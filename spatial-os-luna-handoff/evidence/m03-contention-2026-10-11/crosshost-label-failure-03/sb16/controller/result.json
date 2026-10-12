@@ -1,0 +1,10 @@
+{
+  "status": "failed",
+  "issuer_host": "sb16",
+  "delayed_host": "sb16-2",
+  "scenario": "delay",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-crosshost-01/runs/Debug-delay-forward03/controller/private-bundle",
+  "control_port": 40003,
+  "issuer_port": 39647,
+  "issuer_id": "ba66706acc4f88fd17c879a234887c795623dcb07b44563a4aa64cd9739bf2c5"
+}

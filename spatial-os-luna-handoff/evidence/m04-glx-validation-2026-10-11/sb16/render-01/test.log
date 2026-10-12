@@ -1,0 +1,6 @@
+test_compositor_contexts_render_and_release (__main__.GlxLifecycleTests.test_compositor_contexts_render_and_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.375s
+
+OK

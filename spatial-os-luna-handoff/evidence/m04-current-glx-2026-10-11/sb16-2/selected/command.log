@@ -1,0 +1,12 @@
+atom_privacy 0 15
+security_identity 0 22
+resource_isolation 0 36
+selection_isolation 0 14
+selection_namespace 0 23
+event_metadata 0 4
+parent_metadata 0 28
+topology_pixels 0 18
+extension_isolation 0 32
+application_input 0 15
+actor_binding 0 25
+passed /home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/evidence/m04-current-glx-20261011/run-01/selected-results

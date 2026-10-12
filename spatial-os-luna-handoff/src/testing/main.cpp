@@ -1,6 +1,7 @@
 #include "platform/worker.hpp"
 #include <iostream>
 #include <string_view>
+#include <cstdlib>
 
 int main(int argc, char** argv) {
     if (argc != 3 || std::string_view(argv[1]) != "--state-dir" || !std::filesystem::path(argv[2]).is_absolute()) {
@@ -8,7 +9,8 @@ int main(int argc, char** argv) {
     }
     try {
         const auto executable = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "worldd";
-        spatial::WorldWorker worker(executable, argv[2]);
+        const char* broker_resources = std::getenv("SPATIAL_TEST_BROKER_CONFIG");
+        spatial::WorldWorker worker(executable, argv[2], broker_resources ? broker_resources : "");
         worker.proxy();
         return 0;
     } catch (const std::exception& error) {

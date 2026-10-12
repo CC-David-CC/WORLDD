@@ -1,6 +1,8 @@
 #include "workspace/store.hpp"
 #include "workspace/authority.hpp"
 #include "workspace/native_launch.hpp"
+#include "workspace/resources.hpp"
+#include "workspace/storage_client.hpp"
 #include "workspace/control.hpp"
 #include "workspace/control_channels.hpp"
 #include "world/store.hpp"
@@ -58,7 +60,8 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
 }
 spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
                                             spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls,
-                                            const std::string& owner = {}, const std::string& native_server = {}) {
+                                            const std::string& owner = {}, const std::string& native_server = {},
+                                            bool during_effect = false) {
     namespace broker = spatial::workspace::v1;
     namespace wire = spatial::wire;
     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
@@ -68,6 +71,9 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         // Transport validation precedes attribution on every private channel.
         if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
+        if (during_effect && !request.has_access() && !request.has_application_access() &&
+                !request.has_control_acquire() && !request.has_control_release())
+            throw spatial::WorldError(wire::BUSY, "Workspace effect is pending; retry execution after its checked result");
         if (request.has_management()) {
             if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
             *reply.mutable_management() = dispatch(request.management(), store);
@@ -93,7 +99,8 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
     } catch (const std::invalid_argument& error) {
         reply.mutable_error()->set_code(wire::INVALID_ARGUMENT); reply.mutable_error()->set_message(error.what());
-    } catch (const std::exception&) {
+    } catch (const std::exception& error) {
+        std::cerr << "broker private operation failed: " << error.what() << '\n';
         reply.mutable_error()->set_code(wire::STORAGE_ERROR); reply.mutable_error()->set_message("Broker authority lookup failed");
     }
     return reply;
@@ -101,16 +108,27 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
 }
 int main(int argc, char** argv) {
     try {
-        std::filesystem::path state, authority_config, seed;
-        unsigned migration = 0; bool fixture_faults = false;
-        int native_fd = -1;
+        std::filesystem::path state, authority_config, seed, resource_config;
+        unsigned migration = 0; bool fixture_faults = false, production = false;
+        int native_fd = -1, resource_fd = -1, storage_fd = -1;
         int control_fd = -1, control_peer = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
             else if (argument == "--authority-config" && authority_config.empty() && i+1 < argc) authority_config = argv[++i];
+            else if (argument == "--resource-config" && resource_config.empty() && resource_fd < 0 && i+1 < argc) resource_config = argv[++i];
+            else if (argument == "--resource-config-fd" && resource_config.empty() && resource_fd < 0 && i+1 < argc) {
+                const std::string value(argv[++i]); std::size_t used = 0;
+                resource_fd = std::stoi(value, &used);
+                if (used != value.size() || resource_fd < 3) throw std::invalid_argument("Invalid resource policy descriptor");
+            }
+            else if (argument == "--storage-fd" && storage_fd < 0 && i+1 < argc) {
+                const std::string value(argv[++i]); std::size_t used = 0; storage_fd = std::stoi(value, &used);
+                if (used != value.size() || storage_fd < 3) throw std::invalid_argument("Invalid storage owner descriptor");
+            }
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
+            else if (argument == "--production" && !production) production = true;
             else if (argument == "--native-security-fd" && native_fd < 0 && i+1 < argc) {
                 const std::string value(argv[++i]); std::size_t used = 0;
                 native_fd = std::stoi(value, &used);
@@ -129,15 +147,27 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
+        if (production && (resource_fd < 0 || storage_fd < 0 || fixture_faults || migration || !seed.empty()))
+            throw std::invalid_argument("Production broker requires sealed resources and storage ownership without fixture faults");
         if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
+        if (resource_fd >= 0 && (resource_fd == native_fd || resource_fd == control_fd))
+            throw std::invalid_argument("Resource policy requires a separate descriptor");
+        if (storage_fd >= 0 && (storage_fd == native_fd || storage_fd == control_fd || storage_fd == resource_fd))
+            throw std::invalid_argument("Storage owner requires a separate descriptor");
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || resource_fd >= 0 || native_fd >= 0 || control_fd >= 0 || storage_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         // Destroy jobs before their authority callback target.
         std::unique_ptr<spatial::WorkspaceAuthority> authority;
         std::unique_ptr<spatial::NativeLaunch> native;
-        spatial::ExecutionStore store(state, migration, fixture_faults);
+        std::unique_ptr<spatial::WorkspaceResources> resources;
+        if (!resource_config.empty()) resources = std::make_unique<spatial::WorkspaceResources>(resource_config);
+        if (resource_fd >= 0) resources = std::make_unique<spatial::WorkspaceResources>(resource_fd, production);
+        std::unique_ptr<spatial::StorageClient> storage;
+        if (storage_fd >= 0) storage = std::make_unique<spatial::StorageClient>(storage_fd, state);
+        spatial::ExecutionStore store(state, migration, fixture_faults, storage.get(), resources.get());
+        store.set_resources(resources.get());
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         if (!seed.empty()) { spatial::initialize_workspace_authority(seed, store); return 0; }
         if (!authority_config.empty()) {
@@ -189,8 +219,12 @@ int main(int argc, char** argv) {
         if (control_fd >= 0) channels = std::make_unique<spatial::ControlChannels>(control_fd, control_peer, controls);
         struct ClearObserver {
             spatial::WorkspaceAuthority* authority;
-            ~ClearObserver() { if (authority) authority->set_observer([] {}); }
-        } clear_observer{authority.get()};
+            spatial::ExecutionStore& store;
+            ~ClearObserver() {
+                store.set_observer({});
+                if (authority) authority->set_observer([] {});
+            }
+        } clear_observer{authority.get(), store};
         // Issuer and process waits call this on the same broker thread.
         // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
         if (authority) authority->set_observer([&] {
@@ -199,6 +233,7 @@ int main(int argc, char** argv) {
         });
         const auto enforce = [&] {
             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
+            if (storage) storage->check_alive();
             if (native) native->check();
             if (authority) {
                 authority->tick();
@@ -210,6 +245,36 @@ int main(int argc, char** argv) {
             // Check that result before this iteration can acknowledge issuer revocation.
             if (native) native->check();
         };
+        if (storage) storage->set_observer(enforce);
+        bool serving_effect = false;
+        const auto serve_effect = [&] {
+            if (!channels || serving_effect) return;
+            struct Guard {
+                bool& busy;
+                explicit Guard(bool& value) : busy(value) { busy = true; }
+                ~Guard() { busy = false; }
+            } guard(serving_effect);
+            // These callbacks run only during filesystem and Git waits, never while borrowing an application job.
+            // Keep release acknowledgements and checked access available without nesting storage effects.
+            channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
+                const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+                auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server, true);
+                enforce();
+                if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                        !request.has_control_release()) {
+                    reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                    reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+                    reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
+                }
+                return reply;
+            });
+        };
+        store.set_observer([&] {
+            serve_effect(); enforce();
+            // This explicit effect wait is outside issuer callbacks. Do not recursively refresh from tick().
+            if (authority) { authority->keepalive(); enforce(); }
+            serve_effect();
+        });
         for (;;) {
             enforce();
             if (authority) { authority->keepalive(); enforce(); }

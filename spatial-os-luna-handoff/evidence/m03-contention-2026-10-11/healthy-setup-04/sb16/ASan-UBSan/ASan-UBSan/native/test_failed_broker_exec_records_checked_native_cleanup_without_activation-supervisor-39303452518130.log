@@ -1,0 +1,2 @@
+authority supervisor: Authority exec failed: No such file or directory
+authority supervisor crash fencing unresolved: Issuer rejected owned authority fence challenge

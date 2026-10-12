@@ -1,0 +1,6 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+authority supervisor: Authority child exited before relay completion
+control owner channel fenced: Private participant channel closed
+Session launch failed after checked cleanup: Authority child exited before relay completion
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed

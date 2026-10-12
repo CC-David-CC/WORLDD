@@ -1,0 +1,38 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 100
+    Start 100: qualification-parent-mutation-parser
+
+100: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/core/test_parent_mutation_parser.py"
+100: Working Directory: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug
+100: Environment variables: 
+100:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff
+100: Test timeout computed to be: 30
+100: test_additional_failure_invalidates_detection (__main__.ParentMutationParserTests.test_additional_failure_invalidates_detection) ... ok
+100: test_additional_positive_case_error_invalidates_detection (__main__.ParentMutationParserTests.test_additional_positive_case_error_invalidates_detection) ... ok
+100: test_expected_failures_are_detected (__main__.ParentMutationParserTests.test_expected_failures_are_detected) ... ok
+100: test_incomplete_suite_invalidates_detection (__main__.ParentMutationParserTests.test_incomplete_suite_invalidates_detection) ... ok
+100: test_successful_exit_invalidates_detection (__main__.ParentMutationParserTests.test_successful_exit_invalidates_detection) ... ok
+100: 
+100: ----------------------------------------------------------------------
+100: Ran 5 tests in 0.000s
+100: 
+100: OK
+1/1 Test #100: qualification-parent-mutation-parser ...   Passed    0.05 sec
+
+The following tests passed:
+	qualification-parent-mutation-parser
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.06 sec

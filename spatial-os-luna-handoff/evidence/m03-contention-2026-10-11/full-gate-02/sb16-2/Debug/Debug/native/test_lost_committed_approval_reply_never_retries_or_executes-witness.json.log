@@ -1,0 +1,25 @@
+{
+  "injected_fault": "approval_reply_lost",
+  "supervisor_error": "Issuer TLS connection failed",
+  "issuer_committed": true,
+  "issuer_generation": 0,
+  "local_authorization": false,
+  "executed": false,
+  "process_scope_stopped": true,
+  "native_scope_stopped": true,
+  "participant_requests": [
+    "hello",
+    "info",
+    "authority_authentication_begin",
+    "authority_authentication_complete",
+    "revocations",
+    "revocations",
+    "revocations"
+  ],
+  "supervisor_requests": [
+    "hello",
+    "info",
+    "authority_launch_begin",
+    "authority_launch_complete"
+  ]
+}

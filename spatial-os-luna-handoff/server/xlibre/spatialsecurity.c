@@ -12,6 +12,7 @@
 #include <sys/random.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <X11/Xatom.h>
 #include "dix/dix_priv.h"
 #include "dix/request_priv.h"
 #include "extnsionst.h"
@@ -19,6 +20,7 @@
 #include "spatialsecurity.h"
 #include "spatialinput.h"
 #include "security.pb-c.h"
+#include "selection_scope.pb-c.h"
 
 typedef Spatial__Security__V1__Request Request;
 typedef Spatial__Security__V1__Reply Reply;
@@ -30,9 +32,10 @@ typedef Spatial__Security__V1__Role Role;
 #define OP(name) SPATIAL__SECURITY__V1__REQUEST__OPERATION_##name
 #define OUT(name) SPATIAL__SECURITY__V1__REPLY__OUTCOME_##name
 #define KEY_BYTES 32
-#define LABEL_BYTES 256
+#define LABEL_BYTES SPATIAL_APPLICATION_LABEL_BYTES
 #define MAX_CREDENTIALS 256
 #define MAX_PAYLOAD 4096
+#define MAX_APPLICATION_ATOMS 65536
 
 typedef struct {
     Role role;
@@ -48,9 +51,17 @@ typedef struct {
 } Grant;
 
 typedef struct {
+    unsigned references;
+    size_t count, capacity;
+    Atom *values;
+} ApplicationAtoms;
+
+typedef struct {
     Label label;
     uint64_t connection, sequence;
     Bool closed;
+    ApplicationAtoms *atoms;
+    SpatialSelectionNamespace selection_scope;
 } SpatialConnection;
 
 static DevPrivateKeyRec client_key;
@@ -157,6 +168,122 @@ Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner)
         !memcmp(subject->label.application, object->label.application, subject->label.application_size);
 }
 
+Bool SpatialSecuritySelectionNamespace(ClientPtr client, SpatialSelectionNamespace *label)
+{
+    memset(label, 0, sizeof(*label));
+    if (!configured || client == serverClient) return TRUE;
+    if (!active || !client) return FALSE;
+    SpatialConnection *state = connection(client);
+    if (!state->connection || state->closed) return FALSE;
+    if (state->label.role == ROLE(APPLICATION)) {
+        label->workspace_size = state->label.workspace_size;
+        label->application_size = state->label.application_size;
+        memcpy(label->workspace, state->label.workspace, label->workspace_size);
+        memcpy(label->application, state->label.application, label->application_size);
+        return TRUE;
+    }
+    if (SpatialSecurityPrivileged(client)) {
+        *label = state->selection_scope;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static ApplicationAtoms *application_atoms(ClientPtr client, Bool create)
+{
+    SpatialConnection *state = connection(client);
+    if (state->atoms) return state->atoms;
+    for (int i = 1; i < currentMaxClients; ++i) {
+        ClientPtr peer = clients[i];
+        if (!peer || !SpatialSecuritySameApplication(client, peer)) continue;
+        ApplicationAtoms *atoms = connection(peer)->atoms;
+        if (atoms) {
+            ++atoms->references;
+            return state->atoms = atoms;
+        }
+    }
+    if (!create) return NULL;
+    ApplicationAtoms *atoms = calloc(1, sizeof(*atoms));
+    if (atoms) {
+        atoms->references = 1;
+        state->atoms = atoms;
+    }
+    return atoms;
+}
+
+static void release_atoms(ClientPtr client, Bool preserve_peers)
+{
+    SpatialConnection *state = connection(client);
+    ApplicationAtoms *atoms = state->atoms;
+    if (!atoms) return;
+    /* A peer need not have made an atom request yet. Preserve the shared
+     * declaration set until the application's final live connection closes.
+     */
+    if (preserve_peers && atoms->references == 1) {
+        for (int i = 1; i < currentMaxClients; ++i) {
+            ClientPtr peer = clients[i];
+            if (!peer || peer == client || !SpatialSecuritySameApplication(client, peer)) continue;
+            connection(peer)->atoms = atoms;
+            ++atoms->references;
+            break;
+        }
+    }
+    state->atoms = NULL;
+    if (--atoms->references == 0) {
+        free(atoms->values);
+        free(atoms);
+    }
+}
+
+static size_t atom_position(const ApplicationAtoms *atoms, Atom atom)
+{
+    size_t first = 0, last = atoms->count;
+    while (first < last) {
+        size_t middle = first + (last - first) / 2;
+        if (atoms->values[middle] < atom) first = middle + 1;
+        else last = middle;
+    }
+    return first;
+}
+
+Bool SpatialSecurityAtomVisible(ClientPtr client, Atom atom)
+{
+    if (SpatialSecurityPrivileged(client)) return TRUE;
+    if (!SpatialSecuritySameApplication(client, client)) return FALSE;
+    if (atom > None && atom <= XA_LAST_PREDEFINED) return TRUE;
+    ApplicationAtoms *atoms = application_atoms(client, FALSE);
+    if (!atoms) return FALSE;
+    size_t position = atom_position(atoms, atom);
+    return position < atoms->count && atoms->values[position] == atom;
+}
+
+Atom SpatialSecurityInternAtom(ClientPtr client, const char *name,
+                              unsigned length, Bool create)
+{
+    if (SpatialSecurityPrivileged(client)) return MakeAtom(name, length, create);
+    Atom atom = MakeAtom(name, length, FALSE);
+    if (atom && SpatialSecurityAtomVisible(client, atom)) return atom;
+    if (!create) return None;
+    if (!SpatialSecuritySameApplication(client, client)) return BAD_RESOURCE;
+    ApplicationAtoms *atoms = application_atoms(client, TRUE);
+    if (!atoms || atoms->count == MAX_APPLICATION_ATOMS) return BAD_RESOURCE;
+    if (atoms->count == atoms->capacity) {
+        size_t capacity = atoms->capacity ? atoms->capacity * 2 : 32;
+        Atom *values = realloc(atoms->values, capacity * sizeof(*values));
+        if (!values) return BAD_RESOURCE;
+        atoms->values = values;
+        atoms->capacity = capacity;
+    }
+    if (!atom) atom = MakeAtom(name, length, TRUE);
+    if (atom == BAD_RESOURCE || atom == None) return atom;
+    size_t position = atom_position(atoms, atom);
+    memmove(atoms->values + position + 1, atoms->values + position,
+            (atoms->count - position) * sizeof(*atoms->values));
+    atoms->values[position] = atom;
+    ++atoms->count;
+    return atom;
+}
+
 Bool SpatialSecurityVisibleResource(ClientPtr client, XID id)
 {
     return SpatialSecurityPrivileged(client) || SpatialSecuritySameApplication(client, dixLookupXIDOwner(id));
@@ -251,6 +378,7 @@ static void client_state(CallbackListPtr *list, void *unused, void *data)
                     info->client->clientState != ClientStateRetained)) return;
     SpatialConnection *state = connection(info->client);
     if (!state->connection || state->closed) return;
+    release_atoms(info->client, TRUE);
     state->closed = TRUE;
     for (unsigned i = 1; i < MAX_CREDENTIALS; ++i)
         if (grants[i].active && grants[i].issuer == state->connection) grants[i].active = FALSE;
@@ -352,12 +480,65 @@ static void operate(ClientPtr client, const Request *request, Reply *reply,
 typedef struct { CARD8 reqType, operation; CARD16 length; CARD32 bytes; } SpatialRequest;
 typedef struct { BYTE type, pad; CARD16 sequence; CARD32 length, bytes, unused[5]; } SpatialReply;
 
+static int selection_scope_dispatch(ClientPtr client, const uint8_t *data, size_t size)
+{
+    Spatial__Security__V1__SelectionScopeRequest *request =
+        spatial__security__v1__selection_scope_request__unpack(NULL, size, data);
+    Spatial__Security__V1__SelectionScopeReply reply = SPATIAL__SECURITY__V1__SELECTION_SCOPE_REPLY__INIT;
+    reply.protocol_version = 1;
+    if (request) reply.request_id = request->request_id;
+    if (!request || !checked(&request->base) || !request->request_id || !request->scope) {
+        reply.code = CODE(INVALID_ARGUMENT);
+    } else if (request->protocol_version != 1) {
+        reply.code = CODE(UNSUPPORTED_VERSION);
+    } else if (!active) {
+        reply.code = CODE(UNAVAILABLE);
+    } else {
+        SpatialConnection *state = connection(client);
+        if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+            reply.code = CODE(FORBIDDEN);
+        } else if (request->request_id <= state->sequence) {
+            reply.code = CODE(STALE_SEQUENCE);
+        } else {
+            state->sequence = request->request_id;
+            const Spatial__Security__V1__SelectionScope *scope = request->scope;
+            if (!SpatialSecurityPrivileged(client)) {
+                reply.code = CODE(FORBIDDEN);
+            } else if (scope->default_scope ? (scope->workspace.len || scope->application.len) :
+                       (!valid_label(scope->workspace) || !valid_label(scope->application))) {
+                reply.code = CODE(INVALID_ARGUMENT);
+            } else {
+                SpatialSelectionNamespace label = {0};
+                label.workspace_size = scope->workspace.len;
+                label.application_size = scope->application.len;
+                if (label.workspace_size) memcpy(label.workspace, scope->workspace.data, label.workspace_size);
+                if (label.application_size) memcpy(label.application, scope->application.data, label.application_size);
+                state->selection_scope = label;
+                reply.scope_set = TRUE;
+            }
+        }
+    }
+    uint8_t payload[MAX_PAYLOAD] = {0};
+    size_t bytes = spatial__security__v1__selection_scope_reply__get_packed_size(&reply);
+    if (bytes > sizeof(payload)) FatalError("Spatial selection reply exceeds its bound\n");
+    spatial__security__v1__selection_scope_reply__pack(&reply, payload);
+    SpatialReply header = {.type = X_Reply, .sequence = client->sequence,
+                           .length = (bytes + 3) / 4, .bytes = bytes};
+    if (client->swapped) { swaps(&header.sequence); swapl(&header.length); swapl(&header.bytes); }
+    WriteToClient(client, sizeof(header), &header);
+    WriteToClient(client, (bytes + 3) & ~3u, payload);
+    if (request) spatial__security__v1__selection_scope_request__free_unpacked(request, NULL);
+    return Success;
+}
+
 static int dispatch(ClientPtr client)
 {
     X_REQUEST_HEAD_AT_LEAST(SpatialRequest);
     X_REQUEST_FIELD_CARD32(bytes);
-    if (stuff->operation != 0 || stuff->bytes > MAX_PAYLOAD) return BadValue;
+    if (stuff->operation > 1 || stuff->bytes > MAX_PAYLOAD) return BadValue;
     REQUEST_FIXED_SIZE(SpatialRequest, stuff->bytes);
+    if (stuff->operation == 1)
+        return selection_scope_dispatch(client, (const uint8_t *)(stuff + 1), stuff->bytes);
     Request *request = spatial__security__v1__request__unpack(NULL, stuff->bytes, (const uint8_t *)(stuff + 1));
     Reply reply = SPATIAL__SECURITY__V1__REPLY__INIT;
     Identity identity = SPATIAL__SECURITY__V1__IDENTITY__INIT;
@@ -381,6 +562,8 @@ static int dispatch(ClientPtr client)
 static void reset(ExtensionEntry *extension)
 {
     (void)extension;
+    for (int i = 1; i < currentMaxClients; ++i)
+        if (clients[i]) release_atoms(clients[i], FALSE);
     active = FALSE;
     SpatialSecurityPolicyReset();
     DeleteCallback(&ClientStateCallback, client_state, NULL);

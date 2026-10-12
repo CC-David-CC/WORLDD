@@ -1,0 +1,47 @@
+M03 native storage-session debugging notes, 2026-10-11
+
+Current result
+Both hosts passed two native component scenarios under ASan/UBSan.
+The actual retained broker, root owner, worldd, spatialwm, XLibre, and application ran.
+The owner retained the actual broker pidfd and bounded both storage device queues.
+Owner loss stopped the broker and application processes.
+The retained coordinator remained available for explicit checked recovery.
+World and broker cleanup receipts are saved as Protocol Buffers.
+
+Evidence
+Read spatial-os-luna-handoff/evidence/m03-native-storage-session-2026-10-11/primary-review.json.
+Host runs remain under local/m03-git-storage-20261011/native-storage-session-01 through -06.
+Candidate six passed both cases. Candidate five also passed before receipt retention was added.
+All original reports retain their status and source pins.
+The preserved source snapshots match each original report hash.
+
+Failure dispositions
+Candidate one rejected the fixture's non-private configuration parent.
+The fixture now creates that parent with mode 0700. Production checks remain unchanged.
+Candidate two exposed retained Python fixture SQLite descriptors during unmount.
+Do not describe its full lifecycle as passed. Its new coordinator expectations were also incorrect.
+Candidate three recorded execution.db before garbage collection and no volume descriptor afterward.
+Its exact unmount and loop cleanup passed. Its administrative TLS fixture peer closed during bootstrap.
+The fixture now reconnects before a fresh signed challenge. All deadlines remain unchanged.
+Candidate four exposed two incorrect assertions in the new uncommitted tests.
+The existing contract requires stopping retained world scopes before finishing the session.
+The coordinator stays available for explicit recovery after execution loss.
+Candidate five used those existing API operations and passed the full selected scenarios.
+Candidate six also preserved the actual checked cleanup receipts and passed.
+
+Visibility and preservation limits
+The native renderer used llvmpipe. These runs do not prove physical GPU scanout or performance.
+Physical keyboard, mouse, and SpaceMouse qualification remain pending in the full plan.
+Fixture issuer keys and temporary issuer/world journals were removed by their normal cleanup.
+Private keys are not included in Git. Exact source pins, logs, and final protobuf receipts remain available.
+Dedicated volume images remain on their respective hosts. Images and runtime databases are not in Git.
+The primary review records each image location and its read-only mount and unmount commands.
+All recorded test volumes are now unmounted and detached. No normal login path changed.
+
+Next combined increment
+Provision persistent operator data volumes and protected owner policies.
+Require production resource and storage profiles at operator entry points.
+Qualify issuer availability and immediate revocation under bounded competing writes.
+Freeze the candidate and run the complete M03 gate on both hosts.
+Advance to M04 only after M03 qualifies.
+The overall project goal remains active. M01 and M02 are qualified. M03-M16 are incomplete.

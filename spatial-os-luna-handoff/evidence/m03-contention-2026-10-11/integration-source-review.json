@@ -1,0 +1,82 @@
+{
+  "status": "primary_source_review_selected_runtime_passed_full_gate_pending",
+  "locked_files_unchanged": 41,
+  "existing_test_methods_unchanged": 185,
+  "explicit_test_correction": [
+    [
+      "spatial-os-luna-handoff/tests/core/test_authenticated_resources.py",
+      "AuthenticatedResourceTests.test_authenticated_launch_has_kernel_budgets_and_actual_broker_identity"
+    ]
+  ],
+  "correction_reason": "proc refers to the actual retained broker. Preserve owner/child separation by comparing resources.owner and verifying kernel PPid. No authorization, resource, or recovery assertion is removed.",
+  "fault_deadline_review": "Approval-interruption test bodies remain unchanged. Their existing explicit 700 ms participant and 3000 ms approval settings remain. Healthy constructors omit the optional field and use the accepted production default.",
+  "production_fix": "Malformed complete frames use the ordinary proxy deadline and reach the authoritative validator. Length, truncation, resource, and Git deadline bounds remain.",
+  "added_existing_file_regressions": [
+    [
+      "spatial-os-luna-handoff/tests/core/test_authority_process_scope.py",
+      "ProcessScopeTests.test_retained_status_reports_actual_child_failure"
+    ],
+    [
+      "spatial-os-luna-handoff/tests/core/test_authority_process_scope.py",
+      "ProcessScopeTests.test_live_child_cannot_report_a_completed_status"
+    ],
+    [
+      "spatial-os-luna-handoff/tests/core/test_authority_process_scope.py",
+      "ProcessScopeTests.test_child_descriptor_close_is_visible_while_scope_owner_remains_alive"
+    ],
+    [
+      "spatial-os-luna-handoff/tests/native/test_supervisor_broker_handoff_regressions.py",
+      "BrokerHandoffRegressionTests.test_resource_descriptor_capacity_reserves_all_three_generated_descriptors"
+    ],
+    [
+      "spatial-os-luna-handoff/tests/native/test_supervisor_broker_handoff_regressions.py",
+      "BrokerHandoffRegressionTests.test_exact_resource_descriptor_capacity_launches_real_broker"
+    ]
+  ],
+  "crosshost_existing_functions_unchanged": 30,
+  "reviewed_changed_files": {
+    "spatial-os-luna-handoff/CMakeLists.txt": "86cf82fdcc14221bdb04d6bc53da9a9e19f3ba1da5b0b30ad76a0fc1cbccd172",
+    "spatial-os-luna-handoff/docs/WORKSPACE_PROCESSES.md": "71627350edc3819b220480ae40edbe344b0f16b9a8a9ed366b2ece0ade33d737",
+    "spatial-os-luna-handoff/harness/resource_broker.py": "ba1fe1f812b9db893f12b923f8168c5eb3aa5dcb1c9cade6a1beb069750cfd72",
+    "spatial-os-luna-handoff/proto/spatial/supervisor/v1/process_scope.proto": "37aa5c411bad4760fdb657ed55ac2f736762e9f970b5ca281a6626ef98fb6afd",
+    "spatial-os-luna-handoff/src/platform/worker.cpp": "d95e1763fb6c7f54755f8d964d132fc6044ed07fa389191899bb90b40f25a62b",
+    "spatial-os-luna-handoff/src/testing/process_scope_probe.cpp": "548a95d610c21d06d7d2e060acaf7137aebf67ca77054ebb8268b0c452f8d499",
+    "spatial-os-luna-handoff/src/workspace/authority.cpp": "5d224f4e3b75f893074bc7befd1cf5803a5c92e8e4f29289cadbeb577f0c066e",
+    "spatial-os-luna-handoff/src/workspace/git_command.cpp": "cabf7485438ef6057962a32dfdce10c18c440002b1a9a9a254aed165ae5b4fec",
+    "spatial-os-luna-handoff/src/workspace/git_command.hpp": "3b122d66d8604d517ddebde116bde0f943a2e15f8833718b535e608eb8956762",
+    "spatial-os-luna-handoff/src/workspace/main.cpp": "231442c7aa0181ffdb0271b68f8445cba1583a41b12d8f1afb4376bac3de4e80",
+    "spatial-os-luna-handoff/src/workspace/store.cpp": "fa3f87f68888f638887f7b6306bc6ec7f0117b7e456f691c9fd0bff479d7e56b",
+    "spatial-os-luna-handoff/src/workspace/store.hpp": "6866a4f65d09c95856e3fedbe977a463e8a469192bd87c646503c2511927de6f",
+    "spatial-os-luna-handoff/tests/core/test_application_access.py": "d780b80b7bf0b1a4e570a8105f4d99f192f763bf5f57e5943707b678ab6a669c",
+    "spatial-os-luna-handoff/tests/core/test_application_observation.py": "a1be64f71eb8908c3a26dc498ec5c46103a1f3570172c995a4c8423b847d34f9",
+    "spatial-os-luna-handoff/tests/core/test_authenticated_resources.py": "842341a535b87374ec05d297297cb16ebacceb1e3a2d0540d86d7bfb59086f28",
+    "spatial-os-luna-handoff/tests/core/test_authority_process_scope.py": "8a5fc1716f4e01641109eb3883d323b0e5faa2e17e53197de937ba8297c40dba",
+    "spatial-os-luna-handoff/tests/core/test_control_owner_channels.py": "2cc07f0e63b91ad12066ac0a1f1b9f6b2a0c1ab5bcca8e91d597bbf251ab3198",
+    "spatial-os-luna-handoff/tests/core/test_workspace_authority.py": "f57938b85e62649d29ef59d3fd1cb7606fe749a353d30729fa57c24a8909e501",
+    "spatial-os-luna-handoff/tests/core/test_workspace_participant.py": "2d4a6184a7aadeb55ad5002135c3bc55de933143d701ef055cf32bb1fc54acc3",
+    "spatial-os-luna-handoff/tests/core/test_world_identity.py": "f81bdf9decf44bc45942d829111c4bdf372fdfa604fec575ffbf65474786ac8f",
+    "spatial-os-luna-handoff/tests/native/crosshost_revocation.py": "155161bad1fdf56af6a1882b5361f93c3828cf3690cba7b38af63966014d7059",
+    "spatial-os-luna-handoff/tests/native/storage_session_volume.py": "e9dc18b7dcd03378966639212df42b219980aaf92c1089ba6068095c1ba44a2a",
+    "spatial-os-luna-handoff/tests/native/test_authority_owned_participant.py": "fcb1c2e79d5e3dacc34faa524f1d87c17124b1f993a2713f2ffc4e08b1931f54",
+    "spatial-os-luna-handoff/tests/native/test_authority_supervisor.py": "881c3200d6284ff4f5b59068141186e9527c586cb4bd3052920ce4398bd9dab9",
+    "spatial-os-luna-handoff/tests/native/test_native_launch.py": "6c62ad8252781076dc932b48fd7e873e83b193394bbda7bc628ef8be6452da20",
+    "spatial-os-luna-handoff/tests/native/test_supervisor_broker_handoff_regressions.py": "7be7aa5c9d62a81d971c162c8015ba3f08eceadcd810523a906618fbc2fdb02d",
+    "spatial-os-luna-handoff/tools/with_resource_delegate.py": "71ecf1b23e62f53f2db8811af863dd5e427606c433b8103a27d4d9e74d1a45ca"
+  },
+  "primary_review_details": [
+    "Filesystem workers perform I/O only. Captured paths are copied. Captured descriptors remain owned until the joined future finishes.",
+    "SQLite and authorization remain on the broker thread. Completion still flushes before ready state and durable acknowledgement.",
+    "Pending-effect callbacks allow checked access and control. Guarded dispatch rejects nested execution, management, and grant mutation with BUSY.",
+    "Authority callbacks do not recursively service effects. Callback targets are cleared before local owners destruct.",
+    "Git progress retains bounded namespaces, resources, output, argv, and deadlines. The independent low-level entry point remains unchanged.",
+    "Retained broker witnesses use actual child pidfds and production child status. The separate owner no longer retains passed child socket endpoints.",
+    "Native test provisioning maps each descriptor explicitly. New tests preserve original capacity checks and add resource-bearing exact-capacity and overflow cases.",
+    "The witness environment allowlist forwards only two additional qualification paths. Application environments remain unchanged.",
+    "Launch remains checked after filesystem waits: NativeLaunch::issue calls the authority checkpoint, ApplicationProcess checks it before setup, and held startup checks it again before release. Pending rows cannot bypass those checks."
+  ],
+  "current_results": {
+    "sb16": "20 affected suites (216 checks) and all 151 acceptance cases passed in ASan/UBSan. Debug passes combine the unchanged nine-suite prefix with the corrected remainder. Full gate-02 is running.",
+    "sb16-2": "20 affected suites (216 checks) and all 151 acceptance cases passed in both build profiles. Hash-verified evidence and read-only cleanup checks passed. Full gate-02 is running.",
+    "phase_complete": false
+  }
+}

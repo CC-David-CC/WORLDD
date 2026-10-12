@@ -1,0 +1,7 @@
+test_actor_population_is_visible_in_shared_room (__main__.SharedCrossHostTests.test_actor_population_is_visible_in_shared_room) ... ok
+test_two_tls_actors_share_committed_object_and_recover_same_world (__main__.SharedCrossHostTests.test_two_tls_actors_share_committed_object_and_recover_same_world) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 16.642s
+
+OK

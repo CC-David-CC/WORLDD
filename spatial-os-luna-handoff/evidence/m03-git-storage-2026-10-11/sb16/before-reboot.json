@@ -1,0 +1,138 @@
+{
+  "host": "sb16",
+  "recorded": 1791700688.61371,
+  "boot_id": "74ac716f-83ac-4d1c-9e61-045a5c6f8179",
+  "uptime": "369573.84 2773259.57",
+  "sudo_uid": 0,
+  "test_jobs_active": [],
+  "spatial_units": [],
+  "findmnt": "{\n   \"filesystems\": [\n\n   ]\n}\n",
+  "loop_state": {
+    "loopdevices": [
+      {
+        "name": "/dev/loop1",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/firmware-updater_226.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop8",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/mesa-2404_1839.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop6",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/firefox_8863.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop4",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/gtk-common-themes_1535.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop11",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snap-store_1447.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop2",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/gnome-46-2404_164.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop0",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/bare_5.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop9",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snapd_27738.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop7",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snap-store_1390.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop5",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snapd-desktop-integration_391.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop3",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/core24_2124.snap",
+        "dio": false,
+        "log-sec": 512
+      },
+      {
+        "name": "/dev/loop10",
+        "sizelimit": 0,
+        "offset": 0,
+        "autoclear": true,
+        "ro": true,
+        "back-file": "/var/lib/snapd/snaps/snapd_28254.snap",
+        "dio": false,
+        "log-sec": 512
+      }
+    ]
+  },
+  "checkout_head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "checkout_status": "## main...origin/main\n M spatial-os-luna-handoff/CMakeLists.txt\n M spatial-os-luna-handoff/docs/ISSUER_TIMEOUT_POLICY.txt\n M spatial-os-luna-handoff/docs/M01_QUALIFICATION_AUDIT.txt\n M spatial-os-luna-handoff/docs/M02_QUALIFICATION_AUDIT.txt\n M spatial-os-luna-handoff/docs/M03_QUALIFICATION_AUDIT.txt\n M spatial-os-luna-handoff/docs/MILESTONES.md\n M spatial-os-luna-handoff/proto/spatial/supervisor/v1/launch.proto\n M spatial-os-luna-handoff/proto/spatial/supervisor/v1/process_scope.proto\n M spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto\n M spatial-os-luna-handoff/src/platform/broker.cpp\n M spatial-os-luna-handoff/src/platform/broker.hpp\n M spatial-os-luna-handoff/src/platform/worker.cpp\n M spatial-os-luna-handoff/src/platform/worker.hpp\n M spatial-os-luna-handoff/src/supervisor/main.cpp\n M spatial-os-luna-handoff/src/supervisor/process_scope.cpp\n M spatial-os-luna-handoff/src/supervisor/process_scope.hpp\n M spatial-os-luna-handoff/src/supervisor/session_broker.cpp\n M spatial-os-luna-handoff/src/testing/git_job_probe.cpp\n M spatial-os-luna-handoff/src/testing/main.cpp\n M spatial-os-luna-handoff/src/testing/process_scope_probe.cpp\n M spatial-os-luna-handoff/src/testing/process_termination_probe.cpp\n M spatial-os-luna-handoff/src/workspace/app_init.cpp\n M spatial-os-luna-handoff/src/workspace/git_command.cpp\n M spatial-os-luna-handoff/src/workspace/git_command.hpp\n M spatial-os-luna-handoff/src/workspace/main.cpp\n M spatial-os-luna-handoff/src/workspace/process.cpp\n M spatial-os-luna-handoff/src/workspace/process.hpp\n M spatial-os-luna-handoff/src/workspace/status.cpp\n M spatial-os-luna-handoff/src/workspace/store.cpp\n M spatial-os-luna-handoff/src/workspace/store.hpp\n M spatial-os-luna-handoff/tests/core/test_process_termination.py\n M spatial-os-luna-handoff/tests/core/test_workspace_authority.py\n M spatial-os-luna-handoff/tests/core/test_workspace_git.py\n M spatial-os-luna-handoff/tests/core/test_workspaces.py\n M spatial-os-luna-handoff/tests/core/test_world_identity.py\n M spatial-os-luna-handoff/tests/native/test_session_world.py\n?? spatial-os-luna-handoff/docs/M03_ADAPTER_RESOURCE_CHECKS.txt\n?? spatial-os-luna-handoff/docs/M03_ADAPTER_RESOURCE_CONTRACT.txt\n?? spatial-os-luna-handoff/docs/M03_AUTHENTICATED_RESOURCE_CHECKS.txt\n?? spatial-os-luna-handoff/docs/M03_BROKER_RESOURCE_CHECKS.txt\n?? spatial-os-luna-handoff/docs/M03_COMBINED_IMPLEMENTATION.txt\n?? spatial-os-luna-handoff/docs/M03_REMAINING_INCREMENT.txt\n?? spatial-os-luna-handoff/docs/M03_RESOURCE_INCREMENT_01.txt\n?? spatial-os-luna-handoff/docs/M03_SESSION_RESOURCE_CHECKS.txt\n?? spatial-os-luna-handoff/docs/M03_SESSION_RESOURCE_CONTRACT.txt\n?? spatial-os-luna-handoff/harness/resource_broker.py\n?? spatial-os-luna-handoff/proto/spatial/workspace/v1/storage.proto\n?? spatial-os-luna-handoff/src/testing/app_initializer_probe.cpp\n?? spatial-os-luna-handoff/src/testing/git_boundary_probe.cpp\n?? spatial-os-luna-handoff/src/testing/git_probe_scope.hpp\n?? spatial-os-luna-handoff/src/testing/storage_client_probe.cpp\n?? spatial-os-luna-handoff/src/testing/storage_owner_probe.cpp\n?? spatial-os-luna-handoff/src/workspace/app_initializer.cpp\n?? spatial-os-luna-handoff/src/workspace/app_initializer.hpp\n?? spatial-os-luna-handoff/src/workspace/hardened_sanitizer.cpp\n?? spatial-os-luna-handoff/src/workspace/resources.cpp\n?? spatial-os-luna-handoff/src/workspace/resources.hpp\n?? spatial-os-luna-handoff/src/workspace/storage_channel.cpp\n?? spatial-os-luna-handoff/src/workspace/storage_channel.hpp\n?? spatial-os-luna-handoff/src/workspace/storage_client.cpp\n?? spatial-os-luna-handoff/src/workspace/storage_client.hpp\n?? spatial-os-luna-handoff/src/workspace/storage_main.cpp\n?? spatial-os-luna-handoff/src/workspace/storage_owner.cpp\n?? spatial-os-luna-handoff/src/workspace/storage_owner.hpp\n?? spatial-os-luna-handoff/tests/core/test_adapter_resources.py\n?? spatial-os-luna-handoff/tests/core/test_app_initializer.py\n?? spatial-os-luna-handoff/tests/core/test_authenticated_resources.py\n?? spatial-os-luna-handoff/tests/core/test_broker_resources.py\n?? spatial-os-luna-handoff/tests/core/test_process_scope_resources.py\n?? spatial-os-luna-handoff/tests/native/test_session_resources.py\n?? spatial-os-luna-handoff/tools/with_adapter_resources.py\n?? spatial-os-luna-handoff/tools/with_resource_delegate.py\n",
+  "tracked_patch_sha256": "474a9664e14b1efe28bf3b8884c8753afde70403d86a4e451aaca377d0363039",
+  "free_bytes": 2724884480
+}

@@ -1,0 +1,20 @@
+[ 73%] Built target spatial-protobuf
+[ 93%] Built target spatial-scene
+[ 93%] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_owner.cpp: In member function ‘spatial::{anonymous}::Object spatial::StorageOwner::Impl::object(const spatial::workspace::v1::StorageObject&)’:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_owner.cpp:280:9: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+  280 |         if (result.state != "ready") throw Error(pb::StorageOwnerError::UNCERTAIN, "Storage allocation requires checked recovery"); return result;
+      |         ^~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_owner.cpp:280:133: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  280 |         if (result.state != "ready") throw Error(pb::StorageOwnerError::UNCERTAIN, "Storage allocation requires checked recovery"); return result;
+      |                                                                                                                                     ^~~~~~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_owner.cpp: In member function ‘spatial::workspace::v1::StorageObjectState spatial::StorageOwner::Impl::allocate(const spatial::workspace::v1::StorageObject&, uint64_t, uint64_t, const std::string&)’:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_owner.cpp:301:99: error: ‘struct btrfs_qgroup_inherit’ has no member named ‘nr_qgroups’; did you mean ‘num_qgroups’?
+  301 |         auto* membership = reinterpret_cast<btrfs_qgroup_inherit*>(inherited.data()); membership->nr_qgroups = 1; membership->qgroups[0] = group;
+      |                                                                                                   ^~~~~~~~~~
+      |                                                                                                   num_qgroups
+cc1plus: all warnings being treated as errors
+gmake[3]: *** [CMakeFiles/spatial-storage-owner.dir/build.make:76: CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:821: CMakeFiles/spatial-storage-owner.dir/all] Error 2
+gmake[1]: *** [CMakeFiles/Makefile2:828: CMakeFiles/spatial-storage-owner.dir/rule] Error 2
+gmake: *** [Makefile:408: spatial-storage-owner] Error 2

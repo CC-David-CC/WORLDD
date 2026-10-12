@@ -1,0 +1,85 @@
+test_clearing_one_namespace_preserves_another_owner (__main__.SelectionNamespaceTests.test_clearing_one_namespace_preserves_another_owner) ... FAIL
+test_foreign_primary_ownership_does_not_change_empty_namespace (__main__.SelectionNamespaceTests.test_foreign_primary_ownership_does_not_change_empty_namespace) ... FAIL
+test_matching_application_names_in_different_workspaces_are_independent (__main__.SelectionNamespaceTests.test_matching_application_names_in_different_workspaces_are_independent) ... FAIL
+test_same_application_connections_share_primary (__main__.SelectionNamespaceTests.test_same_application_connections_share_primary) ... ok
+test_same_workspace_applications_have_independent_primary (__main__.SelectionNamespaceTests.test_same_workspace_applications_have_independent_primary) ... FAIL
+test_secondary_remains_independent_from_primary (__main__.SelectionNamespaceTests.test_secondary_remains_independent_from_primary) ... FAIL
+test_swapped_client_has_an_independent_namespace (__main__.SelectionNamespaceTests.test_swapped_client_has_an_independent_namespace) ... FAIL
+test_two_applications_can_own_primary_at_the_same_time (__main__.SelectionNamespaceTests.test_two_applications_can_own_primary_at_the_same_time) ... FAIL
+
+======================================================================
+FAIL: test_clearing_one_namespace_preserves_another_owner (__main__.SelectionNamespaceTests.test_clearing_one_namespace_preserves_another_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 53, in test_clearing_one_namespace_preserves_another_owner
+    self.claim(self.other, 0)
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 14, in claim
+    self.assertIsNone(client.operation(22, client.pack('III', window, atom, 0)))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_foreign_primary_ownership_does_not_change_empty_namespace (__main__.SelectionNamespaceTests.test_foreign_primary_ownership_does_not_change_empty_namespace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 27, in test_foreign_primary_ownership_does_not_change_empty_namespace
+    self.assertEqual(self.selection_owner(self.other), 0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 18, in selection_owner
+    self.assertIsInstance(result, tuple, 'A private namespace must return its own owner')
+AssertionError: 10 is not an instance of <class 'tuple'> : A private namespace must return its own owner
+
+======================================================================
+FAIL: test_matching_application_names_in_different_workspaces_are_independent (__main__.SelectionNamespaceTests.test_matching_application_names_in_different_workspaces_are_independent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 46, in test_matching_application_names_in_different_workspaces_are_independent
+    self.claim(self.other, self.other_window)
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 14, in claim
+    self.assertIsNone(client.operation(22, client.pack('III', window, atom, 0)))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_same_workspace_applications_have_independent_primary (__main__.SelectionNamespaceTests.test_same_workspace_applications_have_independent_primary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 39, in test_same_workspace_applications_have_independent_primary
+    self.claim(self.other, self.other_window)
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 14, in claim
+    self.assertIsNone(client.operation(22, client.pack('III', window, atom, 0)))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_secondary_remains_independent_from_primary (__main__.SelectionNamespaceTests.test_secondary_remains_independent_from_primary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 68, in test_secondary_remains_independent_from_primary
+    self.assertEqual(self.selection_owner(self.other, 1), 0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 18, in selection_owner
+    self.assertIsInstance(result, tuple, 'A private namespace must return its own owner')
+AssertionError: 10 is not an instance of <class 'tuple'> : A private namespace must return its own owner
+
+======================================================================
+FAIL: test_swapped_client_has_an_independent_namespace (__main__.SelectionNamespaceTests.test_swapped_client_has_an_independent_namespace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 74, in test_swapped_client_has_an_independent_namespace
+    self.claim(self.other, self.other_window)
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 14, in claim
+    self.assertIsNone(client.operation(22, client.pack('III', window, atom, 0)))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_two_applications_can_own_primary_at_the_same_time (__main__.SelectionNamespaceTests.test_two_applications_can_own_primary_at_the_same_time)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 32, in test_two_applications_can_own_primary_at_the_same_time
+    self.claim(self.other, self.other_window)
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py", line 14, in claim
+    self.assertIsNone(client.operation(22, client.pack('III', window, atom, 0)))
+AssertionError: 10 is not None
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.615s
+
+FAILED (failures=7)

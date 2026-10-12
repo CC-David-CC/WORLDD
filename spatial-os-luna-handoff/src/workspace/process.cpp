@@ -1,6 +1,7 @@
 #include "core/protocol.hpp"
 #include "workspace/process.hpp"
 #include "workspace/native_launch.hpp"
+#include "workspace/resources.hpp"
 #include "world/store.hpp"
 #include <array>
 #include <algorithm>
@@ -12,6 +13,7 @@
 #include <iostream>
 #include <linux/audit.h>
 #include <linux/filter.h>
+#include <linux/fs.h>
 #include <linux/memfd.h>
 #include <linux/seccomp.h>
 #include <poll.h>
@@ -59,10 +61,21 @@ int filter() {
              SYS_bpf, SYS_keyctl, SYS_add_key, SYS_request_key, SYS_perf_event_open, SYS_userfaultfd,
              SYS_ptrace, SYS_process_vm_readv, SYS_process_vm_writev, SYS_mknod, SYS_mknodat,
              SYS_init_module, SYS_finit_module, SYS_delete_module, SYS_kexec_load, SYS_kexec_file_load,
-             SYS_reboot, SYS_swapon, SYS_swapoff, SYS_syslog, SYS_io_uring_setup}) {
+             SYS_reboot, SYS_swapon, SYS_swapoff, SYS_syslog, SYS_io_uring_setup,
+             SYS_quotactl, SYS_quotactl_fd}) {
         code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, static_cast<unsigned>(call), 0, 1));
         code.push_back(BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM));
     }
+    // A new Btrfs subvolume can evade its parent's quota graph without host capabilities.
+    // Keep ordinary reflink copies. Deny other Btrfs-specific controls, including new commands.
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SYS_ioctl, 0, 6));
+    code.push_back(BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(seccomp_data, args[1])));
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, FICLONE, 4, 0));
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, FICLONERANGE, 3, 0));
+    code.push_back(BPF_STMT(BPF_ALU | BPF_AND | BPF_K, 0xff00));
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, 0x9400, 0, 1));
+    code.push_back(BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM));
+    code.push_back(BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(seccomp_data, nr)));
     // glibc can fall back to clone. Its ordinary fork/thread flags remain available.
     code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SYS_clone3, 0, 1));
     code.push_back(BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | ENOSYS));
@@ -87,8 +100,10 @@ int directory(const std::filesystem::path& path) {
 }
 ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                                       const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request,
-                                      std::function<void()> authority, std::unique_ptr<NativeCredential> native)
-    : authority_(std::move(authority)), native_(std::move(native)) {
+                                      std::function<void()> authority, std::unique_ptr<NativeCredential> native,
+                                      std::unique_ptr<ApplicationResources> resources)
+    : authority_(std::move(authority)), native_(std::move(native)), resources_(std::move(resources)) {
+    if (!resources_) throw WorldError(wire::UNAVAILABLE, "Application resource scope is required");
     authority_();
     const auto executable = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatial-app-init";
     const char* bwrap = "/usr/local/libexec/spatial-bwrap";
@@ -108,48 +123,40 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         "--ro-bind", "/usr/bin", "/usr/bin", "--ro-bind", "/usr/lib", "/usr/lib", "--ro-bind", "/usr/share", "/usr/share",
         "--symlink", "usr/bin", "/bin", "--symlink", "usr/lib", "/lib", "--symlink", "usr/lib64", "/lib64",
         "--ro-bind", "/usr/lib64", "/usr/lib64", "--proc", "/proc", "--dev", "/dev",
-        "--bind-fd", std::to_string(state_fd.fd), "/state", "--bind", (state / "tmp").string(), "/tmp",
-        bind, std::to_string(project_fd.fd), "/project", "--symlink", "/project", project.string(),
-        bind, std::to_string(repo_fd.fd), repository.string(),
+        "--bind-fd", "5", "/state", "--bind", (state / "tmp").string(), "/tmp",
+        bind, "3", "/project", "--symlink", "/project", project.string(),
+        bind, "4", repository.string(),
         "--ro-bind", executable.string(), "/spatial-app-init", "--chdir", "/project"};
     if (native_) {
         const std::vector<std::string> display{
-            "--dir", "/run/spatial", "--perms", "0400", "--ro-bind-data", std::to_string(native_->authority_fd()), "/run/spatial/Xauthority",
-            "--dir", "/tmp/.X11-unix", "--ro-bind-fd", std::to_string(native_->socket_fd()), "/tmp/.X11-unix/X"+native_->display_number(),
+            "--dir", "/run/spatial", "--perms", "0400", "--ro-bind-data", "8", "/run/spatial/Xauthority",
+            "--dir", "/tmp/.X11-unix", "--ro-bind-fd", "9", "/tmp/.X11-unix/X"+native_->display_number(),
             "--setenv", "DISPLAY", ":"+native_->display_number(), "--setenv", "XAUTHORITY", "/run/spatial/Xauthority"};
         strings.insert(strings.end(), display.begin(), display.end());
     }
-    const std::vector<std::string> tail{"--block-fd", std::to_string(launch_read.fd), "--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
+    const std::vector<std::string> tail{"--block-fd", "7", "--seccomp", "6", "--remount-ro", "/", "--", "/spatial-app-init"};
     strings.insert(strings.end(), tail.begin(), tail.end());
-    std::vector<char*> argv;
-    for (auto& value : strings) argv.push_back(value.data());
-    argv.push_back(nullptr);
     File input_read, input_write, output_read, output_write;
     int descriptors[2];
     if (pipe2(descriptors, O_CLOEXEC) != 0) throw std::runtime_error("Cannot create app configuration pipe");
     input_read.fd = descriptors[0]; input_write.fd = descriptors[1];
     if (pipe2(descriptors, O_CLOEXEC) != 0) throw std::runtime_error("Cannot create app event pipe");
     output_read.fd = descriptors[0]; output_write.fd = descriptors[1];
-    const auto parent = getpid();
-    pid_ = fork();
-    if (pid_ == 0) {
-        if (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0 || getppid() != parent) _exit(126);
-        const int diagnostic = open((state / "setup.log").c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600);
-        if (diagnostic < 0 || dup2(input_read.fd, 0) < 0 || dup2(output_write.fd, 1) < 0 || dup2(diagnostic, 2) < 0) _exit(126);
-        // Only explicit mount and policy descriptors survive into Bubblewrap.
-        if (syscall(SYS_close_range, 3u, ~0u, 4u /* CLOSE_RANGE_CLOEXEC */) != 0) _exit(126);
-        for (const int fd : {project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd, launch_read.fd}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
-        if (native_)
-            for (const int fd : {native_->authority_fd(), native_->socket_fd()}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
-        char path[] = "PATH=/usr/bin:/bin"; char* env[]{path, nullptr};
-        execve(bwrap, argv.data(), env); _exit(127);
-    }
-    if (pid_ < 0) throw std::runtime_error("Cannot fork application boundary");
+    File diagnostic{open((state / "setup.log").c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600)};
+    if (diagnostic.fd < 0) throw std::runtime_error("Cannot open application setup log");
+    supervisor::v1::AuthorityProcessLaunch launch;
+    launch.set_executable(bwrap);
+    for (std::size_t i = 1; i < strings.size(); ++i) launch.add_arguments(strings[i]);
+    std::vector<int> selected{project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd, launch_read.fd};
+    if (native_) { selected.push_back(native_->authority_fd()); selected.push_back(native_->socket_fd()); }
+    for (unsigned i = 0; i < selected.size(); ++i) launch.add_inherited_fds(3+i);
+    resources_->scope().start(launch, {input_read.fd, output_write.fd, diagnostic.fd}, selected);
+    pid_ = resources_->scope().direct_child_pid();
     close(launch_read.fd); launch_read.fd = -1;
     close(input_read.fd); input_read.fd = -1; close(output_write.fd); output_write.fd = -1;
     output_ = output_read.fd; output_read.fd = -1;
     try {
-        pidfd_ = static_cast<int>(syscall(SYS_pidfd_open, pid_, 0));
+        pidfd_ = resources_->scope().duplicate_child_pidfd();
         if (pidfd_ < 0 || fcntl(output_, F_SETFL, O_NONBLOCK) < 0 || fcntl(input_write.fd, F_SETFL, O_NONBLOCK) < 0)
             throw std::runtime_error("Cannot monitor application boundary");
         pin_namespace();
@@ -226,13 +233,7 @@ void ApplicationProcess::stop() {
                 throw std::runtime_error("Cannot confirm application namespace exit");
         }
     }
-    for (;;) {
-        const auto result = waitpid(pid_, nullptr, WNOHANG);
-        if (result == pid_) break;
-        if ((result < 0 && errno != EINTR) || Clock::now() >= deadline)
-            throw std::runtime_error("Cannot confirm application boundary reap");
-        poll(nullptr, 0, 5);
-    }
+    resources_->scope().stop();
     if (namespace_pidfd_ >= 0) close(namespace_pidfd_);
     namespace_pidfd_ = -1;
     if (pidfd_ >= 0) close(pidfd_);

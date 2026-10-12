@@ -1,0 +1,97 @@
+{
+  "host": "sb16",
+  "status": "passed_review_pending",
+  "started": 1791678470.7658918,
+  "pid": 3014940,
+  "manifest_sha256": "be4704fcdf24f8076ac574012906fddfa95837ab995ea8b39390fe3a21dc3861",
+  "runner_sha256": "1abb24a450ea2a00a768b5116320570d45f8e316a561a741df81a668006bfb47",
+  "commands": [
+    {
+      "label": "debug-application-io",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tests/core/test_broker_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/workspaced",
+        "BrokerResourceTests.test_application_writes_obey_broker_io_budget"
+      ],
+      "started": 1791678470.8674307,
+      "exit_code": 0,
+      "ended": 1791678475.9853559,
+      "sha256": "802ce7ba1e5bd8551c1bc8db23917af68093ab1caf33cd88659951f5667698ef"
+    },
+    {
+      "label": "runtime-sanitize-application-io",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tests/core/test_broker_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/runtime-sanitize/build/spatial-process-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/runtime-sanitize/build/workspaced",
+        "BrokerResourceTests.test_application_writes_obey_broker_io_budget"
+      ],
+      "started": 1791678476.315438,
+      "exit_code": 0,
+      "ended": 1791678481.781484,
+      "sha256": "ee6aca8cdaab3f408640efc0bd749a1865c56fbc87c8391b8d8c606d5372b73c"
+    }
+  ],
+  "profiles": {
+    "debug": {
+      "passed": 1,
+      "retained_termination_checks": 6,
+      "termination_log": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug-checks.log",
+      "failed": 0,
+      "skipped": 0,
+      "probe_sha256": "50782dc0f779223e74934a0a7d035dc16f9ac1ad22155c394dc2c7ce2461ca9f",
+      "reused_binaries": {
+        "workspaced": "65e40deb42486c58d9638fc50deeacd764cc7899786c41ef2a0071ce526eebe8",
+        "spatial-process-scope-probe": "4d9027c2d42e561ddc7a527b1133d0f3709867f5f8573ba09da95bb07c7d6846"
+      },
+      "prior_review_sha256": "ceb3812a62a75036ba5ce4787ad89ea73743082f03bfabf225fd2fe222d7ee91"
+    },
+    "runtime-sanitize": {
+      "passed": 1,
+      "retained_termination_checks": 6,
+      "termination_log": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/runtime-sanitize-checks.log",
+      "failed": 0,
+      "skipped": 0,
+      "probe_sha256": "544b4c9202a0f1551c1b1dca0b5cfcc3db06b9e0710c441895f21fb1d1c962be",
+      "reused_binaries": {
+        "workspaced": "04c244aa9607cfdb68a8d23b060069cfe78b8ec048eb5d55c06d26426f1a1b57",
+        "spatial-process-scope-probe": "2702b50c09f1770cdca316985de1fcaaa3a8042b775b38f6c274448bc2f22737"
+      },
+      "prior_review_sha256": "ceb3812a62a75036ba5ce4787ad89ea73743082f03bfabf225fd2fe222d7ee91"
+    }
+  },
+  "phase_complete": false,
+  "scope": "Broker resource integration. Launcher provisioning and storage remain pending.",
+  "sanitizer_logs_scanned": 8,
+  "sanitizer_matches": 0,
+  "ended": 1791678482.193317,
+  "attachments": {
+    "debug-application-io.log": "802ce7ba1e5bd8551c1bc8db23917af68093ab1caf33cd88659951f5667698ef",
+    "runtime-sanitize-application-io.log": "ee6aca8cdaab3f408640efc0bd749a1865c56fbc87c8391b8d8c606d5372b73c",
+    "runner.py": "1abb24a450ea2a00a768b5116320570d45f8e316a561a741df81a668006bfb47",
+    "manifest.json": "be4704fcdf24f8076ac574012906fddfa95837ab995ea8b39390fe3a21dc3861",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/broker-0-4ab596c281685204b41ec15e6b544a3d-setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/application-io.json": "2a78983312f8db7b564cc6d53b8af2f2c865f335899d183b37469cfa396941d4",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/after-io.json": "1432f41c1755ed7bc6d5731fa053bb2f26ceb153b71ef008f236055dec9ba2d8",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/broker-0.textproto": "0720094b749fc9226021d82f215960a535f31890b83818b4a0b7e8e1bc447d31",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/before-io.json": "41f82964b43243e0c2fc8d2df641acd09faf7038d60d78518450458e4f4f8d14",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0-f7c660db26721620c5146ffee7d9d300-setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/application-io.json": "739081882a9b5ff00f5423d102e9fc7299f643c49b25bf214cfd051c430b9d4c",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/after-io.json": "6f04017375e769edadbd7eb593da87bf035ffa332a4da93f433b6b6600094764",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0.textproto": "6708378c1e25ba90818e8db98215597763801fcf43195353610f01a9d3703ffe",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/before-io.json": "5bbd9b1716832d2c1fe5bfd4e07b41a51c4b14b461d1babcf6371c9fe8d0d5fb"
+  }
+}

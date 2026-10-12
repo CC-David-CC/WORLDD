@@ -1,0 +1,59 @@
+{
+  "status": "focused_development_checks_passed",
+  "qualification": false,
+  "phase": "M03",
+  "base_commit": "96b2b054199986f783041fd90fd21d9860dbd0ac",
+  "source_hashes": {
+    "src/workspace/storage_channel.cpp": "90c3bdcb9edff5b215aa7f88c87500b4aca4e9ddeb39d62a1987ea4afd1c5491",
+    "src/workspace/storage_client.cpp": "75d8529af62f93d181b8be55e51cc9fe8b398153f149b24df22876a9ff91fe64",
+    "src/workspace/storage_main.cpp": "fa1d8d99b4d29a79db95f77d23e99a6b2618215e45f91d0ddaf02c28e5d67efe",
+    "src/workspace/storage_owner.cpp": "e95a3234f34f913be38de1a99f4248d7cd0fa80d6b0ab4c022c0cc72849af5b2",
+    "src/workspace/storage_channel.hpp": "b4cf340247398ee964c8a2f8451f55fc6525a8cf74dc9ca31f188a257db0f927",
+    "src/workspace/storage_client.hpp": "e1d3257a7a6840915c8a5058e07cb600906748993647f86b9f478f5f1209624c",
+    "src/workspace/storage_owner.hpp": "7dc17509026786d0222ecae63ea306385aede6866765a920a973f7fe55bbe58a",
+    "src/workspace/store.cpp": "b10e0f445b3400e40d7834f0bf6a6b8b647ed90674db88ba6a4f97905f837d11",
+    "src/workspace/main.cpp": "7f9580ee2a9276e01f657a83959588d6a966a2349bdd641143d845f9144acc7c",
+    "CMakeLists.txt": "44fca7ed9485d0a8f9f03de43e4a052f36af7c0c5aa3f95ff1921954977df2b5",
+    "src/workspace/store.hpp": "a3c3bf954f94caaf4d5e13808aea9d3e75f8c76acc3a15733775fd99a3c6b317",
+    "src/workspace/process.cpp": "d62a900d9b75a20c338a3b30fe6ef86a7674b532fa7839105107953c5e818f3d",
+    "src/workspace/resources.cpp": "5e58ea5e7ce25150ac6c04d59393fc128f175a92af6285773afefe64d783572f",
+    "src/testing/storage_client_probe.cpp": "db2f2c985280a9520112a45e646131f2bfbd21877387771cf2b051634be23dea",
+    "proto/spatial/workspace/v1/storage.proto": "7a020770b63fa6e6a929bfabb3d778e99739bc3ae456f6a2f7db406020cdb764",
+    "proto/spatial/workspace/v1/broker.proto": "39cc42dd06034aba33ede49429f0efdbe2a694a265cd4ea81c2ae62af0facf2e"
+  },
+  "checks": {
+    "debug_sb16": 9,
+    "sanitizers_sb16": 13
+  },
+  "passed": [
+    "Production owner/client use actual per-fragment Unix sender credentials and pidfd lifetime checks",
+    "Broker filesystem UUID verified before execution-store initialization",
+    "Wrong UID, PID, ancillary rights, oversize, partial frame, deadline and sender substitution rejected without object allocation",
+    "Client rejects wrong owner UID, volume UUID, changed root sender PID and returned object identity",
+    "Real bare clone, linked worktrees, retained removal and workspace binding use quota objects",
+    "Final sanitizer candidate invokes broker authority/lifecycle observer during storage waits",
+    "No selected ASan/UBSan/LeakSanitizer findings"
+  ],
+  "failed_preserved": [
+    "Service compile signedness comparison",
+    "Client error string required existing WorldError const char interface",
+    "Initial Debug cleanup reported busy volume; script used SQLite transaction context without explicit connection close"
+  ],
+  "cleanup": {
+    "debug_original": "Busy mount recorded in original report. After script termination, fuser found no users. Exact volume unmounted and loop12 detached. losetup -j later returned no assignment.",
+    "sanitizers": "Unmount and loop detach passed in original runner receipt; no assignment remained."
+  },
+  "unrun": [
+    "sb16-2 selected checks",
+    "Physical input and native-session storage integration",
+    "Application launches and quota escape attacks through the confined production broker",
+    "Authority revocation during slow storage operations",
+    "Privileged owner resource-envelope deployment",
+    "Mandatory operator/fixture storage adoption",
+    "Confined Git/effect workers and kernel I/O witness",
+    "Fault recovery, remount/power-loss and metadata exhaustion",
+    "Issuer pressure and fdatasync recovery",
+    "Full M03 phase gate"
+  ],
+  "integration": "Uncommitted combined draft. No production session, main branch, origin or GitHub changed."
+}

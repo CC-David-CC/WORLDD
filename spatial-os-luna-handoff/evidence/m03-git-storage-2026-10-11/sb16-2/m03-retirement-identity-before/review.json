@@ -1,0 +1,31 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/source-current/tools/with_resource_delegate.py",
+    "--native",
+    "--",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/source-current/tools/with_adapter_resources.py",
+    "--",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/source-current/tests/core/test_workspace_git.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/build/workspaced",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/build/spatial-git-job-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-worker-2026-10-11/build/spatial-git-boundary-probe",
+    "WorkspaceGitTests.test_removal_operation_identity_is_never_a_filesystem_path",
+    "-v"
+  ],
+  "cases": [
+    "WorkspaceGitTests.test_removal_operation_identity_is_never_a_filesystem_path"
+  ],
+  "started": 1791697856.8696356,
+  "inputs": {
+    "src/workspace/store.cpp": "c35da86e1bb36bc0ba5a7abf7aab94f9ea94b063397c2a996c2d68d7c61c543b",
+    "src/workspace/git_command.cpp": "84131774c5401b0758c08c1b46b928c06a00037762c900f9eaf2ad78530497fe",
+    "tests/core/test_workspace_git.py": "c40ed04023f12bb42967b60818d9485e7157b28e25ac13a923926cba81fedff8"
+  },
+  "exit_code": 1,
+  "elapsed": 2.524327516555786
+}

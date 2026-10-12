@@ -1324,3 +1324,154 @@ M02 is qualified at the recorded runtime and source pins. Full Spatial-M1 remain
 No new current-HEAD runtime build was run for the additive CMake test registration.
 700 ms and 2000 ms pressure clients failed; the 5000 ms default passed one trial only.
 Storage-contention availability remains mandatory M03/M15 work. Original untraced failure causes remain unknown.
+
+2026-10-10: M01 audit closed; first M03 aggregate primitive qualified.
+M01 reused complete frozen gate evidence and the adopted M02 cancellation dependency. No personal credentials were provisioned.
+The M03 process-scope primitive passed 108 focused checks across both hosts in Debug and runtime sanitizers.
+Actual kernel witnesses recorded fork denial, group OOM containment, sibling survival, CPU throttling, and I/O accounting.
+Review found omitted device-minor acceptance in candidate01 despite its 104 initial passes.
+Both hosts reproduced the missing-presence defect before candidate02 passed the added regression.
+See spatial-os-luna-handoff/evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+Twelve exact transient test services are unloaded. Root/user delegation returned to prior values. SSH remains live.
+Limits: budget policy, broker integration, workspace aggregation, storage quotas, and M03 full gates are not yet complete.
+No new physical-device, GPU, or issuer storage-pressure latency qualification was performed by this increment.
+The five-second production timeout remains; cgroup I/O throttling alone is not a latency guarantee.
+
+2026-10-10: Broker resource integration qualified on the M03 work branch.
+Both hosts passed 44 selected checks in Debug and runtime sanitizers: 176 final passes, zero failures or skips.
+Production workspaced enforces explicit nested workspace/actor/application budgets before releasing startup.
+Missing resource configuration fails closed before creating a pending process record.
+Actual application writes obeyed 4 MiB/s: 16 MiB took 3.96 to 4.03 seconds with matching kernel bytes.
+The retained supervisor removed nested groups after broker death and preserved an independent broker.
+Six original cleanup test bodies remain unchanged. Real kernel-denied cleanup still reports failure.
+All 439 attachments verified. All 304 scanned logs lack selected sanitizer findings.
+Read spatial-os-luna-handoff/evidence/m03-broker-resources-2026-10-10/primary-review.json.
+Preserved failures: candidate01 omitted Python bindings; candidate03's initial I/O parser assumed wbytes existed.
+The candidate03 failing initial raw counter line was not captured. Its exact contents cannot be recovered.
+Candidate04 records both raw counter reads and still requires all final byte accounting.
+Thirty-one exact transient services are unloaded. Root and user delegation returned to cpu, memory, and pids.
+Both normal checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No runtime was adopted or restarted.
+Current-source workspaced was not rebuilt after test-only additions; candidate02 runtime source and binaries were reused.
+Still unrun: full M03 gate, native GUI resource integration, physical input, GPU performance, and live-model qualification.
+Still required: session provisioning, fixture adaptation, storage quotas, broker accounting, and issuer contention recovery.
+Unconfigured launches on this unfinished branch are unavailable. This is recorded behavior, not a passing full gate.
+This increment does not prove fdatasync latency is fixed. Production timeout remains five seconds. Durability is unchanged.
+The first status-writing command stopped at a line-ending assertion before writing any status files. The correction preserved existing content.
+
+2026-10-10: Retained session resource policy handoff qualified on the M03 branch.
+Both hosts passed 43 selected checks in Debug and runtime sanitizers: 172 final passes.
+The supervisor seals policy for its actual retained broker scope. The broker consumes the policy descriptor.
+A confined native X application runs under real workspace, actor, and application kernel budgets.
+Existing application recovery scenarios and all selected supervisor and process cleanup checks pass.
+Candidate01 stopped at an evidence filename error. Its completed Debug builds remain preserved and reused.
+Candidate02's new witness omitted world shutdown. Production correctly rejected broker shutdown first.
+Candidate03 corrects that witness and verifies complete shutdown. Historical failures remain failed.
+The audit verified 714 attachments and scanned 588 logs without selected sanitizer findings.
+All 22 exact transient services are unloaded. SSH, sudo, normal checkouts, and prior controller delegation are intact.
+Read spatial-os-luna-handoff/evidence/m03-session-resources-2026-10-10/primary-review.json.
+The first cleanup audit found nine resource services per host from logs. The final audit includes command arguments too.
+The final audit also confirms both authority-supervisor service units per host are unloaded.
+Still unrun: full M03 gate, physical devices, GPU performance, live-model, and power-loss qualification.
+Still required: remaining entry points, fixture provisioning, bounded storage, broker accounting, and issuer contention recovery.
+Native tests use a dedicated software display. These results do not establish physical-session performance.
+The existing five-second client timeout remains. Both 700 ms and 2000 ms failed the earlier disk-pressure reproduction.
+No new issuer pressure measurement ran in this increment. SQLite durability is unchanged.
+
+
+2026-10-10: M03 adapter resource provisioning and fdatasync status
+The old adapter ignored explicit resource configuration. Both hosts reproduced that missing boundary.
+The current adapter binds an owned scope and sealed policy to the existing production broker.
+Final focused qualification passed 200 checks across sb16 and sb16-2 in Debug and runtime sanitizers.
+The primary audit verified 540 attachments and scanned 438 logs. No selected sanitizer finding appeared.
+All 41 locked files and 46 existing test bodies remain unchanged.
+All 18 transient services are unloaded. Normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+Read spatial-os-luna-handoff/evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+This does not fix fdatasync latency. The existing five-second client passed one earlier pressure trial.
+Both 700 ms and two-second clients failed under pressure. Timeout tolerance is separate from durable flush performance.
+Keep the five-second production default, the short fault fixture, and SQLite durability unchanged.
+Finish bounded storage and broker/background write accounting. Then repeat contention and durable acknowledgement measurements.
+Remaining authenticated/direct-broker fixtures and operator deployment need explicit provisioning.
+No new contention, full phase gate, physical input, native GPU, live-model, or power-loss test ran.
+M01 and M02 remain qualified. M03 is active; M04-M16 and full Spatial-M1 remain incomplete.
+
+
+2026-10-10: Authenticated resource fixture qualification failure
+Candidate01 stopped before tests because world_session_pb2 was not generated. Both hosts preserve that runner failure.
+Candidate02 passed all 36 selected Debug checks on both hosts. sb16-2 passed all 36 sanitizer checks.
+sb16 sanitizer workspace-authority passed 19 cases and errored during world startup in test_grant_revocation_kills_confined_process_without_recipient_request.
+The exception is EOFError: worldd closed the channel. It occurred before that test launched an application.
+The runner omitted SPATIAL_SECURITY_EVIDENCE. Detailed issuer, world, broker, and owner logs were deleted with the temporary fixture.
+The suite transcript and provisioning receipt remain preserved. The exact underlying server exception cannot be recovered.
+Do not attribute this failure to fdatasync, memory, or sanitizer findings without additional evidence.
+A diagnostic run will enable the existing service-log retention and trace only sync syscalls.
+Candidate03 fixes standalone kernel-witness evidence-directory creation. sb16 passed that one case in both profiles.
+The fixture increment remains uncommitted and unqualified. M03 and full Spatial-M1 remain incomplete.
+
+
+2026-10-10: Authenticated fixture diagnostic update
+Diagnostic01 failed three times because LeakSanitizer cannot run under strace/ptrace. Those failures do not explain the original EOF.
+Diagnostic02 passed three isolated sb16 cases with full sanitizers and retained service logs, without ptrace.
+Diagnostic03 passed all twenty workspace-authority cases with those settings. Original startup cause remains unknown.
+Candidate03 kernel witness passed alone on both hosts in both profiles.
+Candidate04 runs fresh qualification with SPATIAL_SCOPE_EVIDENCE and SPATIAL_SECURITY_EVIDENCE enabled.
+Build writeback is flushed before checks. Existing deadlines and database durability remain unchanged.
+No claim of repaired fdatasync latency follows from these runs. Full M03 storage-pressure and recovery work remains pending.
+Read spatial-os-luna-handoff/evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+The source fixture remains a draft. No operator runtime changed.
+
+
+2026-10-10: Authenticated resource fixture final focused review
+Candidate04 passed 144 checks across both hosts in Debug and runtime sanitizers.
+Primary review verified 980 attachments and scanned 934 logs. All 369 inputs and 41 locked files matched their hashes.
+All 32 exact transient services are unloaded. Normal host checkouts remain unchanged.
+The earlier sb16 startup EOF remains unexplained. Its detailed logs were lost; its transcript is preserved.
+Fresh passes do not establish repaired fdatasync latency. Storage pressure and recovery remain required.
+David requested larger coherent changes. The next increment combines remaining M03 launch provisioning, bounded storage, broker I/O, and contention work.
+Regress the combined change, resolve reproduced failures, and run the full M03 phase gate before proceeding to M04.
+Read spatial-os-luna-handoff/docs/M03_REMAINING_INCREMENT.txt.
+
+
+2026-10-10: Combined M03 backend capability checkpoint
+Both hosts verified native application, actor, and workspace EDQUOT limits, independent-workspace survival, deletion capacity recovery, and remount persistence.
+Both hosts also demonstrated unprivileged subvolume creation and 4 MiB writes outside the configured quota graph. Production storage control must prevent that bypass.
+These are filesystem capability checks, not confined-application acceptance or power-loss proof.
+Candidate01 failed because unprivileged subvolume-show required administrative B-tree access. Its failure receipt remains preserved.
+btrfs-progs and libreiserfscore0t64 were installed; package triggers regenerated initramfs. No reboot occurred.
+All test mounts and loop devices are gone. Two 512 MiB images remain per host in ignored local storage.
+Draft source adds Btrfs ioctl restrictions, storage protobuf types, and version 2 broker/manager envelopes. No compile or source qualification ran yet.
+The combined storage owner, effect accounting, provisioning, contention work, and full regression gate remain pending.
+No claim of repaired fdatasync latency follows from these checks.
+Read spatial-os-luna-handoff/docs/M03_COMBINED_IMPLEMENTATION.txt and its referenced receipts.
+
+2026-10-10: Storage-owner development check
+sb16 Debug library/probe compilation passed after two source corrections.
+The initial SQLite procfd/NOFOLLOW open failed. A private Unix VFS preserves the pinned path.
+A native ioctl trace then showed GET_SUBVOL_INFO returned positive success, which the draft misclassified.
+Candidate04 passed real quota exhaustion, sibling survival, capacity recovery, restart, and altered-quota rejection.
+Evidence: spatial-os-luna-handoff/evidence/m03-storage-owner-2026-10-10/primary-review.json.
+No authenticated storage transport or broker integration is qualified yet.
+No fdatasync pressure check ran. No production session changed.
+Four additional 512 MiB sb16 images remain under local/m03-storage-owner-runtime-01 through -04.
+All four volumes are unmounted and loop devices detached. Exact recovery commands are in each review.json.
+
+2026-10-10: Storage transport and real broker Git effects
+sb16 passed nine initial Debug scenarios and thirteen final runtime-sanitizer scenarios.
+Checks cover actual per-fragment sender credentials, wrong owner replies, real bare clone, worktrees and retirement.
+The first Debug cleanup reported a busy mount. SQLite context handling did not explicitly close connections.
+After the runner exited, fuser found no mount users. Exact umount and loop12 detach succeeded.
+The corrected sanitizer runner unmounted and detached successfully. Both images have no loop assignment.
+Two additional 512 MiB images remain at local/m03-storage-transport-01 and local/m03-storage-transport-sanitizers-01.
+Read spatial-os-luna-handoff/evidence/m03-storage-transport-2026-10-10/primary-review.json.
+Broker revocation callbacks, confined-app quota attacks, worker confinement and full M03 qualification remain pending.
+No fdatasync pressure result, production-session adoption, commit or push occurred.
+
+2026-10-10 application-storage integration
+Real sb16 applications passed functional quota, confinement, reflink, descriptor, read-only and sibling witnesses.
+Btrfs device discovery required actual block-device mapping and metadata-only inspection of the root-owned image.
+The complete setup-log scan found three LeakSanitizer fatal errors. Application sanitizer qualification FAILED.
+The earlier fixed functional runner omitted setup logs. Do not use that pass as sanitizer evidence.
+The initializer is non-dumpable and denies ptrace. No tracer was used. Exact failure mechanism remains unverified.
+Read M03_SANITIZER_LIMITATION.txt and spatial-os-luna-handoff/evidence/m03-storage-applications-2026-10-10/primary-review.json.
+All named services stopped. All experiment mounts and loops detached. Three new 512 MiB images are retained.
+David accepts five seconds and defers speed optimization. Correct durability, authority and recovery remain required.

@@ -1,0 +1,30 @@
+{"unit": "spatial-m03-resources-a899473141bb43e2b5ebf9443d8d45a9.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-a899473141bb43e2b5ebf9443d8d45a9.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/witnesses", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/baseline-native", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source/tests/native/test_session_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/debug/build/spatial-issuer-client", "--baseline-supervisor", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/spatial-authority-supervisor", "test_supervisor_binds_sealed_resource_policy"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-a899473141bb43e2b5ebf9443d8d45a9.service"]}
+Running as unit: spatial-m03-resources-a899473141bb43e2b5ebf9443d8d45a9.service; invocation ID: d04d2063752648d0a7ca6319bb4af331
+test_supervisor_binds_sealed_resource_policy (__main__.SessionResourceTests.test_supervisor_binds_sealed_resource_policy) ... FAIL
+
+======================================================================
+FAIL: test_supervisor_binds_sealed_resource_policy (__main__.SessionResourceTests.test_supervisor_binds_sealed_resource_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source/tests/native/test_session_resources.py", line 72, in test_supervisor_binds_sealed_resource_policy
+    initial = self.message(channel, launch.AuthorityLaunchReply)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source/tests/native/test_authority_supervisor.py", line 102, in message
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-01/source/tests/native/test_authority_supervisor.py", line 99, in exact
+    self.assertTrue(chunk, 'Supervisor or child closed reply channel')
+AssertionError: b'' is not true : Supervisor or child closed reply channel
+
+----------------------------------------------------------------------
+Ran 1 test in 1.376s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1.626s
+CPU time consumed: 908ms
+Memory peak: 2.4M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-a899473141bb43e2b5ebf9443d8d45a9.service: Unit spatial-m03-resources-a899473141bb43e2b5ebf9443d8d45a9.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

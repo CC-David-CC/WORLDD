@@ -1,0 +1,34 @@
+{"unit": "spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/baseline-witnesses", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_workspace_authority.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd", "WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service"]}
+Running as unit: spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service; invocation ID: e7b2a0df527b411cacdf9c18893b6c92
+test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... FAIL
+
+======================================================================
+FAIL: test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_workspace_authority.py", line 161, in test_authenticated_workspace_selection_and_confined_process
+    process = self.launch_process(peer, "from pathlib import Path\nimport os\nassert Path.cwd()==Path('/project')\nassert 'NoNewPrivs:\\t1' in Path('/proc/self/status').read_text()\nassert 'DISPLAY' not in os.environ\nPath('actor-file').write_text('real')")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_workspace_authority.py", line 129, in launch_process
+    self.assertTrue(result.HasField('action'), result); return result.action.process
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : protocol_version: 1
+request_id: 4
+error {
+  code: UNAVAILABLE
+  message: "Configure workspace resource limits before execution"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.160s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.341s
+CPU time consumed: 1.449s
+Memory peak: 3.0M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service: Unit spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

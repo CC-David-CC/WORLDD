@@ -1,0 +1,45 @@
+M05 entry audit
+
+This is preparation for M05. M04 qualification is still running on frozen candidate f74c6b5.
+No M05 requirement is marked complete by this document.
+
+Existing production foundations inspected
+
+src/world/store.cpp creates a random persistent world ID and an entry room in SQLite.
+Restart reads that identity from the metadata table.
+proto/spatial/identity/v1/world_session.proto separates admission configuration from actor proof and grants.
+WorldIdentityConfig supports registered-actor and explicit-actor admission.
+WorldActorTlsConfig supplies the real remote transport configuration.
+tests/core/test_world_remote.py exercises TLS actor channels and admission separately from valid identity.
+Its existing remote fixture and related security/lifecycle suites do not prove the complete two-host M05 topology.
+The M03 cross-host cancellation matrix proves cancellation across independent worlds, not one shared persistent world.
+
+Next coherent qualification increment, after M04 passes
+
+Provision one private world on sb16 and one private world on sb16-2.
+Provision one shared world with a single authoritative worldd on an explicitly selected host.
+Use real issuer-enrolled fixture actors with separate keypairs on both hosts.
+Use production protobuf actor channels and existing admission/grant mechanisms.
+Keep trusted provisioning separate from the actor actions under test.
+
+Require distinct persistent identities and independent state for the private worlds.
+Require both actors to observe the same world identity and committed shared state in the shared world.
+Change shared state through authorized actor actions and verify it from the other host.
+Reject an enrolled but unadmitted actor in a private world.
+Admit a registered actor under the public preset without granting unrelated workspace or execution authority.
+Restart each authority process and verify its identity, rooms, objects, actor context, and admission policy persist.
+Make the shared authority unavailable and verify explicit failure without creating a replacement authority or private copy.
+Recover the same authority and verify durable state and fresh authentication.
+
+Run focused scenarios and related regressions in Debug and ASan/UBSan on both hosts.
+Preserve negative cases and cleanup evidence.
+At the M05 gate, run the required complete matrix and audit each M05 requirement.
+Do not reuse M04 qualification as proof of shared-world behavior.
+
+Scope boundaries
+
+World transitions and per-world workspace selection belong to M06.
+Entry must not create, join, or select a workspace implicitly.
+Remote application streaming and input remain outside M1.
+The shared-world witness must use real geometry, actors, placements, and authority over the production transport.
+M1 does not require replicas, consensus, automatic failover, or workspace migration.

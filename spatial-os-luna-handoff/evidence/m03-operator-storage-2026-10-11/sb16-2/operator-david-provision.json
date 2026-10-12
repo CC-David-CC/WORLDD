@@ -1,0 +1,32 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "sudo",
+    "-n",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/provision_storage.py",
+    "create",
+    "--bindings-dir",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python",
+    "--definition",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/config/operator-storage.textproto",
+    "--apply"
+  ],
+  "exit_code": 0,
+  "stdout": "{\n  \"host\": \"sb16-2\",\n  \"operation\": \"create\",\n  \"name\": \"david\",\n  \"image\": \"/var/lib/spatial/volumes/david/volume.img\",\n  \"volume\": \"/var/lib/spatial/volumes/david/mount\",\n  \"applied\": true,\n  \"commands\": [\n    {\n      \"argv\": [\n        \"mkfs.btrfs\",\n        \"-q\",\n        \"/var/lib/spatial/volumes/david/volume.img\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"\"\n    },\n    {\n      \"argv\": [\n        \"blkid\",\n        \"-p\",\n        \"-s\",\n        \"UUID\",\n        \"-o\",\n        \"value\",\n        \"/var/lib/spatial/volumes/david/volume.img\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"d06ad251-f0ad-40de-95b0-01046d7b22ab\\n\",\n      \"stderr\": \"\"\n    },\n    {\n      \"argv\": [\n        \"blkid\",\n        \"-p\",\n        \"-s\",\n        \"UUID\",\n        \"-o\",\n        \"value\",\n        \"/var/lib/spatial/volumes/david/volume.img\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"d06ad251-f0ad-40de-95b0-01046d7b22ab\\n\",\n      \"stderr\": \"\"\n    },\n    {\n      \"argv\": [\n        \"losetup\",\n        \"--json\",\n        \"--list\",\n        \"--output\",\n        \"NAME,BACK-FILE\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"{\\n   \\\"loopdevices\\\": [\\n      {\\n         \\\"name\\\": \\\"/dev/loop1\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/core24_2124.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop8\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/snap-store_1390.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop6\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/gnome-46-2404_164.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop4\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/gtk-common-themes_1535.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop11\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/snapd_28254.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop2\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/firefox_8863.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop0\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/bare_5.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop9\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/snap-store_1447.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop7\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/mesa-2404_1839.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop5\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/firefox_9036.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop12\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/snapd-desktop-integration_391.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop3\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/firmware-updater_226.snap\\\"\\n      },{\\n         \\\"name\\\": \\\"/dev/loop10\\\",\\n         \\\"back-file\\\": \\\"/var/lib/snapd/snaps/snapd_27738.snap\\\"\\n      }\\n   ]\\n}\\n\",\n      \"stderr\": \"\"\n    },\n    {\n      \"argv\": [\n        \"losetup\",\n        \"--find\",\n        \"--show\",\n        \"/var/lib/spatial/volumes/david/volume.img\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"/dev/loop13\\n\",\n      \"stderr\": \"\"\n    },\n    {\n      \"argv\": [\n        \"mount\",\n        \"-t\",\n        \"btrfs\",\n        \"-o\",\n        \"rw,nodev,nosuid,subvolid=5\",\n        \"/dev/loop13\",\n        \"/var/lib/spatial/volumes/david/mount\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"\"\n    },\n    {\n      \"argv\": [\n        \"findmnt\",\n        \"--json\",\n        \"--mountpoint\",\n        \"/var/lib/spatial/volumes/david/mount\",\n        \"-o\",\n        \"SOURCE,FSTYPE,OPTIONS\"\n      ],\n      \"returncode\": 0,\n      \"stdout\": \"{\\n   \\\"filesystems\\\": [\\n      {\\n         \\\"source\\\": \\\"/dev/loop13\\\",\\n         \\\"fstype\\\": \\\"btrfs\\\",\\n         \\\"options\\\": \\\"rw,nosuid,nodev,relatime,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/\\\"\\n      }\\n   ]\\n}\\n\",\n      \"stderr\": \"\"\n    }\n  ],\n  \"filesystem_id\": \"d06ad251f0ad40de95b001046d7b22ab\",\n  \"mounted\": true,\n  \"loop\": \"/dev/loop13\",\n  \"status\": \"mounted\",\n  \"runtime\": \"/var/lib/spatial/volumes/david/runtime.pb\",\n  \"devices\": [\n    [\n      7,\n      13\n    ],\n    [\n      259,\n      0\n    ]\n  ]\n}\n",
+  "stderr": "",
+  "normal_login_changed": false,
+  "broker_started": false,
+  "recovery": [
+    "sudo",
+    "-n",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/provision_storage.py",
+    "unmount",
+    "--bindings-dir",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python",
+    "--name",
+    "david",
+    "--apply"
+  ]
+}

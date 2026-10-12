@@ -1,0 +1,21 @@
+Changed-path mutation review: sb16-2
+Date: 2026-10-11
+Candidate: f74c6b579c6149f41e1cbd17b025eb92fd453009
+Status: four expected bypass detections verified. M04 remains incomplete.
+
+All four isolated server builds completed before their native witnesses ran.
+The runner checked each binary hash against its build receipt.
+Each witness executed one test and returned one exact expected assertion failure.
+No witness reported a setup ERROR.
+The copied witness logs match the four SHA-256 values in run.json.
+The copied mutation patches match the already reviewed sb16 patches byte for byte.
+The runner verified that the frozen primary source manifest remained unchanged.
+
+Authentication: an invalid 32-byte cookie was incorrectly accepted by the mutant.
+Issuer disconnect: a revoked native connection incorrectly remained open.
+Resource access: foreign pixmap image data was returned instead of BadAccess.
+Window pixels: a Render composite from a window source succeeded instead of returning BadAccess.
+
+Both hosts now have fresh evidence for these four intentional bypasses.
+These witness failures are expected. They are not failures of the unmodified candidate.
+Cross-host qualification and the final source/requirement audit remain pending.

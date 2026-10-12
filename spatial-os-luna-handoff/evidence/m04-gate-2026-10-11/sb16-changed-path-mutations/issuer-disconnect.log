@@ -1,0 +1,16 @@
+test_issuing_connection_loss_revokes_its_credentials (__main__.SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials) ... FAIL
+
+======================================================================
+FAIL: test_issuing_connection_loss_revokes_its_credentials (__main__.SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/issuer-disconnect/source/tests/native/test_security_identity.py", line 214, in test_issuing_connection_loss_revokes_its_credentials
+    self.assert_closed(app)
+  File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/issuer-disconnect/source/tests/native/test_security_identity.py", line 156, in assert_closed
+    self.fail('Revoked native connection remained open')
+AssertionError: Revoked native connection remained open
+
+----------------------------------------------------------------------
+Ran 1 test in 3.078s
+
+FAILED (failures=1)

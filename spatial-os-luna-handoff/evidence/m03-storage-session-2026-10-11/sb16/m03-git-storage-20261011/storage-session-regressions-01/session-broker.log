@@ -1,0 +1,42 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 91
+    Start 91: session-broker
+
+91: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-broker-01f9e465dad14a22df4ebc7488da0883fa852994ed62cfbd33a805ca8a32dc70" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-01/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_broker.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+91: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+91: Test timeout computed to be: 180
+91: Running as unit: spatial-session-broker-01f9e465dad14a22df4ebc7488da0883fa852994ed62cfbd33a805ca8a32dc70.service; invocation ID: e316ac62922a4f5d84789244efc07c7f
+91: test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... ok
+91: test_coordinator_rejects_supplied_administrative_endpoint_arguments (__main__.SessionBrokerTests.test_coordinator_rejects_supplied_administrative_endpoint_arguments) ... ok
+91: test_failed_broker_exec_preserves_checked_owned_cleanup (__main__.SessionBrokerTests.test_failed_broker_exec_preserves_checked_owned_cleanup) ... ok
+91: test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle) ... ok
+91: 
+91: ----------------------------------------------------------------------
+91: Ran 4 tests in 3.581s
+91: 
+91: OK
+91: Finished with result: success
+91: Main processes terminated with: code=exited/status=0
+91: Service runtime: 3.707s
+91: CPU time consumed: 1.861s
+91: Memory peak: 768.0K
+91: Memory swap peak: 0B
+1/1 Test #91: session-broker ...................   Passed    3.73 sec
+
+The following tests passed:
+	session-broker
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   3.73 sec

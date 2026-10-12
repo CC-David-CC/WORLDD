@@ -1,0 +1,55 @@
+{
+  "status": "functional_checks_passed_sanitizer_qualification_failed",
+  "qualification": false,
+  "phase": "M03",
+  "host": "sb16",
+  "profile": "runtime-sanitizers",
+  "base_commit": "96b2b054199986f783041fd90fd21d9860dbd0ac",
+  "source_hashes": {
+    "src/workspace/resources.cpp": "ef7eee6729c6bc7b657b07e8b6fcbfd9a24ba17054dee3295de1b6b732b63cf3",
+    "src/workspace/main.cpp": "b9ed323930a38dfcee8befe3fc7db1870dee6fc49f86c72d41732e2a36be0c8f",
+    "src/workspace/process.cpp": "d62a900d9b75a20c338a3b30fe6ef86a7674b532fa7839105107953c5e818f3d",
+    "src/workspace/app_init.cpp": "00e9911eee2ad55f408290c38d2df2f153aa5baf2e1565751dea83dfb3f21001",
+    "CMakeLists.txt": "44fca7ed9485d0a8f9f03de43e4a052f36af7c0c5aa3f95ff1921954977df2b5"
+  },
+  "passed": [
+    "Real confined Python execution through broker on quota volume",
+    "Kernel memory, process, CPU and loop/backing SSD I/O ceilings",
+    "Subvolume creation and unknown Btrfs controls rejected with EPERM",
+    "Ordinary FICLONE reflink succeeds",
+    "Application quota EDQUOT at 25128960 written bytes",
+    "Persistent actor aggregate EDQUOT at 8327168 written bytes in second app",
+    "Read-only actor development profile cannot write project: EROFS",
+    "Independent sibling workspace writes 4194304 bytes after actor exhaustion",
+    "Application inherits only stdin/stdout/stderr"
+  ],
+  "failed": [
+    "Sanitizer audit found three initializer setup logs with LeakSanitizer fatal errors"
+  ],
+  "failures_preserved": [
+    "Fixture protobuf field typo before first launch",
+    "Btrfs synthetic st_dev lookup rejected actual launch",
+    "First device-discovery patch required reading operator-owned backing file",
+    "Read-only diagnosis confirms unprivileged FS_INFO/DEV_INFO work and backing image is root-owned mode0600",
+    "Earlier functional-only fixed runner omitted application setup-log scan; its passed status does not qualify sanitizers"
+  ],
+  "sanitizer_diagnostics": [
+    "applications/46a2d0249d9a6e2a91bfd48f2b17608e/setup.log",
+    "applications/9d4c5833f7431736fbdf890a2db96b12/setup.log",
+    "applications/c0f3f9c25fb57b0edc957618c031b4e2/setup.log"
+  ],
+  "mechanism": "Initializer sets PR_SET_DUMPABLE=0; application seccomp denies ptrace. No strace/gdb was used for this run. Exact LeakSanitizer failure mechanism still requires verification. No confirmed heap-leak allocation report was produced.",
+  "cleanup": "All recorded transient units stopped. Four later unit queries prove inactive/not-found. All experiment volumes unmounted and loop devices detached. Three additional 512 MiB images retained on sb16.",
+  "unrun": [
+    "Successful sanitizer qualification of hardened initializer",
+    "sb16-2 storage application matrix",
+    "Kernel I/O rate and attribution witness",
+    "Privileged storage-owner envelope and shutdown integration",
+    "Mandatory storage launch provisioning for all fixtures/operator sessions",
+    "Confined administrative Git/effect workers",
+    "Slow-storage revocation and fault/power-loss recovery",
+    "Full M03 gate"
+  ],
+  "latency": "David accepts five seconds. Latency optimization deferred. Durability, authority and uncertain-effect checks remain required.",
+  "integration": "Uncommitted combined draft. No main/origin/GitHub or operator-session adoption."
+}

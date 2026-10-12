@@ -82,6 +82,17 @@ class ApplicationObservationTests(WorldIdentityFixture):
         self.addCleanup(self.close_brokers)
 
     def setup_world(self, rights=access.ALL, legacy=False):
+        configuration=os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+        if configuration:
+            resources=text_format.Parse(access.Path(configuration).read_text(),pb.BrokerProcessConfig())
+            # This fixture retains its bootstrap application beside two independent native witnesses.
+            # Keep each profile limit unchanged. Explicitly fund three actor-owned application reservations.
+            policy=resources.resources.default_policy
+            policy.actor_default.memory_bytes=3*policy.profiles[0].maximum.memory_bytes
+            policy.actor_default.processes=3*policy.profiles[0].maximum.processes
+            path=self.root/'observation-resources.textproto'
+            path.write_text(text_format.MessageToString(resources));path.chmod(0o600)
+            self.enterContext(patch.dict(os.environ,SPATIAL_TEST_BROKER_CONFIG=str(path)))
         self.enroll_second()
         self.setup_application(rights)
         with sqlite3.connect(self.execution/'execution.db') as db:

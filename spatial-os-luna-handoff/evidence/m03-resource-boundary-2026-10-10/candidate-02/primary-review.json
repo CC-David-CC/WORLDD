@@ -1,0 +1,502 @@
+{
+  "status": "reviewed_focused_process_scope_resources_passed",
+  "phase": "M03",
+  "phase_complete": false,
+  "source_manifest_sha256": "08e0fc9c0aa8eefb31e8f001d56b1fb4ec4bef0244f6717e926ffd6e0b08da52",
+  "frozen_source_files": 355,
+  "locked_files_unchanged": 41,
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "hosts": {
+    "sb16": {
+      "verified_attachments": 43,
+      "profiles": {
+        "debug": {
+          "passed": 27,
+          "suite_counts": [
+            8,
+            10,
+            9
+          ],
+          "failed": 0,
+          "skipped": 0,
+          "binary_sha256": "d5f24ec310a81b777ee4357792f955b19ffd04ebb28cbb85c9798c185afd1c36"
+        },
+        "runtime-sanitize": {
+          "passed": 27,
+          "suite_counts": [
+            8,
+            10,
+            9
+          ],
+          "failed": 0,
+          "skipped": 0,
+          "binary_sha256": "90b7597fcbf8561f1e2ce51bbb037c3ced6fc96dd8c122bc86c2655db3538b41"
+        }
+      },
+      "postcheck_sha256": "c3f8482094f55e64b55c51e6cf94282aa589b18bdf386b272f79488cd758e5aa",
+      "witnesses": {
+        "debug": {
+          "kernel-cpu.json": {
+            "before": {
+              "usage_usec": 0,
+              "user_usec": 0,
+              "system_usec": 0,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0,
+              "throttled_usec": 0,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "after": {
+              "usage_usec": 272263,
+              "user_usec": 265803,
+              "system_usec": 6460,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 27,
+              "nr_throttled": 27,
+              "throttled_usec": 4995949,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "elapsed": 2.6855366259696893
+          },
+          "kernel-memory.json": {
+            "low": 0,
+            "high": 0,
+            "max": 37,
+            "oom": 1,
+            "oom_kill": 3,
+            "oom_group_kill": 1,
+            "sock_throttled": 0
+          },
+          "kernel-io.json": {
+            "259:0": {
+              "rbytes": "0",
+              "wbytes": "16777216",
+              "rios": "0",
+              "wios": "129",
+              "dbytes": "0",
+              "dios": "0"
+            }
+          },
+          "io.json": {
+            "bytes": 16777216,
+            "seconds": 3.9892286530230194
+          },
+          "fork.json": {
+            "children": [
+              3006661,
+              3006662,
+              3006663
+            ],
+            "error": 11
+          }
+        },
+        "runtime-sanitize": {
+          "kernel-cpu.json": {
+            "before": {
+              "usage_usec": 0,
+              "user_usec": 0,
+              "system_usec": 0,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0,
+              "throttled_usec": 0,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "after": {
+              "usage_usec": 276908,
+              "user_usec": 273403,
+              "system_usec": 3505,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 27,
+              "nr_throttled": 27,
+              "throttled_usec": 4861205,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "elapsed": 2.650878004031256
+          },
+          "kernel-memory.json": {
+            "low": 0,
+            "high": 0,
+            "max": 40,
+            "oom": 1,
+            "oom_kill": 3,
+            "oom_group_kill": 1,
+            "sock_throttled": 0
+          },
+          "kernel-io.json": {
+            "259:0": {
+              "rbytes": "0",
+              "wbytes": "16777216",
+              "rios": "0",
+              "wios": "129",
+              "dbytes": "0",
+              "dios": "0"
+            }
+          },
+          "io.json": {
+            "bytes": 16777216,
+            "seconds": 3.9804078249726444
+          },
+          "fork.json": {
+            "children": [
+              3007114,
+              3007115,
+              3007116
+            ],
+            "error": 11
+          }
+        }
+      }
+    },
+    "sb16-2": {
+      "verified_attachments": 43,
+      "profiles": {
+        "debug": {
+          "passed": 27,
+          "suite_counts": [
+            8,
+            10,
+            9
+          ],
+          "failed": 0,
+          "skipped": 0,
+          "binary_sha256": "d5f24ec310a81b777ee4357792f955b19ffd04ebb28cbb85c9798c185afd1c36"
+        },
+        "runtime-sanitize": {
+          "passed": 27,
+          "suite_counts": [
+            8,
+            10,
+            9
+          ],
+          "failed": 0,
+          "skipped": 0,
+          "binary_sha256": "90b7597fcbf8561f1e2ce51bbb037c3ced6fc96dd8c122bc86c2655db3538b41"
+        }
+      },
+      "postcheck_sha256": "cfe693a6d8c97e9b9f8231e49d826e90e2c7e04ad8ec1ff7b0516c177005f210",
+      "witnesses": {
+        "debug": {
+          "kernel-cpu.json": {
+            "before": {
+              "usage_usec": 0,
+              "user_usec": 0,
+              "system_usec": 0,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0,
+              "throttled_usec": 0,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "after": {
+              "usage_usec": 298411,
+              "user_usec": 290044,
+              "system_usec": 8366,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 31,
+              "nr_throttled": 28,
+              "throttled_usec": 5018192,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "elapsed": 3.0250082409475
+          },
+          "kernel-memory.json": {
+            "low": 0,
+            "high": 0,
+            "max": 38,
+            "oom": 1,
+            "oom_kill": 3,
+            "oom_group_kill": 1,
+            "sock_throttled": 0
+          },
+          "kernel-io.json": {
+            "259:0": {
+              "rbytes": "0",
+              "wbytes": "16777216",
+              "rios": "0",
+              "wios": "129",
+              "dbytes": "0",
+              "dios": "0"
+            }
+          },
+          "io.json": {
+            "bytes": 16777216,
+            "seconds": 3.9651598619529977
+          },
+          "fork.json": {
+            "children": [
+              2540954,
+              2540955,
+              2540956
+            ],
+            "error": 11
+          }
+        },
+        "runtime-sanitize": {
+          "kernel-cpu.json": {
+            "before": {
+              "usage_usec": 0,
+              "user_usec": 0,
+              "system_usec": 0,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0,
+              "throttled_usec": 0,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "after": {
+              "usage_usec": 344241,
+              "user_usec": 323239,
+              "system_usec": 21001,
+              "nice_usec": 0,
+              "core_sched.force_idle_usec": 0,
+              "nr_periods": 34,
+              "nr_throttled": 33,
+              "throttled_usec": 5466007,
+              "nr_bursts": 0,
+              "burst_usec": 0
+            },
+            "elapsed": 3.3239388410001993
+          },
+          "kernel-memory.json": {
+            "low": 0,
+            "high": 0,
+            "max": 37,
+            "oom": 1,
+            "oom_kill": 3,
+            "oom_group_kill": 1,
+            "sock_throttled": 0
+          },
+          "kernel-io.json": {
+            "259:0": {
+              "rbytes": "0",
+              "wbytes": "16777216",
+              "rios": "0",
+              "wios": "129",
+              "dbytes": "0",
+              "dios": "0"
+            }
+          },
+          "io.json": {
+            "bytes": 16777216,
+            "seconds": 3.9703496220172383
+          },
+          "fork.json": {
+            "children": [
+              2541404,
+              2541405,
+              2541406
+            ],
+            "error": 11
+          }
+        }
+      }
+    }
+  },
+  "passed": 108,
+  "failed": 0,
+  "skipped": 0,
+  "sanitizer_logs_scanned": [
+    "sb16/baseline.log",
+    "sb16/debug-build.log",
+    "sb16/debug-checks.log",
+    "sb16/debug-configure.log",
+    "sb16/debug-sync.log",
+    "sb16/runtime-sanitize-build.log",
+    "sb16/runtime-sanitize-checks.log",
+    "sb16/runtime-sanitize-configure.log",
+    "sb16/runtime-sanitize-sync.log",
+    "sb16/runtime-sanitize/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal344958049700917.log",
+    "sb16/runtime-sanitize/witnesses/test_controls_exist_before_child_execution/normal344958089453011.log",
+    "sb16/runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/normal344958143857166.log",
+    "sb16/runtime-sanitize/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal344958208957461.log",
+    "sb16/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344958235640897.log",
+    "sb16/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344958236049814.log",
+    "sb16/runtime-sanitize/witnesses/test_missing_device_component_does_not_select_device_zero/normal344958498186575.log",
+    "sb16/runtime-sanitize/witnesses/test_missing_io_controller_fails_before_execution/normal344958518740930.log",
+    "sb16/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/normal344958539601975.log",
+    "sb16/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/normal344962579049670.log",
+    "sb16/debug/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal344907005661051.log",
+    "sb16/debug/witnesses/test_controls_exist_before_child_execution/normal344907019055022.log",
+    "sb16/debug/witnesses/test_fork_and_detachment_share_one_process_budget/normal344907058529075.log",
+    "sb16/debug/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal344907109677033.log",
+    "sb16/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344907120668454.log",
+    "sb16/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344907120993747.log",
+    "sb16/debug/witnesses/test_missing_device_component_does_not_select_device_zero/normal344907356156389.log",
+    "sb16/debug/witnesses/test_missing_io_controller_fails_before_execution/normal344907361493537.log",
+    "sb16/debug/witnesses/test_real_writes_obey_io_budget/normal344907367321048.log",
+    "sb16/debug/witnesses/test_two_busy_children_share_cpu_quota/normal344911395817853.log",
+    "sb16/baseline-witnesses/test_missing_device_component_does_not_select_device_zero/normal344906211640761.log",
+    "sb16-2/baseline.log",
+    "sb16-2/debug-build.log",
+    "sb16-2/debug-checks.log",
+    "sb16-2/debug-configure.log",
+    "sb16-2/debug-sync.log",
+    "sb16-2/runtime-sanitize-build.log",
+    "sb16-2/runtime-sanitize-checks.log",
+    "sb16-2/runtime-sanitize-configure.log",
+    "sb16-2/runtime-sanitize-sync.log",
+    "sb16-2/runtime-sanitize/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal337284254284387.log",
+    "sb16-2/runtime-sanitize/witnesses/test_controls_exist_before_child_execution/normal337284292983170.log",
+    "sb16-2/runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/normal337284372976942.log",
+    "sb16-2/runtime-sanitize/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal337284460929852.log",
+    "sb16-2/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337284499360335.log",
+    "sb16-2/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337284499813813.log",
+    "sb16-2/runtime-sanitize/witnesses/test_missing_device_component_does_not_select_device_zero/normal337284801400361.log",
+    "sb16-2/runtime-sanitize/witnesses/test_missing_io_controller_fails_before_execution/normal337284857180625.log",
+    "sb16-2/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/normal337284895320862.log",
+    "sb16-2/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/normal337288956508773.log",
+    "sb16-2/debug/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal337221501067075.log",
+    "sb16-2/debug/witnesses/test_controls_exist_before_child_execution/normal337221515989612.log",
+    "sb16-2/debug/witnesses/test_fork_and_detachment_share_one_process_budget/normal337221560242586.log",
+    "sb16-2/debug/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal337221614622023.log",
+    "sb16-2/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337221631403102.log",
+    "sb16-2/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337221631867403.log",
+    "sb16-2/debug/witnesses/test_missing_device_component_does_not_select_device_zero/normal337221871302786.log",
+    "sb16-2/debug/witnesses/test_missing_io_controller_fails_before_execution/normal337221881637734.log",
+    "sb16-2/debug/witnesses/test_real_writes_obey_io_budget/normal337221891214277.log",
+    "sb16-2/debug/witnesses/test_two_busy_children_share_cpu_quota/normal337225917826752.log",
+    "sb16-2/baseline-witnesses/test_missing_device_component_does_not_select_device_zero/normal337219012601591.log"
+  ],
+  "sanitizer_findings": 0,
+  "expected_baselines": {
+    "candidate-01": "Both hosts rejected the new budget request with the frozen M02 binary.",
+    "candidate-02": "Both hosts reproduced omitted-minor acceptance in candidate01. Candidate02 rejects the missing field and accepts explicit zero."
+  },
+  "previous_candidate_disposition": "Its 104 focused passes remain recorded. Review found missing I/O device presence validation, reproduced and corrected before integration.",
+  "kernel_observations": "Detached forks share one pids budget. OOM terminates the exhausted group and preserves its sibling. Two busy children share CPU quota. Real writes and independent io.stat agree on throttled bytes.",
+  "scope": "Production process-scope primitive. Budget assignment to real workspaces and applications is not yet integrated.",
+  "system_changes": "Only uniquely named transient resource-test services. Six units per host are unloaded and inactive. Root and user controller delegation returned to their prior values. SSH recovery remains live.",
+  "remaining": [
+    "Derive application budgets from workspace policy, actor authority, and requested profile.",
+    "Integrate aggregate workspace and application limits into the production broker before held startup.",
+    "Account for broker Git/file operations and every writable workspace storage path.",
+    "Qualify bounded persistent storage, exhaustion recovery, and independent escape attempts.",
+    "Qualify issuer availability under bounded competing writes and run the full M03 gate on both hosts."
+  ],
+  "limits": [
+    "These results do not prove workspace resource enforcement before broker integration.",
+    "I/O bandwidth control is not a disk-space quota or an issuer latency guarantee.",
+    "No X, native GPU, physical-input, full harness, or complete M03 acceptance run occurred in this focused increment."
+  ],
+  "attachments": {
+    "collection.json": "3869d13ebb51e5a17c5b04dfb2fff2de8018b1bc03eb9868e8f488fbc772745f",
+    "sb16/baseline.log": "dc09398cce934ff70904acadab4f79d54c97f28bc6d5ce101fd33d30d6a4b4fb",
+    "sb16/debug-build.log": "7bc5484267364c3907694175e9cb69530eef390a86148288400f7ce3636aeae7",
+    "sb16/debug-checks.log": "a73ec693d87a1825f3caf185ba817fef864e6bb2c0218920171a419f0b230769",
+    "sb16/debug-configure.log": "a946ab2ee5b278ed99f7a93ea8f056a5de8da438fcae31423c25ae622952625a",
+    "sb16/debug-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/manifest.json": "08e0fc9c0aa8eefb31e8f001d56b1fb4ec4bef0244f6717e926ffd6e0b08da52",
+    "sb16/postcheck.json": "c3f8482094f55e64b55c51e6cf94282aa589b18bdf386b272f79488cd758e5aa",
+    "sb16/review.json": "eee67607810844496d71ecad15af072b8a1b2747dc1c404eaabe0cc795a7382d",
+    "sb16/runtime-sanitize-build.log": "3240aa4eebb567cdd3e310b05001a086f76cd971abcd26455c83cd5ea1ee12ee",
+    "sb16/runtime-sanitize-checks.log": "d411e3b2a22b5345c164f9b17713f589a568abec4f5705e6238e560cb3a13fe2",
+    "sb16/runtime-sanitize-configure.log": "cb8c654ed728433593e0875b6a833afb2bb7a513e1e5f322adf5c8f6d75cef69",
+    "sb16/runtime-sanitize-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/baseline.log": "632c84070455d392cb0d00ce722f01aeb82a311d33d1d8490d3c3c3ba98d615f",
+    "sb16-2/debug-build.log": "0e395f3194009a61e97017ad23aceb1170783534466a8d2f15948cc6ca865032",
+    "sb16-2/debug-checks.log": "54485dfd461ca86e3a211d932b976a57460badbd3f988637decbeaa57c9edcc5",
+    "sb16-2/debug-configure.log": "5056ee4e5bec41753e712ef331d8118a0d4dce349e1eabc600275c36350c0554",
+    "sb16-2/debug-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/manifest.json": "08e0fc9c0aa8eefb31e8f001d56b1fb4ec4bef0244f6717e926ffd6e0b08da52",
+    "sb16-2/postcheck.json": "cfe693a6d8c97e9b9f8231e49d826e90e2c7e04ad8ec1ff7b0516c177005f210",
+    "sb16-2/review.json": "accb3bf7a773b1f023d03f7f7aee22283471be60304bb7ae8393daf2e9e631e1",
+    "sb16-2/runtime-sanitize-build.log": "80d4a086e11a4c1dc1676334e4f3a1bdb6b576e27fcf4803c299389db608216b",
+    "sb16-2/runtime-sanitize-checks.log": "d84b39d9f99424c5ef09278c051a5d71a067ca1cf535fe51276d5701dd04c7aa",
+    "sb16-2/runtime-sanitize-configure.log": "a3315dca255579898e36619c92c1d7affe473959dc7dc10ae37b6695925bd4c0",
+    "sb16-2/runtime-sanitize-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal337284254284387.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_controls_exist_before_child_execution/normal337284292983170.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/fork.json": "7c78ce37e5bdef462d7d86a31a26841e25b4d0297d97f05ba52c3990df7dc29b",
+    "sb16-2/runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/normal337284372976942.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal337284460929852.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json": "8a75118b04d4a3d523fd253cd17640c8db8d0d07d44e5cff290f58d21134c9f4",
+    "sb16-2/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337284499360335.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337284499813813.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_missing_device_component_does_not_select_device_zero/normal337284801400361.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_missing_io_controller_fails_before_execution/normal337284857180625.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/io.json": "bc9cb61ab03351382e49a58202abba0c836f75f14fc326bc10bb92bca2968192",
+    "sb16-2/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/kernel-io.json": "8a102573aab5858faa084c9d92912b1781ff996c9d2b204c5e6b7abf03628e08",
+    "sb16-2/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/normal337284895320862.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/cpu.json": "eede1235a101dbb17451d7937d8b154b2c669964bbe7d971d47480c7d0ca1ed9",
+    "sb16-2/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/kernel-cpu.json": "f51ae50ec490517aeed8a334bedaf9679cb68a9070f6550b3e977e4b1587284b",
+    "sb16-2/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/normal337288956508773.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal337221501067075.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_controls_exist_before_child_execution/normal337221515989612.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_fork_and_detachment_share_one_process_budget/fork.json": "a9f46850db3b33ccc42ade108832943b3a092a66ebd5e868f931c831c077ad8b",
+    "sb16-2/debug/witnesses/test_fork_and_detachment_share_one_process_budget/normal337221560242586.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal337221614622023.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json": "2c70f1a17487d75d98bbca5d48670a2eadcb6c15e33267afba9a9fce423999ca",
+    "sb16-2/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337221631403102.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal337221631867403.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_missing_device_component_does_not_select_device_zero/normal337221871302786.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_missing_io_controller_fails_before_execution/normal337221881637734.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_real_writes_obey_io_budget/io.json": "535d29571a4fe8c6e58b318b9f682d129bf30d3521675d74452f08f4b9107493",
+    "sb16-2/debug/witnesses/test_real_writes_obey_io_budget/kernel-io.json": "8a102573aab5858faa084c9d92912b1781ff996c9d2b204c5e6b7abf03628e08",
+    "sb16-2/debug/witnesses/test_real_writes_obey_io_budget/normal337221891214277.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/debug/witnesses/test_two_busy_children_share_cpu_quota/cpu.json": "eede1235a101dbb17451d7937d8b154b2c669964bbe7d971d47480c7d0ca1ed9",
+    "sb16-2/debug/witnesses/test_two_busy_children_share_cpu_quota/kernel-cpu.json": "90de682f7f48dcde62eae37463a5c365828eddab5945c79425b5b3dffc7f11c9",
+    "sb16-2/debug/witnesses/test_two_busy_children_share_cpu_quota/normal337225917826752.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16-2/baseline-witnesses/test_missing_device_component_does_not_select_device_zero/normal337219012601591.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal344958049700917.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_controls_exist_before_child_execution/normal344958089453011.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/fork.json": "f45187fb13df274269807e118f8b3a686014fb5f925bf8a6e153d8772176e90b",
+    "sb16/runtime-sanitize/witnesses/test_fork_and_detachment_share_one_process_budget/normal344958143857166.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal344958208957461.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json": "aadcf809e180044eda83f29027509da284897d3f23b16b14ff79ca6694e1d1d5",
+    "sb16/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344958235640897.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344958236049814.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_missing_device_component_does_not_select_device_zero/normal344958498186575.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_missing_io_controller_fails_before_execution/normal344958518740930.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/io.json": "5bd1c7ca9e940253cf24ad4840357adf8daef13efd4be61e95b060777c395c31",
+    "sb16/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/kernel-io.json": "8a102573aab5858faa084c9d92912b1781ff996c9d2b204c5e6b7abf03628e08",
+    "sb16/runtime-sanitize/witnesses/test_real_writes_obey_io_budget/normal344958539601975.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/cpu.json": "eede1235a101dbb17451d7937d8b154b2c669964bbe7d971d47480c7d0ca1ed9",
+    "sb16/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/kernel-cpu.json": "23553b0fde4604885ef6c615fe2772eec1a6b1c3471b609c0b055ecb1f116734",
+    "sb16/runtime-sanitize/witnesses/test_two_busy_children_share_cpu_quota/normal344962579049670.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_budget_cannot_be_replaced_after_prepare_or_start/normal344907005661051.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_controls_exist_before_child_execution/normal344907019055022.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_fork_and_detachment_share_one_process_budget/fork.json": "2ace92922053d721da4c74ad8b6db2fe8a433a17e12e7db3e5135a9d28cdd3b5",
+    "sb16/debug/witnesses/test_fork_and_detachment_share_one_process_budget/normal344907058529075.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_incomplete_and_invalid_budgets_leave_no_scope/normal344907109677033.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json": "8a75118b04d4a3d523fd253cd17640c8db8d0d07d44e5cff290f58d21134c9f4",
+    "sb16/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344907120668454.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_memory_exhaustion_kills_group_and_preserves_sibling/normal344907120993747.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_missing_device_component_does_not_select_device_zero/normal344907356156389.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_missing_io_controller_fails_before_execution/normal344907361493537.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_real_writes_obey_io_budget/io.json": "d761995a15e28182c2fe54b22c11d4d92337b1f4c8583b5e8f72fc5f899960ce",
+    "sb16/debug/witnesses/test_real_writes_obey_io_budget/kernel-io.json": "8a102573aab5858faa084c9d92912b1781ff996c9d2b204c5e6b7abf03628e08",
+    "sb16/debug/witnesses/test_real_writes_obey_io_budget/normal344907367321048.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/debug/witnesses/test_two_busy_children_share_cpu_quota/cpu.json": "eede1235a101dbb17451d7937d8b154b2c669964bbe7d971d47480c7d0ca1ed9",
+    "sb16/debug/witnesses/test_two_busy_children_share_cpu_quota/kernel-cpu.json": "c06cac68e03c7efea3ea977126f8af3e7bc70df6a78b3d718257b20800b1fd0d",
+    "sb16/debug/witnesses/test_two_busy_children_share_cpu_quota/normal344911395817853.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sb16/baseline-witnesses/test_missing_device_component_does_not_select_device_zero/normal344906211640761.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "qualified-process_scope.proto": "272e9b4ed2a48525f55368c42e354ab887fea47eb3600caf296874f13891698e"
+  },
+  "source_comment_reassessment": {
+    "file": "proto/spatial/supervisor/v1/process_scope.proto",
+    "qualified_sha256": "272e9b4ed2a48525f55368c42e354ab887fea47eb3600caf296874f13891698e",
+    "current_sha256": "d67900d7f3444889ea1b3c5269d93f1793a1883b015357f55dc48a5891d95981",
+    "reason": "Clarify that zero-only-for-swap describes top-level scalar budgets. An explicit device minor of zero is valid.",
+    "verification": "All non-comment lines remain byte-identical. This changed one comment line only. No runtime check repeated.",
+    "qualified_source_copy": "qualified-process_scope.proto"
+  }
+}

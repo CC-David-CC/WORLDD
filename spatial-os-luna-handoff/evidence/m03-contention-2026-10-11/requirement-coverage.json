@@ -1,0 +1,218 @@
+{
+  "phase": "M03",
+  "phase_complete": false,
+  "requirement_map": [
+    {
+      "requirement": "Define workspace and application budgets for aggregate memory, processes, CPU, storage, and competing I/O.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/core/test_process_scope_resources.py",
+        "tests/core/test_broker_resources.py",
+        "tests/native/test_storage_git_integration.py",
+        "src/workspace/storage_owner.cpp"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Kernel memory.max, memory.swap.max, pids.max, cpu.max, and io.max exist before startup.",
+          "Broker hierarchy applies workspace, actor, and application limits.",
+          "Storage owner verifies volume, domain, actor, and object quota membership."
+        ],
+        "raw_witnesses": [
+          "scopes/test_hierarchy_intersection_and_private_controls/kernel.json",
+          "bounded-storage-git/review.json"
+        ]
+      }
+    },
+    {
+      "requirement": "Derive effective application budgets from workspace policy, launching actor authority, and requested profile.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/core/test_broker_resources.py",
+        "tests/core/test_workspace_authority.py",
+        "tests/core/test_authenticated_resources.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Application leaf CPU and I/O are bounded by actor and requested profile.",
+          "Read-only authority denies actual writes while private state stays writable.",
+          "Rejected capacity reservations leave process rows unchanged."
+        ],
+        "test_ids": [
+          "BrokerResourceTests.test_hierarchy_intersection_and_private_controls",
+          "BrokerResourceTests.test_read_only_authority_survives_resource_integration",
+          "BrokerResourceTests.test_workspace_capacity_returns_after_checked_exit"
+        ]
+      }
+    },
+    {
+      "requirement": "Apply limits before releasing held application startup. Keep resource-control paths and descriptors outside the application.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/core/test_processes.py",
+        "tests/core/test_process_scope_resources.py",
+        "tests/native/test_session_resources.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Held startup observes installed limits before release.",
+          "Child sees no cgroup path or selected parent-control descriptors.",
+          "Native supervisor consumes sealed resource handoff and rejects descriptor aliases."
+        ],
+        "test_ids": [
+          "ResourceScopeTests.test_controls_exist_before_child_execution",
+          "BrokerResourceTests.test_hierarchy_intersection_and_private_controls",
+          "SessionResourceTests.test_supervisor_binds_sealed_resource_policy"
+        ]
+      }
+    },
+    {
+      "requirement": "Account for project files, Git objects, application state, cache, temporary files, and trash within bounded workspace storage.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/native/test_storage_git_integration.py",
+        "tests/native/test_operator_storage.py",
+        "tests/native/test_storage_session.py",
+        "src/workspace/storage_owner.cpp"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Repository, project, and retirement subvolumes share their checked domain qgroup.",
+          "Application state and its home, cache, config, data, and tmp paths stay within the application subvolume.",
+          "The independent writer receives EDQUOT at application and actor aggregate boundaries.",
+          "Imported bytes, retained inodes, source immutability, and sibling bytes are verified across owner restart."
+        ],
+        "raw_witnesses": [
+          "bounded-storage-git/review.json"
+        ]
+      }
+    },
+    {
+      "requirement": "Verify inheritance after fork, exec, detachment, and broker recovery.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/core/test_processes.py",
+        "tests/core/test_broker_resources.py",
+        "tests/native/test_storage_session.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Forked detached children hit one shared pids.max and increment pids.events.",
+          "Revocation terminates detached descendants without terminating independent actor execution.",
+          "Broker restart preserves completed records without replaying uncertain operations."
+        ],
+        "test_ids": [
+          "ResourceScopeTests.test_fork_and_detachment_share_one_process_budget",
+          "ProcessTests.test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution",
+          "ProcessTests.test_manager_loss_kills_children_and_never_replays_uncertain_operations"
+        ],
+        "raw_witnesses": [
+          "scopes/test_fork_and_detachment_share_one_process_budget/fork.json"
+        ]
+      }
+    },
+    {
+      "requirement": "Verify independent applications and workspaces retain usable authority after another exhausts its budget.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/core/test_process_scope_resources.py",
+        "tests/core/test_broker_resources.py",
+        "tests/native/test_storage_git_integration.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "OOM kills the exhausted group while the sibling heartbeat advances.",
+          "Actor reservation exhaustion preserves another actor application.",
+          "Storage exhaustion in one workspace preserves a second workspace write."
+        ],
+        "raw_witnesses": [
+          "scopes/test_memory_exhaustion_kills_group_and_preserves_sibling/kernel-memory.json",
+          "bounded-storage-git/review.json"
+        ],
+        "test_ids": [
+          "ResourceScopeTests.test_memory_exhaustion_kills_group_and_preserves_sibling",
+          "BrokerResourceTests.test_actor_capacity_preserves_other_actor"
+        ]
+      }
+    },
+    {
+      "requirement": "Use independent bounded exhaustion and escape witnesses on both hosts in Debug and runtime sanitizers.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/core/test_processes.py",
+        "tests/core/test_process_scope_resources.py",
+        "tests/core/test_broker_resources.py",
+        "tests/native/test_storage_git_integration.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Six child namespaces differ from host namespaces.",
+          "Capabilities, no_new_privs, seccomp, descriptor closure, and explicit environment are independently checked.",
+          "Host paths, symlink escape, host process environment, abstract sockets, and prohibited syscalls fail.",
+          "Kernel CPU throttling and actual I/O bytes confirm aggregate enforcement."
+        ],
+        "test_ids": [
+          "ProcessTests.test_native_namespaces_capabilities_resource_limits_and_descriptor_closure",
+          "ProcessTests.test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible",
+          "ProcessTests.test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access",
+          "ResourceScopeTests.test_two_busy_children_share_cpu_quota",
+          "ResourceScopeTests.test_real_writes_obey_io_budget"
+        ],
+        "raw_witnesses": [
+          "scopes/test_two_busy_children_share_cpu_quota/kernel-cpu.json",
+          "scopes/test_real_writes_obey_io_budget/kernel-io.json",
+          "scopes/test_application_writes_obey_broker_io_budget/application-io.json"
+        ]
+      }
+    },
+    {
+      "requirement": "Qualify issuer availability and safe recovery under bounded competing writes. Preserve durable commit ordering.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "tests/native/test_storage_contention.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Three acknowledged issuer policy revisions are independently read from its durable database during bounded writes.",
+          "Actor revocation stops all pinned application processes during an outstanding Git import.",
+          "Credential revocation releases input while actor-owned execution continues.",
+          "Nested execution returns BUSY and creates no file or process row.",
+          "Filesystem futures join before descriptor or path ownership ends. SQLite stays on the broker thread."
+        ],
+        "raw_witnesses": [
+          "native/test_native_storage_actor_revocation_during_bounded_git_import/contention.json",
+          "native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/contention.json",
+          "native/test_native_storage_credential_revocation_preserves_execution_under_writes/contention.json"
+        ]
+      }
+    },
+    {
+      "requirement": "Run the complete M03 phase gate after focused implementation checks pass.",
+      "status": "full_current_candidate_review_pending",
+      "witness_sources": [
+        "local/m03-correction-and-gate-02.py",
+        "tests/native/crosshost_revocation.py"
+      ],
+      "primary_source_audit": {
+        "assertions": [
+          "Both hosts finish every registered suite in Debug and ASan/UBSan.",
+          "All 151 locked acceptance cases execute with the independent native witness.",
+          "Harness and production bounded-storage integration finish in both profiles.",
+          "Eight production cross-host delay/crash scenarios preserve cancellation, barrier, recovery, and exact cleanup checks.",
+          "Frozen source, locked inputs, binary pins, sanitizer logs, and independent measurements are reviewed."
+        ]
+      }
+    }
+  ],
+  "review_rule": "Inspect actual current candidate results and independent measurements for each assertion. Source review identifies the mechanism, not runtime completion. Missing, failed, blocked, or unrun checks stay incomplete.",
+  "additional_gate_layers": [
+    "Both hosts in Debug and ASan/UBSan.",
+    "All 135 current registered suites.",
+    "Harness self-tests.",
+    "All 151 locked P00-P10 cases with an actual independent native witness.",
+    "Standalone production-profile bounded-storage Git integration.",
+    "Eight production-profile cross-host delay/crash cases.",
+    "Source and binary pins, preserved failures, reviewable origin checkpoint."
+  ],
+  "later_requirements": "M04-M16 and physical/native GPU acceptance remain separate. M03 completion does not complete Spatial-M1.",
+  "collector": "local/m03-completed-profile-collector-02.py; archives known kernel measurements and verifies frozen binary pins."
+}

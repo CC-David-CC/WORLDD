@@ -1,0 +1,17 @@
+{
+  "status": "passed-focused",
+  "supervised_cases": 8,
+  "crosshost_guard_cases": 2,
+  "logs_scanned": 66,
+  "sanitizer_findings": [],
+  "source_sha256": {
+    "tests/core/test_world_shared_crosshost.py": "8f9ead332b528b8e8c01a11d83244d957775b880ea165419138e3467af96bbb6",
+    "tests/native/test_session_replacement.py": "59092f596bc0adcfe8d608af3fdbe0f940b69bb1f5054e54a2c8fa5f1fa74f56"
+  },
+  "artifact_sha256": {
+    "supervised-crash-Debug.log": "086b8d079e05a178bda4d7c7423eef7e87949add973ed02d372a63b511db04ea",
+    "supervised-crash-ASan-UBSan.log": "a5a48143a9b321b3bf0cbd89782b9c38b4d979a6316d9149570bf200e404b10b",
+    "crash-guard-Debug.log": "7b3c819dc2589d12b2e04af9b852588d2d4de003a819ffb14bd1ff3bb87dacf8",
+    "crash-guard-ASan-UBSan.log": "76353ef4c3477a9a5fdcbd04bba1de794f2f91d26c497c60bffac5487956c2d6"
+  }
+}

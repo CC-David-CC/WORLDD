@@ -1,0 +1,65 @@
+FFFFFF
+======================================================================
+FAIL: test_fixture_faults_cannot_enter_production (__main__.ProductionProfileTests.test_fixture_faults_cannot_enter_production)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 34, in test_fixture_faults_cannot_enter_production
+    self.reject(['--resource-config-fd','30','--storage-fd','31','--fixture-faults'],
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 22, in reject
+    self.assertIn(message, result.stderr.decode())
+AssertionError: 'requires sealed resources and storage ownership' not found in 'workspaced: Unknown or incomplete workspaced argument\n'
+
+======================================================================
+FAIL: test_legacy_policy_denied_before_cgroup_or_state_mutation (__main__.ProductionProfileTests.test_legacy_policy_denied_before_cgroup_or_state_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 56, in test_legacy_policy_denied_before_cgroup_or_state_mutation
+    self.reject(['--resource-config-fd',str(fd),'--storage-fd',str(left.fileno())],
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 22, in reject
+    self.assertIn(message, result.stderr.decode())
+AssertionError: 'aggregate resource envelope' not found in 'workspaced: Unknown or incomplete workspaced argument\n'
+
+======================================================================
+FAIL: test_migration_cannot_run_as_live_production_broker (__main__.ProductionProfileTests.test_migration_cannot_run_as_live_production_broker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 38, in test_migration_cannot_run_as_live_production_broker
+    self.reject(['--resource-config-fd','30','--storage-fd','31','--migrate-v3'],
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 22, in reject
+    self.assertIn(message, result.stderr.decode())
+AssertionError: 'requires sealed resources and storage ownership' not found in 'workspaced: Unknown or incomplete workspaced argument\n'
+
+======================================================================
+FAIL: test_missing_resource_and_storage_handoffs (__main__.ProductionProfileTests.test_missing_resource_and_storage_handoffs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 28, in test_missing_resource_and_storage_handoffs
+    self.reject([], 'requires sealed resources and storage ownership')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 22, in reject
+    self.assertIn(message, result.stderr.decode())
+AssertionError: 'requires sealed resources and storage ownership' not found in 'workspaced: Unknown or incomplete workspaced argument\n'
+
+======================================================================
+FAIL: test_mutable_resource_path_cannot_replace_handoff (__main__.ProductionProfileTests.test_mutable_resource_path_cannot_replace_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 31, in test_mutable_resource_path_cannot_replace_handoff
+    self.reject(['--resource-config','/does-not-exist'], 'requires sealed resources and storage ownership')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 22, in reject
+    self.assertIn(message, result.stderr.decode())
+AssertionError: 'requires sealed resources and storage ownership' not found in 'workspaced: Unknown or incomplete workspaced argument\n'
+
+======================================================================
+FAIL: test_unsealed_policy_denied_before_state_mutation (__main__.ProductionProfileTests.test_unsealed_policy_denied_before_state_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 46, in test_unsealed_policy_denied_before_state_mutation
+    self.reject(['--resource-config-fd',str(fd),'--storage-fd',str(left.fileno())],
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_production_profile.py", line 22, in reject
+    self.assertIn(message, result.stderr.decode())
+AssertionError: 'owned sealed protobuf' not found in 'workspaced: Unknown or incomplete workspaced argument\n'
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.331s
+
+FAILED (failures=6)

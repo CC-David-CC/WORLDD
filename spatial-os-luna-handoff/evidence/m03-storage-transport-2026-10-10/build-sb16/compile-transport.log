@@ -1,0 +1,18 @@
+[ 68%] Built target spatial-protobuf
+[ 81%] Built target spatial-scene
+[ 81%] Building CXX object CMakeFiles/spatial-storage-channel.dir/src/workspace/storage_channel.cpp.o
+[ 81%] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[ 87%] Linking CXX static library libspatial-storage-channel.a
+[ 87%] Built target spatial-storage-channel
+[ 93%] Linking CXX static library libspatial-storage-owner.a
+[ 93%] Built target spatial-storage-owner
+[ 93%] Building CXX object CMakeFiles/spatial-storage-owner-service.dir/src/workspace/storage_main.cpp.o
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_main.cpp: In function ‘int main(int, char**)’:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_main.cpp:36:101: error: comparison of integer expressions of different signedness: ‘__off_t’ {aka ‘long int’} and ‘const std::size_t’ {aka ‘const long unsigned int’} [-Werror=sign-compare]
+   36 |             status.st_nlink != 1 || (status.st_mode & 0077) || status.st_size < 1 || status.st_size > spatial::max_frame_bytes)
+      |                                                                                      ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+cc1plus: all warnings being treated as errors
+gmake[3]: *** [CMakeFiles/spatial-storage-owner-service.dir/build.make:76: CMakeFiles/spatial-storage-owner-service.dir/src/workspace/storage_main.cpp.o] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:915: CMakeFiles/spatial-storage-owner-service.dir/all] Error 2
+gmake[1]: *** [CMakeFiles/Makefile2:922: CMakeFiles/spatial-storage-owner-service.dir/rule] Error 2
+gmake: *** [Makefile:447: spatial-storage-owner-service] Error 2

@@ -1,0 +1,27 @@
+{
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-1cbe74df0f074ab6a61bc4dc0f987080.service/adapter-2128d4b7813f4895aeace9a9ae32e3ce",
+  "device": 31,
+  "inode": 5939702,
+  "removed": [
+    "authority-c0ce5ce866f5b41c1f52021b3dd2fd728a2b7908c0b44750e92074883329a7b5/authority-758415bfd8c459b2c3f7b0bfdc85269594ce1ed9af85870d1cd2c8e02faeb959",
+    "authority-c0ce5ce866f5b41c1f52021b3dd2fd728a2b7908c0b44750e92074883329a7b5/broker-manager",
+    "authority-d6d183cbbcf8dd5c23bed061224d97f5770203106779e7d8286e723484f92282/authority-c713173254cfcdb566101f2804cd5b3657c20222903f841d4bb40ede000dbccd",
+    "authority-d6d183cbbcf8dd5c23bed061224d97f5770203106779e7d8286e723484f92282/broker-manager",
+    "authority-1b89b3c116d6aac4015cc1ce6cba058c118d34f160c3fd95d42573fe6fea7365/authority-7fda57025e39241a65fb9db4826d854716e1f08c363d08cbf146996e89726a20",
+    "authority-1b89b3c116d6aac4015cc1ce6cba058c118d34f160c3fd95d42573fe6fea7365/broker-manager",
+    "authority-c0ce5ce866f5b41c1f52021b3dd2fd728a2b7908c0b44750e92074883329a7b5",
+    "authority-d6d183cbbcf8dd5c23bed061224d97f5770203106779e7d8286e723484f92282",
+    "authority-1b89b3c116d6aac4015cc1ce6cba058c118d34f160c3fd95d42573fe6fea7365"
+  ],
+  "unexpected_population": false,
+  "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-1cbe74df0f074ab6a61bc4dc0f987080.service/adapter-2128d4b7813f4895aeace9a9ae32e3ce\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n",
+  "command": [
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_adapter_resources.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/workspaced",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/worldd"
+  ],
+  "exit_code": 0,
+  "scope_removed": true
+}

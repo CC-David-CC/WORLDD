@@ -1,0 +1,183 @@
+{
+  "host": "sb16-2",
+  "status": "passed_review_pending",
+  "started": 1791678470.9335396,
+  "pid": 2547591,
+  "manifest_sha256": "be4704fcdf24f8076ac574012906fddfa95837ab995ea8b39390fe3a21dc3861",
+  "runner_sha256": "1abb24a450ea2a00a768b5116320570d45f8e316a561a741df81a668006bfb47",
+  "commands": [
+    {
+      "label": "debug-application-io",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tests/core/test_broker_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/workspaced",
+        "BrokerResourceTests.test_application_writes_obey_broker_io_budget"
+      ],
+      "started": 1791678471.0116413,
+      "exit_code": 0,
+      "ended": 1791678476.4692013,
+      "sha256": "4eac584e7ffc95b833d6115aa2b43e95bd81662523f9530fe40ddbc174876453"
+    },
+    {
+      "label": "runtime-sanitize-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/runtime-sanitize/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=OFF",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "started": 1791678476.5898848,
+      "exit_code": 0,
+      "ended": 1791678477.6569045,
+      "sha256": "9512c1accc2d713a3f806f2425ff50534bcd8d1e9460dffe637c30945b1c5ade"
+    },
+    {
+      "label": "runtime-sanitize-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/runtime-sanitize/build",
+        "--target",
+        "spatial-process-termination-probe",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791678477.6690698,
+      "exit_code": 0,
+      "ended": 1791678547.87674,
+      "sha256": "2b57c919cbbc7a17ddbe50c15cb1ed3da0764e99b61cdb7c9c89bb79f736f7dd"
+    },
+    {
+      "label": "runtime-sanitize-sync",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04"
+      ],
+      "started": 1791678547.9183452,
+      "exit_code": 0,
+      "ended": 1791678549.142115,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "runtime-sanitize-checks",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/runtime-sanitize/build",
+        "-V",
+        "--output-on-failure",
+        "-R",
+        "^process-termination$"
+      ],
+      "started": 1791678549.1600823,
+      "exit_code": 0,
+      "ended": 1791678550.8308496,
+      "sha256": "c0e84f46f91bcaff88423dfd37dba59a2bc697008ff2a091a2c151e3ae367f0d"
+    },
+    {
+      "label": "runtime-sanitize-application-io",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/source/tests/core/test_broker_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/runtime-sanitize/build/spatial-process-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/runtime-sanitize/build/workspaced",
+        "BrokerResourceTests.test_application_writes_obey_broker_io_budget"
+      ],
+      "started": 1791678551.1607862,
+      "exit_code": 0,
+      "ended": 1791678557.313997,
+      "sha256": "69b3140138056dc9e6f97190e0264bb515aee594a65159263972ad03ac835c11"
+    }
+  ],
+  "profiles": {
+    "debug": {
+      "passed": 1,
+      "retained_termination_checks": 6,
+      "termination_log": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug-checks.log",
+      "failed": 0,
+      "skipped": 0,
+      "probe_sha256": "50782dc0f779223e74934a0a7d035dc16f9ac1ad22155c394dc2c7ce2461ca9f",
+      "reused_binaries": {
+        "workspaced": "65e40deb42486c58d9638fc50deeacd764cc7899786c41ef2a0071ce526eebe8",
+        "spatial-process-scope-probe": "4d9027c2d42e561ddc7a527b1133d0f3709867f5f8573ba09da95bb07c7d6846"
+      },
+      "prior_review_sha256": "f6a17c0ac7f5f2aa3d5aff843314b097f57d57a67ba1f703ab9c54fb0e689639"
+    },
+    "runtime-sanitize": {
+      "passed": 7,
+      "retained_termination_checks": 0,
+      "termination_log": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-04/runtime-sanitize-checks.log",
+      "failed": 0,
+      "skipped": 0,
+      "probe_sha256": "dee152ead28b94611d685e37bd3ec900128850232f9281de23c8a84e37fe1c9e",
+      "reused_binaries": {
+        "workspaced": "04c244aa9607cfdb68a8d23b060069cfe78b8ec048eb5d55c06d26426f1a1b57",
+        "spatial-process-scope-probe": "2702b50c09f1770cdca316985de1fcaaa3a8042b775b38f6c274448bc2f22737"
+      },
+      "prior_review_sha256": "f6a17c0ac7f5f2aa3d5aff843314b097f57d57a67ba1f703ab9c54fb0e689639"
+    }
+  },
+  "phase_complete": false,
+  "scope": "Broker resource integration. Launcher provisioning and storage remain pending.",
+  "sanitizer_logs_scanned": 24,
+  "sanitizer_matches": 0,
+  "ended": 1791678557.8842518,
+  "attachments": {
+    "runtime-sanitize-checks.log": "c0e84f46f91bcaff88423dfd37dba59a2bc697008ff2a091a2c151e3ae367f0d",
+    "runtime-sanitize-build.log": "2b57c919cbbc7a17ddbe50c15cb1ed3da0764e99b61cdb7c9c89bb79f736f7dd",
+    "runner.py": "1abb24a450ea2a00a768b5116320570d45f8e316a561a741df81a668006bfb47",
+    "runtime-sanitize-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-application-io.log": "4eac584e7ffc95b833d6115aa2b43e95bd81662523f9530fe40ddbc174876453",
+    "runtime-sanitize-application-io.log": "69b3140138056dc9e6f97190e0264bb515aee594a65159263972ad03ac835c11",
+    "manifest.json": "be4704fcdf24f8076ac574012906fddfa95837ab995ea8b39390fe3a21dc3861",
+    "runtime-sanitize-configure.log": "9512c1accc2d713a3f806f2425ff50534bcd8d1e9460dffe637c30945b1c5ade",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0.textproto": "808472e3301357362b5a8848c2da8041509fd069aacf85757c6c036534f29614",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/before-io.json": "41f82964b43243e0c2fc8d2df641acd09faf7038d60d78518450458e4f4f8d14",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0-a565e50845d37548363f8a73e79cde15-setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/application-io.json": "2415afdb32958d6f471328a7c9eef4d014fcf7ecea527f6caec4623e11428e82",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/after-io.json": "8a4b0b629a5131445e3bc58ad556e684f64610622b09ab45e3c25aa0b4a4b415",
+    "runtime-sanitize/witnesses/test_confirmed_stop_has_already_terminated_detached_descendants/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_confirmed_stop_has_already_terminated_detached_descendants/resource.textproto": "ccf719468b343776abe364c78e3660668746759b1645b00699df7b1f351d0af9",
+    "runtime-sanitize/witnesses/test_confirmed_stop_has_already_terminated_detached_descendants/probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_destructor_wait_error_cannot_return_broker_success/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_destructor_wait_error_cannot_return_broker_success/resource.textproto": "6b811bc678e49f55646e3bf9d6157b852218ed6a7c0aa457656602b049ca7c25",
+    "runtime-sanitize/witnesses/test_destructor_wait_error_cannot_return_broker_success/probe.log": "bdb1f4838a5e63045808a690683b3801a505afcc027777854bbd0672665324c0",
+    "runtime-sanitize/witnesses/test_wait_error_cannot_be_reported_as_confirmed_stop/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_wait_error_cannot_be_reported_as_confirmed_stop/resource.textproto": "e52bf05bd241049ae376c3ca1cde07a2ba73207a67df788154916d085d8e3d4c",
+    "runtime-sanitize/witnesses/test_wait_error_cannot_be_reported_as_confirmed_stop/probe.log": "cd393bf96c417a23d215696b55d2e3aa7b0f77a1469ff791acd7a85c3e28596a",
+    "runtime-sanitize/witnesses/test_destructor_signal_error_cannot_return_broker_success/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_destructor_signal_error_cannot_return_broker_success/resource.textproto": "3b056d24e722f287b8edcd3951acde908a94d40752630ec541ad71667bac6ac7",
+    "runtime-sanitize/witnesses/test_destructor_signal_error_cannot_return_broker_success/probe.log": "b7a4c89c627ce1c7be74258805f22834e3f67a7f151b50ea8f298e797d9ed515",
+    "runtime-sanitize/witnesses/test_signal_error_returns_failure_without_waiting_for_live_child/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_signal_error_returns_failure_without_waiting_for_live_child/resource.textproto": "800d8ebb750b9bdca1b30c7d6cc5fd5e3306b4f5e422ef59babe03aac43df9b5",
+    "runtime-sanitize/witnesses/test_signal_error_returns_failure_without_waiting_for_live_child/probe.log": "7e54297331337b74ec52f246eb6db7acae108c52027ab7e016176653340b08e1",
+    "runtime-sanitize/witnesses/test_already_exited_process_can_be_stopped_twice/setup.log": "0a815e3a1ae6ef8d4d0aa7db0fc7908522bab5eac1afbb87d41e7161688f3fd2",
+    "runtime-sanitize/witnesses/test_already_exited_process_can_be_stopped_twice/resource.textproto": "ae9852f8bb6965c60ad6e0d09ce74f2a94b7c5f063a0a7fd9c79ee2e4bd03a14",
+    "runtime-sanitize/witnesses/test_already_exited_process_can_be_stopped_twice/probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/broker-0-a4798b59f63fa581f573354be2ec2984-setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/broker-0.textproto": "bed344fb1d9f5c97a5c7cb0885e96cb41aae53a0afbc1a333a482d9b2c92122c",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/before-io.json": "80b18aa25c2b0812876d264a9106952eb8c4b14de3ffa047cc7a8dce9a64cfb6",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/application-io.json": "5ee3e6c4013ce52515b9b12f5dee1a7aa911931a02a4764e63e346f19b005bda",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize/witnesses/test_application_writes_obey_broker_io_budget/after-io.json": "1c0439b983e9baa3028239fa2dbb3959cbaf6833903f4a2f3e816cd97de66cef"
+  }
+}

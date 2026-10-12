@@ -1,0 +1,12 @@
+[OUTPUT] 
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+
+[HANDLER_OUTPUT] 
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+
+    Start 1: app-initializer-lifecycle
+1/1 Test #1: app-initializer-lifecycle ........   Passed    4.03 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   4.03 sec

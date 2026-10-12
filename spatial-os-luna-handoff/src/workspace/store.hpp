@@ -2,15 +2,19 @@
 #include "core/protocol.hpp"
 #include "broker.pb.h"
 #include <filesystem>
+#include <functional>
 #include <memory>
 
 namespace spatial {
 class WorkspaceAuthority;
 class NativeLaunch;
+class WorkspaceResources;
+class StorageClient;
 // A host execution registry. It has no room, world, or actor-session identity.
 class ExecutionStore {
 public:
-    explicit ExecutionStore(const std::filesystem::path& state, unsigned migrate_from = 0, bool fixture_faults = false);
+    explicit ExecutionStore(const std::filesystem::path& state, unsigned migrate_from = 0, bool fixture_faults = false,
+                            StorageClient* storage = nullptr, WorkspaceResources* resources = nullptr);
     ~ExecutionStore();
     ExecutionStore(const ExecutionStore&) = delete;
     ExecutionStore& operator=(const ExecutionStore&) = delete;
@@ -28,6 +32,8 @@ public:
     workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh = true);
     void set_authority(WorkspaceAuthority* authority);
     void set_native_launch(NativeLaunch* native);
+    void set_resources(WorkspaceResources* resources);
+    void set_observer(std::function<void()> observer);
     void reconcile_authority();
     void reap();
     void stop_all();

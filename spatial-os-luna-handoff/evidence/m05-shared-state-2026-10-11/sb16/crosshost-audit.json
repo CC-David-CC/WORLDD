@@ -1,0 +1,18 @@
+{
+  "logs_scanned": 20,
+  "findings": [],
+  "witness_connections": {
+    "crosshost-Debug-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-1.log": "TLS witness connected: ('10.0.7.94', 37616) -> ('10.0.7.49', 59911) TLSv1.3\n",
+    "crosshost-Debug-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-2.log": "TLS witness connected: ('10.0.7.94', 37620) -> ('10.0.7.49', 59911) TLSv1.3\n",
+    "crosshost-Debug-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-4-0.log": "TLS witness connected: ('10.0.7.94', 50596) -> ('10.0.7.49', 54583) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-1.log": "TLS witness connected: ('10.0.7.94', 38812) -> ('10.0.7.49', 34437) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-2.log": "TLS witness connected: ('10.0.7.94', 55072) -> ('10.0.7.49', 34437) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-4-0.log": "TLS witness connected: ('10.0.7.94', 46016) -> ('10.0.7.49', 44685) TLSv1.3\n"
+  },
+  "sha256": {
+    "crosshost-ASan-UBSan.log": "b7a6af83d7343535a0f4f14b22ad79d1af671f397b9aa52df54d0d646dea2af8",
+    "crosshost-Debug.log": "aebbb725bf7ad046c44a6fd620647c0ed7c35c1fcdd0a40257bdcff3fc6183fe",
+    "world_tls_witness.py": "d73a1fbef31bae6834ae34a44d96e00e101b4501d9b55023763e452594b4d854",
+    "test_world_shared_crosshost.py": "53c961e87d9fefc0c62231f8115b8147e2fd74f1e4d47f378ef49d5502d369e9"
+  }
+}

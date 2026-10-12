@@ -1,0 +1,79 @@
+syntax = "proto3";
+package spatial.security.v1;
+
+// Private bootstrap input from the server supervisor through a sealed memfd.
+message Bootstrap { uint32 protocol_version = 1; bytes supervisor_cookie = 2; }
+
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  SUPERVISOR = 1;
+  BROKER = 2;
+  COMPOSITOR = 3;
+  APPLICATION = 4;
+}
+enum Code {
+  OK = 0;
+  INVALID_ARGUMENT = 1;
+  UNSUPPORTED_VERSION = 2;
+  STALE_SEQUENCE = 3;
+  FORBIDDEN = 4;
+  RESOURCE_EXHAUSTED = 5;
+  NOT_FOUND = 6;
+  UNAVAILABLE = 7;
+}
+message Identity {
+  Role role = 1;
+  bytes workspace = 2;
+  bytes application = 3;
+  bytes credential_id = 4;
+  uint64 connection_id = 5;
+  bytes server_id = 6;
+}
+// Server-owned surface attribution. Contains no authentication credential.
+message ApplicationIdentity {
+  bytes workspace = 1;
+  bytes application = 2;
+  bytes server_id = 3;
+  uint64 connection_id = 4;
+}
+message Issue {
+  Role role = 1;
+  bytes workspace = 2;
+  bytes application = 3;
+}
+message Credential {
+  bytes id = 1;
+  bytes cookie = 2;
+  Role role = 3;
+  bytes workspace = 4;
+  bytes application = 5;
+}
+message Revoke { bytes credential_id = 1; }
+message Inspect {}
+// Trusted selection view. It does not modify the immutable connection label.
+message SelectionScope {
+  bytes workspace = 1;
+  bytes application = 2;
+  bool default_scope = 3;
+}
+message Request {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    Inspect inspect = 100;
+    Issue issue = 101;
+    Revoke revoke = 102;
+    SelectionScope selection_scope = 103;
+  }
+}
+message Reply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  Code code = 3;
+  oneof outcome {
+    Identity identity = 100;
+    Credential credential = 101;
+    bool revoked = 102;
+    bool selection_scope_set = 103;
+  }
+}

@@ -1,0 +1,23 @@
+﻿Confirmed defect: an animated cursor has one shared timer, but each device keeps its own animation state.
+
+Reproduction: show the same animated cursor on two independent pointer sprites. The timer callback is reassigned to the last device. The first pointer stops advancing. Changing the first pointer can cancel the timer used by the second.
+
+Evidence: the sanitized upstream witness reported pointer A frame changes = 0 and pointer B frame changes = 15. Cancelling A also stopped B. After the separate teardown fix, the server had no sanitizer diagnostic for this case, but the behavior still failed.
+
+Likely focused fix: move timer and frame progress to the independently animated sprite or equivalent shared-sprite-aware presentation state. Paired devices that share a sprite must still use one animation owner.
+
+Status: confirmed behavior defect. Separate from the timer memory leak. No fix or PR prepared. A broader state ownership change may be needed.
+
+Proposed patch:
+1. Store animation scheduling state per independently animated sprite or presentation. Include its timer, current frame, screen, and callback target.
+2. Keep one animation owner when multiple devices share the same SpritePtr.
+3. Remove the single mutable timer from AnimCurRec, which describes the shared cursor frame sequence.
+4. Cancel and free each presentation timer when that presentation stops or its sprite is destroyed.
+
+Regression checks:
+- Display one animated cursor on two independent master pointer sprites; confirm both advance.
+- Change pointer A to a static cursor; confirm pointer B continues to advance.
+- Confirm paired devices sharing one sprite do not schedule duplicate timers.
+- Destroy each pointer or cursor while timers are active and run under ASan/UBSan.
+
+Status: behavioral defect is reproduced. This is a candidate design, not a tested patch. The exact state owner must account for shared sprites before implementation.

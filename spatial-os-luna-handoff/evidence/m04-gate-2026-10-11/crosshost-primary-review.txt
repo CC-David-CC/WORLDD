@@ -1,0 +1,38 @@
+M04 cross-host primary review
+Date: 2026-10-11
+Runtime candidate: f74c6b579c6149f41e1cbd17b025eb92fd453009
+Status: eight cross-host scenarios passed review. M04 remains incomplete.
+
+Both Debug and ASan/UBSan ran delayed and crashed participants in both directions.
+All eight controller processes and sixteen worker processes completed successfully.
+The per-host artifact check decoded the actual saved AuthorityBarrierStatus messages.
+Pending barriers retained outstanding obligations before acknowledgement or retirement.
+Complete barriers contained four complete obligations and no pending obligations.
+Delay cases completed through acknowledgement without retirement.
+Crash cases retained exactly one retirement at revision zero; surviving participants reached revision one.
+All cases recorded native cancellation on both hosts and two surviving applications.
+Worker crash cases recorded crash, recovery, and retirement completion.
+Both workers' production issuer IDs match their controller's issuer ID in every case.
+
+The checker verified frozen source and reviewed local-gate prerequisites.
+Each node receipt matches its result file, scenario, direction, profile, host, and candidate.
+The cross-host runner retained original gate runtime and native-server binary pins.
+Only the reviewed storage fixture differs in its source checkout.
+The fixture directory resolves within that checkout's own local directory.
+
+The sb16 artifact check hashes 144 files. The sb16-2 check hashes 80 files.
+Hashes cover receipts, result files, barrier records, and scanned service logs.
+No AddressSanitizer, LeakSanitizer, or UBSan runtime-error markers were found in those logs.
+Private credential bundles and mounted project-data directories were excluded from export and service-log scanning.
+Raw evidence remains under each fixture checkout's local/m04-crosshost-01 directory.
+The exported audit contains results and hashes, not credential contents.
+
+The task execution mapper also found all 20 M04 task entries in both full-gate profiles on both hosts.
+All explicitly named task test IDs appear in the execution logs.
+Counterexample suites are registered and have passed JUnit records.
+This is an execution map, not automatic proof of every contract requirement.
+
+Remaining work: review each M04 contract, reconcile the three fixture-only source changes,
+verify final source adoption, and record the milestone decision.
+These scenarios use independent worlds. They do not prove the shared persistent world required by M05.
+Physical GPU, input-device, and soak requirements retain their later mandatory gates.

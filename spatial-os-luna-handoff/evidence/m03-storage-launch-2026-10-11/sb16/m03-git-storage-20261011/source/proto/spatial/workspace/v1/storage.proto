@@ -1,0 +1,142 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+import "grants.proto";
+import "process_scope.proto";
+
+// Private operator launch template. The owner policy remains root-owned.
+// The supervisor supplies the retained broker pidfd outside this message.
+message StorageOwnerLaunchConfig {
+  uint32 protocol_version = 1;
+  string owner_configuration = 2;
+  string volume_root = 3;
+  spatial.supervisor.v1.ProcessScopeBudget budget = 4;
+}
+// Private lifecycle witness transport. Never exposed as an actor interface.
+message StorageLaunchControl { uint32 protocol_version = 1; uint64 request_id = 2; optional bool stop = 3; }
+message StorageLaunchResult {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  string unit = 3;
+  oneof outcome { bool running = 4; bool stopped = 5; string error = 6; }
+}
+
+// Operator ceilings. These do not grant filesystem or execution authority.
+// Charge allocated extents and metadata. Referenced extents count for private-state limits.
+message ApplicationStorageProfile {
+  string name = 1;
+  optional uint64 state_bytes = 2;
+}
+message ActorStorageLimit {
+  oneof subject {
+    spatial.authority.v1.ActorRef principal = 1;
+    string fixture_actor = 2;
+  }
+  optional uint64 state_bytes = 3;
+}
+message WorkspaceStoragePolicy {
+  string workspace = 1; // Empty only in the default policy.
+  optional uint64 total_bytes = 2;
+  optional uint64 actor_state_default_bytes = 3;
+  repeated ActorStorageLimit actors = 4;
+  repeated ApplicationStorageProfile profiles = 5;
+}
+// Sealed operator input to the privileged storage owner. Not an actor endpoint.
+message StorageOwnerConfig {
+  uint32 protocol_version = 1;
+  string volume_root = 2;
+  bytes filesystem_id = 3; // Exact 16-byte Btrfs UUID.
+  optional uint32 broker_uid = 4;
+  optional uint64 volume_bytes = 5;
+  optional uint64 control_plane_bytes = 6;
+  WorkspaceStoragePolicy default_policy = 7;
+  repeated WorkspaceStoragePolicy workspaces = 8;
+  optional uint32 broker_pid = 9;
+  optional uint64 filesystem_reserve_bytes = 10;
+}
+message StorageObject {
+  enum Kind {
+    UNSPECIFIED = 0;
+    REPOSITORY = 1;
+    PROJECT = 2;
+    APPLICATION_STATE = 3;
+    RETIRED = 4;
+  }
+  Kind kind = 1;
+  string id = 2; // Broker-generated 32-character hexadecimal path component.
+}
+message StorageRepositoryPrepare { StorageObject object = 1; }
+message StorageProjectPrepare {
+  StorageObject object = 1;
+  StorageObject repository = 2;
+}
+message StorageWorkspaceBind {
+  string workspace = 1;
+  StorageObject repository = 2;
+  StorageObject project = 3;
+}
+message StorageApplicationPrepare {
+  string workspace = 1;
+  StorageObject object = 2;
+  oneof subject {
+    spatial.authority.v1.ActorRef principal = 3;
+    string fixture_actor = 4;
+  }
+  string profile = 5;
+}
+message StorageInspect { StorageObject object = 1; }
+message StorageRetirementPrepare {
+  StorageObject object = 1;
+  StorageObject repository = 2;
+  StorageObject project = 3;
+}
+message StorageHello {}
+message StorageOwnerIdentity {
+  bytes filesystem_id = 1;
+  uint32 process_id = 2;
+  uint64 volume_bytes = 3;
+  bool accounting_consistent = 4;
+}
+message StorageObjectState {
+  StorageObject object = 1;
+  uint64 subvolume_id = 2;
+  uint64 quota_group = 3;
+  uint64 referenced_bytes = 4;
+  uint64 exclusive_bytes = 5;
+  uint64 maximum_bytes = 6;
+  bool accounting_consistent = 7;
+}
+message StorageOwnerRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    StorageRepositoryPrepare repository_prepare = 10;
+    StorageProjectPrepare project_prepare = 11;
+    StorageWorkspaceBind workspace_bind = 12;
+    StorageApplicationPrepare application_prepare = 13;
+    StorageInspect inspect = 14;
+    StorageRetirementPrepare retirement_prepare = 15;
+    StorageHello hello = 16;
+  }
+}
+message StorageOwnerError {
+  enum Code {
+    UNSPECIFIED = 0;
+    INVALID_ARGUMENT = 1;
+    UNAUTHORIZED = 2;
+    UNAVAILABLE = 3;
+    EXHAUSTED = 4;
+    UNCERTAIN = 5;
+    CONFLICT = 6;
+  }
+  Code code = 1;
+  string message = 2;
+}
+message StorageOwnerReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    StorageObjectState state = 10;
+    StorageOwnerError error = 11;
+    StorageOwnerIdentity identity = 12;
+  }
+}

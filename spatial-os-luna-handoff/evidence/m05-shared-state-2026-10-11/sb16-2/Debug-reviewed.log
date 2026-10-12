@@ -1,0 +1,20 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug
+Test project /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug
+    Start  58: render-observation-client
+1/7 Test  #58: render-observation-client ........   Passed    0.61 sec
+    Start  75: render-runtime
+2/7 Test  #75: render-runtime ...................   Passed    3.89 sec
+    Start  77: actor-observation
+3/7 Test  #77: actor-observation ................   Passed    2.71 sec
+    Start  78: actor-collision
+4/7 Test  #78: actor-collision ..................   Passed    2.87 sec
+    Start 108: world-authority
+5/7 Test #108: world-authority ..................   Passed   62.82 sec
+    Start 109: world-shared-state
+6/7 Test #109: world-shared-state ...............   Passed   21.69 sec
+    Start 110: actor-objects
+7/7 Test #110: actor-objects ....................   Passed    5.85 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) = 100.45 sec

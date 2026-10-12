@@ -1,0 +1,10 @@
+{
+  "status": "waiting_for_workers",
+  "issuer_host": "sb16",
+  "delayed_host": "sb16",
+  "scenario": "crash",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-crosshost-01/runs/ASan-UBSan-crash-reverse04/controller/private-bundle",
+  "control_port": 48255,
+  "issuer_port": 57373,
+  "issuer_id": "32ddbb9f44c7052ce324175e95afa2a50e5d52da4c0b8c6f578c61daaa25c7aa"
+}

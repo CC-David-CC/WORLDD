@@ -1,0 +1,22 @@
+{
+  "status": "selected_before_execution",
+  "purpose": "Validate operator configuration and retained production storage startup from adopted source while reusing unchanged qualified binaries.",
+  "suites": [
+    "operator-storage",
+    "session-storage-owner",
+    "session-resources"
+  ],
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "Debug",
+    "ASan-UBSan"
+  ],
+  "source_checkout": "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011/spatial-os-luna-handoff",
+  "source_commit": "a99b7e46c5151ba47d0a53797b470cae6aaa5d13",
+  "ordinary_changes_preserved": true,
+  "normal_login_change": false,
+  "phase_complete": false
+}

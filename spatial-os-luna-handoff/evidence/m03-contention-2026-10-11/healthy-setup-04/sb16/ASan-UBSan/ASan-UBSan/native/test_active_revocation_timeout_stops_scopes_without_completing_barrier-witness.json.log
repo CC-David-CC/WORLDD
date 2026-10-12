@@ -1,0 +1,23 @@
+{
+  "injected_fault": "committed_revocation_reply_withheld",
+  "generation": 1,
+  "pending_count": 1,
+  "applied_revision": 0,
+  "fenced": true,
+  "process_scope_stopped": true,
+  "native_scope_stopped": true,
+  "replacement_executed": false,
+  "participant_requests": [
+    "hello",
+    "info",
+    "authority_authentication_begin",
+    "authority_authentication_complete",
+    "revocations",
+    "revocations",
+    "revocations",
+    "revocations",
+    "authority_activate",
+    "revocations",
+    "revocations"
+  ]
+}

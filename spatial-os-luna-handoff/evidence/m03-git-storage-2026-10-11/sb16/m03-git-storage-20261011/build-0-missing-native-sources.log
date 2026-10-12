@@ -1,0 +1,59 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so (found suitable version "3.21.12", minimum required is "3.21") 
+-- Found SQLite3: /usr/include (found version "3.45.1") 
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found suitable version "3.0.13", minimum required is "3.0") found components: Crypto SSL 
+-- Found Threads: TRUE  
+-- Found X11: /usr/include   
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+-- Looking for gethostbyname
+-- Looking for gethostbyname - found
+-- Looking for connect
+-- Looking for connect - found
+-- Looking for remove
+-- Looking for remove - found
+-- Looking for shmat
+-- Looking for shmat - found
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+-- Checking for module 'xcb'
+--   Found xcb, version 1.15
+-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so   
+-- Found GLEW: /usr/include (found version "2.2.0") 
+-- Found Python3: /usr/bin/python3 (found suitable version "3.12.3", minimum required is "3.11") found components: Interpreter 
+-- Configuring done (0.9s)
+CMake Error at CMakeLists.txt:765 (add_executable):
+  Cannot find source file:
+
+    native/xprobe.c
+
+
+CMake Error at CMakeLists.txt:777 (add_executable):
+  Cannot find source file:
+
+    native/security_auth.c
+
+
+CMake Error at CMakeLists.txt:765 (add_executable):
+  No SOURCES given to target: spatial-xprobe
+
+
+CMake Error at CMakeLists.txt:771 (add_executable):
+  No SOURCES given to target: spatial-confined-xprobe
+
+
+CMake Error at CMakeLists.txt:777 (add_executable):
+  No SOURCES given to target: spatial-security-auth
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

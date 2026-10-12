@@ -1,0 +1,32 @@
+Test-data cleanup completed on 2026-10-11.
+
+David authorized deletion of old test data on sb16 and sb16-2.
+The cleanup removed only enumerated inactive project artifacts.
+It inspected mounts, loop devices, process references, and current build dependencies.
+Each deletion stayed inside the exact project local directory.
+
+sb16: 21,383 paths removed. 161.9 GiB reclaimed. 165.0 GiB free after verification.
+sb16-2: 21,237 paths removed. 118.9 GiB reclaimed. 167.9 GiB free after verification.
+Free-space measurements include filesystem accounting changes during cleanup.
+
+Removed artifacts include old test databases, disposable repositories, volume images, and superseded builds.
+Retained artifacts include source snapshots, reports, logs, captures, and protobuf evidence.
+All 11,650 retained evidence files passed SHA256 verification.
+Every selected deletion path was absent after cleanup.
+Current source, sanitizer build, pinned XLibre, and recovery baselines remain intact.
+The latest native storage candidate and M02 gate prerequisite remain intact.
+Normal login sessions and installed recovery helpers remain intact.
+No project-named temporary entries were found under /tmp on either host.
+
+The first apply attempt stopped before deletion because of a helper NameError.
+The corrected helper completed all three cleanup passes on both hosts.
+Deleted payloads cannot be recovered from these receipts.
+Retained source and evidence support test recreation.
+
+Review and compressed manifests:
+spatial-os-luna-handoff/evidence/test-data-cleanup-2026-10-11/primary-review.json
+
+M01 and M02 remain qualified.
+M03 remains incomplete. M04 through M16 remain incomplete.
+Cleanup does not qualify another milestone.
+No runtime tests or acceptance contracts changed.

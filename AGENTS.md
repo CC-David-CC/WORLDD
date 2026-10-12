@@ -330,7 +330,9 @@ Run related integration scenarios when components connect.
 Run focused sanitizers for process, descriptor, memory, input, and lifetime changes.
 Broaden testing early when shared infrastructure changes or focused failures reveal wider effects.
 Do not repeat the complete cumulative matrix after every small change.
-Keep small, reviewable Git commits so regressions can be isolated.
+Implement substantial, coherent milestone increments.
+Run related regressions across the combined change before moving to the next milestone.
+Keep reviewable commits and preserve history so reproduced regressions can be isolated.
 Use git bisect only with a reproducible failure and known good and bad commits.
 Preserve failing evidence. Do not treat unrun tests as passed.
 Run the full required Debug, sanitizer, harness, and acceptance suites on both hosts at the phase gate.
@@ -385,7 +387,10 @@ The default branch is main.
 Local main tracks origin/main.
 Origin is dflanag3@box-git:/srv/data/git/spacial_desktop.git.
 The repository-local commit identity is David <david@code.contractors>.
-No GitHub publishing is authorized by this task.
+David authorizes ongoing project pushes to CC-David-CC/WORLDD through box-git.
+Use the configured project credentials without asking again for each checkpoint.
+This authorization includes reviewed milestone work branches, not unrelated repositories.
+Keep credentials outside Git and tool output. Preserve the box-git origin.
 
 Push reviewed, coherent commits to origin.
 Preserve history. Do not force-push.
