@@ -2,11 +2,14 @@ Bounded retained transition recovery assignment
 
 Host: a5500.
 Model: gpt-6-luna, medium reasoning.
+Run01 ended without implementation or builds. Its zero exit does not satisfy the task.
+Run02 escalates to gpt-6.1-sol, medium reasoning, after that failed implementation attempt.
 Branch: m06/retained-transition-recovery.
 Base: 411f531.
 Worktree: /home/dflanag3/src/spacial-m06-retained-recovery-20261012.
 Tmux: spatial-m06-retained-recovery01.
 Logs and terminal exit: local/m06-retained-recovery/run01-* in that worktree.
+Current tmux: spatial-m06-retained-recovery02. Current outputs use run02-*.
 
 Implement native recovery tests for departure before commit, departure after commit, and destination activation crash.
 Use real ActorTransitionCoordinator and retained SessionCoordinator worlds.
