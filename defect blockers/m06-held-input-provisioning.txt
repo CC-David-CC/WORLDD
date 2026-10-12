@@ -1,0 +1,26 @@
+M06 held-input fixture provisioning, 2026-10-12
+
+Attempt01: four failures across sb16 and sb16-2 in Debug and ASan/UBSan.
+All stopped before native transition assertions.
+The denied world had zero authority root grants.
+worldd rejected initialization: Provision between one and 64 root grants.
+
+Correction applied on the isolated held-input branch:
+Provision one WORLD_OBSERVE grant without WORLD_ENTER for the denied actor.
+Admission denial still requires actual FORBIDDEN from the production transition.
+No authority implementation, production limits, or rejection assertion changed.
+The reviewed Python overlay hash is recorded beside attempt02 evidence.
+
+Attempt02: sb16 Debug advanced beyond provisioning but failed before the denial reply.
+Coordinator log: Session supervisor failed: Issuer TLS connection failed.
+The test received EOF from the coordinator.
+The underlying issuer cause remains unconfirmed.
+The inherited TLS fixture permits eight connections.
+This fixture adds three worlds, native supervisors, and a resource-backed broker.
+Check concurrent connection demand and issuer lifecycle before changing any limit.
+Keep deadlines and authority checks intact. Do not treat EOF as a valid denial.
+
+All five executions failed. Native input assertions remain unqualified.
+Both hosts' attempt01 jobs and sb16 attempt02 are terminal.
+Resource wrapper reports scope_removed=true and final unit inactive/not-found.
+Evidence: spatial-os-luna-handoff/evidence/m06-held-input-2026-10-12.

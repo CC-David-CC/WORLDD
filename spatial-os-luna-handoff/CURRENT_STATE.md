@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-12: Held-input runtime exposes fixture setup defects
+
+The namespace PID correction compiled in both profiles and passed source review.
+Four initial executions failed before native assertions because the private-world seed had no root grants.
+A scoped test correction adds WORLD_OBSERVE without WORLD_ENTER. Admission checks remain unchanged.
+One subsequent sb16 Debug execution advanced past seeding, then failed during issuer TLS startup.
+The TLS cause remains under diagnosis. No held-input runtime PASS is claimed.
+Read evidence/m06-held-input-2026-10-12 and ../defect blockers/m06-held-input-provisioning.txt.
+
+Cross-host source review found a partial-startup cleanup defect; its correction awaits runtime qualification.
+Production host-session corrections and the artifact-only full-gate runner remain separate active tasks.
+The old gate runner cannot run unchanged because it compiles on qualification hosts.
+M06 remains active. The prior combined 80-check checkpoint remains qualified for its recorded source.
+
 ## 2026-10-12: Combined M06 transition checks pass
 
 Combined source b7b684e passed all 80 selected executions on sb16 and sb16-2 in Debug and ASan/UBSan.

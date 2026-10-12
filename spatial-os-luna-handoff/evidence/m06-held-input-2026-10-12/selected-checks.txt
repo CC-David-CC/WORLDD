@@ -1,0 +1,28 @@
+Selected native held-input qualification, 2026-10-12
+
+Worker branch m06/held-input-transitions at base 6f3b100.
+Reviewed run03 modifies the native runner, fixture, CMake registration, and documentation.
+No production implementation or locked acceptance test changes.
+Worker exit zero; Debug and ASan builds completed. Runtime was unrun.
+
+Run host-actor-controller-native on sb16 and sb16-2, Debug and ASan/UBSan.
+Four test executions cover held-input A-B release, valid stale-generation rejection,
+B-A restoration without old input or lease, and private denial preserving source usability.
+Independent X witnesses check input effects. Host pidfds and namespace identity pin each application.
+Review exact native events, process continuity, cleanup, and sanitizer diagnostics.
+
+Archive SHA256:
+b30e7853b41c89fb277179e71c3d97dae1ef8d27807f78bafa55b7e76da1e513
+Harness SHA256:
+2c8b6772062098fd92ec196d50dd2c92f49a6bb607b94c9628c0ebf03304810d
+Fixture SHA256:
+2ccc81ca5e1c5629cf8d9b6f85e6dc693dbe20bfd627499807a2436a85ebea0c
+
+Use existing verified XACE wrappers and the resource-backed delegated application environment.
+Runtime destination on each host: spatial-test-artifacts/m06-held-input-20261012-01.
+Direct middle-child transfers failed host-key verification before any runtime command.
+Use the controller's established SSH routes to relay the unchanged archive.
+
+Related session-application and session-replacement regressions remain pending.
+Run them after the new combined case reaches its assertions and its source remains frozen.
+These focused checks do not complete the M06 phase gate.

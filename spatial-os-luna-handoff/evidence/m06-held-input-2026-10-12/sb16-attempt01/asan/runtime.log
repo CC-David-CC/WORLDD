@@ -1,0 +1,67 @@
+{"unit": "spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/python:/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/evidence/asan", "--", "python3", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tools/with_adapter_resources.py", "--", "python3", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_host_actor_controller.py", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/spatial-authority-launch-probe", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/spatial-security-auth", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service"]}
+Running as unit: spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service; invocation ID: 52f03d623d1040eeae84f3724e246bbd
+test_native_a_b_a_denial_and_retained_process_identities (__main__.HostActorControllerNativeTests.test_native_a_b_a_denial_and_retained_process_identities) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10465661600755993, "operation": "initialize", "outcome": "exit_0", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04338760799146257, "operation": "connect", "outcome": "connected", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05292791599640623, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012002404007944278, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03784431499661878, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01074293299461715, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0318768720026128, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010607200005324557, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03165564200025983, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011188118005520664, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.031183893006527796, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0001739810104481876, "operation": "request", "outcome": "EOFError", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+ERROR
+
+======================================================================
+ERROR: test_native_a_b_a_denial_and_retained_process_identities (__main__.HostActorControllerNativeTests.test_native_a_b_a_denial_and_retained_process_identities)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_host_actor_controller.py", line 154, in test_native_a_b_a_denial_and_retained_process_identities
+    proc, owner, first = self.ready()
+                         ^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_session_world.py", line 135, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_session_world.py", line 58, in start_coordinator
+    world_config = self.world_config()
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_host_actor_controller.py", line 109, in world_config
+    config = self.seeded_world_config()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_host_actor_controller.py", line 98, in seeded_world_config
+    config = fixture.SessionWorldTests.world_config(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_session_world.py", line 33, in world_config
+    registration = self.issuer.register(identity=getattr(self, 'world_participant_identity', (b'w' if not suffix else b'v') * 32), public=public, domain=getattr(self, 'world_exact_domain', getattr(self, 'world_domain', 'world-one')+suffix), revision=self.last_world_registry_revision if suffix else 1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/core/test_identity_participant_session.py", line 44, in register
+    reply = self.execute(self.peer, self.challenge(self.peer, operation))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/core/test_identity_tls.py", line 49, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/healthy_issuer_setup.py", line 50, in request
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/healthy_issuer_setup.py", line 41, in exact
+    raise EOFError('Issuer TLS stream closed')
+EOFError: Issuer TLS stream closed
+
+----------------------------------------------------------------------
+Ran 1 test in 5.007s
+
+FAILED (errors=1)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service/adapter-b6f4c831896146a181041ed82345140f", "device": 31, "inode": 12077092, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service/adapter-b6f4c831896146a181041ed82345140f\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["python3", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project/tests/native/test_host_actor_controller.py", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/project", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/spatial-authority-launch-probe", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/spatial-security-auth", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-held-input-20261012-01/asan/bin/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 5.229s
+CPU time consumed: 1.163s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service: Unit spatial-m03-resources-b4541481b25643c1b1305b92a8439e32.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

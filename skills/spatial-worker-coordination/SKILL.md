@@ -38,6 +38,8 @@ Do not fake imported targets or disable required components to conceal missing d
 Use modest build parallelism. The current convention is -j2 per build worker.
 Allow only one build process per build directory. Use flock with a directory-specific lock on Linux.
 For a long build, poll the original tool session. Do not submit the same build again while it runs.
+Use an output-specific flock for bundle packaging too. Two archive writers can corrupt the same output.
+Write archives to a unique temporary path. Validate them before atomically replacing the final artifact.
 
 Use a persistent tmux session and a unique run directory for each attempt.
 Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
