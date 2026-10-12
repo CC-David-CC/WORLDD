@@ -1,0 +1,31 @@
+Combined actor transport and sequencing verification, 2026-10-12.
+Frozen source commit: 927572759 on m06/world-transitions.
+Build checkout: middle-child:/home/dflanag3/src/spacial-m06-transitions-20261012.
+Branch: m06/actor-client-combined.
+
+Review retained both TLS and transition protobuf schemas, library dependencies, and test registrations.
+The merged header preserves TLS construction and signal policy, typed errors, and identity accessors.
+The merged client preserves TLS buffered-I/O handling and fail-closed mutating error behavior.
+This focused run verifies the merged source rather than combining independent branch results.
+
+53 local client cases, 31 TLS cases, and 35 coordinator cases per host/profile.
+sb16 and sb16-2 each passed Debug and ASan/UBSan.
+476 passed, 0 failed, 0 skipped. All six processes per host returned zero.
+No sanitizer diagnostics appeared. Artifact hashes matched on both test hosts.
+ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+Each probe ran under timeout 60.
+
+Runtime directory on both hosts: /home/dflanag3/spatial-test-artifacts/m06-combined-20261012-01.
+That directory retains run.sh, hash-check.log, individual exit records, and runner.exit.
+Artifacts are pinned by artifacts.sha256.
+Build logs: local/m06-combined/debug-build02.log and asan-ubsan-build02.log on middle-child.
+Both final builds returned zero.
+The initial build regenerated Makefiles but could not address a newly added target in that invocation.
+Explicit configure before the next invocation resolved it. Initial failure logs remain preserved.
+
+Scope limits:
+These probes use actual production clients and transition code against independent wire/TLS fixtures.
+They do not prove real-world persistence, native input cleanup, host selection, or A-B-A session recovery.
+Real issuer/worldd integration and trusted host foreground selection are active separate worker tasks.
+M06 full qualification and M07-M16 remain pending.

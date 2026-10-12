@@ -1,5 +1,13 @@
 # Implementation status
 
+## 2026-10-12: M06 combined actor client and sequencing checks pass
+
+Combined source 9275727 passes 119 cases on both hosts in Debug and ASan/UBSan: 476 executions.
+Typed server errors preserve uncertainty after possible effects. Departure receipts precede destination activation.
+Read evidence/m06-actor-combined-2026-10-12/primary-review.txt for merged-source evidence and limits.
+Real issuer/worldd integration and trusted host selection are active separate worker tasks.
+M06 native integration, recovery, and full qualification remain pending. M07-M16 remain pending.
+
 ## 2026-10-12: M06 actor TLS transport passes focused checks
 
 ActorSessionClient supports mutual TLS through versioned protobuf configuration.

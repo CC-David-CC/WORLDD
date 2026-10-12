@@ -1,5 +1,9 @@
 M06 review: an error reply does not prove that an operation had no effects.
 Status: confirmed source-level defect in the unintegrated transition draft.
+Resolution: corrected in worker 79c134390 and combined source 9275727.
+Combined focused checks passed on both hosts in Debug and ASan/UBSan.
+See spatial-os-luna-handoff/evidence/m06-actor-combined-2026-10-12/primary-review.txt.
+Real server durability-failure integration remains pending. The original finding follows.
 Date: 2026-10-12.
 
 Evidence:

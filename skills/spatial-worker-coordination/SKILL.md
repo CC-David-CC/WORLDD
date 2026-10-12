@@ -38,6 +38,9 @@ Keep the exact task, launch script, model, base commit, stdout, stderr, and fina
 Write the exit code even when the worker fails. Avoid set -e around the worker command.
 Transfer multiline scripts as files. Do not embed nested Python and shell scripts in PowerShell command strings.
 Use LF line endings for remote scripts.
+When editing Linux source from Windows, preserve existing line endings or write new lines explicitly as LF.
+Python write_text uses platform newlines unless configured. PowerShell Set-Content can add a BOM or CRLF.
+Use explicit encoding and newline handling for hash manifests and transferred files.
 
 Inspect tmux and the specific child process before restarting work.
 An observation timeout is not process failure. Recheck the same handle.
@@ -78,6 +81,8 @@ Stage explicit files. Never use git add . or git add -A for these large worker c
 Exclude credentials, local/ run directories, databases, environments, and build outputs.
 Include selected evidence only after reviewing it for secrets and irrelevant output.
 Review git diff --cached and run git diff --cached --check.
+Stop if a native command fails. PowerShell does not stop automatically on nonzero native exit codes.
+Check $LASTEXITCODE before dependent commits, pushes, or deployment steps.
 Do not commit unrelated staged changes.
 
 Use a coherent commit per independently reviewable increment.
@@ -117,6 +122,7 @@ Change the assignment, preflight, completion check, or launch mechanism that all
 Do not repeatedly send the same task and hope for a different result.
 When tests are omitted, require named implemented cases and verify them before accepting the handoff.
 When builds fail on missing packages, fix and record normal dependencies before rebuilding.
+After adding CMake targets, run an explicit configure before requesting those targets from an existing Makefile build.
 When transport quoting corrupts scripts, transfer script files instead of adding another escaping layer.
 When two branches change the same API, merge once and test the combined API before adding more dependent work.
 Keep improvements specific to observed failures. Do not create unrelated approval or compliance procedures.

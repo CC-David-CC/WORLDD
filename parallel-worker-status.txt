@@ -1,4 +1,12 @@
 Current checkpoint, 2026-10-12:
+Combined source 9275727 passed 476 focused checks on both test hosts in Debug and ASan/UBSan.
+Evidence: spatial-os-luna-handoff/evidence/m06-actor-combined-2026-10-12.
+middle-child now runs Luna medium in tmux spatial-m06-world-integration01.
+Worktree: /home/dflanag3/src/spacial-m06-world-integration-20261012, branch m06/actor-realworld-integration.
+Task: actual issuer/worldd transition integration, A-B-A context restoration, denial and workspace selection checks.
+Logs: local/m06-world-integration. Owns new driver/tests and focused registration; no production controller edits.
+a5500 continues the separate host-actor-controller task below.
+Earlier combined-build pending entries below are historical and superseded by this result.
 Transition worker source 79c134390 passed 352 focused executions on both hosts/profiles.
 Combined candidate 9275727 includes TLS and sequencing. Its combined checks remain pending.
 middle-child: m06/actor-client-combined, tmux spatial-m06-combined-build02.
