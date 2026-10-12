@@ -1,0 +1,51 @@
+2026-10-12: M06 resumed. Main branch checkpoint: 96b16e3 on box-git.
+Previous goal turn: progress. Host SSH access and isolated worker tasks established.
+
+middle-child:
+Checkout: /home/dflanag3/src/spacial-m06-transitions-20261012
+Branch: m06/actor-session-client
+Worker: Luna medium, tmux spatial-m06-client-03.
+Scope: authenticated production actor-session client and focused regression drafts.
+The primary controller created the branch after sandbox Git metadata writes failed.
+Logs: spatial-os-luna-handoff/local/m06-client-worker/run03-worker.jsonl
+Completion: run03-exit.txt and run03-message.txt in that directory.
+Primary review found deadline, descriptor ownership, and fail-closed response defects in run02.
+Run03 corrects those defects and adds a production-client probe. Runtime validation remains pending.
+Installed libxcomposite-dev on middle-child. Log: local/m06-client-worker/dependency-install.log.
+Removal command if required: sudo apt-get remove libxcomposite-dev
+Check package consumers before removal.
+
+a5500 reports hostname G164. These names identify the same authorized coding host.
+Checkout: /home/dflanag3/src/xserver-callbacklist-20261012
+Branch: feature/callbacklist-pixel-authorization
+Luna review added a proposed MIT-SHM image authorization hook. Runtime validation remains unrun.
+Luna build02 stopped on missing dependencies. Logs remain in verification/.
+Installed: meson, libpixman-1-dev, libxkbfile-dev, libxfont-dev and package dependencies.
+Package transaction log: verification/dependency-install.log.
+Package removal command if required: sudo apt-get remove meson libpixman-1-dev libxkbfile-dev libxfont-dev
+Check package consumers before removal. No login or SSH configuration changed during package installation.
+Protocol source: https://gitlab.freedesktop.org/xorg/proto/xorgproto.git
+Protocol revision: 6d3907b6d5dc4aa7d7ee6ee5d7d8714e7466630b
+Protocol install prefix: /home/dflanag3/.local/spatial-xorgproto-20261012
+Build03 failed configuration because libxcvt was missing. Its logs remain preserved.
+Installed libxcvt-dev and libsystemd-dev. Transaction log: verification/dependency-install02.log.
+Removal command if required: sudo apt-get remove libxcvt-dev libsystemd-dev
+Check package consumers before removal.
+Build04 failed configuration because epoxy was missing. Its logs remain preserved.
+Installed libepoxy-dev. Transaction log: verification/dependency-install03.log.
+Removal command if required: sudo apt-get remove libepoxy-dev
+Check package consumers before removal.
+Build05 completed successfully. Logs: verification/build05.log and build05-exit.txt.
+Callback unit regression implementation and Debug rebuild completed successfully.
+Full ASan/UBSan build completed successfully.
+Selected callback suite passed on sb16 and sb16-2 in Debug and ASan/UBSan.
+The broad Debug unit run failed signal_logging_test on both hosts despite zero process status.
+Failure logs and the harness defect are recorded in the separate callback integration worktree.
+Native pixel request tests and final SpatialSecurity integration remain pending.
+Protocol headers are private to this build. No system header replacement.
+
+sb16 and sb16-2 remain test/runtime boxes. No Codex installation or new development builds on them.
+Existing source and failure evidence remain preserved.
+Windows integration/callbacklist-pixel-authorization remains separate from M06.
+M06 gate is pending. M07-M16 and full Spatial-M1 qualification remain pending.
+Inspect live tmux/process state and completion files before restarting any job.
