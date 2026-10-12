@@ -1,6 +1,6 @@
 # ASan geometry failure evidence — 2026-10-12
 
-This directory records a failed run04 ASan/UBSan qualification attempt on `sb16` and `sb16-2`. Both hosts used the same frozen archive, test overlay, runner, and ASan process-scope helper. The exact pins appear in `source-attempt-pins.json`.
+This directory records a failed run04 ASan/UBSan qualification attempt on `sb16` and `sb16-2`. Both hosts used the same frozen archive, test overlay, runner, and ASan process-scope helper. The qualification sidecar binds 18 source-file hashes. Exact pins appear in `source-attempt-pins.json`.
 
 ## Observed results
 

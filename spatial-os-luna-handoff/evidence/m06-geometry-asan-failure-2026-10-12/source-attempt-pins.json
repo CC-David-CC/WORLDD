@@ -25,10 +25,10 @@
     "artifact_supplement_manifest_sha256":  "c5003d6597a578c2e42e6a132a718acce1b4cc45a3e4e2ef8e7fbe55a32f755b",
     "sidecar_sha256":  "46ee59d020ba998c751798ed9f98e142b20b7b2f7b54bb0cee454d6d5cf526e0",
     "original_archive_sha256":  "82a326fb3f2982b7b78b9555c4ecf8b8d27f0c6a5ddcb13ffdd29d46b9aac336",
-    "source_overlay_manifest_sha256":  "458aa2c43bfdcaffb8dc08458427100e389afd8495ecffbd656773577ba9b0f9",
     "source_base_commit":  "5368e7d280c1ad7f366c37a6b662bce64fb95bcd",
     "runner_sha256":  "3e1f45debda1afd977d7b590ae5dda0c57f5a10ef0d760f8347efe5caae806e6",
     "source_commit":  "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0",
     "supplemented_binary_sha256":  "126ba733d6124dbfa4e8dd088a56aaedab3af97016396e64a66b6f4bee0db629",
-    "fixture_overlay_sha256":  "2812589c0cae4bd3caa4406e577e0d27ebf6cbc7d8c67a6faba09a934d5e8323"
+    "fixture_overlay_sha256":  "2812589c0cae4bd3caa4406e577e0d27ebf6cbc7d8c67a6faba09a934d5e8323",
+    "source_overlay_hashes_bound_by_sidecar":  18
 }
