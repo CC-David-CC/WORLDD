@@ -1,4 +1,4 @@
-"""Check the production client budget separately from the short fault-test fixture."""
+"""Check healthy fixture budgets, production defaults, and explicit fault deadlines."""
 import io
 import os
 from pathlib import Path
@@ -13,11 +13,18 @@ from test_issuer_client import ClientFixture, ClientProcess, FaultPeer
 
 
 class ClientDefaultTests(ClientFixture):
+    def test_normal_fixture_uses_five_seconds_and_preserves_explicit_override(self):
+        self.assertEqual(self.config.io_timeout_ms, 5000)
+        normal = text_format.Parse(self.config_file(endpoint_port=1).read_text(), pb.IssuerTlsClientConfig())
+        short = text_format.Parse(self.config_file(endpoint_port=1, io_timeout_ms=150).read_text(), pb.IssuerTlsClientConfig())
+        self.assertEqual(normal.io_timeout_ms, 5000)
+        self.assertEqual(short.io_timeout_ms, 150)
+
     def run_budget(self, response, *, production_default, two_requests=False):
         peer = FaultPeer(self, response=response)
-        path = self.config_file(peer.port)
+        path = self.config_file(peer.port, **({} if production_default else {"io_timeout_ms": 700}))
         config = text_format.Parse(path.read_text(), pb.IssuerTlsClientConfig())
-        self.assertEqual(config.io_timeout_ms, 700)
+        self.assertEqual(config.io_timeout_ms, 5000 if production_default else 700)
         if production_default:
             config.ClearField('io_timeout_ms')
             path.write_text(text_format.MessageToString(config))

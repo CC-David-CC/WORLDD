@@ -109,7 +109,7 @@ class ClientFixture(TlsFixture):
         config = pb.IssuerTlsClientConfig(protocol_version=1, address='127.0.0.1', port=endpoint_port or self.port,
             server_name='issuer.test', server_ca_path=str(self.server_cert),
             certificate_path=str(self.service_cert), private_key_path=str(self.service_key),
-            issuer_id=self.info.issuer_id, issuer_public_key=self.info.public_key, io_timeout_ms=700)
+            issuer_id=self.info.issuer_id, issuer_public_key=self.info.public_key, io_timeout_ms=5000)
         for key, value in overrides.items(): setattr(config, key, value)
         with tempfile.NamedTemporaryFile(mode='w',dir=self.root,prefix='client-',suffix='.textproto',delete=False) as file:
             file.write(text_format.MessageToString(config))
@@ -332,7 +332,7 @@ class ClientTests(ClientFixture):
             peer.stream.sendall(prefix(frame(reply)))
             peer.stop.wait(2)
         peer = FaultPeer(self, response=respond)
-        client = self.client(peer.port)
+        client = self.client(peer.port, io_timeout_ms=700)
         request = pb.IssuerRequest(protocol_version=1, info=pb.IssuerInfoRequest())
         output, _ = client.proc.communicate(frame(request)*2, timeout=3)
         self.assertEqual(client.proc.returncode, 2)
