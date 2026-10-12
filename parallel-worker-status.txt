@@ -11,6 +11,12 @@ This draft is unqualified. Logs: local/m06-client-tls/run02-*.
 a5500: Sol medium, branch m06/transition-coordinator, tmux spatial-m06-sequence02.
 Task: correct transition sequencing and complete failure-path tests after the incomplete Luna attempt.
 Logs: local/m06-transition-sequence/run02-*.
+Primary review found incorrect no-effect claims for server error replies in the unintegrated draft.
+The server can emit STORAGE_ERROR after actor departure. The draft incorrectly retains a usable source client.
+See defect blockers/m06-transition-error-does-not-prove-no-effect.txt.
+Queued Sol correction: tmux spatial-m06-sequence03, logs local/m06-transition-sequence/run03-*.
+It waits for sequence02 to finish and requires its terminal exit record before editing.
+Scope: preserve uncertainty, fail closed after mutating errors, and add regressions for partial effects.
 Installed libxcomposite-dev and libxdamage-dev on a5500 for the normal project build.
 Transaction log: local/m06-transition-sequence/dependency-install.log.
 Recovery if required: sudo apt-get remove libxcomposite-dev libxdamage-dev
