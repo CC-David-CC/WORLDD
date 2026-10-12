@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-12: Issuer EOF isolated; geometry timing remains under diagnosis
+
+Read evidence/m06-issuer-diagnostic-2026-10-12 for the preserved sb16 diagnostic attempts.
+The real-TLS callback-failure diagnostic regression passed. Both count-limit reproductions failed.
+The first reproduction omitted the service-log retention setting. Its remaining evidence is preserved.
+The corrected reproduction retained issuer_eof at reply_header, with zero bytes received and zero milliseconds elapsed.
+This proves immediate closed-peer detection. It does not prove why the issuer closed the connection.
+The diagnostic runtime mixed a pinned baseline bundle with an explicit reviewed supplement. It is not qualification.
+Both attempts stopped. Cleanup found no remaining attempt processes.
+The corrected drivers require a writable evidence directory before importing fixtures. All eight guard checks passed.
+Source review found repeated snapshot-size computation before the geometry count guard.
+Timing instrumentation is assigned to an isolated Luna medium worker on a5500, based on 5cbec99.
+No timeout, idle policy, retry behavior, or acceptance assertion changed.
+M06 remains active. Remaining sanitizer suites, combined-source checks, visible geometry, and the full gate remain pending.
+
 ## 2026-10-12: Geometry Debug passes; sanitizer issuer disconnect under diagnosis
 
 All nine selected Debug suites passed on both hosts across two corrected attempts.

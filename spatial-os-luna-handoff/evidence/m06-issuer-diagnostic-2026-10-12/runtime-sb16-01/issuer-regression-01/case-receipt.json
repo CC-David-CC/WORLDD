@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/incoming/issuer_case_driver.py",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/tests/core/test_issuer_client.py",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/bin/identityd",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/bin/spatial-issuer-client",
+    "test_callback_failure_diagnostic_is_bounded_and_fail_closed"
+  ],
+  "elapsed_seconds": 0.5242684209952131,
+  "end_utc": "2026-10-12T15:51:03.221929+00:00",
+  "linux_process_start_ticks": 11942551,
+  "pid": 1753215,
+  "process_group": 1753215,
+  "start_utc": "2026-10-12T15:51:02.697662+00:00",
+  "state": "TERMINAL",
+  "terminal": true,
+  "test_exit": 0,
+  "timeout_seconds": 90.0
+}

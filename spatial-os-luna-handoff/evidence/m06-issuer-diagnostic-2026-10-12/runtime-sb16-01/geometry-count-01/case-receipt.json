@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/incoming/single_case_driver.py",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/tests/core/test_geometry_view.py",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/bin/identityd",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/bin/spatial-issuer-client",
+    "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/bin/worldd",
+    "test_geometry_count_limit_is_controlled_and_other_actor_survives"
+  ],
+  "elapsed_seconds": 106.00587681200705,
+  "end_utc": "2026-10-12T15:53:53.178450+00:00",
+  "linux_process_start_ticks": 11948998,
+  "pid": 1753750,
+  "process_group": 1753750,
+  "start_utc": "2026-10-12T15:52:07.172575+00:00",
+  "state": "TERMINAL",
+  "terminal": true,
+  "test_exit": 1,
+  "timeout_seconds": 600.0
+}

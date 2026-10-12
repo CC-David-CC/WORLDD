@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "case": "missing",
+      "driver": "single_case_driver-v2.py",
+      "exit": 1,
+      "rejected_before_import": true,
+      "stderr": "SPATIAL_SECURITY_EVIDENCE is required before importing fixtures"
+    },
+    {
+      "case": "relative",
+      "driver": "single_case_driver-v2.py",
+      "exit": 1,
+      "rejected_before_import": true,
+      "stderr": "SPATIAL_SECURITY_EVIDENCE must be absolute"
+    },
+    {
+      "case": "unwritable",
+      "driver": "single_case_driver-v2.py",
+      "exit": 1,
+      "rejected_before_import": true,
+      "stderr": "SPATIAL_SECURITY_EVIDENCE is not writable: [Errno 2] No such file or directory: '/proc/.spatial-evidence-writecheck-g5iuzdk1'"
+    },
+    {
+      "case": "valid-writable-directory",
+      "driver": "single_case_driver-v2.py",
+      "fixture_imported_after_guard": true,
+      "guard_passed": true,
+      "later_expected_failure": "has no attribute 'GeometryViewTests'"
+    },
+    {
+      "case": "missing",
+      "driver": "issuer_case_driver-v2.py",
+      "exit": 1,
+      "rejected_before_import": true,
+      "stderr": "SPATIAL_SECURITY_EVIDENCE is required before importing fixtures"
+    },
+    {
+      "case": "relative",
+      "driver": "issuer_case_driver-v2.py",
+      "exit": 1,
+      "rejected_before_import": true,
+      "stderr": "SPATIAL_SECURITY_EVIDENCE must be absolute"
+    },
+    {
+      "case": "unwritable",
+      "driver": "issuer_case_driver-v2.py",
+      "exit": 1,
+      "rejected_before_import": true,
+      "stderr": "SPATIAL_SECURITY_EVIDENCE is not writable: [Errno 2] No such file or directory: '/proc/.spatial-evidence-writecheck-qk88ejwh'"
+    },
+    {
+      "case": "valid-writable-directory",
+      "driver": "issuer_case_driver-v2.py",
+      "fixture_imported_after_guard": true,
+      "guard_passed": true,
+      "later_expected_failure": "expected ClientTests fixture class is missing"
+    }
+  ],
+  "status": "PASS"
+}

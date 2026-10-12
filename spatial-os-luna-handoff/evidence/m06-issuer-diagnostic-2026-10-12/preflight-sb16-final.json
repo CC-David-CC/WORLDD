@@ -1,0 +1,349 @@
+{
+  "base_commit": "5368e7d280c1ad7f366c37a6b662bce64fb95bcd",
+  "baseline_archive_sha256": "82a326fb3f2982b7b78b9555c4ecf8b8d27f0c6a5ddcb13ffdd29d46b9aac336",
+  "baseline_member_count": 540,
+  "binary_hashes": {
+    "spatial-issuer-client": "aa44adf72d94b2ae052bb659b83d2ff191c3cd9b08410c4058eb78cf1da80f63",
+    "spatial-issuer-failure-diagnostic": "cd9d08a31517dca48c80ebc0b2215ccf27619cc447307155a97dee4705b0fa99",
+    "worldd": "b8fea381b0d5c51fcd6ed474146fce1e4414e306351bf2f46957f66d878bf19a"
+  },
+  "driver_sha256": "21b583e3964e9359058224448e0eda2cc933d860b6bf092285df19acb5a3de39",
+  "fixture_sha256": "d08bea9d440167cad32b3f02d3f46cf9a164f7a36a8579bd9fa65823da907b43",
+  "host": "sb16",
+  "identityd_sha256": "458b16b719a705ca6a2f426c19c7ad1f09373c1f1d471eef37ddff5ed47595d1",
+  "ldd": {
+    "identityd": {
+      "exit": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007e50567a5000)\n\tlibasan.so.8 => /lib/x86_64-linux-gnu/libasan.so.8 (0x00007e5052e00000)\n\tlibssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x00007e50566e0000)\n\tlibprotobuf.so.32 => /lib/x86_64-linux-gnu/libprotobuf.so.32 (0x00007e5052a00000)\n\tlibcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x00007e5052400000)\n\tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007e5052298000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007e5052000000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007e50565f5000)\n\tlibubsan.so.1 => /lib/x86_64-linux-gnu/libubsan.so.1 (0x00007e5051800000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007e50535d2000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007e5051400000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007e50565d9000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007e50567a7000)\n",
+      "resolved": [
+        {
+          "path": "/lib/x86_64-linux-gnu/libasan.so.8",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+          "sha256": "8d5845bdf056b5db4cfb9fff40ad5eeea8f6da05a8ca6f5935a7d1c138ed2558",
+          "soname": "libasan.so.8"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libssl.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libssl.so.3",
+          "sha256": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+          "soname": "libssl.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libprotobuf.so.32",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+          "sha256": "7b55969fb776114e4a117ca251ff7861158939275a7c51578a11bf8d6405284e",
+          "soname": "libprotobuf.so.32"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+          "soname": "libcrypto.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libsqlite3.so.0",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6",
+          "sha256": "85265a9d4afca6f4b325ceb078b669c754fb881abed4cafe91ccebe9d625d975",
+          "soname": "libsqlite3.so.0"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+          "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "soname": "libstdc++.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libm.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+          "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "soname": "libm.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libubsan.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0",
+          "sha256": "f4a999fcf8392a200e9d93fb066ddb9e89daab8cd94a62137f4506472240a2e8",
+          "soname": "libubsan.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "soname": "libgcc_s.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libc.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "soname": "libc.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libz.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "sha256": "86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892",
+          "soname": "libz.so.1"
+        },
+        {
+          "path": "/lib64/ld-linux-x86-64.so.2",
+          "resolved": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "soname": "ld-linux-x86-64.so.2"
+        }
+      ]
+    },
+    "spatial-issuer-client": {
+      "exit": 0,
+      "output": "\tlinux-vdso.so.1 (0x0000761a54cf7000)\n\tlibasan.so.8 => /lib/x86_64-linux-gnu/libasan.so.8 (0x0000761a51600000)\n\tlibssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x0000761a54c32000)\n\tlibprotobuf.so.32 => /lib/x86_64-linux-gnu/libprotobuf.so.32 (0x0000761a51200000)\n\tlibcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x0000761a50c00000)\n\tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x0000761a50a98000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x0000761a50800000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x0000761a51d17000)\n\tlibubsan.so.1 => /lib/x86_64-linux-gnu/libubsan.so.1 (0x0000761a50000000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x0000761a54c02000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000761a4fc00000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x0000761a54be6000)\n\t/lib64/ld-linux-x86-64.so.2 (0x0000761a54cf9000)\n",
+      "resolved": [
+        {
+          "path": "/lib/x86_64-linux-gnu/libasan.so.8",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+          "sha256": "8d5845bdf056b5db4cfb9fff40ad5eeea8f6da05a8ca6f5935a7d1c138ed2558",
+          "soname": "libasan.so.8"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libssl.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libssl.so.3",
+          "sha256": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+          "soname": "libssl.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libprotobuf.so.32",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+          "sha256": "7b55969fb776114e4a117ca251ff7861158939275a7c51578a11bf8d6405284e",
+          "soname": "libprotobuf.so.32"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+          "soname": "libcrypto.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libsqlite3.so.0",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6",
+          "sha256": "85265a9d4afca6f4b325ceb078b669c754fb881abed4cafe91ccebe9d625d975",
+          "soname": "libsqlite3.so.0"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+          "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "soname": "libstdc++.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libm.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+          "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "soname": "libm.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libubsan.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0",
+          "sha256": "f4a999fcf8392a200e9d93fb066ddb9e89daab8cd94a62137f4506472240a2e8",
+          "soname": "libubsan.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "soname": "libgcc_s.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libc.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "soname": "libc.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libz.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "sha256": "86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892",
+          "soname": "libz.so.1"
+        },
+        {
+          "path": "/lib64/ld-linux-x86-64.so.2",
+          "resolved": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "soname": "ld-linux-x86-64.so.2"
+        }
+      ]
+    },
+    "spatial-issuer-failure-diagnostic": {
+      "exit": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007d47c54b5000)\n\tlibasan.so.8 => /lib/x86_64-linux-gnu/libasan.so.8 (0x00007d47c1e00000)\n\tlibssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x00007d47c53f0000)\n\tlibprotobuf.so.32 => /lib/x86_64-linux-gnu/libprotobuf.so.32 (0x00007d47c1a00000)\n\tlibcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x00007d47c1400000)\n\tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007d47c1298000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007d47c1000000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007d47c2517000)\n\tlibubsan.so.1 => /lib/x86_64-linux-gnu/libubsan.so.1 (0x00007d47c0800000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007d47c24e9000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007d47c0400000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007d47c1de4000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007d47c54b7000)\n",
+      "resolved": [
+        {
+          "path": "/lib/x86_64-linux-gnu/libasan.so.8",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+          "sha256": "8d5845bdf056b5db4cfb9fff40ad5eeea8f6da05a8ca6f5935a7d1c138ed2558",
+          "soname": "libasan.so.8"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libssl.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libssl.so.3",
+          "sha256": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+          "soname": "libssl.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libprotobuf.so.32",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+          "sha256": "7b55969fb776114e4a117ca251ff7861158939275a7c51578a11bf8d6405284e",
+          "soname": "libprotobuf.so.32"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+          "soname": "libcrypto.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libsqlite3.so.0",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6",
+          "sha256": "85265a9d4afca6f4b325ceb078b669c754fb881abed4cafe91ccebe9d625d975",
+          "soname": "libsqlite3.so.0"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+          "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "soname": "libstdc++.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libm.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+          "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "soname": "libm.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libubsan.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0",
+          "sha256": "f4a999fcf8392a200e9d93fb066ddb9e89daab8cd94a62137f4506472240a2e8",
+          "soname": "libubsan.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "soname": "libgcc_s.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libc.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "soname": "libc.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libz.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "sha256": "86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892",
+          "soname": "libz.so.1"
+        },
+        {
+          "path": "/lib64/ld-linux-x86-64.so.2",
+          "resolved": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "soname": "ld-linux-x86-64.so.2"
+        }
+      ]
+    },
+    "worldd": {
+      "exit": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007b61c0d35000)\n\tlibasan.so.8 => /lib/x86_64-linux-gnu/libasan.so.8 (0x00007b61ba400000)\n\tlibssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x00007b61c0c70000)\n\tlibprotobuf.so.32 => /lib/x86_64-linux-gnu/libprotobuf.so.32 (0x00007b61ba000000)\n\tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007b61b9e98000)\n\tlibcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x00007b61b9800000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007b61b9400000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007b61c0b85000)\n\tlibubsan.so.1 => /lib/x86_64-linux-gnu/libubsan.so.1 (0x00007b61b8c00000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007b61c0b57000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007b61b8800000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007b61c0b3b000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007b61c0d37000)\n",
+      "resolved": [
+        {
+          "path": "/lib/x86_64-linux-gnu/libasan.so.8",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+          "sha256": "8d5845bdf056b5db4cfb9fff40ad5eeea8f6da05a8ca6f5935a7d1c138ed2558",
+          "soname": "libasan.so.8"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libssl.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libssl.so.3",
+          "sha256": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+          "soname": "libssl.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libprotobuf.so.32",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+          "sha256": "7b55969fb776114e4a117ca251ff7861158939275a7c51578a11bf8d6405284e",
+          "soname": "libprotobuf.so.32"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libsqlite3.so.0",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6",
+          "sha256": "85265a9d4afca6f4b325ceb078b669c754fb881abed4cafe91ccebe9d625d975",
+          "soname": "libsqlite3.so.0"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+          "soname": "libcrypto.so.3"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+          "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "soname": "libstdc++.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libm.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+          "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "soname": "libm.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libubsan.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0",
+          "sha256": "f4a999fcf8392a200e9d93fb066ddb9e89daab8cd94a62137f4506472240a2e8",
+          "soname": "libubsan.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "soname": "libgcc_s.so.1"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libc.so.6",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "soname": "libc.so.6"
+        },
+        {
+          "path": "/lib/x86_64-linux-gnu/libz.so.1",
+          "resolved": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "sha256": "86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892",
+          "soname": "libz.so.1"
+        },
+        {
+          "path": "/lib64/ld-linux-x86-64.so.2",
+          "resolved": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "soname": "ld-linux-x86-64.so.2"
+        }
+      ]
+    }
+  },
+  "runtime": "UNRUN",
+  "runtime_environment": {
+    "CTest_timeout_seconds": 90,
+    "DISPLAY": "cleared",
+    "LD_LIBRARY_PATH": "cleared",
+    "PATH": "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/bin:/usr/bin:/bin",
+    "PYTHONPATH": "/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle/python:/home/dflanag3/spatial-qualification/m06-issuer-diagnostic-sb16-20261012-02/bundle",
+    "WAYLAND_DISPLAY": "cleared",
+    "XAUTHORITY": "cleared",
+    "X_backend": "not used",
+    "sanitizer_overrides": "cleared"
+  },
+  "selected_count_reproduction": "GeometryViewTests.test_geometry_count_limit_is_controlled_and_other_actor_survives",
+  "selected_regression": "ClientTests.test_callback_failure_diagnostic_is_bounded_and_fail_closed",
+  "source_commit": "5cbec99d1ad2844da1b8fd4b709c8e0444beb414",
+  "status": "PREFLIGHT_PASS",
+  "supplement_archive_sha256": "c2533e333f59ad294120dd92ecb971731117fb41789ab9c8e2114d968db91508",
+  "supplement_manifest_sha256": "29ad41d42b7f5cb51d721aac458e2293aabdd6752395014b90f2c2453301e85d",
+  "supplement_member_count": 34,
+  "timeout_wrapper_sha256": "435dfd2ac1aa8d06b6049be9dd63049f545e148c3c3ac185dad8e1dd5b952714",
+  "utc": "2026-10-12T15:50:10.638539+00:00"
+}

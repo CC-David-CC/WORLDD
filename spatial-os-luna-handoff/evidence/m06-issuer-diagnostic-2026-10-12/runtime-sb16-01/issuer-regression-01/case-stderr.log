@@ -1,0 +1,6 @@
+test_callback_failure_diagnostic_is_bounded_and_fail_closed (_issuer_callback_diagnostic.ClientTests.test_callback_failure_diagnostic_is_bounded_and_fail_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.402s
+
+OK
