@@ -1,0 +1,202 @@
+130: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"
+130: Working Directory: /home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug
+130: Environment variables: 
+130:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff
+130:  SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb
+130:  SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/native
+130:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+130:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+130: Test timeout computed to be: 180
+130: {"unit": "spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/native", "--setenv=SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-xprobe", "--setenv=SPATIAL_RENDER_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/graphics", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service"]}
+130: Running as unit: spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service; invocation ID: 825ecd3e632941b482a2815d694916c7
+130: test_native_storage_session_retains_owner_and_confined_application (__main__.NativeStorageSessionTests.test_native_storage_session_retains_owner_and_confined_application) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.050202685000840575, "operation": "initialize", "outcome": "exit_0", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009145068004727364, "operation": "connect", "outcome": "connected", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05230586499965284, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01100101500924211, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05255027599923778, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010861696006031707, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.036780679001822136, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010767943997052498, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.036087593995034695, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010707596011343412, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.043343347002519295, "operation": "request", "outcome": "received", "test": "test_native_storage_session_retains_owner_and_confined_application"}
+130: FAIL
+130: test_native_storage_owner_loss_stops_execution_and_records_cleanup (__main__.NativeStorageSessionTests.test_native_storage_owner_loss_stops_execution_and_records_cleanup) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.060750176999135874, "operation": "initialize", "outcome": "exit_0", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.00909669000247959, "operation": "connect", "outcome": "connected", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05202422000002116, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011219306994462386, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.051533805002691224, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010911196004599333, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03207329999713693, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01075738700455986, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032048944995040074, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011268791990005411, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03411188500467688, "operation": "request", "outcome": "received", "test": "test_native_storage_owner_loss_stops_execution_and_records_cleanup"}
+130: FAIL
+130: 
+130: ======================================================================
+130: FAIL: test_native_storage_session_retains_owner_and_confined_application (__main__.NativeStorageSessionTests.test_native_storage_session_retains_owner_and_confined_application)
+130: ----------------------------------------------------------------------
+130: Traceback (most recent call last):
+130:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 30, in setUp
+130:     self.volume_command('prepare', self.previous_config)
+130:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 41, in volume_command
+130:     self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+130: AssertionError: 1 != 0 : Traceback (most recent call last):
+130:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/storage_session_volume.py", line 17, in <module>
+130:     assert root.is_relative_to(Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'))
+130:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+130: AssertionError
+130: 
+130: 
+130: ======================================================================
+130: FAIL: test_native_storage_owner_loss_stops_execution_and_records_cleanup (__main__.NativeStorageSessionTests.test_native_storage_owner_loss_stops_execution_and_records_cleanup)
+130: ----------------------------------------------------------------------
+130: Traceback (most recent call last):
+130:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 30, in setUp
+130:     self.volume_command('prepare', self.previous_config)
+130:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 41, in volume_command
+130:     self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+130: AssertionError: 1 != 0 : Traceback (most recent call last):
+130:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/storage_session_volume.py", line 17, in <module>
+130:     assert root.is_relative_to(Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'))
+130:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+130: AssertionError
+130: 
+130: 
+130: ----------------------------------------------------------------------
+130: Ran 2 tests in 1.048s
+130: 
+130: FAILED (failures=2)
+130: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service/adapter-0f7ff5e13ae744089194f0c14b63dd01", "device": 31, "inode": 8656159, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service/adapter-0f7ff5e13ae744089194f0c14b63dd01\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+130: Finished with result: exit-code
+130: Main processes terminated with: code=exited/status=1
+130: Service runtime: 1.254s
+130: CPU time consumed: 651ms
+130: Memory peak: 2.7M
+130: Memory swap peak: 0B
+130: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service: Unit spatial-m03-resources-d493a0a708274a7d90057fff08dc157f.service not loaded.\n"}
+130: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+130/141 Test #130: session-storage-owner ..................***Failed    1.39 sec
+131: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"
+131: Working Directory: /home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug
+131: Environment variables: 
+131:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff
+131:  SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb
+131:  SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/native
+131:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+131:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+131: Test timeout computed to be: 180
+131: {"unit": "spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/native", "--setenv=SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-xprobe", "--setenv=SPATIAL_RENDER_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/graphics", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service"]}
+131: Running as unit: spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service; invocation ID: 59e983edf1dd41908bab549b442e8992
+131: test_native_storage_actor_revocation_and_durable_issuer_under_writes (__main__.StorageContentionTests.test_native_storage_actor_revocation_and_durable_issuer_under_writes) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06813690200215206, "operation": "initialize", "outcome": "exit_0", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009388558013597503, "operation": "connect", "outcome": "connected", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.051718564005568624, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011331246001645923, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.06611497300036717, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010424539010273293, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.040786582001601346, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01141650800127536, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.042153141999733634, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01093213600688614, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03210951600340195, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes"}
+131: FAIL
+131: test_native_storage_credential_revocation_preserves_execution_under_writes (__main__.StorageContentionTests.test_native_storage_credential_revocation_preserves_execution_under_writes) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06465507700340822, "operation": "initialize", "outcome": "exit_0", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.00937132399121765, "operation": "connect", "outcome": "connected", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.052483382998616435, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011137408000649884, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05506063198845368, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010504778998438269, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03216162300668657, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011222877001273446, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.031746305990964174, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010777311996207573, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04304890900675673, "operation": "request", "outcome": "received", "test": "test_native_storage_credential_revocation_preserves_execution_under_writes"}
+131: FAIL
+131: test_native_storage_actor_revocation_during_bounded_git_import (__main__.StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.05653685700963251, "operation": "initialize", "outcome": "exit_0", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.008939809005823918, "operation": "connect", "outcome": "connected", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05221289700421039, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010668303992133588, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.038989387001493014, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010756050993222743, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.031110412994166836, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011216789003810845, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03195250300632324, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010781767996377312, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04132748999109026, "operation": "request", "outcome": "received", "test": "test_native_storage_actor_revocation_during_bounded_git_import"}
+131: FAIL
+131: 
+131: ======================================================================
+131: FAIL: test_native_storage_actor_revocation_and_durable_issuer_under_writes (__main__.StorageContentionTests.test_native_storage_actor_revocation_and_durable_issuer_under_writes)
+131: ----------------------------------------------------------------------
+131: Traceback (most recent call last):
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", line 44, in setUp
+131:     super().setUp()
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 30, in setUp
+131:     self.volume_command('prepare', self.previous_config)
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", line 41, in volume_command
+131:     return super().volume_command(operation,*arguments)
+131:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 41, in volume_command
+131:     self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+131: AssertionError: 1 != 0 : Traceback (most recent call last):
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/storage_session_volume.py", line 17, in <module>
+131:     assert root.is_relative_to(Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'))
+131:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131: AssertionError
+131: 
+131: 
+131: ======================================================================
+131: FAIL: test_native_storage_credential_revocation_preserves_execution_under_writes (__main__.StorageContentionTests.test_native_storage_credential_revocation_preserves_execution_under_writes)
+131: ----------------------------------------------------------------------
+131: Traceback (most recent call last):
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", line 44, in setUp
+131:     super().setUp()
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 30, in setUp
+131:     self.volume_command('prepare', self.previous_config)
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", line 41, in volume_command
+131:     return super().volume_command(operation,*arguments)
+131:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 41, in volume_command
+131:     self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+131: AssertionError: 1 != 0 : Traceback (most recent call last):
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/storage_session_volume.py", line 17, in <module>
+131:     assert root.is_relative_to(Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'))
+131:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131: AssertionError
+131: 
+131: 
+131: ======================================================================
+131: FAIL: test_native_storage_actor_revocation_during_bounded_git_import (__main__.StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import)
+131: ----------------------------------------------------------------------
+131: Traceback (most recent call last):
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", line 44, in setUp
+131:     super().setUp()
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 30, in setUp
+131:     self.volume_command('prepare', self.previous_config)
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", line 41, in volume_command
+131:     return super().volume_command(operation,*arguments)
+131:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py", line 41, in volume_command
+131:     self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+131: AssertionError: 1 != 0 : Traceback (most recent call last):
+131:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/storage_session_volume.py", line 17, in <module>
+131:     assert root.is_relative_to(Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'))
+131:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131: AssertionError
+131: 
+131: 
+131: ----------------------------------------------------------------------
+131: Ran 3 tests in 1.611s
+131: 
+131: FAILED (failures=3)
+131: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service/adapter-48f3aff657ec465883a1d47c497d7f5c", "device": 31, "inode": 8657079, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service/adapter-48f3aff657ec465883a1d47c497d7f5c\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+131: Finished with result: exit-code
+131: Main processes terminated with: code=exited/status=1
+131: Service runtime: 1.820s
+131: CPU time consumed: 893ms
+131: Memory peak: 3.0M
+131: Memory swap peak: 0B
+131: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service: Unit spatial-m03-resources-06100fbd02434495b3abba87f67e2ebf.service not loaded.\n"}
+131: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+131/141 Test #131: session-storage-contention .............***Failed    1.97 sec

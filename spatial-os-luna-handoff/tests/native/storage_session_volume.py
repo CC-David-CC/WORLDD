@@ -14,7 +14,8 @@ assert os.getuid() == 0 and socket.gethostname().split('.')[0] in ('sb16', 'sb16
 operation, build, root = sys.argv[1:4]
 build, root = Path(build).resolve(strict=True), Path(root).resolve(strict=True)
 assert root.name.startswith('test_native_storage_')
-assert root.is_relative_to(Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'))
+fixture_local = (Path(__file__).resolve().parents[2] / 'local').resolve(strict=True)
+assert root.is_relative_to(fixture_local)
 assert not root.is_symlink()
 sys.path.insert(0, str(build/'python'))
 import broker_pb2 as broker
