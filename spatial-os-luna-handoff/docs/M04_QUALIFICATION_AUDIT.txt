@@ -27,12 +27,11 @@ The historical shutdown timeout remains unexplained. Current repetitions pass.
 
 Remaining work before completion
 
-1. Finish asynchronous event coverage beyond the six tested child-event types.
-   Review MapRequest, ConfigureRequest, GravityNotify, ResizeRequest, and Circulate paths.
-   Check every embedded window identifier for foreign metadata exposure.
-   ConfigureRequest sibling disclosure was reproduced and corrected after this initial audit.
-   Its source, controls, and validation are recorded in evidence/m04-configure-request-2026-10-11.
-   These are coverage gaps and investigation targets, not confirmed additional defects.
+1. Core structure-event coverage now passes its expanded checks and independent mutations.
+   MapRequest, ConfigureRequest, GravityNotify, ResizeRequest, and Circulate paths have added coverage.
+   ConfigureRequest sibling disclosure was reproduced and corrected after the initial audit.
+   Read evidence/m04-configure-request-2026-10-11 and evidence/m04-event-coverage-2026-10-11.
+   Unrelated extension events and physical input retain their separate requirements.
 2. Reassess global and device administration, launch-broker integration, and actor observation/control on the frozen gate candidate.
    They are outside the current 11-suite selection and require the cumulative gate.
 3. Reconcile independent bypass-mutation evidence with the final source.

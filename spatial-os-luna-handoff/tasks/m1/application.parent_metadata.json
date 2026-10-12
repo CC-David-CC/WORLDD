@@ -20,7 +20,7 @@
     "Three isolated native bypass mutations with exact failure IDs."
   ],
   "limitations": [
-    "The witness covers six core child-event types. Other event and extension paths require their own evidence.",
+    "The 47-case witness covers the core structure-event subjects and resize redirection. Unrelated extension events require separate evidence.",
     "Private Mesa cleanup validation does not qualify native GPU sessions or the installed vendor setup.",
     "Focused qualification does not complete M04 or Spatial-M1."
   ],

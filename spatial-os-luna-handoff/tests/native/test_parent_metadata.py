@@ -85,15 +85,26 @@ class ParentMetadataTests(unittest.TestCase):
             child = creator.create_window(parent)
             if action == 'unmap':
                 self.assertIsNone(creator.operation(8, creator.pack('I', child)))
+            if action in ('circulate', 'circulate_request'):
+                sibling = creator.create_window(parent)
+                for window in (child, sibling):
+                    self.assertIsNone(creator.operation(8, creator.pack('I', window)))
+            if action == 'gravity':
+                self.assertIsNone(creator.operation(2, creator.pack('III', child, 1 << 5, 9)))
+        event_mask = 1 << (20 if action.endswith('_request') else 19)
         self.assertIsNone(observer.operation(2, observer.pack(
-            'III', parent, 1 << 11, 1 << 19)))
+            'III', parent, 1 << 11, event_mask)))
         if action == 'create':
             child = creator.create_window(parent)
-        elif action in ('map', 'unmap', 'destroy'):
-            opcode = {'map': 8, 'unmap': 10, 'destroy': 4}[action]
+        elif action in ('map', 'map_request', 'unmap', 'destroy'):
+            opcode = {'map': 8, 'map_request': 8, 'unmap': 10, 'destroy': 4}[action]
             self.assertIsNone(creator.operation(opcode, creator.pack('I', child)))
-        elif action == 'configure':
+        elif action in ('configure', 'configure_request'):
             self.assertIsNone(creator.operation(12, creator.pack('IH2xI', child, 1 << 2, 40)))
+        elif action in ('circulate', 'circulate_request'):
+            self.assertIsNone(creator.operation(13, creator.pack('I', parent), 0))
+        elif action == 'gravity':
+            self.assertIsNone(creator.operation(12, creator.pack('IH2xII', parent, 12, 40, 40)))
         elif action == 'reparent':
             self.assertIsNone(creator.operation(7, creator.pack('IIhh', child, creator.root, 0, 0)))
         else:
@@ -101,11 +112,84 @@ class ParentMetadataTests(unittest.TestCase):
         if authorized:
             event = observer.exact(32)
             expected = {'create': 16, 'destroy': 17, 'unmap': 18, 'map': 19,
-                        'reparent': 21, 'configure': 22}[action]
+                        'reparent': 21, 'configure': 22, 'map_request': 20,
+                        'configure_request': 23, 'gravity': 24,
+                        'circulate': 26, 'circulate_request': 27}[action]
             self.assertEqual(event[0], expected)
             self.assertEqual(struct.unpack_from(observer.endian + 'II', event, 4), (parent, child))
         # A native reply fence detects any queued event. Do not discard events.
         self.assertEqual(observer.inspect().role, resources.pb.APPLICATION)
+
+    def test_foreign_map_request_is_not_delivered(self):
+        self.foreign_substructure('map_request')
+
+    def test_swapped_foreign_map_request_is_not_delivered(self):
+        self.foreign_substructure('map_request', endian='>')
+
+    def test_same_application_map_request_is_delivered(self):
+        self.foreign_substructure('map_request', authorized=True)
+
+    def test_foreign_configure_request_is_not_delivered(self):
+        self.foreign_substructure('configure_request')
+
+    def test_swapped_foreign_configure_request_is_not_delivered(self):
+        self.foreign_substructure('configure_request', endian='>')
+
+    def test_same_application_configure_request_is_delivered(self):
+        self.foreign_substructure('configure_request', authorized=True)
+
+    def test_foreign_gravity_event_is_not_delivered(self):
+        self.foreign_substructure('gravity')
+
+    def test_swapped_foreign_gravity_event_is_not_delivered(self):
+        self.foreign_substructure('gravity', endian='>')
+
+    def test_same_application_gravity_event_is_delivered(self):
+        self.foreign_substructure('gravity', authorized=True)
+
+    def test_foreign_circulate_event_is_not_delivered(self):
+        self.foreign_substructure('circulate')
+
+    def test_swapped_foreign_circulate_event_is_not_delivered(self):
+        self.foreign_substructure('circulate', endian='>')
+
+    def test_same_application_circulate_event_is_delivered(self):
+        self.foreign_substructure('circulate', authorized=True)
+
+    def test_foreign_circulate_request_is_not_delivered(self):
+        self.foreign_substructure('circulate_request')
+
+    def test_swapped_foreign_circulate_request_is_not_delivered(self):
+        self.foreign_substructure('circulate_request', endian='>')
+
+    def test_same_application_circulate_request_is_delivered(self):
+        self.foreign_substructure('circulate_request', authorized=True)
+
+    def resize_redirect(self, endian='<', authorized=False):
+        self.scene(endian=endian, same_workspace=authorized, same_application=authorized)
+        result = self.other.operation(2, self.other.pack('III', self.window, 1 << 11, 1 << 18))
+        if not authorized:
+            self.assertEqual(result, 10, 'Foreign ResizeRedirect subscription must return BadAccess')
+            return
+        self.assertIsNone(result)
+        self.assertIsNone(self.owner.operation(12, self.owner.pack('IH2xII', self.window, 12, 40, 41)))
+        event = self.other.exact(32)
+        self.assertEqual(event[0], 25)
+        self.assertEqual(struct.unpack_from(self.other.endian + 'IHH', event, 4),
+                         (self.window, 40, 41))
+        self.assertEqual(self.other.inspect().role, resources.pb.APPLICATION)
+
+    def test_foreign_resize_redirect_is_denied(self):
+        self.resize_redirect()
+
+    def test_swapped_foreign_resize_redirect_is_denied(self):
+        self.resize_redirect(endian='>')
+
+    def test_same_application_resize_request_is_delivered(self):
+        self.resize_redirect(authorized=True)
+
+    def test_swapped_same_application_resize_request_is_delivered(self):
+        self.resize_redirect(endian='>', authorized=True)
 
     def test_foreign_child_create_event_is_not_delivered(self):
         self.foreign_substructure('create')

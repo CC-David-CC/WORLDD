@@ -1,0 +1,52 @@
+﻿{
+    "phase_complete":  false,
+    "mutation_results":  [
+                             {
+                                 "host":  "sb16",
+                                 "detected":  true,
+                                 "mutation":  "query-parent",
+                                 "completed_checks":  47,
+                                 "exact_failures":  2
+                             },
+                             {
+                                 "host":  "sb16",
+                                 "detected":  true,
+                                 "mutation":  "reparent-event",
+                                 "completed_checks":  47,
+                                 "exact_failures":  2
+                             },
+                             {
+                                 "host":  "sb16",
+                                 "detected":  true,
+                                 "mutation":  "child-event",
+                                 "completed_checks":  47,
+                                 "exact_failures":  22
+                             },
+                             {
+                                 "host":  "sb16-2",
+                                 "detected":  true,
+                                 "mutation":  "query-parent",
+                                 "completed_checks":  47,
+                                 "exact_failures":  2
+                             },
+                             {
+                                 "host":  "sb16-2",
+                                 "detected":  true,
+                                 "mutation":  "reparent-event",
+                                 "completed_checks":  47,
+                                 "exact_failures":  2
+                             },
+                             {
+                                 "host":  "sb16-2",
+                                 "detected":  true,
+                                 "mutation":  "child-event",
+                                 "completed_checks":  47,
+                                 "exact_failures":  22
+                             }
+                         ],
+    "parser_checks":  10,
+    "primary_source_unchanged":  true,
+    "ordinary_checks":  188,
+    "status":  "passed-expanded-event-coverage-and-mutations",
+    "next":  "Freeze and execute the complete M04 gate on both hosts."
+}

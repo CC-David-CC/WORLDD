@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-11: Expanded core event checks detect isolated bypasses
+
+Nineteen added checks cover map/configure redirection, gravity, circulation, and resize redirection.
+The 47-case parent-event suite passes on both hosts in Debug and GLX-enabled native-server ASan/UBSan.
+These runs total 188 checks. The five mutation-parser checks pass on each host.
+All three isolated bypasses produce exactly their expected failures on both hosts.
+Query-parent and reparent-event bypasses each produce two failures. The child-event bypass produces 22.
+Every mutation run executes all 47 cases. The primary source remains unchanged during the runs.
+
+No new production change is required for this event-coverage increment.
+M04 remains incomplete. A full gate runner now records frozen source and graphics configuration for both profiles.
+The complete gate, cross-host reassessment, and native qualification still require evidence.
+Read evidence/m04-event-coverage-2026-10-11/primary-review.json.
+
 ## 2026-10-11: Redirected configure requests no longer disclose foreign siblings
 
 The event audit reproduced ConfigureRequest sibling disclosure in both byte orders on both hosts.

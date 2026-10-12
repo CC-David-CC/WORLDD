@@ -30,7 +30,11 @@ It covers parent queries and ReparentNotify in both byte orders.
 It covers foreign child CreateNotify, MapNotify, UnmapNotify, DestroyNotify, ConfigureNotify, and ReparentNotify.
 It checks both byte orders for those negative cases.
 Same-application and privileged positive cases must continue to work.
-The current suite does not qualify every remaining asynchronous event or extension path.
+The suite also covers MapRequest, ConfigureRequest, GravityNotify, CirculateNotify, and CirculateRequest.
+Each added parent-delivery path has native and swapped denial checks and a same-application delivery control.
+ResizeRedirect rejects foreign subscriptions and preserves authorized ResizeRequest delivery in both byte orders.
+These checks cover the core structure-event subjects listed in the receive callback.
+They do not qualify unrelated extension events or physical input.
 
 The isolated mutation suite bypasses each new guard separately.
 Expected failures must match the guard's exact counterexamples.

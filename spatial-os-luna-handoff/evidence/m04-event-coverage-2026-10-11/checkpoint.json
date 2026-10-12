@@ -1,0 +1,41 @@
+﻿{
+    "mutation_sessions":  {
+                              "sb16-2":  22457,
+                              "sb16":  58600
+                          },
+    "phase_complete":  false,
+    "production_source":  "3294db3",
+    "expected_mutations":  {
+                               "child-event":  22,
+                               "reparent-event":  2,
+                               "query-parent":  2
+                           },
+    "reports":  [
+                    {
+                        "profile":  "debug-01",
+                        "host":  "sb16",
+                        "hashes_verified":  true,
+                        "passed":  47
+                    },
+                    {
+                        "profile":  "glx-sanitize-01",
+                        "host":  "sb16",
+                        "hashes_verified":  true,
+                        "passed":  47
+                    },
+                    {
+                        "profile":  "debug-01",
+                        "host":  "sb16-2",
+                        "hashes_verified":  true,
+                        "passed":  47
+                    },
+                    {
+                        "profile":  "glx-sanitize-01",
+                        "host":  "sb16-2",
+                        "hashes_verified":  true,
+                        "passed":  47
+                    }
+                ],
+    "parser_checks_per_host":  5,
+    "status":  "event-checks-passed-mutations-running"
+}

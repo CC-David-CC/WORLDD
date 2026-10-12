@@ -22,7 +22,7 @@ def mutation_result(text, exit_code, expected):
     errors = set(re.findall(r'^ERROR: (\S+)', text, re.MULTILINE))
     count = re.search(r'Ran (\d+) tests', text)
     detected = (exit_code != 0 and failures == expected and not errors
-                and count is not None and int(count[1]) == 28)
+                and count is not None and int(count[1]) == 47)
     return bool(detected), failures, errors
 
 
@@ -53,6 +53,11 @@ def main():
         'child-event': {'test_' + prefix + 'foreign_child_' + action + '_event_is_not_delivered'
                         for prefix in ('', 'swapped_')
                         for action in ('create', 'map', 'unmap', 'destroy', 'configure', 'reparent')}}
+    mutations['child-event'].update(
+        'test_' + prefix + 'foreign_' + action + '_is_not_delivered'
+        for prefix in ('', 'swapped_')
+        for action in ('map_request', 'configure_request', 'gravity_event',
+                       'circulate_event', 'circulate_request'))
     record = {'phase_complete': False, 'inputs_sha256': before,
               'environment': environment, 'mutations': []}
     for name, expected in mutations.items():
