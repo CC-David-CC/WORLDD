@@ -3,10 +3,16 @@ M06 client integrated as e28b20c on m06/world-transitions and pushed to box-git.
 Worker source checkpoint:4f403b7b9 on m06/actor-session-client.
 All43 client cases passed on both test hosts in Debug and ASan/UBSan:172 executions.
 Evidence: spatial-os-luna-handoff/evidence/m06-actor-client-2026-10-12.
-middle-child: Luna medium, branch m06/actor-client-tls, tmux spatial-m06-client-tls01.
-Task: mutual TLS actor transport and regression fixtures. Logs: local/m06-client-tls.
-a5500: Luna medium, branch m06/transition-coordinator, tmux spatial-m06-sequence01.
-Task: actor transition sequencing using the reviewed client. Logs: local/m06-transition-sequence.
+middle-child: branch m06/actor-client-tls. The Luna worker finished with exit 0.
+TLS code builds in Debug and ASan/UBSan. Required TLS regression fixtures remain missing.
+This draft is unreviewed and unqualified. Logs: local/m06-client-tls.
+a5500: Sol medium, branch m06/transition-coordinator, tmux spatial-m06-sequence02.
+Task: correct transition sequencing and complete failure-path tests after the incomplete Luna attempt.
+Logs: local/m06-transition-sequence/run02-*.
+Installed libxcomposite-dev and libxdamage-dev on a5500 for the normal project build.
+Transaction log: local/m06-transition-sequence/dependency-install.log.
+Recovery if required: sudo apt-get remove libxcomposite-dev libxdamage-dev
+Check package consumers before removal.
 Host foreground selection integration, real-world transitions, recovery and full M06 qualification remain pending.
 Both test-host probe jobs finished. No new test jobs remain running.
 The redundant primary-build queue was canceled before it compiled anything; normal worker builds supplied the tested artifacts.

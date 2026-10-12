@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-12: M06 local actor client passes focused checks
+
+The reviewed client uses authenticated protobuf exchanges over private local actor channels.
+It enforces bounded deadlines, descriptor ownership, and fail-closed reply validation.
+All 43 cases passed on both test hosts in Debug and ASan/UBSan: 172 executions.
+Read evidence/m06-actor-client-2026-10-12/primary-review.txt for scope and evidence.
+The integrated checkpoint is e28b20c. The worker checkpoint is 4f403b7b9.
+TLS transport and transition sequencing remain separate, unqualified worker drafts.
+Host foreground selection, real-world transition integration, recovery, and the full M06 gate remain pending.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.
+Workers coordinate through box-git branches and isolated checkouts or worktrees.
+Stable deployment is authorized on all four hosts. Both sb16 hosts remain required qualification targets.
+XACE remains the active baseline. CallbackList work remains deferred.
+
 ## 2026-10-12: M06 shared worldd client and captures pass focused checks
 
 Two real worldd processes can present through one compositor without owning its lifetime.

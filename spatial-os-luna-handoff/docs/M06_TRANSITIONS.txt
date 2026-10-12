@@ -1,6 +1,7 @@
 M06 transition implementation plan, 2026-10-12
 Status: host ownership, departure receipts, and destination preparation implemented.
-The production transition client and full actor transition qualification remain pending.
+The local actor-session client passes focused checks on both hosts in Debug and ASan/UBSan.
+TLS transport, transition sequencing, host selection integration, and full actor transition qualification remain pending.
 Departure confirms input cleanup and persists the source actor before replying.
 Prepared destination authentication does not create a controller or enable actions.
 Activation consumes the preparation and rechecks credential status and admission.
