@@ -47,5 +47,10 @@ Protocol headers are private to this build. No system header replacement.
 sb16 and sb16-2 remain test/runtime boxes. No Codex installation or new development builds on them.
 Existing source and failure evidence remain preserved.
 Windows integration/callbacklist-pixel-authorization remains separate from M06.
+David deferred further CallbackList migration and integration until after Spatial-M1 on 2026-10-12.
+Keep XACE as the active project baseline. Preserve CallbackList source and evidence for future comparison.
+No CallbackList worker should be restarted without a new request or reaching the deferred stage.
+M06 client hostile-peer regression task escalated to Sol medium after two incomplete Luna attempts.
+Current M06 tmux session: spatial-m06-client-04. Logs use run04 under the same worker directory.
 M06 gate is pending. M07-M16 and full Spatial-M1 qualification remain pending.
 Inspect live tmux/process state and completion files before restarting any job.

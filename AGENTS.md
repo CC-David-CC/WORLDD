@@ -229,6 +229,10 @@ Surface control must not amplify actor authority.
 An actor with read-only authority cannot control a writable terminal.
 
 Extend the native XLibre server.
+Keep the existing XACE implementation as the active baseline through Spatial-M1 qualification.
+Preserve the CallbackList migration on a separate branch for future comparison.
+Defer further CallbackList migration and integration until after the initial goal, unless David requests it earlier.
+Do not replace the XACE baseline merely to modernize its API.
 Assign each X connection an immutable workspace and application security identity.
 Server resources inherit that identity.
 Deny unauthorized cross-workspace enumeration, pixel reads, properties, resource changes, grabs, and input injection.
