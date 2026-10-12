@@ -1,0 +1,14 @@
+﻿{
+    "phase":  "M04",
+    "prior_goal_turn":  "progress",
+    "invariant":  "Redirected ConfigureRequest must not disclose foreign sibling identifiers.",
+    "baseline":  "baseline-02: two failures and six passing controls per host",
+    "invalid_attempt":  "baseline-01: compositor credential fixture labels rejected; preserved separately",
+    "selected_checks":  "All 11 native suites: 236 checks per host and profile",
+    "profiles":  [
+                     "Debug with GLX",
+                     "ASan/UBSan with GLX and hash-verified private EGL candidate"
+                 ],
+    "graphics_checks":  "32 pixel-checked contexts and 100 shutdown repetitions per host",
+    "phase_complete":  false
+}

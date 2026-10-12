@@ -13,6 +13,12 @@ The copy sets that parent field to None.
 The original event remains available to privileged recipients.
 The shared root remains a public parent.
 
+ConfigureRequest also uses a private recipient copy when its requested sibling is unauthorized.
+The copy sets the sibling to None and clears CWSibling from valueMask.
+Other requested fields remain intact. Same-application and privileged recipients retain the original sibling and mask.
+This filtering occurs before per-recipient byte swapping.
+The event metadata suite checks native and swapped privacy failures and both authorized controls.
+
 An event subscription to an owned parent does not grant observation of foreign children.
 Receive authorization checks the subject window of core structure events and requests.
 It rejects the complete delivery when that subject belongs to another application.

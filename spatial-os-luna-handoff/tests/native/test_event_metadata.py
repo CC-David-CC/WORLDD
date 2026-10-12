@@ -45,6 +45,47 @@ class EventMetadataTests(unittest.TestCase):
         self.assertEqual(event[0], 22)
         self.assertEqual(struct.unpack_from(supervisor.endian + 'I', event, 12)[0], self.other_window)
 
+    def redirected_configure(self, endian='<', same_application=False, privileged=False):
+        supervisor = self.scene(endian=endian, same_workspace=same_application,
+                                same_application=same_application)
+        child = self.other.create_window(self.other_window)
+        self.assertIsNone(supervisor.operation(7, supervisor.pack(
+            'IIhh', self.window, self.other_window, 0, 0)))
+        observer = supervisor if privileged else self.other
+        requester = self.connect(supervisor.issue(role=resources.pb.COMPOSITOR,
+                                                  workspace=b'', application=b'').cookie)
+        self.assertIsNone(observer.operation(2, observer.pack(
+            'III', self.other_window, 1 << 11, 1 << 20)))
+        self.assertIsNone(requester.operation(12, requester.pack(
+            'IH2xII', child, (1 << 5) | (1 << 6), self.window, 0)))
+        event = observer.exact(32)
+        self.assertEqual(event[0], 23, 'Expected real ConfigureRequest')
+        self.assertEqual(struct.unpack_from(observer.endian + 'II', event, 4),
+                         (self.other_window, child))
+        sibling = struct.unpack_from(observer.endian + 'I', event, 12)[0]
+        mask = struct.unpack_from(observer.endian + 'H', event, 26)[0]
+        return sibling, mask
+
+    def test_configure_request_does_not_disclose_foreign_sibling(self):
+        sibling, mask = self.redirected_configure()
+        self.assertEqual(sibling, 0)
+        self.assertEqual(mask, 1 << 6)
+
+    def test_swapped_configure_request_does_not_disclose_foreign_sibling(self):
+        sibling, mask = self.redirected_configure(endian='>')
+        self.assertEqual(sibling, 0)
+        self.assertEqual(mask, 1 << 6)
+
+    def test_configure_request_preserves_same_application_sibling(self):
+        sibling, mask = self.redirected_configure(same_application=True)
+        self.assertEqual(sibling, self.window)
+        self.assertEqual(mask, (1 << 5) | (1 << 6))
+
+    def test_configure_request_preserves_privileged_sibling(self):
+        sibling, mask = self.redirected_configure(privileged=True)
+        self.assertEqual(sibling, self.window)
+        self.assertEqual(mask, (1 << 5) | (1 << 6))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

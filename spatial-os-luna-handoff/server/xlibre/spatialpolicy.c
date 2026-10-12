@@ -134,6 +134,14 @@ static void drawable_access(CallbackListPtr *list, void *unused, void *data)
 Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered)
 {
     if (SpatialSecurityPrivileged(client)) return FALSE;
+    if ((event->u.u.type & 0x7f) == ConfigureRequest) {
+        XID sibling = event->u.configureRequest.sibling;
+        if (sibling == None || SpatialSecurityVisibleResource(client, sibling)) return FALSE;
+        *filtered = *event;
+        filtered->u.configureRequest.sibling = None;
+        filtered->u.configureRequest.valueMask &= ~CWSibling;
+        return TRUE;
+    }
     if ((event->u.u.type & 0x7f) == ReparentNotify) {
         XID parent_id = event->u.reparent.parent;
         if (parent_id == None || SpatialSecurityVisibleResource(client, parent_id)) return FALSE;

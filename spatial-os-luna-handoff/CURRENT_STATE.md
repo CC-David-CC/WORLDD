@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-11: Redirected configure requests no longer disclose foreign siblings
+
+The event audit reproduced ConfigureRequest sibling disclosure in both byte orders on both hosts.
+The corrected baseline fails two privacy checks and passes six controls per host.
+An earlier credential-fixture error remains preserved and is excluded from the product failure count.
+
+SpatialSecurity now clears unauthorized sibling IDs and CWSibling on a private recipient event copy.
+Other fields, same-application requests, and privileged requests remain intact.
+Each host passes 236 selected checks in Debug and GLX-enabled native-server ASan/UBSan, for 944 total.
+Each host also passes 32 pixel-checked GLX cycles and 100 shutdown repetitions with the verified private EGL candidate.
+Source and copied log hashes match. No sanitizer findings appear in the collected logs.
+All 41 locked files remain unchanged.
+
+Remaining event coverage and the full M04 gate are pending. Software graphics do not qualify physical GPU output.
+Read evidence/m04-configure-request-2026-10-11/primary-review.json.
+
 ## 2026-10-11: Current native security passes private-vendor GLX sanitizers
 
 The current instrumented server passes 232 GLX-enabled security checks on each host.

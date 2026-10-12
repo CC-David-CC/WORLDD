@@ -1,0 +1,72 @@
+{
+  "host": "sb16-2",
+  "status": "failed",
+  "phase_complete": false,
+  "native_server_sanitizers": false,
+  "core_only": false,
+  "source_sha256": {
+    "tools/qualify_atom_increment.py": "04964ccd39b891d50fe1e191410b59ca761bc7e4d61efd098d423f7cbb838a1e",
+    "tests/native/selection_scope_client.py": "edb0bb137dbe5aee28a74d8dbf50e4237708723802965eb9c34de5829b8c170d",
+    "tests/native/test_resource_isolation.py": "ef50b936d30ab18a2d70fa2d22b6cffcd91b95e5419b2192b144ec08177c0da8",
+    "tests/native/test_security_identity.py": "5b2ca730013fad4a9c09f78c62b910d9cd266b48a242df00a6e5ad9332b5dd5b",
+    "tests/native/display_ready.py": "742d307c9cf1404616ea6ff0bcd61536db5751ba05a29d232128e7dc0fc735cb",
+    "tests/native/test_atom_privacy.py": "8d70dfb81b39eb17fb456729c18f8a267aaea7d7e7f769185b023e59e3d997d2",
+    "tests/native/test_selection_isolation.py": "867f5d09e5c346ed9f1633f877efa0a834ed59d151c9102f1084434aed9791ca",
+    "tests/native/test_selection_namespace.py": "c832ffe37d329480106f162a5e5fed71851014de22dd895570b6ed3f8e4761f6",
+    "tests/native/test_event_metadata.py": "c3cfa637fc6e99262b75bf408e34248772f3e156421fcd8e2b9f680e9c9e427e",
+    "tests/native/test_parent_metadata.py": "86bae321d829d3d4c11f7404797f297c58de59b8accc9696de3b2716580886f5",
+    "tests/native/test_topology_pixels.py": "01186385d80ddd42f4d47e3f1e07fdab1dd61b4977872b3d3d4a6f8b9b59dc46",
+    "tests/native/test_extension_isolation.py": "7588f868251ce1ea70e95693316fd00d5859396a64ff54eb5b6f8a0b36811492",
+    "tests/native/test_application_input.py": "237b8c62ce112c785bffb76a030e0b870def50b5a7879dfdc165d80c2cb5c791",
+    "tests/native/test_actor_binding.py": "f5ee80df455f8c551b1f23fded906698cee3fc3bc459efa0da6ead47a15e930a",
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/patches/0002-spatial-security.patch": "c5c94cd1cb375e829db7b0e0478dacb916dc9890e71b3c94243e701c3c99cb0b",
+    "server/patches/0003-server-shutdown.patch": "195e4b5475fb124535a5be1abbf1ea12723d6c8ba39ec5f463f5d3c24f6dd6b7",
+    "server/patches/0004-spatial-resource-policy.patch": "ad72bc7de29196c2fbec843df7d7eecf2de70e7a246b2bcf9b4f63cc30af1544",
+    "server/patches/0005-animated-cursor-cleanup.patch": "a51fa2ba79da0a92396b3675dcadccdd598cb78155c451b738d368ac5af12356",
+    "server/patches/0006-global-server-access.patch": "e98932d02c432f298b257b6f5f4dafb59fecfecacf1056ee1023753b0e940b07",
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch": "21e9efe8bcb7a23f0f7dbdb219a0ff8c986d30339a96988e017fa6ae46a95d29",
+    "server/patches/0008-application-atom-privacy.patch": "ec66f9c1536954df7c3c724f4f63b4a47145a1b98eb4ad3457f835ae245d579f",
+    "server/patches/0009-private-configure-event-metadata.patch": "3ad2a6c8d120cd9c5f55a5a904b993610851b0e948c6ea0d42a4567c018c466f",
+    "server/patches/0010-private-parent-metadata.patch": "e6aef6659ad89d227ed4d4cf11492d651822fa44ae44eb3b17506a04f5704483",
+    "server/patches/0011-xlibre-child-pixel-isolation.patch": "33668fea8798ceeaf18b71d1c3697545df3b2f667b0c04abe6d392388782f4ad",
+    "server/xlibre/spatialinput.c": "00e4bd9a42a8414916f9167d2e6fe2b51b683930da265ee70a84b5ce60ed391b",
+    "server/xlibre/spatialinput.h": "4d80f8ef30fcec45205f00249fecf96054d76d5c93771b6595e7c87bdb9206c1",
+    "server/xlibre/meson.build": "549e8f4f936b59327e9a66941b977bb2a219c54cb7a165112ba441b44ed96f9e",
+    "proto/spatial/input/v1/input.proto": "83958a6050992e5629e151af93a9af8620876dc9f8899016933cd8e8782990ce",
+    "server/xlibre/spatialsecurity.c": "ee9efd3c09f598154676f95fa6b42f12b6c4bba196297ebbde4b5222849a3d63",
+    "server/xlibre/spatialpolicy.c": "a81acb26b16cf5decd9c91c0473e463b287ffe7ae83f7e250589539666edae6a",
+    "server/xlibre/spatialsecurity.h": "36bf2617492264149f26367755fb54c4b632bfcb8fa9e8cc04e13ea0239fe85d",
+    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48",
+    "proto/spatial/security/v1/selection_scope.proto": "e6782b2424f2f2f2a39c4edfa2a4eaf2888a1b60a325a9bdb68184aa26a46e9d"
+  },
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/local/xlibre-patched/78810378b4bfb87b34806e84427f7e63387dfee3df8e2bf09ea01104a91cb709/source/build/hw/vfb/Xvfb",
+    "sha256": "5fb28709af83ce321c23cce6ea62378f41e6e1d72502f14779f7ef0991a9307b"
+  },
+  "helper": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth",
+    "sha256": "d544679556b30e5d62e77d1be8e809c2ae2ae234c1390a96ed4d2121cc6be368"
+  },
+  "environment": {
+    "PYTHONPATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/python:/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff",
+    "SPATIAL_TEST_XSERVER": "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/local/xlibre-patched/78810378b4bfb87b34806e84427f7e63387dfee3df8e2bf09ea01104a91cb709/source/build/hw/vfb/Xvfb",
+    "SPATIAL_SECURITY_EVIDENCE": "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/evidence/m04-configure-request-20261011/baseline-02/native-server",
+    "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+  },
+  "suites": [
+    {
+      "name": "event_metadata",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/tests/native/test_event_metadata.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth"
+      ],
+      "exit_code": 1,
+      "count": 8,
+      "log_sha256": "060f9ad022a0790141a8daf32ebf04c5037fe65d8ac105ba63122aa0aa970b47"
+    }
+  ],
+  "source_unchanged": true
+}

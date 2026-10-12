@@ -29,7 +29,9 @@ Remaining work before completion
 
 1. Finish asynchronous event coverage beyond the six tested child-event types.
    Review MapRequest, ConfigureRequest, GravityNotify, ResizeRequest, and Circulate paths.
-   Check every embedded window identifier, including requested siblings, for foreign metadata exposure.
+   Check every embedded window identifier for foreign metadata exposure.
+   ConfigureRequest sibling disclosure was reproduced and corrected after this initial audit.
+   Its source, controls, and validation are recorded in evidence/m04-configure-request-2026-10-11.
    These are coverage gaps and investigation targets, not confirmed additional defects.
 2. Reassess global and device administration, launch-broker integration, and actor observation/control on the frozen gate candidate.
    They are outside the current 11-suite selection and require the cumulative gate.
