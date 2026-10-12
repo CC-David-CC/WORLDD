@@ -1,0 +1,59 @@
+{
+  "status": "passed_needs_primary_review",
+  "candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "phase_complete": false,
+  "results": [
+    {
+      "name": "authentication",
+      "detected": true,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/authentication/source/local/xlibre-patched/37400e61fb40b5d4fd952de7c7864ca40dd61585ddceba4fee7f46e0d753a075/source/build/hw/vfb/Xvfb",
+        "sha256": "debe37db4ec1ecb48ad299a82ac26d7b8d3e794d905040307e874316fd8a43f3"
+      },
+      "witness": "test_bad_cookies_cannot_use_disabled_host_access_control",
+      "failures": [
+        "test_bad_cookies_cannot_use_disabled_host_access_control"
+      ],
+      "log_sha256": "9482fb3d06fd1243f7b3708c9b037dcfae67e4026d999c44386bbf37e690281f"
+    },
+    {
+      "name": "issuer-disconnect",
+      "detected": true,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/issuer-disconnect/source/local/xlibre-patched/d16c9f0c2374c3d7034f8b03d998e827ef8884de85ba6e0bd3370d7148b9436e/source/build/hw/vfb/Xvfb",
+        "sha256": "1573faa22035d74d8cb49c80a9e051a74d4a99773b37ee70cc6e6e638ccaa968"
+      },
+      "witness": "test_issuing_connection_loss_revokes_its_credentials",
+      "failures": [
+        "test_issuing_connection_loss_revokes_its_credentials"
+      ],
+      "log_sha256": "9aa433dbb5e414ce898b09f7ecbe8d613ff26941e4427bb196a546de8ba7117c"
+    },
+    {
+      "name": "resource-access",
+      "detected": true,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/resource-access/source/local/xlibre-patched/dfcead85318504479d98aeb7cce9b685cb979bab496429724614b49fa2f606ef/source/build/hw/vfb/Xvfb",
+        "sha256": "345205bcff79e9c204d26865a31580bcb5144a40f7c76e027f95e210512dcc35"
+      },
+      "witness": "test_foreign_pixels_cannot_be_read",
+      "failures": [
+        "test_foreign_pixels_cannot_be_read"
+      ],
+      "log_sha256": "e5aa298444214249aff2002ead1397409ffa178fdc89b067c7e88e167f44326c"
+    },
+    {
+      "name": "window-pixels",
+      "detected": true,
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/window-pixels/source/local/xlibre-patched/2e641fe6e1f9b5c74bdedb8606b49e401e95a2f64fe733cc1dfdba1348f0039e/source/build/hw/vfb/Xvfb",
+        "sha256": "33e40621f62c362d8bce6ca81ac0d8e2551ee6afe672575727be838efc5deeaf"
+      },
+      "witness": "test_render_shape_hole_is_not_a_foreign_pixel_source",
+      "failures": [
+        "test_render_shape_hole_is_not_a_foreign_pixel_source"
+      ],
+      "log_sha256": "3392a64772643ed1c39786ae89a07b02c065a44df3d347ea88d8e11472f0f4aa"
+    }
+  ]
+}

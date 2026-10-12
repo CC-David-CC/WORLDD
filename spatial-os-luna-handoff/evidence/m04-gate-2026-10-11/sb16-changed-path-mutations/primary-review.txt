@@ -1,0 +1,33 @@
+Changed-path mutation review: sb16
+Date: 2026-10-11
+Candidate: f74c6b579c6149f41e1cbd17b025eb92fd453009
+Status: four expected bypass detections verified. M04 remains incomplete.
+
+Each isolated server built successfully before its native witness ran.
+The runner verified each server binary against its build receipt.
+Each witness executed one test and returned one exact expected assertion failure.
+No witness reported a setup ERROR.
+All four copied witness logs match the SHA-256 values in run.json.
+The runner verified that the frozen primary source manifest remained unchanged.
+The copied patches each disable only the intended authority check.
+
+authentication
+The mutation accepts an unmatched cookie.
+The witness fails because a 32-byte invalid cookie is not denied.
+
+issuer-disconnect
+The mutation skips invalidating credentials issued by the closing connection.
+The witness fails because the revoked native connection remains open.
+
+resource-access
+The mutation returns before the XACE resource authority check.
+The witness receives foreign pixmap image data instead of native BadAccess.
+
+window-pixels
+The mutation disables the Render picture read guard for window sources.
+The shaped-window source composite returns success instead of native BadAccess.
+
+These failures validate the witnesses against intentional bypasses.
+They are not failures of the unmodified candidate.
+The same checks still require execution and review on sb16-2.
+Cross-host qualification and the final M04 requirements audit remain pending.

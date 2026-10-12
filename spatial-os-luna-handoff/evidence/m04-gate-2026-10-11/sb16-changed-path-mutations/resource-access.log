@@ -1,0 +1,16 @@
+test_foreign_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_foreign_pixels_cannot_be_read) ... FAIL
+
+======================================================================
+FAIL: test_foreign_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_foreign_pixels_cannot_be_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/resource-access/source/tests/native/test_resource_isolation.py", line 160, in test_foreign_pixels_cannot_be_read
+    self.denied(self.other, 73, self.other.pack('IhhHHI', self.pixmap, 0, 0, 1, 1, 0xffffffff), 2, True)
+  File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-changed-path-mutations-01/resource-access/source/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x04\x00\x01\x00\x00\x00\x00\x[105 chars]x00') != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 1 test in 0.031s
+
+FAILED (failures=1)
