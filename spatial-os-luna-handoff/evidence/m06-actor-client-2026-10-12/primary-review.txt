@@ -1,0 +1,33 @@
+M06 actor-session client: focused verification in progress.
+Build host: middle-child. Test hosts: sb16 and sb16-2.
+Worker branch: m06/actor-session-client, based on96b16e3.
+
+Selected tests exercise the production client against an independent fixture peer.
+Cases cover descriptor ownership, valid authentication with real signature verification, partial framing, prepared inactivity, activation/departure, lifecycle guards, hostile challenge context, bad envelopes, wrong receipt identities, dropped replies, bounded backpressure, and no replay.
+Fixture peers are appropriate for hostile transport behavior. They do not replace worldd/native transition acceptance.
+
+Debug binary SHA256: 6b524059f1c69c44259f6ea4dd1e818f0c0b14e51c3448b171fdc4098529b9d0
+Built through normal project CMake target spatial-actor-session-client-probe.
+Deployment directory: /home/dflanag3/spatial-test-artifacts/m06-client-debug-20261012-01
+Command: timeout 60 ./probe
+Both hosts returned zero and reported43 cases passed.
+Each log has41 named PASS lines plus two constructor checks before those cases.
+Total Debug case executions:86. No failed or skipped cases in these runs.
+
+Tested source SHA256:
+actor_session_client.cpp: 9cb9c9638a2a668549e98079e314bb4ef1abd4c1b16689d22ac432091a3631a0
+actor_session_client.hpp: 610ed4ff7c5a01e49954362ff5e81ce1159e7c7d89af41526d7339c8b26edc70
+actor_session_client_probe.cpp: 43a440a16a526dfe7c3a4d2856e6d44b88804cee6800ef3f0f5f03c1cdd671da
+CMakeLists.txt: 34557dacf31b3d2394deca4ee53e3ea1c940969e0fff64efeee78ca077f8ed30
+
+Primary source review confirmed RAII descriptor ownership before key loading, nonblocking send/recv, bounded frame sizes, request/reply correlation, checked signing context, explicit lifecycle, and permanent closure after uncertain exchange or semantic response mismatch.
+Earlier Luna drafts failed this review. Their logs remain on middle-child under local/m06-client-worker and spatial-os-luna-handoff/local/m06-client-worker.
+Sol was used only after two incomplete Luna attempts.
+
+ASan/UBSan normal project build passed.
+Sanitizer binary SHA256: 4413250f7b50c921aa57a5969b4f982d9cda3a82718b9873959a2f184e7923c1
+Both hosts passed43 cases with ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 and UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1.
+Each process exited zero. Both logs have the complete summary and no sanitizer diagnostic markers.
+Total selected case executions across both profiles and hosts:172, with no failures or skips.
+TLS client transport, production transition coordinator, native source-release ordering, cross-host transitions, recovery, and full M06 gate remain pending.
+This component result does not qualify M06 or Spatial-M1.
