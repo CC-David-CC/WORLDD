@@ -3,6 +3,8 @@
 #include "presentation.pb.h"
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace spatial { class BrokerClient; }
 namespace spatial::supervisor {
@@ -38,6 +40,9 @@ public:
     v1::AuthorityLaunchRecord stop_broker();
     identity::v1::AuthorityRetirementState retire_broker();
     v1::AuthorityLaunchRecord stop();
+    // Trusted shutdown of all retained entries, including failed starts without a returned owner.
+    // Empty means every world has checked stop receipts and no retained presentation.
+    std::vector<std::string> stop_retained_worlds();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

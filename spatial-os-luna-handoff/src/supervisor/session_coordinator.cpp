@@ -354,4 +354,64 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop() {
     }
     return state.broker.stop();
 }
+std::vector<std::string> SessionCoordinator::stop_retained_worlds() {
+    auto& state = *impl_; state.owned();
+    std::vector<std::string> unresolved;
+    for (auto& [key, entry] : state.worlds) {
+        constexpr char digits[] = "0123456789abcdef";
+        std::string label; label.reserve(key.size() * 2);
+        for (const unsigned char byte : key) {
+            label.push_back(digits[byte >> 4]); label.push_back(digits[byte & 15]);
+        }
+        auto& world = *entry;
+        std::string registered_stop_error;
+        if (world.registered && world.supervisor && !world.stopped) {
+            try { (void)stop_world(world.owner); }
+            catch (const std::exception& error) {
+                registered_stop_error = error.what();
+            }
+        }
+        if (world.supervisor && !world.stopped) {
+            if (world.owner.has_launch()) {
+                try { state.administrative(world.owner, -1, true); }
+                catch (const std::exception& error) {
+                    // The supervisor stop still must be attempted. Its receipt does not prove the fence.
+                    unresolved.push_back(label + ": broker fence: " + error.what());
+                }
+            }
+            try {
+                world.record = world.supervisor->stop();
+                require(world.record.stage() == v1::OWNED_SCOPES_STOPPED &&
+                    world.record.has_process_stopped() && world.record.has_native_stopped(),
+                    "Retained world lacks checked stop receipts");
+                world.stopped = true;
+                world.management.reset(); world.actors.clear();
+            } catch (const std::exception& error) {
+                unresolved.push_back(label + ": world stop: " + error.what());
+            }
+        }
+        if (!world.supervisor) {
+            // SessionLaunch construction can fail after a child starts. Its constructor
+            // cannot return ownership or a checked receipt in that case.
+            unresolved.push_back(label + ": launch construction has no checked stop receipt");
+        }
+        if (world.presentation_attached && !world.presentation_retired) {
+            try {
+                require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED &&
+                    world.record.has_process_stopped() && world.record.has_native_stopped() && state.presentation,
+                    "Presentation recovery lacks checked world stop receipts");
+                state.presentation->recover(world.presentation, world.record.process_stopped(), world.record.native_stopped());
+                const auto retired = state.presentation->detach(world.presentation);
+                require(retired.stage() == render::v1::RETIRED, "Presentation retirement remains unconfirmed");
+                world.presentation_retired = true;
+            } catch (const std::exception& error) {
+                unresolved.push_back(label + ": presentation: " + error.what());
+            }
+        }
+        if (!registered_stop_error.empty() && (!world.stopped ||
+            (world.presentation_attached && !world.presentation_retired)))
+            unresolved.push_back(label + ": registered world stop: " + registered_stop_error);
+    }
+    return unresolved;
+}
 }
