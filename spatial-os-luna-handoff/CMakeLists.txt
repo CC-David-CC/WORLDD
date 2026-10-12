@@ -169,6 +169,14 @@ add_custom_target(crosshost-revocation-python-protobuf ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/crosshost_revocation_pb2.py")
 add_dependencies(crosshost-revocation-python-protobuf issuer-python-protobuf launch-python-protobuf)
 
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_topology_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/world_topology.proto
+    DEPENDS tests/proto/world_topology.proto protobuf::protoc VERBATIM)
+add_custom_target(world-topology-python-protobuf ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/world_topology_pb2.py")
+
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 option(SPATIAL_INPUT_TESTS "Require the project XLibre actor-input counterexamples" OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror)

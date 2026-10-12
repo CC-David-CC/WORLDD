@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-12: M05 simultaneous private/shared topology passes focused checks
+
+One private authority runs on each host while a third shared authority serves both actors.
+All three use one production issuer and distinct persisted world identities.
+Both shared-authority placements pass in Debug and ASan/UBSan: four final scenario executions.
+The checks cover private admission, public admission without implicit action grants, actor visibility, and shared committed edits.
+Both clients observe shared-authority loss. Both private worlds remain usable during that loss.
+All three worlds retain their identities and committed contents after restart. Stale shared authentication is rejected.
+Temporary state directories are removed after shutdown. No sanitizer findings appear in retained logs.
+Read evidence/m05-shared-state-2026-10-11/topology-review.txt for failures, source pins, and exact limits.
+
+M05 focused integration is ready for full qualification. The complete both-host gate remains pending.
+M05 is not qualified yet. M06-M16 remain pending qualification.
+
 ## 2026-10-12: M05 actor keys remain on their originating hosts
 
 The second actor now generates and signs with its key on the other host during cross-host qualification.

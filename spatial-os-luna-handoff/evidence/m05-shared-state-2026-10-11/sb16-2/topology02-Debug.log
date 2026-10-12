@@ -1,0 +1,32 @@
+test_three_live_worlds_keep_private_authority_during_shared_loss (__main__.WorldTopologyTests.test_three_live_worlds_keep_private_authority_during_shared_loss) ... FAIL
+
+======================================================================
+FAIL: test_three_live_worlds_keep_private_authority_during_shared_loss (__main__.WorldTopologyTests.test_three_live_worlds_keep_private_authority_during_shared_loss)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_topology.py", line 176, in test_three_live_worlds_keep_private_authority_during_shared_loss
+    local_actor = self.open_owner(private)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_crosshost.py", line 105, in open_owner
+    self.assertTrue(opened.HasField('opened'), opened)
+AssertionError: False is not true : protocol_version: 1
+request_id: 2
+bootstrap_attempt {
+  issuer_id: "\333H\345\210Vq\315\312\357\252q\317x\240\371Y\366l\235_\374n\350\372\315c\254\326\312\300U\004"
+  profile_id: "empty-v1"
+  profile_revision: 1
+  domain {
+    kind: WORLD
+    id: "1ab354dbf4aa06c094134295af0d2f4a"
+  }
+}
+error {
+  code: IN_USE
+  message: "Actor already has a controller"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 20.018s
+
+FAILED (failures=1)

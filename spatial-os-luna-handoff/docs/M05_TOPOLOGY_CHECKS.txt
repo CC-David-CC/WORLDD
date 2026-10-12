@@ -1,6 +1,8 @@
 M05 remaining topology and qualification
 
-Status: planned. This file is not execution evidence.
+Status: focused topology passed on 2026-10-12. Full phase qualification remains pending.
+Read evidence/m05-shared-state-2026-10-11/topology-review.txt for actual coverage and limits.
+This file describes requirements. It is not execution evidence.
 Use docs/MILESTONES.md and the root AGENTS.md as the requirements.
 
 Combined topology
