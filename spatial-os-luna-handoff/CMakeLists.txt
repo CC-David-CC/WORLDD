@@ -1218,18 +1218,16 @@ if(BUILD_TESTING)
     add_dependencies(spatial-host-actor-native-runner host-actor-python-protobuf world-session-python-protobuf
         compositor-python-protobuf
         spatial-authority-launch-probe spatial-security-auth identityd spatial-issuer-client
-        spatial-authority-supervisor worldd spatialwm workspaced)
-    add_test(NAME host-actor-controller-native COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-host-actor-native-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        spatial-authority-supervisor worldd spatialwm workspaced spatial-confined-xprobe
+        spatial-storage-broker-launch-probe session-probe-python)
+    add_test(NAME host-actor-controller-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_host_actor_controller.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(host-actor-controller-native PROPERTIES TIMEOUT 240)
+    set_tests_properties(host-actor-controller-native PROPERTIES TIMEOUT 300
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-host-actor-controller-probe src/testing/host_actor_controller_probe.cpp)
     target_link_libraries(spatial-host-actor-controller-probe PRIVATE spatial-host-actor-controller Threads::Threads)
     add_test(NAME host-actor-controller COMMAND $<TARGET_FILE:spatial-host-actor-controller-probe>)
