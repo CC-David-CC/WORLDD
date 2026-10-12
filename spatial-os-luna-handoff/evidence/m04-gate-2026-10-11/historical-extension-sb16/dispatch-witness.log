@@ -1,0 +1,16 @@
+test_direct_xtest_version_cannot_bypass_hidden_extension (__main__.ExtensionIsolationTests.test_direct_xtest_version_cannot_bypass_hidden_extension) ... FAIL
+
+======================================================================
+FAIL: test_direct_xtest_version_cannot_bypass_hidden_extension (__main__.ExtensionIsolationTests.test_direct_xtest_version_cannot_bypass_hidden_extension)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_extension_isolation.py", line 80, in test_direct_xtest_version_cannot_bypass_hidden_extension
+    self.denied(self.other, opcode, payload, 0, True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x02\x04\x00\x00\x00\x00\x00\x02\x[92 chars] b'') != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 1 test in 0.070s
+
+FAILED (failures=1)

@@ -1,0 +1,14 @@
+test_render_shape_hole_is_not_a_foreign_pixel_source (__main__.ExtensionIsolationTests.test_render_shape_hole_is_not_a_foreign_pixel_source) ... FAIL
+
+======================================================================
+FAIL: test_render_shape_hole_is_not_a_foreign_pixel_source (__main__.ExtensionIsolationTests.test_render_shape_hole_is_not_a_foreign_pixel_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_extension_isolation.py", line 252, in test_render_shape_hole_is_not_a_foreign_pixel_source
+    self.assertEqual(self.other.composite(opcode, source, destination), 10)
+AssertionError: None != 10
+
+----------------------------------------------------------------------
+Ran 1 test in 0.071s
+
+FAILED (failures=1)
