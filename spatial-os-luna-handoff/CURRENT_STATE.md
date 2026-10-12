@@ -6,12 +6,16 @@ Recovery attempt01 had 12 setup errors from an outdated shared fixture.
 Attempt02 reached crash recovery but failed all 12 cases during healthy-owner teardown.
 The teardown incorrectly requested issuer retirement without a failure fence.
 The corrected test preserves crash retirement and verifies checked cleanup for healthy owners.
-Attempt03 is running on both hosts in Debug and ASan/UBSan. No pass is claimed yet.
+Attempt03 passed 10 of 12 executions.
+Two sb16-2 ASan/UBSan departure cases lost the issuer TLS connection during setup.
+The issuer idle-timeout hypothesis is under targeted diagnosis. No production failure is established yet.
+Coverage review also requires destination activation after commit, in addition to the existing rollback case.
+Do not replace the earlier after-commit test with before-commit coverage.
 Read evidence/m06-retained-recovery-2026-10-12 and defect blockers at the repository root.
 
 The cross-host Luna draft compiled but omitted runnable two-world provisioning.
 The production host-session Luna draft compiled but lacks required native tests and has reviewed lifetime defects.
-Both drafts remain unintegrated. Bounded Sol corrections follow these demonstrated failures.
+Both drafts remain unintegrated. Bounded Sol corrections run in persistent tmux sessions on their existing isolated branches.
 M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending.
 
 ## 2026-10-12: M06 native actor controller integration passes focused checks
