@@ -1,0 +1,186 @@
+{
+  "source_commit": "8bdda7631ae51d0ae1e94b913031d0fd8dffb877",
+  "source_qualification": "UNQUALIFIED",
+  "milestone_gate": "PENDING",
+  "rows": [
+    {
+      "host": "sb16",
+      "profile": "Debug",
+      "hostile_peer": {
+        "status": "PASS",
+        "passed": 19,
+        "failed": 0
+      },
+      "world_headless": {
+        "status": "FAIL",
+        "cases": 9,
+        "passed": 6,
+        "failed": 3,
+        "skipped": 0
+      },
+      "exit_receipts": {
+        "01-actor-geometry-client-hostile-peer": {
+          "command.exit": 0,
+          "wrapper.exit": 0
+        },
+        "02-actor-geometry-world-headless": {
+          "command.exit": 1,
+          "wrapper.exit": 1
+        },
+        "outer-runner": {
+          "command.exit": 1,
+          "wrapper.exit": 1
+        }
+      },
+      "raw_archive": {
+        "path": "sb16-raw.tar.gz",
+        "size": 10881,
+        "sha256": "3e2c6f68b99040ff7e533930b70cf5f93ca196a1fdbc4e4adf7786ecc94316d7",
+        "all_original_file_hashes_verified_inside_archive": true
+      },
+      "cleanup": {
+        "observed_utc": "2026-10-12T14:53:38.637213+00:00",
+        "session": "m06-geometry-runtime-sb16-debug-01",
+        "tmux_has_session_exit": 1,
+        "tmux_stderr": "no server running on /tmp/tmux-1000/default\n",
+        "matching_run_exe_or_cwd_processes": [],
+        "issuer_log_pids": [
+          {
+            "pid": 1734104,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1734276,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1734133,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1733894,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1733868,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1734868,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1733984,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1734535,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1734016,
+            "proc_path_exists": false
+          }
+        ],
+        "scope": "Current read-only /proc executable/cwd matches and exact known issuer PIDs; this is not a historical cleanup proof."
+      }
+    },
+    {
+      "host": "sb16-2",
+      "profile": "Debug",
+      "hostile_peer": {
+        "status": "PASS",
+        "passed": 19,
+        "failed": 0
+      },
+      "world_headless": {
+        "status": "FAIL",
+        "cases": 9,
+        "passed": 6,
+        "failed": 3,
+        "skipped": 0
+      },
+      "exit_receipts": {
+        "01-actor-geometry-client-hostile-peer": {
+          "command.exit": 0,
+          "wrapper.exit": 0
+        },
+        "02-actor-geometry-world-headless": {
+          "command.exit": 1,
+          "wrapper.exit": 1
+        },
+        "outer-runner": {
+          "command.exit": 1,
+          "wrapper.exit": 1
+        }
+      },
+      "raw_archive": {
+        "path": "sb16-2-raw.tar.gz",
+        "size": 10898,
+        "sha256": "1ab88c8bc79b0c8f57224599d08d73b4f816fd9c7c72ebbc124cdb07fe39b0e4",
+        "all_original_file_hashes_verified_inside_archive": true
+      },
+      "cleanup": {
+        "observed_utc": "2026-10-12T14:53:40.044425+00:00",
+        "session": "m06-geometry-runtime-sb16-2-debug-01",
+        "tmux_has_session_exit": 1,
+        "tmux_stderr": "no server running on /tmp/tmux-1000/default\n",
+        "matching_run_exe_or_cwd_processes": [],
+        "issuer_log_pids": [
+          {
+            "pid": 1666883,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1666911,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1666701,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1666850,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1667109,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1666816,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1666783,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1667313,
+            "proc_path_exists": false
+          },
+          {
+            "pid": 1667453,
+            "proc_path_exists": false
+          }
+        ],
+        "scope": "Current read-only /proc executable/cwd matches and exact known issuer PIDs; this is not a historical cleanup proof."
+      }
+    }
+  ],
+  "remaining_debug_unrun_per_host": [
+    "actor-session-client",
+    "actor-session-client-tls",
+    "actor-transition-coordinator",
+    "actor-transition-real-world",
+    "session-application",
+    "world-authority",
+    "world-identity"
+  ],
+  "asan_ubsan": "UNRUN on both hosts",
+  "total_executed_cases": 56,
+  "total_passed_cases": 50,
+  "total_failed_cases": 6,
+  "source_edits": false,
+  "new_runtime_runs": false
+}
