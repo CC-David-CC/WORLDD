@@ -35,7 +35,13 @@ Use sb16 and sb16-2 as test boxes for worlds, applications, and native sessions.
 Do not install Codex or run coding agents on these test boxes.
 Do not use these test boxes for development builds or development worktrees.
 Use middle-child and a5500 for coding agents, orchestration, compilation, and development worktrees.
+Coordinate development through local Git commits and branches on box-git.
+Use separate branches, checkouts, or linked worktrees for independent worker tasks.
+Push task checkpoints when another worker needs their source. Label unqualified checkpoints explicitly.
+Review and test task checkpoints before integrating them into a milestone branch.
 Deploy build artifacts and required test fixtures to sb16 and sb16-2 for qualification.
+David authorizes stable Spatial Desktop deployment on all four hosts.
+Keep sb16 and sb16-2 as the required qualification hosts. Additional deployments do not replace their gates.
 Preserve existing test evidence and checkouts until their replacements are verified.
 Use tmux for persistent remote workers and test jobs.
 Keep logs and checkpoints for recovery after process failure or host reboot.
