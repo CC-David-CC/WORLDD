@@ -1,0 +1,48 @@
+﻿{
+    "status":  "passed-focused-correction",
+    "phase":  "M04",
+    "phase_complete":  false,
+    "baseline":  "Two exact nested foreign-pixel failures and 16 passing controls on each host.",
+    "correction":  "Apply region authority in ancestor-before-descendant order; intersect with the original parent region.",
+    "reports":  [
+                    {
+                        "host":  "sb16",
+                        "profile":  "related-debug-01",
+                        "passed":  232,
+                        "source_matches_current":  true,
+                        "suite_log_hashes_verified":  true,
+                        "core_only":  false,
+                        "native_server_sanitizers":  false
+                    },
+                    {
+                        "host":  "sb16",
+                        "profile":  "related-sanitize-01",
+                        "passed":  232,
+                        "source_matches_current":  true,
+                        "suite_log_hashes_verified":  true,
+                        "core_only":  true,
+                        "native_server_sanitizers":  true
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "profile":  "related-debug-01",
+                        "passed":  232,
+                        "source_matches_current":  true,
+                        "suite_log_hashes_verified":  true,
+                        "core_only":  false,
+                        "native_server_sanitizers":  false
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "profile":  "related-sanitize-01",
+                        "passed":  232,
+                        "source_matches_current":  true,
+                        "suite_log_hashes_verified":  true,
+                        "core_only":  true,
+                        "native_server_sanitizers":  true
+                    }
+                ],
+    "locked_acceptance_files_unchanged":  41,
+    "limitation":  "Sanitizer runs exclude GLX. Full M04 and native graphics qualification remain pending.",
+    "next":  "Continue M04 coverage audit before freezing the phase gate."
+}

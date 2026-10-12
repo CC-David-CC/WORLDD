@@ -51,15 +51,19 @@ Bool SpatialSecurityHasForeignInferiors(ClientPtr client, DrawablePtr drawable)
     return has_foreign_viewable_child(client, (WindowPtr) drawable);
 }
 
-static Bool collect_window_pixel_regions(ClientPtr client, WindowPtr parent,
-                                         RegionPtr foreign, RegionPtr same_app)
+static Bool filter_window_pixel_regions(ClientPtr client, WindowPtr parent,
+                                        RegionPtr filtered)
 {
     WindowPtr child = parent->firstChild;
     while (child) {
         if (child->viewable) {
-            RegionPtr target = SpatialSecurityVisibleResource(client, child->drawable.id)
-                ? same_app : foreign;
-            if (!RegionUnion(target, target, &child->borderClip))
+            /* Apply ancestors before descendants. An authorized ancestor's
+             * borderClip includes foreign descendants and must not restore
+             * their pixels after those descendants have been excluded.
+             */
+            Bool owned = SpatialSecurityVisibleResource(client, child->drawable.id);
+            if (!(owned ? RegionUnion(filtered, filtered, &child->borderClip)
+                        : RegionSubtract(filtered, filtered, &child->borderClip)))
                 return FALSE;
             if (child->firstChild) {
                 child = child->firstChild;
@@ -79,32 +83,23 @@ static Bool collect_window_pixel_regions(ClientPtr client, WindowPtr parent,
 int SpatialSecurityFilterWindowImage(ClientPtr client, DrawablePtr drawable,
                                      RegionPtr *filtered_region)
 {
-    RegionPtr foreign, same_app, filtered;
+    RegionPtr filtered;
     *filtered_region = NULL;
     if (!SpatialSecurityEnabled() || SpatialSecurityPrivileged(client) ||
         drawable->type != DRAWABLE_WINDOW)
         return Success;
 
-    foreign = RegionCreate(NULL, 0);
-    same_app = RegionCreate(NULL, 0);
     filtered = RegionDuplicate(&((WindowPtr) drawable)->borderClip);
-    if (!foreign || !same_app || !filtered)
+    if (!filtered)
         goto bad_alloc;
-    if (!collect_window_pixel_regions(client, (WindowPtr) drawable,
-                                      foreign, same_app) ||
-        !RegionIntersect(same_app, same_app, filtered) ||
-        !RegionSubtract(filtered, filtered, foreign) ||
-        !RegionUnion(filtered, filtered, same_app))
+    if (!filter_window_pixel_regions(client, (WindowPtr) drawable, filtered) ||
+        !RegionIntersect(filtered, filtered, &((WindowPtr) drawable)->borderClip))
         goto bad_alloc;
 
-    RegionDestroy(foreign);
-    RegionDestroy(same_app);
     *filtered_region = filtered;
     return Success;
 
 bad_alloc:
-    if (foreign) RegionDestroy(foreign);
-    if (same_app) RegionDestroy(same_app);
     if (filtered) RegionDestroy(filtered);
     return BadAlloc;
 }

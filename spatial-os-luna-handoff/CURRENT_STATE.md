@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-11: Nested window pixel disclosure corrected
+
+The M04 audit reproduced another GetImage disclosure on both hosts.
+An owned child's region restored pixels belonging to a foreign grandchild.
+Native and swapped clients failed the new privacy checks. Sixteen other pixel checks passed.
+
+SpatialSecurity now applies region authority in ancestor-before-descendant order.
+Authorized descendants remain readable inside foreign ancestors. Foreign descendants remain excluded inside owned ancestors.
+The final result stays within the original parent region.
+The traversal remains iterative and fails closed on region allocation errors.
+
+Each host passes 232 selected checks in Debug and core-X ASan/UBSan, for 928 total.
+Both server builds pass unit checks. Current source hashes match the tested receipts.
+Copied suite logs match their recorded hashes. No sanitizer findings appear in the collected logs.
+All 41 locked acceptance files remain unchanged.
+This correction belongs to the downstream policy and requires no new upstream XACE hook.
+
+M04 remains incomplete. Sanitizer runs exclude GLX; full graphics and phase qualification remain pending.
+Read evidence/m04-nested-pixels-2026-10-11/primary-review.json.
+
 ## 2026-10-11: XACE pixel hooks pass related Debug and sanitizer regressions
 
 SpatialSecurity now registers window-image and drawable-access callbacks.

@@ -1,0 +1,30 @@
+SpatialSecurity nested-child pixel disclosure
+
+Confirmed on sb16 and sb16-2 against source a89ec13.
+Status: correction passes focused checks on both hosts.
+
+An application owns a parent and its child. A privileged service places a foreign window below that child.
+GetImage on the parent exposes the foreign grandchild's pixels.
+Native and swapped clients reproduce the same disclosure.
+The baseline passes 16 other pixel checks and fails these two added checks on each host.
+
+Cause:
+The policy unions all authorized descendant borderClip regions after subtracting foreign regions.
+An authorized ancestor's borderClip includes foreign descendants.
+The final union restores those foreign pixels.
+
+Proposed correction:
+Traverse ancestors before descendants. Apply each window's authority to the region in tree order.
+Subtract foreign regions. Restore authorized descendant regions. Clip the result to the original parent region.
+Keep traversal iterative and fail closed on region allocation errors.
+
+This defect is in the project's SpatialSecurity policy. It does not require a new upstream XACE hook.
+The regression preserves owned pixels and authorized grandchildren within foreign children.
+Evidence: spatial-os-luna-handoff/evidence/m04-nested-pixels-2026-10-11.
+
+Validation:
+Each host passes 232 selected checks in Debug and ASan/UBSan, for 928 total.
+All 18 pixel cases pass, including both reproduced failures and the nested positive controls.
+Server unit checks pass. No sanitizer finding appears in the collected logs.
+All 41 locked acceptance files remain unchanged.
+Sanitizer runs exclude GLX. Full M04 and native graphics qualification remain pending.

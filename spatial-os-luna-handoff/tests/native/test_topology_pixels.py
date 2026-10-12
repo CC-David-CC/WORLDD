@@ -50,6 +50,36 @@ class TopologyPixelTests(unittest.TestCase):
         supervisor = self.mapped_topology()
         self.assertEqual(self.image(supervisor, self.other_window, 9, 9), self.secret)
 
+    def nested_foreign_child(self, endian='<'):
+        supervisor = self.mapped_topology(endian=endian)
+        middle = self.other.create_window(self.other_window)
+        self.assertIsNone(supervisor.operation(7, supervisor.pack('IIhh', self.window, middle, 8, 8)))
+        self.assertIsNone(self.other.operation(8, self.other.pack('I', middle)))
+        self.assertEqual(self.image(supervisor, self.other_window, 9, 9), self.secret)
+        return supervisor
+
+    def test_owned_child_cannot_restore_foreign_grandchild_pixels(self):
+        self.nested_foreign_child()
+        self.assertNotEqual(self.image(self.other, self.other_window, 9, 9), self.secret)
+
+    def test_swapped_owned_child_cannot_restore_foreign_grandchild_pixels(self):
+        self.nested_foreign_child(endian='>')
+        self.assertNotEqual(self.image(self.other, self.other_window, 9, 9), self.secret)
+
+    def test_owned_child_pixels_outside_foreign_grandchild_remain_readable(self):
+        self.nested_foreign_child()
+        self.assertEqual(self.image(self.other, self.other_window, 1, 1), 0x234567)
+
+    def test_owned_grandchild_inside_foreign_child_remains_readable(self):
+        supervisor = self.mapped_topology()
+        own = self.other.create_window()
+        self.assertIsNone(supervisor.operation(12, supervisor.pack('IH2xII', own, 12, 2, 2)))
+        self.assertIsNone(supervisor.operation(7, supervisor.pack('IIhh', own, self.window, 2, 2)))
+        self.assertIsNone(self.other.operation(8, self.other.pack('I', own)))
+        self.assertEqual(self.image(supervisor, self.other_window, 10, 10), 0x234567)
+        self.assertEqual(self.image(self.other, self.other_window, 10, 10), 0x234567)
+        self.assertNotEqual(self.image(self.other, self.other_window, 9, 9), self.secret)
+
     def inferiors_gc(self, client, drawable):
         gc = client.gc(drawable)
         self.assertIsNone(client.operation(56, client.pack('IIII', gc, (1 << 15) | (1 << 16), 1, 0)))
