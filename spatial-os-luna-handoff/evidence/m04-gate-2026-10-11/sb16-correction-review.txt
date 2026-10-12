@@ -1,0 +1,44 @@
+M04 sb16 correction review
+Date: 2026-10-11
+Status: focused corrections passed; M04 remains incomplete.
+
+The original gate tested f74c6b579c6149f41e1cbd17b025eb92fd453009.
+The artifact checker inspected both completed profiles and their source and binary pins.
+Each profile executed 141 core suites, 51 harness cases, 151 acceptance cases, and five storage scenarios.
+Debug failed two storage fixture suites before their volume operations.
+ASan-UBSan failed those suites and two authority setup suites.
+No additional artifact-check errors or sanitizer markers were reported.
+The original gate remains failed. Its report is not replaced by these corrections.
+
+Storage fixture correction
+The isolated checkout uses commit 72a9d6b482f5f79a1903d88c6482aa0ce5fe5de9.
+Only tests/native/storage_session_volume.py differs in the recorded source manifest.
+The guard now resolves local relative to its own checkout.
+Resolved containment and the other fixture safety guards remain enforced.
+The runner reused the original gate binaries and verified the recorded pins.
+Owner and contention suites passed in Debug and ASan-UBSan: ten checks total.
+The copied four test logs match the runner's SHA-256 values.
+Their cleanup records show removed scopes and no unexpected process population.
+
+Setup deadline draft
+The isolated drafts add config_file and connect overrides to two test classes.
+The configuration default is 5000 ms. Explicit overrides remain effective.
+The connected peer socket timeout is five seconds per socket operation.
+The original assertions, relay ordering, server idle deadline, and idle wait remain unchanged.
+The runner checked AST preservation before executing the original gate binaries.
+Revision interleave and bootstrap owner idle passed in both profiles: ten checks total.
+The copied four test logs match the runner's SHA-256 values.
+These drafts remain uncommitted until the sb16-2 checks finish and receive review.
+The service delay's underlying cause remains unproven.
+
+Log inspection
+An initial unprivileged scan could not enter protected fixture volume directories.
+A subsequent sudo -n grep -r scan completed without permission errors.
+Both correction trees had no AddressSanitizer, LeakSanitizer, or UBSan runtime-error markers
+in files ending with .log or .stderr. Each grep returned 1 with empty output.
+
+Remaining work
+Finish and review the existing sb16-2 gate and its queued corrections.
+Reconcile source changes and exact failures without weakening the original gate.
+Complete cross-host and changed-path mutation checks before M04 approval.
+This review does not qualify native GPU output or later milestones.

@@ -1,0 +1,115 @@
+{
+  "status": "passed_needs_primary_review",
+  "host": "sb16",
+  "phase_complete": false,
+  "original_candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "corrected_candidate": "72a9d6b482f5f79a1903d88c6482aa0ce5fe5de9",
+  "gate_sha256": "9d7c748039beb444aacf9436e14e7debf3dffe3ea130d650e53d0d76049d4fba",
+  "changed_files": [
+    "tests/native/storage_session_volume.py"
+  ],
+  "corrected_helper_sha256": "918852eb89a8ce3fbb2a62416ecfec1ff6d0fa26eb0845d38ea9739ee62861a8",
+  "results": [
+    {
+      "profile": "Debug",
+      "suite": "session-storage-owner",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 2,
+      "seconds": 15.993047644995386,
+      "log_sha256": "c6dd581d8d83ca5d109b675243b4b710e9f493a32a1c05aece7a35abd34eba00"
+    },
+    {
+      "profile": "Debug",
+      "suite": "session-storage-contention",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 3,
+      "seconds": 46.025940713007,
+      "log_sha256": "0e1b07ce3cbec7331107df46f899856da4ae64c414daa85c3f95e53bc241bc82"
+    },
+    {
+      "profile": "ASan-UBSan",
+      "suite": "session-storage-owner",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tests/native/test_storage_session.py",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 2,
+      "seconds": 18.41252584499307,
+      "log_sha256": "3b418e714271adb31b5c9148e845be9b9d8828729b4401f5edd06ce397fb8cef"
+    },
+    {
+      "profile": "ASan-UBSan",
+      "suite": "session-storage-contention",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/tests/native/test_storage_contention.py",
+        "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd",
+        "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "checks": 3,
+      "seconds": 48.137269744998775,
+      "log_sha256": "eda7cd0161d6eeb6de38815aa6ce790ea7686eba2cba2016a7feec85ce5dd023"
+    }
+  ],
+  "runner_pid": 1194154
+}
