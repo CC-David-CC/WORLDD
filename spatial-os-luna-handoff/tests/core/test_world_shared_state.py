@@ -3,6 +3,7 @@ import os
 import socket
 import ssl
 import subprocess
+import time
 import unittest
 from google.protobuf import text_format
 import core_pb2 as core
@@ -173,6 +174,43 @@ class SharedWorldStateTests(BootstrapWorldFixture):
             self.assertEqual(state.room, 'local-room')
             self.assertEqual(state.pose.position.x, number+1)
             self.denied(self.authenticate_second(restored.connect(self)), core.FORBIDDEN)
+
+    def test_actor_population_is_visible_in_shared_room(self):
+        self.enroll_second()
+        world = self.new_world(native=True)
+        owner = self.open_owner(world)
+        self.world_info = world.management('world.info')
+        delegated = self.delegate(owner, self.root_grant(owner), self.terms(self.second,
+            rights=(grant.WORLD_ENTER, grant.WORLD_OBSERVE, grant.WORLD_NAVIGATE), depth=0))
+        self.assertTrue(delegated.HasField('grant'), delegated)
+        viewer = world.connect(self)
+        location = core.Pose(position=core.Vec3(z=-2), orientation=core.Quaternion(w=1))
+        opened = self.authenticate(viewer, self.second_record, self.second_key,
+                                   self.second_public, pose=location)
+        self.assertTrue(opened.HasField('opened'), opened)
+        population = owner.act(observe=core.ActorObserveRequest(width=127, height=95))
+        self.assertTrue(population.HasField('action'), population)
+        actors = {item.id: item for item in population.action.observation.visible if item.kind == core.ACTOR}
+        self.assertIn(opened.opened.actor_id, actors)
+        self.assertEqual(actors[opened.opened.actor_id].pose, location)
+        self.assertGreater(actors[opened.opened.actor_id].visible_pixels, 0)
+        self.assertNotIn(population.action.observation.actor, actors)
+        self.assertTrue(viewer.act(input=core.ActorInputRequest(axes=[1, 0, 0, 0, 0, 0])).HasField('action'))
+        time.sleep(.1)
+        self.assertTrue(viewer.act(stop=core.ActorStopRequest()).HasField('action'))
+        moved = viewer.call(inspect=session.WorldSessionInspect()).state.pose
+        self.assertGreater(moved.position.x, location.position.x)
+        self.assertEqual(self.observed_object(owner, opened.opened.actor_id).pose, moved)
+        world.management('world.checkpoint')
+        world.close()
+        restored = self.start_remote(world, native=True)
+        owner = self.open_owner(restored)
+        self.assertEqual(self.observed_object(owner, opened.opened.actor_id).pose, moved)
+        restored.management('world.create', entity=dict(id='occluder', kind='panel', label='Occluder',
+            room=self.world_info['entry_room'], pose=pose((0, 0, -1)), size=[4, 4], color=[32, 48, 64]))
+        hidden = owner.act(observe=core.ActorObserveRequest(width=127, height=95))
+        self.assertTrue(hidden.HasField('action'), hidden)
+        self.assertNotIn(opened.opened.actor_id, [item.id for item in hidden.action.observation.visible])
 
     def test_public_admission_does_not_create_private_admission_or_action_authority(self):
         self.enroll_second()

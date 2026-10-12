@@ -387,9 +387,10 @@ The default branch is main.
 Local main tracks origin/main.
 Origin is dflanag3@box-git:/srv/data/git/spacial_desktop.git.
 The repository-local commit identity is David <david@code.contractors>.
-GitHub publishing requires explicit user authorization.
-David authorized the paused M03 checkpoint on CC-David-CC/WORLDD on 2026-10-11.
-That checkpoint authorization does not grant unrestricted future GitHub publishing.
+David authorizes ongoing project pushes to CC-David-CC/WORLDD through box-git.
+Use the configured project credentials without asking again for each checkpoint.
+This authorization includes reviewed milestone work branches, not unrelated repositories.
+Keep credentials outside Git and tool output. Preserve the box-git origin.
 
 Push reviewed, coherent commits to origin.
 Preserve history. Do not force-push.

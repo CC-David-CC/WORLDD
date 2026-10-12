@@ -1,0 +1,36 @@
+M05 actor representation increment
+
+Decision: selected checks pass. M05 remains incomplete.
+Both hosts built Debug and ASan/UBSan from dedicated M05 checkouts.
+The primary review inspected scene construction, live actor poses, schema additions, and changed tests.
+Source hashes match the reviewed local files on both hosts.
+
+Each host passes seven related suites in both profiles: 28 suite executions in total.
+The suites cover rendering, observations, collision, object manipulation, authority, checked compositor replies,
+and the registered world-shared-state test with four cases.
+Both directions also pass two cross-host cases in both profiles: eight additional case executions.
+The population case checks visibility, self exclusion, live movement, durable restoration, and occlusion.
+The render suite checks custom marker size/color, room exclusion, and six invalid configuration values.
+The shared-object case preserves exclusive manipulation, durable edits, and fresh authentication after restart.
+
+Each host's audit scans 318 retained log files without sanitizer findings.
+Each audit verifies seven passing, unskipped JUnit suites per profile and two cross-host cases per profile.
+Eight TLS witness traces per host record actual remote socket endpoints and TLSv1.3.
+Copied report hashes and source hashes match their remote originals.
+Runtime binary hashes are retained in population-audit.json.
+No temporary witness credential directory remains on either host.
+
+The protobuf migration is a separate commit, d8cbcbd.
+Descriptor comparison proves only actor_size, actor_color, and actors were added.
+The explicit lock migration changes only the core.proto entry and explanatory notice.
+The other forty locked files retain their hashes. All 151 locked acceptance assertions remain unchanged.
+The older rotated-camera oracle now includes persistent actor pixels while preserving exact pixel/picking checks.
+Original reproduced failures and all intermediate failed runs remain recorded separately.
+Read population-failure-review.txt for setup corrections and timing limitations.
+
+Limits and next work
+This is focused qualification, not the full M05 phase gate.
+The complete topology with one private world on each host and one shared authority remains pending.
+Independent remote actor-key provisioning and abrupt authority failure/recovery remain pending.
+These runs do not establish timing under arbitrary concurrent build or I/O load.
+They use the qualified private software EGL and XLibre configuration, not physical GPU acceptance.

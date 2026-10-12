@@ -1,0 +1,23 @@
+M05 actor population
+
+Invariant: an authorized observer sees another actor's representation in the same visible room.
+The observation uses compositor visibility and production actor state.
+The observer must not see its own representation as an external actor.
+Later checks must cover live movement, room separation, occlusion, and restored actors.
+
+First reproduce with the existing M04 production binaries in Debug on both hosts.
+Use one local observer and one TLS actor connection from the other host.
+Preserve the failing logs before changing production code.
+Inspect scene construction, authoritative live poses, rendering, and protobuf scene transport.
+Run related rendering, observation, and authority checks after implementing the correction.
+Use Debug and ASan/UBSan on both hosts before integration.
+
+Selected related suites after correction
+world-shared-state: persistence, admission, actor visibility, live motion, restoration, and occlusion.
+render-runtime: rasterization, clipping, marker configuration, room filtering, and invalid marker settings.
+actor-observation: visible metadata agrees with native rendering and authority.
+actor-collision: adding visual markers must not alter motion or collision semantics.
+actor-objects: existing manipulation and scene picking remain correct.
+world-authority: actor admission, grants, and revocation remain enforced.
+render-observation-client: checked compositor replies remain bounded and validated.
+Run the population and shared-state cross-host cases in both directions after local checks.

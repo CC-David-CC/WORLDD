@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-11: M05 actor representations pass focused qualification
+
+Actors now have real compositor-rendered markers with live authoritative poses.
+The observer's own marker and actors in other rooms are excluded.
+Visibility, movement, occlusion, configured appearance, and persistent restoration pass selected checks.
+Both hosts pass seven related suites in Debug and ASan/UBSan: 28 suite executions.
+Both directions pass two cross-host cases in both profiles: eight additional case executions.
+Source and report hashes match. Neither host's 318 scanned logs contains sanitizer findings.
+The additive protobuf migration is explicit and descriptor-checked at d8cbcbd.
+Original failures and fixture corrections remain recorded.
+Read evidence/m05-shared-state-2026-10-11/population-primary-review.txt.
+
+M01-M04 remain qualified. M05 is in progress, not complete.
+The full private/shared topology, independent remote actor-key provisioning, abrupt authority failure,
+and complete both-host M05 gate remain pending. M06-M16 remain pending.
+
 ## 2026-10-11: M04 qualified; M05 is next
 
 M04 is qualified at adopted source 04e10296943013da3a29035f00b520907b97f3ca on both hosts.

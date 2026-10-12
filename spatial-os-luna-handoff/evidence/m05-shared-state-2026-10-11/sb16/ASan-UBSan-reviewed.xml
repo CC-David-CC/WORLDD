@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="7"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16"
+	time="122"
+	timestamp="2026-10-11T23:25:06"
+	>
+	<testcase name="render-observation-client" classname="render-observation-client" time="0.833689" status="run">
+		<properties/>
+		<system-out>test_changed_or_zero_image_dimensions_are_rejected (__main__.RenderObservationClientTests.test_changed_or_zero_image_dimensions_are_rejected) ... ok
+test_excessive_pixel_request_is_not_sent_to_compositor (__main__.RenderObservationClientTests.test_excessive_pixel_request_is_not_sent_to_compositor) ... ok
+test_extra_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_extra_rgb_data_is_rejected) ... ok
+test_metadata_only_reply_has_no_image (__main__.RenderObservationClientTests.test_metadata_only_reply_has_no_image) ... ok
+test_missing_requested_image_is_rejected (__main__.RenderObservationClientTests.test_missing_requested_image_is_rejected) ... ok
+test_truncated_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_truncated_rgb_data_is_rejected) ... ok
+test_unknown_image_field_is_rejected (__main__.RenderObservationClientTests.test_unknown_image_field_is_rejected) ... ok
+test_unsolicited_image_is_rejected (__main__.RenderObservationClientTests.test_unsolicited_image_is_rejected) ... o...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="render-runtime" classname="render-runtime" time="7.18687" status="run">
+		<properties/>
+		<system-out>test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering) ... ok
+test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+test_inclusive_clip_planes_and_quad...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-observation" classname="actor-observation" time="4.71494" status="run">
+		<properties/>
+		<system-out>test_coplanar_tie_uses_render_order (__main__.ObservationTests.test_coplanar_tie_uses_render_order) ... ok
+test_native_surface_is_hidden_by_world_geometry (__main__.ObservationTests.test_native_surface_is_hidden_by_world_geometry) ... ok
+test_native_surface_visibility_generation_and_action_agree (__main__.ObservationTests.test_native_surface_visibility_generation_and_action_agree) ... ok
+test_observation_does_not_grant_control_or_refresh_motion (__main__.ObservationTests.test_observation_does_not_grant_control_or_refresh_motion) ... ok
+test_observation_keeps_other_actor_presentation_even_after_expose (__main__.ObservationTests.test_observation_keeps_other_actor_presentation_even_after_expose) ... ok
+test_partial_and_union_occlusion_use_all_visible_pixels (__main__.ObservationTests.test_partial_and_union_occlusion_use_all_visible_pixels) ... ok
+test_room_frustum_facing_and_clip_filter_match_pixels (__main__.ObservationTests.test_room_frustum_facing_and_clip_filter_match_pixels) ... ok
+test_rotated_camera_non_s...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-collision" classname="actor-collision" time="5.14238" status="run">
+		<properties/>
+		<system-out>test_all_six_barrier_faces_render_and_pick (__main__.CollisionTests.test_all_six_barrier_faces_render_and_pick) ... ok
+test_barrier_occludes_native_surface_and_clears_application_pixel (__main__.CollisionTests.test_barrier_occludes_native_surface_and_clears_application_pixel) ... ok
+test_body_twist_arc_cannot_skip_wall_when_endpoints_miss (__main__.CollisionTests.test_body_twist_arc_cannot_skip_wall_when_endpoints_miss) ... ok
+test_each_face_and_endpoint_contact (__main__.CollisionTests.test_each_face_and_endpoint_contact) ... ok
+test_false_box_contacts_and_grazing (__main__.CollisionTests.test_false_box_contacts_and_grazing) ... ok
+test_initial_overlap_normal_is_deterministic (__main__.CollisionTests.test_initial_overlap_normal_is_deterministic) ... ok
+test_initial_overlap_separates_without_teleporting_along_input (__main__.CollisionTests.test_initial_overlap_separates_without_teleporting_along_input) ... ok
+test_multiple_visible_faces_report_one_solid (__main__.CollisionTests.test_multiple_visible_faces_rep...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-authority" classname="world-authority" time="70.5151" status="run">
+		<properties/>
+		<system-out>test_administration_and_held_rights_do_not_imply_delegation (__main__.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+test_ancestor_credential_revocation_preserves_delegated_actor_rights (__main__.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ......
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-shared-state" classname="world-shared-state" time="23.7516" status="run">
+		<properties/>
+		<system-out>test_actor_population_is_visible_in_shared_room (__main__.SharedWorldStateTests.test_actor_population_is_visible_in_shared_room) ... ok
+test_private_worlds_keep_distinct_identity_and_independent_persistent_state (__main__.SharedWorldStateTests.test_private_worlds_keep_distinct_identity_and_independent_persistent_state) ... ok
+test_public_admission_does_not_create_private_admission_or_action_authority (__main__.SharedWorldStateTests.test_public_admission_does_not_create_private_admission_or_action_authority) ... ok
+test_two_tls_actors_share_committed_object_and_recover_same_world (__main__.SharedWorldStateTests.test_two_tls_actors_share_committed_object_and_recover_same_world) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 23.545s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="actor-objects" classname="actor-objects" time="10.4248" status="run">
+		<properties/>
+		<system-out>test_barrier_occlusion_denies_grab (__main__.ObjectTests.test_barrier_occlusion_denies_grab) ... ok
+test_cancel_and_repeated_cancel_discard_preview_without_writes (__main__.ObjectTests.test_cancel_and_repeated_cancel_discard_preview_without_writes) ... ok
+test_close_discards_preview_and_releases_lease (__main__.ObjectTests.test_close_discards_preview_and_releases_lease) ... ok
+test_crash_does_not_persist_preview_or_lease (__main__.ObjectTests.test_crash_does_not_persist_preview_or_lease) ... ok
+test_delete_and_recreate_cannot_reuse_an_old_lease (__main__.ObjectTests.test_delete_and_recreate_cannot_reuse_an_old_lease) ... ok
+test_edit_conflict_discards_draft_and_never_overwrites_new_data (__main__.ObjectTests.test_edit_conflict_discards_draft_and_never_overwrites_new_data) ... ok
+test_held_preview_can_move_beyond_reach (__main__.ObjectTests.test_held_preview_can_move_beyond_reach) ... ok
+test_missing_fields_and_invalid_pose_do_not_change_held_draft (__main__.ObjectTests.test_missing_fields_and_invalid_pose_do_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

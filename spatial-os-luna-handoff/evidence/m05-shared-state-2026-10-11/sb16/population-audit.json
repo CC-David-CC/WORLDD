@@ -1,0 +1,46 @@
+{
+  "status": "passed-selected",
+  "local_suite_executions": 14,
+  "crosshost_case_executions": 4,
+  "logs_scanned": 318,
+  "sanitizer_findings": [],
+  "witness_connections": {
+    "crosshost-Debug-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-1.log": "TLS witness connected: ('10.0.7.94', 49122) -> ('10.0.7.49', 53961) TLSv1.3\n",
+    "crosshost-Debug-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-2.log": "TLS witness connected: ('10.0.7.94', 56680) -> ('10.0.7.49', 53961) TLSv1.3\n",
+    "crosshost-Debug-services/SharedCrossHostTests-test_actor_population_is_visible_in_shared_room-witness-3-1.log": "TLS witness connected: ('10.0.7.94', 39856) -> ('10.0.7.49', 46793) TLSv1.3\n",
+    "crosshost-Debug-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-4-0.log": "TLS witness connected: ('10.0.7.94', 44844) -> ('10.0.7.49', 53337) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-1.log": "TLS witness connected: ('10.0.7.94', 47550) -> ('10.0.7.49', 60271) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-3-2.log": "TLS witness connected: ('10.0.7.94', 47558) -> ('10.0.7.49', 60271) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_actor_population_is_visible_in_shared_room-witness-3-1.log": "TLS witness connected: ('10.0.7.94', 43264) -> ('10.0.7.49', 36339) TLSv1.3\n",
+    "crosshost-ASan-UBSan-services/SharedCrossHostTests-test_two_tls_actors_share_committed_object_and_recover_same_world-witness-4-0.log": "TLS witness connected: ('10.0.7.94', 39286) -> ('10.0.7.49', 34043) TLSv1.3\n"
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "8ae86568989ace55ce862422f55331d936e5a4de3cf4e5498ee6d4af0668a7b3",
+    "proto/spatial/core/v1/core.proto": "c88d7cf22e7b0ea45509433cdf8c2063fde1c8b376d48101130022e2bcbd68a1",
+    "src/core/scene.cpp": "0ff4865f0d76118e30a7e024ddb2235249fe3d99c88a2419c8c17a9d00e60c4f",
+    "src/world/actors.cpp": "e33036634d722ad1b35f065a194ed5df1ff20ac85ed09c2abdcf8f4caaea8664",
+    "tests/core/test_world_shared_state.py": "47ac582875669ee9a0b51b241c1284fa473b8521b8898ad5d022ceee1d93cd8e",
+    "tests/core/test_render.py": "741642d5e6511f5c45a4f766bd5deb84c6e8b3982327b78b6aec024213255eb2",
+    "tests/core/test_observation.py": "9f6ea356faf6ab694f1f4d2b083a8f144e5232fe3cf79cef030f620017414a77",
+    "tests/core/test_world_shared_crosshost.py": "53c961e87d9fefc0c62231f8115b8147e2fd74f1e4d47f378ef49d5502d369e9",
+    "tests/core/world_tls_witness.py": "d73a1fbef31bae6834ae34a44d96e00e101b4501d9b55023763e452594b4d854"
+  },
+  "artifact_sha256": {
+    "Debug-reviewed.log": "f960f008a40eb324b034c171ac91c74652b08a85b406634bb315e69b7ed7fba6",
+    "ASan-UBSan-reviewed.log": "014d646f8fa4517100863396c559a09f306d32d8b4bb90586ffe03ebf4df60aa",
+    "ASan-UBSan-reviewed.xml": "d5888ba13e5309d2352f870ea3c3a7b6be07ee1a3aeeea5c31a86d8c3bc37cf8",
+    "Debug-reviewed.xml": "de28a230a8965f38a1f046c0467ab556a94b8ca92ac61dde4de6a5f928eab4c5",
+    "crosshost-ASan-UBSan.log": "4d0d8bbe0f2ec78fb88d431d6c51326c8cf8e396ecf7af89c29b3f3706e4d45b",
+    "crosshost-Debug.log": "cec9a02400d70d32dda0edf3857eda95fe09eba886cdcafe3283d2ba4575fe5c"
+  },
+  "binary_sha256": {
+    "Debug/worldd": "eb3b0bf67682f51c09aedb71722ba8ce850cee5c34d4a676ead8c7dbc19353f7",
+    "Debug/spatialwm": "78a558ae8a0e0d5b2a0293417e24504c63bbe2485e4379c2d090bee7ebfd1db4",
+    "Debug/identityd": "760c28c5ef67f970a40acf14ea9ba0359d43c5a858a6ba0d85945fd75018c415",
+    "Debug/spatial-issuer-client": "30a24a78fa77fbbc7beb0d62df9e9b741fe15a46261027b6334a8888f13e4259",
+    "ASan-UBSan/worldd": "6411ea228f24baf71233f47d712685fcbe885d1c00c01e9226bee3e57360ae01",
+    "ASan-UBSan/spatialwm": "9e6929813d5c3b967e7a1729c0710819787473c7d9acce3dd5d0416546535f93",
+    "ASan-UBSan/identityd": "f889ed85c54962133b32dcfbed1b066bb07311e4151e362e9940bf309112954f",
+    "ASan-UBSan/spatial-issuer-client": "25a69d9cb874c965b7ea4e2fab8402b072b354df6af8720108e232f8b9c9b758"
+  }
+}
