@@ -1,0 +1,30 @@
+M05 cross-host shared-state review
+
+Four executions pass: Debug and ASan/UBSan with each host serving as authority.
+The owner opens TLS locally. The second actor's TLS socket originates on the other host.
+Six retained witness connections per authority cover both profiles and restart authentication.
+Socket endpoint traces show the two distinct LAN hosts and TLSv1.3.
+Copied test and helper hashes match both remote copies.
+Copied result hashes match the remote originals.
+Twenty logs per authority contain no ASan, LeakSanitizer, or UBSan findings.
+No spatial-m05-witness temporary credential directories remain on either host.
+
+The production binaries are unchanged from the M04 qualified baseline.
+The assertions are inherited from the reviewed shared-state test without weakening.
+They verify shared object observation, exclusive manipulation, committed movement,
+stable world identity, preserved actor context, rejected old proof, and fresh authentication.
+The primary review inspected the bounded protobuf forwarding helper and orchestration fixture.
+The helper checks message version, maximum size, and response request identity.
+The production TLS endpoint still checks actor proofs and action authority.
+
+Persistent SSH setup is separately authorized and documented in docs/WORLD_HOST_SSH.txt.
+Actor identities do not receive SSH keys. Disposable fixture TLS keys are removed after each run.
+No private key or runtime database is included in this evidence.
+
+Limits
+This is a cross-host transport and shared-state regression, not complete M05 qualification.
+Actor proof signing is driven by the authority-host fixture.
+Independent actor-key provisioning and the complete private/shared topology remain pending.
+Actor-population visibility and abrupt authority loss need additional checks.
+Only graceful restart and explicit connection failure during the stopped interval are checked here.
+The registered M05 build and full phase gate remain pending.

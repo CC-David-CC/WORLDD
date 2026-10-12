@@ -1,0 +1,26 @@
+Persistent project SSH between world hosts
+
+David authorized persistent keys between sb16 and sb16-2 for ongoing testing.
+Both directions passed BatchMode SSH hostname checks.
+This is test and administration access. Actors do not receive these keys.
+
+Each host holds a separate private key at ~/.ssh/spacial_desktop_world_hosts.
+The matching public key is authorized on the other host with the restrict option.
+This disables forwarding, PTY allocation, and user startup commands.
+It permits SSH commands and file transfer for project work.
+Existing box-git keys and configuration remain intact.
+
+~/.ssh/config contains an explicit stanza for the other host.
+sb16 uses 10.0.7.94 for sb16-2. sb16-2 uses 10.0.7.49 for sb16.
+HostKeyAlias selects the name in ~/.ssh/spacial_desktop_world_hosts_known_hosts.
+Host keys were read through the controller's established SSH connections.
+StrictHostKeyChecking and IdentitiesOnly are enabled.
+The configuration selects dflanag3 and disables password prompts.
+
+Recovery
+Keep the controller's existing SSH route open while changing these entries.
+Remove only the authorized_keys entry whose public key matches the other host's
+~/.ssh/spacial_desktop_world_hosts.pub to revoke that direction.
+Remove the corresponding explicit Host stanza to stop selecting this key.
+Do not remove box-git keys or the controller's authorized key.
+Never copy private keys into Git or acceptance evidence.
