@@ -143,6 +143,8 @@ Do not silently combine new fixture source with old binaries. Record and review 
 Verify artifact hashes after transfer to each test host.
 Match reused XLibre receipt extension_sources to the candidate's patch, overlay, and protocol hashes.
 Verify the actual server binaries and wrapper targets. An older passing server may lack a newly required capability.
+Launch the qualified server wrapper when its receipt supplies patched graphics libraries or environment variables.
+Matching the raw Xvfb hash does not verify that graphics dependency closure. Check the wrapper and library hashes too.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
 Compare translated launcher variables with the selected qualified lane before launch, including sanitizer options and graphics extensions.
