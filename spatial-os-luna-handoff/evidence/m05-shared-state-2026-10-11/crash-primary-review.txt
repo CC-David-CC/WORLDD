@@ -1,0 +1,31 @@
+M05 supervised crash increment review
+
+Decision: selected checks pass. Complete M05 qualification remains pending.
+Both hosts pass four session-replacement cases in Debug and ASan/UBSan: sixteen case executions.
+These use the production SessionCoordinator, AuthoritySupervisor, cgroups, native server, and issuer.
+The added case commits an actor object move, then leaves a distinct preview and live manipulation lease.
+SIGKILL targets the exact supervised worldd through the existing pinned-process cleanup path.
+The supervisor proves process/native cleanup. The coordinator recovers dependent controls and obtains issuer retirement.
+Replacement keeps the world identity while advancing the authority generation and launch identities.
+The old actor channel closes. A new channel requires authentication.
+The committed pose survives without an explicit pre-crash checkpoint. The preview does not survive.
+A fresh grab succeeds, proving the abandoned manipulation lease does not block recovery.
+The unrelated application survives and remains responsive.
+
+The direct-launch cross-host test separately verifies the generation guard.
+Both directions pass in Debug and ASan/UBSan: four more case executions.
+Both transports die, the old listener refuses connections, and unsupervised restart fails with the exact cleanup requirement.
+The original failed recovery attempt remains preserved. It is not relabeled as passing recovery.
+The revised negative test and supervised positive test have distinct requirements.
+
+The primary review inspected both changed files and the reused cleanup/retirement assertions.
+Both audit reports verify source hashes, copied output hashes, and expected unittest case counts.
+Each host scans 66 retained logs without sanitizer findings.
+SIGKILL prevents exit-time leak detection in the killed process; this does not replace graceful sanitizer coverage.
+No production code, schema, deadline, or locked acceptance test changes in this increment.
+
+Remaining M05 integration
+Run supervised recovery with actors connected across hosts, including a TLS listener on the replacement world.
+The existing replacement probe currently requests only a local actor channel for replacement launches.
+Provision one private authority per host and one shared authority together.
+Complete independent remote actor-key provisioning and the full both-host phase gate.

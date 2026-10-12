@@ -1,0 +1,31 @@
+M05 abrupt restart integration findings
+
+Both Debug directions fail during attempted restart after SIGKILL.
+Before restart, the tests complete a committed move and an uncommitted preview.
+Both local and remote connections fail after the exact worldd PID is killed.
+The old TCP listener refuses a new connection.
+
+The issuer then rejects activation of the replacement worldd:
+Service already has an active generation; cleanup is required.
+This is the intended fail-closed generation guard, not evidence of lost world data.
+The fixture launches worldd directly and cannot attest to supervised cleanup.
+Do not remove the guard, clear issuer database rows, or fabricate cleanup evidence.
+The failed restart also exposes a secondary BrokenPipe during fixture cleanup.
+Preserve both failures. The crash test remains unqualified and uncommitted.
+
+Next integration
+Use the existing production SessionCoordinator and AuthoritySupervisor launch path.
+SessionCoordinator::launch_world already supports a retained TLS listener and actor identity configuration.
+Reuse native session fixtures and real cgroup/native cleanup receipts.
+Fence the exact crashed generation, recover dependent controls, and retire it through the issuer.
+Restart the same persistent world with a new launch identity after verified retirement.
+Then verify the committed pose survives, the preview does not, and the abandoned lease is gone.
+
+References
+src/supervisor/session_coordinator.cpp: actor-listener ownership and launch configuration.
+tests/native/test_session_application.py: world_config, crash_world, dependent recovery.
+tests/native/crosshost_revocation.py: SharedSession.recovered and SharedSession.retired.
+These paths already have M04 evidence, but do not establish M05 persistent restart by themselves.
+
+ASan/UBSan crash runs were not started because the Debug integration failed first.
+No production code or deadlines changed in this increment.

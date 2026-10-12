@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-11: M05 supervised crash persistence passes focused checks
+
+Both hosts pass the four-case session replacement suite in Debug and ASan/UBSan.
+The new case verifies committed object edits survive SIGKILL while uncommitted previews and abandoned leases do not.
+Recovery uses production fencing, checked cleanup, dependent recovery, and explicit issuer retirement.
+The separate cross-host negative case confirms direct restart cannot bypass the active-generation guard.
+These total twenty case executions. Source and copied output hashes match; no sanitizer findings appear in the scanned logs.
+Read evidence/m05-shared-state-2026-10-11/crash-primary-review.txt.
+
+Supervised recovery with cross-host actors, the full private/shared topology, remote key provisioning,
+and the complete M05 gate remain pending. M05 is not qualified yet.
+
 ## 2026-10-11: M05 actor representations pass focused qualification
 
 Actors now have real compositor-rendered markers with live authoritative poses.

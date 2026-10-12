@@ -1,0 +1,24 @@
+SharedCrossHostTests-test_committed_shared_edit_survives_abrupt_authority_loss-shared-world-2.log
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+
+SharedCrossHostTests-test_committed_shared_edit_survives_abrupt_authority_loss-shared-world-3.log
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+authority participant failed: code=18 request=1 stage=activate cause=Service already has an active generation; cleanup is required
+worldd: identity service disabled at identity_sessions.cpp:192
+worldd: World authority participation is unavailable
+
+SharedCrossHostTests-test_committed_shared_edit_survives_abrupt_authority_loss-witness-3-1.log
+TLS witness connected: ('10.0.7.49', 52970) -> ('10.0.7.94', 33889) TLSv1.3
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 64, in <module>
+    main()
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 56, in main
+    reply = packet(stream.recv, session.WorldSessionReply)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 24, in packet
+    header = exact(read, 4, allow_eof)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 18, in exact
+    raise EOFError('Truncated actor frame')
+EOFError: Truncated actor frame
+

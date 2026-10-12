@@ -1,0 +1,6 @@
+test_abrupt_authority_loss_requires_supervised_retirement (__main__.SharedCrossHostTests.test_abrupt_authority_loss_requires_supervised_retirement) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.916s
+
+OK

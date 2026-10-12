@@ -1,0 +1,33 @@
+test_committed_shared_edit_survives_abrupt_authority_loss (__main__.SharedCrossHostTests.test_committed_shared_edit_survives_abrupt_authority_loss) ... ERROR
+test_committed_shared_edit_survives_abrupt_authority_loss (__main__.SharedCrossHostTests.test_committed_shared_edit_survives_abrupt_authority_loss) ... ERROR
+
+======================================================================
+ERROR: test_committed_shared_edit_survives_abrupt_authority_loss (__main__.SharedCrossHostTests.test_committed_shared_edit_survives_abrupt_authority_loss)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_crosshost.py", line 140, in test_committed_shared_edit_survives_abrupt_authority_loss
+    restored = self.start_remote(world, native=True)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_crosshost.py", line 99, in start_remote
+    world.management('system.hello')
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 71, in management
+    self.proc.stdin.write(frame(request));self.proc.stdin.flush()
+                                          ^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+======================================================================
+ERROR: test_committed_shared_edit_survives_abrupt_authority_loss (__main__.SharedCrossHostTests.test_committed_shared_edit_survives_abrupt_authority_loss)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 89, in <lambda>
+    self.addCleanup(lambda:[world.close() for world in reversed(self.worlds)])
+                            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 83, in close
+    if not stream.closed:stream.close()
+                         ^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+----------------------------------------------------------------------
+Ran 1 test in 6.542s
+
+FAILED (errors=2)
