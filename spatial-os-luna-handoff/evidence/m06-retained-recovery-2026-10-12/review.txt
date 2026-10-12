@@ -1,0 +1,20 @@
+Review: all five owned deliverables inspected against production APIs.
+No production or locked test files changed. No authority contract changed.
+Probe forwards SessionCoordinator lifecycle calls with exact retained owners.
+Actor operations use ActorSessionClient. Transition uses ActorTransitionCoordinator.
+Shared PresentationOwner keeps one compositor across the retained world generations.
+Fault semantics traced to CommitFault and IdentitySessions::settle/activate.
+Destination fixture uses its own production authority seed and exact world registration.
+Generation fixtures preserve the durable state directory and change runtime incarnation.
+Rejected launch fixtures use separate journals and sealed native inputs.
+Positive recovery requires checked process/native receipts and explicit retirement.
+SQLite witnesses are read-only. The probe creates no receipts or recovery state.
+The explicit unittest name list selects only the three new cases, excluding inherited suites.
+Static AST parsing resolves the transitive fixture imports. Required Python bindings exist.
+Target-only Debug and ASan/UBSan builds passed with -j2 and directory-specific flock.
+ctest -N registers one suite containing three Python cases in each build.
+Packaging attempt01 used the CMake target name instead of its OUTPUT_NAME.
+Preserved that failure log. Corrected the binary filename to spatial-storage-owner.
+Runtime qualification and sanitizer runtime diagnostics are UNRUN.
+Final source manifest, both bundle manifests, and both archive hashes verified successfully.
+Both launcher scripts pass bash -n. No runtime qualification was executed.

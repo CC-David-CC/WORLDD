@@ -1,0 +1,84 @@
+RUN02 IMPLEMENTED AND COMPILED; UNQUALIFIED RUNTIME
+
+Host: a5500. Compile-only. No other host contacted. No runtime tests or probes executed.
+Worktree: /home/dflanag3/src/spacial-m06-retained-recovery-20261012
+Branch: m06/retained-transition-recovery
+Base: 411f531d559d22139dfc9ca0def7ec6445b9f742
+No commit created. Primary review and checkpoint remain required.
+Run01 evidence remains unchanged.
+
+Changed files under spatial-os-luna-handoff:
+CMakeLists.txt
+src/testing/actor_transition_recovery_probe.cpp
+src/testing/actor_transition_recovery_probe.proto
+tests/native/test_actor_transition_recovery.py
+docs/M06_RETAINED_TRANSITION_RECOVERY.txt
+
+Implemented regressions:
+test_departure_before_durable_commit
+test_departure_after_durable_commit
+test_destination_activation_crash
+
+Probe: thin protobuf adapter over SessionCoordinator, ActorSessionClient, and ActorTransitionCoordinator.
+Both world owners stay retained in the same coordinator. One production PresentationOwner supplies native presentation.
+Recovery uses stop_world, recover_world, and retire_world with the exact failed owner.
+Replacement preserves the durable directory and uses fresh identity generations and authenticated actor channels.
+Faults are FAULT_WORLD_BEFORE_COMMIT and FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY with FAULT_EXIT.
+No production API gap was found. No production library or authority contract changed.
+No existing assertion or locked test was edited.
+
+Oracles cover uncertain departure, receipt absence/presence, saved non-entry room and changed pose,
+source and destination durable state, rejected replay, stale owner rejection, checked cleanup,
+substituted recovery generation rejection, live/unretired restart rejection, and issuer retirement/activation.
+SQLite queries are read-only independent witnesses. Real provisioning creates the fixture authority seeds.
+The destination actor is initially absent. Its activation crash reaches the real actor insertion commit.
+
+Selection: run02-logs/selected-checks.txt, written before implementation.
+Review: run02-logs/review.txt. Static fixture closure: run02-logs/static-review.txt.
+Build commands: docs/M06_RETAINED_TRANSITION_RECOVERY.txt and run02-logs/build-status.json.
+Both profiles explicitly configured under directory-specific flock. Both built the target closure at -j2.
+Debug log: run02-logs/debug-build.txt. ASan/UBSan log: run02-logs/asan-build.txt.
+Both build exits: 0. Build failures: 0.
+Both ctest -N logs register actor-transition-recovery. Only registration was inspected.
+Python syntax/import closure, shell launcher syntax, and git diff --check passed as static checks.
+Runtime: passed 0; failed 0; blocked 0; skipped 0; UNRUN 3 cases.
+Required qualification: 12 UNRUN executions across sb16/sb16-2 and Debug/ASan-UBSan.
+
+Artifacts:
+local/m06-retained-recovery/run02-debug.tar.gz
+local/m06-retained-recovery/run02-asan.tar.gz
+local/m06-retained-recovery/run02-bundles.sha256
+local/m06-retained-recovery/run02-source-pin.json
+local/m06-retained-recovery/run02-source.sha256
+Each bundle contains 16 binaries, generated bindings, runtime.textproto, source fixtures/tools,
+shared-library dependency artifacts, DEPENDENCIES.json, SHA256SUMS, and run-tests.sh.
+Preserved packaging attempt01 failure: a CMake target OUTPUT_NAME differed from its target name.
+The corrected artifact uses spatial-storage-owner. Final packaging success is recorded separately.
+
+Next safe task: primary reviews the five source deliverables, checkpoints outside this sandbox,
+and transfers the verified bundles to sb16 and sb16-2. No deployment occurred here.
+On EACH qualification host, extract into a unique directory and run:
+
+cd /absolute/path/to/extracted/run02-debug
+sha256sum -c SHA256SUMS
+SPATIAL_TEST_XSERVER=/absolute/path/to/existing/XACE/Xvfb SPATIAL_SECURITY_EVIDENCE=/absolute/path/to/evidence/run02-debug SPATIAL_SCOPE_EVIDENCE=/absolute/path/to/evidence/run02-debug/scopes ./run-tests.sh
+
+Repeat for run02-asan with separate evidence.
+Use the installed XACE Xvfb. Do not build or replace the server for this task.
+run-tests.sh sets PYTHONPATH to bin/python and source, ASAN_OPTIONS=detect_leaks=1:abort_on_error=1,
+and UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1.
+It invokes with_resource_delegate.py --native and with_adapter_resources.py before the Python test.
+The adapter supplies SPATIAL_TEST_BROKER_CONFIG, SPATIAL_TEST_CGROUP_ROOT, and resource configuration.
+Retain existing native resource delegation. Do not unset security configuration.
+Host prerequisites include Python 3.12 + google.protobuf, Git, openssl, systemd, cgroup v2 delegation,
+Linux namespace/device access, and compatible system libraries. Bundled dependency libraries are inventoried.
+The launcher uses host system libraries. It does not alter normal login or recovery routes.
+
+Missing evidence: all native runtime assertions and sanitizer runtime results.
+Full M06 gates, cross-host TLS, physical input, and other milestone integration remain outside this bounded task.
+Do not claim phase completion from these compile results.
+
+Final artifact verification: PASS.
+Both bundle SHA256SUMS passed. Both archive hashes passed. Source manifest verification passed.
+Final packaging exit: 0. See package.txt and *artifact-verification.txt/archive-verification.txt.
+Implementation/build/package deliverables are present. Runtime qualification remains UNRUN.

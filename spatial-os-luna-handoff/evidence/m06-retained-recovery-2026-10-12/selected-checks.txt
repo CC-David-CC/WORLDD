@@ -1,0 +1,9 @@
+Host: a5500. Branch: m06/retained-transition-recovery. Base: 411f531.
+Selection before implementation: three retained native crash-transition regressions.
+Departure before commit: uncertain exchange, no receipt, old durable context, no activation or replay.
+Departure after commit: uncertain exchange, no receipt, new durable context, no activation or replay.
+Destination activation crash: confirmed departure receipt, uncertain activation, durable source context, destination rollback, no replay.
+All use exact owner cleanup, recovery, retirement, fresh generation and authenticated channels.
+Build Debug and ASan/UBSan at -j2 under directory-specific flock. Inspect ctest -N.
+All runtime checks UNRUN on this compile-only host. No probes or tests executed.
+Owned files: new probe, new protobuf adapter, new Python regressions, CMake registration, documentation.

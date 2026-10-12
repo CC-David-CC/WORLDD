@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-12: M06 four-case native recovery passes focused qualification
+
+All four recovery cases passed on both hosts in Debug and ASan/UBSan: 16 executions.
+Both departure and activation now have before-commit and after-commit coverage.
+Read evidence/m06-retained-recovery-2026-10-12/final-review.txt for hashes, diagnostics, and prior failures.
+Recovery checkpoint 11a193c3e is verified on box-git.
+
+Combined candidate b7b684e integrates 15 real-service cases and four retained recovery cases.
+The three unsupported direct-launch crash tests have explicit native replacements.
+The common actor-transition Python binding now has one generator.
+Combined checks select 80 executions, including the native controller consumer, across both hosts and profiles.
+The candidate is on box-git branch m06/recovery-combined-candidate. Its combined checks are pending.
+
+Cross-host provisioning and production host-session corrections remain separate active workers.
+A Luna worker owns combined held-input and delayed-request regressions on m06/held-input-transitions.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending.
+
 ## 2026-10-12: M06 recovery and production-entrypoint review
 
 Recovery attempt01 had 12 setup errors from an outdated shared fixture.

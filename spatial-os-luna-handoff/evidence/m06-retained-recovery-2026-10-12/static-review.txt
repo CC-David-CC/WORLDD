@@ -1,0 +1,27 @@
+Static fixture closure. No module imports or runtime execution.
+spatial-os-luna-handoff/harness/git_fixture.py
+spatial-os-luna-handoff/harness/oracles.py
+spatial-os-luna-handoff/harness/resource_broker.py
+spatial-os-luna-handoff/harness/wire.py
+spatial-os-luna-handoff/tests/core/test_identity_enrollment.py
+spatial-os-luna-handoff/tests/core/test_identity_issuer.py
+spatial-os-luna-handoff/tests/core/test_identity_participant_session.py
+spatial-os-luna-handoff/tests/core/test_identity_tls.py
+spatial-os-luna-handoff/tests/core/test_issuer_client.py
+spatial-os-luna-handoff/tests/core/test_supervisor_registry.py
+spatial-os-luna-handoff/tests/native/display_ready.py
+spatial-os-luna-handoff/tests/native/healthy_issuer_setup.py
+spatial-os-luna-handoff/tests/native/test_actor_transition_recovery.py
+spatial-os-luna-handoff/tests/native/test_authority_launch.py
+spatial-os-luna-handoff/tests/native/test_authority_owned_participant.py
+spatial-os-luna-handoff/tests/native/test_authority_participant_relay.py
+spatial-os-luna-handoff/tests/native/test_authority_supervisor.py
+spatial-os-luna-handoff/tests/native/test_native_launch.py
+spatial-os-luna-handoff/tests/native/test_security_identity.py
+spatial-os-luna-handoff/tests/native/test_session_application.py
+spatial-os-luna-handoff/tests/native/test_session_replacement.py
+spatial-os-luna-handoff/tests/native/test_session_world.py
+spatial-os-luna-handoff/tests/native/test_supervisor_broker_handoff.py
+spatial-os-luna-handoff/tests/native/test_supervisor_broker_handoff_regressions.py
+Python bindings: actor_transition_pb2.py, actor_transition_recovery_probe_pb2.py, broker_pb2.py, compositor_native_pb2.py, core_pb2.py, grants_pb2.py, issuer_pb2.py, key_pb2.py, launch_pb2.py, native_scope_pb2.py, process_scope_pb2.py, security_pb2.py, session_probe_pb2.py, world_session_pb2.py
+Missing: []

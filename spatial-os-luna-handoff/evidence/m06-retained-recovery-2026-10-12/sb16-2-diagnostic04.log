@@ -1,0 +1,117 @@
+{"unit": "spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/python:/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/evidence/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/evidence", "--", "python3", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tools/with_adapter_resources.py", "--", "python3", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_actor_transition_recovery.py", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/spatial-authority-launch-probe", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/spatial-security-auth", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/spatial-issuer-client", "ActorTransitionRecoveryTests.test_departure_before_durable_commit", "ActorTransitionRecoveryTests.test_departure_after_durable_commit"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service"]}
+Running as unit: spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service; invocation ID: eae89315c6cb4fe28f1681aa7d00fcc3
+test_departure_before_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_before_durable_commit) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.15925294999033213, "operation": "initialize", "outcome": "exit_0", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.057063200991251506, "operation": "connect", "outcome": "connected", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "info", "started": 105564.171488223, "idle_gap_seconds": null, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0113213909935439, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105564.191937961, "idle_gap_seconds": 0.009130456004641019, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011880633988766931, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105564.208043178, "idle_gap_seconds": 0.004227340003126301, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.054528264998225495, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105564.294259897, "idle_gap_seconds": 0.031695489000412636, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012406373003614135, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105564.324824856, "idle_gap_seconds": 0.018165511995903216, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02937780700449366, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "enrollment_begin", "started": 105564.355634171, "idle_gap_seconds": 0.001438748004147783, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012697061989456415, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "enrollment_complete", "started": 105564.385201128, "idle_gap_seconds": 0.01687784999376163, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030116586000076495, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105564.415591257, "idle_gap_seconds": 0.00028176099294796586, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012250106999999844, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105564.444647914, "idle_gap_seconds": 0.01681417500367388, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0314437899942277, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105566.38180119, "idle_gap_seconds": 1.905717777000973, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010996765005984344, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105566.397667123, "idle_gap_seconds": 0.0048715279990574345, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026755549988592975, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105566.424546798, "idle_gap_seconds": 0.00012747700384352356, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011373303990694694, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105566.451292181, "idle_gap_seconds": 0.015377218995126896, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03139373600424733, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105571.631950187, "idle_gap_seconds": 5.149272965994896, "issuer_processes": [{"pid": 1598766, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0002525689924368635, "operation": "request", "outcome": "EOFError", "test": "test_departure_before_durable_commit"}
+ERROR
+test_departure_after_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_after_durable_commit) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.11248652401263826, "operation": "initialize", "outcome": "exit_0", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05221513399737887, "operation": "connect", "outcome": "connected", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "info", "started": 105572.7664717, "idle_gap_seconds": null, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011341466000885703, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105572.787069673, "idle_gap_seconds": 0.009258359001250938, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012705996006843634, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105572.804373273, "idle_gap_seconds": 0.004599605003022589, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028317635995335877, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105572.856782325, "idle_gap_seconds": 0.02409583900589496, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012069491000147536, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105572.881587053, "idle_gap_seconds": 0.01274145299976226, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02996801500557922, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "enrollment_begin", "started": 105572.913301536, "idle_gap_seconds": 0.0017555569938849658, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012992814998142421, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "enrollment_complete", "started": 105572.93711813, "idle_gap_seconds": 0.010832631989615038, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02698333300941158, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105572.964285262, "idle_gap_seconds": 0.00018876700778491795, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011532413001987152, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105572.988724456, "idle_gap_seconds": 0.012911810001241975, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03086030000122264, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105575.166772237, "idle_gap_seconds": 2.1471992389997467, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011031011992599815, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105575.183219016, "idle_gap_seconds": 0.005417920008767396, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02766384898859542, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105575.211108989, "idle_gap_seconds": 0.00023083199630491436, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011964550008997321, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105575.242223957, "idle_gap_seconds": 0.019157578994054347, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032071866997284815, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105578.01234438, "idle_gap_seconds": 2.7380579009914072, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011286952008958906, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105578.028949968, "idle_gap_seconds": 0.005320982992998324, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026810699011548422, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "challenge", "started": 105578.055887201, "idle_gap_seconds": 0.00012990599498152733, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0116797959926771, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Issuer diagnostic {"operation": "execute", "started": 105578.076980827, "idle_gap_seconds": 0.009417673994903453, "issuer_processes": [{"pid": 1598928, "exit": null}]}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029594755003927276, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+ok
+
+======================================================================
+ERROR: test_departure_before_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_before_durable_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_actor_transition_recovery.py", line 344, in test_departure_before_durable_commit
+    self.crash_transition(core.FAULT_WORLD_BEFORE_COMMIT)
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_actor_transition_recovery.py", line 239, in crash_transition
+    self.start_pair()
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_actor_transition_recovery.py", line 136, in start_pair
+    config = worlds.SessionWorldTests.world_config(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_session_world.py", line 33, in world_config
+    registration = self.issuer.register(identity=(b'w' if not suffix else b'v') * 32, public=public, domain=getattr(self, 'world_domain', 'world-one')+suffix, revision=self.last_world_registry_revision if suffix else 1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_actor_transition_recovery.py", line 134, in exact_domain
+    return register(**arguments)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/core/test_identity_participant_session.py", line 44, in register
+    reply = self.execute(self.peer, self.challenge(self.peer, operation))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/core/test_identity_tls.py", line 49, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/healthy_issuer_setup.py", line 52, in request
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/healthy_issuer_setup.py", line 43, in exact
+    raise EOFError('Issuer TLS stream closed')
+EOFError: Issuer TLS stream closed
+
+----------------------------------------------------------------------
+Ran 2 tests in 19.548s
+
+FAILED (errors=1)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service/adapter-fa20e718a9204f3cb66895c58d8cf35a", "device": 31, "inode": 11769082, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service/adapter-fa20e718a9204f3cb66895c58d8cf35a\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["python3", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source/tests/native/test_actor_transition_recovery.py", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/source", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/spatial-authority-launch-probe", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/spatial-security-auth", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-diagnostic04/run02-asan/bin/spatial-issuer-client", "ActorTransitionRecoveryTests.test_departure_before_durable_commit", "ActorTransitionRecoveryTests.test_departure_after_durable_commit"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 19.888s
+CPU time consumed: 15.012s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service: Unit spatial-m03-resources-fa9e38090f394c308c1cf522a737cc6d.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
