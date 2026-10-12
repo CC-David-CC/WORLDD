@@ -1,0 +1,31 @@
+Current host integration: in progress, not approved for commit.
+PresentationOwner uses RenderProcess presentation mode and the authenticated control transport.
+SessionCoordinator can start one compositor before worlds and select checked world bindings.
+The supervisor exports an explicit world pidfd, preserving broker-only default requests.
+The world scope contains worldd. The host compositor remains outside that scope.
+The coordinator checks world.info against the requested world ID before selection.
+
+Run02 failure: the new internal world.info request omitted protocol_version=1.
+world_call rejected it before sending. Set the version explicitly. Preserve run02 evidence.
+
+Remaining review and coverage:
+Completed focused check: two production supervisor-backed worlds share one compositor.
+Completed focused checks: wrong world ID and world-handle request against broker. Wrong native server coverage remains pending.
+- Checked cleanup receipts for UNCERTAIN retirement, including retry after world stop.
+Implemented: retain possible attachment before awaiting its reply. Targeted lost-reply coverage remains pending.
+Completed focused check: destroy a forked coordinator copy, then launch/select the world through the surviving owner.
+Implemented: exact state acknowledgment checks. Hostile host-client reply coverage remains pending.
+- Actor transitions and the full M06 gate remain pending.
+
+Run04 fixture failure: second world registration reused registry revision 1.
+Run05 uses the revision returned by the first registration. No production check was weakened.
+
+Recovery and host-client review update:
+The earlier pending entries above are historical. Receipt recovery is implemented and passed run02/run03.
+Owner run04 exposed a fixture diagnostic mismatch: closing fd0 retained the socket through fd1.
+Owner run05 uses shutdown(SHUT_RDWR) to cause the intended lost-reply connection failure.
+Host replies now have hostile checks for identity, binding, stage, selection, descriptors and partial framing.
+Same-server wrong native credential is rejected before input becomes ready.
+Protocol receipt tests trust their private parent; session-world covers actual supervisor receipts.
+No control-channel reconnect is claimed. Failure retains uncertainty and prevents continued control.
+Actor transitions and full M06 qualification remain pending.

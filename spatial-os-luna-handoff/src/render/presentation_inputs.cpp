@@ -23,6 +23,7 @@ struct Descriptor {
 struct PresentationInputs::Impl {
     struct Entry {
         Binding binding;
+        std::string expected_credential;
         std::unique_ptr<NativeInput> native;
         std::unique_ptr<XInputRouter> router;
     };
@@ -61,14 +62,17 @@ void PresentationInputs::bind(const Binding& binding, int descriptor) {
     state.entries.emplace(binding.presentation_generation(),std::move(entry));
     state.high_water=binding.presentation_generation();
 }
-void PresentationInputs::reserve(const Binding& binding) {
+void PresentationInputs::reserve(const Binding& binding,const std::string& server,const std::string& credential) {
     validate_binding(binding);
     auto& state=*impl_;
     if (state.server_id.size()!=32) throw WorldError(wire::FORBIDDEN, "Scoped input requires authenticated graphics");
     if (binding.presentation_generation()<=state.high_water)
         throw WorldError(wire::STALE_TARGET, "Presentation generation cannot be reused");
     if (state.entries.size()>=256) throw WorldError(wire::IN_USE, "Too many world presentation bindings");
-    Impl::Entry entry;entry.binding=binding;
+    if(!server.empty() || !credential.empty()){
+        if(server!=state.server_id || credential.size()!=32)throw WorldError(wire::FORBIDDEN,"Presentation native scope does not match graphics");
+    }
+    Impl::Entry entry;entry.binding=binding;entry.expected_credential=credential;
     state.entries.emplace(binding.presentation_generation(),std::move(entry));
     state.high_water=binding.presentation_generation();
 }
@@ -79,12 +83,19 @@ void PresentationInputs::initialize(const Binding& binding,int descriptor) {
     std::unique_ptr<NativeInput> native(new NativeInput(owned.release()));
     if (native->server_id()!=state.server_id)
         throw WorldError(wire::FORBIDDEN, "Input and graphics belong to different native servers");
+    if(!entry.expected_credential.empty() && native->credential_id()!=entry.expected_credential)
+        throw WorldError(wire::FORBIDDEN,"Input credential differs from attached supervisor scope");
     auto router=std::make_unique<XInputRouter>(state.display,*native,state.surfaces);
     entry.native=std::move(native);entry.router=std::move(router);
 }
 void PresentationInputs::retire(const Binding& binding) {
     auto& entry=impl_->find(binding);
     if (entry.router) entry.router->close_all();
+    impl_->entries.erase(binding.presentation_generation());
+}
+void PresentationInputs::confirm_retired(const Binding& binding) {
+    auto& entry=impl_->find(binding);
+    if(entry.expected_credential.empty())throw WorldError(wire::FORBIDDEN,"Input binding has no checked supervisor scope");
     impl_->entries.erase(binding.presentation_generation());
 }
 wire::NativeActorInput PresentationInputs::input(const Binding& binding, const wire::RendererInputCommand& command) {

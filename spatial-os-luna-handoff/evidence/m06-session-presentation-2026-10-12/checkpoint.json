@@ -1,0 +1,12 @@
+{
+  "status": "reviewed_focused_checks_passed",
+  "focused_check_executions": 240,
+  "failed": 0,
+  "skipped": 0,
+  "phase_complete": false,
+  "next": "Actor world transitions; full M06 gate remains pending",
+  "current": "Host compositor owner and exact stopped-scope recovery",
+  "receipt_and_owner_executions": 572,
+  "failures_in_final_runs": 0,
+  "source_manifest": "final-source-sha256.json"
+}

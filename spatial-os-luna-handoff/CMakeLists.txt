@@ -47,6 +47,10 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/presentation.proto
     DEPENDS proto/spatial/render/v1/presentation.proto proto/spatial/render/v1/compositor_native.proto
         proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
@@ -309,9 +313,9 @@ add_executable(identityd src/identity/issuer_main.cpp)
 target_link_libraries(identityd PRIVATE spatial-issuer)
 add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources} ${input_proto_headers})
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
-add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
+add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
-target_link_libraries(spatial-core PUBLIC spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
+target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
 target_link_libraries(spatial-storage-broker-launch-probe PRIVATE spatial-core)
 add_dependencies(spatial-storage-broker-launch-probe broker-python-protobuf)
@@ -819,6 +823,12 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_revocation_command.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-revoke>)
     set_tests_properties(identity-revocation-command PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_executable(spatial-presentation-owner-probe src/testing/presentation_owner_probe.cpp)
+    target_link_libraries(spatial-presentation-owner-probe PRIVATE spatial-core)
+    add_test(NAME presentation-owner COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_presentation_owner.py" $<TARGET_FILE:spatial-presentation-owner-probe>)
+    set_tests_properties(presentation-owner PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME presentation-stream COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_presentation_stream.py" $<TARGET_FILE:spatial-presentation-stream-probe>)

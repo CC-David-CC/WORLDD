@@ -1,0 +1,20 @@
+Next implementation: resolve UNCERTAIN presentation retirement from checked supervisor receipts.
+
+Retain the exact native scope and process scope identities at world attachment.
+Expose the native connection credential ID from the authenticated server inspection.
+Check that the world input connection matches the attached native scope before admitting commands.
+Keep native credentials private. The credential ID is an identity, not the bearer cookie.
+
+Add a private control recovery operation containing the binding and both stopped receipts.
+Accept it only from the retained host owner after the world process is no longer live.
+Require exact native/process identity matches against the attached scope identities.
+The coordinator obtains receipts only from SessionLaunch.stop(), which checks actual supervisor cleanup.
+Do not accept a journal reopened without retained supervisor evidence as cleanup proof.
+
+Only then discard cached input seats and acknowledge RETIRED.
+Keep UNKNOWN/UNCERTAIN distinct from confirmed cleanup on missing or mismatched receipts.
+Make exact retries idempotent without allowing an old presentation generation to reappear.
+Cover forged, mismatched, stale, live-process, duplicate, and valid cleanup cases.
+Exercise valid recovery after native revocation with held input while another world continues.
+
+This file describes pending work. It is not evidence that recovery exists.

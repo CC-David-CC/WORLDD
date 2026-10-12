@@ -21,6 +21,7 @@ public:
     int socket_fd() const;
     const std::string& number() const;
     const std::string& server_id() const;
+    const std::string& credential_id() const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

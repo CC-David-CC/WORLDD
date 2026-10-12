@@ -1,0 +1,20 @@
+{
+  "CMakeLists.txt": "5b0572605c3a0e073678a0d0994af222f7b337a645fdf542579d950173d18b4e",
+  "proto/spatial/supervisor/v1/launch.proto": "383f79736f135492f3829f48fcb617598f2ba7d8d9fbb1efebfef80fc46da27d",
+  "src/platform/render_process.cpp": "213c7bcecc3ff364f8b5ea2404bc7428e85eebf934b379cb60f1f9d632b0363a",
+  "src/platform/render_process.hpp": "d4b696069ad998ffbf5c73f657e5e3b7da38c525879b2f235106b7280fc35a30",
+  "src/supervisor/child_handle.cpp": "472d90572669b7cb5eb5f46cfb0b88e1d038602600d5aec420919879c17881ff",
+  "src/supervisor/child_handle_client.cpp": "143a16d7722ceb9d34038bf4332830ef42cc4ef56472ad3c893fb3d3633a4de6",
+  "src/supervisor/child_handle_client.hpp": "463866f2d8d657b7fda0ebb99c1baefc906e51170261736c544a62a6bfadb4f8",
+  "src/supervisor/launch.cpp": "a0eaf34749494c36c0bb9602932762c74639f6381d9045d2da2f70de31e8dce1",
+  "src/supervisor/launch.hpp": "8ebea4f76b90cebbe77c5d8437c296cdd7494e37de7105b6142dc5292f62f664",
+  "src/supervisor/session_coordinator.cpp": "f15c51a50421db47cddcbbf94399721cc4f080aad7d4f875e60fa2509d2f1253",
+  "src/supervisor/session_coordinator.hpp": "f8b21403ba22fb70d36c6437549ba062e2832cbe4b340966d5ec624456edd3d5",
+  "src/supervisor/session_launch.cpp": "716645303e678093bee31ba764a2f698081dcdf2f02f0d7ea926ec650f01d807",
+  "src/supervisor/session_launch.hpp": "937e5ff5196ea57c83dac0272e392052c0f6c2c53075f26ce010a27ade440779",
+  "src/testing/session_world_probe.cpp": "edfdbdb1fd6fc3839c949e07b083b8ea0830e18d917e0381ce778548ec1f90c1",
+  "tests/native/test_session_world.py": "f7cc2f5af37b46505b47796ce9f74c7094689fc60e80fabe42b63e1c95769fae",
+  "tests/native/test_supervisor_child_handle.py": "747716c4a3585cb91d83a8bb9acb2b7e091604d601626e88077f12e252b6c2b4",
+  "src/platform/presentation_owner.cpp": "512a0fda1f37fde5638a20f379f9677d7ab463f0b8cf260f1a394b3c6a177f25",
+  "src/platform/presentation_owner.hpp": "6675bfdca2225e056b8c7d08c613edfa6097b6daca4d0a822cfdaa1f4167cf0a"
+}

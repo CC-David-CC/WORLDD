@@ -1,4 +1,5 @@
 #pragma once
+#include "native_scope.pb.h"
 #include "core/protocol.hpp"
 #include "compositor_native.pb.h"
 #include <filesystem>
@@ -15,10 +16,11 @@ public:
     void events();
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command);
-    void reserve_input(const render::v1::WorldPresentationBinding&);
+    void reserve_input(const render::v1::WorldPresentationBinding&,const supervisor::v1::NativeScopeIdentity* scope=nullptr);
     void initialize_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void clear_presentation();
     void bind_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
+    void confirm_input_retired(const render::v1::WorldPresentationBinding& binding);
     void retire_input(const render::v1::WorldPresentationBinding&);
     wire::NativeActorInput input(const render::v1::WorldPresentationBinding&, const wire::RendererInputCommand&);
     wire::NativeSnapshot synchronize(const render::v1::WorldPresentationBinding&);

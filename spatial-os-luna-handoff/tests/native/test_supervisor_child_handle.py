@@ -74,6 +74,14 @@ class ChildHandleTests(base.BrokerHandoffRegressionTests):
         self.assertEqual(proc.wait(timeout=5), 0)
         self.checked_cleanup()
 
+    def test_world_handle_request_cannot_export_a_broker(self):
+        proc,channel=self.start_with_handles();request=self.request();request.world=True
+        reply,descriptors=self.exchange(request)
+        self.assertTrue(reply.HasField('error'),reply);self.assertEqual(descriptors,[])
+        reply,descriptors=self.exchange(self.request())
+        self.assertTrue(reply.HasField('launch'),reply);self.assertEqual(len(descriptors),1)
+        self.stopped(proc,channel)
+
     def test_transferred_pidfd_matches_real_broker_and_observes_cleanup(self):
         proc, channel = self.start_with_handles()
         reply, descriptors = self.exchange(self.request())

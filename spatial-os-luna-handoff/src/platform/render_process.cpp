@@ -13,12 +13,21 @@
 
 namespace spatial {
 RenderProcess::RenderProcess(const std::filesystem::path& executable, const std::filesystem::path& state,
-                             std::string display, int native_fd)
-    : display_(std::move(display)) {
+                             std::string display, int native_fd, Mode mode)
+    : creator_(getpid()), display_(std::move(display)) {
+    if(mode==Mode::Presentation && native_fd<3)throw std::invalid_argument("Presentation process requires sealed native configuration");
     int pair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0)
         throw std::runtime_error("Cannot create renderer channel");
+    if(mode==Mode::Presentation){
+        int enabled=1;
+        if(setsockopt(pair[0],SOL_SOCKET,SO_PASSCRED,&enabled,sizeof(enabled))!=0 ||
+           setsockopt(pair[1],SOL_SOCKET,SO_PASSCRED,&enabled,sizeof(enabled))!=0){
+            close(pair[0]);close(pair[1]);throw std::runtime_error("Cannot authenticate presentation process channel");
+        }
+    }
     const auto parent = getpid();
+    const auto owner_argument=std::to_string(parent);
     const auto native_argument = std::to_string(native_fd);
     pid_ = fork();
     if (pid_ == 0) {
@@ -31,6 +40,11 @@ RenderProcess::RenderProcess(const std::filesystem::path& executable, const std:
             if (syscall(SYS_close_range, static_cast<unsigned>(native_fd) + 1u, ~0u, 0u) != 0) _exit(126);
             const int flags = fcntl(native_fd, F_GETFD);
             if (flags < 0 || fcntl(native_fd, F_SETFD, flags & ~FD_CLOEXEC) < 0) _exit(126);
+            if(mode==Mode::Presentation){
+                execl(executable.c_str(),executable.c_str(),"--state-dir",state.c_str(),"--display",display_.c_str(),
+                    "--native-security-fd",native_argument.c_str(),"--presentation-owner-pid",owner_argument.c_str(),static_cast<char*>(nullptr));
+                _exit(127);
+            }
             execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
                   "--native-security-fd", native_argument.c_str(), static_cast<char*>(nullptr));
             _exit(127);
@@ -51,6 +65,7 @@ RenderProcess::RenderProcess(const std::filesystem::path& executable, const std:
 }
 RenderProcess::~RenderProcess() {
     close(socket_);
+    if(getpid()!=creator_){close(pidfd_);return;}
     pollfd fd{pidfd_, POLLIN, 0};
     int ready;
     do { ready = poll(&fd, 1, 2000); } while (ready < 0 && errno == EINTR);
@@ -58,5 +73,5 @@ RenderProcess::~RenderProcess() {
     while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
     close(pidfd_);
 }
-void RenderProcess::terminate() const { kill(pid_, SIGKILL); }
+void RenderProcess::terminate() const { if(getpid()==creator_)kill(pid_, SIGKILL); }
 }

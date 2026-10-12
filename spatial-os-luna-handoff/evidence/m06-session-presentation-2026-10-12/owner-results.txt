@@ -1,0 +1,9 @@
+Owner run05: 39 tests per host/profile; 156 passing executions across both hosts and Debug/ASan-UBSan.
+Combined with receipt02/03: 572 passing executions, including repeated regressions.
+Run04 failure retained: test fixture left fd1 connected when closing fd0; corrected with socket shutdown.
+No production deadline or locked acceptance assertion changed.
+All 41 acceptance lock hashes verified. Changed implementation/test source matches both remote overlays.
+Primary review completed for each changed source file, schemas, build wiring, and regression fixtures.
+Hostile owner replies, lost attachment reply, wrong native credential, receipt mismatch, exact retry, fork ownership, and real supervisor/world integration checked.
+Host-client lost-reply test proves channel invalidation; it does not prove reconnect or a journal-based recovery. Neither is implemented.
+This coherent host ownership increment is ready for commit. Actor transition integration and the full M06 gate remain pending.

@@ -20,6 +20,7 @@ public:
     pid_t supervisor_pid() const;
     int supervisor_pidfd() const;
     ProcessHandle broker_handle();
+    ProcessHandle world_handle();
     workspace::v1::ControlOwner control_owner();
     // Exact retry returns the already checked receipt. Rejected child exits stay rejected.
     v1::AuthorityLaunchRecord stop();

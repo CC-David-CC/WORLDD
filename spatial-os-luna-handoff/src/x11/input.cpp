@@ -40,6 +40,10 @@ const std::string& NativeInput::server_id() const {
     if (!scoped_) throw std::logic_error("Native input has no scoped server identity");
     return scoped_->server_id();
 }
+const std::string& NativeInput::credential_id() const {
+    if(!scoped_)throw std::logic_error("Native input has no scoped credential identity");
+    return scoped_->credential_id();
+}
 NativeInput::NativeInput(Display* display) : display_(display) {
     int event = 0, error = 0;
     if (!XQueryExtension(display_, "SPATIAL-INPUT", &opcode_, &event, &error))

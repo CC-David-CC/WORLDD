@@ -245,8 +245,8 @@ wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command
     synchronize();
     return impl_->input->execute(command);
 }
-void Renderer::reserve_input(const render::v1::WorldPresentationBinding& binding) {
-    impl_->bindings->reserve(binding);
+void Renderer::reserve_input(const render::v1::WorldPresentationBinding& binding,const supervisor::v1::NativeScopeIdentity* scope) {
+    impl_->bindings->reserve(binding,scope?scope->server_id():std::string{},scope?scope->credential_id():std::string{});
 }
 void Renderer::initialize_input(const render::v1::WorldPresentationBinding& binding,int descriptor) {
     auto& r=*impl_;
@@ -270,6 +270,7 @@ void Renderer::bind_input(const render::v1::WorldPresentationBinding& binding, i
     catch (...) { r.bindings->retire(binding); throw; }
     r.input.reset(); // Scoped mode never returns to the unbound input path.
 }
+void Renderer::confirm_input_retired(const render::v1::WorldPresentationBinding& binding) {impl_->bindings->confirm_retired(binding);}
 void Renderer::retire_input(const render::v1::WorldPresentationBinding& binding) {
     impl_->bindings->retire(binding);
 }

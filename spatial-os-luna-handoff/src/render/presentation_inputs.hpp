@@ -13,10 +13,11 @@ public:
     PresentationInputs(const PresentationInputs&) = delete;
     PresentationInputs& operator=(const PresentationInputs&) = delete;
     static void validate_binding(const render::v1::WorldPresentationBinding&);
-    void reserve(const render::v1::WorldPresentationBinding&);
+    void reserve(const render::v1::WorldPresentationBinding&,const std::string& server={},const std::string& credential={});
     void initialize(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void bind(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void retire(const render::v1::WorldPresentationBinding&);
+    void confirm_retired(const render::v1::WorldPresentationBinding&);
     wire::NativeActorInput input(const render::v1::WorldPresentationBinding&, const wire::RendererInputCommand&);
     void snapshot(const render::v1::WorldPresentationBinding&, wire::NativeSnapshot&);
 private:

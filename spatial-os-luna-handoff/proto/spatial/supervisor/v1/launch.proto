@@ -107,11 +107,13 @@ message AuthorityLaunchError {
 }
 // Dedicated private SOCK_SEQPACKET channel. No actor can access this interface.
 // A successful reply carries exactly one SCM_RIGHTS pidfd; an error carries none.
-// The snapshot must match the retained, authorized, running broker launch exactly.
+// The snapshot must match the retained authorized running launch exactly.
+// Default requests remain broker-only. World export requires the explicit world flag.
 message AuthorityChildHandleRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
   AuthorityLaunchRecord expected = 3;
+  bool world = 4;
 }
 message AuthorityChildHandleReply {
   uint32 protocol_version = 1;

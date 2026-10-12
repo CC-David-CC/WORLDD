@@ -1,0 +1,15 @@
+Production host presentation integration increment, not M06 qualification.
+The host session owns one persistent graphics process before launching worlds.
+A world receives only a private channel and retained compositor pidfd.
+Its supervisor exports a world pidfd through an explicit world-handle request.
+Legacy broker requests remain broker-only.
+Attach checks the exact retained launch. Selection requires the expected world ID.
+Uncertain presentation cleanup remains a blocker for clean presentation shutdown.
+Selected checks: production session-world integration, broker/world handle negative cases,
+existing supervisor lifecycle suites, shared rendering, and focused sanitizers on both hosts.
+Native cleanup receipt reconciliation and actor transitions remain pending.
+Receipt recovery contract: attach the exact ControlOwner and ProcessScopeIdentity; verify native input credential identity; require matching stopped receipts and a dead retained world pidfd before confirming retirement. Exact recovery retries remain valid until detach.
+
+Receipt run02: session-world verifies real supervisor stopped receipts. Presentation-server tests live-process rejection, mismatched receipts, exact retry, held-input release, and continued graphics. Existing shared-render, handle, presentation-input-bindings, scoped-native-input and compositor identity tests cover changed callers and native identity validation. Run Debug and ASan-UBSan on both hosts.
+Receipt run03: extend the same recovery test with wrong process inode and absent native receipt. Rerun presentation-server and native-compositor_identity in both profiles on both hosts. The run02 selector used a hyphen instead of the actual compositor_identity name; that suite was not selected in run02. No pass is claimed for an unmatched selector.
+Owner run04: production PresentationOwner probe with hostile child replies tests wrong request/binding/stage, unsolicited FDs, partial framing and lost attachment reply. Rejection must invalidate the channel. Native presentation-server adds same-server wrong-credential rejection before readiness. Run both suites plus presentation-stream on both hosts/profiles.

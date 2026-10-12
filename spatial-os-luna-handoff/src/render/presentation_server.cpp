@@ -5,6 +5,7 @@
 #include "platform/process_handle.hpp"
 #include "presentation.pb.h"
 #include "world/store.hpp"
+#include "workspace/control_owner.hpp"
 #include <cerrno>
 #include <climits>
 #include <map>
@@ -25,6 +26,8 @@ ProcessHandle retain_owner(pid_t owner) {
 }
 struct WorldChannel {
     Binding binding;
+    workspace::v1::ControlOwner scope_owner;
+    supervisor::v1::ProcessScopeIdentity scope_process;
     ProcessHandle process;
     std::unique_ptr<PresentationStream> channel;
     protocol::PresentationStage stage=protocol::ATTACHED;
@@ -72,11 +75,20 @@ struct Server {
                 if(worlds.size()>=256)throw WorldError(wire::IN_USE,"Too many retained world channels");
                 if(worlds.contains(binding.presentation_generation()))throw WorldError(wire::IN_USE,"Duplicate presentation binding");
                 WorldChannel world;world.binding=binding;
+                require(attach.has_owner()==attach.has_process(),"Incomplete presentation supervisor scope");
+                if(attach.has_owner()){
+                    workspace::v1::ControlOwnerRecovery shape;*shape.mutable_owner()=attach.owner();
+                    *shape.mutable_process_stopped()->mutable_identity()=attach.process();
+                    *shape.mutable_native_stopped()->mutable_identity()=attach.owner().native();validate_control_recovery(shape);
+                    require(attach.owner().launch().service_incarnation()==binding.service_incarnation() &&
+                        attach.owner().launch().generation()==binding.authority_generation(),"Presentation supervisor generation mismatch");
+                    world.scope_owner=attach.owner();world.scope_process=attach.process();
+                }
                 world.process=ProcessHandle::take(frame.descriptors[1].release(),static_cast<pid_t>(attach.world_pid()));
                 world.channel.reset(new PresentationStream(frame.descriptors[0].release(),owner,world.process.pid()));
                 auto [position,inserted]=worlds.emplace(binding.presentation_generation(),std::move(world));
                 (void)inserted;
-                try {renderer.reserve_input(binding);}
+                try {renderer.reserve_input(binding,attach.has_owner()?&attach.owner().native():nullptr);}
                 catch (...){worlds.erase(position);throw;}
                 *reply.mutable_state()=state(position->second);
             }else if(request.has_select()){
@@ -91,6 +103,16 @@ struct Server {
             }else if(request.has_inspect()){
                 auto& world=find(request.inspect());
                 if(!world.process.live())retire(world);
+                *reply.mutable_state()=state(world);
+            }else if(request.has_recover()){
+                const auto& recovery=request.recover();auto& world=find(recovery.binding());
+                require(world.scope_owner.has_native() && !world.process.live(),"Presentation recovery requires a stopped retained world");
+                require(recovery.has_process_stopped() && recovery.has_native_stopped() &&
+                    recovery.process_stopped().identity().SerializeAsString()==world.scope_process.SerializeAsString() &&
+                    recovery.native_stopped().identity().SerializeAsString()==world.scope_owner.native().SerializeAsString(),
+                    "Presentation recovery receipts do not match the attached scopes");
+                retire(world);
+                if(world.stage!=protocol::RETIRED){renderer.confirm_input_retired(world.binding);world.stage=protocol::RETIRED;}
                 *reply.mutable_state()=state(world);
             }else if(request.has_shutdown()){
                 if(!worlds.empty())throw WorldError(wire::IN_USE,"Detach world channels before compositor shutdown");

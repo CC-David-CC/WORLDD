@@ -1,11 +1,14 @@
 M06 transition implementation plan, 2026-10-12
-Status: entry design. No transition implementation or qualification is claimed.
-Preparatory implementation: RenderProcess now contains compositor launch, endpoints, termination, and reaping.
-RenderWorker still owns RenderProcess. This extraction does not yet preserve presentation across world changes.
+Status: host presentation ownership and cleanup recovery implemented; actor transitions remain pending.
+SessionCoordinator owns a persistent PresentationOwner independently of supervised worlds.
+Each world uses a private authenticated channel and its own native input credential.
+Normal world shutdown leaves shared graphics available to surviving worlds.
+Cleanup recovery requires exact supervisor receipts and a stopped retained world process.
+Focused tests cover both hosts in Debug and ASan/UBSan. This is not M06 qualification.
 Baseline checkpoint: a513bd7b84ef1814b579a8a5945b80920253059b.
 Qualified runtime source: 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47.
 Work branch: m06/world-transitions.
-Both hosts have clean isolated checkouts at /home/dflanag3/src/spacial_desktop-m06-20261012.
+Both hosts have isolated source overlays at /home/dflanag3/src/spacial_desktop-m06-20261012.
 Frozen M05 checkouts and evidence remain separate.
 
 Required outcome
@@ -19,7 +22,7 @@ Room changes preserve workspace selection.
 World entry creates no workspace, application, cabinet, or execution grant.
 Remote worlds supply authorized world state. Remote application streaming and input remain excluded.
 
-Inspected implementation constraints
+Original baseline constraints (superseded by the host presentation increment)
 world/main.cpp owns RenderWorker and passes it to Actors and serve.
 platform/render_worker.cpp forks spatialwm, sets parent-death SIGKILL, and owns its socket and pidfd.
 Its destructor and I/O timeout can terminate the compositor.

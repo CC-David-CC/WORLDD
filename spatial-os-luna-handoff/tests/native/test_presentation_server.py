@@ -11,6 +11,9 @@ import time
 import unittest
 import compositor_native_pb2 as native
 import core_pb2 as core
+import broker_pb2 as broker
+import process_scope_pb2 as scopes
+import native_scope_pb2 as native_scope
 import presentation_pb2 as protocol
 import security_pb2 as sec
 from harness.wire import frame
@@ -442,6 +445,107 @@ os._exit(0)
         finally:os.close(read_fd);os.close(write_fd)
         self.assertEqual(reply.error.code,core.INVALID_ARGUMENT,reply)
         self.assertTrue(self.draw(sa,3,(17,34,51)).HasField('frame'))
+
+    def test_attached_scope_rejects_another_native_credential(self):
+        self.launch()
+        binding=native.WorldPresentationBinding(protocol_version=1,world_id='scope-world',service_incarnation=b'r'*32,
+            authority_generation=1,presentation_generation=1)
+        expected=self.config();grant=self.last_grant;os.close(expected)
+        owner=broker.ControlOwner(issuer_id=b'i'*32)
+        owner.launch.participant_id=b'p'*32;owner.launch.registered_revision=1;owner.launch.generation=1
+        owner.launch.service_incarnation=b'r'*32;owner.launch.launch_id=b'l'*32
+        owner.launch.supervision_revision=1;owner.launch.authorization_id=b'a'*32
+        owner.native.CopyFrom(native_scope.NativeScopeIdentity(launch_id=b'l'*32,
+            server_id=self.supervisor.inspect().server_id,credential_id=grant.id,role=sec.COMPOSITOR))
+        scope=scopes.ProcessScopeIdentity(launch_id=b'l'*32,scope_name='authority-'+(b'l'*32).hex(),
+            boot_id='0'*36,device=1,inode=1)
+        client,server=socket.socketpair();client.settimeout(10);pidfd=os.pidfd_open(os.getpid())
+        try:
+            reply=self.control((server.fileno(),pidfd),attach=protocol.PresentationAttach(
+                binding=binding,world_pid=os.getpid(),owner=owner,process=scope))
+        finally:server.close();os.close(pidfd)
+        self.assertEqual(reply.state.stage,protocol.ATTACHED,reply);self.worlds.append((binding,client))
+        wrong=self.config()
+        try:self.send(client,protocol.PresentationWorldRequest(protocol_version=1,request_id=1,
+            hello=protocol.PresentationEmpty()),(wrong,))
+        finally:os.close(wrong)
+        reply=self.receive(client,core.RenderResult)
+        self.assertEqual(reply.error.code,core.FORBIDDEN,reply)
+        self.assertEqual(self.control(inspect=binding).state.stage,protocol.ATTACHED)
+        self.assertEqual(self.control(select=binding).error.code,core.UNAVAILABLE)
+
+    def test_checked_scope_receipts_resolve_uncertain_retirement(self):
+        self.launch()
+        self.owner.operation(2,self.owner.pack('III',self.window,1<<11,15))
+        binding=native.WorldPresentationBinding(protocol_version=1,world_id='receipt-world',service_incarnation=b'r'*32,
+            authority_generation=1,presentation_generation=1)
+        config=self.config();grant=self.last_grant
+        owner=broker.ControlOwner(issuer_id=b'i'*32)
+        owner.launch.participant_id=b'p'*32;owner.launch.registered_revision=1;owner.launch.generation=1
+        owner.launch.service_incarnation=b'r'*32;owner.launch.launch_id=b'l'*32
+        owner.launch.supervision_revision=1;owner.launch.authorization_id=b'a'*32
+        owner.native.CopyFrom(native_scope.NativeScopeIdentity(launch_id=b'l'*32,
+            server_id=self.supervisor.inspect().server_id,credential_id=grant.id,role=sec.COMPOSITOR))
+        scope=scopes.ProcessScopeIdentity(launch_id=b'l'*32,scope_name='authority-'+(b'l'*32).hex(),
+            boot_id='0'*36,device=1,inode=1)
+        client,server=socket.socketpair();server.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
+        gate_read,gate_write=os.pipe();ready_read,ready_write=os.pipe()
+        child=os.fork()
+        if child==0:
+            try:
+                os.close(gate_write);os.close(ready_read);server.close();os.read(gate_read,1)
+                self.send(client,protocol.PresentationWorldRequest(protocol_version=1,request_id=1,
+                    hello=protocol.PresentationEmpty()),(config,));os.close(config)
+                result=self.receive(client,core.RenderResult)
+                if not result.HasField('ready'):raise RuntimeError(str(result))
+                sequence=1;deadline=time.monotonic()+5
+                while True:
+                    sequence+=1;result=self.world_command(client,sequence,sync=core.RendererSyncRequest())
+                    found=[value for value in result.snapshot.surfaces if value.xid==self.window and value.mapped]
+                    if found:break
+                    if time.monotonic()>=deadline:raise RuntimeError('Missing surface')
+                    time.sleep(.01)
+                sequence+=1;result=self.world_command(client,sequence,input=core.RendererInputCommand(actor_id='held',
+                    target=found[0].handle,pixel=core.Pixel(x=1,y=1),pointer=core.ActorPointerRequest(button=1,pressed=True)))
+                if not result.HasField('input'):raise RuntimeError(str(result))
+                sequence+=1;result=self.world_command(client,sequence,input=core.RendererInputCommand(actor_id='held',
+                    key=core.ActorKeyRequest(keysym='a',pressed=True)))
+                if not result.HasField('input'):raise RuntimeError(str(result))
+                os.write(ready_write,b'R');os.read(gate_read,1);os._exit(0)
+            except BaseException:os.write(ready_write,b'E');os._exit(1)
+        os.close(config);os.close(gate_read);os.close(ready_write);client.close()
+        reaped=[False]
+        def cleanup_child():
+            if not reaped[0]:
+                os.kill(child,9);os.waitpid(child,0)
+            os.close(gate_write);os.close(ready_read)
+        self.addCleanup(cleanup_child)
+        pidfd=os.pidfd_open(child)
+        try:reply=self.control((server.fileno(),pidfd),attach=protocol.PresentationAttach(binding=binding,world_pid=child,owner=owner,process=scope))
+        finally:server.close();os.close(pidfd)
+        self.assertEqual(reply.state.stage,protocol.ATTACHED,reply);self.worlds.append((binding,client))
+        os.write(gate_write,b'G')
+        import select
+        self.assertTrue(select.select([ready_read],[],[],8)[0]);self.assertEqual(os.read(ready_read,1),b'R')
+        self.assertEqual(self.supervisor.call(revoke=sec.Revoke(credential_id=grant.id)).code,sec.OK)
+        self.assertEqual(self.control(detach=binding).state.stage,protocol.UNCERTAIN)
+        recovery=protocol.PresentationRecovery(binding=binding,
+            process_stopped=scopes.ProcessScopeStopped(identity=scope),native_stopped=native_scope.NativeScopeStopped(identity=owner.native))
+        self.assertEqual(self.control(recover=recovery).error.code,core.INVALID_ARGUMENT)
+        os.write(gate_write,b'Q');_,status=os.waitpid(child,0);reaped[0]=True;self.assertEqual(status,0)
+        wrong=protocol.PresentationRecovery();wrong.CopyFrom(recovery);wrong.native_stopped.identity.credential_id=b'x'*32
+        self.assertEqual(self.control(recover=wrong).error.code,core.INVALID_ARGUMENT)
+        wrong_process=protocol.PresentationRecovery();wrong_process.CopyFrom(recovery)
+        wrong_process.process_stopped.identity.inode+=1
+        self.assertEqual(self.control(recover=wrong_process).error.code,core.INVALID_ARGUMENT)
+        missing=protocol.PresentationRecovery();missing.CopyFrom(recovery);missing.ClearField('native_stopped')
+        self.assertEqual(self.control(recover=missing).error.code,core.INVALID_ARGUMENT)
+        self.assertEqual(self.control(inspect=binding).state.stage,protocol.UNCERTAIN)
+        self.assertEqual(self.control(recover=recovery).state.stage,protocol.RETIRED)
+        self.assertEqual(self.control(recover=recovery).state.stage,protocol.RETIRED)
+        self.balanced_events()
+        b,sb=self.attach(2);self.hello(sb);self.assertTrue(self.control(select=b).state.selected)
+        self.assertTrue(self.draw(sb,2,(17,34,51)).HasField('frame'))
 
 if __name__=='__main__':unittest.main(verbosity=2)
 

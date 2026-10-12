@@ -30,7 +30,7 @@ void pad(std::string& bytes) { while (bytes.size() % 4) bytes += '\0'; }
 }
 struct NativeChannel::Impl {
     Fd socket_path, channel;
-    std::string number, server_id;
+    std::string number, server_id, credential_id;
     void connect_server(const workspace::v1::NativeLaunchConfig& config, native_security::Role role);
     unsigned opcode = 0, native_sequence = 0;
     std::uint64_t sequence = 0;
@@ -112,7 +112,8 @@ void NativeChannel::Impl::connect_server(const workspace::v1::NativeLaunchConfig
     if (identity.code() != native_security::OK || !identity.has_identity() || identity.identity().role() != role ||
             identity.identity().server_id() != config.server_id() || !identity.identity().workspace().empty() ||
             !identity.identity().application().empty()) unavailable();
-    server_id = identity.identity().server_id();
+    if(identity.identity().credential_id().size()!=32 || !identity.identity().connection_id())unavailable();
+    server_id = identity.identity().server_id();credential_id=identity.identity().credential_id();
 }
 
 void NativeChannel::check() {
@@ -147,4 +148,5 @@ bool NativeChannel::connected() const { return impl_->channel.value >= 0; }
 int NativeChannel::socket_fd() const { return impl_->socket_path.value; }
 const std::string& NativeChannel::number() const { return impl_->number; }
 const std::string& NativeChannel::server_id() const { return impl_->server_id; }
+const std::string& NativeChannel::credential_id() const { return impl_->credential_id; }
 }

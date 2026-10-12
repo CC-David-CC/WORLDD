@@ -2,9 +2,23 @@ syntax = "proto3";
 package spatial.render.v1;
 import "core.proto";
 import "compositor_native.proto";
+import "broker.proto";
+import "process_scope.proto";
+import "native_scope.proto";
 message PresentationEmpty {}
 // Attach carries exactly two descriptors: world channel, then its retained pidfd.
-message PresentationAttach { WorldPresentationBinding binding = 1; uint64 world_pid = 2; }
+message PresentationAttach {
+  WorldPresentationBinding binding = 1;
+  uint64 world_pid = 2;
+  // Required together for supervisor-backed cleanup recovery.
+  spatial.workspace.v1.ControlOwner owner = 3;
+  spatial.supervisor.v1.ProcessScopeIdentity process = 4;
+}
+message PresentationRecovery {
+  WorldPresentationBinding binding = 1;
+  spatial.supervisor.v1.ProcessScopeStopped process_stopped = 2;
+  spatial.supervisor.v1.NativeScopeStopped native_stopped = 3;
+}
 enum PresentationStage { PRESENTATION_STAGE_UNSPECIFIED = 0; ATTACHED = 1; READY = 2; RETIRED = 3; UNCERTAIN = 4; }
 message PresentationState { WorldPresentationBinding binding = 1; PresentationStage stage = 2; bool selected = 3; }
 message PresentationControlRequest {
@@ -16,6 +30,7 @@ message PresentationControlRequest {
     WorldPresentationBinding detach = 12;
     WorldPresentationBinding inspect = 13;
     PresentationEmpty shutdown = 14;
+    PresentationRecovery recover = 15;
   }
 }
 message PresentationControlReply {

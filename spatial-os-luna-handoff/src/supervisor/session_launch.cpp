@@ -144,7 +144,7 @@ struct SessionLaunch::Impl {
         require(executable.is_absolute() && executable.string().find('\0') == std::string::npos && native >= 3 &&
             config.protocol_version() == 1 && config.binding().supervised() &&
             config.has_broker_native_target_fd() != config.has_compositor_native_target_fd() &&
-            export_handle == config.has_broker_native_target_fd(), "Invalid retained session launch configuration");
+            (!config.has_broker_native_target_fd() || export_handle), "Invalid retained session launch configuration");
         for (int fd : streams) require(fd >= 0 && fcntl(fd, F_GETFD) >= 0, "Missing session child stream");
         Pair mgmt(SOCK_STREAM);
         std::unique_ptr<Pair> transfer;
@@ -180,7 +180,7 @@ struct SessionLaunch::Impl {
         const auto initial = receive(0, std::chrono::seconds(15));
         require(initial.has_view() && initial.view().has_record() && !initial.view().has_ready(), "Unexpected session startup reply");
         record = initial.view().record();
-        const auto role = export_handle ? security::v1::BROKER : security::v1::COMPOSITOR;
+        const auto role = config.has_broker_native_target_fd() ? security::v1::BROKER : security::v1::COMPOSITOR;
         require(record.schema_version() == 2 && record.revision() > 0 && record.stage() == v1::START_ATTEMPTED &&
             record.binding().SerializeAsString() == config.binding().SerializeAsString() && record.has_authorization() &&
             record.native().role() == role && record.process().launch_id().size() == 32 &&
@@ -198,6 +198,10 @@ int SessionLaunch::supervisor_pidfd() const { impl_->live(); return impl_->super
 ProcessHandle SessionLaunch::broker_handle() {
     impl_->live(); require(bool(impl_->handles), "This session launch cannot export a broker handle");
     return impl_->handles->broker(impl_->record);
+}
+ProcessHandle SessionLaunch::world_handle() {
+    impl_->live(); require(bool(impl_->handles), "This session launch cannot export a world handle");
+    return impl_->handles->world(impl_->record);
 }
 workspace::v1::ControlOwner SessionLaunch::control_owner() {
     auto& state = *impl_; state.live();
