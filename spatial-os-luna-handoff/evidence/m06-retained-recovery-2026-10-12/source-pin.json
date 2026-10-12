@@ -1,0 +1,13 @@
+{
+  "branch": "m06/retained-transition-recovery",
+  "base": "411f531d559d22139dfc9ca0def7ec6445b9f742",
+  "status": "UNQUALIFIED; runtime UNRUN; no commit",
+  "changed_files": {
+    "CMakeLists.txt": "80a11f9906137190067fee0eb38b790c9c17cc29ac4f1ccf25765ae7c454174d",
+    "src/testing/actor_transition_recovery_probe.cpp": "8f7e1f383431edafa001f3fe767d59f021604608505f5868de521eca608bfafc",
+    "src/testing/actor_transition_recovery_probe.proto": "bbf1d3ee7617a749f1d4f98b6ccb961443b311110d5fb61850a25437a2f76f3d",
+    "tests/native/test_actor_transition_recovery.py": "b82e83ec10cf509018cbbae8992418a75054d8975e71d5dd80972b364de0d44f",
+    "docs/M06_RETAINED_TRANSITION_RECOVERY.txt": "38ed8318cc07310897e9e1d3842996c40d3a22319e22fff4f2c39606e8cc1fee"
+  },
+  "source_manifest_sha256": "7d9eb91887c951c1b6a4d0d2e6e710c986693e2e04b59c701cbd7a252f574097"
+}

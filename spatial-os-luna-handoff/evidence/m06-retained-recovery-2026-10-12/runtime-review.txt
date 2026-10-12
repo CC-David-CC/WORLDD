@@ -1,0 +1,24 @@
+Recovery runtime attempt01: 0 passed, 12 setup errors, 0 skips.
+Three cases ran on sb16 and sb16-2 in Debug and ASan/UBSan.
+Every case failed before transition execution with FileExistsError for its world state directory.
+
+Cause: SessionApplicationTests.world_config seeds the real world directory.
+Recovery enables shared_presentation. Old SessionWorldTests.start_coordinator then calls mkdir without exist_ok.
+The recovery branch base411f531 predates the reviewed host-controller shared-fixture correction.
+The already reviewed final fixture permits intentionally seeded world state directories.
+No production defect is established by this run. All crash/recovery assertions remain unrun.
+
+All archive and file hashes passed. Host ldd checks found no missing libraries.
+The launcher preserved private XACE and delegated broker resources.
+Each adapter reported unexpected_population=false and scope_removed=true.
+All four runtime commands exited1. Both tmux jobs terminated and runner.done exists.
+No test-host development build occurred. No source changes, commits, or pushes were made by this deployment task.
+
+Next: integrate the reviewed shared fixture correction into recovery source and rerun the frozen candidate.
+Use a unique attempt directory. Preserve these failures.
+Do not weaken mkdir by deleting the seeded world or bypassing authority registration.
+
+Exact source/bundle pins and commands are adjacent.
+Remote evidence: /home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-01 on both hosts.
+The worker handoff names run02-logs/build-commands.txt, which was absent.
+Exact build commands are available in worker-document.txt; both build logs are preserved here.
