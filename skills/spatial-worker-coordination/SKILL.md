@@ -131,8 +131,13 @@ Apply needed fixes only after the worker stops. Record the resulting source and 
 Do not silently combine new fixture source with old binaries. Record and review any test-only overlay explicitly.
 Verify artifact hashes after transfer to each test host.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
+Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
+Do not apply one suite's broker wrapper to all suites. Different fixtures can observe different cgroup ownership paths.
+After a launcher-only setup failure, preserve the failure and rerun only affected cases with the corrected launcher.
 Inspect imported fixtures for generated bindings, executable-adjacent runtime configuration, and helper binaries before packaging.
 Declare required generated-file targets in CMake. A successful executable build does not prove its test bundle is complete.
+For production Python entrypoints, verify transitive protobuf imports in BUILD_TESTING=OFF artifacts too.
+Keep one generator for each output. Move its ownership when needed instead of creating duplicate generation commands.
 Do not unset required security configuration merely to make an artifact bundle self-contained.
 Record missing prerequisites as setup failures. Preserve the production security boundary when correcting the launcher.
 Run focused Debug and sanitizer checks on both test hosts when the affected boundary requires them.
@@ -151,6 +156,8 @@ After a process failure, identify the concrete cause before retrying.
 Change the assignment, preflight, completion check, or launch mechanism that allowed it.
 Do not repeatedly send the same task and hope for a different result.
 When tests are omitted, require named implemented cases and verify them before accepting the handoff.
+For deadline regressions, require an observation bound that distinguishes absolute deadlines from per-fragment timeout resets.
+Separate error detection time from bounded cleanup time. A later nonzero exit alone does not prove the deadline.
 When builds fail on missing packages, fix and record normal dependencies before rebuilding.
 After adding CMake targets, run an explicit configure before requesting those targets from an existing Makefile build.
 When transport quoting corrupts scripts, transfer script files instead of adding another escaping layer.
