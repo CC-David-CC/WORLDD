@@ -36,6 +36,7 @@ Do not install Codex or run coding agents on these test boxes.
 Do not use these test boxes for development builds or development worktrees.
 Use middle-child and a5500 for coding agents, orchestration, compilation, and development worktrees.
 Coordinate development through local Git commits and branches on box-git.
+Use skills/spatial-worker-coordination/SKILL.md for worker assignment, handoff, checkpoint, and integration procedures.
 Use separate branches, checkouts, or linked worktrees for independent worker tasks.
 Push task checkpoints when another worker needs their source. Label unqualified checkpoints explicitly.
 Review and test task checkpoints before integrating them into a milestone branch.
