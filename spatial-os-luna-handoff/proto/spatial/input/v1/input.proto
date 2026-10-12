@@ -3,7 +3,9 @@ package spatial.input.v1;
 import "security.proto";
 
 // Private compositor-to-server interface. The authenticated X connection must
-// own SubstructureRedirect on the server root. Actor grants remain in worldd.
+// use a live COMPOSITOR credential, or own SubstructureRedirect on the server root.
+// In unsecured development sessions, SubstructureRedirect ownership is required.
+// Seats belong to their creating connection. Actor grants remain in worldd.
 message Empty {}
 message Seat { fixed64 id = 1; }
 message Inspect { fixed32 xid = 1; }

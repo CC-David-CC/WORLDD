@@ -48,6 +48,8 @@ spatialinput.c binds each seat to its creating X connection and closes seats whe
 It rejects seat operations from another connection. Preserve these server checks.
 Xlib connection loss can terminate its process. A revoked world connection must not kill the persistent graphics owner.
 Evaluate a world-scoped input worker against a checked nonfatal transport before choosing the connection layout.
+The scoped NativeInput candidate now reuses the supervisor's bounded transport through NativeChannel.
+Its independent-connection tests pass on both hosts in Debug and ASan-UBSan. See M06_INPUT_SCOPE_CONTRACT.txt for the explicit server admission change.
 Each connection must retain its original native scope and checked revocation receipt.
 Retire its input seats before accepting a replacement binding.
 The world transition coordinator must receive checked cancellation completion before it enables destination input.

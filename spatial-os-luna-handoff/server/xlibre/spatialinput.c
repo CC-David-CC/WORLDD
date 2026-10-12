@@ -191,6 +191,9 @@ static WindowPtr live_window(XID xid, uint64_t expected)
 
 static Bool controller(ClientPtr client)
 {
+    /* Each supervised world owns a revocable compositor input connection.
+     * Its seats remain connection-owned; it need not own persistent graphics. */
+    if (SpatialSecurityInputController(client)) return TRUE;
     WindowPtr root = screenInfo.screens[0]->root;
     for (OtherClients *other = wOtherClients(root); other; other = other->next)
         if ((other->mask & SubstructureRedirectMask) && dixClientForOtherClients(other) == client)

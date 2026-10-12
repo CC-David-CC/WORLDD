@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-12: M06 scoped input and normal test deadlines pass focused checks
+
+World-scoped native input can now disconnect without terminating another input owner in the same process.
+The server admits live authenticated COMPOSITOR input connections and retains exact connection-owned seats.
+Broker clients still cannot use the input extension.
+Normal issuer test fixtures now use five seconds. Deliberate timeout tests retain explicit short deadlines.
+Both hosts pass 29 selected suites and 383 checks in each Debug and ASan-UBSan profile.
+The combined result is 1532 check executions with no remaining failures or skips.
+The audit verified 422 source files, locked acceptance files, and no sanitizer findings in 2636 logs.
+Read evidence/m06-scoped-input-2026-10-12/primary-review.txt for prior failures and evidence composition.
+These checks do not demonstrate a persistent graphical session across world switches.
+Next: integrate persistent presentation ownership, world/generation binding, and checked input cancellation.
+M01-M05 remain qualified. M06 remains in progress. M07-M16 remain pending qualification.
+
 ## 2026-10-12: M06 compositor process extraction passes focused checks
 
 RenderProcess now owns compositor launch, transport endpoints, termination, and reaping.
