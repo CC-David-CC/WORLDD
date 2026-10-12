@@ -1,0 +1,112 @@
+{
+  "status": "FOCUSED-PASS",
+  "source_commit": "ee416fc245943f6d7168341abe47a86d917e96e5",
+  "base": "03242c5c690266da04e1e01a9d7037bb1428d4ba",
+  "checks_passed": 400,
+  "failed_current_candidate": 0,
+  "skipped": 0,
+  "hosts": {
+    "sb16": {
+      "checks_passed": 200,
+      "records_sha256": "540a3d4d1ef2c48f3b54fd436b842d64d435587d4da876eeb6f1985c6acb9d14",
+      "source_sha256": {
+        "spatial-os-luna-handoff/CMakeLists.txt": "f6f222817ff5895d432586083c09a071229f7ab5c97c97c535c556ddc020b536",
+        "spatial-os-luna-handoff/docs/M06_HOST_SESSION.txt": "633a249482f72dd8d594bc636db577e302a5facef3cb400e1fd1e2b8920c5373",
+        "spatial-os-luna-handoff/proto/spatial/supervisor/v1/host_session.proto": "f8c559fea72a3ea656ebee57116163cfbe62a2cdead6bd0c13580ae0434dd1c2",
+        "spatial-os-luna-handoff/src/supervisor/host_session_main.cpp": "2add6f78675b3bd6b830bd181768880a5c2d679e1679c677dd2d1947405dd9cf",
+        "spatial-os-luna-handoff/src/supervisor/session_coordinator.cpp": "7eefda41b0e2e639c9d01155c503464653fd3637d958867840f7e6619d127574",
+        "spatial-os-luna-handoff/src/supervisor/session_coordinator.hpp": "f969ae5086654f767909819018e3deaa3a5fceacd6956b573728e7763e7e9561",
+        "spatial-os-luna-handoff/tests/core/test_host_session_startup.py": "e99b961221b220169dab8685f988e62eb73e9ad5db75a75d283f95cd33cf4e65",
+        "spatial-os-luna-handoff/tests/native/test_host_session_production.py": "0b969eb061a43d5396645d8af5193ac3e6e8a4576197ebace40f76e9ef90a6f0",
+        "spatial-os-luna-handoff/tools/host_session_client.py": "74476a2fd5e6df8e0fa8e7313f4a8ef754167bc42b7f21126a2af57cd7cf4cc1"
+      },
+      "profiles": {
+        "Debug": {
+          "off_startup": 5,
+          "production_native": 24,
+          "related_callers": 71
+        },
+        "ASan-UBSan": {
+          "off_startup": 5,
+          "production_native": 24,
+          "related_callers": 71
+        }
+      },
+      "failed_setup_preserved": {
+        "raw_system_Mesa_ASan": {
+          "suite_tests": 24,
+          "failed_server_cleanup_cases": 23,
+          "passed_preflight": 1,
+          "bytes_leaked": 3176,
+          "allocations": 5,
+          "stack": "__glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439",
+          "preserved_log_sha256": "a739ea83b8fc3106d60f20da6aa0d3c26eafd8017302decd7f8f6ee89145c315",
+          "classification": "Qualified wrapper was omitted; matching rawbinary loaded unpatched systemMesa. Corrected wrapper/patched closure passed with GLX enabled."
+        },
+        "focused02": {
+          "tests_executed": 0,
+          "exit": 1,
+          "cause": "Duplicate environment initialization created evidence directory twice. Fresh explicit launcher dry-run corrected it.",
+          "log_sha256": "dfc9c75fa19726646f2ee8a249b8b074f7f531455d21c017bbccbea01f9e1e97"
+        }
+      }
+    },
+    "sb16-2": {
+      "checks_passed": 200,
+      "records_sha256": "eef9a6e7b6649656c7d9707ba641d675b62bc31e016db3d2af3e014bc2ac95a0",
+      "source_sha256": {
+        "spatial-os-luna-handoff/CMakeLists.txt": "f6f222817ff5895d432586083c09a071229f7ab5c97c97c535c556ddc020b536",
+        "spatial-os-luna-handoff/docs/M06_HOST_SESSION.txt": "633a249482f72dd8d594bc636db577e302a5facef3cb400e1fd1e2b8920c5373",
+        "spatial-os-luna-handoff/proto/spatial/supervisor/v1/host_session.proto": "f8c559fea72a3ea656ebee57116163cfbe62a2cdead6bd0c13580ae0434dd1c2",
+        "spatial-os-luna-handoff/src/supervisor/host_session_main.cpp": "2add6f78675b3bd6b830bd181768880a5c2d679e1679c677dd2d1947405dd9cf",
+        "spatial-os-luna-handoff/src/supervisor/session_coordinator.cpp": "7eefda41b0e2e639c9d01155c503464653fd3637d958867840f7e6619d127574",
+        "spatial-os-luna-handoff/src/supervisor/session_coordinator.hpp": "f969ae5086654f767909819018e3deaa3a5fceacd6956b573728e7763e7e9561",
+        "spatial-os-luna-handoff/tests/core/test_host_session_startup.py": "e99b961221b220169dab8685f988e62eb73e9ad5db75a75d283f95cd33cf4e65",
+        "spatial-os-luna-handoff/tests/native/test_host_session_production.py": "0b969eb061a43d5396645d8af5193ac3e6e8a4576197ebace40f76e9ef90a6f0",
+        "spatial-os-luna-handoff/tools/host_session_client.py": "74476a2fd5e6df8e0fa8e7313f4a8ef754167bc42b7f21126a2af57cd7cf4cc1"
+      },
+      "profiles": {
+        "Debug": {
+          "off_startup": 5,
+          "production_native": 24,
+          "related_callers": 71
+        },
+        "ASan-UBSan": {
+          "off_startup": 5,
+          "production_native": 24,
+          "related_callers": 71
+        }
+      },
+      "failed_setup_preserved": {
+        "raw_system_Mesa_ASan": {
+          "suite_tests": 24,
+          "failed_server_cleanup_cases": 23,
+          "passed_preflight": 1,
+          "bytes_leaked": 3176,
+          "allocations": 5,
+          "stack": "__glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439",
+          "preserved_log_sha256": "f643570896e1e9b375a111177c7ce9bbdb27e7478fa034701da80c60caff2e78",
+          "classification": "Qualified wrapper was omitted; matching rawbinary loaded unpatched systemMesa. Corrected wrapper/patched closure passed with GLX enabled."
+        },
+        "focused02": {
+          "tests_executed": 0,
+          "exit": 1,
+          "cause": "Duplicate environment initialization created evidence directory twice. Fresh explicit launcher dry-run corrected it.",
+          "log_sha256": "dfc9c75fa19726646f2ee8a249b8b074f7f531455d21c017bbccbea01f9e1e97"
+        }
+      }
+    }
+  },
+  "GLX": "Enabled in final native sanitizer and related runs. Qualified M06 wrappers and pinned patched Mesa dependencies. No CORE_ONLY and no sanitizer suppressions.",
+  "source_review": "Primary reviewed all nine source/test/doc files against pinned bundle; all committed blob hashes equal deployed candidate.",
+  "integration_requirements": [
+    "Retain root resource-wrapped augmented hostcontroller test registration",
+    "Retain root standalone actor-session-client generator; remove duplicate generator ownership on integration",
+    "Run affected checks on combined source"
+  ],
+  "pending": [
+    "Remote native shared geometry and actor-view presentation",
+    "Full M06 qualification",
+    "Physical input and Spatial-M1 qualification"
+  ]
+}

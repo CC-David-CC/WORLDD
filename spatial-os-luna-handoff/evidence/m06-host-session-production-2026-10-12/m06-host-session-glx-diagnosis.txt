@@ -1,0 +1,48 @@
+Read-only GLX leak diagnosis. 2026-10-12. No workload or source modification.
+
+Failure preserved on both qualification hosts:
+/home/dflanag3/spatial-qualification/m06-host-session-run03-20261012-01/evidence/focused-01/
+asan-production-native.command.json and asan-native-evidence/*-server-*.log.
+Representative sb16 log: test_control_descriptor_alias_rejected_before_start-server-0.log.
+
+Actual leak:3176 bytes in5 allocations. Direct2680+104, indirect288 in2+104.
+Stack: calloc -> unloaded modules -> __glXDRIscreenProbe glx/glx_dri/glxdriswrast.c:439
+-> xorgGlxServerInit -> GlxExtensionInit -> dix_main.
+That line calls the DRI swrast driver's createNewScreen, not an animated-cursor allocation.
+XLibre base25.1.9, commit f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+M06 backend24653f6..., ASan Xvfb SHA7a295f8b2d0b8a81a05488baedf806297462089a6b925d9e36b5c526389fd0de.
+
+The focused01 command selects RAW Xvfb and supplies no patched EGL/dependency environment.
+The qualified M06 server-launch/Xvfb wrapper selects that same binary with private patched Mesa EGL.
+This is a concrete launcher/dependency mismatch, not evidence requiring another XLibre source patch.
+
+Prior M04 module-map evidence resolves the same allocation signature to libEGL_mesa.so,
+libEGL.so and swrast_dri.so/libdril. Installed Mesa package25.2.8-0ubuntu0.24.04.4.
+Preserved source diagnosis: Mesa global display/device lists lacked default exit cleanup registration.
+server/mesa/mesa-egl-default-cleanup.patch registers cleanup at GLVND vendor initialization.
+Patch SHAacbd5cd840a67a9384c3ac42bfad5cc4db807721ad6b0cd9ccd2704e4dadb377 matches current project and bothhosts.
+Prior patched/unpatched A/B passed with matching dependencies. Earlier missing-library apparent passes were invalidated.
+
+Read-only verification receipts:
+local/sb16-glx-readonly.json and local/sb16-2-glx-readonly.json.
+They record wrapper, rawserver, vendorJSON, EGL, private gallium/GBM/expat hashes and ldd resolution.
+Both wrapper environments exactly match their earlier successful EGL receipts.
+Both EGL binaries match those receipts. All20 M06 extension inputs match the server build receipts.
+All selected private dependencies resolve; no missing ldd entries. Current dependency hashes are recorded,
+not claimed independently equal to historical hashes where the older receipt did not record them.
+sb16 wrapper d95b134a25c618ed3db71376c5363221bdd6c3908010801ceb8fc0071c4c6d52.
+sb16-2 wrapper a18c37151b36f6e14313997436f00731618de3ecc3a1bd8ce9aa1c8a74bdc837.
+sb16 EGL f4ffb9d5394629b6c2382422a5843671e28fed2ec7f26a9f1263f8f07be5f988.
+sb16-2 EGL fa3f7f4c3a7e3cddfe09ec93d5e1f66878bd07a28643523f06bf13e64345f6b1.
+
+Confidence: high for raw-launcher mismatch and same prior Mesa allocation signature.
+Current failure has unloaded-module frames without live maps; do not claim fresh symbol attribution beyond these observations.
+Next test: m03 owns a unique attempt of the affected ASan suite on bothhosts using verified wrapper,
+GLX enabled, leak detection unchanged, with before/after dependency hashes and full failure preservation.
+If it still fails, capture loaded module maps and re-symbolize before changing code.
+Core-only focused tests cannot qualify graphics. Fullgate remains blocked until the correct graphical path passes.
+Gate tooling already validates/selects a wrapper rather than rawbinary; no gate-source change required for this mismatch.
+
+Proposed skill additions (primary owns canonical skill):
+Select the qualified server wrapper and its pinned EGL/dependency closure; a matching raw Xvfb hash is insufficient.
+Preserve GLX-enabled coverage when repairing launcher mismatches; core-only checks never replace graphics qualification.

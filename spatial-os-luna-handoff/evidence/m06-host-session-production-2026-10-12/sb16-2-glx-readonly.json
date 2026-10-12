@@ -1,0 +1,78 @@
+{
+  "host": "sb16-2",
+  "read_only": true,
+  "wrapper": {
+    "path": "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-scoped-input-05/ASan-UBSan/server-launch/Xvfb",
+    "sha256": "a18c37151b36f6e14313997436f00731618de3ecc3a1bd8ce9aa1c8a74bdc837"
+  },
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/xlibre-patched/24653f6b961a77f03f321b64343200ef0d227e1b52e39ff83cda48d9934788e2/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "7a295f8b2d0b8a81a05488baedf806297462089a6b925d9e36b5c526389fd0de",
+    "receipt": {
+      "Xvfb": {
+        "path": "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/xlibre-patched/24653f6b961a77f03f321b64343200ef0d227e1b52e39ff83cda48d9934788e2/source/build-sanitize/hw/vfb/Xvfb",
+        "sha256": "7a295f8b2d0b8a81a05488baedf806297462089a6b925d9e36b5c526389fd0de"
+      },
+      "Xorg": {
+        "path": "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/xlibre-patched/24653f6b961a77f03f321b64343200ef0d227e1b52e39ff83cda48d9934788e2/source/build-sanitize/hw/xfree86/Xorg",
+        "sha256": "0387041f766842be3f7d5e6a7f9e5b683646b4afe6fe956d8f1b499eed94b1d2"
+      }
+    }
+  },
+  "vendor_json": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/candidate-02/vendor.json",
+    "sha256": "9e0c7c730280463e8c16a6d85da9b22498e6ec12597dc51282436d7806246497"
+  },
+  "library": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0",
+    "sha256": "fa3f7f4c3a7e3cddfe09ec93d5e1f66878bd07a28643523f06bf13e64345f6b1",
+    "prior_expected_sha256": "fa3f7f4c3a7e3cddfe09ec93d5e1f66878bd07a28643523f06bf13e64345f6b1",
+    "match": true
+  },
+  "prior_receipt": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/candidate-02/run.json",
+  "prior_environment_matches": true,
+  "overrides": {
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/candidate-02/vendor.json",
+    "LD_LIBRARY_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0"
+  },
+  "dependency_files": {
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri/libgallium-25.2.8.so": "6fbb29dbb4943478ab55aa672ac1b74bc6b943c2121bc845a6bec6837eaaec40",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1": "d9018fa443a6d266a40ac92fabdea2ca719f2c606108d2520d5bd72748085f8c",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so": "d9018fa443a6d266a40ac92fabdea2ca719f2c606108d2520d5bd72748085f8c",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1.0.0": "d9018fa443a6d266a40ac92fabdea2ca719f2c606108d2520d5bd72748085f8c",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so": "07763399942f60c45def077e910e46c82b75749eec244599e95f9e8dff83e2bf",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so.1.8.10": "07763399942f60c45def077e910e46c82b75749eec244599e95f9e8dff83e2bf",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so.1": "07763399942f60c45def077e910e46c82b75749eec244599e95f9e8dff83e2bf"
+  },
+  "ldd": {
+    "exit": 0,
+    "output": "\tlinux-vdso.so.1 (0x00007dd8c70e0000)\n\tlibgallium-25.2.8.so => /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri/libgallium-25.2.8.so (0x00007dd8c6000000)\n\tlibexpat.so.1 => /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so.1 (0x00007dd8c7066000)\n\tlibgbm.so.1 => /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1 (0x00007dd8c705f000)\n\tlibdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007dd8c7033000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007dd8c5f17000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007dd8c5c00000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007dd8c7017000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007dd8c5800000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007dd8c6fe7000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007dd8c70e2000)\n",
+    "missing": false
+  },
+  "patch": {
+    "path": "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/server/mesa/mesa-egl-default-cleanup.patch",
+    "sha256": "acbd5cd840a67a9384c3ac42bfad5cc4db807721ad6b0cd9ccd2704e4dadb377"
+  },
+  "extension_source_matches": {
+    "server/patches/0001-spatial-input.patch": true,
+    "server/patches/0002-spatial-security.patch": true,
+    "server/patches/0003-server-shutdown.patch": true,
+    "server/patches/0004-spatial-resource-policy.patch": true,
+    "server/patches/0005-animated-cursor-cleanup.patch": true,
+    "server/patches/0006-global-server-access.patch": true,
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch": true,
+    "server/patches/0008-application-atom-privacy.patch": true,
+    "server/patches/0009-private-configure-event-metadata.patch": true,
+    "server/patches/0010-private-parent-metadata.patch": true,
+    "server/patches/0011-xlibre-child-pixel-isolation.patch": true,
+    "server/xlibre/spatialinput.c": true,
+    "server/xlibre/spatialinput.h": true,
+    "server/xlibre/meson.build": true,
+    "proto/spatial/input/v1/input.proto": true,
+    "server/xlibre/spatialsecurity.c": true,
+    "server/xlibre/spatialpolicy.c": true,
+    "server/xlibre/spatialsecurity.h": true,
+    "proto/spatial/security/v1/security.proto": true,
+    "proto/spatial/security/v1/selection_scope.proto": true
+  }
+}
