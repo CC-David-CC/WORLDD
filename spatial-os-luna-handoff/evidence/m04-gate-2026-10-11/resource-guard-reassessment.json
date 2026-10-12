@@ -1,0 +1,34 @@
+﻿{
+    "status":  "historical_bypass_evidence_reassessed_current_gate_pending",
+    "phase_complete":  false,
+    "historical_source":  "0578b9e",
+    "candidate":  "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+    "unchanged_patch":  "server/patches/0004-spatial-resource-policy.patch",
+    "unchanged_predicates":  [
+                                 "SpatialSecurityPrivileged",
+                                 "SpatialSecuritySameApplication",
+                                 "SpatialSecurityVisibleResource"
+                             ],
+    "variants":  [
+                     {
+                         "host":  "sb16",
+                         "witness":  "test_root_tree_filters_other_workspaces",
+                         "mutation":  "root-enumeration",
+                         "log_sha256":  "45760ee6af0423acb5c87cd5a29b8269805ebdcc2f149ee16ba278c53c5baf0b",
+                         "historical_binary_sha256":  "1c05ba67150530843a00cc6faa0bbbafc0904b28397fc54fdfe1f30083183f9a"
+                     },
+                     {
+                         "host":  "sb16",
+                         "witness":  "test_parent_relative_cannot_copy_private_root_background",
+                         "mutation":  "parent-relative-pixels",
+                         "log_sha256":  "7923df730866a5ec2609a4b7ef68d87e9891f0cc5be9ae69c8d69598b18036ea",
+                         "historical_binary_sha256":  "6dd67ed44620b8bb33676cb6c46a4be0a4cdee12e0a6d72b78dae824b30eaf88"
+                     }
+                 ],
+    "limits":  [
+                   "These two historical mutation runs are from sb16 only.",
+                   "Current full resource and identity suites must pass on both hosts.",
+                   "Other authentication and resource callback changes have separate fresh mutation runs.",
+                   "This reassessment does not complete M04 or qualify later milestones."
+               ]
+}
