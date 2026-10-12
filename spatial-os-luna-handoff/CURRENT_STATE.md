@@ -1,5 +1,14 @@
 # Implementation status
 
+## 2026-10-12: M06 actor TLS transport passes focused checks
+
+ActorSessionClient supports mutual TLS through versioned protobuf configuration.
+All 43 local and 31 TLS cases pass on both hosts in Debug and ASan/UBSan: 296 final executions.
+Read evidence/m06-actor-tls-2026-10-12/primary-review.txt for source pins, corrections, and limits.
+The integrated checkpoint is b80d143. Transition sequencing and production host selection remain pending.
+Real-world/native transition integration, recovery, and the full M06 gate remain pending.
+M06 remains incomplete. M07-M16 remain pending qualification.
+
 ## 2026-10-12: M06 local actor client passes focused checks
 
 The reviewed client uses authenticated protobuf exchanges over private local actor channels.

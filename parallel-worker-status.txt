@@ -1,4 +1,9 @@
 Current checkpoint, 2026-10-12:
+TLS actor client integrated as b80d143; worker source 07a1aa702 on m06/actor-client-tls.
+Final focused coverage: 43 local plus 31 TLS cases on both hosts in Debug and ASan/UBSan, 296 passed.
+Evidence: spatial-os-luna-handoff/evidence/m06-actor-tls-2026-10-12.
+The middle-child TLS worker and primary correction builds finished. TLS runtime checks finished on both hosts.
+The TLS task details below describe its earlier attempts.
 M06 client integrated as e28b20c on m06/world-transitions and pushed to box-git.
 Worker source checkpoint:4f403b7b9 on m06/actor-session-client.
 All43 client cases passed on both test hosts in Debug and ASan/UBSan:172 executions.
