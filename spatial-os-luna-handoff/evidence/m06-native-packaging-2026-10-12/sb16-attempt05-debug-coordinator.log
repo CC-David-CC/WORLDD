@@ -1,0 +1,38 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+native-checkpoint=1 selected=4ef2786873d389fae4646bdc6c3bf133 A-binding=protocol_version: 1 world_id: "4ef2786873d389fae4646bdc6c3bf133" service_incarnation: "\240\262j\265\355\020;\216.\337S\203\004\020V\312\001GJu\226\361\350\000\0259\333\347\372\014yF" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "afc050fe76e1f96e748c4bbfdead545b" service_incarnation: "\022jd\344#^\232^\222\036X6\351\216\357\302}\340%\261\022\033\373\030R\277\370\033a\245\301e" authority_generation: 1 presentation_generation: 2
+native-checkpoint=1 pid=1651823 start=10385528
+native-checkpoint=1 pid=1651855 start=10385662
+native-checkpoint=1 pid=1651926 start=10385862
+native-checkpoint=1 pid=1651930 start=10385964
+native-checkpoint=1 pid=1651934 start=10386027
+native-checkpoint=2 selected=4ef2786873d389fae4646bdc6c3bf133 A-binding=protocol_version: 1 world_id: "4ef2786873d389fae4646bdc6c3bf133" service_incarnation: "\240\262j\265\355\020;\216.\337S\203\004\020V\312\001GJu\226\361\350\000\0259\333\347\372\014yF" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "afc050fe76e1f96e748c4bbfdead545b" service_incarnation: "\022jd\344#^\232^\222\036X6\351\216\357\302}\340%\261\022\033\373\030R\277\370\033a\245\301e" authority_generation: 1 presentation_generation: 2
+native-checkpoint=2 pid=1651823 start=10385528
+native-checkpoint=2 pid=1651855 start=10385662
+native-checkpoint=2 pid=1651926 start=10385862
+native-checkpoint=2 pid=1651930 start=10385964
+native-checkpoint=2 pid=1651934 start=10386027
+native-checkpoint=3 selected=afc050fe76e1f96e748c4bbfdead545b A-binding=protocol_version: 1 world_id: "4ef2786873d389fae4646bdc6c3bf133" service_incarnation: "\240\262j\265\355\020;\216.\337S\203\004\020V\312\001GJu\226\361\350\000\0259\333\347\372\014yF" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "afc050fe76e1f96e748c4bbfdead545b" service_incarnation: "\022jd\344#^\232^\222\036X6\351\216\357\302}\340%\261\022\033\373\030R\277\370\033a\245\301e" authority_generation: 1 presentation_generation: 2
+native-checkpoint=3 pid=1651823 start=10385528
+native-checkpoint=3 pid=1651855 start=10385662
+native-checkpoint=3 pid=1651926 start=10385862
+native-checkpoint=3 pid=1651930 start=10385964
+native-checkpoint=3 pid=1651934 start=10386027
+native-checkpoint=4 selected=4ef2786873d389fae4646bdc6c3bf133 A-binding=protocol_version: 1 world_id: "4ef2786873d389fae4646bdc6c3bf133" service_incarnation: "\240\262j\265\355\020;\216.\337S\203\004\020V\312\001GJu\226\361\350\000\0259\333\347\372\014yF" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "afc050fe76e1f96e748c4bbfdead545b" service_incarnation: "\022jd\344#^\232^\222\036X6\351\216\357\302}\340%\261\022\033\373\030R\277\370\033a\245\301e" authority_generation: 1 presentation_generation: 2
+native-checkpoint=4 pid=1651823 start=10385528
+native-checkpoint=4 pid=1651855 start=10385662
+native-checkpoint=4 pid=1651926 start=10385862
+native-checkpoint=4 pid=1651930 start=10385964
+native-checkpoint=4 pid=1651934 start=10386027
+retained-native-identity pid=1651823 start=10385528
+retained-native-identity pid=1651855 start=10385662
+retained-native-identity pid=1651926 start=10385862
+retained-native-identity pid=1651930 start=10385964
+retained-native-identity pid=1651934 start=10386027
+PASS native-host-controller-A-B-A-denial-retained-owners-and-processes
+worldd: Broker authority channel closed
+authority supervisor: Authority child exited before relay completion
+Session launch failed after checked cleanup: Authority child exited before relay completion
+worldd: Broker authority channel closed
+authority supervisor: Authority child exited before relay completion
+Session launch failed after checked cleanup: Authority child exited before relay completion
+worldd: Broker authority channel closed

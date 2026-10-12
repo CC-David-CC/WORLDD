@@ -1,0 +1,51 @@
+Running as unit: spatial-m06-host-native-debug-04.service; invocation ID: 308a6bafd68c464faf9f4e8dcc615046
+test_native_a_b_a_denial_and_retained_process_identities (__main__.HostActorControllerNativeTests.test_native_a_b_a_denial_and_retained_process_identities) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.05875799599743914, "operation": "initialize", "outcome": "exit_0", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009297149008489214, "operation": "connect", "outcome": "connected", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05170355399604887, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010997067001881078, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03718502500851173, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010683492000680417, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.038316836988087744, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010446258005686104, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.031232588007696904, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011103789991466329, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03458911100460682, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010631836004904471, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03183358200476505, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011319511002511717, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04206804199202452, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010576280008535832, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03926568999304436, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010845038006664254, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0314057540090289, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010820836992934346, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03502343599393498, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011336998999468051, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.031078750995220616, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+ERROR
+
+======================================================================
+ERROR: test_native_a_b_a_denial_and_retained_process_identities (__main__.HostActorControllerNativeTests.test_native_a_b_a_denial_and_retained_process_identities)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-native-20261012-04/project/tests/native/test_host_actor_controller.py", line 88, in test_native_a_b_a_denial_and_retained_process_identities
+    proc, owner, first = self.ready()
+                         ^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-native-20261012-04/project/tests/native/test_session_world.py", line 136, in ready
+    record = self.message(proc.stdout, launch.AuthorityLaunchReply).view.record
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-native-20261012-04/project/tests/native/test_authority_supervisor.py", line 120, in message
+    reply = message_type.FromString(exact(size))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+google.protobuf.message.DecodeError: Error parsing message with type 'spatial.supervisor.v1.AuthorityLaunchReply'
+
+----------------------------------------------------------------------
+Ran 1 test in 2.075s
+
+FAILED (errors=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 2.247s
+CPU time consumed: 646ms
+Memory peak: 512.0K
+Memory swap peak: 0B

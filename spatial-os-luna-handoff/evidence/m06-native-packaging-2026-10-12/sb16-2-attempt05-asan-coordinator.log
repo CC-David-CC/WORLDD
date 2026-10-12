@@ -1,0 +1,40 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+native-checkpoint=1 selected=d7cfb8150fc9c69abe79a983daa24b15 A-binding=protocol_version: 1 world_id: "d7cfb8150fc9c69abe79a983daa24b15" service_incarnation: "\010K\327\353\266$\311:)=\370<\210\234\222#\227\"\004p\034\311\250fnd\320\001a\264`\211" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "72b241f12cb658cd5903e0fe6bb87e3c" service_incarnation: "}\334k5\034\024\'p\210\377\025\330\310\305\251\313\323\217\264\202:q\204\301\234Oe\243\313E\021Z" authority_generation: 1 presentation_generation: 2
+native-checkpoint=1 pid=1584951 start=10377447
+native-checkpoint=1 pid=1584987 start=10377645
+native-checkpoint=1 pid=1585008 start=10377714
+native-checkpoint=1 pid=1585012 start=10377798
+native-checkpoint=1 pid=1585016 start=10377884
+native-checkpoint=2 selected=d7cfb8150fc9c69abe79a983daa24b15 A-binding=protocol_version: 1 world_id: "d7cfb8150fc9c69abe79a983daa24b15" service_incarnation: "\010K\327\353\266$\311:)=\370<\210\234\222#\227\"\004p\034\311\250fnd\320\001a\264`\211" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "72b241f12cb658cd5903e0fe6bb87e3c" service_incarnation: "}\334k5\034\024\'p\210\377\025\330\310\305\251\313\323\217\264\202:q\204\301\234Oe\243\313E\021Z" authority_generation: 1 presentation_generation: 2
+native-checkpoint=2 pid=1584951 start=10377447
+native-checkpoint=2 pid=1584987 start=10377645
+native-checkpoint=2 pid=1585008 start=10377714
+native-checkpoint=2 pid=1585012 start=10377798
+native-checkpoint=2 pid=1585016 start=10377884
+native-checkpoint=3 selected=72b241f12cb658cd5903e0fe6bb87e3c A-binding=protocol_version: 1 world_id: "d7cfb8150fc9c69abe79a983daa24b15" service_incarnation: "\010K\327\353\266$\311:)=\370<\210\234\222#\227\"\004p\034\311\250fnd\320\001a\264`\211" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "72b241f12cb658cd5903e0fe6bb87e3c" service_incarnation: "}\334k5\034\024\'p\210\377\025\330\310\305\251\313\323\217\264\202:q\204\301\234Oe\243\313E\021Z" authority_generation: 1 presentation_generation: 2
+native-checkpoint=3 pid=1584951 start=10377447
+native-checkpoint=3 pid=1584987 start=10377645
+native-checkpoint=3 pid=1585008 start=10377714
+native-checkpoint=3 pid=1585012 start=10377798
+native-checkpoint=3 pid=1585016 start=10377884
+native-checkpoint=4 selected=d7cfb8150fc9c69abe79a983daa24b15 A-binding=protocol_version: 1 world_id: "d7cfb8150fc9c69abe79a983daa24b15" service_incarnation: "\010K\327\353\266$\311:)=\370<\210\234\222#\227\"\004p\034\311\250fnd\320\001a\264`\211" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "72b241f12cb658cd5903e0fe6bb87e3c" service_incarnation: "}\334k5\034\024\'p\210\377\025\330\310\305\251\313\323\217\264\202:q\204\301\234Oe\243\313E\021Z" authority_generation: 1 presentation_generation: 2
+native-checkpoint=4 pid=1584951 start=10377447
+native-checkpoint=4 pid=1584987 start=10377645
+native-checkpoint=4 pid=1585008 start=10377714
+native-checkpoint=4 pid=1585012 start=10377798
+native-checkpoint=4 pid=1585016 start=10377884
+retained-native-identity pid=1584951 start=10377447
+retained-native-identity pid=1584987 start=10377645
+retained-native-identity pid=1585008 start=10377714
+retained-native-identity pid=1585012 start=10377798
+retained-native-identity pid=1585016 start=10377884
+PASS native-host-controller-A-B-A-denial-retained-owners-and-processes
+worldd: Broker authority channel closed
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed
+worldd: Broker authority channel closed
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed
+worldd: Broker authority channel closed
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed

@@ -1,0 +1,36 @@
+Running as unit: spatial-m06-host-native-asan-05.service; invocation ID: 0d61328b6fff451ca2b01b9515486658
+test_native_a_b_a_denial_and_retained_process_identities (__main__.HostActorControllerNativeTests.test_native_a_b_a_denial_and_retained_process_identities) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.1342754779907409, "operation": "initialize", "outcome": "exit_0", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05057760400814004, "operation": "connect", "outcome": "connected", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011551563991815783, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011767482006689534, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04704085199045949, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010854533000383526, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04085979399678763, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01144915800250601, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.040122771009919234, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010962373009533621, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04400534099841025, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011045388004276901, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04149282099388074, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011056211005779915, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0417976769967936, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01090338900394272, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03970385299180634, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01046875499014277, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04567566300102044, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010890238001593389, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03961011199862696, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01133736599877011, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03235389100154862, "operation": "request", "outcome": "received", "test": "test_native_a_b_a_denial_and_retained_process_identities"}
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.965s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 7.106s
+CPU time consumed: 3.569s
+Memory peak: 512.0K
+Memory swap peak: 0B

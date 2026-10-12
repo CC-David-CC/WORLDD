@@ -1,5 +1,7 @@
 M06 host actor controller increment, run02 correction
-Status: implemented; compile-only evidence. Runtime qualification UNRUN.
+Status: integrated after 44 fixture executions and 60 native/related regression executions passed.
+Primary integration: 3b0d39c. Worker checkpoint: eea077c79.
+Read evidence/m06-native-packaging-2026-10-12/review.txt for final runtime evidence.
 No M06 or native session qualification is claimed.
 
 HostActorController owns its active ActorSessionClient. Trusted setup registers retained
@@ -54,7 +56,7 @@ Concrete native extension:
 The native case denies entry to a third private world, proves source inspect/action and
 foreground usability, then runs A-B-A. It verifies exact retained bindings and launch
 records, world-local actor context, and PID/start identities for XLibre, spatialwm,
-and all worldd processes before and after each step. Runtime execution is UNRUN.
+and all worldd processes before and after each step. This case passed on both hosts in both profiles.
 Selection uncertainty is covered by the wire fixture; no native fault injection is claimed.
 
 Evidence lives at checkout ROOT local/m06-host-controller/run02-*.

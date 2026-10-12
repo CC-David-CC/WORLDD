@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-12: M06 native actor controller integration passes focused checks
+
+HostActorController is integrated at 3b0d39c from worker checkpoint eea077c79.
+Both hosts passed the native A-B-A/private-denial case and 14 session-world regressions in both profiles.
+All 60 executions passed. The separate controller fixture also passed all 44 executions.
+Exact retained owners and XLibre/compositor/world PID-start identities survived ordinary transitions.
+Read evidence/m06-native-packaging-2026-10-12/review.txt for final evidence and preserved failures.
+The commit remains labeled UNQUALIFIED because the full M06 gate has not passed.
+
+Real-service attempt03 passed 15 of 18 cases in each host/profile after fixing Git worker configuration.
+Three crash-recovery cases still error. Read evidence/m06-realworld-attempt03-2026-10-12/review.txt.
+Their supervised replacements are being implemented on a separate recovery branch.
+Production entrypoint use, cross-host transition integration, held-input/delayed-message checks, and the full gate remain pending.
+M06 is incomplete. M07-M16 remain pending.
+
 ## 2026-10-12: M06 real-service qualification exposes setup gaps
 
 Both hosts ran 18 integration cases in Debug and ASan/UBSan.

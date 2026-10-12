@@ -1,0 +1,13 @@
+Running as unit: spatial-m06-host-native-asan-01.service; invocation ID: e8b666ac5f654e6dbc070f16d64c7602
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-native-20261012-01/project/tests/native/test_host_actor_controller.py", line 10, in <module>
+    import test_session_world as fixture
+  File "/home/dflanag3/spatial-test-artifacts/m06-native-20261012-01/project/tests/native/test_session_world.py", line 19, in <module>
+    import compositor_native_pb2 as compositor
+ModuleNotFoundError: No module named 'compositor_native_pb2'
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 151ms
+CPU time consumed: 151ms
+Memory peak: 768.0K
+Memory swap peak: 0B
