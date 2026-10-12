@@ -12,6 +12,12 @@ Keep native hardware, authority, confinement, shared worlds, cabinets, and provi
 
 ## Current qualification
 
+M04 is qualified at adopted source 04e10296943013da3a29035f00b520907b97f3ca on both hosts.
+Read evidence/m04-gate-2026-10-11/M04-final-review.txt for the complete requirement audit and limits.
+Both full local profiles, reviewed fixture corrections, and eight cross-host cases provide the qualification evidence.
+The native server uses the verified private software EGL configuration. Physical GPU and device gates remain mandatory.
+M05 is next. The older M04 paragraphs below describe historical checkpoints.
+
 M02 is qualified and adopted on both hosts at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
 Read evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json for exact scope and pins.
 Both hosts passed complete Debug and runtime-sanitize gates. All eight cross-host scenarios passed.
@@ -22,7 +28,7 @@ Current-source binaries were not rebuilt after that test-only addition.
 
 M01 is qualified at the same adopted source after its identity audit and M02 cancellation dependency review.
 Read evidence/m01-audit-2026-10-10/primary-review.json. The review reuses complete gates; it does not count new runs.
-M04-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
+M05-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
 The mandatory profile remains tasks/spatial-m1.json.
 
 M03 is qualified and adopted at a99b7e46c5151ba47d0a53797b470cae6aaa5d13 in dedicated worktrees on both hosts.

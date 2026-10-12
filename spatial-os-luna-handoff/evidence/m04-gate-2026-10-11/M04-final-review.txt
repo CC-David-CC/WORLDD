@@ -1,0 +1,94 @@
+M04 qualification decision
+Date: 2026-10-11
+Decision: M04 qualified for the tested strict native security configuration.
+Spatial-M1 and the complete project remain incomplete.
+
+Source and configuration
+Runtime source: f74c6b579c6149f41e1cbd17b025eb92fd453009.
+Adopted source: 04e10296943013da3a29035f00b520907b97f3ca.
+Each host has /home/dflanag3/src/spacial_desktop-m04-qualified-20261011.
+Both adoption reports verify all 411 recorded inputs and all 41 locked files.
+Only three test-fixture files differ. Their hashes match the completed correction runs.
+Production sources, native server inputs, protocol schemas, and build configuration are unchanged.
+The retained runtime binaries were not rebuilt for those test-only changes.
+Server, runtime, installed helper, launcher, and private EGL library hashes remain verified.
+The ordinary host checkouts, normal login, installed graphics libraries, and SSH recovery route are preserved.
+
+Complete local matrix and original failures
+Both hosts completed Debug and runtime/native-server ASan/UBSan with GLX enabled.
+Each of four profiles ran 141 core suites, 51 harness checks, 151 P00-P10 cases, and five bounded-storage scenarios.
+Harness, acceptance, and storage scenarios passed in every profile.
+The 564 original core suite executions included ten failed suite executions.
+Eight failed at the checkout-specific storage fixture guard before volume operations.
+Two sb16 sanitizer suites failed during healthy authority setup on old client timeouts.
+Original reports remain failed and are retained. No original failure is relabeled as a passing execution.
+
+The storage guard now derives its resolved local boundary from its own checkout.
+Two setup fixtures use the accepted five-second healthy-client budget.
+Existing assertions, explicit timeout overrides, relay ordering, and server idle deadlines remain unchanged.
+Four selected suites were rerun in all four profiles: sixteen suite executions and forty checks passed.
+The correction reviews verify actual logs, source differences, runtime pins, and sanitizer scans.
+No other full-gate artifact errors or sanitizer findings were found.
+This combined gate and focused-correction evidence satisfies the defined phase-gate schedule.
+It does not establish a worst-case durable-write latency bound.
+
+Requirement audit
+The task-coverage reports cover all twenty M04 task entries in both profiles on both hosts.
+Each named test ID appears in the execution logs. Every registered counterexample suite passed.
+The following decisions include the contract review, current full-gate evidence, and recorded focused evidence.
+
+application.security_identity: strict authentication precedes fallback; labels, roles, generations, and credential lifetime are checked.
+application.resource_access: ownership, root exceptions, properties, pixels, retained resources, and both byte orders are checked.
+application.extension_isolation: discovery and direct dispatch deny unqualified requests; owned rendering and foreign-resource denial pass.
+Animated cursor final destruction passes sanitizer checks. Window-picture read aliases remain denied.
+application.global_administration: shared server, screen-saver, host-access, font-path, and retained-resource administration enforce roles.
+application.device_administration: six shared-device changes deny applications and brokers before effects; public mapping controls pass.
+application.atom_privacy: explicit declarations, identity separation, enumeration denial, quota, and connection lifetime are checked.
+application.selection_owner_access and application.selection_namespace: independent real selection namespaces preserve public atom values and scoped service access.
+application.event_metadata: unauthorized ConfigureNotify and ConfigureRequest sibling metadata is filtered before byte swapping.
+application.parent_metadata: QueryTree parents and core structure-event subjects enforce recipient authority; owned and privileged controls pass.
+The nested GetImage correction excludes foreign descendants without restoring their pixels through owned ancestors.
+IncludeInferiors drawing and copy operations cannot access foreign child regions.
+application.private_input: genuine private idle devices isolate focus, pointer state, held keys, grabs, and connection lifecycle.
+application.actor_binding: one actor device pair controls an application group; cancellation releases real input before transfer.
+application.native_launch: the broker supplies bounded sealed configuration, pinned sockets, distinct application identities, and confined credentials.
+application.broker_access: workspace, observation, control, and sufficient execution authority remain separate requirements.
+application.control_lease: one reservation covers an application group; revocation retains it until checked cancellation is acknowledged.
+application.control_client: checked replies and idle notifications preserve revoked state across pending and repeated requests.
+application.world_control: authenticated actor input uses broker reservations and native routing, with no replay after authority loss.
+application.world_observation: broker-authorized metadata is checked after rendering and before queued export.
+The full actor-pixels suite also covers authorized pixel delivery and revocation at output boundaries.
+surface.application_groups: relationships cannot cross application identity; same-group top-level windows share control authority.
+surface.native_identity: attribution comes from the server-owned window identity together with checked geometry and generation.
+
+Independent bypass and cross-host evidence
+Both hosts have fresh authentication, issuer-disconnect, resource-access, and Render window-read bypass detections.
+Both hosts have reconciled parent-query, reparent-event, and child-event bypass evidence with exact expected failures.
+Twenty-two historical device/global bypass results were reassessed against unchanged guards and predicates.
+Historical root enumeration and parent-relative pixel guards were reassessed against unchanged code and witness assertions.
+Historical extension discovery/dispatch evidence is retained; the changed Render read path has fresh detections on both hosts.
+Mutation build or fixture failures were not accepted as detections.
+All eight cross-host cases passed: both profiles, delay/crash scenarios, and both directions.
+Twenty-four node results and saved protobuf barriers verify cancellation, application survival, and explicit crash retirement.
+All workers match their controller's issuer. Service-log scans have no sanitizer findings.
+
+Evidence index
+*-original-artifact-check.json: complete original gate audit and exact failed suite names.
+*-correction-review.txt and *-primary-review.json: reviewed correction scope and hash-pinned prerequisites.
+*-source-adoption.json: complete adopted input manifests and unchanged runtime pins.
+*-task-coverage.json: twenty-component execution mapping and required evidence lists.
+crosshost-primary-review.txt and *-crosshost-artifact-check.json: eight scenarios and protocol artifact review.
+*-changed-path-mutations/primary-review.txt: fresh bypass results and raw logs.
+event-mutation-reconciliation.json, administration-mutation-reassessment.json, and resource-guard-reassessment.json: explicit reuse limits.
+Earlier missing-feature failures, rejected schema attempts, and graphics failures remain in their original evidence directories.
+
+Limits and next milestone
+This qualification uses disposable native XLibre servers with the verified private software EGL configuration.
+It does not qualify the installed graphics vendor or physical GPU output.
+Unqualified application extension families remain denied; ordinary editor and terminal compatibility still needs its M1 application profile checks.
+Older component documents retain historical pending statements. This decision supersedes only the completed M04 integration obligations above.
+Numeric atom allocation and timing side channels are not claimed eliminated.
+No untested extension family, remote surface streaming, physical device, performance, or soak requirement is waived.
+M05 must now prove separate private worlds and one shared persistent world on the two hosts.
+The cross-host cancellation tests use independent worlds and do not substitute for M05.
+M06-M16 and mandatory hardware acceptance remain required before Spatial-M1 or the full goal can be complete.

@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-11: M04 qualified; M05 is next
+
+M04 is qualified at adopted source 04e10296943013da3a29035f00b520907b97f3ca on both hosts.
+Dedicated checkouts are at /home/dflanag3/src/spacial_desktop-m04-qualified-20261011.
+All 411 recorded source inputs are reconciled. All 41 locked files remain unchanged.
+Retained runtime binaries use f74c6b5; only three tested fixture files differ in the adopted source.
+The complete both-host Debug and sanitizer matrix, focused corrections, and eight cross-host scenarios passed review.
+All twenty M04 task entries have execution coverage. Independent bypass evidence is reviewed or explicitly reassessed.
+Original failed gate reports remain preserved with their correction evidence.
+Read evidence/m04-gate-2026-10-11/M04-final-review.txt for requirements, exact counts, source pins, and limits.
+
+This qualifies the strict native security configuration with the verified private software EGL candidate.
+Installed graphics vendors, physical GPU/device acceptance, application compatibility, performance, and soak retain their later requirements.
+M01-M04 are qualified. M05-M16 and complete Spatial-M1 qualification remain incomplete.
+M05 must prove independent private worlds and one shared persistent world across both hosts.
+
 ## 2026-10-11: Both local M04 gates completed; fixture corrections reviewed
 
 Both hosts completed Debug and ASan/UBSan qualification on frozen candidate f74c6b5.
