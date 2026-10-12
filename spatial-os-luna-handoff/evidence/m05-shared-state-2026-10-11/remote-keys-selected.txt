@@ -1,0 +1,15 @@
+M05 remote actor key increment
+
+Run all five inherited cross-host world cases with the second actor key generated on its own host.
+Use production spatial-key generate and sign with framed Protocol Buffers.
+Return only the public key and signatures. Do not copy the actor private key.
+Verify each signature independently through OpenSSL before enrollment or authentication.
+Verify private key mode 0600. Remove only the fixture key and its temporary directory after each test.
+Preserve signed-purpose receipts without private material.
+
+Selected behaviors: committed shared edits and restart, independent private world state,
+visible actor population, public/private admission, and unavailable-authority generation guard.
+Run both authority directions in Debug and ASan/UBSan.
+Use unique service evidence directories. Preserve failed output.
+This increment does not prove simultaneous private authorities on separate hosts.
+The combined topology and full M05 gate remain required.

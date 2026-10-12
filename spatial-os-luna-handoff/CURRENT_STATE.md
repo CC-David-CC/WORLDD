@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-12: M05 actor keys remain on their originating hosts
+
+The second actor now generates and signs with its key on the other host during cross-host qualification.
+Only public keys and protobuf proofs return to the authority-host fixture.
+OpenSSL independently verifies each production spatial-key signature before use.
+Key permissions and temporary-key removal pass explicit checks.
+
+All five selected scenarios pass on both hosts in Debug and ASan/UBSan: twenty final case executions.
+Twenty preliminary executions also pass. Final runs finish worlds before retaining and scanning shutdown logs.
+Read evidence/m05-shared-state-2026-10-11/remote-keys-review.txt for the exact scope.
+The simultaneous three-world topology remains unrun. Read docs/M05_TOPOLOGY_CHECKS.txt for its assertions.
+M05 remains in progress. Its full both-host phase gate remains pending.
+
 ## 2026-10-11: M05 supervised recovery accepts a remote actor
 
 Both hosts pass supervised crash recovery with the replacement actor connected from the other host through TLS.
