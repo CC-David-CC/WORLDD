@@ -1,5 +1,16 @@
 # Implementation status
 
+## 2026-10-12: Cross-host evidence checkpoint; geometry correction required
+
+The cross-host evidence audit verified 83 files and the focused results recorded below.
+Geometry run01 finished unqualified. Both builds passed; all nine regression groups and the runtime bundle are missing.
+Review found queued-view revocation, client fencing, authority binding, frame bounds, shape validation, and Python generation defects.
+A bounded Sol medium correction follows the failed Luna medium attempt. No geometry runtime PASS is claimed.
+Host-session Debug passed 24 checks on each host. OFF startup passed 20 checks across both profiles and hosts.
+Default-GLX sanitizer runs failed during server cleanup with a 3176-byte GLX allocation leak on each host.
+The failure evidence remains preserved. Focused core-only sanitizer and cleanup checks remain pending.
+M06 and its full gate remain incomplete. M07-M16 remain pending.
+
 ## 2026-10-12: Held-input checkpoint integrated; shared geometry work starts
 
 Held-input task 9222918 is integrated as c8c43ee after all 28 related lifecycle checks passed.
@@ -11,9 +22,13 @@ These checks supplement the four earlier held-input executions. They are not the
 The selected production source, schemas, and native fixtures match the qualified task checkpoint.
 The remaining source differences are unrelated transition/recovery test drivers.
 
-Cross-host worker checkpoint c93e02b reports 12 semantic cases passed with complete cleanup.
-Primary evidence review and integration remain pending. No native presentation claim follows from those checks.
-Production host-session deployment and focused qualification are next on both runtime hosts.
+Cross-host worker checkpoint c93e02b is integrated as 23a2554 after primary source and evidence review.
+All 12 semantic cases, two slow-stop checks, and one injected-startup cleanup check passed.
+Read evidence/m06-crosshost-transitions-2026-10-12/primary-review.json for the scope and preserved initial cleanup failure.
+The CMake conflict retained both real-world and cross-host registrations. Combined build validation remains pending.
+No native presentation claim follows from the headless cross-host checks.
+Gate tooling is integrated as a10744b. All 12 static checks passed; its complete deployed workflow remains unrun.
+Production host-session deployment and focused qualification are active on both runtime hosts.
 
 Review confirmed that foreground selection alone does not draw the destination world.
 A Luna medium worker now implements authenticated geometry export on middle-child.

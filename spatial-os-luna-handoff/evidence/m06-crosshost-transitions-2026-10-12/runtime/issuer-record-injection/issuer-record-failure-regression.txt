@@ -1,0 +1,1 @@
+PASS: issuer child was reaped after injected process identity record failure; process/log/exit evidence preserved; owned root removed after backup.

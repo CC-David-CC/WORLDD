@@ -1,0 +1,188 @@
+M06 cross-host run03
+
+Status: IMPLEMENTED, SOURCE-REVIEWED, UNQUALIFIED.
+Runtime qualification: UNRUN. No runtime fixture, actor probe, service, SSH or CTest test ran on middle-child.
+Setup and cleanup are executable implementations. This is not a preprovisioned launcher or a plan-only handoff.
+No required production API is absent. Runtime results are required before qualification.
+
+Host: middle-child, verified with hostname.
+Checkout: /home/dflanag3/src/spacial-m06-crosshost-20261012
+Branch: m06/crosshost-actor-transitions
+Base and HEAD: 4d0c788e96b645d33e57268bd7c40d2a2b5a9f9b, unchanged.
+No commit, push, deployment, test-host access or system change occurred.
+The task, installed coordination skill and run03 draft coverage input were read before editing.
+The draft input was found under local/m06-crosshost/run03-inputs before its root symlink appeared.
+
+Run03-owned source changes:
+- tests/core/actor_transition_crosshost_fixture.py: complete trusted two-host setup, private plan, execution and cleanup.
+- tests/core/actor_transition_crosshost_host.py: bounded tmux world owners, management forwarding, snapshots and guarded cleanup.
+- tests/core/actor_transition_crosshost_run03.txt: runnable deployment, interface contract and recovery instructions.
+- tests/core/test_actor_transition_crosshost.py: reuse deployed witness, retain driver evidence, require exact durable source preservation.
+- tests/proto/actor_transition_crosshost.proto: additive private SeedContext and seeded_departure fields.
+- src/testing/actor_transition_crosshost_probe.cpp: seed context through production C++ TLS authenticate/inspect/depart.
+All source paths above are within spatial-os-luna-handoff.
+Root CMakeLists.txt, production libraries, locked acceptance and earlier documentation were not edited in run03.
+The pre-existing dirty CMake registration remains byte-identical to run02.
+
+Resulting behavior:
+The launcher accepts debug or asan and a new absolute evidence directory.
+It refuses runtime execution outside sb16 and sb16-2.
+Primary deploys one identical bundle path to both hosts before launch.
+The fixture observes both hostnames/machine IDs and verifies both deployed bundles.
+It creates a private dedicated real issuer on the driver host.
+Existing WorldIdentityFixture/ClientFixture/TlsFixture methods enroll and manually approve actual actors.
+The shared actor has explicit WORLD_ENTER/WORLD_NAVIGATE roots in both independent worlds.
+Two source-only actors supply real private-denial cases in reversible directions.
+No static actor/grant override or privileged Python actor API is used.
+
+Stopped worldd world.info replies supply actual persisted world IDs.
+The fixture registers those WORLD domains using configure_participant and real issuer proofs.
+Each host receives a distinct private root, state/world.db, authority store and runtime/identity/TLS configs.
+worldd --init-authority installs explicit persistent roots.
+Each bounded tmux owner retains a production worldd management pipe and inherited TCP listener.
+The same production C++ probe seeds actual saved actor contexts through mutual TLS.
+A checked durable departure must succeed. A read-only database witness then checks room, pose and world ID.
+
+The fixture privately generates exactly six protobuf cases.
+The existing harness drives the C++ production ActorTransitionCoordinator.
+Cases are round-trip, private denial and unavailable destination, in both source/destination directions.
+A reserved unlistening socket provides an unavailable endpoint while the target authority remains live.
+Failure follow-up uses authorized zero-axis navigation and stop through the C++ client.
+The harness requires source usability and byte-identical durable source entity/revision after rejection.
+Round-trips require independently seeded destination context and resume without an explicit spawn.
+
+Evidence and ownership:
+Record real host identity, executable hashes, exact world/owner PID and start ticks, listener inode and port.
+Record distinct world IDs, state/database paths, issuer participant IDs and TLS certificate identities.
+Keep command argv/stdout/stderr/exits, driver PID/start/stderr/replies, seed replies and durable snapshots.
+Record roots before remote creation, including uncertain SSH acknowledgements.
+An owned marker binds token, UID, device and directory inode.
+Issuer row inventories and coherent database backups precede shutdown/removal.
+All issuer rows reside in the fixture's isolated database; no shared issuer row is deleted.
+Keys, signed credentials, runtime configs and private plans are generated outside Git.
+No credentials were generated during this compile-only run.
+
+Cleanup:
+Finally cleanup runs after ordinary success, setup error, harness failure, timeout or cancellation.
+The private world owner has a 1200-second lifetime; controller cleanup has a separate bounded budget.
+Close the owned management pipe for production orderly shutdown.
+Fallback signals require a retained pidfd and exact PID/start/executable/command identity.
+Never kill by process name or restart an authority with an unresolved issuer generation.
+Preserve state/log archives before cleanup and again after shutdown.
+Refuse removal if a live recorded issuer/world owner, unknown exact state-dir process,
+changed marker/inode/UID, symlink or mounted foreign contents remain.
+Incomplete cleanup retains resources and writes recovery argv in cleanup.json.
+Nonzero owned world/issuer exits fail cleanup qualification even when resources are removed safely.
+Implemented --fail-after boundaries cover issuer, each host's root/world/authority/start and completed seeding.
+All partial-failure cleanup scenarios remain UNRUN here.
+
+Source review:
+Every changed source file was reviewed against the production caller, schema, daemon and authority store.
+No missing API was replaced by assumptions.
+Management uses existing core.Request/core.Reply over the retained trusted pipe.
+Issuer administration/enrollment uses the existing real test helpers.
+WorldActorTlsConfig, WorldIdentityConfig, WorldAuthoritySeed and AuthorityParticipantRuntimeConfig are real production schemas.
+Actor actions, proof signing for world sessions and coordinator sequencing remain in C++.
+No headless retirement, native presentation, compositor continuity or spatial-session acceptance is asserted.
+Additive test schema changes and stronger durable assertions are recorded in the run03 source documentation.
+Final Python-only setup/cleanup corrections were reviewed and frozen after builds.
+The C++ probe and private schema did not change after their builds.
+Source-to-bundle byte matching is recorded in run03-source-bundle-match.log.
+
+Selected regression invariants were recorded before edits/build in run03-invariants-tests.txt.
+Exact configure/build/list commands, in execution order:
+flock local/m06-crosshost/run03-debug.lock cmake -S spatial-os-luna-handoff -B local/m06-crosshost/run03-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=OFF -DSPATIAL_ACTOR_TRANSITION_PLAN=/tmp/spatial-m06-run03-private/plan.pb
+flock local/m06-crosshost/run03-debug.lock cmake --build local/m06-crosshost/run03-debug --target worldd identityd spatial-issuer-client spatial-actor-transition-crosshost-probe -j2 
+flock local/m06-crosshost/run03-debug.lock ctest --test-dir local/m06-crosshost/run03-debug -N -R \^actor-transition-crosshost\$ 
+flock local/m06-crosshost/run03-asan.lock cmake -S spatial-os-luna-handoff -B local/m06-crosshost/run03-asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=ON -DSPATIAL_ACTOR_TRANSITION_PLAN=/tmp/spatial-m06-run03-private/plan.pb 
+flock local/m06-crosshost/run03-asan.lock cmake --build local/m06-crosshost/run03-asan --target worldd identityd spatial-issuer-client spatial-actor-transition-crosshost-probe -j2 
+flock local/m06-crosshost/run03-asan.lock ctest --test-dir local/m06-crosshost/run03-asan -N -R \^actor-transition-crosshost\$ 
+
+Other exact reproducible compile-only commands:
+  python3 local/m06-crosshost/run03-package.py
+  python3 local/m06-crosshost/run03-validate.py
+  bash -n local/m06-crosshost/run03.sh local/m06-crosshost/run03-build.sh
+  git diff --check
+  cd local/m06-crosshost/run03-bundle && sha256sum -c SHA256SUMS
+The packaging script records each exact ldd binary path and full output in run03-dependencies.txt.
+The validation script performs only syntax, whitespace and byte-identity inspection.
+It does not import or execute the runtime fixtures or tests.
+
+PASS:
+- Debug configure/build: exit 0. Separate run03-debug-configure/build log and exit files.
+- ASan/UBSan configure/build: exit 0. Separate run03-asan-configure/build log and exit files.
+- CTest -N: exit 0 in both profiles. Each lists one actor-transition-crosshost entry.
+- Python syntax, embedded witness syntax, shell syntax, git diff --check and untracked source whitespace.
+- Deployment package construction, source/bundle byte identity and SHA256 verification.
+- Required generated Python binding and executable-adjacent configuration inventory.
+- Earlier artifact preservation: 32 run01 and 45 run02 manifest entries verified.
+- Root CMake prior hash preserved. Malformed launcher remains unchanged and unexecuted.
+- Credential packaging review: no runtime key/certificate/database/private-plan files in the bundle.
+
+FAIL/BLOCKED:
+- No selected configure/build/validation check failed. No required production API blocker exists.
+- Local tmux build attempts were denied by the sandbox: Operation not permitted, exit 1.
+  run03-tmux.log/exit preserve that evidence. Compilation used retained tool session 33641 instead.
+  This does not report a runtime-host tmux result.
+
+UNRUN:
+- All six semantic runtime cases per profile: 12 UNRUN, 0 runtime PASS, 0 runtime FAIL.
+- All --fail-after partial-setup cleanup cases, cancellation and ownership-mismatch runtime regressions.
+- Actual remote setup, listener/PID witnesses, TLS endpoint identity and durable context checks.
+- Runtime sanitizer diagnostics, native session, held physical input, recovery and full M06 qualification.
+No CTest test was executed. CTest registration is not qualification evidence.
+
+Deliverables:
+- local/m06-crosshost/run03-bundle: complete semantic fixture deployment, 215 payload files plus SHA256SUMS.
+ce90e8e1def4855c7e28198d504741e142d03d9f31e2ee2830090de57edbd13b  local/m06-crosshost/run03-bundle.tar.gz
+- Both profiles include worldd, identityd, spatial-issuer-client, spatialwm and the C++ crosshost probe.
+- Both include runtime.textproto, ten generated Python bindings, protobuf's pure Python package and ELF dependencies.
+- Bundle includes reused issuer helpers, harness modules, witness, fixture, host owner, launcher, schemas and review source.
+- System Python 3.12/stdlib, Ubuntu 24.04, Linux pidfds/proc, ssh, openssl, tmux and standard shell tools remain host prerequisites.
+- local/m06-crosshost/run03-source-artifacts.sha256: source, build outputs, bundle and evidence manifest.
+- Separate configure/build/ctest-list logs and exit files remain under local/m06-crosshost.
+
+Next safe primary action:
+Deploy the archive to the same absolute path on sb16 and sb16-2 and verify SHA256SUMS there.
+From that deployed directory on a required runtime host, run:
+  ./run03.sh debug /tmp/m06-crosshost-run03-debug-evidence
+Then use a fresh output directory for the asan profile and partial-setup regression cases.
+The fixture generates its actual private plan and invokes the existing harness directly.
+The compile-time CTest plan path is only a registration placeholder.
+Preserve runtime evidence before any integration decision.
+
+Artifact hashes:
+ce90e8e1def4855c7e28198d504741e142d03d9f31e2ee2830090de57edbd13b  local/m06-crosshost/run03-bundle.tar.gz
+cbb169c57030e3ce4425aebf6c38b06b8e3effd021cee688aa8f9b18cfdc874c  local/m06-crosshost/run03-bundle/SHA256SUMS
+79809393f0065050a2807e50ef1735cf30a20764a09f8287dadc6ee0aacb041a  local/m06-crosshost/run03-debug/worldd
+0020d3ddf3bea223acc4099fa9a64ec84723b281d4dcd5eb1ba4510d6548b929  local/m06-crosshost/run03-debug/identityd
+c742a47f0a3d30d6ed95a1cbe812bd05db503a0ab5466972388d409014f5dcfa  local/m06-crosshost/run03-debug/spatial-actor-transition-crosshost-probe
+3e584275a39260f56295fe7537ff0b084f477daa9ec96b3014aa309da91700a6  local/m06-crosshost/run03-asan/worldd
+95e3d91582915144027426dfa7399ad736992cd8048a0afd1e30ab515b42b8ac  local/m06-crosshost/run03-asan/identityd
+9ee2fb679f4ee429065cca02bbe1b5c2685490dec91be3d1c1e18a1c186e11df  local/m06-crosshost/run03-asan/spatial-actor-transition-crosshost-probe
+
+Preserved malformed launcher hash:
+ee30e0302ac31b560f0dccdecc463505c027768cb52e45899e6b25e9b2707b43  /home/dflanag3/start-m06-crosshost02.sh
+
+Primary post-terminal cleanup transport correction
+The first sb16 Debug run provisioned two independent worlds and passed all six production C++ coordinator cases. All six probe exits were zero, and the harness reported success. The outer run failed cleanup: repeated AF_UNIX stop reconnects filled backlog one and raised EAGAIN. Semantic cases PASS; cleanup and overall attempt FAIL. Evidence remains at /tmp/m06-crosshost-run03-debug-final-evidence on sb16.
+
+The recorded owner PID 1681598/start 10911769 and worldd PID 1681600/start 10911778 were absent at recovery. The tmux session and listeners were gone. Recorded guarded stop and remove returned zero. The validated snapshot SHA256 is eb405d07a1a6af11b3f43ec5952a0f75ddd22e6809eb41382f668e8cc3231bb9; the old fixture root is absent.
+
+The corrected Python helper sends one bounded stop request, polls nonblocking connection completion, and retains the cancel marker as fallback. The slow-owner regression requires exactly one queued stop byte while the owner remains live. It records cleanup-transport-regression.txt. The issuer-record-after-spawn regression remains in the fixture.
+
+Python syntax and whitespace checks passed on middle-child. Corrected Debug, ASan/UBSan, slow-stop, and issuer-record injection runtime checks completed on the designated hosts. No native presentation or M06 qualification is claimed.
+
+The frozen corrected archive SHA256 is 2fbd500c40eb7e2832c835eaa8bd11b389470532987988fa0887e6ed845dec7c. Its bundle manifest SHA256 is 158843aa829eb7fae2f2fba0a659809bb4f14a9a5390fe20144a596e1ef77b29. A previous zero-byte overlay script and a separately preserved literal-newline invalid-manifest archive are packaging failures, not valid artifacts.
+
+
+Final runtime qualification for this bounded fixture
+Corrected Debug on sb16 used the two authoritative worldd processes on sb16 and sb16-2. Six production coordinator cases passed; all six probe exits and harness exit were 0. cleanup.json is complete=true with no errors. Both roots were absent after cleanup. Slow-owner shutdown regression passed. Evidence: /tmp/m06-crosshost-run03-debug-corrected-evidence; runner exit 0.
+
+ASan/UBSan on sb16 repeated the same two-host setup. Six production coordinator cases passed; all six probe exits and harness exit were 0. cleanup.json is complete=true with no errors. Both roots were absent after cleanup. Slow-owner shutdown regression passed. No AddressSanitizer or UBSan diagnostics appeared. Evidence: /tmp/m06-crosshost-run03-asan-corrected-evidence; runner exit 0.
+
+The issuer-record-after-spawn injection exited 1 as intended. issuer.exit was 0, the recorded child PID was absent, required attempt/stderr/exit and regression evidence were present, cleanup.json was complete=true, and its owned issuer root was absent. Evidence: /tmp/m06-crosshost-run03-issuer-record-failure-evidence. The fixture runtime-status says FAIL because the injected setup exception was deliberate.
+
+Totals: 12/12 coordinator cases passed across Debug and ASan/UBSan; slow-stop regression passed 1/1 in each profile; issuer-record acquisition recovery passed 1/1. The initial Debug attempt remains a separate FAIL_CLEANUP despite all six semantic cases passing; its original evidence and durable snapshot remain preserved. The corrected candidate archive SHA256 is 2fbd500c40eb7e2832c835eaa8bd11b389470532987988fa0887e6ed845dec7c and both test hosts verified all 215 manifest entries.
+
+This qualifies the bounded headless semantic fixture only. It does not prove native world presentation, geometry continuity, input retirement, or Spatial-M1.

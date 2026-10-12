@@ -1,0 +1,22 @@
+spatial-os-luna-handoff/tests/core/actor_transition_crosshost_fixture.py: reviewed setup/callers/failure/ownership paths; LF and whitespace checked
+spatial-os-luna-handoff/tests/core/actor_transition_crosshost_host.py: reviewed setup/callers/failure/ownership paths; LF and whitespace checked
+spatial-os-luna-handoff/tests/core/test_actor_transition_crosshost.py: reviewed setup/callers/failure/ownership paths; LF and whitespace checked
+spatial-os-luna-handoff/src/testing/actor_transition_crosshost_probe.cpp: reviewed setup/callers/failure/ownership paths; LF and whitespace checked
+spatial-os-luna-handoff/tests/proto/actor_transition_crosshost.proto: reviewed setup/callers/failure/ownership paths; LF and whitespace checked
+spatial-os-luna-handoff/tests/core/actor_transition_crosshost_run03.txt: reviewed setup/callers/failure/ownership paths; LF and whitespace checked
+Both profiles contain required generated bindings, executable-adjacent config and executables.
+Reused imported fixture module closure: test_world_identity, test_issuer_client, test_identity_tls, test_identity_enrollment, test_identity_issuer; harness wire/oracles/probe.
+No production library, root CMake or locked acceptance edit in run03. No world-session proof signing or semantic actor actions in new Python code. Existing helpers sign real issuer enrollment proofs.
+Actor seeding calls C++ authenticate/inspect/depart; six cases call production coordinator.
+Management opcode names checked against core.proto oneof operation. WorldAuthoritySeed directory requirement checked against authority/store.cpp.
+Partial failure boundaries are implemented with --fail-after; runtime execution remains UNRUN.
+Cancellation invokes finally cleanup; PID/start/hash checks precede pidfd signals; root UID/device/inode/link checks precede removal.
+Isolated issuer owns all created rows. It is never shared with existing host services.
+Final cleanup review: pidfd ESRCH/process-disappearance races are handled; cancellation kills only retained unreaped local children.
+Final issuer-root review: removal refuses a live recorded issuer or an unrecorded exact state-dir process. Source reviewed after this final Python-only correction.
+
+Primary post-terminal review: issuer record acquisition after Popen now has a bounded graceful wait and only uses fallback signals after verified process identity. `--fail-after issuer-record-after-spawn` requires preserved attempt/stderr/exit evidence, exit 0, complete cleanup, reaped child, and removed owned root. Python-only overlay; Debug/ASan binaries preserved. Runtime regression remains UNRUN.
+
+Primary cleanup transport review: owner shutdown sends no repeated stop requests after an ambiguous connection. The nonblocking connect waits for completion against one deadline and sends at most one byte. The synthetic slow-listener regression asserts one stop byte and bounded process polling. Source has static py_compile/git diff --check validation; runtime remains pending.
+
+Primary final runtime review: corrected Debug and ASan/UBSan each passed all six coordinator cases across both authoritative hosts. Each profile also passed the one-stop slow-owner regression and completed cleanup with both roots absent. The issuer-record-after-spawn injection exited nonzero as intended, with issuer exit 0, attempt evidence, reaped PID, complete cleanup, and absent root. The initial cleanup failure remains preserved separately. No native presentation or M06 claim follows.

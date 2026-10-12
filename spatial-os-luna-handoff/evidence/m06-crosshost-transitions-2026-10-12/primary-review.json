@@ -1,0 +1,24 @@
+{
+  "source_commit": "c93e02b9695fe6716bf8c32054d06cc7caf084e9",
+  "archive_sha256": "2fbd500c40eb7e2832c835eaa8bd11b389470532987988fa0887e6ed845dec7c",
+  "verified_evidence_files": 83,
+  "profiles": {
+    "debug-corrected": {
+      "cases_passed": 6,
+      "slow_stop_passed": 1,
+      "cleanup_complete": true
+    },
+    "asan-corrected": {
+      "cases_passed": 6,
+      "slow_stop_passed": 1,
+      "cleanup_complete": true
+    }
+  },
+  "status": "focused_pass",
+  "coordinator_cases_passed": 12,
+  "slow_stop_passed": 2,
+  "startup_failure_recovery_passed": 1,
+  "preserved_initial_failure": "FAIL_CLEANUP",
+  "native_presentation": "UNRUN",
+  "phase_complete": false
+}

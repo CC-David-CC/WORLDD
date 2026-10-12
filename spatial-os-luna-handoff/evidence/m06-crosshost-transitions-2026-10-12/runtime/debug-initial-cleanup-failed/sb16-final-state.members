@@ -1,0 +1,17 @@
+process.json
+authority.stderr
+authority-command.json
+world-command.json
+authority.exit
+initialize.exit
+snapshot-world.db
+initialize.stderr
+launch.json
+owner.stderr
+owner.json
+management.pb.log
+worldd.exit
+initialize-command.json
+worldd.stderr
+before-stop.tar
+authority/authority.db

@@ -1,0 +1,30 @@
+M06 cross-host test SSH setup and recovery receipt
+Date: 2026-10-12
+
+Scope
+- The two aliases were sb16 and sb16-2 for user dflanag3.
+- StrictHostKeyChecking=yes and IdentitiesOnly=yes were enabled.
+- Each host used its own local test identity. Private identities were generated independently and were not transferred.
+- Both public identities were authorized on both test hosts. No key bytes are copied in this receipt.
+- Both hosts used a dedicated known-hosts file with strict host pins.
+- BatchMode self and peer checks passed in both directions.
+
+Pinned host fingerprints (public)
+- sb16: SHA256:aIy5mTcUmLu8J79nf69DcBhFGnjXA/87tFUM/bAXkgw
+- sb16-2: SHA256:M18DzT3N/i79ME2xa1X6L7MKiazBv7T6rHqLBfNPi4o
+
+Backup names
+- authorized_keys.m06-crosshost-20261012-attempt03.bak
+- config.m06-crosshost-20261012-attempt03.bak
+
+Recovery commands (run manually only if this test SSH setup is to be reverted)
+On each test host:
+  cp ~/.ssh/authorized_keys.m06-crosshost-20261012-attempt03.bak ~/.ssh/authorized_keys
+  cp ~/.ssh/config.m06-crosshost-20261012-attempt03.bak ~/.ssh/config
+  rm -f ~/.ssh/m06_crosshost_fixture_20261012 ~/.ssh/m06_crosshost_fixture_20261012.pub
+  rm -f ~/.ssh/m06_crosshost_fixture_20261012-sb16.pub ~/.ssh/m06_crosshost_fixture_20261012-sb16-2.pub
+  rm -f ~/.ssh/m06_crosshost_known_hosts ~/.ssh/m06-crosshost-setup-20261012.txt
+On sb16 only:
+  ssh-keygen -R sb16 -f ~/.ssh/known_hosts
+
+No recovery command has been run. Original world_hosts and box-git key files were not modified.
