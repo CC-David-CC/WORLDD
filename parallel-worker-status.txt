@@ -1,7 +1,9 @@
 Current checkpoint, 2026-10-12:
 Geometry Luna run01 is terminal and unqualified; reviewed defects require a bounded Sol medium correction.
 Host-session Debug24 passed on each host; OFF startup20 passed. Default-GLX sanitizer cleanup failed on both hosts.
-Core-only focused sanitizer reruns preserve the GLX failure and do not qualify graphics coverage.
+Corrected GLX-enabled sanitizer reruns now use the qualified wrapper and patched Mesa dependency closure.
+Both hosts passed ASan production-native24. Related cleanup regressions remain active.
+Tmux handles: spatial-m06-host-session-r03-sb16-03 and spatial-m06-host-session-r03-sb16-2-03.
 M06 held-input task 9222918 integrated as c8c43ee after 28 related lifecycle checks passed.
 Both hosts/profiles passed application and replacement checks with scope cleanup.
 Evidence: spatial-os-luna-handoff/evidence/m06-held-input-2026-10-12/related-lifecycle.

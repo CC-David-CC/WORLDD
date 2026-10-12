@@ -8,8 +8,14 @@ Review found queued-view revocation, client fencing, authority binding, frame bo
 A bounded Sol medium correction follows the failed Luna medium attempt. No geometry runtime PASS is claimed.
 Host-session Debug passed 24 checks on each host. OFF startup passed 20 checks across both profiles and hosts.
 Default-GLX sanitizer runs failed during server cleanup with a 3176-byte GLX allocation leak on each host.
-The failure evidence remains preserved. Focused core-only sanitizer and cleanup checks remain pending.
+The failed launcher bypassed the qualified wrapper and its patched Mesa EGL dependency closure.
+Both hosts passed all 24 host-session native sanitizer checks through the corrected wrapper with GLX and leak detection enabled.
+Related cleanup regressions remain active. The full M06 gate remains unrun.
+Current host receipts: /home/dflanag3/spatial-qualification/m06-host-session-run03-20261012-01/evidence/runner03.log.
+Final evidence collection and source integration remain pending.
+The failure evidence remains preserved. Core-only testing is not used to replace graphics coverage.
 M06 and its full gate remain incomplete. M07-M16 remain pending.
+Read docs/M07_WORKSPACE_INCREMENT_PLAN.txt for the prepared next-milestone gap map; it does not advance M07.
 
 ## 2026-10-12: Held-input checkpoint integrated; shared geometry work starts
 
