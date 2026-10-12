@@ -45,6 +45,7 @@ After packaging, compare archived source hashes with the corrected checkout. Exi
 
 Use a persistent tmux session and a unique run directory for each attempt.
 Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
+Invoke the installed script with bash. File transfer may not preserve its executable bit.
 Pass checkout, expected branch, model, task file, and a new checkout-local run directory as arguments.
 Transfer this literal script; do not generate its body through an interpolated PowerShell string.
 The script preserves the worker exit status and refuses an existing run directory.
@@ -144,6 +145,8 @@ Match reused XLibre receipt extension_sources to the candidate's patch, overlay,
 Verify the actual server binaries and wrapper targets. An older passing server may lack a newly required capability.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
+Compare translated launcher variables with the selected qualified lane before launch, including sanitizer options and graphics extensions.
+Record excluded graphics coverage explicitly. A core-only sanitizer pass cannot replace graphics qualification.
 Do not apply one suite's broker wrapper to all suites. Different fixtures can observe different cgroup ownership paths.
 After a launcher-only setup failure, preserve the failure and rerun only affected cases with the corrected launcher.
 Inspect imported fixtures for generated bindings, executable-adjacent runtime configuration, and helper binaries before packaging.
