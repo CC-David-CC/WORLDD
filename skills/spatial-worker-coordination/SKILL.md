@@ -24,6 +24,8 @@ Do not force one branch into multiple linked writable worktrees.
 Give each worker a bounded production outcome and explicit regression cases.
 State artifact names, build profiles, permitted execution hosts, and completion requirements.
 Include this skill's installed path in the task so the worker reads it.
+Copy required review findings into the worker's task inputs before launch.
+Use absolute input paths and verify they exist in that checkout. An older base may lack newer review files.
 Keep this repository copy canonical. Install matching copies on the controller and coding hosts.
 Verify installed file hashes after updates. Existing workers receive changed instructions at their next bounded attempt.
 Start with Luna medium. Escalate a failed implementation with concrete review findings.
@@ -116,6 +118,9 @@ GitHub publication remains a separate authorization decision.
 
 Check source and tests against the production caller, server, and authority contract.
 Review all changed files, including generated build registration and schemas.
+For rejection regressions, use otherwise valid requests and check the intended rejection reason.
+An arbitrary exception from malformed input does not prove an authorization or generation guard.
+Use a successful authorized control case when needed to show the request can reach the intended behavior.
 Inspect source-level error and lifetime paths before running expensive qualification.
 Send concrete defects back with the failed invariant and required regression.
 Keep evidence from earlier failures.
