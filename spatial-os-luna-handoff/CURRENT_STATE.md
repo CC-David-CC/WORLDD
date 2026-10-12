@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-11: M05 supervised recovery accepts a remote actor
+
+Both hosts pass supervised crash recovery with the replacement actor connected from the other host through TLS.
+The recovered world retains committed edits and rejects uncommitted previews and abandoned manipulation leases.
+The actor must authenticate again. The unrelated application remains responsive.
+An unregistered listener descriptor cannot activate a replacement generation.
+The test adapter forwards an explicitly inherited listener through the existing production coordinator validation.
+
+Both Debug and ASan/UBSan pass the two-case remote suite and four-case local replacement suite.
+Separate remote reruns preserve unique service logs. These runs total 32 case executions, including eight repeated checks.
+Read evidence/m05-shared-state-2026-10-11/supervised-remote-review.txt for evidence and limits.
+Fixture signing remains on the authority host. Independent remote key provisioning remains pending.
+The combined private/shared topology and complete M05 gate remain pending. M05 is not qualified.
+
 ## 2026-10-11: M05 supervised crash persistence passes focused checks
 
 Both hosts pass the four-case session replacement suite in Debug and ASan/UBSan.

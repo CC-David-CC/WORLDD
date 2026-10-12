@@ -1,0 +1,90 @@
+{"unit": "spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/python:/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/remote-recovery-Debug-services", "--", "python3", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py", "--", "python3", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_crosshost_recovery.py", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/spatial-security-auth", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/identityd", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service"]}
+Running as unit: spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service; invocation ID: eeb854a9094f4e60a323c32556731fa3
+test_crash_replacement_keeps_committed_edit_and_discards_preview (__main__.CrossHostRecoveryTests.test_crash_replacement_keeps_committed_edit_and_discards_preview) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.07005472198943608, "operation": "initialize", "outcome": "exit_0", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009342039003968239, "operation": "connect", "outcome": "connected", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05257517199788708, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011275867000222206, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.046107339003356174, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01081316800264176, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03125055799318943, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011163486997247674, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0367942309967475, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010878899003728293, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03208135601016693, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010729904999607243, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04710190299374517, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011285839005722664, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.034139864990720525, "operation": "request", "outcome": "received", "test": "test_crash_replacement_keeps_committed_edit_and_discards_preview"}
+ERROR
+test_unknown_listener_descriptor_cannot_start_replacement (__main__.CrossHostRecoveryTests.test_unknown_listener_descriptor_cannot_start_replacement) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.054167326001334004, "operation": "initialize", "outcome": "exit_0", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009121755007072352, "operation": "connect", "outcome": "connected", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.051627531996928155, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011016072996426374, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.051884622007492, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010890666002524085, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03224170100293122, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011339504999341443, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03269382800499443, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011294901007204317, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032136815003468655, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010560233000433072, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032099399002618156, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01048508299572859, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03985894299694337, "operation": "request", "outcome": "received", "test": "test_unknown_listener_descriptor_cannot_start_replacement"}
+ERROR
+
+======================================================================
+ERROR: test_crash_replacement_keeps_committed_edit_and_discards_preview (__main__.CrossHostRecoveryTests.test_crash_replacement_keeps_committed_edit_and_discards_preview)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_replacement.py", line 181, in test_crash_replacement_keeps_committed_edit_and_discards_preview
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_application.py", line 217, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_world.py", line 55, in start_coordinator
+    world_config = self.world_config()
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_crosshost_recovery.py", line 50, in world_config
+    self.remote_host = os.environ['SPATIAL_REMOTE_HOST']
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_REMOTE_HOST'
+
+======================================================================
+ERROR: test_unknown_listener_descriptor_cannot_start_replacement (__main__.CrossHostRecoveryTests.test_unknown_listener_descriptor_cannot_start_replacement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_crosshost_recovery.py", line 106, in test_unknown_listener_descriptor_cannot_start_replacement
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_application.py", line 217, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_world.py", line 55, in start_coordinator
+    world_config = self.world_config()
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_crosshost_recovery.py", line 50, in world_config
+    self.remote_host = os.environ['SPATIAL_REMOTE_HOST']
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_REMOTE_HOST'
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.890s
+
+FAILED (errors=2)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service/adapter-2f2f735397cc4c60ad0526e2e419b85a", "device": 31, "inode": 9794340, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service/adapter-2f2f735397cc4c60ad0526e2e419b85a\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["python3", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/native/test_session_crosshost_recovery.py", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/spatial-security-auth", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/identityd", "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/Debug/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.102s
+CPU time consumed: 1.003s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service: Unit spatial-m03-resources-2c128a6f7cf64b36a679966d5e8085a1.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

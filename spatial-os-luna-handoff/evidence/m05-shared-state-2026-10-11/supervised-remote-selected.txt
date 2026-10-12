@@ -1,0 +1,16 @@
+M05 supervised remote recovery
+
+Extend only the test-driver SessionWorldStart message with optional actor_listener_fd field 3.
+The test adapter accepts only explicitly inherited descriptors and forwards the listener to production SessionCoordinator.
+Production validates listener type, retains the socket, and supplies worldd's TLS endpoint.
+No actor receives the test-driver channel or inherited descriptor registry.
+
+Run the existing four-case local session-replacement suite after rebuilding its adapter.
+Run the new cross-host fixture with the existing committed-edit/preview crash assertions.
+The initial actor uses the local channel; its replacement connects through TLS from the other host.
+Fixture signing remains on the controller. Independent remote key provisioning remains pending.
+Run both authority directions in Debug and ASan/UBSan.
+Retain remote endpoint traces, fixture cleanup, test output, source hashes, and sanitizer evidence.
+Verify that the replacement actor needs authentication and uses the same persistent world.
+Keep the earlier direct-launch generation-guard test and failure evidence.
+Reject a replacement request naming an unregistered listener descriptor before any new generation activates.

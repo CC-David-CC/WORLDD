@@ -1,0 +1,13 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/local/m05-actor-population-01/ASan-UBSan
+[0/2] Re-checking globbed directories...
+[1/7] Generating python/session_probe_pb2.py
+[2/7] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[3/7] Linking CXX static library libspatial-core.a
+[4/7] Running cpp protocol buffer compiler on src/testing/session_probe.proto
+[5/7] Building CXX object CMakeFiles/spatial-session-application-probe.dir/session_probe.pb.cc.o
+[6/7] Building CXX object CMakeFiles/spatial-session-application-probe.dir/src/testing/session_application_probe.cpp.o
+[7/7] Linking CXX executable spatial-session-application-probe

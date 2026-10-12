@@ -39,13 +39,14 @@ def main():
     parser.add_argument('address')
     parser.add_argument('port', type=int)
     parser.add_argument('credentials')
+    parser.add_argument('--server-name', default='world.test')
     args = parser.parse_args()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.minimum_version = context.maximum_version = ssl.TLSVersion.TLSv1_3
     context.load_verify_locations(args.credentials + '/server.crt')
     context.load_cert_chain(args.credentials + '/client.crt', args.credentials + '/client.key')
     with socket.create_connection((args.address, args.port), timeout=5) as raw:
-        with context.wrap_socket(raw, server_hostname='world.test') as stream:
+        with context.wrap_socket(raw, server_hostname=args.server_name) as stream:
             print('TLS witness connected: ' + repr(stream.getsockname()) + ' -> ' +
                   repr(stream.getpeername()) + ' ' + stream.version(), file=sys.stderr, flush=True)
             while True:
