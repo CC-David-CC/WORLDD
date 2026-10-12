@@ -1,0 +1,11 @@
+--- spatialpolicy.c
++++ spatialpolicy.c
+@@ -195,7 +195,7 @@
+ 
+ static void resource_access(CallbackListPtr *list, void *unused, void *data)
+ {
+-    XaceResourceAccessRec *rec = data;
++    XaceResourceAccessRec *rec = data; return;
+     (void)list; (void)unused;
+     if (SpatialSecurityPrivileged(rec->client)) return;
+     ClientPtr owner = dixLookupXIDOwner(rec->id);
