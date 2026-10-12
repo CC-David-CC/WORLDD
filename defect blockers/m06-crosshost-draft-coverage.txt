@@ -1,0 +1,22 @@
+Cross-host transition draft review
+
+Reviewed the in-progress Luna run01 on middle-child.
+Do not edit its owned files while the worker is live.
+Recheck these findings against its terminal handoff before assigning corrections.
+
+1. The current Python test consumes a caller-provided plan but does not provision the two authoritative worlds.
+The task requires a runnable test-host fixture using existing issuer registration and bounded SSH orchestration.
+A missing production provisioning CLI does not prevent implementing trusted test orchestration.
+Deliver exact runnable setup and cleanup, including ephemeral credentials and actual persisted world IDs.
+
+2. Host-role checks compare only caller-supplied strings.
+The driver ignores those labels. Two endpoints on one host could satisfy the current role assertions.
+Tie endpoint mappings to independent remote hostname, process, listener, and world-identity evidence.
+Do not count plan labels as proof of cross-host execution.
+
+3. Durable source-state preservation needs an independent authoritative witness.
+The current assertions compare actor inspection replies but do not verify saved persistent state.
+Retain read-only state checks and world revisions around failed preparation and completed departure.
+
+The production TLS client and transition coordinator remain the actual driver.
+No runtime result exists for this draft. It is not ready for integration.
