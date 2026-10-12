@@ -1,4 +1,10 @@
 Current checkpoint, 2026-10-12:
+Queued on a5500: tmux spatial-m06-native-primary waits for host-controller run02 exit0.
+Then it corrects whole-reply identity comparisons and adds/builds workspaced for the native runner.
+Logs: local/m06-host-controller/primary-*. Source changes wait for the worker to stop.
+Queued on middle-child: tmux spatial-m06-world-package waits for real-world run02 exit0.
+It packages both profiles, generated Python modules, fixtures, and a complete SHA256 manifest.
+Logs: local/m06-world-integration/package-*; archive: run02-bundle.tar.gz in that directory.
 middle-child real-world integration run01 was stopped after two builds overlapped in one directory.
 Verified terminal exit1 and no surviving cmake processes before starting correction.
 Sol medium run02 is live in tmux spatial-m06-world-integration02 on the same dedicated worktree/branch.
