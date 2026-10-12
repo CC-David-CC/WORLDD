@@ -1,0 +1,35 @@
+﻿{
+    "source_commit":  "5185d9b",
+    "status":  "passed-current-source-private-vendor",
+    "phase_complete":  false,
+    "hosts":  [
+                  {
+                      "host":  "sb16",
+                      "status":  "passed",
+                      "glx_enabled":  true,
+                      "native_server_sanitizers":  true,
+                      "checks":  232,
+                      "render_cycles":  32,
+                      "shutdown_repetitions":  100,
+                      "vendor_initialized_and_unloaded":  true,
+                      "verified_files":  458
+                  },
+                  {
+                      "host":  "sb16-2",
+                      "status":  "passed",
+                      "glx_enabled":  true,
+                      "native_server_sanitizers":  true,
+                      "checks":  232,
+                      "render_cycles":  32,
+                      "shutdown_repetitions":  100,
+                      "vendor_initialized_and_unloaded":  true,
+                      "verified_files":  458
+                  }
+              ],
+    "limits":  [
+                   "Private EGL candidate only; system graphics configuration unchanged.",
+                   "Software GLX rendering does not qualify native GPU output.",
+                   "The historical shutdown timeout remains unexplained; it did not recur.",
+                   "Full M04 cumulative gate remains pending."
+               ]
+}

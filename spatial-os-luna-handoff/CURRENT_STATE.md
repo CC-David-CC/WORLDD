@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-11: Current native security passes private-vendor GLX sanitizers
+
+The current instrumented server passes 232 GLX-enabled security checks on each host.
+Each host also passes 32 pixel-checked GLX context cycles and 100 shutdown repetitions.
+The private EGL candidate matches its previously verified hash and initializes and unloads during the rendering probe.
+Copied evidence hashes match. No sanitizer findings appear in the collected logs.
+Source 5185d9b includes both the XACE integration and nested-window correction.
+
+This qualifies the selected software-graphics checks with the private EGL candidate.
+It does not qualify the installed graphics vendor, native GPU output, or the full M04 gate.
+The historical shutdown timeout remains unexplained and did not recur in these repetitions.
+Read evidence/m04-current-glx-2026-10-11/primary-review.json.
+Read docs/M04_QUALIFICATION_AUDIT.txt for the remaining event, integration, mutation, and full-gate work.
+
 ## 2026-10-11: Nested window pixel disclosure corrected
 
 The M04 audit reproduced another GetImage disclosure on both hosts.

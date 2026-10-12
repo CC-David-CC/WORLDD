@@ -1,0 +1,200 @@
+    979088:	
+    979088:	file=libm.so.6 [0];  needed by python3 [0]
+    979088:	file=libm.so.6 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee6a66c10  base: 0x0000727ee697f000   size: 0x00000000000e8018
+    979088:	    entry: 0x0000727ee697f000  phdr: 0x0000727ee697f040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	file=libz.so.1 [0];  needed by python3 [0]
+    979088:	file=libz.so.1 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee697ddd0  base: 0x0000727ee6963000   size: 0x000000000001b098
+    979088:	    entry: 0x0000727ee6963000  phdr: 0x0000727ee6963040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	file=libexpat.so.1 [0];  needed by python3 [0]
+    979088:	file=libexpat.so.1 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee6961dd0  base: 0x0000727ee6938000   size: 0x000000000002a090
+    979088:	    entry: 0x0000727ee6938000  phdr: 0x0000727ee6938040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	file=libc.so.6 [0];  needed by python3 [0]
+    979088:	file=libc.so.6 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee6803940  base: 0x0000727ee6600000   size: 0x0000000000212d90
+    979088:	    entry: 0x0000727ee662a390  phdr: 0x0000727ee6600040  phnum:                 14
+    979088:	
+    979088:	
+    979088:	calling init: /lib64/ld-linux-x86-64.so.2
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+    979088:	
+    979088:	
+    979088:	calling init: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/subprojects/expat-2.5.0/libexpat.so.1
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libz.so.1
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libm.so.6
+    979088:	
+    979088:	
+    979088:	initialize program: python3
+    979088:	
+    979088:	
+    979088:	transferring control: python3
+    979088:	
+    979088:	
+    979088:	file=/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so [0];  dynamically loaded by python3 [0]
+    979088:	file=/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so [0];  generating link map
+    979088:	  dynamic: 0x0000727ee65fede0  base: 0x0000727ee65f3000   size: 0x000000000000c7a0
+    979088:	    entry: 0x0000727ee65f3000  phdr: 0x0000727ee65f3040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	calling init: /usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so
+    979088:	
+    979088:	opening file=/usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so [0]; direct_opencount=1
+    979088:	
+    979088:	
+    979088:	file=/usr/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so [0];  dynamically loaded by python3 [0]
+    979088:	file=/usr/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so [0];  generating link map
+    979088:	  dynamic: 0x0000727ee538adc8  base: 0x0000727ee5383000   size: 0x00000000000084f0
+    979088:	    entry: 0x0000727ee5383000  phdr: 0x0000727ee5383040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	file=libbz2.so.1.0 [0];  needed by /usr/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	file=libbz2.so.1.0 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee536ed20  base: 0x0000727ee535c000   size: 0x0000000000013c28
+    979088:	    entry: 0x0000727ee535c000  phdr: 0x0000727ee535c040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libbz2.so.1.0
+    979088:	
+    979088:	
+    979088:	calling init: /usr/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so
+    979088:	
+    979088:	opening file=/usr/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so [0]; direct_opencount=1
+    979088:	
+    979088:	
+    979088:	file=/usr/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so [0];  dynamically loaded by python3 [0]
+    979088:	file=/usr/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so [0];  generating link map
+    979088:	  dynamic: 0x0000727ee5381dc0  base: 0x0000727ee5376000   size: 0x000000000000c7e8
+    979088:	    entry: 0x0000727ee5376000  phdr: 0x0000727ee5376040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	file=liblzma.so.5 [0];  needed by /usr/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	file=liblzma.so.5 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee5347cb8  base: 0x0000727ee5317000   size: 0x0000000000031018
+    979088:	    entry: 0x0000727ee5317000  phdr: 0x0000727ee5317040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/liblzma.so.5
+    979088:	
+    979088:	
+    979088:	calling init: /usr/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so
+    979088:	
+    979088:	opening file=/usr/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so [0]; direct_opencount=1
+    979088:	
+    979088:	
+    979088:	file=/usr/lib/python3/dist-packages/google/protobuf/internal/_api_implementation.cpython-312-x86_64-linux-gnu.so [0];  dynamically loaded by python3 [0]
+    979088:	file=/usr/lib/python3/dist-packages/google/protobuf/internal/_api_implementation.cpython-312-x86_64-linux-gnu.so [0];  generating link map
+    979088:	  dynamic: 0x0000727ee6a6ee48  base: 0x0000727ee6a6b000   size: 0x00000000000040b0
+    979088:	    entry: 0x0000727ee6a6b000  phdr: 0x0000727ee6a6b040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	calling init: /usr/lib/python3/dist-packages/google/protobuf/internal/_api_implementation.cpython-312-x86_64-linux-gnu.so
+    979088:	
+    979088:	opening file=/usr/lib/python3/dist-packages/google/protobuf/internal/_api_implementation.cpython-312-x86_64-linux-gnu.so [0]; direct_opencount=1
+    979088:	
+    979088:	
+    979088:	file=/usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0];  dynamically loaded by python3 [0]
+    979088:	file=/usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0];  generating link map
+    979088:	  dynamic: 0x0000727ee520fb50  base: 0x0000727ee51c3000   size: 0x0000000000053678
+    979088:	    entry: 0x0000727ee51c3000  phdr: 0x0000727ee51c3040  phnum:                 11
+    979088:	
+    979088:	
+    979088:	file=libprotobuf.so.32 [0];  needed by /usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	file=libprotobuf.so.32 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee50e81f8  base: 0x0000727ee4e00000   size: 0x00000000002eb138
+    979088:	    entry: 0x0000727ee4e00000  phdr: 0x0000727ee4e00040  phnum:                 12
+    979088:	
+    979088:	
+    979088:	file=libstdc++.so.6 [0];  needed by /usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	file=libstdc++.so.6 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee4c75d80  base: 0x0000727ee4a00000   size: 0x000000000027d140
+    979088:	    entry: 0x0000727ee4a00000  phdr: 0x0000727ee4a00040  phnum:                 12
+    979088:	
+    979088:	
+    979088:	file=libgcc_s.so.1 [0];  needed by /usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	file=libgcc_s.so.1 [0];  generating link map
+    979088:	  dynamic: 0x0000727ee51c1db0  base: 0x0000727ee5195000   size: 0x000000000002d3a8
+    979088:	    entry: 0x0000727ee5195000  phdr: 0x0000727ee5195040  phnum:                 12
+    979088:	
+    979088:	activating NODELETE for /lib/x86_64-linux-gnu/libstdc++.so.6 [0]
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libgcc_s.so.1
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libstdc++.so.6
+    979088:	
+    979088:	
+    979088:	calling init: /lib/x86_64-linux-gnu/libprotobuf.so.32
+    979088:	
+    979088:	
+    979088:	calling init: /usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so
+    979088:	
+    979088:	opening file=/usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0]; direct_opencount=1
+    979088:	
+test_compositor_contexts_render_and_release (__main__.GlxLifecycleTests.test_compositor_contexts_render_and_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.402s
+
+OK
+    979088:	
+    979088:	calling fini:  [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/subprojects/expat-2.5.0/libexpat.so.1 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /usr/lib/python3.12/lib-dynload/_json.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /usr/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libbz2.so.1.0 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /usr/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/liblzma.so.5 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /usr/lib/python3/dist-packages/google/protobuf/internal/_api_implementation.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /usr/lib/python3/dist-packages/google/protobuf/pyext/_message.cpython-312-x86_64-linux-gnu.so [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libprotobuf.so.32 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libz.so.1 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libstdc++.so.6 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libm.so.6 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libgcc_s.so.1 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib/x86_64-linux-gnu/libc.so.6 [0]
+    979088:	
+    979088:	
+    979088:	calling fini: /lib64/ld-linux-x86-64.so.2 [0]
+    979088:	
