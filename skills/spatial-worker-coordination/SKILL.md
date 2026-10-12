@@ -38,6 +38,10 @@ Allow only one build process per build directory. Use flock with a directory-spe
 For a long build, poll the original tool session. Do not submit the same build again while it runs.
 
 Use a persistent tmux session and a unique run directory for each attempt.
+Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
+Pass checkout, expected branch, model, task file, and a new checkout-local run directory as arguments.
+Transfer this literal script; do not generate its body through an interpolated PowerShell string.
+The script preserves the worker exit status and refuses an existing run directory.
 Keep the exact task, launch script, model, base commit, stdout, stderr, and final report.
 Write the exit code even when the worker fails. Avoid set -e around the worker command.
 Transfer multiline scripts as files. Do not embed nested Python and shell scripts in PowerShell command strings.
@@ -48,6 +52,8 @@ Use explicit encoding and newline handling for hash manifests and transferred fi
 
 Inspect tmux and the specific child process before restarting work.
 An observation timeout is not process failure. Recheck the same handle.
+An empty or malformed exit record is not exit zero. Preserve the launcher and report unknown exit status.
+Use terminal worker events and process state to establish completion when the launcher record is defective.
 A queued correction must wait for the prior writer to exit and its terminal record to exist.
 Never edit a live worker's owned files to fix a review finding.
 Record that finding outside its source files and hand it to the next bounded attempt.
