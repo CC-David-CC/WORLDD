@@ -1,4 +1,5 @@
 #include "world/actor_session_client.hpp"
+#include "world/geometry_view_validation.hpp"
 #include "core/protocol.hpp"
 #include "identity/keys.hpp"
 #include "identity/tls_support.hpp"
@@ -74,6 +75,9 @@ struct ActorSessionClient::Impl {
     std::uint64_t next_id = 1;
     Lifecycle state = Lifecycle::New;
     std::string prepared_transition;
+    std::string geometry_view_id;
+    std::string geometry_service_incarnation;
+    std::uint64_t geometry_authority_generation = 0, geometry_sequence = 0;
 
     Impl(int descriptor, pb::SignedCredential signed_credential,
          std::filesystem::path key_path, std::string expected_world,
@@ -314,9 +318,19 @@ struct ActorSessionClient::Impl {
         return "identity:" + hex(claims.issuer_id()) + ":" + hex(claims.actor_id());
     }
 
-    void validate_opened(const pb::WorldSessionOpened& opened) {
+    void validate_opened(const pb::WorldSessionOpened& opened, bool active = true) {
         require(opened.world_id() == world && opened.actor_id() == expected_actor_id(),
                 "Opened actor identity mismatch");
+        if (active) {
+            require(opened.geometry_view_id().size() == 32 &&
+                    opened.authority_service_incarnation().size() == 32 &&
+                    opened.authority_generation() > 0, "Missing activated geometry identity");
+            geometry_view_id = opened.geometry_view_id();
+            geometry_service_incarnation = opened.authority_service_incarnation();
+            geometry_authority_generation = opened.authority_generation();
+            geometry_sequence = 0;
+        } else require(opened.geometry_view_id().empty() && opened.authority_service_incarnation().empty() &&
+                       opened.authority_generation() == 0, "Prepared actor has active geometry identity");
     }
 
     void validate_challenge(const pb::ChallengeReply& challenge) {
@@ -359,7 +373,7 @@ struct ActorSessionClient::Impl {
                 state = Lifecycle::Active;
             } else {
                 const auto& prepared = reply.prepared();
-                validate_opened(prepared.actor());
+                validate_opened(prepared.actor(), false);
                 require(prepared.transition_id() == transition,
                         "Prepared transition identity mismatch");
                 prepared_transition = transition;
@@ -449,6 +463,28 @@ pb::WorldSessionReply ActorSessionClient::action(const core::v1::ActorActionRequ
     pb::WorldSessionRequest request;
     *request.mutable_action() = action;
     return impl_->exchange(std::move(request), pb::WorldSessionReply::kAction);
+}
+
+pb::ActorGeometryView ActorSessionClient::geometry_view() {
+    impl_->require_state(Lifecycle::Active, "Actor session is inactive");
+    pb::WorldSessionRequest request; request.mutable_geometry_view();
+    try {
+        auto reply = impl_->exchange(std::move(request), pb::WorldSessionReply::kGeometryView);
+        const auto& view = reply.geometry_view();
+        validate_geometry_view(view);
+        require(view.world_id() == impl_->world && view.actor_id() == impl_->expected_actor_id() &&
+                view.view_id() == impl_->geometry_view_id &&
+                view.authority_service_incarnation() == impl_->geometry_service_incarnation &&
+                view.authority_generation() == impl_->geometry_authority_generation &&
+                view.sequence() > impl_->geometry_sequence, "Geometry view context or sequence mismatch");
+        impl_->geometry_sequence = view.sequence();
+        return view;
+    } catch (const ActorSessionRejected&) {
+        throw;
+    } catch (...) {
+        impl_->fail();
+        throw;
+    }
 }
 
 const std::string& ActorSessionClient::expected_world() const noexcept { return impl_->world; }

@@ -1,4 +1,5 @@
 #include "world/identity_sessions.hpp"
+#include "world/geometry_view_validation.hpp"
 #include "world/authority.hpp"
 #include "world/actor_tls.hpp"
 #include "platform/broker.hpp"
@@ -52,8 +53,11 @@ struct Channel {
     identity::tls_detail::Fd fd;
     std::unique_ptr<ActorTlsPeer> tls;
     std::string input, output, token;
+    std::string view_id;
+    std::uint64_t view_sequence = 0;
     std::size_t sent = 0;
     bool needs_observation = false;
+    bool needs_geometry_observation = false;
     std::uint64_t cancellation_generation = 0;
     Clock::time_point input_started = Clock::now(), output_started = Clock::now();
     std::optional<Pending> pending, prepared;
@@ -154,7 +158,8 @@ struct IdentitySessions::Impl {
     void disconnect(Channel& channel) {
         ++channel.cancellation_generation;
         const auto token = std::move(channel.token); channel.token.clear();
-        channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset(); channel.needs_observation = false;
+        channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset();
+        channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
         if (!channel.output.empty()) { channel.output.clear(); channel.close_transport(); }
         if (!token.empty()) {
             try { actors.close(token); }
@@ -193,7 +198,8 @@ struct IdentitySessions::Impl {
         if (participant->failed()) { fail(); return; }
         while (auto update = participant->poll()) {
             if (update->has_authenticated()) {
-                if (update->authenticated().issuer_id() != issuer.issuer_id()) { fail(); return; }
+                if (update->authenticated().issuer_id() != issuer.issuer_id() ||
+                        update->authenticated().service_incarnation() != participant->service_incarnation()) { fail(); return; }
                 continue;
             }
             if (!update->has_revocations()) {
@@ -204,6 +210,7 @@ struct IdentitySessions::Impl {
                     fail(); return;
                 }
                 if (expected == pb::ParticipantCommand::kActivate && update->has_activated()) {
+                    if (update->activated().service_incarnation() != participant->service_incarnation()) { fail(); return; }
                     generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
                 } else if (expected == pb::ParticipantCommand::kApplied && update->has_applied()) {
                     acknowledged_revision = update->applied().applied_revision();
@@ -328,7 +335,8 @@ struct IdentitySessions::Impl {
             if (channel->token.empty()) continue;
             const auto actor = principal(channel->claims);
             if ((config.admission() == pb::EXPLICIT_ACTORS && !authority->allowed(actor, "enter")) ||
-                    (channel->needs_observation && !authority->allowed(actor, "observe"))) disconnect(*channel);
+                    ((channel->needs_observation || channel->needs_geometry_observation) &&
+                     !authority->allowed(actor, "observe"))) disconnect(*channel);
         }
         actors.refresh_authority(); actors.flush_input();
     }
@@ -455,8 +463,13 @@ struct IdentitySessions::Impl {
         if(authority)check=[this,actor](const auto& right,const auto& scope){return authority->allowed(actor,right,scope);};
         const auto opened=actors.open(open,true,std::move(check),actor,!channel.tls);
         channel.token=opened.token();channel.credential=pending.begin.credential();channel.claims=pending.claims;
+        channel.view_id=random_binding(); channel.view_sequence=0;
         pb::WorldSessionOpened result;result.set_actor_id(opened.id());result.set_world_id(world.info().world_id());
-        *result.mutable_identity()=status;return result;
+        *result.mutable_identity()=status;
+        result.set_geometry_view_id(channel.view_id);
+        result.set_authority_service_incarnation(participant->service_incarnation());
+        result.set_authority_generation(generation);
+        return result;
     }
     pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes, bool& self_revocation_receipt) {
         pb::WorldSessionReply reply; reply.set_protocol_version(1);
@@ -524,6 +537,22 @@ struct IdentitySessions::Impl {
                 }
                 pending.nonce = challenge.nonce(); pending.expires = Clock::now()+std::chrono::milliseconds(content.lifetime_ms());
                 channel.pending = std::move(pending); *reply.mutable_challenge() = challenge;
+            } else if (request.has_geometry_view()) {
+                if (channel.token.empty() || channel.view_id.size() != 32)
+                    throw WorldError(wire::UNAUTHORIZED, "Channel has no active actor session");
+                const auto status = current(channel.credential, channel.claims);
+                const auto actor = principal(channel.claims);
+                if ((config.admission() == pb::EXPLICIT_ACTORS &&
+                     !(authority ? authority->allowed(actor, "enter") : admitted.contains(status.actor_id()))) ||
+                    (authority ? !authority->allowed(actor, "observe") : !grants[status.actor_id()].contains("observe")))
+                    throw WorldError(wire::FORBIDDEN, "Actor lacks active world observation authority");
+                if (channel.view_sequence == UINT64_MAX) throw WorldError(wire::STALE_SEQUENCE, "Geometry view sequence exhausted");
+                *reply.mutable_geometry_view() = actors.geometry_view(channel.token, world.info().world_id(),
+                    "identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()), channel.view_id,
+                    generation, ++channel.view_sequence);
+                reply.mutable_geometry_view()->set_authority_service_incarnation(participant->service_incarnation());
+                validate_geometry_view(reply.geometry_view());
+                channel.needs_geometry_observation = true;
             } else if (request.has_complete()) {
                 auto pending = std::move(channel.pending); channel.pending.reset();
                 if (!pending || pending->expires <= Clock::now() || pending->nonce != request.complete().nonce())
@@ -677,7 +706,7 @@ struct IdentitySessions::Impl {
                         // This local commit can remove the caller's own admission or observation.
                         // Its receipt confirms that completed mutation; it grants no continuing access.
                         self_revocation_receipt = (config.admission() == pb::EXPLICIT_ACTORS && !authority->allowed(actor, "enter")) ||
-                            (channel.needs_observation && !authority->allowed(actor, "observe"));
+                            ((channel.needs_observation || channel.needs_geometry_observation) && !authority->allowed(actor, "observe"));
                         sync_authority();
                     }
                 } else {
@@ -727,7 +756,8 @@ struct IdentitySessions::Impl {
             if (count < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL))) { drop(); continue; }
             if(channel.departure)continue;
             if (!channel.output.empty() && (channel.tls || (fd.revents & POLLOUT))) {
-                if (authority && channel.needs_observation && !authority->allowed(principal(channel.claims), "observe")) { drop(); continue; }
+                if (authority && (channel.needs_observation || channel.needs_geometry_observation) &&
+                        !authority->allowed(principal(channel.claims), "observe")) { drop(); continue; }
                 if (channel.needs_observation) {
                     try { if (!actors.application_observation_valid(channel.token)) { drop(); continue; } }
                     catch (const WorldError&) { drop(); continue; }
@@ -739,7 +769,9 @@ struct IdentitySessions::Impl {
                     if (written < 0 && errno != EAGAIN && errno != EINTR) { drop(); continue; }
                     if (written > 0) channel.sent += static_cast<std::size_t>(written);
                 }
-                if (channel.sent == channel.output.size()) { channel.output.clear(); channel.needs_observation = false; }
+                if (channel.sent == channel.output.size()) {
+                    channel.output.clear(); channel.needs_observation = false; channel.needs_geometry_observation = false;
+                }
             }
             if (channel.tls && channel.output.empty()) {
                 if (channel.transport_read() < 0) { drop(); continue; }
@@ -770,6 +802,13 @@ struct IdentitySessions::Impl {
                 const auto code = reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED;
                 reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
                 reply.mutable_error()->set_code(code); reply.mutable_error()->set_message("World session changed during operation");
+            }
+            if (reply.ByteSizeLong() > max_frame_bytes) {
+                const auto id = reply.request_id();
+                reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
+                reply.mutable_error()->set_code(wire::RESOURCE_EXHAUSTED);
+                reply.mutable_error()->set_message("World session reply exceeds frame limit");
+                channel.needs_geometry_observation = false;
             }
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_started = Clock::now();

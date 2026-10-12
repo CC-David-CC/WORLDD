@@ -270,6 +270,38 @@ class WorldAuthorityTests(WorldIdentityFixture):
         self.assertTrue(peer.act(object_grab=core.ObjectGrabRequest(id=one)).HasField('action'))
         self.assertTrue(peer.act(object_release=core.ObjectReleaseRequest(commit=False)).HasField('action'))
 
+        # Geometry follows a real authenticated edit with native visibility checks.
+        owner = world.peers[0]
+        before_reply = owner.call(geometry_view=session.WorldGeometryViewRequest())
+        self.assertTrue(before_reply.HasField('geometry_view'), before_reply)
+        before = before_reply.geometry_view
+        saved_before = world.management('world.get', id=one)
+        requested = core.Pose(position=core.Vec3(x=.3, y=0, z=-2),
+                              orientation=core.Quaternion(w=1))
+        for operation in (
+                {'object_grab': core.ObjectGrabRequest(id=one)},
+                {'object_move': core.ObjectMoveRequest(pose=requested)},
+                {'object_release': core.ObjectReleaseRequest(commit=True)}):
+            reply = owner.act(**operation)
+            self.assertTrue(reply.HasField('action'), reply)
+            self.assertTrue(reply.action.accepted, reply)
+        after_reply = owner.call(geometry_view=session.WorldGeometryViewRequest())
+        self.assertTrue(after_reply.HasField('geometry_view'), after_reply)
+        after = after_reply.geometry_view
+        before_object = next(item for item in before.objects if item.id == one)
+        after_object = next(item for item in after.objects if item.id == one)
+        self.assertEqual(after_object.pose, requested)
+        self.assertNotEqual(after_object.pose, before_object.pose)
+        self.assertGreater(after.world_revision, before.world_revision)
+        self.assertEqual(after.view_id, before.view_id)
+        self.assertEqual(after.authority_service_incarnation, before.authority_service_incarnation)
+        self.assertEqual(after.authority_generation, before.authority_generation)
+        self.assertGreater(after.sequence, before.sequence)
+        saved_after = world.management('world.get', id=one)
+        self.assertEqual(saved_after['pose'], pose((.3,0,-2)))
+        self.assertEqual(saved_after['revision'], saved_before['revision'] + 1)
+        self.assertEqual(saved_after['world_revision'], after.world_revision)
+
     def test_revocation_cancels_object_draft_and_releases_lease(self):
         self.enroll_second(); world = self.scoped_world(session.REGISTERED_ACTORS, native=True); identity = self.object(world)
         self.grant_to_second(world, [grant.WORLD_OBSERVE])
@@ -288,6 +320,13 @@ class WorldAuthorityTests(WorldIdentityFixture):
         reply = peer.act(observe=core.ActorObserveRequest()); self.assertTrue(reply.HasField('action'), reply)
         self.assertNotIn(found['id'], [item.id for item in reply.action.observation.visible])
         self.assertIn('object-one', [item.id for item in reply.action.observation.visible])
+        geometry = peer.call(geometry_view=session.WorldGeometryViewRequest())
+        self.assertTrue(geometry.HasField('geometry_view'), geometry)
+        self.assertNotIn(found['id'].encode(), geometry.geometry_view.SerializeToString())
+        self.assertIn('object-one', [item.id for item in geometry.geometry_view.objects])
+        second = peer.act(observe=core.ActorObserveRequest())
+        self.assertTrue(second.HasField('action'), second)
+        self.assertNotIn(found['id'], [item.id for item in second.action.observation.visible])
         self.denied(peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)), core.FORBIDDEN)
         self.assertIsNone(probe.proc.poll())
 
