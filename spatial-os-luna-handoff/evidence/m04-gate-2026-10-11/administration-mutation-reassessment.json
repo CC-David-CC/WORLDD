@@ -1,0 +1,176 @@
+{
+    "status":  "historical_bypass_evidence_reassessed_current_gate_pending",
+    "candidate":  "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+    "historical_source":  "ee883e7",
+    "phase_complete":  false,
+    "unchanged_functions":  [
+                                "device_administration",
+                                "server_access",
+                                "screensaver_access",
+                                "SpatialSecurityPrivileged",
+                                "SpatialSecuritySameApplication"
+                            ],
+    "unchanged_guard_patch":  "server/patches/0006-global-server-access.patch",
+    "variants":  [
+                     {
+                         "host":  "sb16",
+                         "mutation":  "keyboard-mapping",
+                         "witness":  "test_application_cannot_replace_keyboard_mapping",
+                         "log_sha256":  "5b870277026aae5ad1493054eade09eff9ca9f8a93678cb4636b24b3357b368f",
+                         "historical_binary_sha256":  "47f0be6a4436e5d67f6dfec9361f7a5ecce0f7620335bbf945d59f1d9b9202c7"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "keyboard-control",
+                         "witness":  "test_application_cannot_change_keyboard_controls",
+                         "log_sha256":  "ac6d0fcebb652702ef321bb415bf8a830356d7c0e6641f3b70f7c193d52af899",
+                         "historical_binary_sha256":  "ed5a9324c00bfb02e0d137f5a0af084211f79e5aed9805d33ff7c5c0157b1f79"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "bell",
+                         "witness":  "test_application_cannot_ring_shared_keyboard_bell",
+                         "log_sha256":  "a41b053c8dfb1873b61dee26c4063de966abac0d4eb9b086e5d7584c9ec36ec4",
+                         "historical_binary_sha256":  "55772bd97d6774994d6e0da7d2515745262459366876eff1d9c6d365e4e288d0"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "pointer-control",
+                         "witness":  "test_application_cannot_change_pointer_controls",
+                         "log_sha256":  "b445e3328f200b64f991db3c47c86b196e44db08c112beaadf55406d83759f99",
+                         "historical_binary_sha256":  "1fa9a9f86f69aefe179f31a45136fdf54293e272841e8f5a95d67ef827cee47e"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "pointer-mapping",
+                         "witness":  "test_application_cannot_replace_pointer_mapping",
+                         "log_sha256":  "dc6dccbfddfa455eba4fdeec4c3db75721871b372e87cc534e14ad811e89a058",
+                         "historical_binary_sha256":  "1632c096f9e54f24ad73757a460330c4d8380733ac02010aa03bf4a1cd6dbce5"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "modifier-mapping",
+                         "witness":  "test_application_cannot_clear_modifier_mapping",
+                         "log_sha256":  "91c4c69559c88e0610ea5a7a295b19a80803576f228fec18f425867e3a829686",
+                         "historical_binary_sha256":  "5452400983cd6ec4ea2e7f1536bc07e509ff7bf5b136d070ab0dc8279b7a1849"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "keyboard-mapping",
+                         "witness":  "test_application_cannot_replace_keyboard_mapping",
+                         "log_sha256":  "5b870277026aae5ad1493054eade09eff9ca9f8a93678cb4636b24b3357b368f",
+                         "historical_binary_sha256":  "47f0be6a4436e5d67f6dfec9361f7a5ecce0f7620335bbf945d59f1d9b9202c7"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "keyboard-control",
+                         "witness":  "test_application_cannot_change_keyboard_controls",
+                         "log_sha256":  "ac6d0fcebb652702ef321bb415bf8a830356d7c0e6641f3b70f7c193d52af899",
+                         "historical_binary_sha256":  "ed5a9324c00bfb02e0d137f5a0af084211f79e5aed9805d33ff7c5c0157b1f79"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "bell",
+                         "witness":  "test_application_cannot_ring_shared_keyboard_bell",
+                         "log_sha256":  "a41b053c8dfb1873b61dee26c4063de966abac0d4eb9b086e5d7584c9ec36ec4",
+                         "historical_binary_sha256":  "55772bd97d6774994d6e0da7d2515745262459366876eff1d9c6d365e4e288d0"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "pointer-control",
+                         "witness":  "test_application_cannot_change_pointer_controls",
+                         "log_sha256":  "93a11562d1699af33d121bc00a26df62dfe16347c13ec1a30294d7cad51be794",
+                         "historical_binary_sha256":  "1fa9a9f86f69aefe179f31a45136fdf54293e272841e8f5a95d67ef827cee47e"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "pointer-mapping",
+                         "witness":  "test_application_cannot_replace_pointer_mapping",
+                         "log_sha256":  "dc6dccbfddfa455eba4fdeec4c3db75721871b372e87cc534e14ad811e89a058",
+                         "historical_binary_sha256":  "1632c096f9e54f24ad73757a460330c4d8380733ac02010aa03bf4a1cd6dbce5"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "modifier-mapping",
+                         "witness":  "test_application_cannot_clear_modifier_mapping",
+                         "log_sha256":  "cc0c8234e7d569e1961fa6c5fe37b751dc2b741e0fee649293520c8959d848b7",
+                         "historical_binary_sha256":  "5452400983cd6ec4ea2e7f1536bc07e509ff7bf5b136d070ab0dc8279b7a1849"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "server-callback",
+                         "witness":  "test_application_cannot_grab_server",
+                         "log_sha256":  "957662bbfa0cf48d18048999d963bfdef3f80dde2196ce8f2f5e9fec7f91954f",
+                         "historical_binary_sha256":  "d71d44623355008326bdb33889e04b39266dd03f0b6a178437da48f702f7d463"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "saver-callback",
+                         "witness":  "test_application_cannot_change_screen_saver_settings",
+                         "log_sha256":  "fbd6d040d09b3f73289649f08c087a8ef38e699377e4475d924e562d3bd598eb",
+                         "historical_binary_sha256":  "ad8c21d2c67073451e8804ee3d6456f70ba7e9ef7afb3c520c8a8e0ef66978ed"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "ungrab-guard",
+                         "witness":  "test_application_cannot_ungrab_server",
+                         "log_sha256":  "94810312d2f782b3670977ee6bdf53c63cb7ed63b91199ea4336816ec62929e6",
+                         "historical_binary_sha256":  "17c39f18af341861b8da66109d3e37278ba74801fbd700243cfc53eb2a91465f"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "temporary-reap-guard",
+                         "witness":  "test_application_cannot_reap_retained_service_resources",
+                         "log_sha256":  "3d6b2ac125c5e086e95308bd37aa3b0b8b05bdcb0dba95310c50bcbac41e36f0",
+                         "historical_binary_sha256":  "e6f4b8aa6c3d45c2ad9d5c7cb33539efa3e4c60ccd90872ba3330e471b943acf"
+                     },
+                     {
+                         "host":  "sb16",
+                         "mutation":  "acl-ordering",
+                         "witness":  "test_application_cannot_change_host_acl",
+                         "log_sha256":  "57deaac01f8166e87bfafe5c23d74119c4b454c6e2efa8d8b984b20af7bee26a",
+                         "historical_binary_sha256":  "0f0db2d686ac15ee32c51fcdb46115ea9afff9ee18bdcfad2f907d7f9d329f69"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "server-callback",
+                         "witness":  "test_application_cannot_grab_server",
+                         "log_sha256":  "957662bbfa0cf48d18048999d963bfdef3f80dde2196ce8f2f5e9fec7f91954f",
+                         "historical_binary_sha256":  "d71d44623355008326bdb33889e04b39266dd03f0b6a178437da48f702f7d463"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "saver-callback",
+                         "witness":  "test_application_cannot_change_screen_saver_settings",
+                         "log_sha256":  "bfab0e2f13afbf01f9c4bffe8d0254bd1faa8aad820e9851d983678eee02b25f",
+                         "historical_binary_sha256":  "ad8c21d2c67073451e8804ee3d6456f70ba7e9ef7afb3c520c8a8e0ef66978ed"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "ungrab-guard",
+                         "witness":  "test_application_cannot_ungrab_server",
+                         "log_sha256":  "ce0918f71623a2e6fba884fdc33a91ed10ba90f87d4c9848805449d5a4c4950f",
+                         "historical_binary_sha256":  "17c39f18af341861b8da66109d3e37278ba74801fbd700243cfc53eb2a91465f"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "temporary-reap-guard",
+                         "witness":  "test_application_cannot_reap_retained_service_resources",
+                         "log_sha256":  "3d6b2ac125c5e086e95308bd37aa3b0b8b05bdcb0dba95310c50bcbac41e36f0",
+                         "historical_binary_sha256":  "e6f4b8aa6c3d45c2ad9d5c7cb33539efa3e4c60ccd90872ba3330e471b943acf"
+                     },
+                     {
+                         "host":  "sb16-2",
+                         "mutation":  "acl-ordering",
+                         "witness":  "test_application_cannot_change_host_acl",
+                         "log_sha256":  "e0f1fbedfe528346bd4c2ce324037f112363a27260c412e79ea1a720e8343f91",
+                         "historical_binary_sha256":  "0f0db2d686ac15ee32c51fcdb46115ea9afff9ee18bdcfad2f907d7f9d329f69"
+                     }
+                 ],
+    "limits":  [
+                   "Historical mutations were not rerun on the candidate.",
+                   "Callback registration gained other callbacks. Current full native integration must pass.",
+                   "Shared authentication and resource fixtures changed. Current identity and resource suites must pass.",
+                   "This review covers only device and global administration, not other mutation requirements."
+               ]
+}
