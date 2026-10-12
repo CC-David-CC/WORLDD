@@ -3,9 +3,11 @@ M06 client integrated as e28b20c on m06/world-transitions and pushed to box-git.
 Worker source checkpoint:4f403b7b9 on m06/actor-session-client.
 All43 client cases passed on both test hosts in Debug and ASan/UBSan:172 executions.
 Evidence: spatial-os-luna-handoff/evidence/m06-actor-client-2026-10-12.
-middle-child: branch m06/actor-client-tls. The Luna worker finished with exit 0.
-TLS code builds in Debug and ASan/UBSan. Required TLS regression fixtures remain missing.
-This draft is unreviewed and unqualified. Logs: local/m06-client-tls.
+middle-child: branch m06/actor-client-tls. The first Luna worker finished with exit 0.
+Its TLS code builds in Debug and ASan/UBSan, but it omitted required TLS regression fixtures.
+Sol medium correction now runs in tmux spatial-m06-client-tls02 after that incomplete implementation.
+Scope: complete TLS regressions, correct buffered-read polling, and check signal/lifetime safety.
+This draft is unqualified. Logs: local/m06-client-tls/run02-*.
 a5500: Sol medium, branch m06/transition-coordinator, tmux spatial-m06-sequence02.
 Task: correct transition sequencing and complete failure-path tests after the incomplete Luna attempt.
 Logs: local/m06-transition-sequence/run02-*.
