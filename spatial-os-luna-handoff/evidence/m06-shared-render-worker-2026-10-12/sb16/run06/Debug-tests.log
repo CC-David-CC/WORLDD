@@ -1,0 +1,65 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 91
+    Start 91: native-compositor_identity
+
+91: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_compositor_identity.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+91: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+91: Environment variables: 
+91:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+91: Test timeout computed to be: 180
+91: test_non_application_window_is_not_a_workspace_surface (__main__.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... ok
+91: test_properties_do_not_choose_snapshot_identity (__main__.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... ok
+91: test_revoked_application_disappears_from_snapshot (__main__.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... ok
+91: test_same_group_new_connection_has_distinct_attribution (__main__.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... ok
+91: test_separate_workspaces_remain_distinct_in_one_snapshot (__main__.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... ok
+91: test_snapshot_contains_authenticated_application_identity (__main__.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... ok
+91: test_unmap_clears_attribution_and_remap_restores_it (__main__.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it) ... ok
+91: 
+91: ----------------------------------------------------------------------
+91: Ran 7 tests in 0.767s
+91: 
+91: OK
+1/2 Test #91: native-compositor_identity .......   Passed    0.83 sec
+test 97
+    Start 97: presentation-input-bindings
+
+97: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_presentation_bindings.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-presentation-probe" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+97: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+97: Environment variables: 
+97:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+97: Test timeout computed to be: 180
+97: test_all_binding_fields_must_match (__main__.PresentationBindingTests.test_all_binding_fields_must_match) ... ok
+97: test_bindings_cannot_control_the_same_application_concurrently (__main__.PresentationBindingTests.test_bindings_cannot_control_the_same_application_concurrently) ... ok
+97: test_failed_retirement_does_not_acknowledge_revoked_live_seat (__main__.PresentationBindingTests.test_failed_retirement_does_not_acknowledge_revoked_live_seat) ... ok
+97: test_first_scoped_binding_releases_held_legacy_input (__main__.PresentationBindingTests.test_first_scoped_binding_releases_held_legacy_input) ... ok
+97: test_other_native_server_cannot_supply_a_binding (__main__.PresentationBindingTests.test_other_native_server_cannot_supply_a_binding) ... ok
+97: test_retirement_releases_native_events_and_rejects_stale_input (__main__.PresentationBindingTests.test_retirement_releases_native_events_and_rejects_stale_input) ... ok
+97: test_revoking_one_world_preserves_real_graphics_and_other_input (__main__.PresentationBindingTests.test_revoking_one_world_preserves_real_graphics_and_other_input) ... ok
+97: test_same_actor_name_has_independent_binding_seats (__main__.PresentationBindingTests.test_same_actor_name_has_independent_binding_seats) ... ok
+97: test_scoped_mode_disables_unbound_actor_input (__main__.PresentationBindingTests.test_scoped_mode_disables_unbound_actor_input) ... ok
+97: test_unsealed_and_invalid_bind_fail_without_descriptor_leaks (__main__.PresentationBindingTests.test_unsealed_and_invalid_bind_fail_without_descriptor_leaks) ... ok
+97: 
+97: ----------------------------------------------------------------------
+97: Ran 10 tests in 1.265s
+97: 
+97: OK
+2/2 Test #97: presentation-input-bindings ......   Passed    1.33 sec
+
+The following tests passed:
+	native-compositor_identity
+	presentation-input-bindings
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   2.17 sec

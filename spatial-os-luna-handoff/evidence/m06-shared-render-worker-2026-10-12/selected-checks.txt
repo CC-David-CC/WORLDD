@@ -1,0 +1,10 @@
+M06 shared world renderer client increment.
+Shared RenderWorker borrows a host-created channel and retains the compositor pidfd.
+It sends sealed input configuration through the production hello handshake.
+World timeout or destruction may close only its channel, never terminate the shared compositor.
+worldd accepts the private inherited descriptors only with authenticated native configuration.
+Selected tests: real worldd shared startup, world info/fence, stop/restart with unchanged compositor.
+Regressions: presentation-server, render-runtime, render-observation-client, native-world_surface_groups.
+Run both hosts in Debug and ASan-UBSan before integration.
+Host SessionCoordinator ownership and actual actor transitions remain pending.
+Capture extension: one descriptor on shared capture requests; world-owned private file, no compositor-selected path. Check separate world directories, PPM bytes against native pixels, file mode, empty host capture directory, and pipe descriptor rejection.

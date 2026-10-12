@@ -19,6 +19,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <vector>
 namespace spatial {
 namespace {
@@ -282,8 +283,8 @@ wire::NativeSnapshot Renderer::synchronize(const render::v1::WorldPresentationBi
     impl_->bindings->snapshot(binding,result);
     return result;
 }
-wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
-    return draw_scene(command, nullptr);
+wire::FrameReply Renderer::draw(const wire::RenderCommand& command,int capture_fd) {
+    return draw_scene(command, nullptr,capture_fd);
 }
 wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
     wire::RenderVisibility result;
@@ -293,7 +294,14 @@ wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
         throw WorldError(wire::RESOURCE_EXHAUSTED, "Compositor observation exceeds message limit");
     return result;
 }
-wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility) {
+wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility,int capture_fd) {
+    if(capture_fd>=0){
+        struct stat info{};const int flags=fcntl(capture_fd,F_GETFL);
+        if(capture_fd<3 || !command.capture() || visibility || fstat(capture_fd,&info)!=0 || !S_ISREG(info.st_mode) ||
+            info.st_uid!=geteuid() || (info.st_mode&0777)!=0600 || info.st_nlink!=1 || info.st_size!=0 ||
+            flags<0 || (flags&O_ACCMODE)==O_RDONLY || (flags&O_APPEND) || lseek(capture_fd,0,SEEK_SET)!=0)
+            throw std::invalid_argument("Capture requires a private empty writable regular file");
+    }
     if (visibility) validate_observation_extent(command.width(), command.height(), command.include_pixels());
     else validate_render_extent(command.width(), command.height());
     if (!command.has_scene()) throw std::invalid_argument("Missing render scene");
@@ -410,15 +418,17 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
         std::vector<char> pixels(stride * target.height);
         glReadPixels(0, 0, target.width, target.height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); check_gl();
         std::string name = (r.captures / "frame-XXXXXX.ppm").string();
-        const int fd = mkstemps(name.data(), 4);
+        const int fd = capture_fd>=0?capture_fd:mkstemps(name.data(), 4);
         if (fd < 0) throw std::runtime_error("Cannot create frame capture");
         try {
             const auto header = "P6\n" + std::to_string(target.width) + " " + std::to_string(target.height) + "\n255\n";
             write_all(fd, header.data(), header.size());
             for (unsigned row = target.height; row > 0; --row) write_all(fd, pixels.data() + (row - 1) * stride, stride);
-        } catch (...) { close(fd); unlink(name.c_str()); throw; }
-        if (close(fd) != 0) { unlink(name.c_str()); throw std::runtime_error("Cannot close frame capture"); }
-        result.set_path(name);
+        } catch (...) { if(capture_fd<0){close(fd);unlink(name.c_str());} throw; }
+        if(capture_fd<0){
+            if (close(fd) != 0) { unlink(name.c_str()); throw std::runtime_error("Cannot close frame capture"); }
+            result.set_path(name);
+        }
     }
     return result;
 }

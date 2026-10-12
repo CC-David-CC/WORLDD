@@ -1,0 +1,103 @@
+{
+  "host": "sb16-2",
+  "pid": 1525064,
+  "status": "passed_needs_review",
+  "commands": [
+    {
+      "name": "Debug-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Debug-build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "--target",
+        "spatial-test-host",
+        "worldd",
+        "spatial-render-observation-probe",
+        "spatial-presentation-probe",
+        "spatial-presentation-stream-probe",
+        "presentation-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Debug-tests",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "-V",
+        "-R",
+        "^(presentation-server|render-runtime|render-observation-client|native-world_surface_groups)$",
+        "--output-junit",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-shared-render-worker-04/Debug-results.xml"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "ASan-UBSan-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "ASan-UBSan-build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+        "--target",
+        "spatial-test-host",
+        "worldd",
+        "spatial-render-observation-probe",
+        "spatial-presentation-probe",
+        "spatial-presentation-stream-probe",
+        "presentation-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "ASan-UBSan-tests",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+        "-V",
+        "-R",
+        "^(presentation-server|render-runtime|render-observation-client|native-world_surface_groups)$",
+        "--output-junit",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-shared-render-worker-04/ASan-UBSan-results.xml"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

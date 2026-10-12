@@ -99,12 +99,13 @@ class PresentationServerTests(unittest.TestCase):
         finally:os.close(fd)
         reply=self.receive(stream,core.RenderResult);self.assertTrue(reply.HasField('ready'),reply)
 
-    def draw(self,stream,sequence,color):
-        command=core.RenderCommand(protocol_version=1,request_id=sequence,width=64,height=64)
+    def draw(self,stream,sequence,color,capture_fd=None):
+        command=core.RenderCommand(protocol_version=1,request_id=sequence,width=64,height=64,capture=capture_fd is not None)
         command.scene.camera.position.SetInParent();command.scene.camera.orientation.w=1
         command.scene.config.CopyFrom(core.RenderConfig(vertical_fov=1.57079632679,near_clip=.01,far_clip=1000,
             background=core.Color(red=color[0],green=color[1],blue=color[2]),barrier_color=core.Color(red=1,green=2,blue=3)))
-        self.send(stream,protocol.PresentationWorldRequest(protocol_version=1,request_id=sequence,command=command))
+        self.send(stream,protocol.PresentationWorldRequest(protocol_version=1,request_id=sequence,command=command),
+            () if capture_fd is None else (capture_fd,))
         return self.receive(stream,core.RenderResult)
 
     def pixel(self,xid):
@@ -361,6 +362,86 @@ os._exit(0)
             if os.environ.get('SPATIAL_SECURITY_EVIDENCE'):
                 target=Path(os.environ['SPATIAL_SECURITY_EVIDENCE']);target.mkdir(parents=True,exist_ok=True)
                 (target/(self._testMethodName+'-owner-exit.log')).write_bytes(path.read_bytes())
+
+    def shared_worldd(self,index):
+        binding=native.WorldPresentationBinding(protocol_version=1,world_id='fixture-world-'+str(index),
+            service_incarnation=bytes([index])*32,authority_generation=1,presentation_generation=index)
+        client,server=socket.socketpair()
+        server.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
+        client.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
+        manager,child_manager=socket.socketpair();manager.settimeout(12)
+        native_fd=self.config();renderer_pidfd=os.pidfd_open(self.proc.pid)
+        state=self.root/('worldd-'+str(index));state.mkdir();path=self.root/('worldd-'+str(index)+'.log');log=path.open('wb')
+        descriptors=(client.fileno(),native_fd,renderer_pidfd)
+        try:
+            process=subprocess.Popen([str(EXECUTABLE.parent/'worldd'),'--state-dir',str(state),
+                '--native-security-fd',str(native_fd),'--presentation-fd',str(client.fileno()),
+                '--presentation-pidfd',str(renderer_pidfd),'--presentation-pid',str(self.proc.pid),
+                '--presentation-owner-pid',str(os.getpid())],stdin=child_manager,stdout=child_manager,stderr=log,
+                pass_fds=descriptors,env=dict(os.environ,LIBGL_ALWAYS_SOFTWARE='1'))
+        finally:child_manager.close();client.close();os.close(native_fd);os.close(renderer_pidfd)
+        def cleanup():
+            if manager.fileno()>=0:manager.shutdown(socket.SHUT_WR)
+            try:process.wait(timeout=5)
+            except subprocess.TimeoutExpired:process.kill();process.wait(timeout=3)
+            manager.close()
+            log.close();diagnostic=path.read_text(errors='replace')
+            if os.environ.get('SPATIAL_SECURITY_EVIDENCE'):
+                target=Path(os.environ['SPATIAL_SECURITY_EVIDENCE']);target.mkdir(parents=True,exist_ok=True)
+                (target/(self._testMethodName+'-worldd-'+str(index)+'.log')).write_text(diagnostic)
+            self.assertEqual(process.returncode,0,diagnostic)
+            for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'):self.assertNotIn(marker,diagnostic)
+        self.addCleanup(cleanup)
+        pidfd=os.pidfd_open(process.pid)
+        try:reply=self.control((server.fileno(),pidfd),attach=protocol.PresentationAttach(binding=binding,world_pid=process.pid))
+        finally:server.close();os.close(pidfd)
+        self.assertEqual(reply.state.stage,protocol.ATTACHED,reply)
+        self.worlds.append((binding,client))
+        return binding,manager,process
+
+    def test_real_worldd_connects_and_stops_without_terminating_shared_compositor(self):
+        self.launch();a,ma,pa=self.shared_worldd(1);b,mb,pb=self.shared_worldd(2)
+        for channel in (ma,mb):
+            self.send(channel,core.Request(protocol_version=1,request_id=1,world_info=core.WorldInfoRequest()))
+            reply=self.receive(channel,core.Reply);self.assertTrue(reply.HasField('world_info'),reply)
+        frames=[];captures=[]
+        for index,(binding,channel) in enumerate(((a,ma),(b,mb)),1):
+            opened=core.ActorOpenRequest(id='fixture-actor',grants=['navigate'])
+            opened.pose.position.SetInParent();opened.pose.orientation.w=1
+            self.send(channel,core.Request(protocol_version=1,request_id=2,actor_open=opened))
+            reply=self.receive(channel,core.Reply);self.assertTrue(reply.HasField('actor_opened'),reply)
+            token=reply.actor_opened.token
+            self.assertTrue(self.control(select=binding).state.selected)
+            self.send(channel,core.Request(protocol_version=1,request_id=3,
+                render_present=core.RenderRequest(token=token,width=64,height=64)))
+            reply=self.receive(channel,core.Reply);self.assertTrue(reply.HasField('frame'),reply);frames.append(reply.frame)
+            self.send(channel,core.Request(protocol_version=1,request_id=4,
+                render_capture=core.RenderRequest(token=token,width=64,height=64)))
+            reply=self.receive(channel,core.Reply);self.assertTrue(reply.HasField('frame'),reply)
+            path=Path(reply.frame.path).resolve();captures.append(path)
+            self.assertTrue(path.is_relative_to((self.root/('worldd-'+str(index))).resolve()))
+            self.assertEqual(path.stat().st_mode&0o777,0o600)
+            data=path.read_bytes();self.assertTrue(data.startswith(b'P6\n64 64\n255\n'))
+            pixels=data[len(b'P6\n64 64\n255\n'):];self.assertEqual(len(pixels),64*64*3)
+            self.assertEqual(int.from_bytes(pixels[3*(64+1):3*(64+2)],'big'),self.pixel(reply.frame.xid))
+        self.assertNotEqual(captures[0].parent,captures[1].parent)
+        self.assertEqual(list((self.root/'renderer'/'captures').iterdir()),[])
+        self.assertEqual(frames[0].xid,frames[1].xid)
+        self.assertGreater(frames[1].frame_id,frames[0].frame_id)
+        ma.shutdown(socket.SHUT_WR);self.assertEqual(pa.wait(timeout=5),0);ma.close()
+        self.retired(a);self.assertIsNone(self.proc.poll())
+        self.assertTrue(self.control(select=b).state.selected)
+        self.send(mb,core.Request(protocol_version=1,request_id=5,runtime_fence=core.RuntimeFenceRequest()))
+        reply=self.receive(mb,core.Reply);self.assertFalse(reply.HasField('error'),reply)
+        self.assertIsNone(pb.poll());self.assertIsNone(self.proc.poll())
+
+    def test_capture_rejects_nonregular_descriptor_and_keeps_world_usable(self):
+        self.launch();a,sa=self.attach(1);self.hello(sa);self.control(select=a)
+        read_fd,write_fd=os.pipe()
+        try:reply=self.draw(sa,2,(17,34,51),capture_fd=write_fd)
+        finally:os.close(read_fd);os.close(write_fd)
+        self.assertEqual(reply.error.code,core.INVALID_ARGUMENT,reply)
+        self.assertTrue(self.draw(sa,3,(17,34,51)).HasField('frame'))
 
 if __name__=='__main__':unittest.main(verbosity=2)
 

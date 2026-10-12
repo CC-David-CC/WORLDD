@@ -1,0 +1,133 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 58
+    Start 58: render-observation-client
+
+58: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_render_observation_client.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-render-observation-probe"
+58: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+58: Environment variables: 
+58:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+58: Test timeout computed to be: 60
+58: test_changed_or_zero_image_dimensions_are_rejected (__main__.RenderObservationClientTests.test_changed_or_zero_image_dimensions_are_rejected) ... ok
+58: test_excessive_pixel_request_is_not_sent_to_compositor (__main__.RenderObservationClientTests.test_excessive_pixel_request_is_not_sent_to_compositor) ... ok
+58: test_extra_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_extra_rgb_data_is_rejected) ... ok
+58: test_metadata_only_reply_has_no_image (__main__.RenderObservationClientTests.test_metadata_only_reply_has_no_image) ... ok
+58: test_missing_requested_image_is_rejected (__main__.RenderObservationClientTests.test_missing_requested_image_is_rejected) ... ok
+58: test_truncated_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_truncated_rgb_data_is_rejected) ... ok
+58: test_unknown_image_field_is_rejected (__main__.RenderObservationClientTests.test_unknown_image_field_is_rejected) ... ok
+58: test_unsolicited_image_is_rejected (__main__.RenderObservationClientTests.test_unsolicited_image_is_rejected) ... ok
+58: test_valid_pixels_use_checked_frame_and_exact_dimensions (__main__.RenderObservationClientTests.test_valid_pixels_use_checked_frame_and_exact_dimensions) ... ok
+58: 
+58: ----------------------------------------------------------------------
+58: Ran 9 tests in 0.486s
+58: 
+58: OK
+1/4 Test #58: render-observation-client ........   Passed    0.55 sec
+test 77
+    Start 77: render-runtime
+
+77: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_render.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-test-host" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/worldd" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-xprobe"
+77: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+77: Environment variables: 
+77:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+77: Test timeout computed to be: 90
+77: test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering) ... ok
+77: test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+77: test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+77: test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+77: test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+77: test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+77: test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+77: test_inclusive_clip_planes_and_quad_crossing_camera_plane (__main__.RenderRuntimeTests.test_inclusive_clip_planes_and_quad_crossing_camera_plane) ... ok
+77: test_invalid_actor_marker_configuration_is_rejected (__main__.RenderRuntimeTests.test_invalid_actor_marker_configuration_is_rejected) ... ok
+77: test_invalid_dimensions_tokens_and_aim_do_not_mutate_world (__main__.RenderRuntimeTests.test_invalid_dimensions_tokens_and_aim_do_not_mutate_world) ... ok
+77: test_no_explicit_display_does_not_adopt_environment_display (__main__.RenderRuntimeTests.test_no_explicit_display_does_not_adopt_environment_display) ... ok
+77: test_parent_death_reaps_graphics_and_releases_display (__main__.RenderRuntimeTests.test_parent_death_reaps_graphics_and_releases_display) ... ok
+77: test_real_clock_expires_while_renderer_is_stopped (__main__.RenderRuntimeTests.test_real_clock_expires_while_renderer_is_stopped) ... ok
+77: test_rotated_translated_camera_matches_aim (__main__.RenderRuntimeTests.test_rotated_translated_camera_matches_aim) ... ok
+77: test_visible_drawable_matches_randomized_capture_and_resize (__main__.RenderRuntimeTests.test_visible_drawable_matches_randomized_capture_and_resize) ... ok
+77: 
+77: ----------------------------------------------------------------------
+77: Ran 15 tests in 3.178s
+77: 
+77: OK
+2/4 Test #77: render-runtime ...................   Passed    3.36 sec
+test 92
+    Start 92: native-world_surface_groups
+
+92: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+92: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+92: Environment variables: 
+92:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+92: Test timeout computed to be: 180
+92: test_cross_application_grandparent_hides_descendants (__main__.WorldSurfaceGroupTests.test_cross_application_grandparent_hides_descendants) ... ok
+92: test_cross_application_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_application_hint_cannot_inherit_placement) ... ok
+92: test_cross_application_reparent_releases_input (__main__.WorldSurfaceGroupTests.test_cross_application_reparent_releases_input) ... ok
+92: test_cross_workspace_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_workspace_hint_cannot_inherit_placement) ... ok
+92: test_cyclic_same_application_hints_remain_unplaced (__main__.WorldSurfaceGroupTests.test_cyclic_same_application_hints_remain_unplaced) ... ok
+92: test_destroyed_parent_releases_descendant_input (__main__.WorldSurfaceGroupTests.test_destroyed_parent_releases_descendant_input) ... ok
+92: test_distinct_applications_allow_simultaneous_control (__main__.WorldSurfaceGroupTests.test_distinct_applications_allow_simultaneous_control) ... ok
+92: test_equal_application_names_in_distinct_workspaces_have_separate_leases (__main__.WorldSurfaceGroupTests.test_equal_application_names_in_distinct_workspaces_have_separate_leases) ... ok
+92: test_invalid_hint_does_not_break_other_scene_surfaces (__main__.WorldSurfaceGroupTests.test_invalid_hint_does_not_break_other_scene_surfaces) ... ok
+92: test_repaired_hint_restores_independent_placement (__main__.WorldSurfaceGroupTests.test_repaired_hint_restores_independent_placement) ... ok
+92: test_same_application_connections_can_form_relationship (__main__.WorldSurfaceGroupTests.test_same_application_connections_can_form_relationship) ... ok
+92: test_same_application_detach_preserves_held_input (__main__.WorldSurfaceGroupTests.test_same_application_detach_preserves_held_input) ... ok
+92: test_same_application_top_levels_exclude_second_actor (__main__.WorldSurfaceGroupTests.test_same_application_top_levels_exclude_second_actor) ... ok
+92: test_same_group_reparent_preserves_held_key_and_focus (__main__.WorldSurfaceGroupTests.test_same_group_reparent_preserves_held_key_and_focus) ... ok
+92: 
+92: ----------------------------------------------------------------------
+92: Ran 14 tests in 2.879s
+92: 
+92: OK
+3/4 Test #92: native-world_surface_groups ......   Passed    2.99 sec
+test 95
+    Start 95: presentation-server
+
+95: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_presentation_server.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatialwm" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+95: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+95: Environment variables: 
+95:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+95: Test timeout computed to be: 180
+95: test_detach_releases_held_native_key_and_button (__main__.PresentationServerTests.test_detach_releases_held_native_key_and_button) ... ok
+95: test_disconnect_clears_selected_pixels (__main__.PresentationServerTests.test_disconnect_clears_selected_pixels) ... ok
+95: test_foreign_sender_on_inherited_socket_retires_world (__main__.PresentationServerTests.test_foreign_sender_on_inherited_socket_retires_world) ... ok
+95: test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_losing_other_world) ... ok
+95: test_mismatched_binding_does_not_select_world (__main__.PresentationServerTests.test_mismatched_binding_does_not_select_world) ... ok
+95: test_missing_hello_descriptor_retires_world (__main__.PresentationServerTests.test_missing_hello_descriptor_retires_world) ... ok
+95: test_owner_exit_ends_compositor_with_control_socket_still_open (__main__.PresentationServerTests.test_owner_exit_ends_compositor_with_control_socket_still_open) ... ok
+95: test_partial_frame_deadline_preserves_other_world (__main__.PresentationServerTests.test_partial_frame_deadline_preserves_other_world) ... ok
+95: test_pending_world_cannot_be_selected (__main__.PresentationServerTests.test_pending_world_cannot_be_selected) ... ok
+95: test_real_worldd_connects_and_stops_without_terminating_shared_compositor (__main__.PresentationServerTests.test_real_worldd_connects_and_stops_without_terminating_shared_compositor) ... ok
+95: test_replayed_request_retires_only_its_world (__main__.PresentationServerTests.test_replayed_request_retires_only_its_world) ... ok
+95: test_revoked_input_reports_uncertain_retirement_and_keeps_graphics_live (__main__.PresentationServerTests.test_revoked_input_reports_uncertain_retirement_and_keeps_graphics_live) ... ok
+95: test_selection_changes_real_pixels_without_restarting_compositor (__main__.PresentationServerTests.test_selection_changes_real_pixels_without_restarting_compositor) ... ok
+95: test_world_disconnect_releases_held_native_key_and_button (__main__.PresentationServerTests.test_world_disconnect_releases_held_native_key_and_button) ... ok
+95: test_world_exit_retires_channel_even_with_surviving_socket_copy (__main__.PresentationServerTests.test_world_exit_retires_channel_even_with_surviving_socket_copy) ... ok
+95: test_worlds_initialize_in_reverse_reservation_order (__main__.PresentationServerTests.test_worlds_initialize_in_reverse_reservation_order) ... ok
+95: test_wrong_process_handle_rejected_without_consuming_generation (__main__.PresentationServerTests.test_wrong_process_handle_rejected_without_consuming_generation) ... ok
+95: 
+95: ----------------------------------------------------------------------
+95: Ran 17 tests in 7.461s
+95: 
+95: OK
+4/4 Test #95: presentation-server ..............   Passed    7.55 sec
+
+The following tests passed:
+	render-observation-client
+	render-runtime
+	native-world_surface_groups
+	presentation-server
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  14.46 sec

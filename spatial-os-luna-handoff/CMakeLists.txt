@@ -311,7 +311,7 @@ add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources}
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
-target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
+target_link_libraries(spatial-core PUBLIC spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
 target_link_libraries(spatial-storage-broker-launch-probe PRIVATE spatial-core)
 add_dependencies(spatial-storage-broker-launch-probe broker-python-protobuf)
@@ -966,6 +966,10 @@ if(BUILD_TESTING)
         add_test(NAME native-actor-binding COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_actor_binding.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-actor-binding PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME shared-render-client COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_shared_render_client.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(shared-render-client PROPERTIES TIMEOUT 90
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME presentation-server COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_presentation_server.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)

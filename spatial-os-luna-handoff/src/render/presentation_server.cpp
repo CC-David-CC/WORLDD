@@ -106,7 +106,7 @@ struct Server {
         require(request.ParseFromString(frame.bytes),"Malformed world presentation frame");validate_message(request);
         require(request.protocol_version()==1 && request.request_id()>world.sequence,"Invalid world presentation sequence or version");
         world.sequence=request.request_id();
-        require(frame.descriptors.size()==(request.has_hello()?1U:0U),"Incorrect world presentation descriptor count");
+        require(frame.descriptors.size()==((request.has_hello() || (request.has_command() && request.command().capture()))?1U:0U),"Incorrect world presentation descriptor count");
         wire::RenderResult reply;reply.set_protocol_version(1);reply.set_request_id(world.sequence);
         try {
             if(request.has_hello()){
@@ -118,6 +118,7 @@ struct Server {
                 const auto& value=request.command();
                 require(value.protocol_version()==1 && value.request_id()==world.sequence &&
                     int(value.has_scene())+int(value.has_sync())+int(value.has_input())==1,"Invalid bound render command");
+                require(!value.capture() || value.has_scene(),"Capture requires a scene");
                 require(!value.observe() || (value.has_scene() && !value.capture()),"Invalid bound observation operation");
                 require(!value.include_pixels() || value.observe(),"Pixel image requires bound observation");
                 if(value.has_sync())*reply.mutable_snapshot()=renderer.synchronize(world.binding);
@@ -125,7 +126,7 @@ struct Server {
                 else if(value.observe())*reply.mutable_visibility()=renderer.observe(value);
                 else {
                     if(selected!=world.binding.presentation_generation())throw WorldError(wire::FORBIDDEN,"World is not selected for presentation");
-                    *reply.mutable_frame()=renderer.draw(value);
+                    *reply.mutable_frame()=renderer.draw(value,value.capture()?frame.descriptors[0].value:-1);
                 }
             }else throw std::invalid_argument("Missing world presentation operation");
         }catch(const WorldError& error){reply.mutable_error()->set_code(error.code);reply.mutable_error()->set_message(error.what());}

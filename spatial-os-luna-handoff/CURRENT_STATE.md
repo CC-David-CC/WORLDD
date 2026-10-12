@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-12: M06 shared worldd client and captures pass focused checks
+
+Two real worldd processes can present through one compositor without owning its lifetime.
+Stopping one world leaves the compositor and the other world running.
+Captured files remain inside each world state directory through explicit file-descriptor transfer.
+Malformed replies and timeout failures close only the affected world channel.
+Both hosts pass 77 checks in Debug and ASan-UBSan: 308 final coverage executions.
+Audits verify 436 source files, unchanged locked tests, and no sanitizer findings.
+Read evidence/m06-shared-render-worker-2026-10-12/primary-review.txt for evidence and limits.
+Next: production host-session ownership, cleanup receipts, and actor transition integration.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.
+
 ## 2026-10-12: M06 production compositor channels pass focused checks
 
 spatialwm now has private control and independent authenticated world channels.

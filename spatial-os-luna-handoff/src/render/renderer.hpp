@@ -9,7 +9,7 @@ public:
     Renderer(const std::string& display, const std::filesystem::path& state, const render::v1::NativeCompositorConfig* native = nullptr);
     ~Renderer();
     wire::RendererReady ready() const;
-    wire::FrameReply draw(const wire::RenderCommand& command);
+    wire::FrameReply draw(const wire::RenderCommand& command, int capture_fd = -1);
     wire::RenderVisibility observe(const wire::RenderCommand& command);
     int connection() const;
     void events();
@@ -23,7 +23,7 @@ public:
     wire::NativeActorInput input(const render::v1::WorldPresentationBinding&, const wire::RendererInputCommand&);
     wire::NativeSnapshot synchronize(const render::v1::WorldPresentationBinding&);
 private:
-    wire::FrameReply draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility);
+    wire::FrameReply draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility, int capture_fd = -1);
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

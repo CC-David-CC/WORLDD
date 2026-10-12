@@ -35,4 +35,6 @@ message PresentationWorldRequest {
   uint64 request_id = 2;
   oneof operation { PresentationEmpty hello = 3; spatial.core.v1.RenderCommand command = 4; }
 }
+// A capture command carries one private empty writable regular file descriptor.
+// The world owns its path. The compositor writes PPM bytes and returns no path.
 // World replies use core.RenderResult with the same request identity.
