@@ -222,6 +222,11 @@ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}"
 add_library(spatial-scene STATIC src/x11/native_channel.cpp src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
 target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
+add_library(spatial-presentation-stream STATIC src/platform/presentation_stream.cpp)
+target_include_directories(spatial-presentation-stream PUBLIC src)
+target_link_libraries(spatial-presentation-stream PUBLIC spatial-scene)
+add_executable(spatial-presentation-stream-probe src/testing/presentation_stream_probe.cpp)
+target_link_libraries(spatial-presentation-stream-probe PRIVATE spatial-presentation-stream)
 add_library(spatial-control-reply STATIC src/supervisor/control_reply.cpp)
 target_link_libraries(spatial-control-reply PUBLIC spatial-scene)
 add_executable(spatial-control-reply-probe src/testing/control_reply_probe.cpp)
@@ -803,6 +808,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_revocation_command.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-revoke>)
     set_tests_properties(identity-revocation-command PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME presentation-stream COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_presentation_stream.py" $<TARGET_FILE:spatial-presentation-stream-probe>)
+    set_tests_properties(presentation-stream PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME issuer-client COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_issuer_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)

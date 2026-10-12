@@ -1,0 +1,37 @@
+Primary review: private presentation transport
+Status: passed focused verification on sb16 and sb16-2 in Debug and ASan-UBSan.
+
+Reviewed behavior
+PresentationStream owns an authenticated UNIX stream socket and close-on-exec transferred descriptors.
+It validates the socket creator separately from the kernel credentials on every received chunk.
+The first receive reads exactly one byte, so later descriptor injection cannot be mistaken for a valid first-byte handoff.
+The transport permits at most two descriptors per frame and closes delivered descriptors after malformed or truncated ancillary input.
+Outgoing descriptors are duplicated before queueing and released after the first successful send.
+Partial sends never resend ancillary descriptors.
+The maximum payload is 1 MiB. Output allows at most eight frames and 2 MiB including framing.
+Each receive call has a bounded work budget. Each flush writes at most 64 KiB.
+Input and output deadlines are fixed at five seconds. Partial progress does not refresh them.
+Read/framing/credential failures and output failures close the socket and clear owned pending state.
+Callers must invoke receive and flush on periodic event-loop ticks, including when readiness is absent, to enforce deadlines.
+The transport carries descriptors; its caller must still validate sealed configuration, process identity, operation schema, and authority.
+
+Tests and evidence
+Eleven tests passed in every host/profile: 44 final check executions with no failures or skips.
+Tests cover protobuf framing, two sealed descriptors, excessive descriptors, ancillary truncation, and descriptor injection after the first byte.
+They cover wrong socket creators and another process using an inherited descriptor.
+They cover excessive/truncated frames, a partial-progress input deadline, and a stalled-reader output deadline.
+The probe verifies descriptor counts after rejection and uses the production transport for all I/O.
+Audits verify 431 source files on both hosts and the local reviewed worktree, locked acceptance hashes, probe binary hashes, and retained logs.
+No sanitizer findings appeared in the retained test or build logs.
+Full artifacts remain under local/m06-presentation-transport-03 in each isolated M06 host checkout.
+
+Preserved fixture failure
+Run02's new large-message test assumed sendmsg writes the whole stream frame in one call.
+The kernel correctly returned a partial write: 219264 of 500021 bytes on sb16.
+The test helper now sends remaining bytes without repeating descriptors. Production transport already handled partial writes correctly.
+Run01 and run02 evidence remain on both hosts.
+
+Limits
+No existing compositor caller uses PresentationStream yet.
+The control/world-channel loop, retained graphics ownership, supervisor receipt integration, and complete actor world transitions remain pending.
+This focused transport result does not qualify M06 or later milestones.

@@ -1,5 +1,15 @@
 # Implementation status
 
+## 2026-10-12: M06 private presentation transport passes focused checks
+
+PresentationStream adds kernel sender checks, bounded descriptor transfer, and fixed five-second I/O deadlines.
+Both hosts pass eleven focused transport tests in Debug and ASan-UBSan: 44 checks, with no failures or skips.
+The audits found no descriptor leaks or sanitizer findings and verified 431 source files.
+Read evidence/m06-presentation-transport-2026-10-12/primary-review.txt for evidence and scope limits.
+The transport is not yet connected to spatialwm or SessionCoordinator.
+Next: implement the compositor control/world-channel loop and retained host ownership.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.
+
 ## 2026-10-12: M06 Renderer world-input bindings pass focused checks
 
 Renderer now supports independent world input bindings with checked generation identity and native seat retirement.
