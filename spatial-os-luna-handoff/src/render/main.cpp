@@ -1,4 +1,6 @@
 #include "render/renderer.hpp"
+#include "render/presentation_server.hpp"
+#include <fcntl.h>
 #include "platform/compositor_config.hpp"
 #include <charconv>
 #include "world/store.hpp"
@@ -14,6 +16,7 @@ int main(int argc, char** argv) {
         std::filesystem::path state;
         std::string display;
         int native_fd = -1;
+        pid_t presentation_owner = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i + 1 < argc) state = argv[++i];
@@ -23,6 +26,12 @@ int main(int argc, char** argv) {
                 const auto parsed = std::from_chars(number.data(), number.data()+number.size(), native_fd);
                 if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || native_fd <= STDERR_FILENO)
                     throw std::invalid_argument("Native compositor configuration: invalid inherited descriptor");
+            }
+            else if (argument == "--presentation-owner-pid" && presentation_owner == -1 && i + 1 < argc) {
+                const std::string_view number(argv[++i]);
+                const auto parsed = std::from_chars(number.data(), number.data()+number.size(), presentation_owner);
+                if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || presentation_owner <= 1)
+                    throw std::invalid_argument("Invalid presentation owner identity");
             }
             else throw std::invalid_argument("Unknown or incomplete compositor argument");
         }
@@ -34,9 +43,16 @@ int main(int argc, char** argv) {
             display = native->display();
         }
         if (!state.is_absolute() || display.empty()) throw std::invalid_argument("Explicit state and display are required");
+        if (presentation_owner > 1 && !native) throw std::invalid_argument("Presentation service requires authenticated graphics");
         umask(0077);
         spatial::Renderer renderer(display, state, native ? &native->value() : nullptr);
         if (native) native->consume();
+        if (presentation_owner > 1) {
+            const int control = fcntl(STDIN_FILENO, F_DUPFD_CLOEXEC, 3);
+            if (control < 3) throw std::runtime_error("Cannot retain presentation control channel");
+            spatial::serve_presentations(renderer, control, presentation_owner);
+            return 0;
+        }
         spatial::wire::RenderResult ready; ready.set_protocol_version(1); *ready.mutable_ready() = renderer.ready();
         spatial::write_frame(std::cout, ready);
         std::uint64_t sequence=0;

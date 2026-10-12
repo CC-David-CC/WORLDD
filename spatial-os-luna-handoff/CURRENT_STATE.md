@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-12: M06 production compositor channels pass focused checks
+
+spatialwm now has private control and independent authenticated world channels.
+The control owner selects the foreground. Selection clears old pixels without restarting graphics.
+Retained process handles detect owner and world exits, even with surviving socket copies.
+Native key/button retirement is confirmed. Revoked cleanup remains explicitly UNCERTAIN.
+Both hosts pass 44 checks in Debug and ASan-UBSan: 176 final check executions.
+Audits verify 435 source files, unchanged locked tests, and no sanitizer findings.
+Read evidence/m06-presentation-server-2026-10-12/primary-review.txt for scope and preserved failures.
+Next: host-session ownership, worldd channels, actor transitions, and cleanup receipts.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.
+
 ## 2026-10-12: M06 private presentation transport passes focused checks
 
 PresentationStream adds kernel sender checks, bounded descriptor transfer, and fixed five-second I/O deadlines.

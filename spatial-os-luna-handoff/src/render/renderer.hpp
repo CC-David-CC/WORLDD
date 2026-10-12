@@ -15,6 +15,9 @@ public:
     void events();
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command);
+    void reserve_input(const render::v1::WorldPresentationBinding&);
+    void initialize_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
+    void clear_presentation();
     void bind_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void retire_input(const render::v1::WorldPresentationBinding&);
     wire::NativeActorInput input(const render::v1::WorldPresentationBinding&, const wire::RendererInputCommand&);

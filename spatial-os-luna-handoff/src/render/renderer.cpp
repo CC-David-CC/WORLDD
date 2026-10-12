@@ -244,6 +244,24 @@ wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command
     synchronize();
     return impl_->input->execute(command);
 }
+void Renderer::reserve_input(const render::v1::WorldPresentationBinding& binding) {
+    impl_->bindings->reserve(binding);
+}
+void Renderer::initialize_input(const render::v1::WorldPresentationBinding& binding,int descriptor) {
+    auto& r=*impl_;
+    r.bindings->initialize(binding,descriptor);
+    try { if(r.input)r.input->close_all(); }
+    catch (...) { r.bindings->retire(binding);throw; }
+    r.input.reset();
+}
+void Renderer::clear_presentation() {
+    auto& r=*impl_;
+    if(!r.presented.width)return;
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,r.presented.fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    const float black[4]={0,0,0,1};glClearBufferfv(GL_COLOR,0,black);
+    check_gl();r.output();
+}
 void Renderer::bind_input(const render::v1::WorldPresentationBinding& binding, int descriptor) {
     auto& r=*impl_;
     r.bindings->bind(binding,descriptor);
