@@ -8,7 +8,9 @@ The teardown incorrectly requested issuer retirement without a failure fence.
 The corrected test preserves crash retirement and verifies checked cleanup for healthy owners.
 Attempt03 passed 10 of 12 executions.
 Two sb16-2 ASan/UBSan departure cases lost the issuer TLS connection during setup.
-The issuer idle-timeout hypothesis is under targeted diagnosis. No production failure is established yet.
+Diagnostic04 reproduced a 5.149-second idle gap against the three-second fixture idle limit.
+The issuer stayed alive. Registration immediately received EOF on the expired administrative connection.
+A scoped fresh connection before registration is being implemented. Request and idle limits remain unchanged.
 Coverage review also requires destination activation after commit, in addition to the existing rollback case.
 Do not replace the earlier after-commit test with before-commit coverage.
 Read evidence/m06-retained-recovery-2026-10-12 and defect blockers at the repository root.

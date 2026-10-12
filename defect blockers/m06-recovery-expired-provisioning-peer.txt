@@ -1,0 +1,14 @@
+Recovery provisioning reuses an expired administrative TLS connection.
+
+Attempt03 had two setup errors on sb16-2 ASan/UBSan.
+Diagnostic04 reproduced registration after 5.149272966 seconds without a request.
+The fixture configures a three-second idle timeout.
+The issuer process remained alive. The challenge request received immediate EOF.
+This is distinct from the five-second request deadline and from issuer process failure.
+
+Open a fresh authenticated TLS connection before each new registration transaction in this recovery fixture.
+Use the existing challenge, signature, and execute path.
+Do not replay a submitted registration after failure.
+Do not change production or fixture timeout values.
+Preserve the failing logs and diagnostic timestamps.
+Qualify the corrected recovery cases on both hosts in Debug and ASan/UBSan.
