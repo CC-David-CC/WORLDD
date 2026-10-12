@@ -31,8 +31,15 @@ Record contract changes explicitly. Do not silently change locked acceptance tes
 
 ## Hosts and responsibilities
 
-Use sb16 and sb16-2 for Linux builds, tests, worlds, applications, and native sessions.
-Run tool-enabled helper agents only on sb16 and sb16-2.
+Use sb16 and sb16-2 as test boxes for worlds, applications, and native sessions.
+Do not install Codex or run coding agents on these test boxes.
+Do not use these test boxes for development builds or development worktrees.
+Use middle-child and a5500 for coding agents, orchestration, compilation, and development worktrees.
+Deploy build artifacts and required test fixtures to sb16 and sb16-2 for qualification.
+Preserve existing test evidence and checkouts until their replacements are verified.
+Use tmux for persistent remote workers and test jobs.
+Keep logs and checkpoints for recovery after process failure or host reboot.
+This host allocation supersedes the previous build and helper-agent restrictions.
 Each host has 6 GB VRAM, 16 GB RAM, and an SSD.
 SSH access as dflanag3 and passwordless sudo work on both hosts.
 Sudo does not authorize additional hosts or unrelated system changes.
