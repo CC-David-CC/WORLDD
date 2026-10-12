@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-12: M06 recovery and production-entrypoint review
+
+Recovery attempt01 had 12 setup errors from an outdated shared fixture.
+Attempt02 reached crash recovery but failed all 12 cases during healthy-owner teardown.
+The teardown incorrectly requested issuer retirement without a failure fence.
+The corrected test preserves crash retirement and verifies checked cleanup for healthy owners.
+Attempt03 is running on both hosts in Debug and ASan/UBSan. No pass is claimed yet.
+Read evidence/m06-retained-recovery-2026-10-12 and defect blockers at the repository root.
+
+The cross-host Luna draft compiled but omitted runnable two-world provisioning.
+The production host-session Luna draft compiled but lacks required native tests and has reviewed lifetime defects.
+Both drafts remain unintegrated. Bounded Sol corrections follow these demonstrated failures.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending.
+
 ## 2026-10-12: M06 native actor controller integration passes focused checks
 
 HostActorController is integrated at 3b0d39c from worker checkpoint eea077c79.
