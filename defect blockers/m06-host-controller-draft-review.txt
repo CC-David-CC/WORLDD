@@ -1,0 +1,24 @@
+M06 host controller draft review, 2026-10-12.
+Status: unintegrated worker defects; correction assigned.
+Branch: m06/host-actor-controller on a5500.
+
+The initial draft rejects registration of its starting world.
+That prevents preconfigured A-B-A transitions without later trusted reconfiguration.
+Registration must allow the current world as a future destination.
+
+The current_client accessor releases its mutex before returning a mutable raw pointer.
+A concurrent transition can replace that client or route through it simultaneously.
+Keep semantic actions inside controller lifetime and transition fencing.
+
+The probe waits for peer EOF before destroying the controller that owns the open channel.
+Destroy the channel owner before joining EOF witnesses.
+
+The requested actual SessionCoordinator/native regression was described but not implemented.
+Require a concrete runner and registration before treating that task as complete.
+
+The worker also ran ctest on a5500 despite its compile-only task.
+That run failed with 'Actor channel is not a private local stream'.
+It is not qualification evidence. Do not weaken descriptor checks based on that result.
+Primary stopped run01, verified exit1, missing tmux session, and no remaining codex process.
+Sol medium run02 now corrects the bounded implementation after Luna failure.
+Runtime remains unrun on sb16 and sb16-2 for this draft.

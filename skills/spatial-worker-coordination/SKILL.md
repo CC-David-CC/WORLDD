@@ -66,6 +66,9 @@ The final handoff must contain:
 - The next safe command or task. Do not say only "continue testing".
 
 Compile-only hosts must label runtime checks UNRUN.
+On a compile-only assignment, do not run probes or ctest tests, including fixture-only tests.
+Use ctest -N only to inspect registration. Runtime belongs to the designated test hosts.
+Do not weaken production checks to fit a worker sandbox's runtime behavior.
 Do not claim TLS coverage from a local socket test or native coverage from a fixture peer.
 Check production failure paths before asserting that an error proves no side effects.
 Do not infer protocol guarantees from test fixtures written with the same assumption.

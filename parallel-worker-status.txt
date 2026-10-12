@@ -1,4 +1,9 @@
 Current checkpoint, 2026-10-12:
+a5500 host-controller run01 was stopped after it ran a runtime test contrary to its compile-only task.
+Its test failed and does not count as qualification. Review also found registration, pointer-lifetime, and fixture-lifetime defects.
+Correction now runs as Sol medium in tmux spatial-m06-host-controller02 after verified run01 exit1.
+See defect blockers/m06-host-controller-draft-review.txt. Source remains unintegrated.
+middle-child real-world integration worker continues on its separate branch/worktree.
 Combined source 9275727 passed 476 focused checks on both test hosts in Debug and ASan/UBSan.
 Evidence: spatial-os-luna-handoff/evidence/m06-actor-combined-2026-10-12.
 middle-child now runs Luna medium in tmux spatial-m06-world-integration01.
