@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $crossRemoteBase = '/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local'
 $crossRun = "$CrossProfile-$Scenario-${Direction}01"
 $crossIssuer = 'sb16'
-$crossRemoteRun = "$crossRemoteBase/m04-crosshost-01/runs/$crossRun"
+$crossRemoteRun = "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/local/m04-crosshost-01/runs/$crossRun"
 $crossLocal = Join-Path (Join-Path $PSScriptRoot '../../local') "coordinate-m04-crosshost-01-$crossRun"
 if (Test-Path -LiteralPath $crossLocal) { throw "Coordination output already exists: $crossLocal" }
 $crossSsh = (Get-Command ssh.exe).Source

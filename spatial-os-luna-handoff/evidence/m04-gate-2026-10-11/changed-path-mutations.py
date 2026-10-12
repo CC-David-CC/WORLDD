@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import socket
 import subprocess
+from reviewed_local_gate import require_reviewed_gate
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -23,7 +24,7 @@ def main():
     assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
     gate = json.loads((root / 'local/m04-full-gate-01/run.json').read_text())
     if not args.check_only:
-        assert gate['status'] == 'commands_passed_needs_review', 'Wait for existing local gate'
+        gate = require_reviewed_gate(root)
     assert gate['candidate'] == 'f74c6b579c6149f41e1cbd17b025eb92fd453009'
     for name, expected in gate['source_sha256'].items():
         assert digest(root / name) == expected, name

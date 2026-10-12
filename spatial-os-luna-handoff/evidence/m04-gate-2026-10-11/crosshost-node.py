@@ -7,6 +7,7 @@ from pathlib import Path
 import socket
 import subprocess
 import time
+from reviewed_local_gate import require_reviewed_gate
 
 parser = argparse.ArgumentParser()
 parser.add_argument('mode', choices=('controller', 'worker'))
@@ -19,12 +20,8 @@ root = Path('/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-lun
 host = socket.gethostname().split('.')[0]
 assert host in ('sb16', 'sb16-2')
 gate_path = root / 'local/m04-full-gate-01/run.json'
-gate = json.loads(gate_path.read_text())
+gate = require_reviewed_gate(root)
 primary = json.loads((gate_path.parent / 'primary-review.json').read_text())
-assert gate['status'] == 'commands_passed_needs_review'
-assert primary['status'] == 'reviewed_local_M04_gate_pending_crosshost'
-assert primary['candidate'] == gate['candidate'] == 'f74c6b579c6149f41e1cbd17b025eb92fd453009'
-assert primary['gate_sha256'] == hashlib.sha256(gate_path.read_bytes()).hexdigest()
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -37,13 +34,20 @@ vendor_config = Path(gate['graphics']['__EGL_VENDOR_LIBRARY_FILENAMES'])
 vendor = Path(json.loads(vendor_config.read_text())['ICD']['library_path'])
 assert digest(vendor) == gate['vendor_sha256'], 'Qualified graphics vendor changed'
 profile = gate['profiles'][args.profile]
-assert profile['status'] == 'commands_passed_needs_review'
 build = root / 'local/m04-gate-m04-full-gate-01' / args.profile
 for name, expected in profile['binary_sha256'].items():
     assert digest(build / name) == expected, name
 assert digest(Path(profile['server']['path'])) == profile['server']['sha256']
 assert digest(Path(profile['launcher'])) == profile['launcher_sha256']
-cross = root / 'local/m04-crosshost-01'
+fixture_source = Path('/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff')
+fixture_report = json.loads((fixture_source / 'local/m04-storage-fixture-correction-01/run.json').read_text())
+assert fixture_report['status'] == 'passed_needs_primary_review'
+assert fixture_report['gate_sha256'] == digest(gate_path)
+changed = [name for name, expected in gate['source_sha256'].items()
+           if digest(fixture_source / name) != expected]
+assert changed == ['tests/native/storage_session_volume.py'], changed
+assert digest(fixture_source / changed[0]) == fixture_report['corrected_helper_sha256']
+cross = fixture_source / 'local/m04-crosshost-01'
 bindings = cross / 'python'
 bindings.mkdir(parents=True, exist_ok=True)
 schema = root / 'tests/proto/crosshost_revocation.proto'
@@ -64,7 +68,7 @@ assert not out.exists()
 command = ['python3', str(root / 'tools/with_resource_delegate.py'), '--native', '--',
            'python3', str(root / 'tools/with_adapter_resources.py'), '--',
            'python3', str(root / 'tests/native/crosshost_revocation.py'), args.mode,
-           '--source', str(root), '--build', str(build), '--bindings', str(bindings),
+           '--source', str(fixture_source), '--build', str(build), '--bindings', str(bindings),
            '--scenario', args.scenario, '--output', str(out)]
 if args.mode == 'controller':
     assert host == 'sb16'
@@ -81,6 +85,8 @@ env = {**os.environ, 'PYTHONPATH': str(build / 'python') + ':' + str(root),
 record = dict(status='running', host=host, mode=args.mode, profile=args.profile,
               scenario=args.scenario, direction=args.direction, command=command,
               candidate=gate['candidate'], source_digest=source_digest, binding_sha256=binding_hash,
+              fixture_source=str(fixture_source), fixture_changes=changed,
+              fixture_helper_sha256=fixture_report['corrected_helper_sha256'],
               gate_sha256=primary['gate_sha256'], runner_pid=os.getpid(), started=time.time())
 review = case / (args.mode + '-review.json')
 review.write_text(json.dumps(record, indent=2) + '\n')
