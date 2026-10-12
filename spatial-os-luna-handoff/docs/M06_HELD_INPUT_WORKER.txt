@@ -1,0 +1,21 @@
+M06 combined input transition assignment
+
+Host: middle-child, compile-only. Model: gpt-6-luna, medium.
+Checkout: /home/dflanag3/src/spacial-m06-held-input-20261012.
+Branch: m06/held-input-transitions. Base: 6f3b100.
+Tmux: spatial-m06-held-input01.
+Logs, copied task, launch identity, and exit: local/m06-held-input/run01/.
+The installed coordination skill's literal run-worker.sh captures the terminal exit.
+
+Implement native held-key/button release during production HostActorController world transitions.
+Use retained worlds, the shared compositor, confined applications, and independent native input witnesses.
+Reject delayed actions carrying the prior host generation before effects.
+Verify B-to-A restoration does not restore held input or stale control.
+Verify a denied private destination preserves usable source application control.
+Preserve world, compositor, XLibre, and application process identities where required.
+
+Own new test probe/schema, native tests, CMake registration, and focused documentation.
+Do not change production libraries or locked assertions without primary review.
+Build Debug and ASan/UBSan only. Supply complete hashed runtime bundles.
+Runtime qualification belongs to sb16 and sb16-2. All runtime remains UNRUN at assignment.
+Primary reviews, qualifies, and checkpoints the result before milestone integration.
