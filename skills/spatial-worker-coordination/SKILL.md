@@ -156,6 +156,9 @@ Record excluded graphics coverage explicitly. A core-only sanitizer pass cannot 
 Do not apply one suite's broker wrapper to all suites. Different fixtures can observe different cgroup ownership paths.
 After a launcher-only setup failure, preserve the failure and rerun only affected cases with the corrected launcher.
 Inspect imported fixtures for generated bindings, executable-adjacent runtime configuration, and helper binaries before packaging.
+Trace helper launches through imported fixtures for the selected test methods.
+Include reachable helpers in both target dependencies and the package manifest.
+Verify a target-only build produces its required helpers before distributing the bundle.
 Declare required generated-file targets in CMake. A successful executable build does not prove its test bundle is complete.
 For production Python entrypoints, verify transitive protobuf imports in BUILD_TESTING=OFF artifacts too.
 Keep one generator for each output. Move its ownership when needed instead of creating duplicate generation commands.
@@ -164,6 +167,8 @@ Record missing prerequisites as setup failures. Preserve the production security
 Run focused Debug and sanitizer checks on both test hosts when the affected boundary requires them.
 Inspect output assertions and sanitizer diagnostics as well as process exit status.
 Do not accept a test harness that exits zero after reporting failures.
+Derive progress counts from completed result records. Do not infer counts from test order or names.
+Use terminal suite summaries for final totals. Keep partial progress separate from completed suites.
 
 Integrate reviewed task commits into the milestone branch in the recorded order.
 Resolve shared-file conflicts deliberately. Re-run affected checks on the combined source.
