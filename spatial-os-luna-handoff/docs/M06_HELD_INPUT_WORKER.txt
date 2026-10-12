@@ -30,3 +30,17 @@ Tmux: spatial-m06-held-input02. Logs: local/m06-held-input/run02/.
 The same isolated checkout and branch retain ownership.
 The new task includes absolute, verified paths to the copied primary review.
 All four native input behaviors and the runnable bundle remain required.
+
+Run02 ended with exit zero and supplied both builds and a runnable bundle.
+Primary review found namespace-local witness PIDs used as host process identities.
+That defect prevents qualification of its process-continuity assertions.
+Preserve run02 and local/m06-held-input/run02-draft.tar.gz.
+Snapshot SHA256: a682eca937bb7ce098799f95368adf927c9ff359f7c0e76a552d0a2ceb51a53f.
+
+Run03 uses Sol medium for this bounded correction on the same branch.
+Tmux: spatial-m06-held-input03. Logs: local/m06-held-input/run03/.
+Review input: /home/dflanag3/m06-held-input-namespace-pid-review.txt.
+Resolve the actual confined witness identity before checking host PID/start continuity.
+Retain all four native behaviors and refresh affected builds and bundle hashes.
+The updated fixture requires the SessionApplicationTests resource-backed launcher.
+Runtime checks remain unrun until primary review passes.
