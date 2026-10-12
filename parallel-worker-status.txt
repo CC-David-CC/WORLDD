@@ -1,4 +1,9 @@
 Current checkpoint, 2026-10-12:
+middle-child real-world integration run01 was stopped after two builds overlapped in one directory.
+Verified terminal exit1 and no surviving cmake processes before starting correction.
+Sol medium run02 is live in tmux spatial-m06-world-integration02 on the same dedicated worktree/branch.
+The correction addresses actual test setup defects and missing required cases.
+See defect blockers/m06-real-world-integration-draft-review.txt.
 a5500 host-controller run01 was stopped after it ran a runtime test contrary to its compile-only task.
 Its test failed and does not count as qualification. Review also found registration, pointer-lifetime, and fixture-lifetime defects.
 Correction now runs as Sol medium in tmux spatial-m06-host-controller02 after verified run01 exit1.
