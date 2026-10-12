@@ -36,6 +36,10 @@ NativeInput::NativeInput(int sealed_config_fd) : scoped_(std::make_unique<Native
     opcode_ = static_cast<unsigned char>(header[9]);
 }
 NativeInput::~NativeInput() = default;
+const std::string& NativeInput::server_id() const {
+    if (!scoped_) throw std::logic_error("Native input has no scoped server identity");
+    return scoped_->server_id();
+}
 NativeInput::NativeInput(Display* display) : display_(display) {
     int event = 0, error = 0;
     if (!XQueryExtension(display_, "SPATIAL-INPUT", &opcode_, &event, &error))

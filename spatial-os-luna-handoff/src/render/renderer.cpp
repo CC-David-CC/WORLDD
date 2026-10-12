@@ -1,4 +1,5 @@
 #include "render/renderer.hpp"
+#include "render/presentation_inputs.hpp"
 #include "x11/compositor_connection.hpp"
 #include "core/scene.hpp"
 #include "x11/surfaces.hpp"
@@ -76,8 +77,9 @@ struct Renderer::Impl {
     std::unique_ptr<NativeInput> native_input;
     std::unique_ptr<XSurfaces> surfaces;
     std::unique_ptr<XInputRouter> input;
+    std::unique_ptr<PresentationInputs> bindings;
     ~Impl() {
-        input.reset(); surfaces.reset(); native_input.reset();
+        bindings.reset(); input.reset(); surfaces.reset(); native_input.reset();
         if (context) {
             if (program) glDeleteProgram(program);
             if (vao) glDeleteVertexArrays(1, &vao);
@@ -212,6 +214,7 @@ void main() {
         r.native_input=std::make_unique<NativeInput>(r.display);
     r.surfaces=std::make_unique<XSurfaces>(r.display,r.window,r.overlay,r.native_input.get());
     if (r.native_input) r.input=std::make_unique<XInputRouter>(r.display,*r.native_input,*r.surfaces);
+    r.bindings=std::make_unique<PresentationInputs>(r.display,*r.surfaces,native ? native->server_id() : std::string{});
 }
 Renderer::~Renderer() = default;
 wire::RendererReady Renderer::ready() const { return impl_->info; }
@@ -240,6 +243,26 @@ wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command
     if (!impl_->input) throw WorldError(wire::UNIMPLEMENTED, "Native actor input requires the project XLibre server");
     synchronize();
     return impl_->input->execute(command);
+}
+void Renderer::bind_input(const render::v1::WorldPresentationBinding& binding, int descriptor) {
+    auto& r=*impl_;
+    r.bindings->bind(binding,descriptor);
+    try { if (r.input) r.input->close_all(); }
+    catch (...) { r.bindings->retire(binding); throw; }
+    r.input.reset(); // Scoped mode never returns to the unbound input path.
+}
+void Renderer::retire_input(const render::v1::WorldPresentationBinding& binding) {
+    impl_->bindings->retire(binding);
+}
+wire::NativeActorInput Renderer::input(const render::v1::WorldPresentationBinding& binding,
+                                     const wire::RendererInputCommand& command) {
+    synchronize();
+    return impl_->bindings->input(binding,command);
+}
+wire::NativeSnapshot Renderer::synchronize(const render::v1::WorldPresentationBinding& binding) {
+    auto result=synchronize();
+    impl_->bindings->snapshot(binding,result);
+    return result;
 }
 wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
     return draw_scene(command, nullptr);

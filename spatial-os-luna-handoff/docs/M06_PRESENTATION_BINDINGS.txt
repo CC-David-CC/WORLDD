@@ -1,0 +1,79 @@
+M06 presentation input binding increment
+Status: binding layer passed focused Debug and sanitizer checks on both hosts. Process transport integration remains pending.
+
+Invariant
+One persistent Renderer can host independent world input connections.
+Each binding carries world identity, service incarnation, authority generation, and presentation generation.
+The trusted session owner assigns strictly increasing presentation generations.
+These identifiers grant no actor authority. worldd must authorize every action.
+Each binding owns its own XInputRouter, actor-seat map, and sealed NativeInput connection.
+The input server identity must match the authenticated graphics server identity.
+Retirement closes every seat through the server before removing the binding.
+A failed closure does not produce a successful retirement acknowledgment.
+Retired or mismatched bindings cannot route input. Retired presentation generations cannot be reused.
+Other bindings remain independently usable when one native connection fails.
+The first scoped binding closes legacy seats and disables the unbound actor-input path.
+Graphics surface discovery retains its authenticated graphics connection.
+
+Focused tests selected before execution
+Use an actual Renderer, the new XLibre build, and an independent native witness.
+Test A/B bindings with the same actor name and separate seats.
+Test held keys/buttons, checked retirement, stale bindings, generation reuse, and wrong server identity.
+Revoke A through its supervisor and require B input plus real frame output to remain usable.
+Test invalid sealed configuration and descriptor cleanup on failed bind.
+Run related render, scoped-input, actor-input, and application-input suites in Debug and ASan-UBSan on both hosts.
+
+Remaining integration
+The renderer process transport does not yet carry bindings or sealed descriptors.
+Persistent host ownership, actor departure checkpoints, and full world transitions remain pending.
+Do not claim M06 qualification from this input-binding increment.
+
+Initial Debug evidence
+Both hosts completed the seven selected suites. The new binding suite exposed fixture issues.
+The same-actor test tried two concurrent controllers on one application; the server correctly returns BUSY.
+The corrected independence case uses separate applications and keeps the same actor name.
+The thin probe did not pump Expose events after drawing, unlike the production compositor loop.
+Add that event pump and retain the exact independent pixel assertion. Verify the pixel diagnosis by rerunning.
+Keep local/m06-presentation-input-01 evidence on both hosts.
+
+Second Debug result
+The event pump correction restores the exact independent pixel check on both hosts.
+All eight original binding cases pass, including graphics survival, native releases, and wrong-server denial.
+The added shared-application denial case expected IN_USE, but the existing API returns BUSY.
+Correct this new assertion to BUSY and require the first controller to keep its held input.
+No production error mapping or locked assertion changes.
+
+Next transport integration: inspected constraints
+world/main.cpp still creates RenderWorker and therefore owns the compositor process.
+RenderWorker still terminates its owned process after uncertain transport failure.
+render/main.cpp still reads one private stream and exits when that stream closes.
+SessionCoordinator starts worlds synchronously; renderer forwarding cannot depend on that blocked caller pumping events.
+ParticipantStream already provides bounded nonblocking frames and fixed five-second partial-frame deadlines.
+It does not transfer sealed descriptors and cannot be reused unchanged for that handoff.
+
+Proposed ownership and transport
+Give the host session the retained compositor process and its graphics credential scope.
+Give each world a separate inherited rendering channel attached through the session's private control channel.
+The compositor associates that channel with the full binding; a world cannot select another channel's identity.
+Keep scoped native input credentials under the existing world supervisor and its cleanup receipts.
+Transfer sealed configurations only through an authenticated private descriptor handoff.
+Use versioned protobuf control messages. Validate descriptor count, seals, peer identity, message identity, and bounds.
+Keep all world channels nonblocking with independent fixed partial-frame deadlines and bounded queues.
+One incomplete frame or dead world must not block other worlds or terminate graphics.
+Keep foreground presentation selection separate from background actor observation.
+Retired channels and stale generations must be rejected before render or input effects.
+Resolve socketpair creator credentials versus sender credentials explicitly when implementing peer checks.
+Do not assume SO_PEERCRED on an inherited socketpair reports the executing child.
+
+Failure handling to implement
+Normal detach requires confirmed input retirement and actor-context checkpointing before destination input activates.
+World-channel loss disables that binding immediately and reports cleanup uncertainty.
+A revoked native connection can prevent local retirement acknowledgment even after server cleanup succeeds.
+Use the exact supervisor cleanup receipt to resolve that state; do not convert the transport exception into success.
+Keep the existing normal compositor mode until the new production session path is wired and qualified.
+These are implementation constraints, not completed features or qualification evidence.
+
+Final focused evidence
+See evidence/m06-presentation-bindings-2026-10-12/primary-review.txt.
+Final coverage includes 77 checks per host/profile, with no remaining failures or skips.
+The first scoped binding also releases legacy held input through independently witnessed native events.

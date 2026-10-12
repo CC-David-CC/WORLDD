@@ -15,6 +15,10 @@ public:
     void events();
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command);
+    void bind_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
+    void retire_input(const render::v1::WorldPresentationBinding&);
+    wire::NativeActorInput input(const render::v1::WorldPresentationBinding&, const wire::RendererInputCommand&);
+    wire::NativeSnapshot synchronize(const render::v1::WorldPresentationBinding&);
 private:
     wire::FrameReply draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility);
     struct Impl;

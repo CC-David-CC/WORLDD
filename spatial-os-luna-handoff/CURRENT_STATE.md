@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-12: M06 Renderer world-input bindings pass focused checks
+
+Renderer now supports independent world input bindings with checked generation identity and native seat retirement.
+A revoked world input connection leaves graphics and another binding usable in the real Renderer probe.
+Independent X clients verify exact pixels and balanced native key/button events.
+Both hosts pass seven selected suites in Debug and ASan-UBSan, with final coverage of 77 checks per profile.
+No remaining failures, skips, or sanitizer findings were observed.
+Read evidence/m06-presentation-bindings-2026-10-12/primary-review.txt for source hashes, fixture corrections, and coverage limits.
+The new binding API still needs spatialwm transport and SessionCoordinator integration.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.
+Next: retained host presentation ownership and independent world channels, then actor transition ordering and recovery.
+
 ## 2026-10-12: M06 scoped input and normal test deadlines pass focused checks
 
 World-scoped native input can now disconnect without terminating another input owner in the same process.

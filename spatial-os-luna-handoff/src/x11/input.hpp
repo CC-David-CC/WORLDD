@@ -16,6 +16,7 @@ public:
     NativeInput& operator=(const NativeInput&) = delete;
     native_input::Reply exchange(const native_input::Request& request);
     native_input::Reply call(native_input::Request request);
+    const std::string& server_id() const;
 private:
     Display* display_ = nullptr;
     std::unique_ptr<NativeChannel> scoped_;

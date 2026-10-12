@@ -34,6 +34,14 @@ wire::NativeActorInput XInputRouter::state(const std::string& actor, Seat& seat,
     else seat.focus.Clear();
     return result;
 }
+void XInputRouter::close_all() {
+    while (!seats_.empty()) {
+        auto found = seats_.begin();
+        native_input::Request request; request.mutable_close()->set_id(found->second.id);
+        checked(request);
+        seats_.erase(found);
+    }
+}
 void XInputRouter::snapshot(wire::NativeSnapshot& snapshot) {
     for (auto& [actor, seat] : seats_) {
         native_input::Request request; request.mutable_status()->set_id(seat.id);

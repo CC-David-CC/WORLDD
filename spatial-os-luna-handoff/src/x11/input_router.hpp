@@ -10,6 +10,8 @@ public:
     XInputRouter(Display* display, NativeInput& input, XSurfaces& surfaces);
     wire::NativeActorInput execute(const wire::RendererInputCommand& command);
     void snapshot(wire::NativeSnapshot& snapshot);
+    // Erase each seat only after the server confirms its closure.
+    void close_all();
 private:
     struct Seat {
         std::uint64_t id = 0;

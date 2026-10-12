@@ -10,3 +10,13 @@ message NativeCompositorConfig {
   optional uint32 server_pid = 5;
   optional uint32 server_uid = 6;
 }
+
+// Private presentation identity. This identifier does not grant actor authority.
+// The session owner assigns strictly increasing presentation generations.
+message WorldPresentationBinding {
+  uint32 protocol_version = 1;
+  string world_id = 2;
+  bytes service_incarnation = 3;
+  uint64 authority_generation = 4;
+  uint64 presentation_generation = 5;
+}
