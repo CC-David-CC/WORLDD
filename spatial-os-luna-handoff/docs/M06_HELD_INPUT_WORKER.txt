@@ -19,3 +19,14 @@ Do not change production libraries or locked assertions without primary review.
 Build Debug and ASan/UBSan only. Supply complete hashed runtime bundles.
 Runtime qualification belongs to sb16 and sb16-2. All runtime remains UNRUN at assignment.
 Primary reviews, qualifies, and checkpoints the result before milestone integration.
+
+Run01 completed with exit zero but omitted the combined native input fixture and deployable bundle.
+Its own handoff is INCOMPLETE. Successful compilation does not satisfy this assignment.
+The primary also identified an invalid-request false-positive risk in its stale-generation test.
+Preserve local/m06-held-input/run01/ and run01-draft.tar.gz.
+
+Run02 uses gpt-6-sol with medium reasoning after that demonstrated failure.
+Tmux: spatial-m06-held-input02. Logs: local/m06-held-input/run02/.
+The same isolated checkout and branch retain ownership.
+The new task includes absolute, verified paths to the copied primary review.
+All four native input behaviors and the runnable bundle remain required.
