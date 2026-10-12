@@ -58,6 +58,8 @@ Use explicit encoding and newline handling for hash manifests and transferred fi
 
 Inspect tmux and the specific child process before restarting work.
 An observation timeout is not process failure. Recheck the same handle.
+If exec_command returns session_id without exit_code, poll that session before dependent operations.
+Wait for scp to finish before hashing its destination. A partial-file hash does not prove transfer corruption.
 An empty or malformed exit record is not exit zero. Preserve the launcher and report unknown exit status.
 Use terminal worker events and process state to establish completion when the launcher record is defective.
 A queued correction must wait for the prior writer to exit and its terminal record to exist.

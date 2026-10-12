@@ -1,0 +1,23 @@
+Primary review, 2026-10-12.
+
+All 28 selected checks passed across both hosts and profiles.
+All eight suite commands exited zero. No case skipped.
+Checked wrapper receipts report scope removal and inactive collected units.
+The audit scanned 178 logs and found no sanitizer markers.
+This is focused evidence, not a complete M06 qualification claim.
+
+The added session-application-probe binary matches its coding-host hash on both hosts.
+The existing bundle manifest passed before each host ran these suites.
+The selected production source, protobufs, and native test files match task9222918.
+Only unrelated transition/recovery testing drivers differ on the milestone branch.
+The task was integrated as c8c43ee after this evidence review.
+
+Preserve all raw logs. The bootstrap broker logs contain a trailing space after
+the diagnostic 'Git worker exited with status 1:'. Do not rewrite those bytes.
+The overall test assertions and checked cleanup passed. No claim of zero diagnostic messages is made.
+For the checkpoint, exclude only raw *-bootstrap-broker.log files from the whitespace check.
+All other staged files must pass git diff --cached --check.
+This documented exception uses manual reviewed Git commands under references/git-handoff.md.
+
+The source design note and the new geometry worker do not count as runtime evidence.
+Production host-session, visible remote geometry, and the full M06 gate remain incomplete.

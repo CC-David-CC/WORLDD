@@ -1,4 +1,17 @@
 Current checkpoint, 2026-10-12:
+M06 held-input task 9222918 integrated as c8c43ee after 28 related lifecycle checks passed.
+Both hosts/profiles passed application and replacement checks with scope cleanup.
+Evidence: spatial-os-luna-handoff/evidence/m06-held-input-2026-10-12/related-lifecycle.
+Cross-host task c93e02b passed 12 semantic cases plus cleanup regressions; primary review remains pending.
+Its runtime slots are released. The host-session worker now owns both slots for focused qualification.
+Host-session source and ON/OFF artifacts are frozen at run03-packaging-03 on a5500.
+middle-child: Luna medium, tmux spatial-m06-geometry-view01, branch m06/actor-geometry-view.
+Checkout: /home/dflanag3/src/spacial-m06-geometry-view-20261012, base 5368e7d.
+Task: authenticated geometry-only view export and client validation; coding/builds only.
+The next increment must connect those views to actual local and remote native presentation.
+Gate tooling has 11 static checks passed; complete deployed workflow remains unrun.
+M01-M05 qualified. M06 active. M07-M16 pending. Older entries below are historical.
+
 Queued on a5500: tmux spatial-m06-native-primary waits for host-controller run02 exit0.
 Then it corrects whole-reply identity comparisons and adds/builds workspaced for the native runner.
 Logs: local/m06-host-controller/primary-*. Source changes wait for the worker to stop.

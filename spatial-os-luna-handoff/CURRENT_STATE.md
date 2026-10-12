@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-12: Held-input checkpoint integrated; shared geometry work starts
+
+Held-input task 9222918 is integrated as c8c43ee after all 28 related lifecycle checks passed.
+Both hosts passed session-application and session-replacement in Debug and ASan/UBSan.
+All eight suite executions returned zero with checked scope cleanup and no skipped cases.
+The evidence audit scanned 178 logs without sanitizer findings.
+Read evidence/m06-held-input-2026-10-12/related-lifecycle/review.json.
+These checks supplement the four earlier held-input executions. They are not the full M06 gate.
+The selected production source, schemas, and native fixtures match the qualified task checkpoint.
+The remaining source differences are unrelated transition/recovery test drivers.
+
+Cross-host worker checkpoint c93e02b reports 12 semantic cases passed with complete cleanup.
+Primary evidence review and integration remain pending. No native presentation claim follows from those checks.
+Production host-session deployment and focused qualification are next on both runtime hosts.
+
+Review confirmed that foreground selection alone does not draw the destination world.
+A Luna medium worker now implements authenticated geometry export on middle-child.
+Branch: m06/actor-geometry-view. Base: 5368e7d. Tmux: spatial-m06-geometry-view01.
+Read docs/M06_GEOMETRY_VIEW_WORKER.txt for its bounded scope and required presentation integration.
+Runtime checks for that new implementation remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-12: Held-input transitions pass the focused native matrix
 
 Task checkpoint 9222918f5 passed on both hosts in Debug and ASan/UBSan: four test executions.

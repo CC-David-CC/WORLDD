@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "task_commit": "9222918f59a4d74fa5e099496b3363baff90ac41",
+  "passed": 28,
+  "failed": 0,
+  "skipped": 0,
+  "cases": [
+    {
+      "host": "sb16",
+      "profile": "debug",
+      "suite": "session_application",
+      "passed": 3
+    },
+    {
+      "host": "sb16",
+      "profile": "debug",
+      "suite": "session_replacement",
+      "passed": 4
+    },
+    {
+      "host": "sb16",
+      "profile": "asan",
+      "suite": "session_application",
+      "passed": 3
+    },
+    {
+      "host": "sb16",
+      "profile": "asan",
+      "suite": "session_replacement",
+      "passed": 4
+    },
+    {
+      "host": "sb16-2",
+      "profile": "debug",
+      "suite": "session_application",
+      "passed": 3
+    },
+    {
+      "host": "sb16-2",
+      "profile": "debug",
+      "suite": "session_replacement",
+      "passed": 4
+    },
+    {
+      "host": "sb16-2",
+      "profile": "asan",
+      "suite": "session_application",
+      "passed": 3
+    },
+    {
+      "host": "sb16-2",
+      "profile": "asan",
+      "suite": "session_replacement",
+      "passed": 4
+    }
+  ],
+  "sanitizer_logs_scanned": 178,
+  "phase_complete": false,
+  "scope": "Related native lifecycle checks only; full M06 gate remains pending"
+}
