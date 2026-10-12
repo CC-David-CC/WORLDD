@@ -286,8 +286,14 @@ struct IdentitySessions::Impl {
         request.set_protocol_version(1);
         pb::IssuerReply reply;
         try { reply = client->call(std::move(request)); }
-        catch (const CancellationFailure&) { throw; }
-        catch (const std::exception&) { fail(); throw WorldError(wire::UNAVAILABLE, "World issuer connection failed"); }
+        catch (const CancellationFailure&) {
+            std::cerr << "worldd: issuer exchange failed " << client->failure_diagnostic() << '\n';
+            throw;
+        }
+        catch (const std::exception&) {
+            std::cerr << "worldd: issuer exchange failed " << client->failure_diagnostic() << '\n';
+            fail(); throw WorldError(wire::UNAVAILABLE, "World issuer connection failed");
+        }
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
         last_exchange = Clock::now();
         if (reply.has_error()) {

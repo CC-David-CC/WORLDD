@@ -935,6 +935,9 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-issuer-client-probe src/testing/issuer_client_probe.cpp)
     target_link_libraries(spatial-issuer-client-probe PRIVATE spatial-issuer-client-lib)
+    add_executable(spatial-issuer-failure-diagnostic tests/core/issuer_failure_diagnostic.cpp)
+    target_link_libraries(spatial-issuer-failure-diagnostic PRIVATE spatial-issuer-client-lib)
+    add_dependencies(spatial-issuer-client spatial-issuer-failure-diagnostic)
     add_test(NAME identity-revocation-command COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_revocation_command.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-revoke>)

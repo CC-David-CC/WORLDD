@@ -19,6 +19,7 @@
 #include <poll.h>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <sys/socket.h>
 
 namespace spatial::identity {
@@ -119,6 +120,8 @@ struct IssuerClient::Impl {
     const char* phase = "connect";
     const char* waiting_for = "none";
     std::size_t progress = 0, transfer_size = 0;
+    const char* failure = "none";
+    bool validating_reply = false;
     std::uint64_t sequence = 0;
     bool broken = false, busy = false;
     struct ServiceChallenge {
@@ -579,7 +582,14 @@ struct IssuerClient::Impl {
     void check() {
         const auto before_tick = Clock::now();
         maximum_gap = std::max(maximum_gap, before_tick-last_check);
-        if (tick) tick();
+        if (tick) {
+            try { tick(); }
+            catch (...) {
+                const auto now = Clock::now();
+                maximum_tick = std::max(maximum_tick, now-before_tick); last_check = now;
+                failure = "tick_callback"; throw;
+            }
+        }
         const auto now = Clock::now();
         maximum_tick = std::max(maximum_tick, now-before_tick); last_check = now;
         if (now < deadline) return;
@@ -592,6 +602,7 @@ struct IssuerClient::Impl {
             << " progress=" << progress << '/' << transfer_size
             << " elapsed_ms=" << milliseconds(now-started) << " gap_ms=" << milliseconds(maximum_gap)
             << " tick_ms=" << milliseconds(maximum_tick);
+        failure = "absolute_deadline";
         throw std::runtime_error(message.str());
     }
     void wait(short events) {
@@ -606,7 +617,13 @@ struct IssuerClient::Impl {
     void retry(int error) {
         if (error == SSL_ERROR_WANT_READ) wait(POLLIN);
         else if (error == SSL_ERROR_WANT_WRITE) wait(POLLOUT);
-        else throw std::runtime_error("Issuer TLS connection failed");
+        else {
+            const auto reason = ERR_GET_REASON(ERR_peek_last_error());
+            failure = error == SSL_ERROR_ZERO_RETURN || (error == SSL_ERROR_SYSCALL && errno == 0) ||
+                (error == SSL_ERROR_SSL && reason == SSL_R_UNEXPECTED_EOF_WHILE_READING)
+                ? "issuer_eof" : "tls_transport";
+            throw std::runtime_error("Issuer TLS connection failed");
+        }
     }
     void transfer(char* data, std::size_t size, bool writing, const char* stage) {
         phase = stage; progress = 0; transfer_size = size;
@@ -663,6 +680,7 @@ struct IssuerClient::Impl {
                                     (std::uint32_t(header[2]) << 8) | header[3];
         require(length <= max_frame_bytes, "Issuer reply exceeds size limit");
         bytes.resize(length); transfer(bytes.data(), bytes.size(), false, "reply_payload");
+        validating_reply = true;
         v1::IssuerReply reply;
         require(reply.ParseFromString(bytes) && reply.protocol_version() == 1 && reply.request_id() == sequence,
                 "Invalid issuer reply identity");
@@ -714,11 +732,14 @@ struct IssuerClient::Impl {
                     require(state.revision() == 1 && state.profile().grants_size() == 0, "Invalid immutable empty profile");
             }
         }
+        validating_reply = false;
         return reply;
     }
     v1::IssuerReply call(v1::IssuerRequest request) {
         require(!broken, "Issuer client is disabled after failure");
         if (busy) throw std::logic_error("Issuer client does not permit reentrant calls");
+        failure = "none";
+        validating_reply = false;
         validate_message(request);
         if (request.has_profile_read()) validate_bootstrap_read(request.profile_read(), true);
         const auto caller_id = request.request_id();
@@ -729,7 +750,21 @@ struct IssuerClient::Impl {
         busy = true; reset_deadline();
         try {
             auto reply = exchange(std::move(request)); reply.set_request_id(caller_id); busy = false; return reply;
-        } catch (...) { busy = false; poison(); throw; }
+        } catch (...) {
+            if (validating_reply) failure = "reply_validation";
+            else if (failure == std::string_view("none")) failure = "issuer_transport_or_local";
+            busy = false; poison(); throw;
+        }
+    }
+    std::string diagnostic() const {
+        if (failure == std::string_view("none")) return "category=none";
+        const auto ms = [](Clock::duration d) { return std::chrono::duration_cast<std::chrono::milliseconds>(d).count(); };
+        const auto now = Clock::now();
+        std::ostringstream out;
+        out << "category=" << failure << " phase=" << phase << " elapsed_ms=" << ms(now-started)
+            << " timeout_ms=" << timeout.count() << " gap_ms=" << ms(maximum_gap)
+            << " tick_ms=" << ms(maximum_tick) << " progress=" << progress << '/' << transfer_size;
+        return out.str();
     }
 };
 IssuerClient::IssuerClient(const std::filesystem::path& config, std::function<void()> tick)
@@ -739,4 +774,5 @@ v1::IssuerReply IssuerClient::call(v1::IssuerRequest request) { return impl_->ca
 void IssuerClient::set_tick(std::function<void()> tick) { impl_->tick = std::move(tick); }
 bool IssuerClient::failed() const noexcept { return impl_->broken; }
 std::chrono::milliseconds IssuerClient::timeout() const noexcept { return impl_->timeout; }
+std::string IssuerClient::failure_diagnostic() const { return impl_->diagnostic(); }
 }
