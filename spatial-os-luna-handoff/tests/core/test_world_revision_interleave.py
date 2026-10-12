@@ -46,6 +46,17 @@ class ReplayedStatusRelay(existing.RelayingIssuer):
 
 
 class RevisionInterleaveTests(existing.WorldAuthorityTests):
+    def config_file(self, endpoint_port=None, **overrides):
+        # Healthy authority setup uses the accepted five-second request budget.
+        # The relay still enforces the original ordering and delivery assertions.
+        overrides.setdefault('io_timeout_ms', 5000)
+        return super().config_file(endpoint_port, **overrides)
+
+    def connect(self, *args, **kwargs):
+        peer = super().connect(*args, **kwargs)
+        peer.stream.settimeout(5)
+        return peer
+
     def revoke_second(self):
         peer = self.connect()
         try:

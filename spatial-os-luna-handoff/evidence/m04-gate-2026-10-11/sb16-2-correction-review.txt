@@ -1,0 +1,32 @@
+M04 sb16-2 correction review
+Date: 2026-10-11
+Status: focused corrections passed; M04 remains incomplete.
+
+The original gate tested f74c6b579c6149f41e1cbd17b025eb92fd453009.
+Both profiles executed all 141 core suites, 51 harness checks, 151 acceptance cases, and five storage scenarios.
+Only session-storage-owner and session-storage-contention failed in each profile.
+The original ASan traces show the old checkout-specific volume guard failing before volume operations.
+All other stages passed. The artifact audit found no additional errors or sanitizer markers.
+The original report remains failed and unchanged.
+
+The corrected storage fixture passed two owner and three contention cases per profile.
+The runner checked the original source manifest and reused its pinned binaries.
+Only storage_session_volume.py differs in the corrected fixture checkout.
+All four copied test-log hashes match the correction report.
+The setup-deadline drafts passed four revision-interleave cases and one idle-owner case per profile.
+Those four copied test-log hashes also match their correction report.
+The runners preserve the test assertions, relay ordering, and server idle deadline.
+The healthy configuration default is 5000 ms. The peer socket timeout is five seconds per operation.
+These changes are fixture policy corrections. They do not establish a worst-case storage latency bound.
+
+Separate sudo -n grep -r scans covered both correction trees' .log and .stderr files.
+Both scans returned 1 with empty output and no permission errors.
+They found no AddressSanitizer, LeakSanitizer, or UBSan runtime-error markers.
+
+Both hosts have now passed the 20 selected correction checks each.
+The two local deadline files match each host's tested draft hashes after LF normalization.
+The primary review accepts integrating these two test-only changes.
+No production source, locked acceptance assertion, or original gate artifact is changed.
+
+The remaining work is sb16-2 mutation detection, cross-host scenarios, final source reconciliation,
+and the complete M04 requirement audit. This review does not mark the milestone complete.

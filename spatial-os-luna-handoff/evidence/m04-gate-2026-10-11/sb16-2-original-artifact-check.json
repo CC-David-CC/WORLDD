@@ -1,0 +1,37 @@
+{
+  "host": "sb16-2",
+  "candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "phase_complete": false,
+  "gate_sha256": "f4ae6c707f1bcae763ee754cd8e4cdaf31fcb7771f4cd6f60e586fb822fdf495",
+  "profiles": {
+    "Debug": {
+      "suites": 141,
+      "harness": 51,
+      "acceptance": 151,
+      "storage": 5,
+      "failed_or_skipped": [
+        "session-storage-owner",
+        "session-storage-contention"
+      ]
+    },
+    "ASan-UBSan": {
+      "suites": 141,
+      "harness": 51,
+      "acceptance": 151,
+      "storage": 5,
+      "failed_or_skipped": [
+        "session-storage-owner",
+        "session-storage-contention"
+      ]
+    }
+  },
+  "status": "failed_checks",
+  "errors": [
+    "Gate reports failure",
+    "Debug: nonzero command exit",
+    "Debug: failed, skipped, or unrun suites: ['session-storage-owner', 'session-storage-contention']",
+    "ASan-UBSan: nonzero command exit",
+    "ASan-UBSan: failed, skipped, or unrun suites: ['session-storage-owner', 'session-storage-contention']"
+  ],
+  "sanitizer_findings": []
+}
