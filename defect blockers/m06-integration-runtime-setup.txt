@@ -14,6 +14,13 @@ Keep durable-state and no-replay assertions.
 3. Native integration bundle lacks compositor_native_pb2.py.
 Build the required generated Python bindings and verify test imports on runtime hosts.
 
+4. Native attempt02 omitted runtime.textproto beside worldd.
+Package the generated runtime configuration and check the complete fixture file dependencies.
+
+5. Native attempt03 reused the second world's participant ID for the third denied world.
+The issuer rejected duplicate registration with ALREADY_EXISTS.
+Give the third world an explicit unique participant ID. Preserve real registration and revision checks.
+
 Evidence: spatial-os-luna-handoff/evidence/m06-realworld-attempt01-2026-10-12.
 Native attempt logs remain on both hosts under spatial-test-artifacts/m06-native-20261012-01.
 These defects block the affected integration checks, not all M06 development.
