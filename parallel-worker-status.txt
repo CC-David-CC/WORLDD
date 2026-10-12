@@ -54,3 +54,13 @@ M06 client hostile-peer regression task escalated to Sol medium after two incomp
 Current M06 tmux session: spatial-m06-client-04. Logs use run04 under the same worker directory.
 M06 gate is pending. M07-M16 and full Spatial-M1 qualification remain pending.
 Inspect live tmux/process state and completion files before restarting any job.
+
+Git access verified on all four hosts, 2026-10-12.
+Each host passed git ls-remote and git push --dry-run against the Spatial Desktop repository on box-git.
+Dry-run checks created no remote branches.
+sb16 and sb16-2 use existing repository-restricted keys at ~/.ssh/spacial_desktop_boxgit.
+Added a Host box-git stanza to their ~/.ssh/config to select those keys with strict host verification.
+Recovery: remove only that Host box-git stanza to restore the prior SSH configuration.
+The coding hosts retain their distinct ~/.ssh/id_ed25519_spatial_boxgit keys.
+Configured David <david@code.contractors> locally in the current project checkout on each host.
+Unrelated global Git identities and existing repository remotes remain unchanged.
