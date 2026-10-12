@@ -1,0 +1,99 @@
+5: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_revision_interleave.py" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/worldd"
+5: Working Directory: /home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan
+5: Environment variables: 
+5:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff
+5: Test timeout computed to be: 90
+5: test_old_credential_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_credential_reply_does_not_disable_unrelated_actor) ... ok
+5: test_old_actor_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_actor_reply_does_not_disable_unrelated_actor) ... ERROR
+5: test_credential_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_credential_reply_older_than_query_context_is_terminal) ... ok
+5: test_actor_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_actor_reply_older_than_query_context_is_terminal) ... ok
+5: 
+5: ======================================================================
+5: ERROR: test_old_actor_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_actor_reply_does_not_disable_unrelated_actor)
+5: ----------------------------------------------------------------------
+5: Traceback (most recent call last):
+5:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_revision_interleave.py", line 78, in test_old_actor_reply_does_not_disable_unrelated_actor
+5:     self.unrelated_revocation_during('actor_status')
+5:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_revision_interleave.py", line 62, in unrelated_revocation_during
+5:     world = self.scoped_world(issuer_port=relay.port)
+5:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 126, in scoped_world
+5:     self.worlds.append(world); world.management('system.hello')
+5:                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 72, in management
+5:     reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+5:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 36, in receive
+5:     size = struct.unpack('!I',exact(4))[0]
+5:                               ^^^^^^^^
+5:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 33, in exact
+5:     if not part: raise EOFError('worldd closed the channel')
+5:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5: EOFError: worldd closed the channel
+5: 
+5: ----------------------------------------------------------------------
+5: Ran 4 tests in 13.861s
+5: 
+5: FAILED (errors=1)
+  5/141 Test   #5: world-revision-interleave ..............***Failed   13.96 sec
+6: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap_owner_idle.py" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/worldd"
+6: Working Directory: /home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan
+6: Environment variables: 
+6:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff
+6: Test timeout computed to be: 60
+6: {"unit": "spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/native", "--setenv=SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-xprobe", "--setenv=SPATIAL_RENDER_EVIDENCE=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/graphics", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap_owner_idle.py", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/worldd"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service"]}
+6: Running as unit: spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service; invocation ID: 474d1bc9077546079e698902e60da113
+6: test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap) ... ERROR
+6: 
+6: ======================================================================
+6: ERROR: test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap)
+6: ----------------------------------------------------------------------
+6: Traceback (most recent call last):
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap_owner_idle.py", line 15, in test_idle_owner_does_not_block_workspace_bootstrap
+6:     existing.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write(self)
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap.py", line 66, in test_explicit_application_enables_confined_real_file_write
+6:     world,binding,actor=self.ready_workspace();peer=world.peers[1]
+6:                         ^^^^^^^^^^^^^^^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap.py", line 58, in ready_workspace
+6:     world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+6:                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap.py", line 34, in publish
+6:     reply=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+6:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 130, in execute
+6:     return client.call(execute=pb.IssuerExecute(nonce=challenge.nonce, proof=proof or self.proof(challenge)))
+6:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 49, in call
+6:     return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+6:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 43, in request
+6:     reply = self.receive()
+6:             ^^^^^^^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 36, in receive
+6:     length = struct.unpack('!I', exact(4))[0]
+6:                                  ^^^^^^^^
+6:   File "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 32, in exact
+6:     part = self.stream.recv(size-len(data))
+6:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6:   File "/usr/lib/python3.12/ssl.py", line 1233, in recv
+6:     return self.read(buflen)
+6:            ^^^^^^^^^^^^^^^^^
+6:   File "/usr/lib/python3.12/ssl.py", line 1106, in read
+6:     return self._sslobj.read(len)
+6:            ^^^^^^^^^^^^^^^^^^^^^^
+6: TimeoutError: The read operation timed out
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 1 test in 9.592s
+6: 
+6: FAILED (errors=1)
+6: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service/adapter-6c3c298c914c434d96955bfd36877a1a", "device": 31, "inode": 8831130, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service/adapter-6c3c298c914c434d96955bfd36877a1a\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/tests/core/test_workspace_bootstrap_owner_idle.py", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/identityd", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/ASan-UBSan/worldd"], "exit_code": 1, "scope_removed": true}
+6: Finished with result: exit-code
+6: Main processes terminated with: code=exited/status=1
+6: Service runtime: 10.185s
+6: CPU time consumed: 1.900s
+6: Memory peak: 2.5M
+6: Memory swap peak: 0B
+6: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service: Unit spatial-m03-resources-a0ad40199e9f43cc8a88aa0823044ee8.service not loaded.\n"}
+6: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+  6/141 Test   #6: workspace-bootstrap-owner-idle .........***Failed   10.33 sec
