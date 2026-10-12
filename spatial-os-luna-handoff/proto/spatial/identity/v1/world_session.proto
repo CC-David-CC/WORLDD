@@ -65,9 +65,21 @@ message WorldAuthenticationBegin {
   SignedCredential credential = 1;
   optional string room = 2;
   spatial.core.v1.Pose pose = 3;
+  // Nonempty means prepare admission without creating an actor controller.
+  bytes transition_id = 4;
 }
+message WorldSessionPrepared { bytes transition_id = 1; WorldSessionOpened actor = 2; }
+message WorldSessionActivate { bytes transition_id = 1; }
 message WorldSessionInspect {}
 message WorldSessionClose {}
+// Departure invalidates the session. Reply follows checked input cleanup and durable context save.
+message WorldSessionDepart { optional uint64 seq = 1; bytes transition_id = 2; }
+message WorldSessionDeparted {
+  bytes transition_id = 1;
+  string world_id = 2;
+  string actor_id = 3;
+  uint64 world_revision = 4;
+}
 message WorldSessionOpened { string actor_id = 1; string world_id = 2; IdentityStatus identity = 3; }
 // One inherited private channel has at most one authenticated actor session.
 // Caller-selected actor IDs, session tokens, and grants are not accepted.
@@ -86,6 +98,8 @@ message WorldSessionRequest {
     WorldBootstrapBind bootstrap_bind = 18;
     WorldBootstrapRevoke bootstrap_revoke = 19;
     WorldBootstrapApply bootstrap_apply = 20;
+    WorldSessionDepart depart = 21;
+    WorldSessionActivate activate = 22;
   }
 }
 message WorldSessionReply {
@@ -104,5 +118,7 @@ message WorldSessionReply {
     spatial.authority.v1.GrantRecord grant = 17;
     spatial.authority.v1.BootstrapBinding binding = 18;
     spatial.authority.v1.BootstrapReport bootstrap = 19;
+    WorldSessionDeparted departed = 20;
+    WorldSessionPrepared prepared = 21;
   }
 }

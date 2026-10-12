@@ -1,0 +1,57 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 113
+    Start 113: world-identity
+
+113: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_world_identity.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/identityd" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/worldd"
+113: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+113: Environment variables: 
+113:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+113:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-xprobe
+113: Test timeout computed to be: 120
+113: test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+113: test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+113: test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+113: test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+113: test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+113: test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+113: test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation) ... ok
+113: test_departure_receipt_follows_native_input_release (__main__.WorldIdentityTests.test_departure_receipt_follows_native_input_release) ... ok
+113: test_departure_requires_authenticated_session_and_sequence (__main__.WorldIdentityTests.test_departure_requires_authenticated_session_and_sequence) ... ok
+113: test_departure_saves_motion_and_restores_context_without_explicit_checkpoint (__main__.WorldIdentityTests.test_departure_saves_motion_and_restores_context_without_explicit_checkpoint) ... ok
+113: test_disconnect_releases_real_native_input_and_keeps_application (__main__.WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application) ... ok
+113: test_excessive_frame_closes_actor_channel_and_releases_input (__main__.WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input) ... ok
+113: test_idle_session_keeps_issuer_checks_available (__main__.WorldIdentityTests.test_idle_session_keeps_issuer_checks_available) ... ok
+113: test_issuer_failure_cancels_live_control_and_does_not_kill_application (__main__.WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application) ... ok
+113: test_private_world_requires_separate_admission (__main__.WorldIdentityTests.test_private_world_requires_separate_admission) ... ok
+113: test_proof_is_bound_to_its_channel (__main__.WorldIdentityTests.test_proof_is_bound_to_its_channel) ... ok
+113: test_public_admission_does_not_grant_action_authority (__main__.WorldIdentityTests.test_public_admission_does_not_grant_action_authority) ... ok
+113: test_revocation_between_challenge_and_completion_prevents_entry (__main__.WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry) ... ok
+113: test_revoked_credential_cannot_enter (__main__.WorldIdentityTests.test_revoked_credential_cannot_enter) ... ok
+113: test_session_reconnect_restores_saved_room_and_pose (__main__.WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose) ... ok
+113: test_world_audience_and_random_binding_are_checked (__main__.WorldIdentityTests.test_world_audience_and_random_binding_are_checked) ... ok
+113: test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor) ... ok
+113: test_wrong_key_and_replayed_completion_fail (__main__.WorldIdentityTests.test_wrong_key_and_replayed_completion_fail) ... ok
+113: 
+113: ----------------------------------------------------------------------
+113: Ran 23 tests in 36.739s
+113: 
+113: OK
+1/1 Test #113: world-identity ...................   Passed   36.93 sec
+
+The following tests passed:
+	world-identity
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  36.93 sec

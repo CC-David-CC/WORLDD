@@ -56,8 +56,9 @@ struct Channel {
     bool needs_observation = false;
     std::uint64_t cancellation_generation = 0;
     Clock::time_point input_started = Clock::now(), output_started = Clock::now();
-    std::optional<Pending> pending;
+    std::optional<Pending> pending, prepared;
     std::optional<pb::ActorCredential> completing;
+    std::optional<pb::WorldSessionReply> departure;
     pb::SignedCredential credential;
     pb::ActorCredential claims;
     explicit Channel(int descriptor) : fd(descriptor) {}
@@ -153,7 +154,7 @@ struct IdentitySessions::Impl {
     void disconnect(Channel& channel) {
         ++channel.cancellation_generation;
         const auto token = std::move(channel.token); channel.token.clear();
-        channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.completing.reset(); channel.needs_observation = false;
+        channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset(); channel.needs_observation = false;
         if (!channel.output.empty()) { channel.output.clear(); channel.close_transport(); }
         if (!token.empty()) {
             try { actors.close(token); }
@@ -223,6 +224,7 @@ struct IdentitySessions::Impl {
                 for (auto& channel : channels) {
                     if ((!channel->token.empty() && affected(channel->claims)) ||
                             (channel->pending && affected(channel->pending->claims)) ||
+                            (channel->prepared && affected(channel->prepared->claims)) ||
                             (channel->completing && affected(*channel->completing))) disconnect(*channel);
                 }
             }
@@ -230,6 +232,21 @@ struct IdentitySessions::Impl {
         }
     }
     void settle() {
+        if(actors.cancellation_settled())for(auto& owned:channels){
+            auto& channel=*owned;
+            if(!channel.departure)continue;
+            auto reply=std::move(*channel.departure);channel.departure.reset();
+            try {
+                const auto saved=actors.checkpoint_closed(reply.departed().actor_id());
+                reply.mutable_departed()->set_world_revision(saved.world_revision());
+            }catch(const std::exception&){
+                reply.clear_outcome();reply.mutable_error()->set_code(wire::STORAGE_ERROR);
+                reply.mutable_error()->set_message("Actor departed but context save was not confirmed");
+            }
+            if(channel.fd.value<0)continue;
+            std::ostringstream output;write_frame(output,reply);channel.output=output.str();channel.sent=0;
+            channel.output_started=Clock::now();
+        }
         // Never called by an issuer, renderer, or broker wait callback.
         if (broken || released || !consumed_revision || pending_operation != pb::ParticipantCommand::OPERATION_NOT_SET ||
                 !actors.cancellation_settled()) return;
@@ -427,6 +444,20 @@ struct IdentitySessions::Impl {
         }
         sync_authority(); bootstrap_live(channel, completing); return report;
     }
+    pb::WorldSessionOpened activate(Channel& channel,const Pending& pending,const pb::IdentityStatus& status) {
+        const auto actor=principal(pending.claims);
+        wire::ActorOpenRequest open;open.set_id("identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()));
+        if(pending.begin.has_room())open.set_room(pending.begin.room());
+        if(pending.begin.has_pose())*open.mutable_pose()=pending.begin.pose();
+        const auto allowed=grants.find(status.actor_id());
+        if(allowed!=grants.end())for(const auto& grant:allowed->second)open.add_grants(grant);
+        Actors::Authority check;
+        if(authority)check=[this,actor](const auto& right,const auto& scope){return authority->allowed(actor,right,scope);};
+        const auto opened=actors.open(open,true,std::move(check),actor,!channel.tls);
+        channel.token=opened.token();channel.credential=pending.begin.credential();channel.claims=pending.claims;
+        pb::WorldSessionOpened result;result.set_actor_id(opened.id());result.set_world_id(world.info().world_id());
+        *result.mutable_identity()=status;return result;
+    }
     pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes, bool& self_revocation_receipt) {
         pb::WorldSessionReply reply; reply.set_protocol_version(1);
         try {
@@ -436,7 +467,38 @@ struct IdentitySessions::Impl {
             if (request.protocol_version() != 1) throw WorldError(wire::UNSUPPORTED_VERSION, "Unsupported world session protocol");
             if (request.has_close()) { disconnect(channel); reply.mutable_closed()->set_closed(true); return reply; }
             if (broken || !ready || closing) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
+            if(request.has_depart()) {
+                require(request.depart().has_seq() && request.depart().transition_id().size()==32,"Invalid departure sequence or transition identity");
+                if(channel.token.empty())throw WorldError(wire::UNAUTHORIZED,"Channel has no authenticated actor");
+                current(channel.credential,channel.claims);
+                if(channel.token.empty())throw WorldError(wire::UNAUTHORIZED,"World session was revoked");
+                actors.consume_sequence(channel.token,request.depart().seq());
+                const auto id=actors.depart(channel.token);
+                channel.token.clear();disconnect(channel);
+                auto* departed=reply.mutable_departed();departed->set_transition_id(request.depart().transition_id());
+                departed->set_world_id(world.info().world_id());departed->set_actor_id(id);
+                channel.departure=reply;return reply;
+            }
+            if(request.has_activate()) {
+                require(request.activate().transition_id().size()==32,"Invalid activation transition identity");
+                if(!channel.prepared || channel.prepared->expires<=Clock::now() ||
+                    channel.prepared->begin.transition_id()!=request.activate().transition_id())
+                    throw WorldError(wire::UNAUTHORIZED,"No matching prepared destination");
+                auto prepared=std::move(*channel.prepared);channel.prepared.reset();channel.completing=prepared.claims;
+                struct Clear {Channel& channel;~Clear(){channel.completing.reset();}} clear{channel};
+                const auto status=current(prepared.begin.credential(),prepared.claims);
+                const auto actor=principal(prepared.claims);prepare(actor);
+                if(!channel.completing)throw WorldError(wire::UNAUTHORIZED,"Prepared destination was revoked");
+                if(config.admission()==pb::EXPLICIT_ACTORS &&
+                    !(authority?authority->allowed(actor,"enter"):admitted.contains(status.actor_id())))
+                    throw WorldError(wire::FORBIDDEN,"Actor is no longer admitted to this world");
+                *reply.mutable_opened()=activate(channel,prepared,status);return reply;
+            }
             if (request.has_begin()) {
+                require(request.begin().transition_id().empty() || request.begin().transition_id().size()==32,"Invalid preparation transition identity");
+                if(channel.prepared && channel.prepared->expires>Clock::now())
+                    throw WorldError(wire::IN_USE,"Channel already has a prepared destination");
+                channel.prepared.reset();
                 if (!channel.token.empty()) throw WorldError(wire::IN_USE, "Channel already has an actor");
                 if (channel.pending && Clock::now() < channel.pending->expires)
                     throw WorldError(wire::IN_USE, "Channel already has an authentication challenge");
@@ -488,17 +550,13 @@ struct IdentitySessions::Impl {
                 if (config.admission() == pb::EXPLICIT_ACTORS &&
                         !(authority ? authority->allowed(actor, "enter") : admitted.contains(status.actor_id())))
                     throw WorldError(wire::FORBIDDEN, "Actor is not admitted to this world");
-                wire::ActorOpenRequest open; open.set_id("identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()));
-                if (pending->begin.has_room()) open.set_room(pending->begin.room());
-                if (pending->begin.has_pose()) *open.mutable_pose() = pending->begin.pose();
-                const auto allowed = grants.find(status.actor_id());
-                if (allowed != grants.end()) for (const auto& grant : allowed->second) open.add_grants(grant);
-                Actors::Authority check;
-                if (authority) check = [this, actor](const auto& right, const auto& scope) { return authority->allowed(actor, right, scope); };
-                const auto opened = actors.open(open, true, std::move(check), actor, !channel.tls);
-                channel.token = opened.token(); channel.credential = pending->begin.credential(); channel.claims = pending->claims;
-                auto* value = reply.mutable_opened(); value->set_actor_id(opened.id()); value->set_world_id(world.info().world_id());
-                *value->mutable_identity() = status;
+                if(!pending->begin.transition_id().empty()) {
+                    pending->expires=Clock::now()+std::chrono::seconds(60);
+                    auto* value=reply.mutable_prepared();value->set_transition_id(pending->begin.transition_id());
+                    value->mutable_actor()->set_actor_id("identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()));
+                    value->mutable_actor()->set_world_id(world.info().world_id());*value->mutable_actor()->mutable_identity()=status;
+                    channel.prepared=std::move(*pending);
+                }else *reply.mutable_opened()=activate(channel,*pending,status);
             } else if (request.has_inspect() || request.has_action() || request.has_grants() || request.has_delegate() || request.has_revoke() ||
                        request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "Channel has no authenticated actor");
@@ -667,6 +725,7 @@ struct IdentitySessions::Impl {
             const int count = poll(&fd, 1, 0);
             if (count < 0 && errno == EINTR) continue;
             if (count < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL))) { drop(); continue; }
+            if(channel.departure)continue;
             if (!channel.output.empty() && (channel.tls || (fd.revents & POLLOUT))) {
                 if (authority && channel.needs_observation && !authority->allowed(principal(channel.claims), "observe")) { drop(); continue; }
                 if (channel.needs_observation) {
@@ -704,7 +763,7 @@ struct IdentitySessions::Impl {
             const auto cancellation = channel.cancellation_generation;
             bool self_revocation_receipt = false;
             auto reply = dispatch(channel, bytes, self_revocation_receipt);
-            if (channel.fd.value < 0) continue;
+            if (channel.fd.value < 0 || channel.departure) continue;
             if (cancellation != channel.cancellation_generation && !reply.has_closed() &&
                     !(self_revocation_receipt && reply.has_grant())) {
                 const auto id = reply.request_id();
@@ -715,7 +774,7 @@ struct IdentitySessions::Impl {
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_started = Clock::now();
         }
-        std::erase_if(channels, [](const auto& channel) { return channel->fd.value < 0; });
+        std::erase_if(channels, [](const auto& channel) { return channel->fd.value < 0 && !channel->departure; });
         if (listener && !broken && ready && !closing) {
             const auto fd = listener->accept();
             if (fd >= 0) {

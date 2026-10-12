@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="3"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16-2"
+	time="61"
+	timestamp="2026-10-12T05:39:24"
+	>
+	<testcase name="world-participant" classname="world-participant" time="10.9554" status="run">
+		<properties/>
+		<system-out>test_actor_serving_world_requires_participant_configuration (__main__.WorldParticipantTests.test_actor_serving_world_requires_participant_configuration) ... ok
+test_barrier_stays_pending_until_held_event_stops_real_actor_motion (__main__.WorldParticipantTests.test_barrier_stays_pending_until_held_event_stops_real_actor_motion) ... ok
+test_clean_restart_preserves_world_and_uses_new_generation (__main__.WorldParticipantTests.test_clean_restart_preserves_world_and_uses_new_generation) ... ok
+test_crash_retains_obligation_and_rejects_unfenced_replacement (__main__.WorldParticipantTests.test_crash_retains_obligation_and_rejects_unfenced_replacement) ... ok
+test_service_cannot_activate_a_different_world (__main__.WorldParticipantTests.test_service_cannot_activate_a_different_world) ... ok
+test_world_activates_before_admitting_actor_and_cleanly_releases (__main__.WorldParticipantTests.test_world_activates_before_admitting_actor_and_cleanly_releases) ... ok
+
+-----------------------------------------------------------...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-identity" classname="world-identity" time="47.7185" status="run">
+		<properties/>
+		<system-out>test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocati...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-runtime" classname="actor-runtime" time="2.84897" status="run">
+		<properties/>
+		<system-out>test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallo...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

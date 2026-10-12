@@ -1,0 +1,7 @@
+{
+  "proto/spatial/identity/v1/world_session.proto": "ab488fb32672dbfbaece3f2841309fd8c5a6027e185296656b066426bc1bb2b8",
+  "src/world/identity_sessions.cpp": "379699ee974191677d6a381d979d3ad75653f790e9b843758ea6bea0209764e7",
+  "src/world/actors.cpp": "3504fbb8c8071f2c2c1e06297cbc8830c7da763bf486bf2a2bcf14b69bda0441",
+  "src/world/actors.hpp": "90bf6a3e5cb51c93ce87dfc77b160bb31fd61ba41af4528eb3b42883bb523548",
+  "tests/core/test_world_identity.py": "ad3c1d9c9db78e7452b0c19ea13a489552e59853b52abc4ad19323ca7cc94704"
+}

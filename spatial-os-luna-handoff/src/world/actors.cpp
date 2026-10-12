@@ -121,7 +121,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
         require(grants.insert(grant).second, "Duplicate actor grant");
     }
     auto found = actors_.find(request.id());
-    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending))
+    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending || found->second.departure_pending))
         throw WorldError(wire::IN_USE, "Actor already has a controller");
     const auto token = random_token();
     if (sessions_.contains(token)) throw std::runtime_error("Session entropy collision");
@@ -161,6 +161,14 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
         result.set_focus(actor.native.focus().id()); result.set_focus_generation(actor.native.focus().generation());
     }
     return result;
+}
+std::string Actors::depart(const std::string& token) {
+    // Native cleanup can run revocation callbacks that clear the channel's token.
+    const std::string retained=token;
+    auto& actor=authenticated(retained);const auto id=actor.entity.id();
+    actor.departure_pending=true;
+    try{close(retained);}catch(...){actor.departure_pending=false;throw;}
+    return id;
 }
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
@@ -714,6 +722,17 @@ wire::ClockReply Actors::advance(const wire::ClockAdvanceRequest& request) {
     step(now_ + request.seconds());
     flush_input();
     wire::ClockReply result; result.set_seconds(now_); return result;
+}
+wire::WorldCheckpointReply Actors::checkpoint_closed(const std::string& id) {
+    auto found=actors_.find(id);
+    if(found==actors_.end())throw WorldError(wire::NOT_FOUND,"Departing actor is unavailable");
+    if(!found->second.token.empty() || !cancellation_settled())
+        throw WorldError(wire::IN_USE,"Actor departure cleanup is not settled");
+    if(!found->second.departure_pending)throw WorldError(wire::IN_USE,"No retained actor departure");
+    struct Clear {bool& pending;~Clear(){pending=false;}} clear{found->second.departure_pending};
+    const auto saved=store_.checkpoint_actors({found->second.entity});
+    if(!saved.empty())found->second.entity=saved.front();
+    wire::WorldCheckpointReply reply;reply.set_world_revision(store_.info().world_revision());return reply;
 }
 wire::WorldCheckpointReply Actors::checkpoint() {
     std::vector<wire::Entity> entities;

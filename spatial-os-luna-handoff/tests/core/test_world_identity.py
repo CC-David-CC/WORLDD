@@ -271,6 +271,91 @@ class WorldIdentityTests(WorldIdentityFixture):
         self.denied(world.peers[0].call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
         self.assertTrue(self.authenticate(world.peers[1],record,key,public).HasField('opened'))
 
+    def test_prepared_destination_cannot_act_or_create_an_actor_until_activation(self):
+        world=self.world(grants=['navigate']);peer=world.peers[0]
+        before=world.management('world.snapshot')
+        prepared=self.authenticate(peer,transition_id=b't'*32)
+        self.assertTrue(prepared.HasField('prepared'),prepared)
+        self.assertEqual(prepared.prepared.transition_id,b't'*32)
+        self.assertEqual(world.management('world.snapshot'),before)
+        self.denied(peer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
+        self.denied(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])),core.UNAUTHORIZED)
+        self.denied(peer.call(activate=session.WorldSessionActivate(transition_id=b'x'*32)),core.UNAUTHORIZED)
+        reply=peer.call(activate=session.WorldSessionActivate(transition_id=b't'*32))
+        self.assertTrue(reply.HasField('opened'),reply)
+        self.assertEqual(reply.opened.actor_id,prepared.prepared.actor.actor_id)
+        self.assertEqual(reply.opened.world_id,prepared.prepared.actor.world_id)
+        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
+        self.denied(peer.call(activate=session.WorldSessionActivate(transition_id=b't'*32)),core.UNAUTHORIZED)
+
+    def test_destination_denial_preserves_source_actor(self):
+        source=self.world(grants=['navigate']);peer=source.peers[0]
+        self.assertTrue(self.authenticate(peer).HasField('opened'))
+        target=self.world(admitted=False)
+        self.denied(self.authenticate(target.peers[0],transition_id=b't'*32),core.FORBIDDEN)
+        self.assertTrue(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])).HasField('action'))
+        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
+
+    def test_prepared_credential_revocation_prevents_activation(self):
+        peer=self.world().peers[0]
+        self.assertTrue(self.authenticate(peer,transition_id=b't'*32).HasField('prepared'))
+        self.revoke()
+        self.denied(peer.call(activate=session.WorldSessionActivate(transition_id=b't'*32)),core.UNAUTHORIZED)
+
+    def test_closing_prepared_destination_discards_activation(self):
+        world=self.world();peer=world.peers[0]
+        self.assertTrue(self.authenticate(peer,transition_id=b't'*32).HasField('prepared'))
+        self.assertTrue(peer.call(close=session.WorldSessionClose()).closed.closed)
+        self.denied(peer.call(activate=session.WorldSessionActivate(transition_id=b't'*32)),core.UNAUTHORIZED)
+        self.assertEqual(len(world.management('world.list')['entities']),1)
+        self.assertTrue(self.authenticate(peer).HasField('opened'))
+
+    def test_departure_requires_authenticated_session_and_sequence(self):
+        world=self.world(grants=['navigate']);peer=world.peers[0]
+        operation=session.WorldSessionDepart(seq=1,transition_id=b'd'*32)
+        self.denied(peer.call(depart=operation),core.UNAUTHORIZED)
+        self.assertTrue(self.authenticate(peer).HasField('opened'))
+        self.assertTrue(peer.act(stop=core.ActorStopRequest()).HasField('action'))
+        self.denied(peer.call(depart=operation),core.STALE_SEQUENCE)
+        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
+        operation.seq=2;operation.transition_id=b'short'
+        self.denied(peer.call(depart=operation),core.INVALID_ARGUMENT)
+        operation.transition_id=b'd'*32
+        reply=peer.call(depart=operation);self.assertTrue(reply.HasField('departed'),reply)
+        self.assertEqual(reply.departed.transition_id,b'd'*32)
+        self.denied(peer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
+
+    def test_departure_saves_motion_and_restores_context_without_explicit_checkpoint(self):
+        state=self.root/'departed-world';world=self.world(state=state,grants=['navigate']);peer=world.peers[0]
+        opened=self.authenticate(peer).opened
+        self.assertTrue(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])).HasField('action'))
+        time.sleep(.08)
+        reply=peer.call(depart=session.WorldSessionDepart(seq=2,transition_id=b'd'*32))
+        self.assertTrue(reply.HasField('departed'),reply)
+        self.assertEqual(reply.departed.actor_id,opened.actor_id)
+        self.assertEqual(reply.departed.world_id,opened.world_id)
+        saved=world.management('world.get',id=opened.actor_id)
+        self.assertGreater(saved['pose']['p'][0],0)
+        import sqlite3
+        with sqlite3.connect('file:'+str(state/'world.db')+'?mode=ro',uri=True) as db:
+            durable=core.Entity.FromString(db.execute('SELECT data FROM entities WHERE id=?',(opened.actor_id,)).fetchone()[0])
+        self.assertAlmostEqual(durable.pose.position.x,saved['pose']['p'][0])
+        self.assertEqual(durable.room,saved['room'])
+        self.assertEqual(reply.departed.world_revision,world.management('world.info')['world_revision'])
+        world.close();restored=self.world(state=state)
+        self.assertTrue(self.authenticate(restored.peers[0]).HasField('opened'))
+        actual=restored.peers[0].call(inspect=session.WorldSessionInspect()).state
+        self.assertAlmostEqual(actual.pose.position.x,saved['pose']['p'][0])
+        self.assertEqual(list(actual.axes),[0]*6)
+
+    def test_departure_receipt_follows_native_input_release(self):
+        world,peer,probe=self.held()
+        peer.action_sequence+=1
+        reply=peer.call(depart=session.WorldSessionDepart(seq=peer.action_sequence,transition_id=b'n'*32))
+        self.assertTrue(reply.HasField('departed'),reply)
+        self.released(world,probe)
+        self.assertTrue(self.authenticate(world.peers[1]).HasField('opened'))
+
     def test_session_reconnect_restores_saved_room_and_pose(self):
         state=self.root/'restored-world';world=self.world(state=state)
         world.management('world.create',entity={'id':'elsewhere','kind':'room','label':'Elsewhere'})

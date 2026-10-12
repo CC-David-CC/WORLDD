@@ -1,5 +1,9 @@
 M06 transition implementation plan, 2026-10-12
-Status: host presentation ownership and cleanup recovery implemented; actor transitions remain pending.
+Status: host ownership, departure receipts, and destination preparation implemented.
+The production transition client and full actor transition qualification remain pending.
+Departure confirms input cleanup and persists the source actor before replying.
+Prepared destination authentication does not create a controller or enable actions.
+Activation consumes the preparation and rechecks credential status and admission.
 SessionCoordinator owns a persistent PresentationOwner independently of supervised worlds.
 Each world uses a private authenticated channel and its own native input credential.
 Normal world shutdown leaves shared graphics available to surviving worlds.
