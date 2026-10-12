@@ -1,0 +1,103 @@
+M06 run03 error-semantics correction. Unintegrated branch m06/transition-coordinator.
+Host: G164 (a5500). Work stays in the authorized checkout.
+No commits, pushes, delegation, TLS checkout access, or remote host access.
+
+Selection recorded before builds:
+- actor-transition-coordinator: real ActorSessionClient and independent wire peers.
+  Cover departure STORAGE_ERROR/INTERNAL_ERROR, activation INTERNAL_ERROR,
+  missing departure receipt, closed abandoned preparation, and source usability
+  after preparation denial. Keep ordering, hostile-envelope, and context cases.
+- actor-session-client: retain existing checks; add matched mutating errors with
+  typed diagnostics, permanent failure, closed channels, and no reuse/replay.
+- Build Debug and ASan/UBSan production library and both probes with -j2.
+  These builds check compilation and linkage. Runtime checks remain UNRUN here.
+
+Invariant: a matching Error proves a server response, not absence of effects.
+Mutating errors close and permanently fail the client. No message parsing.
+Departure requires a validated success receipt before destination activation.
+Preparation failure leaves source usable because no source mutation was sent.
+
+Production review evidence:
+identity_sessions.cpp dispatch consumes departure sequence, calls actors.depart,
+clears channel token, and schedules the departure receipt.
+settle calls checkpoint_closed only after cancellation settles. Its exception
+returns STORAGE_ERROR after departure. Durability is therefore unconfirmed.
+Activation moves and clears channel.prepared before expiry, identity, admission,
+and actors.open checks. Generic exceptions return INTERNAL_ERROR after partial work.
+Actors::depart cancels input, erases the session/token, clears grants, and stops motion.
+checkpoint_closed persists pose and checkpoint only after departure.
+No Error code supplies a general no-effect or preparation-reuse guarantee.
+
+Contract corrections and review:
+- ActorSessionRejected now means a validated matched Error, not no effects.
+- ActorSessionClient closes and fails after every mutating Error. Inspect retains
+  its local guard only. Later operations still require server authorization.
+- Coordinator departure/activation errors report uncertainty. No success receipt
+  means no activation. Confirmed departure and revision survive activation errors.
+- Preparation errors carry uncertainty about destination effects. They preserve
+  source usability because no source departure request was sent.
+- Proposed protobuf appends typed server_error at field 15. Existing enum numbers
+  remain intact. Legacy departure/activation rejection values are deprecated.
+- Existing preparation-denial, departure-denial, activation-denial, and direct
+  error assertions now distinguish response evidence from effect evidence.
+  Authentication can consume challenges and materialize bootstrap grants.
+  This correction strengthens fail-closed behavior. No locked tests were edited.
+- Added 3 coordinator cases and 9 direct-client cases. Identical error messages
+  across codes ensure diagnostics do not define effect semantics.
+- Reviewed all changed production files, probes, schema, contract, and CMake.
+  Checked settle/dispatch/activate and Actors::depart/close/checkpoint_closed.
+  Wire peers only frame replies and verify requests. They do not model world state.
+  Thus these cases cannot prove real server persistence or native cleanup.
+
+Build command for each profile:
+cmake --build local/m06-transition-sequence/build-debug --target spatial-actor-transition spatial-actor-transition-coordinator-probe spatial-actor-session-client-probe -j2
+cmake --build local/m06-transition-sequence/build-asan --target spatial-actor-transition spatial-actor-transition-coordinator-probe spatial-actor-session-client-probe -j2
+Initial Debug build returned 2 due to the new proto import path.
+Corrected it to core.proto, matching the production CMake import roots.
+Preserved run03-debug-build.log. Debug rebuild returned 0.
+Debug rebuild log: local/m06-transition-sequence/run03-debug-build-fix1.log.
+Sanitizer log: local/m06-transition-sequence/run03-asan-build.log.
+
+Runtime counts per profile: 0 passed, 0 failed, 88 UNRUN.
+35 coordinator cases and 53 actor-session-client cases await primary execution.
+Across Debug and ASan/UBSan: 176 UNRUN case executions.
+PENDING/UNRUN: sb16 and sb16-2 deployment and focused probe execution;
+real worldd departure/checkpoint fault integration; native/cross-host transitions;
+saved-context and recovery; presentation selection; physical input; performance;
+full M06 and Spatial-M1 qualification. Build success is not runtime evidence.
+No executable probe, ctest, runtime service, or remote command ran on this host.
+Primary owns deployment and integration. Existing run02 evidence remains intact.
+
+Final build status: Debug PASS; ASan/UBSan PASS. Both returned 0.
+git diff --check PASS. No runtime test result is claimed.
+Caches confirm Debug, BUILD_TESTING=ON, and sanitizer ON only for build-asan.
+Compiler and linker flags include -fsanitize=address,undefined.
+
+Artifact paths and SHA256:
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-debug/libspatial-actor-transition.a
+  0be6d487e351c76e4e0fbd5831a4c031f37f95d203cf8e0b988e5208f9a5b9f2
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-debug/libspatial-actor-session-client.a
+  daf6efe1c5b4fbaa763f61df68cfb3cb507cf6d0e4b3ea6b74db761ef9300d2a
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-debug/spatial-actor-transition-coordinator-probe
+  9ec02481c20be49119d78676a518f07a68797d5e66257d1016040ed7dc2933c3
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-debug/spatial-actor-session-client-probe
+  4d52d339f27110b1834085d85352cf88e45450c9031fee2a43f273766020dc8e
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-asan/libspatial-actor-transition.a
+  be4a5c199ab2f37fa46f79ddd4ecf48b1f97ed75757c2887ecf06a3fbbab9146
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-asan/libspatial-actor-session-client.a
+  705c453a06567c86aff29b2344a0fe9f2c7cdb98e864d407f4647eaa6ed16527
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-asan/spatial-actor-transition-coordinator-probe
+  24d271871e7a1ece2bd334dcd86cbf8d5555d523d4268a4c151a04102985690b
+/home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-transition-sequence/build-asan/spatial-actor-session-client-probe
+  e3485efc9f5251d6a64113ea6aaa6c06f86774db77c8a9f2d3dfd670b0551d9b
+
+Reviewed source SHA256:
+650e7a441c4ac54637c1098875565a6c101e367bbc87e8806239a764d69fd423  spatial-os-luna-handoff/CMakeLists.txt
+fd4de8c3ff519bc8b2708ffbc3bf010f69d255596abb0c864a196288740219fa  spatial-os-luna-handoff/src/world/actor_session_client.hpp
+b32732ed540772bca14854b367fc693c8d5c64e13895695742001701ab2560b1  spatial-os-luna-handoff/src/world/actor_session_client.cpp
+112573fc09e9fc7df843a02ab2a1ee8e88d8638c3f5b15e4261d6f2d572f8fa7  spatial-os-luna-handoff/src/world/actor_transition_coordinator.hpp
+534f82a00553245f7fce4dca494211b8b5c2bd874c676b673478ed02c90b8768  spatial-os-luna-handoff/src/world/actor_transition_coordinator.cpp
+31fa40ef03a5455b405c181ad9627aa89bfc74fbacf2b27467f95a38654e77bf  spatial-os-luna-handoff/src/testing/actor_session_client_probe.cpp
+d8669a338dd171b78f95abb14ba115360acb0695d9ece09d1002e250e9670168  spatial-os-luna-handoff/src/testing/actor_transition_coordinator_probe.cpp
+a82d3aed081f59d817ba9a992cabab61099ef44b3dd475dd7e8953a89986e206  spatial-os-luna-handoff/proto/spatial/identity/v1/actor_transition.proto
+d953b000b1cb662510ea6a1fd01a30cc9d5d52439fed6e8c0e5c122a6c2fbde6  spatial-os-luna-handoff/docs/M06_COORDINATOR_CONTRACT.txt

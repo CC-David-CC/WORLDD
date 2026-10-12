@@ -1,4 +1,11 @@
 Current checkpoint, 2026-10-12:
+Transition worker source 79c134390 passed 352 focused executions on both hosts/profiles.
+Combined candidate 9275727 includes TLS and sequencing. Its combined checks remain pending.
+middle-child: m06/actor-client-combined, tmux spatial-m06-combined-build02.
+Explicit configure precedes rebuilding added targets; the initial stale-Makefile failure is preserved in local/m06-combined.
+a5500: Luna medium, m06/host-actor-controller, tmux spatial-m06-host-controller01.
+Task: narrow trusted host foreground selection after confirmed actor transitions, with focused regressions.
+Logs: local/m06-host-controller. Runtime qualification remains on sb16 and sb16-2.
 TLS actor client integrated as b80d143; worker source 07a1aa702 on m06/actor-client-tls.
 Final focused coverage: 43 local plus 31 TLS cases on both hosts in Debug and ASan/UBSan, 296 passed.
 Evidence: spatial-os-luna-handoff/evidence/m06-actor-tls-2026-10-12.
