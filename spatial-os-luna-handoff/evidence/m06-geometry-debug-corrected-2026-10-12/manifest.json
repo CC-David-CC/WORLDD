@@ -1,0 +1,63 @@
+{
+  "created_utc": "2026-10-12T15:30:02.366335+00:00",
+  "files": [
+    {
+      "path": "helper-build-provenance.json",
+      "size": 16900,
+      "sha256": "8c95197c10ba7395312db92d8b138b288dfde379c064463e0d6261d168d30941"
+    },
+    {
+      "path": "READ_ME.txt",
+      "size": 3837,
+      "sha256": "a8c4b23721721f16b438515eaf84cfd9b7999e9cd0eeae95ef95c94639549a28"
+    },
+    {
+      "path": "results.json",
+      "size": 7408,
+      "sha256": "6fef64371b24adbb5c7ab0b1947806c1875eee5a2677163ac29b6a1262f27592"
+    },
+    {
+      "path": "sb16-2-collection-receipt.json",
+      "size": 271430,
+      "sha256": "f77c0de7cef8201ce053902d4d6c2fb3bdd7af7a093ff4f2749d591028bf3e02"
+    },
+    {
+      "path": "sb16-2-raw.tar.gz",
+      "size": 128721,
+      "sha256": "dc81505b31d155856ef9444db4939e70f49aa2e8256e4424301d26e73ae5068d"
+    },
+    {
+      "path": "sb16-collection-receipt.json",
+      "size": 270412,
+      "sha256": "5c2e2a493b3e27e315970cf2ef07de31248211e4332474d8dfee7965b078f823"
+    },
+    {
+      "path": "sb16-raw.tar.gz",
+      "size": 128936,
+      "sha256": "23e543788a1e3a3ad121c7da77d56f826080c49e07116486065825f1a96728be"
+    },
+    {
+      "path": "source-linkage.json",
+      "size": 3679,
+      "sha256": "418e7b64f59e4ba67fad42b08a78f78c1b44f0064ff6137ee3a331316ab22966"
+    },
+    {
+      "path": "verify_evidence.py",
+      "size": 7051,
+      "sha256": "170749629800c2f45f18177aa21c2cc45bab672e865a44dc5a66606bf1a2115c"
+    }
+  ],
+  "credential_review": {
+    "selected_patterns": [
+      "private_key",
+      "bearer_value",
+      "fleet_token",
+      "serialized_credential"
+    ],
+    "scanned_text_or_archive_members": 1025,
+    "findings": [],
+    "scope": "Pattern scan plus review of suite failures, prepared command environments, source pins and fixture diagnostics. Not an exhaustive secret-detection claim."
+  },
+  "status": "Focused corrected Debug evidence only; M06 gate pending",
+  "changes": "New evidence files only; remote originals and runtime processes unchanged"
+}

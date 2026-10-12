@@ -1,0 +1,46 @@
+{
+    "original_frozen_source_commit":  "8bdda7631ae51d0ae1e94b913031d0fd8dffb877",
+    "fixture_overlay_source_commit":  "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0",
+    "packager_commit":  "db35e58471d10cc943f6be574a6f917bdd9977b5",
+    "fixture_commit_changed_paths":  [
+                                         "spatial-os-luna-handoff/docs/M06_GEOMETRY_VIEW_INCREMENT1.txt",
+                                         "spatial-os-luna-handoff/tests/core/test_geometry_view.py",
+                                         "spatial-os-luna-handoff/tests/core/test_world_authority.py"
+                                     ],
+    "fixture_changes_exclude_all_production_sources":  true,
+    "packager_commit_changed_paths":  [
+                                          "spatial-os-luna-handoff/tools/package_m06_geometry.py"
+                                      ],
+    "source_hash_rows":  [
+                             {
+                                 "path":  "spatial-os-luna-handoff/tests/core/test_geometry_view.py",
+                                 "source_sha256_by_commit":  {
+                                                                 "8bdda7631ae51d0ae1e94b913031d0fd8dffb877":  "b736b882014ed21befd2f963517e972b440aa6d77f0dc3b11da1b1bbf3aa391d",
+                                                                 "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0":  "27f384275d9c078c3bf73740fabc120b224c4a88da5a6875adbbf8df90385901"
+                                                             }
+                             },
+                             {
+                                 "path":  "spatial-os-luna-handoff/tests/core/test_world_authority.py",
+                                 "source_sha256_by_commit":  {
+                                                                 "8bdda7631ae51d0ae1e94b913031d0fd8dffb877":  "7f8656db09da6c70ee860a3eae3dc96d57181670049d7bdb4b689fb10257f57f",
+                                                                 "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0":  "dc2715690647a5b5819661dac93d0188d4fdd739684e8a9a093c43d45ec0ae30"
+                                                             }
+                             },
+                             {
+                                 "path":  "spatial-os-luna-handoff/src/testing/actor_session_client_probe.cpp",
+                                 "source_sha256_by_commit":  {
+                                                                 "8bdda7631ae51d0ae1e94b913031d0fd8dffb877":  "64a201ec22af9c4b739a5a3d1778e95ddf211700bf65211a50e97da29a0fefbd",
+                                                                 "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0":  "64a201ec22af9c4b739a5a3d1778e95ddf211700bf65211a50e97da29a0fefbd"
+                                                             }
+                             },
+                             {
+                                 "path":  "spatial-os-luna-handoff/src/testing/process_scope_probe.cpp",
+                                 "source_sha256_by_commit":  {
+                                                                 "8bdda7631ae51d0ae1e94b913031d0fd8dffb877":  "548a95d610c21d06d7d2e060acaf7137aebf67ca77054ebb8268b0c452f8d499",
+                                                                 "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0":  "548a95d610c21d06d7d2e060acaf7137aebf67ca77054ebb8268b0c452f8d499"
+                                                             }
+                             }
+                         ],
+    "helper_binary_source_commit":  "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0",
+    "scope":  "Read-only immutable Git blobs. No source tree or runtime changes."
+}

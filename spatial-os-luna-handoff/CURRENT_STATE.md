@@ -3,6 +3,8 @@
 ## 2026-10-12: Geometry Debug passes; sanitizer issuer disconnect under diagnosis
 
 All nine selected Debug suites passed on both hosts across two corrected attempts.
+Read evidence/m06-geometry-debug-corrected-2026-10-12 for 434 credited checks and the preserved failed attempts.
+Primary verified all 1016 archived original records. This focused evidence does not complete the M06 gate.
 The first corrected attempt passed six suites, then exposed a missing process-scope helper in the bundle.
 A reviewed helper supplement let the remaining three suites pass. Earlier failures remain preserved.
 The combined geometry and host-session candidate is checkpointed as 9f790f4 on box-git.
