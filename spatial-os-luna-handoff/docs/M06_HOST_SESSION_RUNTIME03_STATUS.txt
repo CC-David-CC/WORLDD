@@ -1,0 +1,29 @@
+M06 host-session runtime03 results
+Date: 2026-10-13
+Binary candidate: fc302de44670f87737dd7ab46ef83b24c60f1612
+Fixture correction: 62ea4e88c18ff60cfcc0029d1b51d7c7ef4426f7
+Overlay launcher: 0835d38f33632cafc881d1f84761377873d83e8a
+Both task checkpoints are box-git verified and unqualified.
+
+sb16 passed native 24, startup testing-on 5, and startup testing-off 5.
+sb16 native summary: Ran 24 tests in 94.019s, OK.
+sb16-2 native summary: Ran 24 tests in 97.473s, one error.
+Private-destination denial passed on both hosts.
+sb16-2 failed during setup for test_idle_fragmented_frames_and_slow_partial_absolute_deadline.
+The issuer TLS stream closed before the test injected its intended fault.
+This is the same setup failure class seen in runtime02, in another method.
+The cause remains unproven. Failure diagnostics are in development.
+Both hosts recorded unchanged input hashes.
+sb16-2 startup checks remain unrun.
+
+Remote evidence: /home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/host-session-debug-runtime03
+Controller receipts: local/m06-hostsession-launcher-review-20261013/runtime03-receipts
+sb16 sanitizer attempt: host-session-asan-runtime01, launched in tmux.
+It passed native 24, startup testing-on 5, and startup testing-off 5.
+Native shared-world presentation and the complete M06 gate remain pending.
+
+sb16 sanitizer native summary: Ran 24 tests in 121.448s, OK.
+Outer command exit: 0. All three selected suites passed.
+Sanitizer input invariant: PASS. No frozen inputs changed.
+sb16 component totals: Debug 34 passed; sanitizer 34 passed.
+These component results do not complete M06.

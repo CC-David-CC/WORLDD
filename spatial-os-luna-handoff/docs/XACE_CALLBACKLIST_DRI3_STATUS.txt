@@ -1,0 +1,57 @@
+XACE, direct CallbackList, and pixel export review
+Recorded: 2026-10-13.
+
+David requests a five-minute CallbackList assessment in parallel with Spatial-M06.
+Finish the XACE implementation. Preserve both implementations for comparison.
+Do not replace the M06 baseline during this assessment.
+This request permits the bounded assessment. It does not require completing XLibre's entire API modernization first.
+
+Upstream feedback
+Reference: https://github.com/X11Libre/xserver/pull/3918
+The PR is closed. Its maintainer prefers direct CallbackList interfaces and plans to remove XACE.
+Another reviewer identified DRI3 pixmap file-descriptor export as an additional pixel path.
+David's public reply proposes direct callbacks, preserved pixel protections, and an export-path audit.
+The reply also proposes denying unsafe exports until ownership and revocation behavior are established.
+No deadline or completed upstream XACE removal is established by that discussion.
+
+Practical policy consumer
+Spatial Desktop registers both pixel hooks in server/xlibre/spatialpolicy.c.
+It applies application identity, foreign-child filtering, and privileged-service policy.
+The current file registers seven XACE hooks: resource, window image, drawable, property, selection, send, and receive.
+It already uses direct lists for client, device, server, screensaver, and extension access and dispatch.
+Do not assume that exactly five hooks need conversion.
+
+Preserved parallel implementation
+Project branch: integration/callbacklist-pixel-authorization.
+Project checkpoint: 48abc92a917fd9a1efb69a4e662689509d691e19.
+Fork worktree on a5500: /home/dflanag3/src/xserver-callbacklist-20261012.
+Fork branch: feature/callbacklist-pixel-authorization.
+Fork base: e01f6a678fec8da2c31482e87fef3da2a90c0fdc.
+Its uncommitted callback implementation remains preserved. Do not discard or overwrite it.
+Both hosts passed selected callback-dispatch checks in Debug and sanitizer profiles.
+That evidence covers wrapper behavior for seven record types. It does not qualify native pixel policy integration.
+The broad unit run reported signal_logging_test failure despite process exit zero.
+Preserve that failure and check actual suite summaries.
+Native request-path coverage and final SpatialSecurity integration remain pending.
+
+DRI3 review boundary
+Changing callback dispatch does not close or revoke a buffer export automatically.
+Audit descriptor creation, buffer ownership, aliases, privileged services, and existing descriptor lifetimes separately.
+The current extension policy admits privileged services and uses an explicit ordinary-client allowlist.
+DRI3 is absent from that ordinary-client allowlist. Verify actual request rejection with an independent witness.
+Treat the reviewer's route as an open security review, not a confirmed project bypass.
+Do not claim that GetImage coverage proves DRI3, Composite, GLX, MIT-SHM, or every pixel-export path is protected.
+Add focused regressions for any reproduced gap. Preserve authorized same-application behavior.
+Do not grant ordinary clients unrestricted exports merely to enable acceleration.
+
+Five-minute assessment
+Worker: Luna medium on a5500, separate preserved callback branch and worktree.
+Source inspection only. No source changes, builds, test-host jobs, package installations, or publication.
+Report implemented adapters, remaining consumer changes, exact files, relative difficulty, and evidence gaps.
+Report path: /home/dflanag3/spatial-assessments/callbacklist-five-minute-20261013/ASSESSMENT.txt.
+Stop at the timebox. Keep the XACE M06 qualification lane independent.
+
+M06 position
+All 52 selected geometry suite executions passed across both hosts and Debug/sanitizer profiles.
+Combined host-session qualification remains pending. Correct CTest discovery before running its suites.
+Native shared-world geometry presentation and the full M06 gate remain pending.

@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-13: Combined host-session qualification remains incomplete
+
+Read docs/M06_HOST_SESSION_RUNTIME03_STATUS.txt for source pins and evidence paths.
+Correction 62ea4e8 fixes the private-world fixture's authority seed. Its denial assertion remains unchanged.
+Overlay launcher 0835d38 records binary source and fixture provenance separately.
+Both checkpoints are box-git verified. Neither is integrated into the milestone branch.
+sb16 passed 34 selected Debug checks and 34 selected sanitizer checks.
+sb16-2 passed private denial but encountered issuer EOF during native setup.
+Its startup and sanitizer checks remain unrun. The issuer close reason remains unproven.
+Diagnostics will record peer idle duration and daemon state without changing deadlines.
+Native shared-world presentation remains unimplemented. The complete M06 gate remains pending.
+M01 through M05 remain qualified. M06 is active. M07 through M16 remain pending.
+
+## 2026-10-13: Preserve XACE and assess CallbackList in parallel
+
+David requests a five-minute assessment of the separate CallbackList implementation.
+Finish XACE. Keep both implementations for comparison. Do not replace the M06 baseline.
+Read docs/XACE_CALLBACKLIST_DRI3_STATUS.txt for upstream feedback, source locations, and evidence limits.
+The existing callback draft has selected wrapper checks. Native policy integration remains unqualified.
+The current SpatialSecurity consumer registers seven remaining XACE hooks, not an established count of five.
+DRI3 export ownership and revocation require a separate security review.
+No project DRI3 bypass is claimed without a reproducer.
+This bounded assessment does not stop M06 host-session qualification or shared-world geometry work.
+
 ## 2026-10-13: Combined geometry passes Debug and sanitizer on both hosts
 
 Read evidence/m06-combined-geometry-asan-2026-10-13/REVIEW.txt and the matching Debug evidence.
