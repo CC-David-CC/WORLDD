@@ -643,6 +643,60 @@ void geometry_reply_case(Fixture& f, const std::string& fault) {
     });
 }
 
+
+void geometry_denial_keeps_client_usable(Fixture& f) {
+    session(f, [&](auto& client, int) {
+        client.authenticate();
+        bool typed = false;
+        try { (void)client.geometry_view(); }
+        catch (const ActorSessionRejected& error) {
+            typed = error.error().code() == core::v1::FORBIDDEN &&
+                    error.error().message() == "observation denied";
+        }
+        check(typed, "geometry denial lost its typed error");
+        check(!client.failed(), "matching geometry denial fenced the client");
+        core::v1::ActorActionRequest action;
+        action.set_seq(1);
+        action.mutable_key()->set_keysym("x");
+        action.mutable_key()->set_pressed(true);
+        const auto result = client.action(action);
+        check(result.has_action() && result.action().accepted() && !client.failed(),
+              "authorized action did not follow geometry denial");
+    }, [&](int fd) {
+        handshake(fd, f);
+        receive(fd, pb::WorldSessionRequest::kGeometryView, 3);
+        auto denied = reply_for(3);
+        denied.mutable_error()->set_code(core::v1::FORBIDDEN);
+        denied.mutable_error()->set_message("observation denied");
+        send_reply(fd, denied);
+        const auto action = receive(fd, pb::WorldSessionRequest::kAction, 4);
+        check(action.action().seq() == 1 && action.action().has_key() &&
+              action.action().key().keysym() == "x" && action.action().key().pressed(),
+              "authorized input changed after geometry denial");
+        auto accepted = reply_for(4);
+        accepted.mutable_action()->set_accepted(true);
+        send_reply(fd, accepted);
+    });
+}
+
+void malformed_geometry_error_fences(Fixture& f, const std::string& fault) {
+    session(f, [&](auto& client, int peer) {
+        client.authenticate();
+        rejects([&] { (void)client.geometry_view(); });
+        failed_no_replay(client, peer, f);
+    }, [&](int fd) {
+        handshake(fd, f);
+        receive(fd, pb::WorldSessionRequest::kGeometryView, 3);
+        auto reply = reply_for(3);
+        reply.mutable_error()->set_code(core::v1::FORBIDDEN);
+        reply.mutable_error()->set_message("observation denied");
+        if (fault == "request-id") reply.set_request_id(99);
+        if (fault == "unknown-field")
+            reply.GetReflection()->MutableUnknownFields(&reply)->AddVarint(999, 1);
+        send_reply(fd, reply);
+    });
+}
+
 }
 
 int main(int argc, char** argv) {
@@ -688,6 +742,10 @@ int main(int argc, char** argv) {
                 run("mutating-error-no-replay-" + stage + "-" + std::to_string(code),
                     [&] { mutating_error(fixture, stage, code); });
         run("write-backpressure", [&] { backpressure(fixture); });
+        run("geometry-denial-keeps-client-usable", [&] { geometry_denial_keeps_client_usable(fixture); });
+        for (const std::string fault : {"request-id", "unknown-field"})
+            run("malformed-geometry-error-" + fault,
+                [&] { malformed_geometry_error_fences(fixture, fault); });
         run("buffered-final-reply", [&] { buffered_final_reply(fixture); });
         std::cout << count << " actor-session-client probe cases passed\n";
         return 0;

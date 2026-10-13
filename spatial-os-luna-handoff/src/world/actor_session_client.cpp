@@ -299,9 +299,9 @@ struct ActorSessionClient::Impl {
                     "Invalid actor reply envelope");
             validate_message(reply);
             if (reply.has_error()) {
-                // A matching Error diagnoses the response, not the effects.
-                // Only inspect is non-mutating. No mutating error promises reuse.
-                if (!request.has_inspect()) fail();
+                // A matching Error diagnoses a read without uncertain effects.
+                // Mutating request errors still fence because effects may be uncertain.
+                if (!request.has_inspect() && !request.has_geometry_view()) fail();
                 throw ActorSessionRejected(reply.error());
             }
             require(reply.outcome_case() == expected, "Unexpected actor session reply outcome");
