@@ -1,3 +1,13 @@
+Current review status, 2026-10-13
+Reviewed fixes are assembled in candidate 258920de00e45448f104eedcc97147cf878406b3.
+The prior corrected production bundle passed 452 local native/client checks.
+The complete focused native matrix passed 36 methods across both hosts, profiles, and authority directions.
+All retained source, diagnostic, exact-unit, and peer-cleanup audits passed.
+The final mandatory-suite guard passed 31 checks on each qualification host.
+Fresh combined builds are running. The full M06 gate remains UNRUN.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt and CURRENT_STATE.md for current evidence and next steps.
+Earlier review findings below are chronological. Their pending statements describe those earlier checkpoints.
+
 M06 native geometry implementation review
 Date: 2026-10-13
 Branch: m06/native-shared-geometry-20261013
@@ -92,3 +102,48 @@ Report only the selected target's acknowledged context, sequence, revision, and 
 Clear status after observation denial, retirement, authority loss, or pending transitions.
 Reject stale generations before disclosing status.
 Add regression checks for acknowledgement and status clearing before source freeze.
+Local observation-denial review after source freeze
+The fifth Debug and second sanitizer builds run against the frozen candidate.
+Do not change their source inputs while either build remains live.
+The local startup path selects its retained world binding before actor geometry authorization.
+The local destination transition path also selects before requesting authorized geometry.
+If observation rejects before target attachment, target retirement has no target to clear.
+Inspect whether this leaves privileged local scene pixels selected.
+Require blank geometry after successful entry without observation authority.
+Preserve valid navigation, application authority, and process lifetime.
+Private entry denial must preserve the source scene. It is a different case.
+Add startup and destination-local regressions if the defect is confirmed.
+Preserve the prior frozen build evidence before applying any correction.
+Frozen-candidate build completion
+Debug attempt debug-build5 completed with command and wrapper exits of zero.
+Sanitizer attempt asan-build2 completed with command and wrapper exits of zero.
+Both logs reached the final host-controller target. Both tmux sessions ended.
+The freeze records 23 files, base 45eabb37cf16a815d91b1bf659d9bf317d0f6cb7, and runtime UNRUN.
+Freeze path: /home/dflanag3/spatial-qualification/m06-native-shared-geometry-20261013/source-freeze.json.
+The local observation-denial review remains unresolved at this checkpoint.
+Preserve these completed build records if that review requires another source change.
+No native runtime or complete M06 gate result is claimed.
+Checked-clearing source review
+The server clears presentation pixels and both selection identifiers before acknowledging success.
+The control channel retains its existing owner and descriptor checks.
+PresentationOwner rejects missing or false clearing acknowledgements.
+The controller clears after local startup observation denial and accepted-entry observation denial.
+Clearing uncertainty fences control. Private entry rejection remains before source retirement.
+The new regressions and corrected-candidate builds remain pending at this review.
+
+Dependency-record audit
+All resolved ldd paths have SHA256 records after adding the dynamic loader.
+Each host has 29 recorded Debug dependencies and 31 sanitizer dependencies.
+The audit reads both Xvfb and configured EGL closures.
+Individual records supersede the earlier aggregate fingerprints.
+Candidate extension-source comparison remains pending until the corrected source freeze.
+Corrected-candidate completion review
+The corrected source freeze contains 25 files. The prior freeze remains preserved.
+Local startup and transitions inspect readiness without selecting raw producers before authorization.
+The compositor clears selection with a checked acknowledgement after observation denial.
+Two local denial regressions and one native clearing positive-control regression are written.
+The pixel witness now uses real independent X11 requests with absolute reply deadlines.
+Debug6 and ASAN3 completed with zero command and wrapper exits.
+Both builds reached the final host-controller target. Both tmux sessions ended.
+The worker will create a coherent UNQUALIFIED checkpoint and immutable profile bundles.
+Native runtime checks, cross-host checks, and the complete M06 gate remain unrun.
