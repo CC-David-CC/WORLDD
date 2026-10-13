@@ -39,6 +39,9 @@ class GateStaticTests(unittest.TestCase):
     def runtime_fixture(self):
         source = self.root / 'source'
         receipt = json.loads(receipt_input.read_text())
+        expected_host = receipt.get('host')
+        if expected_host not in ('sb16', 'sb16-2'):
+            raise RuntimeError('runtime fixture receipt must name an actual qualification host')
         for name in [*receipt['extension_sources'], 'server/base.lock.json']:
             target = source / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -60,8 +63,8 @@ class GateStaticTests(unittest.TestCase):
         runtime = dict(candidate='new-project-commit-with-identical-server-source',
                        required_egl_names=[vendor.name, library.name],
                        required_helper_names=[path.name for path in helpers],
-                       hosts={'sb16': {'Debug': row}})
-        return source, runtime, row
+                       hosts={expected_host: {'Debug': row}})
+        return source, runtime, row, expected_host
 
     def test_retains_runtime_config_and_python(self):
         build = self.root / 'build'
@@ -77,24 +80,31 @@ class GateStaticTests(unittest.TestCase):
             gate.retained_files(self.root / 'build')
 
     def test_actual_receipt_schema_accepts_unchanged_server(self):
-        source, runtime, row = self.runtime_fixture()
-        self.assertEqual(gate.verify_runtime(runtime, 'sb16', 'Debug', source), row)
+        source, runtime, row, expected_host = self.runtime_fixture()
+        self.assertEqual(gate.verify_runtime(runtime, expected_host, 'Debug', source), row)
 
     def test_server_extension_tamper_rejected(self):
-        source, runtime, _ = self.runtime_fixture()
+        source, runtime, _, expected_host = self.runtime_fixture()
         receipt = json.loads(receipt_input.read_text())
         next_path = source / next(iter(receipt['extension_sources']))
         next_path.write_text('changed')
         with self.assertRaisesRegex(RuntimeError, 'extension differs'):
-            gate.verify_runtime(runtime, 'sb16', 'Debug', source)
+            gate.verify_runtime(runtime, expected_host, 'Debug', source)
 
     def test_wrong_wrapper_server_rejected_even_with_fresh_wrapper_hash(self):
-        source, runtime, row = self.runtime_fixture()
+        source, runtime, row, expected_host = self.runtime_fixture()
         wrapper = Path(row['xace_wrapper']['path'])
         wrapper.write_text(wrapper.read_text().replace('Xvfb', 'old-Xvfb'))
         row['xace_wrapper']['sha256'] = gate.sha(wrapper)
         with self.assertRaisesRegex(RuntimeError, 'wrapper does not execute'):
-            gate.verify_runtime(runtime, 'sb16', 'Debug', source)
+            gate.verify_runtime(runtime, expected_host, 'Debug', source)
+
+    def test_runtime_receipt_rejects_the_other_qualification_host(self):
+        source, runtime, row, expected_host = self.runtime_fixture()
+        wrong_host = 'sb16-2' if expected_host == 'sb16' else 'sb16'
+        wrong_runtime = dict(runtime, hosts={wrong_host: {'Debug': row}})
+        with self.assertRaisesRegex(RuntimeError, 'server receipt host mismatch'):
+            gate.verify_runtime(wrong_runtime, wrong_host, 'Debug', source)
 
     def test_full_inventory_relocation_is_single_pass(self):
         inventory = [dict(name='native', command=['/old/source/build/probe',
