@@ -1,0 +1,35 @@
+M06: checked geometry-read denial closes actor session
+Status: confirmed defect; source correction built and reviewed; runtime qualification pending.
+Date: 2026-10-13
+
+Reproduction
+Candidate d9969c8b925b5cf97633286bbb319778e4bfdf2b fails two Debug host-session tests on both hosts.
+Initial local observation denial closes the channel before normal inspect completes.
+Destination observation denial fences selection after successful destination activation.
+Each host completed 26 tests: 24 passed and two failed.
+Evidence: /home/dflanag3/spatial-qualification/m06-native-d9969c8-20261013/runs/debug-hostsession01.
+
+Root cause
+ActorSessionClient::Impl::exchange preserves the session after inspect errors only.
+It closes the session after a validated geometry_view error.
+Geometry queries do not invoke external actor actions.
+This conflates checked read denial with uncertain mutating-operation failure.
+
+Required behavior
+Blank denied geometry without losing separately authorized actor controls.
+Retain the channel after a validated, matching geometry-read denial.
+Reject malformed envelopes and preserve mutating-error fencing without replay.
+
+Proposed correction
+Allow inspect and geometry_view matching errors to preserve client usability.
+Keep all envelope, context, sequence, transport, and mutation checks intact.
+Add pressed-key follow-up and malformed-error regression cases.
+Preserve the original production host-session denial tests unchanged.
+
+Current evidence
+Correction: 9f8405b57ab3b1fd7bc27dd2a8f3f8ec96f0e00d.
+Branch: m06/geometry-denial-session-reuse-20261013; box-git verified.
+Primary reviewed all three changed files.
+Full Debug and ASan/UBSan builds passed with command and wrapper exits zero.
+Corrected-candidate runtime regressions and host-session checks remain UNRUN.
+Do not mark this defect resolved until both qualification hosts pass the affected checks.

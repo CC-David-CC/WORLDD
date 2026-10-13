@@ -1,3 +1,17 @@
+## 2026-10-13: Native geometry candidate tested; session-denial correction pending runtime
+
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Native geometry presentation is implemented on a separate, unintegrated candidate branch.
+The milestone branch has not received this candidate yet.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt for exact commits, results, and failure evidence.
+Both hosts passed 84 focused native boundary and owner checks across Debug and sanitizer profiles.
+Each host passed 24 Debug host-session checks and failed two local observation-denial checks.
+A validated geometry-read denial incorrectly closed the actor client.
+The primary reviewed correction 9f8405b57. Both full build profiles passed.
+Corrected artifacts are being packaged. Their runtime checks remain UNRUN.
+Cross-host visible geometry and the complete M06 qualification gate remain UNRUN.
+Earlier entries describe historical source and evidence. They do not override this current status.
+
 # Implementation status
 
 ## 2026-10-13: Combined host-session qualification remains incomplete

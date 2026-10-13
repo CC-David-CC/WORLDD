@@ -1,0 +1,64 @@
+M06 native runtime increment 2
+Date: 2026-10-13
+Compiled candidate: d9969c8b925b5cf97633286bbb319778e4bfdf2b.
+Reviewed test-only correction: d2bb820ebd90666db55eacfc29fe75f1632dd5d4.
+Corrective source candidate: 9f8405b57ab3b1fd7bc27dd2a8f3f8ec96f0e00d.
+Status: UNQUALIFIED. M06 remains active. Its full gate is UNRUN.
+
+Deployment root on both qualification hosts:
+/home/dflanag3/spatial-qualification/m06-native-d9969c8-20261013
+Both profiles verified archive hashes, payload hashes, and inventory pins.
+Debug archive: bb54aca6f6242c67cd7a43e18616201d4bad4ee48af721200b848dd22767a108.
+ASan archive: 25f146cf15da3bb2dc16206c35213ee7788f82b7b29b91f8f3d3a07a2cc47573.
+Both hosts used the reviewed XACE wrappers and graphics dependency closures.
+
+Completed focused runtime suites
+Each host passed ten native geometry boundary checks in Debug and ASan/UBSan.
+Each host passed eleven presentation-owner checks in Debug and ASan/UBSan.
+Total: 84 passed checks across eight completed suite executions.
+Evidence: runs/{debug,asan}-{boundary,owner}01 on each host.
+Every command and wrapper returned zero. No skips were reported.
+Independent payload audits passed after execution. Sanitizer log scans found no diagnostics.
+Audit receipts: component-boundary-owner-audit01.json on each host.
+
+Production host-session failures
+Each host completed 26 Debug checks: 24 passed and two failed.
+Evidence: runs/debug-hostsession01 on each host.
+Both failures concern local observation denial and continued session usability.
+The initial denial closed the actor session before a normal inspect reply.
+The destination denial fenced selection after destination activation.
+Source review found geometry_view omitted from the checked read-error reuse path.
+A validated matching geometry denial therefore closed the client unnecessarily.
+Original failure evidence remains intact. No test deadline changed.
+
+Corrective checkpoint
+The primary reviewed all three files in 9f8405b57.
+The correction retains the channel after validated inspect or geometry_view errors.
+Mutating errors, malformed envelopes, and transport failures still fence the client.
+New probe cases cover pressed-key input after denial and two malformed error replies.
+Full Debug and ASan/UBSan builds passed with command/wrapper exits zero.
+The checkpoint is box-git verified on m06/geometry-denial-session-reuse-20261013.
+Packaging is pending. Corrected-candidate runtime checks remain UNRUN.
+The original two production-host denial tests remain unchanged.
+
+Remaining qualification
+Deploy immutable corrected artifacts to both hosts after package review.
+Run client regressions and unchanged host-session checks in both profiles.
+Run native shared-world semantic checks in both authority directions and profiles.
+Freeze the combined source before the complete M06 qualification gate.
+Focused component results do not prove milestone completion.
+
+Disk cleanup
+Nine redundant unpacked baseline bundle directories were removed after content validation.
+All 88 embedded logs were exported and rehashed before deletion.
+Recovered space: sb16 6,244,708,352 bytes; sb16-2 4,996,132,864 bytes.
+Current artifacts, recovery evidence, archives, failures, and successful replacements remain intact.
+Cleanup report: local/m06-obsolete-testdata-inventory-20261013.txt at the project root.
+
+Failed-run cleanup audit
+Both adapter receipts report scope_removed=true and unexpected_population=false.
+Both failed runs returned command/wrapper exits 1/1, consistent with their failures.
+Primary checked each exact systemd unit and its cgroup path after completion.
+Both units are not-found and inactive. Both exact cgroup paths are absent.
+The cleanup stop returned 5 because systemd had already collected each unit.
+This cleanup result does not change the failed test classifications.
