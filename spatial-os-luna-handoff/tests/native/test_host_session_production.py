@@ -79,7 +79,16 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
 
     def make_world(self, suffix, admitted=True):
         self.world_instance_suffix = suffix
-        config = self.world_config()
+        had_world_admitted = hasattr(self, 'world_admitted')
+        previous_world_admitted = getattr(self, 'world_admitted', None)
+        self.world_admitted = admitted
+        try:
+            config = self.world_config()
+        finally:
+            if had_world_admitted:
+                self.world_admitted = previous_world_admitted
+            else:
+                del self.world_admitted
         world_id = self.world_id(config)
         server_tls = world_session.WorldActorTlsConfig(protocol_version=1,
             certificate_path=str(self.issuer.server_cert), private_key_path=str(self.issuer.server_key),
