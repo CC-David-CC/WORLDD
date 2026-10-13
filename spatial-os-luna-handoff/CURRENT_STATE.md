@@ -1,3 +1,34 @@
+## 2026-10-13: Combined candidate frozen and four-profile preparation started
+
+Frozen candidate: f8609273fad1873db45fc316fd0200549b4c6b41, clean and BOX-GIT VERIFIED.
+Branch: m06/final-qualification-20261013.
+Worktree: /home/dflanag3/src/m06-final-qualification-20261013 on a5500.
+Read its docs/M06_FINAL_CANDIDATE_REVIEW_2026-10-13.txt for source and evidence mappings.
+
+Destination-workspace selection passed all sixteen methods in every host/profile lane.
+Total: sixty-four passed. Cleanup, sanitizer scans, and 1,475-pin postchecks passed on both hosts.
+The corrected fixture retains strict differing room, pose, and workspace assertions.
+Its initial TLS-parent and pre-created-actor failures remain preserved.
+Focused commands used source cwd. The normal gate must use the registered build/profile cwd.
+
+The complete corrected gate static module passed forty methods on each host.
+Both profiles also passed actual read-only CTest metadata checks on both hosts.
+Each inventory preserved all 165 registrations after the declared augmentations.
+Clone-only implicit working-directory differences are recorded separately.
+Earlier stale-file launches and failed preflight attempts remain preserved and excluded.
+
+One persistent preparation job is active in a5500 tmux session m06-f860-prepare.
+Its helper run is /home/dflanag3/spatial-qualification/m06-f860-final-20261013/runs/prepare01.
+The job verified all forty-one locked files before compilation.
+Debug testing-enabled configuration passed with SPATIAL_INPUT_TESTS enabled.
+Its build is active. Sanitizer testing-enabled and both production-only profiles remain queued.
+No runtime tests run on the coding host.
+
+After package review, deploy fresh artifacts and metadata receipts to both qualification hosts.
+Then run full normal local and cross-host M06 gates.
+The original 258920de deployment and its evidence remain preserved.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Storage retirement correction passes all four focused lanes
 
 Both hosts passed thirteen storage-contention methods in Debug and ASan-UBSan.
