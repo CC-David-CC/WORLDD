@@ -356,6 +356,35 @@ def verify_storage_evidence_path(source: Path, path: Path):
     return rows
 
 
+def storage_evidence_source(inventory, ctest_root: Path):
+    """Derive the prepared storage evidence value after deployment root relocation."""
+    expected = ctest_root / EVIDENCE_KEYS[0].lower()
+    observed = {}
+    for test in inventory:
+        name = test.get('name')
+        if name not in STORAGE_LOCAL_EVIDENCE_TESTS:
+            continue
+        if name in observed:
+            raise RuntimeError('duplicate storage evidence registration: ' + name)
+        properties = [item for item in test.get('properties', []) if item.get('name') == 'ENVIRONMENT']
+        if len(properties) != 1 or not isinstance(properties[0].get('value'), list):
+            raise RuntimeError('unsupported storage test ENVIRONMENT metadata: ' + name)
+        values = properties[0]['value']
+        matches = [value for value in values if isinstance(value, str)
+                   and value.startswith(EVIDENCE_KEYS[0] + '=')]
+        if len(matches) != 1:
+            raise RuntimeError('storage test must declare one security evidence path: ' + name)
+        value = matches[0].split('=', 1)[1]
+        if Path(value) != expected:
+            raise RuntimeError('storage test prepared security evidence path differs from declared CTest root: ' + name)
+        observed[name] = Path(value)
+    if set(observed) != set(STORAGE_LOCAL_EVIDENCE_TESTS):
+        raise RuntimeError('storage evidence registrations missing or duplicated')
+    if len(set(observed.values())) != 1:
+        raise RuntimeError('storage evidence registrations do not share the prepared security root')
+    return expected
+
+
 def relocate_storage_evidence_inventory(inventory, from_root: Path, targets):
     """Change only the two declared storage tests' evidence environment values."""
     result = copy.deepcopy(inventory)
@@ -978,7 +1007,7 @@ def gate(a):
             evidence_edits = replace_metadata(build, [(deployed_evidence, str(target / "ctest"))])
             expected_inventory, startup_edits = add_startup_bindings(build,
                 map_inventory(prepared['inventory'], mapping), production / 'python')
-            storage_source = target / 'ctest'
+            storage_source = storage_evidence_source(expected_inventory, target / 'ctest')
             expected_inventory = relocate_storage_evidence_inventory(
                 expected_inventory, storage_source, storage_evidence)
             storage_edits = relocate_storage_evidence_metadata(build, storage_source, storage_evidence)

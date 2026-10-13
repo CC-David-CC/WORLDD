@@ -288,6 +288,53 @@ class GateStaticTests(unittest.TestCase):
                 inventory[1:], Path('/attempt/native'),
                 {name: Path('/source/local/elsewhere') / name for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS})
 
+    def test_gate_storage_augmentation_uses_prepared_security_path_shape(self):
+        prepared_root = Path('/prepared/ctest-evidence/Debug')
+        ctest_root = Path('/deployed/Debug/ctest')
+        security_value = 'SPATIAL_SECURITY_EVIDENCE=' + str(
+            prepared_root / gate.EVIDENCE_KEYS[0].lower())
+
+        def row(name):
+            return dict(name=name, command=['/prepared/build/' + name],
+                        properties=[dict(name='ENVIRONMENT', value=[
+                            security_value, 'ASAN_OPTIONS=detect_leaks=1'])])
+
+        inventory = [row('session-storage-owner'), row('session-storage-contention'),
+                     row('session-application')]
+        mapping = [(str(prepared_root), str(ctest_root))]
+        prepared = gate.map_inventory(inventory, mapping)
+        source = gate.storage_evidence_source(prepared, ctest_root)
+        self.assertEqual(source, ctest_root / 'spatial_security_evidence')
+        targets = {name: Path('/deployed/source/local/attempt/Debug') / name
+                   for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS}
+        expected = gate.relocate_storage_evidence_inventory(prepared, source, targets)
+        self.assertEqual(expected[0]['properties'][0]['value'][0],
+                         'SPATIAL_SECURITY_EVIDENCE=' + str(targets['session-storage-owner']))
+        self.assertEqual(expected[1]['properties'][0]['value'][0],
+                         'SPATIAL_SECURITY_EVIDENCE=' + str(targets['session-storage-contention']))
+        self.assertEqual(expected[2], prepared[2])
+
+        build = self.root / 'prepared-build'
+        suffix = gate.EVIDENCE_KEYS[0].lower()
+        rows = []
+        for name in ('session-storage-owner', 'session-storage-contention', 'session-application'):
+            rows.append('set_tests_properties([=[' + name + ']=] PROPERTIES ENVIRONMENT "'
+                        + 'SPATIAL_SECURITY_EVIDENCE=' + str(prepared_root / suffix) + '")' + chr(10))
+        self.put('prepared-build/CTestTestfile.cmake', ''.join(rows))
+        gate.replace_metadata(build, mapping)
+        gate.relocate_storage_evidence_metadata(build, source, targets)
+        text = (build / 'CTestTestfile.cmake').read_text()
+        self.assertIn('SPATIAL_SECURITY_EVIDENCE=' + str(targets['session-storage-owner']), text)
+        self.assertIn('SPATIAL_SECURITY_EVIDENCE=' + str(targets['session-storage-contention']), text)
+        peer_line = next(line for line in text.splitlines() if 'session-application' in line)
+        self.assertIn('SPATIAL_SECURITY_EVIDENCE=' + str(ctest_root / suffix), peer_line)
+        with self.assertRaisesRegex(RuntimeError, 'path differs from declared CTest root'):
+            bad = copy.deepcopy(prepared)
+            bad[1]['properties'][0]['value'][0] = 'SPATIAL_SECURITY_EVIDENCE=' + str(ctest_root / 'wrong')
+            gate.storage_evidence_source(bad, ctest_root)
+        with self.assertRaisesRegex(RuntimeError, 'missing or duplicated'):
+            gate.storage_evidence_source(prepared[:1], ctest_root)
+
     def _write_storage_case(self, root):
         root.mkdir(parents=True)
         volume, image = root / 'volume', root / 'volume.img'
