@@ -260,3 +260,19 @@ Reverse Debug runtime07 and forward sanitizer runtime08 are running concurrently
 They use independent worlds, X servers, exact service units, and evidence directories.
 Reverse sanitizer and the full combined M06 gate remain UNRUN.
 This evidence does not establish physical-input, performance, or complete Spatial-M1 acceptance.
+
+Native cross-host focused matrix complete
+Source overlay: 805c69e05ffaa7d5e59499b95c2ff95c02693b0f. Compiled production remains 9f8405b57.
+Debug sb16 authority to sb16-2 observer: runtime06, nine passed, 168.417 seconds.
+Debug sb16-2 authority to sb16 observer: runtime07, nine passed, 157.350 seconds.
+ASAN sb16 authority to sb16-2 observer: runtime08, nine passed, 209.723 seconds.
+ASAN sb16-2 authority to sb16 observer: runtime09, nine passed, 215.780 seconds.
+Total: 36 passed native methods in four completed executions. Every command/wrapper is 0/0 COMPLETE.
+Each direction passed all nine exact-unit and normal peer cleanup checks.
+Each authority audit scanned 114 logs. Each observer audit scanned 36 logs.
+All eight overlay source hashes match on both hosts and profiles. No sanitizer diagnostics or skips were found.
+Runtime07/08 ran concurrently with separate worlds, servers, units, and evidence paths.
+Audit receipts: crosshost-runtime{06,07,08,09}-{authority,observer}-audit.json on the relevant hosts.
+This qualifies the focused native matrix. It does not substitute for the frozen combined M06 gate.
+Combined source, gate guard, and CMake regression registrations are being consolidated on a separate candidate branch.
+Production rebuild, full gate, semantic fixture integration, recovery, and final milestone reconciliation remain pending.

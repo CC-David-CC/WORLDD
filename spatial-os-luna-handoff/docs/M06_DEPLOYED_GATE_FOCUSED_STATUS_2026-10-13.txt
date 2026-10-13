@@ -29,3 +29,16 @@ Total: 52 pure gate fixture checks passed. This does not qualify cross-host runt
 Evidence: runs/gate-wiring-static02 under the existing qualification root on each host.
 A new bounded worker task will add pre/post crossstage artifact and external-runtime hash checks.
 Full preparation, combined deployment, semantic runtime, and full M06 gate remain UNRUN.
+
+Crossstage artifact recheck focused qualification
+Reviewed checkpoint: e061612c06eca5a34d2aa2bba6992c4bf2363ea4; BOX-GIT VERIFIED.
+Four-file archive SHA256: 45c4438597eff127c25a64111708fd5fb8d689b09acaba204c06cf4aeba5643d.
+The primary reviewed all changed gate, regression, and documentation files.
+The checker verifies actual host, receipt host, source pins before import, ON/OFF artifacts, bindings, helpers, XACE/EGL, and metadata.
+Before and after checks require exactly both hosts and both profiles. Failures preserve the original execution error.
+Behavioral subprocess regressions prove source/checker/receipt rejection occurs before checker import.
+sb16 passed all 31 methods in 0.281 seconds. sb16-2 passed all 31 in 0.308 seconds.
+Total: 62 focused gate checks passed. Both command/wrapper receipts are 0/0 COMPLETE.
+Evidence: runs/gate-artifact-static01 at the existing qualification root on each host.
+This resolves the recorded artifact-recheck gap at the focused fixture level.
+Combined-source preparation, real semantic fixture, and full M06 gate remain UNRUN.
