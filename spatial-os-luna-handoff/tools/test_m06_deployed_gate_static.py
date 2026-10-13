@@ -11,6 +11,7 @@ import sys
 import tempfile
 import tarfile
 import unittest
+import zlib
 from unittest.mock import patch
 
 tool, receipt_input, source_input = map(Path, sys.argv[1:4])
@@ -67,6 +68,85 @@ class GateStaticTests(unittest.TestCase):
                        required_helper_names=[path.name for path in helpers],
                        hosts={expected_host: {'Debug': row}})
         return source, runtime, row, expected_host
+
+    def make_tar(self, path, members):
+        with tarfile.open(path, 'w:gz') as archive:
+            for name, payload in members:
+                info = tarfile.TarInfo(name)
+                info.size = len(payload)
+                info.mode = 0o644
+                archive.addfile(info, io.BytesIO(payload))
+        return path
+
+    def test_sequential_archive_hash_and_extraction_positive(self):
+        bundle = self.make_tar(self.root / 'good.tar.gz', [
+            ('source/a.txt', b'alpha\n'), ('build/fixture.bin', b'\x00\x01test')])
+        expected = gate.stream_archive_hashes(bundle)
+        self.assertEqual(set(expected), {'source/a.txt', 'build/fixture.bin'})
+        out = self.root / 'out'
+        out.mkdir()
+        extracted = gate.extract_verified_bundle(bundle, out, expected)
+        self.assertEqual(extracted, expected)
+        self.assertEqual((out / 'source/a.txt').read_bytes(), b'alpha\n')
+        self.assertEqual((out / 'build/fixture.bin').read_bytes(), b'\x00\x01test')
+
+    def test_sequential_archive_rejects_tamper_duplicate_truncation_and_manifest_drift(self):
+        original = self.make_tar(self.root / 'original.tar.gz', [('source/a.txt', b'original')])
+        original_manifest = gate.stream_archive_hashes(original)
+        tampered = self.make_tar(self.root / 'tampered.tar.gz', [('source/a.txt', b'tampered')])
+        with self.assertRaisesRegex(RuntimeError, 'manifest mismatch'):
+            gate.extract_verified_bundle(tampered, self._empty_dir('tampered-out'), original_manifest)
+
+        duplicate = self.make_tar(self.root / 'duplicate.tar.gz', [
+            ('source/a.txt', b'one'), ('source/a.txt', b'two')])
+        with self.assertRaisesRegex(RuntimeError, 'duplicate archive file'):
+            gate.stream_archive_hashes(duplicate)
+        with self.assertRaisesRegex(RuntimeError, 'duplicate archive file'):
+            gate.extract_verified_bundle(duplicate, self._empty_dir('duplicate-out'), {})
+
+        truncated = self.root / 'truncated.tar.gz'
+        truncated.write_bytes(original.read_bytes()[:-8])
+        with self.assertRaises((EOFError, OSError, tarfile.TarError, RuntimeError, zlib.error)):
+            gate.stream_archive_hashes(truncated)
+        truncated_out = self._empty_dir('truncated-extract-out')
+        with self.assertRaises((EOFError, OSError, tarfile.TarError, RuntimeError, zlib.error)):
+            gate.extract_verified_bundle(truncated, truncated_out, original_manifest)
+        self.assertEqual(list(truncated_out.iterdir()), [])
+
+        for expected in ({}, dict(original_manifest, **{'unexpected.txt': '0' * 64})):
+            with self.assertRaisesRegex(RuntimeError, 'manifest mismatch'):
+                gate.extract_verified_bundle(original, self._empty_dir('manifest-out-' + str(len(expected))), expected)
+
+        unsafe_cases = [
+            ('/absolute.txt', tarfile.REGTYPE),
+            ('../escape.txt', tarfile.REGTYPE),
+            ('source/link', tarfile.SYMTYPE),
+            ('source/fifo', tarfile.FIFOTYPE),
+        ]
+        for index, (name, kind) in enumerate(unsafe_cases):
+            unsafe = self.root / ('unsafe-' + str(index) + '.tar.gz')
+            info = tarfile.TarInfo(name)
+            info.type = kind
+            info.linkname = 'target' if kind == tarfile.SYMTYPE else ''
+            info.size = 0
+            with tarfile.open(unsafe, 'w:gz') as archive:
+                archive.addfile(info, io.BytesIO(b''))
+            out = self._empty_dir('unsafe-out-' + str(index))
+            with self.assertRaisesRegex(RuntimeError, 'unsafe bundle member'):
+                gate.extract_verified_bundle(unsafe, out, {})
+            self.assertEqual(list(out.iterdir()), [])
+
+        alias = self.make_tar(self.root / 'normalized-alias.tar.gz', [
+            ('source/a.txt', b'one'), ('source/./a.txt', b'two')])
+        out = self._empty_dir('normalized-alias-out')
+        with self.assertRaises((RuntimeError, FileExistsError)):
+            gate.extract_verified_bundle(alias, out, {})
+        self.assertEqual(list(out.iterdir()), [])
+
+    def _empty_dir(self, name):
+        path = self.root / name
+        path.mkdir()
+        return path
 
     def test_retains_runtime_config_and_python(self):
         build = self.root / 'build'
@@ -125,6 +205,172 @@ class GateStaticTests(unittest.TestCase):
         changed[0]['command'].append('--skip-checks')
         with self.assertRaisesRegex(RuntimeError, 'commands/properties'):
             gate.require_inventory_equal(changed, inventory, mapping)
+
+    def test_storage_evidence_directories_are_fresh_owned_and_confined(self):
+        source = self.root / 'source'
+        (source / 'local').mkdir(parents=True)
+        attempt = gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+        debug = gate.create_storage_evidence_profile(attempt['root'], source, 'Debug')
+        asan = gate.create_storage_evidence_profile(attempt['root'], source, 'ASan-UBSan')
+        local = (source / 'local').resolve()
+        self.assertIn(local, Path(debug['path']).resolve().parents)
+        self.assertIn(local, Path(asan['path']).resolve().parents)
+        self.assertEqual(debug['mode'], 0o700)
+        self.assertEqual(asan['mode'], 0o700)
+        self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(debug['path']))), 4)
+        self.assertEqual(set(debug['registrations']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
+        self.assertEqual(len({row['path'] for row in debug['registrations'].values()}), 2)
+        receipt = dict(parents=attempt['parents'], attempt=attempt['attempt'], profile=debug,
+                       destinations={name: row['path'] for name, row in debug['registrations'].items()})
+        receipt_path = self.root / 'storage-augmentation.json'
+        gate.write_json(receipt_path, receipt)
+        self.assertEqual(json.loads(receipt_path.read_text()), receipt)
+        for row in debug['registrations'].values():
+            self.assertEqual(row['mode'], 0o700)
+            self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(row['path']))), 5)
+        with self.assertRaises(FileExistsError):
+            gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+
+        unsafe = self.root / 'unsafe-source'
+        local_unsafe = unsafe / 'local'
+        local_unsafe.mkdir(parents=True)
+        container = local_unsafe / 'm06-gate-storage'
+        container.mkdir()
+        outside = self.root / 'outside'
+        outside.mkdir()
+        (container / 'sb16').symlink_to(outside, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'real directory'):
+            gate.create_storage_evidence_attempt(unsafe, 'sb16', 'attempt-02')
+
+        absent = self.root / 'absent-source'
+        absent.mkdir()
+        created = gate.create_storage_evidence_attempt(absent, 'sb16-2', 'attempt-03')
+        self.assertTrue((absent / 'local').is_dir())
+        self.assertIn((absent / 'local').resolve(), created['root'].resolve().parents)
+        source_link = self.root / 'source-symlink'
+        source_link.symlink_to(absent, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'real directory'):
+            gate.create_storage_evidence_attempt(source_link, 'sb16', 'attempt-05')
+        unsafe_local = self.root / 'symlink-local-source'
+        unsafe_local.mkdir()
+        external_local = self.root / 'external-local'
+        external_local.mkdir()
+        (unsafe_local / 'local').symlink_to(external_local, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'real directory'):
+            gate.create_storage_evidence_attempt(unsafe_local, 'sb16', 'attempt-04')
+
+    def test_storage_inventory_augmentation_changes_only_named_tests(self):
+        def row(name):
+            return dict(name=name, command=['/build/' + name],
+                        properties=[dict(name='ENVIRONMENT', value=[
+                            'SPATIAL_SECURITY_EVIDENCE=/attempt/native', 'ASAN_OPTIONS=detect_leaks=1'])])
+        inventory = [row('session-storage-owner'), row('session-storage-contention'), row('session-application')]
+        before = copy.deepcopy(inventory)
+        changed = gate.relocate_storage_evidence_inventory(
+            inventory, Path('/attempt/native'),
+            {name: Path('/source/local/m06-gate-storage/attempt/Debug') / name
+             for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS})
+        self.assertEqual(inventory, before)
+        owner_target = '/source/local/m06-gate-storage/attempt/Debug/session-storage-owner'
+        contention_target = '/source/local/m06-gate-storage/attempt/Debug/session-storage-contention'
+        self.assertEqual(changed[0]['properties'][0]['value'][0],
+                         'SPATIAL_SECURITY_EVIDENCE=' + owner_target)
+        self.assertEqual(changed[1]['properties'][0]['value'][0],
+                         'SPATIAL_SECURITY_EVIDENCE=' + contention_target)
+        self.assertNotEqual(changed[1]['properties'][0]['value'][0], changed[0]['properties'][0]['value'][0])
+        self.assertEqual(changed[2], inventory[2])
+        with self.assertRaisesRegex(RuntimeError, 'source differs'):
+            gate.relocate_storage_evidence_inventory(
+                inventory, Path('/wrong/native'),
+                {name: Path('/source/local/elsewhere') / name for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS})
+        with self.assertRaisesRegex(RuntimeError, 'missing or duplicated'):
+            gate.relocate_storage_evidence_inventory(
+                inventory[1:], Path('/attempt/native'),
+                {name: Path('/source/local/elsewhere') / name for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS})
+
+    def _write_storage_case(self, root):
+        root.mkdir(parents=True)
+        volume, image = root / 'volume', root / 'volume.img'
+        volume.mkdir()
+        image.touch()
+        commands = [
+            dict(argv=['umount', str(volume)], exit_code=0, stdout='', stderr=''),
+            dict(argv=['losetup', '-d', '/dev/loop17'], exit_code=0, stdout='', stderr=''),
+            dict(argv=['losetup', '-j', str(image)], exit_code=0, stdout='', stderr=''),
+        ]
+        receipt = dict(status='prepared', mounted=False, loop='/dev/loop17',
+            policy_directory='/run/spatial-m03-native-storage-' + 'a' * 32, commands=commands,
+            configuration=str(root / 'broker.textproto'), volume=str(volume.resolve()),
+            devices=[[8, 1], [7, 17]], loop_attached=False, cleanup_confirmed=True)
+        (root / 'volume-setup.json').write_text(json.dumps(receipt))
+        (root / 'prepare.log').write_text('storage setup completed\\n')
+        return root
+
+    def test_storage_sanitizer_scan_includes_receipts_and_fails_on_log_diagnostic(self):
+        registrations = {name: self._write_storage_case(self.root / 'storage' / name)
+                        for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS}
+        clean = gate.scan_storage_evidence(registrations)
+        self.assertEqual(set(clean['files']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
+        self.assertEqual(set(clean['cleanups']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
+        for name in gate.STORAGE_LOCAL_EVIDENCE_TESTS:
+            self.assertEqual({row['kind'] for row in clean['exclusions'][name]},
+                             {'cleaned-volume-mountpoint', 'sparse-volume-image'})
+            self.assertTrue(clean['cleanups'][name][0]['cleanup_commands_verified'])
+        (registrations['session-storage-contention'] / 'contention.log').write_text(
+            'AddressSanitizer: fixture diagnostic\\n')
+        with self.assertRaisesRegex(RuntimeError, 'sanitizer diagnostic in storage evidence log'):
+            gate.scan_storage_evidence(registrations)
+
+    def test_storage_inventory_rejects_symlink_or_mounted_volume_exclusions(self):
+        root = self._write_storage_case(self.root / 'storage-symlink')
+        (root / 'volume').rmdir()
+        outside = self.root / 'outside-volume'
+        outside.mkdir()
+        (root / 'volume').symlink_to(outside, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'directory symlink'):
+            gate.storage_evidence_inventory(root)
+
+        root = self._write_storage_case(self.root / 'storage-mounted')
+        with patch.object(gate.os.path, 'ismount', side_effect=lambda path: Path(path) == root / 'volume'):
+            with self.assertRaisesRegex(RuntimeError, 'unmounted real directory'):
+                gate.storage_evidence_inventory(root)
+
+    def test_storage_inventory_requires_actual_cleanup_command_receipts(self):
+        root = self._write_storage_case(self.root / 'storage-bad-cleanup')
+        path = root / 'volume-setup.json'
+        receipt = json.loads(path.read_text())
+        receipt['commands'][-1]['stdout'] = '/dev/loop17: stale association'
+        path.write_text(json.dumps(receipt))
+        with self.assertRaisesRegex(RuntimeError, 'incomplete or inconsistent'):
+            gate.storage_evidence_inventory(root)
+
+    def test_storage_metadata_rewrite_is_limited_to_exact_two_rows(self):
+        build = self.root / 'build'
+        old = '/attempt/native'
+        new = '/source/local/m06-gate-storage/attempt/Debug'
+        owner = new + '/session-storage-owner'
+        contention = new + '/session-storage-contention'
+        self.put('build/CTestTestfile.cmake',
+            'set_tests_properties([=[session-storage-owner]=] PROPERTIES TIMEOUT "180" ENVIRONMENT "SPATIAL_SECURITY_EVIDENCE=' + old + '")\n'
+            'set_tests_properties([=[session-storage-contention]=] PROPERTIES TIMEOUT "180" ENVIRONMENT "SPATIAL_SECURITY_EVIDENCE=' + old + '")\n'
+            'set_tests_properties([=[session-application]=] PROPERTIES ENVIRONMENT "SPATIAL_SECURITY_EVIDENCE=' + old + '")\n')
+        targets = {'session-storage-owner': owner, 'session-storage-contention': contention}
+        edits = gate.relocate_storage_evidence_metadata(build, Path(old), targets)
+        text = (build / 'CTestTestfile.cmake').read_text()
+        self.assertEqual([item['test'] for item in edits], list(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
+        self.assertIn('SPATIAL_SECURITY_EVIDENCE=' + owner, text)
+        self.assertIn('SPATIAL_SECURITY_EVIDENCE=' + contention, text)
+        shared = 'SPATIAL_SECURITY_EVIDENCE=' + old
+        self.assertEqual(text.count('SPATIAL_SECURITY_EVIDENCE=' + owner), 1)
+        self.assertEqual(text.count('SPATIAL_SECURITY_EVIDENCE=' + contention), 1)
+        self.assertEqual(text.count(shared + chr(34)), 1)
+        receipt_path = self.root / 'storage-metadata-relocation.json'
+        gate.write_json(receipt_path, dict(edits=edits, targets=targets))
+        saved = json.loads(receipt_path.read_text())
+        self.assertEqual(saved['edits'][0]['evidence_path'], owner)
+        self.assertEqual(saved['edits'][1]['evidence_path'], contention)
+        with self.assertRaisesRegex(RuntimeError, 'unsupported storage evidence CTest metadata row'):
+            gate.relocate_storage_evidence_metadata(build, Path(old), targets)
 
     def test_output_paths_exempt_inputs_required(self):
         source = self.root / 'source'

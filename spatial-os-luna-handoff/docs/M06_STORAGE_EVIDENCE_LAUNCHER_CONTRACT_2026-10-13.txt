@@ -1,0 +1,11 @@
+M06 normal-gate storage evidence placement
+Date: 2026-10-13
+
+The normal M06 gate preserves the existing SPATIAL_SECURITY_EVIDENCE value for every CTest registration except session-storage-owner and session-storage-contention.
+
+Those two fixtures create native storage volumes beneath source/local. The gate creates source/local when absent after validating its source parent. It then reserves a fresh source/local/m06-gate-storage/<host>/<attempt-token> directory for every local attempt. It creates one exclusive mode-0700 leaf per build profile. Existing parents must be real directories owned by the gate user. Symlinked or invalid source parents, symlinked source/local, reused attempt roots, and reused profile leaves fail closed. A missing source/local is created safely.
+
+The gate changes only the SPATIAL_SECURITY_EVIDENCE property for those exact two CTest registrations. It gives each registration an exclusive evidence leaf to prevent inherited-test collisions. It compares the full CTest inventory against the reviewed two-registration mapping. It records each path, owner, mode, and metadata hash. It scans the selected storage logs for sanitizer diagnostics and records cleanup receipt hashes. It validates that each volume path is a real, unmounted directory before excluding it. It records that exclusion and each sparse image path without reading image contents. Cleanup receipts must prove the unmount and loop-detach commands succeeded. All tracked deployed source hashes remain checked before and after the run. Runtime evidence under source/local is ignored scratch and is not part of the tracked-source manifest.
+
+This is launcher wiring only. It does not establish a passing M06 gate. The storage test bodies, full Debug and sanitizer suites, harness, acceptance, and cross-host checks still require their normal qualification evidence.
+Archive packaging and verification hash gzip-tar members in one forward-only pass. Verification drains the gzip stream after tar end markers to validate its trailer, then promotes extracted files from a staging directory only after the manifest matches.

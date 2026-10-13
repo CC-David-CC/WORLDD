@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import ast
 import copy
+import gzip
 import shutil
+import stat
 import shlex
 import hashlib
 import io
@@ -39,6 +41,7 @@ REQUIRED = {
     "geometry-native-fixture-regressions",
 }
 DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
+STORAGE_LOCAL_EVIDENCE_TESTS = ("session-storage-owner", "session-storage-contention")
 GEOMETRY_CASES = [f"test_{i:02d}_" for i in range(1, 10)]
 SAN_RE = re.compile(r"AddressSanitizer|LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:")
 INNER_SKIP_RE = re.compile(r'^(?:\d+: )?(?:OK|FAILED)\s*\([^\n)]*skipped\s*=|'
@@ -105,6 +108,89 @@ def file_manifest(root: Path):
         elif not path.is_dir():
             raise RuntimeError("bundle input contains special file: " + str(path))
     return result
+
+
+def _hash_member_stream(stream, destination=None, expected_size=None):
+    digest = hashlib.sha256()
+    size = 0
+    while True:
+        block = stream.read(1024 * 1024)
+        if not block:
+            break
+        digest.update(block)
+        size += len(block)
+        if destination is not None:
+            destination.write(block)
+    if expected_size is not None and size != expected_size:
+        raise RuntimeError('archive member size mismatch')
+    return digest.hexdigest()
+
+
+def stream_archive_hashes(bundle: Path):
+    """Hash regular members in one forward-only gzip-tar pass."""
+    files = {}
+    with gzip.open(bundle, 'rb') as compressed:
+        with tarfile.open(fileobj=compressed, mode='r|') as archive:
+            for member in archive:
+                if not member.isfile():
+                    continue
+                if member.name in files:
+                    raise RuntimeError('duplicate archive file: ' + member.name)
+                stream = archive.extractfile(member)
+                if stream is None:
+                    raise RuntimeError('archive member is unreadable: ' + member.name)
+                files[member.name] = _hash_member_stream(stream, expected_size=member.size)
+        while compressed.read(1024 * 1024):
+            pass
+    return files
+
+
+def extract_verified_bundle(bundle: Path, out: Path, expected_files):
+    """Validate, hash, and stage archive files in one sequential gzip-tar pass."""
+    if out.is_symlink() or not out.is_dir() or any(out.iterdir()):
+        raise RuntimeError('bundle destination must be a fresh empty directory')
+    stage = out / ('.m06-extract-' + uuid.uuid4().hex)
+    stage.mkdir(mode=0o700)
+    files, directories = {}, []
+    try:
+        root = stage.resolve(strict=True)
+        with gzip.open(bundle, 'rb') as compressed:
+            with tarfile.open(fileobj=compressed, mode='r|') as archive:
+                for member in archive:
+                    if not (member.isfile() or member.isdir()) or member.name.startswith('/') or '..' in Path(member.name).parts:
+                        raise RuntimeError('unsafe bundle member: ' + member.name)
+                    target = stage / member.name
+                    resolved = target.resolve(strict=False)
+                    if root not in resolved.parents:
+                        raise RuntimeError('unsafe bundle path: ' + member.name)
+                    if member.isdir():
+                        target.mkdir(parents=True, exist_ok=True, mode=0o700)
+                        directories.append((target, member.mode & 0o777))
+                        continue
+                    if member.name in files:
+                        raise RuntimeError('duplicate archive file: ' + member.name)
+                    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                    stream = archive.extractfile(member)
+                    if stream is None:
+                        raise RuntimeError('archive member is unreadable: ' + member.name)
+                    with target.open('xb') as output:
+                        files[member.name] = _hash_member_stream(stream, output, member.size)
+                    os.chmod(target, member.mode & 0o777)
+            while compressed.read(1024 * 1024):
+                pass
+        if files != expected_files:
+            raise RuntimeError('archive file manifest mismatch')
+        for directory, mode in reversed(directories):
+            os.chmod(directory, mode)
+        for child in stage.iterdir():
+            os.replace(child, out / child.name)
+        stage.rmdir()
+        return files
+    except BaseException:
+        if stage.exists() and not stage.is_symlink():
+            shutil.rmtree(stage)
+        raise
+
 
 def generated_closure(build: Path):
     folder = build / "python"
@@ -179,6 +265,239 @@ def map_inventory(value, mapping):
 def require_inventory_equal(observed, original, mapping):
     if observed != map_inventory(original, mapping):
         raise RuntimeError('relocated CTest commands/properties differ from prepared inventory')
+
+
+def _require_real_directory(path: Path, *, create=False):
+    """Validate one trusted directory component without following a symlink."""
+    created = False
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        if not create:
+            raise RuntimeError('required evidence parent is missing: ' + str(path))
+        path.mkdir(mode=0o700)
+        created = True
+        info = path.lstat()
+    if path.is_symlink() or not path.is_dir():
+        raise RuntimeError('evidence path component is not a real directory: ' + str(path))
+    if info.st_uid != os.getuid():
+        raise RuntimeError('evidence path component has unexpected owner: ' + str(path))
+    mode = info.st_mode & 0o777
+    if created and mode != 0o700:
+        raise RuntimeError('new evidence directory mode is not 0700: ' + str(path))
+    return dict(path=str(path), uid=info.st_uid, mode=mode)
+
+
+def create_storage_evidence_attempt(source: Path, host: str, attempt: str):
+    """Reserve a new ignored source/local root for the two storage CTest fixtures."""
+    _require_real_directory(source)
+    local = source / 'local'
+    local_receipt = _require_real_directory(local, create=True)
+    container = local / 'm06-gate-storage'
+    container_receipt = _require_real_directory(container, create=True)
+    host_root = container / host
+    host_receipt = _require_real_directory(host_root, create=True)
+    token = hashlib.sha256((host + '\0' + attempt).encode()).hexdigest()[:24]
+    attempt_root = host_root / token
+    attempt_root.mkdir(mode=0o700, exist_ok=False)
+    attempt_info = attempt_root.lstat()
+    local_resolved = local.resolve(strict=True)
+    resolved = attempt_root.resolve(strict=True)
+    if (attempt_root.is_symlink() or local_resolved not in resolved.parents
+            or attempt_info.st_uid != os.getuid() or attempt_info.st_mode & 0o777 != 0o700):
+        raise RuntimeError('storage evidence attempt escaped source/local or has unsafe ownership/mode')
+    return dict(root=attempt_root, parents=[local_receipt, container_receipt, host_receipt],
+                attempt=dict(path=str(attempt_root), uid=attempt_info.st_uid,
+                             mode=attempt_info.st_mode & 0o777), token=token)
+
+
+def create_storage_evidence_profile(attempt_root: Path, source: Path, profile: str):
+    leaf = attempt_root / profile
+    leaf.mkdir(mode=0o700, exist_ok=False)
+    info = leaf.lstat()
+    local = (source / 'local').resolve(strict=True)
+    resolved = leaf.resolve(strict=True)
+    if leaf.is_symlink() or local not in resolved.parents:
+        raise RuntimeError('storage evidence profile escaped source/local')
+    if info.st_uid != os.getuid() or info.st_mode & 0o777 != 0o700:
+        raise RuntimeError('storage evidence profile has unexpected owner or mode')
+    registrations = {}
+    for name in STORAGE_LOCAL_EVIDENCE_TESTS:
+        target = leaf / name
+        target.mkdir(mode=0o700, exist_ok=False)
+        target_info = target.lstat()
+        if target.is_symlink() or target_info.st_uid != os.getuid() or target_info.st_mode & 0o777 != 0o700:
+            raise RuntimeError('storage registration evidence leaf has unsafe owner or mode: ' + name)
+        resolved_target = target.resolve(strict=True)
+        if local not in resolved_target.parents:
+            raise RuntimeError('storage registration evidence leaf escaped source/local')
+        registrations[name] = dict(path=str(target), uid=target_info.st_uid, mode=target_info.st_mode & 0o777)
+    return dict(path=str(leaf), uid=info.st_uid, mode=info.st_mode & 0o777, registrations=registrations)
+
+
+def verify_storage_evidence_path(source: Path, path: Path):
+    local = source / 'local'
+    _require_real_directory(local)
+    local_resolved = local.resolve(strict=True)
+    try:
+        relative = path.relative_to(local)
+    except ValueError as error:
+        raise RuntimeError('storage evidence path is outside source/local') from error
+    current = local
+    rows = []
+    for part in relative.parts:
+        current = current / part
+        rows.append(_require_real_directory(current))
+    resolved = path.resolve(strict=True)
+    if local_resolved not in resolved.parents or not rows:
+        raise RuntimeError('storage evidence path escaped source/local')
+    if rows[-1]['mode'] != 0o700:
+        raise RuntimeError('storage evidence leaf mode changed')
+    return rows
+
+
+def relocate_storage_evidence_inventory(inventory, from_root: Path, targets):
+    """Change only the two declared storage tests' evidence environment values."""
+    result = copy.deepcopy(inventory)
+    seen = set()
+    for test in result:
+        if test.get('name') not in STORAGE_LOCAL_EVIDENCE_TESTS:
+            continue
+        name = test['name']
+        if name in seen:
+            raise RuntimeError('duplicate storage evidence registration: ' + name)
+        seen.add(name)
+        properties = [item for item in test.get('properties', []) if item.get('name') == 'ENVIRONMENT']
+        if len(properties) != 1 or not isinstance(properties[0].get('value'), list):
+            raise RuntimeError('unsupported storage test ENVIRONMENT metadata: ' + name)
+        values = properties[0]['value']
+        matches = [i for i, value in enumerate(values)
+                   if isinstance(value, str) and value.startswith('SPATIAL_SECURITY_EVIDENCE=')]
+        if len(matches) != 1:
+            raise RuntimeError('storage test must declare one security evidence path: ' + name)
+        index = matches[0]
+        if values[index] != 'SPATIAL_SECURITY_EVIDENCE=' + str(from_root):
+            raise RuntimeError('storage test evidence source differs from reviewed mapping: ' + name)
+        target = targets.get(name)
+        if not target:
+            raise RuntimeError('storage test evidence target missing: ' + name)
+        values[index] = 'SPATIAL_SECURITY_EVIDENCE=' + str(target)
+    if seen != set(STORAGE_LOCAL_EVIDENCE_TESTS):
+        raise RuntimeError('storage evidence registrations missing or duplicated')
+    return result
+
+
+def relocate_storage_evidence_metadata(build: Path, from_root: Path, targets):
+    """Edit the evidence value only in the two named generated CTest property rows."""
+    edits = []
+    for name in STORAGE_LOCAL_EVIDENCE_TESTS:
+        marker = 'set_tests_properties([=[' + name + ']=] PROPERTIES '
+        found = []
+        for path in ctest_metadata(build):
+            original = path.read_text(encoding='utf-8')
+            lines = original.splitlines(keepends=True)
+            for index, line in enumerate(lines):
+                if line.startswith(marker):
+                    found.append((path, lines, index, original))
+        if len(found) != 1:
+            raise RuntimeError('expected one generated CTest property row for ' + name)
+        path, lines, index, original = found[0]
+        line = lines[index]
+        old = 'SPATIAL_SECURITY_EVIDENCE=' + str(from_root)
+        target = targets.get(name)
+        if not target:
+            raise RuntimeError('storage metadata target missing: ' + name)
+        new = 'SPATIAL_SECURITY_EVIDENCE=' + str(target)
+        if line.count(old) != 1 or line.count('SPATIAL_SECURITY_EVIDENCE=') != 1:
+            raise RuntimeError('unsupported storage evidence CTest metadata row: ' + name)
+        lines[index] = line.replace(old, new, 1)
+        updated = ''.join(lines)
+        path.write_text(updated, encoding='utf-8')
+        edits.append(dict(test=name, file=str(path.relative_to(build)),
+                          before=hashlib.sha256(original.encode()).hexdigest(), after=sha(path),
+                          evidence_path=str(target)))
+    return edits
+
+
+def storage_evidence_inventory(root: Path):
+    """Hash logs and structured receipts, excluding sparse images and cleaned volume mountpoints."""
+    allowed = {'.log', '.json', '.pb', '.txt', '.textproto'}
+    hashes, log_paths, cleanups, exclusions = {}, [], [], []
+    def walk_error(error):
+        raise RuntimeError('cannot inspect storage evidence tree: ' + str(error)) from error
+    for current, directories, filenames in os.walk(root, followlinks=False, onerror=walk_error):
+        here = Path(current)
+        kept = []
+        for name in directories:
+            child = here / name
+            if child.is_symlink():
+                raise RuntimeError('storage evidence contains a directory symlink: ' + str(child))
+            if name == 'volume':
+                info = child.lstat()
+                if not stat.S_ISDIR(info.st_mode) or os.path.ismount(child):
+                    raise RuntimeError('storage volume exclusion is not an unmounted real directory: ' + str(child))
+                exclusions.append(dict(path=str(child.relative_to(root)), kind='cleaned-volume-mountpoint'))
+                continue
+            kept.append(name)
+        directories[:] = kept
+        for name in filenames:
+            path = here / name
+            if path.is_symlink():
+                raise RuntimeError('storage evidence contains a file symlink: ' + str(path))
+            if name == 'volume.img':
+                if not path.is_file():
+                    raise RuntimeError('storage sparse image exclusion is not a regular file: ' + str(path))
+                exclusions.append(dict(path=str(path.relative_to(root)), kind='sparse-volume-image'))
+                continue
+            if path.suffix.lower() not in allowed:
+                continue
+            if not path.is_file():
+                raise RuntimeError('storage evidence receipt is not a regular file: ' + str(path))
+            relative = str(path.relative_to(root))
+            hashes[relative] = sha(path)
+            if path.suffix.lower() == '.log':
+                log_paths.append(path)
+            if name == 'volume-setup.json':
+                receipt = json.loads(path.read_text())
+                volume, image = path.parent / 'volume', path.parent / 'volume.img'
+                loop, commands = receipt.get('loop'), receipt.get('commands')
+                cleanup_commands = commands if isinstance(commands, list) else []
+                umount_ok = any(item.get('argv') == ['umount', str(volume)] and item.get('exit_code') == 0
+                    for item in cleanup_commands if isinstance(item, dict))
+                detach_ok = any(item.get('argv') == ['losetup', '-d', loop] and item.get('exit_code') == 0
+                    for item in cleanup_commands if isinstance(item, dict))
+                detached_check_ok = any(item.get('argv') == ['losetup', '-j', str(image)]
+                    and item.get('exit_code') == 0 and item.get('stdout') == ''
+                    for item in cleanup_commands if isinstance(item, dict))
+                if (receipt.get('status') != 'prepared' or receipt.get('cleanup_confirmed') is not True
+                        or receipt.get('mounted') is not False or receipt.get('loop_attached') is not False
+                        or receipt.get('volume') != str(volume.resolve(strict=False))
+                        or not isinstance(loop, str) or not re.fullmatch(r'/dev/loop[0-9]+', loop)
+                        or not umount_ok or not detach_ok or not detached_check_ok
+                        or not volume.is_dir() or volume.is_symlink() or os.path.ismount(volume)):
+                    raise RuntimeError('storage volume cleanup receipt is incomplete or inconsistent: ' + str(path))
+                cleanups.append(dict(path=relative, sha256=hashes[relative], loop=loop,
+                    volume=str(volume.relative_to(root)), cleanup_commands_verified=True))
+    if not cleanups:
+        raise RuntimeError('storage registration has no successful volume cleanup receipt: ' + str(root))
+    return dict(files=hashes, logs=log_paths, cleanups=cleanups, exclusions=exclusions)
+
+
+def scan_storage_evidence(registrations):
+    files, cleanups, exclusions = {}, {}, {}
+    log_count = 0
+    for name in STORAGE_LOCAL_EVIDENCE_TESTS:
+        if name not in registrations:
+            raise RuntimeError('storage evidence registration missing: ' + name)
+        row = storage_evidence_inventory(registrations[name])
+        files[name] = row['files']
+        cleanups[name] = row['cleanups']
+        exclusions[name] = row['exclusions']
+        for path in row['logs']:
+            log_count += 1
+            if SAN_RE.search(path.read_text(errors='replace')):
+                raise RuntimeError('sanitizer diagnostic in storage evidence log: ' + name + '/' + str(path))
+    return dict(files=files, cleanups=cleanups, exclusions=exclusions, logs_scanned=log_count)
 
 
 def reject_inner_skips(output):
@@ -485,9 +804,7 @@ def prepare(a):
                 else:
                     tar.add(path, arcname=name, recursive=False)
         # Manifest is out of band because it also hashes provenance.json.
-        with tarfile.open(dest / "m06-artifacts.tar.gz", "r:gz") as archive:
-            rec["archive_files"] = {m.name: hashlib.sha256(archive.extractfile(m).read()).hexdigest()
-                                    for m in archive.getmembers() if m.isfile()}
+        rec["archive_files"] = stream_archive_hashes(dest / "m06-artifacts.tar.gz")
         rec["bundle_sha256"] = sha(dest / "m06-artifacts.tar.gz")
         write_json(dest / "archive-manifest.json", {"bundle_sha256": rec["bundle_sha256"], "files": rec["archive_files"]})
         write_json(dest / "provenance.json", rec)
@@ -509,22 +826,7 @@ def verify_bundle(a):
         raise RuntimeError("out-of-band archive manifest mismatch")
     out = a.destination.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    with tarfile.open(bundle, "r:gz") as tar:
-        members = tar.getmembers()
-        files = {}
-        for member in members:
-            if not (member.isfile() or member.isdir()) or member.name.startswith("/") or ".." in Path(member.name).parts:
-                raise RuntimeError("unsafe bundle member: " + member.name)
-            target = (out / member.name).resolve()
-            if out not in target.parents:
-                raise RuntimeError("unsafe bundle path: " + member.name)
-            if member.isfile():
-                if member.name in files:
-                    raise RuntimeError("duplicate archive file: " + member.name)
-                files[member.name] = hashlib.sha256(tar.extractfile(member).read()).hexdigest()
-        if files != external["files"]:
-            raise RuntimeError("archive file manifest mismatch")
-        tar.extractall(out)
+    extract_verified_bundle(bundle, out, external["files"])
     rec = json.loads((out / "provenance.json").read_text())
     if rec.get("candidate") != rec["runtime_manifest"].get("candidate"):
         raise RuntimeError("runtime candidate mismatch")
@@ -635,6 +937,7 @@ def gate(a):
     source = root / "source"
     builds = root / "build"
     try:
+        storage_attempt = create_storage_evidence_attempt(source, host, out.name)
         for profile in PROFILES:
             build = builds / profile
             production = root / 'production-off' / profile
@@ -642,6 +945,9 @@ def gate(a):
                 if sha(production / rel) != expected:
                     raise RuntimeError('production-off runtime mismatch: ' + rel)
             target = out / profile; target.mkdir()
+            storage_profile = create_storage_evidence_profile(storage_attempt["root"], source, profile)
+            storage_evidence = {name: Path(row["path"])
+                                for name, row in storage_profile["registrations"].items()}
             env = os.environ.copy()
             env.update(PYTHONPATH=str(build / "python") + ":" + str(source), SPATIAL_XPROBE=str(build / "spatial-xprobe"),
                 SPATIAL_SECURITY_EVIDENCE=str(target / "native"), SPATIAL_SCOPE_EVIDENCE=str(target / "scopes"),
@@ -672,8 +978,20 @@ def gate(a):
             evidence_edits = replace_metadata(build, [(deployed_evidence, str(target / "ctest"))])
             expected_inventory, startup_edits = add_startup_bindings(build,
                 map_inventory(prepared['inventory'], mapping), production / 'python')
+            storage_source = target / 'ctest'
+            expected_inventory = relocate_storage_evidence_inventory(
+                expected_inventory, storage_source, storage_evidence)
+            storage_edits = relocate_storage_evidence_metadata(build, storage_source, storage_evidence)
             row_metadata = {str(p.relative_to(build)): sha(p) for p in ctest_metadata(build)}
-            write_json(target / "metadata-relocation.json", dict(edits=evidence_edits, startup_packaging_augmentation=startup_edits, after=row_metadata))
+            write_json(target / "metadata-relocation.json", dict(
+                edits=evidence_edits, startup_packaging_augmentation=startup_edits,
+                storage_local_evidence_augmentation=dict(
+                    tests=list(STORAGE_LOCAL_EVIDENCE_TESTS), source=str(storage_source),
+                    destinations={name: str(path) for name, path in storage_evidence.items()},
+                    parents=storage_attempt["parents"], attempt=storage_attempt["attempt"],
+                    profile=storage_profile,
+                    metadata_edits=storage_edits),
+                after=row_metadata))
             invpath = target / "inventory.json"
             # CTest --show-only is read-only; compare normalized registration names against build-host inventory.
             p, sec = run(["ctest", "--test-dir", str(build), "--show-only=json-v1"], cwd=source, env=env, timeout=120)
@@ -683,8 +1001,20 @@ def gate(a):
             names = audit_inventory(deployed, required)
             local_names = sorted(set(names) - DEDICATED_CROSSHOST)
             require_inventory_equal(deployed, expected_inventory, [])
-            verify_inventory_paths(deployed, source, build, (target / 'ctest',))
-            write_json(invpath, dict(names=sorted(names), count=len(names), dedicated_crosshost=sorted(DEDICATED_CROSSHOST), local_names=local_names, sha256=sha(target / "inventory.log")))
+            verify_inventory_paths(deployed, source, build,
+                                   (target / 'ctest', *storage_evidence.values()))
+            storage_names = sorted(test["name"] for test in deployed
+                                   if any(prop.get("name") == "ENVIRONMENT"
+                                          and any(value == "SPATIAL_SECURITY_EVIDENCE=" + str(storage_evidence.get(test["name"]))
+                                                  for value in prop.get("value", []))
+                                          for prop in test.get("properties", []))
+                                   and test["name"] in STORAGE_LOCAL_EVIDENCE_TESTS)
+            if storage_names != sorted(STORAGE_LOCAL_EVIDENCE_TESTS):
+                raise RuntimeError("storage evidence augmentation escaped its two declared registrations")
+            write_json(invpath, dict(names=sorted(names), count=len(names), dedicated_crosshost=sorted(DEDICATED_CROSSHOST),
+                                     local_names=local_names, sha256=sha(target / "inventory.log"),
+                                     storage_local_evidence=dict(tests=storage_names,
+                                         paths={name: str(path) for name, path in storage_evidence.items()})))
             row = report["profiles"][profile] = dict(status="running", inventory_count=len(names), commands=[
                 dict(name="inventory", command=["ctest", "--test-dir", str(build), "--show-only=json-v1"], exit_code=0, seconds=sec, assertions_passed=True)])
             commands = [
@@ -747,8 +1077,14 @@ def gate(a):
                         raise RuntimeError("storage owner scope or mount remains")
                 row["commands"][-1]["assertions_passed"] = True
                 write_json(out / "run.json", report)
-            findings = [str(p.relative_to(target)) for p in target.rglob("*.log") if SAN_RE.search(p.read_text(errors="replace"))]
-            row["sanitizer_logs_scanned"] = len(list(target.rglob("*.log"))); row["sanitizer_findings"] = findings
+            storage_receipt = scan_storage_evidence(storage_evidence)
+            target_logs = list(target.rglob("*.log"))
+            findings = [str(p.relative_to(target)) for p in target_logs if SAN_RE.search(p.read_text(errors="replace"))]
+            row["sanitizer_logs_scanned"] = len(target_logs) + storage_receipt["logs_scanned"]
+            row["sanitizer_findings"] = findings
+            row["storage_evidence_sha256"] = storage_receipt["files"]
+            row["storage_cleanup_receipts"] = storage_receipt["cleanups"]
+            row["storage_evidence_exclusions"] = storage_receipt["exclusions"]
             if findings: raise RuntimeError(profile + " sanitizer findings: " + ", ".join(findings))
             row["status"] = "passed_needs_crosshost_and_review"
             row["artifact_sha256"] = {str(p.relative_to(target)): sha(p) for p in target.rglob("*") if p.is_file()}
@@ -770,16 +1106,36 @@ def gate(a):
                 (build / name).is_file() and sha(build / name) == expected
                 for name, expected in row["runtime_files"].items() if name not in row["ctest_metadata"])
         report["metadata_rechecked"] = {}
+        report["storage_evidence_rechecked"] = {}
         for profile in PROFILES:
             build = builds / profile
             metadata_record = out / profile / "metadata-relocation.json"
             if metadata_record.is_file():
-                expected_metadata = json.loads(metadata_record.read_text()).get("after", {})
+                relocation = json.loads(metadata_record.read_text())
+                expected_metadata = relocation.get("after", {})
                 report["metadata_rechecked"][profile] = bool(expected_metadata) and all(
                     (build / rel).is_file() and sha(build / rel) == digest
                     for rel, digest in expected_metadata.items())
+                try:
+                    augmentation = relocation["storage_local_evidence_augmentation"]
+                    if augmentation.get("tests") != list(STORAGE_LOCAL_EVIDENCE_TESTS):
+                        raise RuntimeError("storage evidence registration set changed")
+                    profile_path = Path(augmentation["profile"]["path"])
+                    verify_storage_evidence_path(source, profile_path)
+                    paths = augmentation["destinations"]
+                    declared = augmentation["profile"]["registrations"]
+                    if set(paths) != set(STORAGE_LOCAL_EVIDENCE_TESTS) or set(declared) != set(paths):
+                        raise RuntimeError("storage evidence paths incomplete")
+                    if any(paths[name] != declared[name]["path"] for name in paths):
+                        raise RuntimeError("storage evidence registration map changed")
+                    for value in paths.values():
+                        verify_storage_evidence_path(source, Path(value))
+                    report["storage_evidence_rechecked"][profile] = True
+                except (KeyError, OSError, RuntimeError, ValueError):
+                    report["storage_evidence_rechecked"][profile] = False
             else:
                 report["metadata_rechecked"][profile] = False
+                report["storage_evidence_rechecked"][profile] = False
         report["runtime_rechecked"] = {}
         for profile in PROFILES:
             try:
@@ -787,9 +1143,12 @@ def gate(a):
                 report["runtime_rechecked"][profile] = True
             except (OSError, KeyError, ValueError, RuntimeError):
                 report["runtime_rechecked"][profile] = False
-        if not report["source_sha256_rechecked"] or not all(report['production_off_rechecked'].values()) or not all(report["profile_artifacts_rechecked"].values()) or not all(report["runtime_rechecked"].values()) or not all(report["metadata_rechecked"].values()):
+        if (not report["source_sha256_rechecked"] or not all(report['production_off_rechecked'].values())
+                or not all(report["profile_artifacts_rechecked"].values()) or not all(report["runtime_rechecked"].values())
+                or not all(report["metadata_rechecked"].values())
+                or not all(report["storage_evidence_rechecked"].values())):
             report["status"] = "failed"
-            report["error"] = "postrun source, artifact, or runtime invariant failed"
+            report["error"] = "postrun source, artifact, runtime, or storage evidence invariant failed"
         report["phase_complete"] = False
         write_json(out / "run.json", report)
     return 1 if report["status"] == "failed" else 0
