@@ -31,6 +31,8 @@ import launch_pb2 as launch
 import native_scope_pb2 as native
 import security_pb2 as security
 import world_session_pb2 as world_session
+import grants_pb2 as grants
+from geometry_pixel_witness import GeometryPixelWitness
 from harness.wire import frame
 
 
@@ -62,6 +64,25 @@ class ProductionHostSessionArgumentTests(unittest.TestCase):
 class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
     """Reuse genuine host fixtures; replace their controller executable with the entrypoint."""
 
+    def config_file(self,name,value):
+        if isinstance(value,world_session.WorldAuthoritySeed) and getattr(self,'without_observation',False):
+            copied=world_session.WorldAuthoritySeed();copied.CopyFrom(value)
+            for grant in copied.roots:
+                rights=[right for right in grant.rights if right!=grants.WORLD_OBSERVE]
+                del grant.rights[:];grant.rights.extend(rights)
+            value=copied
+        return super().config_file(name,value)
+
+    def foreground_pixels(self):
+        if not hasattr(self,'geometry_witness'):
+            self.geometry_witness=GeometryPixelWitness(self.display,self.cookie)
+            self.addCleanup(self.geometry_witness.close)
+        return self.geometry_witness.pixels()
+
+    def assert_foreground_blank(self):
+        pixels=self.foreground_pixels()
+        self.assertFalse(any(pixels[0::4]));self.assertFalse(any(pixels[1::4]));self.assertFalse(any(pixels[2::4]))
+
     def world_id(self, config):
         result = subprocess.run([config.launch.executable, '--state-dir',
                                  config.launch.arguments[1]],
@@ -77,14 +98,17 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
             server_pid=self.server.pid, server_uid=os.getuid(), launch_id=os.urandom(32), role=role)
         return sealed(value.SerializeToString(), 'production-host-native')
 
-    def make_world(self, suffix, admitted=True):
+    def make_world(self, suffix, admitted=True, observe=True):
         self.world_instance_suffix = suffix
         had_world_admitted = hasattr(self, 'world_admitted')
         previous_world_admitted = getattr(self, 'world_admitted', None)
         self.world_admitted = admitted
+        previous_observation=getattr(self,'without_observation',False)
+        self.without_observation=not observe
         try:
             config = self.world_config()
         finally:
+            self.without_observation=previous_observation
             if had_world_admitted:
                 self.world_admitted = previous_world_admitted
             else:
@@ -118,12 +142,12 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
                               native_fd=native_fd, actor_listener_fd=listener.fileno(),
                               actor_tls_config=str(tls_path)), listener, native_fd
 
-    def prepare(self, second=False, denied=False, failed_second=False):
+    def prepare(self, second=False, denied=False, failed_second=False, observe_denied=False, destination_observe_denied=False):
         self.start()
         broker_config = self.broker_config()
         self.host_broker_journal = Path(broker_config.journal_directory)
-        worlds = [self.make_world('')]
-        if second or failed_second: worlds.append(self.make_world('-b'))
+        worlds = [self.make_world('',observe=not observe_denied)]
+        if second or failed_second or destination_observe_denied: worlds.append(self.make_world('-b',observe=not destination_observe_denied))
         if denied: worlds.append(self.make_world('-denied', admitted=False))
         if failed_second:
             worlds[1][0].world_id = 'wrong-world'
@@ -193,6 +217,7 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
             request_id = self.host_request_id
         request = host.HostControlRequest(protocol_version=1, request_id=request_id, generation=generation)
         if operation == 'inspect': request.inspect = True
+        elif operation == 'geometry_status': request.geometry_status = True
         elif operation == 'action': request.action.CopyFrom(fields['action'])
         elif operation == 'transition': request.transition.CopyFrom(fields['transition'])
         payload = request.SerializeToString()
@@ -266,6 +291,40 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
         reply = host.HostControlReply.FromString(exact(self.control, size))
         self.assertEqual(reply.request_id, (1 << 64) - 1)
         return reply
+
+    def test_initial_local_observation_denial_blanks_foreground_preserves_navigation(self):
+        initial=self.ready_host(observe_denied=True)
+        before=self.retained_pids();starts={pid:self.process_start(pid) for group in before.values() for pid in group}
+        status=self.request('geometry_status').geometry_status
+        self.assertFalse(status.available);self.assertFalse(status.world_id);self.assertFalse(status.HasField('camera'))
+        self.assert_foreground_blank()
+        action=self.request('action',action=core.ActorActionRequest(seq=1,stop=core.ActorStopRequest()))
+        self.assertTrue(action.accepted,action);self.assertTrue(action.action.action.accepted)
+        self.assertEqual(self.request().inspection.state.pose,initial.inspection.state.pose)
+        self.assertEqual(self.retained_pids(),before);self.assertEqual({pid:self.process_start(pid) for pid in starts},starts)
+        self.assert_foreground_blank()
+
+    def test_local_destination_observation_denial_blanks_without_losing_navigation(self):
+        self.ready_host(destination_observe_denied=True)
+        source=self.request('geometry_status').geometry_status
+        self.assertTrue(source.available);pixels=self.foreground_pixels()
+        self.assertTrue(any(pixels[0::4]) or any(pixels[1::4]) or any(pixels[2::4]))
+        before=self.retained_pids();starts={pid:self.process_start(pid) for group in before.values() for pid in group}
+        destination=self.worlds[1][0].world_id
+        transition=host_actor.HostActorTransitionRequest(protocol_version=1,transition_id=os.urandom(32),
+            departure_sequence=10,destination_world_id=destination)
+        result=self.request('transition',transition=transition)
+        self.assertTrue(result.transition.actor_transition.destination_activation_confirmed,result)
+        self.assertTrue(result.transition.actor_control_available,result)
+        self.assertTrue(result.transition.actor_transition.host_presentation_selection_pending,result)
+        generation=result.generation
+        status=self.request('geometry_status',generation=generation).geometry_status
+        self.assertFalse(status.available);self.assertFalse(status.world_id);self.assertFalse(status.HasField('camera'))
+        self.assert_foreground_blank()
+        action=self.request('action',generation=generation,action=core.ActorActionRequest(seq=1,stop=core.ActorStopRequest()))
+        self.assertTrue(action.accepted,action);self.assertTrue(action.action.action.accepted)
+        self.assertEqual(self.retained_pids(),before);self.assertEqual({pid:self.process_start(pid) for pid in starts},starts)
+        self.assert_foreground_blank()
 
     def test_initial_presentation_selection_and_authenticated_actor_readiness(self):
         first = self.ready_host()

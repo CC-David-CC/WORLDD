@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include <mutex>
+#include <optional>
 
 namespace spatial::supervisor {
 
@@ -26,6 +27,7 @@ public:
 
     void register_world(std::string world_id, workspace::v1::ControlOwner retained_owner,
                         ChannelFactory actor_channel);
+    void register_remote_world(std::string world_id, ChannelFactory actor_channel);
     identity::v1::HostActorTransitionResult transition(
         const identity::v1::HostActorTransitionRequest& request);
 
@@ -36,10 +38,20 @@ public:
                                          const core::v1::ActorActionRequest& request);
     std::uint64_t generation() const;
     bool control_available() const;
+    identity::v1::ActorGeometryView geometry_view(std::uint64_t generation);
+    identity::v1::HostGeometryStatus geometry_status(std::uint64_t generation) const;
+    void start_geometry_presentation();
+    void pump_geometry_presentation();
     std::string current_world() const;
 
 private:
-    struct Destination { workspace::v1::ControlOwner owner; ChannelFactory channel; };
+    bool retire_geometry_locked() noexcept;
+    void clear_foreground_locked();
+    void refresh_geometry_locked();
+    struct Destination { std::optional<workspace::v1::ControlOwner> owner; ChannelFactory channel; };
+    SessionCoordinator* session_ = nullptr;
+    std::optional<render::v1::GeometryPresentationTarget> geometry_target_;
+    identity::v1::HostGeometryStatus geometry_status_;
     PresentationInspect inspect_;
     PresentationSelect select_;
     mutable std::mutex mutex_;

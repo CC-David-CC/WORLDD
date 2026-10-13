@@ -1,0 +1,102 @@
+M06 native geometry increment 2
+Status: UNQUALIFIED. All runtime checks remain UNRUN on the coding host.
+Branch: m06/native-shared-geometry-20261013
+Base: 45eabb37cf16a815d91b1bf659d9bf317d0f6cb7
+Coding and builds: a5500 only. Qualification: sb16 and sb16-2 only.
+
+Contract additions
+The trusted presentation owner registers geometry-only targets through its private channel.
+Each target binds world, actor, view session, authority incarnation, authority generation,
+and a globally allocated local presentation generation. It has no native input identity.
+Registration, selection, publication, and retirement receive checked compositor replies.
+Attempted registration ownership is recorded before IPC. Unknown acknowledgements retain it.
+Only checked no-effect registration errors remove attempted ownership.
+Failed retirement retains target ownership and reports unavailable control.
+Shutdown requires confirmed retirement of every geometry target and local world channel.
+
+The compositor rejects wrong context, stale sequence, unknown fields, and descriptors
+before drawing geometry. Local duplicate attachment still returns IN_USE.
+Geometry frames contain no application surfaces, XIDs, captures, or input instructions.
+Renderer::draw_geometry constructs the same RenderScene drawing representation.
+It never converts a remote authority into a local world channel.
+
+HostSessionConfig adds remote_worlds with trusted actor TLS profile paths.
+The existing authenticated actor client supplies foreground frames after activation.
+The loop permits one bounded in-flight exchange and stores no obsolete frame queue.
+It drains queued control requests before polling geometry after a 100 ms quiet interval.
+Checked observation denial retires presentation while preserving unrelated actor authority.
+Transport failure retains the client's existing no-replay fence.
+World transitions do not restart the local XLibre server or spatialwm.
+
+HostControl adds geometry_status as a read-only current-generation operation.
+It reports only the last compositor-acknowledged frame sequence, revision, camera,
+world, actor, room, and presentation/authority generations.
+It contains no geometry, application metadata, session credentials, or provider secrets.
+Denied, retired, unavailable, and failed presentations return redacted unavailable status.
+Stale generation rejects before any status disclosure.
+Actor activation, host selection, and displayed-frame acknowledgement remain separate facts.
+
+Implemented focused checks
+tests/native/test_geometry_presentation.py contains ten native boundary cases.
+They check actual independent X GetImage pixels, target tuples, delayed frames,
+sequence retention, retirement, unrelated targets, shutdown, duplicate generations,
+unknown native-command wire fields, descriptor rejection, and held-input absence.
+tests/core/test_presentation_owner.py adds three production owner cases.
+They cover lost geometry attachment acknowledgement, missing state, and retained sequence.
+tests/core/test_geometry_native_crosshost.py contains nine M06 oracle cases.
+The first five and last two use real authority worlds and a peer production host-session.
+Object mutation uses authenticated grab, move, and commit actions.
+Other actor motion uses authenticated continuous input and stop actions.
+Observer camera/context remains fixed during both pixel-change oracles.
+An acknowledged revision and stable nonblank native frame establish each baseline.
+Cases six and seven combine real host generation rejection with focused native boundary checks.
+No test writes the world database or substitutes a simulated world engine.
+
+Cross-host execution
+Deploy the same frozen source and matching profile artifacts on both hosts.
+Use the reviewed XACE Xvfb wrapper and graphics dependencies on each host.
+Keep normal login, SSH, and TTY recovery routes unchanged.
+The narrow peer fixture creates a unique delegated systemd unit and adapter scope.
+The controller chooses the exact unit before launch. Failure recovery stops only that unit.
+The fixture verifies checked host cleanup, adapter exit, population, scope removal,
+unit absence, and cgroup absence. It preserves original protocol errors during recovery.
+Its protobuf frames share absolute header/body deadlines. Startup includes the JSON prefix.
+Fixture credentials remain in private runtime directories and never enter Git.
+
+tools/run_geometry_native_crosshost.py starts one direction in persistent tmux.
+Its deployment manifest uses profile debug or asan and entries for exactly both hosts.
+Each host entry supplies absolute source, bin, python, xserver, evidence,
+command_runner paths, and a reachable numeric address.
+command_runner is the unchanged installed skill scripts/run-command.sh copied into the bundle.
+Run one direction at a time. Run both directions for each profile:
+python3 tools/run_geometry_native_crosshost.py --manifest DEPLOYMENT.json --authority sb16 --run-id NEW-ID
+python3 tools/run_geometry_native_crosshost.py --manifest DEPLOYMENT.json --authority sb16-2 --run-id NEW-ID
+The runner returns the host, tmux handle, run directory, and profile.
+Inspect command.exit, wrapper.exit, all assertions, and sanitizer logs before recording results.
+Do not accept COMPLETE or exit zero alone as native qualification.
+
+Related checks remain required
+Run presentation-owner, geometry-presentation-native, host-session-production-native,
+host-actor-controller, actor-geometry-client-hostile-peer, and actor-geometry-world-headless.
+Use each registered suite's declared resource and native launch environment.
+Run geometry-native-crosshost through the deployment runner in both directions and profiles.
+No Debug or sanitizer compilation proves these runtime checks passed.
+The full M06 phase gate and Spatial-M1 qualification remain pending.
+
+Reviewed local observation-denial correction
+The legacy trusted management render_present route remains available to world owners.
+It is not a foreground actor observation check. Production startup and transitions
+inspect retained local READY state without selecting that raw producer before geometry
+authorization. Callback-only legacy selection keeps its existing fixture contract.
+The trusted clear_selection operation deselects all producers and obtains a checked
+blanking acknowledgement. It preserves native channels, input scopes, and applications.
+Observation denial invokes checked blanking without revoking navigation authority.
+Unknown blanking acknowledgements fence control and never claim the display cleared.
+Two additive production-host cases cover initially denied local observation and accepted
+local destination entry with denied observation. They check native blanking and navigation.
+The authorized source frame supplies their positive observation control.
+A tenth native boundary case checks clear, local draw denial, and authorized re-selection.
+The geometry_pixel_witness helper reuses the independent NativeClient X wire connection.
+It checks endian framing, reply lengths, absolute deadlines, and native X errors.
+The prior unavailable operation/pack/tree helper assumption is corrected before deployment.
+Debug5/ASAN2 and their original source freeze remain preserved as pre-correction builds.

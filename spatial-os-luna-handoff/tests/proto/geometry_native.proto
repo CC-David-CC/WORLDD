@@ -1,0 +1,25 @@
+syntax = "proto3";
+package spatial.testing.v1;
+import "host_session.proto";
+message NativeGeometryWitnessRequest {
+  uint64 request_id = 1;
+  oneof operation {
+    spatial.supervisor.v1.HostControlRequest control = 2;
+    bool capture = 3;
+    bool identity = 4;
+    bool shutdown = 5;
+  }
+}
+message NativeGeometryProcess {
+  uint64 pid = 1;
+  uint64 start_ticks = 2;
+  bytes executable_sha256 = 3;
+}
+message NativeGeometryWitnessReply {
+  uint64 request_id = 1;
+  spatial.supervisor.v1.HostControlReply control = 2;
+  bytes pixels = 3;
+  repeated NativeGeometryProcess processes = 4;
+  string error = 5;
+  bool cleanup_complete = 6;
+}

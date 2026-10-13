@@ -18,6 +18,12 @@ public:
     render::v1::PresentationState inspect(const render::v1::WorldPresentationBinding&);
     render::v1::PresentationState detach(const render::v1::WorldPresentationBinding&);
     render::v1::PresentationState recover(const render::v1::WorldPresentationBinding&,const supervisor::v1::ProcessScopeStopped&,const supervisor::v1::NativeScopeStopped&);
+    render::v1::GeometryPresentationState attach_geometry(const render::v1::GeometryPresentationTarget&);
+    render::v1::GeometryPresentationState select_geometry(const render::v1::GeometryPresentationTarget&);
+    render::v1::GeometryPresentationState publish_geometry(const render::v1::GeometryPresentationTarget&,
+        const identity::v1::ActorGeometryView&);
+    render::v1::GeometryPresentationState retire_geometry(const render::v1::GeometryPresentationTarget&);
+    void clear_selection();
     void shutdown();
 private:
     struct Impl;std::unique_ptr<Impl> impl_;

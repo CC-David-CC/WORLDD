@@ -60,8 +60,9 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/presentation.proto
     DEPENDS proto/spatial/render/v1/presentation.proto proto/spatial/render/v1/compositor_native.proto
-        proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+        proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
 add_custom_target(presentation-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.py")
+add_dependencies(presentation-python-protobuf geometry-view-python-protobuf)
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_probe_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -1315,6 +1316,36 @@ add_custom_target(host-actor-python-protobuf DEPENDS
         "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
         "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_pb2.py")
 add_dependencies(spatial-host-session host-actor-python-protobuf)
+if(BUILD_TESTING)
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_native_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/geometry_native.proto
+        DEPENDS tests/proto/geometry_native.proto proto/spatial/supervisor/v1/host_session.proto
+            protobuf::protoc VERBATIM)
+    add_custom_target(geometry-native-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_native_pb2.py")
+    add_dependencies(geometry-native-python host-session-python-protobuf)
+    add_dependencies(spatial-host-session geometry-native-python presentation-python-protobuf)
+    add_test(NAME geometry-presentation-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_geometry_presentation.py"
+        $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(geometry-presentation-native PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME geometry-native-crosshost COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_geometry_native_crosshost.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(geometry-native-crosshost PROPERTIES TIMEOUT 1800
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};SPATIAL_GEOMETRY_EVIDENCE=$ENV{SPATIAL_GEOMETRY_EVIDENCE};SPATIAL_GEOMETRY_OBSERVER_HOST=$ENV{SPATIAL_GEOMETRY_OBSERVER_HOST};SPATIAL_GEOMETRY_AUTHORITY_ADDRESS=$ENV{SPATIAL_GEOMETRY_AUTHORITY_ADDRESS};SPATIAL_GEOMETRY_REMOTE_SOURCE=$ENV{SPATIAL_GEOMETRY_REMOTE_SOURCE};SPATIAL_GEOMETRY_REMOTE_BIN=$ENV{SPATIAL_GEOMETRY_REMOTE_BIN};SPATIAL_GEOMETRY_REMOTE_PYTHON=$ENV{SPATIAL_GEOMETRY_REMOTE_PYTHON};SPATIAL_GEOMETRY_REMOTE_XSERVER=$ENV{SPATIAL_GEOMETRY_REMOTE_XSERVER};SPATIAL_GEOMETRY_REMOTE_EVIDENCE=$ENV{SPATIAL_GEOMETRY_REMOTE_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+endif()
+
 if(BUILD_TESTING)
     add_dependencies(spatial-actor-transition-crosshost-probe host-actor-python-protobuf
         world-session-python-protobuf issuer-python-protobuf key-python-protobuf

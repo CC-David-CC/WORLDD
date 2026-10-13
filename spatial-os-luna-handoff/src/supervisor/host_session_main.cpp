@@ -152,6 +152,12 @@ void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
         need(descriptors.insert(w.native_fd()).second && descriptors.insert(w.actor_listener_fd()).second,"Repeated inherited world descriptor");
         validate_actor_profile(w.actor_tls_config(),w.world_id());
     }
+    need(c.remote_worlds_size()<=16,"Too many remote world registrations");
+    for(const auto& remote:c.remote_worlds()) {
+        need(!remote.world_id().empty() && remote.world_id().size()<=256 && worlds.insert(remote.world_id()).second &&
+            std::filesystem::path(remote.actor_tls_config()).is_absolute(),"Invalid remote world registration");
+        validate_actor_profile(remote.actor_tls_config(),remote.world_id());
+    }
     need(worlds.contains(c.initial_world_id()) && std::filesystem::path(c.initial_actor_tls_config()).is_absolute(),"Initial actor world is not configured");
     validate_actor_profile(c.initial_actor_tls_config(),c.initial_world_id());
 }
@@ -186,9 +192,13 @@ int main(int argc,char** argv) {
             auto owner=session->start_world(world.private_config_path(),world.supervisor(),world.native_fd(),world.actor_listener_fd(),0,world.world_id());
             by_world.emplace(world.world_id(),owner);
         }
-        const auto selected=session->select_world(by_world.at(config.initial_world_id()));
-        need(selected.stage()==spatial::render::v1::READY && selected.selected() &&
-             selected.binding().world_id()==config.initial_world_id(),"Initial presentation selection was not confirmed");
+        if(by_world.contains(config.initial_world_id())) {
+            const auto retained=session->inspect_presentation(by_world.at(config.initial_world_id()));
+            need(retained.stage()==spatial::render::v1::READY &&
+                 retained.binding().world_id()==config.initial_world_id(),"Initial retained presentation was not ready");
+            // A local producer is not selected before actor observation authority.
+            // The authenticated geometry target owns foreground publication.
+        }
         auto client=std::make_unique<spatial::ActorSessionClient>(config.initial_actor_tls_config());
         need(client->expected_world()==config.initial_world_id(),"Initial actor TLS profile names another world");
         client->authenticate();
@@ -197,8 +207,18 @@ int main(int argc,char** argv) {
             const auto id=world.world_id(); const auto path=world.actor_tls_config();
             controller->register_world(id,by_world.at(id),[path]{ return std::make_unique<spatial::ActorSessionClient>(path); });
         }
+        for(const auto& world:config.remote_worlds()) {
+            const auto id=world.world_id(); const auto path=world.actor_tls_config();
+            controller->register_remote_world(id,[path]{ return std::make_unique<spatial::ActorSessionClient>(path); });
+        }
+        controller->start_geometry_presentation();
         std::uint64_t last_id=0;
         while(!stopped) {
+            pollfd foreground{control,POLLIN,0};
+            const int foreground_ready=poll(&foreground,1,100);
+            if(foreground_ready<0 && errno==EINTR)continue;
+            need(foreground_ready>=0,"Host foreground poll failed");
+            if(foreground_ready==0) { controller->pump_geometry_presentation(); continue; }
             spatial::supervisor::v1::HostControlRequest request;
             Deadline deadline;
             if(!read_request(control,request,deadline)) break;
@@ -208,6 +228,7 @@ int main(int argc,char** argv) {
                 last_id=request.request_id();
                 try {
                     if(request.has_inspect()) { auto result=controller->inspect(request.generation()); *reply.mutable_inspection()=result; reply.set_accepted(true); }
+                    else if(request.has_geometry_status()) { *reply.mutable_geometry_status()=controller->geometry_status(request.generation()); reply.set_accepted(true); }
                     else if(request.has_action()) { auto result=controller->action(request.generation(),request.action()); *reply.mutable_action()=result; reply.set_accepted(true); }
                     else {
                         need(request.generation()==controller->generation(),"Stale host actor generation");
@@ -217,6 +238,7 @@ int main(int argc,char** argv) {
                 } catch(const std::exception& e) { reply.set_detail(e.what()); }
             }
             write_reply(control,reply,deadline);
+            // Drain queued controls before starting the next bounded scene exchange.
         }
         operation_ok=true;
     } catch(const std::exception& error) { std::cerr<<"host session failed: "<<error.what()<<'\n'; }

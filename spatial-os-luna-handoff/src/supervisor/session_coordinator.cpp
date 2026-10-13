@@ -7,6 +7,8 @@
 #include "platform/presentation_owner.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
+#include "world/geometry_view_validation.hpp"
+#include "world/store.hpp"
 #include <map>
 #include <iostream>
 #include <vector>
@@ -62,6 +64,7 @@ struct SessionCoordinator::Impl {
     std::filesystem::path executable;
     SessionBroker broker;
     std::unique_ptr<PresentationOwner> presentation;
+    std::map<std::uint64_t,render::v1::GeometryPresentationTarget> geometry_targets;
     std::uint64_t presentation_generation=0;
     // Reverse destruction closes world scopes before broker root ownership.
     std::map<std::string, std::unique_ptr<World>> worlds;
@@ -117,6 +120,39 @@ render::v1::PresentationState SessionCoordinator::inspect_presentation(const wor
     require(state.presentation && world.presentation_attached && !world.presentation_retired,"No retained world presentation");
     return state.presentation->inspect(world.presentation);
 }
+render::v1::GeometryPresentationTarget SessionCoordinator::attach_geometry(const identity::v1::ActorGeometryView& view){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    validate_geometry_view(view);require(state.presentation_generation!=UINT64_MAX,"Presentation generation exhausted");
+    render::v1::GeometryPresentationTarget target;target.set_protocol_version(1);target.set_world_id(view.world_id());
+    target.set_actor_id(view.actor_id());target.set_geometry_view_id(view.view_id());
+    target.set_authority_service_incarnation(view.authority_service_incarnation());target.set_authority_generation(view.authority_generation());
+    target.set_presentation_generation(++state.presentation_generation);
+    require(state.geometry_targets.emplace(target.presentation_generation(),target).second,"Duplicate geometry generation");
+    try {
+        const auto attached=state.presentation->attach_geometry(target);
+        require(attached.stage()==render::v1::ATTACHED,"Unexpected geometry attachment state");
+    } catch (const WorldError&) {
+        // A checked server rejection confirms that registration had no effect.
+        state.geometry_targets.erase(target.presentation_generation());
+        throw;
+    }
+    // Transport or malformed-reply failures retain attempted ownership for cleanup.
+    return target;
+}
+render::v1::GeometryPresentationState SessionCoordinator::select_geometry(const render::v1::GeometryPresentationTarget& target){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
+    return state.presentation->select_geometry(target);
+}
+render::v1::GeometryPresentationState SessionCoordinator::publish_geometry(const render::v1::GeometryPresentationTarget& target,
+    const identity::v1::ActorGeometryView& view){auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
+    return state.presentation->publish_geometry(target,view);}
+render::v1::GeometryPresentationState SessionCoordinator::retire_geometry(const render::v1::GeometryPresentationTarget& target){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
+    auto result=state.presentation->retire_geometry(target);state.geometry_targets.erase(found);return result;
+}
 void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner& owner){
     auto& state=*impl_;auto& world=state.find_owned(owner);
     require(state.presentation && world.presentation_attached && world.stopped,"Presentation recovery requires stopped retained world ownership");
@@ -128,10 +164,18 @@ void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner&
     const auto retired=state.presentation->detach(world.presentation);
     require(retired.stage()==render::v1::RETIRED,"Presentation retirement remains unconfirmed");world.presentation_retired=true;
 }
+void SessionCoordinator::clear_presentation(){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    state.presentation->clear_selection();
+}
 void SessionCoordinator::stop_presentation(){
     auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");
     for(const auto& [key,world]:state.worlds){
         (void)key;require(!world->presentation_attached || world->presentation_retired,"World presentation cleanup remains unconfirmed");
+    }
+    while(!state.geometry_targets.empty()) {
+        const auto target=state.geometry_targets.begin()->second;
+        state.presentation->retire_geometry(target);state.geometry_targets.erase(state.geometry_targets.begin());
     }
     state.presentation->shutdown();state.presentation.reset();
 }

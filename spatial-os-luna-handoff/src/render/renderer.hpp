@@ -1,6 +1,7 @@
 #pragma once
 #include "native_scope.pb.h"
 #include "core/protocol.hpp"
+#include "geometry_view.pb.h"
 #include "compositor_native.pb.h"
 #include <filesystem>
 #include <memory>
@@ -11,6 +12,7 @@ public:
     ~Renderer();
     wire::RendererReady ready() const;
     wire::FrameReply draw(const wire::RenderCommand& command, int capture_fd = -1);
+    wire::FrameReply draw_geometry(const identity::v1::ActorGeometryView& view);
     wire::RenderVisibility observe(const wire::RenderCommand& command);
     int connection() const;
     void events();
