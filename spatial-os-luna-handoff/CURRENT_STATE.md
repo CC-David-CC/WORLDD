@@ -1,3 +1,22 @@
+## 2026-10-13: Verified combined deployment enters the full M06 gate
+
+Frozen candidate: 258920de00e45448f104eedcc97147cf878406b3.
+All four Debug and ASan-UBSan builds passed, with testing enabled and disabled.
+The completed archive contains 1,206 verified files, including 905 source files.
+Archive SHA256: 12f5fd4472b9fd8a5e1ad3c5548bf3ffc0ecc2becadd5357b7f6b303cf0041d1.
+Both qualification hosts received matching archive and manifest hashes.
+Both deployments passed source, runtime, helper, XACE, graphics, and CTest-relocation verification.
+Deployment root: /home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment.
+Full local gates run in tmux sessions m06fullgate-sb16-01 and m06fullgate-sb16-2-01.
+Both hosts passed five Debug production-off startup tests and 51 harness tests.
+Debug CTest is running. Remaining local stages and all sanitizer stages are pending.
+Each profile has 165 registrations. The dedicated cross-host suite runs after both local gates.
+Cross-host semantic and native qualification remain UNRUN for this combined deployment.
+Old duplicate test payload cleanup reclaimed 8,079,472,645 logical bytes per host.
+Matching archives, unique changed tests, and failure evidence remain preserved.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+The combined candidate is not integrated into the milestone source branch yet.
+
 ## 2026-10-13: Frozen combined M06 candidate builds are running
 
 Candidate: 258920de00e45448f104eedcc97147cf878406b3.
