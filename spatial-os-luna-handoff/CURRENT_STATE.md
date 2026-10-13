@@ -1,3 +1,20 @@
+## 2026-10-13: User-bus retries pass eighteen cases per host
+
+Both nineteen-case Debug user-bus retries completed.
+Each host passed eighteen registrations. host-session-production-native failed.
+Its twenty-five errors share the missing owned broker resource template setup failure.
+Read defect blockers/m06-host-session-owned-resource-template.txt for the required correction.
+The native broker resource guard remains intact.
+Recovery reports remain FAILED/PENDING. They do not qualify the phase.
+Both reports passed artifact, metadata, original-evidence, and owned-process postchecks.
+
+The separate controller fixture built and packaged successfully in Debug and ASan-UBSan.
+Its source remains d447ee6d0ddcc1197ab257d028e3b00012ccf9c9.
+Its runtime checks remain unrun pending artifact and deployment review.
+The storage fixture environment plan is reviewed and its bounded reruns are authorized.
+Full sanitizer gates, remaining Debug stages, and combined cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Attribution recovery passes on both hosts
 
 The reviewed attribution overlay passed all fifteen methods in all four host/profile lanes.
