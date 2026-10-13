@@ -8,7 +8,8 @@ Overlay launcher 0835d38 records binary source and fixture provenance separately
 Both checkpoints are box-git verified. Neither is integrated into the milestone branch.
 sb16 passed 34 selected Debug checks and 34 selected sanitizer checks.
 sb16-2 passed private denial but encountered issuer EOF during native setup.
-Its startup and sanitizer checks remain unrun. The issuer close reason remains unproven.
+Its instrumented Debug and sanitizer runs each passed all 34 selected checks.
+The earlier issuer close reason remains unproven. Read docs/M06_HOST_SESSION_RUNTIME04_STATUS.txt.
 Diagnostics will record peer idle duration and daemon state without changing deadlines.
 Native shared-world presentation remains unimplemented. The complete M06 gate remains pending.
 M01 through M05 remain qualified. M06 is active. M07 through M16 remain pending.
