@@ -347,7 +347,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
 
     def test_03_a_b_a_restores_context_and_exact_native_processes(self):
         before=self.actor_state();pixels=self.capture()
-        world=self.active_worlds['b'];world.management('world.create',entity=dict(id='destination-room',kind='room'))
+        world=self.active_worlds['b'];world.management('world.create',entity=dict(id='destination-room',kind='room',label='Destination Room'))
         requested=core.Pose(position=core.Vec3(x=2,z=-1),orientation=core.Quaternion(w=1))
         self.assertTrue(self.transition('b',destination_room='destination-room',destination_pose=requested).accepted)
         destination=self.actor_state();self.assertEqual(destination.room,'destination-room');self.assertEqual(destination.pose,requested)
