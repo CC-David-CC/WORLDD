@@ -1,3 +1,18 @@
+## 2026-10-13: Full Debug gate found a user-bus launcher failure
+
+Both host gates remain live. Fourteen completed Debug registrations failed before their test bodies ran.
+The primary's PATH-only env -i launch omitted XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS.
+Affected systemd-run --user tests report: Failed to connect to bus: No medium found.
+Both user managers respond with the verified /run/user/1000 bus environment.
+Preserve original gate logs and failed receipts. Corrected retries remain UNRUN.
+The current jobs continue collecting Debug results. Sanitizer stages remain UNRUN.
+Read defect blockers/m06-user-systemd-gate-launch-environment.txt for the recovery constraints.
+The full M06 gate is not passed. Cross-host qualification remains pending.
+A separate destination-workspace regression is BOX-GIT VERIFIED at db490b85bae61eb02cd2f15bb71152f8b55b9526.
+Its two-file test-only overlay preserves all 221 production build inputs. Runtime remains UNRUN.
+The frozen 258920de deployment remains unchanged.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Verified combined deployment enters the full M06 gate
 
 Frozen candidate: 258920de00e45448f104eedcc97147cf878406b3.

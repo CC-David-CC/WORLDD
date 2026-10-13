@@ -1,0 +1,28 @@
+M06 user-systemd gate launch lacks user-bus environment
+Date: 2026-10-13
+Status: confirmed launcher defect. Corrected retries remain UNRUN.
+Candidate: 258920de00e45448f104eedcc97147cf878406b3.
+
+The primary launched run-local with env -i and PATH only.
+This removed XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS.
+Registered systemd-run --user tests could not connect to the user bus.
+Their logs report: Failed to connect to bus: No medium found.
+Fourteen completed Debug registrations failed before their test bodies ran.
+Do not count these tests as passed or as production behavior failures.
+Both user managers respond when the correct environment is supplied.
+Verified values are XDG_RUNTIME_DIR=/run/user/1000 and
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus on both hosts.
+
+Keep the frozen source, production binaries, confinement, and test assertions unchanged.
+Preserve both original gate attempts and their failed CTest receipts.
+Let the current runs finish and inspect exact remaining owned units.
+Retry affected tests with the checked user-bus environment after runtime slots are free.
+Run remaining local and cross-host qualification stages.
+Record original failures and retry results separately before reconciliation.
+Do not replace old failure evidence or silently mark a recovered run complete.
+
+Evidence root on each host:
+/home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment/evidence/
+Attempt names: m06-final258920de-sb16-20261013-01 and
+m06-final258920de-sb16-2-20261013-01.
+Read Debug/core.log for failed test commands and diagnostics.
