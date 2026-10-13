@@ -1174,6 +1174,192 @@ def _assert_runtime_gate_idle(host):
     else:
         _run_on_host(host, ["flock", "-n", lock, "-c", "true"], timeout=20)
 
+def _validate_crossstage_profile_artifacts(deployment, provenance, host, profile, run_path, expected_run_sha256):
+    deployment = Path(deployment).resolve()
+    run_path = Path(run_path)
+    evidence_root = (deployment / 'evidence').resolve()
+    resolved_run = run_path.resolve()
+    if evidence_root not in resolved_run.parents:
+        raise RuntimeError(host + ' local run receipt is outside deployment evidence')
+    if not re.fullmatch(r'[0-9a-f]{64}', expected_run_sha256) or sha(resolved_run) != expected_run_sha256:
+        raise RuntimeError(host + ' local run receipt hash changed')
+    report = _read_json(resolved_run, host + ' local gate')
+    if (report.get('host') != host or report.get('candidate') != provenance.get('candidate')
+            or report.get('status') != 'local_passed_crosshost_pending' or report.get('phase_complete') is not False):
+        raise RuntimeError(host + ' local gate receipt is stale or incomplete')
+    profile_row = report.get('profiles', {}).get(profile, {})
+    if profile_row.get('status') not in ('passed_needs_crosshost_and_review', 'passed'):
+        raise RuntimeError(host + ' ' + profile + ' local profile did not pass')
+    build = deployment / 'build' / profile
+    production = deployment / 'production-off' / profile
+    prepared = provenance.get('profiles', {}).get(profile, {})
+    off = provenance.get('production_off', {}).get(profile, {})
+    if not prepared or not off:
+        raise RuntimeError(host + ' ' + profile + ' provenance closure is incomplete')
+    generated_hashes = prepared.get('generated_python_sha256')
+    if not isinstance(generated_hashes, dict) or not generated_hashes:
+        raise RuntimeError(host + ' ' + profile + ' generated Python hashes are missing')
+    for rel, expected in generated_hashes.items():
+        rel_path = Path(rel)
+        if rel_path.is_absolute() or '..' in rel_path.parts:
+            raise RuntimeError(host + ' ' + profile + ' unsafe generated Python path: ' + rel)
+        path = build / rel_path
+        if not path.is_file() or sha(path) != expected:
+            raise RuntimeError(host + ' ' + profile + ' generated binding artifact changed: ' + rel)
+    for label, root, entries in (('profile', build, prepared.get('executables', {})),
+                                 ('profile runtime', build, prepared.get('runtime_files', {})),
+                                 ('production-off', production, off.get('runtime_files', {}))):
+        if not isinstance(entries, dict) or not entries:
+            raise RuntimeError(host + ' ' + profile + ' ' + label + ' closure is empty')
+        for rel, expected in entries.items():
+            rel_path = Path(rel)
+            if rel_path.is_absolute() or '..' in rel_path.parts:
+                raise RuntimeError(host + ' ' + profile + ' unsafe provenance path: ' + rel)
+            # The gate relocates CTest metadata and pins the exact post-relocation bytes below.
+            if label == 'profile runtime' and rel in prepared.get('ctest_metadata', []):
+                continue
+            path = root / rel_path
+            if not path.is_file() or sha(path) != expected:
+                raise RuntimeError(host + ' ' + profile + ' artifact changed: ' + label + '/' + rel)
+    for build_root, expected_imports, label in (
+            (build, prepared.get('generated_binding_imports'), 'profile'),
+            (production, off.get('generated_binding_imports'), 'production-off')):
+        if not isinstance(expected_imports, dict) or not expected_imports:
+            raise RuntimeError(host + ' ' + profile + ' ' + label + ' generated binding closure missing')
+        actual_imports = generated_closure(build_root)
+        if actual_imports != expected_imports:
+            raise RuntimeError(host + ' ' + profile + ' ' + label + ' generated binding closure changed')
+    source = deployment / 'source'
+    verify_production_client(source, production)
+    runtime = provenance.get('runtime_manifest')
+    verify_runtime(runtime, host, profile, source)
+    profile_evidence = resolved_run.parent / profile
+    metadata_path = profile_evidence / 'metadata-relocation.json'
+    metadata_hash = profile_row.get('artifact_sha256', {}).get('metadata-relocation.json')
+    if not metadata_path.is_file() or not metadata_hash or sha(metadata_path) != metadata_hash:
+        raise RuntimeError(host + ' ' + profile + ' metadata relocation receipt changed')
+    metadata = _read_json(metadata_path, host + ' ' + profile + ' metadata relocation')
+    after = metadata.get('after')
+    expected_metadata = prepared.get('ctest_metadata')
+    if not isinstance(after, dict) or not isinstance(expected_metadata, dict) or set(after) != set(expected_metadata):
+        raise RuntimeError(host + ' ' + profile + ' metadata relocation inventory changed')
+    for rel, digest in after.items():
+        rel_path = Path(rel)
+        if rel_path.is_absolute() or '..' in rel_path.parts:
+            raise RuntimeError(host + ' ' + profile + ' unsafe relocated metadata path: ' + rel)
+        path = build / rel_path
+        if not path.is_file() or not re.fullmatch(r'[0-9a-f]{64}', digest) or sha(path) != digest:
+            raise RuntimeError(host + ' ' + profile + ' relocated CTest metadata changed: ' + rel)
+    return dict(status='passed', host=host, profile=profile, run_sha256=expected_run_sha256,
+                metadata_sha256=sha(metadata_path), generated_binding_files=len(expected_imports),
+                runtime_files=len(runtime_files(runtime, host, profile)[1]))
+
+
+def _crossstage_host_check_script():
+    return r'''import hashlib, importlib.util, json, pathlib, socket, sys
+host, deployment, candidate, provenance_hash, receipt_hash, run_path, run_hash = sys.argv[1:]
+root = pathlib.Path(deployment).resolve()
+def digest(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as stream:
+        for block in iter(lambda: stream.read(1048576), b''):
+            h.update(block)
+    return h.hexdigest()
+actual_host = socket.gethostname().split('.')[0]
+result = {'host': host, 'actual_host': actual_host, 'candidate': candidate, 'status': 'failed', 'profiles': {}, 'errors': []}
+try:
+    if actual_host != host:
+        raise RuntimeError('actual host identity mismatch')
+    provenance_path = root / 'provenance.json'
+    receipt_path = root / 'deployment-receipt.json'
+    if digest(provenance_path) != provenance_hash or digest(receipt_path) != receipt_hash:
+        raise RuntimeError('deployment provenance or receipt pin changed')
+    provenance = json.loads(provenance_path.read_text())
+    receipt = json.loads(receipt_path.read_text())
+    if (provenance.get('candidate') != candidate or receipt.get('candidate') != candidate
+            or receipt.get('status') != 'verified' or receipt.get('host') != host):
+        raise RuntimeError('stale, wrong-host, or unverified candidate')
+    source = root / 'source'
+    for name, expected in provenance.get('source_sha256', {}).items():
+        relative = pathlib.Path(name)
+        path = source / relative
+        if relative.is_absolute() or '..' in relative.parts or source.resolve() not in path.resolve().parents:
+            raise RuntimeError('unsafe source pin path: ' + name)
+        if not path.is_file() or digest(path) != expected:
+            raise RuntimeError('deployed source pin mismatch before checker import: ' + name)
+    checker_name = 'tools/m06_deployed_gate.py'
+    checker = source / checker_name
+    if provenance.get('source_sha256', {}).get(checker_name) != digest(checker):
+        raise RuntimeError('gate checker source is absent from or differs from the pinned source closure')
+    spec = importlib.util.spec_from_file_location('pinned_m06_gate', checker)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    for profile in ('Debug', 'ASan-UBSan'):
+        result['profiles'][profile] = module._validate_crossstage_profile_artifacts(
+            root, provenance, host, profile, run_path, run_hash)
+    result['status'] = 'passed'
+except BaseException as error:
+    result['errors'].append(repr(error))
+print(json.dumps(result, sort_keys=True))
+'''
+
+
+def _crossstage_artifact_check(host, row, provenance, candidate, local_run, run_pin):
+    args = [host, row['path'], candidate, row['provenance_sha256'],
+            row['deployment_receipt_sha256'], local_run['path'], run_pin]
+    script = _crossstage_host_check_script()
+    if host == 'sb16':
+        command = [sys.executable, '-c', script, *args]
+        try:
+            completed = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+            stdout = completed.stdout.decode(errors='replace')
+            data = json.loads(stdout.splitlines()[-1]) if stdout.strip() else {}
+            return dict(host=host, exit_code=completed.returncode, result=data,
+                        stderr=completed.stderr.decode(errors='replace')[-2000:])
+        except BaseException as error:
+            return dict(host=host, exit_code=None, result={'status': 'failed', 'errors': [repr(error)]})
+    command = ['python3', '-c', script, *args]
+    try:
+        completed = subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', host,
+                                    shlex.join(command)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
+        stdout = completed.stdout.decode(errors='replace')
+        data = json.loads(stdout.splitlines()[-1]) if stdout.strip() else {}
+        return dict(host=host, exit_code=completed.returncode, result=data,
+                    stderr=completed.stderr.decode(errors='replace')[-2000:])
+    except BaseException as error:
+        return dict(host=host, exit_code=None, result={'status': 'failed', 'errors': [repr(error)]})
+
+
+def _record_crossstage_artifact_checks(report, stage, checks, reconciliation_path):
+    report.setdefault('artifact_rechecks', {})[stage] = checks
+    failures = []
+    seen_hosts = []
+    for row in checks:
+        host = row.get('host')
+        seen_hosts.append(host)
+        result = row.get('result', {})
+        profiles = result.get('profiles', {}) if isinstance(result, dict) else {}
+        valid_profiles = (set(profiles) == set(PROFILES) and all(
+            isinstance(profiles.get(profile), dict)
+            and profiles[profile].get('status') == 'passed'
+            and profiles[profile].get('host') == host
+            and profiles[profile].get('profile') == profile
+            for profile in PROFILES))
+        if (host not in TEST_HOSTS or row.get('exit_code') != 0 or not isinstance(result, dict)
+                or result.get('status') != 'passed' or result.get('host') != host
+                or result.get('actual_host') != host or not valid_profiles):
+            failures.append(row)
+    if sorted(seen_hosts) != sorted(TEST_HOSTS) or len(seen_hosts) != len(set(seen_hosts)):
+        failures.append(dict(error='artifact recheck must contain exactly one complete result for each qualification host',
+                             observed_hosts=seen_hosts, expected_hosts=sorted(TEST_HOSTS)))
+    if failures:
+        report.setdefault('artifact_check_failures', []).append(dict(stage=stage, hosts=failures))
+        report['status'] = 'failed_or_incomplete'
+        report['phase_complete'] = False
+    write_json(Path(reconciliation_path), report)
+    return not failures
+
+
 def crosshost(a):
     if socket.gethostname().split(".")[0] != "sb16":
         raise RuntimeError("cross-host workflow runs on sb16 after both local gates release")
@@ -1247,6 +1433,11 @@ def crosshost(a):
                   deployments=deployments, local_runs=local_runs, semantic={}, native_geometry={})
     write_json(output / "reconciliation.json", report)
     try:
+        prechecks = [_crossstage_artifact_check(host, plan["deployments"][host], provenance,
+                      candidate, plan["local_runs"][host], plan["local_runs"][host]["sha256"])
+                     for host in sorted(TEST_HOSTS)]
+        if not _record_crossstage_artifact_checks(report, "before", prechecks, output / "reconciliation.json"):
+            raise RuntimeError("pre-crossstage artifact recheck failed")
         for profile in PROFILES:
             semantic_output = output / "semantic" / profile
             report["semantic"][profile] = _run_semantic_fixture(deployment, profile, semantic_output)
@@ -1291,15 +1482,26 @@ def crosshost(a):
         report["phase_complete"] = False
         report["review_required"] = ["primary source review", "native process witness validation", "full M06 gate reconciliation"]
     except BaseException as error:
-        report["status"] = "failed_or_incomplete"
-        report["phase_complete"] = False
+        report["execution_error"] = repr(error)
         report["error"] = repr(error)
         recovery = output / "timeout-recovery.json"
         if recovery.is_file(): report["timeout_recovery"] = _read_json(recovery, "native timeout recovery")
+        postchecks = [_crossstage_artifact_check(host, plan["deployments"][host], provenance,
+                       candidate, plan["local_runs"][host], plan["local_runs"][host]["sha256"])
+                      for host in sorted(TEST_HOSTS)]
+        _record_crossstage_artifact_checks(report, "after", postchecks, output / "reconciliation.json")
+        report["status"] = "failed_or_incomplete"
+        report["phase_complete"] = False
         write_json(output / "reconciliation.json", report)
         raise
+    postchecks = [_crossstage_artifact_check(host, plan["deployments"][host], provenance,
+                   candidate, plan["local_runs"][host], plan["local_runs"][host]["sha256"])
+                  for host in sorted(TEST_HOSTS)]
+    if not _record_crossstage_artifact_checks(report, "after", postchecks, output / "reconciliation.json"):
+        report["status"] = "failed_or_incomplete"
+        report["phase_complete"] = False
     write_json(output / "reconciliation.json", report)
-    return 0
+    return 1 if report.get("status") == "failed_or_incomplete" else 0
 
 def main():
     p = argparse.ArgumentParser(description=__doc__); sub = p.add_subparsers(dest="mode", required=True)

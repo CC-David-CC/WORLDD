@@ -3,8 +3,10 @@ import copy
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import tarfile
@@ -197,6 +199,206 @@ class GateStaticTests(unittest.TestCase):
         gate.verify_production_client(self.root / 'source', self.root / 'build')
 
 
+
+    def crossstage_artifact_fixture(self):
+        deployment = self.root / 'crossstage-deployment'
+        (deployment / 'source').mkdir(parents=True)
+        provenance = dict(candidate='a' * 40, runtime_manifest={}, profiles={}, production_off={})
+        run_path = deployment / 'evidence' / 'attempt' / 'run.json'
+        run_path.parent.mkdir(parents=True)
+        runtime_profile = {'hosts': {'sb16': {'Debug': {}}}}
+        report = {}
+        for profile in ('Debug', 'ASan-UBSan'):
+            build = deployment / 'build' / profile
+            production = deployment / 'production-off' / profile
+            for base in (build, production):
+                (base / 'python').mkdir(parents=True)
+                (base / 'python' / 'fixture_pb2.py').write_text('# generated\n')
+            generated = {str(path.relative_to(build)): gate.sha(path)
+                         for path in (build / 'python').rglob('*') if path.is_file()}
+            off_generated = gate.generated_closure(production)
+            executable = build / 'fixture-bin'
+            executable.write_text('fixture executable')
+            on_runtime = build / 'runtime.textproto'
+            on_runtime.write_text('runtime configuration')
+            off_runtime = production / 'runtime.textproto'
+            off_runtime.write_text('production runtime configuration')
+            source_client = deployment / 'source' / 'tools' / 'host_session_client.py'
+            source_client.parent.mkdir(parents=True, exist_ok=True)
+            source_client.write_text('import fixture_pb2\n')
+            metadata_rel = 'CTestTestfile.cmake'
+            metadata = build / metadata_rel
+            metadata.write_text('# relocated metadata\n')
+            metadata_digest = gate.sha(metadata)
+            metadata_receipt = run_path.parent / profile / 'metadata-relocation.json'
+            metadata_receipt.parent.mkdir(parents=True)
+            metadata_receipt.write_text(json.dumps({'after': {metadata_rel: metadata_digest}}))
+            provenance['profiles'][profile] = dict(executables={'fixture-bin': gate.sha(executable)},
+                runtime_files={'runtime.textproto': gate.sha(on_runtime)},
+                generated_python_sha256=generated, generated_binding_imports=gate.generated_closure(build),
+                ctest_metadata={metadata_rel: '0' * 64})
+            provenance['production_off'][profile] = dict(runtime_files={'runtime.textproto': gate.sha(off_runtime)},
+                generated_binding_imports=off_generated)
+            report.setdefault('profiles', {})[profile] = dict(status='passed_needs_crosshost_and_review',
+                artifact_sha256={'metadata-relocation.json': gate.sha(metadata_receipt)})
+        run_path.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False, profiles=report['profiles'])))
+        run_hash = gate.sha(run_path)
+        provenance['runtime_manifest'] = runtime_profile
+        return deployment, provenance, run_path, run_hash
+
+    def test_crossstage_artifact_receipts_accept_and_reject_drift(self):
+        deployment, provenance, run_path, run_hash = self.crossstage_artifact_fixture()
+        with patch.object(gate, 'verify_runtime'), patch.object(gate, 'runtime_files', return_value=({}, [])), \
+             patch.object(gate, 'verify_production_client'):
+            for profile in ('Debug', 'ASan-UBSan'):
+                result = gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16',
+                                                                      profile, run_path, run_hash)
+                self.assertEqual(result['status'], 'passed')
+            executable = deployment / 'build' / 'Debug' / 'fixture-bin'
+            executable.write_text('changed executable')
+            with self.assertRaisesRegex(RuntimeError, 'artifact changed'):
+                gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16',
+                                                              'Debug', run_path, run_hash)
+            executable.write_text('fixture executable')
+            off_runtime = deployment / 'production-off' / 'Debug' / 'runtime.textproto'
+            off_runtime.write_text('changed production-off artifact')
+            with self.assertRaisesRegex(RuntimeError, 'production-off/runtime.textproto'):
+                gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16',
+                                                              'Debug', run_path, run_hash)
+
+    def test_crossstage_generated_binding_and_metadata_drift_rejected(self):
+        deployment, provenance, run_path, run_hash = self.crossstage_artifact_fixture()
+        with patch.object(gate, 'verify_runtime'), patch.object(gate, 'runtime_files', return_value=({}, [])), \
+             patch.object(gate, 'verify_production_client'):
+            binding = deployment / 'build' / 'Debug' / 'python' / 'fixture_pb2.py'
+            binding.write_text('# changed generated binding\n')
+            with self.assertRaisesRegex(RuntimeError, 'generated binding artifact changed'):
+                gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16',
+                                                              'Debug', run_path, run_hash)
+            binding.write_text('# generated\n')
+            metadata = deployment / 'build' / 'Debug' / 'CTestTestfile.cmake'
+            metadata.write_text('# changed metadata\n')
+            with self.assertRaisesRegex(RuntimeError, 'relocated CTest metadata changed'):
+                gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16',
+                                                              'Debug', run_path, run_hash)
+
+    def test_runtime_helper_and_egl_drift_are_rejected_by_crossstage_authority_check(self):
+        source, runtime, row, expected_host = self.runtime_fixture()
+        with patch.object(gate, 'verify_helper_ownership'):
+            helper = Path(row['installed_helpers'][0]['path'])
+            helper.write_text('changed helper')
+            with self.assertRaisesRegex(RuntimeError, 'runtime file missing or changed'):
+                gate.verify_runtime(runtime, expected_host, 'Debug', source)
+        source, runtime, row, expected_host = self.runtime_fixture()
+        with patch.object(gate, 'verify_helper_ownership'):
+            egl = Path(row['egl_files'][0]['path'])
+            egl.write_text('changed EGL vendor receipt')
+            with self.assertRaisesRegex(RuntimeError, 'runtime file missing or changed'):
+                gate.verify_runtime(runtime, expected_host, 'Debug', source)
+
+    def test_crossstage_checker_pins_source_before_import_behaviorally(self):
+        host = gate.socket.gethostname().split('.')[0]
+        self.assertIn(host, gate.TEST_HOSTS)
+        deployment = self.root / 'pinned-checker-deployment'
+        source = deployment / 'source'
+        (source / 'tools').mkdir(parents=True)
+        (deployment / 'evidence' / 'attempt').mkdir(parents=True)
+        candidate = 'e' * 40
+        marker = self.root / 'checker-imported'
+        checker = source / 'tools/m06_deployed_gate.py'
+        checker.write_text(
+            'import os\nfrom pathlib import Path\n'
+            'Path(os.environ["M06_IMPORT_MARKER"]).write_text("imported")\n'
+            'def _validate_crossstage_profile_artifacts(deployment, provenance, host, profile, run_path, run_hash):\n'
+            '    return dict(status="passed", host=host, profile=profile)\n')
+        extra = source / 'pinned-extra.py'
+        extra.write_text('pinned source bytes\n')
+        provenance = dict(candidate=candidate, source_sha256={
+            'tools/m06_deployed_gate.py': gate.sha(checker), 'pinned-extra.py': gate.sha(extra)})
+        provenance_path = deployment / 'provenance.json'
+        provenance_path.write_text(json.dumps(provenance))
+        receipt_path = deployment / 'deployment-receipt.json'
+        receipt_path.write_text(json.dumps(dict(candidate=candidate, host=host, status='verified')))
+        run_path = deployment / 'evidence' / 'attempt' / 'run.json'
+        run_path.write_text('{}')
+        script = gate._crossstage_host_check_script()
+        args = [host, str(deployment), candidate, gate.sha(provenance_path), gate.sha(receipt_path),
+                str(run_path), gate.sha(run_path)]
+        environment = dict(os.environ, M06_IMPORT_MARKER=str(marker))
+
+        def invoke():
+            completed = subprocess.run([sys.executable, '-c', script, *args], env=environment,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=20)
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            return json.loads(completed.stdout.splitlines()[-1])
+
+        result = invoke()
+        self.assertEqual(result['status'], 'passed')
+        self.assertEqual(set(result['profiles']), {'Debug', 'ASan-UBSan'})
+        self.assertEqual(marker.read_text(), 'imported')
+
+        marker.unlink()
+        receipt_path.write_text(json.dumps(dict(candidate=candidate, host='wrong-host', status='verified')))
+        args[4] = gate.sha(receipt_path)
+        result = invoke()
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('wrong-host', result['errors'][0])
+        self.assertFalse(marker.exists())
+
+        receipt_path.write_text(json.dumps(dict(candidate=candidate, host=host, status='verified')))
+        args[4] = gate.sha(receipt_path)
+        extra.write_text('tampered source bytes\n')
+        result = invoke()
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('source pin mismatch before checker import', result['errors'][0])
+        self.assertFalse(marker.exists())
+
+        extra.write_text('pinned source bytes\n')
+        checker.write_text(checker.read_text() + '# changed checker pin\n')
+        result = invoke()
+        self.assertEqual(result['status'], 'failed')
+        self.assertFalse(marker.exists())
+
+        provenance['source_sha256'].pop('tools/m06_deployed_gate.py')
+        provenance_path.write_text(json.dumps(provenance))
+        args[3] = gate.sha(provenance_path)
+        result = invoke()
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('checker source is absent', result['errors'][0])
+        self.assertFalse(marker.exists())
+
+    def test_crossstage_receipts_require_exact_hosts_profiles_and_echoed_identity(self):
+        def successful(host):
+            return dict(status='passed', host=host, actual_host=host, profiles={
+                profile: dict(status='passed', host=host, profile=profile) for profile in gate.PROFILES})
+
+        complete = [dict(host=host, exit_code=0, result=successful(host)) for host in sorted(gate.TEST_HOSTS)]
+        report = dict(status='running', phase_complete=False)
+        with patch.object(gate, 'write_json') as writer:
+            self.assertTrue(gate._record_crossstage_artifact_checks(report, 'before', complete, self.root / 'r.json'))
+            for invalid in (complete[:1], [complete[0], dict(complete[0])]):
+                report = dict(status='running', phase_complete=False)
+                self.assertFalse(gate._record_crossstage_artifact_checks(report, 'before', invalid, self.root / 'r.json'))
+            missing_profile = copy.deepcopy(complete)
+            del missing_profile[0]['result']['profiles']['Debug']
+            report = dict(status='running', phase_complete=False)
+            self.assertFalse(gate._record_crossstage_artifact_checks(report, 'before', missing_profile, self.root / 'r.json'))
+            wrong_identity = copy.deepcopy(complete)
+            wrong_identity[0]['result']['actual_host'] = 'other-host'
+            report = dict(status='running', phase_complete=False)
+            self.assertFalse(gate._record_crossstage_artifact_checks(report, 'before', wrong_identity, self.root / 'r.json'))
+            report = dict(status='running', phase_complete=False)
+            self.assertTrue(gate._record_crossstage_artifact_checks(report, 'before', complete, self.root / 'r.json'))
+            report['execution_error'] = "RuntimeError('native job failed')"
+            after = copy.deepcopy(complete)
+            after[0]['result']['status'] = 'failed'
+            self.assertFalse(gate._record_crossstage_artifact_checks(report, 'after', after, self.root / 'r.json'))
+        self.assertEqual(report['status'], 'failed_or_incomplete')
+        self.assertFalse(report['phase_complete'])
+        self.assertIn('after', report['artifact_rechecks'])
+        self.assertEqual(report['execution_error'], "RuntimeError('native job failed')")
+        self.assertEqual(writer.call_count, 7)
 
     def crosshost_plan(self):
         deployment = self.root / 'deployment'
