@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import tarfile
+from types import SimpleNamespace
 import unittest
 import zlib
 from unittest.mock import patch
@@ -352,6 +353,185 @@ class GateStaticTests(unittest.TestCase):
         (root / 'volume-setup.json').write_text(json.dumps(receipt))
         (root / 'prepare.log').write_text('storage setup completed\\n')
         return root
+
+    def _bounded_artifact_fixture(self, name='artifact-target'):
+        target = self.root / name
+        root = target / 'bounded-storage-git'
+        root.mkdir(parents=True)
+        volume = root / 'volume'
+        volume.mkdir(mode=0o700)
+        image = root / 'volume.img'
+        with image.open('wb') as stream:
+            stream.truncate(2 * 2**30)
+        image.chmod(0o600)
+        ordinary = target / 'ordinary.log'
+        ordinary.write_text('ordinary evidence\n')
+        results = {name: {'passed': True} for name in (
+            'large_import_retirement', 'application_and_actor_quota', 'read_only',
+            'sibling_survival', 'restart')}
+        review = {
+            'status': 'passed', 'mounted': False, 'results': results,
+            'unit': 'spatial-m03-storage-integration-' + 'a' * 32 + '.service',
+            'scope': '/run/systemd/transient/spatial-m03-storage-integration-' + 'a' * 32 + '.scope',
+            'owner_unit_cleanup': {
+                'spatial-m03-storage-owner-a.service': 'ActiveState=inactive',
+                'spatial-m03-storage-owner-b.service': 'ActiveState=inactive'},
+            'service_stop': {'exit_code': 0}, 'service_after': 'ActiveState=inactive',
+            'unmount': {'exit_code': 0}, 'detach': {'exit_code': 0}}
+        (root / 'review.json').write_text(json.dumps(review))
+        return target, root, volume, image, ordinary, review
+
+    def _allow_root_owned_fixture_probes(self, *, loop_output='', find_output='', mounted=False):
+        patcher = patch.object(gate, 'STORAGE_FIXTURE_UID', os.getuid())
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        def run(argv, **kwargs):
+            if len(argv) == 5 and argv[:4] == ['sudo', '-n', 'losetup', '-j']:
+                return subprocess.CompletedProcess(argv, 0, loop_output, '')
+            if (len(argv) == 10 and argv[:3] == ['sudo', '-n', 'find']
+                    and argv[4:] == ['-mindepth', '1', '-maxdepth', '1', '-print', '-quit']):
+                return subprocess.CompletedProcess(argv, 0, find_output, '')
+            raise AssertionError('unexpected cleanup probe: ' + repr(argv))
+        patcher = patch.object(gate.subprocess, 'run', side_effect=run)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        mount_patcher = patch.object(gate.os.path, 'ismount', side_effect=lambda path: mounted)
+        mount_patcher.start()
+        self.addCleanup(mount_patcher.stop)
+
+    def test_artifact_manifest_excludes_only_reviewed_clean_storage_volume(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        self._allow_root_owned_fixture_probes()
+        external_img = target / 'other' / 'volume.img'
+        external_img.parent.mkdir()
+        external_img.write_bytes(b'ordinary image evidence')
+        original_sha = gate.sha
+        hashed = []
+        def record_sha(path):
+            hashed.append(Path(path).resolve())
+            return original_sha(path)
+        with patch.object(gate, 'sha', side_effect=record_sha):
+            manifest = gate.artifact_evidence_manifest(target)
+        self.assertEqual({row['path'] for row in manifest['exclusions']}, {
+            'bounded-storage-git/volume.img', 'bounded-storage-git/volume'})
+        self.assertIn('ordinary.log', manifest['sha256'])
+        self.assertIn('other/volume.img', manifest['sha256'])
+        self.assertIn('bounded-storage-git/review.json', manifest['sha256'])
+        self.assertNotIn(image.resolve(), hashed)
+        self.assertFalse(any(path == volume.resolve() or volume.resolve() in path.parents for path in hashed))
+        self.assertEqual(manifest['sha256']['bounded-storage-git/review.json'], original_sha(root / 'review.json'))
+
+    def test_artifact_manifest_fails_closed_on_bad_cleanup_or_unexpected_unreadable_file(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        self._allow_root_owned_fixture_probes()
+        review['results']['restart']['passed'] = False
+        (root / 'review.json').write_text(json.dumps(review))
+        with self.assertRaisesRegex(RuntimeError, 'review or cleanup receipt'):
+            gate.artifact_evidence_manifest(target)
+        review['results']['restart']['passed'] = True
+        (root / 'review.json').write_text(json.dumps(review))
+        original_sha = gate.sha
+        def denied(path):
+            if Path(path) == ordinary:
+                raise PermissionError('fixture unreadable ordinary evidence')
+            return original_sha(path)
+        with patch.object(gate, 'sha', side_effect=denied):
+            with self.assertRaisesRegex(RuntimeError, 'cannot hash gate artifact: ordinary.log'):
+                gate.artifact_evidence_manifest(target)
+
+    def test_artifact_manifest_rejects_links_and_keeps_exclusions_narrow(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        self._allow_root_owned_fixture_probes()
+        link = target / 'evidence-link'
+        link.symlink_to(ordinary)
+        with self.assertRaisesRegex(RuntimeError, 'file symlink'):
+            gate.artifact_evidence_manifest(target)
+        link.unlink()
+        outside_img = target / 'other-volume.img'
+        outside_img.write_bytes(b'not the declared bounded-storage fixture')
+        result = gate.artifact_evidence_manifest(target)
+        self.assertIn('other-volume.img', result['sha256'])
+        bad_review = json.loads((root / 'review.json').read_text())
+        bad_review['unmount']['exit_code'] = 1
+        (root / 'review.json').write_text(json.dumps(bad_review))
+        with self.assertRaisesRegex(RuntimeError, 'review or cleanup receipt'):
+            gate.artifact_evidence_manifest(target)
+
+    def test_bounded_storage_exclusions_reject_active_mount_and_loop_resources(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('active-loop')
+        self._allow_root_owned_fixture_probes(loop_output=str(image) + ': /dev/loop4\n')
+        with self.assertRaisesRegex(RuntimeError, 'image is attached'):
+            gate.artifact_evidence_manifest(target)
+
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('mounted-volume')
+        self._allow_root_owned_fixture_probes(mounted=True)
+        with self.assertRaisesRegex(RuntimeError, 'unmounted real directory'):
+            gate.artifact_evidence_manifest(target)
+
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('nonempty-volume')
+        self._allow_root_owned_fixture_probes(find_output=str(volume / 'leftover\n'))
+        with self.assertRaisesRegex(RuntimeError, 'mountpoint is not empty'):
+            gate.artifact_evidence_manifest(target)
+
+    def test_bounded_storage_exclusions_reject_declared_symlinks_and_bad_images(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('volume-link')
+        outside = self.root / 'volume-outside'
+        outside.mkdir()
+        volume.rmdir()
+        volume.symlink_to(outside, target_is_directory=True)
+        self._allow_root_owned_fixture_probes()
+        with self.assertRaisesRegex(RuntimeError, 'private unmounted real directory'):
+            gate.artifact_evidence_manifest(target)
+
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('image-link')
+        outside_image = self.root / 'outside-image'
+        outside_image.write_bytes(b'fixture')
+        image.unlink()
+        image.symlink_to(outside_image)
+        self._allow_root_owned_fixture_probes()
+        with self.assertRaisesRegex(RuntimeError, 'private regular fixture'):
+            gate.artifact_evidence_manifest(target)
+
+        for name, mutation in (
+            ('wrong-size', lambda image: image.write_bytes(b'too small')),
+            ('broad-mode', lambda image: image.chmod(0o644)),
+            ('hardlink', lambda image: os.link(image, image.parent / 'image-alias')),
+        ):
+            target, root, volume, image, ordinary, review = self._bounded_artifact_fixture(name)
+            self._allow_root_owned_fixture_probes()
+            mutation(image)
+            with self.subTest(image=name), self.assertRaisesRegex(RuntimeError, 'private regular fixture'):
+                gate.artifact_evidence_manifest(target)
+
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('wrong-owner')
+        self._allow_root_owned_fixture_probes()
+        original_lstat = Path.lstat
+        def wrong_image_owner(path):
+            info = original_lstat(path)
+            if path == image:
+                return SimpleNamespace(st_mode=info.st_mode, st_uid=os.getuid() + 1,
+                                       st_size=info.st_size, st_nlink=info.st_nlink)
+            return info
+        with patch.object(Path, 'lstat', autospec=True, side_effect=wrong_image_owner):
+            with self.assertRaisesRegex(RuntimeError, 'private regular fixture'):
+                gate.artifact_evidence_manifest(target)
+
+    def test_postrun_audit_preserves_original_failure_and_marks_unrun_profiles(self):
+        report = {
+            'status': 'failed', 'error': "PermissionError('volume.img')",
+            'execution_error': {'type': 'PermissionError', 'traceback': 'original traceback'},
+            'source_sha256_rechecked': True,
+            'profile_artifacts_rechecked': {'Debug': True},
+            'production_off_rechecked': {'Debug': True}, 'runtime_rechecked': {'Debug': True},
+            'metadata_rechecked': {'Debug': True}, 'storage_evidence_rechecked': {'Debug': True},
+            'profiles': {'Debug': {'status': 'passed_needs_crosshost_and_review'}}}
+        failures = gate.finalize_postrun_audit(report)
+        self.assertEqual(report['status'], 'failed')
+        self.assertEqual(report['error'], "PermissionError('volume.img')")
+        self.assertEqual(report['execution_error']['traceback'], 'original traceback')
+        unrun = [row for row in failures if row.get('profile') == 'ASan-UBSan']
+        self.assertEqual(len(unrun), 5)
+        self.assertTrue(all(row['reason'] == 'profile-not-run' for row in unrun))
 
     def test_storage_sanitizer_scan_includes_receipts_and_fails_on_log_diagnostic(self):
         registrations = {name: self._write_storage_case(self.root / 'storage' / name)
