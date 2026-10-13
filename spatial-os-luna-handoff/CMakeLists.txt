@@ -1215,6 +1215,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_worldd.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:worldd>)
     set_tests_properties(worldd-lifecycle PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_executable(spatial-snapshot-size-regression tests/core/test_snapshot_size.cpp)
+    target_link_libraries(spatial-snapshot-size-regression PRIVATE spatial-core)
+    add_test(NAME snapshot-size-regression COMMAND $<TARGET_FILE:spatial-snapshot-size-regression>)
+    set_tests_properties(snapshot-size-regression PROPERTIES TIMEOUT 60)
     add_test(NAME actor-runtime COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actors.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:worldd>)
     set_tests_properties(actor-runtime PROPERTIES TIMEOUT 60

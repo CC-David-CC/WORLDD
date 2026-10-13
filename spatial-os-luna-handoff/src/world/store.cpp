@@ -1,4 +1,5 @@
 #include "world/store.hpp"
+#include "world/snapshot_size.hpp"
 #include "world/storage_vfs.hpp"
 #include "core/geometry.hpp"
 #include <sqlite3.h>
@@ -7,6 +8,7 @@
 #include <unistd.h>
 #include <limits>
 #include <string>
+#include <utility>
 
 namespace spatial {
 namespace {
@@ -325,11 +327,16 @@ wire::WorldSnapshotReply WorldStore::snapshot() {
     Transaction transaction(impl_->db.get());
     const auto info = impl_->info(); wire::WorldSnapshotReply result;
     result.set_world_id(info.world_id()); result.set_entry_room(info.entry_room()); result.set_world_revision(info.world_revision());
+    constexpr std::size_t snapshot_limit = max_frame_bytes - 64;
+    std::size_t accounted_bytes = result.ByteSizeLong();
+    if (accounted_bytes > snapshot_limit)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Snapshot exceeds frame limit; no partial snapshot returned");
     Statement q(impl_->db.get(), "SELECT id FROM entities ORDER BY id COLLATE BINARY");
     while (q.step() == SQLITE_ROW) {
-        *result.add_entities() = impl_->get(q.text(0));
-        if (result.ByteSizeLong() > max_frame_bytes - 64)
+        auto entity = impl_->get(q.text(0));
+        if (!add_snapshot_bytes(accounted_bytes, snapshot_entity_field_size(entity), snapshot_limit))
             throw WorldError(wire::RESOURCE_EXHAUSTED, "Snapshot exceeds frame limit; no partial snapshot returned");
+        *result.add_entities() = std::move(entity);
     }
     transaction.commit(); return result;
 }
