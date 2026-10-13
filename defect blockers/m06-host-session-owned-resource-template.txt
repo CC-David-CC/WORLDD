@@ -1,6 +1,6 @@
 M06 host-session qualification lacks its owned resource template
 
-Status: Confirmed launcher setup defect. Corrected qualification remains unrun.
+Status: Corrected launcher passed focused runtime checks. Final input postchecks remain pending.
 Production candidate: 258920de00e45448f104eedcc97147cf878406b3.
 
 The corrected user-bus retry ran nineteen registrations on each host.
@@ -27,3 +27,16 @@ Evidence root on each host:
 Use retry.log, retry.xml, and reconciliation.json.
 sb16 reconciliation SHA256: c6feaed305a30854934bb4412b1fd5060315c62a63f7eb3c70146c8ea859a17f.
 sb16-2 reconciliation SHA256: f9a07eb1953c84f617fad9f38141454a68d8e1574cd355336e529b138a71a98f.
+
+Focused correction results:
+Launcher source: 8d878f7f32319bc695836042a276161dcb759681.
+Production source and binaries remain at 258920de00e45448f104eedcc97147cf878406b3.
+Both hosts passed all twenty-six methods in Debug and ASan-UBSan.
+Each focused CTest registration and its command wrapper exited zero.
+Total: 104 inner methods passed. Scope and service cleanup completed.
+No sanitizer diagnostic appeared in the reported logs.
+Primary requested the final explicit input postchecks before accepting complete focused qualification.
+
+Focused evidence root:
+/home/dflanag3/spatial-qualification/m06-host-session-launcher-8d878f7-20261013/HOST/PROFILE/
+The original failed gate and recovery reports remain unchanged.

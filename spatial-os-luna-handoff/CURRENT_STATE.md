@@ -1,3 +1,40 @@
+## 2026-10-13: Host-session correction passes all four focused runtime lanes
+
+The corrected launcher passed twenty-six methods per lane on both hosts in Debug and ASan-UBSan.
+Total: 104 inner methods passed. All four CTest registrations and command wrappers exited zero.
+Reported resource cleanup passed. Final explicit input postchecks remain pending.
+Production source and binaries remain frozen at 258920de00e45448f104eedcc97147cf878406b3.
+Launcher overlay source is 8d878f7f32319bc695836042a276161dcb759681.
+
+The storage witness correction is reviewed and checkpointed at d8acf84c6315f78e97bebf0a0e1d7b6b7f9de69b.
+It preserves the three native methods and adds ten retirement and unexpected-error regressions.
+Its thirteen-method host/profile reruns remain unrun.
+The controller fixture requires a Python follow-up to preserve admission-only observation-denial fixtures.
+Its compiled runner and production siblings remain unchanged. Native qualification remains pending.
+
+Complete focused corrections before freezing the next combined full-gate candidate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Storage recovery passes nineteen of twenty methods
+
+The corrected storage evidence roots preserve the volume helper's source/local confinement check.
+All ten Debug storage methods passed across both hosts.
+sb16 passed its five sanitizer storage methods.
+sb16-2 passed four sanitizer methods and errored in the Git-import cgroup witness.
+Read defect blockers/m06-retired-cgroup-procs-witness.txt for the retained failure and correction requirements.
+Volume, descriptor, loop, mount, and owned-resource cleanup completed.
+Both host post-run audits preserved all 1,309 frozen artifact pins.
+
+The controller overlays passed archive and actual-library audits on both hosts.
+Each host preserved 1,475 explicit deployment pins during that audit.
+Controller runtime remains unrun pending the host-session checks and native slot release.
+The corrected host-session registration checkpoint is 8d878f7f32319bc695836042a276161dcb759681 on box-git.
+Both metadata profiles retain 165 registrations. Focused host-session runtime is authorized.
+
+After focused corrections pass, freeze one combined candidate and run the complete normal M06 gate.
+Do not substitute partial recovery reports for a full passing phase gate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: User-bus retries pass eighteen cases per host
 
 Both nineteen-case Debug user-bus retries completed.
