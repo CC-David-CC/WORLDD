@@ -1,3 +1,15 @@
+## 2026-10-13: Deployed gate fixtures pass on both hosts
+
+Gate checkpoint 7298e1a6 is box-git verified and remains unintegrated.
+Both hosts passed all 26 pure gate fixture checks: 52 total.
+The earlier sb16-2 receipt-host mismatch is corrected. The wrong-host rejection guard remains tested.
+These checks cover launch plans and receipt validation. They do not prove native geometry or the full gate.
+Read docs/M06_DEPLOYED_GATE_FOCUSED_STATUS_2026-10-13.txt for source pins, failures, and results.
+The native owner-channel and bounded observer-display correction is reviewed and awaiting checkpoint packaging.
+The unchanged 512x384 pixel requirement remains mandatory.
+A separate worker will add crossstage artifact and external-runtime hash rechecks before integration.
+M06 remains active. The full gate remains UNRUN. M07-M16 remain pending.
+
 ## 2026-10-13: Corrected native startup reaches geometry; pixel fixture setup remains defective
 
 Correction 7dd9c9b2 fixed startup control sequence adoption and the actor_state method collision.
