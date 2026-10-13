@@ -1,3 +1,21 @@
+## 2026-10-13: Frozen combined M06 candidate builds are running
+
+Candidate: 258920de00e45448f104eedcc97147cf878406b3.
+The candidate branch is m06/combined-qualification-20261013 on a5500.
+Its checkout is clean. Its box-git ref matches HEAD.
+The final mandatory-suite guard passed 31 checks on each qualification host.
+Primary runtime verification passed on both hosts for Debug and ASan-UBSan.
+The verification checked XACE receipts, server source pins, wrappers, graphics files, and root-owned helpers.
+All 41 locked acceptance hashes match. The candidate contains 905 pinned source files.
+Four-profile preparation is running in tmux session m06prep2589p01 on a5500.
+It builds testing-enabled and testing-disabled Debug and ASan-UBSan artifacts with two compile jobs.
+Preparation only records CTest registration. It runs no runtime tests on the coding host.
+Build logs are under /home/dflanag3/spatial-qualification/m06-combined-258920-20261013/prepare01.
+These builds remain IN PROGRESS. No final artifacts have been qualified.
+The full combined M06 gate remains UNRUN.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Old test-data cleanup preserves active qualification files and retained failure evidence.
+
 ## 2026-10-13: Native focused matrix passes; combined qualification candidate is next
 
 The native geometry matrix passed all 36 methods across both hosts, both profiles, and both authority directions.
