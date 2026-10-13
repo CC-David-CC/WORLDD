@@ -1,3 +1,15 @@
+## 2026-10-13: First native cross-host run exposes witness setup defect
+
+The first Debug direction completed with nine setup failures and nine secondary errors.
+The observer cannot read a confined process executable through its unprivileged /proc witness.
+No shared-world behavioral assertion passed in that run.
+All nine exact-unit receipts confirm absent units and cgroups after recovery.
+The raw run and all per-case evidence remain preserved.
+Read the project-root defect blockers/m06-native-geometry-process-witness-permission.txt for diagnosis and correction assignment.
+A separate test-only witness correction is underway. Production confinement remains intact.
+The loader preflight passed for all 62 executables in all four host/profile combinations.
+The 452 local focused checks remain passed. M06 and its complete gate remain incomplete.
+
 ## 2026-10-13: Geometry-read denial correction passes focused qualification
 
 Correction 9f8405b57 passed 452 focused checks across both hosts and both profiles.

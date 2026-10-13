@@ -124,3 +124,18 @@ All corrected local suite jobs are terminal. No transfer or deployment jobs rema
 Cross-host manifests are prepared for Debug and ASAN; actual cross-host runtime remains UNRUN.
 A read-only worker is checking cross-host loader and helper prerequisites.
 The full M06 gate remains UNRUN. M07-M16 remain pending.
+
+First native cross-host runtime failed in setup
+Debug sb16 authority to sb16-2 observer runtime01 completed: nine failures and nine secondary errors in 157.230 seconds, command/wrapper 1/1.
+All cases hit unprivileged /proc/PID/exe PermissionError before ready; no behavioral assertion is qualified.
+All nine exact-unit terminal receipts report absent units and cgroups.
+Read defect blockers/m06-native-geometry-process-witness-permission.txt at project root for diagnosis and correction assignment.
+Other directions/profiles remain UNRUN. Local 452 checks remain passed. Full M06 gate remains UNRUN.
+
+Cross-host loader preflight reviewed
+All 62 ELFs resolve on both hosts in both profiles, with no missing library.
+Primary independently verified all 62 headings, all resolved-path hashes, and all nine fixture source pins.
+Debug has 25 resolved paths per host. ASAN has 28 per host.
+Same-profile executable and system-library hashes match across both hosts.
+Report: project-root local/m06-crosshost-loader-preflight-20261013/REVIEW.txt and primary-audit.json.
+This is static launch evidence, not runtime qualification.
