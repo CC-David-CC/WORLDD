@@ -417,13 +417,24 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertTrue(self.owner('a').call(geometry_view=session.WorldGeometryViewRequest()).HasField('geometry_view'))
 
     def test_09_actor_leaving_preserves_shared_world_and_other_actor(self):
+        initial_destination_context=self.state()
         self.assertTrue(self.transition('b').accepted);owner=self.owner('b')
         before=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         actor=self.state().id;self.assertIn(actor,[item.id for item in before.actors])
         world_id=before.world_id;self.assertTrue(self.transition('a').accepted)
         after=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
-        self.assertNotIn(actor,[item.id for item in after.actors]);self.assertEqual(after.world_id,world_id)
+        # Departure ends session authority. Durable actor entities and saved
+        # context may remain; oracle 9 does not require marker disappearance.
+        self.assertEqual(after.world_id,world_id);self.assertEqual(after.actor_id,before.actor_id)
+        self.assertGreater(after.sequence,before.sequence)
         self.assertTrue(owner.act(stop=core.ActorStopRequest()).action.accepted)
+        resumed=self.state()
+        self.assertEqual((resumed.id,resumed.room,resumed.pose,resumed.workspace),
+            (initial_destination_context.id,initial_destination_context.room,
+             initial_destination_context.pose,initial_destination_context.workspace))
+        destination_status=self.displayed()
+        self.assertEqual(destination_status.actor_id,actor)
+        self.assertEqual(destination_status.world_id,self.active_worlds['a'].management('world.info')['world_id'])
         self.assertIsNone(self.active_worlds['b'].proc.poll());self.stable()
 
 

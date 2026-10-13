@@ -100,3 +100,17 @@ The geometry_pixel_witness helper reuses the independent NativeClient X wire con
 It checks endian framing, reply lengths, absolute deadlines, and native X errors.
 The prior unavailable operation/pack/tree helper assumption is corrected before deployment.
 Debug5/ASAN2 and their original source freeze remain preserved as pre-correction builds.
+
+Reviewed oracle 9 fixture correction, after candidate d9969c8
+M06_GEOMETRY_VIEW_WORKER.txt requires shared authority and remaining actor usability
+when an actor leaves. It does not require deletion or invisibility of durable actors.
+Actors::close retains durable entity/context and clears the departing session authority.
+The newly added assertNotIn marker assertion imposed an unsupported extra condition.
+It was not a locked acceptance assertion and had not been run.
+The test-only follow-up removes that condition and verifies unchanged world identity,
+remaining owner authenticated geometry and action, and the departed actor's destination
+context and acknowledged destination presentation. All required oracle 9 checks remain.
+No production, proto, configuration, or CMake input changes in this follow-up.
+The immutable d9969c8 Debug/ASAN archives and build IDs remain unchanged.
+Deploy only the reviewed hash-pinned test/docs overlay alongside their compiled candidate.
+Record both the compiled source commit and the test overlay commit during qualification.
