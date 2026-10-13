@@ -75,6 +75,8 @@ class HostActorControllerNativeTests(application.SessionApplicationTests):
         self.assertEqual(len(serialized_seed.roots), 1)
         seeded_rights = set(serialized_seed.roots[0].rights)
         self.assertEqual(grants.WORLD_ENTER in seeded_rights, admitted)
+        if admitted:
+            self.assertIn(grants.WORLD_OBSERVE, seeded_rights)
         if not admitted:
             self.assertEqual(seeded_rights, {grants.WORLD_OBSERVE})
         result = subprocess.run([config.launch.executable, '--state-dir',
@@ -168,7 +170,7 @@ class HostActorControllerNativeTests(application.SessionApplicationTests):
     def test_native_a_b_a_denial_and_retained_process_identities(self):
         self.shared_presentation = True
         self.two_presented_worlds = True
-        self.coordinator_probe = 'spatial-host-actor-native-runner'
+        self.coordinator_probe = os.environ.get('SPATIAL_HOST_ACTOR_NATIVE_RUNNER', 'spatial-host-actor-native-runner')
         # Keep paths and credentials local to fixture startup. The child inherits them.
         with patch.dict(os.environ):
             proc, owner, first = self.ready()

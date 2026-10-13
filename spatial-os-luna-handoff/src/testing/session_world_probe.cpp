@@ -54,10 +54,12 @@ int main(int argc, char** argv) {
             std::cerr << "world start rejected: " << error.what() << '\n';
             spatial::write_frame(std::cout, session->root().call(hello)); report(session->stop()); return 2;
         }
+#ifndef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
         if(argc>=8){
             const auto selected=session->select_world(owner);
             if(!selected.selected() || selected.stage()!=spatial::render::v1::READY)throw std::runtime_error("Host world selection failed");
         }
+#endif
         report(session->world_launch(owner));
         spatial::supervisor::v1::AuthorityLaunchReply binding; binding.set_protocol_version(1);
         *binding.mutable_control_owner() = owner; spatial::write_frame(std::cout, binding);
@@ -66,9 +68,14 @@ int main(int argc, char** argv) {
         spatial::workspace::v1::ControlOwner second;
         if(two_worlds){
             second=session->start_world(std::string(argv[8])+".owned",load(argv[8]),std::stoi(argv[9]),-1,actor_channels,argv[10]);
+#ifndef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
             const auto b=session->select_world(second);const auto a=session->select_world(owner);
             if(!a.selected() || !b.selected() || session->inspect_presentation(second).selected())
                 throw std::runtime_error("Independent world selection failed");
+#else
+            if(session->inspect_presentation(owner).selected() || session->inspect_presentation(second).selected())
+                throw std::runtime_error("Host actor fixture raw world producers must start unselected");
+#endif
             report(session->world_launch(second));
             spatial::supervisor::v1::AuthorityLaunchReply binding;binding.set_protocol_version(1);
             *binding.mutable_control_owner()=second;spatial::write_frame(std::cout,binding);

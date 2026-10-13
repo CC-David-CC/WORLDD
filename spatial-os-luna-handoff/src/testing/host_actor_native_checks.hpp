@@ -206,8 +206,9 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
               pd.binding().SerializeAsString() == d_before.binding().SerializeAsString() &&
               pa.stage() != render::v1::RETIRED && pb.stage() != render::v1::RETIRED && pd.stage() != render::v1::RETIRED,
               "World detached or retained binding changed");
-        std::cerr << "native-checkpoint=" << checkpoint << " selected=" << (pa.selected() ? pa.binding().world_id() : pb.binding().world_id())
-                  << " A-binding=" << pa.binding().ShortDebugString() << " B-binding=" << pb.binding().ShortDebugString() << '\n';
+        std::cerr << "native-checkpoint=" << checkpoint << " raw-world-selected={A:" << pa.selected()
+                  << ",B:" << pb.selected() << "} A-binding=" << pa.binding().ShortDebugString()
+                  << " B-binding=" << pb.binding().ShortDebugString() << '\n';
         for (std::size_t i = 0; i < pids.size(); ++i) {
             check(process_start(pids[i]) == starts[i], "Native process start identity changed");
             std::cerr << "native-checkpoint=" << checkpoint << " pid=" << pids[i] << " start=" << starts[i] << '\n';
@@ -223,6 +224,40 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
     controller.register_world(aw, a, [&] { return channel(a, 1, aw); });
     controller.register_world(bw, b, [&] { return channel(b, 0, bw); });
     controller.register_world(dw, denied, [&] { return channel(denied, 0, dw); });
+    controller.start_geometry_presentation();
+    std::string geometry_actor_id;
+    std::uint64_t last_presentation_generation = 0, last_view_sequence = 0;
+    std::string geometry_receipt_world;
+    enum class GeometryReceipt { new_target, same_target_refresh };
+    const auto acknowledged_geometry = [&](std::uint64_t generation, const std::string& expected_world, GeometryReceipt mode) {
+        const auto status = controller.geometry_status(generation);
+        const auto state = controller.inspect(generation).state();
+        const bool new_target = mode == GeometryReceipt::new_target;
+        const bool same_target_refresh = mode == GeometryReceipt::same_target_refresh;
+        check(status.protocol_version() == 1 && status.available() && status.world_id() == expected_world &&
+              !status.actor_id().empty() && status.room() == state.room() &&
+              status.camera().SerializeAsString() == state.pose().SerializeAsString() &&
+              status.view_sequence() > 0 && status.world_revision() > 0 &&
+              status.presentation_generation() > 0 && status.authority_generation() > 0 &&
+              status.authority_service_incarnation().size() == 32 &&
+              (!new_target || status.presentation_generation() > last_presentation_generation) &&
+              (!same_target_refresh || (geometry_receipt_world == expected_world &&
+                  status.presentation_generation() == last_presentation_generation &&
+                  status.view_sequence() > last_view_sequence)),
+              "Geometry status did not acknowledge the expected actor context");
+        if (geometry_actor_id.empty()) geometry_actor_id = status.actor_id();
+        else check(status.actor_id() == geometry_actor_id, "Geometry actor identity changed across worlds");
+        last_presentation_generation = status.presentation_generation();
+        last_view_sequence = status.view_sequence();
+        geometry_receipt_world = expected_world;
+        return status;
+    };
+    const auto raw_worlds_unselected = [&] {
+        check(!session.inspect_presentation(a).selected() && !session.inspect_presentation(b).selected(),
+              "Raw world producer presentation became selected");
+    };
+    (void)acknowledged_geometry(0, aw, GeometryReceipt::new_target);
+    raw_worlds_unselected();
     std::uint64_t management_seq = 100;
     const auto management = [&](const auto& owner, core::v1::Request request) {
         request.set_protocol_version(1); request.set_request_id(++management_seq);
@@ -300,7 +335,10 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
     check(read_file(source_app.data / "probe.jsonl").find("\"event\":\"key\",\"pressed\":true") != std::string::npos &&
           read_file(source_app.data / "probe.jsonl").find("\"event\":\"button\",\"pressed\":true") != std::string::npos,
           "Source X witness did not receive held input");
+    controller.pump_geometry_presentation();
     const auto state_a = controller.inspect(0).state();
+    const auto pre_denial_geometry = acknowledged_geometry(0, aw, GeometryReceipt::same_target_refresh);
+    raw_worlds_unselected();
     check(state_a.held_keys_size() > 0 && state_a.held_buttons_size() > 0 && state_a.has_focus(),
           "Source actor did not hold native focus, key and button");
     identity::v1::HostActorTransitionRequest request;
@@ -311,8 +349,10 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
           denial.actor_transition().has_server_error() && denial.actor_transition().server_error().code() == core::v1::FORBIDDEN &&
           denial.actor_control_available() && denial.host_selection() == identity::v1::HOST_SELECTION_NOT_ATTEMPTED,
           "Native admission denial did not preserve source");
-    check(controller.inspect(1).state().SerializeAsString() == state_a.SerializeAsString() && session.inspect_presentation(a).selected() &&
-          !session.inspect_presentation(b).selected(), "Denial disturbed source or foreground");
+    check(controller.inspect(1).state().SerializeAsString() == state_a.SerializeAsString() &&
+          controller.geometry_status(1).SerializeAsString() == pre_denial_geometry.SerializeAsString(),
+          "Denial disturbed source actor state or acknowledged geometry");
+    raw_worlds_unselected();
     actor_key(1, 6, "a", true); actor_key(1, 7, "a", false);
     witness_sync(source_app, 2);
     const auto still_held = controller.inspect(1).state();
@@ -322,9 +362,11 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
     retain_application(source_app); unchanged();
     request.set_transition_id(std::string(32, 'b')); request.set_destination_world_id(bw); request.set_departure_sequence(11);
     const auto ab = controller.transition(request); write_frame(std::cout, ab);
-    check(ab.host_selection() == identity::v1::HOST_SELECTION_CONFIRMED && ab.actor_transition().destination_activation_confirmed() &&
-          controller.current_world() == bw && session.inspect_presentation(b).selected() && !session.inspect_presentation(a).selected(),
-          "Native A-B owner selection failed");
+    check(ab.host_selection() == identity::v1::HOST_SELECTION_CONFIRMED &&
+          ab.actor_transition().destination_activation_confirmed() && controller.current_world() == bw,
+          "Native A-B authority transition failed");
+    (void)acknowledged_geometry(ab.operation_generation(), bw, GeometryReceipt::new_target);
+    raw_worlds_unselected();
     witness_sync(source_app, 3);
     const auto source_log = read_file(source_app.data / "probe.jsonl");
     check(source_log.find("\"event\":\"key\",\"pressed\":false") != std::string::npos &&
@@ -337,6 +379,7 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
     aim_at_app(ab.operation_generation(), 3); actor_button(ab.operation_generation(), 4, true);
     witness_sync(destination_app, 1);
     const auto state_b = controller.inspect(ab.operation_generation()).state();
+    const auto geometry_b = controller.geometry_status(ab.operation_generation());
     witness_sync(source_app, 4); witness_sync(destination_app, 2);
     core::v1::ActorActionRequest delayed; delayed.set_seq(90);
     delayed.mutable_key()->set_keysym("a"); delayed.mutable_key()->set_pressed(true);
@@ -349,8 +392,10 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
     witness_sync(source_app, 5); witness_sync(destination_app, 3);
     const auto state_b_after_stale = controller.inspect(ab.operation_generation()).state();
     check(state_b_after_stale.SerializeAsString() == state_b.SerializeAsString() &&
-          controller.current_world() == bw && session.inspect_presentation(b).selected(),
-          "Stale action changed destination state or selection");
+          controller.current_world() == bw &&
+          controller.geometry_status(ab.operation_generation()).SerializeAsString() == geometry_b.SerializeAsString(),
+          "Stale action changed destination state or acknowledged geometry");
+    raw_worlds_unselected();
     action(ab.operation_generation(), delayed);
     actor_key(ab.operation_generation(), 91, "a", false);
     actor_button(ab.operation_generation(), 92, false);
@@ -361,8 +406,10 @@ void host_actor_native_checks(spatial::supervisor::SessionCoordinator& session,
     const auto ba = controller.transition(request); write_frame(std::cout, ba);
     witness_sync(destination_app, 5); witness_sync(source_app, 6);
     const auto resumed = controller.inspect(3).state();
-    check(ba.host_selection() == identity::v1::HOST_SELECTION_CONFIRMED && controller.current_world() == aw &&
-          session.inspect_presentation(a).selected() && !session.inspect_presentation(b).selected(), "Native B-A owner selection failed");
+    check(ba.host_selection() == identity::v1::HOST_SELECTION_CONFIRMED &&
+          controller.current_world() == aw, "Native B-A authority transition failed");
+    (void)acknowledged_geometry(ba.operation_generation(), aw, GeometryReceipt::new_target);
+    raw_worlds_unselected();
     check(resumed.id() == state_a.id() && resumed.room() == state_a.room() &&
           resumed.pose().SerializeAsString() == state_a.pose().SerializeAsString() && resumed.workspace() == state_a.workspace(),
           "A context did not resume"); unchanged();

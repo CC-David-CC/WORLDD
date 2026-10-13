@@ -107,8 +107,16 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         extra = tuple(getattr(self, 'coordinator_fds', ()))
         arguments.extend(map(str, extra))
         try:
-            proc = subprocess.Popen([str(base.baseline.supervisor.owned.existing.PROBE.with_name(
-                getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))), *arguments],
+            configured_probe = Path(getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))
+            if configured_probe.is_absolute():
+                if not configured_probe.is_file() or not os.access(configured_probe, os.X_OK):
+                    raise RuntimeError('Explicit coordinator runner is unavailable')
+                probe = configured_probe
+            else:
+                if configured_probe.name != str(configured_probe):
+                    raise RuntimeError('Relative coordinator runner must be a basename')
+                probe = base.baseline.supervisor.owned.existing.PROBE.with_name(configured_probe.name)
+            proc = subprocess.Popen([str(probe), *arguments],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log,
                 pass_fds=tuple(descriptors) + (() if listener is None else (listener.fileno(),)) + extra)
         finally:
