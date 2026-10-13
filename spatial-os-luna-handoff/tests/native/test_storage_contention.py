@@ -1,4 +1,5 @@
 """Real retained actors, bounded writers, issuer commits, and revocation during Git."""
+import errno
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,7 @@ import subprocess
 import sys
 import time
 import unittest
+from types import SimpleNamespace
 from google.protobuf import text_format
 import core_pb2 as core
 import issuer_pb2 as issuer
@@ -17,6 +19,67 @@ from harness.git_fixture import GitRepo
 from harness.wire import frame, make_request
 import test_storage_session as existing
 from test_issuer_client import ClientProcess
+
+
+def _cgroup_identity(path):
+    info = path.stat()
+    return info.st_dev, info.st_ino
+
+
+def _read_cgroup_procs(path):
+    """Read one stable cgroup snapshot; skip only a confirmed retired path."""
+    for attempt in range(2):
+        try:
+            before = _cgroup_identity(path)
+        except FileNotFoundError:
+            return None
+        try:
+            contents = (path / 'cgroup.procs').read_text()
+        except OSError as error:
+            if error.errno not in (errno.ENOENT, errno.ENODEV):
+                raise
+            try:
+                after = _cgroup_identity(path)
+            except FileNotFoundError:
+                return None
+            if after != before:
+                continue
+            if error.errno == errno.ENOENT or attempt == 1:
+                raise
+            continue
+        try:
+            after = _cgroup_identity(path)
+        except FileNotFoundError:
+            return None
+        if after == before:
+            return contents.split()
+    raise RuntimeError('cgroup identity changed during bounded sample')
+
+
+class _CgroupSamplePath:
+    """Small filesystem stand-in for deterministic retirement regressions."""
+    def __init__(self, stats, reads):
+        self.stats = iter(stats)
+        self.reads = iter(reads)
+        self.read_count = 0
+
+    def stat(self):
+        result = next(self.stats)
+        if isinstance(result, BaseException):
+            raise result
+        return SimpleNamespace(st_dev=result[0], st_ino=result[1])
+
+    def __truediv__(self, name):
+        if name != 'cgroup.procs':
+            raise AssertionError(name)
+        return self
+
+    def read_text(self):
+        self.read_count += 1
+        result = next(self.reads)
+        if isinstance(result, BaseException):
+            raise result
+        return result
 
 
 WRITER = """import json,os,time
@@ -199,8 +262,8 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         def git_running():
             values=[]
             for path in group.rglob('authority-*'):
-                try:pids=(path/'cgroup.procs').read_text().split()
-                except FileNotFoundError:continue # A completed scope can disappear during this independent sample.
+                pids=_read_cgroup_procs(path)
+                if pids is None:continue # A confirmed retired cgroup is absent from this independent sample.
                 for pid in pids:
                     try:
                         if Path('/proc/'+pid+'/comm').read_text().strip()=='git': values.append(int(pid))
@@ -257,5 +320,66 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self.assertEqual(len(exited),len(pins),'Busy administrative Git delayed actor revocation')
 
 
+class CgroupProcessSamplingTests(unittest.TestCase):
+    def test_stable_cgroup_returns_process_ids(self):
+        path = _CgroupSamplePath([(1, 10), (1, 10)], ['101\n202\n'])
+        self.assertEqual(_read_cgroup_procs(path), ['101', '202'])
+
+    def test_absent_cgroup_is_retired(self):
+        path = _CgroupSamplePath([FileNotFoundError(errno.ENOENT, 'gone')], [])
+        self.assertIsNone(_read_cgroup_procs(path))
+
+    def test_enoent_with_confirmed_retirement_is_ignored(self):
+        path = _CgroupSamplePath([(1, 10), FileNotFoundError(errno.ENOENT, 'gone')],
+                                 [FileNotFoundError(errno.ENOENT, 'gone')])
+        self.assertIsNone(_read_cgroup_procs(path))
+
+    def test_enodev_with_confirmed_retirement_is_ignored(self):
+        path = _CgroupSamplePath([(1, 10), FileNotFoundError(errno.ENOENT, 'gone')],
+                                 [OSError(errno.ENODEV, 'retired kernfs node')])
+        self.assertIsNone(_read_cgroup_procs(path))
+
+    def test_enodev_is_resampled_when_identity_remains_live(self):
+        path = _CgroupSamplePath([(1, 10)] * 4,
+                                 [OSError(errno.ENODEV, 'transient'), '303\n'])
+        self.assertEqual(_read_cgroup_procs(path), ['303'])
+        self.assertEqual(path.read_count, 2)
+
+    def test_persistent_enodev_on_live_identity_raises(self):
+        path = _CgroupSamplePath([(1, 10)] * 4,
+                                 [OSError(errno.ENODEV, 'persistent'),
+                                  OSError(errno.ENODEV, 'persistent')])
+        with self.assertRaises(OSError) as raised:
+            _read_cgroup_procs(path)
+        self.assertEqual(raised.exception.errno, errno.ENODEV)
+        self.assertEqual(path.read_count, 2)
+
+    def test_enoent_on_live_directory_raises(self):
+        path = _CgroupSamplePath([(1, 10), (1, 10)],
+                                 [FileNotFoundError(errno.ENOENT, 'file missing')])
+        with self.assertRaises(FileNotFoundError):
+            _read_cgroup_procs(path)
+
+    def test_unexpected_io_error_propagates(self):
+        path = _CgroupSamplePath([(1, 10)], [OSError(errno.EIO, 'unexpected')])
+        with self.assertRaises(OSError) as raised:
+            _read_cgroup_procs(path)
+        self.assertEqual(raised.exception.errno, errno.EIO)
+
+    def test_identity_change_discards_old_snapshot_and_resamples(self):
+        path = _CgroupSamplePath([(1, 10), (1, 11), (1, 11), (1, 11)],
+                                 ['stale\n', '404\n'])
+        self.assertEqual(_read_cgroup_procs(path), ['404'])
+
+    def test_repeated_identity_change_is_bounded(self):
+        path = _CgroupSamplePath([(1, 10), (1, 11), (1, 11), (1, 12)],
+                                 ['stale-one\n', 'stale-two\n'])
+        with self.assertRaises(RuntimeError):
+            _read_cgroup_procs(path)
+        self.assertEqual(path.read_count, 2)
+
+
 if __name__=='__main__':
-    unittest.main(verbosity=2,defaultTest=['StorageContentionTests.'+name for name in StorageContentionTests.__dict__ if name.startswith('test_')])
+    tests=['StorageContentionTests.'+name for name in StorageContentionTests.__dict__ if name.startswith('test_')]
+    tests += ['CgroupProcessSamplingTests.'+name for name in CgroupProcessSamplingTests.__dict__ if name.startswith('test_')]
+    unittest.main(verbosity=2,defaultTest=tests)
