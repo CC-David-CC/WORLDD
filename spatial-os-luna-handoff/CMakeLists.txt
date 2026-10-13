@@ -1333,6 +1333,15 @@ if(BUILD_TESTING)
     add_custom_target(geometry-native-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_native_pb2.py")
     add_dependencies(geometry-native-python host-session-python-protobuf)
     add_dependencies(spatial-host-session geometry-native-python presentation-python-protobuf)
+    add_test(NAME geometry-process-identity-witness COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_geometry_process_identity.py")
+    set_tests_properties(geometry-process-identity-witness PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME geometry-native-fixture-regressions COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_geometry_host_control_handoff.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(geometry-native-fixture-regressions PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/native")
     add_test(NAME geometry-presentation-native COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_geometry_presentation.py"
         $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
