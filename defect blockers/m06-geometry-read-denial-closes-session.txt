@@ -1,5 +1,5 @@
 M06: checked geometry-read denial closes actor session
-Status: confirmed defect; source correction built and reviewed; runtime qualification pending.
+Status: correction passed focused qualification on both hosts and profiles; integration pending.
 Date: 2026-10-13
 
 Reproduction
@@ -33,3 +33,10 @@ Primary reviewed all three changed files.
 Full Debug and ASan/UBSan builds passed with command and wrapper exits zero.
 Corrected-candidate runtime regressions and host-session checks remain UNRUN.
 Do not mark this defect resolved until both qualification hosts pass the affected checks.
+
+Focused qualification result
+Both Debug and ASAN host-session suites passed all 26 unchanged tests on both hosts.
+Both client probes passed 56 cases and both TLS probes passed 31 cases per host/profile.
+Total: 452 checks passed. Payload, sanitizer diagnostic, and exact cleanup audits passed.
+Original failure evidence remains preserved. The full M06 gate remains UNRUN.
+This supersedes the earlier pending runtime status; integration remains separate.

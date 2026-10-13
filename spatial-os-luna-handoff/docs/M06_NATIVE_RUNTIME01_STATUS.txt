@@ -62,3 +62,65 @@ Primary checked each exact systemd unit and its cgroup path after completion.
 Both units are not-found and inactive. Both exact cgroup paths are absent.
 The cleanup stop returned 5 because systemd had already collected each unit.
 This cleanup result does not change the failed test classifications.
+
+Corrected candidate deployment and first runtime results
+Both final packages passed validation and terminal packaging receipts returned 0/0.
+Debug archive SHA256: ef9d4998bf06f7429f25f9109c27ddfb84111b359f1e51101ac24dfbc754091a.
+ASAN archive SHA256: 17e91be18597f76d4222de4cf2eb7fbbd5dc10e1e6d017f221808fb08287e352.
+Both Debug transfers completed with exit zero.
+Both hosts verified 1068 Debug manifest entries and the immutable archive hash.
+Corrected source matches all 20 XACE extension inputs in both profile receipts on both hosts.
+Actual Xvfb and Xorg binaries match those receipts too.
+Deployment root: /home/dflanag3/spatial-qualification/m06-geometry-denial-9f8405b-20261013.
+Both Debug actor-session-client runs passed 56 probe cases each, command/wrapper 0/0.
+Raw evidence: runs/debug-client01 on each host. Stderr is empty.
+These 112 focused probe executions include valid denial reuse and malformed error fencing.
+Debug production host-session suites are RUNNING on both hosts in persistent tmux.
+Exact tmux session: m06-denial-debug-hostsession01; evidence: runs/debug-hostsession01.
+Observed pane PIDs: sb16 1830841; sb16-2 1749001. Revalidate before any restart.
+ASAN transfers remain running under controller handles 59162 and 39321.
+TLS probes, corrected sanitizer runtime, cross-host native semantics, and full M06 gate remain UNRUN.
+Earlier pending packaging statements are superseded by this append.
+
+Corrected Debug host-session and TLS results
+Both host-session suites completed with 26 tests passed and command/wrapper exits 0/0.
+sb16 elapsed 108.275 seconds; sb16-2 elapsed 130.675 seconds.
+The original two local observation-denial tests passed unchanged on both hosts.
+Evidence: corrected deployment root runs/debug-hostsession01.
+Both TLS probes completed with 31 cases passed and command/wrapper exits 0/0.
+Evidence: corrected deployment root runs/debug-tls01.
+Together with client probes, corrected Debug totals are 226 checks passed across six completed suites.
+This supersedes the preceding RUNNING host-session status.
+Original failing candidate evidence remains preserved.
+Sanitizer runtime, native cross-host semantics, and the complete M06 gate remain UNRUN.
+Post-run payload, diagnostics, and cleanup audits remain pending for these new suites.
+
+Corrected runtime audit and sanitizer progress
+Debug post-run audits passed on both hosts: inputs unchanged, no sanitizer diagnostics, exact unit and cgroup cleanup verified.
+Audit receipts: debug-client-hostsession-audit01.json at the corrected deployment root.
+Each audit scanned 90 logs across the three suites.
+The initial audit incorrectly required empty TLS stderr. Its source-verified invalid-configuration case emits one expected protobuf parse diagnostic.
+Audit02 requires that exact diagnostic and keeps full sanitizer scanning. Original audit script and raw stderr remain preserved.
+Both ASAN deployments verified archive hashes and all 1071 manifest entries.
+Both ASAN client probes passed 56 cases with command/wrapper exits 0/0 and empty stderr.
+Both ASAN TLS probes passed 31 cases with command/wrapper exits 0/0 and the exact expected parse diagnostic.
+Corrected total so far: 400 passed checks across ten completed suites.
+ASAN host-session suites remain RUNNING on both hosts.
+Exact tmux session: m06-denial-asan-hostsession01.
+Observed pane PIDs: sb16 1835291; sb16-2 1753450. Revalidate before restart.
+No transfer or deployment tool sessions remain active.
+Cross-host native semantics and the full M06 gate remain UNRUN.
+
+Corrected focused qualification complete
+Both ASAN host-session suites passed all 26 original tests with command/wrapper exits 0/0.
+sb16 elapsed 133.975 seconds; sb16-2 elapsed 164.823 seconds.
+Both ASAN post-run audits passed: payload unchanged, no sanitizer diagnostics, exact owned units and cgroups absent.
+Audit receipts: asan-client-hostsession-audit01.json on each host.
+All four host/profile audits report 113 passing cases each.
+Corrected increment total: 452 passed checks across twelve completed suite executions.
+Both original denial cases pass in Debug and ASAN on both hosts.
+The session-denial correction is FOCUSED-PASS, not milestone qualified or integrated.
+All corrected local suite jobs are terminal. No transfer or deployment jobs remain active.
+Cross-host manifests are prepared for Debug and ASAN; actual cross-host runtime remains UNRUN.
+A read-only worker is checking cross-host loader and helper prerequisites.
+The full M06 gate remains UNRUN. M07-M16 remain pending.

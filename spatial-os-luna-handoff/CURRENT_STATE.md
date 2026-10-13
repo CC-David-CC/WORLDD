@@ -1,3 +1,13 @@
+## 2026-10-13: Geometry-read denial correction passes focused qualification
+
+Correction 9f8405b57 passed 452 focused checks across both hosts and both profiles.
+The original local observation-denial tests passed unchanged in Debug and ASAN.
+Post-run payload, sanitizer diagnostic, and owned cleanup audits passed.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt for exact source, artifacts, results, and limitations.
+The correction remains on a separate candidate branch. Integration is pending.
+Cross-host native geometry runtime and the full M06 gate remain UNRUN.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Native geometry candidate tested; session-denial correction pending runtime
 
 M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
