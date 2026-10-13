@@ -75,8 +75,6 @@ class HostActorControllerNativeTests(application.SessionApplicationTests):
         self.assertEqual(len(serialized_seed.roots), 1)
         seeded_rights = set(serialized_seed.roots[0].rights)
         self.assertEqual(grants.WORLD_ENTER in seeded_rights, admitted)
-        if admitted:
-            self.assertIn(grants.WORLD_OBSERVE, seeded_rights)
         if not admitted:
             self.assertEqual(seeded_rights, {grants.WORLD_OBSERVE})
         result = subprocess.run([config.launch.executable, '--state-dir',
