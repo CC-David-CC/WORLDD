@@ -1,3 +1,34 @@
+## 2026-10-13: Both deployments verified; full local M06 gates running
+
+Frozen candidate remains f8609273fad1873db45fc316fd0200549b4c6b41.
+Both hosts deployed it under /home/dflanag3/spatial-qualification/m06-f860-final-20261013/deployment.
+Both verify-deploy commands and wrappers returned zero.
+Primary reviewed both deployment-receipt.json files.
+Each receipt records the correct candidate and archive hash, with both profile runtimes verified.
+Each profile retains a fresh CTest metadata baseline and verified relocated inventory.
+The first transfer attempts omitted the deployment key and stalled before creating package files.
+Their failed receipts remain preserved. Explicit-key batch-mode retries passed on both hosts.
+
+Full normal local gates now run in host tmux sessions m06-f860-run-sb16 and m06-f860-run-sb16-2.
+Gate PIDs at launch were 2037404 on sb16 and 1970348 on sb16-2.
+Confirm process identity and terminal receipts before any recovery or retry.
+Helper runs are under the new host root's runs/run-local-sb16-01 and runs/run-local-sb16-2-01.
+Evidence attempts are deployment/evidence/m06-final-f860-sb16-20261013-01 and m06-final-f860-sb16-2-20261013-01.
+Both gates use the explicit user-bus environment and the five required suite mappings.
+Each host runs Debug and ASan-UBSan sequentially. The hosts run in parallel.
+Both passed Debug inventory, production-only startup, and the 51-test harness.
+Debug CTest remains running. Its partial results do not qualify a profile or milestone.
+The large geometry count and snapshot registration passed on both hosts.
+Sanitizer qualification and dedicated cross-host qualification remain pending.
+Use the existing attempts. Do not combine recovered partial reports into a passing full gate.
+
+M07 proposal is separately BOX-GIT VERIFIED at 789eaac6c2fd0abdc3d8b23c601961fed6fcb76d.
+Branch: m07/workspace-presentation-copy-contract-20261013.
+It changes only docs/M07_PRESENTATION_COPY_CONTRACT_2026-10-13.txt.
+It remains UNQUALIFIED planning, with snapshot consistency and capability decisions explicitly unresolved.
+It does not modify or qualify the M06 candidate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Frozen M06 package verified; deployment authorized
 
 Candidate remains f8609273fad1873db45fc316fd0200549b4c6b41 on m06/final-qualification-20261013.
