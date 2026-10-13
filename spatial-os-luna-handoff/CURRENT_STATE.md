@@ -1,3 +1,22 @@
+## 2026-10-13: Peer SSH prerequisite repaired; local gates continue
+
+Primary verified strict fixture-key SSH in both directions. Both commands returned the expected hostnames and exit zero.
+Only missing verified host-key rows were added. Existing keys and file ownership remain unchanged.
+Both known_hosts files retain mode 0600. Original files have on-host backups.
+Backup: /home/dflanag3/.ssh/known_hosts.m06-4f241-peer-ssh-20261013.bak.
+Host-local receipts are under m06-4f241-final-20261013/runs/peer-ssh-readiness-HOST-02/remote-peer-ssh-receipt.txt.
+The first receipt copies were on middle-child. Their incorrect reported destination was corrected before acceptance.
+Primary downloaded and inspected the actual corrected host-local receipts.
+For rollback, restore the backup only if the current hash matches the receipt's recorded new hash.
+Otherwise review and remove only the recorded added row. Preserve later trust changes.
+No private keys were copied. No services, tests, or gates were restarted.
+
+The original full local gate jobs remain active on both hosts.
+Latest diagnostic core counts are 59/164 and 55/164 passed, respectively, with no failures.
+These partial counts do not establish full Debug or M06 qualification.
+Sanitizer and dedicated cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Verified 4f241 deployments; both full local gates running
 
 Candidate remains frozen at 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
