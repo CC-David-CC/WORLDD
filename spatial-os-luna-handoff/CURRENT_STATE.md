@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-13: Combined geometry passes Debug and sanitizer on both hosts
+
+Read evidence/m06-combined-geometry-asan-2026-10-13/REVIEW.txt and the matching Debug evidence.
+Candidate fc302de passed all thirteen selected suites in both profiles on both hosts.
+All fifty-two suite executions passed. No checks were skipped.
+Each terminal audit passed. All 1,162 input hashes remained unchanged per run.
+No attempt processes remained. The audits scanned 1,564 logs without sanitizer diagnostics.
+Both qualification lanes are now idle. No geometry runtime job needs restarting.
+Debug evidence checkpoint 3dc3562 is verified on box-git.
+The combined host-session qualification launcher is under preparation on middle-child.
+Those related runtime checks remain unrun before source integration and native presentation work.
+Native shared-world geometry presentation remains unimplemented. The full M06 gate remains pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Fresh combined geometry Debug qualification passes on both hosts
 
 Read evidence/m06-combined-geometry-debug-2026-10-13/REVIEW.txt for receipts and the qualification limits.

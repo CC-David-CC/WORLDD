@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "bash",
+    "/home/dflanag3/spatial-qualification/m06-geometry-run04-command.sh",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/13-world-diagnostic-timing",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on/world-diagnostic-timing-test"
+  ],
+  "cleanup_resolved": true,
+  "ended_epoch": 1791881695.1586583,
+  "interrupted": false,
+  "receipts": {
+    "command.exit": "0",
+    "terminal-status.txt": "COMPLETE",
+    "wrapper.exit": "0"
+  },
+  "return_code": 0,
+  "started_epoch": 1791881695.0689461,
+  "status": "passed",
+  "suite": "world-diagnostic-timing",
+  "timed_out": false,
+  "timeout_provenance": {
+    "ctest_timeout_seconds": null,
+    "qualification_override_seconds": 60
+  },
+  "timeout_seconds": 60,
+  "unexpected_group_members": []
+}

@@ -1,4 +1,17 @@
-Current checkpoint, combined Debug qualification, 2026-10-13:
+Current checkpoint, combined geometry qualification, 2026-10-13:
+Candidate fc302de passed thirteen selected suites across both hosts and both Debug/ASan profiles.
+All fifty-two suite executions passed with no skips or sanitizer diagnostics.
+All terminal audits passed. No input changed. No attempt processes remained.
+Debug evidence is box-git verified as 3dc35625da0020c1869c274a8b2658e171675012.
+ASan evidence: spatial-os-luna-handoff/evidence/m06-combined-geometry-asan-2026-10-13/REVIEW.txt.
+Both geometry runtime lanes are idle. Do not restart their completed attempts.
+Luna medium prepares combined host-session qualification on middle-child, on a separate branch/worktree.
+Primary must review its launcher before deployment. Those production runtime checks remain unrun.
+Native presentation implementation follows qualification and integration of the combined source.
+M01-M05 qualified. M06 active. Native geometry presentation and the full gate remain pending.
+M07-M16 remain pending.
+
+Earlier combined Debug checkpoint, 2026-10-13:
 Candidate fc302de44670f87737dd7ab46ef83b24c60f1612 passed all thirteen selected Debug suites on both hosts.
 Evidence: spatial-os-luna-handoff/evidence/m06-combined-geometry-debug-2026-10-13/REVIEW.txt.
 Both terminal audits passed. No skips, diagnostics, changed inputs, or remaining attempt processes were found.

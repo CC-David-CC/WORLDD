@@ -1,0 +1,18 @@
+{
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-b7d2dfff5ff848c38439279acf3b4234.service/adapter-37420f633e4b4ba4a3e1dcf907e9b74b",
+  "device": 31,
+  "inode": 12248546,
+  "removed": [],
+  "unexpected_population": false,
+  "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-b7d2dfff5ff848c38439279acf3b4234.service/adapter-37420f633e4b4ba4a3e1dcf907e9b74b\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n",
+  "command": [
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/tests/core/test_actor_transition_integration.py",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on/identityd",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on/spatial-issuer-client",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on/worldd",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on/spatial-actor-transition-integration-driver"
+  ],
+  "exit_code": 0,
+  "scope_removed": true
+}
