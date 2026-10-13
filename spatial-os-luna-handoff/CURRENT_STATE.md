@@ -1,3 +1,20 @@
+## 2026-10-13: Cross-host runtime reaches behavioral checks; fixture corrections reviewed
+
+The real privileged process witness passed 72 checks across both hosts and both profiles.
+Witness correction 93da03e is box-git verified. It remains a test-only overlay.
+The third Debug cross-host run completed nine methods: one passed, five failed, and three errored.
+All nine observer cleanup receipts passed their unit and cgroup checks.
+Five failures exposed a discarded startup control counter and generation.
+Three errors exposed a fixture method collision with its inherited state-directory path.
+The primary reviewed both corrections on their separate worker branch.
+Correction 7dd9c9b2 is box-git verified and deployed to both hosts and profiles.
+Its first corrected Debug runtime is running. The result remains pending.
+The standalone regression launcher failed before test execution. Its entrypoint correction is reviewed.
+The nine behavioral assertions and production binaries remain unchanged.
+Raw evidence remains in local/m06-crosshost-debug-runtime03-failure and both hosts' qualification directories.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+The full M06 gate remains UNRUN.
+
 ## 2026-10-13: First native cross-host run exposes witness setup defect
 
 The first Debug direction completed with nine setup failures and nine secondary errors.

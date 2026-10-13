@@ -1,0 +1,25 @@
+M06 native geometry fixture control counter handoff
+Status: confirmed fixture defect; correction underway.
+Date: 2026-10-13
+Source overlay: 93da03e18fef673b586d2f668b90efa615d8f508; production binaries: 9f8405b57.
+
+Debug runtime03 completed five failures at transition acceptance.
+Recorded protobuf replies report: Invalid version, request ID, or operation.
+NativeHost.configure_remote consumes the first HostControl request during startup.
+The ready witness reply omits that control response.
+The controller starts its separate counter and generation at zero.
+Its first transition reuses request ID 1 on the same production connection.
+The production replay guard correctly rejects it.
+
+Return the actual successful startup control reply in the existing protobuf ready envelope.
+Validate its context and seed the controller counter and generation from that reply.
+Preserve production replay and generation checks. Do not choose a magic counter offset.
+Keep all nine behavioral assertions intact.
+
+Evidence: sb16 qualification root m06-geometry-denial-9f8405b-20261013/runs/crosshost-witness2-debug/runtime03/authority-sb16.
+Controller copy: local/m06-crosshost-debug-runtime03-failure.
+Correction branch: m06/geometry-witness-control-handoff-20261013 on middle-child.
+Primary source review passed. Correction 7dd9c9b2 is BOX-GIT VERIFIED and deployed as a test-only overlay.
+Debug runtime04 is running on sb16 with sb16-2 as observer. Its result remains pending.
+The standalone regression launcher failed before execution and needs an argument-parsing correction.
+Full M06 gate remains UNRUN.

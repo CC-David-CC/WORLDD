@@ -1,0 +1,21 @@
+M06 native geometry fixture state method collision
+Status: confirmed fixture defect; correction underway.
+Date: 2026-10-13
+
+Debug runtime03 produced three TypeError exceptions before their behavioral checks.
+The native cross-host fixture defines state() as an actor-state query.
+Its inherited fixture stores a filesystem PosixPath in self.state.
+That instance attribute shadows the method.
+
+Rename the query method and all its callers to actor_state.
+Preserve the inherited filesystem path and its base-class behavior.
+Add an executable regression with that path present.
+Keep all behavioral assertions unchanged.
+
+Affected cases: A-B-A context, private denial, and actor departure.
+Evidence: local/m06-crosshost-debug-runtime03-failure/stdout.log.
+Correction branch: m06/geometry-witness-control-handoff-20261013 on middle-child.
+Primary source review passed. Correction 7dd9c9b2 is BOX-GIT VERIFIED and deployed as a test-only overlay.
+Debug runtime04 is running on sb16 with sb16-2 as observer. Its result remains pending.
+The standalone regression launcher failed before execution and needs an argument-parsing correction.
+Full M06 gate remains UNRUN.
