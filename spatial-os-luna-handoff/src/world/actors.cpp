@@ -1,4 +1,5 @@
 #include "world/actors.hpp"
+#include "world/geometry_view_validation.hpp"
 #include "platform/broker.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
@@ -530,9 +531,9 @@ bool Actors::application_observation_valid(const std::string& token) {
     const auto applications = actor.observed_applications;
     return observable_applications(actor, applications).size() == applications.size();
 }
-wire::RenderScene Actors::scene(const std::string& token) {
+wire::RenderScene Actors::scene(const std::string& token, bool geometry_only) {
     auto& actor = authenticated(token);
-    actor.observed_applications.clear();
+    if (!geometry_only) actor.observed_applications.clear();
     require(config_.has_render(), "Render configuration is missing");
     refresh_objects();
     auto snapshot = store_.snapshot();
@@ -543,7 +544,7 @@ wire::RenderScene Actors::scene(const std::string& token) {
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }
     auto result = panel_scene(snapshot, actor.entity, config_.render());
-    if (surfaces_ && actor.local_application_output) {
+    if (!geometry_only && surfaces_ && actor.local_application_output) {
         surfaces_->append(result, actor.entity.room());
         std::vector<ObservedApplication> applications;
         std::set<std::string> diagnostic;
@@ -559,6 +560,33 @@ wire::RenderScene Actors::scene(const std::string& token) {
                 surfaces->DeleteSubrange(i, 1);
         for (const auto& app : applications) if (allowed.contains(app.handle.id())) actor.observed_applications.push_back(app);
     }
+    return result;
+}
+identity::v1::ActorGeometryView Actors::geometry_view(const std::string& token, const std::string& world_id,
+        const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
+        std::uint64_t sequence) {
+    auto scene_data = scene(token, true);
+    require(!world_id.empty() && !actor_id.empty() && view_id.size() == 32 && authority_generation > 0 && sequence > 0,
+            "Invalid geometry view context");
+    identity::v1::ActorGeometryView result;
+    result.set_world_id(world_id); result.set_actor_id(actor_id); result.set_view_id(view_id);
+    result.set_authority_generation(authority_generation); result.set_sequence(sequence);
+    result.set_world_revision(scene_data.world_revision());
+    const auto state = inspect(token);
+    result.set_room(state.room()); *result.mutable_camera() = state.pose(); *result.mutable_config() = scene_data.config();
+    const auto copy = [](const auto& input, auto* output) {
+        for (const auto& entity : input) {
+            auto* item = output->Add(); item->set_id(entity.id());
+            if (entity.has_kind()) item->set_kind(entity.kind());
+            if (entity.has_pose()) *item->mutable_pose() = entity.pose();
+            if (entity.has_size()) *item->mutable_size() = entity.size();
+            if (entity.has_color()) *item->mutable_color() = entity.color();
+            if (entity.has_bounds()) *item->mutable_bounds() = entity.bounds();
+        }
+    };
+    copy(scene_data.panels(), result.mutable_panels()); copy(scene_data.barriers(), result.mutable_barriers());
+    copy(scene_data.portals(), result.mutable_portals()); copy(scene_data.objects(), result.mutable_objects());
+    copy(scene_data.actors(), result.mutable_actors());
     return result;
 }
 wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {

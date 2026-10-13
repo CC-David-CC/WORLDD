@@ -5,6 +5,7 @@
 #include "x11/surfaces.hpp"
 #include "x11/input_router.hpp"
 #include "world/store.hpp"
+#include "world/geometry_view_validation.hpp"
 #include <GL/glew.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
@@ -286,6 +287,38 @@ wire::NativeSnapshot Renderer::synchronize(const render::v1::WorldPresentationBi
 }
 wire::FrameReply Renderer::draw(const wire::RenderCommand& command,int capture_fd) {
     return draw_scene(command, nullptr,capture_fd);
+}
+wire::FrameReply Renderer::draw_geometry(const identity::v1::ActorGeometryView& view) {
+    validate_geometry_view(view);
+    wire::RenderScene scene;
+    *scene.mutable_camera() = view.camera();
+    *scene.mutable_config() = view.config();
+    scene.set_world_revision(view.world_revision());
+    const auto copy = [](const auto& input, auto* output) {
+        for (const auto& source : input) {
+            auto* entity = output->Add();
+            entity->set_id(source.id()); entity->set_kind(source.kind());
+            *entity->mutable_pose() = source.pose();
+            if (source.has_size()) *entity->mutable_size() = source.size();
+            if (source.has_color()) *entity->mutable_color() = source.color();
+            if (source.has_bounds()) *entity->mutable_bounds() = source.bounds();
+        }
+    };
+    copy(view.panels(), scene.mutable_panels());
+    copy(view.barriers(), scene.mutable_barriers());
+    copy(view.portals(), scene.mutable_portals());
+    copy(view.objects(), scene.mutable_objects());
+    copy(view.actors(), scene.mutable_actors());
+    const auto& display = impl_->display;
+    const int screen = DefaultScreen(display);
+    const int width = DisplayWidth(display, screen), height = DisplayHeight(display, screen);
+    validate_render_extent(static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height));
+    wire::RenderCommand command;
+    command.set_protocol_version(1); command.set_request_id(1);
+    *command.mutable_scene() = std::move(scene);
+    command.set_width(static_cast<std::uint32_t>(width));
+    command.set_height(static_cast<std::uint32_t>(height));
+    return draw(command);
 }
 wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
     wire::RenderVisibility result;

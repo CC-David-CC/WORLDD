@@ -5,6 +5,7 @@
 #include "platform/process_handle.hpp"
 #include "presentation.pb.h"
 #include "world/store.hpp"
+#include "world/geometry_view_validation.hpp"
 #include "workspace/control_owner.hpp"
 #include <cerrno>
 #include <climits>
@@ -33,13 +34,19 @@ struct WorldChannel {
     protocol::PresentationStage stage=protocol::ATTACHED;
     std::uint64_t sequence=0;
 };
+struct GeometryTarget {
+    protocol::GeometryPresentationTarget target;
+    protocol::PresentationStage stage=protocol::ATTACHED;
+    std::uint64_t last_sequence=0;
+};
 struct Server {
     Renderer& renderer;
     PresentationStream control;
     pid_t owner;
     ProcessHandle owner_process;
     std::map<std::uint64_t,WorldChannel> worlds;
-    std::uint64_t sequence=0,selected=0;
+    std::map<std::uint64_t,GeometryTarget> geometry_targets;
+    std::uint64_t sequence=0,selected=0,selected_geometry=0;
     bool shutdown=false;
     Server(Renderer& renderer,int fd,pid_t owner):renderer(renderer),control(fd,owner,owner),owner(owner),owner_process(retain_owner(owner)){}
     WorldChannel& find(const Binding& binding){
@@ -53,6 +60,26 @@ struct Server {
         protocol::PresentationState result;*result.mutable_binding()=world.binding;result.set_stage(world.stage);
         result.set_selected(selected==world.binding.presentation_generation());return result;
     }
+    static void validate_geometry_target(const protocol::GeometryPresentationTarget& target) {
+        validate_message(target);
+        require(target.protocol_version()==1 && !target.world_id().empty() && target.world_id().size()<=256 &&
+            target.world_id().find('\0')==std::string::npos && !target.actor_id().empty() && target.actor_id().size()<=256 &&
+            target.actor_id().find('\0')==std::string::npos && target.geometry_view_id().size()==32 &&
+            target.authority_service_incarnation().size()==32 && target.authority_generation()>0 &&
+            target.presentation_generation()>0,"Invalid geometry presentation target");
+    }
+    GeometryTarget& find_geometry(const protocol::GeometryPresentationTarget& target) {
+        validate_geometry_target(target);
+        const auto found=geometry_targets.find(target.presentation_generation());
+        if(found==geometry_targets.end() || found->second.target.SerializeAsString()!=target.SerializeAsString())
+            throw WorldError(wire::STALE_TARGET,"Geometry presentation target is retired or mismatched");
+        return found->second;
+    }
+    protocol::GeometryPresentationState geometry_state(const GeometryTarget& target) const {
+        protocol::GeometryPresentationState result;*result.mutable_target()=target.target;result.set_stage(target.stage);
+        result.set_selected(selected_geometry==target.target.presentation_generation());
+        result.set_last_view_sequence(target.last_sequence);return result;
+    }
     void retire(WorldChannel& world){
         world.channel.reset();
         if(selected==world.binding.presentation_generation()){renderer.clear_presentation();selected=0;}
@@ -62,18 +89,20 @@ struct Server {
     }
     void administrative(PresentationStream::Frame frame){
         protocol::PresentationControlRequest request;
-        require(request.ParseFromString(frame.bytes),"Malformed presentation control frame");validate_message(request);
+        require(request.ParseFromString(frame.bytes),"Malformed presentation control frame");
         require(request.protocol_version()==1 && request.request_id()>sequence,"Invalid presentation control sequence or version");
-        sequence=request.request_id();
-        protocol::PresentationControlReply reply;reply.set_protocol_version(1);reply.set_request_id(sequence);
+        protocol::PresentationControlReply reply;reply.set_protocol_version(1);reply.set_request_id(request.request_id());
         try {
+            validate_message(request);
             require(frame.descriptors.size()==(request.has_attach()?2U:0U),"Incorrect presentation control descriptor count");
+            sequence=request.request_id();
             if(request.has_attach()){
                 const auto& attach=request.attach();const auto& binding=attach.binding();
                 PresentationInputs::validate_binding(binding);
                 require(attach.world_pid()>1 && attach.world_pid()<=INT_MAX,"Invalid presentation world process");
-                if(worlds.size()>=256)throw WorldError(wire::IN_USE,"Too many retained world channels");
-                if(worlds.contains(binding.presentation_generation()))throw WorldError(wire::IN_USE,"Duplicate presentation binding");
+                if(worlds.size()+geometry_targets.size()>=256)throw WorldError(wire::IN_USE,"Too many retained presentation targets");
+                if(worlds.contains(binding.presentation_generation()) || geometry_targets.contains(binding.presentation_generation()))
+                    throw WorldError(wire::IN_USE,"Duplicate presentation binding");
                 WorldChannel world;world.binding=binding;
                 require(attach.has_owner()==attach.has_process(),"Incomplete presentation supervisor scope");
                 if(attach.has_owner()){
@@ -91,12 +120,50 @@ struct Server {
                 try {renderer.reserve_input(binding,attach.has_owner()?&attach.owner().native():nullptr);}
                 catch (...){worlds.erase(position);throw;}
                 *reply.mutable_state()=state(position->second);
+            }else if(request.has_attach_geometry()){
+                const auto& target=request.attach_geometry().target();validate_geometry_target(target);
+                if(worlds.size()+geometry_targets.size()>=256)throw WorldError(wire::IN_USE,"Too many retained presentation targets");
+                if(worlds.contains(target.presentation_generation()) || geometry_targets.contains(target.presentation_generation()))
+                    throw WorldError(wire::IN_USE,"Duplicate geometry presentation target");
+                GeometryTarget entry;entry.target=target;
+                auto [position,inserted]=geometry_targets.emplace(target.presentation_generation(),std::move(entry));
+                if(!inserted)throw WorldError(wire::IN_USE,"Duplicate geometry presentation target");
+                *reply.mutable_geometry_state()=geometry_state(position->second);
+            }else if(request.has_select_geometry()){
+                auto& target=find_geometry(request.select_geometry());
+                if(target.stage!=protocol::ATTACHED && target.stage!=protocol::READY)
+                    throw WorldError(wire::UNAVAILABLE,"Geometry presentation target is not available");
+                if(selected_geometry!=target.target.presentation_generation() || selected!=0)renderer.clear_presentation();
+                selected=0;selected_geometry=target.target.presentation_generation();target.stage=protocol::READY;
+                *reply.mutable_geometry_state()=geometry_state(target);
+            }else if(request.has_publish_geometry()){
+                const auto& value=request.publish_geometry();auto& target=find_geometry(value.target());
+                if(target.stage!=protocol::READY || selected_geometry!=target.target.presentation_generation())
+                    throw WorldError(wire::FORBIDDEN,"Geometry target is not selected");
+                validate_geometry_view(value.view());
+                const auto& view=value.view();
+                require(view.world_id()==target.target.world_id() && view.actor_id()==target.target.actor_id() &&
+                    view.view_id()==target.target.geometry_view_id() &&
+                    view.authority_service_incarnation()==target.target.authority_service_incarnation() &&
+                    view.authority_generation()==target.target.authority_generation(),
+                    "Geometry view context does not match the registered target");
+                require(view.sequence()>target.last_sequence,"Stale geometry view sequence");
+                renderer.draw_geometry(view);target.last_sequence=view.sequence();
+                *reply.mutable_geometry_state()=geometry_state(target);
+            }else if(request.has_retire_geometry()){
+                auto& target=find_geometry(request.retire_geometry());
+                if(selected_geometry==target.target.presentation_generation()){
+                    renderer.clear_presentation();selected_geometry=0;
+                }
+                target.stage=protocol::RETIRED;
+                *reply.mutable_geometry_state()=geometry_state(target);
+                geometry_targets.erase(target.target.presentation_generation());
             }else if(request.has_select()){
                 auto& world=find(request.select());
                 if(world.stage!=protocol::READY || !world.channel || !world.process.live())
                     throw WorldError(wire::UNAVAILABLE,"World presentation is not ready");
-                if(selected!=world.binding.presentation_generation())renderer.clear_presentation();
-                selected=world.binding.presentation_generation();*reply.mutable_state()=state(world);
+                if(selected!=world.binding.presentation_generation() || selected_geometry!=0)renderer.clear_presentation();
+                selected_geometry=0;selected=world.binding.presentation_generation();*reply.mutable_state()=state(world);
             }else if(request.has_detach()){
                 auto& world=find(request.detach());retire(world);*reply.mutable_state()=state(world);
                 if(world.stage==protocol::RETIRED)worlds.erase(world.binding.presentation_generation());
@@ -114,8 +181,11 @@ struct Server {
                 retire(world);
                 if(world.stage!=protocol::RETIRED){renderer.confirm_input_retired(world.binding);world.stage=protocol::RETIRED;}
                 *reply.mutable_state()=state(world);
+            }else if(request.has_clear_selection()){
+                renderer.clear_presentation();selected=0;selected_geometry=0;
+                reply.set_selection_cleared(true);
             }else if(request.has_shutdown()){
-                if(!worlds.empty())throw WorldError(wire::IN_USE,"Detach world channels before compositor shutdown");
+                if(!worlds.empty() || !geometry_targets.empty())throw WorldError(wire::IN_USE,"Retire presentation targets before compositor shutdown");
                 shutdown=true;reply.set_shutting_down(true);
             }else throw std::invalid_argument("Missing presentation control operation");
         }catch(const WorldError& error){reply.mutable_error()->set_code(error.code);reply.mutable_error()->set_message(error.what());}

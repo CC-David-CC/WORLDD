@@ -36,6 +36,7 @@ public:
     identity::v1::WorldSessionReply depart(std::uint64_t sequence, std::string transition_id);
     identity::v1::WorldSessionReply inspect();
     identity::v1::WorldSessionReply action(const core::v1::ActorActionRequest& action);
+    identity::v1::ActorGeometryView geometry_view();
     bool failed() const noexcept;
     const std::string& expected_world() const noexcept;
     std::string expected_actor_id() const;

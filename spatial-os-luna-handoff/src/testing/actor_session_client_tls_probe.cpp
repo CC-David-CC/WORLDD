@@ -124,6 +124,9 @@ void opened(const Fixture& f, pb::WorldSessionOpened* result) {
     status->set_kind(pb::HUMAN);
     status->set_active(true);
     status->set_security_revision(1);
+    result->set_geometry_view_id(std::string(32, 'v'));
+    result->set_authority_service_incarnation(std::string(32, 's'));
+    result->set_authority_generation(7);
 }
 
 using Key = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;

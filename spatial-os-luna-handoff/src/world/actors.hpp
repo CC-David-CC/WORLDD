@@ -3,6 +3,7 @@
 #include "core/navigation.hpp"
 #include "grants.pb.h"
 #include "broker.pb.h"
+#include "geometry_view.pb.h"
 #include <array>
 #include <map>
 #include <set>
@@ -27,7 +28,10 @@ public:
     wire::ActorCloseReply close(const std::string& token);
     std::string depart(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
-    wire::RenderScene scene(const std::string& token);
+    wire::RenderScene scene(const std::string& token, bool geometry_only = false);
+    identity::v1::ActorGeometryView geometry_view(const std::string& token, const std::string& world_id,
+        const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
+        std::uint64_t sequence);
     bool application_observation_valid(const std::string& token);
     wire::WorldCheckpointReply checkpoint();
     wire::WorldCheckpointReply checkpoint_closed(const std::string& actor_id);

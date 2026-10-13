@@ -1,0 +1,90 @@
+# M06 geometry view increment 1, Run02
+
+Status: UNQUALIFIED. Runtime and CTest execution are UNRUN on the coding host.
+Run01 logs and its original failure evidence remain under `local/m06-geometry-view/run01`.
+
+## Contract
+
+The authenticated actor channel exports current-room geometry after WORLD_OBSERVE checks.
+An activated open reply binds a 32-byte view ID, authority service incarnation, and
+activated authority generation. Prepared replies do not bind an active view. The actor
+does not supply any of these values. The client checks them before releasing its first
+and every later view. A malformed view permanently fences the client.
+
+The view includes the camera, room, durable world revision, drawable panels, barriers,
+portals, objects, and other actor markers. It excludes labels, portal destinations,
+workspace metadata, application identities, native surfaces, pixels, XIDs, input,
+and descriptors. Live actor poses can change without a durable revision increment.
+
+The server tracks queued geometry observation separately from application observation.
+It cancels queued geometry when observation authority is revoked. It checks the entire
+reply envelope against the 1 MiB protocol frame limit before writing. The geometry
+validator checks required fields, kind/category, shapes, field combinations, stable
+unique IDs, aggregate entity count, render configuration, and encoded size. Generic
+`validate_message` already checks unknown fields, invalid enums, and nonfinite doubles.
+
+## Focused registered cases
+
+- `actor-geometry-client-hostile-peer`: a fixture protocol peer sends valid and hostile
+  replies to the production client. Cases cover first and later context, stale sequence,
+  malformed geometry, unknown fields, count boundary, oversized and truncated frames.
+- `actor-geometry-world-headless`: real issuer enrollment, participant registration,
+  authority grants, local and TLS actor channels, prepared activation, revocation,
+  departure, credential revocation, room privacy, second actor motion,
+  blocked output cancellation, count limits, oversized snapshot rejection, and an unrelated actor.
+- `world-authority`: its existing native application-boundary case now requests geometry
+  between two application observations. It verifies geometry has no application output.
+  Its native object-scope case also edits through authenticated owner grab, move, and
+  commit actions. Geometry reflects the resulting pose and durable world revision.
+
+The queued-output case uses a small receive buffer and a valid response larger than
+the socket buffer. It checks that revocation leaves no completed view frame.
+The high-count cases create thousands of real objects. Their timeout is 600 seconds.
+
+## Qualification commands after deployment
+
+Extract a profile archive under a unique path on each of sb16 and sb16-2. Run from
+its extracted root. Keep the bundle hash and host logs with the qualification record.
+
+```sh
+export LD_LIBRARY_PATH="$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export PYTHONPATH="$PWD/python:$PWD/tests/core:$PWD"
+./bin/spatial-actor-session-client-probe --geometry-only
+python3 tests/core/test_geometry_view.py ./bin/identityd ./bin/spatial-issuer-client ./bin/worldd
+./bin/spatial-actor-session-client-probe
+```
+
+Existing `world-identity`, `world-authority`, `actor-transition-integration`, and
+`session-application` CTest entries remain required on complete host build trees.
+Use each entry's CMake-defined launch environment. The native world-authority case
+requires a test X server. Headless geometry does not invoke a compositor or X server.
+Run the focused Debug and ASan/UBSan profiles on both qualification hosts.
+Inspect assertions and sanitizer output. Do not count an unrun suite as passed.
+
+## Integration note
+
+This branch predates combined23a and its standalone actor-session-client Python
+protobuf target. Review the shared CMake dependency graph during integration.
+Keep exactly one generator per output. Do not import another branch into this checkout.
+
+## Reviewed fixture correction after the first runtime attempt
+
+The first nine-case run exposed three fixture contract mismatches. Preserve its logs.
+The corrected fixture overlay remains UNQUALIFIED until rerun on both hosts and profiles.
+No production code, authority rule, frame limit, or binary changes in this correction.
+
+A registered actor remains authenticated after its observation grant is revoked.
+A later geometry request must return FORBIDDEN without a geometry payload.
+Inspection remains usable. A prepared but inactive channel still returns UNAUTHORIZED.
+
+The headless case tests live second-actor motion without a durable revision change.
+Real grab, move, and commit checks now run in the existing native object-scope case.
+That case retains its foreign-object denial and canceled-lease checks.
+The owner uses compositor visibility and the normal actor authority path.
+The resulting geometry matches the committed object pose and durable revision.
+The suite counts remain nine geometry cases and 27 world-authority cases.
+
+The oversized-world case reaches the WorldStore snapshot guard before serialization.
+It expects RESOURCE_EXHAUSTED, no partial geometry, and a usable actor channel.
+It does not directly exercise the geometry serializer's own size guard.
+Hostile-peer cases separately check client oversized-frame and near-boundary handling.

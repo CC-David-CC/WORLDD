@@ -5,6 +5,7 @@
 #include "world/store.hpp"
 #include <chrono>
 #include <fcntl.h>
+#include <map>
 #include <poll.h>
 #include <unistd.h>
 namespace spatial {
@@ -17,6 +18,7 @@ struct PresentationOwner::Impl {
     std::unique_ptr<RenderProcess> process;
     ProcessHandle pin;
     std::unique_ptr<PresentationStream> control;
+    std::map<std::uint64_t,std::uint64_t> geometry_sequences;
     std::uint64_t sequence=0;
     bool stopped=false;
     Impl(const std::filesystem::path& executable,const std::filesystem::path& state,int native){
@@ -68,6 +70,20 @@ struct PresentationOwner::Impl {
         if(!valid){control.reset();throw std::runtime_error("Host presentation state mismatch");}
         return result;
     }
+    protocol::GeometryPresentationState geometry_state(protocol::PresentationControlRequest request,
+        const protocol::GeometryPresentationTarget& target, protocol::PresentationStage stage,
+        bool selected, std::uint64_t sequence) {
+        auto reply=call(std::move(request));
+        if(!reply.has_geometry_state()) {
+            control.reset();throw std::runtime_error("Missing geometry presentation state");
+        }
+        const auto& result=reply.geometry_state();
+        if(result.target().SerializeAsString()!=target.SerializeAsString() || result.stage()!=stage ||
+            result.selected()!=selected || result.last_view_sequence()!=sequence) {
+            control.reset();throw std::runtime_error("Geometry presentation state mismatch");
+        }
+        return result;
+    }
 };
 PresentationOwner::PresentationOwner(const std::filesystem::path& executable,const std::filesystem::path& state,int native)
     :impl_(std::make_unique<Impl>(executable,state,native)){}
@@ -94,6 +110,40 @@ protocol::PresentationState PresentationOwner::recover(const protocol::WorldPres
     protocol::PresentationControlRequest request;auto* value=request.mutable_recover();
     *value->mutable_binding()=binding;*value->mutable_process_stopped()=process;*value->mutable_native_stopped()=native;
     return impl_->state(std::move(request),binding);
+}
+protocol::GeometryPresentationState PresentationOwner::attach_geometry(const protocol::GeometryPresentationTarget& target){
+    protocol::PresentationControlRequest request;*request.mutable_attach_geometry()->mutable_target()=target;
+    require(!impl_->geometry_sequences.contains(target.presentation_generation()),"Duplicate geometry presentation target");
+    impl_->geometry_sequences.emplace(target.presentation_generation(),0);
+    try { return impl_->geometry_state(std::move(request),target,protocol::ATTACHED,false,0); }
+    catch (const WorldError&) { impl_->geometry_sequences.erase(target.presentation_generation());throw; }
+}
+protocol::GeometryPresentationState PresentationOwner::select_geometry(const protocol::GeometryPresentationTarget& target){
+    protocol::PresentationControlRequest request;*request.mutable_select_geometry()=target;
+    const auto found=impl_->geometry_sequences.find(target.presentation_generation());
+    if(found==impl_->geometry_sequences.end())throw std::runtime_error("Unknown geometry presentation target");
+    return impl_->geometry_state(std::move(request),target,protocol::READY,true,found->second);
+}
+protocol::GeometryPresentationState PresentationOwner::publish_geometry(const protocol::GeometryPresentationTarget& target,
+    const identity::v1::ActorGeometryView& view){
+    protocol::PresentationControlRequest request;auto* value=request.mutable_publish_geometry();
+    *value->mutable_target()=target;*value->mutable_view()=view;
+    const auto result=impl_->geometry_state(std::move(request),target,protocol::READY,true,view.sequence());
+    impl_->geometry_sequences[target.presentation_generation()]=view.sequence();return result;
+}
+protocol::GeometryPresentationState PresentationOwner::retire_geometry(const protocol::GeometryPresentationTarget& target){
+    protocol::PresentationControlRequest request;*request.mutable_retire_geometry()=target;
+    const auto found=impl_->geometry_sequences.find(target.presentation_generation());
+    if(found==impl_->geometry_sequences.end())throw std::runtime_error("Unknown geometry presentation target");
+    auto result=impl_->geometry_state(std::move(request),target,protocol::RETIRED,false,found->second);
+    impl_->geometry_sequences.erase(found);return result;
+}
+void PresentationOwner::clear_selection(){
+    protocol::PresentationControlRequest request;request.mutable_clear_selection();
+    const auto reply=impl_->call(std::move(request));
+    if(!reply.has_selection_cleared() || !reply.selection_cleared()) {
+        impl_->control.reset();throw std::runtime_error("Foreground clearing unconfirmed");
+    }
 }
 void PresentationOwner::shutdown(){
     protocol::PresentationControlRequest request;request.mutable_shutdown();auto reply=impl_->call(std::move(request));

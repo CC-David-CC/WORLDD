@@ -3,6 +3,7 @@ package spatial.identity.v1;
 import "core.proto";
 import "issuer.proto";
 import "grants.proto";
+import "geometry_view.proto";
 
 // Trusted world configuration. Admission and action grants are independent.
 enum WorldAdmissionMode { WORLD_ADMISSION_UNSPECIFIED = 0; REGISTERED_ACTORS = 1; EXPLICIT_ACTORS = 2; }
@@ -70,6 +71,7 @@ message WorldAuthenticationBegin {
 }
 message WorldSessionPrepared { bytes transition_id = 1; WorldSessionOpened actor = 2; }
 message WorldSessionActivate { bytes transition_id = 1; }
+message WorldGeometryViewRequest {}
 message WorldSessionInspect {}
 message WorldSessionClose {}
 // Departure invalidates the session. Reply follows checked input cleanup and durable context save.
@@ -80,7 +82,14 @@ message WorldSessionDeparted {
   string actor_id = 3;
   uint64 world_revision = 4;
 }
-message WorldSessionOpened { string actor_id = 1; string world_id = 2; IdentityStatus identity = 3; }
+message WorldSessionOpened {
+  string actor_id = 1;
+  string world_id = 2;
+  IdentityStatus identity = 3;
+  bytes geometry_view_id = 4;
+  bytes authority_service_incarnation = 5;
+  uint64 authority_generation = 6;
+}
 // One inherited private channel has at most one authenticated actor session.
 // Caller-selected actor IDs, session tokens, and grants are not accepted.
 message WorldSessionRequest {
@@ -100,6 +109,7 @@ message WorldSessionRequest {
     WorldBootstrapApply bootstrap_apply = 20;
     WorldSessionDepart depart = 21;
     WorldSessionActivate activate = 22;
+    WorldGeometryViewRequest geometry_view = 23;
   }
 }
 message WorldSessionReply {
@@ -120,5 +130,6 @@ message WorldSessionReply {
     spatial.authority.v1.BootstrapReport bootstrap = 19;
     WorldSessionDeparted departed = 20;
     WorldSessionPrepared prepared = 21;
+    ActorGeometryView geometry_view = 22;
   }
 }

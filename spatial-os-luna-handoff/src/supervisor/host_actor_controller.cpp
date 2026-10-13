@@ -17,7 +17,7 @@ HostActorController::HostActorController(SessionCoordinator& session, std::strin
     : HostActorController(
         [&session](const auto& owner) { return session.inspect_presentation(owner); },
         [&session](const auto& owner) { return session.select_world(owner); },
-        std::move(world), std::move(client)) {}
+        std::move(world), std::move(client)) { session_ = &session; }
 
 HostActorController::HostActorController(PresentationInspect inspect, PresentationSelect select,
     std::string world, std::unique_ptr<ActorSessionClient> client)
@@ -27,7 +27,9 @@ HostActorController::HostActorController(PresentationInspect inspect, Presentati
             current_client_->expected_world() == current_world_,
             "Initial actor client does not match current world");
 }
-HostActorController::~HostActorController() = default;
+HostActorController::~HostActorController() {
+    if(session_ && geometry_target_) { try { session_->retire_geometry(*geometry_target_);geometry_target_.reset(); } catch (...) { control_fenced_=true; } }
+}
 
 void HostActorController::register_world(std::string world, workspace::v1::ControlOwner owner,
                                          ChannelFactory channel) {
@@ -41,6 +43,12 @@ void HostActorController::register_world(std::string world, workspace::v1::Contr
             "Retained presentation owner does not map to the registered world");
     require(destinations_.emplace(std::move(world), Destination{std::move(owner), std::move(channel)}).second,
             "Destination world already registered");
+}
+
+void HostActorController::register_remote_world(std::string world, ChannelFactory channel) {
+    std::lock_guard lock(mutex_);require(!transitioning_ && !control_fenced_,"Cannot change host world registrations now");
+    require(!world.empty() && bool(channel),"Invalid remote actor destination registration");
+    require(destinations_.emplace(std::move(world),Destination{std::nullopt,std::move(channel)}).second,"Destination world already registered");
 }
 
 identity::v1::HostActorTransitionResult HostActorController::transition(
@@ -135,25 +143,48 @@ identity::v1::HostActorTransitionResult HostActorController::transition(
         return result;
     }
 
+    if(geometry_target_) {
+        try { session_->retire_geometry(*geometry_target_); geometry_target_.reset(); }
+        catch (...) { current_client_.reset(); control_fenced_=true; result.set_actor_control_available(false); result.set_host_selection(HOST_SELECTION_UNCERTAIN); result.set_detail(exception_detail()); return result; }
+    }
     quarantined_client_ = std::move(outcome.destination);
     try {
-        const auto selected = select_(destination.owner);
-        if (!selected.selected() || selected.stage() != render::v1::READY ||
-            selected.binding().world_id() != request.destination_world_id())
-            throw std::runtime_error("Foreground selection returned a mismatched world state");
+        if(destination.owner) {
+            // Production retains local input ownership but selects only the
+            // authenticated geometry target after its observation check.
+            const auto selected = session_ ? inspect_(*destination.owner) : select_(*destination.owner);
+            if ((!session_ && !selected.selected()) || selected.stage() != render::v1::READY ||
+                selected.binding().world_id() != request.destination_world_id())
+                throw std::runtime_error("Foreground selection returned a mismatched world state");
+        }
         current_world_ = request.destination_world_id();
         current_client_ = std::move(quarantined_client_);
+        if (session_) {
+            try { refresh_geometry_locked(); }
+            catch (const ActorSessionRejected&) {
+                // Observation is separate from navigation and other actor authority.
+                clear_foreground_locked();
+                if (current_client_->failed()) throw;
+                result.mutable_actor_transition()->set_host_presentation_selection_pending(true);
+                result.set_host_selection(HOST_SELECTION_NOT_ATTEMPTED);
+                result.set_actor_control_available(true);
+                control_fenced_ = false;
+                return result;
+            }
+        }
         result.mutable_actor_transition()->set_host_presentation_selection_pending(false);
         result.set_host_selection(HOST_SELECTION_CONFIRMED);
         result.set_actor_control_available(true);
         control_fenced_ = false;
         return result;
     } catch (...) {
+        const auto detail = exception_detail();
+        retire_geometry_locked();
         current_client_.reset(); // Source departure is confirmed; its channel cannot control this actor.
         control_fenced_ = true;
         result.set_host_selection(HOST_SELECTION_UNCERTAIN);
         result.set_actor_control_available(false);
-        result.set_detail(exception_detail());
+        result.set_detail(detail);
         return result;
     }
 }
@@ -181,6 +212,79 @@ std::uint64_t HostActorController::generation() const {
 bool HostActorController::control_available() const {
     std::lock_guard lock(mutex_);
     return !control_fenced_ && !transitioning_ && current_client_ && !current_client_->failed();
+}
+bool HostActorController::retire_geometry_locked() noexcept {
+    geometry_status_.Clear();
+    if (!geometry_target_) return true;
+    try {
+        session_->retire_geometry(*geometry_target_);
+        geometry_target_.reset();
+        return true;
+    } catch (...) {
+        // Retain ownership until the coordinator obtains a checked retirement.
+        control_fenced_ = true;
+        return false;
+    }
+}
+void HostActorController::clear_foreground_locked() {
+    if(!retire_geometry_locked())throw std::runtime_error("Foreground geometry retirement unconfirmed");
+    try { session_->clear_presentation(); }
+    catch (...) { control_fenced_=true;throw; }
+}
+void HostActorController::refresh_geometry_locked() {
+    const auto view = current_client_->geometry_view();
+    if (!geometry_target_) {
+        // Record ownership before any selection or publication can fail.
+        geometry_target_ = session_->attach_geometry(view);
+        session_->select_geometry(*geometry_target_);
+    }
+    session_->publish_geometry(*geometry_target_, view);
+    // Store only a checked drawing receipt after the compositor acknowledges it.
+    geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
+    geometry_status_.set_world_id(view.world_id());geometry_status_.set_actor_id(view.actor_id());
+    geometry_status_.set_room(view.room());*geometry_status_.mutable_camera()=view.camera();
+    geometry_status_.set_view_sequence(view.sequence());geometry_status_.set_world_revision(view.world_revision());
+    geometry_status_.set_presentation_generation(geometry_target_->presentation_generation());
+    geometry_status_.set_authority_generation(view.authority_generation());
+    geometry_status_.set_authority_service_incarnation(view.authority_service_incarnation());
+}
+identity::v1::ActorGeometryView HostActorController::geometry_view(std::uint64_t generation) {
+    std::unique_lock lock(mutex_, std::try_to_lock);
+    require(lock.owns_lock(), "Host actor operation already in progress");
+    require(!control_fenced_ && !transitioning_ && current_client_ && generation == generation_,
+            "Unavailable or stale host actor context");
+    return current_client_->geometry_view();
+}
+identity::v1::HostGeometryStatus HostActorController::geometry_status(std::uint64_t generation) const {
+    std::unique_lock lock(mutex_,std::try_to_lock);
+    require(lock.owns_lock(),"Host actor operation already in progress");
+    require(!transitioning_ && generation==generation_,"Unavailable or stale host actor context");
+    identity::v1::HostGeometryStatus unavailable;unavailable.set_protocol_version(1);
+    if(control_fenced_ || !current_client_ || current_client_->failed() || !geometry_target_)
+        return unavailable;
+    return geometry_status_;
+}
+void HostActorController::start_geometry_presentation() {
+    std::lock_guard lock(mutex_);
+    require(session_ && current_client_ && !control_fenced_ && !geometry_target_,
+            "Geometry presentation requires an unpresented live production actor client");
+    try { refresh_geometry_locked(); }
+    catch (const ActorSessionRejected&) {
+        clear_foreground_locked();
+        if (current_client_->failed()) throw;
+    } catch (...) {
+        retire_geometry_locked();
+        throw;
+    }
+}
+void HostActorController::pump_geometry_presentation() {
+    std::unique_lock lock(mutex_, std::try_to_lock);
+    if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return;
+    try { refresh_geometry_locked(); }
+    catch (...) {
+        try { clear_foreground_locked(); } catch (...) { control_fenced_=true; }
+        if (current_client_->failed()) control_fenced_ = true;
+    }
 }
 std::string HostActorController::current_world() const {
     std::lock_guard lock(mutex_);

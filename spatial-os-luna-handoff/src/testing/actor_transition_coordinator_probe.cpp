@@ -159,7 +159,7 @@ pb::ChallengeReply challenge_for(const Fixture& f) {
     return challenge;
 }
 
-void opened(const Fixture& f, pb::WorldSessionOpened* result) {
+void opened(const Fixture& f, pb::WorldSessionOpened* result, bool active = true) {
     result->set_world_id(f.world);
     result->set_actor_id(f.actor_id);
     auto* status = result->mutable_identity();
@@ -169,6 +169,11 @@ void opened(const Fixture& f, pb::WorldSessionOpened* result) {
     status->set_kind(pb::HUMAN);
     status->set_active(true);
     status->set_security_revision(1);
+    if (active) {
+        result->set_geometry_view_id(std::string(32, 'v'));
+        result->set_authority_service_incarnation(std::string(32, 's'));
+        result->set_authority_generation(7);
+    }
 }
 
 void handshake(int fd, const Fixture& f, bool prepared = false, bool fragmented = false,
@@ -193,7 +198,7 @@ void handshake(int fd, const Fixture& f, bool prepared = false, bool fragmented 
     response = reply_for(2);
     if (prepared) {
         response.mutable_prepared()->set_transition_id(f.transition);
-        opened(f, response.mutable_prepared()->mutable_actor());
+        opened(f, response.mutable_prepared()->mutable_actor(), false);
     } else opened(f, response.mutable_opened());
     if (mutate) mutate(response);
     send_reply(fd, response, fragmented);

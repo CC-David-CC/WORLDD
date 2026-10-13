@@ -12,6 +12,7 @@ import time
 import unittest
 import security_pb2 as pb
 from display_ready import read_display_notice
+from native_display_geometry import screen_argument
 
 PROBE = Path(sys.argv.pop(1)).resolve()
 AUTH = b'MIT-MAGIC-COOKIE-1'
@@ -100,6 +101,7 @@ class SecurityIdentityTests(unittest.TestCase):
         self.addCleanup(lambda:[client.close() for client in reversed(self.clients)])
 
     def start(self, bootstrap=None, sealed=True, expect_ready=True):
+        geometry = screen_argument(self)
         binary = Path(os.environ['SPATIAL_TEST_XSERVER'])
         self.assertTrue(binary.is_absolute() and binary.name=='Xvfb' and os.access(binary,os.X_OK))
         bootstrap = bootstrap if bootstrap is not None else pb.Bootstrap(protocol_version=1,supervisor_cookie=self.cookie).SerializeToString()
@@ -110,7 +112,7 @@ class SecurityIdentityTests(unittest.TestCase):
         self.log_path = self.root/f'server-{len(list(self.root.glob("server-*")))}.log'
         log_path = self.log_path
         log = log_path.open('wb')
-        argv = [str(binary),'-displayfd',str(outgoing),'-screen','0','128x128x24','-nolisten','tcp','-noreset',
+        argv = [str(binary),'-displayfd',str(outgoing),'-screen','0',geometry,'-nolisten','tcp','-noreset',
                 '-ac','+byteswappedclients','-spatial-security-fd',str(config)]
         # Authentication uses core X11. Keep graphics-driver qualification separate.
         # Default and cumulative runs retain GLX. The focused sanitizer profile

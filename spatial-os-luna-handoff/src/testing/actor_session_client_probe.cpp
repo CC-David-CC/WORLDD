@@ -197,7 +197,7 @@ pb::ChallengeReply challenge_for(const Fixture& f) {
     return challenge;
 }
 
-void opened(const Fixture& f, pb::WorldSessionOpened* result) {
+void opened(const Fixture& f, pb::WorldSessionOpened* result, bool active = true) {
     result->set_world_id(f.world);
     result->set_actor_id(f.actor_id);
     auto* status = result->mutable_identity();
@@ -207,6 +207,11 @@ void opened(const Fixture& f, pb::WorldSessionOpened* result) {
     status->set_kind(pb::HUMAN);
     status->set_active(true);
     status->set_security_revision(1);
+    if (active) {
+        result->set_geometry_view_id(std::string(32, 'v'));
+        result->set_authority_service_incarnation(std::string(32, 's'));
+        result->set_authority_generation(7);
+    }
 }
 
 void handshake(int fd, const Fixture& f, bool prepared = false, bool fragmented = false,
@@ -229,7 +234,7 @@ void handshake(int fd, const Fixture& f, bool prepared = false, bool fragmented 
     response = reply_for(2);
     if (prepared) {
         response.mutable_prepared()->set_transition_id(f.transition);
-        opened(f, response.mutable_prepared()->mutable_actor());
+        opened(f, response.mutable_prepared()->mutable_actor(), false);
     } else opened(f, response.mutable_opened());
     if (mutate) mutate(response);
     send_reply(fd, response, fragmented);
@@ -250,6 +255,7 @@ void peer_closed(int fd) {
 }
 
 void inactive(ActorSessionClient& client, int peer, const Fixture& f) {
+    rejects([&] { client.geometry_view(); });
     rejects([&] { client.inspect(); });
     rejects([&] { client.action({}); });
     rejects([&] { client.depart(1, f.transition); });
@@ -264,6 +270,7 @@ void failed_no_replay(ActorSessionClient& client, int peer, const Fixture& f) {
     rejects([&] { client.depart(1, f.transition); });
     rejects([&] { client.inspect(); });
     rejects([&] { client.action({}); });
+    rejects([&] { client.geometry_view(); });
     peer_closed(peer);
 }
 
@@ -563,9 +570,136 @@ void buffered_final_reply(Fixture& f) {
     }, 500ms, true);
 }
 
+pb::ActorGeometryView valid_geometry(const Fixture& f, std::uint64_t sequence) {
+    pb::ActorGeometryView view;
+    view.set_world_id(f.world); view.set_actor_id(f.actor_id);
+    view.set_view_id(std::string(32, 'v'));
+    view.set_authority_service_incarnation(std::string(32, 's'));
+    view.set_authority_generation(7); view.set_sequence(sequence); view.set_room("entry");
+    view.mutable_camera()->mutable_position();
+    view.mutable_camera()->mutable_orientation()->set_w(1);
+    auto* config = view.mutable_config();
+    config->set_vertical_fov(1); config->set_near_clip(.1); config->set_far_clip(100);
+    config->mutable_background();
+    return view;
 }
 
-int main() {
+void geometry_reply_case(Fixture& f, const std::string& fault) {
+    const bool later = fault == "later-epoch" || fault == "duplicate" || fault == "decreasing";
+    session(f, [&](auto& client, int peer) {
+        client.authenticate();
+        if (later) check(client.geometry_view().sequence() == 2, "valid first view rejected");
+        if (fault == "valid" || fault == "near-boundary") {
+            const auto view = client.geometry_view();
+            check(view.sequence() == 1 && view.room() == "entry", "valid geometry rejected");
+            if (fault == "near-boundary") check(view.objects_size() == 4096, "near-boundary view truncated");
+            check(!client.failed(), "valid view fenced client");
+            return;
+        }
+        rejects([&] { client.geometry_view(); });
+        failed_no_replay(client, peer, f);
+    }, [&](int fd) {
+        handshake(fd, f);
+        if (later) {
+            receive(fd, pb::WorldSessionRequest::kGeometryView, 3);
+            auto first = reply_for(3); *first.mutable_geometry_view() = valid_geometry(f, 2); send_reply(fd, first);
+        }
+        receive(fd, pb::WorldSessionRequest::kGeometryView, later ? 4 : 3);
+        if (fault == "oversize-frame") {
+            send_bytes(fd, std::string("\x00\x10\x00\x01", 4)); return;
+        }
+        if (fault == "truncated-frame") {
+            send_bytes(fd, std::string("\x00\x00\x00\x20\xff", 5)); shutdown(fd, SHUT_WR); return;
+        }
+        auto reply = reply_for(later ? 4 : 3);
+        auto* view = reply.mutable_geometry_view(); *view = valid_geometry(f, later ? 3 : 1);
+        if (fault == "actor") view->set_actor_id("wrong");
+        if (fault == "world") view->set_world_id("wrong");
+        if (fault == "view") view->set_view_id(std::string(32, 'x'));
+        if (fault == "epoch" || fault == "later-epoch") view->set_authority_generation(8);
+        if (fault == "service") view->set_authority_service_incarnation(std::string(32, 'x'));
+        if (fault == "duplicate") view->set_sequence(2);
+        if (fault == "decreasing") view->set_sequence(1);
+        if (fault == "room") view->clear_room();
+        if (fault == "camera") view->mutable_camera()->clear_orientation();
+        if (fault == "config") view->mutable_config()->set_far_clip(.01);
+        if (fault == "kind" || fault == "duplicate-id") {
+            auto* panel = view->add_panels(); panel->set_id("panel"); panel->set_kind(core::v1::PANEL);
+            *panel->mutable_pose() = view->camera(); panel->mutable_size()->set_x(1); panel->mutable_size()->set_y(1);
+            panel->mutable_color();
+            if (fault == "kind") panel->set_kind(core::v1::OBJECT);
+            else *view->add_panels() = *panel;
+        }
+        if (fault == "unknown") view->GetReflection()->MutableUnknownFields(view)->AddVarint(999, 1);
+        if (fault == "count") for (int i = 0; i < 4097; ++i) {
+            auto* item = view->add_objects(); item->set_id(std::to_string(i)); item->set_kind(core::v1::OBJECT);
+            *item->mutable_pose() = view->camera();
+        }
+        if (fault == "near-boundary") for (int i = 0; i < 4096; ++i) {
+            auto* item = view->add_objects(); item->set_id(std::to_string(i) + std::string(220, 'x'));
+            item->set_kind(core::v1::OBJECT); *item->mutable_pose() = view->camera();
+        }
+        send_reply(fd, reply);
+    });
+}
+
+
+void geometry_denial_keeps_client_usable(Fixture& f) {
+    session(f, [&](auto& client, int) {
+        client.authenticate();
+        bool typed = false;
+        try { (void)client.geometry_view(); }
+        catch (const ActorSessionRejected& error) {
+            typed = error.error().code() == core::v1::FORBIDDEN &&
+                    error.error().message() == "observation denied";
+        }
+        check(typed, "geometry denial lost its typed error");
+        check(!client.failed(), "matching geometry denial fenced the client");
+        core::v1::ActorActionRequest action;
+        action.set_seq(1);
+        action.mutable_key()->set_keysym("x");
+        action.mutable_key()->set_pressed(true);
+        const auto result = client.action(action);
+        check(result.has_action() && result.action().accepted() && !client.failed(),
+              "authorized action did not follow geometry denial");
+    }, [&](int fd) {
+        handshake(fd, f);
+        receive(fd, pb::WorldSessionRequest::kGeometryView, 3);
+        auto denied = reply_for(3);
+        denied.mutable_error()->set_code(core::v1::FORBIDDEN);
+        denied.mutable_error()->set_message("observation denied");
+        send_reply(fd, denied);
+        const auto action = receive(fd, pb::WorldSessionRequest::kAction, 4);
+        check(action.action().seq() == 1 && action.action().has_key() &&
+              action.action().key().keysym() == "x" && action.action().key().pressed(),
+              "authorized input changed after geometry denial");
+        auto accepted = reply_for(4);
+        accepted.mutable_action()->set_accepted(true);
+        send_reply(fd, accepted);
+    });
+}
+
+void malformed_geometry_error_fences(Fixture& f, const std::string& fault) {
+    session(f, [&](auto& client, int peer) {
+        client.authenticate();
+        rejects([&] { (void)client.geometry_view(); });
+        failed_no_replay(client, peer, f);
+    }, [&](int fd) {
+        handshake(fd, f);
+        receive(fd, pb::WorldSessionRequest::kGeometryView, 3);
+        auto reply = reply_for(3);
+        reply.mutable_error()->set_code(core::v1::FORBIDDEN);
+        reply.mutable_error()->set_message("observation denied");
+        if (fault == "request-id") reply.set_request_id(99);
+        if (fault == "unknown-field")
+            reply.GetReflection()->MutableUnknownFields(&reply)->AddVarint(999, 1);
+        send_reply(fd, reply);
+    });
+}
+
+}
+
+int main(int argc, char** argv) {
     try {
         expect_closed_after_failed_key_load();
         expect_invalid_descriptor_rejected();
@@ -578,6 +712,14 @@ int main() {
             ++count;
             std::cout << "PASS " << name << '\n';
         };
+        if (argc == 2 && std::string(argv[1]) == "--geometry-only") {
+            for (const std::string fault : {"valid", "near-boundary", "oversize-frame", "truncated-frame",
+                    "actor", "world", "view", "epoch", "service",
+                    "later-epoch", "duplicate", "decreasing", "room", "camera", "config", "kind",
+                    "duplicate-id", "unknown", "count"})
+                run("geometry-peer-" + fault, [&] { geometry_reply_case(fixture, fault); });
+            return 0;
+        }
         run("authentication-fragments-lifecycle-departure", [&] { success(fixture); });
         run("prepared-inactivity-activation", [&] { prepared_success(fixture); });
         for (const std::string fault : {"purpose", "issuer", "credential", "audience", "nonce",
@@ -600,6 +742,10 @@ int main() {
                 run("mutating-error-no-replay-" + stage + "-" + std::to_string(code),
                     [&] { mutating_error(fixture, stage, code); });
         run("write-backpressure", [&] { backpressure(fixture); });
+        run("geometry-denial-keeps-client-usable", [&] { geometry_denial_keeps_client_usable(fixture); });
+        for (const std::string fault : {"request-id", "unknown-field"})
+            run("malformed-geometry-error-" + fault,
+                [&] { malformed_geometry_error_fences(fixture, fault); });
         run("buffered-final-reply", [&] { buffered_final_reply(fixture); });
         std::cout << count << " actor-session-client probe cases passed\n";
         return 0;

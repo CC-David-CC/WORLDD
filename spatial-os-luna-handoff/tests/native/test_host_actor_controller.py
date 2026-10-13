@@ -69,9 +69,16 @@ class HostActorControllerNativeTests(application.SessionApplicationTests):
         seed.roots.add().CopyFrom(grants.GrantTerms(subject=self.principal,
                 scope=grants.Scope(domain=grants.Domain(kind=grants.WORLD, id=self.world_domain)),
                 rights=rights))
+        seed_path = self.config_file('host-world-seed' + suffix, seed)
+        serialized_seed = text_format.Parse(Path(seed_path).read_text(),
+                                            session.WorldAuthoritySeed())
+        self.assertEqual(len(serialized_seed.roots), 1)
+        seeded_rights = set(serialized_seed.roots[0].rights)
+        self.assertEqual(grants.WORLD_ENTER in seeded_rights, admitted)
+        if not admitted:
+            self.assertEqual(seeded_rights, {grants.WORLD_OBSERVE})
         result = subprocess.run([config.launch.executable, '--state-dir',
-            str(self.root / ('world' + suffix)), '--init-authority',
-            str(self.config_file('host-world-seed' + suffix, seed))],
+            str(self.root / ('world' + suffix)), '--init-authority', str(seed_path)],
             capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
         value = session.WorldIdentityConfig(protocol_version=1,
@@ -119,7 +126,8 @@ class HostActorControllerNativeTests(application.SessionApplicationTests):
     def world_config(self):
         suffix = getattr(self, 'world_instance_suffix', '')
         config = self.seeded_world_config()
-        self.identity_config(config, suffix, True)
+        admitted = getattr(self, 'world_admitted', True)
+        self.identity_config(config, suffix, admitted)
         if suffix == '-two':
             saved_journal = self.world_journal
             previous_identity = getattr(self, 'world_participant_identity', None)

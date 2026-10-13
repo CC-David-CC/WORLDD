@@ -19,6 +19,11 @@ message HostSessionConfig {
   string initial_world_id = 9;
   string initial_actor_tls_config = 10;
   repeated HostWorld worlds = 11;
+  repeated HostRemoteWorld remote_worlds = 12;
+}
+message HostRemoteWorld {
+  string world_id = 1;
+  string actor_tls_config = 2;
 }
 message HostWorld {
   string world_id = 1;
@@ -36,6 +41,7 @@ message HostControlRequest {
     bool inspect = 10;
     spatial.core.v1.ActorActionRequest action = 11;
     spatial.identity.v1.HostActorTransitionRequest transition = 12;
+    bool geometry_status = 13;
   }
 }
 message HostControlReply {
@@ -48,4 +54,5 @@ message HostControlReply {
   spatial.identity.v1.HostActorTransitionResult transition = 7;
   spatial.identity.v1.WorldSessionReply action = 8;
   bool cleanup_complete = 9;
+  spatial.identity.v1.HostGeometryStatus geometry_status = 10;
 }
