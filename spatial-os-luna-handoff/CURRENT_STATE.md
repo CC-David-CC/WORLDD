@@ -5,7 +5,8 @@ All 164 local registrations ran. The dedicated cross-host registration remains s
 Both hosts previously passed five production-OFF startup tests and 51 harness tests.
 Original failed core and launcher receipts remain preserved.
 
-Failure diagnosis identified missing user-bus environment and two obsolete fixture expectations.
+Nineteen failures report the exact missing-user-bus error before test-body output.
+Two further failures use obsolete fixture expectations.
 The attribution correction is reviewed at 642548ca0f56be01a32871b90b3e644f284cafa4.
 Its focused Debug and sanitizer qualification is assigned on both hosts.
 The controller fixture correction remains in development on a separate branch.

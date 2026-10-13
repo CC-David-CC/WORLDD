@@ -1,0 +1,36 @@
+M06 non-controller attribution query fails rejection assertion
+Date: 2026-10-13
+Status: confirmed obsolete fixture expectation. Corrected native checks remain pending.
+Frozen candidate: 258920de00e45448f104eedcc97147cf878406b3.
+
+sb16 Debug CTest native-surface_identity ran 15 methods.
+Fourteen passed. One method failed.
+test_non_controller_compositor_cannot_query_attribution creates a distinct compositor credential.
+It sends an Inspect request through the native input extension.
+The reply code is OK, zero. The assertion requires FORBIDDEN, two.
+The assertion fails before checking the application_identity field.
+Metadata disclosure is not yet proven. Do not describe this as a confirmed data leak.
+
+Trace the query identity, active controller, credential scope, and server authorization path.
+Compare the M06 scoped-input changes with required privileged-service behavior.
+Keep authorized service access and deny unauthorized attribution queries.
+Do not weaken the assertion or change the authority contract without a reviewed explanation.
+Preserve the original failure. Run a focused independent native witness after slots are free.
+The witness must record the exact reply and both client identities.
+
+Source: tests/native/test_surface_identity.py, line 110.
+Evidence: sb16:/home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment/evidence/m06-final258920de-sb16-20261013-01/Debug/core.log, test 99.
+The frozen deployment remains unchanged during isolated diagnosis.
+
+Reviewed diagnosis:
+M06 permits a supervisor-authorized COMPOSITOR connection to inspect attribution.
+The old M04 fixture required the legacy root-redirect controller identity.
+input.proto and M06_INPUT_SCOPE_CONTRACT.txt describe the expanded trusted-controller admission.
+Ordinary applications cannot acquire that privileged identity.
+Existing application attribution-denial and credential-issuance checks remain unchanged.
+
+Reviewed correction: 642548ca0f56be01a32871b90b3e644f284cafa4.
+The replacement test uses a distinct supervisor-authorized COMPOSITOR connection.
+It verifies ENFORCED status and exact application identity, XID, generation, width, and height.
+The full fifteen-method suite requires Debug and sanitizer passes on both hosts.
+This diagnosis does not claim that those pending runtime checks passed.

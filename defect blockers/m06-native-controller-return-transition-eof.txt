@@ -1,0 +1,39 @@
+M06 native controller return transition closes its reply channel
+Date: 2026-10-13
+Status: confirmed obsolete fixture selection assertion. Correction remains in development.
+Frozen candidate: 258920de00e45448f104eedcc97147cf878406b3.
+
+sb16 Debug CTest host-actor-controller-native ran one method and failed.
+test_native_a_b_a_denial_and_retained_process_identities receives EOF during B-to-A return.
+The framed HostActorTransitionResult reader reports: Supervisor or child closed reply channel.
+The failure occurs in tests/native/test_host_actor_controller.py, line 185.
+The method ran for 6.739 seconds.
+The resource adapter removed its scope. The exact service was inactive and not found.
+This is a test-body failure. It is not the missing user-bus launch failure.
+
+Trace the preserved child logs and controller, world, geometry, and control-channel lifetimes.
+Distinguish a stale fixture or launch configuration from a production defect.
+The prior focused host-session native matrix passed through a different entrypoint.
+That pass does not qualify this failed controller case.
+Preserve the original evidence and assertions. Reproduce only after runtime slots are free.
+Do not replay an uncertain transition or hide EOF as successful rejection.
+
+Evidence: sb16:/home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment/evidence/m06-final258920de-sb16-20261013-01/Debug/core.log, test 140.
+Native evidence uses the same attempt's Debug/ctest/spatial_security_evidence directory.
+The frozen deployment remains unchanged during isolated diagnosis.
+
+Reviewed diagnosis:
+The helper exits after its A-to-B result and before requesting B-to-A.
+Its raw-world producer selection assertion conflicts with M06 geometry presentation.
+The compositor selects the acknowledged geometry presentation instead of the raw producer.
+The Python B-to-A reader therefore sees EOF from an earlier failed assertion.
+This evidence does not establish a production B-to-A transition defect.
+
+Proposed fixture correction:
+Start geometry presentation explicitly.
+Check acknowledged geometry authority, actor, world, room, camera, and generations.
+Keep denial, stale-generation, held-input, release, and process-survival assertions.
+Keep the frozen production deployment unchanged.
+Build the modified native test runner in isolated Debug and sanitizer directories.
+Declare its fixture source and binary provenance separately from the production runtime.
+Run the complete corrected native controller case on both hosts and profiles.
