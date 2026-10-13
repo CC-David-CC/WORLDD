@@ -1,3 +1,18 @@
+## 2026-10-13: Native focused matrix passes; combined qualification candidate is next
+
+The native geometry matrix passed all 36 methods across both hosts, both profiles, and both authority directions.
+All source, diagnostic, exact-unit, and normal peer cleanup audits passed.
+The extended gate fixtures passed all 62 checks across both hosts.
+These are focused results. The full M06 gate remains UNRUN.
+A separate combined candidate merges reviewed geometry, witness fixes, CMake registrations, and gate changes.
+It preserves history and leaves the milestone branch source unchanged until qualification.
+Both witness regression modules are now registered in the candidate's full CTest inventory.
+The inventory has 165 registrations with input tests enabled. Registration is not execution evidence.
+The final mandatory-suite guard is under focused qualification before source freeze and production builds.
+Next: freeze and build the combined candidate, deploy it, then run the full gate on both qualification hosts.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt and docs/M06_DEPLOYED_GATE_FOCUSED_STATUS_2026-10-13.txt for evidence.
+
 ## 2026-10-13: First complete native cross-host direction passes
 
 Source overlay 805c69e passed all nine Debug native cross-host methods in 168.417 seconds.
