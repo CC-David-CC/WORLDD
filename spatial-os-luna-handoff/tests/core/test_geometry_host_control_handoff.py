@@ -9,6 +9,7 @@ from geometry_host_control_handoff import (
 )
 # Consume fixture binary argv before unittest.main without exposing its TestCase to discovery.
 import test_geometry_native_crosshost as native_crosshost
+from native_display_geometry import screen_argument
 
 
 class HostControlHandoffTests(unittest.TestCase):
@@ -46,6 +47,48 @@ class HostControlHandoffTests(unittest.TestCase):
         fixture.state = state_path
         self.assertIs(fixture.state, state_path)
         self.assertTrue(callable(fixture.actor_state))
+
+    def test_owner_channel_method_preserves_inherited_owner_path(self):
+        fixture = native_crosshost.NativeCrossHostTests('test_07_forged_native_application_fields_and_descriptors_reject')
+        owner_path = Path('/tmp/inherited-owner-key')
+        fixture.owner = owner_path
+
+        class Peer:
+            def __init__(self): self.closed = False
+            def close(self): self.closed = True
+
+        class World:
+            def __init__(self, peer): self.peer = peer
+            def connect(self, _fixture): return self.peer
+
+        previous, replacement = Peer(), Peer()
+        fixture.owners = {'a': previous}
+        fixture.active_worlds = {'a': World(replacement)}
+        class Opened:
+            @staticmethod
+            def HasField(name): return name == 'opened'
+        fixture.authenticate = lambda _peer: Opened()
+
+        result = fixture.owner_channel('a')
+
+        self.assertIs(result, replacement)
+        self.assertTrue(previous.closed)
+        self.assertIs(fixture.owner, owner_path)
+
+    def test_native_screen_selector_defaults_for_borrowed_start_and_bounds_override(self):
+        class BorrowedStartFixture: pass
+        class GeometryFixture: native_screen_geometry = '512x384x24'
+
+        self.assertEqual(screen_argument(BorrowedStartFixture()), '128x128x24')
+        self.assertEqual(screen_argument(GeometryFixture()), '512x384x24')
+
+    def test_native_screen_selector_rejects_invalid_geometry(self):
+        class GeometryFixture: pass
+        for value in ('', '128x128', '0x128x24', '128x0x24', '513x384x24',
+                      '512x385x24', '128x128x32', '0128x128x24', '128x128x24junk'):
+            with self.subTest(value=value):
+                GeometryFixture.native_screen_geometry = value
+                with self.assertRaises(ValueError): screen_argument(GeometryFixture())
 
 
 if __name__ == '__main__':

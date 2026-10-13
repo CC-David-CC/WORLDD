@@ -36,6 +36,7 @@ def read(fd,n):
 
 
 class NativeHost(fixture.ProductionHostSessionTests):
+    native_screen_geometry = '512x384x24'
     def configure_remote(self):
         config,descriptors=self.prepare()
         profiles=[]

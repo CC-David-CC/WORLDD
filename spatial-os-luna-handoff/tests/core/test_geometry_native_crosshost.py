@@ -89,7 +89,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
             path=self.root/name
             if path.exists():(self.evidence/name).write_bytes(path.read_bytes())
 
-    def owner(self,name):
+    def owner_channel(self,name):
         # Provisioning can exceed the fixture's idle timeout. Open a fresh actor channel.
         self.owners[name].close()
         peer=self.active_worlds[name].connect(self)
@@ -317,7 +317,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
 
     def test_01_real_remote_object_edit_changes_native_peer_pixels(self):
         self.object();self.assertTrue(self.transition('b').accepted)
-        owner=self.owner('b');context=self.actor_state()
+        owner=self.owner_channel('b');context=self.actor_state()
         first=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         baseline_status=self.displayed(revision=first.world_revision)
         before=self.stable_pixels()
@@ -333,7 +333,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.changed(before);self.assertEqual(self.actor_state(),context);self.stable()
 
     def test_02_real_other_actor_motion_changes_marker_pixels_only(self):
-        self.assertTrue(self.transition('b').accepted);owner=self.owner('b')
+        self.assertTrue(self.transition('b').accepted);owner=self.owner_channel('b')
         context=self.actor_state()
         first=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         baseline_status=self.displayed(revision=first.world_revision)
@@ -369,7 +369,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
     def test_05_observation_revocation_clears_view_preserves_navigation(self):
         self.object();self.assertTrue(self.transition('b').accepted);self.displayed();before=self.stable_pixels()
         self.assertTrue(any(before[0::4]) or any(before[1::4]) or any(before[2::4]))
-        owner=self.owner('b');revoked=self.revoke_grant(owner,self.observation_grants['b'])
+        owner=self.owner_channel('b');revoked=self.revoke_grant(owner,self.observation_grants['b'])
         self.assertTrue(revoked.HasField('grant'),revoked);self.black()
         status=self.control(geometry_status=True).geometry_status
         self.assertFalse(status.available);self.assertFalse(status.world_id);self.assertFalse(status.actor_id)
@@ -423,11 +423,11 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertFalse(status.HasField('camera'));self.assertEqual(status.view_sequence,0)
         action=self.control(action=core.ActorActionRequest(seq=1,stop=core.ActorStopRequest()))
         self.assertFalse(action.accepted,action)
-        self.assertTrue(self.owner('a').call(geometry_view=session.WorldGeometryViewRequest()).HasField('geometry_view'))
+        self.assertTrue(self.owner_channel('a').call(geometry_view=session.WorldGeometryViewRequest()).HasField('geometry_view'))
 
     def test_09_actor_leaving_preserves_shared_world_and_other_actor(self):
         initial_destination_context=self.actor_state()
-        self.assertTrue(self.transition('b').accepted);owner=self.owner('b')
+        self.assertTrue(self.transition('b').accepted);owner=self.owner_channel('b')
         before=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         actor=self.actor_state().id;self.assertIn(actor,[item.id for item in before.actors])
         world_id=before.world_id;self.assertTrue(self.transition('a').accepted)
