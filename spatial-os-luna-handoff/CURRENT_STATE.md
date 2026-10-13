@@ -1,3 +1,22 @@
+## 2026-10-13: Corrected native startup reaches geometry; pixel fixture setup remains defective
+
+Correction 7dd9c9b2 fixed startup control sequence adoption and the actor_state method collision.
+Debug runtime04 completed nine methods in 162.728 seconds: one passed, five failed, and eight errors occurred.
+Errors include secondary cleanup errors. They are not eight additional test methods.
+Transitions and geometry-status requests now reach the production service.
+The owner() fixture helper collides with an inherited filesystem path.
+The observer launches a 128x128 display, but its pixel witness requires 512x384 pixels.
+A separate fixture correction is assigned. The pixel contract remains unchanged.
+Raw evidence remains in local/m06-crosshost-debug-runtime04-failure.
+All nine exact-unit receipts confirm inactive, absent units and absent cgroups.
+The three handoff regressions passed on both hosts and both binding profiles: twelve checks.
+Correction 69abf808 fixes default test discovery and is box-git verified.
+The default entrypoint also passed all twelve checks in the four unit04 lanes.
+The gate-wiring review found separate host-evidence, timeout, cleanup, and output-directory defects.
+Their corrections are implemented but remain under primary review and untested.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+The full M06 gate remains UNRUN.
+
 ## 2026-10-13: Cross-host runtime reaches behavioral checks; fixture corrections reviewed
 
 The real privileged process witness passed 72 checks across both hosts and both profiles.

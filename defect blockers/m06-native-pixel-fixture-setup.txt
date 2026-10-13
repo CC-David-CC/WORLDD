@@ -1,0 +1,21 @@
+M06 native cross-host pixel fixture setup
+Status: confirmed fixture defects; correction assigned.
+Date: 2026-10-13
+Source: 7dd9c9b2abae651e506ec445aa7efe0a57bb22b0 overlay on production 9f8405b57.
+
+The owner() helper collides with the inherited self.owner filesystem path.
+Cases 01, 02, and 09 cannot call that helper.
+Rename the helper to owner_channel. Preserve the inherited filesystem path.
+Add an executable regression with the inherited path present.
+
+The native observer inherits a 128x128 Xvfb display.
+GeometryPixelWitness returns 65,536 bytes from that display.
+NativeHost correctly requires 786,432 bytes for its 512x384 witness sample.
+Configure the dedicated observer display to satisfy that pixel contract.
+Keep ordinary fixture defaults unchanged. Do not reduce the witness requirement.
+
+Debug runtime04: nine methods, one pass, five failures, eight errors including cleanup errors.
+Evidence: local/m06-crosshost-debug-runtime04-failure.
+Peer traceback: geometry/test_03_a_b_a_restores_context_and_exact_native_processes/peer-native.stderr.
+The primary assigned a separate worker branch for the fixture correction.
+Runtime remains unqualified. Full M06 gate remains UNRUN.
