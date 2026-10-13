@@ -204,3 +204,59 @@ Every unit04 command/wrapper receipt is 0/0 COMPLETE.
 The six-file overlay is test-only; compiled production remains 9f8405b57.
 Its archive SHA256 is 0f44c50f537ec2cecd04a2094c393b6e0d9e2cfb01ab6e5c1c51eba6b7691a5c.
 Focused Python passes do not prove native shared geometry or the full M06 gate.
+
+Owner-channel and display correction focused qualification
+Checkpoint: d9ba2c3a26c800f21452715b038ba11f789bd529; BOX-GIT VERIFIED, unintegrated.
+The primary reviewed the owner helper rename, shared screen selector, and independent regressions.
+Eight-file test-only overlay SHA256: 2419a8bd0cf0ccfcc42e3ab36cbc4200ac32cfce4b55996bd208efe892239a14.
+Both hosts and both profiles verified the archive and every source hash.
+Each host/profile passed six helper methods and twenty-two unchanged native-security-identity methods.
+Total: 112 focused checks across eight completed runs. Command/wrapper receipts are 0/0 COMPLETE.
+Debug identity elapsed: sb16 1.055 seconds; sb16-2 1.095 seconds.
+ASAN identity elapsed: sb16 2.675 seconds; sb16-2 2.942 seconds.
+GLX remains enabled. Each profile uses its qualified XACE wrapper.
+Audit02 verified source hashes and scanned 64 logs per host with no sanitizer diagnostics or skips.
+The initial audit incorrectly reported the global total as each host count. Preserve audit01 and use derived audit02 counts: 56 per host.
+Evidence: runs/owner-screen-{debug,asan}-{helper,identity}01 and owner-screen-focused-audit02.json.
+Compiled production remains 9f8405b57. No acceptance assertion or pixel sample requirement changed.
+Debug native runtime05 is running on sb16 with sb16-2 observer.
+Run: runs/crosshost-owner-screen-debug/runtime05/authority-sb16.
+Tmux: m06-geometry-debug-sb16-runtime05; observed pane PID 1856085.
+No terminal native result is claimed here. Reverse Debug and both ASAN directions remain UNRUN.
+Full M06 gate remains UNRUN.
+
+First real native cross-host geometry result
+Debug runtime05 completed nine methods in 166.241 seconds: eight passed and one failed.
+Command/wrapper exits are 1/1. No test errors or cleanup errors occurred.
+Passed: real object-edit pixels, actor-motion pixels, private denial, observation revocation,
+stale-context fencing, forged application/native fields, authority-loss clearing, and surviving shared world after departure.
+Case03 failed during room provisioning: INVALID_ARGUMENT, Missing entity label.
+It did not reach that case's transition assertions.
+All nine normal observer cleanup and exact-unit terminal receipts passed.
+Raw evidence: local/m06-crosshost-debug-runtime05-evidence; host run remains preserved.
+
+Destination-room fixture correction
+Checkpoint 805c69e05ffaa7d5e59499b95c2ff95c02693b0f adds only the required room label.
+The primary reviewed the one-line change. Production validation and all assertions remain unchanged.
+Both hosts/profiles verified the eight-file test-only overlay.
+Archive SHA256: 0626d7123befdcf899d5c2dc2f40f95137acdb76ef891705d9ffb45bf83fc63d.
+Focused case03 passed in 18.892 seconds with command/wrapper 0/0 COMPLETE.
+It verifies A-B-A saved context, pixel equality, and exact native process identities.
+Its observer cleanup and exact-unit records passed.
+Evidence: runs/crosshost-destination-label-debug/case03-01/authority-sb16.
+The full nine-method Debug retry runtime06 is running on sb16 with sb16-2 observer.
+No combined nine-method result is claimed yet. Reverse Debug and both ASAN directions remain UNRUN.
+Full M06 gate remains UNRUN.
+
+Complete first native cross-host direction
+Source overlay 805c69e passed all nine Debug methods in 168.417 seconds.
+Run: runs/crosshost-destination-label-debug/runtime06/authority-sb16.
+Authority sb16, observer sb16-2. Command/wrapper 0/0 COMPLETE. No skips or test errors.
+All nine normal peer cleanup and exact-unit records passed.
+Post-run source hashes match all eight overlay files on both hosts.
+Authority audit scanned 114 logs; observer audit scanned 36 logs. No sanitizer diagnostics were found.
+Receipts: crosshost-runtime06-authority-audit.json on sb16; crosshost-runtime06-observer-audit.json on sb16-2.
+Reverse Debug runtime07 and forward sanitizer runtime08 are running concurrently.
+They use independent worlds, X servers, exact service units, and evidence directories.
+Reverse sanitizer and the full combined M06 gate remain UNRUN.
+This evidence does not establish physical-input, performance, or complete Spatial-M1 acceptance.

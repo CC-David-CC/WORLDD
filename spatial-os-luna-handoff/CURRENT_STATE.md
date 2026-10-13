@@ -1,3 +1,31 @@
+## 2026-10-13: First complete native cross-host direction passes
+
+Source overlay 805c69e passed all nine Debug native cross-host methods in 168.417 seconds.
+Authority: sb16. Observer: sb16-2. Command and wrapper returned zero.
+All nine cleanup records passed. Source hashes and diagnostic audits passed on both hosts.
+The authority audit scanned 114 logs. The observer audit scanned 36 logs.
+This proves the selected native geometry cases for one profile and direction.
+Reverse Debug runtime07 and forward sanitizer runtime08 are running in separate sessions and evidence paths.
+Reverse sanitizer remains UNRUN. The combined M06 gate remains UNRUN.
+A reviewed CMake checkpoint registers both new witness regression modules for the full gate.
+A reviewed artifact-recheck checkpoint awaits its focused static qualification.
+Source integration and full Debug, sanitizer, harness, acceptance, recovery, and native qualification remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Real cross-host pixels and authority checks pass; complete retry running
+
+Native Debug runtime05 passed eight of nine methods on sb16 authority and sb16-2 observer.
+It proves object-edit pixels, actor-motion pixels, denial and revocation, context fencing, and authority-loss behavior for that direction.
+The remaining method failed in fixture provisioning because its room lacked a required label.
+Reviewed correction 805c69e adds the label. The focused round-trip method passed all unchanged assertions.
+All runtime05 and focused round-trip observer cleanup receipts passed.
+The complete nine-method retry runtime06 is running. Its terminal result remains pending.
+The owner/display correction separately passed 112 focused checks across both hosts and both profiles.
+Gate fixture correction passed 52 checks across both hosts.
+Source integration, remaining directions/profiles, and the complete M06 gate remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt for source pins and evidence.
+
 ## 2026-10-13: Deployed gate fixtures pass on both hosts
 
 Gate checkpoint 7298e1a6 is box-git verified and remains unintegrated.
