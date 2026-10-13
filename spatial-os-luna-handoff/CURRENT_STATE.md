@@ -1,3 +1,36 @@
+## 2026-10-13: Frozen M06 package verified; deployment authorized
+
+Candidate remains f8609273fad1873db45fc316fd0200549b4c6b41 on m06/final-qualification-20261013.
+Its a5500 checkout remains clean. No source changed during preparation.
+All four builds passed: testing-enabled Debug and ASan-UBSan, then production-only Debug and ASan-UBSan.
+The testing-enabled profiles include input tests. Production-only profiles exclude test fixtures.
+Each testing-enabled profile has 165 registrations, 66 executables, 98 runtime files, and 29 generated Python files.
+Each production-only profile has 52 runtime files.
+Preparation verified all 41 locked files and recorded 913 source files.
+No runtime tests ran on the coding host.
+
+Preparation receipts are under /home/dflanag3/spatial-qualification/m06-f860-final-20261013/runs/prepare01 on a5500.
+Both command.exit and wrapper.exit are zero. The preparation process exited.
+The package directory is /home/dflanag3/spatial-qualification/m06-f860-final-20261013/bundle/prepare01.
+Archive size is 1,236,263,850 bytes. Its manifest contains 1,214 regular files.
+Archive SHA256 is 2d96a86d6b7e01c0e1e94608e4dd921f1d47832779d35800fa292e3e39e90c42.
+Primary review confirmed the archive hash and all source and manifest mappings.
+Debug build identity is sha256:0cb5a55b120978411c498edd58a1ede83d8baf23910a69ab89c4732dccb455be.
+Sanitizer build identity is sha256:0ce2f8e16c21536a7482e0b724378729198f0337f3f22620fc0f07158a47cb9c.
+Testing-enabled and production-only builds share each profile's production identity.
+
+Both test hosts have fresh incoming staging directories and the verified gate tool.
+The gate tool hash is ce2ee458be3571bf3f64413b156959c8ade5913f33504af82568dd19e12c546b.
+Transfer and verify-deploy are authorized. Deployment receipts remain pending.
+Preserve the original deployment and all prior failure evidence.
+Run the full normal local gates only after reviewing both new deployment receipts.
+Run the normal cross-host stage after both local gates pass.
+
+M07 planning inventory is separately BOX-GIT VERIFIED at 9b488677a18386b473a90c2b368bf47fccb0aa4f.
+Its branch is m07/workspace-boundary-inventory-20261013. It changes only the read-only inventory document.
+It is UNQUALIFIED and is not integrated into the frozen M06 candidate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Combined candidate frozen and four-profile preparation started
 
 Frozen candidate: f8609273fad1873db45fc316fd0200549b4c6b41, clean and BOX-GIT VERIFIED.
