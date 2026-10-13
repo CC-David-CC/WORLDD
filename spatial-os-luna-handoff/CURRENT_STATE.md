@@ -1,3 +1,24 @@
+## 2026-10-13: Attribution recovery passes on both hosts
+
+The reviewed attribution overlay passed all fifteen methods in all four host/profile lanes.
+Total: sixty passed, zero failed, zero skipped.
+Debug and ASan-UBSan command and wrapper receipts report zero exits and COMPLETE.
+Native server logs contain no sanitizer diagnostics.
+Primary compared 1,309 artifact pins per host. All pre/post actual hashes remain unchanged.
+Production candidate 258920de00e45448f104eedcc97147cf878406b3 remains frozen.
+Fixture overlay source is 642548ca0f56be01a32871b90b3e644f284cafa4.
+The original full Debug gate failures remain preserved.
+
+Recovery-tool fixture checks passed five methods on each host after two retained fixture failures.
+The reviewed tool checkpoint is 66e4fe6fc91e8a741e0ca94751c8894fbf18697f on box-git.
+Read-only recovery plans are being validated against the actual failed gate receipts.
+Native bus retries remain unrun.
+The controller fixture has a separate reviewed checkpoint at d447ee6d0ddcc1197ab257d028e3b00012ccf9c9.
+Its corrected Debug build passed. Its sanitizer build remains in progress.
+Storage fixture runtime correction remains pending.
+Full M06 sanitizer and cross-host gates remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Full Debug gate results and focused recovery
 
 Both full Debug core runs completed with 141 passed and 23 failed registrations each.

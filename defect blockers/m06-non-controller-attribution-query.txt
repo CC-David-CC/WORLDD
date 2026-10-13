@@ -1,6 +1,6 @@
 M06 non-controller attribution query fails rejection assertion
 Date: 2026-10-13
-Status: confirmed obsolete fixture expectation. Corrected native checks remain pending.
+Status: corrected fixture passed focused qualification. Full M06 gate remains pending.
 Frozen candidate: 258920de00e45448f104eedcc97147cf878406b3.
 
 sb16 Debug CTest native-surface_identity ran 15 methods.
@@ -34,3 +34,19 @@ The replacement test uses a distinct supervisor-authorized COMPOSITOR connection
 It verifies ENFORCED status and exact application identity, XID, generation, width, and height.
 The full fifteen-method suite requires Debug and sanitizer passes on both hosts.
 This diagnosis does not claim that those pending runtime checks passed.
+
+2026-10-13 focused results:
+All fifteen methods passed on both hosts in Debug and ASan-UBSan.
+Total: sixty passed, zero failed, zero skipped.
+Each command and wrapper exited zero. Each terminal receipt reports COMPLETE.
+No sanitizer diagnostic appeared in the unittest or native server logs.
+Primary comparison found zero pre/post changes across 1,309 pinned items on each host.
+The two relocated CTest metadata files match their host-specific pre-run hashes.
+Production source and binaries remain at 258920de00e45448f104eedcc97147cf878406b3.
+The original failed full-gate evidence remains preserved.
+
+Evidence root on each host:
+/home/dflanag3/spatial-qualification/m06-final258920de-20261013/test-overlay-m06-surface-identity-642548ca0f56be01a32871b90b3e644f284cafa4/
+Use runs/HOST-PROFILE-01/run for command receipts and unittest output.
+Use runs/HOST-PROFILE-01/evidence/native for server logs.
+Use pre-source-and-runtime-hashes.json and post-source-and-runtime-hashes.json for artifact pins.
