@@ -1,6 +1,6 @@
 M06 Git-import witness reads a retiring cgroup
 
-Status: Reproduced sanitizer witness error. Correction remains pending review.
+Status: Focused correction passed on both hosts and profiles. Full M06 gate remains pending.
 Production candidate: 258920de00e45448f104eedcc97147cf878406b3.
 
 The storage matrix passed nineteen of twenty methods.
@@ -35,3 +35,22 @@ This evidence does not prove that the failed method passed.
 
 Evidence on sb16-2:
 /home/dflanag3/spatial-qualification/m06-final258920de-20261013/test-overlay-m06-surface-identity-642548ca0f56be01a32871b90b3e644f284cafa4/runs/storage-fixture/sb16-2-ASan-UBSan-session-storage-contention-run01/
+
+Corrected qualification, 2026-10-13:
+Reviewed source: d8acf84c6315f78e97bebf0a0e1d7b6b7f9de69b, verified on box-git.
+Each Debug and ASan-UBSan module passed thirteen methods on sb16 and sb16-2.
+Total: fifty-two passed methods. No sanitizer findings or skips were reported.
+The three native methods retain their positive Git, revocation, import, and cleanup assertions.
+Ten deterministic regressions cover retirement, identity changes, bounded retries, and unexpected live-scope errors.
+All four commands and wrappers exited zero. Owned resource scopes were removed.
+Both host audits preserved all 1,475 pinned files.
+Primary independently checked all twelve volume cleanup receipts.
+Each volume is unmounted. Its image has no current loop mapping.
+The original failure evidence remains preserved.
+
+Correction evidence root on each host:
+/home/dflanag3/spatial-qualification/m06-storage-retirement-d8acf84-20261013/
+Runtime runs: runs/session-storage-contention/HOST/PROFILE/run01/.
+Input audit: verification/HOST/post-storage-retirement-pins.json.
+The correction is included in the separate final qualification candidate branch.
+This focused result does not establish the complete M06 phase gate.

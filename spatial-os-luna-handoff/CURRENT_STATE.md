@@ -1,3 +1,25 @@
+## 2026-10-13: Storage retirement correction passes all four focused lanes
+
+Both hosts passed thirteen storage-contention methods in Debug and ASan-UBSan.
+Total: fifty-two methods passed. Command and wrapper exits were zero.
+No sanitizer findings or skips were reported. Owned resource scopes were removed.
+Each host preserved all 1,475 explicit pinned inputs.
+Primary independently checked all twelve native volume receipts and image-specific loop mappings.
+All volumes are unmounted. No image retains a loop mapping.
+Read defect blockers/m06-retired-cgroup-procs-witness.txt for original and corrected evidence.
+
+The separate candidate assembly branch is m06/final-qualification-20261013 on a5500.
+Worktree: /home/dflanag3/src/m06-final-qualification-20261013.
+Current assembly: 281a42424cfa9d3a37fe83016e49fd7f319e67d0, clean and BOX-GIT VERIFIED.
+It includes reviewed attribution, controller, host-session launcher, and storage retirement corrections.
+The candidate remains UNQUALIFIED. The original 258920de deployment remains frozen.
+Destination-workspace selection now selects the complete sixteen-method module per lane.
+Its sixty-four executions remain pending. Debug runtime has started on sb16.
+Gate launcher and sequential archive corrections await focused static qualification.
+After those pass, freeze the combined candidate and build the four required profiles once.
+Then run complete normal local and cross-host M06 qualification.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Controller correction passes both hosts and profiles
 
 All four host-actor-controller-native registrations passed their inner native test.
