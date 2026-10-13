@@ -261,6 +261,74 @@ class RealActorTransitionTests(WorldIdentityFixture):
         selections = [item.state.workspace if item.state.HasField('workspace') else None for item in reply.observations]
         self.assertEqual(selections, ['one', None, 'one', None, 'one'])
 
+    def workspace_two(self):
+        # Build a second real broker/worktree with a distinct workspace authority.
+        root = self.root/'workspace-two'; root.mkdir()
+        execution = root/'execution'
+        first = workspace_fixture.BrokerProcess(self, execution)
+        repository = workspace_fixture.GitRepo(root)
+        first.call('git.repo.import', id='repo-two', path=str(repository.path))
+        first.call('git.worktree.create', repo='repo-two', id='tree-two', branch='branch-two',
+                   start='main', operation_id='tree-two')
+        first.call('workspace.create', id='two', worktree='tree-two',
+                   policy=workspace_fixture.POLICY)
+        first.close()
+        directory = root/'workspace-authority'; directory.mkdir(mode=0o700)
+        terms = self.workspace_terms(); terms.scope.domain.id = 'two'
+        seed = workspace_fixture.broker.WorkspaceAuthoritySeed(
+            protocol_version=1, workspace='two', authority_directory=str(directory), roots=[terms])
+        seed_path = root/'workspace-seed.textproto'
+        seed_path.write_text(workspace_fixture.text_format.MessageToString(seed)); seed_path.chmod(0o600)
+        result = subprocess.run([str(workspace_fixture.BROKER), '--state-dir', str(execution),
+                                 '--init-authority', str(seed_path)], capture_output=True, timeout=8)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        client_path = root/'workspace-issuer.textproto'
+        client_path.write_bytes(self.config_file().read_bytes()); client_path.chmod(0o600)
+        config = workspace_fixture.broker.WorkspaceAuthorityConfig(
+            protocol_version=1, issuer_client_config=str(client_path),
+            bindings=[workspace_fixture.broker.WorkspaceAuthorityBinding(
+                workspace='two', authority_directory=str(directory))])
+        self.configure_participant(config, [workspace_fixture.grant.Domain(
+            kind=workspace_fixture.grant.WORKSPACE, id='two')])
+        path = root/'workspace-policy.textproto'
+        path.write_text(workspace_fixture.text_format.MessageToString(config)); path.chmod(0o600)
+        broker = workspace_fixture.BrokerProcess(self, execution, path)
+        world = self.scoped_world(session.REGISTERED_ACTORS, broker=broker)
+        world.management('workspace.available', id='two', available=True)
+        return world
+
+    def test_valid_workspace_selection_is_saved_independently_in_both_worlds(self):
+        a = self.workspace(); b = self.workspace_two()
+        room_a = self.room(a, 'workspace-one-room'); room_b = self.room(b, 'workspace-two-room')
+        pose_a, pose_b = spawn(14), spawn(28)
+        select_two = core.ActorActionRequest(
+            seq=1, workspace_select=core.WorkspaceIdRequest(id='two'))
+        expected = [(a, room_a, pose_a, 'one'), (b, room_b, pose_b, 'two'),
+                    (a, room_a, pose_a, 'one'), (b, room_b, pose_b, 'two'),
+                    (a, room_a, pose_a, 'one'), (b, room_b, pose_b, 'two')]
+
+        def witness(index, reply):
+            world, room, pose, workspace = expected[index]
+            self.assert_state(reply.observations[-1], world, room, pose, workspace)
+            if index:
+                self.assert_active(reply.results[-1])
+
+        reply = self.run_driver(a, [(b, room_b, pose_b, 2, (select_two,)),
+                                    (a, None, None, 2, ()),
+                                    (b, None, None, 1, ()),
+                                    (a, None, None, 1, ()),
+                                    (b, None, None, 1, ())],
+                                hook=witness, source_room=room_a, source_pose=pose_a,
+                                initial_actions=(select_workspace(),))
+        self.assertEqual(len(reply.results), 5)
+        self.assertEqual([item.world_id for item in reply.observations],
+                         [a.management('world.info')['world_id'],
+                          b.management('world.info')['world_id'],
+                          a.management('world.info')['world_id'],
+                          b.management('world.info')['world_id'],
+                          a.management('world.info')['world_id'],
+                          b.management('world.info')['world_id']])
+
     def test_unavailable_workspace_clears_saved_selection_on_return(self):
         a = self.workspace(); b = self.world()
         def change(index, reply):
