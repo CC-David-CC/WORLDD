@@ -139,3 +139,68 @@ Debug has 25 resolved paths per host. ASAN has 28 per host.
 Same-profile executable and system-library hashes match across both hosts.
 Report: project-root local/m06-crosshost-loader-preflight-20261013/REVIEW.txt and primary-audit.json.
 This is static launch evidence, not runtime qualification.
+
+Witness overlay dffc deployed; real import failure reproduced
+Test-only checkpoint: dffc661795a3f0a65fff16e35e72d51fb794dff2; box-git verified.
+Overlay archive SHA256: c893c2951bd3aaf696943614be2c23198ae796f43356808884ddbca6008e346f.
+Exactly four fixture files were verified and deployed to new source-overlay trees on both hosts and profiles.
+All original packages, binaries, bindings, and first-run evidence remain unchanged.
+Each host/profile binding layout passed 16 helper unit methods, command/wrapper 0/0.
+Total: 64 Python fixture methods passed. These mocks do not prove real privileged execution or native sanitizer coverage.
+Evidence: runs/witness-{debug,asan}-unit01 at the existing qualification root.
+Debug cross-host runtime02 completed nine setup failures and nine secondary errors in 161.146 seconds.
+Command and wrapper exits were 1/1. No behavioral assertion passed.
+Primary retained all raw output and per-case evidence under local/m06-crosshost-debug-runtime02-failure.
+All nine exact-unit terminal receipts report absent units and cgroups.
+A real non-dumpable child reproduction showed privileged helper exit 1 and ModuleNotFoundError.
+An isolated root trace identified the missing module as google.
+The helper replaces Python-I default import paths with sysconfig paths, excluding Ubuntu system dist-packages.
+Direct root-I protobuf import and roundtrip with the generated bindings path passed.
+The primary's final snapshot review missed that replacement. Next review must read complete frozen files.
+An escalated bounded worker owns the two helper/regression files on m06/witness-isolated-import-fix-20261013.
+It must preserve trusted isolated default paths and add actual importer and non-dumpable-child regressions.
+The 452 prior local native/client checks remain passed. Cross-host qualification and full M06 gate remain incomplete.
+
+Isolated import correction passes real helper qualification
+Checkpoint: 93da03e18fef673b586d2f668b90efa615d8f508; box-git verified.
+Overlay SHA256: 90535834a3c1e2a89202bec6f05fbe857d41e58db1765103a33a7dede07e4258.
+The primary reviewed both complete frozen helper and regression files.
+New overlay trees verified all four source hashes on both hosts and profiles.
+Each binding layout passed 18 methods with command/wrapper exits 0/0.
+Total: 72 Python fixture checks passed across four completed runs.
+Evidence: runs/witness2-{debug,asan}-unit01 at the qualification root.
+New checks execute the real isolated interpreter and sudo helper against an owned non-dumpable child.
+They verify PID/start/executable hash and reject environment/CWD injection, wrong request context, and missing isolated mode.
+These Python checks do not establish native sanitizer coverage.
+The first Debug direction is RUNNING with sb16 authority and sb16-2 observer.
+Source: source-overlays/93da03e18fef673b586d2f668b90efa615d8f508/debug/source/spatial-os-luna-handoff.
+Compiled production remains 9f8405b57 with unchanged original binaries and bindings.
+Run: runs/crosshost-witness2-debug/runtime03/authority-sb16.
+Tmux: m06-geometry-debug-sb16-runtime03; observed pane PID 1848720.
+The launcher adds the declared 1800-second deadline with TERM and ten-second KILL grace.
+No cross-host result is claimed yet. Remaining directions/profiles and the full M06 gate remain UNRUN.
+
+Cross-host runtime03 and runtime04 terminal results
+Runtime03 with 93da overlay completed nine methods in 155.067 seconds: one pass, five failures, three errors.
+Five failures exposed a discarded initial HostControl counter and generation.
+Three errors exposed state() shadowing the inherited filesystem path.
+All nine observer cleanup receipts passed.
+Correction 7dd9c9b2 carries the actual initial control response and renames the query actor_state.
+Runtime04 completed nine methods in 162.728 seconds: one pass, five failures, eight errors including secondary cleanup errors.
+Transitions and geometry-status queries now reach production. The startup sequence correction works.
+New fixture blockers: owner() collides with an inherited path, and a 128x128 observer cannot supply the required 512x384 pixels.
+All nine exact-unit terminal records confirm absent units and cgroups.
+Raw controller copies: local/m06-crosshost-debug-runtime03-failure and local/m06-crosshost-debug-runtime04-failure.
+Original host evidence remains preserved.
+
+Handoff regression entrypoint qualification
+The first entrypoint parsed fixture binary arguments as unittest test names.
+The second exposed an imported TestCase class to unittest discovery.
+Preserve failed unit01 and unit02 logs on both hosts and profiles.
+An explicit HostControlHandoffTests selection passed all three methods in unit03 across four lanes.
+Correction 69abf808 uses a module import alias and is box-git verified.
+Its default entrypoint passed all three methods in unit04 across four lanes: twelve checks.
+Every unit04 command/wrapper receipt is 0/0 COMPLETE.
+The six-file overlay is test-only; compiled production remains 9f8405b57.
+Its archive SHA256 is 0f44c50f537ec2cecd04a2094c393b6e0d9e2cfb01ab6e5c1c51eba6b7691a5c.
+Focused Python passes do not prove native shared geometry or the full M06 gate.
