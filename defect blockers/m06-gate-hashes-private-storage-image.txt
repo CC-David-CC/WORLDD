@@ -1,6 +1,6 @@
 M06 gate hashes a private storage fixture image
 
-Status: Confirmed and reproduced. A correction is in progress on a separate branch.
+Status: Confirmed and reproduced. The reviewed correction passed focused tests. Full qualification remains pending.
 Candidate: f8609273fad1873db45fc316fd0200549b4c6b41.
 Source: spatial-os-luna-handoff/tools/m06_deployed_gate.py, profile artifact manifest.
 
@@ -27,3 +27,8 @@ Reject unexpected unreadable files and unsafe links. Do not ignore permission er
 Add focused regressions before reviewing and integrating the correction.
 
 The original failed gate remains preserved. M06 remains incomplete.
+
+Reviewed correction: 4f241a95d98e28b037b17ad1826f6816c2cc17ad, box-git verified.
+The focused static suite passed 46 tests on each host.
+Read-only audits hashed 6,394 ordinary files per host and preserved original failed reports.
+Fresh full qualification remains pending. This defect is corrected in source, not yet phase-qualified.

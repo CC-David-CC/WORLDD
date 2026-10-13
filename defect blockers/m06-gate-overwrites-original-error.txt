@@ -1,6 +1,6 @@
 M06 gate overwrites the original failure
 
-Status: Confirmed reporting defect. The triggering image-hash failure is also reproduced.
+Status: Confirmed reporting defect. The reviewed correction passed focused tests. Full qualification remains pending.
 Candidate: f8609273fad1873db45fc316fd0200549b4c6b41.
 Source: spatial-os-luna-handoff/tools/m06_deployed_gate.py, gate exception and finally handlers.
 
@@ -26,3 +26,8 @@ Add a regression where an early exception precedes missing later-profile receipt
 The triggering defect is recorded in m06-gate-hashes-private-storage-image.txt.
 
 M06 remains incomplete. Sanitizer and cross-host qualification remain unrun.
+
+Reviewed correction: 4f241a95d98e28b037b17ad1826f6816c2cc17ad, box-git verified.
+The focused static suite passed 46 tests on each host.
+Read-only audits hashed 6,394 ordinary files per host and preserved original failed reports.
+Fresh full qualification remains pending. This defect is corrected in source, not yet phase-qualified.

@@ -1,3 +1,29 @@
+## 2026-10-13: Fresh candidate builds; verified obsolete binaries removed
+
+New frozen candidate is 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Box-git verified branch m06/postrun-final-qualification-20261013 points to that commit.
+The new source manifest differs from f860 only in the reviewed gate, static tests, and diagnosis document.
+All 41 locked files remain verified. The manifest contains 914 source files.
+Normal preparation runs on a5500 in tmux m06-prepare-4f241-a5500-20261013-01.
+ON Debug and ON ASan builds completed. Production-only builds and packaging remain in progress.
+Runtime qualification for this candidate remains unrun.
+
+Verified cleanup removed exactly 184 obsolete ELF files on each test host.
+Only old final258920 build and production-only profile binaries were removed.
+Both cleanup commands and wrappers returned zero. No directories or non-ELF files were removed.
+Fresh privileged process checks found no references or unreadable entries. Mount checks found no target mounts.
+The historical recovery package remains verified on a5500.
+Each host freed about 6.8 GB. Remaining free space is about 8 GB and 19 GB respectively.
+Preserve source, logs, XML, JSON, metadata, private storage images, and all current XACE dependencies.
+Cleanup receipts: m06-f860-final-20261013/runs/cleanup-remove-v2-delete-HOST-01/cleanup-receipt.json.
+Earlier cleanup launcher/script failures remain preserved. The reviewed correction passed both dry-runs before removal.
+Further obsolete-bundle inspection is active to provide sb16 qualification headroom.
+
+M07 interface planning is reviewed and verified on box-git as 149e75e90963a07560d4d1bcb70f76c086bbd2f5.
+Its branch is m07/workspace-presentation-interface-decisions-20261013. It contains planning only.
+M07 production implementation waits for M06 qualification.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Evidence collector correction passes focused review
 
 Both original f860 full-gate attempts are terminal failures during Debug evidence finalization.
