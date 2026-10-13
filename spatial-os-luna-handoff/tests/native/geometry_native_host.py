@@ -3,7 +3,6 @@
 
 The independent X supervisor witnesses compositor pixels. It supplies no actor API.
 """
-import hashlib
 import os
 from pathlib import Path
 import socket
@@ -23,6 +22,7 @@ import geometry_native_pb2 as protocol
 import host_session_pb2 as host
 from harness.wire import frame
 from geometry_pixel_witness import GeometryPixelWitness
+import geometry_process_identity as process_identity
 
 
 def read(fd,n):
@@ -55,14 +55,16 @@ class NativeHost(fixture.ProductionHostSessionTests):
     def witness_processes(self):
         pids=[self.server.pid]+self.live_compositor_pids()
         self.assertEqual(len(pids),2)
-        result=[]
-        for pid in pids:
-            digest=hashlib.sha256()
-            with Path(f'/proc/{pid}/exe').open('rb') as binary:
-                for chunk in iter(lambda:binary.read(1024*1024),b''):digest.update(chunk)
-            result.append(protocol.NativeGeometryProcess(pid=pid,start_ticks=int(self.process_start(pid)),
-                executable_sha256=digest.digest()))
-        return result
+        expected=[(pid,int(self.process_start(pid))) for pid in pids]
+        def note_privileged_witness():
+            evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+            if evidence:
+                target=Path(evidence);target.mkdir(parents=True,exist_ok=True)
+                (target/'geometry-process-identity-witness.txt').write_text(
+                    'sudo-n process identity fallback used\n')
+        identities=process_identity.collect(expected,on_privileged=note_privileged_witness,protocol=protocol)
+        return [protocol.NativeGeometryProcess(pid=item.pid,start_ticks=item.start_ticks,
+            executable_sha256=item.executable_sha256) for item in identities]
 
     def capture(self):
         if not hasattr(self,'pixel_witness'):

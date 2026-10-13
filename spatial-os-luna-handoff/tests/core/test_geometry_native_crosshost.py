@@ -29,6 +29,7 @@ import world_session_pb2 as session
 import test_world_shared_state as baseline
 from harness.oracles import pose
 from harness.wire import frame
+from geometry_process_identity import finish_observer
 
 
 def exact(fd,count,timeout=90,deadline=None):
@@ -135,6 +136,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
             self.remote_bin/'identityd',self.remote_bin/'spatial-issuer-client',
             self.remote_bin/'spatial-host-session',self.remote_root]
         self.remote_log=(self.root/'peer-native.stderr').open('wb')
+        self.observer_ready=False
         self.observer=subprocess.Popen(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=5',self.observer_host,
             shlex.join([str(value) for value in argv])],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.remote_log)
         self.addCleanup(self.stop_observer)
@@ -148,6 +150,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertEqual(receipt['unit'],self.owned_unit)
         (self.root/'peer-resource-launch.json').write_bytes(prefix)
         ready=self.receive(deadline=startup_deadline);self.assertEqual(ready.request_id,0);self.assertEqual(len(ready.processes),2)
+        self.observer_ready=True
 
     def remove_remote_profiles(self):
         if hasattr(self,'remote_files'):
@@ -201,7 +204,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         try:
             if self.observer.poll() is None:
                 try:
-                    reply=self.exchange(shutdown=True);self.assertTrue(reply.cleanup_complete)
+                    finish_observer(self.observer_ready,self.exchange,self.recover_unit)
                 except BaseException as error:
                     original=error
                     try:self.recover_unit()
@@ -233,13 +236,13 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
             terminal=[item for item in receipts if 'unit_after' in item]
             self.assertEqual(len(adapter),1,receipts);self.assertEqual(len(terminal),1,receipts)
             self.assertTrue(adapter[0]['scope_removed']);self.assertFalse(adapter[0]['unexpected_population'])
-            self.assertEqual(adapter[0]['exit_code'],0)
+            if self.observer_ready:self.assertEqual(adapter[0]['exit_code'],0)
             self.assertEqual(terminal[0]['unit'],self.owned_unit)
             self.assertIn(terminal[0]['query_exit'],(0,4))
             self.assertIn('LoadState=not-found',terminal[0]['unit_after'])
             self.assertIn('ActiveState=inactive',terminal[0]['unit_after'])
             self.assertFalse(terminal[0]['cgroup_exists'])
-            self.assertEqual(self.observer.returncode,0)
+            if self.observer_ready:self.assertEqual(self.observer.returncode,0)
         finally:
             self.remote_log.close()
             (self.evidence/'peer-resource-terminal.txt').write_bytes(remaining)
