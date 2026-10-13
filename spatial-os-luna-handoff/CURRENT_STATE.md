@@ -1,3 +1,24 @@
+## 2026-10-13: Evidence collector correction passes focused review
+
+Both original f860 full-gate attempts are terminal failures during Debug evidence finalization.
+All Debug command stages passed on both hosts: 164 core CTests, 151 P10 cases, and 51 harness tests.
+Production-only startup and all five bounded storage/Git scenarios passed on both hosts.
+Neither original gate reached ASan. The dedicated cross-host gate remains unrun.
+Do not reinterpret the failed reports as qualified profiles.
+
+Primary reviewed the isolated evidence-collector correction and its regression tests.
+The focused static suite passed 46 tests on each qualification host.
+Read-only corrected audits hashed 6,394 ordinary evidence files on each host.
+Only the validated private storage image and empty mountpoint were excluded.
+The original failed run.json hashes remained unchanged.
+Checkpoint approval covers the three reviewed correction files only.
+The corrected full gate still requires a frozen candidate and fresh execution.
+
+Obsolete test-data cleanup is active under a separate bounded worker task.
+Fresh disk checks show 1.6 GiB available on sb16 and 12 GiB on sb16-2.
+Preserve evidence, source, qualified XACE dependencies, and current deployment artifacts.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: sb16 Debug commands pass; evidence finalization fails
 
 Frozen candidate remains f8609273fad1873db45fc316fd0200549b4c6b41.
