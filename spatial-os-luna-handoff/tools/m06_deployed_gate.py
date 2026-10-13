@@ -34,7 +34,9 @@ REQUIRED = {
     "actor-transition-coordinator", "actor-transition-real-world", "actor-transition-recovery",
     "host-actor-controller", "host-actor-controller-native", "presentation-owner",
     "presentation-stream", "shared-render-client", "presentation-server",
-    "presentation-input-bindings", "geometry-presentation-native", "geometry-native-crosshost",
+    "presentation-input-bindings", "geometry-presentation-native",
+    "geometry-native-crosshost", "geometry-process-identity-witness",
+    "geometry-native-fixture-regressions",
 }
 DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
 GEOMETRY_CASES = [f"test_{i:02d}_" for i in range(1, 10)]

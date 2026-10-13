@@ -486,12 +486,17 @@ class GateStaticTests(unittest.TestCase):
                 local_names=sorted(set(gate.REQUIRED)-gate.DEDICATED_CROSSHOST))))
         result = gate._validate_local_run(receipt, 'sb16', 'a' * 40)
         self.assertEqual(set(result['inventories']), set(gate.PROFILES))
-        data = json.loads((receipt.parent / 'Debug/inventory.json').read_text())
-        data['names'].remove('geometry-presentation-native')
-        data['local_names'].remove('geometry-presentation-native')
-        (receipt.parent / 'Debug/inventory.json').write_text(json.dumps(data))
-        with self.assertRaisesRegex(RuntimeError, 'misses mandatory'):
-            gate._validate_local_run(receipt, 'sb16', 'a' * 40)
+        for missing in ('geometry-presentation-native',
+                        'geometry-process-identity-witness',
+                        'geometry-native-fixture-regressions'):
+            data = dict(names=sorted(gate.REQUIRED),
+                         dedicated_crosshost=['geometry-native-crosshost'],
+                         local_names=sorted(set(gate.REQUIRED)-gate.DEDICATED_CROSSHOST))
+            data['names'].remove(missing)
+            data['local_names'].remove(missing)
+            (receipt.parent / 'Debug/inventory.json').write_text(json.dumps(data))
+            with self.assertRaisesRegex(RuntimeError, 'misses mandatory'):
+                gate._validate_local_run(receipt, 'sb16', 'a' * 40)
 
     def test_six_case_semantic_invocation_and_cleanup_positive_control(self):
         deployment = self.root / 'deployment'

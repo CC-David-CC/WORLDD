@@ -80,7 +80,7 @@ Each named category must be present. Record the requirement-to-suite mapping in 
 The reviewed held-input requirement shares host-actor-controller-native with native-controller.
 The separate host-actor-controller core suite remains mandatory.
 Run each registered suite once. Do not invent duplicate registrations for category names.
-The complete dynamic CTest inventory is checked in each profile. Local CTest runs every registration except `geometry-native-crosshost`, whose environment requires both hosts. The gate runs that registration through its dedicated native stage after both local host gates finish. `geometry-presentation-native` remains in local CTest.
+The complete dynamic CTest inventory is checked in each profile. Local CTest runs every registration except `geometry-native-crosshost`, whose environment requires both hosts. The gate runs that registration through its dedicated native stage after both local host gates finish. `geometry-presentation-native`, `geometry-process-identity-witness`, and `geometry-native-fixture-regressions` remain mandatory local registrations. The identity witness covers procfs process identity; the fixture regressions cover initial HostControl sequence adoption and native display selection.
 One gate process owns a user runtime lock on each host. Run the two hosts in parallel when available.
 Use persistent tmux and retain its exact exit code.
 The tool runs both profiles, all CTest suites, 51 harness tests, all 151 locked P10 cases, and five named storage-owner scenarios.
