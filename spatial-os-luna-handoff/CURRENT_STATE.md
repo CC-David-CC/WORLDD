@@ -5,7 +5,8 @@ Debug elapsed times were 8.63 seconds on sb16 and 10.19 seconds on sb16-2.
 Sanitizer elapsed times were 12.23 seconds on sb16 and 10.40 seconds on sb16-2.
 Command and wrapper exits were zero. No sanitizer diagnostics or skips were reported.
 Owned resource scopes were removed. No unexpected population remained.
-Final controller input-pin and fixture cleanup audits remain pending.
+Final controller input-pin and fixture cleanup audits passed on both hosts.
+Each host preserved all 1,475 explicit pins. No fixture processes remained.
 Runner source is d447ee6d0ddcc1197ab257d028e3b00012ccf9c9.
 Python caller correction is b4ae69e5d246c55893c3f343daa9e7ddfe806005.
 Production source and siblings remain frozen at 258920de00e45448f104eedcc97147cf878406b3.
@@ -16,7 +17,7 @@ The focused metadata snapshots match their manifests and actual test commands.
 The old full sanitizer metadata lacks a relocation receipt. Preserve this full-gate caveat.
 New combined qualification requires fresh metadata and relocation receipts for both profiles.
 
-Next: qualify the thirteen-method storage retirement correction on both hosts and profiles.
+The storage worker now owns both released hosts for thirteen-method retirement qualification.
 Then qualify destination-workspace selection and combine the reviewed corrections.
 The final gate launcher also needs source/local storage evidence placement.
 That correction has a separate bounded worker task. No normal gate result is synthesized.
