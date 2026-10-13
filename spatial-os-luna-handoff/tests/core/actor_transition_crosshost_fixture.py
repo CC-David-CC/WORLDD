@@ -37,6 +37,23 @@ import test_actor_transition_crosshost as harness
 
 HOSTS = ('sb16', 'sb16-2')
 
+def deployed_source(bundle):
+    return bundle / 'source' if (bundle / 'source').is_dir() else bundle
+
+def deployed_profile(bundle, profile):
+    name = {'debug': 'Debug', 'asan': 'ASan-UBSan'}[profile]
+    candidate = bundle / 'build' / name
+    if (bundle / 'source').is_dir() or (bundle / 'provenance.json').is_file():
+        if not candidate.is_dir():
+            raise RuntimeError('Final deployment is missing the requested build profile: ' + name)
+        return candidate
+    return candidate if candidate.is_dir() else bundle / profile
+
+def fixture_path(bundle, name):
+    source = deployed_source(bundle)
+    candidates = (source / 'tests' / 'core' / name, source / name)
+    return next((path for path in candidates if path.is_file()), candidates[0])
+
 
 def write_private(path, message):
     path.write_text(text_format.MessageToString(message), encoding='utf-8')
@@ -47,8 +64,9 @@ def write_private(path, message):
 def import_issuer_fixture(bundle, profile):
     # Existing test modules consume production executable arguments at import.
     previous = sys.argv[:]
-    sys.argv = [sys.argv[0], str(bundle / profile / 'identityd'),
-                str(bundle / profile / 'spatial-issuer-client'), str(bundle / profile / 'worldd')]
+    artifacts = deployed_profile(bundle, profile)
+    sys.argv = [sys.argv[0], str(artifacts / 'identityd'),
+                str(artifacts / 'spatial-issuer-client'), str(artifacts / 'worldd')]
     try:
         from test_world_identity import WorldIdentityFixture
         from test_identity_tls import TlsFixture
@@ -59,7 +77,7 @@ def import_issuer_fixture(bundle, profile):
         def setup_owned(self, root, address, evidence, fail_after=None):
             self.root, self.address, self.evidence = root, address, evidence
             self.fail_after = fail_after
-            self.bundle_binary = bundle / profile / 'identityd'
+            self.bundle_binary = deployed_profile(bundle, profile) / 'identityd'
             self.state = root / 'issuer'
             self.state.mkdir(mode=0o700)
             self.connections, self.daemons, self.worlds = [], [], []
@@ -186,6 +204,9 @@ def import_issuer_fixture(bundle, profile):
 class Run:
     def __init__(self, args):
         self.bundle, self.profile, self.output = args.bundle.resolve(), args.profile, args.output.resolve()
+        self.source = deployed_source(self.bundle)
+        self.artifacts = deployed_profile(self.bundle, self.profile)
+        self.python = self.artifacts / 'python'
         self.token = uuid.uuid4().hex
         self.resources = []
         self.issuer = None
@@ -243,11 +264,11 @@ class Run:
                              shlex.join(list(map(str, argv)))], payload, timeout, private_output)
 
     def helper(self, host, operation, root=None, payload=None, **options):
-        command = ['env', 'PYTHONPATH=' + str(self.bundle / self.profile / 'python') + ':' + str(self.bundle),
-                   'LD_LIBRARY_PATH=' + str(self.bundle / self.profile / 'lib'),
+        command = ['env', 'PYTHONPATH=' + str(self.python) + ':' + str(self.source / 'tests' / 'core') + ':' + str(self.source),
+                   'LD_LIBRARY_PATH=' + str(self.artifacts / 'lib'),
                    'PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python',
                    'ASAN_OPTIONS=detect_leaks=1:halt_on_error=1', 'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
-                   'python3', str(self.bundle / 'actor_transition_crosshost_host.py'), operation, self.token]
+                   'python3', str(fixture_path(self.bundle, 'actor_transition_crosshost_host.py')), operation, self.token]
         if root:
             command += ['--root', str(root)]
         for name, value in options.items():
@@ -264,6 +285,18 @@ class Run:
             raise AssertionError('Production management failed: ' + str(reply))
         return result_value(reply)
 
+    def verify_remote_source(self, host):
+        provenance = self.bundle / 'provenance.json'
+        if not provenance.is_file():
+            self.remote(host, ['sh', '-c', 'cd ' + shlex.quote(str(self.source)) + ' && sha256sum -c SHA256SUMS'], timeout=60)
+            return
+        record = json.loads(provenance.read_text())
+        payload = json.dumps(dict(root=str(self.bundle / 'source'), files=record['source_sha256'])).encode()
+        script = "import hashlib,json,pathlib,sys; d=json.load(sys.stdin); r=pathlib.Path(d['root']); b=[n for n,h in d['files'].items() if hashlib.sha256((r/n).read_bytes()).hexdigest()!=h]; print(json.dumps({'ok':not b,'bad':b[:8]})); sys.exit(bool(b))"
+        result = self.remote(host, ['python3', '-c', script], payload=payload, timeout=60)
+        if not json.loads(result).get('ok'):
+            raise AssertionError('Remote deployed source does not match pinned provenance')
+
     def preflight(self):
         identities = {}
         for host in HOSTS:
@@ -276,7 +309,7 @@ class Run:
             raw = self.remote(host, ['hostname', '-I'])
             addresses = [ipaddress.ip_address(item) for item in raw.decode().split()]
             self.addresses[host] = str(next(item for item in addresses if item.version == 4 and not item.is_loopback))
-            self.remote(host, ['sh', '-c', 'cd ' + shlex.quote(str(self.bundle)) + ' && sha256sum -c SHA256SUMS'], timeout=60)
+            self.verify_remote_source(host)
             self.remote(host, ['sh', '-c', 'command -v tmux && command -v openssl'])
         if identities[HOSTS[0]]['machine_id'] == identities[HOSTS[1]]['machine_id']:
             raise AssertionError('Two selectors refer to one machine')
@@ -318,7 +351,7 @@ class Run:
             if created != str(root):
                 raise AssertionError('Created path differs from recorded owned root')
             self.checkpoint(host + '-root')
-            binary = self.bundle / self.profile / 'worldd'
+            binary = self.artifacts / 'worldd'
             raw = self.helper(host, 'initialize', root, binary=binary)
             stream = io.BytesIO(raw)
             world_reply = read_message(stream, core.Reply)
@@ -359,7 +392,7 @@ class Run:
                 'participant.pem': service_key, 'service.pem': self.issuer.service_key.read_bytes(),
                 'service.crt': self.issuer.service_cert.read_bytes(), 'issuer.crt': self.issuer.server_cert.read_bytes(),
                 'server.pem': server_key.read_bytes(), 'server.crt': server_cert.read_bytes(),
-                'runtime.textproto': (self.bundle / self.profile / 'runtime.textproto').read_bytes(),
+                'runtime.textproto': (self.artifacts / 'runtime.textproto').read_bytes(),
             }.items():
                 self.put(host, root, name, data)
             tls = session.WorldActorTlsConfig(protocol_version=1, certificate_path=str(root / 'server.crt'),
@@ -380,7 +413,7 @@ class Run:
         if self.worlds[HOSTS[0]]['world_id'] == self.worlds[HOSTS[1]]['world_id']:
             raise AssertionError('Worlds do not have independent identities')
         observations = {}
-        binary_hash = hashlib.sha256((self.bundle / self.profile / 'worldd').read_bytes()).hexdigest()
+        binary_hash = hashlib.sha256((self.artifacts / 'worldd').read_bytes()).hexdigest()
         for index, host in enumerate(HOSTS):
             world = self.worlds[host]
             observed = harness.host_evidence(host, world['port'], str(world['root'] / 'state/world.db'), binary_hash)
@@ -395,7 +428,7 @@ class Run:
                     source_tls_config_path=str(config), source_world_id=world['world_id'],
                     seed_context=plan_pb.ActorTransitionCrosshostRequest.SeedContext(room='saved-room',
                                                                                    pose=pose, departure_id=os.urandom(32)))
-                output = self.command([str(self.bundle / self.profile / 'spatial-actor-transition-crosshost-probe')],
+                output = self.command([str(self.artifacts / 'spatial-actor-transition-crosshost-probe')],
                                       frame(request), timeout=20, private_output=True)
                 reply = harness.read_frame(output, plan_pb.ActorTransitionCrosshostReply)
                 if not reply.done or reply.driver_error or not reply.HasField('seeded_departure') or \
@@ -407,8 +440,8 @@ class Run:
                 read = plan_pb.ActorTransitionDurableReadRequest(protocol_version=1,
                     database_path=str(world['root'] / 'state/world.db'), actor_id=self.actor_id(name),
                     expected_world_id=world['world_id'])
-                raw = self.remote(host, ['env', 'PYTHONPATH=' + str(self.bundle / self.profile / 'python'),
-                    'python3', str(self.bundle / 'actor_transition_durable_witness.py')], frame(read))
+                raw = self.remote(host, ['env', 'PYTHONPATH=' + str(self.python),
+                    'python3', str(fixture_path(self.bundle, 'actor_transition_durable_witness.py'))], frame(read))
                 saved = harness.read_frame(raw, plan_pb.ActorTransitionDurableReadReply)
                 entity = core.Entity.FromString(saved.entity)
                 if saved.error or not saved.actor_present or entity.id != self.actor_id(name) or \
@@ -469,17 +502,19 @@ class Run:
                               tls_client_ca_sha256=hashlib.sha256(self.issuer.service_cert.read_bytes()).hexdigest())
                     for host, world in self.worlds.items()},
             issuer_id=self.issuer.info.issuer_id.hex(), issuer_public_key=self.issuer.info.public_key.hex(),
-            actors={name: self.actor_id(name) for name in self.actors}, cases=len(plan.cases)))
+            actors={name: self.actor_id(name) for name in self.actors}, cases=len(plan.cases),
+            semantic_cases=[({'1': 'round-trip', '2': 'private-denial', '3': 'unavailable-destination'}[str(case.scenario)] + ':' +
+                case.source_host + '-to-' + case.steps[0].destination_host) for case in plan.cases]))
         return path
 
     def execute(self):
         env = os.environ.copy()
-        env['PYTHONPATH'] = str(self.bundle / self.profile / 'python') + ':' + str(self.bundle)
-        env['SPATIAL_ACTOR_TRANSITION_WITNESS'] = str(self.bundle / 'actor_transition_durable_witness.py')
-        env['SPATIAL_ACTOR_TRANSITION_WITNESS_PYTHONPATH'] = str(self.bundle / self.profile / 'python')
+        env['PYTHONPATH'] = str(self.python) + ':' + str(self.source / 'tests' / 'core') + ':' + str(self.source)
+        env['SPATIAL_ACTOR_TRANSITION_WITNESS'] = str(fixture_path(self.bundle, 'actor_transition_durable_witness.py'))
+        env['SPATIAL_ACTOR_TRANSITION_WITNESS_PYTHONPATH'] = str(self.python)
         env['SPATIAL_ACTOR_TRANSITION_EVIDENCE'] = str(self.output)
-        command = [sys.executable, str(self.bundle / 'test_actor_transition_crosshost.py'),
-                   str(self.bundle / self.profile / 'spatial-actor-transition-crosshost-probe'), str(self.plan_path)]
+        command = [sys.executable, str(fixture_path(self.bundle, 'test_actor_transition_crosshost.py')),
+                   str(self.artifacts / 'spatial-actor-transition-crosshost-probe'), str(self.plan_path)]
         host_support.atomic_json(self.output / 'harness-command.json', dict(argv=command, timeout=720))
         with (self.output / 'harness.stdout').open('wb') as output, (self.output / 'harness.stderr').open('wb') as error:
             try:
@@ -511,9 +546,9 @@ class Run:
                                                error='Owned worldd exit was ' + code))
             except Exception as error:
                 errors.append(dict(host=host, root=str(root), error=str(error), recovery=[
-                    'env', 'PYTHONPATH=' + str(self.bundle / self.profile / 'python') + ':' + str(self.bundle),
+                    'env', 'PYTHONPATH=' + str(self.python) + ':' + str(self.source / 'tests' / 'core') + ':' + str(self.source),
                     'PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python',
-                    'python3', str(self.bundle / 'actor_transition_crosshost_host.py'), 'stop', self.token, '--root', str(root)]))
+                    'python3', str(fixture_path(self.bundle, 'actor_transition_crosshost_host.py')), 'stop', self.token, '--root', str(root)]))
         if self.issuer is not None:
             try:
                 self.issuer.cleanup_owned()
