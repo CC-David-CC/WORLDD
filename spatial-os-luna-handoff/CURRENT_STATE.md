@@ -1,3 +1,22 @@
+## 2026-10-13: M07 qualification map reviewed and checkpointed
+
+M07 planning branch m07/qualification-map-20261013 is verified on box-git.
+Commit: b09b59af958c80782ba9716ad9a33465d0853997.
+Base: 149e75e90963a07560d4d1bcb70f76c086bbd2f5.
+The sole added file is docs/M07_QUALIFICATION_MAP_2026-10-13.txt.
+File SHA256: b7caaebdc21065a4c3ad0a235856a5f4e0594149d7cbcceff1abd67e6666138f.
+Primary reviewed the map and independently verified the remote ref and push receipt.
+The checkpoint is UNQUALIFIED planning evidence. No M07 implementation or runtime checks ran.
+The map covers presentation authority, independent copies, coherent captures, containment, resource limits, and recovery.
+Visibility revocation removes geometry. File-access revocation preserves otherwise authorized locked geometry.
+M07 implementation waits for M06 qualification.
+The pushed commit subject has a quoting defect. Preserve history; future messages use transferred literal files.
+
+Both original M06 gate and CTest processes remain live on the frozen 4f241 candidate.
+Latest completed Debug records are 142/164 on sb16 and 119/164 on sb16-2.
+These partial counts do not establish qualification. ASan, storage, and cross-host stages remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Peer SSH prerequisite repaired; local gates continue
 
 Primary verified strict fixture-key SSH in both directions. Both commands returned the expected hostnames and exit zero.
