@@ -1,4 +1,19 @@
-Current checkpoint, 2026-10-12:
+Current checkpoint, 2026-10-13:
+Snapshot-size task fc302de44670f87737dd7ab46ef83b24c60f1612 is FOCUSED-PASS and BOX-GIT VERIFIED.
+Its branch is m06/linear-snapshot-size-20261013. It is not integrated into the milestone branch.
+Both hosts/profiles passed standalone snapshot checks, eleven lifecycle tests, count-limit, and oversized snapshot.
+Evidence: spatial-os-luna-handoff/evidence/m06-geometry-count-asan-diagnosis-2026-10-13/REVIEW.txt.
+a5500 Luna medium: branch m06/geometry-qualification-candidate-20261013, base fc302de44.
+Worktree: /home/dflanag3/src/spacial-m06-geometry-qualification-candidate-20261013.
+Task: complete fresh Debug/ASan ON/OFF artifact closure and exact focused inventory. Runtime UNRUN there.
+middle-child Luna medium: branch m06/semantic-crosshost-gate, base 992e37d5d48a51081ca26f2d6e3211dcda0fa195.
+Worktree: /home/dflanag3/src/spacial-m06-semantic-gate-20261012.
+Task: reproduce and correct gate path containment and timeout cleanup; preserve the unrelated fixture draft.
+Twenty prior Linux static tests passed. Two new review regressions reproduced defects. Correction is active.
+M01-M05 qualified. M06 active. Native geometry presentation and full M06 gate remain pending.
+M07-M16 remain pending. The entries below describe older checkpoints.
+
+Previous checkpoint, 2026-10-12:
 Combined host-session four-profile build evidence is committed as1ecd27f; build job is terminal.
 Geometry task8bdda76 is box-git verified and UNQUALIFIED. First Debug runs stopped with3 fixture failures each.
 Both runtime slots are clean. Reviewed fixture corrections and a hashed test overlay precede Debug02 retries.

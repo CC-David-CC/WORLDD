@@ -1,0 +1,6 @@
+test_geometry_oversized_world_snapshot_is_controlled (_geometry_count_limit_diagnostic.GeometryViewTests.test_geometry_oversized_world_snapshot_is_controlled) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 103.469s
+
+OK

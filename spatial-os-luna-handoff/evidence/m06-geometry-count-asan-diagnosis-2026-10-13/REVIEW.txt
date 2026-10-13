@@ -1,0 +1,63 @@
+M06 snapshot-size fix: focused review, 2026-10-13
+
+Checkpoint: fc302de44670f87737dd7ab46ef83b24c60f1612.
+Branch: m06/linear-snapshot-size-20261013.
+Box-git verifies this exact branch commit. Read checkpoint/commit.json and checkpoint/push.json.
+Status: FOCUSED-PASS. Not integrated into the milestone branch. M06 remains incomplete.
+
+The original count reproduction failed after 4,097 real object creations.
+Snapshot construction took 4,265 ms. Validation took 15 ms.
+The next issuer exchange reported EOF after a 4,296 ms success gap.
+The independent fixture sets its issuer idle timeout to 3,000 ms.
+The blocking snapshot repeatedly measured the growing protobuf message.
+That repeated traversal made the construction work quadratic.
+
+The fix counts metadata once and each entity's protobuf field once.
+A generated one-entity envelope supplies the exact encoded field size.
+Checked addition preserves the existing max_frame_bytes - 64 threshold.
+Equality remains accepted. Oversize remains typed RESOURCE_EXHAUSTED.
+Sorting, transactions, the rejection message, and no-partial behavior remain intact.
+No timeout, retry, protocol schema, or existing acceptance assertion changed.
+
+Primary reviewed all four changed source files and the production caller.
+The new regression checks encoded-size boundaries and a real WorldStore rejection.
+Both Debug and ASan builds completed on a5500.
+The following focused checks passed on sb16 and sb16-2 in both profiles:
+- snapshot-size-regression: four executable runs.
+- worldd-lifecycle: eleven tests per run, forty-four tests total.
+- unchanged geometry count-limit case: four cases.
+- unchanged oversized-world-snapshot case: four cases.
+Total: fifty-six focused check executions passed. No skips were credited.
+Sanitizer output inspection found no diagnostics in the retained passing runs.
+
+The sb16 ASan count log reports construction_ms=247 and validation_ms=16.
+It contains the intended validation rejection and no issuer exchange failure.
+Debug and ASan worldd hashes match across both hosts:
+Debug: 14e1ecf39b4050356573e0a14ce9f57227b4cf9c8bdf663139d03c952946ef87.
+ASan: b63526d6e90ca530dd1186125163987b7c3c148e48b66da1d6735cd651ec4bd5.
+The unchanged geometry fixture hash is 27f384275d9c078c3bf73740fabc120b224c4a88da5a6875adbbf8df90385901.
+
+Each count and oversized run retains a terminal case receipt and unittest summary.
+Each lifecycle and standalone run retains command and wrapper exit records.
+daemon-sb16-2-shared-latest contains the latest logs from a shared evidence directory.
+Its count log is the later Debug run. Its oversized log is the later ASan run.
+Do not attribute those two shared files to every earlier profile attempt.
+Separate per-run receipts prove each profile result.
+
+Original failures remain under sb16/ and in the host qualification directories.
+Missing runtime config and sibling helper attempts were setup failures.
+The first direct oversized Debug launch lacked SPATIAL_SECURITY_EVIDENCE.
+That setup failure remains on sb16 as geometry-oversized-debug01.case.log.
+The corrected Debug02 invocation passed with an explicit fixture environment.
+Two corrected oversized launchers wrote PowerShell's True as their launcher exit.
+Those malformed launcher receipts do not prove exit zero.
+Their bounded subprocess receipts independently record terminal test_exit=0.
+The skill wrapper remains mandatory for future launcher receipts.
+
+Remaining work:
+- Qualify the combined geometry and host-session candidate with its complete artifact closure.
+- Integrate reviewed geometry source and this fix into the milestone branch.
+- Implement and qualify native geometry presentation on both hosts.
+- Qualify the cross-host gate's runtime behavior.
+- Freeze the combined M06 candidate and run its full two-host phase gate.
+The full M06 gate and M07-M16 remain unrun.

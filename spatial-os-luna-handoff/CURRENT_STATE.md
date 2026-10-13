@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-13: Linear snapshot fix passes focused checks on both hosts
+
+Read evidence/m06-geometry-count-asan-diagnosis-2026-10-13/REVIEW.txt for preserved failures and passing receipts.
+Snapshot construction repeatedly measured the growing protobuf reply. This made the work quadratic.
+The measured 4,265 ms dispatch exceeded the fixture's 3,000 ms issuer idle window.
+Checkpoint fc302de44670f87737dd7ab46ef83b24c60f1612 counts each entity's encoded protobuf field once.
+The unchanged threshold, typed rejection, sorting, and transaction semantics remain intact.
+No timeout or existing acceptance assertion changed.
+The branch m06/linear-snapshot-size-20261013 is FOCUSED-PASS and verified on box-git.
+It remains outside the milestone branch.
+Both hosts passed Debug and ASan snapshot regression, eleven worldd lifecycle tests, count-limit, and oversized-snapshot checks.
+These are fifty-six focused check executions. The full M06 gate remains unrun.
+The sb16 ASan count construction fell to 247 ms and returned its controlled rejection.
+A fresh complete combined-source artifact bundle is assigned on a5500 in a separate worktree.
+A separate Luna task reviews the gate's path containment and timeout cleanup on middle-child.
+The gate draft's twenty static Linux fixture checks passed before that review.
+Native geometry presentation remains unimplemented. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-12: Issuer EOF isolated; geometry timing remains under diagnosis
 
 Read evidence/m06-issuer-diagnostic-2026-10-12 for the preserved sb16 diagnostic attempts.

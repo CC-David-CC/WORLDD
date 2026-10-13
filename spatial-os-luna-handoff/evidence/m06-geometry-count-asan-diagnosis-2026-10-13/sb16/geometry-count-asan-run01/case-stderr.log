@@ -1,0 +1,27 @@
+test_geometry_count_limit_is_controlled_and_other_actor_survives (_geometry_count_limit_diagnostic.GeometryViewTests.test_geometry_count_limit_is_controlled_and_other_actor_survives) ... ERROR
+
+======================================================================
+ERROR: test_geometry_count_limit_is_controlled_and_other_actor_survives (_geometry_count_limit_diagnostic.GeometryViewTests.test_geometry_count_limit_is_controlled_and_other_actor_survives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-qualification/m06-issuer-timing-20261012-02/bundle/tests/core/test_geometry_view.py", line 175, in test_geometry_count_limit_is_controlled_and_other_actor_survives
+    self.denied(peer.call(geometry_view=session.WorldGeometryViewRequest()), core.INVALID_ARGUMENT)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-issuer-timing-20261012-02/bundle/tests/core/test_world_identity.py", line 50, in call
+    def call(self, **operation): return self.request(session.WorldSessionRequest(protocol_version=1,**operation))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-issuer-timing-20261012-02/bundle/tests/core/test_world_identity.py", line 47, in request
+    reply=receive(self.stream.recv,self.stream,session.WorldSessionReply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-issuer-timing-20261012-02/bundle/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-issuer-timing-20261012-02/bundle/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 1 test in 104.916s
+
+FAILED (errors=1)

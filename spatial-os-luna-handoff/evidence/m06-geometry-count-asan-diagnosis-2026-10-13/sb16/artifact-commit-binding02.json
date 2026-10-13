@@ -1,0 +1,60 @@
+{
+  "source_commit": "5cbec99d1ad2844da1b8fd4b709c8e0444beb414",
+  "archive_path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis03/asan-diagnostic-supplement02.tar.gz",
+  "archive_sha256": "c2533e333f59ad294120dd92ecb971731117fb41789ab9c8e2114d968db91508",
+  "member_manifest_sha256": "29ad41d42b7f5cb51d721aac458e2293aabdd6752395014b90f2c2453301e85d",
+  "worldd_sha256": "b8fea381b0d5c51fcd6ed474146fce1e4414e306351bf2f46957f66d878bf19a",
+  "embedded_build_id": "sha256:226b399e69e3d0d89e075f3203312081e2e897d5df9a2e362576d44191ece8a7",
+  "profiles": {
+    "debug": {
+      "binaries": {
+        "worldd": {
+          "path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis01/build-debug/worldd",
+          "sha256": "2df8692f9cc7684889b4b89832f1dc80271f853d6e5be660552588a60bce46ce"
+        },
+        "spatial-issuer-client": {
+          "path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis01/build-debug/spatial-issuer-client",
+          "sha256": "19f03a924a9a2a589c20e2f4449be22cfc5bd773b7c86d65fbe4088e1d223a5a"
+        },
+        "spatial-issuer-failure-diagnostic": {
+          "path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis01/build-debug/spatial-issuer-failure-diagnostic",
+          "sha256": "890b7ca3c9a3af766c0063a5449a36e3cb74adc67f577b48e7a487fb43e1e108"
+        }
+      },
+      "configure_exit": "0",
+      "target_build_exit": "0",
+      "worldd_rebuild_exit": "0",
+      "embedded_build_id_verified": "sha256:7291e33d6c4786f4ffa9e24ff429910897d391cbead31b1b8d6ec89743b97547"
+    },
+    "asan": {
+      "binaries": {
+        "worldd": {
+          "path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis01/build-asan/worldd",
+          "sha256": "b8fea381b0d5c51fcd6ed474146fce1e4414e306351bf2f46957f66d878bf19a"
+        },
+        "spatial-issuer-client": {
+          "path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis01/build-asan/spatial-issuer-client",
+          "sha256": "aa44adf72d94b2ae052bb659b83d2ff191c3cd9b08410c4058eb78cf1da80f63"
+        },
+        "spatial-issuer-failure-diagnostic": {
+          "path": "/home/dflanag3/src/spacial-m06-geometry-issuer-diagnosis-20261012/local/diagnosis01/build-asan/spatial-issuer-failure-diagnostic",
+          "sha256": "cd9d08a31517dca48c80ebc0b2215ccf27619cc447307155a97dee4705b0fa99"
+        }
+      },
+      "configure_exit": "0",
+      "target_build_exit": "0",
+      "worldd_rebuild_exit": "0",
+      "embedded_build_id_verified": "sha256:226b399e69e3d0d89e075f3203312081e2e897d5df9a2e362576d44191ece8a7"
+    }
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "6ee6599d3374980a3016effadf5219f882e7cb1900ebf77e6b83479cccb18148",
+    "src/identity/issuer_client.cpp": "709af118e9144bc383921bb40d3a1e36193fee3026cd3141c286303fc1bac20c",
+    "src/identity/issuer_client.hpp": "e3a0334a0aa11a02f3fdbe74cfea5e5cdf6dd99a3ae35a1fa7fd1d16802822f7",
+    "src/world/identity_sessions.cpp": "020c0ba06700ff42566446757e7239f7c4990779c3d7f36f487d5d4265c3dc15",
+    "tests/core/test_issuer_client.py": "d08bea9d440167cad32b3f02d3f46cf9a164f7a36a8579bd9fa65823da907b43",
+    "tests/core/issuer_failure_diagnostic.cpp": "3ffab4992ab2201b7de4791621d85fde245c3f28abe24a6077fd33fa35b49c52"
+  },
+  "runtime": "UNRUN",
+  "supersedes": "bce23cd97abc828b2223552083eb902359b4e3d6383493e99fa1b4bea691ad1d"
+}

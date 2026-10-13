@@ -1,0 +1,1 @@
+argv: /home/dflanag3/spatial-qualification/m06-linear-snapshot-size-20261013/snapshot-size-asan
