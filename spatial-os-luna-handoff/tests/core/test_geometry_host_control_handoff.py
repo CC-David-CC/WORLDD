@@ -7,8 +7,8 @@ import host_session_pb2 as host
 from geometry_host_control_handoff import (
     HostControlHandoffError, adopt_initial_host_control,
 )
-# Import before unittest.main: inherited fixture modules consume their three binary argv values.
-from test_geometry_native_crosshost import NativeCrossHostTests
+# Consume fixture binary argv before unittest.main without exposing its TestCase to discovery.
+import test_geometry_native_crosshost as native_crosshost
 
 
 class HostControlHandoffTests(unittest.TestCase):
@@ -41,7 +41,7 @@ class HostControlHandoffTests(unittest.TestCase):
                 adopt_initial_host_control(reply, expected_request_id=1)
 
     def test_actor_state_method_does_not_shadow_inherited_state_path(self):
-        fixture = NativeCrossHostTests('test_07_forged_native_application_fields_and_descriptors_reject')
+        fixture = native_crosshost.NativeCrossHostTests('test_07_forged_native_application_fields_and_descriptors_reject')
         state_path = Path('/tmp/inherited-spatial-state')
         fixture.state = state_path
         self.assertIs(fixture.state, state_path)
