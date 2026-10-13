@@ -1,3 +1,21 @@
+## 2026-10-13: Full Debug gate results and focused recovery
+
+Both full Debug core runs completed with 141 passed and 23 failed registrations each.
+All 164 local registrations ran. The dedicated cross-host registration remains separate.
+Both hosts previously passed five production-OFF startup tests and 51 harness tests.
+Original failed core and launcher receipts remain preserved.
+
+Failure diagnosis identified missing user-bus environment and two obsolete fixture expectations.
+The attribution correction is reviewed at 642548ca0f56be01a32871b90b3e644f284cafa4.
+Its focused Debug and sanitizer qualification is assigned on both hosts.
+The controller fixture correction remains in development on a separate branch.
+Two storage registrations also fail because their deployed scratch root violates fixture setup requirements.
+Read defect blockers/m06-storage-fixture-deployment-root.txt for that separate diagnosis.
+
+Remaining Debug stages, full sanitizer gates, and combined cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+These results do not qualify M06.
+
 ## 2026-10-13: Full Debug gate found a user-bus launcher failure
 
 Both host gates remain live. Fourteen completed Debug registrations failed before their test bodies ran.

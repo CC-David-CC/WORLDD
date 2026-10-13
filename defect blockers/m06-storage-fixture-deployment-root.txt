@@ -1,0 +1,28 @@
+M06 storage fixture deployment root
+
+Status: Confirmed fixture setup failure. Corrected runtime checks remain unrun.
+Candidate: 258920de00e45448f104eedcc97147cf878406b3.
+
+Both hosts failed session-storage-owner and session-storage-contention.
+The suites contain two and three inner tests, respectively.
+The root volume helper fails before volume setup.
+It cannot resolve deployment/source/local because the archive omits this directory.
+
+Creating the directory alone is insufficient.
+The helper also requires the resolved volume root below source/local.
+The deployed gate sets SPATIAL_SECURITY_EVIDENCE below deployment/evidence instead.
+Preserve the helper's filesystem confinement check.
+
+Proposed correction:
+Provide a fresh, validated source/local runtime scratch directory for these two registrations.
+Set their SPATIAL_SECURITY_EVIDENCE to that directory explicitly.
+Do not change pinned source, production binaries, or other registrations.
+Record this fixture environment augmentation and its exact path.
+Retain volume setup, descriptor, mount, loop-device, and cleanup receipts.
+Rerun both full modules in Debug and sanitizer profiles on both hosts.
+
+Evidence:
+/home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment/evidence/m06-final258920de-HOST-20261013-01/Debug/core.log
+Registrations 152 and 153 report FileNotFoundError in storage_session_volume.py, line 17.
+This failure is separate from the user-bus launcher failures.
+It does not establish a production storage defect.
