@@ -5,12 +5,17 @@ import argparse
 import ast
 import copy
 import shutil
+import shlex
 import hashlib
+import io
+import ipaddress
 import json
 import os
+import pwd
 from pathlib import Path
 import re
 import socket
+import signal
 import subprocess
 import sys
 import tarfile
@@ -29,8 +34,10 @@ REQUIRED = {
     "actor-transition-coordinator", "actor-transition-real-world", "actor-transition-recovery",
     "host-actor-controller", "host-actor-controller-native", "presentation-owner",
     "presentation-stream", "shared-render-client", "presentation-server",
-    "presentation-input-bindings",
+    "presentation-input-bindings", "geometry-presentation-native", "geometry-native-crosshost",
 }
+DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
+GEOMETRY_CASES = [f"test_{i:02d}_" for i in range(1, 10)]
 SAN_RE = re.compile(r"AddressSanitizer|LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:")
 INNER_SKIP_RE = re.compile(r'^(?:\d+: )?(?:OK|FAILED)\s*\([^\n)]*skipped\s*=|'
                           r'^(?:\d+: )?.*\.\.\. skipped(?:\s|$)|\[\s*SKIPPED\s*\]', re.M)
@@ -613,7 +620,10 @@ def gate(a):
     required_slots = (a.native_controller, a.real_world, a.recovery, a.host_session, a.held_input)
     if any(not x for x in required_slots):
         raise RuntimeError("BLOCKED: explicitly name native-controller, real-world, recovery, production host-session, and held-input suites")
+    if a.native_controller != a.held_input:
+        raise RuntimeError("held-input shares host-actor-controller-native and must not create a duplicate suite mapping")
     requirement_suites = dict(zip(('native_controller', 'real_world', 'recovery', 'host_session', 'held_input'), required_slots))
+    requirement_suites.update(native_geometry_presentation="geometry-presentation-native", native_geometry_crosshost="geometry-native-crosshost")
     required = set(REQUIRED) | set(required_slots)
     out = root / "evidence" / (a.attempt or f"{host}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{uuid.uuid4().hex[:8]}")
     out.mkdir(parents=True, exist_ok=False)
@@ -669,15 +679,16 @@ def gate(a):
             if p.returncode: raise RuntimeError(profile + " inventory command failed")
             deployed = json.loads(p.stdout)["tests"]
             names = audit_inventory(deployed, required)
+            local_names = sorted(set(names) - DEDICATED_CROSSHOST)
             require_inventory_equal(deployed, expected_inventory, [])
             verify_inventory_paths(deployed, source, build, (target / 'ctest',))
-            write_json(invpath, dict(names=sorted(names), count=len(names), sha256=sha(target / "inventory.log")))
+            write_json(invpath, dict(names=sorted(names), count=len(names), dedicated_crosshost=sorted(DEDICATED_CROSSHOST), local_names=local_names, sha256=sha(target / "inventory.log")))
             row = report["profiles"][profile] = dict(status="running", inventory_count=len(names), commands=[
                 dict(name="inventory", command=["ctest", "--test-dir", str(build), "--show-only=json-v1"], exit_code=0, seconds=sec, assertions_passed=True)])
             commands = [
                 ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
                 ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
-                ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "--output-junit", str(target / "core.xml")], 14400),
+                ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", "^geometry-native-crosshost$", "--output-junit", str(target / "core.xml")], 14400),
                 ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
                 ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
             ]
@@ -698,7 +709,7 @@ def gate(a):
                         import xml.etree.ElementTree as ET
                         cases = list(ET.parse(target / "core.xml").getroot().iter("testcase"))
                         item["junit_cases"] = len(cases)
-                        item["all_registered_present"] = len({c.attrib.get("name") for c in cases}) == len(names) and {c.attrib.get("name") for c in cases} == set(names)
+                        item["all_registered_present"] = len({c.attrib.get("name") for c in cases}) == len(local_names) and {c.attrib.get("name") for c in cases} == set(local_names)
                         item["failed_or_skipped"] = any(c.find(x) is not None for c in cases for x in ("failure", "error", "skipped"))
                     except Exception as ex: item["assertion_error"] = repr(ex)
                 if label == "P10" and (target / "P10.json").exists():
@@ -713,7 +724,7 @@ def gate(a):
                     row["status"] = "failed"; write_json(out / "run.json", report)
                     raise RuntimeError(f"{profile} {label} failed with status {result.returncode}; subsequent stages stopped")
                 if label == "harness" and not item["expected_51"]: raise RuntimeError("harness inventory is not exactly 51 passing tests")
-                if label == "core" and (item.get("junit_cases") != len(names) or not item.get("all_registered_present") or item.get("failed_or_skipped")): raise RuntimeError("CTest full-suite JUnit assertion failed")
+                if label == "core" and (item.get("junit_cases") != len(local_names) or not item.get("all_registered_present") or item.get("failed_or_skipped")): raise RuntimeError("CTest full-suite JUnit assertion failed")
                 if label == "P10" and not (item.get("acceptance", {}).get("status") == "passed" and item["acceptance"].get("selected") == item["acceptance"].get("executed") == item["acceptance"].get("total_baseline") == 151 and item["acceptance"].get("not_selected") == 0 and not item["acceptance"].get("diagnostic_only") and item["acceptance"].get("through") == "P10" and item.get("acceptance_rows_valid")): raise RuntimeError("locked P10 inventory assertion failed")
                 if label == "bounded-storage-git":
                     review = target / "bounded-storage-git/review.json"
@@ -781,16 +792,514 @@ def gate(a):
         write_json(out / "run.json", report)
     return 1 if report["status"] == "failed" else 0
 
+def _read_json(path, label):
+    if not path.is_file():
+        raise RuntimeError(label + " receipt is missing")
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError) as error:
+        raise RuntimeError(label + " receipt is unreadable") from error
+
+def _run_on_host(host, argv, timeout=60, payload=None):
+    command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host, shlex.join(list(map(str, argv)))]
+    result = subprocess.run(command, input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
+    if result.returncode:
+        raise RuntimeError(host + " command failed: " + result.stderr.decode(errors="replace")[-1000:])
+    return result.stdout
+
+def _validate_remote_deployment(host, row, candidate):
+    root = row["path"]
+    script = ("import hashlib,json,pathlib,sys; r=pathlib.Path(sys.argv[1]); c=sys.argv[2]; "
+              "p=json.loads((r/'provenance.json').read_text()); d=json.loads((r/'deployment-receipt.json').read_text()); "
+              "bad=[n for n,h in p['source_sha256'].items() if hashlib.sha256((r/'source'/n).read_bytes()).hexdigest()!=h]; "
+              "print(json.dumps({'candidate':p.get('candidate'),'receipt_candidate':d.get('candidate'),'host':d.get('host'),"
+              "'status':d.get('status'),'source_ok':not bad,'bad':bad[:8]})); "
+              "sys.exit(p.get('candidate')!=c or d.get('candidate')!=c or d.get('host')!=pathlib.Path('/etc/hostname').read_text().strip().split('.')[0] or d.get('status')!='verified' or bool(bad))")
+    raw = _run_on_host(host, ["python3", "-c", script, root, candidate], timeout=120)
+    record = json.loads(raw)
+    if record.get("candidate") != candidate or record.get("receipt_candidate") != candidate or record.get("status") != "verified" or not record.get("source_ok"):
+        raise RuntimeError(host + " deployment/source pin mismatch: " + repr(record))
+    return record
+
+def _validate_geometry_inventory(inventory, host, profile):
+    names = inventory.get("names", [])
+    if len(names) != len(set(names)) or not set(REQUIRED).issubset(set(names)):
+        raise RuntimeError(host + " " + profile + " inventory misses mandatory M06 suites or contains duplicates")
+    if "geometry-native-crosshost" not in inventory.get("dedicated_crosshost", []):
+        raise RuntimeError("native cross-host CTest must be deferred to its dedicated provisioned stage")
+    local_names = sorted(set(names) - DEDICATED_CROSSHOST)
+    if inventory.get("local_names") != local_names:
+        raise RuntimeError(host + " " + profile + " local CTest inventory mapping is incomplete")
+    return sorted(names)
+
+def _validate_requirement_suites(suites, host):
+    if (suites.get("native_controller") != "host-actor-controller-native"
+            or suites.get("held_input") != suites.get("native_controller")
+            or suites.get("real_world") != "actor-transition-real-world"
+            or suites.get("recovery") != "actor-transition-recovery"
+            or suites.get("host_session") != "host-session-production-native"
+            or suites.get("native_geometry_presentation") != "geometry-presentation-native"
+            or suites.get("native_geometry_crosshost") != "geometry-native-crosshost"):
+        raise RuntimeError(host + " local requirement mapping is incomplete or duplicates held-input")
+
+
+def _validate_local_run(path, expected_host, candidate):
+    report = _read_json(path, expected_host + " local gate")
+    if report.get("host") != expected_host or report.get("candidate") != candidate or report.get("status") != "local_passed_crosshost_pending" or report.get("phase_complete") is not False:
+        raise RuntimeError(expected_host + " local gate receipt does not match the pending candidate")
+    _validate_requirement_suites(report.get("requirement_suites", {}), expected_host)
+    inventories = {}
+    for profile in PROFILES:
+        profile_dir = path.parent / profile
+        inventory = _read_json(profile_dir / "inventory.json", expected_host + " " + profile + " inventory")
+        names = _validate_geometry_inventory(inventory, expected_host, profile)
+        row = report.get("profiles", {}).get(profile, {})
+        if row.get("status") not in ("passed_needs_crosshost_and_review", "passed"):
+            raise RuntimeError(expected_host + " " + profile + " local profile did not pass")
+        core = next((item for item in row.get("commands", []) if item.get("name") == "core"), {})
+        if (core.get("exit_code") != 0 or core.get("junit_cases") != len(names) - len(DEDICATED_CROSSHOST)
+                or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
+            raise RuntimeError(expected_host + " " + profile + " local CTest receipt is incomplete")
+        inventories[profile] = dict(path=str(profile_dir / "inventory.json"), sha256=sha(profile_dir / "inventory.json"), names=names)
+    return dict(path=str(path), sha256=sha(path), inventories=inventories)
+
+def _validate_plan(plan, plan_path):
+    if any(key in plan for key in ("credentials", "bearer_token", "private_key", "actor_secret")):
+        raise RuntimeError("cross-host plan must not contain credentials or private keys")
+    if plan.get("schema") != 1:
+        raise RuntimeError("cross-host plan schema must be 1")
+    candidate = plan.get("candidate")
+    if not isinstance(candidate, str) or not re.fullmatch(r"[0-9a-f]{40}", candidate):
+        raise RuntimeError("cross-host plan must pin one full candidate commit")
+    if plan.get("runner") != "tools/run_geometry_native_crosshost.py":
+        raise RuntimeError("cross-host plan must select the reviewed native geometry runner")
+    if plan.get("directions") != ["sb16-to-sb16-2", "sb16-2-to-sb16"] or plan.get("profiles") != list(PROFILES):
+        raise RuntimeError("cross-host plan must cover both directions and both profiles")
+    expected_cases = [f"{case}:{direction}" for direction in plan["directions"]
+                      for case in ("round-trip", "private-denial", "unavailable-destination")]
+    if plan.get("semantic_cases") != expected_cases:
+        raise RuntimeError("cross-host plan must enumerate the six semantic cases exactly once")
+    if plan.get("provisioning") != "actor_transition_crosshost_fixture.py:production-private-two-world-issuer-mtls":
+        raise RuntimeError("cross-host plan provisioning selector is not the production fixture")
+    if set(plan.get("deployments", {})) != TEST_HOSTS or set(plan.get("local_runs", {})) != TEST_HOSTS:
+        raise RuntimeError("cross-host plan must provide both deployed hosts and local gate receipts")
+    for host, row in plan["deployments"].items():
+        if not Path(row.get("path", "")).is_absolute() or not re.fullmatch(r"[0-9a-f]{64}", row.get("provenance_sha256", "")) or not re.fullmatch(r"[0-9a-f]{64}", row.get("deployment_receipt_sha256", "")):
+            raise RuntimeError(host + " deployment path and receipt hashes are required")
+    if plan["deployments"]["sb16"]["path"] != plan["deployments"]["sb16-2"]["path"]:
+        raise RuntimeError("both hosts must use the same final deployment path")
+    for host, row in plan["local_runs"].items():
+        if not Path(row.get("path", "")).is_absolute() or not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", "")):
+            raise RuntimeError(host + " local run requires an absolute path and SHA-256")
+    output = Path(plan.get("evidence", {}).get("output", ""))
+    if not output.is_absolute() or output.exists():
+        raise RuntimeError("cross-host evidence output must be a new absolute path")
+    source_root = (Path(plan["deployments"]["sb16"]["path"]) / "source").resolve()
+    output = output.resolve()
+    plan_path = plan_path.resolve()
+    if plan_path.is_relative_to(source_root) or output.is_relative_to(source_root):
+        raise RuntimeError("cross-host evidence must remain outside the deployed source tree")
+    for profile in PROFILES:
+        if profile not in plan.get("native_geometry", {}):
+            raise RuntimeError("native geometry manifests must cover both build profiles")
+        hosts = plan["native_geometry"][profile].get("hosts", {})
+        if set(hosts) != TEST_HOSTS:
+            raise RuntimeError("native geometry manifest must name both hosts")
+        artifacts = Path(plan["deployments"]["sb16"]["path"])
+        short = "debug" if profile == "Debug" else "asan"
+        for host, row in hosts.items():
+            expected = {"source": artifacts / "source", "bin": artifacts / "build" / profile,
+                        "python": artifacts / "build" / profile / "python"}
+            if any(Path(row.get(key, "")) != value for key, value in expected.items()):
+                raise RuntimeError(profile + " " + host + " native manifest uses a wrong deployed source/profile layout")
+            for key in ("xserver", "evidence", "command_runner"):
+                if not Path(row.get(key, "")).is_absolute():
+                    raise RuntimeError(profile + " " + host + " native manifest lacks absolute " + key)
+            address = ipaddress.ip_address(row.get("address", ""))
+            if address.is_loopback or address.is_unspecified:
+                raise RuntimeError("native geometry needs reachable host addresses")
+    return candidate, output
+
+def _validate_semantic_receipt(output):
+    status = (output / "runtime-status.txt").read_text().splitlines()[0]
+    cleanup = _read_json(output / "cleanup.json", "semantic cleanup")
+    summary = _read_json(output / "plan-summary.json", "semantic plan")
+    harness_exit = (output / "harness.exit").read_text().strip()
+    harness_output = (output / "harness.stdout").read_text(errors="replace")
+    if status != "PASS" or harness_exit != "0" or "cross-host actor transition protobuf plan passed" not in harness_output:
+        raise RuntimeError("semantic fixture lacks a successful terminal harness receipt")
+    if cleanup.get("complete") is not True or cleanup.get("errors") != []:
+        raise RuntimeError("semantic fixture cleanup is incomplete")
+    expected = [f"{case}:{direction}" for direction in ("sb16-to-sb16-2", "sb16-2-to-sb16")
+                for case in ("round-trip", "private-denial", "unavailable-destination")]
+    if summary.get("cases") != 6 or summary.get("semantic_cases") != expected or set(summary.get("worlds", {})) != TEST_HOSTS:
+        raise RuntimeError("semantic fixture did not execute the six expected cases across both persistent worlds")
+    logs = [path for path in output.rglob("*") if path.is_file() and path.suffix in (".log", ".stdout", ".stderr")]
+    findings = [str(path.relative_to(output)) for path in logs if SAN_RE.search(path.read_text(errors="replace"))]
+    skips = [str(path.relative_to(output)) for path in logs if INNER_SKIP_RE.search(path.read_text(errors="replace"))]
+    if findings or skips:
+        raise RuntimeError("semantic logs contain sanitizer diagnostics or skipped checks")
+    return dict(cleanup_sha256=sha(output / "cleanup.json"), plan_summary_sha256=sha(output / "plan-summary.json"), logs_scanned=len(logs))
+
+def _validate_native_terminal(terminal, command_exit, wrapper_exit, stdout, stderr):
+    if terminal != "COMPLETE" or command_exit != "0" or wrapper_exit != "0":
+        raise RuntimeError("native geometry command, wrapper, or terminal receipt is incomplete")
+    if not re.search(r"Ran 9 tests in .*\n\nOK(?:\n|$)", stdout):
+        raise RuntimeError("native geometry does not report all nine passing cases")
+    if SAN_RE.search(stdout + stderr) or INNER_SKIP_RE.search(stdout):
+        raise RuntimeError("native geometry output contains sanitizer diagnostics or skips")
+
+def _validate_semantic_fixture(deployment, profile, output):
+    short = "debug" if profile == "Debug" else "asan"
+    source = deployment / "source"
+    account = pwd.getpwuid(os.getuid())
+    environment = {"PATH": "/usr/bin:/bin", "HOME": account.pw_dir, "USER": account.pw_name, "LOGNAME": account.pw_name,
+                   "PYTHONPATH": str(deployment / "build" / profile / "python") + ":" + str(source / "tests" / "core") + ":" + str(source),
+                   "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"}
+    command = [sys.executable, str(source / "tests/core/actor_transition_crosshost_fixture.py"),
+               "--bundle", str(deployment), "--profile", short, "--output", str(output)]
+    if output.exists():
+        raise RuntimeError("semantic fixture output path must be new")
+    launch_evidence = output.with_name(output.name + ".launch")
+    launch_evidence.mkdir(parents=True, exist_ok=False)
+    write_json(launch_evidence / "invocation.json", dict(argv=command, environment=environment))
+    process = subprocess.Popen(command, cwd=source, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    timed_out = False
+    try:
+        stdout, stderr = process.communicate(timeout=1800)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        process.send_signal(signal.SIGTERM)
+        try:
+            stdout, stderr = process.communicate(timeout=180)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate(timeout=10)
+    (launch_evidence / "stdout.log").write_bytes(stdout); (launch_evidence / "stderr.log").write_bytes(stderr)
+    (launch_evidence / "command.exit").write_text(("TIMEOUT" if timed_out else str(process.returncode)) + "\n")
+    if timed_out or process.returncode != 0:
+        raise RuntimeError(profile + " semantic cross-host fixture failed or timed out; inspect its retained evidence")
+    receipt = _validate_semantic_receipt(output)
+    return dict(status="passed", output=str(output), launch_evidence=str(launch_evidence), **receipt)
+
+def _run_semantic_fixture(deployment, profile, output):
+    return _validate_semantic_fixture(deployment, profile, output)
+
+def _receipt_text(host, path):
+    if host == "sb16":
+        return path.read_text(errors="replace") if path.is_file() else ""
+    script = "import pathlib,sys; p=pathlib.Path(sys.argv[1]); sys.stdout.write(p.read_text(errors='replace') if p.is_file() else '')"
+    data = _run_on_host(host, ["python3", "-c", script, str(path)], timeout=20)
+    return data.decode(errors="replace")
+
+def _wait_native_run(host, run_dir, timeout=1860):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        status = _receipt_text(host, run_dir / "terminal-status.txt").strip()
+        command = _receipt_text(host, run_dir / "command.exit").strip()
+        wrapper = _receipt_text(host, run_dir / "wrapper.exit").strip()
+        if status == "COMPLETE" and command and wrapper:
+            if command != "0" or wrapper != "0":
+                raise RuntimeError(host + " native geometry command/wrapper failed: " + command + "/" + wrapper)
+            return
+        time.sleep(5)
+    raise RuntimeError(host + " native geometry run has no terminal command/wrapper receipts")
+
+def _fetch_native_case_tree(host, run_dir, destination):
+    if host == "sb16":
+        return Path(run_dir) / "geometry"
+    archive = _run_on_host(host, ["tar", "-C", str(run_dir), "-cf", "-", "geometry"], timeout=90)
+    destination.mkdir(parents=True, exist_ok=False)
+    root = destination.resolve()
+    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as bundle:
+        for member in bundle.getmembers():
+            relative = Path(member.name)
+            target = (destination / relative).resolve()
+            if relative.is_absolute() or root not in target.parents or not (member.isfile() or member.isdir()):
+                raise RuntimeError(host + " native authority archive contains an unsafe entry")
+            if member.isdir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            stream = bundle.extractfile(member)
+            if stream is None:
+                raise RuntimeError(host + " native authority archive entry is unreadable")
+            target.write_bytes(stream.read())
+    return destination / "geometry"
+
+
+def _validate_local_native_cases(local_evidence, host):
+    expected = [f"test_{i:02d}_" for i in range(1, 10)]
+    directories = [path for path in local_evidence.iterdir() if path.is_dir()] if local_evidence.is_dir() else []
+    names = [path.name for path in directories]
+    if len(names) != 9 or any(not any(name.startswith(prefix) for name in names) for prefix in expected):
+        raise RuntimeError(host + " native geometry case evidence is incomplete")
+    local_rows = {}
+    for directory in directories:
+        terminal = _read_json(directory / "exact-unit-terminal.json", host + " exact-unit terminal")
+        unit_name = terminal.get("unit", "")
+        if (not re.fullmatch(r"spatial-m03-resources-m06-geometry-[0-9a-f]{32}\.service", unit_name)
+                or "LoadState=not-found" not in terminal.get("state", "")
+                or "ActiveState=inactive" not in terminal.get("state", "")
+                or terminal.get("cgroup_absent") is not True):
+            raise RuntimeError(host + " native geometry exact-unit cleanup is incomplete")
+        peer_path = directory / "peer-resource-terminal.txt"
+        if not peer_path.is_file():
+            raise RuntimeError(host + " native geometry case lacks peer cleanup evidence")
+        try:
+            peer = [json.loads(line) for line in peer_path.read_text(errors="replace").splitlines() if line]
+        except ValueError as error:
+            raise RuntimeError(host + " native geometry peer cleanup evidence is malformed") from error
+        adapter = [row for row in peer if "scope_removed" in row]
+        unit = [row for row in peer if "unit_after" in row]
+        if (len(adapter) != 1 or not adapter[0].get("scope_removed") or adapter[0].get("unexpected_population")
+                or adapter[0].get("exit_code") != 0 or len(unit) != 1 or unit[0].get("unit") != unit_name
+                or unit[0].get("cgroup_exists") or "LoadState=not-found" not in unit[0].get("unit_after", "")
+                or "ActiveState=inactive" not in unit[0].get("unit_after", "")):
+            raise RuntimeError(host + " native geometry peer cleanup failed")
+        required_records = (directory / "exact-unit-terminal.json", peer_path)
+        if any(not path.is_file() or path.stat().st_size == 0 for path in required_records):
+            raise RuntimeError(host + " native geometry required cleanup record is empty")
+        files = {path.name: sha(path) for path in directory.iterdir() if path.is_file()}
+        if not files:
+            raise RuntimeError(host + " native geometry case evidence is empty")
+        for path in directory.rglob("*.log"):
+            if SAN_RE.search(path.read_text(errors="replace")):
+                raise RuntimeError(host + " native geometry case contains sanitizer diagnostics")
+        local_rows[directory.name] = files
+    return local_rows
+
+def _validate_native_run(host, observer, run_dir, remote_evidence, expected_profile, evidence_cache):
+    stdout = _receipt_text(host, Path(run_dir) / "stdout.log")
+    stderr = _receipt_text(host, Path(run_dir) / "stderr.log")
+    terminal = _receipt_text(host, Path(run_dir) / "terminal-status.txt").strip()
+    command_exit = _receipt_text(host, Path(run_dir) / "command.exit").strip()
+    wrapper_exit = _receipt_text(host, Path(run_dir) / "wrapper.exit").strip()
+    _validate_native_terminal(terminal, command_exit, wrapper_exit, stdout, stderr)
+    local_evidence = _fetch_native_case_tree(host, run_dir, evidence_cache)
+    local_rows = _validate_local_native_cases(local_evidence, host)
+    remote_rows = {}
+    for case in local_rows:
+        path = Path(remote_evidence) / case / "geometry-host-session.log"
+        content = _receipt_text(observer, path)
+        if not content or SAN_RE.search(content):
+            raise RuntimeError(observer + " native observer evidence is missing or diagnostic-bearing: " + case)
+        remote_rows[case] = hashlib.sha256(content.encode()).hexdigest()
+    return dict(status="passed", authority=host, observer=observer, profile=expected_profile,
+                command_exit="0", wrapper_exit="0", terminal="COMPLETE", tests=9,
+                stdout_sha256=hashlib.sha256(stdout.encode()).hexdigest(), stderr_sha256=hashlib.sha256(stderr.encode()).hexdigest(),
+                local_case_evidence=local_rows, remote_witness_sha256=remote_rows)
+
+def _fresh_native_manifest(profile_manifest):
+    return copy.deepcopy(profile_manifest)
+
+
+def _install_timeout_runner(native, authority, observer, run_tag, output):
+    source_runner = {host: Path(native["hosts"][host]["command_runner"]) for host in TEST_HOSTS}
+    script_for = lambda path: ("#!/usr/bin/env bash\nset -u\ncheckout=$1\nrun_dir=$2\nshift 2\nexec bash " + shlex.quote(str(path)) + " \"$checkout\" \"$run_dir\" timeout --signal=TERM --kill-after=10 1800 \"$@\"\n")
+    wrapper_dir = Path(output) / "timeout-runners"
+    wrapper_dir.mkdir(parents=True, exist_ok=True)
+    local_wrapper = wrapper_dir / (run_tag + ".sh")
+    local_wrapper.write_text(script_for(source_runner["sb16"]), encoding="utf-8")
+    native["hosts"]["sb16"]["command_runner"] = str(local_wrapper)
+    authority_run = Path(native["hosts"][authority]["evidence"]) / run_tag / ("authority-" + authority)
+    observer_run = Path(native["hosts"][observer]["evidence"]) / run_tag / ("observer-for-" + authority)
+    for host, target in ((authority, authority_run), (observer, observer_run)):
+        if host == "sb16":
+            if target.exists():
+                raise RuntimeError("refusing reused native authority or observer evidence path")
+        else:
+            _run_on_host(host, ["test", "!", "-e", str(target)], timeout=15)
+    remote_path = Path(native["hosts"]["sb16-2"]["evidence"]) / run_tag / "run-command-timeout.sh"
+    _run_on_host("sb16-2", ["mkdir", "-p", str(remote_path.parent)])
+    remote_local = wrapper_dir / (run_tag + "-sb16-2.sh")
+    remote_local.write_text(script_for(source_runner["sb16-2"]), encoding="utf-8")
+    transfer = subprocess.run(["scp", "-q", str(remote_local), "sb16-2:" + str(remote_path)],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+    if transfer.returncode:
+        raise RuntimeError("cannot transfer native timeout runner to sb16-2")
+    digest = sha(remote_local)
+    remote_digest = _run_on_host("sb16-2", ["sha256sum", str(remote_path)]).decode().split()[0]
+    if digest != remote_digest:
+        raise RuntimeError("native timeout runner hash differs across hosts")
+    native["hosts"]["sb16-2"]["command_runner"] = str(remote_path)
+    return dict(sb16_path=str(local_wrapper), sb16_2_path=str(remote_path), sha256=digest,
+                timeout_seconds=1800, term_grace_seconds=10)
+
+def _host_command_result(host, argv, timeout=20):
+    command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host, shlex.join(list(map(str, argv)))]
+    try:
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
+        return dict(exit_code=result.returncode, stdout=result.stdout.decode(errors="replace"),
+                    stderr=result.stderr.decode(errors="replace"))
+    except Exception as error:
+        return dict(exit_code=None, stdout="", stderr=repr(error))
+
+
+def _recover_native_timeout(authority, observer, run_dir, output):
+    pattern = re.compile(r"spatial-m03-resources-m06-geometry-[0-9a-f]{32}\.service")
+    found = set()
+    rows = []
+    try:
+        evidence = _fetch_native_case_tree(authority, run_dir, Path(output) / ("timeout-authority-" + authority))
+        for path in evidence.rglob("*") if evidence.is_dir() else []:
+            if path.is_file() and path.name in ("peer-resource-launch.json", "stdout.log", "stderr.log"):
+                found.update(pattern.findall(path.read_text(errors="replace")))
+    except BaseException as error:
+        rows.append(dict(stage="read-authority-evidence", error=repr(error), complete=False))
+    for unit in sorted(found):
+        if not re.fullmatch(r"spatial-m03-resources-m06-geometry-[0-9a-f]{32}\.service", unit):
+            continue
+        stopped = _host_command_result(observer, ["sudo", "-n", "systemctl", "stop", unit])
+        query = _host_command_result(observer, ["systemctl", "show", unit, "-p", "ActiveState", "-p", "LoadState"])
+        cgroup = _host_command_result(observer, ["test", "!", "-e", "/sys/fs/cgroup/system.slice/" + unit])
+        query_valid = query["exit_code"] in (0, 4) and "LoadState=not-found" in query["stdout"] and "ActiveState=inactive" in query["stdout"]
+        complete = stopped["exit_code"] in (0, 5) and query_valid and cgroup["exit_code"] == 0
+        rows.append(dict(unit=unit, stop=stopped, query=query, cgroup=cgroup, complete=complete))
+    receipt = dict(status="recovered" if found and rows and all(row.get("complete") is True for row in rows) else "incomplete",
+                   authority=authority, observer=observer, exact_units=rows, no_unit_observed=not bool(found), phase_complete=False)
+    write_json(Path(output) / "timeout-recovery.json", receipt)
+    return receipt
+
+def _assert_runtime_gate_idle(host):
+    lock = "/run/user/" + str(os.getuid()) + "/spatial-m06-gate.lock"
+    if host == "sb16":
+        import fcntl
+        with open(lock, "a") as stream:
+            try:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise RuntimeError("local M06 runtime gate still owns sb16") from error
+            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+    else:
+        _run_on_host(host, ["flock", "-n", lock, "-c", "true"], timeout=20)
+
 def crosshost(a):
-    if not a.plan:
-        raise RuntimeError("cross-host workflow requires a separately reviewed final M06 runner plan; unknown CLI is not inferred")
-    plan = json.loads(a.plan.read_text())
-    if plan.get("runner") is None or plan.get("directions") != ["sb16-to-sb16-2", "sb16-2-to-sb16"] or plan.get("profiles") != list(PROFILES):
-        raise RuntimeError("cross-host plan must name reviewed runner, both directions, and both profiles")
-    if not plan.get("cases") or not plan.get("provisioning"):
-        raise RuntimeError("cross-host plan must enumerate expected cases and provisioning")
-    print("BLOCKED: plan validated; runner execution requires reviewed final M06 integration artifacts")
-    return 2
+    if socket.gethostname().split(".")[0] != "sb16":
+        raise RuntimeError("cross-host workflow runs on sb16 after both local gates release")
+    plan_path = a.plan.resolve()
+    plan = _read_json(plan_path, "cross-host plan")
+    candidate, output = _validate_plan(plan, plan_path)
+    deployment = Path(plan["deployments"]["sb16"]["path"]).resolve()
+    provenance_path = deployment / "provenance.json"
+    deployment_receipt = deployment / "deployment-receipt.json"
+    if sha(provenance_path) != plan["deployments"]["sb16"]["provenance_sha256"] or sha(deployment_receipt) != plan["deployments"]["sb16"]["deployment_receipt_sha256"]:
+        raise RuntimeError("sb16 deployment receipt hashes do not match the reviewed plan")
+    provenance = _read_json(provenance_path, "deployment provenance")
+    receipt = _read_json(deployment_receipt, "deployment")
+    if provenance.get("candidate") != candidate or receipt.get("candidate") != candidate or receipt.get("status") != "verified":
+        raise RuntimeError("stale or unverified final candidate")
+    deployments = {}
+    for host, row in plan["deployments"].items():
+        deployments[host] = _validate_remote_deployment(host, row, candidate)
+        if host == "sb16-2" and (_run_on_host(host, ["sha256sum", str(Path(row["path"]) / "provenance.json")]).decode().split()[0] != row["provenance_sha256"] or
+                                 _run_on_host(host, ["sha256sum", str(Path(row["path"]) / "deployment-receipt.json")]).decode().split()[0] != row["deployment_receipt_sha256"]):
+            raise RuntimeError("sb16-2 deployment receipt hashes do not match the reviewed plan")
+    for host in sorted(TEST_HOSTS):
+        _assert_runtime_gate_idle(host)
+    for profile in PROFILES:
+        for host, row in plan["native_geometry"][profile]["hosts"].items():
+            if host == "sb16":
+                if not Path(row["xserver"]).is_file() or not Path(row["command_runner"]).is_file():
+                    raise RuntimeError(profile + " sb16 native wrapper/command runner is missing")
+            else:
+                _run_on_host(host, ["test", "-f", row["xserver"]], timeout=20)
+                _run_on_host(host, ["test", "-f", row["command_runner"]], timeout=20)
+    local_runs = {}
+    for host, row in plan["local_runs"].items():
+        path = Path(row.get("path", ""))
+        if not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", "")):
+            raise RuntimeError(host + " local gate receipt hash is required")
+        if host == "sb16":
+            if sha(path) != row["sha256"]:
+                raise RuntimeError("sb16 local gate receipt hash mismatch")
+            local_runs[host] = _validate_local_run(path, host, candidate)
+        else:
+            data = _run_on_host(host, ["cat", str(path)], timeout=20)
+            if hashlib.sha256(data).hexdigest() != row["sha256"]:
+                raise RuntimeError("sb16-2 local gate receipt hash mismatch")
+            local_runs[host] = dict(path=str(path), sha256=row["sha256"], remote_receipt=json.loads(data))
+            remote_report = local_runs[host]["remote_receipt"]
+            if remote_report.get("host") != host or remote_report.get("candidate") != candidate or remote_report.get("status") != "local_passed_crosshost_pending" or remote_report.get("phase_complete") is not False:
+                raise RuntimeError("sb16-2 local gate receipt is stale or incomplete")
+            if any(remote_report.get("profiles", {}).get(profile, {}).get("status") not in ("passed_needs_crosshost_and_review", "passed") for profile in PROFILES):
+                raise RuntimeError("sb16-2 local profile result is incomplete")
+            _validate_requirement_suites(remote_report.get("requirement_suites", {}), host)
+            remote_inventories = {}
+            for profile in PROFILES:
+                inventory_path = path.parent / profile / "inventory.json"
+                raw_inventory = _run_on_host(host, ["cat", str(inventory_path)], timeout=20)
+                data = json.loads(raw_inventory)
+                names = _validate_geometry_inventory(data, host, profile)
+                row = remote_report.get("profiles", {}).get(profile, {})
+                core = next((item for item in row.get("commands", []) if item.get("name") == "core"), {})
+                if (row.get("status") not in ("passed_needs_crosshost_and_review", "passed") or core.get("exit_code") != 0
+                        or core.get("junit_cases") != len(names) - len(DEDICATED_CROSSHOST)
+                        or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
+                    raise RuntimeError("sb16-2 local profile CTest receipt is incomplete")
+                remote_inventories[profile] = dict(path=str(inventory_path), sha256=hashlib.sha256(raw_inventory).hexdigest(), names=names)
+            local_runs[host]["inventories"] = remote_inventories
+    if output.exists():
+        raise RuntimeError("cross-host output path already exists")
+    output.mkdir(parents=True, exist_ok=False)
+    write_json(output / "plan.json", {key: value for key, value in plan.items() if key not in ("credentials", "private_roots")})
+    report = dict(status="running", phase_complete=False, primary_review_required=True, candidate=candidate,
+                  deployments=deployments, local_runs=local_runs, semantic={}, native_geometry={})
+    write_json(output / "reconciliation.json", report)
+    try:
+        for profile in PROFILES:
+            semantic_output = output / "semantic" / profile
+            report["semantic"][profile] = _run_semantic_fixture(deployment, profile, semantic_output)
+            write_json(output / "reconciliation.json", report)
+        runner = deployment / "source" / "tools/run_geometry_native_crosshost.py"
+        if not runner.is_file() or sha(runner) != provenance.get("source_sha256", {}).get("tools/run_geometry_native_crosshost.py"):
+            raise RuntimeError("native geometry runner is missing from the frozen source closure")
+        run_tag = "gate-" + time.strftime("%Y%m%d%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex[:6]
+        for profile in PROFILES:
+            short = "debug" if profile == "Debug" else "asan"
+            manifest_path = output / ("native-" + short + "-manifest.json")
+            for authority, observer in (("sb16", "sb16-2"), ("sb16-2", "sb16")):
+                native = _fresh_native_manifest(plan["native_geometry"][profile])
+                run_id = run_tag + "-" + short + "-" + authority
+                manifest = dict(profile=short, source_commit=candidate, hosts=native["hosts"])
+                manifest["timeout_runner"] = _install_timeout_runner(native, authority, observer, run_id, output)
+                write_json(manifest_path, manifest)
+                argv = [sys.executable, str(runner), "--manifest", str(manifest_path), "--authority", authority, "--run-id", run_id]
+                launch_env = {"PATH": "/usr/bin:/bin", "HOME": pwd.getpwuid(os.getuid()).pw_dir}
+                launch = subprocess.run(argv, cwd=deployment / "source", env=launch_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+                (output / (run_id + ".launch.stdout")).write_bytes(launch.stdout)
+                (output / (run_id + ".launch.stderr")).write_bytes(launch.stderr)
+                if launch.returncode:
+                    raise RuntimeError("native geometry runner refused " + run_id)
+                started = json.loads(launch.stdout)
+                if started.get("status") != "RUNNING_UNQUALIFIED" or started.get("source_commit") != candidate:
+                    raise RuntimeError("native geometry runner did not pin the deployed candidate")
+                authority_row = native["hosts"][authority]
+                run_dir = Path(authority_row["evidence"]) / run_id / ("authority-" + authority)
+                try:
+                    _wait_native_run(authority, run_dir)
+                except BaseException:
+                    _recover_native_timeout(authority, observer, run_dir, output)
+                    raise
+                observer_row = native["hosts"][observer]
+                remote_evidence = str(Path(observer_row["evidence"]) / run_id / ("observer-for-" + authority))
+                cache = output / "native-authority" / authority / run_id
+                evidence = _validate_native_run(authority, observer, run_dir, remote_evidence, profile, cache)
+                report["native_geometry"][run_id] = evidence
+                write_json(output / "reconciliation.json", report)
+        report["status"] = "passed_needs_primary_review"
+        report["phase_complete"] = False
+        report["review_required"] = ["primary source review", "native process witness validation", "full M06 gate reconciliation"]
+    except BaseException as error:
+        report["status"] = "failed_or_incomplete"
+        report["phase_complete"] = False
+        report["error"] = repr(error)
+        recovery = output / "timeout-recovery.json"
+        if recovery.is_file(): report["timeout_recovery"] = _read_json(recovery, "native timeout recovery")
+        write_json(output / "reconciliation.json", report)
+        raise
+    write_json(output / "reconciliation.json", report)
+    return 0
 
 def main():
     p = argparse.ArgumentParser(description=__doc__); sub = p.add_subparsers(dest="mode", required=True)

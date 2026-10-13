@@ -1,7 +1,11 @@
 # M06 deployed gate workflow
 
-Status: tooling draft with local static fixture checks. No build, deployment, or M06 gate has run through this tool.
+Status: unqualified gate-wiring implementation. No tests, deployment, or M06 gate have run from this branch.
 The root AGENTS.md controls host allocation. The legacy qualify_m04_gate.py remains unchanged.
+
+## Selected wiring checks recorded before implementation
+
+Primary must run `tools/test_m06_deployed_gate_static.py` after this change. Its positive controls must exercise the exact deployed semantic fixture invocation and a terminal receipt. Negative controls must reject stale candidate pins, wrong profiles or artifact roots, absent mandatory geometry suites, missing native cases, failed or incomplete cleanup, and running or partial native results. Primary must run the semantic fixture once per profile and the native nine-case matrix in both directions per profile on sb16 and sb16-2. This coding-host assignment does not run those checks. The coding host may record `py_compile` receipts and exact diffs. It must not execute these static fixtures.
 
 ## Boundaries
 
@@ -9,7 +13,7 @@ Prepare on a5500 (hostname G164) or middle-child. Run deployed tests only on sb1
 Use a frozen committed candidate. Preparation rejects dirty tracked files and untracked source files.
 Run full Debug and ASan/UBSan builds, with SPATIAL_INPUT_TESTS enabled.
 A separate BUILD_TESTING=OFF build must provide spatial-host-session and its Python client binding closure.
-This branch predates that entrypoint. Preparation intentionally blocks until the reviewed entrypoint is integrated.
+The frozen candidate must contain the reviewed production host-session entrypoint and native geometry sources. Preparation pins the complete candidate before building.
 
 The tool preserves development build trees. It stages a separate runtime closure.
 That closure includes generated runtime.textproto, generated Python, executable files, runtime libraries/configuration, and CTest metadata.
@@ -69,14 +73,14 @@ The deployment keeps the original relocated metadata for unique future attempts.
 Supply exact final integrated suite names for every M06 category:
 
 ```sh
-python3 tools/m06_deployed_gate.py run-local --deployment /absolute/new-deployment --native-controller host-actor-controller-native --real-world actor-transition-real-world --recovery actor-transition-recovery --host-session FINAL_HOST_SESSION_SUITE --held-input FINAL_HELD_INPUT_SUITE
+python3 tools/m06_deployed_gate.py run-local --deployment /absolute/new-deployment --native-controller host-actor-controller-native --real-world actor-transition-real-world --recovery actor-transition-recovery --host-session host-session-production-native --held-input host-actor-controller-native
 ```
 
 Each named category must be present. Record the requirement-to-suite mapping in run.json.
 The reviewed held-input requirement shares host-actor-controller-native with native-controller.
 The separate host-actor-controller core suite remains mandatory.
 Run each registered suite once. Do not invent duplicate registrations for category names.
-The complete dynamic CTest inventory runs, including additional registrations.
+The complete dynamic CTest inventory is checked in each profile. Local CTest runs every registration except `geometry-native-crosshost`, whose environment requires both hosts. The gate runs that registration through its dedicated native stage after both local host gates finish. `geometry-presentation-native` remains in local CTest.
 One gate process owns a user runtime lock on each host. Run the two hosts in parallel when available.
 Use persistent tmux and retain its exact exit code.
 The tool runs both profiles, all CTest suites, 51 harness tests, all 151 locked P10 cases, and five named storage-owner scenarios.
@@ -93,29 +97,55 @@ Reject inner unittest skips in verbose output even when outer CTest JUnit report
 A local pass is local_passed_crosshost_pending. phase_complete always remains false.
 On failure, preserve the attempt and inspect exact remaining systemd scopes. Do not kill unrelated processes.
 
-## Cross-host handoff
+## Cross-host semantic and native geometry stages
 
-The final reviewed cross-host runner is a separate dependency.
-The tool's crosshost-handoff command validates a supplied plan and exits BLOCKED; it does not execute or certify cross-host cases.
-The plan must name runner, directions [sb16-to-sb16-2, sb16-2-to-sb16], profiles [Debug, ASan-UBSan], cases, and provisioning.
-The complete M06 gate still needs both directions/profiles for actual actor TLS transitions.
-Reassess M05 cross-host topology, remote-key, and supervised-recovery regressions against final integrated source.
-Primary review must reconcile every requirement before marking M06 complete.
+Run `crosshost-handoff` on sb16 after both hosts finish `run-local` and release their runtime slots. Keep the plan and evidence outside the deployed source tree. Pin one full candidate commit, both verified deployment receipts and provenance hashes, both local `run.json` hashes, both directions, both profiles, and all six semantic cases.
+Launch this stage inside a persistent tmux session with the installed run-command helper:
+
+```sh
+tmux new-session -d -s m06-crosshost-gate \
+  bash /home/dflanag3/.codex/skills/spatial-worker-coordination/scripts/run-command.sh \
+  "$DEPLOYMENT/source" "$EVIDENCE/crosshost-run" \
+  env -i PATH=/usr/bin:/bin python3 tools/m06_deployed_gate.py crosshost-handoff --plan "$PLAN"
+```
+
+Read `command.exit`, `wrapper.exit`, and `terminal-status.txt` before treating the adapter as returned.
+
+The semantic stage calls the existing fixture with the deployed layout:
+
+```sh
+python3 "$DEPLOYMENT/source/tests/core/actor_transition_crosshost_fixture.py" \
+  --bundle "$DEPLOYMENT" --profile debug --output "$EVIDENCE/semantic/Debug"
+```
+
+Use `asan` for ASan/UBSan. The fixture resolves executables and generated Python from `build/Debug` or `build/ASan-UBSan`. It resolves scripts from `source/tests/core`. It preserves the existing private issuer, two authorities, grants, six cases, deadlines, and cleanup.
+
+Accept a semantic result only when the fixture exits zero, `runtime-status.txt` is `PASS`, `harness.exit` is zero, the harness reports its successful protobuf plan, `plan-summary.json` contains six cases and both hosts, and `cleanup.json` reports complete cleanup with no errors. Scan text logs for sanitizer output and skips. A partial run or cleanup failure remains failed.
+
+The native stage uses the deployed `tools/run_geometry_native_crosshost.py` runner. It starts one fresh tmux job for each profile and authority direction. It wraps each command with `timeout --signal=TERM --kill-after=10 1800`, then checks `command.exit`, `wrapper.exit`, and `terminal-status.txt`. A pass requires `COMPLETE`, both exits zero, exactly nine passing tests, all nine local case evidence directories, checked peer-unit cleanup evidence, and remote host-session witness logs.
+
+On timeout or a nonzero terminal result, the adapter checks only exact geometry service units recorded by the fixture. It stops each recorded unit and verifies that systemd reports it inactive and not found, with no cgroup. It never signals a guessed process. Missing unit evidence is an incomplete recovery. A timeout remains failed even when recovery succeeds.
+
+The reconciliation receipt records semantic and native results per profile and direction. It verifies both local gate receipts and the mandatory geometry suite registrations. It always records `phase_complete: false` and requires primary review. Passing reconciliation is component evidence, not M06 completion.
+
+The plan uses schema 1 with these fields:
+
+- `candidate`: the full deployed commit.
+- `deployments`: both hosts, same absolute deployment path, provenance hash, and deployment receipt hash.
+- `local_runs`: both host run receipt paths and SHA-256 hashes.
+- `directions`: `sb16-to-sb16-2` and `sb16-2-to-sb16`.
+- `profiles`: `Debug` and `ASan-UBSan`.
+- `semantic_cases`: three case names for each direction, exactly once.
+- `provisioning`: `actor_transition_crosshost_fixture.py:production-private-two-world-issuer-mtls`.
+- `native_geometry`: a runner manifest per profile, with pinned `source`, `bin`, and `python` roots plus each host's Xvfb wrapper, evidence root, command runner, and reachable address.
+- `evidence.output`: a new absolute evidence directory outside the source tree.
+
+Do not place credentials or private keys in the plan. The fixture creates private issuer state and removes it after checked cleanup. Never reuse evidence paths or run IDs.
+
+The native geometry registrations are unconditional under `BUILD_TESTING`. Local CTest excludes only `geometry-native-crosshost`; the dedicated stage executes its real test source. The semantic `actor-transition-crosshost` registration remains conditional on `SPATIAL_ACTOR_TRANSITION_PLAN`. Do not configure a private-plan placeholder into local CTest.
 
 ## Review and validation
 
-Run01 and run02 worker snapshots and logs remain under local/m06-deployed-gate in the coding worktree.
-Run01 failed review despite a zero worker exit. Run02 also had confirmed closure and receipt-schema defects.
-The primary subagent corrected the stopped draft directly.
-Pure static fixture checks run on the Windows controller, with no server, build, SSH, or runtime invocation:
+The primary reviewer must inspect every changed file and run `tools/test_m06_deployed_gate_static.py` on the qualification lane. Run the semantic fixture once per profile. Run the native nine-case test in both directions per profile. Preserve each invocation, log, terminal receipt, case evidence, and cleanup result.
 
-```sh
-python3 tools/test_m06_deployed_gate_static.py tools/m06_deployed_gate.py /path/to/actual/M06/server-build/run.json /path/to/project-source
-```
-
-These checks use temporary fixture bytes and the real receipt schema.
-They cover config retention, missing-config rejection, unchanged-server reuse, extension tampering,
-wrong wrapper targets, full inventory equality, future output paths, and OFF transitive bindings.
-They also check pinned OFF closure copies, explicit startup CLI augmentation, and inner-skip rejection.
-They do not prove archive deployment, CTest execution, native behavior, or milestone completion.
-All those runtime operations remain UNRUN for this tool.
+The static fixtures prove plan and receipt guards. They do not prove deployment, native pixels, transport, cleanup on both hosts, or M06 completion. Any source change after freezing invalidates the affected build and runtime evidence.
