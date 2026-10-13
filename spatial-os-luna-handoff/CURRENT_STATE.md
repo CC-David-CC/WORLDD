@@ -1,3 +1,34 @@
+## 2026-10-13: sb16 Debug commands pass; evidence finalization fails
+
+Frozen candidate remains f8609273fad1873db45fc316fd0200549b4c6b41.
+The original sb16 full-gate attempt ended with command and wrapper exits one.
+All Debug command stages passed before finalization failed.
+Primary verified 164 CTest cases without failures or skips and all 151 P10 acceptance cases.
+Production-only startup, the 51-test harness, and bounded storage/Git integration also passed.
+These command results do not qualify the Debug profile or M06.
+
+The report lost the original exception when its final audit wrote a generic integrity-failure error.
+Debug metadata/storage-path checks and both profiles' source/runtime artifact checks passed.
+Sanitizer metadata and storage-evidence checks are false because that profile never started.
+Read defect blockers/m06-gate-overwrites-original-error.txt for the confirmed reporting defect.
+The triggering PermissionError was reproduced against the retained private volume.img.
+The image is root-owned, mode 0600, and 2 GiB. All five storage scenarios passed.
+Read defect blockers/m06-gate-hashes-private-storage-image.txt for the exact diagnostic receipt.
+A narrow evidence-manifest and error-preservation correction is in progress on a separate a5500 branch.
+Preserve the failed run.json, XML, logs, and resource receipts. Do not rewrite them as PASS.
+The sb16 helper and gate processes have exited. Do not start an alternate sanitizer run.
+
+The original sb16-2 gate remains active after all 164 Debug CTest cases passed.
+Primary verified its XML contains no failures or skips. Later Debug stages remain in progress.
+Observe exact process identities and terminal receipts before any retry.
+Sanitizer qualification and the dedicated cross-host stage remain unrun.
+
+Redundant incoming archives were removed after verified deployment and no-reader checks.
+The unchanged archive remains on a5500 with its verified SHA256.
+Per-host cleanup receipts are under the new qualification root as cleanup-transfer-HOST-01.json.
+Source, deployed artifacts, metadata, logs, test images, and prior evidence remain preserved.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Both deployments verified; full local M06 gates running
 
 Frozen candidate remains f8609273fad1873db45fc316fd0200549b4c6b41.

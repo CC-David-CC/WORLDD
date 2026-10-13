@@ -1,0 +1,29 @@
+M06 gate hashes a private storage fixture image
+
+Status: Confirmed and reproduced. A correction is in progress on a separate branch.
+Candidate: f8609273fad1873db45fc316fd0200549b4c6b41.
+Source: spatial-os-luna-handoff/tools/m06_deployed_gate.py, profile artifact manifest.
+
+The gate recursively hashes every file under the profile evidence directory.
+Bounded storage/Git integration creates a root-owned volume.img with mode 0600.
+The image size is 2,147,483,648 bytes. The integration deliberately runs with sudo.
+Its cleanup publishes review.json and logs, but keeps the image private.
+The unprivileged gate cannot read that image.
+Its artifact-manifest comprehension raises PermissionError after all Debug commands pass.
+
+The exact comprehension was reproduced against sb16's preserved Debug evidence.
+No test body was rerun. The pinned gate hash matched the frozen source.
+Diagnostic root: /home/dflanag3/spatial-qualification/m06-f860-final-20261013/diagnostics/postrun-hash-repro-01.
+Read hash-repro.json and its retained traceback.
+The failed image is under deployment/evidence/m06-final-f860-sb16-20261013-01/Debug/bounded-storage-git.
+review.json reports passed and all five storage scenarios passed.
+
+Proposed patch: Hash declared qualification evidence, not the private fixture filesystem.
+Exclude only this fixture's image and volume tree after strict cleanup validation.
+Check real paths, types, ownership, unmounted state, and image-specific loop detachment.
+Record the exclusions and cleanup witnesses explicitly.
+Retain hashes for ordinary logs, receipts, source, and runtime artifacts.
+Reject unexpected unreadable files and unsafe links. Do not ignore permission errors generally.
+Add focused regressions before reviewing and integrating the correction.
+
+The original failed gate remains preserved. M06 remains incomplete.
