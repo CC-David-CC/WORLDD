@@ -1,4 +1,20 @@
-Current checkpoint, 2026-10-13:
+Current checkpoint, combined Debug qualification, 2026-10-13:
+Candidate fc302de44670f87737dd7ab46ef83b24c60f1612 passed all thirteen selected Debug suites on both hosts.
+Evidence: spatial-os-luna-handoff/evidence/m06-combined-geometry-debug-2026-10-13/REVIEW.txt.
+Both terminal audits passed. No skips, diagnostics, changed inputs, or remaining attempt processes were found.
+Both ASan runs are active under persistent tmux. No sanitizer result is claimed yet.
+Sessions: spatial-m06-asan-runtime-sb16 and spatial-m06-asan-runtime-sb16-2.
+Run base: /home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01.
+a5500 candidate build task is complete. All four normal Debug/ASan ON/OFF builds passed.
+Gate correction is complete and checkpointed as f9d17c634fe0ae4b44ef43ac4f2ed29119391eba on box-git.
+Its twenty-nine synthetic static checks passed. Real deployed qualification remains unrun.
+Luna medium now prepares combined host-session qualification on middle-child in a separate worktree.
+Task branch: m06/combined-hostsession-launcher-20261013. Base: fc302de44.
+No host-session tests may start while the qualification hosts run geometry suites.
+M01-M05 qualified. M06 active. Native geometry presentation and the full gate remain pending.
+M07-M16 remain pending. Source integration awaits combined qualification.
+
+Earlier snapshot checkpoint, 2026-10-13:
 Snapshot-size task fc302de44670f87737dd7ab46ef83b24c60f1612 is FOCUSED-PASS and BOX-GIT VERIFIED.
 Its branch is m06/linear-snapshot-size-20261013. It is not integrated into the milestone branch.
 Both hosts/profiles passed standalone snapshot checks, eleven lifecycle tests, count-limit, and oversized snapshot.

@@ -1,0 +1,41 @@
+M06 combined geometry Debug qualification
+Status: FOCUSED-PASS. This evidence does not complete M06.
+
+Candidate: fc302de44670f87737dd7ab46ef83b24c60f1612.
+Source branch: m06/linear-snapshot-size-20261013.
+The candidate remains outside the milestone branch.
+
+Both hosts passed all thirteen selected suites. This gives twenty-six suite executions.
+Read each host's debug-terminal-audit01.json for terminal summaries and durations.
+Read inputs/PLAN.txt for selected checks, their purposes, and deadline provenance.
+Each command.exit and wrapper.exit is zero. Each terminal receipt is COMPLETE.
+Each suite result records resolved cleanup and no unexpected process-group members.
+Independent terminal inspection found no remaining attempt processes.
+The audit scanned 391 logs per host. It found no sanitizer diagnostics or skipped checks.
+Each run rechecked 1,162 input hashes. No input changed.
+All nine headless geometry tests passed, including count and oversized-snapshot rejection.
+Native identity, native authority, real transitions, and application lifecycle checks also passed.
+The qualified XACE wrapper preserves GLX and leak detection without suppressions.
+
+The controller verified both archive hashes after transfer.
+Each archive supplied 592 regular evidence files. Unsafe paths and special files were rejected.
+The controller scanned every extracted file for bearer credentials and private keys.
+Raw receipt, service-log, and witness bytes remain unchanged.
+sha256-manifest.txt covers the extracted raw evidence files.
+collection.json records the archive hashes and evidence counts.
+
+The standalone world-diagnostic-timing launch has a reviewed 60-second bound.
+Its original CMake TIMEOUT property remains absent. No server timeout changed.
+The pinned inventory records the original global CTest limit separately.
+
+ASan qualification is running in separate persistent tmux sessions on both hosts.
+No ASan PASS is claimed here. Retain its later terminal evidence separately.
+Combined host-session checks, visible native geometry, and the full M06 gate remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+Raw-evidence whitespace exception
+Twelve negative-test broker logs contain the unchanged line "Git worker exited with status 1: ".
+Its trailing space is part of the original diagnostic. Do not rewrite that evidence.
+The normal staged whitespace check rejects only these twelve raw log lines.
+The reviewed manual checkpoint preserves them, as permitted by references/git-handoff.md.
+All other staged paths pass the normal whitespace check. Record the exception in the commit receipt.

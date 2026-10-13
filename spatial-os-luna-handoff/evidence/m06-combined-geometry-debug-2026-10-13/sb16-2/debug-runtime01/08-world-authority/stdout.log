@@ -1,0 +1,32 @@
+test_administration_and_held_rights_do_not_imply_delegation (__main__.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+test_ancestor_credential_revocation_preserves_delegated_actor_rights (__main__.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ... ok
+test_grants_survive_world_restart (__main__.WorldAuthorityTests.test_grants_survive_world_restart) ... ok
+test_independent_navigation_grant_survives_revocation (__main__.WorldAuthorityTests.test_independent_navigation_grant_survives_revocation) ... ok
+test_invalid_delegation_consumes_actor_sequence (__main__.WorldAuthorityTests.test_invalid_delegation_consumes_actor_sequence) ... ok
+test_malformed_recipient_consumes_sequence_without_disconnect (__main__.WorldAuthorityTests.test_malformed_recipient_consumes_sequence_without_disconnect) ... ok
+test_missing_authority_store_does_not_initialize_implicitly (__main__.WorldAuthorityTests.test_missing_authority_store_does_not_initialize_implicitly) ... ok
+test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... ok
+test_observation_revocation_cancels_object_lease (__main__.WorldAuthorityTests.test_observation_revocation_cancels_object_lease) ... ok
+test_persistent_config_rejects_static_authority_and_wrong_world (__main__.WorldAuthorityTests.test_persistent_config_rejects_static_authority_and_wrong_world) ... ok
+test_private_admission_requires_persistent_enter_grant (__main__.WorldAuthorityTests.test_private_admission_requires_persistent_enter_grant) ... ok
+test_private_admission_revocation_closes_only_affected_session (__main__.WorldAuthorityTests.test_private_admission_revocation_closes_only_affected_session) ... ok
+test_public_admission_does_not_create_action_grants (__main__.WorldAuthorityTests.test_public_admission_does_not_create_action_grants) ... ok
+test_revocation_cancels_object_draft_and_releases_lease (__main__.WorldAuthorityTests.test_revocation_cancels_object_draft_and_releases_lease) ... ok
+test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... ok
+test_revoked_ancestor_without_world_session_stops_descendant (__main__.WorldAuthorityTests.test_revoked_ancestor_without_world_session_stops_descendant) ... ok
+test_seed_validation_installs_no_partial_root_grants (__main__.WorldAuthorityTests.test_seed_validation_installs_no_partial_root_grants) ... ok
+test_stale_revision_changes_no_grants_and_consumes_sequence (__main__.WorldAuthorityTests.test_stale_revision_changes_no_grants_and_consumes_sequence) ... ok
+test_unauthenticated_channels_cannot_list_or_change_grants (__main__.WorldAuthorityTests.test_unauthenticated_channels_cannot_list_or_change_grants) ... ok
+test_unknown_and_foreign_recipients_receive_no_grant (__main__.WorldAuthorityTests.test_unknown_and_foreign_recipients_receive_no_grant) ... ok
+test_world_administration_does_not_mint_workspace_authority (__main__.WorldAuthorityTests.test_world_administration_does_not_mint_workspace_authority) ... ok
+test_world_observation_omits_native_application_surfaces (__main__.WorldAuthorityTests.test_world_observation_omits_native_application_surfaces) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 62.385s
+
+OK

@@ -1,5 +1,24 @@
 # Implementation status
 
+## 2026-10-13: Fresh combined geometry Debug qualification passes on both hosts
+
+Read evidence/m06-combined-geometry-debug-2026-10-13/REVIEW.txt for receipts and the qualification limits.
+Candidate fc302de passed all thirteen selected Debug suites on both hosts.
+All twenty-six suite executions passed. No checks were skipped.
+The independent terminal audit scanned 782 logs without sanitizer diagnostics.
+Both runs preserved all 1,162 input hashes and left no attempt processes.
+Count-limit and oversized-snapshot rejection passed within the complete headless geometry suite.
+Fresh Debug/ASan ON/OFF builds passed on a5500. Both artifact profiles are deployed and hash-verified.
+Fresh backend audits verified both profiles on both qualification hosts.
+ASan runtime qualification is active in persistent tmux on both hosts.
+No ASan result or full M06 PASS is claimed.
+The deployed gate tooling is checkpointed as f9d17c6 on box-git, with twenty-nine static checks passed.
+Its real deployed cross-host qualification remains unrun.
+A bounded Luna task prepares combined host-session qualification in a separate middle-child worktree.
+Geometry source remains outside the milestone branch until its combined qualification passes.
+Native geometry presentation remains unimplemented. The full M06 gate remains pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Linear snapshot fix passes focused checks on both hosts
 
 Read evidence/m06-geometry-count-asan-diagnosis-2026-10-13/REVIEW.txt for preserved failures and passing receipts.

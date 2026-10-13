@@ -1,0 +1,121 @@
+{
+  "host": "sb16-2",
+  "profile": "debug",
+  "candidate_commit": "fc302de44670f87737dd7ab46ef83b24c60f1612",
+  "status": "PRIMARY_TERMINAL_AUDIT_PASS",
+  "suites": [
+    {
+      "suite": "actor-geometry-client-hostile-peer",
+      "summaries": [],
+      "pass_markers": 19,
+      "scanned_logs": 5,
+      "seconds": 0.177
+    },
+    {
+      "suite": "actor-geometry-world-headless",
+      "summaries": [
+        "Ran 9 tests in 216.591s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 42,
+      "seconds": 216.801
+    },
+    {
+      "suite": "actor-session-client",
+      "summaries": [
+        "53 actor-session-client probe cases passed"
+      ],
+      "pass_markers": 51,
+      "scanned_logs": 5,
+      "seconds": 0.636
+    },
+    {
+      "suite": "actor-session-client-tls",
+      "summaries": [
+        "31 actor-session-client TLS cases passed"
+      ],
+      "pass_markers": 31,
+      "scanned_logs": 5,
+      "seconds": 3.36
+    },
+    {
+      "suite": "actor-transition-coordinator",
+      "summaries": [
+        "35 actor transition probe cases passed"
+      ],
+      "pass_markers": 35,
+      "scanned_logs": 5,
+      "seconds": 2.168
+    },
+    {
+      "suite": "actor-transition-real-world",
+      "summaries": [
+        "Ran 15 tests in 31.227s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 66,
+      "seconds": 31.751
+    },
+    {
+      "suite": "world-identity",
+      "summaries": [
+        "Ran 27 tests in 43.195s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 91,
+      "seconds": 43.449
+    },
+    {
+      "suite": "world-authority",
+      "summaries": [
+        "Ran 27 tests in 62.385s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 117,
+      "seconds": 62.699
+    },
+    {
+      "suite": "session-application",
+      "summaries": [
+        "Ran 3 tests in 13.806s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 23,
+      "seconds": 15.475
+    },
+    {
+      "suite": "snapshot-size-regression",
+      "summaries": [],
+      "pass_markers": 0,
+      "scanned_logs": 5,
+      "seconds": 0.74
+    },
+    {
+      "suite": "worldd-lifecycle",
+      "summaries": [
+        "Ran 11 tests in 1.226s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 5,
+      "seconds": 1.437
+    },
+    {
+      "suite": "issuer-client",
+      "summaries": [
+        "Ran 31 tests in 11.661s"
+      ],
+      "pass_markers": 0,
+      "scanned_logs": 17,
+      "seconds": 11.918
+    },
+    {
+      "suite": "world-diagnostic-timing",
+      "summaries": [],
+      "pass_markers": 0,
+      "scanned_logs": 5,
+      "seconds": 0.081
+    }
+  ],
+  "input_hashes": 1162,
+  "remaining_attempt_processes": []
+}

@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "bash",
+    "/home/dflanag3/spatial-qualification/m06-geometry-run04-command.sh",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/08-world-authority",
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/tools/with_test_display.py",
+    "--",
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/tests/core/test_world_authority.py",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on/identityd",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on/spatial-issuer-client",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on/worldd"
+  ],
+  "cleanup_resolved": true,
+  "ended_epoch": 1791880970.2842069,
+  "interrupted": false,
+  "receipts": {
+    "command.exit": "0",
+    "terminal-status.txt": "COMPLETE",
+    "wrapper.exit": "0"
+  },
+  "return_code": 0,
+  "started_epoch": 1791880907.5856733,
+  "status": "passed",
+  "suite": "world-authority",
+  "timed_out": false,
+  "timeout_provenance": {
+    "ctest_timeout_seconds": 180.0,
+    "qualification_override_seconds": null
+  },
+  "timeout_seconds": 180.0,
+  "unexpected_group_members": []
+}

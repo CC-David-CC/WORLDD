@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "bash",
+    "/home/dflanag3/spatial-qualification/m06-geometry-run04-command.sh",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/11-worldd-lifecycle",
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/tests/core/test_worldd.py",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on/spatial-test-host",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on/worldd"
+  ],
+  "cleanup_resolved": true,
+  "ended_epoch": 1791880987.9620063,
+  "interrupted": false,
+  "receipts": {
+    "command.exit": "0",
+    "terminal-status.txt": "COMPLETE",
+    "wrapper.exit": "0"
+  },
+  "return_code": 0,
+  "started_epoch": 1791880986.5246105,
+  "status": "passed",
+  "suite": "worldd-lifecycle",
+  "timed_out": false,
+  "timeout_provenance": {
+    "ctest_timeout_seconds": 90.0,
+    "qualification_override_seconds": null
+  },
+  "timeout_seconds": 90.0,
+  "unexpected_group_members": []
+}
