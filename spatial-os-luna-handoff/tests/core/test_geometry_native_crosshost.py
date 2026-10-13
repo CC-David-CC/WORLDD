@@ -30,6 +30,7 @@ import test_world_shared_state as baseline
 from harness.oracles import pose
 from harness.wire import frame
 from geometry_process_identity import finish_observer
+from geometry_host_control_handoff import adopt_initial_host_control
 
 
 def exact(fd,count,timeout=90,deadline=None):
@@ -149,7 +150,12 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         receipt=json.loads(prefix)
         self.assertEqual(receipt['unit'],self.owned_unit)
         (self.root/'peer-resource-launch.json').write_bytes(prefix)
-        ready=self.receive(deadline=startup_deadline);self.assertEqual(ready.request_id,0);self.assertEqual(len(ready.processes),2)
+        ready=self.receive(deadline=startup_deadline)
+        self.assertEqual(ready.request_id,0);self.assertEqual(len(ready.processes),2)
+        self.assertTrue(ready.HasField('control'),ready)
+        self.assertFalse(ready.pixels or ready.error or ready.cleanup_complete,ready)
+        cursor=adopt_initial_host_control(ready.control,expected_request_id=1)
+        self.host_sequence=cursor.sequence;self.generation=cursor.generation
         self.observer_ready=True
 
     def remove_remote_profiles(self):
@@ -260,7 +266,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
             destination_world_id=self.active_worlds[name].management('world.info')['world_id'],**spawn))
         return result
 
-    def state(self):
+    def actor_state(self):
         reply=self.control(inspect=True);self.assertTrue(reply.accepted,reply)
         return reply.inspection.state
 
@@ -272,7 +278,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
             status=reply.geometry_status
             if status.available and (revision is None or status.world_revision>=revision) and (
                     after_sequence is None or status.view_sequence>after_sequence):
-                self.assertEqual(status.camera,self.state().pose)
+                self.assertEqual(status.camera,self.actor_state().pose)
                 return status
             self.assertLess(time.monotonic(),deadline,'No acknowledged foreground geometry');time.sleep(.15)
 
@@ -311,7 +317,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
 
     def test_01_real_remote_object_edit_changes_native_peer_pixels(self):
         self.object();self.assertTrue(self.transition('b').accepted)
-        owner=self.owner('b');context=self.state()
+        owner=self.owner('b');context=self.actor_state()
         first=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         baseline_status=self.displayed(revision=first.world_revision)
         before=self.stable_pixels()
@@ -324,11 +330,11 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertEqual(next(item for item in later.objects if item.id=='shared-object').pose.position.x,.5)
         updated=self.displayed(revision=later.world_revision,after_sequence=baseline_status.view_sequence)
         self.assertEqual(updated.presentation_generation,baseline_status.presentation_generation)
-        self.changed(before);self.assertEqual(self.state(),context);self.stable()
+        self.changed(before);self.assertEqual(self.actor_state(),context);self.stable()
 
     def test_02_real_other_actor_motion_changes_marker_pixels_only(self):
         self.assertTrue(self.transition('b').accepted);owner=self.owner('b')
-        context=self.state()
+        context=self.actor_state()
         first=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         baseline_status=self.displayed(revision=first.world_revision)
         before=self.stable_pixels()
@@ -337,26 +343,26 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         later=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         self.assertNotEqual(first.camera,later.camera);self.assertEqual(first.world_revision,later.world_revision)
         self.displayed(revision=first.world_revision,after_sequence=baseline_status.view_sequence)
-        self.changed(before);self.assertEqual(self.state(),context);self.stable()
+        self.changed(before);self.assertEqual(self.actor_state(),context);self.stable()
 
     def test_03_a_b_a_restores_context_and_exact_native_processes(self):
-        before=self.state();pixels=self.capture()
+        before=self.actor_state();pixels=self.capture()
         world=self.active_worlds['b'];world.management('world.create',entity=dict(id='destination-room',kind='room'))
         requested=core.Pose(position=core.Vec3(x=2,z=-1),orientation=core.Quaternion(w=1))
         self.assertTrue(self.transition('b',destination_room='destination-room',destination_pose=requested).accepted)
-        destination=self.state();self.assertEqual(destination.room,'destination-room');self.assertEqual(destination.pose,requested)
+        destination=self.actor_state();self.assertEqual(destination.room,'destination-room');self.assertEqual(destination.pose,requested)
         self.assertEqual(destination.workspace,'');self.stable()
         self.assertTrue(self.transition('a').accepted)
-        resumed=self.state()
+        resumed=self.actor_state()
         self.assertEqual((resumed.id,resumed.room,resumed.pose,resumed.workspace),(before.id,before.room,before.pose,before.workspace))
         self.assertEqual(self.capture(),pixels);self.stable()
 
     def test_04_private_denial_preserves_source_pixels_and_actions(self):
-        before=self.state();pixels=self.capture();reply=self.transition('denied')
+        before=self.actor_state();pixels=self.capture();reply=self.transition('denied')
         self.assertFalse(reply.transition.actor_transition.destination_activation_confirmed)
         self.assertEqual(reply.transition.actor_transition.server_error.code,core.FORBIDDEN,reply)
         self.assertTrue(reply.transition.actor_control_available)
-        self.assertEqual(self.state(),before);self.assertEqual(self.capture(),pixels)
+        self.assertEqual(self.actor_state(),before);self.assertEqual(self.capture(),pixels)
         action=self.control(action=core.ActorActionRequest(seq=1,stop=core.ActorStopRequest()))
         self.assertTrue(action.accepted);self.assertTrue(action.action.action.accepted);self.stable()
 
@@ -370,7 +376,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertFalse(status.HasField('camera'));self.assertEqual(status.view_sequence,0)
         action=self.control(action=core.ActorActionRequest(seq=1,stop=core.ActorStopRequest()))
         self.assertTrue(action.accepted,action);self.assertTrue(action.action.action.accepted)
-        self.assertTrue(self.state().id);self.stable()
+        self.assertTrue(self.actor_state().id);self.stable()
 
     def boundary(self,names):
         env=['env','PYTHONPATH='+':'.join(map(str,(self.remote_python,self.remote_source,self.remote_source/'tests/native'))),
@@ -383,7 +389,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
 
     def test_06_delayed_source_wrong_epoch_actor_and_generation_fence(self):
         self.assertTrue(self.transition('b').accepted)
-        context=self.state();pixels=self.capture();current_generation=self.generation
+        context=self.actor_state();pixels=self.capture();current_generation=self.generation
         self.host_sequence+=1
         stale=host.HostControlRequest(protocol_version=1,request_id=self.host_sequence,
             generation=current_generation-1,action=core.ActorActionRequest(seq=1,
@@ -392,7 +398,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertFalse(rejected.accepted,rejected)
         self.assertEqual(rejected.generation,current_generation)
         self.assertIn('stale host actor context',rejected.detail.lower())
-        self.assertEqual(self.state(),context);self.assertEqual(self.capture(),pixels)
+        self.assertEqual(self.actor_state(),context);self.assertEqual(self.capture(),pixels)
         self.host_sequence+=1
         stale_status=host.HostControlRequest(protocol_version=1,request_id=self.host_sequence,
             generation=current_generation-1,geometry_status=True)
@@ -420,10 +426,10 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertTrue(self.owner('a').call(geometry_view=session.WorldGeometryViewRequest()).HasField('geometry_view'))
 
     def test_09_actor_leaving_preserves_shared_world_and_other_actor(self):
-        initial_destination_context=self.state()
+        initial_destination_context=self.actor_state()
         self.assertTrue(self.transition('b').accepted);owner=self.owner('b')
         before=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
-        actor=self.state().id;self.assertIn(actor,[item.id for item in before.actors])
+        actor=self.actor_state().id;self.assertIn(actor,[item.id for item in before.actors])
         world_id=before.world_id;self.assertTrue(self.transition('a').accepted)
         after=owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         # Departure ends session authority. Durable actor entities and saved
@@ -431,7 +437,7 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.assertEqual(after.world_id,world_id);self.assertEqual(after.actor_id,before.actor_id)
         self.assertGreater(after.sequence,before.sequence)
         self.assertTrue(owner.act(stop=core.ActorStopRequest()).action.accepted)
-        resumed=self.state()
+        resumed=self.actor_state()
         self.assertEqual((resumed.id,resumed.room,resumed.pose,resumed.workspace),
             (initial_destination_context.id,initial_destination_context.room,
              initial_destination_context.pose,initial_destination_context.workspace))

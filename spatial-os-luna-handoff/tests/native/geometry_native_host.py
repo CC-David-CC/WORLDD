@@ -23,6 +23,7 @@ import host_session_pb2 as host
 from harness.wire import frame
 from geometry_pixel_witness import GeometryPixelWitness
 import geometry_process_identity as process_identity
+from geometry_host_control_handoff import adopt_initial_host_control
 
 
 def read(fd,n):
@@ -49,8 +50,9 @@ class NativeHost(fixture.ProductionHostSessionTests):
         config.initial_actor_tls_config=str(profiles[0][0])
         self.launch_host(config,descriptors)
         first=self.request()
-        self.assertTrue(first.accepted,(first,self.host_log.read_text()))
+        adopt_initial_host_control(first,expected_request_id=1)
         self.native_xid=None
+        return first
 
     def witness_processes(self):
         pids=[self.server.pid]+self.live_compositor_pids()
@@ -82,8 +84,10 @@ def main():
     os.dup2(2,1)
     def send(reply):output.write(frame(reply));output.flush()
     try:
-        test.setUp();test.configure_remote()
-        send(protocol.NativeGeometryWitnessReply(processes=test.witness_processes()))
+        test.setUp();initial_control=test.configure_remote()
+        ready=protocol.NativeGeometryWitnessReply(request_id=0,processes=test.witness_processes())
+        ready.control.CopyFrom(initial_control)
+        send(ready)
         previous=0
         while True:
             header=read(0,4);size,=struct.unpack('!I',header)
