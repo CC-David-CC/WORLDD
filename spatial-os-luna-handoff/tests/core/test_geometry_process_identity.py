@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Focused regressions for protobuf geometry process identity witnessing."""
 import errno
+import hashlib
 import os
 from pathlib import Path
 import struct
+import select
+import subprocess
 import tempfile
 import unittest
 from types import SimpleNamespace
@@ -11,7 +14,7 @@ from types import SimpleNamespace
 import geometry_native_pb2 as protocol
 from geometry_process_identity import (
     ProcessIdentity, ProcessIdentityError, _no_unknown_or_noncanonical,
-    _parse_cli, collect, finish_observer, parse_witness_request, privileged_read, read_identity, validate_expected,
+    _parse_cli, start_ticks, collect, finish_observer, parse_witness_request, privileged_read, read_identity, validate_expected,
 )
 
 class GeometryProcessIdentityTests(unittest.TestCase):
@@ -184,6 +187,93 @@ class GeometryProcessIdentityTests(unittest.TestCase):
         finish_observer(True,exchange=lambda **value:calls.append(value) or Reply(),
             recover=lambda:self.fail('ready observer must use protocol shutdown'))
         self.assertEqual(calls,[dict(shutdown=True)])
+
+    def test_real_isolated_import_roundtrip_excludes_environment_and_cwd_injection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = self.hostile_import_environment(directory)
+            code = """import sys
+sys.path.insert(0, sys.argv[1])
+import geometry_native_pb2 as protocol
+request = protocol.NativeGeometryWitnessRequest(request_id=1, identity=True)
+parsed = protocol.NativeGeometryWitnessRequest.FromString(request.SerializeToString())
+assert parsed.request_id == 1 and parsed.identity
+reply = protocol.NativeGeometryWitnessReply(request_id=parsed.request_id)
+assert protocol.NativeGeometryWitnessReply.FromString(reply.SerializeToString()).request_id == 1
+print('isolated-protobuf-roundtrip')
+"""
+            result = subprocess.run(['/usr/bin/python3', '-I', '-c', code, str(self.bindings)],
+                env=env, cwd=directory, capture_output=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stderr, b'')
+            self.assertEqual(result.stdout, b'isolated-protobuf-roundtrip\n')
+
+    def test_real_root_isolated_roundtrip_reads_nondumpable_child_and_rejects_injection(self):
+        self.assertNotEqual(os.geteuid(), 0, 'Run this regression as the qualification user')
+        code = """import ctypes, sys, time
+libc = ctypes.CDLL(None, use_errno=True)
+if libc.prctl(4, 0, 0, 0, 0) != 0:
+    raise OSError(ctypes.get_errno(), 'PR_SET_DUMPABLE')
+print('nondumpable-ready', flush=True)
+time.sleep(60)
+"""
+        child = subprocess.Popen(['/usr/bin/python3', '-I', '-c', code],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            self.assertTrue(select.select([child.stdout], [], [], 5)[0], 'Child readiness timeout')
+            self.assertEqual(child.stdout.readline(), b'nondumpable-ready\n')
+            expected = [(child.pid, start_ticks(child.pid))]
+            with self.assertRaises(PermissionError):
+                read_identity(*expected[0])
+            digest = hashlib.sha256(Path('/usr/bin/python3').resolve().read_bytes()).digest()
+            with tempfile.TemporaryDirectory() as directory:
+                env = self.hostile_import_environment(directory)
+                def runner(argv, **kwargs):
+                    # Pin the same distro interpreter used by the qualification bundle.
+                    argv = list(argv)
+                    argv[2] = '/usr/bin/python3'
+                    return subprocess.run(argv, env=env, cwd=directory, **kwargs)
+                calls = []
+                result = collect(expected, protocol=protocol, bindings_dir=self.bindings,
+                    privileged=lambda identities, **kwargs: privileged_read(
+                        identities, runner=runner, **kwargs),
+                    on_privileged=lambda: calls.append('privileged'))
+                self.assertEqual(calls, ['privileged'])
+                self.assertEqual(result, [ProcessIdentity(child.pid, expected[0][1], digest)])
+                # An otherwise valid request reaches the root helper's context guard.
+                request = protocol.NativeGeometryWitnessRequest(request_id=2, identity=True)
+                helper = Path(__file__).with_name('geometry_process_identity.py')
+                argv = ['sudo', '-n', '/usr/bin/python3', '-I', str(helper), '--root-witness',
+                    '--bindings-dir', str(self.bindings), str(child.pid), str(expected[0][1])]
+                rejected = subprocess.run(argv, input=self.frame(request.SerializeToString(
+                    deterministic=True)), env=env, cwd=directory, capture_output=True, timeout=10)
+                self.assertEqual(rejected.returncode, 1)
+                self.assertEqual(rejected.stdout, b'')
+                self.assertEqual(rejected.stderr, b'ProcessIdentityError\n')
+                nonisolated = subprocess.run([value for value in argv if value != '-I'],
+                    input=b'', capture_output=True, timeout=10)
+                self.assertNotEqual(nonisolated.returncode, 0)
+                self.assertEqual(nonisolated.stdout, b'')
+                self.assertEqual(nonisolated.stderr, b'Root witness requires isolated Python\n')
+        finally:
+            # Only this Popen child is terminated. No process-name cleanup is used.
+            if child.poll() is None:
+                child.terminate()
+            try:
+                child.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait(timeout=3)
+            child.stdout.close()
+            child.stderr.close()
+
+    @staticmethod
+    def hostile_import_environment(directory):
+        root = Path(directory)
+        for name in ('sitecustomize.py', 'geometry_native_pb2.py', 'google.py'):
+            (root / name).write_text("raise RuntimeError('untrusted import executed')\n")
+        env = os.environ.copy()
+        env.update(PYTHONPATH=str(root), PYTHONUSERBASE=str(root))
+        return env
 
     def invoke_privileged(self,body=None,stdout=None,stderr=b''):
         if stdout is None:stdout=self.frame(body)

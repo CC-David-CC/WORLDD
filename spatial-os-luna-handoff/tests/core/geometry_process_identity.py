@@ -7,7 +7,6 @@ import re
 import select
 import struct
 import subprocess
-import sysconfig
 import sys
 
 PROC = Path('/proc')
@@ -206,10 +205,11 @@ def root_witness(argv, stdin, stdout):
         bindings, expected = _parse_cli(argv)
         if os.geteuid() != 0:
             raise SystemExit('Root witness requires approved sudo')
-        paths = sysconfig.get_paths()
-        safe_paths = [paths[name] for name in ('stdlib','platstdlib','purelib','platlib')
-                      if Path(paths[name]).is_dir()]
-        sys.path[:] = [str(bindings), *dict.fromkeys(safe_paths)]
+        if not sys.flags.isolated:
+            raise SystemExit('Root witness requires isolated Python')
+        # Keep Python -I system paths, including distro-provided protobuf.
+        # Isolated mode excludes PYTHONPATH, user site, and the script directory.
+        sys.path.insert(0, str(bindings))
         import geometry_native_pb2 as protocol
         header = _read_exact(stdin.buffer, 4)
         size, = struct.unpack('!I', header)
