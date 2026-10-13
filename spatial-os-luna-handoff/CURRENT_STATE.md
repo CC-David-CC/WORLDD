@@ -1,3 +1,27 @@
+## 2026-10-13: Both complete Debug profiles passed; sanitizers running
+
+The frozen M06 candidate remains 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Both Debug profiles report passed_needs_crosshost_and_review.
+Each host passed 164 local CTest suites without failures, disabled cases, or skips.
+Primary downloaded both completed XML reports and both 151-row P10 reports.
+All 151 acceptance rows passed on each host.
+Both profiles passed production-only startup, the 51-test harness, and five bounded storage/Git scenarios.
+Both evidence collectors completed with reviewed private-image and cleaned-mountpoint exclusions.
+No Debug sanitizer findings were reported.
+Both original full gate processes remain live. Their ASan-UBSan core jobs are running.
+CTest handles: sb16 2256309; sb16-2 2187959.
+Gate handles remain sb16 2155578 and sb16-2 2087244.
+Full local qualification and final artifact rechecks remain incomplete.
+
+Dedicated cross-host qualification remains unrun: 36 native and 12 semantic cases.
+Primary accepted a fresh rerun disposition for 32 inherited M05 cross-host cases.
+Their production dependency paths changed during M06. Historical M05 receipts cannot establish current execution.
+The isolated operational runner fixes reviewed path defects and passed controller-only static checks.
+Runner SHA256: b69e73090ec5c7ce0b8d3d6d7b72a1040c8968ad7326281411953bf8a826db5d.
+Ordinary strict passwordless peer SSH was verified in both directions.
+Cross-host launches wait for both actual full local PASS receipts and reviewed pinned arguments.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: M07 qualification map reviewed and checkpointed
 
 M07 planning branch m07/qualification-map-20261013 is verified on box-git.
