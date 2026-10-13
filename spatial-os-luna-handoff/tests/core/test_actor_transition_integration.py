@@ -263,7 +263,7 @@ class RealActorTransitionTests(WorldIdentityFixture):
 
     def workspace_two(self):
         # Build a second real broker/worktree with a distinct workspace authority.
-        root = self.root/'workspace-two'; root.mkdir()
+        root = self.root/'workspace-two'; root.mkdir(mode=0o700)
         execution = root/'execution'
         first = workspace_fixture.BrokerProcess(self, execution)
         repository = workspace_fixture.GitRepo(root)

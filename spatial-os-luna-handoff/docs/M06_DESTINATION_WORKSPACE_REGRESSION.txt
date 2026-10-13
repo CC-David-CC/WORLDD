@@ -19,3 +19,8 @@ deployment containing this exact test-source checksum. The existing frozen
 258920de candidate and its live gates do not include this addition. This
 addition does not qualify or complete M06. Run it on both required
 qualification hosts as part of a newly frozen candidate gate.
+
+
+Fixture correction after initial runtime diagnosis
+
+The initial db490 sb16 Debug run passed 15/16 module methods. The new two-world regression failed while starting the second real workspaced broker: TLS material requires an owned private parent directory. The workspace_two() helper created its root with the default 0755 mode, then stored TLS client material beneath it. Production TLS validation correctly requires the immediate parent to be owned and private. The fixture now creates workspace-two with mode 0700. Production checks and TLS file modes remain unchanged. The initial failure evidence remains preserved under the qualification attempt directory. Corrected overlay source changed; runtime remains pending on both hosts and profiles.
