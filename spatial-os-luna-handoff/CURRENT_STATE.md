@@ -1,3 +1,34 @@
+## 2026-10-13: Verified 4f241 deployments; both full local gates running
+
+Candidate remains frozen at 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+All four normal builds passed. Packaging returned command and wrapper exits zero.
+Primary independently audited 1,215 archive files and 914 source pins without mismatches.
+Embedded provenance matches the final builder records. All 41 locked files remain verified.
+Archive SHA256 is e340c4b5f7d86ffb51135176f9202d4df7255030d5b23c34c7d8af4c5d51f1f4.
+Both normal deployments and external Debug/ASan runtimes are verified.
+Each translated CTest inventory contains 165 registrations. Both hosts have matching inventory hashes.
+
+Full local gates now run in parallel through the production qualification tool.
+Root: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013.
+Sessions: m06-4f241-run-local-sb16 and m06-4f241-run-local-sb16-2.
+Gate PIDs at launch: sb16 2155578; sb16-2 2087244.
+Helper PIDs: sb16 2155540; sb16-2 2087206.
+CTest PIDs: sb16 2155679; sb16-2 2087344.
+The selected suites and purpose were recorded before execution under runs/selected-suites-4f241-20261013.txt.
+Inventory, production-only Debug startup, and the 51-test harness passed on both hosts.
+Debug core remains active. Completed-record progress is 16/164 and 22/164 respectively, with no failures.
+These are partial diagnostic counts. Full Debug, sanitizer, acceptance, and cross-host results remain pending.
+Observe these exact jobs and terminal receipts before any retry.
+Do not launch duplicate tests or rewrite the original f860 failed reports.
+
+Both cleanup passes removed 352 obsolete binaries per host while preserving source and evidence.
+After verified deployment, only redundant incoming archives were removed; a5500 retains the exact audited archive.
+Available space before core testing was approximately 8.45 GB on sb16 and 19.41 GB on sb16-2.
+A missing strict peer-SSH host-name entry is being repaired separately for the later cross-host stage.
+The worker-client WSL SSH lookup issue was resolved through the existing Windows OpenSSH route.
+No private keys were copied and host-key checking remains enabled.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Fresh candidate builds; verified obsolete binaries removed
 
 New frozen candidate is 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
