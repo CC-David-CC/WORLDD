@@ -58,6 +58,7 @@ class RealActorTransitionTests(WorldIdentityFixture):
         self.addCleanup(lambda: ([world.close() for world in reversed(self.worlds)],
                                  [broker.close() for broker in reversed(self.brokers)]))
         self.channels = {}
+        self._defer_initial_actor_auth = False
         def preserve_protobuf_evidence():
             target = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
             if target:
@@ -68,6 +69,8 @@ class RealActorTransitionTests(WorldIdentityFixture):
 
     def scoped_world(self, *args, **kwargs):
         # Allocate genuine additional socketpairs before worldd starts.
+        if self._defer_initial_actor_auth:
+            kwargs['authenticate'] = False
         old = workspace_fixture.WorkspaceAuthorityTests.scoped_world(self, *args, **kwargs)
         old.close()
         world = WorldProcess(self, old.config_path, old.state_path, count=6,
@@ -298,7 +301,11 @@ class RealActorTransitionTests(WorldIdentityFixture):
         return world
 
     def test_valid_workspace_selection_is_saved_independently_in_both_worlds(self):
-        a = self.workspace(); b = self.workspace_two()
+        self._defer_initial_actor_auth = True
+        try:
+            a = self.workspace(); b = self.workspace_two()
+        finally:
+            self._defer_initial_actor_auth = False
         room_a = self.room(a, 'workspace-one-room'); room_b = self.room(b, 'workspace-two-room')
         pose_a, pose_b = spawn(14), spawn(28)
         select_two = core.ActorActionRequest(
