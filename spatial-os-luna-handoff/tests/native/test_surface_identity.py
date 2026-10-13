@@ -102,12 +102,24 @@ class SurfaceIdentityTests(unittest.TestCase):
         data = inp.Request(protocol_version=1, request_id=1, inspect=inp.Inspect(xid=self.other_window)).SerializeToString()
         self.assertEqual(self.owner.operation(self.input_opcode, self.owner.pack('I', len(data))+data, reply=True), 10)
 
-    def test_non_controller_compositor_cannot_query_attribution(self):
-        self.setup_scene(); peer = self.connect(self.supervisor.issue(sec.COMPOSITOR, b'', b'').cookie)
-        data = inp.Request(protocol_version=1, request_id=1, inspect=inp.Inspect(xid=self.window)).SerializeToString()
+    def test_supervisor_authorized_compositor_peer_can_inspect_without_root_redirect(self):
+        self.setup_scene()
+        primary = self.attribution()
+        peer = self.connect(self.supervisor.issue(sec.COMPOSITOR, b'', b'').cookie)
+        data = inp.Request(protocol_version=1, request_id=1,
+                           inspect=inp.Inspect(xid=self.window)).SerializeToString()
         head, body = peer.operation(self.input_opcode, peer.pack('I', len(data))+data, reply=True)
-        reply = inp.Reply.FromString(body[:struct.unpack_from('<I', head, 8)[0]])
-        self.assertEqual(reply.code, inp.FORBIDDEN); self.assertFalse(reply.HasField('application_identity'))
+        size = struct.unpack_from('<I', head, 8)[0]
+        reply = inp.Reply.FromString(body[:size])
+        self.assertEqual(reply.protocol_version, 1)
+        self.assertEqual(reply.request_id, 1)
+        self.assertEqual(reply.code, inp.OK)
+        self.assertEqual(reply.security_mode, inp.ENFORCED)
+        self.assertTrue(reply.HasField('application_identity'))
+        self.assertEqual(reply.application_identity, primary.application_identity)
+        self.assertEqual(reply.target.xid, primary.target.xid)
+        self.assertEqual(reply.target.generation, primary.target.generation)
+        self.assertEqual((reply.width, reply.height), (primary.width, primary.height))
 
     def test_owner_disconnect_removes_attribution(self):
         self.setup_scene(); self.attribution(); self.owner.close()
