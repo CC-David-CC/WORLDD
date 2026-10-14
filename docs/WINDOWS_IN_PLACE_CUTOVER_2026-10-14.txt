@@ -1,0 +1,33 @@
+WINDOWS IN-PLACE CUTOVER VERIFIED - 2026-10-14
+
+The original project path now uses the clean source repository.
+Path: C:\Users\dflanag3\Documents\spacial_desktop
+Branch: main. Upstream: origin/main.
+Origin: dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git
+
+The terminal remained open. The project directory was not renamed.
+Old Git metadata and files are preserved outside the project.
+Backup: Documents\spatial-artifacts\repository-recovery-20261014\windows-in-place-backup
+The external CallbackList worktree was repaired to use the archived Git database.
+
+The script appeared frozen while checking about 223,000 obsolete paths.
+It redundantly checked files below already archived directories.
+The original process completed. No second copy was started.
+Future migration tools must skip archived subtrees and report progress by stage.
+
+Independent verification found Windows checkout conversion to CRLF.
+Files were restored to exact Git blob bytes.
+Repository-local core.autocrlf=false and core.eol=lf prevent future conversion.
+System-wide Git settings remain unchanged.
+The index was refreshed from the unchanged HEAD tree.
+Git status is clean. All 41 acceptance-file hashes match their locked values.
+The shell runner matches its canonical SHA-256.
+The installed Windows coordination skill matches the corrected source files.
+
+Receipts:
+Documents\spatial-artifacts\repository-recovery-20261014\windows-in-place-backup\receipt.json
+Documents\spatial-artifacts\repository-recovery-20261014\windows-post-cutover-validation.json
+
+M07 remains incomplete and paused. No milestone runtime tests were resumed.
+The original folder-rename instructions are superseded by this completed cutover.
+Do not rerun the one-time cutover scripts against the clean repository.
