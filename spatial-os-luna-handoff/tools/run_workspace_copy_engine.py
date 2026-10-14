@@ -54,6 +54,16 @@ def main():
     for signum in (signal.SIGTERM,signal.SIGINT):
         previous[signum]=signal.signal(signum,lambda number,_frame:cancellations.append(number))
     try:
+        discovery=subprocess.run([sys.executable,'-B',str(source/'tools/inspect_workspace_copy_fixture.py'),str(build),str(source)],
+            capture_output=True,text=True,timeout=15,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
+        (evidence/'fixture-discovery.stdout').write_text(discovery.stdout)
+        (evidence/'fixture-discovery.stderr').write_text(discovery.stderr)
+        report['fixture_discovery_exit']=discovery.returncode;save()
+        if discovery.returncode:
+            raise RuntimeError('Copy fixture import/discovery failed before helper installation: '+discovery.stderr[-16000:])
+        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==report['selected_methods']
+        assert not discovered['services_started'] and discovered['methods_executed']==0
+        report['fixture_discovery']=discovered;save()
         for name in ('spatial-copy-tree-worker','spatial-copy-finalize-worker'):
             target=Path('/usr/local/libexec')/name;binary=build/name
             assert binary.is_file() and binary.stat().st_mode&0o111
@@ -101,6 +111,10 @@ def main():
         service_logs=list((evidence/'cases').glob('*.log'))
         report['service_logs']={str(path.relative_to(evidence)):digest(path) for path in service_logs}
         output+=''.join(path.read_text(errors='replace') for path in service_logs)
+        if status!=0:
+            report['inner_failure']=dict(exit=status,stdout=str(evidence/'stdout.log'),stderr=str(evidence/'stderr.log'),
+                diagnostic_tail=output[-16000:]);save()
+            raise RuntimeError('Copy engine inner fixture exited '+str(status)+'; original stdout/stderr retained: '+output[-16000:])
         volumes=list((evidence/'cases').glob('*/volume.json'))
         assert len(volumes)==11 and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))

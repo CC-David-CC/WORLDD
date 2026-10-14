@@ -1034,7 +1034,8 @@ if(BUILD_TESTING)
     add_custom_target(workspace-copy-engine-fixture DEPENDS workspaced worldd identityd spatial-issuer-client
         spatial-process-scope-probe spatial-storage-owner-service spatial-app-init
         spatial-copy-tree-worker spatial-copy-finalize-worker broker-python-protobuf
-        copy-worker-python-protobuf storage-python-protobuf issuer-python-protobuf grants-python-protobuf)
+        copy-worker-python-protobuf storage-python-protobuf issuer-python-protobuf grants-python-protobuf
+        world-session-python-protobuf)
     add_test(NAME workspace-copy-engine COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_engine.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env)
