@@ -1,3 +1,32 @@
+## 2026-10-14: Presentation and production-copy retries exposed fixture defects
+
+M07 remains incomplete. No storage capacity blocker remains.
+The journal and fence component passes below remain valid for their recorded pins.
+
+Presentation candidate c5880f42e5421da54efb0ec90e24b8978e477e95 passed static preflight on sb16-2.
+Its new actor suite ran five methods: one passed, three errored, and one failed.
+The errors exposed wrong scope-component types and an incorrectly unwrapped GrantPage in the new fixture.
+The replay test also waited for a second issuer request although its single workspace query batches actor status.
+Fixture correction 31f7ff5d0e0bbd73cef649654953e713718e1621 is being diagnosed with the original barrier timeout.
+Retained failed case: spatial-artifacts/m07-presentation-combined-c5880f42/stage-20261014/debug-r1-results/workspace-presentation-actor on sb16-2.
+The remaining presentation selections and sanitizer checks remain unrun for this combined candidate.
+
+The Btrfs guard correction built successfully in Debug, sanitizer, and Production-OFF configurations.
+Source f4fb6e974dc52b1275f6ad65b20a965bc89d6189 includes reviewed native registration and cleanup improvements.
+The corrected production Debug attempt on sb16 passed the FD32 check and reached the read-only-destination rejection marker.
+Its next lifecycle failed because the fixture reused an initialized broker cgroup root.
+The production guard correctly rejects replacing an existing root's resource limits.
+Each independent probe lifecycle needs a fresh delegated root. Production checks must remain unchanged.
+The authorized positive, malformed-BEGIN, remaining native witnesses, and recovery check remain unrun.
+No corrected production-stage pass is claimed.
+Retained evidence: spatial-artifacts/runs/copy-worker-production-a9u1rjm4 on sb16.
+The primary received applied unmount, empty-scope removal, socket removal, inactive-unit, and restored-helper receipts.
+
+The complete asynchronous engine remains on an isolated middle-child branch.
+Its production build and real end-to-end copy checks remain pending.
+Read docs/M07_QUALIFICATION_SEQUENCE_2026-10-14.txt for the remaining integration and both-host gate sequence.
+New review defects are recorded separately under the root defect blockers directory.
+
 ## 2026-10-14: Copy guard correction builds and presentation runtime checks
 
 M07 remains incomplete. No storage blocker remains.

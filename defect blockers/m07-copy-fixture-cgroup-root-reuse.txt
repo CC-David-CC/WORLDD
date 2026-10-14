@@ -1,0 +1,24 @@
+M07 native copy fixture reuses an initialized broker root
+
+Status: confirmed source and runtime fixture defect. Correction remains pending.
+Date: 2026-10-14.
+Source: f4fb6e974dc52b1275f6ad65b20a965bc89d6189.
+File: spatial-os-luna-handoff/tests/native/test_copy_worker_production.py.
+
+The fixture creates one delegated broker root for several independent probe lifecycles.
+The first WorkspaceResources instance applies its broker envelope to that root.
+The next instance encounters existing root limits and rejects initialization.
+This is an intentional production protection in src/workspace/resources.cpp.
+Do not reset those limits or weaken that guard to fit the fixture.
+
+The sb16 Debug attempt passed FD32 and emitted the read-only-destination rejection marker.
+The next writable-source lifecycle failed before reaching its intended physical-root guard.
+Its error was: Broker envelope must not replace existing root limits.
+The positive control and later witnesses remain unrun. The read-only marker alone does not qualify guard coverage.
+Evidence: sb16 spatial-artifacts/runs/copy-worker-production-a9u1rjm4.
+
+Create a fresh operator-owned delegated broker root and resource configuration for each independent lifecycle.
+Enter that exact root before starting each nonroot probe.
+Record bounded process samples and empty-root removal for each case.
+Make cancellation and final cleanup cover every created root.
+Preserve the existing production budget and exclusive-root checks.

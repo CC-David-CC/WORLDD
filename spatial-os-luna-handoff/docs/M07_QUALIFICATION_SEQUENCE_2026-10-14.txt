@@ -1,0 +1,60 @@
+M07 qualification sequence
+
+Status: preparation only. M07 is incomplete. No storage capacity blocker remains.
+The primary owns integration and final evidence reconciliation.
+Use sb16 and sb16-2 for qualification. Build on middle-child and a5500.
+Keep XACE active. Keep CallbackList work separate.
+
+1. Finish focused component checks.
+
+Journal and authorization-fence Debug and sanitizer checks passed on both hosts.
+Those results apply to their recorded component pins, not the unfinished combined engine.
+Complete presentation actor, pixel, access, control, native-input, and migration checks on both hosts and profiles.
+Complete production copy-root, receipt-binding, helper, descriptor, and recovery checks on both hosts and profiles.
+Preserve setup failures separately from behavioral failures.
+Do not count declared method inventories or successful builds as runtime passes.
+
+2. Complete the engine and M07-specific witnesses.
+
+Use the actual actor route, broker, storage owner, confined workers, and runtime.
+Require an authorized end-to-end copy before reporting engine completion.
+Cover all five selected data classes and the mandatory project/history pair.
+Verify independent Git administration, dirty files, staged changes, untracked files, and committed history.
+Verify new workspace identity, independently assigned budgets, and no copied live authority or processes.
+Verify source process identity and continued execution after quiescence ends.
+Exercise exact retries, conflicting request bytes, denied source scopes, and unauthorized destination profiles.
+Exercise revocation, absolute deadlines, lost acknowledgments, worker failure, restart, and explicit uncertain outcomes.
+Verify immutable intent and receipt bindings before each external effect.
+Recheck migrations after the final journal and resource-policy schema changes.
+
+Require native multiple-representation and shared-world witnesses.
+Verify one workspace authority through multiple world and room placements.
+Verify presentation removal and restart preserve files, processes, and other placements.
+Verify locked remote geometry does not disclose unauthorized workspace metadata.
+Remote application streaming remains outside M1. Do not claim remote pixels from geometry witnesses.
+
+3. Integrate and freeze.
+
+Integrate reviewed component checkpoints into the isolated M07 integration branch.
+Resolve shared source and schema changes deliberately.
+Run related regressions on the combined source.
+Checkpoint source and test registrations through box-git.
+Freeze one exact candidate commit before building the gate artifacts.
+Record reused XACE server and graphics dependency hashes against that candidate's unchanged patch sources.
+Build complete Debug, sanitizer, and production configurations on the coding hosts.
+Keep generated bindings, binaries, packages, databases, images, and raw evidence outside Git.
+
+4. Run and reconcile the gate.
+
+Verify artifact and runtime closure independently on each qualification host.
+Audit CTest registration and disabled or missing required tests before starting.
+Require explicit production-copy and full-engine registrations, beyond journal or admission-only checks.
+Run the complete required Debug, sanitizer, harness, and locked acceptance suites on both hosts.
+Run required shared-world, native, recovery, and process-continuity checks.
+Reuse the qualified M06 gate machinery and its canonical runtime verifier where applicable.
+Add the M07-specific requirements to reconciliation. Earlier M06 passes do not qualify changed source.
+Inspect command.exit, wrapper.exit, actual method summaries, sanitizer diagnostics, and cleanup receipts.
+Keep failed, blocked, skipped, pending, and unrun requirements distinct.
+Reassess affected evidence after any source change.
+Advance to M08 only after primary review accepts the complete M07 result.
+Physical SpaceMouse, performance, model, and long-session M1 gates remain pending at their declared milestones.
