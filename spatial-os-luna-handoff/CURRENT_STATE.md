@@ -1,3 +1,27 @@
+## 2026-10-14: Native copy Debug and sanitizer suites passed on sb16
+
+Source lineage 7ee84fd3001d963e99b8e241bc015eac34812edd passed both focused production profiles on sb16.
+Each passed six native witnesses, the FD32 descriptor check, and the restart recovery method.
+The primary independently audited actual results, both command layers, two recovery-owner logs, and cleanup receipts.
+Both temporary helper states were restored. All six roots, volumes, loops, sockets, and units were cleaned up.
+Evidence: spatial-artifacts/runs/m07-copy-debug-production-7ee-v1 and m07-copy-san-production-7ee-v2 on sb16.
+These are component passes. Verification on sb16-2 and combined M07 qualification remain pending.
+
+The updated journal regression passed on sb16-2 with actual exits 0/0.
+It covered all five publication kinds, missing/extra/substituted-kind rejection, conflicts, uncertainty, and migrations.
+Evidence: spatial-artifacts/runs/m07-engine09-journal-v1 on sb16-2.
+
+Complete engine preflight10 ran four Debug methods: three passed and one failed.
+Private admission, exact retry, and authenticated malformed-BEGIN checks passed.
+The source payload launched with independently verified namespace and cgroup identity.
+Both data stages sealed and quiescence released before finalization failed on an unrewound request descriptor.
+No publication occurred. The journal reported UNCERTAIN. The engine correction remains under verification.
+
+Presentation application-access Debug checks passed 28 methods on sb16-2 at f066959060ce0a3155a387f4dc033e3a7ca37f64.
+Actor race and pixel checks still have retained failures. Other presentation selections remain in progress or unrun.
+The primary's read-only integration preview found conflicts in actors.cpp and the old-schema migration fixture.
+The milestone integration worktree remains unchanged. No candidate freeze or M07 phase pass is claimed.
+
 ## 2026-10-14: Six native copy witnesses passed; recovery and engine repairs remain
 
 Candidate fb21bea71e704307a61b3fb482d581a3a940d29a ran all six native Debug witnesses on sb16.

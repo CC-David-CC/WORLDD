@@ -1,6 +1,6 @@
 M07 copy worker cannot mount its sealed request
 
-Status: Confirmed. Correction is under focused verification.
+Status: Corrected in the narrow copy worker. Debug and sanitizer production suites passed on sb16.
 
 The production worker receives a sealed anonymous memfd at descriptor 7.
 The pathname-based --ro-bind-fd option cannot resolve that anonymous source.
@@ -25,4 +25,8 @@ The existing application credential handoff uses this data-mount mechanism.
 Narrow correction: 44c950b109d76996a64f55724125815bde112f59.
 Branch: m07/copy-readonly-flags-20261014 on box-git.
 The complete asynchronous engine has the equivalent correction in preflight08.
-Neither correction has a production runtime pass yet.
+The narrow correction passed in the later 7ee84fd3001d963e99b8e241bc015eac34812edd lineage on sb16.
+Both profiles passed real authorized and direct copies, receipt binding, physical-root checks, symlink rejection, and recovery.
+The asynchronous engine also reached two sealed data stages in its Debug preflight10 run.
+Its finalizer has a separate descriptor-offset defect. No complete engine pass is claimed.
+Second-host and combined M07 qualification remain pending.

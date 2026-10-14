@@ -1,0 +1,24 @@
+M07 cached application checks perform fresh issuer I/O
+
+Status: Confirmed source regression. Runtime correction remains pending.
+
+ExecutionStore::application_access accepts a refresh flag.
+ControlBroker::enforce deliberately passes false during authority and control progress.
+M07 adds an unconditional authorization_fence call after that check.
+WorkspaceAuthority::authorization_fence calls prepare_subjects and performs fresh issuer I/O.
+The false-refresh path can therefore reenter servicing during enforcement.
+
+Preserve fresh authorization for ordinary fresh requests.
+Use the existing checked fence_snapshot for the cached enforcement path.
+Keep permission evaluation and final incarnation/epoch comparison unchanged.
+Verify native control, revocation, application access, and input lifetime regressions before integration.
+
+The broader control run executed 25 methods and failed.
+Twenty-two control paths failed at their first pointer request.
+Cleanup produced additional failure records.
+Logs include Workspace control release remains unresolved and Workspace channel failed.
+Do not treat these as 22 separately diagnosed production defects.
+
+Source under review: f066959060ce0a3155a387f4dc033e3a7ca37f64.
+Retained sb16-2 evidence:
+/home/dflanag3/spatial-artifacts/m07-presentation-race-repair-20261014/debug-independent69-results/world-application-control

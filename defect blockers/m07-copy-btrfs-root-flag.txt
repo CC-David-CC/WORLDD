@@ -1,6 +1,6 @@
 M07 copy stage uses the wrong Btrfs read-only flag
 
-Status: confirmed by source/API review and retained-snapshot inspection. Correction reviewed; runtime qualification remains pending.
+Status: corrected. Focused production Debug and sanitizer checks passed on sb16. Second-host and milestone qualification remain pending.
 Date: 2026-10-14.
 Affected source: f2cf41d2e69db6347dd6004368aa6ea053eaae30 and retained805 baseline.
 Files: src/workspace/storage_client.cpp and src/workspace/copy_worker.cpp under spatial-os-luna-handoff.
@@ -46,4 +46,8 @@ Reviewed correction: 4a15d8544111b38a00956cd70f7ba2c4bdaea59f on m07/copy-readon
 The corrected source uses BTRFS_ROOT_SUBVOL_RDONLY in both production guards.
 Its regression uses real writable roots and checks the exact prelaunch rejection without destination or cgroup changes.
 A separate owner/client lifecycle verifies false read-only metadata fences the channel.
-Targeted Debug, sanitizer, and Production-OFF builds are authorized. Corrected runtime checks remain unrun.
+Targeted Debug, sanitizer, and Production-OFF builds passed in the later reviewed source lineage.
+Candidate 7ee84fd3001d963e99b8e241bc015eac34812edd passed six native witnesses, FD32, and restart recovery on sb16.
+Both Debug and sanitizer profiles passed. The primary audited their command and wrapper exits and cleanup receipts.
+Evidence: runs/m07-copy-debug-production-7ee-v1 and runs/m07-copy-san-production-7ee-v2 under sb16 spatial-artifacts.
+Second-host verification and combined M07 qualification remain pending.

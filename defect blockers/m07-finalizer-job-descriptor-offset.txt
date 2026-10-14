@@ -1,0 +1,21 @@
+M07 finalizer receives an empty sealed request
+
+Status: Confirmed in the unintegrated engine preflight10.
+
+The constructor writes and seals its request memfd but leaves the offset at EOF.
+Bubblewrap --ro-bind-data reads from the current descriptor offset.
+The finalizer therefore receives an empty request and rejects its default protobuf fields.
+Its private diagnostic is Unsupported bounded finalization request.
+
+Rewind the descriptor before launch, as the tree-worker constructor already does.
+Keep the request-size bound, seals, read-only mount, and protobuf validation.
+Add bounded private failure diagnostics and retained phase/effect metadata to aid future diagnosis.
+
+The retained journal proves two data stages sealed and the source quiescence lease released.
+The finalization intent contains a valid 387-byte request.
+Destination validation remained pending. No publication occurred.
+The operation correctly ended UNCERTAIN.
+Read-only inspection preserved the image hash and detached its loop.
+Image SHA256: 670d4f354e3bd17c541e9432d847c643cd98dde991a29218ce910623db70ab6e.
+Evidence on sb16:
+/home/dflanag3/spatial-artifacts/runs/m07-engine10-debug-v1/readonly-positive-journal-v2.json

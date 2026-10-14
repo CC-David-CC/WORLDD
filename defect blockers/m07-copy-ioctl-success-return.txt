@@ -1,6 +1,6 @@
 M07 copy worker rejects a positive successful ioctl return
 
-Status: confirmed by source review and retained runtime observations. Correction reviewed; runtime qualification remains pending.
+Status: corrected. Focused production Debug and sanitizer checks passed on sb16. Second-host and milestone qualification remain pending.
 Date: 2026-10-14.
 Source: f2cf41d2e69db6347dd6004368aa6ea053eaae30.
 Function: run_copy_tree_worker in src/workspace/copy_worker.cpp.
@@ -27,3 +27,9 @@ Reviewed correction: 4a15d8544111b38a00956cd70f7ba2c4bdaea59f on m07/copy-readon
 Both lower-worker GET_SUBVOL_INFO calls now accept nonnegative return values.
 All existing identity, read-only, writable-destination, and ancestry checks remain enforced.
 Targeted builds are authorized. A real successful production copy remains required before closing this defect.
+
+Later verification supersedes that pending runtime status.
+Candidate 7ee84fd3001d963e99b8e241bc015eac34812edd passed real positive copies and both physical-root negatives on sb16.
+Both Debug and sanitizer production suites passed six witnesses, FD32, and restart recovery.
+Evidence: runs/m07-copy-debug-production-7ee-v1 and runs/m07-copy-san-production-7ee-v2 under sb16 spatial-artifacts.
+Second-host verification and combined M07 qualification remain pending.

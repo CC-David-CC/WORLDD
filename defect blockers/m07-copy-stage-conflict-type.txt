@@ -1,6 +1,6 @@
 M07 repeated copy-stage BEGIN returns the wrong error type
 
-Status: Confirmed. A narrow correction is under verification.
+Status: Corrected. The unchanged recovery regression passed in Debug and sanitizer profiles on sb16.
 
 A well-formed repeated BEGIN changes maximum_bytes for an existing operation.
 The owner returns INVALID_ARGUMENT, code 1, instead of CONFLICT, code 6.
@@ -16,3 +16,9 @@ Retained sb16 evidence:
 /home/dflanag3/spatial-artifacts/runs/copy-worker-production-pcszud0s
 All six native witnesses and FD32 passed before this recovery failure.
 Recovery did not reach its second owner generation.
+
+Corrected source: 7ee84fd3001d963e99b8e241bc015eac34812edd.
+The later full production suites passed all six witnesses, FD32, and the restart recovery method.
+Both owner generations exited zero. Their retained stderr logs were empty and scanned.
+Evidence: runs/m07-copy-debug-production-7ee-v1 and runs/m07-copy-san-production-7ee-v2 under sb16 spatial-artifacts.
+Second-host and combined M07 qualification remain pending.
