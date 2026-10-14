@@ -445,6 +445,12 @@ add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
 add_dependencies(spatial-test-host worldd workspaced)
+add_custom_target(spatial-m07-fence-runtime-fixture)
+add_dependencies(spatial-m07-fence-runtime-fixture
+    identityd spatial-issuer-client worldd workspaced spatial-app-init spatial-process-scope-probe
+    broker-python-protobuf workspace-copy-python-protobuf python-protobuf grants-python-protobuf
+    issuer-python-protobuf key-python-protobuf native-scope-python-protobuf scope-python-protobuf
+    security-python-protobuf storage-python-protobuf geometry-view-python-protobuf world-session-python-protobuf)
 
 include(CTest)
 if(BUILD_TESTING)
@@ -1029,7 +1035,7 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_bootstrap.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k authorization_fence)
-    set_tests_properties(workspace-authorization-fence-scoped workspace-authorization-fence-credential
+    set_tests_properties(workspace-authorization-fence-registry workspace-authorization-fence-scoped workspace-authorization-fence-credential
         workspace-authorization-fence-no-authority workspace-authorization-fence-bootstrap PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME authenticated-resources COMMAND "${Python3_EXECUTABLE}"
