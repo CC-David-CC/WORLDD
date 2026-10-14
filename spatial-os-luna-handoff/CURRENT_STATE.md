@@ -1,6 +1,6 @@
-## 2026-10-14: Local native workspace witness passed both profiles on sb16-2
+## 2026-10-14: Local native workspace witness passed both profiles on both hosts
 
-The repaired local witness passed one exact method in Debug and one in ASan/UBSan on sb16-2.
+The repaired local witness passed one exact method per profile on both hosts. Four named executions passed.
 Source: 91453112a010a1d51327182515672b79225dba40 on m07/native-fixture-review-20261014, verified on box-git.
 It uses one native world and an independent headless world with one shared execution authority.
 Real portal navigation preserves the visibility and reach rules during presentation moves.
@@ -9,12 +9,13 @@ It also checks presentation removal and headless-world restart.
 The availability oracle now reads the stored flag instead of counting the retained registration row.
 
 The primary inspected raw named-method results, both case and outer exit layers, and exact source hashes.
-It independently scanned 32 logs and verified profile-specific XACE wrappers and sanitizer options.
-Both delegated scopes were absent. Both services were collected. No skips or sanitizer findings were found.
-Evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-native-shared-witness-20261014.
-Read results-debug1-91453112, results-san1-91453112, and primary-local-91453112-audit.json.
+It independently scanned 32 logs per host and verified profile-specific XACE wrappers and sanitizer options.
+All four delegated scopes were absent. Their services were collected. No skips or sanitizer findings were found.
+Evidence root on both hosts: /home/dflanag3/spatial-artifacts/m07-native-shared-witness-20261014.
+On sb16-2, read results-debug1-91453112, results-san1-91453112, and primary-local-91453112-audit.json.
+On sb16, read results-sb16-debug1-91453112, results-sb16-san1-91453112, and primary-local-91453112-audit-sb16.json.
 The earlier fixture failures remain preserved.
-The same witness on sb16 and the dual-native shared-world witness remain unrun.
+The dual-native shared-world witness remains unrun. Its separate draft is under source repair.
 This focused result does not qualify M07A or M07.
 
 The engine's frozen13 selected Debug target closure passed with command and wrapper exits zero.
@@ -26,7 +27,10 @@ Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine13-finalizer-debu
 The first two-pass/two-failure fixture run remains preserved.
 Engine actor-route V2, sanitizer, second-host, fault, recovery, and complete gate checks remain pending.
 Review05 corrects published-effect replay ordering and adds an explicit full-engine CTest registration.
-Its next build and runtime evidence remain pending. No full-engine V2 runtime pass is claimed.
+The engine checkpoint is 02bb2921ec371a22eaf998b764cc578458fac7a2, verified on box-git.
+The primary matched its task sources against the reviewed snapshot and explicit finalizer fixture overlay.
+The frozen14 Debug build passed its selected closure. The primary verified both zero exit receipts.
+Its full eleven-method Debug runtime package is approved after target preflight. No V2 engine runtime pass is claimed.
 
 M07 remains in implementation and focused integration.
 Combined integration, candidate freeze, and the full both-host gate remain ahead.
