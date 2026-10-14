@@ -54,8 +54,8 @@ void exercise_constructor_failure_cleanup(const std::filesystem::path& volume) {
         identity->set_process_id(static_cast<std::uint32_t>(getpid()));identity->set_accounting_consistent(true);
         const auto payload=reply.SerializeAsString();const auto size=static_cast<std::uint32_t>(payload.size());
         std::array<unsigned char,4> prefix{static_cast<unsigned char>(size>>24),static_cast<unsigned char>(size>>16),static_cast<unsigned char>(size>>8),static_cast<unsigned char>(size)};
-        std::thread peer([&]{write_all(pair[1],prefix.data(),prefix.size());write_all(pair[1],payload.data(),payload.size());close(pair[1]);});
-        try { spatial::StorageClient bad(pair[0],volume);peer.join();throw std::runtime_error("malformed owner identity was accepted"); }
+        std::thread peer([&,attempt]{if(attempt%2==0){write_all(pair[1],prefix.data(),prefix.size());write_all(pair[1],payload.data(),payload.size());}close(pair[1]);});
+        try { spatial::StorageClient bad(pair[0],volume);peer.join();throw std::runtime_error("invalid owner hello was accepted"); }
         catch(const spatial::WorldError&) { if(peer.joinable())peer.join(); }
         require(descriptor_count()==baseline,"failed owner hello leaked descriptors");
     }
@@ -65,8 +65,8 @@ int main(int argc,char** argv) {
     namespace pb=spatial::workspace::v1;
     try {
         if(argc!=5)throw std::invalid_argument("Expected storage fd, volume, resource config, and mode");
-        const auto mode=std::string(argv[4]); if(mode!="success"&&mode!="symlink")throw std::invalid_argument("Invalid probe mode");
-        exercise_constructor_failure_cleanup(argv[2]);
+        const auto mode=std::string(argv[4]); if(mode!="success"&&mode!="symlink"&&mode!="fd-leak")throw std::invalid_argument("Invalid probe mode");
+        if(mode=="fd-leak") { require(geteuid()==0,"fd-leak probe requires root owner credentials"); exercise_constructor_failure_cleanup(argv[2]); std::cout<<"MALFORMED_OWNER_FD_STABLE 32\n"; return 0; }
         spatial::StorageClient storage(std::stoi(argv[1]),argv[2]);
         spatial::WorkspaceResources resources(argv[3]);
         pb::StorageObject repo; repo.set_kind(pb::StorageObject::REPOSITORY); repo.set_id(object_id());

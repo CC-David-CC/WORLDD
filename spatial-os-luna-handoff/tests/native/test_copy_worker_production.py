@@ -162,6 +162,9 @@ try:
     assert stat.S_ISREG(bwrap_info.st_mode) and bwrap_info.st_uid==0 and not bwrap_info.st_mode&0o022
     record['bwrap_sha256']=hashlib.sha256(bwrap.read_bytes()).hexdigest()
     os.chown(EVIDENCE,uid,gid); EVIDENCE.chmod(0o700)
+    leak=run([BUILD/'spatial-copy-worker-production-probe','-1',volume,resource_path,'fd-leak'])
+    assert 'MALFORMED_OWNER_FD_STABLE 32' in leak.stdout
+    record['malformed_owner_fd_regression']=leak.stdout.strip()
     start_owner_client('success')
     start_owner_client('symlink')
     restart_evidence=EVIDENCE/'owner-recovery'; restart_evidence.mkdir(mode=0o700)
