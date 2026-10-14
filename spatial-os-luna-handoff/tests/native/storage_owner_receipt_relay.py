@@ -9,6 +9,7 @@ import socket
 import struct
 import subprocess
 import sys
+import traceback
 
 
 def receive(channel):
@@ -55,6 +56,9 @@ def main():
     upstream, owner_channel = socket.socketpair()
     for channel in (relay, broker, upstream, owner_channel):
         channel.settimeout(190)
+    # Match StorageChannel's early credential setup before any queued first frame.
+    upstream.setsockopt(socket.SOL_SOCKET, socket.SO_PASSCRED, 1)
+    owner_channel.setsockopt(socket.SOL_SOCKET, socket.SO_PASSCRED, 1)
     child = os.fork()
     if child == 0:
         # The owner sees this process's actual nonroot UID and PID on every frame.
@@ -73,11 +77,12 @@ def main():
             upstream.close(); broker.close()
             os._exit(0)
         except BaseException:
+            traceback.print_exc(); sys.stderr.flush()
             os._exit(2)
     broker.close(); upstream.close()
     owner = None
     audit = {'peer_uid':os.getuid(), 'peer_pid':os.getpid(), 'broker_uid':operator.pw_uid,
-             'broker_pid':child, 'requests':[], 'mutations':[], 'client_eof':False,
+             'broker_pid':child, 'upstream_passcred':True, 'owner_channel_passcred':True, 'requests':[], 'mutations':[], 'client_eof':False,
              'coverage':'authenticated root-negative private protocol' if args.mutate else 'authorized relay production control'}
     waited = False
     try:
@@ -89,6 +94,7 @@ def main():
                                   str(owner_channel.fileno()), '--config', str(args.config)],
                                  pass_fds=[owner_channel.fileno()], stdout=subprocess.DEVNULL,
                                  stderr=subprocess.PIPE, text=True)
+        audit['owner_pid'] = owner.pid
         owner_channel.close()
         while True:
             payload = receive(client)
@@ -131,15 +137,39 @@ def main():
         audit['owner_exit'] = owner.returncode
         if audit['broker_exit'] or owner.returncode:
             raise RuntimeError('authenticated forwarding peer or owner failed')
+    except BaseException as error:
+        audit['relay_failure'] = repr(error)
+        raise
     finally:
-        client.close(); relay.close(); owner_channel.close()
+        cleanup_errors = []
+        for channel in (client, relay, owner_channel):
+            try: channel.close()
+            except BaseException as error: cleanup_errors.append(repr(error))
         if not waited:
-            try: os.kill(child, signal.SIGKILL)
-            except ProcessLookupError: pass
-            os.waitpid(child, 0)
-        if owner and owner.poll() is None:
-            owner.kill(); owner.communicate(timeout=10)
+            try:
+                found, status = os.waitpid(child, os.WNOHANG)
+                if found == 0:
+                    os.kill(child, signal.SIGKILL)
+                    _, status = os.waitpid(child, 0)
+                    audit['broker_cleanup_killed'] = True
+                audit['broker_exit'] = os.waitstatus_to_exitcode(status)
+            except BaseException as error:
+                cleanup_errors.append('forwarder cleanup: '+repr(error))
+        if owner:
+            try:
+                audit['owner_pid'] = owner.pid
+                if owner.poll() is None:
+                    owner.kill(); audit['owner_cleanup_killed'] = True
+                audit['owner_stderr'] = owner.communicate(timeout=10)[1]
+                audit['owner_exit'] = owner.returncode
+            except BaseException as error:
+                cleanup_errors.append('owner cleanup: '+repr(error))
+        if cleanup_errors:
+            audit['cleanup_errors'] = cleanup_errors
         args.audit.write_text(json.dumps(audit, indent=2, sort_keys=True)+'\n')
+    if audit.get('cleanup_errors'):
+        raise RuntimeError('private relay cleanup failed: '+repr(audit['cleanup_errors']))
+
 
 
 if __name__ == '__main__':

@@ -100,6 +100,28 @@ def drop_to_operator():
     os.setgroups([]); os.setgid(gid); os.setuid(uid)
 
 
+def prepare_scope_as_operator(path):
+    # Create the cgroup as its delegated owner so its control files inherit that UID.
+    script = """import json,os,stat,sys
+from pathlib import Path
+scope=Path(sys.argv[1]);scope.mkdir(mode=0o700)
+assert scope.stat().st_uid==os.getuid() and stat.S_IMODE(scope.stat().st_mode)==0o700
+files={}
+for name in ('cgroup.procs','cgroup.subtree_control','cgroup.threads'):
+    path=scope/name;info=path.stat()
+    assert info.st_uid==os.getuid(),name
+    descriptor=os.open(path,os.O_WRONLY|os.O_CLOEXEC);os.close(descriptor)
+    files[name]={'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode),'writable_as_uid':True}
+print(json.dumps({'uid':os.getuid(),'scope':str(scope),'files':files},sort_keys=True))
+"""
+    result=subprocess.run([sys.executable,'-c',script,str(path)],preexec_fn=drop_to_operator,
+                          capture_output=True,text=True,timeout=10)
+    record['scope_delegation']={'exit':result.returncode,'stdout':result.stdout,'stderr':result.stderr}
+    if result.returncode:
+        raise RuntimeError('nonroot cgroup creation or control-file delegation failed: '+result.stderr)
+    record['scope_delegation']['verified']=json.loads(result.stdout)
+
+
 def start_owner_client(mode):
     global owner, client
     socket_path = socket_dir / ('o-'+mode+'.sock')
@@ -125,7 +147,7 @@ def start_owner_client(mode):
     relay_mode = mode in ('receipt-binding', 'receipt-control')
     audit_path = EVIDENCE / (mode+'-relay.json')
     if relay_mode:
-        relay_command = [sys.executable, str(SOURCE/'tests/native/storage_owner_receipt_relay.py'),
+        relay_command = [sys.executable, str(Path(__file__).with_name('storage_owner_receipt_relay.py')),
                          '--channel-fd', str(connection.fileno()), '--build', str(BUILD),
                          '--config', str(config_path), '--audit', str(audit_path)]
         if mode == 'receipt-binding': relay_command.append('--mutate')
@@ -169,7 +191,8 @@ def start_owner_client(mode):
     stdout, stderr = client.communicate(timeout=5)
     owner_stderr = owner.communicate(timeout=10)[1]
     test_id = {'receipt-binding':'copy_stage_begin_receipt_destination_binding_fences_before_worker',
-               'receipt-control':'copy_stage_authorized_receipt_relay_reaches_worker'}.get(mode, mode)
+               'receipt-control':'copy_stage_authorized_receipt_relay_reaches_worker',
+               'writable-source':'copy_worker_rejects_writable_source_before_launch'}.get(mode, mode)
     result = {'test_id':test_id,'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'scopes':samples}
     record['witnesses'].append(result)
     reject_sanitizer_diagnostics(stdout, stderr, owner_stderr)
@@ -199,6 +222,9 @@ def start_owner_client(mode):
         assert any(sample.get('worker_pid') and sample.get('private_netns') for sample in samples), samples
         assert any(sample.get('worker_pid') and sample.get('worker_cgroup') for sample in samples), samples
     if mode=='symlink': assert 'SYMLINK_REJECTED UNCERTAIN' in stdout
+    if mode=='writable-source':
+        assert 'WRITABLE_SOURCE_REJECTED exact-cause destination=unchanged worker=unprepared false-readonly=fenced' in stdout
+        assert not samples, samples
     config_path.unlink(missing_ok=True); socket_path.unlink(missing_ok=True)
 
 
@@ -220,7 +246,7 @@ try:
     (package/'operator-storage.textproto').write_bytes((SOURCE/'config/operator-storage.textproto').read_bytes())
     (package/'test_storage_snapshot.py').write_bytes((SOURCE/'tests/core/test_storage_snapshot.py').read_bytes())
     (package/'test_copy_worker_production.py').write_bytes(Path(__file__).read_bytes())
-    (package/'storage_owner_receipt_relay.py').write_bytes((SOURCE/'tests/native/storage_owner_receipt_relay.py').read_bytes())
+    (package/'storage_owner_receipt_relay.py').write_bytes(Path(__file__).with_name('storage_owner_receipt_relay.py').read_bytes())
     record['package_sha256']={str(p.relative_to(package)):hashlib.sha256(p.read_bytes()).hexdigest() for p in package.rglob('*') if p.is_file()}
     template=broker.StorageVolumeDefinition(); text_format.Parse((SOURCE/'config/operator-storage.textproto').read_text(),template)
     template.name=name; policy=template.owner_policy; policy.broker_uid=uid
@@ -245,7 +271,8 @@ try:
     assert {'cpu','memory','pids','io'} <= controllers, controllers
     (delegate/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
     assert {'cpu','memory','pids','io'} <= set((delegate/'cgroup.subtree_control').read_text().split())
-    scope=delegate/('broker-'+uuid.uuid4().hex); scope.mkdir(); os.chown(scope,uid,gid); os.chmod(scope,0o700)
+    scope=delegate/('broker-'+uuid.uuid4().hex)
+    prepare_scope_as_operator(scope)
     runtime.resources.delegated_cgroup=str(scope)
     resource_path=EVIDENCE/'resource.textproto'; resource_path.write_text(text_format.MessageToString(runtime.resources))
     os.chown(resource_path,uid,gid); resource_path.chmod(0o600)
@@ -267,6 +294,7 @@ try:
     leak=run([BUILD/'spatial-copy-worker-production-probe','-1',volume,resource_path,'fd-leak'])
     assert 'MALFORMED_OWNER_FD_STABLE 32' in leak.stdout
     record['malformed_owner_fd_regression']=leak.stdout.strip()
+    start_owner_client('writable-source')
     start_owner_client('receipt-control')
     start_owner_client('receipt-binding')
     start_owner_client('success')
@@ -298,8 +326,12 @@ finally:
     if owner and owner.poll() is None:
         os.killpg(owner.pid, signal.SIGKILL); owner.wait(timeout=5)
     try:
-        cleanup=run([sys.executable,SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name],check=False)
-        if cleanup.returncode: record['cleanup_volume_error']='volume unmount command returned nonzero'
+        cleanup=run([sys.executable,SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name,'--apply'],check=False)
+        volume_cleanup=json.loads(cleanup.stdout)
+        record['volume_cleanup']=volume_cleanup
+        if (cleanup.returncode or not volume_cleanup.get('applied') or volume_cleanup.get('mounted') is not False or
+            volume_cleanup.get('status')!='unmounted' or volume_cleanup.get('loop') is not None):
+            record['cleanup_volume_error']='volume unmount did not confirm applied cleanup'
     except Exception as error: record['cleanup_volume_error']=repr(error)
     try:
         if scope and scope.exists():

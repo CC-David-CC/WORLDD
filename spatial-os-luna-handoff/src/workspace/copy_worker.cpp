@@ -11,6 +11,7 @@
 #include <string_view>
 #include <utility>
 #include <linux/btrfs.h>
+#include <linux/btrfs_tree.h>
 #include <array>
 #include <cerrno>
 #include <fcntl.h>
@@ -107,9 +108,9 @@ CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_
    expected_source_subvolume!=expected_destination_subvolume&&max_bytes>0&&max_entries>0,"invalid copy worker request");
  struct stat a{},b{}; btrfs_ioctl_get_subvol_info_args source_info{},destination_info{};
  require(fstat(source_fd,&a)==0&&fstat(destination_fd,&b)==0&&S_ISDIR(a.st_mode)&&S_ISDIR(b.st_mode)&&
-   ioctl(source_fd,BTRFS_IOC_GET_SUBVOL_INFO,&source_info)==0&&ioctl(destination_fd,BTRFS_IOC_GET_SUBVOL_INFO,&destination_info)==0&&
+   ioctl(source_fd,BTRFS_IOC_GET_SUBVOL_INFO,&source_info)>=0&&ioctl(destination_fd,BTRFS_IOC_GET_SUBVOL_INFO,&destination_info)>=0&&
    source_info.treeid==expected_source_subvolume&&destination_info.treeid==expected_destination_subvolume&&
-   (source_info.flags&BTRFS_SUBVOL_RDONLY)!=0&&(destination_info.flags&BTRFS_SUBVOL_RDONLY)==0,
+   (source_info.flags&BTRFS_ROOT_SUBVOL_RDONLY)!=0&&(destination_info.flags&BTRFS_ROOT_SUBVOL_RDONLY)==0,
    "pinned copy roots do not match registered snapshot/staging subvolumes");
  auto ancestor=[](int root,int descendant){
   struct stat expected{};if(fstat(root,&expected)<0)throw std::runtime_error("cannot inspect pinned copy root");

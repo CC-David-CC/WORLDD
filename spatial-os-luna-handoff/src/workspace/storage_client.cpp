@@ -5,6 +5,7 @@
 #include "world/store.hpp"
 #include <fcntl.h>
 #include <linux/btrfs.h>
+#include <linux/btrfs_tree.h>
 #include <linux/magic.h>
 #include <sys/ioctl.h>
 #include <sys/statfs.h>
@@ -188,7 +189,7 @@ int StorageClient::open_object(const workspace::v1::StorageObjectState& state) c
        ioctl(object.value,BTRFS_IOC_FS_INFO,&fs)<0 ||
        subvolume.treeid!=state.subvolume_id() ||
        std::string(reinterpret_cast<char*>(fs.fsid),BTRFS_FSID_SIZE)!=impl_->filesystem_id ||
-       static_cast<bool>(subvolume.flags&BTRFS_SUBVOL_RDONLY)!=state.read_only()) {
+       static_cast<bool>(subvolume.flags&BTRFS_ROOT_SUBVOL_RDONLY)!=state.read_only()) {
         impl_->channel.reset(); unavailable();
     }
     return std::exchange(object.value,-1);
