@@ -1,0 +1,20 @@
+M07 copy finalizer repeats the recursive buffer defect
+
+Status: confirmed source defect in an unintegrated draft. Correction and runtime qualification remain pending.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/preflight02/source.
+File: spatial-os-luna-handoff/src/workspace/copy_finalize_worker.cpp, Hash::tree.
+
+Hash::tree places a 65,536-byte file buffer in each recursive call frame.
+The permitted directory depth is 128. Those buffers alone approach an 8 MiB process stack.
+Sanitizer instrumentation can require more space.
+The earlier tree helper already needed a correction for the same design.
+Its passing depth tests do not exercise this new finalizer.
+
+Keep the buffer outside recursive frames or use nonrecursive traversal.
+Preserve the directory-depth and byte limits.
+Add finalizer-specific depth-128 success and depth-129 rejection regressions.
+Use a real linked Git worktree and independent bare repository in the fixture.
+Run Debug and sanitizer checks with visible worker diagnostics.
+The implementation worker has accepted this review finding. No corrected runtime pass is claimed.

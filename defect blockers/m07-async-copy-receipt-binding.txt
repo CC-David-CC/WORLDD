@@ -1,0 +1,21 @@
+M07 asynchronous copy omitted pinned stage receipt checks
+
+Status: confirmed source defect in an unintegrated draft. Correction and runtime qualification remain pending.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/preflight02/source.
+File: spatial-os-luna-handoff/src/workspace/store.cpp, advance_workspace_copies.
+
+The asynchronous caller accepts BEGIN, START, and SEAL receipts without comparing both pinned subvolume identities.
+StorageClient checks operation IDs, object IDs, and limits. It does not establish those physical identity bindings alone.
+The synchronous stage caller already has the additional strict checks.
+The new asynchronous path therefore omits a required guard when replacing that caller.
+The prior synchronous malformed-receipt regression does not qualify this new production path.
+
+Apply the same complete binding check before START and worker launch.
+Validate operation ID, request digest, object IDs, both independently inspected subvolume IDs, and limits.
+Check returned counts and content digest at SEAL.
+Fence the channel on a mismatch. Preserve the exact failure evidence.
+Run an authenticated malformed-BEGIN regression through the actual asynchronous broker path.
+Require its successful authorized control and unchanged destination and worker state for the denied case.
+The implementation worker has accepted this review finding. No corrected runtime pass is claimed.

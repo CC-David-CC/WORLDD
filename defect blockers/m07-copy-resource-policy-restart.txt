@@ -1,0 +1,20 @@
+M07 copied workspace resource policy is not durable
+
+Status: confirmed source defect in an unintegrated draft. Correction and runtime qualification remain pending.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/preflight02/source.
+Files: spatial-os-luna-handoff/src/workspace/resources.cpp and src/workspace/store.cpp.
+
+register_copy_workspace stores the selected destination resource policy only in copied_policies memory.
+The final publication path is its only caller.
+Broker restart loses that binding. Normal lookup can then use the broader default policy.
+A restricted destination profile must remain restricted after restart.
+
+Pin an independently configured destination policy during admission.
+Persist its exact versioned bytes with registry publication.
+Validate and reload the binding before any destination launch.
+Reject a missing or incompatible configuration. Do not silently use the default policy.
+Use an explicit schema migration where existing database versions require it.
+Run a restart regression that rejects an unassigned application profile without launching a process.
+The implementation worker has accepted this review finding. No corrected runtime pass is claimed.

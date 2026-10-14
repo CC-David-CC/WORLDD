@@ -1,0 +1,23 @@
+M07 copy finalizer retains undeclared Git administration files
+
+Status: confirmed source defect in an unintegrated draft. Correction and runtime qualification remain pending.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/preflight02/source.
+File: spatial-os-luna-handoff/src/workspace/copy_finalize_worker.cpp, finalize.
+
+The draft copies the complete repository tree before rebuilding selected administration records.
+It removes hooks and worktree records, then replaces config and selected worktree links.
+It retains other repository administration files and reflogs.
+Those files are not an explicit versioned history export. They can retain credentials or authenticated source URLs.
+Replacing config alone does not establish the required credential exclusion.
+
+Build fresh Git administration from explicitly supported history objects, references, and the selected index.
+Create independent configuration and worktree links.
+Preserve authorized committed history, staged changes, dirty files, and untracked project data.
+Reject unsupported required Git features with a controlled result.
+Do not classify arbitrary administration files as safe through a filename blacklist.
+Add canaries to an undeclared administration sidecar, remote configuration, and a credential-bearing reflog entry.
+Verify that destination administration excludes those canaries while preserving the required Git states.
+This requirement does not imply scanning historical project content for secrets.
+The implementation worker received this review finding. No corrected runtime pass is claimed.
