@@ -27,9 +27,57 @@ record = {'host': socket.gethostname(), 'source': str(SOURCE), 'build': str(BUIL
 unit = 'spatial-m07-copy-'+uuid.uuid4().hex+'.service'
 socket_dir = Path('/run') / ('s-m07-'+uuid.uuid4().hex[:12])
 scope = None; owner = None; client = None; helper = Path('/usr/local/libexec/spatial-copy-tree-worker')
+listeners = []; socket_paths = []; connections = []
 original_helper = None; installed_helper_hash = None; config_paths = []
 backup = EVIDENCE / 'prior-copy-worker'
 had_helper = os.path.lexists(helper)
+
+
+def owned_cgroup_descendants(root, maximum_nodes=512, maximum_depth=12):
+    root = root.resolve(strict=True)
+    pending = [(root, 0)]
+    seen = []
+    while pending:
+        current, depth = pending.pop()
+        resolved = current.resolve(strict=True)
+        if resolved != root and root not in resolved.parents:
+            raise RuntimeError('cgroup descendant escaped owned scope')
+        seen.append(resolved)
+        if len(seen) > maximum_nodes:
+            raise RuntimeError('owned cgroup scan exceeded node bound')
+        if depth >= maximum_depth:
+            if any(child.is_dir() for child in resolved.iterdir()):
+                raise RuntimeError('owned cgroup scan exceeded depth bound')
+            continue
+        pending.extend((child, depth + 1) for child in resolved.iterdir() if child.is_dir())
+    return seen
+
+
+def process_cgroup_path(pid):
+    entries = Path(f'/proc/{pid}/cgroup').read_text().splitlines()
+    unified = [line.split(':', 2)[2] for line in entries if line.startswith('0::')]
+    if len(unified) != 1 or not unified[0].startswith('/'):
+        raise RuntimeError(f'process {pid} has no unique unified cgroup')
+    return (Path('/sys/fs/cgroup') / unified[0].lstrip('/')).resolve(strict=True)
+
+
+def verify_empty_owned_scope():
+    groups = owned_cgroup_descendants(scope)
+    for group in groups:
+        members = (group/'cgroup.procs').read_text().split()
+        events = dict(line.split() for line in (group/'cgroup.events').read_text().splitlines())
+        if members or events.get('populated') != '0':
+            raise RuntimeError(f'owned copy cgroup remains populated: {group}')
+    return groups
+
+
+def stop_unit_and_verify():
+    stop = run(['systemctl','stop',unit],timeout=20,check=False)
+    state = run(['systemctl','is-active',unit],timeout=10,check=False)
+    current = state.stdout.strip()
+    record['unit_stop'] = {'stop_exit':stop.returncode,'is_active_exit':state.returncode,'state':current}
+    if current not in ('inactive','unknown') or state.returncode not in (3,4):
+        raise RuntimeError(f'temporary unit did not become inactive: {current!r}')
 
 
 def run(argv, timeout=120, check=True):
@@ -44,6 +92,7 @@ def start_owner_client(mode):
     global owner, client
     socket_path = socket_dir / ('o-'+mode+'.sock')
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listeners.append(listener); socket_paths.append(socket_path)
     listener.bind(str(socket_path)); os.chmod(socket_path, 0o666); listener.listen(1); listener.settimeout(10)
     wrapper = ('import os,socket,sys; s=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM); s.connect(sys.argv[1]); '
                'fd=s.detach(); os.set_inheritable(fd,True); os.execv(sys.argv[2],[sys.argv[2],str(fd),*sys.argv[3:]])')
@@ -54,7 +103,9 @@ def start_owner_client(mode):
                               str(volume), str(EVIDENCE/'resource.textproto'), mode],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                              preexec_fn=enter_scope)
-    connection, _ = listener.accept(); listener.close()
+    connection, _ = listener.accept(); connections.append(connection)
+    listener.close(); listeners.remove(listener)
+    socket_path.unlink(missing_ok=True); socket_paths.remove(socket_path)
     configuration = storage.StorageOwnerConfig.FromString((entry/'owner.pb').read_bytes())
     configuration.broker_uid = uid; configuration.broker_pid = client.pid
     config_path = Path('/run')/('m07-copy-owner-'+uuid.uuid4().hex+'.pb')
@@ -62,21 +113,29 @@ def start_owner_client(mode):
     owner = subprocess.Popen([str(BUILD/'spatial-storage-owner'), '--channel-fd', str(connection.fileno()),
                               '--config', str(config_path)], pass_fds=[connection.fileno()],
                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-    connection.close()
+    connection.close(); connections.remove(connection)
     started = time.monotonic()
     samples = []
     while client.poll() is None:
-        for group in scope.glob('authority-*'):
+        try:
+            groups = owned_cgroup_descendants(scope)
+        except FileNotFoundError:
+            groups = []
+        for group in groups:
             try:
-                sample = {key:(group/key).read_text().strip() for key in ('memory.max','pids.max','cpu.max')}
                 children = (group/'cgroup.procs').read_text().split()
                 for child in children:
                     pid = int(child)
                     try:
                         executable = os.readlink(f'/proc/{pid}/exe')
-                        if Path(executable).name != 'spatial-copy-tree-worker': continue
+                        if executable != str(helper): continue
+                        actual_group = process_cgroup_path(pid)
+                        if actual_group != group or (actual_group != scope.resolve() and scope.resolve() not in actual_group.parents):
+                            raise RuntimeError('worker PID is outside the operation-owned scope')
+                        sample = {key:(actual_group/key).read_text().strip()
+                                  for key in ('memory.max','pids.max','cpu.max')}
                         sample['worker_pid'] = pid
-                        sample['worker_cgroup'] = str(group)
+                        sample['worker_cgroup'] = str(actual_group)
                         sample['private_netns'] = os.readlink(f'/proc/{pid}/ns/net') != os.readlink(f'/proc/{client.pid}/ns/net')
                         samples.append(sample)
                         break
@@ -174,6 +233,20 @@ try:
     if recovery.returncode: raise RuntimeError('COPYING restart recovery regression failed: '+recovery.stdout+' '+recovery.stderr)
 finally:
     if client and client.poll() is None: client.kill(); client.wait(timeout=5)
+    for listener in listeners:
+        try: listener.close()
+        except OSError: pass
+    for connection in connections:
+        try: connection.close()
+        except OSError: pass
+    for socket_path in socket_paths:
+        try:
+            if os.path.lexists(socket_path):
+                info=socket_path.lstat()
+                if socket_path.parent!=socket_dir or not stat.S_ISSOCK(info.st_mode) or info.st_uid!=0:
+                    raise RuntimeError('refusing to remove an unexpected socket path')
+                socket_path.unlink()
+        except Exception as error: record['cleanup_socket_error']=repr(error)
     for config in config_paths: config.unlink(missing_ok=True)
     if owner and owner.poll() is None: owner.kill(); owner.wait(timeout=5)
     try:
@@ -181,10 +254,35 @@ finally:
         if cleanup.returncode: record['cleanup_volume_error']='volume unmount command returned nonzero'
     except Exception as error: record['cleanup_volume_error']=repr(error)
     try:
-        if scope and scope.exists(): scope.rmdir()
-    except Exception as error: record['cleanup_scope_error']=repr(error)
-    try: run(['systemctl','stop',unit],timeout=20,check=False)
+        if scope and scope.exists():
+            record['empty_scope_before_unit_stop'] = [str(path) for path in verify_empty_owned_scope()]
+    except Exception as error:
+        record['cleanup_scope_error']=repr(error)
+    try:
+        stop_unit_and_verify()
     except Exception as error: record['cleanup_unit_error']=repr(error)
+    try:
+        if scope and scope.exists():
+            groups=verify_empty_owned_scope()
+            for group in sorted(groups,key=lambda path:len(path.parts),reverse=True):
+                if group==scope.resolve(): continue
+                if group.stat().st_uid!=uid: raise RuntimeError(f'unowned cgroup cannot be removed: {group}')
+                group.rmdir()
+            scope.rmdir()
+        record['scope_removed'] = not scope.exists() if scope else True
+    except Exception as error:
+        record['cleanup_scope_error']=repr(error)
+    try:
+        if socket_dir.exists():
+            children=list(socket_dir.iterdir())
+            if children: raise RuntimeError(f'owned socket directory still contains entries: {children}')
+            info=socket_dir.lstat()
+            if not stat.S_ISDIR(info.st_mode) or info.st_uid!=0 or stat.S_IMODE(info.st_mode)!=0o711:
+                raise RuntimeError('refusing to remove unexpected socket directory')
+            socket_dir.rmdir()
+        record['socket_directory_removed'] = not socket_dir.exists()
+    except Exception as error:
+        record['cleanup_socket_error']=repr(error)
     try:
         if installed_helper_hash is not None:
             if os.path.lexists(helper):
