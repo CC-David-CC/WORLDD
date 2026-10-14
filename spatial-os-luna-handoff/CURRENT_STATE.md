@@ -1,6 +1,7 @@
 ## 2026-10-14: First complete actor-route project/history copy passed
 
 Engine preflight11a passed all four focused Debug methods on sb16.
+Its reviewed source is checkpointed on box-git at 0a32fade70545d415d3d925c2ddb5e8d346210b7.
 The primary audited actual Ran 4 / OK in 38.378 seconds and both command layers at zero.
 The positive copy reached PUBLISHED with error zero and all 19 durable effects completed.
 It preserved staged, unstaged, untracked, and committed Git data with independent destination administration.
@@ -18,7 +19,16 @@ The narrow copy helper core passed eight methods in each profile on sb16-2.
 Its native Debug run exposed a cgroup sampler teardown race after four successful witnesses.
 A reviewed fixture-only correction handles bounded ENODEV from removed descendant groups.
 Required valid samples, terminal results, and all other errors remain enforced.
-Corrected native Debug and sanitizer checks on sb16-2 remain pending.
+Corrected native Debug and sanitizer checks on sb16-2 passed.
+The primary independently audited actual core counts, both command layers, and raw native receipts.
+Each host/profile pair passed eight core methods, six native witnesses, FD32, and one recovery method.
+These are 64 selected component checks across both hosts and profiles. They do not qualify M07.
+The sb16-2 Debug run exercised the bounded descendant-only ENODEV handling once.
+Both profiles restored temporary helpers, removed delegated roots, and detached native and recovery volumes.
+Production source: 7ee84fd3001d963e99b8e241bc015eac34812edd. Host2 fixture: 08a5c34ef342d655c00d26941763bd60567a88c1.
+Documentation checkpoint: 694b596898c6d0215e0552294313bb5f0a8780bb on box-git.
+Host2 evidence: spatial-artifacts/runs/m07-copy-{debug,san}-production-08a-sb16-2-v3.
+Primary audit: sb16-2:/home/dflanag3/spatial-artifacts/runs/m07-copy-host2-primary-audit-20261014.json.
 
 The broader presentation control suite ran 25 methods and failed at a shared native-control path.
 Source review found unexpected fresh issuer I/O inside cached control enforcement.
