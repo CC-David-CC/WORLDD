@@ -1,0 +1,33 @@
+M06 fixture owner guard: focused regression evidence
+
+Qualification: FOCUSED-PASS. M06 phase qualification remains incomplete.
+Fixture checkpoint: 6d62344ed550704c69406643ac03ae9aea52de46.
+Branch: m06/crosshost-owner-exit-race-20261013. Box-git ref independently verified.
+Production candidate: 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+
+Patched helper SHA256:
+43e137b0a3b24715815029b89cab3482c07787d080d5e67a0e51f20511a0177c
+Frozen baseline helper SHA256:
+192d2e0c824bc96d78d8d8060ec274191459c885eaf511e4c9bafb00a33161ee
+Executed regression file SHA256:
+b26b89130c751b70ea24c08e039a23786c8cc594283488d1e10b97f4f3845fe7
+Committed regression file SHA256:
+dbe80b649a85161afbf7d794157b37919a0c7c204ee0823200db016c0a455594
+The committed file removes one trailing blank line. Primary verified identical Python ASTs.
+
+Each host passed five tests. Both command and wrapper exit codes are zero.
+Each terminal receipt says COMPLETE. The retained stderr logs contain actual unittest results.
+Runs on both hosts:
+/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/owner-guard-focused01
+
+The tests exercise matching live identity, live mismatch rejection, controlled zombie exit,
+unconfirmed identity-read failure, invalid poll events, and descriptor closure.
+The controlled exit case invokes both baseline and patched guards.
+The baseline raises ownership mismatch. The patch proves exit through kernel pidfd readiness.
+The baseline failure is expected regression evidence, not a failing patched test.
+
+The helper and regression ran with deployed Debug protobuf bindings and source imports.
+The Python-only guard tests do not invoke compiled production executables.
+The full Debug and sanitizer cross-host gate remains failed and unretried.
+Native cross-host checks and inherited regressions remain unrun.
+Preserve the failed crosshost01 attempt. Use a fresh output for a reviewed fixture overlay.

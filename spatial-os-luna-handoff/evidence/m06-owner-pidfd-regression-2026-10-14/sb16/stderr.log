@@ -1,0 +1,10 @@
+test_exiting_child_distinguishes_original_failure_from_pidfd_fix (__main__.PidfdGuardTests.test_exiting_child_distinguishes_original_failure_from_pidfd_fix) ... ok
+test_identity_disappearance_without_pidfd_readiness_is_not_gone (__main__.PidfdGuardTests.test_identity_disappearance_without_pidfd_readiness_is_not_gone) ... ok
+test_live_changed_identity_is_rejected_and_descriptor_closed_once (__main__.PidfdGuardTests.test_live_changed_identity_is_rejected_and_descriptor_closed_once) ... ok
+test_matching_live_process_keeps_guarded_pidfd_open (__main__.PidfdGuardTests.test_matching_live_process_keeps_guarded_pidfd_open) ... ok
+test_pidfd_error_or_invalid_poll_event_is_not_exit_proof (__main__.PidfdGuardTests.test_pidfd_error_or_invalid_poll_event_is_not_exit_proof) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.167s
+
+OK

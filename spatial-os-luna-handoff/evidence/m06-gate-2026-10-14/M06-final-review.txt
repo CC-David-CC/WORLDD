@@ -1,0 +1,55 @@
+M06 final qualification review, 2026-10-14
+Status: M06 qualification evidence accepted by the primary. History-preserving integration checkpoint pending.
+Production candidate: 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Test-helper correction: 6d62344ed550704c69406643ac03ae9aea52de46.
+Keep XACE active. CallbackList remains a separate deferred branch.
+
+M06 requirement coverage
+Saved room and pose, entry spawn, and actor context: actor-transition-real-world and both-profile semantic cross-host fixtures.
+Per-world workspace selection and unavailable/unauthorized clearing: real-world suites and independently authenticated destination-workspace selection regression.
+Room changes preserve selection: existing world/session integration suites in full CTest inventory.
+XLibre and compositor continuity: host-actor-controller-native, host-session-production-native, actor-transition-recovery, and nine native cross-host cases per direction/profile.
+Shared geometry and actor motion: geometry-presentation-native and geometry-native-crosshost using production rendering and independent native capture.
+Held input release and stale-action fencing: host-actor-controller-native and retained transition/recovery suites.
+Authority-filtered observation and revocation: local native/real-service suites and cross-host cases.
+
+Accepted local evidence
+sb16-2 full gate report: 1174bdaae059f5854d11196c280b37e7aaef72c9ca5f2e3819008a6c0c79b28a.
+sb16 reconciled report: e3a651ba296164354e4a93b3bedab92b2c3abcab46f99ab2ee7b806e16037f72.
+sb16 original report remains failed and immutable: f02f65bfb5830cfa67917f5e3cfbd93915f2de9e1ef37fdf103cbdd9fbdf0679.
+Its sanitizer storage free-space preflight failed before any scenario. Separate five-scenario recovery passed.
+Each host/profile passed 164 CTest executions, 151 locked acceptance cases, 51 harness cases, five startup cases, and five storage-owner scenarios.
+All required source, runtime, binary, metadata, BUILD_TESTING=OFF, and storage post-run checks passed.
+Do not double-count shared held_input/native_controller registrations.
+
+Cross-host evidence
+crosshost03 passed 12 semantic cases and 36 native methods.
+Report SHA256: 68cbc3d2d3f391e9d367ad7906b033084a3b521f5463e423f549555b459d66da.
+Sidecar SHA256: ca36c36abea212b6246141f70292e6a00876faffb4fa4bcf3d697ec53a9e98e5.
+Primary and independent reviews checked case coverage, cleanup, witness logs, and before/after artifact pins.
+The observer witness-log hashes are not pixel hashes. Separate capture and protobuf artifacts supply pixel/action evidence.
+Inherited first driver passed all 16 methods and pre/post invariants.
+First-driver report SHA256: 5119173607a3b84620de76a20a8b219eac90d6b18bbd2a1f7bb2ac6b035a80fe.
+Second driver passed all 16 methods, pre/post invariants, and terminal cleanup.
+Second-driver report SHA256: b4be5ef4559b70621e5a0e2645510bdc69a00c9dbddd10501817cb171f7266e3.
+
+Preserved failures
+Owner pidfd exit race, missing overlay provenance, storage headroom, controller launcher path expansion, and inherited peer source-import failure remain recorded.
+No locked acceptance contract changed. No failed record was rewritten as passed.
+
+Scope limits
+M07-M16 remain pending. This review does not establish Spatial-M1 completion.
+Physical GPU output, keyboard/mouse/SpaceMouse, actual model task, 1080p timing, 1000 surface cycles, 30-minute session, and complete reproducibility remain later mandatory gates.
+
+Final primary audit
+All 32 inherited methods passed. Both command/wrapper receipts are 0/0 COMPLETE.
+Independent sanitizer scans covered 87 logs on sb16 and 75 on sb16-2 without diagnostics.
+Session recovery scopes were removed. No unexpected population remained. Units were not-found/inactive.
+Cross-host native continuity witnesses compare XLibre and compositor PID, start ticks, and executable hashes.
+The independent two-world workspace regression selects one and two across repeated transitions.
+The unavailable and revoked selection regressions check clearing on return.
+Native cross-host A-B-A checks saved actor context, pixels, and exact processes on both directions/profiles.
+The integration worktree changes only documentation/evidence and the explicit helper/test delta against 4f.
+No production/build-input change requires a repeated runtime gate.
+M01-M06 are qualified for their stated software scope. M07-M16 remain pending.
+Spatial-M1 is not complete. The physical/model/performance/reproducibility gates remain required.
