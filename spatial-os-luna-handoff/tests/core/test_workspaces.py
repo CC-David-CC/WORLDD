@@ -199,8 +199,14 @@ class WorkspaceTests(unittest.TestCase):
         before = self.call('world.snapshot'); self.client.stop()
         with self.registry() as db:
             db.execute('DROP TABLE processes'); db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces'); db.execute('PRAGMA user_version=2')
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+            execution_tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
+            self.assertEqual(execution_tables, {'operations', 'removals', 'repositories', 'worktrees'})
         with self.world_db() as db:
-            db.execute('DROP TABLE actor_workspaces'); db.execute('DROP TABLE world_workspaces'); db.execute('PRAGMA user_version=1')
+            db.execute('DROP TABLE actor_workspaces'); db.execute('DROP TABLE workspace_presentation_ops'); db.execute('DROP TABLE workspace_presentations'); db.execute('DROP TABLE world_workspaces'); db.execute('PRAGMA user_version=1')
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 1)
+            world_tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
+            self.assertEqual(world_tables, {'entities', 'metadata'})
         for binary, state, flag in [(BROKER, self.state / 'execution', '--migrate-v2'), (WORLD, self.state, '--migrate-v1')]:
             denied = subprocess.run([binary, '--state-dir', str(state)], input=b'', capture_output=True, timeout=5)
             self.assertNotEqual(denied.returncode, 0); self.assertIn(flag.encode(), denied.stderr)
@@ -222,7 +228,7 @@ class WorkspaceTests(unittest.TestCase):
     def test_current_world_schema_rejects_corrupt_entity_protobuf_without_repair(self):
         self.client.stop()
         with self.world_db() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
             db.execute('UPDATE entities SET data=?', (b'\xff',))
         before = (self.state / 'world.db').read_bytes()
         result = subprocess.run([WORLD, '--state-dir', str(self.state)], input=b'', capture_output=True, timeout=5)
