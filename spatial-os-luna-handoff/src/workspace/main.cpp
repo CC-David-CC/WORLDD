@@ -71,7 +71,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         // Transport validation precedes attribution on every private channel.
         if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
-        if (during_effect && !request.has_access() && !request.has_scoped_authority_check() && !request.has_application_access() &&
+        if (during_effect && !request.has_access() && !request.has_scoped_authority_check() && !request.has_authorization_fence() && !request.has_application_access() &&
                 !request.has_control_acquire() && !request.has_control_release())
             throw spatial::WorldError(wire::BUSY, "Workspace effect is pending; retry execution after its checked result");
         if (request.has_management()) {
@@ -82,6 +82,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
             *reply.mutable_scoped_authority_check() = store.scoped_authority_check(request.scoped_authority_check());
         }
+        else if (request.has_authorization_fence()) *reply.mutable_authorization_fence() = store.authorization_fence(request.authorization_fence());
         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
         else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire(), owner);

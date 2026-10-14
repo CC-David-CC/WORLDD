@@ -62,6 +62,19 @@ class BootstrapWorkspaceFixture(world_bootstrap.BootstrapWorldFixture):
 
 
 class WorkspaceBootstrapTests(BootstrapWorkspaceFixture):
+    def test_authorization_fence_tracks_bootstrap_binding_revision(self):
+        world = self.workspace()
+        self.publish()
+        principal = self.principal()
+        request = broker.AuthorizationFenceRequest(principal=principal)
+        before = self.broker.request(authorization_fence=request).authorization_fence
+        self.binding(world)
+        after = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual(after.incarnation, before.incarnation)
+        self.assertGreater(after.epoch, before.epoch)
+        repeated = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual((repeated.incarnation, repeated.epoch), (after.incarnation, after.epoch))
+
     def test_explicit_application_enables_confined_real_file_write(self):
         world,binding,actor=self.ready_workspace();peer=world.peers[1]
         self.assertFalse(self.own(peer).grants)

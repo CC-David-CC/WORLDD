@@ -317,6 +317,7 @@ struct Store::Impl {
 Store::Store(const std::filesystem::path& directory, const pb::Domain& domain, bool initialize, bool migrate)
     : impl_(std::make_unique<Impl>(directory, domain, initialize, migrate)) {}
 Store::~Store() = default;
+std::uint64_t Store::revision() const { return impl_->revision(); }
 std::vector<pb::GrantRecord> Store::install_roots(const std::vector<pb::GrantTerms>& values, std::uint64_t revision) {
     require(!values.empty() && values.size() <= 64, "Provision between one and 64 root grants");
     for (const auto& value : values) { terms(value); permit(same(value.scope().domain(), impl_->owner)); }

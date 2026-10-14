@@ -1,0 +1,17 @@
+Private broker authorization fence contract
+
+Scoped authority replies and application-access batches carry a 16-byte process incarnation and a positive monotonic authorization epoch. The broker also exposes a private fence request that refreshes issuer state for the authenticated principal across every configured workspace authority before returning the current pair. Callers compare every collected decision pair with one final fence pair and discard the batch on any mismatch.
+
+Application-access first completes issuer refresh, process reconciliation, reaping, and native checks. It captures the pair before evaluating the batch. Evaluation performs only local store and process-record reads. It returns UNAVAILABLE if the pair changes before the batch completes.
+
+The epoch advances for observed issuer security revisions, actor or credential revocation transitions, actual durable grant or bootstrap revision changes, real workspace creation or membership changes, and service failure. Cache invalidation alone does not advance it. Epoch exhaustion disables authority. Each process gets a fresh kernel-random incarnation, so a restart cannot reuse an old fence pair.
+
+The private protocol change adds fields to ScopedAuthorityCheckReply and ApplicationAccessReply and adds request field 114 / reply field 113 for the fence operation. It exposes no grant records and changes no actor-facing schema. The authority store revision accessor is trusted internal code and does not authorize caller access.
+
+Selected checks and purpose
+
+- Build workspaced and worldd with broker C++ bindings to check private request/reply dispatch and caller compilation.
+- Build broker Python protobuf bindings to verify descriptor generation.
+- Compile the authority test module to catch fixture syntax errors.
+- Run CTest discovery only to verify focused registration. Coding-host runtime tests remain unrun.
+- Focused registrations select fence stability, restart incarnation, scoped and application reply stamp agreement, later-workspace revocation, credential revocation, no-authority failure, delegation revisions, and bootstrap-binding revisions. The scoped selector covers five methods: exact scope and fresh revocation, workspace policy ceiling, no legacy fallback, transport-loss denial, and issuer-revocation denial. A separate selector covers registry binding as the sixth scoped case. Repeated queries and membership mutations prove no-op stability.

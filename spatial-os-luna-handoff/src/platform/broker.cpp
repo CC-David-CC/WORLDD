@@ -376,7 +376,11 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             if (request.has_bootstrap_apply() && reply.has_bootstrap())
                 valid = bootstrap_report(reply.bootstrap(), request.bootstrap_apply());
             if (request.has_scoped_authority_check() && reply.has_scoped_authority_check())
-                valid = reply.scoped_authority_check().revision() <= INT64_MAX;
+                valid = reply.scoped_authority_check().revision() <= INT64_MAX && reply.scoped_authority_check().incarnation().size() == 16 && reply.scoped_authority_check().epoch() > 0;
+            if (request.has_authorization_fence() && reply.has_authorization_fence())
+                valid = reply.authorization_fence().incarnation().size() == 16 && reply.authorization_fence().epoch() > 0;
+            if (request.has_application_access() && reply.has_application_access())
+                valid = reply.application_access().incarnation().size() == 16 && reply.application_access().epoch() > 0 && valid;
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
@@ -409,6 +413,10 @@ broker_wire::AccessReply BrokerClient::access(const std::string& workspace, cons
 broker_wire::ScopedAuthorityCheckReply BrokerClient::scoped_authority_check(const broker_wire::ScopedAuthorityCheckRequest& command) {
     broker_wire::Request request; *request.mutable_scoped_authority_check() = command;
     return exchange(request).scoped_authority_check();
+}
+broker_wire::AuthorizationFence BrokerClient::authorization_fence(const broker_wire::AuthorizationFenceRequest& command) {
+    broker_wire::Request request; *request.mutable_authorization_fence() = command;
+    return exchange(request).authorization_fence();
 }
 broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
     broker_wire::Request request; *request.mutable_application_access() = command;

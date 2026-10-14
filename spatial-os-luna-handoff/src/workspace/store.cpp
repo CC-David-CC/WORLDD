@@ -704,6 +704,7 @@ wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreat
     Transaction transaction(impl_->db.get());
     Query q(impl_->db.get(), "INSERT INTO workspaces VALUES(?,?,?,?,1)"); q.text(1, request.id()); q.text(2, worktree.id()); q.text(3, worktree.repo());
     check(sqlite3_bind_int(q.value, 4, static_cast<int>(policy))); q.step(); transaction.commit();
+    if (impl_->authority) impl_->authority->policy_changed();
     return workspace_get(request.id());
 }
 wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberRequest& request) {
@@ -723,6 +724,7 @@ wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberR
         Query revision(impl_->db.get(), "UPDATE workspaces SET revision=revision+1 WHERE id=?"); revision.text(1, request.id()); revision.step();
     }
     transaction.commit();
+    if (previous != rights && impl_->authority) impl_->authority->policy_changed();
     // Selection and control are separate from the rights that sustain execution.
     const unsigned effective = rights & rights_mask(workspace.policy());
     std::vector<std::string> revoked;
@@ -782,6 +784,11 @@ workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(
     }
     return decision;
 }
+workspace::v1::AuthorizationFence ExecutionStore::authorization_fence(const workspace::v1::AuthorizationFenceRequest& request) {
+    if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+    if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Authorization fence requires authenticated actor authority");
+    return impl_->authority->authorization_fence(request.principal());
+}
 workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh) {
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
     const auto& principal = request.principal();
@@ -806,7 +813,9 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         reconcile_authority(); reap();
         if (impl_->native) impl_->native->check();
     }
-    workspace::v1::ApplicationAccessReply reply;
+    if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Application authority fence is not configured");
+    const auto stamp = impl_->authority->authorization_fence(principal);
+    workspace::v1::ApplicationAccessReply reply; reply.set_incarnation(stamp.incarnation()); reply.set_epoch(stamp.epoch());
     for (const auto& app : request.applications()) {
         auto* result = reply.add_applications(); *result->mutable_application() = app;
         result->set_observe(false); result->set_control(false);
@@ -827,6 +836,9 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         result->set_control(permission.observe && permission.control &&
             (effective & static_cast<unsigned>(stored)) == static_cast<unsigned>(stored));
     }
+    const auto current = impl_->authority->fence_snapshot();
+    if (current.incarnation() != stamp.incarnation() || current.epoch() != stamp.epoch())
+        throw WorldError(wire::UNAVAILABLE, "Authorization changed during application access evaluation");
     return reply;
 }
 void ExecutionStore::reconcile_authority() {

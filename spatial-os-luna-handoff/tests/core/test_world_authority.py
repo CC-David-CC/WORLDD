@@ -26,6 +26,7 @@ class RelayingIssuer:
     def __init__(self, fixture, revoke):
         self.fixture = fixture; self.revoke = revoke; self.armed = threading.Event()
         self.delivered = threading.Event(); self.stop = threading.Event(); self.errors = []
+        self.status_lock = threading.Lock(); self.status_seen = 0; self.trigger_after_status = 1
         self.streams = []; self.workers = []
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.minimum_version = ssl.TLSVersion.TLSv1_3
@@ -60,11 +61,16 @@ class RelayingIssuer:
                 size = struct.unpack('!I', exact(4))[0]
                 if size > 1048576: raise AssertionError('Excessive relay frame')
                 request = issuer.IssuerRequest.FromString(exact(size)); sequence = request.request_id
+                should_revoke = False
                 if request.HasField('actor_status') and self.armed.is_set():
-                    self.armed.clear(); self.revoke()
-                    if not self.delivered.wait(.3): raise AssertionError('Real revocation was not forwarded')
-                    # Keep the issuer call pending while worldd consumes the watcher event.
-                    time.sleep(.08)
+                    with self.status_lock:
+                        self.status_seen += 1
+                        should_revoke = self.status_seen == self.trigger_after_status
+                    if should_revoke:
+                        self.armed.clear(); self.revoke()
+                        if not self.delivered.wait(.3): raise AssertionError('Real revocation was not forwarded')
+                        # Keep the issuer call pending while worldd consumes the watcher event.
+                        time.sleep(.08)
                 reply = upstream.request(request); reply.request_id = sequence
                 stream.sendall(frame(reply))
                 if reply.HasField('revocations') and reply.revocations.events: self.delivered.set()

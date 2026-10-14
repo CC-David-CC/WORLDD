@@ -109,7 +109,9 @@ message ScopedAuthorityCheckRequest {
   repeated bytes components = 4;
 }
 // Deliberately returns no grants or workspace metadata.
-message ScopedAuthorityCheckReply { bool allowed = 1; uint64 revision = 2; }
+message ScopedAuthorityCheckReply { bool allowed = 1; uint64 revision = 2; bytes incarnation = 3; uint64 epoch = 4; }
+message AuthorizationFenceRequest { spatial.authority.v1.ActorRef principal = 1; }
+message AuthorizationFence { bytes incarnation = 1; uint64 epoch = 2; }
 // Application groups come from trusted native attribution, not client properties.
 message ApplicationRef { bytes workspace = 1; bytes application = 2; bytes server_id = 3; }
 message ApplicationAccessRequest {
@@ -122,7 +124,7 @@ message ApplicationAccess {
   optional bool control = 3;
 }
 // Results preserve request order and identity. Denied groups return explicit false values.
-message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
+message ApplicationAccessReply { repeated ApplicationAccess applications = 1; bytes incarnation = 2; uint64 epoch = 3; }
 // Live control reservations are scoped to this private broker connection.
 message ApplicationControlRequest {
   spatial.authority.v1.ActorRef principal = 1;
@@ -236,6 +238,7 @@ message Request {
     BootstrapRevokeRequest bootstrap_revoke = 111;
     BootstrapApplyRequest bootstrap_apply = 112;
     ScopedAuthorityCheckRequest scoped_authority_check = 113;
+    AuthorizationFenceRequest authorization_fence = 114;
   }
 }
 message Reply {
@@ -256,5 +259,6 @@ message Reply {
     spatial.authority.v1.BootstrapBinding binding = 110;
     spatial.authority.v1.BootstrapReport bootstrap = 111;
     ScopedAuthorityCheckReply scoped_authority_check = 112;
+    AuthorizationFence authorization_fence = 113;
   }
 }
