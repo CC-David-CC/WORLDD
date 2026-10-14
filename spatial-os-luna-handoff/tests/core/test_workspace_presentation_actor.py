@@ -100,6 +100,8 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         ancestor_record = self.decide(self.owner_peer, self.enroll(self.owner_peer,
             self.intent(public=ancestor_public), ancestor_key, ancestor_public)).enrollment
         ancestor = self.claims(ancestor_record, self.info)
+        self.assertNotEqual(ancestor.actor_id, self.identity.actor_id)
+        self.assertNotEqual(ancestor.actor_id, self.second.actor_id)
         peer = world.peers[0]
         parent = self.world_delegate(peer, self.world_root_grant(peer),
             self.terms(ancestor, rights=WORLD_RIGHTS, depth=1))
@@ -212,6 +214,7 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
         race['ancestor'] = self.world_grant_second_via_ancestor(world)
+        self.world_grant_second(world, [grant.WORLD_ENTER])
         self.grant_second(world, [grant.WORKSPACE_ACCESS, grant.WORKSPACE_PRESENTATION_ATTACH])
         peer = world.peers[1]
         self.assertTrue(self.authenticate_second(peer).HasField('opened'))
@@ -243,7 +246,7 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
             f'the workspace access query did not reach the revocation barrier; observed {status_count} actor_status request(s)')
         self.assertEqual(status_count, 1)
         self.assertTrue(replay.HasField('error'), replay)
-        self.assertEqual(replay.error.code, core.FORBIDDEN)
+        self.assertEqual(replay.error.code, core.FORBIDDEN, replay)
         self.assertEqual(replay.error.message, 'Presentation action authority changed')
         self.assertTrue(relay.delivered.is_set())
         self.assertFalse(relay.errors)
@@ -284,6 +287,7 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
         race["ancestor"] = self.world_grant_second_via_ancestor(world)
+        self.world_grant_second(world, [grant.WORLD_ENTER])
         self.grant_second(world, [grant.WORKSPACE_ACCESS, grant.WORKSPACE_PRESENTATION_ATTACH])
         peer = world.peers[1]
         self.assertTrue(self.authenticate_second(peer).HasField("opened"), peer)
@@ -308,7 +312,7 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         with relay.status_lock:
             self.assertEqual(relay.status_seen, 1)
         self.assertTrue(raced.HasField("error"), raced)
-        self.assertEqual(raced.error.code, core.FORBIDDEN)
+        self.assertEqual(raced.error.code, core.FORBIDDEN, raced)
         self.assertFalse(raced.HasField("geometry_view"))
         self.assertTrue(relay.delivered.is_set())
         self.assertFalse(relay.errors)
