@@ -24,6 +24,7 @@ import grants_pb2 as grants
 import storage_pb2 as storage
 from harness.git_fixture import GitRepo
 from harness.resource_broker import ResourceBroker
+from harness.issuer_progress import IssuerLifetimeWitness
 from harness.wire import frame
 import test_workspace_authority as fixtures
 
@@ -59,6 +60,7 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
             owner_command=[sys.executable,'-B',str(SOURCE/'tests/native/storage_owner_receipt_relay.py'),
                 '--channel-fd','3','--build',str(BUILD),'--config',str(private),'--audit',str(self.audit_path)]
             if fixture.relay_mode:owner_command+=['--mutate']
+            if getattr(fixture,'relay_delay',False):owner_command+=['--delay-copy-begin']
         self.owner=subprocess.Popen(['sudo','-n','env',
             'ASAN_OPTIONS=detect_leaks=1:abort_on_error=1',
             'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
@@ -73,7 +75,7 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
             self.storage_log.close()
             if result!=0:raise AssertionError('Actual storage owner exited '+str(result))
 
-class WorkspaceCopyEngineTests(fixtures.WorkspaceAuthorityTests):
+class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthorityTests):
     def operator_run(self,command):
         result=subprocess.run(['sudo','-n',*map(str,command)],capture_output=True,timeout=90)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
@@ -156,6 +158,8 @@ class WorkspaceCopyEngineTests(fixtures.WorkspaceAuthorityTests):
     def cleanup_volume(self):
         # Attempt every close. Capture durable evidence before the image is unmounted.
         failures=[]
+        try:self.capture_issuer_lifetime('before_copy_fixture_cleanup')
+        except BaseException as error:failures.append('issuer lifetime capture: '+repr(error))
         for item in [*reversed(self.worlds),*reversed(self.brokers)]:
             try:item.close()
             except BaseException as error:failures.append(repr(error))
@@ -601,11 +605,36 @@ class WorkspaceCopyEngineTests(fixtures.WorkspaceAuthorityTests):
         value=Path(f'/proc/{pid}/stat').read_text();return value[value.rfind(')')+2:].split()[19]
     def test_actor_copy_publishes_independent_dirty_git_and_preserves_source_process(self):
         self.copy_actor_git_state()
+    def test_copy_broker_wait_keeps_action_issuer_alive_beyond_tls_idle(self):
+        self.relay_delay=True
+        self.copy_actor_git_state()
+        self.assertTrue(self.copy_status_timings)
+        self.assertLess(max(self.copy_status_timings),10)
+        (self.copy_evidence/'owner-delay-rpc-timing.json').write_text(json.dumps(dict(
+            actor_status_elapsed_seconds=self.copy_status_timings,broker_exchange_budget_seconds=10,
+            issuer_io_budget_seconds=5,owner_io_budget_seconds=5,
+            operation_300_second_deadline_coverage='UNRUN; this is a successful4.1s nested progress control'),indent=2)+chr(10))
+        observed=self.capture_issuer_lifetime('after_real_4_1_second_owner_reply_delay')
+        self.assertEqual(observed['policy']['idle_timeout_ms'],3000)
+        self.assertEqual(observed['policy']['io_timeout_ms'],5000)
+        self.assertTrue(observed['processes'])
+        self.assertTrue(all(item['exit_code'] is None and item['start_ticks'] for item in observed['processes']))
+        self.worlds[-1].close();self.broker.close()
+        audit=json.loads(self.operator_run(['cat',self.broker.audit_path]))
+        self.assertEqual(len(audit['delays']),1,audit)
+        delay=audit['delays'][0]
+        self.assertEqual(delay['method'],'copy_stage_begin')
+        self.assertGreaterEqual(delay['elapsed_seconds'],4.1)
+        self.assertLess(delay['elapsed_seconds'],5)
+        self.assertEqual(audit['mutations'],[])
+        self.assertEqual(audit['owner_exit'],0)
+        self.assertEqual(audit['broker_exit'],0)
     def test_actor_copy_preserves_confined_checkout_and_commit(self):
         self.copy_actor_git_state(changed_head=True)
     def test_actor_copy_preserves_confined_detached_commit(self):
         self.copy_actor_git_state(changed_head=True,detached=True)
     def copy_actor_git_state(self,changed_head=False,detached=False):
+        self.copy_status_timings=[]
         self.relay_mode=False
         def roots():
             result=self.copy_roots(True)
@@ -675,7 +704,9 @@ class WorkspaceCopyEngineTests(fixtures.WorkspaceAuthorityTests):
                 self.select(peer)
                 self.assertLess(time.monotonic()-started_access,5)
                 observed_frozen_access=True
+            status_started=time.monotonic()
             result=peer.act(workspace_copy_status=copy.WorkspaceCopyStatusRequest(protocol_version=1,operation_id=request.operation_id))
+            self.copy_status_timings.append(time.monotonic()-status_started)
             self.assertTrue(result.HasField('action'),result)
             status=result.action.copy_status
             self.assertNotIn(status.phase,(copy.ABORTED,copy.UNCERTAIN),status)
@@ -745,6 +776,7 @@ def load_tests(loader,tests,pattern):
         'test_begin_rejects_storage_id_filename_read_before_requested',
         'test_begin_root_read_reaches_durable_requested_and_exact_retry',
         'test_actor_copy_publishes_independent_dirty_git_and_preserves_source_process',
+        'test_copy_broker_wait_keeps_action_issuer_alive_beyond_tls_idle',
         'test_async_actor_copy_rejects_authenticated_malformed_begin_before_start',
         'test_actor_copy_preserves_confined_checkout_and_commit',
         'test_actor_copy_preserves_confined_detached_commit',

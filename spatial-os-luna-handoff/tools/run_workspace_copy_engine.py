@@ -31,7 +31,7 @@ def main():
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
     assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
     evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
-    report=dict(qualification='UNQUALIFIED',selected_methods=11,runtime_status='running',helpers={},commands=[])
+    report=dict(qualification='UNQUALIFIED',selected_methods=12,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
     def root_command(arguments,timeout=30):
         result=subprocess.run(['sudo','-n',*map(str,arguments)],capture_output=True,text=True,timeout=timeout)
@@ -116,10 +116,10 @@ def main():
                 diagnostic_tail=output[-16000:]);save()
             raise RuntimeError('Copy engine inner fixture exited '+str(status)+'; original stdout/stderr retained: '+output[-16000:])
         volumes=list((evidence/'cases').glob('*/volume.json'))
-        assert len(volumes)==11 and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
+        assert len(volumes)==12 and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
-        assert 'Ran 11 tests' in output and '\nOK' in output,output[-16000:]
+        assert 'Ran 12 tests' in output and '\nOK' in output,output[-16000:]
         report['runtime_status']='focused-pass'
     except BaseException as error:
         report['runtime_status']='failed-or-incomplete';report['failure']=repr(error);raise

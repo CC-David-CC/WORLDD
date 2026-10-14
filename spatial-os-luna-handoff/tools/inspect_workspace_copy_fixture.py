@@ -25,7 +25,7 @@ def methods(tests):
         if isinstance(test,unittest.TestSuite):yield from methods(test)
         else:yield test._testMethodName
 selected=list(methods(suite))
-assert len(selected)==11 and len(set(selected))==11
+assert len(selected)==12 and len(set(selected))==12
 assert all(callable(getattr(module.WorkspaceCopyEngineTests,name)) for name in selected)
 reached={}
 for name,value in tuple(sys.modules.items()):

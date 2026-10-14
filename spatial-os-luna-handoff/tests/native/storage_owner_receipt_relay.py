@@ -1,5 +1,6 @@
 """Authenticated test peer. Forward production protobuf through a real broker UID."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,7 @@ import struct
 import subprocess
 import sys
 import traceback
+import time
 
 
 def receive(channel):
@@ -43,7 +45,9 @@ def main():
     parser.add_argument('--build', type=Path, required=True)
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--audit', type=Path, required=True)
-    parser.add_argument('--mutate', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--mutate', action='store_true')
+    mode.add_argument('--delay-copy-begin', action='store_true')
     args = parser.parse_args()
     if os.getuid() != 0 or socket.gethostname().split('.')[0] not in ('sb16', 'sb16-2'):
         raise RuntimeError('receipt relay requires an approved root test host')
@@ -82,7 +86,7 @@ def main():
     broker.close(); upstream.close()
     owner = None
     audit = {'peer_uid':os.getuid(), 'peer_pid':os.getpid(), 'broker_uid':operator.pw_uid,
-             'broker_pid':child, 'upstream_passcred':True, 'owner_channel_passcred':True, 'requests':[], 'mutations':[], 'client_eof':False,
+             'broker_pid':child, 'upstream_passcred':True, 'owner_channel_passcred':True, 'requests':[], 'mutations':[], 'delays':[], 'client_eof':False,
              'coverage':'authenticated root-negative private protocol' if args.mutate else 'authorized relay production control'}
     waited = False
     try:
@@ -129,6 +133,17 @@ def main():
                 if restored != unchanged:
                     raise RuntimeError('mutation changed another receipt field')
                 audit['mutations'].append({'field':'destination_subvolume_id','before':before,'after':after})
+            if args.delay_copy_begin and request.HasField('copy_stage_begin') and not audit['delays']:
+                if not reply.HasField('copy_stage'):
+                    raise RuntimeError('delay witness requires a valid production BEGIN receipt')
+                started = time.monotonic()
+                delayed = dict(method=method, start_monotonic=started,
+                    reply_sha256=hashlib.sha256(reply.SerializeToString(deterministic=True)).hexdigest())
+                audit['delays'].append(delayed)
+                while time.monotonic()-started < 4.1:
+                    time.sleep(min(.02, max(0, 4.1-(time.monotonic()-started))))
+                delayed['end_monotonic'] = time.monotonic()
+                delayed['elapsed_seconds'] = delayed['end_monotonic']-started
             send(client, reply.SerializeToString(deterministic=True))
         relay.close()
         _, status = os.waitpid(child, 0); waited = True
