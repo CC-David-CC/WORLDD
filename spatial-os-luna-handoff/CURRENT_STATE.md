@@ -14,7 +14,18 @@ The presentation worker reviews preserved source and prepares a focused package.
 The primary reviews changes before integration.
 The complete workspace-copy engine remains unimplemented.
 M07 requires combined regression checks, a frozen candidate, and both-host qualification.
-No new runtime result is claimed by this resume record.
+The first fence Debug attempt failed during setup on both hosts.
+Each host reported three errors before fence assertions.
+The frozen v16 package omitted spatial-process-scope-probe.
+Command and wrapper exits were 1/1. Sanitizers remain unrun.
+Retained runs: /home/dflanag3/spatial-artifacts/m07-fence-runtime-e8b9a3d9-v16-20261014/{sb16-debug,sb16-2-debug}.
+The replacement package must include all transitive executable helpers.
+The journal fixture reused snapshot identities as destination identities.
+Its production collision guard remains correct and unchanged.
+Four journal startup failures still require daemon-level diagnosis.
+Presentation source review withdrew an unsupported postcommit-race concern.
+Its final local grants are checked after broker I/O and before synchronous mutations.
+Presentation runtime checks remain unrun.
 Older paused status below is historical.
 
 ## 2026-10-14: Clean repository recovery; implementation paused
