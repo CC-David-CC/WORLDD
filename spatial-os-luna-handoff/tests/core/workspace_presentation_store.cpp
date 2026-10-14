@@ -165,7 +165,7 @@ int main() {
         { WorldStore retried_v2(directory,false,false,true); expect(retried_v2.info().world_id()==world_id,"v2 migration retry accepts its verified v3 target"); }
         { WorldStore retried_v1(directory,true); expect(retried_v1.info().world_id()==world_id,"v1 migration retry accepts its verified v3 target"); }
         bool mixed_rejected=false;
-        try { WorldStore invalid(directory,true,false,true); } catch(const WorldError& e) { mixed_rejected=e.code==wire::STORAGE_ERROR; }
+        try { WorldStore invalid(directory,true,false,true); } catch(const std::invalid_argument& e) { mixed_rejected=std::string(e.what())=="Select one world schema migration"; }
         expect(mixed_rejected,"mixed world migration flags are rejected");
         expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&db)==SQLITE_OK,"open unknown schema witness");
         expect(sqlite3_exec(db,"PRAGMA user_version=4",nullptr,nullptr,nullptr)==SQLITE_OK,"set unknown schema version"); sqlite3_close(db);
