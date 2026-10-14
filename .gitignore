@@ -37,3 +37,7 @@ results-*/
 *_pb2.py
 *.pb.cc
 *.pb.h
+
+# Ignore legacy output links as well as directories.
+evidence
+local
