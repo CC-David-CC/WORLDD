@@ -1,4 +1,6 @@
 #include "workspace/copy_journal.hpp"
+#include "workspace/copy_collections.hpp"
+#include "copy_worker.pb.h"
 #include <sqlite3.h>
 #include <openssl/evp.h>
 #include <algorithm>
@@ -36,7 +38,7 @@ workspace::copy::v1::CopyDataClass checked_class(int raw) {
 }
 bool valid_schema(workspace::copy::v1::CopyDataClass type, const std::string& id, unsigned version) {
     using namespace workspace::copy::v1;
-    if (version != 1) return false;
+    if (version != 1 && !(version==2 && (type==APPLICATION_STATE || type==APPLICATION_DEFINITION))) return false;
     switch (type) {
         case PROJECT_TREE: return id == "spatial.workspace.project-tree";
         case GIT_HISTORY: return id == "spatial.workspace.git-history";
@@ -169,7 +171,7 @@ void CopyJournal::transition(const std::string& id, const std::string& requester
 }
 void CopyJournal::record_publication_intent(const std::string& id, const std::string& requester, const std::string& effect_id,
                                              const std::vector<PublicationTarget>& targets) {
-    require_requester(id,requester); require(effect_id.size()==16 && targets.size()>=2 && targets.size()<=64, "publication target count out of bounds");
+    require_requester(id,requester); require(effect_id.size()==16 && targets.size()>=2 && targets.size()<=37, "publication target count out of bounds");
     Statement op(db_, "SELECT phase,request_digest,destination,manifest,snapshot_receipts FROM copy_operations WHERE operation_id=?"); op.blob(1,id); require(op.step()==SQLITE_ROW && op.integer_value(0)==workspace::copy::v1::VALIDATED && !op.text_value(2).empty(), "publication intent requires a validated destination");
     std::vector<PublicationTarget> ordered=targets; std::sort(ordered.begin(),ordered.end(),[](const auto& a,const auto& b){ return std::make_pair(static_cast<int>(a.object.kind()),a.object.id())<std::make_pair(static_cast<int>(b.object.kind()),b.object.id()); });
     bool project=false,repository=false; std::set<std::string> ids, source_ids, snapshot_ids; std::string intent; const auto destination=op.text_value(2); const auto destination_len=static_cast<std::uint32_t>(destination.size()); intent.push_back(static_cast<char>(destination_len>>24)); intent.push_back(static_cast<char>(destination_len>>16)); intent.push_back(static_cast<char>(destination_len>>8)); intent.push_back(static_cast<char>(destination_len)); intent.append(destination);
@@ -191,6 +193,12 @@ void CopyJournal::record_publication_intent(const std::string& id, const std::st
             entry.data_class()==workspace::copy::v1::APPLICATION_DEFINITION?workspace::v1::StorageObject::APPLICATION_DEFINITION:
             entry.data_class()==workspace::copy::v1::APPLICATION_STATE?workspace::v1::StorageObject::APPLICATION_STATE:workspace::v1::StorageObject::ENVIRONMENT_CONFIG;
         ++required[kind];
+        for(const auto& component:entry.state_components()) {
+            workspace::v1::StorageObject destination;require(destination.ParseFromString(component.destination_storage_object()),"Malformed companion destination");
+            ++required[workspace::v1::StorageObject::APPLICATION_STATE];
+            const auto found=std::find_if(ordered.begin(),ordered.end(),[&](const auto& target){return target.object.SerializeAsString()==destination.SerializeAsString();});
+            require(found!=ordered.end(),"Publication omitted an exact companion destination identity");
+        }
     }
     for(const auto& target:ordered)++actual[target.object.kind()];
     require(required==actual,"Publication kinds must exactly match the selected manifest classes");
@@ -299,6 +307,44 @@ void CopyJournal::record_validated_result(const std::string& id, const std::stri
     require(destination != q.text_value(5), "copy destination must have a distinct workspace identity");
     workspace::copy::v1::WorkspaceCopyRequest bound_request;
     require(bound_request.ParseFromString(q.bytes(6)) && bound_request.SerializeAsString() == q.bytes(6), "stored copy request is not canonical");
+    const auto destination_bound=std::any_of(entries.begin(),entries.end(),[](const auto& entry){return !entry.destination_validation_digest().empty();});
+    if(destination_bound) {
+        Statement validation(db_,"SELECT receipt FROM copy_effects WHERE operation_id=? AND kind='destination-validation' AND state=1 AND request_digest=?");
+        validation.blob(1,id);validation.blob(2,q.bytes(4));require(validation.step()==SQLITE_ROW,"Manifest lacks its completed destination validation effect");
+        const auto validation_bytes=validation.bytes(0);const auto validation_digest=digest(validation_bytes);
+        workspace::copyworker::v1::FinalizeReceipt final;
+        require(final.ParseFromString(validation_bytes),"Manifest destination validation is malformed");
+        for(const auto& entry:entries)require(entry.destination_validation_digest()==validation_digest,"Manifest substituted its destination validation");
+        require(validation.step()==SQLITE_DONE,"Manifest has duplicate destination validation effects");
+        std::map<std::string,const workspace::copyworker::v1::StateExportValidation*> state_results;
+        for(const auto& state:final.state_companions())require(state_results.emplace(state.key(),&state).second,"Final validation repeated a state key");
+        if(!state_results.empty()) {
+            Statement bound(db_,"SELECT authorization_binding FROM copy_operations WHERE operation_id=?");bound.blob(1,id);require(bound.step()==SQLITE_ROW,"Copy binding is absent");
+            workspace::v1::WorkspaceCopyAuthorizationBinding binding;
+            require(binding.ParseFromString(bound.bytes(0)) && binding.protocol_version()==1 && binding.source_state_mapping_revision()>0 &&
+                    binding.state_companions_size()<=32,"State manifest lacks its pinned source mapping");
+            // Compare while the parsed binding owns its records.
+            std::map<std::string,workspace::v1::WorkspaceCopyStatePlan> stable_plans;
+            for(const auto& state:binding.state_companions())require(stable_plans.emplace(state.source().key(),state).second,"Pinned state mapping repeated a key");
+            for(const auto& entry:entries)for(const auto& component:entry.state_components()) {
+                const auto plan=stable_plans.find(component.key());const auto result=state_results.find(component.key());
+                require(plan!=stable_plans.end() && result!=state_results.end(),"Manifest state key differs from pinned source or final result");
+                const auto& proof=receipts.at(component.snapshot_receipt_id());const auto& state=*result->second;
+                require(plan->second.source().contract().SerializeAsString()==component.contract() &&
+                        plan->second.source().state_object().SerializeAsString()==component.source_storage_object() &&
+                        plan->second.snapshot().SerializeAsString()==proof.snapshot_storage_object() &&
+                        plan->second.destination().SerializeAsString()==component.destination_storage_object() &&
+                        state.source_storage_object()==component.source_storage_object() && state.snapshot_storage_object()==proof.snapshot_storage_object() &&
+                        state.destination_storage_object()==component.destination_storage_object() && state.contract_digest()==digest(component.contract()) &&
+                        state.actual_bytes()==component.byte_count() && state.actual_entries()==component.entry_count() &&
+                        state.content_digest()==component.content_digest(),"Manifest state source/contract/snapshot/destination result differs");
+                stable_plans.erase(plan);state_results.erase(result);
+            }
+            require(stable_plans.empty() && state_results.empty(),"Manifest omitted pinned or validated state companions");
+        } else {
+            for(const auto& entry:entries)require(entry.state_components_size()==0,"Manifest invented unvalidated state companions");
+        }
+    }
     std::set<int> requested_classes; for (int i=0;i<bound_request.data_class_size();++i) requested_classes.insert(static_cast<int>(checked_class(static_cast<int>(bound_request.data_class(i)))));
     std::set<int> manifest_classes; for (const auto& entry : entries) manifest_classes.insert(static_cast<int>(checked_class(static_cast<int>(entry.data_class()))));
     require(manifest_classes == requested_classes, "manifest classes do not match the exact request");
@@ -320,7 +366,7 @@ void CopyJournal::record_validated_result(const std::string& id, const std::stri
 std::string CopyJournal::record_publication_receipts(const std::string& id, const std::string& requester,
                                               const std::string& effect_id, const std::vector<workspace::v1::StorageObjectState>& receipts) {
     using namespace workspace::v1;
-    require_requester(id, requester); require(effect_id.size()==16 && receipts.size() >= 2 && receipts.size() <= 64, "destination receipt count out of bounds");
+    require_requester(id, requester); require(effect_id.size()==16 && receipts.size() >= 2 && receipts.size() <= 37, "destination receipt count out of bounds");
     Statement op(db_, "SELECT phase,request_digest,manifest,snapshot_receipts,destination FROM copy_operations WHERE operation_id=?"); op.blob(1, id);
     require(op.step() == SQLITE_ROW, "copy operation missing"); require(op.integer_value(0) == workspace::copy::v1::VALIDATED, "destination receipts require validated manifest");
     const auto request_digest = op.bytes(1); std::string packed; bool have_project=false, have_repository=false; std::set<std::string> object_ids, subvolume_ids;
@@ -331,7 +377,8 @@ std::string CopyJournal::record_publication_receipts(const std::string& id, cons
     const auto& intent=publication->intent; require(intent.size()>=4, "publication intent malformed"); std::size_t offset=0; const auto dest_len=(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[0]))<<24)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[1]))<<16)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[2]))<<8)|static_cast<unsigned char>(intent[3]); offset=4; require(dest_len>0 && dest_len<=128 && intent.size()-offset>=dest_len && intent.substr(offset,dest_len)==op.text_value(4), "publication intent destination mismatch"); offset+=dest_len;
     for (std::size_t i=offset;i<intent.size();) { require(intent.size()-i>=4, "publication intent frame truncated"); const auto n=(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i]))<<24)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i+1]))<<16)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i+2]))<<8)|static_cast<unsigned char>(intent[i+3]); i+=4; require(n>0 && n<=65536 && intent.size()-i>=n+32, "publication intent item invalid"); StorageObject target; require(target.ParseFromArray(intent.data()+i,static_cast<int>(n)) && target.SerializeAsString()==intent.substr(i,n), "publication target identity not canonical"); i+=n; const auto digest=intent.substr(i,32); i+=32; require((target.kind()==StorageObject::PROJECT || target.kind()==StorageObject::REPOSITORY || target.kind()==StorageObject::APPLICATION_STATE || target.kind()==StorageObject::APPLICATION_DEFINITION || target.kind()==StorageObject::ENVIRONMENT_CONFIG) && target.id().size()==32 && target.id().find_first_not_of("0123456789abcdef")==std::string::npos && targets.emplace(std::make_pair(static_cast<int>(target.kind()),target.id()),digest).second, "duplicate or invalid publication target"); }
     std::set<std::string> source_ids, snapshot_ids, protected_subvolumes; std::map<int,int> expected_kinds, actual_kinds;
-    for(const auto& bytes:unframe(op.bytes(2),1024*1024)) { workspace::copy::v1::CopyManifestEntry entry; require(entry.ParseFromString(bytes) && entry.SerializeAsString()==bytes, "stored manifest entry is corrupt"); workspace::v1::StorageObject source; require(source.ParseFromString(entry.source_storage_object()), "stored source identity is corrupt"); ++expected_kinds[source.kind()]; source_ids.insert(source.id()); }
+    for(const auto& bytes:unframe(op.bytes(2),1024*1024)) { workspace::copy::v1::CopyManifestEntry entry; require(entry.ParseFromString(bytes) && entry.SerializeAsString()==bytes, "stored manifest entry is corrupt"); workspace::v1::StorageObject source; require(source.ParseFromString(entry.source_storage_object()), "stored source identity is corrupt"); ++expected_kinds[source.kind()]; source_ids.insert(source.id());
+        if(entry.state_components_size()>0)expected_kinds[StorageObject::APPLICATION_STATE]+=entry.state_components_size(); }
     for(const auto& bytes:unframe(op.bytes(3),1024*1024)) { workspace::copy::v1::SnapshotReceipt snap; require(snap.ParseFromString(bytes) && snap.SerializeAsString()==bytes, "stored snapshot receipt is corrupt"); workspace::v1::StorageObject source, snapshot; require(source.ParseFromString(snap.source_storage_object()) && snapshot.ParseFromString(snap.snapshot_storage_object()), "stored snapshot identities are corrupt"); source_ids.insert(source.id()); snapshot_ids.insert(snapshot.id()); protected_subvolumes.insert(std::to_string(snap.source_subvolume_id())); protected_subvolumes.insert(std::to_string(snap.snapshot_subvolume_id())); }
     for (const auto& receipt : receipts) {
         const auto& object = receipt.object();
@@ -381,6 +428,8 @@ void CopyJournal::migrate_schema(sqlite3* db) {
                                    std::uint64_t max_total_bytes, std::size_t max_entries) {
     using namespace workspace::copy::v1; require(!entries.empty() && entries.size() <= max_entries && max_entries <= 4096, "manifest entry count out of bounds");
     std::set<std::pair<int, std::string>> identities; std::set<std::string> used_receipts; std::uint64_t total = 0; std::set<int> classes;
+    std::set<std::string> state_keys,state_source_ids,state_destination_ids;std::uint32_t state_entries=0;
+    std::set<std::string> all_source_ids,all_snapshot_ids;std::set<std::uint64_t> all_snapshot_subvolumes;
     for (const auto& e : entries) {
         const auto data_class = checked_class(static_cast<int>(e.data_class()));
         require(e.object_id().size() == 16 && valid_schema_id(e.schema_id()) && valid_schema(data_class, e.schema_id(), e.schema_version()), "invalid typed manifest identity or schema");
@@ -399,8 +448,50 @@ void CopyJournal::migrate_schema(sqlite3* db) {
         require(receipt.receipt_id() == e.snapshot_receipt_id() && receipt.readonly() && receipt.request_digest().size() == 32 && receipt.content_digest() == e.content_digest() && receipt.source_storage_object() == e.source_storage_object(), "snapshot receipt does not witness manifest entry");
         workspace::v1::StorageObject snapshot; require(snapshot.ParseFromString(receipt.snapshot_storage_object()) && snapshot.SerializeAsString() == receipt.snapshot_storage_object() && snapshot.kind() == workspace::v1::StorageObject::SNAPSHOT, "snapshot receipt identity invalid");
         require(snapshot.id().size() == 32 && snapshot.id().find_first_not_of("0123456789abcdef") == std::string::npos && snapshot.id() != source.id(), "snapshot identity is not registered-object form");
+        all_source_ids.insert(source.id());
+        require(all_snapshot_ids.insert(snapshot.id()).second && all_snapshot_subvolumes.insert(receipt.snapshot_subvolume_id()).second,
+                "Manifest reuses an underlying source snapshot");
         require(receipt.receipt_id().size() == 16 && receipt.source_subvolume_id() > 0 && receipt.snapshot_subvolume_id() > 0 && receipt.source_subvolume_id() != receipt.snapshot_subvolume_id(), "snapshot receipt subvolume identity invalid");
+        require(e.destination_validation_digest().empty() || e.destination_validation_digest().size()==32,"Invalid destination validation digest");
+        require(e.state_components_size()<=32 && (e.state_components_size()==0 || (data_class==APPLICATION_STATE && e.schema_version()==2)),
+                "Unselected, legacy, or excessive state source components");
+        if(data_class==APPLICATION_STATE && e.schema_version()==2)
+            require(e.state_components_size()>0 && e.destination_validation_digest().size()==32,"State collection omitted actual exported source evidence");
+        for(const auto& component:e.state_components()) {
+            require(copy_collections::key(component.key()) && state_keys.insert(component.key()).second &&
+                    component.content_digest().size()==32 && component.snapshot_receipt_id().size()==16,
+                    "Invalid or duplicate state manifest component");
+            workspace::v1::ApplicationStateContract contract;
+            require(contract.ParseFromString(component.contract()) && contract.SerializeAsString()==component.contract(),"State component contract is not canonical");
+            copy_collections::contract(contract);
+            workspace::v1::StorageObject state_source,state_destination;
+            require(state_source.ParseFromString(component.source_storage_object()) && state_source.SerializeAsString()==component.source_storage_object() &&
+                    state_destination.ParseFromString(component.destination_storage_object()) && state_destination.SerializeAsString()==component.destination_storage_object() &&
+                    state_source.kind()==workspace::v1::StorageObject::APPLICATION_STATE && state_destination.kind()==workspace::v1::StorageObject::APPLICATION_STATE &&
+                    copy_collections::object_id(state_source.id()) && copy_collections::object_id(state_destination.id()) &&
+                    state_source.id()!=state_destination.id() && state_source.id()!=source.id() &&
+                    state_source_ids.insert(state_source.id()).second && state_destination_ids.insert(state_destination.id()).second,
+                    "State component source or fresh destination identity is invalid");
+            require(component.byte_count()<=max_total_bytes-total && component.entry_count()<=200000-state_entries,
+                    "State component aggregate bounds exceeded");total+=component.byte_count();state_entries+=component.entry_count();
+            const auto witness=receipts.find(component.snapshot_receipt_id());
+            require(witness!=receipts.end() && used_receipts.insert(component.snapshot_receipt_id()).second,"State component source snapshot is missing or reused");
+            const auto& proof=witness->second;
+            require(proof.receipt_id()==component.snapshot_receipt_id() && proof.source_storage_object()==component.source_storage_object() &&
+                    proof.content_digest()==component.content_digest() && proof.readonly() && proof.request_digest().size()==32 &&
+                    proof.source_subvolume_id()>0 && proof.snapshot_subvolume_id()>0 && proof.source_subvolume_id()!=proof.snapshot_subvolume_id(),
+                    "State source snapshot does not witness the selected export");
+            workspace::v1::StorageObject state_snapshot;
+            require(state_snapshot.ParseFromString(proof.snapshot_storage_object()) && state_snapshot.SerializeAsString()==proof.snapshot_storage_object() &&
+                    state_snapshot.kind()==workspace::v1::StorageObject::SNAPSHOT && copy_collections::object_id(state_snapshot.id()) &&
+                    state_snapshot.id()!=state_source.id() && state_snapshot.id()!=state_destination.id(),"State component snapshot identity is invalid");
+            all_source_ids.insert(state_source.id());
+            require(all_snapshot_ids.insert(state_snapshot.id()).second && all_snapshot_subvolumes.insert(proof.snapshot_subvolume_id()).second,
+                    "State component reused another source snapshot");
+        }
     }
+    for(const auto& destination:state_destination_ids)
+        require(!all_source_ids.contains(destination) && !all_snapshot_ids.contains(destination),"State collection reused another source/snapshot identity");
     require(classes.contains(PROJECT_TREE) && classes.contains(GIT_HISTORY) && used_receipts.size() == receipts.size(), "manifest must pair project tree and Git history and bind every receipt exactly once");
 }
 }

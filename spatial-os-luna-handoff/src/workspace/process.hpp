@@ -14,13 +14,15 @@
 namespace spatial {
 class NativeCredential;
 class ApplicationResources;
+struct PersistentApplicationStateMount {int root_fd=-1;bool data=false,config=false;};
 class ApplicationProcess {
 public:
     ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                        const std::filesystem::path& state, bool writable,
                        const wire::ProcessLaunchRequest& request, std::function<void()> authority = [] {},
                        std::unique_ptr<NativeCredential> native = {},
-                       std::unique_ptr<ApplicationResources> resources = {});
+                       std::unique_ptr<ApplicationResources> resources = {},
+                       std::optional<PersistentApplicationStateMount> persistent = {});
     ~ApplicationProcess();
     ApplicationProcess(const ApplicationProcess&) = delete;
     ApplicationProcess& operator=(const ApplicationProcess&) = delete;

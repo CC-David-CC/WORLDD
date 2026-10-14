@@ -487,6 +487,10 @@ if(BUILD_TESTING)
     add_test(NAME copy-tree-worker COMMAND Python3::Interpreter
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py" $<TARGET_FILE:spatial-copy-tree-worker-fixture>)
     set_tests_properties(copy-tree-worker PROPERTIES TIMEOUT 60)
+    add_test(NAME copy-finalize-worker COMMAND Python3::Interpreter
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_finalize_worker.py" $<TARGET_FILE:spatial-copy-finalize-worker>)
+    set_tests_properties(copy-finalize-worker PROPERTIES TIMEOUT 180)
+
     add_executable(presentation-metadata-test tests/core/presentation_metadata.cpp)
     target_include_directories(presentation-metadata-test PRIVATE src)
     target_link_libraries(presentation-metadata-test PRIVATE spatial-scene)
@@ -602,7 +606,7 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
     add_executable(workspace-copy-journal-test tests/core/workspace_copy_journal.cpp src/workspace/copy_journal.cpp)
     target_include_directories(workspace-copy-journal-test PRIVATE src)
-    target_link_libraries(workspace-copy-journal-test PRIVATE spatial-protobuf SQLite::SQLite3 OpenSSL::Crypto)
+    target_link_libraries(workspace-copy-journal-test PRIVATE spatial-scene SQLite::SQLite3 OpenSSL::Crypto)
     add_test(NAME workspace-copy-journal COMMAND $<TARGET_FILE:workspace-copy-journal-test>)
     set_tests_properties(workspace-copy-journal PROPERTIES TIMEOUT 60)
     add_test(NAME workspace-copy-journal-migration COMMAND "${Python3_EXECUTABLE}"
@@ -1027,12 +1031,14 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-probe> $<TARGET_FILE:spatial-authority-migrate>)
     set_tests_properties(authority-bootstrap PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
-    add_test(NAME workspace-copy-engine-admission COMMAND "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_copy_engine.py" $<TARGET_FILE:identityd>
-        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-    set_tests_properties(workspace-copy-engine-admission PROPERTIES TIMEOUT 180
+    add_custom_target(workspace-copy-engine-fixture DEPENDS workspaced worldd identityd spatial-issuer-client
+        spatial-process-scope-probe spatial-storage-owner-service spatial-app-init
+        spatial-copy-tree-worker spatial-copy-finalize-worker broker-python-protobuf
+        copy-worker-python-protobuf storage-python-protobuf issuer-python-protobuf grants-python-protobuf)
+    add_test(NAME workspace-copy-engine COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_engine.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env)
+    set_tests_properties(workspace-copy-engine PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"

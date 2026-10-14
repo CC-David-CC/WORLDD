@@ -100,3 +100,60 @@ The native focused wrapper has a 240-second service bound.
 It does not qualify the full 300-second operation deadline.
 SHA256 Git administration is unsupported in this draft.
 This checkpoint does not establish M07 completion or Spatial-M1 acceptance.
+
+
+Configured-state V2 checkpoint (UNQUALIFIED)
+==========================================
+Base: 0a32fade70545d415d3d925c2ddb5e8d346210b7.
+Reviewed source snapshots: schema-review-v2-01 and source-review-v2-02 through v2-05.
+Final production freeze: preflight14-v2.
+Frozen source manifest SHA256:
+4b475ead8b4246a4e6e64333d8c191db5a2cfdb3921692a73913e6422d04994e.
+
+The source implements bounded configured definitions, actual persistent data/config companions,
+fresh runtime identities, exclusive configured-key writers, and explicit owner/execution migrations.
+It pins source mapping revisions and independent destination policy/quota bindings.
+It exports selected mutable domains under one whole-payload quiescence lease.
+It preserves actual symbolic or detached Git HEAD from the snapshot.
+It stores immutable publication receipts and resolves copied workspaces as later copy sources.
+The full engine CTest registration now owns candidate helper installation and restoration.
+
+Build evidence:
+middle-child:/home/dflanag3/spatial-artifacts/m07-engine-completion-20261014/preflight12-v2
+Configure 0/0. Build 2/2. Journal link lacked the shared protobuf validator dependency.
+That failure remains preserved.
+preflight13-v2 and preflight14-v2 configure/build each completed 0/0.
+preflight14-v2 CTest -N inventory completed 0/0.
+It lists copy-finalize-worker, workspace-copy-journal, workspace-copy-journal-migration,
+and the actual workspace-copy-engine registration.
+No runtime ran on a coding host.
+
+Focused runtime evidence:
+sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine13-finalizer-debug-v3
+Debug finalizer: four methods passed in 0.509 seconds. Canonical exits 0/0.
+The control compares staged index, cached and uncached diffs, dirty/untracked bytes, and reachable history.
+Mixed finalization/state-export mode is rejected before Git/tree effects.
+Depth 128 succeeds. Depth 129 is rejected.
+The exact constructor mixed-mode path remains separately unrun.
+The initial transfer preflight found a nonexistent protobuf namespace.
+The next preflight found the runner absent at the coding-host path on sb16.
+The first runtime completed 2 PASS / 2 FAIL because a local Git clone hardlinked object files.
+Those failures remain preserved.
+The corrected fixture imports flat copy_pb2 and clones with --no-hardlinks.
+It asserts nlink1 before invoking the unchanged production helper.
+Fixture overlay14a source SHA256:
+2b73ff3fecf2a024f13e29350f34ce7168f0cf97ad3e3a1c7288e59fcafa5ba4.
+Its archive SHA256:
+237294f99eb2c7cf01aeaf370387a38d69a75fff15e38e4474b908df4a3ed993.
+
+The eleven actor/owner integration methods are implemented but UNRUN.
+They include two live application writers, all five classes, overlap denial, validated-exit relaunch,
+data-only fresh config, optional selections, actual checkout/detached HEAD, raw state1 admission denial,
+restricted policy restart, exact publication replay after mapping reassignment, and recopy.
+New owner/execution migration regressions remain UNRUN.
+V2 journal and broader authority/control callers remain UNRUN.
+SAN, BUILD_TESTING=OFF, and second-host V2 evidence remain UNRUN.
+Fault/revocation/crash/deadline/bounds/malicious-Git families and full combined gates remain pending.
+A longer suite wrapper does not establish the absolute 300-second operation deadline.
+The earlier 11a pair-engine Debug evidence remains valid only for its exact source.
+This checkpoint is not integrated and does not complete M07.

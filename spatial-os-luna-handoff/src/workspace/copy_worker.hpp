@@ -19,7 +19,8 @@ class CopyTreeJob final {
 public:
     CopyTreeJob(WorkspaceResources&, int source_fd, int destination_fd,
         std::uint64_t source_subvolume_id, std::uint64_t destination_subvolume_id,
-        std::uint64_t maximum_bytes, std::uint32_t maximum_entries);
+        std::uint64_t maximum_bytes, std::uint32_t maximum_entries,
+        const workspace::copyworker::v1::StateExportRequest* state_export = nullptr);
     CopyTreeJob(WorkspaceResources&, const std::vector<int>& staging_fds,
         const workspace::copyworker::v1::WorkerRequest& finalization);
     ~CopyTreeJob();

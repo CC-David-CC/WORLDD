@@ -101,7 +101,7 @@ int directory(const std::filesystem::path& path) {
 ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                                       const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request,
                                       std::function<void()> authority, std::unique_ptr<NativeCredential> native,
-                                      std::unique_ptr<ApplicationResources> resources)
+                                      std::unique_ptr<ApplicationResources> resources, std::optional<PersistentApplicationStateMount> persistent)
     : authority_(std::move(authority)), native_(std::move(native)), resources_(std::move(resources)) {
     if (!resources_) throw WorldError(wire::UNAVAILABLE, "Application resource scope is required");
     authority_();
@@ -134,6 +134,20 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
             "--setenv", "DISPLAY", ":"+native_->display_number(), "--setenv", "XAUTHORITY", "/run/spatial/Xauthority"};
         strings.insert(strings.end(), display.begin(), display.end());
     }
+    File persistent_data,persistent_config;
+    unsigned persistent_fd=native_?10:8;
+    if(persistent) {
+        if(persistent->root_fd<0 || (!persistent->data && !persistent->config))
+            throw WorldError(wire::STORAGE_ERROR,"Configured persistent mount is incomplete");
+        const auto mount=[&](bool selected,const char* name,File& pinned) {
+            if(!selected)return;
+            pinned.fd=openat(persistent->root_fd,name,O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+            if(pinned.fd<0)throw WorldError(wire::STORAGE_ERROR,"Cannot pin declared persistent subdomain");
+            const std::vector<std::string> binding{"--bind-fd",std::to_string(persistent_fd++),std::string("/state/")+name};
+            strings.insert(strings.end(),binding.begin(),binding.end());
+        };
+        mount(persistent->data,"data",persistent_data);mount(persistent->config,"config",persistent_config);
+    }
     const std::vector<std::string> tail{"--block-fd", "7", "--seccomp", "6", "--remount-ro", "/", "--", "/spatial-app-init"};
     strings.insert(strings.end(), tail.begin(), tail.end());
     File input_read, input_write, output_read, output_write;
@@ -149,6 +163,8 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
     for (std::size_t i = 1; i < strings.size(); ++i) launch.add_arguments(strings[i]);
     std::vector<int> selected{project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd, launch_read.fd};
     if (native_) { selected.push_back(native_->authority_fd()); selected.push_back(native_->socket_fd()); }
+    if(persistent_data.fd>=0)selected.push_back(persistent_data.fd);
+    if(persistent_config.fd>=0)selected.push_back(persistent_config.fd);
     for (unsigned i = 0; i < selected.size(); ++i) launch.add_inherited_fds(3+i);
     resources_->scope().start(launch, {input_read.fd, output_write.fd, diagnostic.fd}, selected);
     pid_ = resources_->scope().direct_child_pid();

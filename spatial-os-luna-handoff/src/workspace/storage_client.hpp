@@ -19,6 +19,8 @@ public:
     workspace::v1::StorageCopyDestinationReceipt prepare_copy_destination(const workspace::v1::StorageCopyDestinationPrepare&);
     workspace::v1::StorageCopyDestinationReceipt publish_copy_destination(const workspace::v1::StorageCopyDestinationPublish&);
     workspace::v1::StorageCopyDestinationReceipt inspect_copy_destination(const workspace::v1::StorageCopyDestinationInspect&);
+    workspace::v1::StorageConfiguredApplicationAllocation prepare_configured_application(const workspace::v1::StorageConfiguredApplicationPrepare& request);
+    workspace::v1::StorageConfiguredApplicationReply query_configured_application(const workspace::v1::StorageConfiguredApplicationQuery& request);
     workspace::v1::StorageCopyCatalogReply query_copy_catalog(const workspace::v1::StorageCopyCatalogQuery& request);
     workspace::v1::StorageCopyStageReceipt begin_copy_stage(const workspace::v1::StorageCopyStageBegin& request);
     workspace::v1::StorageCopyStageReceipt start_copy_stage(const workspace::v1::StorageCopyStageStart& request);

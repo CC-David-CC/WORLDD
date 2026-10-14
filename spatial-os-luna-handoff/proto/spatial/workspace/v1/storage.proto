@@ -88,6 +88,7 @@ message WorkspaceCopyCatalogEntry {
   uint64 maximum_bytes = 6;
   uint32 maximum_entries = 7;
   WorkspaceCopyConsistency consistency = 8;
+  bytes typed_export = 9; // V2 stopped operator registration only; never actor supplied.
 }
 message WorkspaceCopyCatalog {
   uint32 protocol_version = 1;
@@ -111,11 +112,13 @@ message StorageCopyCatalogQuery {
   string destination_profile = 3;
   uint64 expected_destination_profile_revision = 4;
   uint64 expected_catalog_revision = 5;
+  uint64 expected_state_mapping_revision = 6;
 }
 message StorageCopyCatalogReply {
   uint64 catalog_revision = 1;
   repeated WorkspaceCopyCatalogEntry entries = 2;
   WorkspaceCopyDestinationProfile destination_profile = 3;
+  ConfiguredStateMapping state_mapping = 4; // Present exactly when state collection v2 is selected.
 }
 message WorkspaceCopyAuthorizationBinding {
   uint32 protocol_version = 1;
@@ -133,6 +136,8 @@ message WorkspaceCopyAuthorizationBinding {
   string source_branch = 13;
   string source_head = 14;
   bytes destination_resource_profile = 15; // Exact serialized WorkspaceCopyResourceProfile.
+  repeated WorkspaceCopyStatePlan state_companions = 16; // At most 32, exact mapping order.
+  uint64 source_state_mapping_revision = 17; // Exact owner generation; rejects ABA remapping.
 }
 
 message WorkspaceCopyPlannedDomain {
@@ -154,6 +159,9 @@ message StorageCopyDestinationPrepare {
   uint64 profile_revision = 5;
   uint64 catalog_revision = 6;
   repeated WorkspaceCopyPlannedDomain domains = 7;
+  repeated WorkspaceCopyStatePlan state_companions = 8;
+  uint64 state_mapping_revision = 9;
+  string source_workspace_id = 10;
 }
 message StorageCopyDestinationPublish { StorageCopyDestinationPrepare allocation = 1; spatial.workspace.copyworker.v1.FinalizeReceipt validation = 2; }
 message StorageCopyDestinationInspect { bytes operation_id = 1; bytes request_digest = 2; }
@@ -165,6 +173,8 @@ message StorageCopyDestinationReceipt {
   bytes allocation_digest = 4;
   bytes validation_digest = 5;
   bytes publication_digest = 6;
+  repeated StorageObjectState state_companions = 7;
+  uint64 destination_state_mapping_revision = 8;
 }
 // Versioned typed export domains. They contain no authority or runtime fields.
 message CopyApplicationDefinition {
@@ -172,6 +182,63 @@ message CopyApplicationDefinition {
   string name = 2;
   string executable = 3;
   repeated string arguments = 4;
+}
+// Collection v2 separates configured identity from application instances and storage identity.
+enum PersistentStateSubdomain {
+  PERSISTENT_STATE_SUBDOMAIN_UNSPECIFIED = 0;
+  PERSISTENT_DATA = 1;
+  PERSISTENT_CONFIG = 2;
+}
+message ApplicationStateContract {
+  string schema_id = 1; // Allowlisted spatial.application.quiesced-files.
+  uint32 schema_version = 2;
+  repeated PersistentStateSubdomain subdomains = 3;
+}
+message ConfiguredApplicationDefinition {
+  string key = 1;
+  CopyApplicationDefinition definition = 2;
+  ApplicationStateContract state_contract = 3;
+  string profile = 4;
+}
+message CopyApplicationDefinitionCollection {
+  uint32 schema_version = 1; // Exactly 2.
+  repeated ConfiguredApplicationDefinition applications = 2; // One to 32 unique keys.
+}
+message CopyStateSlot {
+  string key = 1;
+  ApplicationStateContract contract = 2;
+  StorageObject state_object = 3; // Absent from source registration descriptor; fresh at destination.
+  bytes content_digest = 4; // Destination exported data/config digest.
+  uint64 actual_bytes = 5;
+  uint32 actual_entries = 6;
+}
+message CopyApplicationStateCollection {
+  uint32 schema_version = 1; // Exactly 2.
+  repeated CopyStateSlot slots = 2;
+}
+message ConfiguredStateBinding {
+  string key = 1;
+  ApplicationStateContract contract = 2;
+  StorageObject state_object = 3;
+}
+message ConfiguredStateMapping {
+  string workspace_id = 1;
+  uint64 revision = 2;
+  repeated ConfiguredStateBinding entries = 3;
+}
+message WorkspaceCopyStatePlan {
+  ConfiguredStateBinding source = 1;
+  StorageObject snapshot = 2;
+  StorageObject staging = 3;
+  StorageObject destination = 4;
+}
+message StorageConfiguredApplicationQuery { string workspace_id = 1; string key = 2; }
+message StorageConfiguredApplicationReply {
+  uint64 catalog_revision = 1;
+  ConfiguredApplicationDefinition definition = 2;
+  uint64 state_mapping_revision = 3;
+  StorageObjectState state = 4; // Absent before the first configured launch.
+  WorkspaceStoragePolicy storage_policy = 5; // Independently selected owner policy, pinned before allocation.
 }
 message CopyEnvironmentDependency { string name = 1; string version = 2; bytes content_digest = 3; }
 message CopyEnvironmentConfiguration {
@@ -206,6 +273,21 @@ message StorageApplicationPrepare {
     string fixture_actor = 4;
   }
   string profile = 5;
+  string configured_application_key = 6;
+  uint64 expected_catalog_revision = 7;
+  uint64 expected_state_mapping_revision = 8;
+  uint64 expected_state_maximum_bytes = 9;
+  bytes expected_storage_policy_digest = 10;
+}
+message StorageConfiguredApplicationPrepare {
+  StorageApplicationPrepare persistent = 1;
+  StorageObject runtime_object = 2; // Fresh process identity; never enters copy state mapping.
+}
+message StorageConfiguredApplicationAllocation {
+  StorageObjectState persistent = 1;
+  StorageObjectState runtime = 2;
+  uint64 state_mapping_revision = 3;
+  bytes request_digest = 4;
 }
 message StorageInspect { StorageObject object = 1; }
 // Private authenticated broker-to-owner snapshot operations. IDs are opaque
@@ -310,6 +392,8 @@ message StorageOwnerRequest {
     StorageCopyDestinationPrepare copy_destination_prepare = 28;
     StorageCopyDestinationPublish copy_destination_publish = 29;
     StorageCopyDestinationInspect copy_destination_inspect = 30;
+    StorageConfiguredApplicationQuery configured_application_query = 31;
+    StorageConfiguredApplicationPrepare configured_application_prepare = 32;
   }
 }
 message StorageOwnerError {
@@ -335,5 +419,21 @@ message StorageOwnerReply {
     StorageCopyStageReceipt copy_stage = 13;
     StorageCopyCatalogReply copy_catalog = 14;
     StorageCopyDestinationReceipt copy_destination = 15;
+    StorageConfiguredApplicationReply configured_application = 16;
+    StorageConfiguredApplicationAllocation configured_allocation = 17;
   }
+}
+
+
+// Exact private SQL publication recipe and observed result. No actor authority is serialized.
+message WorkspaceCopyRegistryPublication {
+  uint32 protocol_version = 1;
+  bytes workspace_create = 2;
+  StorageObject repository = 3;
+  string head = 4;
+  string branch = 5;
+  repeated ConfiguredStateBinding states = 6;
+  bytes resource_profile = 7;
+  bytes workspace_reply = 8; // Absent in intent; actual WorkspaceReply in receipt.
+  uint64 owner_state_mapping_revision = 9;
 }

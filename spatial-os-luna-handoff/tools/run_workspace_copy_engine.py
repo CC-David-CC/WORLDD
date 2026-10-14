@@ -11,6 +11,7 @@ import stat
 import subprocess
 import sys
 import time
+import uuid
 
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -24,12 +25,13 @@ def main():
     assert len(sys.argv)==4
     assert socket.gethostname().split('.')[0] in ('sb16','sb16-2')
     assert os.getuid()==pwd.getpwnam('dflanag3').pw_uid>0
-    build,source,evidence=map(lambda value:Path(value).resolve(),sys.argv[1:])
+    build,source=map(lambda value:Path(value).resolve(),sys.argv[1:3])
+    evidence=(Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/('workspace-copy-engine-'+uuid.uuid4().hex)).resolve() if sys.argv[3]=='--evidence-from-env' else Path(sys.argv[3]).resolve()
     assert build.is_dir() and source.is_dir() and not evidence.exists()
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
-    assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>4*2**30
+    assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
     evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
-    report=dict(qualification='UNQUALIFIED',selected_methods=4,runtime_status='running',helpers={},commands=[])
+    report=dict(qualification='UNQUALIFIED',selected_methods=11,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
     def root_command(arguments,timeout=30):
         result=subprocess.run(['sudo','-n',*map(str,arguments)],capture_output=True,text=True,timeout=timeout)
@@ -65,7 +67,7 @@ def main():
             expected=dict(sha256=report['helpers'][name]['candidate_sha256'],uid=0,gid=0,mode=0o755)
             assert helper_state(target)==expected
             report['helpers'][name]['installed']=expected;save()
-        command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--',
+        command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
                  str(source/'tests/core/test_workspace_copy_engine.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd')]
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
@@ -77,7 +79,7 @@ def main():
         with (evidence/'stdout.log').open('wb') as stdout,(evidence/'stderr.log').open('wb') as stderr:
             child=subprocess.Popen(command,stdout=stdout,stderr=stderr,env=environment,cwd=source)
             report['launcher_pid']=child.pid;save()
-            deadline=time.monotonic()+300
+            deadline=time.monotonic()+960
             while child.poll() is None and time.monotonic()<deadline and not cancellations:
                 try:child.wait(timeout=1)
                 except subprocess.TimeoutExpired:pass
@@ -92,7 +94,7 @@ def main():
                 assert len(set(units))==1,'Cannot prove the owned transient unit for cancellation'
                 root_command(['systemctl','stop',units[0]])
                 child.wait(timeout=15)
-                raise RuntimeError('Owned runtime cancelled: '+repr(cancellations or ['300-second bound']))
+                raise RuntimeError('Owned runtime cancelled: '+repr(cancellations or ['960-second suite bound']))
             status=child.returncode
         report['command_exit']=status
         output=(evidence/'stdout.log').read_text(errors='replace')+(evidence/'stderr.log').read_text(errors='replace')
@@ -100,10 +102,10 @@ def main():
         report['service_logs']={str(path.relative_to(evidence)):digest(path) for path in service_logs}
         output+=''.join(path.read_text(errors='replace') for path in service_logs)
         volumes=list((evidence/'cases').glob('*/volume.json'))
-        assert len(volumes)==4 and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
+        assert len(volumes)==11 and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
-        assert 'Ran 4 tests' in output and '\nOK' in output,output[-16000:]
+        assert 'Ran 11 tests' in output and '\nOK' in output,output[-16000:]
         report['runtime_status']='focused-pass'
     except BaseException as error:
         report['runtime_status']='failed-or-incomplete';report['failure']=repr(error);raise

@@ -1,4 +1,5 @@
 #include "workspace/store.hpp"
+#include "workspace/copy_collections.hpp"
 #include "workspace/copy_journal.hpp"
 #include "workspace/copy_worker.hpp"
 #include "copy_worker.pb.h"
@@ -162,10 +163,12 @@ struct ExecutionStore::Impl {
         std::unique_ptr<CopyTreeJob> worker;
         bool lease_started=false,lease_recorded=false,released=false;
         int snapshot_index=0,stage_index=0;
+        std::uint64_t staged_bytes=0;std::uint32_t staged_entries=0;
         bool worker_finalizing=false;
     };
     std::unique_ptr<CopyTask> copy_task;
     std::map<std::string,std::string> copy_barriers;
+    std::set<std::string> launching_workspaces;
     bool advancing_copy=false;
     bool scanned_copy_recovery=false;
     WorkspaceAuthority* authority = nullptr;
@@ -173,6 +176,20 @@ struct ExecutionStore::Impl {
     WorkspaceResources* resources = nullptr;
     StorageClient* storage = nullptr;
     std::function<void()> observer;
+    void validate_state_mapping(const workspace::v1::ConfiguredStateMapping& mapping) {
+        copy_collections::mapping(mapping);
+        std::map<std::string,std::pair<std::string,std::string>> expected;
+        {Query q(db.get(),"SELECT key,state_id,contract FROM configured_application_states WHERE workspace=?");
+         q.text(1,mapping.workspace_id());while(q.step()==SQLITE_ROW)expected.emplace(q.text(0),std::make_pair(q.text(1),q.text(2)));}
+        for(const auto& state:mapping.entries()) {
+            const auto found=expected.find(state.key());
+            require(found!=expected.end() && found->second.first==state.state_object().id() &&
+                    found->second.second==state.contract().SerializeAsString(),
+                    "Owner state mapping differs from actual configured application storage");
+            expected.erase(found);
+        }
+        require(expected.empty(),"Owner state mapping omitted an execution-bound configured state");
+    }
     void filesystem_effect(std::function<void()> effect) {
         if (!observer) { effect(); return; }
         // Only filesystem I/O runs here. SQLite and authority remain on the broker thread.
@@ -232,7 +249,9 @@ struct ExecutionStore::Impl {
             throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v5 while the broker is stopped");
         if(version==6 && !migrate_from)
             throw WorldError(wire::STORAGE_ERROR,"Execution schema requires workspaced --state-dir PATH --migrate-v6 while the broker is stopped");
-        if (version < 0 || version > 7 || (migrate_from && (version == 0 || (version != 7 && version != static_cast<int>(migrate_from)))))
+        if(version==7 && !migrate_from)
+            throw WorldError(wire::STORAGE_ERROR,"Execution schema requires workspaced --state-dir PATH --migrate-v7 while the broker is stopped");
+        if (version < 0 || version > 8 || (migrate_from && (version == 0 || (version != 8 && version != static_cast<int>(migrate_from)))))
             throw WorldError(wire::STORAGE_ERROR, "Unknown execution schema; explicit migration required");
         if (version == 0) {
             Query existing(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"); existing.step();
@@ -282,6 +301,15 @@ struct ExecutionStore::Impl {
             if(version==6)sql(db.get(),"UPDATE copy_operations SET phase=9,error=6 WHERE phase BETWEEN 1 AND 6");
             sql(db.get(),"PRAGMA user_version=7");migration.commit();
         }
+        if(version<8) {
+            Transaction migration(db.get());
+            sql(db.get(),"CREATE TABLE configured_application_states(workspace TEXT NOT NULL REFERENCES workspaces(id),key TEXT NOT NULL,state_id TEXT UNIQUE NOT NULL,contract BLOB NOT NULL,PRIMARY KEY(workspace,key));"
+                         "CREATE TABLE configured_process_states(process TEXT PRIMARY KEY REFERENCES processes(id),workspace TEXT NOT NULL,key TEXT NOT NULL,state_id TEXT NOT NULL,FOREIGN KEY(workspace,key) REFERENCES configured_application_states(workspace,key));PRAGMA user_version=8");
+            if(version>0)sql(db.get(),"UPDATE copy_operations SET phase=9,error=6 WHERE phase BETWEEN 1 AND 6");
+            migration.commit();
+        }
+        {Query shape(db.get(),"SELECT workspace,key,state_id,contract FROM configured_application_states LIMIT 0");}
+        {Query shape(db.get(),"SELECT process,workspace,key,state_id FROM configured_process_states LIMIT 0");}
         {Query shape(db.get(),"SELECT workspace,binding FROM workspace_copy_policies LIMIT 0");}
         copy_journal = std::make_unique<CopyJournal>(db.get());
         std::filesystem::create_directories(state / "retired");
@@ -937,6 +965,7 @@ workspace::copy::v1::WorkspaceCopyStatus ExecutionStore::workspace_copy_begin(
     query.set_expected_catalog_revision(0);
     for(const auto data_class:request.data_class())query.add_data_classes(static_cast<copy::CopyDataClass>(data_class));
     const auto catalog=impl_->storage->query_copy_catalog(query);
+    if(catalog.has_state_mapping())impl_->validate_state_mapping(catalog.state_mapping());
     (void)rights_mask(catalog.destination_profile().execution_policy());
     const auto destination_resources=impl_->resources->resolve_copy_profile(catalog.destination_profile().execution_resource_profile(),catalog.destination_profile().application_profile());
     const auto project=std::find_if(catalog.entries().begin(),catalog.entries().end(),
@@ -961,6 +990,18 @@ workspace::copy::v1::WorkspaceCopyStatus ExecutionStore::workspace_copy_begin(
         Query q(impl_->db.get(),"SELECT r.path,t.path,t.branch,t.head FROM workspaces w JOIN repositories r ON r.id=w.repo JOIN worktrees t ON t.id=w.worktree WHERE w.id=? AND r.state='ready' AND t.state='ready'");
         q.text(1,request.source_workspace_id());require(q.step()==SQLITE_ROW,"Source copy registry is unavailable");
         binding.set_source_repository_path(q.text(0));binding.set_source_project_path(q.text(1));binding.set_source_branch(q.text(2));binding.set_source_head(q.text(3));
+    }
+    if(catalog.has_state_mapping()) {
+        binding.set_source_state_mapping_revision(catalog.state_mapping().revision());
+        for(const auto& state:catalog.state_mapping().entries()) {
+            auto* plan=binding.add_state_companions();*plan->mutable_source()=state;
+            plan->mutable_snapshot()->set_kind(workspace::v1::StorageObject::SNAPSHOT);
+            plan->mutable_snapshot()->set_id(impl_->allocate("snapshots").filename().string());
+            plan->mutable_staging()->set_kind(workspace::v1::StorageObject::COPY_STAGING);
+            plan->mutable_staging()->set_id(impl_->allocate("staging").filename().string());
+            plan->mutable_destination()->set_kind(workspace::v1::StorageObject::APPLICATION_STATE);
+            plan->mutable_destination()->set_id(impl_->allocate("copy-identities").filename().string());
+        }
     }
     for(const auto& entry:catalog.entries()) {
         auto* domain=binding.add_domains();domain->set_data_class(entry.data_class());
@@ -1043,8 +1084,17 @@ void ExecutionStore::revalidate_copy(const CopyJournal::Operation& operation) {
         query.set_destination_profile(stored_request.destination_policy_profile());
         query.set_expected_destination_profile_revision(stored_request.expected_destination_profile_revision());
         query.set_expected_catalog_revision(binding.owner_catalog().catalog_revision());
+        query.set_expected_state_mapping_revision(binding.source_state_mapping_revision());
+        require((binding.state_companions_size()==0 && !binding.owner_catalog().has_state_mapping() && binding.source_state_mapping_revision()==0) ||
+                (binding.state_companions_size()>0 && binding.state_companions_size()<=32 && binding.owner_catalog().has_state_mapping() &&
+                 binding.source_state_mapping_revision()==binding.owner_catalog().state_mapping().revision() &&
+                 binding.state_companions_size()==binding.owner_catalog().state_mapping().entries_size()),"Pinned copy state mapping shape differs");
+        for(int index=0;index<binding.state_companions_size();++index)
+            require(binding.state_companions(index).source().SerializeAsString()==binding.owner_catalog().state_mapping().entries(index).SerializeAsString(),
+                    "Pinned copy state companion differs from its owner mapping");
         for(const auto data_class:stored_request.data_class())query.add_data_classes(static_cast<copy::CopyDataClass>(data_class));
         const auto current=impl_->storage->query_copy_catalog(query);
+        if(current.has_state_mapping())impl_->validate_state_mapping(current.state_mapping());
         const auto current_resources=impl_->resources->resolve_copy_profile(current.destination_profile().execution_resource_profile(),current.destination_profile().application_profile());
         if(current.SerializeAsString()!=binding.owner_catalog().SerializeAsString() ||
            current_resources.SerializeAsString()!=binding.destination_resource_profile())
@@ -1091,7 +1141,9 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         if (impl_->native) impl_->native->check();
     }
     if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Application authority fence is not configured");
-    const auto stamp = impl_->authority->authorization_fence(principal);
+    // Cached control checks run inside issuer waits. Do not start another issuer request.
+    const auto stamp = refresh ? impl_->authority->authorization_fence(principal)
+                               : impl_->authority->fence_snapshot();
     workspace::v1::ApplicationAccessReply reply; reply.set_incarnation(stamp.incarnation()); reply.set_epoch(stamp.epoch());
     for (const auto& app : request.applications()) {
         auto* result = reply.add_applications(); *result->mutable_application() = app;
@@ -1149,7 +1201,12 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
     if(impl_->copy_barriers.contains(request.workspace()))
         throw WorldError(wire::BUSY,"Workspace copy quiescence blocks new application launches");
     const auto& command = request.command(); valid_text(command.operation_id());
-    require(command.profile() == "development" || command.profile() == "read-only", "Unknown application profile");
+    require(command.profile() == "development" || command.profile() == "read-only" ||
+            !command.configured_application_key().empty(), "Unknown application profile");
+    if(!command.configured_application_key().empty()) {
+        require(impl_->resources && impl_->resources->has_profile(command.profile(),request.workspace()),
+                "Configured application resource profile is unavailable");
+    }
     require(command.argv_size() > 0 && command.argv_size() <= 256 && !command.argv(0).empty(), "Invalid application argv");
     std::size_t size = 0;
     for (const auto& arg : command.argv()) {
@@ -1175,6 +1232,40 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
       } }
     reap();
     if (impl_->jobs.size() >= 32) throw WorldError(wire::RESOURCE_EXHAUSTED, "Application process budget exhausted");
+    struct LaunchGuard {
+        std::set<std::string>& active;std::string workspace;
+        LaunchGuard(std::set<std::string>& values,const std::string& id):active(values),workspace(id) {
+            if(!active.insert(workspace).second)throw WorldError(wire::BUSY,"Workspace launch setup is already in progress");
+        }
+        ~LaunchGuard(){active.erase(workspace);}
+    } launch_guard(impl_->launching_workspaces,request.workspace());
+    if(impl_->copy_barriers.contains(request.workspace()))throw WorldError(wire::BUSY,"Workspace entered copy quiescence before launch setup");
+    std::optional<workspace::v1::StorageConfiguredApplicationReply> configured;
+    std::filesystem::path persistent_state;
+    if(!command.configured_application_key().empty()) {
+        require(impl_->storage && copy_collections::key(command.configured_application_key()),"Configured applications require the authenticated storage owner");
+        {Query active(impl_->db.get(),"SELECT p.state FROM configured_process_states b JOIN processes p ON p.id=b.process WHERE b.workspace=? AND b.key=? AND p.state NOT IN ('exited','revoked') LIMIT 1");
+         active.text(1,request.workspace());active.text(2,command.configured_application_key());
+         if(active.step()==SQLITE_ROW)throw WorldError(active.text(0)=="uncertain"?wire::UNAVAILABLE:wire::BUSY,"Configured state has a live or unresolved application instance");}
+        workspace::v1::StorageConfiguredApplicationQuery query;query.set_workspace_id(request.workspace());query.set_key(command.configured_application_key());
+        configured=impl_->storage->query_configured_application(query);
+        const auto& definition=configured->definition();
+        require(definition.profile()==command.profile() && command.argv_size()==definition.definition().arguments_size()+1 &&
+                command.argv(0)==definition.definition().executable(),"Configured launch differs from its registered profile/executable/argv");
+        for(int index=0;index<definition.definition().arguments_size();++index)
+            require(command.argv(index+1)==definition.definition().arguments(index),"Configured launch argv differs from its registered definition");
+        {Query known(impl_->db.get(),"SELECT state_id,contract FROM configured_application_states WHERE workspace=? AND key=?");
+         known.text(1,request.workspace());known.text(2,command.configured_application_key());
+         if(known.step()==SQLITE_ROW) {
+             require(configured->has_state() && configured->state().object().id()==known.text(0) &&
+                     configured->definition().state_contract().SerializeAsString()==known.text(1),
+                     "Configured state owner mapping differs from the durable execution binding");
+             persistent_state=impl_->state/"applications"/known.text(0);
+         } else {
+             require(!configured->has_state(),"Unbound configured state requires explicit reconciliation");
+             persistent_state=impl_->allocate("applications");
+         }}
+    }
     const auto workspace = workspace_get(request.workspace());
     const auto worktree = impl_->worktree(workspace.worktree());
     const auto repository = impl_->repository(worktree.repo());
@@ -1184,8 +1275,17 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
     { Transaction transaction(impl_->db.get());
       Query q(impl_->db.get(), "INSERT INTO processes VALUES(?,?,?,?,?,?,'pending',NULL)");
       q.text(1, id); q.text(2, request.actor()); q.text(3, command.operation_id()); q.blob(4, payload); q.text(5, request.workspace());
-      check(sqlite3_bind_int(q.value, 6, static_cast<int>(effective))); q.step(); transaction.commit(); }
+      check(sqlite3_bind_int(q.value, 6, static_cast<int>(effective))); q.step();
+      if(configured) {
+          Query persistent(impl_->db.get(),"INSERT INTO configured_application_states VALUES(?,?,?,?) ON CONFLICT(workspace,key) DO NOTHING");
+          persistent.text(1,request.workspace());persistent.text(2,command.configured_application_key());persistent.text(3,persistent_state.filename().string());
+          persistent.blob(4,configured->definition().state_contract().SerializeAsString());persistent.step();
+          Query binding(impl_->db.get(),"INSERT INTO configured_process_states VALUES(?,?,?,?)");binding.text(1,id);
+          binding.text(2,request.workspace());binding.text(3,command.configured_application_key());binding.text(4,persistent_state.filename().string());binding.step();
+      }
+      transaction.commit(); }
     try {
+        File persistent_pin;std::optional<PersistentApplicationStateMount> persistent_mount;
         std::function<void()> current = [] {};
         if (request.has_principal()) current = [this, query, effective] {
             impl_->authority->tick();
@@ -1199,7 +1299,50 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
             prepare->set_profile(command.profile());
             if (request.has_principal()) *prepare->mutable_principal() = request.principal();
             else prepare->set_fixture_actor(request.actor());
-            impl_->storage->call(std::move(allocation), current); current();
+            if(configured) {
+                workspace::v1::StorageConfiguredApplicationPrepare batch;
+                *batch.mutable_persistent()=*prepare;*batch.mutable_persistent()->mutable_object()=
+                    storage_object(workspace::v1::StorageObject::APPLICATION_STATE,persistent_state);
+                batch.mutable_persistent()->set_configured_application_key(command.configured_application_key());
+                batch.mutable_persistent()->set_expected_catalog_revision(configured->catalog_revision());
+                batch.mutable_persistent()->set_expected_state_mapping_revision(configured->state_mapping_revision());
+                const auto& storage_policy=configured->storage_policy();
+                auto actor_maximum=std::min(storage_policy.total_bytes(),storage_policy.actor_state_default_bytes());
+                for(const auto& actor:storage_policy.actors()) {
+                    const bool same=request.has_principal()?actor.has_principal() &&
+                        actor.principal().SerializeAsString()==request.principal().SerializeAsString():
+                        actor.has_fixture_actor() && actor.fixture_actor()==request.actor();
+                    if(same)actor_maximum=std::min(storage_policy.total_bytes(),actor.state_bytes());
+                }
+                std::uint64_t state_maximum=0;
+                for(const auto& profile:storage_policy.profiles())if(profile.name()==command.profile())
+                    state_maximum=std::min(actor_maximum,profile.state_bytes());
+                require(state_maximum>0,"Independently selected configured storage ceiling is absent");
+                batch.mutable_persistent()->set_expected_state_maximum_bytes(state_maximum);
+                batch.mutable_persistent()->set_expected_storage_policy_digest(CopyJournal::digest(storage_policy.SerializeAsString()));
+                *batch.mutable_runtime_object()=prepare->object();current();
+                const auto allocated=impl_->storage->prepare_configured_application(batch);current();
+                persistent_pin.fd=impl_->storage->open_object(allocated.persistent());
+                File runtime_pin;runtime_pin.fd=impl_->storage->open_object(allocated.runtime());
+                workspace::v1::StorageConfiguredApplicationQuery check_mapping;check_mapping.set_workspace_id(request.workspace());
+                check_mapping.set_key(command.configured_application_key());
+                const auto checked=impl_->storage->query_configured_application(check_mapping);current();
+                require(checked.catalog_revision()==configured->catalog_revision() &&
+                        checked.definition().SerializeAsString()==configured->definition().SerializeAsString() &&
+                        checked.storage_policy().SerializeAsString()==configured->storage_policy().SerializeAsString() &&
+                        checked.state_mapping_revision()==allocated.state_mapping_revision() &&
+                        checked.has_state() && checked.state().object().SerializeAsString()==allocated.persistent().object().SerializeAsString(),
+                        "Configured mapping/profile changed after allocation");
+                PersistentApplicationStateMount mount;mount.root_fd=persistent_pin.fd;
+                for(const auto subdomain:configured->definition().state_contract().subdomains()) {
+                    const char* name=subdomain==workspace::v1::PERSISTENT_DATA?"data":"config";
+                    if(mkdirat(persistent_pin.fd,name,0700)!=0 && errno!=EEXIST)throw WorldError(wire::STORAGE_ERROR,"Cannot create declared persistent state directory");
+                    File pinned;pinned.fd=openat(persistent_pin.fd,name,O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+                    require(pinned.fd>=0,"Persistent subdomain is not a real directory");
+                    if(subdomain==workspace::v1::PERSISTENT_DATA)mount.data=true;else mount.config=true;
+                }
+                require(fsync(persistent_pin.fd)==0,"Cannot persist configured state roots");persistent_mount=mount;
+            } else {impl_->storage->call(std::move(allocation), current); current();}
             // Obtain a fresh issuer snapshot after storage work and before releasing execution.
             const auto updated = rights_mask(access(query).rights());
             if ((effective & updated) != effective) throw WorldError(wire::FORBIDDEN, "Process authority changed during storage preparation");
@@ -1208,7 +1351,7 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
         impl_->sync_path(state, true); impl_->sync_path(state.parent_path(), true);
         auto native = impl_->native ? impl_->native->issue(request.workspace(), id, current) : nullptr;
         auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state,
-            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native), std::move(resources));
+            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native), std::move(resources),persistent_mount);
         impl_->jobs.emplace(id, std::move(process));
         Query q(impl_->db.get(), "UPDATE processes SET state='running' WHERE id=?"); q.text(1, id); q.step();
     } catch (const WorldError& error) {
@@ -1300,7 +1443,10 @@ workspace::v1::StorageCopyDestinationPrepare copy_allocation(const CopyJournal::
     result.set_request_digest(operation.request_digest);result.set_workspace_id(binding.destination_workspace_id());
     const auto& catalog=binding.owner_catalog();result.set_profile_name(catalog.destination_profile().name());
     result.set_profile_revision(catalog.destination_profile().revision());result.set_catalog_revision(catalog.catalog_revision());
-    *result.mutable_domains()=binding.domains();return result;
+    *result.mutable_domains()=binding.domains();*result.mutable_state_companions()=binding.state_companions();
+    result.set_state_mapping_revision(binding.source_state_mapping_revision());
+    require(binding.owner_catalog().entries_size()>0,"Copy allocation omitted its source workspace");
+    result.set_source_workspace_id(binding.owner_catalog().entries(0).workspace_id());return result;
 }
 }
 void ExecutionStore::advance_workspace_copies() {
@@ -1331,8 +1477,11 @@ void ExecutionStore::advance_workspace_copies() {
                     } else if(effect.kind=="publication") {
                         workspace::v1::StorageCopyDestinationInspect inspect;inspect.set_operation_id(old.operation_id);inspect.set_request_digest(old.request_digest);
                         const auto receipt=impl_->storage->inspect_copy_destination(inspect);
-                        if(receipt.state()==workspace::v1::StorageCopyDestinationReceipt::PUBLISHED)
-                            journal.record_publication_receipts(old.operation_id,old.requester,effect.effect_id,{receipt.objects().begin(),receipt.objects().end()});
+                        if(receipt.state()==workspace::v1::StorageCopyDestinationReceipt::PUBLISHED) {
+                            std::vector<workspace::v1::StorageObjectState> objects(receipt.objects().begin(),receipt.objects().end());
+                            objects.insert(objects.end(),receipt.state_companions().begin(),receipt.state_companions().end());
+                            journal.record_publication_receipts(old.operation_id,old.requester,effect.effect_id,objects);
+                        }
                     }
                 } catch(const std::exception&) { /* Keep the unresolved exact intent. */ }
             }
@@ -1343,7 +1492,8 @@ void ExecutionStore::advance_workspace_copies() {
         const auto queued=journal.pending();if(queued.empty())return;
         auto task=std::make_unique<Impl::CopyTask>();task->id=queued.front().operation_id;task->requester=queued.front().requester;
         if(!task->binding.ParseFromString(queued.front().authorization_binding) || task->binding.protocol_version()!=1 ||
-           task->binding.domains_size()<2 || task->binding.domains_size()>5 || task->binding.destination_workspace_id().size()!=32) {
+           task->binding.domains_size()<2 || task->binding.domains_size()>5 || task->binding.state_companions_size()>32 ||
+           task->binding.destination_workspace_id().size()!=32) {
             journal.mark_uncertain(task->id,task->requester,copy::COPY_UNAVAILABLE);return;
         }
         impl_->copy_task=std::move(task);
@@ -1352,6 +1502,20 @@ void ExecutionStore::advance_workspace_copies() {
     auto operation=journal.get(task.id,task.requester);
     const auto request=journal.request(task.id,task.requester);
     const auto& binding=task.binding;
+    const auto domain_count=binding.domains_size()+binding.state_companions_size();
+    require(binding.domains_size()>=2 && binding.domains_size()<=5 && binding.state_companions_size()<=32 && domain_count<=37,
+            "Copy domain/companion bounds are invalid");
+    const auto planned=[&](int index) {
+        if(index<binding.domains_size())return binding.domains(index);
+        const auto& state=binding.state_companions(index-binding.domains_size());
+        workspace::v1::WorkspaceCopyPlannedDomain result;result.set_data_class(copy::APPLICATION_STATE);
+        *result.mutable_snapshot()=state.snapshot();*result.mutable_staging()=state.staging();*result.mutable_destination()=state.destination();return result;
+    };
+    const auto catalog_entry=[&](int index)->const workspace::v1::WorkspaceCopyCatalogEntry& {
+        if(index<binding.domains_size())return binding.owner_catalog().entries(index);
+        for(const auto& entry:binding.owner_catalog().entries())if(entry.data_class()==copy::APPLICATION_STATE)return entry;
+        throw WorldError(wire::STORAGE_ERROR,"Companion copy omitted the selected state descriptor");
+    };
     const auto effect=[&](const std::string& kind,int index=0)->std::optional<CopyJournal::Effect> {
         const auto id=copy_effect_id(task.id,kind,index);
         for(const auto& found:journal.effects(task.id,task.requester))if(found.effect_id==id)return found;
@@ -1397,6 +1561,8 @@ void ExecutionStore::advance_workspace_copies() {
         }
         if(operation.phase==copy::AUTHORIZED) {
             if(!task.lease_started) {
+                // A setup in progress may not have released its held payload yet.
+                if(impl_->launching_workspaces.contains(request.source_workspace_id()))return;
                 workspace::v1::WorkspaceQuiescenceReceipt lease;lease.set_lease_id(copy_effect_id(task.id,"quiescence"));
                 lease.set_workspace_id(request.source_workspace_id());lease.set_boot_id(binding.boot_id());lease.set_launch_barrier(true);lease.set_filesystem_mutator_barrier(true);
                 intent("quiescence",lease.SerializeAsString());
@@ -1419,10 +1585,13 @@ void ExecutionStore::advance_workspace_copies() {
                 }
                 receipt("quiescence",lease.SerializeAsString());task.lease_recorded=true;revalidate();return;
             }
-            if(task.snapshot_index<binding.domains_size()) {
-                const auto index=task.snapshot_index;const auto& domain=binding.domains(index);const auto& entry=binding.owner_catalog().entries(index);
+            if(task.snapshot_index<domain_count) {
+                const auto index=task.snapshot_index;const auto domain=planned(index);const auto& entry=catalog_entry(index);
                 workspace::v1::StorageOwnerRequest snapshot;
-                auto* capture=snapshot.mutable_snapshot_prepare();*capture->mutable_source_object()=entry.source_object();*capture->mutable_snapshot_object()=domain.snapshot();
+                auto* capture=snapshot.mutable_snapshot_prepare();
+                *capture->mutable_source_object()=index<binding.domains_size()?entry.source_object():
+                    binding.state_companions(index-binding.domains_size()).source().state_object();
+                *capture->mutable_snapshot_object()=domain.snapshot();
                 capture->set_operation_id(copy_effect_id(task.id,"snapshot",index));capture->set_request_digest(operation.request_digest);
                 intent("snapshot",snapshot.SerializeAsString(),index);revalidate();
                 const auto captured=impl_->storage->call(std::move(snapshot));
@@ -1440,34 +1609,57 @@ void ExecutionStore::advance_workspace_copies() {
         if(operation.phase==copy::SNAPSHOTS_READY) {
             intent("destination-allocation",allocation.SerializeAsString());revalidate();
             const auto allocated=impl_->storage->prepare_copy_destination(allocation);
+            if(binding.state_companions_size()>0) {
+                std::uint64_t expected_maximum=0;const auto& profile=binding.owner_catalog().destination_profile();
+                for(const auto& application:profile.storage_policy().profiles())
+                    if(application.name()==profile.application_profile())expected_maximum=std::min(application.state_bytes(),profile.storage_policy().total_bytes());
+                require(expected_maximum>0 && allocated.state_companions_size()==binding.state_companions_size(),"Independent companion quota policy is unavailable");
+                for(const auto& state:allocated.state_companions())if(state.maximum_bytes()!=expected_maximum) {
+                    impl_->storage->fence_unavailable();throw WorldError(wire::UNAVAILABLE,"Owner companion quota receipt differs from independently pinned destination policy");
+                }
+            }
             receipt("destination-allocation",allocated.SerializeAsString());revalidate();
             if(allocated.state()!=workspace::v1::StorageCopyDestinationReceipt::ALLOCATED)
                 throw WorldError(wire::UNAVAILABLE,"Copy destination allocation is uncertain");
             journal.transition(task.id,task.requester,copy::SNAPSHOTS_READY,copy::DESTINATION_ALLOCATED,allocated.SerializeAsString());return;
         }
         if(operation.phase==copy::DESTINATION_ALLOCATED) {
-            if(task.stage_index>=binding.domains_size()) {
+            if(task.stage_index>=domain_count) {
                 journal.transition(task.id,task.requester,copy::DESTINATION_ALLOCATED,copy::DATA_STAGED,CopyJournal::digest(allocation.SerializeAsString()));return;
             }
-            const auto index=task.stage_index;const auto& domain=binding.domains(index);const auto& entry=binding.owner_catalog().entries(index);
+            const auto index=task.stage_index;const auto domain=planned(index);const auto& entry=catalog_entry(index);
             const auto snapshot_effect=effect("snapshot",index);require(snapshot_effect && !snapshot_effect->uncertain,"Copy snapshot has no exact receipt");
             workspace::v1::StorageObjectState snapshot;require(snapshot.ParseFromString(snapshot_effect->receipt),"Malformed snapshot receipt");
             const auto destination_effect=effect("destination-allocation");require(destination_effect && !destination_effect->uncertain,"Destination allocation receipt is absent");
             workspace::v1::StorageCopyDestinationReceipt destination;require(destination.ParseFromString(destination_effect->receipt),"Malformed destination receipt");
             workspace::v1::StorageCopyStageBegin stage;*stage.mutable_snapshot_object()=domain.snapshot();*stage.mutable_destination_object()=domain.staging();
             stage.set_operation_id(copy_effect_id(task.id,"stage",index));stage.set_request_digest(operation.request_digest);
-            stage.set_maximum_bytes(entry.maximum_bytes());stage.set_maximum_entries(entry.maximum_entries());
+            const auto& destination_state=index<binding.domains_size()?destination.objects(index):
+                destination.state_companions(index-binding.domains_size());
+            const auto& profile=binding.owner_catalog().destination_profile();
+            require(task.staged_bytes<profile.maximum_total_bytes() && task.staged_entries<profile.maximum_entries(),"Copy aggregate staging budget exhausted");
+            stage.set_maximum_bytes(std::min({entry.maximum_bytes(),destination_state.maximum_bytes(),profile.maximum_total_bytes()-task.staged_bytes}));
+            stage.set_maximum_entries(std::min(entry.maximum_entries(),profile.maximum_entries()-task.staged_entries));
             if(!task.worker) {
                 intent("stage-begin",stage.SerializeAsString(),index);revalidate();
-                const auto begun=impl_->storage->begin_copy_stage(stage);validate_copy_stage_receipt(begun,stage,snapshot,destination.objects(index),*impl_->storage);receipt("stage-begin",begun.SerializeAsString(),index);revalidate();
+                const auto begun=impl_->storage->begin_copy_stage(stage);validate_copy_stage_receipt(begun,stage,snapshot,destination_state,*impl_->storage);receipt("stage-begin",begun.SerializeAsString(),index);revalidate();
                 require(begun.state()==workspace::v1::StorageCopyStageReceipt::PREPARED,"New copy stage did not return PREPARED");
                 workspace::v1::StorageCopyStageStart claim;claim.set_operation_id(stage.operation_id());claim.set_request_digest(stage.request_digest());
                 intent("stage-start",claim.SerializeAsString(),index);revalidate();
-                const auto claimed=impl_->storage->start_copy_stage(claim);validate_copy_stage_receipt(claimed,stage,snapshot,destination.objects(index),*impl_->storage);receipt("stage-start",claimed.SerializeAsString(),index);revalidate();
+                const auto claimed=impl_->storage->start_copy_stage(claim);validate_copy_stage_receipt(claimed,stage,snapshot,destination_state,*impl_->storage);receipt("stage-start",claimed.SerializeAsString(),index);revalidate();
                 require(claimed.claimed() && claimed.state()==workspace::v1::StorageCopyStageReceipt::COPYING,"New stage was not exclusively claimed");
                 intent("worker-launch",stage.SerializeAsString(),index);intent("worker-output",stage.SerializeAsString(),index);revalidate();
-                File source,dest;source.fd=impl_->storage->open_object(snapshot);dest.fd=impl_->storage->open_object(destination.objects(index));
-                task.worker=std::make_unique<CopyTreeJob>(*impl_->resources,source.fd,dest.fd,snapshot.subvolume_id(),destination.objects(index).subvolume_id(),entry.maximum_bytes(),entry.maximum_entries());
+                File source,dest;source.fd=impl_->storage->open_object(snapshot);dest.fd=impl_->storage->open_object(destination_state);
+                workspace::copyworker::v1::StateExportRequest export_request;
+                const bool companion=index>=binding.domains_size();
+                if(companion) {
+                    const auto& mapped=binding.state_companions(index-binding.domains_size()).source();
+                    export_request.set_key(mapped.key());export_request.set_schema_id(mapped.contract().schema_id());
+                    export_request.set_schema_version(mapped.contract().schema_version());
+                    for(const auto subdomain:mapped.contract().subdomains())export_request.add_subdomains(subdomain);
+                }
+                task.worker=std::make_unique<CopyTreeJob>(*impl_->resources,source.fd,dest.fd,snapshot.subvolume_id(),
+                    destination_state.subvolume_id(),stage.maximum_bytes(),stage.maximum_entries(),companion?&export_request:nullptr);
                 receipt("worker-launch",task.worker->identity().SerializeAsString(),index);revalidate();return;
             }
             const auto copied=task.worker->poll();if(!copied)return;
@@ -1477,19 +1669,38 @@ void ExecutionStore::advance_workspace_copies() {
             seal.set_operation_id(stage.operation_id());seal.set_request_digest(stage.request_digest());seal.set_actual_bytes(copied->bytes);seal.set_actual_entries(copied->entries);seal.set_content_digest(copied->digest);
             intent("stage-seal",seal.SerializeAsString(),index);revalidate();
             const auto sealed=impl_->storage->seal_copy_stage(seal);
-            validate_copy_stage_receipt(sealed,stage,snapshot,destination.objects(index),*impl_->storage);
+            validate_copy_stage_receipt(sealed,stage,snapshot,destination_state,*impl_->storage);
             if(sealed.state()!=workspace::v1::StorageCopyStageReceipt::SEALED || sealed.actual_bytes()!=copied->bytes ||
                sealed.actual_entries()!=copied->entries || sealed.content_digest()!=copied->digest) {
                 impl_->storage->fence_unavailable();throw WorldError(wire::UNAVAILABLE,"Sealed stage receipt differs from the actual worker result");
             }
-            receipt("stage-seal",sealed.SerializeAsString(),index);revalidate();++task.stage_index;return;
+            receipt("stage-seal",sealed.SerializeAsString(),index);revalidate();
+            task.staged_bytes+=copied->bytes;task.staged_entries+=copied->entries;++task.stage_index;return;
         }
         if(operation.phase==copy::DATA_STAGED) {
             if(!task.worker) {
-                workspace::copyworker::v1::WorkerRequest finalization;finalization.set_protocol_version(1);
+                workspace::copyworker::v1::WorkerRequest finalization;finalization.set_protocol_version(2);
                 finalization.set_maximum_bytes(binding.owner_catalog().destination_profile().maximum_total_bytes());
                 finalization.set_maximum_entries(binding.owner_catalog().destination_profile().maximum_entries());
-                auto* job=finalization.mutable_finalization();job->set_source_repository_path(binding.source_repository_path());job->set_expected_branch(binding.source_branch());
+                auto* job=finalization.mutable_finalization();job->set_source_repository_path(binding.source_repository_path());job->set_derive_head_from_snapshot(true);
+                job->set_destination_application_profile(binding.owner_catalog().destination_profile().application_profile());
+                for(const auto& entry:binding.owner_catalog().entries()) {
+                    if(entry.data_class()==copy::APPLICATION_STATE)job->set_state_collection_version(entry.schema_version());
+                    if(entry.data_class()==copy::APPLICATION_DEFINITION)job->set_definition_collection_version(entry.schema_version());
+                }
+                for(int index=0;index<binding.state_companions_size();++index) {
+                    const auto& state=binding.state_companions(index);
+                    const auto sealed_effect=effect("stage-seal",binding.domains_size()+index);
+                    require(sealed_effect && !sealed_effect->uncertain,"Companion finalization omitted a sealed export receipt");
+                    workspace::v1::StorageCopyStageReceipt sealed;require(sealed.ParseFromString(sealed_effect->receipt),"Malformed companion sealed receipt");
+                    auto* validation=job->add_state_companions();validation->set_key(state.source().key());
+                    validation->set_source_storage_object(state.source().state_object().SerializeAsString());
+                    validation->set_snapshot_storage_object(state.snapshot().SerializeAsString());
+                    validation->set_destination_storage_object(state.destination().SerializeAsString());
+                    validation->set_contract_digest(CopyJournal::digest(state.source().contract().SerializeAsString()));
+                    validation->set_actual_bytes(sealed.actual_bytes());validation->set_actual_entries(sealed.actual_entries());
+                    validation->set_content_digest(sealed.content_digest());
+                }
                 std::vector<int> descriptors;std::vector<std::unique_ptr<File>> retained;
                 for(const auto& domain:binding.domains()) {
                     job->add_classes(domain.data_class());
@@ -1517,10 +1728,30 @@ void ExecutionStore::advance_workspace_copies() {
                 copy::CopyManifestEntry item;item.set_data_class(entry.data_class());item.set_object_id(copy_effect_id(task.id,"manifest",index));
                 item.set_schema_id(entry.schema_id());item.set_schema_version(entry.schema_version());item.set_source_storage_object(entry.source_object().SerializeAsString());
                 item.set_byte_count(sealed.actual_bytes());item.set_content_digest(sealed.content_digest());item.set_snapshot_receipt_id(copy_effect_id(task.id,"snapshot",index));
+                item.set_destination_validation_digest(CopyJournal::digest(validated->validation));
                 copy::SnapshotReceipt source;source.set_source_storage_object(item.source_storage_object());source.set_snapshot_storage_object(domain.snapshot().SerializeAsString());
                 source.set_source_subvolume_id(capture.source_subvolume_id());source.set_snapshot_subvolume_id(capture.subvolume_id());source.set_content_digest(sealed.content_digest());
                 source.set_readonly(true);source.set_receipt_id(item.snapshot_receipt_id());source.set_request_digest(operation.request_digest);
-                snapshots.emplace(source.receipt_id(),source);entries.push_back(item);copy_frame(manifest,item.SerializeAsString());
+                snapshots.emplace(source.receipt_id(),source);
+                if(domain.data_class()==copy::APPLICATION_STATE && entry.schema_version()==2) {
+                    for(int state_index=0;state_index<binding.state_companions_size();++state_index) {
+                        const auto planned_index=binding.domains_size()+state_index;const auto& state=binding.state_companions(state_index);
+                        const auto captured_effect=effect("snapshot",planned_index),sealed_effect=effect("stage-seal",planned_index);
+                        require(captured_effect && sealed_effect && !captured_effect->uncertain && !sealed_effect->uncertain,"Companion manifest omitted source/stage evidence");
+                        workspace::v1::StorageObjectState captured;workspace::v1::StorageCopyStageReceipt exported;
+                        require(captured.ParseFromString(captured_effect->receipt) && exported.ParseFromString(sealed_effect->receipt),"Malformed companion source/stage receipt");
+                        auto* component=item.add_state_components();component->set_key(state.source().key());component->set_contract(state.source().contract().SerializeAsString());
+                        component->set_source_storage_object(state.source().state_object().SerializeAsString());component->set_destination_storage_object(state.destination().SerializeAsString());
+                        component->set_snapshot_receipt_id(copy_effect_id(task.id,"snapshot",planned_index));component->set_byte_count(exported.actual_bytes());
+                        component->set_entry_count(exported.actual_entries());component->set_content_digest(exported.content_digest());
+                        copy::SnapshotReceipt witness;witness.set_source_storage_object(component->source_storage_object());
+                        witness.set_snapshot_storage_object(state.snapshot().SerializeAsString());witness.set_source_subvolume_id(captured.source_subvolume_id());
+                        witness.set_snapshot_subvolume_id(captured.subvolume_id());witness.set_content_digest(component->content_digest());
+                        witness.set_readonly(true);witness.set_receipt_id(component->snapshot_receipt_id());witness.set_request_digest(operation.request_digest);
+                        snapshots.emplace(witness.receipt_id(),witness);
+                    }
+                }
+                entries.push_back(item);copy_frame(manifest,item.SerializeAsString());
             }
             journal.record_validated_result(task.id,task.requester,binding.destination_workspace_id(),manifest,entries,snapshots,
                 binding.owner_catalog().destination_profile().maximum_total_bytes(),static_cast<std::size_t>(binding.domains_size()));return;
@@ -1532,10 +1763,13 @@ void ExecutionStore::advance_workspace_copies() {
             std::vector<CopyJournal::PublicationTarget> targets;
             const auto publication_digest=CopyJournal::digest(publish.SerializeAsString());
             for(const auto& domain:binding.domains())targets.push_back({domain.destination(),publication_digest});
+            for(const auto& state:binding.state_companions())targets.push_back({state.destination(),publication_digest});
             const auto publication=copy_effect_id(task.id,"publication");journal.record_publication_intent(task.id,task.requester,publication,targets);revalidate();
             const auto published=impl_->storage->publish_copy_destination(publish);
             require(published.state()==workspace::v1::StorageCopyDestinationReceipt::PUBLISHED,"Owner publication receipt is uncertain");
-            const auto publication_receipt=journal.record_publication_receipts(task.id,task.requester,publication,{published.objects().begin(),published.objects().end()});
+            std::vector<workspace::v1::StorageObjectState> published_objects(published.objects().begin(),published.objects().end());
+            published_objects.insert(published_objects.end(),published.state_companions().begin(),published.state_companions().end());
+            const auto publication_receipt=journal.record_publication_receipts(task.id,task.requester,publication,published_objects);
             // Store the actual owner receipt before checking authority after the yielding effect.
             try {revalidate();}catch(...) {journal.mark_uncertain(task.id,task.requester,copy::COPY_UNCERTAIN);throw;}
             std::string repository,project;
@@ -1545,7 +1779,16 @@ void ExecutionStore::advance_workspace_copies() {
             }
             wire::WorkspaceCreateRequest registry;registry.set_id(binding.destination_workspace_id());registry.set_worktree(project);
             *registry.mutable_policy()=binding.owner_catalog().destination_profile().execution_policy();
-            intent("registry-publication",registry.SerializeAsString());revalidate();
+            workspace::v1::WorkspaceCopyRegistryPublication registry_intent;registry_intent.set_protocol_version(1);
+            registry_intent.set_workspace_create(registry.SerializeAsString());registry_intent.mutable_repository()->set_kind(workspace::v1::StorageObject::REPOSITORY);
+            registry_intent.mutable_repository()->set_id(repository);registry_intent.set_head(final.head());registry_intent.set_branch(final.branch());
+            registry_intent.set_resource_profile(binding.destination_resource_profile());
+            registry_intent.set_owner_state_mapping_revision(published.destination_state_mapping_revision());
+            for(const auto& state:binding.state_companions()) {
+                auto* configured=registry_intent.add_states();configured->set_key(state.source().key());*configured->mutable_contract()=state.source().contract();
+                *configured->mutable_state_object()=state.destination();
+            }
+            intent("registry-publication",registry_intent.SerializeAsString());revalidate();
             {
                 Transaction tx(impl_->db.get());
                 Query repo(impl_->db.get(),"INSERT INTO repositories VALUES(?,'workspace-copy',?,'ready')");repo.text(1,repository);
@@ -1554,9 +1797,21 @@ void ExecutionStore::advance_workspace_copies() {
                 tree.text(4,(impl_->state/"worktrees"/project).string());tree.text(5,final.head());tree.step();
                 Query workspace(impl_->db.get(),"INSERT INTO workspaces VALUES(?,?,?,?,1)");workspace.text(1,registry.id());workspace.text(2,project);workspace.text(3,repository);
                 check(sqlite3_bind_int(workspace.value,4,static_cast<int>(rights_mask(registry.policy()))));workspace.step();
-                Query policy(impl_->db.get(),"INSERT INTO workspace_copy_policies VALUES(?,?)");policy.text(1,registry.id());policy.blob(2,binding.destination_resource_profile());policy.step();tx.commit();
+                Query policy(impl_->db.get(),"INSERT INTO workspace_copy_policies VALUES(?,?)");policy.text(1,registry.id());policy.blob(2,binding.destination_resource_profile());policy.step();
+                for(const auto& state:binding.state_companions()) {
+                    Query configured(impl_->db.get(),"INSERT INTO configured_application_states VALUES(?,?,?,?)");
+                    configured.text(1,registry.id());configured.text(2,state.source().key());configured.text(3,state.destination().id());
+                    configured.blob(4,state.source().contract().SerializeAsString());configured.step();
+                }
+                tx.commit();
             }
-            receipt("registry-publication",workspace_get(registry.id()).SerializeAsString());
+            if(registry_intent.states_size()>0) {
+                workspace::v1::ConfiguredStateMapping mapping;mapping.set_workspace_id(registry.id());
+                mapping.set_revision(registry_intent.owner_state_mapping_revision());*mapping.mutable_entries()=registry_intent.states();
+                impl_->validate_state_mapping(mapping);
+            }
+            registry_intent.set_workspace_reply(workspace_get(registry.id()).SerializeAsString());
+            receipt("registry-publication",registry_intent.SerializeAsString());
             workspace::v1::WorkspaceCopyResourceProfile destination_policy;require(destination_policy.ParseFromString(binding.destination_resource_profile()),"Pinned resource policy is malformed");
             impl_->resources->register_copy_workspace(registry.id(),destination_policy);
             journal.transition(task.id,task.requester,copy::VALIDATED,copy::PUBLISHED,publication_receipt);

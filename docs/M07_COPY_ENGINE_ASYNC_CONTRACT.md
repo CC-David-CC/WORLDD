@@ -49,8 +49,12 @@ and redact secrets from project content.
 The owner protobuf configuration carries a versioned catalog and named destination
 profiles. Catalog entries use supported schema IDs: spatial.workspace.project-tree,
 spatial.workspace.git-history, spatial.workspace.application-definition,
-spatial.workspace.application-state, and spatial.workspace.environment-config, all at
-version 1. They map to distinct registered owner object kinds. The currently supported
+spatial.workspace.application-state, and spatial.workspace.environment-config.
+Project, Git history, and environment use schema1.
+Application definitions accept typed schema1 or configured collection schema2.
+New application-state admission requires explicit configured collection schema2.
+The earlier raw state schema1 is retained only for legacy journal decoding.
+These schemas map to distinct registered owner object kinds. The currently supported
 state contract is CRASH_CONSISTENT_AFTER_QUIESCENCE. Catalog and destination ceilings
 cannot exceed 4 GiB and 200,000 entries. Larger copies need a separately reviewed
 chunking design. A private initial query may use catalog revision zero to discover the
@@ -169,5 +173,64 @@ uncertainty. Runtime qualification remains reserved to sb16 and sb16-2.
 Private resource-policy clarification (2026-10-14): execution_resource_profile names an explicit
 versioned BrokerResourceConfig.copy_profiles policy. It does not name a default application ceiling.
 The selected independent policy is pinned privately and persisted with registry publication.
-Execution registry schema v7 requires explicit stopped migration from existing v6 databases.
-See M07_COPY_RESOURCE_POLICY_SCHEMA_V7_2026-10-14.txt for lineage and startup rules.
+The current execution registry schema is v8 and requires explicit stopped migration from v7.
+The v7 resource-policy table was introduced by the earlier unqualified source increment.
+Existing v6 databases still require their explicit migration.
+See M07_COPY_RESOURCE_POLICY_SCHEMA_V7_2026-10-14.txt for that historical lineage.
+Schema v8 adds persistent configured-state and process bindings without changing assigned budgets.
+
+
+## V2 configured-state source draft (unqualified)
+
+The next source increment separates persistent configured state from each fresh application runtime.
+It supports at most 32 configured application keys.
+Each typed state contract explicitly selects data, config, or both.
+Undeclared runtime subdomains remain fresh.
+Owner mappings bind exact key, contract, object, and revision.
+A live or uncertain prior instance blocks another writer for that key.
+A validated terminal instance permits a fresh process with the same persistent state.
+The owner reserves both first-state and runtime quotas before allocation.
+The broker pins the independently selected storage policy and exact actor/profile quota intersection.
+The owner checks that policy digest and ceiling before effects.
+Both actual allocation receipts must match the pinned ceiling.
+
+Application-definition schema2 stores a bounded configured collection.
+Application-state schema2 declares contracts and references independently allocated companion objects after publication.
+New raw application-state schema1 catalog admission is rejected before effects.
+Schema1 exposed whole runtime roots and has no qualified state-copy lineage.
+Legacy journal records remain decodable.
+Unresolved legacy copy effects remain uncertain and are never automatically exported.
+Existing owner catalogs require an explicit stopped schema migration to version6.
+Existing execution catalogs require explicit migration to version8.
+Operator registration of schema2 contracts remains a separate stopped catalog update.
+
+One quiescence lease covers every selected mutable source object and all payload descendants.
+The allocation and final validation bind each companion source, snapshot, new object, contract, digest, and count.
+All companions share the absolute 300-second operation deadline.
+Destination policies, grants, credentials, process identities, and budgets remain independently assigned.
+Publication stores the original exact owner receipt.
+Later configured-state quota transfers do not rewrite that receipt.
+Fresh object inspection supplies current live state separately.
+Copied workspaces resolve subsequent export catalogs from durable owner publication records and current state mappings.
+
+Preflight12 compiled workspaced, worldd, and the storage owner.
+Its journal target failed to link the new shared protobuf validator.
+The failure remains preserved externally.
+The next CMake increment links the normal spatial-scene framing implementation.
+All V2 builds, fixtures, migration checks, state-copy checks, restart checks, and recopy checks remain unqualified.
+The earlier 11a four-case Debug result qualifies only the original project/history pair.
+The eleven-case V2 suite has a separate 900-second service profile.
+That profile does not establish operation-deadline behavior.
+
+
+The full engine CTest registration is workspace-copy-engine.
+Build workspace-copy-engine-fixture before packaging that registration.
+It depends on the real world, broker, issuer, process-scope probe, application initializer, both copy helpers, and generated transport bindings.
+The test invokes run_workspace_copy_engine.py.
+That launcher installs and verifies candidate helper bytes, then restores their exact prior state.
+It verifies all eleven method results and every declared volume cleanup receipt.
+It creates a unique evidence directory below the runtime SPATIAL_SECURITY_EVIDENCE parent.
+The earlier direct workspace-copy-engine-admission registration is replaced.
+The M07 qualification sequence must include workspace-copy-engine on both hosts in Debug and sanitizer profiles.
+Copy journal, explicit migrations, worker/finalizer, authority/control, presentation, fault/recovery, and production-only closure checks remain separate required families.
+This source registration does not record any V2 runtime pass.

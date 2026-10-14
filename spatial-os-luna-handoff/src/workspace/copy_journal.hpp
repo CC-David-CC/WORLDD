@@ -19,7 +19,7 @@ private:
 class CopyJournal {
 public:
     struct PublicationTarget { workspace::v1::StorageObject object; std::string operation_digest; };
-    struct Limits { std::size_t max_operation_records = 4096; std::size_t max_effects_per_operation = 64; };
+    struct Limits { std::size_t max_operation_records = 4096; std::size_t max_effects_per_operation = 256; };
     struct Operation { std::string operation_id, requester, request_bytes, request_digest; workspace::copy::v1::CopyPhase phase; workspace::copy::v1::CopyErrorCode error; std::string destination_workspace_id, manifest, manifest_digest, snapshot_receipts, phase_payload, authorization_binding; };
     struct Effect { std::string effect_id, kind, request_digest, intent, receipt; bool uncertain = false; };
     explicit CopyJournal(sqlite3* db);

@@ -176,7 +176,10 @@ message WorkspaceCreateRequest { string id = 1; string worktree = 2; repeated Wo
 message WorkspaceIdRequest { string id = 1; }
 message WorkspaceMemberRequest { string id = 1; string actor = 2; repeated WorkspaceRight rights = 3; }
 message WorkspaceAvailableRequest { string id = 1; optional bool available = 2; }
-message ProcessLaunchRequest { repeated string argv = 1; string operation_id = 2; string profile = 3; }
+message ProcessLaunchRequest {
+  repeated string argv = 1; string operation_id = 2; string profile = 3;
+  string configured_application_key = 4; // Selects a registered definition; grants no authority.
+}
 message ProcessWaitRequest { string id = 1; optional double timeout_seconds = 2; }
 // Fixture management only. These operations never belong to ActorActionRequest.
 enum FaultPoint {

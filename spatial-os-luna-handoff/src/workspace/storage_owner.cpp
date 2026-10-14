@@ -1,4 +1,5 @@
 #include "workspace/storage_owner.hpp"
+#include "workspace/copy_collections.hpp"
 #include "workspace/storage_devices.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
@@ -17,6 +18,7 @@
 #include <optional>
 #include <openssl/evp.h>
 #include <set>
+#include <map>
 #include <sqlite3.h>
 #include <stdexcept>
 #include <sys/file.h>
@@ -215,14 +217,14 @@ struct SnapshotRecord {
 constexpr std::uint64_t snapshot_min_charge = 4 * 1024 * 1024;
 constexpr std::uint64_t snapshot_owner_limit = 256;
 }
-void validate_copy_configuration(const pb::StorageOwnerConfig& config) {
+void validate_copy_configuration(const pb::StorageOwnerConfig& config,bool schema_only_legacy_state) {
     const auto& catalog = config.copy_catalog();
     require(config.copy_destination_profiles_size() <= 64, "Too many workspace copy destination profiles");
     if (!config.has_copy_catalog()) {
         require(config.copy_destination_profiles_size() == 0, "Copy profiles require a versioned copy catalog");
         return;
     }
-    require(catalog.protocol_version() == 1 && catalog.revision() > 0 &&
+    require((catalog.protocol_version() == 1 || catalog.protocol_version()==2) && catalog.revision() > 0 &&
             catalog.entries_size() > 0 && catalog.entries_size() <= 4096,
             "Invalid or empty workspace copy catalog");
     using Data = workspace::copy::v1::CopyDataClass;
@@ -246,12 +248,37 @@ void validate_copy_configuration(const pb::StorageOwnerConfig& config) {
         case Data::ENVIRONMENT_CONFIG: expected = pb::StorageObject::ENVIRONMENT_CONFIG; schema = "spatial.workspace.environment-config"; break;
         default: throw Error(pb::StorageOwnerError::INVALID_ARGUMENT, "Unknown workspace copy class");
         }
-        require(entry.schema_id() == schema && entry.schema_version() == 1 &&
+        const bool collection=entry.data_class()==Data::APPLICATION_DEFINITION || entry.data_class()==Data::APPLICATION_STATE;
+        require(entry.data_class()!=Data::APPLICATION_STATE || entry.schema_version()==2 || schema_only_legacy_state,
+                "Raw application-state schema1 is unsafe; explicit stopped catalog registration of schema2 data/config is required");
+        require(entry.schema_id() == schema &&
+                (entry.schema_version()==1 || (catalog.protocol_version()==2 && collection && entry.schema_version()==2)) &&
                 entry.source_object().kind() == expected &&
                 entry.source_object().id().size() == 32 &&
                 entry.source_object().id().find_first_not_of("0123456789abcdef") == std::string::npos &&
                 entries.emplace(entry.workspace_id(), static_cast<int>(entry.data_class())).second,
                 "Workspace copy class must map to a unique exact registered object");
+        if(entry.schema_version()==2) {
+            require(!entry.typed_export().empty() && entry.typed_export().size()<=65536,"Collection registration requires bounded typed export");
+            if(entry.data_class()==Data::APPLICATION_DEFINITION) {
+                pb::CopyApplicationDefinitionCollection value;
+                require(value.ParseFromString(entry.typed_export()),"Malformed configured definitions");
+                copy_collections::definitions(value);
+            } else {
+                pb::CopyApplicationStateCollection value;
+                require(value.ParseFromString(entry.typed_export()),"Malformed configured state contracts");
+                copy_collections::states(value,false);
+            }
+        } else if(!entry.typed_export().empty()) {
+            require(entry.data_class()==Data::ENVIRONMENT_CONFIG && catalog.protocol_version()==2 &&
+                    entry.typed_export().size()<=65536,"Only known typed domains permit operator export registration");
+            pb::CopyEnvironmentConfiguration value;require(value.ParseFromString(entry.typed_export()),"Malformed environment export");validate_message(value);
+            require(value.schema_version()==1 && value.dependencies_size()<=256,"Unsupported reproducible environment export");
+            std::set<std::string> dependencies;
+            for(const auto& dependency:value.dependencies())require(!dependency.name().empty() && dependency.name().size()<=128 &&
+                dependencies.insert(dependency.name()).second && !dependency.version().empty() && dependency.version().size()<=128 &&
+                dependency.content_digest().size()==32,"Malformed reproducible dependency");
+        }
     }
     std::set<std::string> profiles;
     for (const auto& profile : config.copy_destination_profiles()) {
@@ -283,7 +310,7 @@ void validate_copy_configuration(const pb::StorageOwnerConfig& config) {
         require(app_profile, "Destination profile references an unknown application storage profile");
     }
 }
-void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config, bool require_broker) {
+void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config, bool require_broker, bool schema_only_legacy_state) {
     validate_message(config);
     require(config.protocol_version() == 1 && config.filesystem_id().size() == BTRFS_FSID_SIZE &&
             std::filesystem::path(config.volume_root()).is_absolute() && config.volume_root().find('\0') == std::string::npos,
@@ -295,7 +322,7 @@ void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config, bo
     bytes(config.volume_bytes()); bytes(config.control_plane_bytes()); bytes(config.filesystem_reserve_bytes());
     require(config.control_plane_bytes() < config.volume_bytes() && config.filesystem_reserve_bytes() < config.volume_bytes()-config.control_plane_bytes(), "Storage reservations exceed volume capacity");
     require(config.has_default_policy() && config.workspaces_size() <= 64, "Expected bounded default storage policy");
-    policy(config.default_policy(), true); validate_copy_configuration(config); std::set<std::string> workspaces;
+    policy(config.default_policy(), true); validate_copy_configuration(config,schema_only_legacy_state); std::set<std::string> workspaces;
     for (const auto& selected : config.workspaces()) { policy(selected, false); require(workspaces.insert(selected.workspace()).second, "Duplicate workspace storage policy"); }
 }
 struct StorageOwner::Impl {
@@ -304,8 +331,10 @@ struct StorageOwner::Impl {
     std::unique_ptr<CatalogVfs> catalog_vfs;
     Database db;
     std::uint64_t capacity = 0;
-    explicit Impl(pb::StorageOwnerConfig value, bool require_kernel_io, bool migrate_catalog) : config(std::move(value)) {
-        require(getuid() == 0 && geteuid() == 0, "Storage owner requires operator privilege"); validate_storage_policy(config, !migrate_catalog);
+    explicit Impl(pb::StorageOwnerConfig value, bool require_kernel_io, bool migrate_catalog, unsigned migrate_schema_from) : config(std::move(value)) {
+        const bool stopped_migration=migrate_catalog || migrate_schema_from!=0;
+        require(!(migrate_catalog && migrate_schema_from) && migrate_schema_from<=5,"Select one exact stopped storage migration");
+        require(getuid() == 0 && geteuid() == 0, "Storage owner requires operator privilege"); validate_storage_policy(config, !stopped_migration,migrate_schema_from!=0);
         root.reset(open(config.volume_root().c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)); check(root.value >= 0, "Cannot pin storage volume");
         struct statfs filesystem{}; check(fstatfs(root.value, &filesystem) == 0, "Cannot inspect storage filesystem");
         require(filesystem.f_type == BTRFS_SUPER_MAGIC && subvolume(root.value) == BTRFS_FS_TREE_OBJECTID, "Storage owner requires the dedicated Btrfs top-level volume");
@@ -315,8 +344,8 @@ struct StorageOwner::Impl {
         check(ioctl(root.value, BTRFS_IOC_DEV_INFO, &device) == 0, "Cannot inspect storage device capacity");
         require(device.total_bytes == config.volume_bytes(), "Storage device capacity differs from its reservation");
         if (require_kernel_io) validate_current_storage_io(root.value);
-        if (migrate_catalog) {
-            // Hold both authority locks. A stopped update may change copy export policy only.
+        if (stopped_migration) {
+            // Schema and catalog updates both require the owner and execution authority locks.
             struct stat registry{};
             require(fstatat(root.value,"execution.db",&registry,AT_SYMLINK_NOFOLLOW)==0 &&
                     S_ISREG(registry.st_mode) && registry.st_uid==config.broker_uid(),
@@ -328,9 +357,13 @@ struct StorageOwner::Impl {
                     broker_lock.st_nlink==1 && flock(stopped_broker.value,LOCK_EX|LOCK_NB)==0,
                     "Catalog migration requires the broker to be stopped");
         }
-        const bool fresh = mkdirat(root.value, ".storage-owner", 0700) == 0;
-        require(!migrate_catalog || !fresh,"Catalog migration requires an existing storage owner registry");
-        if (!fresh) check(errno == EEXIST, "Cannot create private storage catalog");
+        if(stopped_migration) {
+            struct stat existing{};
+            require(fstatat(root.value,".storage-owner",&existing,AT_SYMLINK_NOFOLLOW)==0 && S_ISDIR(existing.st_mode),
+                    "Stopped migration requires an existing storage owner registry");
+        }
+        const bool fresh = !stopped_migration && mkdirat(root.value, ".storage-owner", 0700) == 0;
+        if (!fresh && !stopped_migration) check(errno == EEXIST, "Cannot create private storage catalog");
         metadata.reset(openat(root.value, ".storage-owner", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
         struct stat status{}; check(metadata.value >= 0 && fstat(metadata.value, &status) == 0, "Cannot pin private storage catalog");
         require(status.st_uid == 0 && (status.st_mode & 0077) == 0, "Storage catalog must remain operator-owned and private");
@@ -363,6 +396,8 @@ struct StorageOwner::Impl {
         require(S_ISREG(catalog_status.st_mode) && catalog_status.st_uid == 0 && catalog_status.st_nlink == 1 &&
                 (catalog_status.st_mode & 0077) == 0, "Storage catalog file must remain private and singly linked");
         sql(db, "PRAGMA synchronous=EXTRA;PRAGMA journal_mode=DELETE;PRAGMA foreign_keys=ON;PRAGMA trusted_schema=OFF;");
+        std::unique_ptr<Transaction> schema_migration;
+        unsigned predecessor=0;
         if (fresh) {
             sql(db, "CREATE TABLE metadata(next INTEGER NOT NULL,policy BLOB NOT NULL);CREATE TABLE domains(id INTEGER PRIMARY KEY,repo TEXT UNIQUE NOT NULL,maximum INTEGER NOT NULL,workspace TEXT UNIQUE);CREATE TABLE objects(kind INTEGER NOT NULL,id TEXT NOT NULL,domain INTEGER NOT NULL,subvolume INTEGER NOT NULL,maximum INTEGER NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,PRIMARY KEY(kind,id));CREATE TABLE actors(workspace TEXT NOT NULL,subject BLOB NOT NULL,id INTEGER UNIQUE NOT NULL,maximum INTEGER NOT NULL,PRIMARY KEY(workspace,subject));CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE );CREATE TABLE copy_stages(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),request_digest BLOB NOT NULL CHECK(length(request_digest)=32),snapshot_id TEXT NOT NULL,destination_kind INTEGER NOT NULL,destination_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,destination_subvolume INTEGER NOT NULL,maximum_bytes INTEGER NOT NULL,maximum_entries INTEGER NOT NULL,state INTEGER NOT NULL,actual_bytes INTEGER NOT NULL DEFAULT 0,actual_entries INTEGER NOT NULL DEFAULT 0,content_digest BLOB NOT NULL DEFAULT X'');PRAGMA user_version=4;");
             auto stable = config; stable.clear_broker_pid();
@@ -371,7 +406,13 @@ struct StorageOwner::Impl {
         } else {
             Query version(db, "PRAGMA user_version"); require(version.row(), "Storage catalog has no schema version");
             const auto catalog_version = version.number(0);
-            require(catalog_version >= 1 && catalog_version <= 5, "Storage catalog requires an explicit supported migration");
+            predecessor=static_cast<unsigned>(catalog_version);
+            require(catalog_version >= 1 && catalog_version <= 6, "Storage catalog requires an explicit supported migration");
+            require(catalog_version==6 || migrate_schema_from==catalog_version,
+                    "Storage catalog requires its exact stopped --migrate-v1/2/3/4/5 migration");
+            require(!migrate_schema_from || migrate_schema_from==catalog_version,
+                    "Storage schema migration does not match the existing version");
+            if(migrate_schema_from)schema_migration=std::make_unique<Transaction>(db);
             auto stable = config; stable.clear_broker_pid(); Query previous(db, "SELECT policy FROM metadata");
             require(previous.row(),"Storage policy record is absent");
             const auto previous_bytes=previous.blob(0);
@@ -388,6 +429,7 @@ struct StorageOwner::Impl {
                 require(old_revision<INT64_MAX && config.has_copy_catalog() &&
                         config.copy_catalog().revision()==old_revision+1,
                         "Copy catalog migration requires the next exact catalog revision");
+                register_typed_exports();
                 for(const auto& entry:config.copy_catalog().entries()) {
                     const auto registered=object(entry.source_object());
                     require(registered_workspace(registered.group)==entry.workspace_id(),
@@ -400,23 +442,36 @@ struct StorageOwner::Impl {
                 migration.commit();
             }
             if (catalog_version == 1 || catalog_version == 2) {
-                Transaction migration(db);
                 if (catalog_version == 1)
                     sql(db, "CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE);");
                 sql(db, "CREATE TABLE copy_stages(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),request_digest BLOB NOT NULL CHECK(length(request_digest)=32),snapshot_id TEXT NOT NULL,destination_kind INTEGER NOT NULL,destination_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,destination_subvolume INTEGER NOT NULL,maximum_bytes INTEGER NOT NULL,maximum_entries INTEGER NOT NULL,state INTEGER NOT NULL,actual_bytes INTEGER NOT NULL DEFAULT 0,actual_entries INTEGER NOT NULL DEFAULT 0,content_digest BLOB NOT NULL DEFAULT X'');PRAGMA user_version=4;");
-                migration.commit();
                 if(catalog_version<3) sql(db, "UPDATE copy_stages SET state=4 WHERE state=2;");
                 else sql(db, "UPDATE copy_stages SET state=CASE state WHEN 1 THEN 4 WHEN 2 THEN 3 WHEN 3 THEN 4 ELSE state END; PRAGMA user_version=4;");
             } else if (catalog_version == 3) {
-                Transaction migration(db);
                 sql(db, "UPDATE copy_stages SET state=CASE state WHEN 1 THEN 4 WHEN 2 THEN 3 WHEN 3 THEN 4 ELSE state END; PRAGMA user_version=4;");
-                migration.commit();
             }
         }
-        sql(db,"CREATE TABLE IF NOT EXISTS copy_destinations(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),intent BLOB NOT NULL,state INTEGER NOT NULL,receipt BLOB NOT NULL DEFAULT X'',publication BLOB NOT NULL DEFAULT X''); PRAGMA user_version=5;");
+        if(fresh || migrate_schema_from) {
+            if(fresh)schema_migration=std::make_unique<Transaction>(db);
+            if(fresh || predecessor<5)
+                sql(db,"CREATE TABLE copy_destinations(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),intent BLOB NOT NULL,state INTEGER NOT NULL,receipt BLOB NOT NULL DEFAULT X'',publication BLOB NOT NULL DEFAULT X'');");
+            sql(db,"CREATE TABLE configured_state_revisions(workspace TEXT PRIMARY KEY,revision INTEGER NOT NULL CHECK(revision>0));"
+                   "CREATE TABLE configured_states(workspace TEXT NOT NULL,key TEXT NOT NULL,object TEXT UNIQUE NOT NULL,contract BLOB NOT NULL,revision INTEGER NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,PRIMARY KEY(workspace,key));"
+                   "CREATE TABLE configured_state_uses(workspace TEXT NOT NULL,key TEXT NOT NULL,request_digest BLOB NOT NULL,old_group INTEGER NOT NULL,new_group INTEGER NOT NULL,maximum INTEGER NOT NULL,state TEXT NOT NULL,receipt BLOB NOT NULL DEFAULT X'',PRIMARY KEY(workspace,key,request_digest));"
+                   "CREATE TABLE copy_exports(workspace TEXT NOT NULL,data_class INTEGER NOT NULL,revision INTEGER NOT NULL,object TEXT NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,receipt BLOB NOT NULL DEFAULT X'',PRIMARY KEY(workspace,data_class,revision));"
+                   "CREATE TABLE configured_launch_allocations(runtime TEXT PRIMARY KEY,intent BLOB NOT NULL,state TEXT NOT NULL,receipt BLOB NOT NULL DEFAULT X'');PRAGMA user_version=6;");
+        }
+        {Query shape(db,"SELECT intent,state,publication FROM copy_destinations LIMIT 0");}
+        {Query shape(db,"SELECT workspace,revision FROM configured_state_revisions LIMIT 0");}
+        {Query shape(db,"SELECT workspace,key,object,contract,revision,payload,state FROM configured_states LIMIT 0");}
+        {Query shape(db,"SELECT workspace,key,request_digest,old_group,new_group,maximum,state,receipt FROM configured_state_uses LIMIT 0");}
+        {Query shape(db,"SELECT workspace,data_class,revision,object,payload,state,receipt FROM copy_exports LIMIT 0");}
+        {Query shape(db,"SELECT runtime,intent,state,receipt FROM configured_launch_allocations LIMIT 0");}
         // An interrupted allocating or publishing effect needs exact inspection. Never replay allocation.
         sql(db,"UPDATE copy_destinations SET state=3 WHERE state IN (0,4);");
         if (!fresh) sql(db, "UPDATE copy_stages SET state=4 WHERE state=2;");
+        if(schema_migration)schema_migration->commit();
+        sql(db,"UPDATE configured_states SET state='uncertain' WHERE state='pending';UPDATE configured_state_uses SET state='uncertain' WHERE state='pending';UPDATE configured_launch_allocations SET state='uncertain' WHERE state='pending'");
         for (const auto* directory : {"repositories", "worktrees", "applications", "definitions", "environments", "retired", "snapshots", "staging", "effects"}) {
             if (mkdirat(root.value, directory, 0700) != 0) check(errno == EEXIST, "Cannot create storage collection");
             Fd pinned(openat(root.value, directory, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
@@ -715,7 +770,215 @@ struct StorageOwner::Impl {
         limit(root.value, group, maximum); sync(root.value);
         Query update(db, "UPDATE domains SET workspace=?,maximum=? WHERE id=?"); update.text(1, request.workspace()); update.number(2, maximum); update.number(3, group); update.row(); return inspect(request.project());
     }
-    pb::StorageObjectState application(const pb::StorageApplicationPrepare& request) {
+    std::uint64_t state_mapping_revision(const std::string& workspace) {
+        Query q(db,"SELECT revision FROM configured_state_revisions WHERE workspace=?");q.text(1,workspace);
+        return q.row()?q.number(0):0;
+    }
+    std::uint64_t next_state_mapping_revision(const std::string& workspace) {
+        const auto old=state_mapping_revision(workspace);require(old<INT64_MAX,"Configured state mapping revision exhausted");
+        Query up(db,"INSERT INTO configured_state_revisions VALUES(?,?) ON CONFLICT(workspace) DO UPDATE SET revision=excluded.revision WHERE revision=?");
+        up.text(1,workspace);up.number(2,old+1);up.number(3,old);up.row();require(sqlite3_changes(db)==1,"Configured state mapping revision raced");return old+1;
+    }
+    std::string read_typed_export(const pb::StorageObject& object) {
+        (void)inspect(object);auto directory=source_directory(object);
+        Fd file(openat(directory.value,"export.pb",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));struct stat record{};
+        require(file.value>=0 && fstat(file.value,&record)==0 && S_ISREG(record.st_mode) && record.st_nlink==1 &&
+                record.st_size>0 && record.st_size<=65536,"Published export is not a bounded typed record");
+        std::string bytes(static_cast<std::size_t>(record.st_size),'\0');std::size_t offset=0;
+        while(offset<bytes.size()) {
+            const auto n=pread(file.value,bytes.data()+offset,bytes.size()-offset,offset);
+            if(n<0 && errno==EINTR)continue;
+            require(n>0,"Cannot read published typed export");offset+=static_cast<std::size_t>(n);
+        }
+        return bytes;
+    }
+    pb::WorkspaceCopyCatalogEntry resolved_copy_entry(const std::string& workspace,int data_class) {
+        for(const auto& entry:config.copy_catalog().entries())
+            if(entry.workspace_id()==workspace && entry.data_class()==data_class)return entry;
+        // Published owner receipts register fresh export objects independently of operator source bindings.
+        Query published(db,"SELECT intent FROM copy_destinations WHERE state=2");
+        while(published.row()) {
+            pb::StorageCopyDestinationPrepare allocation;
+            require(allocation.ParseFromString(published.blob(0)),"Stored copy allocation is malformed");
+            if(allocation.workspace_id()!=workspace)continue;
+            for(const auto& domain:allocation.domains()) {
+                if(domain.data_class()!=data_class)continue;
+                const auto& profile=copy_profile(allocation);
+                pb::WorkspaceCopyCatalogEntry entry;entry.set_workspace_id(workspace);
+                entry.set_data_class(domain.data_class());*entry.mutable_source_object()=domain.destination();
+                entry.set_maximum_bytes(profile.maximum_total_bytes());entry.set_maximum_entries(profile.maximum_entries());
+                entry.set_consistency(pb::CRASH_CONSISTENT_AFTER_QUIESCENCE);entry.set_schema_version(1);
+                const char* schema=nullptr;
+                switch(data_class) {
+                case workspace::copy::v1::PROJECT_TREE:schema="spatial.workspace.project-tree";break;
+                case workspace::copy::v1::GIT_HISTORY:schema="spatial.workspace.git-history";break;
+                case workspace::copy::v1::APPLICATION_DEFINITION:schema="spatial.workspace.application-definition";break;
+                case workspace::copy::v1::APPLICATION_STATE:schema="spatial.workspace.application-state";break;
+                case workspace::copy::v1::ENVIRONMENT_CONFIG:schema="spatial.workspace.environment-config";break;
+                default:throw Error(pb::StorageOwnerError::INVALID_ARGUMENT,"Unknown published copy class");
+                }
+                entry.set_schema_id(schema);
+                if(data_class==workspace::copy::v1::APPLICATION_DEFINITION) {
+                    const auto bytes=read_typed_export(domain.destination());
+                    pb::CopyApplicationDefinitionCollection collection;
+                    if(collection.ParseFromString(bytes) && collection.schema_version()==2) {
+                        copy_collections::definitions(collection);entry.set_schema_version(2);
+                    } else {
+                        pb::CopyApplicationDefinition definition;require(definition.ParseFromString(bytes),"Malformed published definition");
+                        copy_collections::definition(definition);entry.set_schema_version(1);
+                    }
+                    entry.set_typed_export(bytes);
+                } else if(data_class==workspace::copy::v1::APPLICATION_STATE) {
+                    pb::CopyApplicationStateCollection collection;
+                    require(collection.ParseFromString(read_typed_export(domain.destination())),"Malformed published state descriptor");
+                    copy_collections::states(collection,true);
+                    // Historical publication digests describe that copy. Live state is resolved under its current mapping generation.
+                    pb::CopyApplicationStateCollection descriptor;descriptor.set_schema_version(2);
+                    for(const auto& slot:collection.slots()) {
+                        auto* fresh=descriptor.add_slots();fresh->set_key(slot.key());*fresh->mutable_contract()=slot.contract();
+                    }
+                    copy_collections::states(descriptor,false);entry.set_schema_version(2);
+                    entry.set_typed_export(descriptor.SerializeAsString());
+                } else if(data_class==workspace::copy::v1::ENVIRONMENT_CONFIG)entry.set_typed_export(read_typed_export(domain.destination()));
+                return entry;
+            }
+        }
+        throw Error(pb::StorageOwnerError::UNAVAILABLE,"Selected workspace copy class is not registered");
+    }
+    pb::CopyApplicationDefinitionCollection configured_definitions(const std::string& workspace) {
+        for(const auto& entry:config.copy_catalog().entries()) {
+            if(entry.workspace_id()!=workspace || entry.data_class()!=workspace::copy::v1::APPLICATION_DEFINITION || entry.schema_version()!=2)continue;
+            pb::CopyApplicationDefinitionCollection definitions;
+            require(definitions.ParseFromString(entry.typed_export()),"Registered definition collection is malformed");
+            copy_collections::definitions(definitions);return definitions;
+        }
+        Query published(db,"SELECT intent FROM copy_destinations WHERE state=2");
+        while(published.row()) {
+            pb::StorageCopyDestinationPrepare allocation;require(allocation.ParseFromString(published.blob(0)),"Stored copy allocation is malformed");
+            if(allocation.workspace_id()!=workspace)continue;
+            for(const auto& domain:allocation.domains()) {
+                if(domain.data_class()!=workspace::copy::v1::APPLICATION_DEFINITION)continue;
+                (void)inspect(domain.destination());auto directory=source_directory(domain.destination());
+                Fd file(openat(directory.value,"export.pb",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));struct stat record{};
+                require(file.value>=0 && fstat(file.value,&record)==0 && S_ISREG(record.st_mode) && record.st_nlink==1 &&
+                        record.st_size>0 && record.st_size<=65536,"Published definitions are not a bounded typed collection");
+                std::string bytes(static_cast<std::size_t>(record.st_size),'\0');std::size_t offset=0;
+                while(offset<bytes.size()) {
+                    const auto n=pread(file.value,bytes.data()+offset,bytes.size()-offset,offset);
+                    if(n<0 && errno==EINTR)continue;
+                    require(n>0,"Cannot read published definitions");offset+=static_cast<std::size_t>(n);
+                }
+                pb::CopyApplicationDefinitionCollection definitions;
+                require(definitions.ParseFromString(bytes),"Published configured definitions are malformed");copy_collections::definitions(definitions);
+                for(const auto& app:definitions.applications())
+                    require(app.profile()==copy_profile(allocation).application_profile(),"Copied definition did not receive its independent destination profile");
+                return definitions;
+            }
+        }
+        throw Error(pb::StorageOwnerError::UNAVAILABLE,"Configured application definitions are not registered");
+    }
+    pb::ConfiguredApplicationDefinition configured_definition(const std::string& workspace,const std::string& key) {
+        require(copy_collections::key(key),"Invalid configured application key");
+        const auto definitions=configured_definitions(workspace);
+        for(const auto& app:definitions.applications())if(app.key()==key) {
+            bool allowed=false;for(const auto& profile:selected(workspace).profiles())if(profile.name()==app.profile())allowed=true;
+            require(allowed,"Configured application profile is absent from the independently assigned storage policy");
+            return app;
+        }
+        throw Error(pb::StorageOwnerError::UNAVAILABLE,"Configured application key is not registered");
+    }
+    pb::StorageConfiguredApplicationReply configured_application(const pb::StorageConfiguredApplicationQuery& request) {
+        require(identifier(request.workspace_id()),"Invalid configured application workspace");
+        pb::StorageConfiguredApplicationReply reply;reply.set_catalog_revision(config.copy_catalog().revision());
+        *reply.mutable_definition()=configured_definition(request.workspace_id(),request.key());
+        reply.set_state_mapping_revision(state_mapping_revision(request.workspace_id()));
+        *reply.mutable_storage_policy()=selected(request.workspace_id());
+        Query mapping(db,"SELECT object,contract,state FROM configured_states WHERE workspace=? AND key=?");
+        mapping.text(1,request.workspace_id());mapping.text(2,request.key());
+        if(mapping.row()) {
+            Query unresolved(db,"SELECT count(*) FROM configured_state_uses WHERE workspace=? AND key=? AND state!='ready'");
+            unresolved.text(1,request.workspace_id());unresolved.text(2,request.key());
+            require(unresolved.row(),"Cannot inspect configured state effect receipts");
+            if(mapping.text(2)!="ready" || unresolved.number(0)!=0)throw Error(pb::StorageOwnerError::UNCERTAIN,"Configured application state needs exact recovery");
+            require(mapping.blob(1)==reply.definition().state_contract().SerializeAsString(),"Configured state contract changed without explicit state migration");
+            pb::StorageObject object;object.set_kind(pb::StorageObject::APPLICATION_STATE);object.set_id(mapping.text(0));
+            require(registered_workspace(this->object(object).group)==request.workspace_id(),"Configured state belongs to another workspace");
+            *reply.mutable_state()=inspect(object);
+        }
+        return reply;
+    }
+    pb::ConfiguredStateMapping configured_state_mapping(const std::string& workspace,const pb::CopyApplicationStateCollection& descriptor) {
+        copy_collections::states(descriptor,false);
+        pb::ConfiguredStateMapping mapping;mapping.set_workspace_id(workspace);mapping.set_revision(state_mapping_revision(workspace));
+        std::map<std::string,std::string> expected;
+        for(const auto& slot:descriptor.slots())expected.emplace(slot.key(),slot.contract().SerializeAsString());
+        Query q(db,"SELECT key,object,contract,state FROM configured_states WHERE workspace=? ORDER BY key");q.text(1,workspace);
+        while(q.row()) {
+            const auto wanted=expected.find(q.text(0));
+            require(wanted!=expected.end() && wanted->second==q.blob(2),"Configured state mapping contains an undeclared or substituted contract");
+            Query unresolved(db,"SELECT count(*) FROM configured_state_uses WHERE workspace=? AND key=? AND state!='ready'");
+            unresolved.text(1,workspace);unresolved.text(2,q.text(0));require(unresolved.row(),"Cannot inspect configured state mapping effects");
+            if(q.text(3)!="ready" || unresolved.number(0)!=0)throw Error(pb::StorageOwnerError::UNCERTAIN,"Configured state mapping has an unresolved allocation");
+            auto* entry=mapping.add_entries();entry->set_key(q.text(0));
+            require(entry->mutable_contract()->ParseFromString(q.blob(2)),"Configured state mapping contract is malformed");
+            auto* object=entry->mutable_state_object();object->set_kind(pb::StorageObject::APPLICATION_STATE);object->set_id(q.text(1));
+            require(registered_workspace(this->object(*object).group)==workspace,"Configured state object belongs to another workspace");
+            (void)inspect(*object);expected.erase(wanted);
+        }
+        require(expected.empty(),"Configured state mapping is missing an actual application state object");
+        copy_collections::mapping(mapping);return mapping;
+    }
+    pb::StorageObjectState configured_state_prepare(const pb::StorageApplicationPrepare& request,
+            std::uint64_t group,std::uint64_t maximum,const pb::StorageConfiguredApplicationReply& configured) {
+        const auto& key=request.configured_application_key();const auto contract=configured.definition().state_contract().SerializeAsString();
+        if(!configured.has_state()) {
+            {Transaction tx(db);const auto revision=next_state_mapping_revision(request.workspace());
+             Query intent(db,"INSERT INTO configured_states VALUES(?,?,?,?,?,?,'pending')");
+             intent.text(1,request.workspace());intent.text(2,key);intent.text(3,request.object().id());intent.blob(4,contract);
+             intent.number(5,revision);intent.blob(6,request.SerializeAsString());intent.row();tx.commit();}
+            try {
+                const auto receipt=allocate(request.object(),group,maximum,request.SerializeAsString());
+                Query done(db,"UPDATE configured_states SET state='ready' WHERE workspace=? AND key=? AND object=? AND state='pending'");
+                done.text(1,request.workspace());done.text(2,key);done.text(3,request.object().id());done.row();
+                require(sqlite3_changes(db)==1,"Configured state allocation lost its exact intent");return receipt;
+            } catch(...) {
+                Query uncertain(db,"UPDATE configured_states SET state='uncertain' WHERE workspace=? AND key=?");
+                uncertain.text(1,request.workspace());uncertain.text(2,key);uncertain.row();throw;
+            }
+        }
+        require(configured.state().object().SerializeAsString()==request.object().SerializeAsString(),"Configured application state identity changed");
+        const auto previous=object(request.object());
+        if(previous.group==group && previous.maximum==maximum)return inspect(request.object());
+        const auto digest=sha256(request.SerializeAsString());
+        {Query old(db,"SELECT state FROM configured_state_uses WHERE workspace=? AND key=? AND request_digest=?");
+         old.text(1,request.workspace());old.text(2,key);old.blob(3,digest);
+         if(old.row())throw Error(pb::StorageOwnerError::UNCERTAIN,"Configured state quota transfer needs exact recovery");}
+        {Transaction tx(db);Query intent(db,"INSERT INTO configured_state_uses(workspace,key,request_digest,old_group,new_group,maximum,state) VALUES(?,?,?,?,?,?,'pending')");
+         intent.text(1,request.workspace());intent.text(2,key);intent.blob(3,digest);intent.number(4,previous.group);
+         intent.number(5,group);intent.number(6,maximum);intent.row();
+         Query mark(db,"UPDATE configured_states SET state='pending' WHERE workspace=? AND key=? AND state='ready'");
+         mark.text(1,request.workspace());mark.text(2,key);mark.row();require(sqlite3_changes(db)==1,"Configured state is already in use by another effect");tx.commit();}
+        try {
+            limit(root.value,previous.subvolume,maximum);
+            if(previous.group!=group) {
+                assign(root.value,previous.subvolume,group);
+                btrfs_ioctl_qgroup_assign_args detach{};detach.assign=0;detach.src=previous.subvolume;detach.dst=previous.group;
+                check(ioctl(root.value,BTRFS_IOC_QGROUP_ASSIGN,&detach)==0,"Cannot detach previous configured state quota");
+            }
+            sync(root.value);
+            {Transaction tx(db);Query object(db,"UPDATE objects SET domain=?,maximum=?,payload=? WHERE kind=? AND id=? AND domain=?");
+             object.number(1,group);object.number(2,maximum);object.blob(3,request.SerializeAsString());object.number(4,pb::StorageObject::APPLICATION_STATE);
+             object.text(5,request.object().id());object.number(6,previous.group);object.row();require(sqlite3_changes(db)==1,"Configured state quota receipt lost its object");
+             const auto revision=next_state_mapping_revision(request.workspace());Query ready(db,"UPDATE configured_states SET state='ready',revision=? WHERE workspace=? AND key=?");
+             ready.number(1,revision);ready.text(2,request.workspace());ready.text(3,key);ready.row();tx.commit();}
+            const auto receipt=inspect(request.object());Query done(db,"UPDATE configured_state_uses SET state='ready',receipt=? WHERE workspace=? AND key=? AND request_digest=?");
+            done.blob(1,receipt.SerializeAsString());done.text(2,request.workspace());done.text(3,key);done.blob(4,digest);done.row();return receipt;
+        } catch(...) {
+            Query uncertain(db,"UPDATE configured_states SET state='uncertain' WHERE workspace=? AND key=?");uncertain.text(1,request.workspace());uncertain.text(2,key);uncertain.row();throw;
+        }
+    }
+    pb::StorageObjectState application(const pb::StorageApplicationPrepare& request,bool configured_batch=false) {
+        require(request.configured_application_key().empty() || configured_batch,"Configured state requires a whole runtime/persistent allocation batch");
         require(identifier(request.workspace()) && request.has_object() && request.object().kind() == pb::StorageObject::APPLICATION_STATE && identifier(request.profile()), "Incomplete application storage request");
         Query copied(db,"SELECT intent FROM copy_destinations WHERE state=2");
         while(copied.row()) {
@@ -725,6 +988,14 @@ struct StorageOwner::Impl {
                 if(profile.application_profile()!=request.profile())throw Error(pb::StorageOwnerError::UNAUTHORIZED,"Copied workspace application profile is not assigned");
             }
         }
+        std::optional<pb::StorageConfiguredApplicationReply> configured;
+        if(!request.configured_application_key().empty()) {
+            pb::StorageConfiguredApplicationQuery query;query.set_workspace_id(request.workspace());query.set_key(request.configured_application_key());
+            configured=configured_application(query);
+            require(request.expected_catalog_revision()==configured->catalog_revision() &&
+                    request.expected_state_mapping_revision()==configured->state_mapping_revision() &&
+                    request.profile()==configured->definition().profile(),"Configured application policy or mapping changed before preparation");
+        } else require(request.expected_catalog_revision()==0 && request.expected_state_mapping_revision()==0,"Unconfigured application supplied a mapping revision");
         const auto key = subject(request); const auto& rules = selected(request.workspace());
         auto actor_maximum = std::min(rules.total_bytes(), rules.actor_state_default_bytes());
         for (const auto& actor : rules.actors()) if (subject(actor) == key) actor_maximum = std::min(rules.total_bytes(), actor.state_bytes());
@@ -738,9 +1009,69 @@ struct StorageOwner::Impl {
             Transaction transaction(db); actor_group = next(1); Query insert(db, "INSERT INTO actors VALUES(?,?,?,?)"); insert.text(1, request.workspace()); insert.blob(2, key); insert.number(3, actor_group); insert.number(4, actor_maximum); insert.row(); transaction.commit();
             create_group(root.value, actor_group); limit(root.value, actor_group, actor_maximum); assign(root.value, actor_group, workspace.number(0));
         }
+        if(configured)return configured_state_prepare(request,actor_group,maximum,*configured);
         return allocate(request.object(), actor_group, maximum, request.SerializeAsString());
     }
 
+    pb::StorageConfiguredApplicationAllocation configured_application_prepare(const pb::StorageConfiguredApplicationPrepare& request) {
+        require(request.has_persistent() && request.has_runtime_object() &&
+                request.runtime_object().kind()==pb::StorageObject::APPLICATION_STATE &&
+                request.persistent().object().kind()==pb::StorageObject::APPLICATION_STATE &&
+                request.runtime_object().id()!=request.persistent().object().id() &&
+                copy_collections::key(request.persistent().configured_application_key()),"Incomplete configured runtime/persistent allocation");
+        (void)name(request.runtime_object());(void)name(request.persistent().object());
+        const auto exact=request.SerializeAsString();
+        {Query previous(db,"SELECT intent,state,receipt FROM configured_launch_allocations WHERE runtime=?");
+         previous.text(1,request.runtime_object().id());
+         if(previous.row()) {
+             if(previous.blob(0)!=exact)throw Error(pb::StorageOwnerError::CONFLICT,"Configured runtime identity binds another allocation");
+             if(previous.text(1)!="ready")throw Error(pb::StorageOwnerError::UNCERTAIN,"Configured runtime allocation needs exact recovery");
+             pb::StorageConfiguredApplicationAllocation receipt;require(receipt.ParseFromString(previous.blob(2)),"Stored configured allocation receipt is malformed");return receipt;
+         }}
+        const auto& persistent=request.persistent();
+        pb::StorageConfiguredApplicationQuery query;query.set_workspace_id(persistent.workspace());query.set_key(persistent.configured_application_key());
+        const auto configured=configured_application(query);
+        require(configured.catalog_revision()==persistent.expected_catalog_revision() &&
+                configured.state_mapping_revision()==persistent.expected_state_mapping_revision() &&
+                configured.definition().profile()==persistent.profile(),"Configured allocation mapping/profile changed");
+        const auto& policy=selected(persistent.workspace());const auto actor=subject(persistent);
+        std::uint64_t actor_maximum=std::min(policy.total_bytes(),policy.actor_state_default_bytes()),object_maximum=0;
+        for(const auto& selected:policy.actors())if(subject(selected)==actor)actor_maximum=std::min(policy.total_bytes(),selected.state_bytes());
+        for(const auto& profile:policy.profiles())if(profile.name()==persistent.profile())object_maximum=std::min(actor_maximum,profile.state_bytes());
+        require(object_maximum>0 && object_maximum==persistent.expected_state_maximum_bytes() &&
+                persistent.expected_storage_policy_digest()==sha256(policy.SerializeAsString()),
+                "Configured allocation differs from its pinned independent storage policy/ceiling");
+        const auto reservation=object_maximum*(configured.has_state()?1ULL:2ULL);
+        Query workspace(db,"SELECT id FROM domains WHERE workspace=?");workspace.text(1,persistent.workspace());
+        require(workspace.row(),"Configured allocation requires bound workspace storage");
+        const auto workspace_group=workspace.number(0);const auto workspace_limit=checked_group(workspace_group);
+        auto workspace_usage=item<btrfs_qgroup_info_item>(root.value,0,BTRFS_QGROUP_INFO_KEY,workspace_group);
+        require(workspace_usage.has_value(),"Cannot inspect configured workspace reservation");
+        if(le64toh(workspace_usage->rfer)>workspace_limit || reservation>workspace_limit-le64toh(workspace_usage->rfer))
+            throw Error(pb::StorageOwnerError::EXHAUSTED,"Whole runtime/persistent reservation exceeds workspace capacity");
+        Query actor_group(db,"SELECT id FROM actors WHERE workspace=? AND subject=?");actor_group.text(1,persistent.workspace());actor_group.blob(2,actor);
+        std::uint64_t actor_used=0;
+        if(actor_group.row()) {const auto usage=item<btrfs_qgroup_info_item>(root.value,0,BTRFS_QGROUP_INFO_KEY,actor_group.number(0));
+            require(usage.has_value(),"Cannot inspect configured actor reservation");actor_used=le64toh(usage->rfer);}
+        if(actor_used>actor_maximum || reservation>actor_maximum-actor_used)
+            throw Error(pb::StorageOwnerError::EXHAUSTED,"Whole runtime/persistent reservation exceeds actor capacity");
+        {Query intent(db,"INSERT INTO configured_launch_allocations(runtime,intent,state) VALUES(?,?,'pending')");
+         intent.text(1,request.runtime_object().id());intent.blob(2,exact);intent.row();}
+        try {
+            pb::StorageConfiguredApplicationAllocation receipt;
+            *receipt.mutable_persistent()=application(persistent,true);
+            pb::StorageApplicationPrepare runtime=persistent;*runtime.mutable_object()=request.runtime_object();
+            runtime.clear_configured_application_key();runtime.clear_expected_catalog_revision();runtime.clear_expected_state_mapping_revision();
+            runtime.clear_expected_state_maximum_bytes();runtime.clear_expected_storage_policy_digest();
+            *receipt.mutable_runtime()=application(runtime);
+            receipt.set_state_mapping_revision(state_mapping_revision(persistent.workspace()));receipt.set_request_digest(sha256(exact));
+            Query done(db,"UPDATE configured_launch_allocations SET state='ready',receipt=? WHERE runtime=? AND intent=? AND state='pending'");
+            done.blob(1,receipt.SerializeAsString());done.text(2,request.runtime_object().id());done.blob(3,exact);done.row();
+            require(sqlite3_changes(db)==1,"Configured allocation lost its exact durable intent");return receipt;
+        } catch(...) {
+            Query uncertain(db,"UPDATE configured_launch_allocations SET state='uncertain' WHERE runtime=?");uncertain.text(1,request.runtime_object().id());uncertain.row();throw;
+        }
+    }
     pb::StorageCopyStageReceipt copy_stage_receipt(const std::string& id) {
         Query q(db, "SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,state,actual_bytes,actual_entries,content_digest,maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?");
         q.blob(1,id); require(q.row(),"Unknown copy stage"); pb::StorageCopyStageReceipt r; r.set_operation_id(id);
@@ -811,6 +1142,64 @@ struct StorageOwner::Impl {
         require(q.row(),"Registered storage object has no workspace ownership");
         const auto result=q.text(0);require(!result.empty() && !q.row(),"Storage ownership is ambiguous");return result;
     }
+    void register_typed_exports() {
+        // Validate every reservation before the first object allocation.
+        std::map<std::uint64_t,std::uint64_t> charges;
+        for(const auto& entry:config.copy_catalog().entries()) {
+            if(entry.typed_export().empty())continue;
+            pb::StorageObject repository;
+            for(const auto& candidate:config.copy_catalog().entries())
+                if(candidate.workspace_id()==entry.workspace_id() && candidate.data_class()==workspace::copy::v1::GIT_HISTORY)
+                    repository=candidate.source_object();
+            require(repository.kind()==pb::StorageObject::REPOSITORY,"Typed export registration requires the actual registered repository");
+            const auto group=domain(repository);
+            require(registered_workspace(group)==entry.workspace_id(),"Typed export registration changes workspace ownership");
+            Query old(db,"SELECT state FROM objects WHERE kind=? AND id=?");old.number(1,entry.source_object().kind());old.text(2,entry.source_object().id());
+            if(!old.row())charges[group]+=snapshot_min_charge+entry.typed_export().size();
+        }
+        for(const auto& [group,charge]:charges) {
+            const auto maximum=checked_group(group);
+            const auto used=item<btrfs_qgroup_info_item>(root.value,0,BTRFS_QGROUP_INFO_KEY,group);
+            require(used.has_value(),"Typed export reservation cannot inspect workspace usage");
+            if(le64toh(used->rfer)>maximum || charge>maximum-le64toh(used->rfer))
+                throw Error(pb::StorageOwnerError::EXHAUSTED,"Typed export registration exceeds the whole workspace reservation");
+        }
+        for(const auto& entry:config.copy_catalog().entries()) {
+            if(entry.typed_export().empty())continue;
+            const auto revision=config.copy_catalog().revision();const auto payload=entry.SerializeAsString();
+            {Query previous(db,"SELECT payload FROM copy_exports WHERE workspace=? AND data_class=? AND revision=?");
+             previous.text(1,entry.workspace_id());previous.number(2,entry.data_class());previous.number(3,revision);
+             if(previous.row())require(previous.blob(0)==payload,"Typed export revision binds different registration bytes");
+             else {Query intent(db,"INSERT INTO copy_exports(workspace,data_class,revision,object,payload,state) VALUES(?,?,?,?,?,'pending')");
+                 intent.text(1,entry.workspace_id());intent.number(2,entry.data_class());intent.number(3,revision);
+                 intent.text(4,entry.source_object().id());intent.blob(5,payload);intent.row();}}
+            pb::StorageCopyDomainPrepare request;request.set_workspace_id(entry.workspace_id());*request.mutable_object()=entry.source_object();
+            for(const auto& candidate:config.copy_catalog().entries())
+                if(candidate.workspace_id()==entry.workspace_id() && candidate.data_class()==workspace::copy::v1::GIT_HISTORY)
+                    *request.mutable_repository()=candidate.source_object();
+            const auto allocated=copy_domain_prepare(request);auto directory=source_directory(entry.source_object());
+            Fd output(openat(directory.value,"export.pb",O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
+            if(output.value>=0) {
+                const auto& bytes=entry.typed_export();std::size_t offset=0;
+                while(offset<bytes.size()) {const auto n=write(output.value,bytes.data()+offset,bytes.size()-offset);
+                    if(n<0 && errno==EINTR){continue;}
+                    check(n>0,"Cannot write typed export registration");offset+=static_cast<std::size_t>(n);}
+                check(fchown(output.value,config.broker_uid(),static_cast<gid_t>(-1))==0 && fsync(output.value)==0 &&
+                      fsync(directory.value)==0,"Cannot persist typed export registration");
+            } else require(errno==EEXIST,"Cannot create typed export registration");
+            Fd input(openat(directory.value,"export.pb",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));struct stat record{};
+            require(input.value>=0 && fstat(input.value,&record)==0 && S_ISREG(record.st_mode) && record.st_nlink==1 &&
+                    record.st_size==static_cast<off_t>(entry.typed_export().size()),"Typed registration file differs from its intent");
+            std::string bytes(entry.typed_export().size(),'\0');std::size_t offset=0;
+            while(offset<bytes.size()){const auto n=pread(input.value,bytes.data()+offset,bytes.size()-offset,offset);
+                if(n<0 && errno==EINTR){continue;}
+                require(n>0,"Cannot inspect typed export registration");offset+=static_cast<std::size_t>(n);}
+            require(bytes==entry.typed_export(),"Typed registration content differs; allocate a fresh export object for changed content");
+            Query done(db,"UPDATE copy_exports SET state='ready',receipt=? WHERE workspace=? AND data_class=? AND revision=? AND payload=?");
+            done.blob(1,allocated.SerializeAsString());done.text(2,entry.workspace_id());done.number(3,entry.data_class());
+            done.number(4,revision);done.blob(5,payload);done.row();require(sqlite3_changes(db)==1,"Typed registration receipt lost its exact intent");
+        }
+    }
     pb::StorageObjectState copy_domain_prepare(const pb::StorageCopyDomainPrepare& request) {
         require(identifier(request.workspace_id()) && request.has_repository() && request.has_object() &&
                 (request.object().kind()==pb::StorageObject::APPLICATION_DEFINITION ||
@@ -825,6 +1214,12 @@ struct StorageOwner::Impl {
         for(const auto& profile:config.copy_destination_profiles())
             if(profile.name()==request.profile_name() && profile.revision()==request.profile_revision())return profile;
         throw Error(pb::StorageOwnerError::CONFLICT,"Copy destination profile changed");
+    }
+    std::uint64_t copy_state_maximum(const pb::StorageCopyDestinationPrepare& request) {
+        const auto& policy=copy_profile(request).storage_policy();
+        for(const auto& profile:policy.profiles())if(profile.name()==copy_profile(request).application_profile())
+            return std::min(policy.total_bytes(),profile.state_bytes());
+        throw Error(pb::StorageOwnerError::UNAVAILABLE,"Independent destination state quota is absent");
     }
     void validate_copy_allocation(const pb::StorageCopyDestinationPrepare& request) {
         require(request.operation_id().size()==16 && request.request_digest().size()==32 &&
@@ -850,6 +1245,39 @@ struct StorageOwner::Impl {
         }
         require(classes.contains(workspace::copy::v1::PROJECT_TREE) && classes.contains(workspace::copy::v1::GIT_HISTORY),
                 "Copy allocation requires project and Git history");
+        require(request.state_companions_size()<=32,"Copy allocation exceeds companion bound");
+        if(request.state_companions_size()==0) {
+            require(request.state_mapping_revision()==0,"Empty state allocation supplied a mapping revision");
+        } else {
+            require(classes.contains(workspace::copy::v1::APPLICATION_STATE) && identifier(request.source_workspace_id()) &&
+                    request.state_mapping_revision()>0 && state_mapping_revision(request.source_workspace_id())==request.state_mapping_revision(),
+                    "Copy allocation state mapping revision changed");
+            const auto state_catalog=resolved_copy_entry(request.source_workspace_id(),workspace::copy::v1::APPLICATION_STATE);
+            require(state_catalog.schema_version()==2,"Companion allocation lacks its registered state collection");
+            pb::CopyApplicationStateCollection descriptor;require(descriptor.ParseFromString(state_catalog.typed_export()),"Malformed companion descriptor");
+            const auto mapping=configured_state_mapping(request.source_workspace_id(),descriptor);
+            require(mapping.entries_size()==request.state_companions_size(),"Companion allocation omitted or added configured states");
+            for(int index=0;index<request.state_companions_size();++index) {
+                const auto& plan=request.state_companions(index);
+                require(plan.source().SerializeAsString()==mapping.entries(index).SerializeAsString() &&
+                        plan.snapshot().kind()==pb::StorageObject::SNAPSHOT && plan.staging().kind()==pb::StorageObject::COPY_STAGING &&
+                        plan.destination().kind()==pb::StorageObject::APPLICATION_STATE,"Companion source/contract or destination kind differs");
+                for(const auto* object:{&plan.snapshot(),&plan.staging(),&plan.destination()}) {
+                    (void)name(*object);require(ids.insert(object->id()).second,"Companion allocation reuses an object identity");
+                    require(object->id()!=plan.source().state_object().id(),"Companion allocation reuses source state identity");
+                }
+                const auto snapshot=snapshot_inspect(plan.snapshot());
+                require(snapshot.source_object().SerializeAsString()==plan.source().state_object().SerializeAsString() && snapshot.read_only(),
+                        "Companion snapshot belongs to another state object");
+            }
+            const auto maximum=copy_state_maximum(request);
+            require(maximum>0 && maximum<=profile.storage_policy().total_bytes() &&
+                    static_cast<std::uint64_t>(request.state_companions_size())<=profile.storage_policy().total_bytes()/maximum,
+                    "Independent destination companion quotas exceed whole workspace policy");
+        }
+        const auto objects=static_cast<std::uint64_t>(request.domains_size()+request.state_companions_size());
+        require(objects<=37 && objects<=profile.storage_policy().total_bytes()/snapshot_min_charge,
+                "Whole destination object reservation exceeds its independent storage policy");
     }
     pb::StorageCopyDestinationReceipt destination_receipt(const pb::StorageCopyDestinationPrepare& intent,int state) {
         pb::StorageCopyDestinationReceipt result;*result.mutable_allocation()=intent;
@@ -857,14 +1285,33 @@ struct StorageOwner::Impl {
         result.set_state(static_cast<pb::StorageCopyDestinationReceipt::State>(state));
         if(state==pb::StorageCopyDestinationReceipt::UNCERTAIN)return result;
         if(state==pb::StorageCopyDestinationReceipt::PUBLISHED) {
-            Query published(db,"SELECT publication FROM copy_destinations WHERE operation_id=?");published.blob(1,intent.operation_id());
+            Query published(db,"SELECT publication,state,receipt FROM copy_destinations WHERE operation_id=?");published.blob(1,intent.operation_id());
             pb::StorageCopyDestinationPublish publication;
-            require(published.row() && publication.ParseFromString(published.blob(0)) && publication.has_validation(),"Published destination omitted its exact final validation binding");
+            require(published.row() && publication.ParseFromString(published.blob(0)) && publication.has_validation() &&
+                    publication.allocation().SerializeAsString()==intent.SerializeAsString(),
+                    "Published destination omitted its exact allocation/final validation binding");
+            if(published.number(1)==pb::StorageCopyDestinationReceipt::PUBLISHED) {
+                pb::StorageCopyDestinationReceipt stored;
+                require(stored.ParseFromString(published.blob(2)) && stored.state()==pb::StorageCopyDestinationReceipt::PUBLISHED &&
+                        stored.allocation().SerializeAsString()==intent.SerializeAsString() &&
+                        stored.allocation_digest()==sha256(intent.SerializeAsString()) &&
+                        stored.publication_digest()==sha256(publication.SerializeAsString()) &&
+                        stored.validation_digest()==sha256(publication.validation().SerializeAsString()),
+                        "Durable publication receipt differs from its exact immutable allocation/validation");
+                validate_message(stored);return stored;
+            }
+            require(published.number(1)==4,"Cannot construct a publication receipt outside its durable publication intent");
             result.set_publication_digest(sha256(publication.SerializeAsString()));result.set_validation_digest(sha256(publication.validation().SerializeAsString()));
+            if(intent.state_companions_size()>0)result.set_destination_state_mapping_revision(state_mapping_revision(intent.workspace_id()));
         }
         for(const auto& domain:intent.domains()) {
             auto object=inspect(state==pb::StorageCopyDestinationReceipt::PUBLISHED?domain.destination():domain.staging());
             object.set_operation_digest(state==pb::StorageCopyDestinationReceipt::PUBLISHED?result.publication_digest():result.allocation_digest());*result.add_objects()=object;
+        }
+        for(const auto& companion:intent.state_companions()) {
+            auto object=inspect(state==pb::StorageCopyDestinationReceipt::PUBLISHED?companion.destination():companion.staging());
+            object.set_operation_digest(state==pb::StorageCopyDestinationReceipt::PUBLISHED?result.publication_digest():result.allocation_digest());
+            *result.add_state_companions()=object;
         }
         return result;
     }
@@ -877,12 +1324,23 @@ struct StorageOwner::Impl {
         return destination_receipt(intent,static_cast<int>(old.number(1)));
     }
     pb::StorageCopyDestinationReceipt copy_destination_prepare(const pb::StorageCopyDestinationPrepare& request) {
-        validate_copy_allocation(request);
+        require(request.operation_id().size()==16 && request.request_digest().size()==32,"Malformed destination allocation identity");
+        std::optional<int> existing_state;
         {Query old(db,"SELECT intent,state FROM copy_destinations WHERE operation_id=?");old.blob(1,request.operation_id());
          if(old.row()) {
              if(old.blob(0)!=request.SerializeAsString())throw Error(pb::StorageOwnerError::CONFLICT,"Copy destination ID binds different bytes");
-             return destination_receipt(request,static_cast<int>(old.number(1)));
+             existing_state=static_cast<int>(old.number(1));
          }}
+        if(existing_state==pb::StorageCopyDestinationReceipt::PUBLISHED)
+            return destination_receipt(request,pb::StorageCopyDestinationReceipt::PUBLISHED);
+        validate_copy_allocation(request);
+        if(existing_state)return destination_receipt(request,*existing_state);
+        const auto preflight_identity=[&](const pb::StorageObject& object) {
+            Query existing(db,"SELECT count(*) FROM objects WHERE id=?");existing.text(1,object.id());
+            require(existing.row() && existing.number(0)==0,"Fresh copy staging/destination identity is already registered");
+        };
+        for(const auto& domain:request.domains()){preflight_identity(domain.staging());preflight_identity(domain.destination());}
+        for(const auto& companion:request.state_companions()){preflight_identity(companion.staging());preflight_identity(companion.destination());}
         const auto& profile=copy_profile(request);std::string repository;
         for(const auto& domain:request.domains())if(domain.data_class()==workspace::copy::v1::GIT_HISTORY)repository=domain.destination().id();
         std::uint64_t group=0;
@@ -901,13 +1359,28 @@ struct StorageOwner::Impl {
         try {
             create_group(root.value,group);limit(root.value,group,profile.storage_policy().total_bytes());assign(root.value,group,pool);
             for(const auto& domain:request.domains())allocate(domain.staging(),group,0,request.SerializeAsString()+domain.staging().SerializeAsString());
+            for(const auto& companion:request.state_companions())
+                allocate(companion.staging(),group,copy_state_maximum(request),request.SerializeAsString()+companion.staging().SerializeAsString());
             const auto receipt=destination_receipt(request,pb::StorageCopyDestinationReceipt::ALLOCATED);
             Query done(db,"UPDATE copy_destinations SET state=1,receipt=? WHERE operation_id=? AND state=0");
             done.blob(1,receipt.SerializeAsString());done.blob(2,request.operation_id());done.row();return receipt;
         }catch(...) {Query uncertain(db,"UPDATE copy_destinations SET state=3 WHERE operation_id=?");uncertain.blob(1,request.operation_id());uncertain.row();throw;}
     }
     pb::StorageCopyDestinationReceipt copy_destination_publish(const pb::StorageCopyDestinationPublish& request) {
-        const auto& intent=request.allocation();validate_copy_allocation(intent);
+        const auto& intent=request.allocation();
+        require(intent.operation_id().size()==16 && intent.request_digest().size()==32,"Malformed publication identity");
+        {
+            Query old(db,"SELECT intent,state,publication FROM copy_destinations WHERE operation_id=?");old.blob(1,intent.operation_id());
+            if(!old.row())throw Error(pb::StorageOwnerError::UNAVAILABLE,"Publication requires its exact owner allocation");
+            if(old.blob(0)!=intent.SerializeAsString())throw Error(pb::StorageOwnerError::CONFLICT,"Publication allocation bytes changed");
+            if(old.number(1)==pb::StorageCopyDestinationReceipt::PUBLISHED) {
+                if(old.blob(2)!=request.SerializeAsString())throw Error(pb::StorageOwnerError::CONFLICT,"Publication retry changed its exact final validation bytes");
+                return destination_receipt(intent,pb::StorageCopyDestinationReceipt::PUBLISHED);
+            }
+            if(old.number(1)!=pb::StorageCopyDestinationReceipt::ALLOCATED)
+                throw Error(pb::StorageOwnerError::UNCERTAIN,"Publication outcome requires inspection");
+        }
+        validate_copy_allocation(intent);
         require(request.has_validation() && request.validation().domains_size()==intent.domains_size(),"Publication requires exact post-rewrite destination validation");
         std::set<int> expected,validated;std::uint64_t bytes=0;std::uint32_t entries=0;
         for(const auto& domain:intent.domains())expected.insert(domain.data_class());
@@ -917,15 +1390,34 @@ struct StorageOwner::Impl {
                     domain.actual_entries()<=copy_profile(intent).maximum_entries()-entries,"Final validation exceeds destination ceilings");
             bytes+=domain.actual_bytes();entries+=domain.actual_entries();
         }
-        require(expected==validated && !request.validation().head().empty() && !request.validation().branch().empty(),"Publication final validation classes differ");
-        Query old(db,"SELECT intent,state,publication FROM copy_destinations WHERE operation_id=?");old.blob(1,intent.operation_id());
-        require(old.row() && old.blob(0)==intent.SerializeAsString(),"Publication requires its exact owner allocation");
-        if(old.number(1)==pb::StorageCopyDestinationReceipt::PUBLISHED) {
-            require(old.blob(2)==request.SerializeAsString(),"Publication retry changed its final validation receipt");
-            return destination_receipt(intent,pb::StorageCopyDestinationReceipt::PUBLISHED);
+        require(expected==validated && !request.validation().head().empty() &&
+                ((request.validation().head_kind()==workspace::copyworker::v1::SYMBOLIC_BRANCH && !request.validation().branch().empty()) ||
+                 (request.validation().head_kind()==workspace::copyworker::v1::DETACHED_COMMIT && request.validation().branch().empty())),
+                "Publication final validation classes or HEAD kind differ");
+        require(request.validation().state_companions_size()==intent.state_companions_size(),"Publication companion count differs");
+        std::set<std::string> state_keys;
+        for(int index=0;index<intent.state_companions_size();++index) {
+            const auto& plan=intent.state_companions(index);const auto& validation=request.validation().state_companions(index);
+            require(state_keys.insert(validation.key()).second && validation.key()==plan.source().key() &&
+                    validation.contract_digest()==sha256(plan.source().contract().SerializeAsString()) &&
+                    validation.source_storage_object()==plan.source().state_object().SerializeAsString() &&
+                    validation.snapshot_storage_object()==plan.snapshot().SerializeAsString() &&
+                    validation.destination_storage_object()==plan.destination().SerializeAsString() &&
+                    validation.content_digest().size()==32 && validation.actual_bytes()<=copy_state_maximum(intent) &&
+                    validation.actual_bytes()<=copy_profile(intent).maximum_total_bytes()-bytes &&
+                    validation.actual_entries()<=copy_profile(intent).maximum_entries()-entries,
+                    "Publication companion source/contract/snapshot/destination evidence differs");
+            bytes+=validation.actual_bytes();entries+=validation.actual_entries();
+            Query sealed(db,"SELECT snapshot_id,actual_bytes,actual_entries,content_digest,source_subvolume,destination_subvolume FROM copy_stages WHERE destination_kind=? AND destination_id=? AND state=3");
+            sealed.number(1,pb::StorageObject::COPY_STAGING);sealed.text(2,plan.staging().id());
+            require(sealed.row() && sealed.text(0)==plan.snapshot().id() && sealed.number(1)==validation.actual_bytes() &&
+                    sealed.number(2)==validation.actual_entries() && sealed.blob(3)==validation.content_digest(),
+                    "Publication companion does not match its exact sealed export receipt");
+            const auto source=snapshot_inspect(plan.snapshot()),destination=inspect(plan.staging());
+            require(source.subvolume_id()==sealed.number(4) && destination.subvolume_id()==sealed.number(5) &&
+                    destination.maximum_bytes()<=copy_state_maximum(intent),"Publication companion physical roots or independent quota changed");
+            require(!sealed.row(),"Companion staging has multiple sealed receipts");
         }
-        if(old.number(1)!=pb::StorageCopyDestinationReceipt::ALLOCATED)
-            throw Error(pb::StorageOwnerError::UNCERTAIN,"Publication outcome requires inspection");
         // Require every source stage's exact sealed receipt before any publication rename.
         for(const auto& domain:intent.domains()) {
             Query sealed(db,"SELECT count(*) FROM copy_stages WHERE destination_id=? AND destination_kind=? AND state=3");
@@ -934,25 +1426,40 @@ struct StorageOwner::Impl {
         }
         {Query mark(db,"UPDATE copy_destinations SET state=4,publication=? WHERE operation_id=? AND state=1");mark.blob(1,request.SerializeAsString());mark.blob(2,intent.operation_id());mark.row();}
         try {
-            for(const auto& domain:intent.domains()) {
-                const auto registered=object(domain.staging());
+            const auto publish_object=[&](const pb::StorageObject& staging,const pb::StorageObject& destination) {
+                const auto registered=object(staging);
                 Fd from(openat(root.value,"staging",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
-                Fd to(openat(root.value,collection(domain.destination().kind()).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+                Fd to(openat(root.value,collection(destination.kind()).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
                 check(from.value>=0 && to.value>=0,"Cannot pin copy publication collections");
                 // RENAME_NOREPLACE prevents an unregistered path from being overwritten.
-                check(renameat2(from.value,name(domain.staging()).c_str(),to.value,name(domain.destination()).c_str(),RENAME_NOREPLACE)==0,
+                check(renameat2(from.value,name(staging).c_str(),to.value,name(destination).c_str(),RENAME_NOREPLACE)==0,
                       "Copy destination publication rename failed");
                 sync(root.value);
                 Transaction tx(db);
                 Query add(db,"INSERT INTO objects VALUES(?,?,?,?,?,?,'ready')");
-                add.number(1,domain.destination().kind());add.text(2,domain.destination().id());add.number(3,registered.group);
+                add.number(1,destination.kind());add.text(2,destination.id());add.number(3,registered.group);
                 add.number(4,registered.subvolume);add.number(5,registered.maximum);add.blob(6,intent.SerializeAsString());add.row();
                 Query retire(db,"UPDATE objects SET state='published' WHERE kind=? AND id=?");
-                retire.number(1,pb::StorageObject::COPY_STAGING);retire.text(2,domain.staging().id());retire.row();tx.commit();
+                retire.number(1,pb::StorageObject::COPY_STAGING);retire.text(2,staging.id());retire.row();tx.commit();
+            };
+            for(const auto& domain:intent.domains())publish_object(domain.staging(),domain.destination());
+            for(const auto& companion:intent.state_companions())publish_object(companion.staging(),companion.destination());
+            Transaction publication(db);
+            if(intent.state_companions_size()>0) {
+                require(state_mapping_revision(intent.workspace_id())==0,"Destination already has configured state authority");
+                const auto revision=next_state_mapping_revision(intent.workspace_id());
+                for(const auto& companion:intent.state_companions()) {
+                    Query state(db,"INSERT INTO configured_states VALUES(?,?,?,?,?,?,'ready')");
+                    state.text(1,intent.workspace_id());state.text(2,companion.source().key());state.text(3,companion.destination().id());
+                    state.blob(4,companion.source().contract().SerializeAsString());state.number(5,revision);
+                    state.blob(6,request.SerializeAsString());state.row();
+                }
             }
             const auto receipt=destination_receipt(intent,pb::StorageCopyDestinationReceipt::PUBLISHED);
             Query done(db,"UPDATE copy_destinations SET state=2,receipt=? WHERE operation_id=? AND state=4");
-            done.blob(1,receipt.SerializeAsString());done.blob(2,intent.operation_id());done.row();return receipt;
+            done.blob(1,receipt.SerializeAsString());done.blob(2,intent.operation_id());done.row();
+            require(sqlite3_changes(db)==1,"Publication final receipt lost its durable intent");
+            publication.commit();return receipt;
         } catch(...) {Query uncertain(db,"UPDATE copy_destinations SET state=3 WHERE operation_id=?");uncertain.blob(1,intent.operation_id());uncertain.row();throw;}
     }
     pb::StorageCopyCatalogReply copy_catalog(const pb::StorageCopyCatalogQuery& request) {
@@ -982,15 +1489,19 @@ struct StorageOwner::Impl {
             bool allowed=false;
             for (const auto value : profile->allowed_classes()) if (value==selected) allowed=true;
             if (!allowed) throw Error(pb::StorageOwnerError::UNAUTHORIZED,"Destination profile denies a selected copy class");
-            const pb::WorkspaceCopyCatalogEntry* match=nullptr;
-            for (const auto& entry : config.copy_catalog().entries())
-                if (entry.workspace_id()==request.workspace_id() && entry.data_class()==selected) match=&entry;
-            if (!match) throw Error(pb::StorageOwnerError::UNAVAILABLE,"Selected workspace copy class is not registered");
+            const auto resolved=resolved_copy_entry(request.workspace_id(),selected);const auto* match=&resolved;
             const auto registered=object(match->source_object());
             if (registered_workspace(registered.group)!=request.workspace_id())
                 throw Error(pb::StorageOwnerError::UNAVAILABLE,"Copy object is not registered to the requested workspace");
             *reply.add_entries()=*match;
+            if(selected==workspace::copy::v1::APPLICATION_STATE && match->schema_version()==2) {
+                pb::CopyApplicationStateCollection descriptor;require(descriptor.ParseFromString(match->typed_export()),"Malformed registered state descriptor");
+                *reply.mutable_state_mapping()=configured_state_mapping(request.workspace_id(),descriptor);
+                if(request.expected_state_mapping_revision()!=0 && request.expected_state_mapping_revision()!=reply.state_mapping().revision())
+                    throw Error(pb::StorageOwnerError::CONFLICT,"Configured application state mapping revision changed");
+            }
         }
+        require(reply.has_state_mapping() || request.expected_state_mapping_revision()==0,"Unexpected state mapping revision without selected collection");
         bool project=false,git=false;
         for (const auto item : request.data_classes()) {
             if (item==workspace::copy::v1::PROJECT_TREE) project=true;
@@ -1001,8 +1512,8 @@ struct StorageOwner::Impl {
     }
 
 };
-StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io, bool migrate_copy_catalog)
-    : impl_(std::make_unique<Impl>(std::move(configuration), require_kernel_io, migrate_copy_catalog)) {}
+StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io, bool migrate_copy_catalog, unsigned migrate_schema_from)
+    : impl_(std::make_unique<Impl>(std::move(configuration), require_kernel_io, migrate_copy_catalog, migrate_schema_from)) {}
 StorageOwner::~StorageOwner() = default;
 const workspace::v1::StorageOwnerConfig& StorageOwner::configuration() const { return impl_->config; }
 workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::StorageOwnerRequest& request) {
@@ -1038,6 +1549,8 @@ workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::Stora
         else if(request.has_copy_destination_publish()) *reply.mutable_copy_destination()=impl_->copy_destination_publish(request.copy_destination_publish());
         else if(request.has_copy_destination_inspect()) *reply.mutable_copy_destination()=impl_->copy_destination_inspect(request.copy_destination_inspect());
         else if (request.has_copy_catalog_query()) *reply.mutable_copy_catalog() = impl_->copy_catalog(request.copy_catalog_query());
+        else if(request.has_configured_application_query()) *reply.mutable_configured_application()=impl_->configured_application(request.configured_application_query());
+        else if(request.has_configured_application_prepare()) *reply.mutable_configured_allocation()=impl_->configured_application_prepare(request.configured_application_prepare());
         else if (request.has_inspect()) *reply.mutable_state() = impl_->inspect(request.inspect().object());
         else if (request.has_hello()) {
             auto* identity = reply.mutable_identity(); identity->set_filesystem_id(impl_->config.filesystem_id()); identity->set_process_id(getpid()); identity->set_volume_bytes(impl_->config.volume_bytes()); identity->set_accounting_consistent(true);
