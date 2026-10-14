@@ -1,6 +1,7 @@
 syntax = "proto3";
 package spatial.core.v1;
 import "security.proto";
+import "copy.proto";
 
 // Units: meters, seconds, radians. Right-handed; forward is -Z.
 // Unspecified vector components are zero. Message presence is checked separately.
@@ -200,6 +201,31 @@ message FaultArmRequest {
   optional StorageFault storage_error = 3;
 }
 message FaultArmReply { optional bool armed = 1; }
+// Presentation request types live here because the authenticated actor envelope
+// also lives here and their transforms use the canonical core Pose type. This
+// keeps imports one-way while preserving the planned request fields and tags.
+message PresentationCreateRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  string workspace_id = 3;
+  optional string room_id = 4;
+  Pose transform = 5;
+  uint64 expected_world_revision = 6;
+}
+message PresentationMoveRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  bytes representation_id = 3;
+  string room_id = 4;
+  Pose transform = 5;
+  uint64 expected_representation_generation = 6;
+}
+message PresentationRemoveRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  bytes representation_id = 3;
+  uint64 expected_representation_generation = 4;
+}
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
@@ -214,6 +240,11 @@ message ActorActionRequest {
     WorkspaceIdRequest workspace_select = 22;
     ActorStopRequest workspace_clear = 23;
     ProcessLaunchRequest process_launch = 24;
+    PresentationCreateRequest presentation_create = 25;
+    PresentationMoveRequest presentation_move = 26;
+    PresentationRemoveRequest presentation_remove = 27;
+    spatial.workspace.copy.v1.WorkspaceCopyRequest workspace_copy = 28;
+    spatial.workspace.copy.v1.WorkspaceCopyStatusRequest workspace_copy_status = 29;
   }
 }
 message WorldCheckpointRequest {}

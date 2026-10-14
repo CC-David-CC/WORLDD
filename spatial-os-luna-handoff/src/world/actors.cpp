@@ -269,6 +269,12 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         wire::ActorActionReply result; result.set_accepted(true); *result.mutable_aim() = actor.aim;
         return result;
     }
+    case wire::ActorActionRequest::kPresentationCreate:
+    case wire::ActorActionRequest::kPresentationMove:
+    case wire::ActorActionRequest::kPresentationRemove:
+    case wire::ActorActionRequest::kWorkspaceCopy:
+    case wire::ActorActionRequest::kWorkspaceCopyStatus:
+        throw WorldError(wire::UNIMPLEMENTED, "M07 workspace actions are not implemented");
     case wire::ActorActionRequest::ACTION_NOT_SET:
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }

@@ -1,0 +1,20 @@
+# M07 shared schema foundation
+
+Status: additive interface scaffold; UNQUALIFIED. No presentation or copy operation is implemented.
+Base: M06 qualified integration commit 53afb1d28177aca05bab6fce238982dad63e7531.
+
+## Schema location decision
+
+The authenticated ActorActionRequest and canonical Pose live in core.proto. Therefore typed PresentationCreateRequest, PresentationMoveRequest, and PresentationRemoveRequest live in core.proto. Their proposed field tags and semantics remain unchanged. This avoids an import cycle and avoids duplicating spatial geometry types. presentation.proto owns PresentationView and the private resolve request/reply. It imports core.proto in one direction. Copy request/status types live in copy.proto, which has no core import. core.proto imports copy.proto so copy messages enter only through the existing authenticated actor envelope.
+
+Fields 25 through 29 are reserved for the five actor operations. Dispatch for those operations remains unimplemented and must return a controlled error until their implementation lands. These schema additions grant no authority and create no state.
+
+## Authority contract
+
+World rights 5 through 9 and workspace rights 24 through 29 use the planned values. POLICY_ADMINISTER remains 30. WORKSPACE_CREATE is 31 and is valid only in the reserved workspace authority domain whose ID is `workspace-registry`. The reserved domain accepts only WORKSPACE_CREATE, apart from the pre-existing POLICY_ADMINISTER behavior. Later workspace-registry implementation must reject `workspace-registry` as an ordinary workspace identity. No automatic bootstrap grant changes in this increment.
+
+The private SnapshotReceipt is journal data. Public WorkspaceCopyStatus reserves field 5. After current authorization is revoked, public status exposes only the operation ID and non-sensitive phase. Destination identity, manifest digest, source entries, storage identities, and snapshot receipts remain private.
+
+## Runtime boundary
+
+Presentation handlers, copy execution, snapshot operations, persistence, publication, and CTest registrations remain unimplemented. Reserved actor actions must fail closed under the existing authenticated actor session and dispatch path. No direct actor-facing broker bypass exists. Workspace availability, selection, membership, credentials, grants, processes, and leases remain untouched.

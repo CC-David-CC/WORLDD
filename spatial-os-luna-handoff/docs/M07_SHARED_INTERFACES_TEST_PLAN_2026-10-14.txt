@@ -1,0 +1,21 @@
+# M07 shared-interface focused checks
+
+Status: selected before execution. This a5500 checkout is compile-only; runtime checks remain UNRUN here.
+
+## Implemented regressions for designated runtime hosts
+
+- `authority-store`: `test_m07_right_values_are_domain_scoped_and_not_implicit` checks all new world and workspace rights are denied without an explicit grant, then accepted under matching domains after explicit root installation. It also covers existing workspace rights in their original numeric range.
+- `authority-store`: `test_workspace_create_is_reserved_to_registry_and_unknown_rights_fail` rejects WORKSPACE_CREATE on ordinary workspace ID `workspace-one`, rejects unknown right 99, accepts it only on the exact registry domain, rejects it with a scoped component, and rejects ordinary workspace rights on the registry domain.
+- Existing authority bootstrap regressions remain selected to confirm no bootstrap profile or automatic grant gained new rights. No bootstrap implementation or profile files change.
+
+- `workspace-authority`: `test_m07_actor_schema_tags_and_copy_status_privacy` checks actor tags 25 through 29, canonical Pose and optional room presence, reserved copy-status field 5, and private receipt exclusion from public status/actions. `test_reserved_m07_actor_actions_fail_closed` sends all five reserved actor actions through an authenticated session. Each must return UNIMPLEMENTED and leave workspace selection absent.
+
+Run `authority-store`, `authority-bootstrap`, and `workspace-authority` on sb16 and sb16-2 after primary review. These prove production store validation, unchanged bootstrap behavior, and fail-closed actor dispatch. Do not execute them on a5500.
+
+## Compile checks on a5500
+
+- Debug, `BUILD_TESTING=ON`: configure, then build `spatial-protobuf` and `spatial-authority-probe`. This checks both new C++ schema bindings, `core.proto` actor-envelope references, and authority C++ compilation.
+- ASan/UBSan, `BUILD_TESTING=ON`: configure and build the same targets. This checks changed C++ sources and generated interfaces under the sanitizer profile. No runtime test is run on a5500.
+- Debug, `BUILD_TESTING=OFF`: configure and build `spatial-protobuf`. This verifies production generated bindings do not depend on test-only registration.
+
+Schema generation checks also compile the Python bindings during normal `ALL` builds. Inspect generated import paths and verify reserved WorkspaceCopyStatus field 5 through descriptor inspection only if a safe non-runtime generation inspection is needed. Full actor behavior and all runtime authority assertions remain UNRUN until deployment to qualification hosts.

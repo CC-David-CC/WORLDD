@@ -72,10 +72,16 @@ bool contains(const pb::Scope& parent, const pb::Scope& child) {
     return same(parent.domain(), child.domain()) && parent.components_size() <= child.components_size() &&
         std::equal(parent.components().begin(), parent.components().end(), child.components().begin());
 }
-bool valid_right(pb::DomainKind kind, int right) {
+bool valid_right(const pb::Domain& domain, int right) {
+    // POLICY_ADMINISTER keeps its existing domain behavior and remains value 30.
     if (right == pb::POLICY_ADMINISTER) return true;
-    return kind == pb::WORLD ? right >= pb::WORLD_ENTER && right <= pb::WORLD_MANIPULATE :
-        right >= pb::WORKSPACE_ACCESS && right <= pb::PROCESS_EXECUTE;
+    if (domain.kind() == pb::WORLD)
+        return right >= pb::WORLD_ENTER && right <= pb::REPRESENTATION_USE;
+    if (domain.kind() != pb::WORKSPACE) return false;
+    constexpr const char* registry = "workspace-registry";
+    if (right == pb::WORKSPACE_CREATE) return domain.id() == registry;
+    if (domain.id() == registry) return false;
+    return right >= pb::WORKSPACE_ACCESS && right <= pb::WORKSPACE_COPY_ENVIRONMENT;
 }
 bool includes(const google::protobuf::RepeatedField<int>& rights, int right) {
     return std::find(rights.begin(), rights.end(), right) != rights.end();
@@ -96,7 +102,9 @@ void validate_permissions(const v1::GrantTerms& value) {
     for (const auto* rights : {&value.rights(), &value.delegable_rights()}) {
         std::set<int> seen;
         for (const int right : *rights)
-            require(valid_right(value.scope().domain().kind(), right) && seen.insert(right).second, "Invalid or duplicate grant right");
+            require(valid_right(value.scope().domain(), right) &&
+                    (right != pb::WORKSPACE_CREATE || value.scope().components_size() == 0) &&
+                    seen.insert(right).second, "Invalid or duplicate grant right");
     }
     require(subset(value.delegable_rights(), value.rights()), "Delegable rights must be held rights");
     require(value.delegation_depth() || value.delegable_rights().empty(), "Zero depth cannot delegate rights");
@@ -255,7 +263,8 @@ struct Store::Impl {
         }
     }
     pb::Decision check(const pb::ActorRef& caller, const pb::Scope& target, pb::Right right, const IdentityCheck& identity) {
-        actor(caller); scope(target); require(valid_right(target.domain().kind(), right), "Invalid requested right");
+        actor(caller); scope(target); require(valid_right(target.domain(), right) &&
+                (right != pb::WORKSPACE_CREATE || target.components_size() == 0), "Invalid requested right");
         require(static_cast<bool>(identity), "Current identity checker is required");
         pb::Decision result; result.set_revision(revision());
         if (!same(target.domain(), owner) || !identity(caller)) return result;

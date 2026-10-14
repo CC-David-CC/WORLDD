@@ -7,8 +7,10 @@ import subprocess
 import time
 import unittest
 from google.protobuf import text_format
+from google.protobuf import descriptor_pb2
 import broker_pb2 as broker
 import core_pb2 as core
+import copy_pb2 as workspace_copy
 import grants_pb2 as grant
 import issuer_pb2 as issuer
 import world_session_pb2 as session
@@ -173,6 +175,43 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         process = self.launch_process(peer, "from pathlib import Path\nimport time\nPath('ready').touch()\nwhile not Path('release').exists():time.sleep(.01)\nPath('done').touch()")
         self.until(lambda:(self.project/'ready').exists(), bool)
         return process
+
+    def test_m07_actor_schema_tags_and_copy_status_privacy(self):
+        action_fields = core.ActorActionRequest.DESCRIPTOR.oneofs_by_name['action'].fields
+        self.assertEqual({field.name: field.number for field in action_fields if 25 <= field.number <= 29}, {
+            'presentation_create': 25, 'presentation_move': 26, 'presentation_remove': 27,
+            'workspace_copy': 28, 'workspace_copy_status': 29,
+        })
+        create = core.PresentationCreateRequest.DESCRIPTOR
+        self.assertEqual(create.fields_by_name['transform'].message_type.full_name, 'spatial.core.v1.Pose')
+        self.assertTrue(create.fields_by_name['room_id'].has_presence)
+
+        file_descriptor = descriptor_pb2.FileDescriptorProto()
+        file_descriptor.ParseFromString(workspace_copy.DESCRIPTOR.serialized_pb)
+        status = next(message for message in file_descriptor.message_type if message.name == 'WorkspaceCopyStatus')
+        self.assertEqual([(entry.start, entry.end) for entry in status.reserved_range], [(5, 6)])
+        self.assertEqual({field.number for field in status.field}, {1, 2, 3, 4, 6})
+        self.assertFalse(any(any(term in field.name for term in ('snapshot', 'storage', 'path', 'receipt'))
+                             for field in status.field))
+        public_actor_fields = {field.message_type.full_name for field in action_fields if field.message_type}
+        self.assertNotIn('spatial.workspace.copy.v1.SnapshotReceipt', public_actor_fields)
+
+    def test_reserved_m07_actor_actions_fail_closed(self):
+        world = self.workspace(); peer = world.peers[0]
+        actions = (
+            {'presentation_create': core.PresentationCreateRequest(protocol_version=1, operation_id=b'a' * 16)},
+            {'presentation_move': core.PresentationMoveRequest(protocol_version=1, operation_id=b'b' * 16)},
+            {'presentation_remove': core.PresentationRemoveRequest(protocol_version=1, operation_id=b'c' * 16)},
+            {'workspace_copy': workspace_copy.WorkspaceCopyRequest(protocol_version=1, operation_id=b'd' * 16)},
+            {'workspace_copy_status': workspace_copy.WorkspaceCopyStatusRequest(protocol_version=1, operation_id=b'd' * 16)},
+        )
+        for action in actions:
+            with self.subTest(action=next(iter(action))):
+                reply = peer.act(**action)
+                self.assertEqual(reply.WhichOneof('outcome'), 'error', reply)
+                self.assertEqual(reply.error.code, core.UNIMPLEMENTED, reply)
+        state = peer.call(inspect=session.WorldSessionInspect()).state
+        self.assertFalse(state.HasField('workspace'))
 
     def test_authenticated_workspace_selection_and_confined_process(self):
         world = self.workspace(); peer = world.peers[0]; self.select(peer)
