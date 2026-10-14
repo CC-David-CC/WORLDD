@@ -179,12 +179,15 @@ class BrokerTransportCompatibilityTests(unittest.TestCase):
         self.assertFalse(stream._closed)
         self.assertEqual(custom.request(control_acquire='fixture-event'), 'custom-response')
         self.assertEqual(custom.events, [{'control_acquire': 'fixture-event'}])
+        self.assertEqual(custom.sequence, 1)
         self.assertEqual(BrokerProcess.call(custom, 'system.hello'),
             {'protocol': 'fixture', 'implementation': 'test', 'build_id': '', 'capabilities': []})
         self.assertEqual(len(custom.exchanges), 1)
         sent = custom.exchanges[0]
         self.assertTrue(sent.management.HasField('hello'), sent)
-        self.assertEqual(sent.request_id, 1)
+        self.assertEqual(sent.request_id, 2)
+        self.assertEqual(sent.management.request_id, sent.request_id)
+        self.assertEqual(sent.protocol_version, 1)
         self.assertEqual(custom.sequence, sent.request_id)
         self.assertGreater(custom.sequence, 0)
         self.assertFalse(stream._closed)
