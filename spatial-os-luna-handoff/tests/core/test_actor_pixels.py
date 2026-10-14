@@ -298,7 +298,7 @@ class PresentationPixelFenceTests(ActorPixelTests):
         self.assertTrue(raced.HasField('error'), raced)
         self.assertEqual(raced.error.code, core.UNAUTHORIZED, raced)
         self.assertEqual(raced.error.message,
-            'Issuer revocation invalidated the in-flight broker result', raced)
+            'World session changed during operation', raced)
         self.assertFalse(raced.HasField('action'), 'revoked observation must return no pixel payload')
         self.assertTrue(self.presentation_relay.delivered.is_set())
         self.assertFalse(self.presentation_relay.errors)
