@@ -7,7 +7,6 @@ import subprocess
 import time
 import threading
 import unittest
-from unittest.mock import patch
 from google.protobuf import text_format
 from google.protobuf import descriptor_pb2
 import broker_pb2 as broker
@@ -155,7 +154,7 @@ class BrokerTransportCompatibilityTests(unittest.TestCase):
             def exchange(self, request):
                 self.exchanges.append(request)
                 return broker.Reply(protocol_version=1, request_id=request.request_id,
-                    management=core.Reply())
+                    management=core.Reply(hello=core.HelloReply(protocol='fixture', implementation='test')))
 
             def request(self, **operation):
                 self.sequence += 1
@@ -180,8 +179,8 @@ class BrokerTransportCompatibilityTests(unittest.TestCase):
         self.assertFalse(stream._closed)
         self.assertEqual(custom.request(control_acquire='fixture-event'), 'custom-response')
         self.assertEqual(custom.events, [{'control_acquire': 'fixture-event'}])
-        with patch('test_workspace_authority.result_value', return_value='system.hello'):
-            self.assertEqual(BrokerProcess.call(custom, 'system.hello'), 'system.hello')
+        self.assertEqual(BrokerProcess.call(custom, 'system.hello'),
+            {'protocol': 'fixture', 'implementation': 'test', 'build_id': '', 'capabilities': []})
         self.assertEqual(len(custom.exchanges), 1)
         sent = custom.exchanges[0]
         self.assertTrue(sent.management.HasField('hello'), sent)
