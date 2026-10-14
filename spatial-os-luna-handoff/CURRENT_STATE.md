@@ -1,3 +1,29 @@
+## 2026-10-14: Combined component builds passed; native witness correction pending runtime
+
+The reviewed component branch is m07/component-integration-20261014 at c21adfb3ae8e19a32ef479dc21b343d2a2f4625c.
+It combines presentation repairs, narrow copy repairs, and retained journal and fence changes.
+The branch is on box-git. It is not integrated into main.
+Both Debug and ASan/UBSan builds completed 188 Ninja actions for the selected 12-target closure on a5500.
+The primary inspected both terminal build logs and both command and wrapper exit receipts. All four exits were zero.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-component-integration-20261014/REPORT.md.
+Configured CTest inventories list 180 registrations. No combined-source runtime test has run.
+These compile results do not qualify the combined branch or M07.
+
+The new local shared-representation witness failed its first Debug runtime on sb16-2.
+Two fixture compositors tried to own the same display. The second reported X request failure 10.
+Failure evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-native-shared-witness-20261014/debug-native-local-case-retry1.
+Cleanup reported exit 5 for an unloaded unit, while confirming the unit and delegated scope were absent.
+The reviewed fixture correction keeps one native world and a separate headless world.
+It preserves independent world authority, geometry, workspace identity, privacy, and persistence checks.
+The source-only correction is checkpointed at 22caecc742355a7b9d8b3e3820147711b8c3f877 on box-git.
+Its runtime retry and sanitizer check remain pending. Dual-native cross-host coverage remains separately pending.
+
+The complete copy engine is still under source review and implementation.
+Review found ambiguous finalizer requests could include both finalization and state-export fields.
+The worker is adding exclusive-mode validation and a negative regression.
+The new durable publication recipe still needs primary review, compilation, and runtime checks.
+M07 remains in implementation and focused integration. Candidate freeze and full both-host qualification remain pending.
+
 ## 2026-10-14: Focused presentation selection passed both profiles on both hosts
 
 All 89 selected Python methods and the C++ presentation-store check passed in Debug and ASan/UBSan on both hosts.
