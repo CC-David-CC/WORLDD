@@ -66,7 +66,7 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
             'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
             sys.executable,'-B','-c',code,*owner_command],
             stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
-        owner_end.close();fixture.brokers.append(self)
+        owner_end.close();self.initialize_transport(world_channel_opt_in=False);fixture.brokers.append(self)
     def close(self):
         if self.stream.fileno()<0:return
         try:super().close()
