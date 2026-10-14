@@ -1,0 +1,6 @@
+test_geometry_count_limit_is_controlled_and_other_actor_survives (_geometry_count_limit_diagnostic.GeometryViewTests.test_geometry_count_limit_is_controlled_and_other_actor_survives) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 89.822s
+
+OK

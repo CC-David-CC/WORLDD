@@ -1,0 +1,26 @@
+{
+  "status": "focused_increment_reviewed",
+  "milestone": "M06",
+  "new_test_executions": 20,
+  "failures": 0,
+  "skips": 0,
+  "source_sha256": {
+    "CMakeLists.txt": "628d6758d6282418ff3562c32bd4825c548831eaa46ea0341b7614cdc0fb4733",
+    "proto/spatial/render/v1/presentation.proto": "f3fcb8c74f514bd78beffa1434ce48dc1b05191ec9b925534eb9f396a8474bb3",
+    "src/render/presentation_server.cpp": "5faff6cae224ac07009bc07e1bb08a4e8e9108b446d282e4a9b96503a15394c2",
+    "src/render/presentation_server.hpp": "d8ae4fc923d4fe728dc79e05dc353872f58b2c7ccccc9fdc303c5482f1d38abe",
+    "src/render/main.cpp": "f58026b1d39db87ece9cc9b6a8dba5d5b31638152a01ba8a66bf8b245d74b68e",
+    "src/render/presentation_inputs.cpp": "a377bb49d5ab1a9d09301a63f3bd84de45f6da04b1523a41f5986f7aa14a0b50",
+    "src/render/presentation_inputs.hpp": "81017645851c5d9cf01cf1a23ba6db711367f445cf59dcd4196fcffc37caf2ef",
+    "src/render/renderer.cpp": "4ed8557638e157c8bc373938475a188d82207a974a7b1f03b3957ca676d6a90f",
+    "src/render/renderer.hpp": "d56c49fa4074090540a2b796456fb28cf0edbfd5970941b62dcb579df5f97564",
+    "tests/native/test_presentation_server.py": "3dd5821161a694bf2963f0b3c384e0454654703f9ff072e0e3ffe5fe8bcdaeec"
+  },
+  "limits": [
+    "M06 gate pending.",
+    "Host-session ownership and worldd integration pending.",
+    "Supervisor cleanup receipts pending."
+  ],
+  "final_coverage_checks_per_host_profile": 44,
+  "final_coverage_check_executions": 176
+}

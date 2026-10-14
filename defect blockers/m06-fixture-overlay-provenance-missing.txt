@@ -1,0 +1,48 @@
+M06 fixture overlay lacks derived provenance
+
+Status: corrected in verified v2 overlays; full gate retry is running.
+
+All 13 static regressions passed on the controller.
+Preparation returned command and wrapper exits zero on both test hosts.
+Both v2 overlays have the same manifest and derived provenance hashes.
+Wrapper SHA256:
+5a7dff392bbdbacaebbb90ff12d1949a7bfd522ea1b92460c56ab12751e55fc7
+Overlay manifest SHA256:
+c4735a171a24421e35b09ffe9465ec3969f9ca6de254602ad45e07f7c611e890
+Derived provenance SHA256:
+75c19e09aadd5ed8bca3f629e14c08dd2a0d95c0e193052ccb191212cc8c74f6
+The fresh crosshost03 gate remains unqualified. Preserve earlier failures.
+
+Cross-host attempt crosshost02 returned command and wrapper exit codes 1.
+The Debug semantic fixture failed in preflight command 0003.
+The overlay bundle lacked provenance.json.
+The fixture then selected its SHA256SUMS fallback.
+The overlay source directory had no SHA256SUMS file.
+Actual stderr: sha256sum: SHA256SUMS: No such file or directory.
+
+Cleanup completed without errors. No semantic or native cases ran.
+All 12 semantic and 36 native checks remain unrun for this attempt.
+Preserve crosshost02 and the original overlay bundle unchanged.
+
+Create a fresh overlay bundle with derived test-only provenance.
+Its source_sha256 map must describe all 914 effective source files.
+Only the reviewed owner guard differs from the production source map.
+Record the original production provenance hash and the helper-fix commit.
+Declare the expanded test identity explicitly.
+Seal the derived metadata in the overlay manifest.
+Validate that metadata on both hosts before and after fixture execution.
+Keep the frozen fixture's source verifier and normal gate checks unchanged.
+Add static regressions for missing metadata and altered effective source hashes.
+
+Production candidate: 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Helper-fix commit: 6d62344ed550704c69406643ac03ae9aea52de46.
+Failed wrapper SHA256: 4d45997b2a2383dbd42d9f5cf6a4aa5c2c8566cae32cb9f925b50636e0bf0f71.
+
+Failure evidence:
+/home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost02/semantic/Debug/0003.stderr
+Helper receipts:
+/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff02
+
+Both local gate reports remain accepted.
+The focused owner guard tests passed on both hosts.
+M06 full cross-host qualification remains incomplete.

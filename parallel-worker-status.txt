@@ -1,0 +1,216 @@
+Current checkpoint, combined geometry qualification, 2026-10-13:
+Candidate fc302de passed thirteen selected suites across both hosts and both Debug/ASan profiles.
+All fifty-two suite executions passed with no skips or sanitizer diagnostics.
+All terminal audits passed. No input changed. No attempt processes remained.
+Debug evidence is box-git verified as 3dc35625da0020c1869c274a8b2658e171675012.
+ASan evidence: spatial-os-luna-handoff/evidence/m06-combined-geometry-asan-2026-10-13/REVIEW.txt.
+Both geometry runtime lanes are idle. Do not restart their completed attempts.
+Luna medium prepares combined host-session qualification on middle-child, on a separate branch/worktree.
+Primary must review its launcher before deployment. Those production runtime checks remain unrun.
+Native presentation implementation follows qualification and integration of the combined source.
+M01-M05 qualified. M06 active. Native geometry presentation and the full gate remain pending.
+M07-M16 remain pending.
+
+Earlier combined Debug checkpoint, 2026-10-13:
+Candidate fc302de44670f87737dd7ab46ef83b24c60f1612 passed all thirteen selected Debug suites on both hosts.
+Evidence: spatial-os-luna-handoff/evidence/m06-combined-geometry-debug-2026-10-13/REVIEW.txt.
+Both terminal audits passed. No skips, diagnostics, changed inputs, or remaining attempt processes were found.
+Both ASan runs are active under persistent tmux. No sanitizer result is claimed yet.
+Sessions: spatial-m06-asan-runtime-sb16 and spatial-m06-asan-runtime-sb16-2.
+Run base: /home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01.
+a5500 candidate build task is complete. All four normal Debug/ASan ON/OFF builds passed.
+Gate correction is complete and checkpointed as f9d17c634fe0ae4b44ef43ac4f2ed29119391eba on box-git.
+Its twenty-nine synthetic static checks passed. Real deployed qualification remains unrun.
+Luna medium now prepares combined host-session qualification on middle-child in a separate worktree.
+Task branch: m06/combined-hostsession-launcher-20261013. Base: fc302de44.
+No host-session tests may start while the qualification hosts run geometry suites.
+M01-M05 qualified. M06 active. Native geometry presentation and the full gate remain pending.
+M07-M16 remain pending. Source integration awaits combined qualification.
+
+Earlier snapshot checkpoint, 2026-10-13:
+Snapshot-size task fc302de44670f87737dd7ab46ef83b24c60f1612 is FOCUSED-PASS and BOX-GIT VERIFIED.
+Its branch is m06/linear-snapshot-size-20261013. It is not integrated into the milestone branch.
+Both hosts/profiles passed standalone snapshot checks, eleven lifecycle tests, count-limit, and oversized snapshot.
+Evidence: spatial-os-luna-handoff/evidence/m06-geometry-count-asan-diagnosis-2026-10-13/REVIEW.txt.
+a5500 Luna medium: branch m06/geometry-qualification-candidate-20261013, base fc302de44.
+Worktree: /home/dflanag3/src/spacial-m06-geometry-qualification-candidate-20261013.
+Task: complete fresh Debug/ASan ON/OFF artifact closure and exact focused inventory. Runtime UNRUN there.
+middle-child Luna medium: branch m06/semantic-crosshost-gate, base 992e37d5d48a51081ca26f2d6e3211dcda0fa195.
+Worktree: /home/dflanag3/src/spacial-m06-semantic-gate-20261012.
+Task: reproduce and correct gate path containment and timeout cleanup; preserve the unrelated fixture draft.
+Twenty prior Linux static tests passed. Two new review regressions reproduced defects. Correction is active.
+M01-M05 qualified. M06 active. Native geometry presentation and full M06 gate remain pending.
+M07-M16 remain pending. The entries below describe older checkpoints.
+
+Previous checkpoint, 2026-10-12:
+Combined host-session four-profile build evidence is committed as1ecd27f; build job is terminal.
+Geometry task8bdda76 is box-git verified and UNQUALIFIED. First Debug runs stopped with3 fixture failures each.
+Both runtime slots are clean. Reviewed fixture corrections and a hashed test overlay precede Debug02 retries.
+No geometry sanitizer pass or M06 gate completion is claimed.
+Host-session evidence fe8867d is integrated and box-git verified; both raw archives passed primary hash verification.
+Geometry run04 artifacts are frozen. Input staging and launcher corrections precede runtime qualification.
+Combined host-session Debug ON/OFF and ASan ON builds passed; ASan OFF remains active on a5500.
+The older entries below describe prior states. Geometry runtime and native presentation remain unrun.
+Host-session task ee416fc passed400 focused checks across bothhosts/profiles and is integrated as2954de0.
+a5500 tmux spatial-host-session-integrated-build01 builds combined ON/OFF Debug/ASan source2954de0; no runtime there.
+Geometry runtime waits for corrected fullnative/OFF bundle and selected CTest command verification.
+Older live-job entries below are historical and superseded by these updates.
+Geometry Luna run01 is terminal and unqualified; reviewed defects require a bounded Sol medium correction.
+Host-session Debug24 passed on each host; OFF startup20 passed. Default-GLX sanitizer cleanup failed on both hosts.
+Corrected GLX-enabled sanitizer reruns now use the qualified wrapper and patched Mesa dependency closure.
+Both hosts passed ASan production-native24. Related cleanup regressions remain active.
+Tmux handles: spatial-m06-host-session-r03-sb16-03 and spatial-m06-host-session-r03-sb16-2-03.
+M06 held-input task 9222918 integrated as c8c43ee after 28 related lifecycle checks passed.
+Both hosts/profiles passed application and replacement checks with scope cleanup.
+Evidence: spatial-os-luna-handoff/evidence/m06-held-input-2026-10-12/related-lifecycle.
+Cross-host task c93e02b passed 12 semantic cases plus cleanup regressions; integrated as 23a2554 after primary review.
+Its runtime slots are released. The host-session worker now owns both slots for focused qualification.
+Host-session source and ON/OFF artifacts are frozen at run03-packaging-03 on a5500.
+middle-child: Luna medium, tmux spatial-m06-geometry-view01, branch m06/actor-geometry-view.
+Checkout: /home/dflanag3/src/spacial-m06-geometry-view-20261012, base 5368e7d.
+Task: authenticated geometry-only view export and client validation; coding/builds only.
+The next increment must connect those views to actual local and remote native presentation.
+Gate tooling is integrated as a10744b with 12 static checks passed; complete deployed workflow remains unrun.
+M01-M05 qualified. M06 active. M07-M16 pending. Older entries below are historical.
+
+Queued on a5500: tmux spatial-m06-native-primary waits for host-controller run02 exit0.
+Then it corrects whole-reply identity comparisons and adds/builds workspaced for the native runner.
+Logs: local/m06-host-controller/primary-*. Source changes wait for the worker to stop.
+Queued on middle-child: tmux spatial-m06-world-package waits for real-world run02 exit0.
+It packages both profiles, generated Python modules, fixtures, and a complete SHA256 manifest.
+Logs: local/m06-world-integration/package-*; archive: run02-bundle.tar.gz in that directory.
+middle-child real-world integration run01 was stopped after two builds overlapped in one directory.
+Verified terminal exit1 and no surviving cmake processes before starting correction.
+Sol medium run02 is live in tmux spatial-m06-world-integration02 on the same dedicated worktree/branch.
+The correction addresses actual test setup defects and missing required cases.
+See defect blockers/m06-real-world-integration-draft-review.txt.
+a5500 host-controller run01 was stopped after it ran a runtime test contrary to its compile-only task.
+Its test failed and does not count as qualification. Review also found registration, pointer-lifetime, and fixture-lifetime defects.
+Correction now runs as Sol medium in tmux spatial-m06-host-controller02 after verified run01 exit1.
+See defect blockers/m06-host-controller-draft-review.txt. Source remains unintegrated.
+middle-child real-world integration worker continues on its separate branch/worktree.
+Combined source 9275727 passed 476 focused checks on both test hosts in Debug and ASan/UBSan.
+Evidence: spatial-os-luna-handoff/evidence/m06-actor-combined-2026-10-12.
+middle-child now runs Luna medium in tmux spatial-m06-world-integration01.
+Worktree: /home/dflanag3/src/spacial-m06-world-integration-20261012, branch m06/actor-realworld-integration.
+Task: actual issuer/worldd transition integration, A-B-A context restoration, denial and workspace selection checks.
+Logs: local/m06-world-integration. Owns new driver/tests and focused registration; no production controller edits.
+a5500 continues the separate host-actor-controller task below.
+Earlier combined-build pending entries below are historical and superseded by this result.
+Transition worker source 79c134390 passed 352 focused executions on both hosts/profiles.
+Combined candidate 9275727 includes TLS and sequencing. Its combined checks remain pending.
+middle-child: m06/actor-client-combined, tmux spatial-m06-combined-build02.
+Explicit configure precedes rebuilding added targets; the initial stale-Makefile failure is preserved in local/m06-combined.
+a5500: Luna medium, m06/host-actor-controller, tmux spatial-m06-host-controller01.
+Task: narrow trusted host foreground selection after confirmed actor transitions, with focused regressions.
+Logs: local/m06-host-controller. Runtime qualification remains on sb16 and sb16-2.
+TLS actor client integrated as b80d143; worker source 07a1aa702 on m06/actor-client-tls.
+Final focused coverage: 43 local plus 31 TLS cases on both hosts in Debug and ASan/UBSan, 296 passed.
+Evidence: spatial-os-luna-handoff/evidence/m06-actor-tls-2026-10-12.
+The middle-child TLS worker and primary correction builds finished. TLS runtime checks finished on both hosts.
+The TLS task details below describe its earlier attempts.
+M06 client integrated as e28b20c on m06/world-transitions and pushed to box-git.
+Worker source checkpoint:4f403b7b9 on m06/actor-session-client.
+All43 client cases passed on both test hosts in Debug and ASan/UBSan:172 executions.
+Evidence: spatial-os-luna-handoff/evidence/m06-actor-client-2026-10-12.
+middle-child: branch m06/actor-client-tls. The first Luna worker finished with exit 0.
+Its TLS code builds in Debug and ASan/UBSan, but it omitted required TLS regression fixtures.
+Sol medium correction now runs in tmux spatial-m06-client-tls02 after that incomplete implementation.
+Scope: complete TLS regressions, correct buffered-read polling, and check signal/lifetime safety.
+This draft is unqualified. Logs: local/m06-client-tls/run02-*.
+a5500: Sol medium, branch m06/transition-coordinator, tmux spatial-m06-sequence02.
+Task: correct transition sequencing and complete failure-path tests after the incomplete Luna attempt.
+Logs: local/m06-transition-sequence/run02-*.
+Primary review found incorrect no-effect claims for server error replies in the unintegrated draft.
+The server can emit STORAGE_ERROR after actor departure. The draft incorrectly retains a usable source client.
+See defect blockers/m06-transition-error-does-not-prove-no-effect.txt.
+Queued Sol correction: tmux spatial-m06-sequence03, logs local/m06-transition-sequence/run03-*.
+It waits for sequence02 to finish and requires its terminal exit record before editing.
+Scope: preserve uncertainty, fail closed after mutating errors, and add regressions for partial effects.
+Installed libxcomposite-dev and libxdamage-dev on a5500 for the normal project build.
+Transaction log: local/m06-transition-sequence/dependency-install.log.
+Recovery if required: sudo apt-get remove libxcomposite-dev libxdamage-dev
+Check package consumers before removal.
+Host foreground selection integration, real-world transitions, recovery and full M06 qualification remain pending.
+Both test-host probe jobs finished. No new test jobs remain running.
+The redundant primary-build queue was canceled before it compiled anything; normal worker builds supplied the tested artifacts.
+CallbackList work remains deferred. XACE is the active baseline.
+
+Historical setup and recovery details follow.
+2026-10-12: M06 resumed. Initial main branch checkpoint:96b16e3 on box-git.
+Previous goal turn: progress. Host SSH access and isolated worker tasks established.
+
+middle-child:
+Checkout: /home/dflanag3/src/spacial-m06-transitions-20261012
+Branch: m06/actor-session-client
+Worker: Luna medium, tmux spatial-m06-client-03.
+Scope: authenticated production actor-session client and focused regression drafts.
+The primary controller created the branch after sandbox Git metadata writes failed.
+Logs: spatial-os-luna-handoff/local/m06-client-worker/run03-worker.jsonl
+Completion: run03-exit.txt and run03-message.txt in that directory.
+Primary review found deadline, descriptor ownership, and fail-closed response defects in run02.
+Run03 corrects those defects and adds a production-client probe. Runtime validation remains pending.
+Installed libxcomposite-dev on middle-child. Log: local/m06-client-worker/dependency-install.log.
+Removal command if required: sudo apt-get remove libxcomposite-dev
+Check package consumers before removal.
+
+a5500 reports hostname G164. These names identify the same authorized coding host.
+Checkout: /home/dflanag3/src/xserver-callbacklist-20261012
+Branch: feature/callbacklist-pixel-authorization
+Luna review added a proposed MIT-SHM image authorization hook. Runtime validation remains unrun.
+Luna build02 stopped on missing dependencies. Logs remain in verification/.
+Installed: meson, libpixman-1-dev, libxkbfile-dev, libxfont-dev and package dependencies.
+Package transaction log: verification/dependency-install.log.
+Package removal command if required: sudo apt-get remove meson libpixman-1-dev libxkbfile-dev libxfont-dev
+Check package consumers before removal. No login or SSH configuration changed during package installation.
+Protocol source: https://gitlab.freedesktop.org/xorg/proto/xorgproto.git
+Protocol revision: 6d3907b6d5dc4aa7d7ee6ee5d7d8714e7466630b
+Protocol install prefix: /home/dflanag3/.local/spatial-xorgproto-20261012
+Build03 failed configuration because libxcvt was missing. Its logs remain preserved.
+Installed libxcvt-dev and libsystemd-dev. Transaction log: verification/dependency-install02.log.
+Removal command if required: sudo apt-get remove libxcvt-dev libsystemd-dev
+Check package consumers before removal.
+Build04 failed configuration because epoxy was missing. Its logs remain preserved.
+Installed libepoxy-dev. Transaction log: verification/dependency-install03.log.
+Removal command if required: sudo apt-get remove libepoxy-dev
+Check package consumers before removal.
+Build05 completed successfully. Logs: verification/build05.log and build05-exit.txt.
+Callback unit regression implementation and Debug rebuild completed successfully.
+Full ASan/UBSan build completed successfully.
+Selected callback suite passed on sb16 and sb16-2 in Debug and ASan/UBSan.
+The broad Debug unit run failed signal_logging_test on both hosts despite zero process status.
+Failure logs and the harness defect are recorded in the separate callback integration worktree.
+Native pixel request tests and final SpatialSecurity integration remain pending.
+Protocol headers are private to this build. No system header replacement.
+
+sb16 and sb16-2 remain test/runtime boxes. No Codex installation or new development builds on them.
+Existing source and failure evidence remain preserved.
+Windows integration/callbacklist-pixel-authorization remains separate from M06.
+David deferred further CallbackList migration and integration until after Spatial-M1 on 2026-10-12.
+Keep XACE as the active project baseline. Preserve CallbackList source and evidence for future comparison.
+No CallbackList worker should be restarted without a new request or reaching the deferred stage.
+M06 client hostile-peer regression task escalated to Sol medium after two incomplete Luna attempts.
+Current M06 tmux session: spatial-m06-client-04. Logs use run04 under the same worker directory.
+Primary build queue: spatial-m06-primary-build on middle-child.
+It waits for worker completion, freezes four source hashes, then builds normal CMake Debug and sanitizer probe targets.
+Installed libxdamage-dev on middle-child to resolve missing Xdamage headers and imported target.
+Transaction log: local/m06-client-worker/dependency-install02.log in the middle-child checkout.
+Removal command if required: sudo apt-get remove libxdamage-dev
+Check package consumers before removal.
+Normal project CMake configuration now succeeds without the temporary imported-target prelude.
+a5500 M06 checkout: /home/dflanag3/src/spacial-m06-coordination-20261012
+a5500 branch: m06/transition-coordinator, base4176354.
+Luna coordinator-contract task finished. Its document is proposed and not integrated.
+Primary review must correct its stale renderer-status claim and resolve authority ordering before implementation.
+M06 gate is pending. M07-M16 and full Spatial-M1 qualification remain pending.
+Inspect live tmux/process state and completion files before restarting any job.
+
+Git access verified on all four hosts, 2026-10-12.
+Each host passed git ls-remote and git push --dry-run against the Spatial Desktop repository on box-git.
+Dry-run checks created no remote branches.
+sb16 and sb16-2 use existing repository-restricted keys at ~/.ssh/spacial_desktop_boxgit.
+Added a Host box-git stanza to their ~/.ssh/config to select those keys with strict host verification.
+Recovery: remove only that Host box-git stanza to restore the prior SSH configuration.
+The coding hosts retain their distinct ~/.ssh/id_ed25519_spatial_boxgit keys.
+Configured David <david@code.contractors> locally in the current project checkout on each host.
+Unrelated global Git identities and existing repository remotes remain unchanged.

@@ -1,0 +1,1 @@
+argv: bash /home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/inputs/runtime-sb16.sh

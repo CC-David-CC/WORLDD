@@ -1,0 +1,36 @@
+test_bad_reply_envelopes_poison_client (__main__.ClientTests.test_bad_reply_envelopes_poison_client) ... ok
+test_bootstrap_invalid_local_revision_does_not_send_or_poison (__main__.ClientTests.test_bootstrap_invalid_local_revision_does_not_send_or_poison) ... ok
+test_bootstrap_profile_publication_and_exact_read_reach_real_issuer (__main__.ClientTests.test_bootstrap_profile_publication_and_exact_read_reach_real_issuer) ... ok
+test_bootstrap_substituted_or_malformed_reply_poisons_client (__main__.ClientTests.test_bootstrap_substituted_or_malformed_reply_poisons_client) ... ok
+test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable (__main__.ClientTests.test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable) ... ok
+test_callback_failure_diagnostic_is_bounded_and_fail_closed (__main__.ClientTests.test_callback_failure_diagnostic_is_bounded_and_fail_closed) ... ok
+test_client_certificate_must_be_trusted_by_issuer (__main__.ClientTests.test_client_certificate_must_be_trusted_by_issuer) ... ok
+test_client_reaches_real_issuer_and_preserves_caller_request_ids (__main__.ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_ids) ... ok
+test_client_rejects_expired_server_certificate (__main__.ClientTests.test_client_rejects_expired_server_certificate) ... ok
+test_client_uses_sni_and_unique_internal_request_ids (__main__.ClientTests.test_client_uses_sni_and_unique_internal_request_ids) ... ok
+test_client_verifies_explicit_server_trust (__main__.ClientTests.test_client_verifies_explicit_server_trust) ... ok
+test_client_verifies_server_name (__main__.ClientTests.test_client_verifies_server_name) ... ok
+test_common_name_without_dns_san_is_rejected (__main__.ClientTests.test_common_name_without_dns_san_is_rejected) ... ok
+test_fragmented_reply_is_received_without_losing_frame_identity (__main__.ClientTests.test_fragmented_reply_is_received_without_losing_frame_identity) ... ok
+test_invalid_config_does_not_connect (__main__.ClientTests.test_invalid_config_does_not_connect) ... ok
+test_invalid_local_payload_does_not_poison_connection (__main__.ClientTests.test_invalid_local_payload_does_not_poison_connection) ... ok
+test_issuer_pins_are_checked_before_actor_data (__main__.ClientTests.test_issuer_pins_are_checked_before_actor_data) ... ok
+test_lost_reply_does_not_reconnect_or_replay (__main__.ClientTests.test_lost_reply_does_not_reconnect_or_replay) ... ok
+test_missing_production_capability_rejected_before_actor_data (__main__.ClientTests.test_missing_production_capability_rejected_before_actor_data) ... ok
+test_numeric_ipv6_endpoint_reaches_real_issuer (__main__.ClientTests.test_numeric_ipv6_endpoint_reaches_real_issuer) ... ok
+test_real_enrollment_authentication_and_revocation_use_checked_client (__main__.ClientTests.test_real_enrollment_authentication_and_revocation_use_checked_client) ... ok
+test_reply_deadline_is_not_refreshed_by_partial_progress (__main__.ClientTests.test_reply_deadline_is_not_refreshed_by_partial_progress) ... ok
+test_stalled_reply_header_reports_phase_and_partial_progress (__main__.ClientTests.test_stalled_reply_header_reports_phase_and_partial_progress) ... ok
+test_stalled_reply_payload_reports_phase_and_partial_progress (__main__.ClientTests.test_stalled_reply_payload_reports_phase_and_partial_progress) ... ok
+test_startup_reply_identity_is_checked (__main__.ClientTests.test_startup_reply_identity_is_checked) ... ok
+test_tcp_handshake_timeout_is_bounded (__main__.ClientTests.test_tcp_handshake_timeout_is_bounded) ... ok
+test_tick_callback_cancels_and_poisons_library_connection (__main__.ClientTests.test_tick_callback_cancels_and_poisons_library_connection) ... ok
+test_tls12_has_no_fallback (__main__.ClientTests.test_tls12_has_no_fallback) ... ok
+test_truncated_and_excessive_replies_fail_closed (__main__.ClientTests.test_truncated_and_excessive_replies_fail_closed) ... ok
+test_unsafe_client_key_fails_before_connect (__main__.ClientTests.test_unsafe_client_key_fails_before_connect) ... ok
+test_valid_issuer_error_keeps_connection_usable (__main__.ClientTests.test_valid_issuer_error_keeps_connection_usable) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 10.637s
+
+OK

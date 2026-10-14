@@ -1,0 +1,47 @@
+M06 native packaging and fixture correction. Not a phase gate.
+
+Final attempt06: 60 passed executions, zero failures, zero skips.
+Both sb16 and sb16-2 passed Debug and ASan/UBSan.
+Each profile passed one real native host-controller case and 14 existing session-world regressions.
+The native case checks private-world denial, A-B-A transitions, retained launch owners, and retained PID/start identities.
+Related regressions check existing world registration, presentation, owner matching, and actor transport behavior.
+Both runner.done files exist. All eight test commands exited zero.
+No sanitizer diagnostic appears in final logs. Tests also inspect child diagnostics during cleanup.
+Full M06 qualification remains pending. Native fault-recovery integration remains separate work.
+
+Source checkout: a5500:/home/dflanag3/src/spacial-m06-coordination-20261012
+Branch: m06/host-actor-controller. Primary reviews and checkpoints source separately.
+This repair changed the native target dependency list and two test fixtures.
+Production authorization and controller code were not relaxed or changed by this repair.
+
+CMake now includes compositor-python-protobuf as a native-runner dependency.
+Normal configure and native target builds passed in Debug and ASan/UBSan.
+Packaging recursively preserves generated Python bindings and checks required modules and runtime.textproto.
+The final run uses the verified archive plus hashed runtime and Python fixture overlays.
+The packaging script includes the same runtime configuration directly for future bundles.
+
+The shared fixture supports optional participant identity and exact domain overrides.
+Defaults preserve its original w/v identities and symbolic domains.
+First and second world state directories allow intentionally preseeded state.
+The host fixture seeds each real world before registration and registers its persisted world ID.
+The denied third world receives a distinct participant identity.
+Temporary overrides are restored in finally. Real issuer registration and revision checks remain active.
+
+Failure evidence preserved:
+Attempt01: four import setup errors. Missing compositor_native_pb2.
+Attempt02: four failures. Missing executable-adjacent runtime.textproto.
+Attempt03: four failures. Duplicate second/third-world participant identity.
+Attempt04: four errors. Symbolic authority domains disagreed with persisted world IDs.
+Attempt05: four native passes. Superseded by final narrow-source attempt06.
+No failed evidence or old deployment was deleted.
+
+Source hashes for attempt06:
+0d615be430bb230d79805bb73598a8cacb2e66716965b8027a7e4c25259481c6 CMakeLists.txt
+d2ff002f358272f43a733076305a139bc7d9f9780fe144fbe22f23d61a32c876 tests/native/test_session_world.py
+4f32d516fb29af6d0a20be302f6600b8362952ada6cbabc6d56bc7aae711e527 tests/native/test_host_actor_controller.py
+Archive SHA256: a2a601dfb47505bfd1f136036effd1d4cf6eb2f509419ed6a0dcfa7a804e9fd9
+The launcher contains exact overlay hashes and commands.
+Remote final evidence: /home/dflanag3/spatial-test-artifacts/m06-native-20261012-06 on both test hosts.
+
+Next: primary review/checkpoint the task branch, integrate with real-service changes, and rerun affected combined checks.
+Do not count these focused results as the full M06 gate.

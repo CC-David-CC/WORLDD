@@ -1,0 +1,12 @@
+PASS controller-setup-exception-does-not-wedge
+PASS controller-inspect-fences-transition-and-action
+PASS controller-A-B-A-exact-owners-validation-and-concurrency
+PASS controller-success-and-no-premature-selection
+PASS controller-denied-preparation-preserves-source
+PASS controller-wrong-destination-mapping
+PASS controller-uncertainty-no-replay-departure
+PASS controller-uncertainty-no-replay-activation
+PASS controller-uncertainty-no-replay-selection-mismatch
+PASS controller-uncertainty-no-replay-selection-nonstd
+PASS controller-activation-with-selection-uncertainty
+FIXTURE ONLY: actor channels are local wire peers; SessionCoordinator and native presentation are untested

@@ -1,0 +1,48 @@
+Primary review: M06 scoped native input
+Status: primary review and focused artifact audit passed on both hosts.
+
+Implementation review
+NativeChannel extracts the existing NativeLaunch socket transport without changing its three-second native request deadline.
+NativeLaunch still pins the X socket inode and checks the peer PID and UID before sending credentials.
+Security replies remain bounded, correlated, protobuf validated, and fail closed.
+NativeInput consumes a sealed compositor configuration and checks the COMPOSITOR role and server identity.
+Scoped input disconnect raises an error and closes that channel instead of exiting through Xlib.
+Its request counter refuses overflow. The existing Display constructor remains unchanged for current callers.
+SpatialSecurityInputController accepts only a live authenticated COMPOSITOR connection.
+SpatialInput retains exact connection ownership for each seat and the unsecured root-owner fallback.
+Broker and application clients receive no new input authority.
+The schema comment and M06_INPUT_SCOPE_CONTRACT explicitly record the admission change.
+The probe executes two production NativeInput owners in one process and verifies the survivor after target failure.
+The independent client checks foreign-seat denial and attempts the extension opcode directly as a broker.
+CMake links the shared transport and sealed-config reader into their callers and registers the native suite.
+
+Fixture review
+Normal issuer client and server fixtures now use 5000 ms.
+Explicit fault tests preserve their original 700 ms or 150 ms budgets and assertions.
+The participant runtime helper accepts an explicit deadline for its stalled-handshake test.
+The configuration-only budget regression uses an explicit unused endpoint port and opens no connection.
+Production issuer deadlines and locked acceptance files are unchanged.
+
+Evidence to audit
+Run04 on each host passed 28 Debug suites and exposed an uninitialized port in the new default-budget test.
+Run05 reruns only that corrected Debug suite and runs all 29 selected sanitizer suites.
+Require every unchanged file hash to match between runs before composing the Debug result.
+Both hosts already match all 422 local reviewed source and test file hashes.
+Keep previous timeout failures, initial runner setup failures, and fixture failure evidence.
+
+Limits
+The checked probe preserves another native input owner, not a full Renderer instance.
+Persistent graphics ownership, presentation generations, cancellation barriers, and actor world transitions remain pending.
+This review does not qualify M06 or any later milestone.
+
+Verified result
+Each host passed 29 suites and 383 checks in Debug and ASan-UBSan.
+The combined result is 1532 check executions with no remaining failures or skips.
+Debug evidence combines 28 unchanged run04 suites with the corrected run05 budget suite.
+All 29 sanitizer suites passed in run05 on both hosts.
+The audit verified that only the budget regression file changed between these runs.
+The audit checked all 422 reviewed files and all locked acceptance file hashes on both hosts.
+No sanitizer findings appeared in 2636 scanned logs.
+Sixteen recorded scope cleanup receipts passed their removal and population checks.
+Full logs remain in the isolated host checkouts under local/m06-scoped-input-04 and local/m06-scoped-input-05.
+The audit manifests preserve their hashes and exact locations.

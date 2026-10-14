@@ -1,0 +1,22 @@
+M06 real-service attempt03
+
+Both hosts completed Debug and ASan/UBSan. Each ran all 18 cases.
+Each execution passed 15 cases and errored on the three crash-recovery cases.
+Total: 60 passed executions and 12 errors. No cases were skipped.
+All four commands exited 1. This suite remains failing.
+
+The configured ResourceBroker fixed all three workspace setup failures from attempt01.
+Workspace selection independence, revoked selection, and unavailable selection now pass.
+The existing wrappers supplied delegated cgroups and confined Git worker configuration.
+Logs show scope_removed=true and unexpected_population=false.
+The systemd cleanup command reported an already-unloaded service; the final query confirmed inactive/not-found.
+
+Before-commit, after-commit, and activation crash recovery still fail at direct world restart.
+The issuer requires checked retirement of the previous generation.
+These tests remain unchanged. A separate retained-supervisor recovery task is active.
+
+Debug archive: 19376c4cd9bf5a298bfbe8c39c348f4e73d4253c0a547aae64e39a9c12153bf4
+ASan archive: fa954234ee2439b80aac73ebbf5b790cbb4db09044b34f3742469e6424e950c0
+Remote evidence: /home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03 on both hosts.
+Source remains on middle-child branch m06/actor-realworld-integration and is not integrated.
+No M06 gate claim follows from these results.

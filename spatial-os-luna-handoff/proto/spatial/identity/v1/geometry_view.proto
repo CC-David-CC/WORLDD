@@ -1,0 +1,30 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "core.proto";
+
+// Geometry-only actor view. This schema cannot carry application or input data.
+message DrawableGeometry {
+  string id = 1;
+  spatial.core.v1.EntityKind kind = 2;
+  spatial.core.v1.Pose pose = 3;
+  spatial.core.v1.Vec2 size = 4;
+  spatial.core.v1.Color color = 5;
+  spatial.core.v1.Bounds bounds = 6;
+}
+message ActorGeometryView {
+  string world_id = 1;
+  string actor_id = 2;
+  bytes view_id = 3;
+  uint64 authority_generation = 4;
+  bytes authority_service_incarnation = 15;
+  uint64 sequence = 5;
+  uint64 world_revision = 6;
+  string room = 7;
+  spatial.core.v1.Pose camera = 8;
+  spatial.core.v1.RenderConfig config = 9;
+  repeated DrawableGeometry panels = 10;
+  repeated DrawableGeometry barriers = 11;
+  repeated DrawableGeometry portals = 12;
+  repeated DrawableGeometry objects = 13;
+  repeated DrawableGeometry actors = 14;
+}

@@ -1,0 +1,31 @@
+Combined host-session build verification
+
+Source commit: 2954de07c8646da6a0dfc7ffbcf9fdd8d59846fe
+Host: a5500
+Checkout: /home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012
+Run: local/integrated-build01
+Tracked checkout was clean at collection.
+Original PID650011 and tmux spatial-host-session-integrated-build01 were observed live. PID was absent after completion. No duplicate build was started.
+
+Result: build and static-registration checks PASS. Runtime UNRUN.
+Command exit0. Wrapper exit0. Terminal status COMPLETE.
+Debug ON, Debug OFF, ASan ON and ASan OFF configure/build/binding checks each returned0:12 checks.
+Debug ON and ASan ON CTest inventories each returned0:2 checks.
+The binding checks parse generated Python imports. They do not import modules or execute production binaries.
+
+Each ON inventory contains five selected registrations with nonempty argv:
+actor-transition-real-world
+actor-transition-crosshost
+host-actor-controller-native
+host-session-startup
+host-session-production-native
+The host-actor-controller-native command includes with_resource_delegate.py.
+selected-registrations.json preserves exact commands, environments and other properties.
+The crosshost plan argument points to /tmp/registration-only-host-session-plan.pb. This is registration evidence only. Runtime needs its actual reviewed plan.
+
+Preserved warnings: both OFF configure logs report SPATIAL_ACTOR_TRANSITION_PLAN unused. The supplied variable controls testing registration and is unused with BUILD_TESTING=OFF. No compiler error or warning matches were found.
+Credential-marker scan of raw logs found no Bearer, PRIVATE KEY or api-key markers.
+
+All38 original log/receipt/script files were hashed before transfer. Each transferred byte sequence matched its recorded original SHA256. original-sha256.json preserves remote paths and hashes. SHA256SUMS covers the resulting local evidence files, excluding itself.
+No runtime tests, deployments, source edits, commits or pushes occurred in this collection task.
+These results do not qualify the combined native runtime or close M06.

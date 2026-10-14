@@ -1,0 +1,42 @@
+M06 shared worldd rendering client and world-owned captures
+
+Production behavior
+RenderWorker can own a legacy compositor or retain a private shared channel.
+Shared mode retains the compositor process handle but cannot terminate that process.
+worldd validates inherited channel descriptors and requires sealed native configuration.
+The shared client authenticates replies, checks request identity, rejects reply descriptors,
+and closes only its channel after uncertain transport failure.
+The scheduler and before-send authority checks remain active during exchange.
+
+Each world creates private capture files through its retained captures directory descriptor.
+The compositor receives one writable file descriptor for a capture command.
+It validates an empty regular file, private mode, owner, link count, and writable access.
+The compositor does not choose or return a shared capture path.
+The world checks output length and supplies its own path after the reply.
+Failed captures remove the unacknowledged file. Legacy capture behavior remains unchanged.
+The descriptor requirement is an explicit extension of the new private presentation protocol.
+
+Validation
+Reviewed all ten source/build/test files in source-sha256.json.
+Checked ownership, failure paths, callback cancellation, private descriptors, and capture cleanup.
+Run05 passes 60 checks per host/profile. Related Run06 passes 17 per host/profile.
+Both sb16 and sb16-2 pass Debug and ASan-UBSan: 308 final coverage executions.
+No failures, skips, or sanitizer findings remain in the final candidate.
+Audits verify 436 source files, unchanged locked tests, and real binary hashes.
+Two real worldd processes present and capture through the same live spatialwm.
+Independent native pixels match captured PPM pixels. Captures stay in separate world directories.
+Stopping one world preserves the other world and the same compositor.
+Malformed and partial replies, wrong request IDs, and unexpected reply descriptors fail closed.
+Existing rendering, observation, native application-group, compositor-identity, and binding checks pass.
+
+Preserved failure
+Run01 closed both management directions. worldd correctly reported a disconnected reader.
+The test now closes SHUT_WR first and retains the reply direction until normal exit.
+Production code was not changed to obtain that shutdown result.
+
+Scope
+This increment does not complete M06 or prove an actor transition.
+The test owner launches the compositor. SessionCoordinator integration is still required.
+Next: host-owned startup, retained world process handoff, exact native cleanup receipts,
+then actor checkpoint/cancellation/token/selection ordering and the M06 phase gate.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.

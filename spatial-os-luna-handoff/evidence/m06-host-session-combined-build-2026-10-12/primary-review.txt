@@ -1,0 +1,8 @@
+Primary review
+
+Verified all 43 payload hashes in SHA256SUMS after transfer.
+The four profile builds passed. Runtime remains unrun on this combined source.
+Preserve raw CMake inventory and configure output byte-for-byte.
+Those six raw logs contain generated trailing whitespace.
+Use the documented manual Git exception for these evidence files only.
+Do not normalize their bytes or invalidate the recorded hashes.

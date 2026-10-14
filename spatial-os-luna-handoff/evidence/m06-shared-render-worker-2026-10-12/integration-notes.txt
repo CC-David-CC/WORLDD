@@ -1,0 +1,20 @@
+Shared RenderWorker integration remains in progress.
+The new worldd mode owns a channel copy and retained compositor process handle.
+It does not own or terminate the compositor process.
+Typed remote errors leave the channel available. Transport uncertainty closes only that channel.
+The before-send authority check runs before each queued output flush.
+If revocation interrupts a partial frame, closing the channel prevents frame execution.
+Normal legacy mode keeps its existing process ownership.
+
+Remaining work before integration:
+Completed: shared-client malformed reply, timeout, identity, and descriptor checks.
+Completed: shared capture files belong to each world. The compositor receives only a writable file descriptor.
+- Add host-owned RenderProcess mode and SessionCoordinator attachment.
+- Export retained world process handles through the existing supervisor path.
+- Connect exact cleanup receipts to uncertain binding retirement.
+- Perform actual actor transition checkpoint, cancellation, token, and selection ordering.
+
+Preserved run01 failure:
+The test closed both management socket directions, producing worldd exit 2:
+Management reader disconnected. The corrected fixture closes SHUT_WR first.
+It retains the reply direction until normal process exit. Production code was unchanged for this correction.

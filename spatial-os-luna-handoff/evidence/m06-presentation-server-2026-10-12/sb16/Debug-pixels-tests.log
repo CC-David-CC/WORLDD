@@ -1,0 +1,38 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 95
+    Start 95: presentation-server
+
+95: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_presentation_server.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatialwm" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+95: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+95: Environment variables: 
+95:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+95: Test timeout computed to be: 180
+95: test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_losing_other_world) ... ok
+95: test_mismatched_binding_does_not_select_world (__main__.PresentationServerTests.test_mismatched_binding_does_not_select_world) ... ok
+95: test_pending_world_cannot_be_selected (__main__.PresentationServerTests.test_pending_world_cannot_be_selected) ... ok
+95: test_selection_changes_real_pixels_without_restarting_compositor (__main__.PresentationServerTests.test_selection_changes_real_pixels_without_restarting_compositor) ... ok
+95: test_worlds_initialize_in_reverse_reservation_order (__main__.PresentationServerTests.test_worlds_initialize_in_reverse_reservation_order) ... ok
+95: 
+95: ----------------------------------------------------------------------
+95: Ran 5 tests in 0.571s
+95: 
+95: OK
+1/1 Test #95: presentation-server ..............   Passed    0.64 sec
+
+The following tests passed:
+	presentation-server
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.64 sec

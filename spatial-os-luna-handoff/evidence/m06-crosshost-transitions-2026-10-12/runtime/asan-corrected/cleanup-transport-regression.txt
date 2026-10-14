@@ -1,0 +1,1 @@
+PASS: retained owner PID was polled while a slow Unix listener drained; exactly one stop byte was queued; EAGAIN did not trigger repeated requests.

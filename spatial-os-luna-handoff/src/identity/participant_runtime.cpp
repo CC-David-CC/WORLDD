@@ -35,6 +35,7 @@ std::string diagnostic_cause(std::string_view text) {
 }
 }
 struct ParticipantRuntime::Impl {
+    std::string service_incarnation;
     mutable std::mutex mutex;
     std::deque<v1::ParticipantCommand> commands;
     std::deque<v1::ParticipantUpdate> updates;
@@ -81,12 +82,7 @@ struct ParticipantRuntime::Impl {
             v1::IssuerRequest begin; begin.set_protocol_version(1);
             auto* auth = begin.mutable_authority_authentication_begin();
             auth->set_participant_id(config.participant_id()); auth->set_registered_revision(config.registered_revision());
-            std::string incarnation = config.service_incarnation();
-            if (!config.has_service_incarnation()) {
-                incarnation.resize(32);
-                require(RAND_bytes(reinterpret_cast<unsigned char*>(incarnation.data()), 32) == 1, "Service incarnation generation failed");
-            }
-            auth->set_service_incarnation(incarnation);
+            auth->set_service_incarnation(service_incarnation);
             stage = "authentication_begin";
             auto reply = client.call(std::move(begin)); if (reply_error(reply, stage)) return;
             v1::IssuerRequest complete; complete.set_protocol_version(1);
@@ -338,6 +334,12 @@ struct ParticipantRuntime::Impl {
                 "Invalid inherited participant configuration");
         else require(config.supervisor_issuer_id().empty() && std::filesystem::path(config.issuer_client_config()).is_absolute() &&
                 std::filesystem::path(config.private_key_path()).is_absolute(), "Invalid authority participant configuration");
+        service_incarnation = config.service_incarnation();
+        if (!config.has_service_incarnation()) {
+            service_incarnation.resize(32);
+            require(RAND_bytes(reinterpret_cast<unsigned char*>(service_incarnation.data()), 32) == 1,
+                    "Service incarnation generation failed");
+        }
         v1::AuthorityParticipant expected; expected.set_id(config.participant_id()); expected.set_public_key(std::string(32, '\0'));
         for (const auto& domain : domains) *expected.add_domains() = domain;
         validate_participant(expected);
@@ -353,6 +355,7 @@ struct ParticipantRuntime::Impl {
 ParticipantRuntime::ParticipantRuntime(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains)
     : impl_(std::make_unique<Impl>(path, domains)) {}
 ParticipantRuntime::~ParticipantRuntime() = default;
+std::string ParticipantRuntime::service_incarnation() const { return impl_->service_incarnation; }
 void ParticipantRuntime::submit(v1::ParticipantCommand command) { submit_impl(std::move(command), false); }
 void ParticipantRuntime::submit_forwarded(v1::ParticipantCommand command) { submit_impl(std::move(command), true); }
 void ParticipantRuntime::submit_impl(v1::ParticipantCommand command, bool forwarded) {

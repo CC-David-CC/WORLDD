@@ -1,0 +1,60 @@
+Running as unit: spatial-m03-resources-0de9b22d2d48435db542c7e5f7d95030.service
+test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10549160200753249, "operation": "initialize", "outcome": "exit_0", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04282998200505972, "operation": "connect", "outcome": "connected", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.052043759991647676, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012163111998233944, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0428573620156385, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010687605012208223, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032669495994923636, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010758612013887614, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03171079701860435, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011193635989911854, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03314348799176514, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011230184987653047, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03159006798523478, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01122717498219572, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03217206199769862, "operation": "request", "outcome": "received", "test": "test_actor_stop_releases_native_input_and_its_reservation"}
+ok
+test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10438905202317983, "operation": "initialize", "outcome": "exit_0", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0424754960113205, "operation": "connect", "outcome": "connected", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011600536003243178, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012069783988408744, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03879206700366922, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010798161005368456, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03871746399090625, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010830887011252344, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030669289990328252, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011195562983630225, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04498729598708451, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010753950016805902, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02970497400383465, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011569498019525781, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.031819786003325135, "operation": "request", "outcome": "received", "test": "test_world_crash_preserves_application_and_pending_owned_reservation"}
+ok
+test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionApplicationTests.test_recovery_requires_checked_cleanup_and_preserves_live_application) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10424181501730345, "operation": "initialize", "outcome": "exit_0", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0437441399844829, "operation": "connect", "outcome": "connected", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011294766998616979, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012085055990610272, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.039698850014247, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010690570983570069, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03830282701528631, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010777936986414716, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.049479167006211355, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010694108001189306, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04440975599572994, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010872148995986208, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03653290000511333, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011568565998459235, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03291853697737679, "operation": "request", "outcome": "received", "test": "test_recovery_requires_checked_cleanup_and_preserves_live_application"}
+ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 15.553s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 15.817s
+CPU time consumed: 7.748s
+Memory peak: 3.7M
+Memory swap peak: 0B

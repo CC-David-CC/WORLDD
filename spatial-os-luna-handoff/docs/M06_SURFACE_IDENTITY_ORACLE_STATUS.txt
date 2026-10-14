@@ -1,0 +1,15 @@
+M06 surface identity oracle status
+Date: 2026-10-13
+Candidate: 258920de00e45448f104eedcc97147cf878406b3
+
+The old non-controller denial expectation came from the M04 surface identity test, commit 644e680ff93b601fb1e1474f5ba5bfb36c8186f2.
+M06 commit efeef62d4ad84d329381a679fc3de57a2bfc81ec explicitly added live supervisor-issued COMPOSITOR credentials as an alternate SPATIAL-INPUT admission path.
+The test now checks that a distinct, supervisor-authorized COMPOSITOR connection can inspect the same server-owned application attribution as the root-redirect compositor.
+It checks protocol version, request ID, enforced security mode, complete application identity, target ID, generation, and geometry.
+The query connection does not own root SubstructureRedirect.
+The existing application foreign-attribution denial remains unchanged.
+The existing test `tests/native/test_security_identity.py::SecurityIdentityTests.test_broker_can_issue_only_application_credentials` rejects broker requests for SUPERVISOR, BROKER, and COMPOSITOR roles.
+No production, server, schema, or locked acceptance files changed.
+The original gate failure remains preserved at /home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment/evidence/m06-final258920de-sb16-20261013-01/Debug/core.log.
+Selected check before running: py_compile the changed test module. This checks only Python syntax.
+Runtime and native qualification remain unrun after this test correction. The full-gate failure was not overwritten or retried.

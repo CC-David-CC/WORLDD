@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="4"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16"
+	time="19"
+	timestamp="2026-10-12T04:23:12"
+	>
+	<testcase name="presentation-stream" classname="presentation-stream" time="10.193" status="run">
+		<properties/>
+		<system-out>test_descriptor_after_first_frame_byte_is_rejected (__main__.PresentationStreamTests.test_descriptor_after_first_frame_byte_is_rejected) ... ok
+test_excessive_frame_is_rejected (__main__.PresentationStreamTests.test_excessive_frame_is_rejected) ... ok
+test_inherited_socket_does_not_authorize_another_sender (__main__.PresentationStreamTests.test_inherited_socket_does_not_authorize_another_sender) ... ok
+test_partial_progress_does_not_refresh_five_second_deadline (__main__.PresentationStreamTests.test_partial_progress_does_not_refresh_five_second_deadline) ... ok
+test_protobuf_frames_remain_distinct (__main__.PresentationStreamTests.test_protobuf_frames_remain_distinct) ... ok
+test_stalled_reader_hits_fixed_output_deadline (__main__.PresentationStreamTests.test_stalled_reader_hits_fixed_output_deadline) ... ok
+test_three_descriptors_are_rejected (__main__.PresentationStreamTests.test_three_descriptors_are_rejected) ... ok
+test_truncated_ancillary_data_is_rejected_without_descriptor_leaks (__main__.PresentationS...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-compositor_identity" classname="native-compositor_identity" time="0.833771" status="run">
+		<properties/>
+		<system-out>test_non_application_window_is_not_a_workspace_surface (__main__.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... ok
+test_properties_do_not_choose_snapshot_identity (__main__.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... ok
+test_revoked_application_disappears_from_snapshot (__main__.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... ok
+test_same_group_new_connection_has_distinct_attribution (__main__.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... ok
+test_separate_workspaces_remain_distinct_in_one_snapshot (__main__.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... ok
+test_snapshot_contains_authenticated_application_identity (__main__.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... ok
+test_unmap_clears_attribution_and_remap_restores_it (__main__.CompositorIdentityTests.test_unmap_clears_attribution_and_rema...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="presentation-server" classname="presentation-server" time="6.95383" status="run">
+		<properties/>
+		<system-out>test_detach_releases_held_native_key_and_button (__main__.PresentationServerTests.test_detach_releases_held_native_key_and_button) ... ok
+test_disconnect_clears_selected_pixels (__main__.PresentationServerTests.test_disconnect_clears_selected_pixels) ... ok
+test_foreign_sender_on_inherited_socket_retires_world (__main__.PresentationServerTests.test_foreign_sender_on_inherited_socket_retires_world) ... ok
+test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_losing_other_world) ... ok
+test_mismatched_binding_does_not_select_world (__main__.PresentationServerTests.test_mismatched_binding_does_not_select_world) ... ok
+test_missing_hello_descriptor_retires_world (__main__.PresentationServerTests.test_missing_hello_descriptor_retires_world) ... ok
+test_owner_exit_ends_compositor_with_control_socket_still_open (__main__.PresentationServerTests.test_owner_exit_ends_compositor_with_control_socket_still_open) ... ok
+test_partial_frame_deadl...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="presentation-input-bindings" classname="presentation-input-bindings" time="1.3285" status="run">
+		<properties/>
+		<system-out>test_all_binding_fields_must_match (__main__.PresentationBindingTests.test_all_binding_fields_must_match) ... ok
+test_bindings_cannot_control_the_same_application_concurrently (__main__.PresentationBindingTests.test_bindings_cannot_control_the_same_application_concurrently) ... ok
+test_failed_retirement_does_not_acknowledge_revoked_live_seat (__main__.PresentationBindingTests.test_failed_retirement_does_not_acknowledge_revoked_live_seat) ... ok
+test_first_scoped_binding_releases_held_legacy_input (__main__.PresentationBindingTests.test_first_scoped_binding_releases_held_legacy_input) ... ok
+test_other_native_server_cannot_supply_a_binding (__main__.PresentationBindingTests.test_other_native_server_cannot_supply_a_binding) ... ok
+test_retirement_releases_native_events_and_rejects_stale_input (__main__.PresentationBindingTests.test_retirement_releases_native_events_and_rejects_stale_input) ... ok
+test_revoking_one_world_preserves_real_graphics_and_other_input (__main__.PresentationBindingTests.test_revoking_one...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

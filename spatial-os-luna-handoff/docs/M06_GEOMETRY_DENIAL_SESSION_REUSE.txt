@@ -1,0 +1,52 @@
+M06 geometry denial session reuse corrective task
+Date: 2026-10-13
+Host: middle-child (coding only)
+Checkout: /home/dflanag3/src/spacial-m06-geometry-denial-session-reuse-20261013
+Branch: m06/geometry-denial-session-reuse-20261013
+Base: d2bb820ebd90666db55eacfc29fe75f1632dd5d4
+
+Selected checks, recorded before source changes or build/test execution:
+- actor-session-client: hostile client envelope and lifecycle cases. Add a valid matching geometry-view FORBIDDEN response followed by a successful action. This proves a read denial keeps the channel available for an authorized next operation.
+- actor-session-client: add malformed geometry-error cases for a mismatched request ID and unknown fields. These must still fence and close the client.
+- Existing mutating-error-no-replay cases for activate, depart, and action: ensure matching mutating errors still fence and cannot replay.
+- actor-session-client-tls: inventory only; the change is in the shared exchange implementation. Run ctest -N for registration only.
+- Full normal Debug and ASan/UBSan builds: compile all declared targets after the shared client change. Do not run CTest or probes on this coding host.
+
+Invariant: a fully validated, matching Error response to geometry_view is a checked read denial like inspect. Preserve the typed error and client usability. Malformed envelopes and transport failures still fence. Errors for mutating requests still fence because their effects can be uncertain.
+
+Contract delta: additive read-only geometry query response handling. Locked acceptance tests and production-host denial checks remain unchanged.
+
+Server path review: identity_sessions.cpp checks observation authority before incrementing view_sequence or calling Actors::geometry_view. Actors::geometry_view reads scene and actor state and copies geometry into a response. It issues no external command. This supports reuse specifically for the valid matching denial response.
+Implementation and verification record
+Changed files:
+- src/world/actor_session_client.cpp: matching, validated Error replies keep the client usable for inspect and geometry_view only. Mutating operations still fail the client.
+- src/testing/actor_session_client_probe.cpp: add a matching FORBIDDEN geometry reply followed by accepted pressed-key input with sequence 1; add wrong-request-ID and unknown-field geometry errors that must fence.
+- docs/M06_GEOMETRY_DENIAL_SESSION_REUSE.txt: record this additive read-only geometry error contract and verification limits.
+
+Server read-path review:
+- identity_sessions.cpp checks actor admission and observe authority before incrementing view_sequence or calling Actors::geometry_view.
+- Actors::geometry_view reads actor state and a scene snapshot, then constructs a response. scene(..., true) may reconcile a stale in-memory object preview through refresh_objects; it does not issue an external action.
+- The geometry query path does not invoke actor controls, process launch, filesystem operations, application input, or external commands.
+- Error envelope validation still runs before checked rejection. Wrong protocol version, request ID, unknown fields, wrong response outcome, malformed geometry context, and transport failure still fail the client.
+- A successful geometry response still enforces world, actor, view, authority incarnation, generation, and sequence checks.
+
+Final build commands and receipts:
+- Debug configure: cmake -S spatial-os-luna-handoff -B local/m06-geometry-denial-session-reuse/debug -DCMAKE_BUILD_TYPE=Debug
+- Debug full build: flock local/m06-geometry-denial-session-reuse/debug/.build.lock cmake --build local/m06-geometry-denial-session-reuse/debug -j2
+- Debug final incremental/full target refresh: same command. tmux handle m06-geomden-debug-rebuild. command.exit=0; wrapper.exit=0.
+- ASan/UBSan configure: cmake -S spatial-os-luna-handoff -B local/m06-geometry-denial-session-reuse/asan -DCMAKE_BUILD_TYPE=Debug -DSPATIAL_SANITIZERS=ON
+- ASan/UBSan full build: flock local/m06-geometry-denial-session-reuse/asan/.build.lock cmake --build local/m06-geometry-denial-session-reuse/asan -j2
+- ASan/UBSan final incremental/full target refresh: same command. tmux handle m06-geomden-asan-rebuild. command.exit=0; wrapper.exit=0.
+- Build logs: local/m06-geometry-denial-session-reuse/build-debug-01 and build-debug-02; local/m06-geometry-denial-session-reuse/build-asan-01 and build-asan-02.
+- Static CTest inventory only: ctest --test-dir local/m06-geometry-denial-session-reuse/debug -N. tmux handle m06-geomden-debug-ctestn. It listed 126 tests; command.exit=0; wrapper.exit=0.
+- Exact run receipts, stdout.log, stderr.log, argv, and terminal-status.txt remain under the listed run directories.
+
+Results:
+- Debug full build: PASS.
+- ASan/UBSan full build: PASS.
+- CTest registration inventory: PASS, 126 registered tests. This did not execute tests.
+- Implemented actor-session-client regressions: UNRUN on coding host.
+- Runtime, host-session, native-session, and cross-host checks: UNRUN on coding host. Keep both production-host denial tests unchanged.
+- No locked acceptance test or oracle changed.
+
+Checkpoint state: source builds pass, but focused regressions and production-host requalification remain pending. Mark this checkpoint UNQUALIFIED.

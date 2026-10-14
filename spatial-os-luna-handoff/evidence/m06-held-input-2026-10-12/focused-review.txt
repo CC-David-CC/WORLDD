@@ -1,0 +1,58 @@
+M06 held-input focused qualification, 2026-10-12
+
+Task checkpoint: 9222918f59a4d74fa5e099496b3363baff90ac41.
+Branch: m06/held-input-transitions, verified on box-git.
+Base: 6f3b1001c514f7b4dd59460f62cf1a6d715c72e5.
+Not integrated into the milestone branch yet.
+
+Final attempt05: four passed, zero failed, zero skipped.
+sb16 Debug: one test, 9.145 seconds, exit zero.
+sb16 ASan/UBSan: one test, 10.368 seconds, exit zero.
+sb16-2 Debug: one test, 15.896 seconds, exit zero.
+sb16-2 ASan/UBSan: one test, 12.622 seconds, exit zero.
+All four test logs report OK. All four native coordinator logs report the expected PASS marker.
+No AddressSanitizer, LeakSanitizer, or runtime-error markers appear in final evidence.
+The tests check terminal supervisor/broker cleanup receipts after the transition assertions.
+The resource wrappers report removed scopes and inactive/not-found final units.
+
+Coverage:
+Real confined application input is held before an A-to-B transition.
+Independent X event logs prove balanced native releases.
+A valid old-generation key action receives the specific stale-context rejection without events.
+The same current-generation action reaches the destination application.
+B-to-A restores context without old held input, focus, or control reservations.
+Fresh input reaches the original source application after return.
+Private-world FORBIDDEN preserves source context and native application usability.
+Retained world, compositor, XLibre, broker, and application identities remain checked.
+Application process checks use host pidfds plus namespace identity and owned ancestry.
+
+Artifact attribution:
+Use the original run03 archive and compiled binary hashes in worker-handoff.txt.
+Final Python overlay: 78ce6f3c28f4c42e933e9c69ef78ede35c6faf1b2afc19c3bdbf7045bcd328f9.
+Only Python provisioning changed after that archive; compiled code did not change.
+Final documentation was updated after runtime and contains no executable changes.
+Both final hosts verified the bundle manifest with the explicit Python overlay.
+
+Backend:
+Final runs use local/m06-scoped-input-05 server wrappers in spacial_desktop-m06-20261012.
+The four copied server receipts record exact binaries, patches, protocol schemas, and overlays.
+All 20 receipt extension inputs match the current project source.
+The actual server binaries and nine applied overlay files were checked on both hosts.
+Debug Xvfb: dfd97979fc6363ad841bddc58a6884a1461aed1c83aa2cd9bfea9c4293ebe623.
+ASan Xvfb: 7a295f8b2d0b8a81a05488baedf806297462089a6b925d9e36b5c526389fd0de.
+
+Preserved failures:
+Attempt01: four setup failures from an empty authority seed.
+Attempt02: one TLS startup failure after correcting the seed.
+Diagnostic03: reproduced TLS failure with eight-peer capacity and nine socket descriptors.
+Diagnostic04: capacity32 permitted ten sockets and advanced to native input.
+It failed because the launcher still used the old M04 backend without scoped-input support.
+Attempt05 used the corrected backend and passed. No production authority check was relaxed.
+Seven prior failed executions remain evidence, not final passes.
+
+Limits:
+Session-application and session-replacement regressions remain pending.
+Their matching helper builds completed on middle-child; runtime awaits the cross-host test slot.
+The full M06 phase gate, remote-world presentation, and multi-actor host integration remain incomplete.
+Earlier combined80 evidence is limited to its recorded backend; it does not prove scoped native input.
+No full M06 or Spatial-M1 completion is claimed.

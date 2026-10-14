@@ -1,0 +1,335 @@
+{
+    "source_commit":  "8bdda7631ae51d0ae1e94b913031d0fd8dffb877",
+    "commit_metadata":  "8bdda7631ae51d0ae1e94b913031d0fd8dffb877\n5368e7d280c1ad7f366c37a6b662bce64fb95bcd\nDavid \u003cdavid@code.contractors\u003e\n2026-10-12T10:41:42-04:00\nAdd authenticated bounded actor geometry views\nExport authorized geometry through the existing actor-session transport.\nValidate authority identity, view sequence, geometry bounds, and malformed\npeer responses without exporting application surfaces or pixels.\n\nAdd headless real-world geometry and hostile-peer regressions, related\nauthority checks, and reproducible qualification packaging.\n\nUNQUALIFIED checkpoint. Coding-host artifacts are frozen, but runtime\nqualification is pending. This commit does not complete M06 or Spatial-M1.\n\n",
+    "current_checkout_head":  "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0",
+    "qualification_input_sha256":  "46ee59d020ba998c751798ed9f98e142b20b7b2f7b54bb0cee454d6d5cf526e0",
+    "source_overlay_all_18_match_frozen_commit":  true,
+    "source_overlay":  [
+                           {
+                               "path":  "spatial-os-luna-handoff/CMakeLists.txt",
+                               "sha256":  "3d90da7cfb55233a8e9d271226ce1a7ba564339b4031e568caa2527f11b7b8f1"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto",
+                               "sha256":  "df102755df44f69868b140d0cf6aef0c022c6b31199bc40b58b0920fbffebfce"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/proto/spatial/identity/v1/geometry_view.proto",
+                               "sha256":  "1c6fe15c69de40fc5fd90ab8ec00be88aae30b9c39a8ac83ef7c17d1b93eb526"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/identity/participant_runtime.cpp",
+                               "sha256":  "28f740015962b75cdd3b37b20a6707bb9bca7887fa29698d88d773bc7ce5c622"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/identity/participant_runtime.hpp",
+                               "sha256":  "175466d93a10b9e2a56f8b77f2834d4f66ea479724e65d5a457084c6e8a7149a"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/world/actor_session_client.cpp",
+                               "sha256":  "ff9d55965139bf4646884925994d701471a36c1402d894be4ae83f5631345acf"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/world/actor_session_client.hpp",
+                               "sha256":  "1e032024224d26ea37f272afdafaacf1754dbefbf34a7478130d17f9dadff85d"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/world/actors.cpp",
+                               "sha256":  "5b6145f0c2eb15117b7ec5fcf49781440699995935cdfc37f00a07e9a625ebfa"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/world/actors.hpp",
+                               "sha256":  "cf75f8cb7d694aef04fca26e906c6d4bc793c4c7ae977386cb334c80ce40a0e1"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/world/identity_sessions.cpp",
+                               "sha256":  "13addd3e704fd5c46d7a8f988bab1e564ec77fa1ab41e613f12a6e6bd3ba5eb9"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/world/geometry_view_validation.hpp",
+                               "sha256":  "2b07aa7e7cad2dfa2bd79e64e1a94de6e6d4aa6a9c0799ca8bb322b97bc1b50f"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/testing/actor_session_client_probe.cpp",
+                               "sha256":  "64a201ec22af9c4b739a5a3d1778e95ddf211700bf65211a50e97da29a0fefbd"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/testing/actor_session_client_tls_probe.cpp",
+                               "sha256":  "78c782259f85469da3c21b550202ba913da23d5292addf984062c61db5b13691"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/src/testing/actor_transition_coordinator_probe.cpp",
+                               "sha256":  "e7dc575e56fb3eee142ac5b8adda17f0ae7c75a26adb764e362969b0f7488dae"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/tests/core/test_geometry_view.py",
+                               "sha256":  "b736b882014ed21befd2f963517e972b440aa6d77f0dc3b11da1b1bbf3aa391d"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/tests/core/test_world_authority.py",
+                               "sha256":  "7f8656db09da6c70ee860a3eae3dc96d57181670049d7bdb4b689fb10257f57f"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/tools/package_m06_geometry.py",
+                               "sha256":  "046bb2f15b2e2708ec695e1a8880717da13fa1edb50a47eee31b0bfef8c36696"
+                           },
+                           {
+                               "path":  "spatial-os-luna-handoff/docs/M06_GEOMETRY_VIEW_INCREMENT1.txt",
+                               "sha256":  "99ac760df97ae15fbb462879189f7187ff545a7d5f9e0eb2262504bc625e2fcf"
+                           }
+                       ],
+    "excerpts":  [
+                     {
+                         "path":  "spatial-os-luna-handoff/tests/core/test_geometry_view.py",
+                         "full_source_sha256":  "b736b882014ed21befd2f963517e972b440aa6d77f0dc3b11da1b1bbf3aa391d",
+                         "excerpts":  [
+                                          {
+                                              "start_line":  64,
+                                              "end_line":  103,
+                                              "lines":  [
+                                                            "    def test_geometry_revocation_and_preparation(self):",
+                                                            "        self.enroll_second()",
+                                                            "        world = self.scoped_world(session.REGISTERED_ACTORS)",
+                                                            "        child = self.grant_to_second(world, [grants.WORLD_ENTER, grants.WORLD_OBSERVE])",
+                                                            "        peer = world.peers[1]",
+                                                            "        prepared = self.authenticate(peer, self.second_record, self.second_key,",
+                                                            "                                     self.second_public, transition_id=b\u0027t\u0027*32)",
+                                                            "        self.assertTrue(prepared.HasField(\u0027prepared\u0027))",
+                                                            "        self.assertFalse(prepared.prepared.actor.geometry_view_id)",
+                                                            "        self.denied(peer.call(geometry_view=session.WorldGeometryViewRequest()), core.UNAUTHORIZED)",
+                                                            "        active = peer.call(activate=session.WorldSessionActivate(transition_id=b\u0027t\u0027*32))",
+                                                            "        self.assertTrue(active.HasField(\u0027opened\u0027))",
+                                                            "        self.assertEqual(self.geometry(peer).view_id, active.opened.geometry_view_id)",
+                                                            "        self.assertTrue(self.revoke_grant(world.peers[0], child).HasField(\u0027grant\u0027))",
+                                                            "        self.denied(peer.call(geometry_view=session.WorldGeometryViewRequest()), core.UNAUTHORIZED)",
+                                                            "        self.assertTrue(self.geometry(world.peers[0]).sequence)",
+                                                            "",
+                                                            "    def test_geometry_real_edit_and_second_actor_motion(self):",
+                                                            "        self.enroll_second()",
+                                                            "        world = self.scoped_world(session.REGISTERED_ACTORS)",
+                                                            "        room = self.world_info[\u0027entry_room\u0027]",
+                                                            "        self.object(world)",
+                                                            "        self.grant_to_second(world, [grants.WORLD_ENTER, grants.WORLD_NAVIGATE])",
+                                                            "        peer = world.peers[1]",
+                                                            "        second = self.authenticate_second(peer).opened.actor_id",
+                                                            "        first = world.peers[0]",
+                                                            "        before = self.geometry(first)",
+                                                            "        self.assertIn(second, [item.id for item in before.actors])",
+                                                            "        self.assertTrue(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])).HasField(\u0027action\u0027))",
+                                                            "        moved = self.until(lambda:self.geometry(first),",
+                                                            "            lambda v: next(item.pose for item in v.actors if item.id == second) !=",
+                                                            "                      next(item.pose for item in before.actors if item.id == second))",
+                                                            "        self.assertEqual(moved.world_revision, before.world_revision)",
+                                                            "        self.assertTrue(peer.act(stop=core.ActorStopRequest()).HasField(\u0027action\u0027))",
+                                                            "        self.assertTrue(first.act(object_grab=core.ObjectGrabRequest(id=\u0027object-one\u0027)).HasField(\u0027action\u0027))",
+                                                            "        self.assertTrue(first.act(object_move=core.ObjectMoveRequest(pose=self._object_pose())).HasField(\u0027action\u0027))",
+                                                            "        self.assertTrue(first.act(object_release=core.ObjectReleaseRequest(commit=True)).HasField(\u0027action\u0027))",
+                                                            "        after = self.geometry(first)",
+                                                            "        self.assertGreater(after.world_revision, moved.world_revision)",
+                                                            "        self.assertNotEqual(after.objects[0].pose, before.objects[0].pose)"
+                                                        ]
+                                          },
+                                          {
+                                              "start_line":  180,
+                                              "end_line":  189,
+                                              "lines":  [
+                                                            "    def test_geometry_encoded_size_limit_is_controlled(self):",
+                                                            "        world = self.scoped_world(native=False)",
+                                                            "        peer = world.peers[0]",
+                                                            "        room = self.world_info[\u0027entry_room\u0027]",
+                                                            "        for index in range(4000):",
+                                                            "            identity = f\u0027large-{index:04d}-\u0027 + \u0027x\u0027 * 245",
+                                                            "            world.management(\u0027world.create\u0027, entity={\u0027id\u0027:identity, \u0027kind\u0027:\u0027object\u0027, \u0027room\u0027:room,",
+                                                            "                \u0027pose\u0027:pose((0,0,-2))})",
+                                                            "        self.denied(peer.call(geometry_view=session.WorldGeometryViewRequest()), core.INVALID_ARGUMENT)",
+                                                            "        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField(\u0027state\u0027))"
+                                                        ]
+                                          }
+                                      ]
+                     },
+                     {
+                         "path":  "spatial-os-luna-handoff/tests/core/test_world_authority.py",
+                         "full_source_sha256":  "7f8656db09da6c70ee860a3eae3dc96d57181670049d7bdb4b689fb10257f57f",
+                         "excerpts":  [
+                                          {
+                                              "start_line":  108,
+                                              "end_line":  153,
+                                              "lines":  [
+                                                            "    def scoped_world(self, admission=session.EXPLICIT_ACTORS, native=False, roots=None, issuer_port=None, authenticate=True, broker=None):",
+                                                            "        number = len(self.worlds); state = self.root/f\u0027scoped-world-{number}\u0027",
+                                                            "        initial = self.world(state=state)",
+                                                            "        self.world_info = initial.management(\u0027world.info\u0027); initial.close()",
+                                                            "        directory = self.root/f\u0027authority-{number}\u0027; directory.mkdir(mode=0o700)",
+                                                            "        seed = session.WorldAuthoritySeed(protocol_version=1, authority_directory=str(directory),",
+                                                            "            roots=roots() if roots else [self.terms()])",
+                                                            "        path = self.root/f\u0027seed-{number}.textproto\u0027; path.write_text(text_format.MessageToString(seed)); path.chmod(0o600)",
+                                                            "        result = subprocess.run([str(WORLD), \u0027--state-dir\u0027, str(state), \u0027--init-authority\u0027, str(path)], capture_output=True, timeout=8)",
+                                                            "        self.assertEqual(result.returncode, 0, result.stderr)",
+                                                            "        config = session.WorldIdentityConfig(protocol_version=1, issuer_client_config=str(self.config_file(endpoint_port=issuer_port)),",
+                                                            "            admission=admission, authority_directory=str(directory))",
+                                                            "        self.configure_world_participant(config,state)",
+                                                            "        config_path = self.root/f\u0027scoped-{number}.textproto\u0027; config_path.write_text(text_format.MessageToString(config)); config_path.chmod(0o600)",
+                                                            "        runtime = core.RuntimeConfig(); text_format.Parse((WORLD.parent/\u0027runtime.textproto\u0027).read_text(), runtime)",
+                                                            "        runtime.input_timeout = 10",
+                                                            "        runtime_path = self.root/f\u0027runtime-{number}.textproto\u0027; runtime_path.write_text(text_format.MessageToString(runtime))",
+                                                            "        world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path, broker=broker)",
+                                                            "        self.worlds.append(world); world.management(\u0027system.hello\u0027)",
+                                                            "        world.state_path = state; world.config_path = config_path; world.runtime_path = runtime_path",
+                                                            "        if authenticate: self.assertTrue(self.authenticate(world.peers[0]).HasField(\u0027opened\u0027))",
+                                                            "        return world",
+                                                            "",
+                                                            "    def own(self, peer, **options):",
+                                                            "        reply = peer.call(grants=session.WorldGrantList(**options)); self.assertTrue(reply.HasField(\u0027grants\u0027), reply)",
+                                                            "        return reply.grants",
+                                                            "",
+                                                            "    def root_grant(self, peer):",
+                                                            "        return next(record for record in self.own(peer).grants if not record.parent_id)",
+                                                            "",
+                                                            "    def delegate(self, peer, parent, terms, revision=None):",
+                                                            "        revision = self.own(peer).revision if revision is None else revision",
+                                                            "        peer.action_sequence += 1",
+                                                            "        return peer.call(delegate=session.WorldGrantDelegate(seq=peer.action_sequence, parent_id=parent.id,",
+                                                            "            terms=terms, expected_revision=revision))",
+                                                            "",
+                                                            "    def revoke_grant(self, peer, record):",
+                                                            "        revision = self.own(peer).revision; peer.action_sequence += 1",
+                                                            "        return peer.call(revoke=session.WorldGrantRevoke(seq=peer.action_sequence, id=record.id, expected_revision=revision))",
+                                                            "",
+                                                            "    def navigation(self, peer):",
+                                                            "        return peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0]))",
+                                                            "",
+                                                            "    def object(self, world, identity=\u0027object-one\u0027):",
+                                                            "        world.management(\u0027world.create\u0027, entity={\u0027id\u0027:identity, \u0027kind\u0027:\u0027object\u0027, \u0027room\u0027:self.world_info[\u0027entry_room\u0027], \u0027pose\u0027:pose((0,0,-2))})",
+                                                            "        return identity"
+                                                        ]
+                                          }
+                                      ]
+                     },
+                     {
+                         "path":  "spatial-os-luna-handoff/src/world/identity_sessions.cpp",
+                         "full_source_sha256":  "13addd3e704fd5c46d7a8f988bab1e564ec77fa1ab41e613f12a6e6bd3ba5eb9",
+                         "excerpts":  [
+                                          {
+                                              "start_line":  540,
+                                              "end_line":  555,
+                                              "lines":  [
+                                                            "            } else if (request.has_geometry_view()) {",
+                                                            "                if (channel.token.empty() || channel.view_id.size() != 32)",
+                                                            "                    throw WorldError(wire::UNAUTHORIZED, \"Channel has no active actor session\");",
+                                                            "                const auto status = current(channel.credential, channel.claims);",
+                                                            "                const auto actor = principal(channel.claims);",
+                                                            "                if ((config.admission() == pb::EXPLICIT_ACTORS \u0026\u0026",
+                                                            "                     !(authority ? authority-\u003eallowed(actor, \"enter\") : admitted.contains(status.actor_id()))) ||",
+                                                            "                    (authority ? !authority-\u003eallowed(actor, \"observe\") : !grants[status.actor_id()].contains(\"observe\")))",
+                                                            "                    throw WorldError(wire::FORBIDDEN, \"Actor lacks active world observation authority\");",
+                                                            "                if (channel.view_sequence == UINT64_MAX) throw WorldError(wire::STALE_SEQUENCE, \"Geometry view sequence exhausted\");",
+                                                            "                *reply.mutable_geometry_view() = actors.geometry_view(channel.token, world.info().world_id(),",
+                                                            "                    \"identity:\"+hex(issuer.issuer_id())+\":\"+hex(status.actor_id()), channel.view_id,",
+                                                            "                    generation, ++channel.view_sequence);",
+                                                            "                reply.mutable_geometry_view()-\u003eset_authority_service_incarnation(participant-\u003eservice_incarnation());",
+                                                            "                validate_geometry_view(reply.geometry_view());",
+                                                            "                channel.needs_geometry_observation = true;"
+                                                        ]
+                                          }
+                                      ]
+                     },
+                     {
+                         "path":  "spatial-os-luna-handoff/src/world/actors.cpp",
+                         "full_source_sha256":  "5b6145f0c2eb15117b7ec5fcf49781440699995935cdfc37f00a07e9a625ebfa",
+                         "excerpts":  [
+                                          {
+                                              "start_line":  220,
+                                              "end_line":  225,
+                                              "lines":  [
+                                                            "    case wire::ActorActionRequest::kObjectGrab:",
+                                                            "    case wire::ActorActionRequest::kObjectMove:",
+                                                            "    case wire::ActorActionRequest::kObjectRelease:",
+                                                            "        if (!actor.authority \u0026\u0026 !granted(actor, \"world.write\")) throw WorldError(wire::FORBIDDEN, \"World editing grant required\");",
+                                                            "        object_action(actor, request); break;",
+                                                            "    case wire::ActorActionRequest::kObserve: {"
+                                                        ]
+                                          },
+                                          {
+                                              "start_line":  592,
+                                              "end_line":  600,
+                                              "lines":  [
+                                                            "wire::ActorObservation Actors::observe(Actor\u0026 actor, const wire::ActorObserveRequest\u0026 request) {",
+                                                            "    require(request.has_width() == request.has_height(), \"Observation requires both viewport dimensions\");",
+                                                            "    const unsigned width = request.has_width() ? request.width() : 512;",
+                                                            "    const unsigned height = request.has_height() ? request.height() : 512;",
+                                                            "    validate_observation_extent(width, height, request.include_pixels());",
+                                                            "    if (!renderer_) throw WorldError(wire::UNIMPLEMENTED, \"Observation requires the compositor\");",
+                                                            "    refresh_native();",
+                                                            "    const auto view = scene(actor.token);",
+                                                            "    wire::ActorObservation result;"
+                                                        ]
+                                          }
+                                      ]
+                     },
+                     {
+                         "path":  "spatial-os-luna-handoff/src/world/objects.cpp",
+                         "full_source_sha256":  "3d02fc3fa458bcd051583b16fed070c3a651d587caaa154d2af99a4e3e71cb01",
+                         "excerpts":  [
+                                          {
+                                              "start_line":  28,
+                                              "end_line":  57,
+                                              "lines":  [
+                                                            "void Actors::object_action(Actor\u0026 actor, const wire::ActorActionRequest\u0026 request) {",
+                                                            "    refresh_objects();",
+                                                            "    if (actor.authority \u0026\u0026 request.has_object_release() \u0026\u0026 request.object_release().has_commit() \u0026\u0026 !request.object_release().commit()) {",
+                                                            "        cancel_object(actor); return;",
+                                                            "    }",
+                                                            "    if (actor.authority \u0026\u0026 !granted(actor, \"observe\")) throw WorldError(wire::FORBIDDEN, \"Observation authority required\");",
+                                                            "    if (request.has_object_grab()) {",
+                                                            "        const auto\u0026 id = request.object_grab().id();",
+                                                            "        if (id.empty() || id.size() \u003e 256 || id.find(\u0027\\0\u0027) != std::string::npos)",
+                                                            "            throw std::invalid_argument(\"Invalid object ID\");",
+                                                            "        const auto object = store_.get(id);",
+                                                            "        if (!granted(actor, \"world.write\", {object.room(), object.id()})) throw WorldError(wire::FORBIDDEN, \"Object manipulation authority required\");",
+                                                            "        if (object.kind() != wire::OBJECT) throw std::invalid_argument(\"Target is not a movable object\");",
+                                                            "        if (object.room() != actor.entity.room()) throw WorldError(wire::NOT_VISIBLE, \"Object is in another room\");",
+                                                            "        if (actor.object) throw WorldError(wire::BUSY, \"Actor already holds an object\");",
+                                                            "        auto placement = scene_pose(object.pose());",
+                                                            "        const auto holder = object_leases_.find(id);",
+                                                            "        if (holder != object_leases_.end()) placement = scene_pose(actors_.at(holder-\u003esecond).object-\u003epreview);",
+                                                            "        const auto camera = scene_pose(actor.entity.pose());",
+                                                            "        if (std::hypot(placement.p[0]-camera.p[0], placement.p[1]-camera.p[1], placement.p[2]-camera.p[2]) \u003e config_.interaction_reach())",
+                                                            "            throw WorldError(wire::OUT_OF_REACH, \"Object center exceeds interaction reach\");",
+                                                            "        const auto observation = observe(actor, wire::ActorObserveRequest{});",
+                                                            "        // Compositor waits can advance motion. Never acquire a target using stale actor context.",
+                                                            "        if (actor.entity.room() != observation.room() || actor.entity.pose().SerializeAsString() != observation.pose().SerializeAsString())",
+                                                            "            throw WorldError(wire::STALE_TARGET, \"Actor moved during visibility check\");",
+                                                            "        const auto visible = std::find_if(observation.visible().begin(), observation.visible().end(),",
+                                                            "                                         [\u0026](const auto\u0026 item) { return item.id() == id \u0026\u0026 item.kind() == wire::OBJECT; });",
+                                                            "        if (visible == observation.visible().end())",
+                                                            "            throw WorldError(wire::NOT_VISIBLE, \"Object has no visible pixels\");",
+                                                            "        if (object_leases_.contains(id)) throw WorldError(wire::BUSY, \"Object has another controller\");"
+                                                        ]
+                                          }
+                                      ]
+                     },
+                     {
+                         "path":  "spatial-os-luna-handoff/src/world/store.cpp",
+                         "full_source_sha256":  "ae45d494d40994319bfb59e1553bc83f39803c110c1a32cea03b9536c7468de3",
+                         "excerpts":  [
+                                          {
+                                              "start_line":  324,
+                                              "end_line":  334,
+                                              "lines":  [
+                                                            "wire::WorldSnapshotReply WorldStore::snapshot() {",
+                                                            "    Transaction transaction(impl_-\u003edb.get());",
+                                                            "    const auto info = impl_-\u003einfo(); wire::WorldSnapshotReply result;",
+                                                            "    result.set_world_id(info.world_id()); result.set_entry_room(info.entry_room()); result.set_world_revision(info.world_revision());",
+                                                            "    Statement q(impl_-\u003edb.get(), \"SELECT id FROM entities ORDER BY id COLLATE BINARY\");",
+                                                            "    while (q.step() == SQLITE_ROW) {",
+                                                            "        *result.add_entities() = impl_-\u003eget(q.text(0));",
+                                                            "        if (result.ByteSizeLong() \u003e max_frame_bytes - 64)",
+                                                            "            throw WorldError(wire::RESOURCE_EXHAUSTED, \"Snapshot exceeds frame limit; no partial snapshot returned\");",
+                                                            "    }",
+                                                            "    transaction.commit(); return result;"
+                                                        ]
+                                          }
+                                      ]
+                     }
+                 ]
+}

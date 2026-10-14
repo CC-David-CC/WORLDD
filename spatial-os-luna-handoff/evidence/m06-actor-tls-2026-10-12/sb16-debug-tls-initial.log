@@ -1,0 +1,33 @@
+[libprotobuf ERROR google/protobuf/text_format.cc:337] Error parsing text-format spatial.identity.v1.ActorSessionClientTlsConfig: 22:1: Expected identifier, got: 999
+PASS SIGPIPE-contract-no-global-side-effects
+PASS one-record
+PASS fragments
+PASS dns
+PASS ca
+PASS invalid-client
+PASS handshake-timeout
+PASS timeout
+PASS partial-timeout
+PASS truncated-header
+PASS truncated-body
+PASS malformed
+PASS rejected
+PASS request-id
+PASS version
+PASS outcome
+PASS unknown
+PASS closed-write
+PASS missing-client
+PASS missing-key
+PASS missing-ca
+PASS timeout-low
+PASS timeout-high
+PASS config-version
+PASS config-port
+PASS config-address
+PASS config-name
+PASS config-world
+PASS config-unknown
+PASS actor-key
+PASS mismatched-key
+31 actor-session-client TLS cases passed

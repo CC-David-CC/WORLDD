@@ -1,0 +1,44 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+native-checkpoint=1 selected=9b01a4087c5116bea973043f79f8325d A-binding=protocol_version: 1 world_id: "9b01a4087c5116bea973043f79f8325d" service_incarnation: "\024\007\337\213XQ\357\332e\002\"p\\\340yz\014\357\235\3105N}}\013\334\251\244\231\027\022\032" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "a130a86d8233803bec749495133fa633" service_incarnation: "k\312\322g\240]\274ht\232\363&J\220\251m^%Ij\323\215\343p\313\270\312\316\275\366\345D" authority_generation: 1 presentation_generation: 2
+native-checkpoint=1 pid=1613839 start=10895126
+native-checkpoint=1 pid=1613954 start=10895509
+native-checkpoint=1 pid=1613952 start=10895485
+native-checkpoint=1 pid=1613982 start=10895753
+native-checkpoint=1 pid=1613986 start=10895816
+native-checkpoint=1 pid=1613990 start=10895876
+native-checkpoint=2 selected=9b01a4087c5116bea973043f79f8325d A-binding=protocol_version: 1 world_id: "9b01a4087c5116bea973043f79f8325d" service_incarnation: "\024\007\337\213XQ\357\332e\002\"p\\\340yz\014\357\235\3105N}}\013\334\251\244\231\027\022\032" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "a130a86d8233803bec749495133fa633" service_incarnation: "k\312\322g\240]\274ht\232\363&J\220\251m^%Ij\323\215\343p\313\270\312\316\275\366\345D" authority_generation: 1 presentation_generation: 2
+native-checkpoint=2 pid=1613839 start=10895126
+native-checkpoint=2 pid=1613954 start=10895509
+native-checkpoint=2 pid=1613952 start=10895485
+native-checkpoint=2 pid=1613982 start=10895753
+native-checkpoint=2 pid=1613986 start=10895816
+native-checkpoint=2 pid=1613990 start=10895876
+native-checkpoint=3 selected=a130a86d8233803bec749495133fa633 A-binding=protocol_version: 1 world_id: "9b01a4087c5116bea973043f79f8325d" service_incarnation: "\024\007\337\213XQ\357\332e\002\"p\\\340yz\014\357\235\3105N}}\013\334\251\244\231\027\022\032" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "a130a86d8233803bec749495133fa633" service_incarnation: "k\312\322g\240]\274ht\232\363&J\220\251m^%Ij\323\215\343p\313\270\312\316\275\366\345D" authority_generation: 1 presentation_generation: 2
+native-checkpoint=3 pid=1613839 start=10895126
+native-checkpoint=3 pid=1613954 start=10895509
+native-checkpoint=3 pid=1613952 start=10895485
+native-checkpoint=3 pid=1613982 start=10895753
+native-checkpoint=3 pid=1613986 start=10895816
+native-checkpoint=3 pid=1613990 start=10895876
+native-checkpoint=4 selected=9b01a4087c5116bea973043f79f8325d A-binding=protocol_version: 1 world_id: "9b01a4087c5116bea973043f79f8325d" service_incarnation: "\024\007\337\213XQ\357\332e\002\"p\\\340yz\014\357\235\3105N}}\013\334\251\244\231\027\022\032" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "a130a86d8233803bec749495133fa633" service_incarnation: "k\312\322g\240]\274ht\232\363&J\220\251m^%Ij\323\215\343p\313\270\312\316\275\366\345D" authority_generation: 1 presentation_generation: 2
+native-checkpoint=4 pid=1613839 start=10895126
+native-checkpoint=4 pid=1613954 start=10895509
+native-checkpoint=4 pid=1613952 start=10895485
+native-checkpoint=4 pid=1613982 start=10895753
+native-checkpoint=4 pid=1613986 start=10895816
+native-checkpoint=4 pid=1613990 start=10895876
+retained-native-identity pid=1613839 start=10895126
+retained-native-identity pid=1613954 start=10895509
+retained-native-identity pid=1613952 start=10895485
+retained-native-identity pid=1613982 start=10895753
+retained-native-identity pid=1613986 start=10895816
+retained-native-identity pid=1613990 start=10895876
+PASS native-host-controller-held-input-A-B-A-stale-generation-private-denial
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed
+worldd: identity service disabled at identity_sessions.cpp:193
+worldd: Broker authority channel closed
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed
+worldd: identity service disabled at identity_sessions.cpp:193
+worldd: Broker authority channel closed
+worldd: Broker authority channel closed
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed

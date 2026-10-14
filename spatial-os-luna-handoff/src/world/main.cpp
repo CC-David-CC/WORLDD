@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     std::string display;
     bool fixture_clock = false, fixture_faults = false, migration = false;
     int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1;
+    int presentation_fd=-1,presentation_pidfd=-1,presentation_pid=-1,presentation_owner=-1;
     try {
         signal(SIGPIPE, SIG_IGN);
         for (int i = 1; i < argc; ++i) {
@@ -53,6 +54,16 @@ int main(int argc, char** argv) {
                     throw std::invalid_argument("Invalid actor channel descriptor");
                 actor_channels.push_back(fd);
             }
+            else if ((argument=="--presentation-fd" || argument=="--presentation-pidfd" ||
+                      argument=="--presentation-pid" || argument=="--presentation-owner-pid") && i+1<argc) {
+                int& value=argument=="--presentation-fd"?presentation_fd:argument=="--presentation-pidfd"?presentation_pidfd:
+                    argument=="--presentation-pid"?presentation_pid:presentation_owner;
+                if(value!=-1)throw std::invalid_argument("Duplicate presentation argument");
+                const std::string_view number(argv[++i]);
+                const auto parsed=std::from_chars(number.data(),number.data()+number.size(),value);
+                if(parsed.ec!=std::errc{} || parsed.ptr!=number.data()+number.size() || value<=2)
+                    throw std::invalid_argument("Invalid presentation argument");
+            }
             else if ((argument == "--workspace-fd" || argument == "--workspace-pid") && i + 1 < argc) {
                 int& value = argument == "--workspace-fd" ? broker_fd : broker_pid;
                 if (value != -1) throw std::invalid_argument("Duplicate broker argument");
@@ -62,6 +73,15 @@ int main(int argc, char** argv) {
                     throw std::invalid_argument("Invalid broker argument");
             }
             else throw std::invalid_argument("Unknown or incomplete worldd argument");
+        }
+        const bool presentation=presentation_fd!=-1 || presentation_pidfd!=-1 || presentation_pid!=-1 || presentation_owner!=-1;
+        if(presentation){
+            if(presentation_fd<3 || presentation_pidfd<3 || presentation_pid<3 || presentation_owner<3 || native_fd<3 ||
+                migration || !authority_seed.empty())throw std::invalid_argument("Incomplete or incompatible presentation configuration");
+            std::set<int> private_fds{presentation_fd,presentation_pidfd,native_fd};
+            if(private_fds.size()!=3 || private_fds.contains(broker_fd) || private_fds.contains(actor_listener))
+                throw std::invalid_argument("Presentation descriptors overlap another authority channel");
+            for(int fd:actor_channels)if(private_fds.contains(fd))throw std::invalid_argument("Presentation descriptor overlaps actor channel");
         }
         if (!state.is_absolute()) throw std::invalid_argument("State directory must be absolute");
         if ((actor_listener == -1) != actor_tls_config.empty()) throw std::invalid_argument("Actor TLS listener and configuration are required together");
@@ -109,7 +129,12 @@ int main(int argc, char** argv) {
         std::unique_ptr<spatial::BrokerClient> broker;
         if (broker_fd >= 0) broker = std::make_unique<spatial::BrokerClient>(broker_fd, broker_pid);
         std::unique_ptr<spatial::RenderWorker> renderer;
-        if (!display.empty()) renderer = std::make_unique<spatial::RenderWorker>(
+        if(presentation) {
+            renderer=std::make_unique<spatial::RenderWorker>(state,display,presentation_fd,presentation_pidfd,
+                presentation_pid,presentation_owner,native->descriptor());
+            close(presentation_fd);close(presentation_pidfd);
+        }
+        else if (!display.empty()) renderer = std::make_unique<spatial::RenderWorker>(
             std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display, native ? native->descriptor() : -1);
         if (native) native->consume();
         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());

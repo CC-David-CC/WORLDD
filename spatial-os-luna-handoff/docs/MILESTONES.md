@@ -1,3 +1,7 @@
+M06 qualification accepted on 2026-10-14. M01-M06 are qualified. M07-M16 remain pending.
+Read evidence/m06-gate-2026-10-14/M06-final-review.txt for exact evidence and scope.
+Older status entries below are historical. Spatial-M1 and physical acceptance remain incomplete.
+
 # Full project milestones and evidence
 
 This plan follows root AGENTS.md.

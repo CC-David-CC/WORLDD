@@ -1,0 +1,21 @@
+M06 host actor controller fixture review
+
+Each required host passed all 11 fixture cases in Debug and ASan/UBSan.
+Total: 44 passed, zero failed, zero skipped. Both runner.exit files report 0 0.
+The retained logs show no sanitizer diagnostics.
+
+The cases check A-B-A registration, generation fencing, concurrent calls, and denied preparation.
+They also check setup exceptions and uncertainty after departure, activation, and foreground selection.
+The production controller retains activated channels after uncertain presentation selection.
+It does not replay transitions or retire retained worlds.
+
+These tests use fixture wire peers. They do not qualify native presentation or real-world recovery.
+Native integration and the full M06 gate remain pending.
+
+Worker branch: m06/host-actor-controller on a5500.
+Base: 927572759bdb2b18c6d075929cf523b1ca4652c5.
+worker-source.sha256 records the worker's final source before later native packaging corrections.
+Later primary corrections changed CMake dependencies and the native identity comparison.
+Those corrections do not alter the controller or this fixture probe.
+fixture-artifacts.sha256 identifies the transferred executables used for these runs.
+Source remains unintegrated pending native review and required integration checks.

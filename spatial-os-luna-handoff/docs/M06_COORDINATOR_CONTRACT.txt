@@ -1,0 +1,89 @@
+M06 actor transition coordinator contract
+Status: proposed. Host presentation selection remains pending review.
+
+Scope
+ActorTransitionCoordinator sequences the existing ActorSessionClient protocol. It
+does not implement world state, actor identity, admission, or presentation control.
+The authenticated source inspect supplies the actor identity. The destination's
+prepared and activated replies must identify that same actor and requested world.
+The source world identifier must match the source client's configured expected
+world before any inspection or source effect. It is not derived from a host name,
+PID, room, XID, or actor label. Read-only client accessors expose configured world
+and credential-derived actor identity. Inspection must identify that actor.
+
+Sequence
+1. Inspect the authenticated active source session.
+2. Create an independently authenticated destination client and prepare it with
+   the transition ID. Keep its actions inactive. Forward explicitly supplied
+   destination room and pose without copying source context. Omitted fields stay
+   absent. Existing server rules retain valid saved destination context.
+3. Validate the prepared actor identity and destination world.
+4. Request source departure with the sequence and transition ID.
+5. Require the client's validated durable departure receipt, including matching
+   actor, world, and transition IDs.
+6. Activate the destination and validate its actor and world again.
+
+Destination activation never precedes a confirmed departure receipt. The result
+is versioned protobuf and records each confirmed fact, phase, and uncertainty.
+Destination denial or identity mismatch ends preparation, destroys its channel,
+and leaves the source client untouched. Destroying an unactivated destination
+client closes its prepared channel; the protocol defines no abort operation.
+A validated matched Error confirms a server response. It does not confirm absence
+of effects. The result preserves its typed server_error and human diagnostic.
+Departure errors report DEPARTURE_UNCERTAIN. No success receipt means no activation.
+Activation errors report ACTIVATION_UNCERTAIN and preserve confirmed source departure
+and its revision. They never preserve usable destination preparation.
+Preparation errors report PREPARATION_REJECTED with effect_uncertain set. This names
+the received error, not a guarantee about destination effects. Authentication may
+consume challenges or materialize bootstrap grants before returning an Error.
+The source remains usable because destination preparation never mutates its channel.
+Locally detected destination configuration mismatches precede destination I/O.
+They report PREPARATION_REJECTED without uncertainty.
+Read-only inspection errors report SOURCE_INSPECTION_REJECTED with typed diagnostics.
+They do not promise continuing server authority. Subsequent operations reauthorize.
+Lost or invalid replies report the corresponding uncertain phase.
+The coordinator never retries, reconnects, replays, or fabricates reconciliation.
+The active destination client transfers to the caller only after confirmed
+activation.
+
+The coordinator receives no private key, BrokerClient, ControlOwner, supervisor
+authority, presentation binding, or compositor command. Actor credentials and
+signing stay in the actor-control scope. The coordinator does not detach or
+retire either world's presentation binding. Other actors and applications stay
+live. Destination activation does not claim foreground host selection. The
+result sets host_presentation_selection_pending for the later narrow trusted
+host-selection boundary.
+
+Schema addition
+proto/spatial/identity/v1/actor_transition.proto adds ActorTransitionResult and
+ActorTransitionPhase. This is a new versioned result schema. It does not alter
+world_session.proto or locked acceptance contracts. The run03 correction retains enum numbers and existing fields.
+DEPARTURE_REJECTED (11) and ACTIVATION_REJECTED (8) remain deprecated draft values.
+The coordinator no longer emits them. Typed server_error is appended as field 15.
+Matched errors can coexist with effect uncertainty. No locked contract changes.
+
+
+Implementation and evidence
+ActorSessionClient provides authenticated inspect, prepared authentication,
+depart, and activation. Checked error replies raise ActorSessionRejected with the
+typed Error.
+Mutating errors permanently fail and close the client, including authentication,
+action, departure, and activation errors. No production error contract promises safe
+reuse. Activation consumes server preparation before later failures. The client
+clears its local preparation on failure and blocks all subsequent requests.
+Read-only inspect errors retain the local lifecycle guard, without promising
+server authority or proving an unchanged server session. No message strings infer effects.
+Invalid envelopes, invalid successful replies, and lost exchanges close and poison
+the client. No operation automatically retries. The coordinator
+uses those production operations and validates their replies. Current focused
+fixture coverage and native qualification are tracked separately; a build alone
+does not prove ordering, runtime behavior, TLS, host selection, or native acceptance.
+
+Focused regression scope
+The coordinator probe uses independent private wire peers and actual production
+ActorSessionClient endpoints. Peers verify actor authentication signatures and
+request envelopes. They do not implement world state or admission policy. Cases
+cover ordering, hostile identities, denial, lost replies, timeouts, no replay,
+abandoned-channel closure, and optional room/pose forwarding. Server persistence,
+native host selection, and full cross-host qualification require separate evidence.
+The correction only builds probes on G164. Runtime execution remains unrun.

@@ -1,0 +1,28 @@
+# Selected coding-host build validation; CTest is registration-only.
+Checkout: /home/dflanag3/src/spacial-m06-combined-build-check-20261012
+Base: 38f6605f0aba6d0073ad18bc65630543539a4b44 (origin/m06/world-transitions)
+Placeholder: /tmp/m06-combined-build-check-20261012/registration-only-plan.pb (registration only; no execution)
+
+Debug configure:
+cmake -S spatial-os-luna-handoff -B local/m06-combined-build-check-20261012/debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=OFF -DSPATIAL_ACTOR_TRANSITION_PLAN=/tmp/m06-combined-build-check-20261012/registration-only-plan.pb
+Purpose: Configure integrated source and test registrations with a non-runtime absolute plan path.
+
+Debug build:
+flock local/m06-combined-build-check-20261012/debug-build.lock cmake --build local/m06-combined-build-check-20261012/debug --target spatial-actor-transition-crosshost-probe spatial-actor-transition-integration-driver spatial-host-actor-native-runner -j2
+Purpose: Compile the three requested targets and normal dependencies with two build jobs.
+
+Debug registration listing:
+ctest --test-dir local/m06-combined-build-check-20261012/debug -N -R 'actor-transition-real-world|actor-transition-crosshost|host-actor-controller-native'
+Purpose: Confirm all three tests register; do not execute tests.
+
+ASan configure:
+cmake -S spatial-os-luna-handoff -B local/m06-combined-build-check-20261012/asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=ON -DSPATIAL_ACTOR_TRANSITION_PLAN=/tmp/m06-combined-build-check-20261012/registration-only-plan.pb
+Purpose: Configure the same integrated source with ASan/UBSan enabled.
+
+ASan build:
+flock local/m06-combined-build-check-20261012/asan-build.lock cmake --build local/m06-combined-build-check-20261012/asan --target spatial-actor-transition-crosshost-probe spatial-actor-transition-integration-driver spatial-host-actor-native-runner -j2
+Purpose: Compile the requested targets and normal dependencies with ASan/UBSan and two build jobs.
+
+ASan registration listing:
+ctest --test-dir local/m06-combined-build-check-20261012/asan -N -R 'actor-transition-real-world|actor-transition-crosshost|host-actor-controller-native'
+Purpose: Confirm the same three tests register under ASan; do not execute tests.

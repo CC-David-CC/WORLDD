@@ -1,0 +1,44 @@
+M06 final candidate review
+Date: 2026-10-13
+Qualification: UNQUALIFIED. Full normal local and cross-host gates remain pending.
+Baseline: 258920de00e45448f104eedcc97147cf878406b3.
+Assembly branch: m06/final-qualification-20261013.
+Builder checkout: /home/dflanag3/src/m06-final-qualification-20261013 on a5500.
+
+Reviewed focused corrections:
+Attribution oracle 642548ca0f56be01a32871b90b3e644f284cafa4 passed sixty methods.
+Controller runner d447ee6d0ddcc1197ab257d028e3b00012ccf9c9 passed four native cases.
+Caller correction b4ae69e5d246c55893c3f343daa9e7ddfe806005 preserves observation-denial fixtures.
+Host-session launcher 8d878f7f32319bc695836042a276161dcb759681 passed 104 methods.
+Storage witness d8acf84c6315f78e97bebf0a0e1d7b6b7f9de69b passed fifty-two methods.
+Destination selection b3d30c2110d9b3e93160397b6e196c26c944b2fd passed sixty-four methods.
+Its history preserves db490b85bae61eb02cd2f15bb71152f8b55b9526 and 35fd1fc17c54cd41b9caf978f2271c598ff30715.
+Gate fixes 3a1b3845f44cf6c438f4299b021314b56ac19168 and 100133380e1e9a3ef483971c452a6febfe88a617 passed eighty static checks.
+All focused runtime counts cover both qualification hosts in Debug and ASan-UBSan.
+The primary reviewed each changed file and inspected result evidence before assembly.
+
+The destination overlay used the frozen source directory as its working directory.
+The registered CTest working directory is deployment/build/PROFILE.
+Record that focused-launcher difference. The normal gate must use the registered directory.
+The final normal gate must reassess the combined source, not combine old passing reports.
+
+Both hosts preserved all 1,475 explicit deployment pins after the focused runtime corrections.
+Native resource scopes were removed. No sanitizer findings or skips were reported.
+Primary independently verified twelve storage volumes are unmounted and their images have no loop mapping.
+Original failures, rejected drafts, and mis-scoped twelve-method runs remain preserved and excluded.
+
+Read-only gate preflight checked both profiles on both hosts.
+Each profile preserved all 165 registrations after the declared startup and storage augmentations.
+The preflight recorded clone-only implicit working-directory differences before inventory comparison.
+It ran no test bodies, services, or builds. It does not qualify the phase.
+
+Build one frozen candidate with Debug and ASan-UBSan testing-enabled profiles.
+Enable SPATIAL_INPUT_TESTS. Use build parallelism two and directory-specific build locks.
+Build separate testing-disabled production closures for both profiles.
+Retain source, dependency, binding, executable, runtime, and metadata pins.
+Verify archives with the reviewed sequential reader, including gzip trailer validation.
+Deploy to both required hosts. Record fresh metadata relocation receipts for both profiles.
+Run complete Debug, sanitizer, harness, locked P10, and storage gates on each host.
+Run the normal semantic and native cross-host gate after both local gates release their slots.
+Keep XACE active. Keep CallbackList separate and deferred.
+Do not mark M06 complete before its requirement audit passes.

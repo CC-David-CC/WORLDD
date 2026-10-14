@@ -156,6 +156,13 @@ Bool SpatialSecurityPrivileged(ClientPtr client)
         (state->label.role == ROLE(SUPERVISOR) || state->label.role == ROLE(COMPOSITOR));
 }
 
+Bool SpatialSecurityInputController(ClientPtr client)
+{
+    if (!configured || !active || !client || client == serverClient) return FALSE;
+    SpatialConnection *state = connection(client);
+    return state->connection && !state->closed && state->label.role == ROLE(COMPOSITOR);
+}
+
 Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner)
 {
     if (!active || !client || !owner || client == serverClient || owner == serverClient) return FALSE;

@@ -1,0 +1,21 @@
+2026-10-12: Installed tmux on sb16 and sb16-2.
+
+Commands used on each host:
+sudo -n apt-get update -qq
+sudo -n apt-get install -y tmux
+tmux -V
+
+Both hosts reported tmux 3.4. Both installation commands exited successfully.
+Installed dependencies: libevent-core-2.1-7t64 and libutempter0.
+No existing packages were upgraded. Codex was not installed.
+Login configuration and SSH recovery access were not changed.
+
+To remove tmux if required:
+sudo -n apt-get remove tmux
+Leave dependencies installed unless their other consumers have been checked.
+
+Host allocation:
+sb16 and sb16-2 run deployed tests and native runtime sessions.
+middle-child and a5500 run coding agents, builds, and development worktrees.
+Preserve existing checkouts and evidence during the transition.
+tmux survives SSH disconnects. It does not survive host reboots.

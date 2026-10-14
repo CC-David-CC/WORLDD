@@ -1,0 +1,14 @@
+{
+  "host": "G164",
+  "checkout": "/home/dflanag3/src/spacial-m06-linear-snapshot-size-20261013",
+  "branch": "m06/linear-snapshot-size-20261013",
+  "expected_head": "fc302de44670f87737dd7ab46ef83b24c60f1612",
+  "qualification": "FOCUSED-PASS",
+  "action": "push",
+  "state": "BOX-GIT VERIFIED",
+  "started": "2026-10-13T07:28:03.919769+00:00",
+  "commit": "fc302de44670f87737dd7ab46ef83b24c60f1612",
+  "destination": "refs/heads/m06/linear-snapshot-size-20261013",
+  "remote_commit": "fc302de44670f87737dd7ab46ef83b24c60f1612",
+  "remaining_status": "?? local/"
+}

@@ -1,0 +1,47 @@
+Production host-session draft review
+
+Reviewed the live Luna run01 on a5500. Recheck the terminal source before correction.
+Do not edit a live worker's owned files.
+
+1. The draft skips registering the initial world in HostActorController.
+A-to-B succeeds, but B-to-A cannot find a registered destination.
+Register a fresh authenticated factory for every world, including the initial world.
+The controller already rejects transitions to the currently active world.
+
+2. The draft authenticates the initial actor without selecting its retained presentation.
+SessionCoordinator.start_world attaches a world; explicit selection is a separate operation.
+Confirm initial foreground selection through the existing checked API before accepting control requests.
+
+3. Control framing resets a ten-second poll timeout after each partial read/write.
+Partial progress can extend a request indefinitely. The descriptor remains blocking.
+Use bounded nonblocking I/O and one absolute deadline per frame/exchange.
+Distinguish idle waiting from an in-progress request; ordinary inactivity must not unexpectedly stop the session.
+Validate the private unnamed socket transport as required, including both endpoint shapes.
+
+4. Startup or loop exceptions skip the explicit checked world cleanup block.
+Use one cleanup path for normal EOF, signals, partial startup, and request failure.
+Attempt cleanup for every retained owner. Preserve uncertain results without falsely reporting completion.
+Verify shutdown ordering against SessionCoordinator lifetime rules.
+
+5. Reject startup descriptor aliases with the configuration and control channels.
+Validate required descriptors before starting owned services.
+
+Required evidence includes native A-B-A, initial selection, slow/partial framing, stale generations,
+partial startup failure, disconnect cleanup, and a production BUILD_TESTING=OFF executable.
+No runtime qualification is claimed for this draft.
+
+Later source review still finds items 1, 2, and 5 unchanged.
+Framing now has separate per-read deadlines, but descriptors remain blocking and idle reads still expire.
+Header and body require one deadline once a request starts; idle waiting must remain usable.
+
+6. Normal cleanup calls retire_world and retire_broker for healthy owners without an issuer fence.
+The retirement contract rejects this. Follow the existing checked healthy shutdown path.
+Preserve explicit retirement for owners whose failure and issuer fence require it.
+Do not weaken retirement validation to make ordinary shutdown succeed.
+The recovery test's attempt02 independently reproduced this teardown mistake.
+
+7. Failed start_world can retain an internal world entry without returning its owner to this caller.
+The coordinator already attempts checked stop in its failure path.
+Review a narrow trusted cleanup/status API for these retained entries before changing production lifetime behavior.
+Do not expose retained owners or administrative cleanup through the actor-control protocol.
+Add a native partial-start regression which checks all retained processes and presentation cleanup.

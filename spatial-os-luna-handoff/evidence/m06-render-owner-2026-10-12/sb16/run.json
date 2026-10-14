@@ -1,0 +1,123 @@
+{
+  "host": "sb16",
+  "runner_pid": 1515484,
+  "status": "commands_passed_needs_review",
+  "source_sha256": {
+    "CMakeLists.txt": "422dd7b8ebc1bac54e5975fc3e9d928652b70c92a21e38ddaee59ba966c165c3",
+    "src/platform/render_process.cpp": "d0b13082e45e281ceb2fe2a4fd3b5e783cb9b4e1bb3356d76359755958a953f3",
+    "src/platform/render_process.hpp": "3bea2222793cab5ddf63468bce7c0365072d632801d174f882d5741efcb91d75",
+    "src/platform/render_worker.cpp": "40ca20d7edbbfd5dee4a0738d7ef7be27162d72aecc035539b1593c90a7a5374",
+    "src/platform/render_worker.hpp": "6fdcfc138b173287353989ff1b845d4c8cad75a3873b8092baad0997bf59c801"
+  },
+  "selected": [
+    "render-observation-client",
+    "render-runtime",
+    "worldd-lifecycle",
+    "actor-runtime"
+  ],
+  "profiles": {
+    "Debug": {
+      "status": "commands_passed_needs_review",
+      "results": [
+        {
+          "name": "configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff",
+            "-B",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Debug",
+            "-DSPATIAL_INPUT_TESTS=ON",
+            "-DSPATIAL_SANITIZERS=OFF"
+          ],
+          "exit_code": 0,
+          "seconds": 1.0174681229982525
+        },
+        {
+          "name": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0,
+          "seconds": 183.61536158600939
+        },
+        {
+          "name": "focused",
+          "command": [
+            "ctest",
+            "--test-dir",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+            "--parallel",
+            "1",
+            "-V",
+            "-R",
+            "^(render-observation-client|render-runtime|worldd-lifecycle|actor-runtime)$",
+            "--output-junit",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-render-owner-01/Debug/results.xml"
+          ],
+          "exit_code": 0,
+          "seconds": 7.459891061997041
+        }
+      ]
+    },
+    "ASan-UBSan": {
+      "status": "commands_passed_needs_review",
+      "results": [
+        {
+          "name": "configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff",
+            "-B",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Debug",
+            "-DSPATIAL_INPUT_TESTS=ON",
+            "-DSPATIAL_SANITIZERS=ON"
+          ],
+          "exit_code": 0,
+          "seconds": 1.0171049979981035
+        },
+        {
+          "name": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0,
+          "seconds": 270.2006084769964
+        },
+        {
+          "name": "focused",
+          "command": [
+            "ctest",
+            "--test-dir",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+            "--parallel",
+            "1",
+            "-V",
+            "-R",
+            "^(render-observation-client|render-runtime|worldd-lifecycle|actor-runtime)$",
+            "--output-junit",
+            "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-render-owner-01/ASan-UBSan/results.xml"
+          ],
+          "exit_code": 0,
+          "seconds": 13.574396044990863
+        }
+      ]
+    }
+  },
+  "phase_complete": false
+}

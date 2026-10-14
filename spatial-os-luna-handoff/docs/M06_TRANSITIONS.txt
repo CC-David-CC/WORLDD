@@ -1,0 +1,118 @@
+M06 transition implementation plan, 2026-10-12
+Status: host ownership, departure receipts, and destination preparation implemented.
+The local actor-session client passes focused checks on both hosts in Debug and ASan/UBSan.
+TLS actor transport also passes focused checks on both hosts in Debug and ASan/UBSan.
+Transition sequencing, host selection integration, and full actor transition qualification remain pending.
+Departure confirms input cleanup and persists the source actor before replying.
+Prepared destination authentication does not create a controller or enable actions.
+Activation consumes the preparation and rechecks credential status and admission.
+SessionCoordinator owns a persistent PresentationOwner independently of supervised worlds.
+Each world uses a private authenticated channel and its own native input credential.
+Normal world shutdown leaves shared graphics available to surviving worlds.
+Cleanup recovery requires exact supervisor receipts and a stopped retained world process.
+Focused tests cover both hosts in Debug and ASan/UBSan. This is not M06 qualification.
+Baseline checkpoint: a513bd7b84ef1814b579a8a5945b80920253059b.
+Qualified runtime source: 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47.
+Work branch: m06/world-transitions.
+Both hosts have isolated source overlays at /home/dflanag3/src/spacial_desktop-m06-20261012.
+Frozen M05 checkouts and evidence remain separate.
+
+Required outcome
+An authenticated actor can switch between admitted worlds through the production actor-control path.
+The host's XLibre server and presenting spatialwm keep their exact process identities during a normal transition.
+World authorities keep separate identities, persistent state, admission policy, and actors.
+The destination restores its saved valid room, pose, and workspace selection for this actor.
+A new actor uses an explicit valid spawn or the destination entry spawn.
+Unavailable or unauthorized workspace selections clear. No source selection transfers implicitly.
+Room changes preserve workspace selection.
+World entry creates no workspace, application, cabinet, or execution grant.
+Remote worlds supply authorized world state. Remote application streaming and input remain excluded.
+
+Original baseline constraints (superseded by the host presentation increment)
+world/main.cpp owns RenderWorker and passes it to Actors and serve.
+platform/render_worker.cpp forks spatialwm, sets parent-death SIGKILL, and owns its socket and pidfd.
+Its destructor and I/O timeout can terminate the compositor.
+render/main.cpp accepts one ordered private command stream and exits on stream closure.
+SessionCoordinator owns broker administration and retained world launches with checked cleanup and retirement.
+Its current start_world requires world-scoped compositor configuration.
+Moving a pointer or reconnecting an actor socket cannot establish the required presentation lifetime.
+
+Actors::open already restores existing actor entities and validates selected workspace access.
+WorldStore stores actor and workspace context separately in each world database.
+Actors::close stops motion, cancels object manipulation, and releases input or schedules deferred release.
+Close alone is not proof that deferred input cancellation has settled.
+The transition must explicitly checkpoint context after cancellation and before acknowledging departure.
+Use existing authority and broker checks. Do not add a privileged actor path.
+
+Additional ownership review
+SessionLaunch and AuthorityLaunch bind ControlOwner to a retained COMPOSITOR native scope.
+Stopping that scope revokes its native credential. This provides an independent input cleanup boundary.
+Do not replace every world's native scope with one shared compositor credential.
+Renderer currently uses one Display for surfaces, NativeInput, and XInputRouter.
+XInputRouter indexes seats by actor ID alone. Distinct world bindings must not alias those seats.
+The presentation design must preserve independently revocable world input ownership under a persistent graphics owner.
+One candidate is separate authenticated input connections per world binding, with one persistent graphics connection.
+Review server seat ownership and surface identity checks before adopting that candidate.
+spatialinput.c binds each seat to its creating X connection and closes seats when that connection ends.
+It rejects seat operations from another connection. Preserve these server checks.
+Xlib connection loss can terminate its process. A revoked world connection must not kill the persistent graphics owner.
+Evaluate a world-scoped input worker against a checked nonfatal transport before choosing the connection layout.
+The scoped NativeInput candidate now reuses the supervisor's bounded transport through NativeChannel.
+Its independent-connection tests pass on both hosts in Debug and ASan-UBSan. See M06_INPUT_SCOPE_CONTRACT.txt for the explicit server admission change.
+Each connection must retain its original native scope and checked revocation receipt.
+Retire its input seats before accepting a replacement binding.
+The world transition coordinator must receive checked cancellation completion before it enables destination input.
+An actor close response alone is insufficient when RenderWorker remains busy.
+
+Production increment
+Give the host presentation an owner whose lifetime is independent of a selected world authority.
+Keep supervised shutdown, native credential ownership, process limits, and checked cleanup for that owner.
+Retain parent-death protection under the correct owner.
+Separate the compositor transport client from the process owner.
+Bind each admitted presentation connection to its world ID and authority generation.
+Use a versioned protobuf schema for presentation binding and transition messages.
+Reject messages from retired bindings, stale generations, and unselected worlds before rendering or input effects.
+Keep raw renderer commands private to trusted services.
+Validate local surface identity through the existing broker and XLibre boundaries.
+Never accept remote XIDs as local surfaces.
+
+Transition ordering to implement and test
+1. Authenticate the actor to the destination and check its world admission.
+2. Keep destination interaction inactive while preparation is incomplete.
+3. Stop source motion and cancel its held keys, buttons, modifiers, grabs, capture, and manipulation previews.
+4. Require checked cancellation completion before destination control becomes active.
+5. Persist the source actor's valid context through its authoritative world.
+6. Restore and authorize the destination's own actor context and workspace selection.
+7. Select the retained destination presentation after confirmed destination activation.
+8. Acknowledge the committed selection with explicit world and generation identity.
+Contract correction, 2026-10-12: actor transitions do not retire or detach world presentation bindings.
+Other actors and applications can still use the source world.
+Keep both world attachments. Replace their generations only when their authority or attachment changes.
+Revoke the departing actor's source interaction through its session and checked input cleanup.
+Keep host selection behind a trusted controller. Do not expose SessionCoordinator administration to actors.
+Destination admission does not grant workspace access or require workspace selection authority.
+If host selection fails after destination activation, report those separate facts without replaying the transition.
+Admission denial leaves the source usable. Partial failure after departure must report its actual state.
+Do not claim distributed atomicity or replay uncertain input after recovery.
+Old connections, delayed replies, and reused actor or surface identifiers must not reach the new binding.
+The precise protobuf state machine and recovery record require review before integration.
+
+Focused checks selected before implementation
+New transition integration cases must verify exact XLibre and spatialwm PID/start identities across switches.
+Cover A-to-B-to-A room/pose restoration, explicit spawn, entry spawn, and private-world denial.
+Cover distinct per-world workspace selection, removed availability, revoked access, and room-only movement.
+Hold real native keys/buttons and manipulation previews before switching; verify balanced release.
+Inject delayed source messages, stale generations, destination loss, source loss, and controller disconnect.
+Check that entry creates no workspace, grant, cabinet, or process.
+Repeat shared/private transitions with worlds authoritative on either allowed host.
+
+Related existing suites
+workspace-context and actor-portals cover selection independence and room transitions.
+world-identity, world-authority, and world-shared-state cover identity, admission, and persistent context.
+render-runtime and render-observation-client cover compositor transport and observation behavior.
+world-application-control, native-actor-input, and native-application-input cover real input and control release.
+session-world, session-replacement, session-dependent-cleanup, and session-coordinator-retirement cover ownership and recovery.
+Run affected cases in Debug and ASan/UBSan on both hosts for the combined increment.
+Broaden checks when shared supervisor or renderer infrastructure changes.
+Run the full required qualification only at the M06 phase gate.
+No tests are passed by this plan. Do not edit locked assertions to fit the implementation.

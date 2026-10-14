@@ -105,8 +105,8 @@ class ParticipantRuntimeTests(ClientFixture):
         op=pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
         result=self.execute(self.owner_peer,self.challenge(self.owner_peer,op));self.assertTrue(result.HasField('participant'),result)
         self.registration=result.participant
-    def start(self, domains=None, endpoint_port=None, mode=None, **changes):
-        config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(self.config_file(endpoint_port)),
+    def start(self, domains=None, endpoint_port=None, mode=None, io_timeout_ms=5000, **changes):
+        config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(self.config_file(endpoint_port, io_timeout_ms=io_timeout_ms)),
             private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1)
         for name,value in changes.items():setattr(config,name,value)
         path=self.root/('participant-config-'+str(len(self.connections))+'.textproto')
@@ -211,7 +211,7 @@ class ParticipantRuntimeTests(ClientFixture):
 
     def test_stalled_transport_records_operation_and_cause_without_reconnect(self):
         peer = FaultPeer(self, stall_handshake=True)
-        runtime = self.start(endpoint_port=peer.port)
+        runtime = self.start(endpoint_port=peer.port, io_timeout_ms=700)
         update = self.error(runtime, core.UNAVAILABLE)
         self.assertEqual(update.error.message, 'Authority participant channel failed; reconciliation is required')
         self.assertEqual(peer.connections, 1); self.assertEqual(self.rows(), [])

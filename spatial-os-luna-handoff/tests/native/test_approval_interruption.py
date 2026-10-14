@@ -130,9 +130,9 @@ class ApprovalInterruptionTests(existing.AuthoritySupervisorTests):
         config = self.config()
         runtime = identity.AuthorityParticipantRuntimeConfig()
         text_format.Parse(Path(config.participant.runtime_config).read_text(), runtime)
-        runtime.issuer_client_config = str(self.issuer.config_file(self.participant_relay.port))
+        runtime.issuer_client_config = str(self.issuer.config_file(self.participant_relay.port, io_timeout_ms=700))
         Path(config.participant.runtime_config).write_text(text_format.MessageToString(runtime))
-        # The observer's approval call must outlive the unchanged 700 ms participant deadline.
+        # The observer's approval call must outlive the explicit 700 ms fault-test participant deadline.
         config.authorization.issuer_client_config = str(self.issuer.config_file(self.approval_relay.port, io_timeout_ms=3000))
         self.marker = self.root / 'must-not-execute'
         config.launch.CopyFrom(process.AuthorityProcessLaunch(executable='/usr/bin/python3',
@@ -223,7 +223,7 @@ class ApprovalInterruptionTests(existing.AuthoritySupervisorTests):
         config = self.config()
         runtime = identity.AuthorityParticipantRuntimeConfig()
         text_format.Parse(Path(config.participant.runtime_config).read_text(), runtime)
-        runtime.issuer_client_config = str(self.issuer.config_file(relay.port))
+        runtime.issuer_client_config = str(self.issuer.config_file(relay.port, io_timeout_ms=700))
         Path(config.participant.runtime_config).write_text(text_format.MessageToString(runtime))
         proc, channel = self.running(config)
         active = self.activate_child(proc)

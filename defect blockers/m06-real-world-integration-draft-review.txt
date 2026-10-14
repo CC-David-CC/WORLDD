@@ -1,0 +1,19 @@
+Real-world actor integration draft review, 2026-10-12.
+Status: unintegrated test setup defects; correction assigned.
+Branch: m06/actor-realworld-integration on middle-child.
+
+Primary observed two cmake builds targeting the same build directory simultaneously.
+Exact processes: 50039 and 50230, both building build-m06-actor-debug.
+Stopped run01 and verified exit1, no tmux session, and no remaining cmake process.
+The correction requires a directory-specific flock and polling of existing tool handles.
+
+Draft test errors found before runtime:
+- Raw identity bytes were compared with namespaced WorldSessionOpened actor strings.
+- The A-B-A-B sequence reused closed actor connections instead of fresh channels.
+- Imported transition enum values were referenced through the wrong generated Python module.
+- Only final B context was checked; intermediate A restoration was not observed.
+- Required entry-spawn and workspace-selection cases were missing.
+- Driver used a 4MiB frame bound instead of the existing 1MiB transport convention.
+
+Sol medium run02 must correct these defects and implement the requested real-service checks.
+No runtime pass is claimed for this draft. Primary execution remains on sb16 and sb16-2.

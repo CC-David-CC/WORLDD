@@ -1,0 +1,19 @@
+M06 cleanup receipt recovery increment. Not milestone qualification.
+
+Run02: seven suites, 78 individual tests per host/profile.
+Both sb16 and sb16-2 passed Debug and ASan-UBSan: 312 executions.
+Run03: presentation-server and native-compositor_identity, 26 tests per host/profile.
+Both hosts passed both profiles: 104 executions.
+Total: 416 executions; zero failures. Repeated cases are not unique requirements.
+
+Recovery rejects a live retained world, wrong native credential, wrong process inode, and missing native receipt.
+Exact stopped receipt retries retire the binding. An independent native witness observes balanced held-input release.
+The private protocol test uses synthetic scope identities supplied by its trusted parent.
+It does not independently prove cgroup cleanup. The session-world tests exercise real retained supervisor receipts.
+The shared compositor remains usable for another world.
+
+Reviewed native credential binding, recovery identity checks, coordinator receipt source, and forked destructor ownership.
+Changed source hashes match Windows and both host overlays. See receipt-source-sha256.json.
+Source diff whitespace check passes with core.whitespace=cr-at-eol.
+Remaining review: adversarial host reply validation, attach-reply loss, additional native credential mismatch coverage.
+M06 actor transitions and full phase qualification remain pending. No new commit or publication claimed.

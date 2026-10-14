@@ -115,7 +115,7 @@ void ChildHandleServer::pump(const AuthorityLaunch& launch) {
         require(request.ParseFromArray(bytes.data(), static_cast<int>(count)), "Malformed private handle request");
         reply.set_request_id(request.request_id()); validate_message(request);
         require(request.protocol_version() == 1 && request.has_expected(), "Invalid private handle request");
-        state.pending_handle.reset(launch.duplicate_broker_pidfd(request.expected()));
+        state.pending_handle.reset(request.world()?launch.duplicate_world_pidfd(request.expected()):launch.duplicate_broker_pidfd(request.expected()));
         *reply.mutable_launch() = launch.inspect();
     } catch (const std::exception& error) {
         state.pending_handle.reset(); reply.clear_outcome();

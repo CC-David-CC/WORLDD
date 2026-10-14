@@ -1,0 +1,57 @@
+Final recovery candidate: attempt05 passed 16 of 16 checks.
+Four cases passed on sb16 and sb16-2 in Debug and ASan/UBSan.
+Zero failed, zero skipped. All four runtime commands exited zero.
+Both runner.done files exist. All test processes are terminal.
+No AddressSanitizer, LeakSanitizer, or runtime-error diagnostic appears in final runtime/coordinator logs.
+This is focused qualification, not the M06 gate.
+
+Cases cover departure before commit, departure after commit, activation before commit, and activation after commit.
+The fourth case retains an explicit destination spawn at x=55 after committed activation loses its reply.
+Independent read-only SQLite witnesses check exact revisions, actor insertion, pose, and unchanged other entities.
+All cases check uncertainty, receipt facts, no replay, checked cleanup, retired crashed ownership, fresh generations,
+stale owner rejection, fresh authenticated actor channels, and restored committed context.
+The rollback activation case remains distinct and still passes.
+
+Corrections made after the initial worker handoff:
+1. Apply two already reviewed mkdir(exist_ok=True) fixture changes for intentionally seeded world state.
+2. Healthy final owners use stop/recover with exact process/native receipts and no reservations.
+   Issuer retirement remains mandatory for crashed owners. It was incorrectly required for healthy final teardown.
+3. Open a new administrative TLS connection before each registration transaction in this recovery fixture.
+   Each registration obtains a fresh challenge and signature. There is no post-failure retry or replay.
+   Server idle 3s and request 5s deadlines remain unchanged. Global TLS fixture remains unchanged.
+4. Add explicit destination room/pose test transport fields and thin forwarding to ActorTransitionCoordinator.
+   Add after-commit activation coverage while retaining before-commit rollback coverage.
+No production library or security check changed.
+
+Diagnostic04 reproduced the natural setup failure with a 5.149272966-second idle gap.
+Issuer PID 1598766 was still alive at the registration challenge. EOF arrived after 0.000252569 seconds.
+The configured issuer idle timeout is 3 seconds. The failure was a stale connection, not issuer process death.
+Original stop_daemons did not record exit codes, so attempt03 issuer process exit values are unavailable.
+No kernel OOM entries were found during the corresponding observation window.
+The diagnostic was test-only and is excluded from final candidate source.
+
+Preserved history:
+Attempt01: 12 setup errors from already existing seeded world directories.
+Attempt02: 12 failures at incorrect healthy-owner retirement, after crash/recovery assertions.
+Attempt03: 10 passes and 2 setup errors on sb16-2 ASan from stale administrative TLS connections.
+Diagnostic04: one reproduced idle-expiry error and one pass; no deadlines changed.
+Attempt05: all 16 cases passed on the corrected four-case candidate.
+
+Artifact provenance:
+Original frozen support archives are identified in bundles.sha256 and source-pin.json.
+Rebuilt Debug/ASan test adapters, generated bindings, and changed fixture sources are in four-case-overlay.sha256.
+The verified overlay archive hash is 6f273bcd916cbeda9675b0defa972b15774a06f81f225a3837e26e4fbefaf81a.
+run-attempt05.sh verifies support archives and files before applying the separately verified overlay.
+Private XACE wrappers and existing delegated resource tools remain in use.
+Final source diff was reviewed by the primary before qualification.
+After qualification, documentation alone records final results.
+Final documentation SHA256: 50e21c3577ba18d93c37a176b036eb602fe7d786cd294ef95d3cf88d3b5e562c.
+
+Remote runtime evidence: /home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-05 on both hosts.
+Source worktree: a5500:/home/dflanag3/src/spacial-m06-retained-recovery-20261012.
+Branch: m06/retained-transition-recovery. No commits or pushes were made by this agent.
+
+Next: primary checkpoints and integrates the reviewed candidate.
+Resolve the existing actor_transition_pb2 generator overlap with host-actor-python-protobuf during integration.
+Rerun affected combined-source checks. Preserve distinct before/after-commit activation coverage.
+Full M06 gate and remaining Spatial-M1 work stay pending.

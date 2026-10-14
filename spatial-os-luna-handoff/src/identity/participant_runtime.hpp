@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace spatial::supervisor { class AuthorityLaunch; }
@@ -20,6 +21,7 @@ public:
     void submit(v1::ParticipantCommand command);
     std::optional<v1::ParticipantUpdate> poll();
     bool failed() const;
+    std::string service_incarnation() const;
 private:
     friend class spatial::supervisor::AuthorityLaunch;
     // Preserve the child's revision. The issuer resolves synchronization races.

@@ -1,0 +1,33 @@
+{
+    "qualification":  "ASan run ended with failed geometry suite; cleanup observations do not convert it to PASS",
+    "observed_utc":  "2026-10-12T15:24:37Z",
+    "hosts":  {
+                  "sb16-2":  {
+                                 "python3_processes":  "none",
+                                 "tmux":  "no server running",
+                                 "worldd_identityd_scope_probe_processes":  "none"
+                             },
+                  "sb16":  {
+                               "python3_processes":  "none",
+                               "tmux":  "no server running",
+                               "worldd_identityd_scope_probe_processes":  "none"
+                           }
+              },
+    "checks":  [
+                   "tmux ls",
+                   "ps -C python3 -o pid=,ppid=,etime=,args=",
+                   "ps -C worldd,identityd,spatial-process-scope-probe -o pid,ppid,etime,stat,comm"
+               ],
+    "command_result":  {
+                           "sb16-2":  {
+                                          "geometry_command_exit":  1,
+                                          "geometry_wrapper_exit":  1,
+                                          "geometry_terminal_status":  "COMPLETE"
+                                      },
+                           "sb16":  {
+                                        "geometry_command_exit":  1,
+                                        "geometry_wrapper_exit":  1,
+                                        "geometry_terminal_status":  "COMPLETE"
+                                    }
+                       }
+}

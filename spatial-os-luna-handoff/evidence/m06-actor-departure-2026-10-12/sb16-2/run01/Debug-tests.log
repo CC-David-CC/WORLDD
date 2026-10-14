@@ -1,0 +1,103 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 28
+    Start  28: world-participant
+
+28: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_world_participant.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/identityd" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/worldd"
+28: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+28: Environment variables: 
+28:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+28: Test timeout computed to be: 180
+28: test_actor_serving_world_requires_participant_configuration (__main__.WorldParticipantTests.test_actor_serving_world_requires_participant_configuration) ... ok
+28: test_barrier_stays_pending_until_held_event_stops_real_actor_motion (__main__.WorldParticipantTests.test_barrier_stays_pending_until_held_event_stops_real_actor_motion) ... ok
+28: test_clean_restart_preserves_world_and_uses_new_generation (__main__.WorldParticipantTests.test_clean_restart_preserves_world_and_uses_new_generation) ... ok
+28: test_crash_retains_obligation_and_rejects_unfenced_replacement (__main__.WorldParticipantTests.test_crash_retains_obligation_and_rejects_unfenced_replacement) ... ok
+28: test_service_cannot_activate_a_different_world (__main__.WorldParticipantTests.test_service_cannot_activate_a_different_world) ... ok
+28: test_world_activates_before_admitting_actor_and_cleanly_releases (__main__.WorldParticipantTests.test_world_activates_before_admitting_actor_and_cleanly_releases) ... ok
+28: 
+28: ----------------------------------------------------------------------
+28: Ran 6 tests in 8.304s
+28: 
+28: OK
+1/3 Test  #28: world-participant ................   Passed    8.44 sec
+test 113
+    Start 113: world-identity
+
+113: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_world_identity.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/identityd" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/worldd"
+113: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+113: Environment variables: 
+113:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+113:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-xprobe
+113: Test timeout computed to be: 120
+113: test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+113: test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+113: test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+113: test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+113: test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+113: test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+113: test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation) ... ok
+113: test_departure_receipt_follows_native_input_release (__main__.WorldIdentityTests.test_departure_receipt_follows_native_input_release) ... ok
+113: test_departure_requires_authenticated_session_and_sequence (__main__.WorldIdentityTests.test_departure_requires_authenticated_session_and_sequence) ... ok
+113: test_departure_saves_motion_and_restores_context_without_explicit_checkpoint (__main__.WorldIdentityTests.test_departure_saves_motion_and_restores_context_without_explicit_checkpoint) ... ok
+113: test_disconnect_releases_real_native_input_and_keeps_application (__main__.WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application) ... ok
+113: test_excessive_frame_closes_actor_channel_and_releases_input (__main__.WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input) ... ok
+113: test_idle_session_keeps_issuer_checks_available (__main__.WorldIdentityTests.test_idle_session_keeps_issuer_checks_available) ... ok
+113: test_issuer_failure_cancels_live_control_and_does_not_kill_application (__main__.WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application) ... ok
+113: test_private_world_requires_separate_admission (__main__.WorldIdentityTests.test_private_world_requires_separate_admission) ... ok
+113: test_proof_is_bound_to_its_channel (__main__.WorldIdentityTests.test_proof_is_bound_to_its_channel) ... ok
+113: test_public_admission_does_not_grant_action_authority (__main__.WorldIdentityTests.test_public_admission_does_not_grant_action_authority) ... ok
+113: test_revocation_between_challenge_and_completion_prevents_entry (__main__.WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry) ... ok
+113: test_revoked_credential_cannot_enter (__main__.WorldIdentityTests.test_revoked_credential_cannot_enter) ... ok
+113: test_session_reconnect_restores_saved_room_and_pose (__main__.WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose) ... ok
+113: test_world_audience_and_random_binding_are_checked (__main__.WorldIdentityTests.test_world_audience_and_random_binding_are_checked) ... ok
+113: test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor) ... ok
+113: test_wrong_key_and_replayed_completion_fail (__main__.WorldIdentityTests.test_wrong_key_and_replayed_completion_fail) ... ok
+113: 
+113: ----------------------------------------------------------------------
+113: Ran 23 tests in 38.304s
+113: 
+113: OK
+2/3 Test #113: world-identity ...................   Passed   38.53 sec
+test 121
+    Start 121: actor-runtime
+
+121: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_actors.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-test-host" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/worldd"
+121: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+121: Environment variables: 
+121:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+121: Test timeout computed to be: 60
+121: test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+121: test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+121: test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+121: test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+121: test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+121: test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+121: test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallows_clock_override) ... ok
+121: test_runtime_configuration_changes_motion (__main__.ActorRuntimeTests.test_runtime_configuration_changes_motion) ... ok
+121: test_sequence_zero_missing_and_foreign_tokens (__main__.ActorRuntimeTests.test_sequence_zero_missing_and_foreign_tokens) ... ok
+121: test_uncheckpointed_motion_and_old_token_do_not_survive (__main__.ActorRuntimeTests.test_uncheckpointed_motion_and_old_token_do_not_survive) ... ok
+121: 
+121: ----------------------------------------------------------------------
+121: Ran 10 tests in 1.868s
+121: 
+121: OK
+3/3 Test #121: actor-runtime ....................   Passed    1.97 sec
+
+The following tests passed:
+	world-participant
+	world-identity
+	actor-runtime
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  48.94 sec

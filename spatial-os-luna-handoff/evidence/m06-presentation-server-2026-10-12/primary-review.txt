@@ -1,0 +1,45 @@
+M06 compositor presentation service: focused increment review
+
+Production changes
+spatialwm has an authenticated private presentation mode.
+The control owner must launch the compositor. A retained pidfd pins its lifetime.
+Control requests attach, select, inspect, and retire world channels.
+Each world channel has a fixed binding and retained process handle.
+World channels initialize their own sealed native input configuration.
+Reservation order does not constrain initialization order.
+Only the selected world can draw the foreground. Selection clears old pixels.
+World transport failure stops routing and attempts native input retirement.
+Unconfirmed native cleanup remains UNCERTAIN. It cannot acknowledge clean shutdown.
+The legacy compositor entry point remains available for existing callers.
+
+Review
+Reviewed all ten changed production/build/test files listed in source-sha256.json.
+Checked descriptor ownership, exception cleanup, generation identity, sender credentials,
+process lifetime, request correlation, pixel selection, and native seat retirement.
+The control owner pin closes the reviewed PID-reuse/lifetime gap.
+No locked acceptance files changed. This adds a private production protocol.
+World channel identifiers do not replace actor authorization in worldd.
+
+Execution evidence
+Run06 is the final source candidate on sb16 and sb16-2.
+Each host passes Debug and ASan-UBSan with leak detection enabled.
+Each profile passes 16 server, 11 transport, 10 input-binding, and 7 compositor-identity checks.
+Total final coverage: 176 check executions, zero failures, zero skips.
+Audits verify 435 source files, locked files, real binary hashes, and sanitizer logs.
+Independent X clients witness foreground pixels and balanced key/button events.
+Owner-death and world-death tests retain socket copies to distinguish pidfd handling from EOF.
+
+Preserved failures and corrections
+Run04 passed behavior assertions but expected exit 1 after owner-channel loss.
+main.cpp explicitly returns 2 for that exception. The test now checks exact exit 2.
+Run02 used the wrong compositor-identity test name. Run03 and Run06 execute the correct suite.
+Earlier runs are historical evidence; use Run06 for final candidate qualification.
+
+Scope limits and next work
+This is not the M06 gate and not a user-visible actor transition yet.
+SessionCoordinator does not yet own this persistent compositor mode.
+worldd still uses the legacy owned RenderWorker path.
+Integrate retained host ownership, world channel clients, actor checkpoint/transfer ordering,
+and exact supervisor cleanup receipts for UNCERTAIN retirement.
+Then test world transitions and run the full both-host M06 qualification gate.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending.

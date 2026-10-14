@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "bash",
+    "/home/dflanag3/spatial-qualification/m06-geometry-run04-command.sh",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/13-world-diagnostic-timing",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/debug-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-debug-on/world-diagnostic-timing-test"
+  ],
+  "started_epoch": 1791881010.3633382,
+  "suite": "world-diagnostic-timing",
+  "timeout_provenance": {
+    "ctest_timeout_seconds": null,
+    "qualification_override_seconds": 60
+  },
+  "timeout_seconds": 60
+}

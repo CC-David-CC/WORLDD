@@ -1,0 +1,22 @@
+{
+  "host": "sb16",
+  "pid": 1587000,
+  "status": "failed",
+  "commands": [
+    {
+      "name": "Debug-tests",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "-V",
+        "-R",
+        "^presentation-server$",
+        "--output-junit",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-presentation-server-04/Debug-results.xml"
+      ],
+      "exit_code": 8
+    }
+  ],
+  "error": "RuntimeError('Debug-tests')"
+}

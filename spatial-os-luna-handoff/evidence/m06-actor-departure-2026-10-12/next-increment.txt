@@ -1,0 +1,26 @@
+Next coherent M06 increment: destination preparation and actor transition client.
+
+Use the existing signed challenge proof for each destination.
+Add explicit preparation without opening an actor controller or permitting actions.
+Retain the proved credential and requested spawn on the destination channel.
+Recheck credential and admission when activation arrives; a prepared admission is not permanent authority.
+Bind preparation, departure, and activation to one unpredictable transition identity.
+Source departure receipt must match source world, actor, transition, and request.
+Keep destination interaction disabled until checked departure and presentation selection finish.
+If destination admission fails before departure, preserve the source controller.
+If activation fails after departure, report no active destination; do not replay source input.
+Keep actor/world identity separate from current host process or connection.
+
+Production client needs inherited actor-channel and authenticated TLS transports with bounded protobuf framing.
+Reuse cryptographic proof helpers and issuer identity checks. Do not embed test fixture signing code.
+The host presentation selector remains private; the actor client cannot issue arbitrary renderer commands.
+Test complete A/B transitions with real worlds and same host compositor, not a callback-only state machine.
+Remote shared-world geometry and context remain required; remote application pixels and input stay excluded.
+
+Client review requirements:
+Before signing, check challenge protocol, purpose, issuer identity, actor credential, destination world audience, nonce, channel binding, and lifetime.
+Pin the expected destination identity independently of its reply.
+Reject unsolicited descriptors, malformed replies, unexpected operation results, stale request IDs, and oversized frames.
+Use bounded transport I/O and preserve uncertainty after disconnect; do not reconnect and replay consequential operations automatically.
+Local channels must retain their creator and world process identity; remote channels must authenticate their TLS peer.
+Expose only the same actor actions to human and agent controls.

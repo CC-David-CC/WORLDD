@@ -1,0 +1,57 @@
+M06 held-input namespace PID correction
+Status: COMPILE PASSED; NATIVE RUNTIME UNRUN; QUALIFICATION PENDING.
+Host: middle-child. Checkout: /home/dflanag3/src/spacial-m06-held-input-20261012.
+Branch: m06/held-input-transitions. Base/HEAD: 6f3b1001c514f7b4dd59460f62cf1a6d715c72e5.
+No runtime test, SSH, commit, or push was performed. Run02 and its draft source archive are preserved.
+
+Changed source: CMakeLists.txt, src/testing/host_actor_native_checks.hpp,
+tests/native/test_host_actor_controller.py, docs/M06_HELD_INPUT_TRANSITIONS.txt.
+The first two and the Python fixture were already in the run02 draft. This attempt
+corrected only the test harness process identity check and documented its selected checks.
+
+The independent X probe's ready PID is namespace local. The harness now scans the
+host /proc for the exact probe argv and namespace-local PID, then verifies the
+candidate is a descendant of the owned workspaced process. It verifies the
+probe's mounted /state/data is the launched application state directory. It checks
+the wrapper's matching argv and PID namespace. It pins both processes with pidfds.
+Each retained check requires both pidfds live, unchanged host start identities,
+unchanged PID namespace and local PID, and the original parent relationship.
+Independent X event acknowledgements remain separate evidence.
+
+Selected before build in docs/M06_HELD_INPUT_TRANSITIONS.txt:
+  host-actor-controller-native: four native transition cases and identity retention.
+  session-application: confined process and resource-backed fixture integration.
+  session-replacement: adjacent session lifecycle behavior.
+These are registered for later qualification. They were not executed here.
+
+Build commands and results (PASS):
+  flock spatial-os-luna-handoff/build-m06-held-debug/.build.lock cmake --build spatial-os-luna-handoff/build-m06-held-debug --target spatial-host-actor-native-runner -j2
+  flock spatial-os-luna-handoff/build-m06-held-asan/.build.lock cmake --build spatial-os-luna-handoff/build-m06-held-asan --target spatial-host-actor-native-runner -j2
+Logs: run03/debug-build.log and run03/asan-build.log.
+Both targets reached 100 percent. Both builds retain broker policy and resource limits.
+The CTest registration and bundle launcher use with_resource_delegate.py --native
+and with_adapter_resources.py. The plain host-controller launcher is not used.
+
+Static checks PASS: Python py_compile; bash -n launcher; git diff --check;
+ctest -N registration of three selected tests in both builds; 550 manifest hashes;
+tar archive listing. Runtime PASS: 0. Runtime FAIL: 0. Runtime UNRUN:
+host-actor-controller-native, session-application, session-replacement on sb16
+and sb16-2, both profiles. XACE server receipt verification remains UNRUN.
+
+Bundle: local/m06-held-input/run03/m06-held-input-bundle.tar.gz
+SHA256: b30e7853b41c89fb277179e71c3d97dae1ef8d27807f78bafa55b7e76da1e513
+Manifest: bundle/bundle.sha256 (550 files), all checked.
+The bundle includes project src, proto, native, tests, harness, config, tools,
+generated Python bindings, runtime.textproto, required binaries, and ldd libraries.
+Debug runner SHA256: 3a71284b3da98bc6aaa76444c3a5ed66453c5ea5dbe9f0a8412db6ddd68fc340
+ASan runner SHA256: 79fc659bf69c68055f13f8116cf0b2b20584e7bc4ec4267841cf0fa0cc335738
+Harness SHA256: 2c8b6772062098fd92ec196d50dd2c92f49a6bb607b94c9628c0ebf03304810d
+Python fixture SHA256: 2ccc81ca5e1c5629cf8d9b6f85e6dc693dbe20bfd627499807a2436a85ebea0c
+CMake SHA256: f69fb8c950db8bc9f85f7dd9a2de7319c2782d155788b7c8d1422ba9971d0920
+Selection document SHA256: fa0a65ba572958fe8c99e0ec5784d3a9e37dab6b868ef6250354968099b9a51e
+
+After approved transfer and extraction, on sb16 and sb16-2 run from bundle root:
+  ./run-qualification.sh debug /absolute/path/to/reviewed-XACE-Debug-receipt.json /absolute/path/to/evidence-debug
+  ./run-qualification.sh asan /absolute/path/to/reviewed-XACE-ASan-receipt.json /absolute/path/to/evidence-asan
+Inspect native X logs, sanitizer output, exact rejection, and checked teardown.
+Remaining gap: native runtime evidence and the reviewed XACE receipts on both hosts.

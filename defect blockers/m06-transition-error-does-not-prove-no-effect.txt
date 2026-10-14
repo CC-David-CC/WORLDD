@@ -1,0 +1,34 @@
+M06 review: an error reply does not prove that an operation had no effects.
+Status: confirmed source-level defect in the unintegrated transition draft.
+Resolution: corrected in worker 79c134390 and combined source 9275727.
+Combined focused checks passed on both hosts in Debug and ASan/UBSan.
+See spatial-os-luna-handoff/evidence/m06-actor-combined-2026-10-12/primary-review.txt.
+Real server durability-failure integration remains pending. The original finding follows.
+Date: 2026-10-12.
+
+Evidence:
+identity_sessions.cpp settle() calls checkpoint_closed after actor departure.
+If checkpoint_closed fails, it replies STORAGE_ERROR:
+"Actor departed but context save was not confirmed".
+dispatch() activation consumes channel.prepared before admission checks and actors.open.
+The generic exception handler can return INTERNAL_ERROR after partial work.
+
+The draft ActorSessionClient treats all matched Error replies as ActorSessionRejected.
+It keeps the previous lifecycle state usable.
+The draft coordinator reports DEPARTURE_REJECTED without effect uncertainty.
+That inference is unsupported by the production server.
+
+Required correction:
+Retain typed server errors for diagnostics.
+Do not equate a valid Error envelope with proof of no effects.
+Fail closed after a mutating request error unless an explicit server contract proves safe reuse.
+For departure STORAGE_ERROR or INTERNAL_ERROR, report effect uncertainty.
+Do not activate the destination without a matching departure success receipt.
+Do not infer effects by parsing human-readable error messages.
+Preserve source usability when destination preparation fails: its source channel was untouched.
+A rejected destination activation must not leave a reusable Prepared client when the server consumed preparation.
+Add regression cases using actual production client and coordinator.
+Cover post-departure STORAGE_ERROR and post-activation INTERNAL_ERROR.
+Keep native/real-world tests pending until run.
+
+This defect is in an unintegrated worker branch, not the reviewed M06 checkpoint.

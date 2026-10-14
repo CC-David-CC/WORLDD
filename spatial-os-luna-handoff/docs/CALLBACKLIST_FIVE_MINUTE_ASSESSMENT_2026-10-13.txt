@@ -1,0 +1,25 @@
+CallbackList migration: five-minute read-only assessment
+Date: 2026-10-13
+Scope: source inspection only; no builds, tests, edits to source, host jobs, or pushes.
+
+Checkout and provenance
+- Draft: a5500:/home/dflanag3/src/xserver-callbacklist-20261012
+- Branch feature/callbacklist-pixel-authorization; base/current HEAD e01f6a678fec8da2c31482e87fef3da2a90c0fdc.
+- Draft is dirty by design: 54 tracked files changed, 3 untracked files, 236 insertions and 530 deletions in tracked diff summary. Preserve it untouched.
+- Active project: a5500:/home/dflanag3/src/spacial-m06-native-geometry-integration-20261013
+- Branch m06/native-geometry-integration-20261013; HEAD d80fd229889e8c10f4c864bae49688cfc71f28a3. Current status describes M06 combined geometry as passing selected Debug and sanitizer suites, while native presentation/full M06 gate remain pending. XACE stays active baseline.
+
+Findings
+1. The draft is a broad server migration, not a small patch. It removes Xext/xace.c, xace.h, and xacestr.h; introduces DIX callback wrappers in Xext/access.c and dix/access_priv.h; migrates call sites across dix/, os/, and Xext/; and adds test/access-callbacks.c. Its tracked diff spans 54 files. The supplied review record says the seven dispatch records passed Debug and ASan on both hosts (four suite executions); broad unit had a signal_logging_test failure despite exit 0. Native pixel-request tests and final SpatialSecurity integration were unrun. Treat these as inherited evidence, not independently revalidated here.
+2. The M06 policy adapter has exactly seven remaining XACE registrations: resource, window image, drawable, property, selection, send, and receive. These are at spatial-os-luna-handoff/server/xlibre/spatialpolicy.c:474-480 in the active checkout. The six other lists are already direct callbacks, as task input records. Adapting just the policy is bounded and medium-sized: change seven registrations/deletions and callback record types, resolve any record/API differences, then compile and run policy-specific regressions. Likely files: spatialpolicy.c and possibly its adjacent header/tests only. Do not pull M06 geometry changes into the xserver branch; they live in the project adapter.
+3. DRI3 is a distinct security question. In active spatialpolicy.c:402-459, extension_allowed returns false for nonprivileged extensions unless their base is explicitly listed. DRI3 is absent, so ordinary DRI3 requests are denied by current extension access/dispatch policy. This narrows present exposure. It does not prove FD export revocation safety, nor prove privileged/internal paths cannot export a pixmap FD. The draft changes resource callback dispatch at Xext/dri3/dri3_request.c for pixmap creation; this does not itself add a DRI3 export check. Review dri3_fd_from_pixmap and ownership/revocation semantics, then add a focused native export/denial regression. No bypass was reproduced in this assessment.
+4. Practical parallel path: keep current M06 XACE branch and qualification unchanged. Keep the CallbackList draft isolated and dirty. For a later bounded comparison, branch from the reviewed CallbackList draft, port only spatialpolicy callback adapters, add exact registration/removal and successful/denied authorization regressions, then separately resolve DRI3 export behavior. Use independent worktrees. Compare both implementations against the same policy cases and preserve XACE as the M1 qualification baseline until explicit replacement review. No merge of M06 geometry into xserver is needed.
+5. Relative effort: broad callback plumbing is already drafted, though not fully qualified. Policy adapter port is a small-to-medium follow-up after API review. Security confidence remains low until native pixel requests, full SpatialSecurity integration, DRI3 FD export/revocation, and corrected broad unit signal_logging_test are resolved. The upstream PR #3918 closed 2026-10-12; maintainer preference and reviewer concern are recorded in task inputs. Avoid a calendar ETA before the DRI3 audit and integration test scope are known.
+
+Commands and sources inspected
+- Read project AGENTS.md and installed skills/spatial-worker-coordination/SKILL.md.
+- On a5500, checked git status, branch, HEAD, diff stat, draft wrapper/test code, Xext/dri3/dri3_request.c diff, active spatialpolicy.c registrations and extension allowlist, and spatial-os-luna-handoff/CURRENT_STATE.md.
+- Active adapter registrations: spatial-os-luna-handoff/server/xlibre/spatialpolicy.c lines 474-480.
+- DRI3 default-deny logic: same file, extension_allowed, lines 402-459.
+- Draft callback wrappers/tests: Xext/access.c and test/access-callbacks.c.
+- This is source assessment only. No test result from this five-minute task is claimed.

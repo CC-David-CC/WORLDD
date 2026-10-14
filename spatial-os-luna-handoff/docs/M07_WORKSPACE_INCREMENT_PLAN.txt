@@ -1,0 +1,123 @@
+M07 workspace identity and presentation gap map. Read-only preparation,2026-10-12.
+Reviewed root HEAD06fad322c62468d93106df2889eca4db076d35c9.
+No builds/runtime/source changes. M07 must not advance before the M06 gate.
+
+Contract
+docs/MILESTONES.md M07: one execution authority; multiple authorized representations;
+explicit availability/copy; independently mutable copy gets new identity; no copied credentials/processes/leases.
+Root AGENTS: workspace has no owning/default room. Availability, selection, placement are independent.
+Copy authorized project data, application definitions, workspace state and reproducible environment configuration.
+Assign membership/delegation/credentials/budgets separately. No remote live application streaming or migration in M1.
+M08 owns full cabinet/file operations; M09 application leases; M13 restoration orchestration.
+M07 still needs durable representation references and copyable definition/state boundaries to meet its own contract.
+
+Implemented source foundation, not a fresh PASS claim
+src/workspace/store.hpp/.cpp ExecutionStore is host execution registry with no world/room owner.
+workspace_create/get bind workspace ID to one worktree and repository; duplicate ID rejected.
+store.cpp687-705 rejects reuse of either worktree or backing repository by another workspace.
+This prevents unsafe shared Git administration. Explicit copies should allocate distinct backing repositories,
+not weaken this check or force a branch into a second writable linked worktree.
+ExecutionStore import_repository/create/remove/operation supply real bounded Git storage primitives.
+workspace/storage_owner.*, storage_client.*, git_command.* contain existing confined administrative Git boundary.
+workspace/authority.* and store.cpp access/application_access/launch intersect persistent actor grants and policy.
+Static member edits are rejected for persistent authority-bound workspaces.
+Selection-only revocation preserves otherwise valid processes; execution-right loss stops affected processes.
+
+src/world/store.cpp368-407 stores explicit world_workspaces availability and per-world actor_workspaces selection.
+Making unavailable clears selections; transactions preserve prior state on failure.
+src/core/protocol.cpp kWorkspaceAvailable checks broker existence on enable, then writes world availability.
+This is trusted management, not a new public actor administration action.
+src/world/actors.cpp selected_workspace and workspace_select refresh broker permission and availability.
+Room moves do not implicitly switch workspace. Actor/session transitions retain world-specific selection.
+Workspace grants/bootstrap application do not create availability or geometry.
+
+src/world/surfaces.hpp/.cpp owns native surface placements; handles/generations come from spatialwm.
+Transient surfaces follow same-application parents. Slot entities can persist placement intent.
+This is not a workspace representation registry: surfaces_ maps one native surface ID to one placement,
+not multiple independent representation IDs referencing one authoritative workspace.
+Existing native identity includes workspace/application/server IDs, so preserve those links.
+
+Existing relevant tests, source coverage only
+tests/core/test_workspaces.py: no room/world owner or automatic geometry; policy intersection;
+bound Git isolation; durable per-actor selection; revocation; room move process continuity;
+selection write rollback; cleanup and availability rollback; private-envelope rejection; migrations.
+tests/core/test_workspace_authority.py: authenticated selection/confined launch; admission versus access;
+grants versus availability; read-only/partial scope; policy intersection; revocation and independent grants;
+persistent restart; idle/busy authority cancellation; static edits blocked under persistent authority.
+tests/core/test_workspace_bootstrap.py: bootstrap application does not imply availability.
+tests/core/test_application_observation.py and native M04/M06 suites cover separate observation/native identity boundaries.
+Their historical qualification evidence must be reassessed after M07 changes; no new tests ran in this audit.
+
+Absent or incomplete behavior
+No workspace-copy production API or operation state machine found in ExecutionStore or broker.proto.
+No durable workspace-level representation identity linking world/room/transform to one execution workspace.
+No copyable application-definition/environment/workspace-state manifest exposed by the execution registry.
+No semantic actor operation for explicit copy or workspace representation management.
+No demonstrated cross-world multiple representation test preserving one authoritative mutable directory/process tree.
+No explicit copy regression proving separate Git admin/data/state and excluded identities/live resources.
+Current globally meaningful workspace-ID authority discovery across independent brokers is not a consensus service.
+Do not claim distributed duplicate-instance fencing from one broker's UNIQUE constraints.
+
+Increment A: durable workspace representation references and authorized presentation
+Prerequisite: M06 geometry view and native presentation integrated/qualified; frozen M06 gate complete.
+Own additive nonlocked workspace presentation proto, world/store.*, world/actors.*, identity_sessions.*,
+broker access facade only as needed, authority checks, geometry projection, focused tests/CMake/docs.
+Use one representation ID per placement; reference existing workspace ID, world-owned room and transform.
+Do not create execution state or workspace membership when adding/moving/removing a representation.
+Availability remains explicit and independent. Removing one representation must preserve availability,
+other representations, workspace files and processes unless separately commanded.
+Use entry room only when explicit placement request omits room. Preserve later moves.
+Geometry may be visible/locked without exposing names, files, branch or application metadata.
+Do not implement M08 file actions here. Do not stream remote application pixels/input.
+For locally executed applications, retain existing native workspace/application identity and process tree.
+Authority design must explicitly separate world manipulation from workspace access and metadata disclosure.
+Do not infer file authority from WORLD_MANIPULATE or representation visibility.
+New authority rights, if needed, require documented nonlocked schema contract changes and validator tests.
+
+A regression oracles
+Two representations in different rooms/worlds reference exact same workspace/worktree authority.
+Adding/removing/moving them never duplicates processes or mutates Git/credentials/membership.
+Same authorized project change is observed through both references; one process retains PID/start identity.
+Unavailable workspace cannot be selected; availability/selection creates no placement.
+Room administrator can move authorized geometry without reading workspace metadata/files.
+Denied actor gets locked permitted geometry with no sensitive names; otherwise valid unauthorized operations deny.
+Revocation removes affected metadata/control routes immediately and preserves valid execution independently.
+Restart preserves placement IDs/transforms and one workspace authority. Injected storage failure rolls back placement.
+Cross-host shared geometry shows references while application streaming remains unavailable by design.
+
+Increment B: explicit independent workspace copy with durable outcome
+Prerequisite: define copyable manifest boundaries and source/destination authorization before coding.
+Own additive broker/storage copy schemas; workspace/store.*, storage_owner.*, storage_client.*,
+workspace/authority.*, world actor routing/client APIs, declarative definition/state records, focused tests/docs.
+Allocate new workspace ID, independent backing repository/worktree and writable application-state directories.
+Reuse bounded spatial-bwrap/ProcessScope Git worker; no network or host-directory access expansion.
+Never copy issuer/actor/service keys, grants, delegation records, native cookies, leases, PIDs or live tokens.
+Destination policy/membership/budgets must be separately configured and authorized, not cloned implicitly.
+Copy policy/data must be explicit: current uncommitted authorized data is not merely a Git commit clone.
+Capture a coherent source boundary or report conflict/uncertainty; do not claim SQLite atomically covers filesystem/Git.
+Persist copy operation ID/state, checked staging/publication and recovery receipts; retries must not create duplicate authority.
+Inspect symlink/hardlink/path traversal and Git hooks/config/filter boundaries using existing confined storage mechanisms.
+Application definitions/environment manifests are data; exclude runtime caches and secrets by schema/policy,
+not by arbitrary filename guessing. M13 later starts restored applications; M07 copy must not start them.
+
+B regression oracles
+Dirty and committed authorized source data copied as requested; independent destination edits cannot change source.
+Same branch/commit does not merge identities. Separate repositories/admin dirs and source inode protection verified.
+Source processes stay running, destination has none; no held input, leases, credentials, grants or old tokens copied.
+Read-only/partial/denied source access and unauthorized destination policy yield intended denial without effects.
+Malicious Git filters/hooks and symlink escapes stay contained; bounded worker limits remain enforced.
+Revocation during copy blocks unauthorized completion and leaves recoverable explicit outcome.
+Failure before publication, after data copy and during durable acknowledgment leaves deterministic recovery,
+no double workspace binding and no silent lost uncommitted data. Retry ID mismatch rejected.
+Restart preserves copied identity/data/definitions/state; destination budgets and grants remain separately assigned.
+
+Qualification strategy
+Record named focused tests before each coherent increment; both hosts Debug+ASan for affected store/process/native lifetimes.
+A: focused world/authority/representation plus native presentation and observation isolation on both hosts;
+one shared authority geometry scenario in both directions. No remote app streaming test requirement.
+B: confined storage/Git/copy/authority/recovery suites on both hosts, malicious filters and independent byte/inode witnesses.
+Run related existing workspace/bootstrap/application-observation and M06 selection/transition regressions after integration.
+Use exact qualified XACE wrapper plus pinned EGL dependencies; do not replace graphics checks with CORE_ONLY.
+At M07 phase gate run full required cumulative Debug/sanitizer/harness/locked acceptance on bothhosts.
+Physical SpaceMouse, GPUperformance and longsoak remain their declared M14/M15 gates.
+Preserve failures; checkpoint reviewed coherent commits through box-git; no phase completion from this plan.

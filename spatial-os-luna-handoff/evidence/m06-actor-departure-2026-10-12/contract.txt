@@ -1,0 +1,27 @@
+Departure is an additive WorldSession operation. Existing close semantics are unchanged.
+A request needs the authenticated source session, a fresh actor sequence, and a 32-byte transition identity.
+The world consumes the sequence and closes the actor session. Further source actions are unauthorized.
+The actor remains reserved until outer-scheduler cancellation settles and its context save completes.
+Only that actor is checkpointed. Workspace selection already belongs to the world database.
+The reply includes transition identity, world identity, actor identity, and resulting world revision.
+A context-save failure returns an error after departure; it does not claim rollback or safe destination activation.
+Connection loss suppresses the reply but retains pending cleanup and save while the authority remains running.
+An unreceived receipt is uncertain. No retry or cross-host atomicity is claimed.
+
+Next integration must authenticate and prepare destination admission without enabling interaction.
+The host must await the source receipt before selecting destination graphics and enabling destination control.
+There is currently no production actor client/orchestrator for this sequence; add one using signed identity and existing transports.
+Test private-world denial before departure, A-to-B-to-A context, source/destination failures, stale replies, and unchanged XLibre/spatialwm process identities.
+
+Review correction: retain a token copy across native cleanup. Revocation callbacks can clear the channel token during a renderer wait. The copied token preserves the exact session-map removal. Final validation must include this correction.
+
+Destination preparation extension:
+Authentication begin may carry a 32-byte transition identity. Successful signed authentication returns prepared instead of opened.
+Prepared authentication retains the existing configured bootstrap behavior; it does not invent grants or bypass admission.
+No actor controller or actor geometry is created by preparation. Actions and inspection remain unauthorized.
+The preparation expires after 60 seconds; this is a reservation lifetime, not an operation delay.
+Activate must match its transition identity and recheck credential status and admission.
+Activation consumes the preparation. Replayed activation cannot create another controller.
+Close, transport loss and credential revocation discard preparation.
+A world-policy change is checked again at activation, even if preparation previously succeeded.
+Spawn validation and controller conflicts may still reject activation; a coordinator must report this post-departure failure honestly.

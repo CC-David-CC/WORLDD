@@ -12,7 +12,9 @@ public:
     ChildHandleClient(const ChildHandleClient&) = delete;
     ChildHandleClient& operator=(const ChildHandleClient&) = delete;
     ProcessHandle broker(const v1::AuthorityLaunchRecord& expected);
+    ProcessHandle world(const v1::AuthorityLaunchRecord& expected);
 private:
+    ProcessHandle receive(const v1::AuthorityLaunchRecord&, bool world);
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

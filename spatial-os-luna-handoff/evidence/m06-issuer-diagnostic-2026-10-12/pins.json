@@ -1,0 +1,26 @@
+{
+  "classification": "diagnostic-only-unqualified",
+  "host": "sb16",
+  "baseline_task_base_commit": "5368e7d280c1ad7f366c37a6b662bce64fb95bcd",
+  "baseline_archive_sha256": "82a326fb3f2982b7b78b9555c4ecf8b8d27f0c6a5ddcb13ffdd29d46b9aac336",
+  "candidate_source_commit": "5cbec99d1ad2844da1b8fd4b709c8e0444beb414",
+  "candidate_supplement_archive_sha256": "c2533e333f59ad294120dd92ecb971731117fb41789ab9c8e2114d968db91508",
+  "candidate_supplement_manifest_sha256": "29ad41d42b7f5cb51d721aac458e2293aabdd6752395014b90f2c2453301e85d",
+  "artifact_commit_binding_sha256_file": "artifact-commit-binding02.json",
+  "preflight_sha256": "e56f3c99e96489501751c5588666c133f65bb6804d76bf0baf383919ae9068ed",
+  "driver_sha256": {
+    "geometry_original": "0018ffe107903ef274297b4029a403d00dec7bca39d006db9fb4f1e95a86cf21",
+    "issuer_original": "21b583e3964e9359058224448e0eda2cc933d860b6bf092285df19acb5a3de39",
+    "geometry_v2": "c2b9c57b5c339a791aeaf23ec76ca30f72512c237591eab690ea17257566e9f",
+    "issuer_v2": "40f726f2ea02e5d33fe3b6723a09b02a0dbc1335a6bec6761eb08c829f5dbf9c",
+    "bounded_case": "435dfd2ac1aa8d06b6049be9dd63049f545e148c3c3ac185dad8e1dd5b952714"
+  },
+  "results": {
+    "issuer_real_tls_regression": "PASS, one test, exit 0",
+    "geometry_count_attempt_01": "FAIL, one test error; retention environment missing; fixture logs unavailable",
+    "geometry_count_attempt_02": "FAIL, one test error; retained issuer_eof at reply_header, 0/4 bytes, underlying cause unknown",
+    "peer_repeat": "UNRUN",
+    "qualification": "NOT ESTABLISHED"
+  },
+  "cleanup": "PASS; see cleanup-check-sb16.json"
+}

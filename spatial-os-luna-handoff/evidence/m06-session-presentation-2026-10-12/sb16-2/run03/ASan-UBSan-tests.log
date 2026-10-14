@@ -1,0 +1,368 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 95
+    Start  95: shared-render-client
+
+95: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_shared_render_client.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatialwm" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-security-auth"
+95: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+95: Environment variables: 
+95:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+95: Test timeout computed to be: 90
+95: test_malformed_reply (__main__.SharedClientFailureTests.test_malformed_reply) ... ok
+95: test_partial_reply_deadline (__main__.SharedClientFailureTests.test_partial_reply_deadline) ... ok
+95: test_unsolicited_reply_descriptor (__main__.SharedClientFailureTests.test_unsolicited_reply_descriptor) ... ok
+95: test_wrong_reply_identity (__main__.SharedClientFailureTests.test_wrong_reply_identity) ... ok
+95: 
+95: ----------------------------------------------------------------------
+95: Ran 4 tests in 6.450s
+95: 
+95: OK
+1/5 Test  #95: shared-render-client .............   Passed    6.54 sec
+test 96
+    Start  96: presentation-server
+
+96: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_presentation_server.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatialwm" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-security-auth"
+96: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+96: Environment variables: 
+96:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+96: Test timeout computed to be: 180
+96: test_capture_rejects_nonregular_descriptor_and_keeps_world_usable (__main__.PresentationServerTests.test_capture_rejects_nonregular_descriptor_and_keeps_world_usable) ... ok
+96: test_detach_releases_held_native_key_and_button (__main__.PresentationServerTests.test_detach_releases_held_native_key_and_button) ... ok
+96: test_disconnect_clears_selected_pixels (__main__.PresentationServerTests.test_disconnect_clears_selected_pixels) ... ok
+96: test_foreign_sender_on_inherited_socket_retires_world (__main__.PresentationServerTests.test_foreign_sender_on_inherited_socket_retires_world) ... ok
+96: test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_losing_other_world) ... ok
+96: test_mismatched_binding_does_not_select_world (__main__.PresentationServerTests.test_mismatched_binding_does_not_select_world) ... ok
+96: test_missing_hello_descriptor_retires_world (__main__.PresentationServerTests.test_missing_hello_descriptor_retires_world) ... ok
+96: test_owner_exit_ends_compositor_with_control_socket_still_open (__main__.PresentationServerTests.test_owner_exit_ends_compositor_with_control_socket_still_open) ... ok
+96: test_partial_frame_deadline_preserves_other_world (__main__.PresentationServerTests.test_partial_frame_deadline_preserves_other_world) ... ok
+96: test_pending_world_cannot_be_selected (__main__.PresentationServerTests.test_pending_world_cannot_be_selected) ... ok
+96: test_real_worldd_connects_and_stops_without_terminating_shared_compositor (__main__.PresentationServerTests.test_real_worldd_connects_and_stops_without_terminating_shared_compositor) ... ok
+96: test_replayed_request_retires_only_its_world (__main__.PresentationServerTests.test_replayed_request_retires_only_its_world) ... ok
+96: test_revoked_input_reports_uncertain_retirement_and_keeps_graphics_live (__main__.PresentationServerTests.test_revoked_input_reports_uncertain_retirement_and_keeps_graphics_live) ... ok
+96: test_selection_changes_real_pixels_without_restarting_compositor (__main__.PresentationServerTests.test_selection_changes_real_pixels_without_restarting_compositor) ... ok
+96: test_world_disconnect_releases_held_native_key_and_button (__main__.PresentationServerTests.test_world_disconnect_releases_held_native_key_and_button) ... ok
+96: test_world_exit_retires_channel_even_with_surviving_socket_copy (__main__.PresentationServerTests.test_world_exit_retires_channel_even_with_surviving_socket_copy) ... ok
+96: test_worlds_initialize_in_reverse_reservation_order (__main__.PresentationServerTests.test_worlds_initialize_in_reverse_reservation_order) ... ok
+96: test_wrong_process_handle_rejected_without_consuming_generation (__main__.PresentationServerTests.test_wrong_process_handle_rejected_without_consuming_generation) ... ok
+96: 
+96: ----------------------------------------------------------------------
+96: Ran 18 tests in 13.748s
+96: 
+96: OK
+2/5 Test  #96: presentation-server ..............   Passed   13.84 sec
+test 129
+    Start 129: supervisor-child-handle
+
+129: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-child-handle-55fd4fcf721b73afcb1f1d4c6614b99ff91f29e45c61d6a1db476ceadfac4e8e" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-presentation-input-03/ASan-UBSan/server-launch/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-session-presentation-03/ASan-UBSan/logs" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_supervisor_child_handle.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-security-auth" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/identityd" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-issuer-client"
+129: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+129: Test timeout computed to be: 180
+129: Running as unit: spatial-child-handle-55fd4fcf721b73afcb1f1d4c6614b99ff91f29e45c61d6a1db476ceadfac4e8e.service; invocation ID: 733a5b2b9a8f4a5084a0dd04a40c11e0
+129: test_transferred_pidfd_matches_real_broker_and_observes_cleanup (__main__.ChildHandleTests.test_transferred_pidfd_matches_real_broker_and_observes_cleanup) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09890840300067794, "operation": "initialize", "outcome": "exit_0", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.047195244012982585, "operation": "connect", "outcome": "connected", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011277880999841727, "operation": "request", "outcome": "received", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012089024996384978, "operation": "request", "outcome": "received", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027731733993277885, "operation": "request", "outcome": "received", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012589462989126332, "operation": "request", "outcome": "received", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03201262500078883, "operation": "request", "outcome": "received", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+129: ok
+129: test_other_launch_snapshot_is_rejected_without_a_descriptor (__main__.ChildHandleTests.test_other_launch_snapshot_is_rejected_without_a_descriptor) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10780174599494785, "operation": "initialize", "outcome": "exit_0", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.052100692002568394, "operation": "connect", "outcome": "connected", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011370690001058392, "operation": "request", "outcome": "received", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012183086000732146, "operation": "request", "outcome": "received", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029158299003029242, "operation": "request", "outcome": "received", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011893521004822105, "operation": "request", "outcome": "received", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027550265993340872, "operation": "request", "outcome": "received", "test": "test_other_launch_snapshot_is_rejected_without_a_descriptor"}
+129: ok
+129: test_unknown_field_and_version_are_rejected_without_a_descriptor (__main__.ChildHandleTests.test_unknown_field_and_version_are_rejected_without_a_descriptor) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.08225490000040736, "operation": "initialize", "outcome": "exit_0", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.051768634002655745, "operation": "connect", "outcome": "connected", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011365231999661773, "operation": "request", "outcome": "received", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01205570000456646, "operation": "request", "outcome": "received", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01727073799702339, "operation": "request", "outcome": "received", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011102723990916274, "operation": "request", "outcome": "received", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.016340396003215574, "operation": "request", "outcome": "received", "test": "test_unknown_field_and_version_are_rejected_without_a_descriptor"}
+129: ok
+129: test_child_mapping_cannot_alias_private_handle_channel (__main__.ChildHandleTests.test_child_mapping_cannot_alias_private_handle_channel) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.0913737980008591, "operation": "initialize", "outcome": "exit_0", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05158061200927477, "operation": "connect", "outcome": "connected", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011617073003435507, "operation": "request", "outcome": "received", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011839696991955861, "operation": "request", "outcome": "received", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.017484245996456593, "operation": "request", "outcome": "received", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010973922995617613, "operation": "request", "outcome": "received", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.016442038002423942, "operation": "request", "outcome": "received", "test": "test_child_mapping_cannot_alias_private_handle_channel"}
+129: ok
+129: test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.1413587160059251, "operation": "initialize", "outcome": "exit_0", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05273856400162913, "operation": "connect", "outcome": "connected", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.013236911996500567, "operation": "request", "outcome": "received", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01228286899277009, "operation": "request", "outcome": "received", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05462651199195534, "operation": "request", "outcome": "received", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011390327999833971, "operation": "request", "outcome": "received", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02904497299459763, "operation": "request", "outcome": "received", "test": "test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned"}
+129: ok
+129: test_request_descriptors_are_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_request_descriptors_are_rejected_and_owned_broker_is_cleaned) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.11653746900265105, "operation": "initialize", "outcome": "exit_0", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.051192516009905376, "operation": "connect", "outcome": "connected", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011660472009680234, "operation": "request", "outcome": "received", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012797777002560906, "operation": "request", "outcome": "received", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02801469899713993, "operation": "request", "outcome": "received", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012234815003466792, "operation": "request", "outcome": "received", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029734798008576035, "operation": "request", "outcome": "received", "test": "test_request_descriptors_are_rejected_and_owned_broker_is_cleaned"}
+129: ok
+129: test_truncated_request_is_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_truncated_request_is_rejected_and_owned_broker_is_cleaned) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.1000645070016617, "operation": "initialize", "outcome": "exit_0", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05191402501077391, "operation": "connect", "outcome": "connected", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011685557998134755, "operation": "request", "outcome": "received", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011992111001745798, "operation": "request", "outcome": "received", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027678983999066986, "operation": "request", "outcome": "received", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011260107989073731, "operation": "request", "outcome": "received", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026992710001650266, "operation": "request", "outcome": "received", "test": "test_truncated_request_is_rejected_and_owned_broker_is_cleaned"}
+129: ok
+129: test_handle_channel_loss_records_checked_broker_cleanup (__main__.ChildHandleTests.test_handle_channel_loss_records_checked_broker_cleanup) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09484287600207608, "operation": "initialize", "outcome": "exit_0", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05082278400368523, "operation": "connect", "outcome": "connected", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012535752990515903, "operation": "request", "outcome": "received", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01201870599470567, "operation": "request", "outcome": "received", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028391758998623118, "operation": "request", "outcome": "received", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011843608997878619, "operation": "request", "outcome": "received", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02750017801008653, "operation": "request", "outcome": "received", "test": "test_handle_channel_loss_records_checked_broker_cleanup"}
+129: ok
+129: 
+129: ----------------------------------------------------------------------
+129: Ran 8 tests in 10.404s
+129: 
+129: OK
+129: Finished with result: success
+129: Main processes terminated with: code=exited/status=0
+129: Service runtime: 10.601s
+129: CPU time consumed: 6.885s
+129: Memory peak: 768.0K
+129: Memory swap peak: 0B
+3/5 Test #129: supervisor-child-handle ..........   Passed   10.62 sec
+test 132
+    Start 132: session-world
+
+132: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-world-55fd4fcf721b73afcb1f1d4c6614b99ff91f29e45c61d6a1db476ceadfac4e8e" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-presentation-input-03/ASan-UBSan/server-launch/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-session-presentation-03/ASan-UBSan/logs" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_session_world.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-security-auth" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/identityd" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-issuer-client"
+132: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+132: Test timeout computed to be: 180
+132: Running as unit: spatial-session-world-55fd4fcf721b73afcb1f1d4c6614b99ff91f29e45c61d6a1db476ceadfac4e8e.service; invocation ID: ed14c9d66833400f981f15e3b83d891a
+132: test_host_owns_shared_compositor_outside_world_process_scope (__main__.SessionWorldTests.test_host_owns_shared_compositor_outside_world_process_scope) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.14258719600911718, "operation": "initialize", "outcome": "exit_0", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.049896743992576376, "operation": "connect", "outcome": "connected", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01133396000659559, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012077145001967438, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05574991900357418, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012620353008969687, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03070176199253183, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011077276998548768, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02547514899924863, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011561521998373792, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028433548999601044, "operation": "request", "outcome": "received", "test": "test_host_owns_shared_compositor_outside_world_process_scope"}
+132: ok
+132: test_actual_world_owner_registers_and_broker_survives_world_shutdown (__main__.SessionWorldTests.test_actual_world_owner_registers_and_broker_survives_world_shutdown) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.515368235995993, "operation": "initialize", "outcome": "exit_0", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05634523500339128, "operation": "connect", "outcome": "connected", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011347285006195307, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012145171989686787, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028451072997995652, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010971962008625269, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027194576992769726, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01122105200192891, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02350226500129793, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01127196999732405, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030736765009351075, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+132: ok
+132: test_caller_cannot_substitute_another_owner_generation (__main__.SessionWorldTests.test_caller_cannot_substitute_another_owner_generation) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10345760999189224, "operation": "initialize", "outcome": "exit_0", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05145992699544877, "operation": "connect", "outcome": "connected", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011677803995553404, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012071749006281607, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.022206844994798303, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011209667994990014, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.024396068998612463, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011129095000796951, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027031397999962792, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01207950699608773, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.025063076987862587, "operation": "request", "outcome": "received", "test": "test_caller_cannot_substitute_another_owner_generation"}
+132: ok
+132: test_world_crash_delivers_checked_cleanup_after_supervisor_exit (__main__.SessionWorldTests.test_world_crash_delivers_checked_cleanup_after_supervisor_exit) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09615797699370887, "operation": "initialize", "outcome": "exit_0", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05156327500299085, "operation": "connect", "outcome": "connected", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011707708006724715, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0120645919960225, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.023360248989774846, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012521755008492619, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027499527001054958, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01111577299889177, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.025498610993963666, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011765568007831462, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02873364200058859, "operation": "request", "outcome": "received", "test": "test_world_crash_delivers_checked_cleanup_after_supervisor_exit"}
+132: ok
+132: test_supervisor_crash_without_receipt_cannot_claim_cleanup (__main__.SessionWorldTests.test_supervisor_crash_without_receipt_cannot_claim_cleanup) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09541164500114974, "operation": "initialize", "outcome": "exit_0", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.050581991992658004, "operation": "connect", "outcome": "connected", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011384445999283344, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01177420699968934, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.024312385998200625, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011122657000669278, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026490828007808886, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01110828599485103, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.023677646997384727, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011487183001008816, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029606919997604564, "operation": "request", "outcome": "received", "test": "test_supervisor_crash_without_receipt_cannot_claim_cleanup"}
+132: ok
+132: test_world_cannot_supply_its_own_broker_endpoint (__main__.SessionWorldTests.test_world_cannot_supply_its_own_broker_endpoint) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09450733799894806, "operation": "initialize", "outcome": "exit_0", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05229518600390293, "operation": "connect", "outcome": "connected", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011699372989824042, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011988568003289402, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03202287299791351, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011845546003314666, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02987323199340608, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01111823000246659, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027346153001417406, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011879844998475164, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030967639002483338, "operation": "request", "outcome": "received", "test": "test_world_cannot_supply_its_own_broker_endpoint"}
+132: ok
+132: test_broker_native_role_cannot_register_as_world (__main__.SessionWorldTests.test_broker_native_role_cannot_register_as_world) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.0973814949975349, "operation": "initialize", "outcome": "exit_0", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05271838199405465, "operation": "connect", "outcome": "connected", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011708115998771973, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0120368950010743, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02519500300695654, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012283029995160177, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03219723601068836, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01111419199150987, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.022199258994078264, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01177236701187212, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032081761994049884, "operation": "request", "outcome": "received", "test": "test_broker_native_role_cannot_register_as_world"}
+132: ok
+132: test_listener_admits_real_signed_actor_without_management_authority (__main__.SessionActorTests.test_listener_admits_real_signed_actor_without_management_authority) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09142453900130931, "operation": "initialize", "outcome": "exit_0", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05161394701281097, "operation": "connect", "outcome": "connected", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011604868996073492, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012157219010987319, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027666732989018783, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012347581010544673, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02687818701087963, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01083713500702288, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.023200893003377132, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011180305999005213, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03025790701212827, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0118011520098662, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026495455007534474, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012163900988525711, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029431422997731715, "operation": "request", "outcome": "received", "test": "test_listener_admits_real_signed_actor_without_management_authority"}
+132: ok
+132: test_private_socket_cannot_be_admitted_as_actor_listener (__main__.SessionActorTests.test_private_socket_cannot_be_admitted_as_actor_listener) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.112527310004225, "operation": "initialize", "outcome": "exit_0", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05307368500507437, "operation": "connect", "outcome": "connected", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011751788013498299, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011843752014101483, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.024690621008630842, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011645895006950013, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026695081993239, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010787053004605696, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.023833682003896683, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011608248998527415, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030273896001745015, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011892204012838192, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028791646007448435, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012511820998042822, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029268698999658227, "operation": "request", "outcome": "received", "test": "test_private_socket_cannot_be_admitted_as_actor_listener"}
+132: ok
+132: test_unlistening_tcp_socket_cannot_be_admitted (__main__.SessionActorTests.test_unlistening_tcp_socket_cannot_be_admitted) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.0934772540058475, "operation": "initialize", "outcome": "exit_0", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05249186199216638, "operation": "connect", "outcome": "connected", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011734560001059435, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012164220010163262, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.022766369002056308, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011755364990676753, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.08831527100119274, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011106254009064287, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02515657400363125, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011349593012710102, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028671964988461696, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.013316120996023528, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02826662000734359, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012630319004529156, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030947526000090875, "operation": "request", "outcome": "received", "test": "test_unlistening_tcp_socket_cannot_be_admitted"}
+132: ok
+132: test_listener_requires_tls_configuration (__main__.SessionActorTests.test_listener_requires_tls_configuration) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10322013399854768, "operation": "initialize", "outcome": "exit_0", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.04916894799680449, "operation": "connect", "outcome": "connected", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011944383004447445, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011906766012543812, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02300974799436517, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012117225996917114, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028290417001699097, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010874308994971216, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.025854463994619437, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011352032990544103, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02845543199509848, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011813322998932563, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027271038998151198, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012560507006128319, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03217923699412495, "operation": "request", "outcome": "received", "test": "test_listener_requires_tls_configuration"}
+132: ok
+132: test_actor_descriptor_arguments_cannot_select_private_endpoints (__main__.SessionActorTests.test_actor_descriptor_arguments_cannot_select_private_endpoints) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09489330700307619, "operation": "initialize", "outcome": "exit_0", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05176219499844592, "operation": "connect", "outcome": "connected", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011646594997728243, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012262452000868507, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.023003151000011712, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012208878004457802, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.032295179000357166, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010800160001963377, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.021871251999982633, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011717462999513373, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030509436008287594, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011773056990932673, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02800099999876693, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012548072001663968, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02793990299687721, "operation": "request", "outcome": "received", "test": "test_actor_descriptor_arguments_cannot_select_private_endpoints"}
+132: ok
+132: 
+132: ----------------------------------------------------------------------
+132: Ran 12 tests in 27.115s
+132: 
+132: OK
+132: Finished with result: success
+132: Main processes terminated with: code=exited/status=0
+132: Service runtime: 27.256s
+132: CPU time consumed: 19.876s
+132: Memory peak: 768.0K
+132: Memory swap peak: 0B
+4/5 Test #132: session-world ....................   Passed   27.28 sec
+test 147
+    Start 147: supervisor-child-handle-client
+
+147: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_child_handle_client.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/spatial-child-handle-client-probe"
+147: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan
+147: Environment variables: 
+147:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+147: Test timeout computed to be: 90
+147: test_dead_handle_rejected (__main__.ReceiverTests.test_dead_handle_rejected) ... ok
+147: test_duplicate_descriptors (__main__.ReceiverTests.test_duplicate_descriptors) ... ok
+147: test_error_cannot_carry_rights (__main__.ReceiverTests.test_error_cannot_carry_rights) ... ok
+147: test_foreign_parent_rejected (__main__.ReceiverTests.test_foreign_parent_rejected) ... ok
+147: test_foreign_sender (__main__.ReceiverTests.test_foreign_sender) ... ok
+147: test_malformed_packet (__main__.ReceiverTests.test_malformed_packet) ... ok
+147: test_missing_descriptor (__main__.ReceiverTests.test_missing_descriptor) ... ok
+147: test_oversize_packet (__main__.ReceiverTests.test_oversize_packet) ... ok
+147: test_plain_file_is_not_process_handle (__main__.ReceiverTests.test_plain_file_is_not_process_handle) ... ok
+147: test_timeout (__main__.ReceiverTests.test_timeout) ... ok
+147: test_unknown_field (__main__.ReceiverTests.test_unknown_field) ... ok
+147: test_valid_live_direct_child (__main__.ReceiverTests.test_valid_live_direct_child) ... ok
+147: test_wrong_launch (__main__.ReceiverTests.test_wrong_launch) ... ok
+147: test_wrong_request (__main__.ReceiverTests.test_wrong_request) ... ok
+147: test_wrong_version (__main__.ReceiverTests.test_wrong_version) ... ok
+147: 
+147: ----------------------------------------------------------------------
+147: Ran 15 tests in 6.602s
+147: 
+147: OK
+5/5 Test #147: supervisor-child-handle-client ...   Passed    6.69 sec
+
+The following tests passed:
+	shared-render-client
+	presentation-server
+	supervisor-child-handle
+	session-world
+	supervisor-child-handle-client
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =  64.99 sec

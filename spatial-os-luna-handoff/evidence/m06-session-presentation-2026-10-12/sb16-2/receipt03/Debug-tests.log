@@ -1,0 +1,74 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 91
+    Start 91: native-compositor_identity
+
+91: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_compositor_identity.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+91: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+91: Environment variables: 
+91:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+91: Test timeout computed to be: 180
+91: test_non_application_window_is_not_a_workspace_surface (__main__.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... ok
+91: test_properties_do_not_choose_snapshot_identity (__main__.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... ok
+91: test_revoked_application_disappears_from_snapshot (__main__.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... ok
+91: test_same_group_new_connection_has_distinct_attribution (__main__.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... ok
+91: test_separate_workspaces_remain_distinct_in_one_snapshot (__main__.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... ok
+91: test_snapshot_contains_authenticated_application_identity (__main__.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... ok
+91: test_unmap_clears_attribution_and_remap_restores_it (__main__.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it) ... ok
+91: 
+91: ----------------------------------------------------------------------
+91: Ran 7 tests in 0.856s
+91: 
+91: OK
+1/2 Test #91: native-compositor_identity .......   Passed    0.93 sec
+test 96
+    Start 96: presentation-server
+
+96: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/native/test_presentation_server.py" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatialwm" "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/spatial-security-auth"
+96: Working Directory: /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug
+96: Environment variables: 
+96:  PYTHONPATH=/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug/python:/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff
+96: Test timeout computed to be: 180
+96: test_capture_rejects_nonregular_descriptor_and_keeps_world_usable (__main__.PresentationServerTests.test_capture_rejects_nonregular_descriptor_and_keeps_world_usable) ... ok
+96: test_checked_scope_receipts_resolve_uncertain_retirement (__main__.PresentationServerTests.test_checked_scope_receipts_resolve_uncertain_retirement) ... ok
+96: test_detach_releases_held_native_key_and_button (__main__.PresentationServerTests.test_detach_releases_held_native_key_and_button) ... ok
+96: test_disconnect_clears_selected_pixels (__main__.PresentationServerTests.test_disconnect_clears_selected_pixels) ... ok
+96: test_foreign_sender_on_inherited_socket_retires_world (__main__.PresentationServerTests.test_foreign_sender_on_inherited_socket_retires_world) ... ok
+96: test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_losing_other_world) ... ok
+96: test_mismatched_binding_does_not_select_world (__main__.PresentationServerTests.test_mismatched_binding_does_not_select_world) ... ok
+96: test_missing_hello_descriptor_retires_world (__main__.PresentationServerTests.test_missing_hello_descriptor_retires_world) ... ok
+96: test_owner_exit_ends_compositor_with_control_socket_still_open (__main__.PresentationServerTests.test_owner_exit_ends_compositor_with_control_socket_still_open) ... ok
+96: test_partial_frame_deadline_preserves_other_world (__main__.PresentationServerTests.test_partial_frame_deadline_preserves_other_world) ... ok
+96: test_pending_world_cannot_be_selected (__main__.PresentationServerTests.test_pending_world_cannot_be_selected) ... ok
+96: test_real_worldd_connects_and_stops_without_terminating_shared_compositor (__main__.PresentationServerTests.test_real_worldd_connects_and_stops_without_terminating_shared_compositor) ... ok
+96: test_replayed_request_retires_only_its_world (__main__.PresentationServerTests.test_replayed_request_retires_only_its_world) ... ok
+96: test_revoked_input_reports_uncertain_retirement_and_keeps_graphics_live (__main__.PresentationServerTests.test_revoked_input_reports_uncertain_retirement_and_keeps_graphics_live) ... ok
+96: test_selection_changes_real_pixels_without_restarting_compositor (__main__.PresentationServerTests.test_selection_changes_real_pixels_without_restarting_compositor) ... ok
+96: test_world_disconnect_releases_held_native_key_and_button (__main__.PresentationServerTests.test_world_disconnect_releases_held_native_key_and_button) ... ok
+96: test_world_exit_retires_channel_even_with_surviving_socket_copy (__main__.PresentationServerTests.test_world_exit_retires_channel_even_with_surviving_socket_copy) ... ok
+96: test_worlds_initialize_in_reverse_reservation_order (__main__.PresentationServerTests.test_worlds_initialize_in_reverse_reservation_order) ... ok
+96: test_wrong_process_handle_rejected_without_consuming_generation (__main__.PresentationServerTests.test_wrong_process_handle_rejected_without_consuming_generation) ... ok
+96: 
+96: ----------------------------------------------------------------------
+96: Ran 19 tests in 7.785s
+96: 
+96: OK
+2/2 Test #96: presentation-server ..............   Passed    7.90 sec
+
+The following tests passed:
+	native-compositor_identity
+	presentation-server
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   8.84 sec

@@ -1,0 +1,35 @@
+{
+  "host": "sb16-2",
+  "pid": 1530803,
+  "status": "passed_needs_review",
+  "commands": [
+    {
+      "name": "Debug-tests",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "-V",
+        "-R",
+        "^(presentation-input-bindings|native-compositor_identity)$",
+        "--output-junit",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-shared-render-worker-06/Debug-results.xml"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "ASan-UBSan-tests",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/ASan-UBSan",
+        "-V",
+        "-R",
+        "^(presentation-input-bindings|native-compositor_identity)$",
+        "--output-junit",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-shared-render-worker-06/ASan-UBSan-results.xml"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

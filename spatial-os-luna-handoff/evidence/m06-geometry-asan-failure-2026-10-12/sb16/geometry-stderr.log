@@ -1,0 +1,35 @@
+test_geometry_local_headless_context_and_privacy (__main__.GeometryViewTests.test_geometry_local_headless_context_and_privacy) ... ok
+test_geometry_entry_is_not_observation (__main__.GeometryViewTests.test_geometry_entry_is_not_observation) ... ok
+test_geometry_revocation_and_preparation (__main__.GeometryViewTests.test_geometry_revocation_and_preparation) ... ok
+test_geometry_second_actor_motion (__main__.GeometryViewTests.test_geometry_second_actor_motion) ... ok
+test_geometry_departure_and_credential_revocation (__main__.GeometryViewTests.test_geometry_departure_and_credential_revocation) ... ok
+test_geometry_queued_output_revocation_cancels_only_observer (__main__.GeometryViewTests.test_geometry_queued_output_revocation_cancels_only_observer) ... ok
+test_geometry_count_limit_is_controlled_and_other_actor_survives (__main__.GeometryViewTests.test_geometry_count_limit_is_controlled_and_other_actor_survives) ... ERROR
+test_geometry_oversized_world_snapshot_is_controlled (__main__.GeometryViewTests.test_geometry_oversized_world_snapshot_is_controlled) ... ok
+test_geometry_authenticated_tls_headless (__main__.GeometryTlsTests.test_geometry_authenticated_tls_headless) ... ok
+
+======================================================================
+ERROR: test_geometry_count_limit_is_controlled_and_other_actor_survives (__main__.GeometryViewTests.test_geometry_count_limit_is_controlled_and_other_actor_survives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16/bundle/tests/core/test_geometry_view.py", line 175, in test_geometry_count_limit_is_controlled_and_other_actor_survives
+    self.denied(peer.call(geometry_view=session.WorldGeometryViewRequest()), core.INVALID_ARGUMENT)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16/bundle/tests/core/test_world_identity.py", line 50, in call
+    def call(self, **operation): return self.request(session.WorldSessionRequest(protocol_version=1,**operation))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16/bundle/tests/core/test_world_identity.py", line 47, in request
+    reply=receive(self.stream.recv,self.stream,session.WorldSessionReply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16/bundle/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16/bundle/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 9 tests in 269.835s
+
+FAILED (errors=1)

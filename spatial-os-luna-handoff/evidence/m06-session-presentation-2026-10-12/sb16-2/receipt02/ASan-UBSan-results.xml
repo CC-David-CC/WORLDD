@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="7"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16-2"
+	time="82"
+	timestamp="2026-10-12T05:19:52"
+	>
+	<testcase name="scoped-native-input" classname="scoped-native-input" time="1.72455" status="run">
+		<properties/>
+		<system-out>test_broker_credential_cannot_be_used_for_input (__main__.ScopedInputTests.test_broker_credential_cannot_be_used_for_input) ... ok
+test_broker_without_root_ownership_is_denied_by_server (__main__.ScopedInputTests.test_broker_without_root_ownership_is_denied_by_server) ... ok
+test_explicit_seat_close_preserves_channel (__main__.ScopedInputTests.test_explicit_seat_close_preserves_channel) ... ok
+test_independent_connection_cannot_control_another_connections_seat (__main__.ScopedInputTests.test_independent_connection_cannot_control_another_connections_seat) ... ok
+test_revocation_fails_closed_without_exiting_or_harming_other_owner (__main__.ScopedInputTests.test_revocation_fails_closed_without_exiting_or_harming_other_owner) ... ok
+test_unsealed_configuration_is_rejected (__main__.ScopedInputTests.test_unsealed_configuration_is_rejected) ... ok
+test_wrong_server_process_is_rejected (__main__.ScopedInputTests.test_wrong_server_process_is_rejected) ... ok
+
+----------------------------------------------------------...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="shared-render-client" classname="shared-render-client" time="6.48194" status="run">
+		<properties/>
+		<system-out>test_malformed_reply (__main__.SharedClientFailureTests.test_malformed_reply) ... ok
+test_partial_reply_deadline (__main__.SharedClientFailureTests.test_partial_reply_deadline) ... ok
+test_unsolicited_reply_descriptor (__main__.SharedClientFailureTests.test_unsolicited_reply_descriptor) ... ok
+test_wrong_reply_identity (__main__.SharedClientFailureTests.test_wrong_reply_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 6.285s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="presentation-server" classname="presentation-server" time="14.8351" status="run">
+		<properties/>
+		<system-out>test_capture_rejects_nonregular_descriptor_and_keeps_world_usable (__main__.PresentationServerTests.test_capture_rejects_nonregular_descriptor_and_keeps_world_usable) ... ok
+test_checked_scope_receipts_resolve_uncertain_retirement (__main__.PresentationServerTests.test_checked_scope_receipts_resolve_uncertain_retirement) ... ok
+test_detach_releases_held_native_key_and_button (__main__.PresentationServerTests.test_detach_releases_held_native_key_and_button) ... ok
+test_disconnect_clears_selected_pixels (__main__.PresentationServerTests.test_disconnect_clears_selected_pixels) ... ok
+test_foreign_sender_on_inherited_socket_retires_world (__main__.PresentationServerTests.test_foreign_sender_on_inherited_socket_retires_world) ... ok
+test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_losing_other_world) ... ok
+test_mismatched_binding_does_not_select_world (__main__.PresentationServerTests.test_mismatched_binding_does_not_select_world)...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="presentation-input-bindings" classname="presentation-input-bindings" time="5.47853" status="run">
+		<properties/>
+		<system-out>test_all_binding_fields_must_match (__main__.PresentationBindingTests.test_all_binding_fields_must_match) ... ok
+test_bindings_cannot_control_the_same_application_concurrently (__main__.PresentationBindingTests.test_bindings_cannot_control_the_same_application_concurrently) ... ok
+test_failed_retirement_does_not_acknowledge_revoked_live_seat (__main__.PresentationBindingTests.test_failed_retirement_does_not_acknowledge_revoked_live_seat) ... ok
+test_first_scoped_binding_releases_held_legacy_input (__main__.PresentationBindingTests.test_first_scoped_binding_releases_held_legacy_input) ... ok
+test_other_native_server_cannot_supply_a_binding (__main__.PresentationBindingTests.test_other_native_server_cannot_supply_a_binding) ... ok
+test_retirement_releases_native_events_and_rejects_stale_input (__main__.PresentationBindingTests.test_retirement_releases_native_events_and_rejects_stale_input) ... ok
+test_revoking_one_world_preserves_real_graphics_and_other_input (__main__.PresentationBindingTests.test_revoking_one...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="supervisor-child-handle" classname="supervisor-child-handle" time="12.1921" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-child-handle-c10313908e9a7d8ba3ed74fbbb701faccf730179bf723676e0993c14a719278e.service; invocation ID: 04955cfec3cc4938ad5042e1a7ab2df3
+test_world_handle_request_cannot_export_a_broker (__main__.ChildHandleTests.test_world_handle_request_cannot_export_a_broker) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.10481025400804356, "operation": "initialize", "outcome": "exit_0", "test": "test_world_handle_request_cannot_export_a_broker"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05056433200661559, "operation": "connect", "outcome": "connected", "test": "test_world_handle_request_cannot_export_a_broker"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01134218399238307, "operation": "request", "outcome": "received", "test": "test_world_handle_request_cannot_export_a_broker"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012060837005265057, "operation": "request", "outcome": "received", "test": "test_worl...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-world" classname="session-world" time="34.763" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-world-c10313908e9a7d8ba3ed74fbbb701faccf730179bf723676e0993c14a719278e.service; invocation ID: 8e1524965f5a4038a78890451d03a06a
+test_two_supervised_worlds_keep_the_same_host_compositor (__main__.SessionWorldTests.test_two_supervised_worlds_keep_the_same_host_compositor) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.09736432500358205, "operation": "initialize", "outcome": "exit_0", "test": "test_two_supervised_worlds_keep_the_same_host_compositor"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.049993077002000064, "operation": "connect", "outcome": "connected", "test": "test_two_supervised_worlds_keep_the_same_host_compositor"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011409999002353288, "operation": "request", "outcome": "received", "test": "test_two_supervised_worlds_keep_the_same_host_compositor"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012155292002717033, "operation": "request...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="supervisor-child-handle-client" classname="supervisor-child-handle-client" time="6.66932" status="run">
+		<properties/>
+		<system-out>test_dead_handle_rejected (__main__.ReceiverTests.test_dead_handle_rejected) ... ok
+test_duplicate_descriptors (__main__.ReceiverTests.test_duplicate_descriptors) ... ok
+test_error_cannot_carry_rights (__main__.ReceiverTests.test_error_cannot_carry_rights) ... ok
+test_foreign_parent_rejected (__main__.ReceiverTests.test_foreign_parent_rejected) ... ok
+test_foreign_sender (__main__.ReceiverTests.test_foreign_sender) ... ok
+test_malformed_packet (__main__.ReceiverTests.test_malformed_packet) ... ok
+test_missing_descriptor (__main__.ReceiverTests.test_missing_descriptor) ... ok
+test_oversize_packet (__main__.ReceiverTests.test_oversize_packet) ... ok
+test_plain_file_is_not_process_handle (__main__.ReceiverTests.test_plain_file_is_not_process_handle) ... ok
+test_timeout (__main__.ReceiverTests.test_timeout) ... ok
+test_unknown_field (__main__.ReceiverTests.test_unknown_field) ... ok
+test_valid_live_direct_child (__main__.ReceiverTests.test_valid_live_direct_child) ... ok
+test_wrong_launch (__main__.ReceiverTests....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

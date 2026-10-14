@@ -1,0 +1,33 @@
+M06 gate overwrites the original failure
+
+Status: Confirmed reporting defect. The reviewed correction passed focused tests. Full qualification remains pending.
+Candidate: f8609273fad1873db45fc316fd0200549b4c6b41.
+Source: spatial-os-luna-handoff/tools/m06_deployed_gate.py, gate exception and finally handlers.
+
+The exception handler records the original exception in report.error.
+The final audit replaces that error with a generic integrity-failure message.
+An unentered sanitizer profile has no metadata or storage-evidence receipt.
+Those missing receipts trigger the replacement message after an earlier failure.
+The report therefore loses the original failure needed for diagnosis.
+
+Evidence: sb16 deployment/evidence/m06-final-f860-sb16-20261013-01/run.json.
+Host root: /home/dflanag3/spatial-qualification/m06-f860-final-20261013.
+All Debug command stages passed, including 164 CTest cases and 151 acceptance cases.
+The report contains the Debug profile but no sanitizer profile.
+Its final error says postrun source, artifact, runtime, or storage evidence invariant failed.
+Source, executable, production-only, runtime, and Debug evidence rechecks are true.
+Unentered sanitizer metadata and storage rechecks are false.
+Command and wrapper exits are one. The failed attempt remains preserved.
+
+Proposed patch: Preserve the first exception and its traceback.
+Record post-run audit failures separately with their profile and check names.
+Keep missing mandatory evidence incomplete. Do not convert the attempt to PASS.
+Add a regression where an early exception precedes missing later-profile receipts.
+The triggering defect is recorded in m06-gate-hashes-private-storage-image.txt.
+
+M06 remains incomplete. Sanitizer and cross-host qualification remain unrun.
+
+Reviewed correction: 4f241a95d98e28b037b17ad1826f6816c2cc17ad, box-git verified.
+The focused static suite passed 46 tests on each host.
+Read-only audits hashed 6,394 ordinary files per host and preserved original failed reports.
+Fresh full qualification remains pending. This defect is corrected in source, not yet phase-qualified.

@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "/home/dflanag3/spatial-qualification/m06-geometry-count-crosshost-20261013/inputs/single_case_driver-v2.py",
+    "/home/dflanag3/spatial-qualification/m06-geometry-count-crosshost-20261013/bundle/tests/core/test_geometry_view.py",
+    "/home/dflanag3/spatial-qualification/m06-geometry-count-crosshost-20261013/bundle/bin-asan/identityd",
+    "/home/dflanag3/spatial-qualification/m06-geometry-count-crosshost-20261013/bundle/bin-asan/spatial-issuer-client",
+    "/home/dflanag3/spatial-qualification/m06-geometry-count-crosshost-20261013/bundle/bin-asan/worldd",
+    "test_geometry_count_limit_is_controlled_and_other_actor_survives"
+  ],
+  "elapsed_seconds": 89.93782247498166,
+  "end_utc": "2026-10-13T07:07:45.101779+00:00",
+  "linux_process_start_ticks": 17424992,
+  "pid": 1695397,
+  "process_group": 1695397,
+  "start_utc": "2026-10-13T07:06:15.163960+00:00",
+  "state": "TERMINAL",
+  "terminal": true,
+  "test_exit": 0,
+  "timeout_seconds": 600.0
+}

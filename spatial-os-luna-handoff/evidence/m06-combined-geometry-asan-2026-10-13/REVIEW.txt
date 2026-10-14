@@ -1,0 +1,25 @@
+M06 combined geometry sanitizer qualification
+Status: FOCUSED-PASS. This does not complete M06.
+Candidate: fc302de44670f87737dd7ab46ef83b24c60f1612.
+
+Both hosts passed all thirteen selected ASan/UBSan suites.
+Combined with Debug, all fifty-two selected suite executions passed.
+Both terminal audits verified command and wrapper exit zero, exact suite summaries, and resolved cleanup.
+No attempt processes remained. No checks were skipped.
+The audits scanned 391 logs per host without sanitizer diagnostics.
+Both runs preserved all 1,162 input hashes.
+GLX and leak detection remained enabled through the verified XACE wrapper. No suppression was used.
+The nine headless geometry tests passed, including count-limit and oversized-snapshot rejection.
+Read each host's asan-terminal-audit01.json for suite summaries and durations.
+Read inputs/PLAN.txt for selected checks and deadline provenance.
+
+The controller verified both archive hashes after transfer and retained 592 regular evidence files per host.
+Unsafe paths and special files were rejected. Every payload was scanned for bearer credentials and private keys.
+Raw evidence bytes remain unchanged. Read collection.json and sha256-manifest.txt.
+Twelve negative-test broker log lines retain their original trailing space.
+The documented raw-evidence exception permits their unchanged bytes in the checkpoint.
+All other staged paths must pass normal whitespace checks.
+
+Combined host-session runtime qualification remains unrun.
+Source integration awaits those related checks. Native geometry presentation remains unimplemented.
+The full M06 gate and M07-M16 remain pending. M01-M05 remain qualified.

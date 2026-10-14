@@ -51,16 +51,18 @@ struct ChildHandleClient::Impl {
 };
 ChildHandleClient::ChildHandleClient(int fd, pid_t pid, int pin) : impl_(std::make_unique<Impl>(fd, pid, pin)) {}
 ChildHandleClient::~ChildHandleClient() = default;
-ProcessHandle ChildHandleClient::broker(const v1::AuthorityLaunchRecord& expected) {
+ProcessHandle ChildHandleClient::broker(const v1::AuthorityLaunchRecord& expected) {return receive(expected,false);}
+ProcessHandle ChildHandleClient::world(const v1::AuthorityLaunchRecord& expected) {return receive(expected,true);}
+ProcessHandle ChildHandleClient::receive(const v1::AuthorityLaunchRecord& expected,bool world) {
     validate_message(expected);
     require(expected.binding().supervised() && expected.has_authorization() &&
-        expected.stage() == v1::START_ATTEMPTED && expected.native().role() == security::v1::BROKER &&
+        expected.stage() == v1::START_ATTEMPTED && expected.native().role() == (world?security::v1::COMPOSITOR:security::v1::BROKER) &&
         expected.process().launch_id().size() == 32 && expected.native().launch_id() == expected.process().launch_id(),
         "Expected an authorized running broker launch snapshot");
     auto& state = *impl_;
     require(state.sequence != UINT64_MAX, "Supervisor handle request sequence exhausted");
     v1::AuthorityChildHandleRequest request;
-    request.set_protocol_version(1); request.set_request_id(++state.sequence); *request.mutable_expected() = expected;
+    request.set_protocol_version(1); request.set_request_id(++state.sequence);request.set_world(world); *request.mutable_expected() = expected;
     const auto bytes = request.SerializeAsString();
     require(bytes.size() <= 65536, "Excessive supervisor handle request");
     const auto deadline = Clock::now() + std::chrono::seconds(5);

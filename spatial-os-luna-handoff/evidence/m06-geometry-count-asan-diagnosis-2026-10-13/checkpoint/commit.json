@@ -1,0 +1,19 @@
+{
+  "host": "G164",
+  "checkout": "/home/dflanag3/src/spacial-m06-linear-snapshot-size-20261013",
+  "branch": "m06/linear-snapshot-size-20261013",
+  "expected_head": "40547559c84f4d52227cda25bd72e8d1b631d3c2",
+  "qualification": "FOCUSED-PASS",
+  "action": "commit",
+  "state": "LOCAL COMMIT",
+  "started": "2026-10-13T07:28:02.802365+00:00",
+  "staged_tree": "59fab5690ef8226825a29ec9ecbf02f093aade4b",
+  "paths": [
+    "spatial-os-luna-handoff/CMakeLists.txt",
+    "spatial-os-luna-handoff/src/world/snapshot_size.hpp",
+    "spatial-os-luna-handoff/src/world/store.cpp",
+    "spatial-os-luna-handoff/tests/core/test_snapshot_size.cpp"
+  ],
+  "commit": "fc302de44670f87737dd7ab46ef83b24c60f1612",
+  "remaining_status": "?? local/"
+}

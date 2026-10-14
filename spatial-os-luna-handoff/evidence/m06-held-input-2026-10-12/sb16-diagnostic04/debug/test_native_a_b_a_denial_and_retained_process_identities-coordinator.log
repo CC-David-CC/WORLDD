@@ -1,0 +1,21 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+native-checkpoint=1 selected=8e81d86574306c5de3a9027bdded880f A-binding=protocol_version: 1 world_id: "8e81d86574306c5de3a9027bdded880f" service_incarnation: "\366f\252\274\217\270\342\246\3001\344\274\250OT\377s\030[O\247\302\025\337\304GV\271f\006\230e" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "ad9e84a46fc8216443602d278cf846e7" service_incarnation: "\325\350\362\031J\0347\r\234-\207\347w\316~\347\005\037\356\216\372\320J\242\371\"\030\270\010\0313\"" authority_generation: 1 presentation_generation: 2
+native-checkpoint=1 pid=1675591 start=10868288
+native-checkpoint=1 pid=1675706 start=10868707
+native-checkpoint=1 pid=1675704 start=10868685
+native-checkpoint=1 pid=1675727 start=10868749
+native-checkpoint=1 pid=1675731 start=10868805
+native-checkpoint=1 pid=1675739 start=10868863
+worldd: Management reader disconnected
+authority supervisor: Private participant channel closed
+control owner channel fenced: Private participant channel closed
+authority supervisor: Private participant channel closed
+worldd: Management reader disconnected
+control owner channel fenced: Private participant channel closed
+authority supervisor: Private participant channel closed
+worldd: Management reader disconnected
+control owner channel fenced: Private participant channel closed
+spatialwm: Presentation input closed or truncated
+authority supervisor: Private participant channel closed
+workspaced: Workspace supervisor disconnected
+session world rejected: Native input controller denied

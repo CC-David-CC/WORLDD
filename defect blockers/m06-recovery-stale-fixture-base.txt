@@ -1,0 +1,15 @@
+M06 recovery test setup used an outdated shared fixture.
+
+Recovery attempt01 ran three cases on both hosts in Debug and ASan/UBSan.
+All 12 executions errored before transition execution. No crash assertions passed.
+SessionApplicationTests seeds the real world directory before SessionWorldTests uses it.
+The recovery base predates the reviewed correction for those existing directories.
+
+Apply the integrated fixture correction after the worker stops.
+Preserve the seeded state, authority checks, and all recovery assertions.
+Record the Python-only overlay hash when the production binaries remain unchanged.
+Run the same three cases on both hosts and profiles again.
+
+This is a confirmed fixture setup defect, not evidence of a production recovery defect.
+Evidence: spatial-os-luna-handoff/evidence/m06-retained-recovery-2026-10-12/runtime-review.txt.
+The coordination skill now requires comparison with integrated fixture fixes before deployment.

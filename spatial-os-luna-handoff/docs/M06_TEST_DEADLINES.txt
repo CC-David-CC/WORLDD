@@ -1,0 +1,42 @@
+M06 test deadline correction
+
+Normal issuer operations use a five-second request budget.
+The production client already defaults to 5000 ms.
+The shared client and TLS server fixtures still configured 700 ms.
+Normal supervisor and fencing tests inherited that short deadline.
+
+Evidence
+On sb16, m06-scoped-input-03 failed authority-supervisor-fencing at elapsed_ms=703.
+The failure occurred while reading a normal issuer reply header.
+The same run passed the other seventeen selected suites.
+The previous failure lacked the coordinator diagnostic and remains less conclusive.
+On sb16-2, m06-scoped-input-02 completed both profiles; artifact review remains pending.
+Keep all previous run directories as failure and comparison evidence.
+
+Correction
+Use 5000 ms in shared normal client and server fixtures.
+Set 700 ms explicitly for deliberate partial-frame, handshake, reply, and participant timeout tests.
+Preserve existing 150 ms fault deadlines and all timeout assertions.
+Preserve bounded requests, cancellation, connection poisoning, and no-replay checks.
+Add a regression check for normal fixture budgets and explicit overrides.
+Production code, locked acceptance tests, and acceptance contracts do not change in this correction.
+
+Selected verification
+Run the original eighteen scoped-input suites on both hosts in Debug and ASan-UBSan.
+Add issuer-client, issuer-client-defaults, identity-tls, identity-participant-runtime, and identity-watch.
+Add identity-revocation-command, authority-approval-interruption, and identity-supervisor-registry.
+Add identity-participant-incarnation, workspace-participant, and world-participant.
+These checks cover callers, timeout faults, revocation, and native ownership boundaries.
+Record results under local/m06-scoped-input-04 on each host.
+Do not count earlier runs as evidence for this fixture correction.
+M06 qualification and persistent compositor integration remain pending.
+
+Regression fixture correction
+Run04 exposed an uninitialized port in the new configuration-only regression check.
+That check now supplies an explicit unused port; it opens no connection.
+Preserve run04 evidence. Recheck the corrected test before integration.
+
+Final focused result
+Both hosts passed all 29 selected suites in Debug and ASan-UBSan.
+Each host/profile completed 383 checks with no remaining failures or skips.
+See evidence/m06-scoped-input-2026-10-12/primary-review.txt for composed Debug evidence and review limits.

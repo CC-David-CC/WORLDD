@@ -1,0 +1,34 @@
+{
+    "source_overlay_identity_sessions_cpp_sha256":  "13addd3e704fd5c46d7a8f988bab1e564ec77fa1ab41e613f12a6e6bd3ba5eb9",
+    "fixture_test_geometry_sha256":  "27f384275d9c078c3bf73740fabc120b224c4a88da5a6875adbbf8df90385901",
+    "selected_suites":  [
+                            "world-authority",
+                            "actor-geometry-world-headless",
+                            "actor-geometry-client-hostile-peer",
+                            "actor-session-client",
+                            "actor-session-client-tls",
+                            "actor-transition-coordinator",
+                            "actor-transition-real-world",
+                            "world-identity",
+                            "session-application"
+                        ],
+    "profile":  "ASan-UBSan",
+    "fixture_test_world_authority_sha256":  "dc2715690647a5b5819661dac93d0188d4fdd739684e8a9a093c43d45ec0ae30",
+    "wrappers":  {
+                     "sb16-2":  "a18c37151b36f6e14313997436f00731618de3ecc3a1bd8ce9aa1c8a74bdc837",
+                     "sb16":  "d95b134a25c618ed3db71376c5363221bdd6c3908010801ceb8fc0071c4c6d52"
+                 },
+    "attempts":  {
+                     "sb16-2":  "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16-2",
+                     "sb16":  "/home/dflanag3/spatial-qualification/m06-geometry-run04-overlay01-runtime-asan01/sb16"
+                 },
+    "artifact_supplement_manifest_sha256":  "c5003d6597a578c2e42e6a132a718acce1b4cc45a3e4e2ef8e7fbe55a32f755b",
+    "sidecar_sha256":  "46ee59d020ba998c751798ed9f98e142b20b7b2f7b54bb0cee454d6d5cf526e0",
+    "original_archive_sha256":  "82a326fb3f2982b7b78b9555c4ecf8b8d27f0c6a5ddcb13ffdd29d46b9aac336",
+    "source_base_commit":  "5368e7d280c1ad7f366c37a6b662bce64fb95bcd",
+    "runner_sha256":  "3e1f45debda1afd977d7b590ae5dda0c57f5a10ef0d760f8347efe5caae806e6",
+    "source_commit":  "d0194a7e30350f155e1b74e1e9d5c9b775e8adc0",
+    "supplemented_binary_sha256":  "126ba733d6124dbfa4e8dd088a56aaedab3af97016396e64a66b6f4bee0db629",
+    "fixture_overlay_sha256":  "2812589c0cae4bd3caa4406e577e0d27ebf6cbc7d8c67a6faba09a934d5e8323",
+    "source_overlay_hashes_bound_by_sidecar":  18
+}

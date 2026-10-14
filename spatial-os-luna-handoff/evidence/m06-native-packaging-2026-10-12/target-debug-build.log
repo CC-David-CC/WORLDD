@@ -1,0 +1,63 @@
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial-m06-coordination-20261012/local/m06-host-controller/run02-build-debug
+[  1%] Built target host-actor-python-protobuf
+[  1%] Built target compositor-python-protobuf
+[  1%] Built target world-session-python-protobuf
+[  1%] Built target grants-python-protobuf
+[ 23%] Built target spatial-protobuf
+[ 25%] Built target scope-python-protobuf
+[ 25%] Built target python-protobuf
+[ 25%] Built target security-python-protobuf
+[ 25%] Built target native-scope-python-protobuf
+[ 25%] Built target key-python-protobuf
+[ 25%] Built target issuer-python-protobuf
+[ 26%] Built target spatial-security-auth
+[ 30%] Built target spatial-scene
+[ 30%] Built target storage-python-protobuf
+[ 30%] Built target spatial-presentation-stream
+[ 32%] Built target spatial-control-reply
+[ 33%] Built target spatial-compositor-config
+[ 33%] Built target spatial-identity
+[ 35%] Built target spatial-process-scope
+[ 37%] Built target spatial-storage-devices
+[ 39%] Built target spatial-authority
+[ 39%] Built target spatial-identity-tls
+[ 39%] Built target broker-python-protobuf
+[ 41%] Built target spatial-native-input
+[ 41%] Built target spatial-actor-session-client
+[ 42%] Built target spatial-app-initializer
+[ 44%] Built target spatial-storage-channel
+[ 46%] Built target spatial-control-admin
+[ 46%] Built target spatial-workspace-resources
+[ 48%] Built target spatial-storage-launch
+[ 50%] Built target launch-python-protobuf
+[ 51%] Built target spatial-bootstrap
+[ 57%] Built target spatialwm
+[ 57%] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[ 57%] Built target spatial-actor-transition
+[ 58%] Built target spatial-app-init
+[ 60%] Built target spatial-storage-client
+[ 62%] Built target spatial-issuer-client-lib
+[ 64%] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[ 64%] Linking CXX static library libspatial-issuer.a
+[ 64%] Built target spatial-issuer
+[ 66%] Built target spatial-issuer-watch-lib
+[ 67%] Built target spatial-participant-runtime-lib
+[ 69%] Built target spatial-issuer-client
+[ 69%] Linking CXX executable identityd
+[ 71%] Linking CXX static library libspatial-core.a
+[ 71%] Built target identityd
+[ 73%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[ 78%] Built target spatial-core
+[ 83%] Built target spatial-authority-launch
+[ 85%] Linking CXX executable worldd
+[ 89%] Built target worldd
+[ 91%] Built target spatial-session-broker
+[ 92%] Built target spatial-authority-launch-probe
+[ 92%] Built target spatial-authority-supervisor
+[ 92%] Built target spatial-host-actor-controller
+[ 94%] Linking CXX executable workspaced
+[ 98%] Built target workspaced
+[100%] Linking CXX executable spatial-host-actor-native-runner
+[100%] Built target spatial-host-actor-native-runner

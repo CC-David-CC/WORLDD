@@ -1,0 +1,44 @@
+M06 actor TLS client focused review, 2026-10-12
+Worker source: 07a1aa70223b4c7c6502cfa15ac8bf35ed2841aa
+Integrated source: b80d143 on m06/world-transitions.
+
+Reviewed all five changed files: client source/header, TLS probe, protobuf configuration, and CMake registration.
+Production transport uses mutual TLS 1.3, numeric endpoints, and independent certificate hostname verification.
+The client shares the existing signed actor authentication and lifecycle implementation.
+It attempts TLS I/O before polling, preserving OpenSSL-buffered frame data.
+One absolute deadline bounds each exchange. Failures close the transport without replay or plaintext fallback.
+TLS callers must ignore SIGPIPE. The constructor checks this contract without changing process signal disposition.
+Local socket callers retain MSG_NOSIGNAL and need no signal-policy change.
+
+Review corrections:
+The first draft omitted TLS regressions and polled before consuming buffered TLS bytes.
+The correction added 31 TLS cases and fixed polling.
+The first rejection fixture omitted its Error code and covered malformed-error handling.
+Primary review set FORBIDDEN, rebuilt both TLS probes, and repeated both-host TLS checks.
+Initial logs remain preserved and are not counted as additional final coverage.
+
+Selected checks:
+43 existing local-client cases protect the shared authentication, framing, and lifecycle behavior.
+31 TLS cases cover genuine loopback TLS, certificate checks, buffered/fragmented frames, deadlines,
+protocol validation, rejected replies, configuration validation, descriptor cleanup, and signal policy.
+Each suite ran on sb16 and sb16-2 in Debug and ASan/UBSan.
+Final coverage: 296 passed, 0 failed, 0 skipped.
+Each process returned zero. Logs contain no ASan, LeakSanitizer, or UBSan diagnostics.
+Artifact hashes were verified on each test host before execution.
+See source.sha256 and artifact manifests for exact source and binary fingerprints.
+
+Commands and locations:
+Build host: middle-child, /home/dflanag3/src/spacial-m06-transitions-20261012.
+Build directories: local/m06-client-tls/run02-debug and run02-asan-ubsan.
+Targets: spatial-actor-session-client-probe and spatial-actor-session-client-tls-probe, -j2.
+Each probe ran under timeout 60.
+ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+Test roots on each host: /home/dflanag3/spatial-test-artifacts/m06-tls-debug-20261012-01,
+m06-tls-asan-20261012-01, and m06-tls-final-20261012.
+Each root retains launch script, hash check, complete logs, and exit records.
+
+Limits:
+Peers are independently constructed TLS fixtures. These checks do not exercise real worldd transitions.
+Transition coordinator integration, real-world/native/cross-host scenarios, recovery, and M06 qualification remain pending.
+M07-M16 and the complete Spatial-M1 qualification remain pending.

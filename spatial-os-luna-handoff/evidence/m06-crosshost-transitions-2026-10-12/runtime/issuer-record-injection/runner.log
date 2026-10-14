@@ -1,0 +1,17 @@
+PASS: retained owner PID was polled while a slow Unix listener drained; exactly one stop byte was queued; EAGAIN did not trigger repeated requests.
+Traceback (most recent call last):
+  File "/home/dflanag3/m06-crosshost-run03-cleanupfix-20261012/run03-bundle/actor_transition_crosshost_fixture.py", line 593, in <module>
+    main()
+  File "/home/dflanag3/m06-crosshost-run03-cleanupfix-20261012/run03-bundle/actor_transition_crosshost_fixture.py", line 558, in main
+    run.setup()
+  File "/home/dflanag3/m06-crosshost-run03-cleanupfix-20261012/run03-bundle/actor_transition_crosshost_fixture.py", line 306, in setup
+    self.issuer.setup_owned(self.local_root, self.addresses[driver_host], self.output, self.fail_after)
+  File "/home/dflanag3/m06-crosshost-run03-cleanupfix-20261012/run03-bundle/actor_transition_crosshost_fixture.py", line 80, in setup_owned
+    self.owner_peer = self.ready()
+                      ^^^^^^^^^^^^
+  File "/home/dflanag3/m06-crosshost-run03-cleanupfix-20261012/run03-bundle/test_identity_tls.py", line 119, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/m06-crosshost-run03-cleanupfix-20261012/run03-bundle/actor_transition_crosshost_fixture.py", line 91, in launch
+    raise RuntimeError('Injected process identity record acquisition failure after issuer spawn')
+RuntimeError: Injected process identity record acquisition failure after issuer spawn

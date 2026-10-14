@@ -1,0 +1,501 @@
+{
+  "host": "sb16",
+  "observed_utc": "2026-10-12T14:53:38.637213+00:00",
+  "bundle_test_sha256": "b736b882014ed21befd2f963517e972b440aa6d77f0dc3b11da1b1bbf3aa391d",
+  "items": [
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/argv.nul",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/argv.nul",
+      "size": 149,
+      "sha256": "3bb5ac5582c42285e085b1a9ae082ad159a5619bca44bcae7f5804d2efa9e421",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/argv.shell-quoted.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/argv.shell-quoted.txt",
+      "size": 155,
+      "sha256": "50148f8d0afff1e8df80cd7434f15da94a33d3a4005a10ea6aaae335818e539f",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/command-receipt.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/command-receipt.txt",
+      "size": 210,
+      "sha256": "b2452fe330fa1f3f8ca8f7add8b5f2c662dd93e4543d6b0fea01134c3369dd7d",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/command.exit",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/command.exit",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/stderr.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/stdout.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/stdout.log",
+      "size": 527,
+      "sha256": "2685c19f93b2b522794357689867033a4416b1f9d5828de3ac8be72c2ecb73d4",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/terminal-status.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/terminal-status.txt",
+      "size": 9,
+      "sha256": "a4bccf5c13ef5ff8311e59b34d492bc7072a55298723601a6a9c127053aee8fc",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "01-actor-geometry-client-hostile-peer/wrapper.exit",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/01-actor-geometry-client-hostile-peer/wrapper.exit",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/argv.nul",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/argv.nul",
+      "size": 477,
+      "sha256": "4ece5e257d68a0fc41a270fc7d09f2af73016fb3b37dbf6f5bed44c4cb33900a",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/argv.shell-quoted.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/argv.shell-quoted.txt",
+      "size": 483,
+      "sha256": "bc439e29495896f5105f13610bc5ce59fd5b61fcf26aec1da2c2aeb3e5dd4507",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/command-receipt.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/command-receipt.txt",
+      "size": 210,
+      "sha256": "b2452fe330fa1f3f8ca8f7add8b5f2c662dd93e4543d6b0fea01134c3369dd7d",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/command.exit",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/command.exit",
+      "size": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/stderr.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/stderr.log",
+      "size": 3898,
+      "sha256": "6aa79d62ada23c09027f9508032d8df45aa25ece1d5d572a9eae49aa88d9caea",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/stdout.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/stdout.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/terminal-status.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/terminal-status.txt",
+      "size": 9,
+      "sha256": "a4bccf5c13ef5ff8311e59b34d492bc7072a55298723601a6a9c127053aee8fc",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "02-actor-geometry-world-headless/wrapper.exit",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/02-actor-geometry-world-headless/wrapper.exit",
+      "size": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/argv.nul",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/argv.nul",
+      "size": 1405,
+      "sha256": "69233b02cf82224464e97a154330f67267985a5a44971354eafab6c5ee2080c3",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/argv.shell-quoted.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/argv.shell-quoted.txt",
+      "size": 1411,
+      "sha256": "0e0dc134db9a5405ceee6072f4ecd19bc6035c427d2076fea92e6dbaa263597b",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/command-receipt.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/command-receipt.txt",
+      "size": 184,
+      "sha256": "04998e8d790ba20dcf4de5ef5fa1f45e9caa86a5036bf25b347979b596207f26",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/command.exit",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/command.exit",
+      "size": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/stderr.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/stderr.log",
+      "size": 192,
+      "sha256": "cea90ac80f4a1471baaf52af91abea07a9b12c0c420d525b609bd4db6d74bfa4",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/stdout.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/stdout.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/terminal-status.txt",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/terminal-status.txt",
+      "size": 9,
+      "sha256": "a4bccf5c13ef5ff8311e59b34d492bc7072a55298723601a6a9c127053aee8fc",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "outer-runner/wrapper.exit",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime-logs/sb16-debug-01/wrapper.exit",
+      "size": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "preflight.json",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/preflight.json",
+      "size": 18627,
+      "sha256": "737b10edfcee44faabdcae6e31aaf27c84fb2fce01a5aaab082ff6fa9bab9eb4",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "selection.json",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/selection.json",
+      "size": 849,
+      "sha256": "1f0bf9a37f44e98cf8b4a4032d0ea46ee5eeb6d853634e5e91a76c8160884e1e",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-remote-world-2.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-remote-world-2.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryTlsTests-test_geometry_authenticated_tls_headless-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_count_limit_is_controlled_and_other_actor_survives-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_count_limit_is_controlled_and_other_actor_survives-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_count_limit_is_controlled_and_other_actor_survives-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_count_limit_is_controlled_and_other_actor_survives-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_count_limit_is_controlled_and_other_actor_survives-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_count_limit_is_controlled_and_other_actor_survives-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_departure_and_credential_revocation-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_departure_and_credential_revocation-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_departure_and_credential_revocation-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_departure_and_credential_revocation-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_departure_and_credential_revocation-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_departure_and_credential_revocation-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_encoded_size_limit_is_controlled-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_encoded_size_limit_is_controlled-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_encoded_size_limit_is_controlled-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_encoded_size_limit_is_controlled-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_encoded_size_limit_is_controlled-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_encoded_size_limit_is_controlled-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_entry_is_not_observation-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_entry_is_not_observation-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_entry_is_not_observation-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_entry_is_not_observation-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_entry_is_not_observation-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_entry_is_not_observation-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_local_headless_context_and_privacy-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_local_headless_context_and_privacy-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_local_headless_context_and_privacy-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_local_headless_context_and_privacy-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_local_headless_context_and_privacy-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_local_headless_context_and_privacy-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_queued_output_revocation_cancels_only_observer-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_queued_output_revocation_cancels_only_observer-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_queued_output_revocation_cancels_only_observer-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_queued_output_revocation_cancels_only_observer-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_queued_output_revocation_cancels_only_observer-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_queued_output_revocation_cancels_only_observer-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_real_edit_and_second_actor_motion-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_real_edit_and_second_actor_motion-tls-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_real_edit_and_second_actor_motion-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_real_edit_and_second_actor_motion-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_real_edit_and_second_actor_motion-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_real_edit_and_second_actor_motion-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_revocation_and_preparation-tls-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_revocation_and_preparation-tls-0.log",
+      "size": 74,
+      "sha256": "ac7ab00bfef7a51429a7be5223c219684154e2d1d462a1d5206599f41039c06b",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_revocation_and_preparation-world-0.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_revocation_and_preparation-world-0.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_revocation_and_preparation-world-1.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/GeometryViewTests-test_geometry_revocation_and_preparation-world-1.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_authenticated_tls_headless-issuer-1734868.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_authenticated_tls_headless-issuer-1734868.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_count_limit_is_controlled_and_other_actor_survives-issuer-1734276.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_count_limit_is_controlled_and_other_actor_survives-issuer-1734276.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_departure_and_credential_revocation-issuer-1734104.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_departure_and_credential_revocation-issuer-1734104.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_encoded_size_limit_is_controlled-issuer-1734535.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_encoded_size_limit_is_controlled-issuer-1734535.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_entry_is_not_observation-issuer-1733894.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_entry_is_not_observation-issuer-1733894.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_local_headless_context_and_privacy-issuer-1733868.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_local_headless_context_and_privacy-issuer-1733868.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_queued_output_revocation_cancels_only_observer-issuer-1734133.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_queued_output_revocation_cancels_only_observer-issuer-1734133.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_real_edit_and_second_actor_motion-issuer-1734016.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_real_edit_and_second_actor_motion-issuer-1734016.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "witness/actor-geometry-world-headless/security/test_geometry_revocation_and_preparation-issuer-1733984.log",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-runtime/sb16-debug-01/witness/actor-geometry-world-headless/security/test_geometry_revocation_and_preparation-issuer-1733984.log",
+      "size": 74,
+      "sha256": "ac7ab00bfef7a51429a7be5223c219684154e2d1d462a1d5206599f41039c06b",
+      "credential_pattern_hits": {}
+    },
+    {
+      "relative_path": "qualification-input.json",
+      "original_path": "/home/dflanag3/spatial-qualification/m06-geometry-run04-20261012-input/qualification-input.json",
+      "size": 26009,
+      "sha256": "46ee59d020ba998c751798ed9f98e142b20b7b2f7b54bb0cee454d6d5cf526e0",
+      "credential_pattern_hits": {}
+    }
+  ],
+  "cleanup": {
+    "observed_utc": "2026-10-12T14:53:38.637213+00:00",
+    "session": "m06-geometry-runtime-sb16-debug-01",
+    "tmux_has_session_exit": 1,
+    "tmux_stderr": "no server running on /tmp/tmux-1000/default\n",
+    "matching_run_exe_or_cwd_processes": [],
+    "issuer_log_pids": [
+      {
+        "pid": 1734104,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1734276,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1734133,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1733894,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1733868,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1734868,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1733984,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1734535,
+        "proc_path_exists": false
+      },
+      {
+        "pid": 1734016,
+        "proc_path_exists": false
+      }
+    ],
+    "scope": "Current read-only /proc executable/cwd matches and exact known issuer PIDs; this is not a historical cleanup proof."
+  }
+}

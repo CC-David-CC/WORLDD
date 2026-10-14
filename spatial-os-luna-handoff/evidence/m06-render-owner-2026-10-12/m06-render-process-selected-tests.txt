@@ -1,0 +1,12 @@
+﻿M06 compositor process ownership extraction: selected checks
+Status: planned before execution. Source is not integrated.
+Changed: render_process.hpp/cpp, render_worker.hpp/cpp, CMakeLists.txt.
+Invariant: the transport preserves validation, sequence, scheduler callbacks, and timeout failure.
+The dedicated process owner preserves fork protection, readiness-failure termination, descriptor cleanup, and child reaping.
+No world transition or alternate presentation attachment is exposed yet.
+Selected suites: render-observation-client, render-runtime, worldd-lifecycle, actor-runtime.
+Purpose: adversarial replies; native rendering/process failures; daemon cleanup; actor engine callers.
+Hosts: sb16 and sb16-2. Profiles: Debug and ASan-UBSan.
+Use the qualified M05 native server launcher for each matching profile.
+No full cumulative gate is requested for this preparatory source change.
+The full M06 production transition increment and related authority/input regressions remain required.

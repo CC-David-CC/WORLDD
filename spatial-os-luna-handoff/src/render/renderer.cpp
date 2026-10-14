@@ -1,9 +1,11 @@
 #include "render/renderer.hpp"
+#include "render/presentation_inputs.hpp"
 #include "x11/compositor_connection.hpp"
 #include "core/scene.hpp"
 #include "x11/surfaces.hpp"
 #include "x11/input_router.hpp"
 #include "world/store.hpp"
+#include "world/geometry_view_validation.hpp"
 #include <GL/glew.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
@@ -18,6 +20,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <vector>
 namespace spatial {
 namespace {
@@ -76,8 +79,9 @@ struct Renderer::Impl {
     std::unique_ptr<NativeInput> native_input;
     std::unique_ptr<XSurfaces> surfaces;
     std::unique_ptr<XInputRouter> input;
+    std::unique_ptr<PresentationInputs> bindings;
     ~Impl() {
-        input.reset(); surfaces.reset(); native_input.reset();
+        bindings.reset(); input.reset(); surfaces.reset(); native_input.reset();
         if (context) {
             if (program) glDeleteProgram(program);
             if (vao) glDeleteVertexArrays(1, &vao);
@@ -212,6 +216,7 @@ void main() {
         r.native_input=std::make_unique<NativeInput>(r.display);
     r.surfaces=std::make_unique<XSurfaces>(r.display,r.window,r.overlay,r.native_input.get());
     if (r.native_input) r.input=std::make_unique<XInputRouter>(r.display,*r.native_input,*r.surfaces);
+    r.bindings=std::make_unique<PresentationInputs>(r.display,*r.surfaces,native ? native->server_id() : std::string{});
 }
 Renderer::~Renderer() = default;
 wire::RendererReady Renderer::ready() const { return impl_->info; }
@@ -241,8 +246,79 @@ wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command
     synchronize();
     return impl_->input->execute(command);
 }
-wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
-    return draw_scene(command, nullptr);
+void Renderer::reserve_input(const render::v1::WorldPresentationBinding& binding,const supervisor::v1::NativeScopeIdentity* scope) {
+    impl_->bindings->reserve(binding,scope?scope->server_id():std::string{},scope?scope->credential_id():std::string{});
+}
+void Renderer::initialize_input(const render::v1::WorldPresentationBinding& binding,int descriptor) {
+    auto& r=*impl_;
+    r.bindings->initialize(binding,descriptor);
+    try { if(r.input)r.input->close_all(); }
+    catch (...) { r.bindings->retire(binding);throw; }
+    r.input.reset();
+}
+void Renderer::clear_presentation() {
+    auto& r=*impl_;
+    if(!r.presented.width)return;
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,r.presented.fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    const float black[4]={0,0,0,1};glClearBufferfv(GL_COLOR,0,black);
+    check_gl();r.output();
+}
+void Renderer::bind_input(const render::v1::WorldPresentationBinding& binding, int descriptor) {
+    auto& r=*impl_;
+    r.bindings->bind(binding,descriptor);
+    try { if (r.input) r.input->close_all(); }
+    catch (...) { r.bindings->retire(binding); throw; }
+    r.input.reset(); // Scoped mode never returns to the unbound input path.
+}
+void Renderer::confirm_input_retired(const render::v1::WorldPresentationBinding& binding) {impl_->bindings->confirm_retired(binding);}
+void Renderer::retire_input(const render::v1::WorldPresentationBinding& binding) {
+    impl_->bindings->retire(binding);
+}
+wire::NativeActorInput Renderer::input(const render::v1::WorldPresentationBinding& binding,
+                                     const wire::RendererInputCommand& command) {
+    synchronize();
+    return impl_->bindings->input(binding,command);
+}
+wire::NativeSnapshot Renderer::synchronize(const render::v1::WorldPresentationBinding& binding) {
+    auto result=synchronize();
+    impl_->bindings->snapshot(binding,result);
+    return result;
+}
+wire::FrameReply Renderer::draw(const wire::RenderCommand& command,int capture_fd) {
+    return draw_scene(command, nullptr,capture_fd);
+}
+wire::FrameReply Renderer::draw_geometry(const identity::v1::ActorGeometryView& view) {
+    validate_geometry_view(view);
+    wire::RenderScene scene;
+    *scene.mutable_camera() = view.camera();
+    *scene.mutable_config() = view.config();
+    scene.set_world_revision(view.world_revision());
+    const auto copy = [](const auto& input, auto* output) {
+        for (const auto& source : input) {
+            auto* entity = output->Add();
+            entity->set_id(source.id()); entity->set_kind(source.kind());
+            *entity->mutable_pose() = source.pose();
+            if (source.has_size()) *entity->mutable_size() = source.size();
+            if (source.has_color()) *entity->mutable_color() = source.color();
+            if (source.has_bounds()) *entity->mutable_bounds() = source.bounds();
+        }
+    };
+    copy(view.panels(), scene.mutable_panels());
+    copy(view.barriers(), scene.mutable_barriers());
+    copy(view.portals(), scene.mutable_portals());
+    copy(view.objects(), scene.mutable_objects());
+    copy(view.actors(), scene.mutable_actors());
+    const auto& display = impl_->display;
+    const int screen = DefaultScreen(display);
+    const int width = DisplayWidth(display, screen), height = DisplayHeight(display, screen);
+    validate_render_extent(static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height));
+    wire::RenderCommand command;
+    command.set_protocol_version(1); command.set_request_id(1);
+    *command.mutable_scene() = std::move(scene);
+    command.set_width(static_cast<std::uint32_t>(width));
+    command.set_height(static_cast<std::uint32_t>(height));
+    return draw(command);
 }
 wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
     wire::RenderVisibility result;
@@ -252,7 +328,14 @@ wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
         throw WorldError(wire::RESOURCE_EXHAUSTED, "Compositor observation exceeds message limit");
     return result;
 }
-wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility) {
+wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility,int capture_fd) {
+    if(capture_fd>=0){
+        struct stat info{};const int flags=fcntl(capture_fd,F_GETFL);
+        if(capture_fd<3 || !command.capture() || visibility || fstat(capture_fd,&info)!=0 || !S_ISREG(info.st_mode) ||
+            info.st_uid!=geteuid() || (info.st_mode&0777)!=0600 || info.st_nlink!=1 || info.st_size!=0 ||
+            flags<0 || (flags&O_ACCMODE)==O_RDONLY || (flags&O_APPEND) || lseek(capture_fd,0,SEEK_SET)!=0)
+            throw std::invalid_argument("Capture requires a private empty writable regular file");
+    }
     if (visibility) validate_observation_extent(command.width(), command.height(), command.include_pixels());
     else validate_render_extent(command.width(), command.height());
     if (!command.has_scene()) throw std::invalid_argument("Missing render scene");
@@ -369,15 +452,17 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
         std::vector<char> pixels(stride * target.height);
         glReadPixels(0, 0, target.width, target.height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); check_gl();
         std::string name = (r.captures / "frame-XXXXXX.ppm").string();
-        const int fd = mkstemps(name.data(), 4);
+        const int fd = capture_fd>=0?capture_fd:mkstemps(name.data(), 4);
         if (fd < 0) throw std::runtime_error("Cannot create frame capture");
         try {
             const auto header = "P6\n" + std::to_string(target.width) + " " + std::to_string(target.height) + "\n255\n";
             write_all(fd, header.data(), header.size());
             for (unsigned row = target.height; row > 0; --row) write_all(fd, pixels.data() + (row - 1) * stride, stride);
-        } catch (...) { close(fd); unlink(name.c_str()); throw; }
-        if (close(fd) != 0) { unlink(name.c_str()); throw std::runtime_error("Cannot close frame capture"); }
-        result.set_path(name);
+        } catch (...) { if(capture_fd<0){close(fd);unlink(name.c_str());} throw; }
+        if(capture_fd<0){
+            if (close(fd) != 0) { unlink(name.c_str()); throw std::runtime_error("Cannot close frame capture"); }
+            result.set_path(name);
+        }
     }
     return result;
 }

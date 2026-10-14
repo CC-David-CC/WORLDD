@@ -1,0 +1,15 @@
+Corrected fixture archive
+SHA256 2fbd500c40eb7e2832c835eaa8bd11b389470532987988fa0887e6ed845dec7c
+Size 110253830 bytes
+Bundle SHA256SUMS SHA256 158843aa829eb7fae2f2fba0a659809bb4f14a9a5390fe20144a596e1ef77b29
+Payload count 215
+
+Independent host verification
+middle-child: archive and manifest SHA256 matched.
+sb16: archive and manifest SHA256 matched; gzip validation and all 215 SHA256SUMS entries passed.
+sb16-2: archive and manifest SHA256 matched; gzip validation and all 215 SHA256SUMS entries passed.
+
+Failed initial Debug snapshot
+Host-local path: /tmp/m06-crosshost-run03-debug-final-evidence/sb16-final-state.tar
+SHA256 2fbd500c40eb7e2832c835eaa8bd11b389470532987988fa0887e6ed845dec7c
+The raw archive remains on sb16 and is intentionally not copied here.

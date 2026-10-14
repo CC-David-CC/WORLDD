@@ -1,0 +1,14 @@
+[
+  {
+    "host": "sb16",
+    "archive_sha256": "92c4f202c0e9839d4ed58d43e4fa966875012b2d9108fa44eb80aaeede71e3a9",
+    "files": 592,
+    "scanned_logs": 391
+  },
+  {
+    "host": "sb16-2",
+    "archive_sha256": "78e2ebc8c3ed8bfab66a2635e72bd08e12cfe25355132debc9a5969d2cf4df7a",
+    "files": 592,
+    "scanned_logs": 391
+  }
+]

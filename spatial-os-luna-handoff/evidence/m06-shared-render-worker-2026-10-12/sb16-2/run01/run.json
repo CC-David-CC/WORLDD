@@ -1,0 +1,55 @@
+{
+  "host": "sb16-2",
+  "pid": 1516789,
+  "status": "failed",
+  "commands": [
+    {
+      "name": "Debug-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Debug-build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "--target",
+        "worldd",
+        "spatial-render-observation-probe",
+        "spatial-presentation-probe",
+        "spatial-presentation-stream-probe",
+        "presentation-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "Debug-tests",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-build/Debug",
+        "-V",
+        "-R",
+        "^(presentation-server|render-runtime|render-observation-client|native-world_surface_groups)$",
+        "--output-junit",
+        "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-shared-render-worker-01/Debug-results.xml"
+      ],
+      "exit_code": 8
+    }
+  ],
+  "error": "RuntimeError('Debug-tests')"
+}

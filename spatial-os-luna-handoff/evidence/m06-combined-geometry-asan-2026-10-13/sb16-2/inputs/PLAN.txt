@@ -1,0 +1,46 @@
+M06 combined geometry candidate qualification, 2026-10-13
+
+Candidate: fc302de44670f87737dd7ab46ef83b24c60f1612.
+Run Debug on sb16 and sb16-2 first. Run one profile per host.
+Run ASan after each host's Debug result and cleanup pass review.
+Use verified native XACE wrappers. Preserve GLX and leak detection.
+Keep all existing failures. Use new attempt directories and persistent tmux.
+
+Selected focused tests and their purposes:
+- actor-geometry-client-hostile-peer: malformed, stale, and mismatched geometry replies fence the client.
+- actor-geometry-world-headless: authenticated real geometry, observation authority, count and frame rejection.
+- actor-session-client: transport deadlines, framing, lifecycle, and no replay after uncertain effects.
+- actor-session-client-tls: authenticated TLS transport and credential/configuration rejection.
+- actor-transition-coordinator: destination preparation, source departure, and uncertain activation.
+- actor-transition-real-world: real issuer/worldd transitions and retained actor context.
+- world-identity: native admission and authenticated actor identity.
+- world-authority: native actor grants and real object edits changing exported geometry.
+- session-application: retained native application lifecycle and broker boundaries.
+- snapshot-size-regression: exact encoded-size arithmetic and real snapshot rejection.
+- worldd-lifecycle: durable daemon state and typed no-truncation rejection.
+- issuer-client: issuer protocol, deadlines, and bounded failure diagnostics.
+- world-diagnostic-timing: deterministic diagnostic timing state and safe formatting.
+
+The world-diagnostic-timing CTest registration has no TIMEOUT property.
+The pinned inventory records the global CTest invocation limit of 600 seconds.
+Primary explicitly selects a 60-second qualification-launch bound for this standalone check.
+Use --diagnostic-timeout-seconds 60 and record that override separately.
+Do not describe that bound as a CMake property or a server timeout change.
+Keep every other registered timeout unchanged.
+
+Before runtime, preflight verifies archive, full source/payload hashes, configs, and helper closure.
+Record exact mapped commands and their declared environments before execution.
+Record selected and unrun suites separately.
+Inspect actual summaries, command/wrapper receipts, process cleanup, and sanitizer diagnostics.
+Recheck source, executable, archive, wrapper, and helper hashes after execution.
+
+Debug archive SHA256: 88dfa77bd5f314424b248049a774b0f2d42539e64bfd5475c2f37785c420b6c5.
+ASan archive SHA256: 2c12ee9be35a67d60e008f4df6fc9f11854ed87a4c5a39ec681f6241ba9af31b.
+Debug inventory SHA256: 4364f4f1fba8898ef33b2c9b750a8a1fdcdd3ade0c6fde110456abbfe7c93dd3.
+ASan inventory SHA256: 5e0f837055939759dae6b4b03c1e4a0dcf5efe4b1f7730d93ff191e82ef1ea32.
+Both archives and inventories match on both qualification hosts.
+Both hosts passed fresh backend audits for Debug and ASan.
+
+These checks qualify a component increment. They do not complete M06.
+Related combined host-session runtime checks remain required before native presentation integration.
+Visible native geometry and the full two-host M06 phase gate remain pending.

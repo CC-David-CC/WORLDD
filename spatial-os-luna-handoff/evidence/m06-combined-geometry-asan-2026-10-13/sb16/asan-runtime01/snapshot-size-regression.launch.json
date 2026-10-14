@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "bash",
+    "/home/dflanag3/spatial-qualification/m06-geometry-run04-command.sh",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/10-snapshot-size-regression",
+    "/home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013/asan-runtime01/bundle/spatial-os-luna-handoff/local/qualification-build01/build-asan-on/spatial-snapshot-size-regression"
+  ],
+  "started_epoch": 1791881625.3183784,
+  "suite": "snapshot-size-regression",
+  "timeout_provenance": {
+    "ctest_timeout_seconds": 60.0,
+    "qualification_override_seconds": null
+  },
+  "timeout_seconds": 60.0
+}

@@ -1,0 +1,15 @@
+Native test prerequisites, 2026-10-12.
+Read-only inspection on sb16 and sb16-2. No desktop or server was restarted.
+Both user systemd managers reported running.
+Available home-filesystem space: sb16 80 GiB; sb16-2 83 GiB at inspection.
+
+Both existing M04 gate wrappers exist for Debug and ASan-UBSan.
+Their selected server binaries exist and are executable.
+Their configured library directories and EGL vendor configuration paths exist.
+Per-host JSON records preserve wrapper and binary hashes for later deployment checks.
+The wrappers retain the existing patched XLibre runtime. Deferred CallbackList artifacts were not selected.
+
+This does not establish runtime health or pass any M06 test.
+The new native runner must execute with its exact artifacts and record its own results.
+Retain these wrapper paths as SPATIAL_TEST_XSERVER for the corresponding profile.
+Verify the recorded binary hashes again before the native run.

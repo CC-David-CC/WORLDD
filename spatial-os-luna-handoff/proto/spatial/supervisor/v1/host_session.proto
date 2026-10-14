@@ -1,0 +1,58 @@
+syntax = "proto3";
+package spatial.supervisor.v1;
+
+import "launch.proto";
+import "host_actor_controller.proto";
+import "world_session.proto";
+import "core.proto";
+
+// Trusted parent input. Descriptor numbers refer to inherited descriptors.
+message HostSessionConfig {
+  uint32 protocol_version = 1;
+  string supervisor_executable = 2;
+  string compositor_executable = 3;
+  string compositor_state_path = 4;
+  string broker_config_path = 5;
+  AuthoritySupervisorConfig broker = 6;
+  uint32 broker_native_fd = 7;
+  uint32 compositor_native_fd = 8;
+  string initial_world_id = 9;
+  string initial_actor_tls_config = 10;
+  repeated HostWorld worlds = 11;
+  repeated HostRemoteWorld remote_worlds = 12;
+}
+message HostRemoteWorld {
+  string world_id = 1;
+  string actor_tls_config = 2;
+}
+message HostWorld {
+  string world_id = 1;
+  string private_config_path = 2;
+  AuthoritySupervisorConfig supervisor = 3;
+  uint32 native_fd = 4;
+  uint32 actor_listener_fd = 5;
+  string actor_tls_config = 6;
+}
+message HostControlRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  uint64 generation = 3;
+  oneof operation {
+    bool inspect = 10;
+    spatial.core.v1.ActorActionRequest action = 11;
+    spatial.identity.v1.HostActorTransitionRequest transition = 12;
+    bool geometry_status = 13;
+  }
+}
+message HostControlReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  uint64 generation = 3;
+  bool accepted = 4;
+  string detail = 5;
+  spatial.identity.v1.WorldSessionReply inspection = 6;
+  spatial.identity.v1.HostActorTransitionResult transition = 7;
+  spatial.identity.v1.WorldSessionReply action = 8;
+  bool cleanup_complete = 9;
+  spatial.identity.v1.HostGeometryStatus geometry_status = 10;
+}

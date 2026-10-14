@@ -1,0 +1,14 @@
+{
+  "host": "middle-child",
+  "checkout": "/home/dflanag3/src/spacial-m06-crosshost-20261012",
+  "branch": "m06/crosshost-actor-transitions",
+  "expected_head": "c93e02b9695fe6716bf8c32054d06cc7caf084e9",
+  "qualification": "FOCUSED-PASS",
+  "action": "push",
+  "state": "BOX-GIT VERIFIED",
+  "started": "2026-10-12T13:24:18.107912+00:00",
+  "commit": "c93e02b9695fe6716bf8c32054d06cc7caf084e9",
+  "destination": "refs/heads/m06/crosshost-actor-transitions",
+  "remote_commit": "c93e02b9695fe6716bf8c32054d06cc7caf084e9",
+  "remaining_status": "?? local/\n?? run03-inputs"
+}

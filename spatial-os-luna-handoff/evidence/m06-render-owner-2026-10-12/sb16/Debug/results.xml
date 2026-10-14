@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="4"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16"
+	time="7"
+	timestamp="2026-10-12T02:24:26"
+	>
+	<testcase name="render-observation-client" classname="render-observation-client" time="0.530592" status="run">
+		<properties/>
+		<system-out>test_changed_or_zero_image_dimensions_are_rejected (__main__.RenderObservationClientTests.test_changed_or_zero_image_dimensions_are_rejected) ... ok
+test_excessive_pixel_request_is_not_sent_to_compositor (__main__.RenderObservationClientTests.test_excessive_pixel_request_is_not_sent_to_compositor) ... ok
+test_extra_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_extra_rgb_data_is_rejected) ... ok
+test_metadata_only_reply_has_no_image (__main__.RenderObservationClientTests.test_metadata_only_reply_has_no_image) ... ok
+test_missing_requested_image_is_rejected (__main__.RenderObservationClientTests.test_missing_requested_image_is_rejected) ... ok
+test_truncated_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_truncated_rgb_data_is_rejected) ... ok
+test_unknown_image_field_is_rejected (__main__.RenderObservationClientTests.test_unknown_image_field_is_rejected) ... ok
+test_unsolicited_image_is_rejected (__main__.RenderObservationClientTests.test_unsolicited_image_is_rejected) ... o...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="render-runtime" classname="render-runtime" time="3.32335" status="run">
+		<properties/>
+		<system-out>test_actor_marker_configuration_and_room_filtering (__main__.RenderRuntimeTests.test_actor_marker_configuration_and_room_filtering) ... ok
+test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+test_inclusive_clip_planes_and_quad...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="worldd-lifecycle" classname="worldd-lifecycle" time="1.83446" status="run">
+		<properties/>
+		<system-out>test_database_symlink_is_refused (__main__.WorldDaemonTests.test_database_symlink_is_refused) ... ok
+test_duplicate_authority_refused_without_mutation (__main__.WorldDaemonTests.test_duplicate_authority_refused_without_mutation) ... ok
+test_idle_proxy_closes_when_worker_dies_and_recovers_state (__main__.WorldDaemonTests.test_idle_proxy_closes_when_worker_dies_and_recovers_state) ... ok
+test_parent_only_kill_terminates_worker_and_releases_lock (__main__.WorldDaemonTests.test_parent_only_kill_terminates_worker_and_releases_lock) ... ok
+test_portal_references_and_invalid_enum_rejected_atomically (__main__.WorldDaemonTests.test_portal_references_and_invalid_enum_rejected_atomically) ... ok
+test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate (__main__.WorldDaemonTests.test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate) ... ok
+test_sqlite_write_failure_rolls_back_entity_and_world_revision (__main__.WorldDaemonTests.test_sqlite_write_failure_rolls_back_entity_and_world_revision) ... ok
+test_standa...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-runtime" classname="actor-runtime" time="1.73909" status="run">
+		<properties/>
+		<system-out>test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallo...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

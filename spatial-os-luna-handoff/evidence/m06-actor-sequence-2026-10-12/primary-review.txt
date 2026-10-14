@@ -1,0 +1,27 @@
+Actor transition sequencing focused review, 2026-10-12.
+Reviewed worker source: 79c1343902acc49a2a3053d3bca45c50c2bf2d3e.
+Combined milestone candidate: 9275727. Combined transport checks remain pending.
+
+Reviewed coordinator, client changes, both probes, schema, contract, and CMake wiring.
+Preparation precedes departure. A matching durable departure receipt precedes destination activation.
+Destination identity and configured source world are checked before consequential operations.
+Mutating Error replies fail the client and preserve typed diagnostics.
+Departure STORAGE_ERROR and activation INTERNAL_ERROR retain effect uncertainty.
+No source or destination replay occurs after failure. An untouched source survives destination preparation denial.
+Host foreground selection remains explicitly pending. The actor coordinator receives no supervisor capability.
+
+Runtime evidence on sb16 and sb16-2, Debug and ASan/UBSan:
+53 client cases and 35 coordinator cases per profile/host.
+352 passed, 0 failed, 0 skipped. Process exits were zero.
+No AddressSanitizer, LeakSanitizer, or UBSan findings appeared in the logs.
+Each executable ran with timeout 60; sanitizer runs enabled leak detection and halt-on-error.
+Artifacts were checked against artifacts.sha256 before execution.
+Test directory on each host: /home/dflanag3/spatial-test-artifacts/m06-sequence-20261012-01.
+Complete launch scripts and exit records remain there.
+worker-build-report.txt records source hashes, selected invariants, and compile failures.
+Its UNRUN statements describe the worker handoff before these primary runtime checks.
+
+Limits:
+Independent wire peers exercise production client and coordinator code, not actual world persistence or native cleanup.
+TLS and transition branches changed the same client. Combined binaries require a new focused run.
+Native A-B-A transitions, host controller/launcher integration, recovery, and the full M06 gate remain pending.

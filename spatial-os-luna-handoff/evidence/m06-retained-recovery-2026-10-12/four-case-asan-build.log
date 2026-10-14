@@ -1,0 +1,76 @@
+-- Configuring done (0.3s)
+-- Generating done (0.2s)
+-- Build files have been written to: /home/dflanag3/src/spacial-m06-retained-recovery-20261012/local/m06-retained-recovery/run02-asan
+[  0%] Generating python/actor_transition_recovery_probe_pb2.py, python/actor_transition_pb2.py
+[  1%] Built target scope-python-protobuf
+[  1%] Built target python-protobuf
+[  1%] Built target actor-transition-recovery-python
+[  1%] Built target security-python-protobuf
+[  1%] Built target native-scope-python-protobuf
+[  3%] Built target grants-python-protobuf
+[  3%] Built target key-python-protobuf
+[  3%] Built target issuer-python-protobuf
+[  3%] Built target world-session-python-protobuf
+[  4%] Built target compositor-python-protobuf
+[ 22%] Built target spatial-protobuf
+[ 22%] Built target presentation-python-protobuf
+[ 23%] Built target spatial-confined-xprobe
+[ 23%] Built target spatial-security-auth
+[ 25%] Built target session-probe-python
+[ 25%] Built target storage-python-protobuf
+[ 25%] Built target broker-python-protobuf
+[ 30%] Built target spatial-scene
+[ 31%] Built target launch-python-protobuf
+[ 33%] Built target spatial-presentation-stream
+[ 33%] Built target spatial-control-reply
+[ 33%] Built target spatial-compositor-config
+[ 34%] Built target spatial-identity
+[ 36%] Built target spatial-process-scope
+[ 38%] Built target spatial-storage-devices
+[ 39%] Built target spatial-storage-channel
+[ 39%] Built target spatial-identity-tls
+[ 41%] Built target spatial-authority
+[ 42%] Built target spatial-process-scope-probe
+[ 44%] Built target spatial-key
+[ 47%] Built target spatial-native-input
+[ 47%] Built target spatial-actor-session-client
+[ 49%] Built target spatial-app-initializer
+[ 49%] Built target spatial-storage-client
+[ 50%] Built target spatial-control-admin
+[ 52%] Built target spatial-storage-owner
+[ 52%] Built target spatial-workspace-resources
+[ 53%] Built target spatial-storage-launch
+[ 53%] Built target spatial-bootstrap
+[ 57%] Built target spatial-actor-transition
+[ 60%] Built target spatialwm
+[ 61%] Built target spatial-app-init
+[ 61%] Built target spatial-storage-owner-service
+[ 63%] Built target spatial-issuer-client-lib
+[ 63%] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[ 63%] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[ 65%] Linking CXX static library libspatial-issuer.a
+[ 66%] Built target spatial-issuer
+[ 68%] Built target spatial-issuer-watch-lib
+[ 68%] Built target spatial-participant-runtime-lib
+[ 68%] Built target spatial-issuer-client
+[ 69%] Built target spatial-participant-runtime-probe
+[ 69%] Linking CXX executable identityd
+[ 69%] Built target identityd
+[ 69%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[ 69%] Linking CXX static library libspatial-core.a
+[ 76%] Built target spatial-core
+[ 79%] Built target spatial-authority-launch
+[ 79%] Linking CXX executable spatial-storage-broker-launch-probe
+[ 80%] Built target spatial-storage-broker-launch-probe
+[ 82%] Linking CXX executable worldd
+[ 85%] Built target worldd
+[ 87%] Built target spatial-session-broker
+[ 88%] Built target spatial-authority-launch-probe
+[ 90%] Built target spatial-authority-supervisor
+[ 92%] Linking CXX executable workspaced
+[ 96%] Built target workspaced
+[ 96%] Running cpp protocol buffer compiler on src/testing/actor_transition_recovery_probe.proto
+[ 96%] Building CXX object CMakeFiles/spatial-actor-transition-recovery-probe.dir/src/testing/actor_transition_recovery_probe.cpp.o
+[ 96%] Building CXX object CMakeFiles/spatial-actor-transition-recovery-probe.dir/actor_transition_recovery_probe.pb.cc.o
+[ 96%] Linking CXX executable spatial-actor-transition-recovery-probe
+[100%] Built target spatial-actor-transition-recovery-probe

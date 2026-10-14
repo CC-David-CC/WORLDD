@@ -1,0 +1,131 @@
+M06 retained native transition recovery regressions (four-case candidate)
+
+Status: FOCUSED FOUR-CASE QUALIFICATION PASSED; milestone integration pending.
+Initial worker builds did not execute runtime assertions on a5500.
+Primary test-host runs now provide separate failure and correction evidence.
+Final attempt05 passed all 16 executions on sb16 and sb16-2 in Debug and ASan/UBSan.
+M06 remains incomplete. This change does not complete a phase gate.
+
+Scope and ownership
+
+Branch: m06/retained-transition-recovery.
+Base: 411f531d559d22139dfc9ca0def7ec6445b9f742.
+No production libraries, authority contracts, or locked assertions changed.
+No commit was created. The primary must review and checkpoint this work.
+Preserve local/m06-retained-recovery/run01-* as incomplete attempt evidence.
+Use local/m06-retained-recovery/run02-* for this implementation and its artifacts.
+
+The new probe retains the exact SessionCoordinator owners for both worlds.
+It uses the production shared PresentationOwner and the existing native XACE server.
+Each world retains its own supervised native scope and durable directory.
+The shared compositor survives the failed world and its replacement.
+The Python fixture reuses SessionApplicationTests and SessionReplacementTests setup.
+It creates authority seeds through production provisioning commands.
+SQLite connections use mode=ro. They witness world, launch, and issuer state.
+Fixture seeding does not implement runtime recovery.
+
+The probe forwards management through SessionCoordinator protobuf APIs.
+ActorSessionClient authenticates fresh inherited local actor channels with real keys.
+ActorTransitionCoordinator handles preparation, departure, and activation.
+The adapter contains no transition or recovery engine.
+Its protobuf schema is test transport, not a production authority contract.
+
+Named cases
+
+ActorTransitionRecoveryTests.test_departure_before_durable_commit
+ActorTransitionRecoveryTests.test_departure_after_durable_commit
+ActorTransitionRecoveryTests.test_destination_activation_crash
+ActorTransitionRecoveryTests.test_destination_activation_after_durable_commit
+
+Departure faults return DEPARTURE_UNCERTAIN without a departure receipt.
+The before-commit case retains the saved pose in a non-entry room.
+The after-commit case retains the changed pose in that room.
+Neither departure fault activates or creates a destination actor.
+Activation failure returns ACTIVATION_UNCERTAIN with a confirmed departure revision.
+Before-commit destination insertion rolls back. The source checkpoint remains durable.
+After-commit activation preserves the explicit destination spawn at x=55.
+Fresh authentication restores that committed destination pose without another insertion.
+
+Each case rejects live recovery and live generation replacement.
+Each case verifies exact checked cleanup and its independent launch journal.
+Each case rejects recovery with a substituted generation.
+Each case recovers with the retained owner and rejects an unretired restart.
+Retirement precedes the fresh generation. Issuer activation is independently witnessed.
+Fresh authentication restores committed context without held input or focus.
+Old management ownership fails. Consumed actor clients cannot replay the transition.
+Independent world snapshots remain unchanged across rejected replay and idle inspection.
+
+Fault names and semantics
+
+src/world/store.cpp CommitFault::before_commit exits 86 before SQLite COMMIT.
+Its exact protobuf name is FAULT_WORLD_BEFORE_COMMIT.
+CommitFault::after_commit exits 87 after COMMIT and before the reply.
+Its exact protobuf name is FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY.
+Both require --fixture-faults and FAULT_EXIT. Hello advertises fixture.faults/v1.
+The departure commit is Actors::checkpoint_closed through IdentitySessions::settle.
+Destination preparation does not create an actor. Activation invokes Actors::open.
+A previously absent destination actor reaches WorldStore::create_actor and the commit fault.
+The source uses --fixture-clock for deterministic movement before departure.
+No new fault point was added.
+
+Build selection and commands
+
+Selection was recorded before implementation in run02-logs/selected-checks.txt.
+Run these commands from the worktree root:
+
+flock local/m06-retained-recovery/run02-debug.lock cmake -S spatial-os-luna-handoff -B local/m06-retained-recovery/run02-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+flock local/m06-retained-recovery/run02-debug.lock cmake --build local/m06-retained-recovery/run02-debug --target spatial-actor-transition-recovery-probe -j2
+flock local/m06-retained-recovery/run02-asan.lock cmake -S spatial-os-luna-handoff -B local/m06-retained-recovery/run02-asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=ON
+flock local/m06-retained-recovery/run02-asan.lock cmake --build local/m06-retained-recovery/run02-asan --target spatial-actor-transition-recovery-probe -j2
+
+CMake declares the binary and generated Python dependencies for target-only builds.
+Both builds passed. Both ctest -N registrations contain actor-transition-recovery.
+No probe, runtime test, or ctest execution ran on a5500.
+Static Python parsing and fixture import closure checks do not count as runtime tests.
+Final candidate runtime: 16 passed, zero failed, zero skipped; 4 cases per host/profile.
+All four commands exited zero. Sanitizer scans found no diagnostic in runtime or coordinator logs.
+Evidence: evidence/m06-retained-recovery-2026-10-12, attempt05 files.
+The final result changes no statement that the original worker runtime was UNRUN.
+Historical three-case attempt03 passed 10 of 12; two setup connections expired while idle.
+A diagnostic reproduced a 5.149-second idle gap and immediate EOF with the issuer process alive.
+Recovery now opens a fresh TLS connection before each new registration challenge.
+The 3-second server idle deadline and 5-second request deadline remain unchanged.
+No failed transaction is replayed. Global TLS fixture behavior remains unchanged.
+Healthy final owners use checked stop/recovery without failure retirement.
+Crashed owners still require checked cleanup, exact recovery, and issuer retirement.
+
+Artifact closure and test-host launch
+
+run02-debug.tar.gz and run02-asan.tar.gz contain binaries and runtime.textproto.
+They contain generated Python bindings, source fixtures, and launch tools.
+Each bundle includes shared libraries, dependency inventory, and SHA256SUMS.
+Source pins contain the base commit, branch, changed-file hashes, and full source hashes.
+Bundle SHA256 values are in run02-bundles.sha256.
+The current XACE server remains an external test-host prerequisite.
+Python 3.12 with google.protobuf, openssl, Git, and delegated cgroup v2 are also required.
+Preserve the existing native resource provisioning and normal recovery session.
+Do not remove security configuration to make a launch pass.
+
+After verified transfer and extraction on each qualification host:
+
+cd /absolute/path/to/extracted/run02-debug
+sha256sum -c SHA256SUMS
+SPATIAL_TEST_XSERVER=/absolute/path/to/existing/XACE/Xvfb SPATIAL_SECURITY_EVIDENCE=/absolute/path/to/evidence/run02-debug SPATIAL_SCOPE_EVIDENCE=/absolute/path/to/evidence/run02-debug/scopes ./run-tests.sh
+
+Repeat with run02-asan and a separate evidence directory.
+The launch script requires the actual existing XACE Xvfb path.
+It sets PYTHONPATH, ASAN_OPTIONS, and UBSAN_OPTIONS.
+It invokes with_resource_delegate.py --native and with_adapter_resources.py.
+These tools create the delegated resource configuration consumed by the retained session fixture.
+They preserve broker resource enforcement. They report provisioning failures.
+
+Primary reviewed all six changed files and the final four-case patch.
+Attempt05 passed all 16 executions with no sanitizer diagnostics.
+The original run02 archives alone do not contain the qualified final candidate.
+Apply the final four-case overlay after verifying the original archives.
+Final overlay archive SHA256: 6f273bcd916cbeda9675b0defa972b15774a06f81f225a3837e26e4fbefaf81a.
+Exact qualified launcher, source hashes, logs, and review:
+evidence/m06-retained-recovery-2026-10-12/run-attempt05.sh
+evidence/m06-retained-recovery-2026-10-12/final-review.txt
+Integration must resolve the protobuf generator overlap and rerun affected combined checks.
+Cross-host TLS, held-input transition coverage, and full M06 qualification remain separate tasks.

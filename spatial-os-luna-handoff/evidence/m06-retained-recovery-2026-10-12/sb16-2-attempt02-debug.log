@@ -1,0 +1,133 @@
+{"unit": "spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/python:/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/evidence/debug/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/evidence/debug", "--", "/usr/bin/python3", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/spatial-authority-launch-probe", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/spatial-security-auth", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service"]}
+Running as unit: spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service; invocation ID: 9c53251ffa5549d2ba3f7dec77ba9ced
+test_departure_before_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_before_durable_commit) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.07229378899501171, "operation": "initialize", "outcome": "exit_0", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009802387998206541, "operation": "connect", "outcome": "connected", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05113606801023707, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012163483988842927, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05523863800044637, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010933558995020576, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02816382099990733, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011710142003721558, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028656807000515983, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011240881998674013, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029315184001461603, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01104087800194975, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0279701769904932, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011326791005558334, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029855985994799994, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011602960003074259, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029264640994369984, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01238622999517247, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03018804598832503, "operation": "request", "outcome": "received", "test": "test_departure_before_durable_commit"}
+FAIL
+test_departure_after_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_after_durable_commit) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06579437600157689, "operation": "initialize", "outcome": "exit_0", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.014485337989754044, "operation": "connect", "outcome": "connected", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05103528199833818, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012506081009632908, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.030270055009168573, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011443899013102055, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028884402010589838, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011843195010442287, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029344390000915155, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011411469007725827, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029321832000277936, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011622398000326939, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.027779606985859573, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011218365005333908, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029798419011058286, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011512416007462889, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029126162989996374, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.012050556993926875, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02915170601045247, "operation": "request", "outcome": "received", "test": "test_departure_after_durable_commit"}
+FAIL
+test_destination_activation_crash (__main__.ActorTransitionRecoveryTests.test_destination_activation_crash) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.061750084001687355, "operation": "initialize", "outcome": "exit_0", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009855259995674714, "operation": "connect", "outcome": "connected", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05199182000069413, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01252166299673263, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.03498036999371834, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011440599002526142, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029421074999845587, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011827847003587522, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02905374600959476, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011396518006222323, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.029671455005882308, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011419483009376563, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.028996959008509293, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011368742998456582, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02916755000478588, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.010898003994952887, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.026581172991427593, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011500578999402933, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.02948593400651589, "operation": "request", "outcome": "received", "test": "test_destination_activation_crash"}
+FAIL
+
+======================================================================
+FAIL: test_departure_before_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_before_durable_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 331, in test_departure_before_durable_commit
+    self.crash_transition(core.FAULT_WORLD_BEFORE_COMMIT)
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 326, in crash_transition
+    self.request(stop_world=fresh); self.request(recover_world=fresh); self.request(retire_world=fresh)
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 76, in request
+    self.assertEqual(reply.HasField('error'), expect_error, reply)
+AssertionError: True != False : protocol_version: 1
+request_id: 29
+error {
+  code: INVALID_ARGUMENT
+  message: "Retirement requires stopped ownership, an issuer fence, and dependent cleanup"
+}
+
+
+======================================================================
+FAIL: test_departure_after_durable_commit (__main__.ActorTransitionRecoveryTests.test_departure_after_durable_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 334, in test_departure_after_durable_commit
+    self.crash_transition(core.FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY)
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 326, in crash_transition
+    self.request(stop_world=fresh); self.request(recover_world=fresh); self.request(retire_world=fresh)
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 76, in request
+    self.assertEqual(reply.HasField('error'), expect_error, reply)
+AssertionError: True != False : protocol_version: 1
+request_id: 29
+error {
+  code: INVALID_ARGUMENT
+  message: "Retirement requires stopped ownership, an issuer fence, and dependent cleanup"
+}
+
+
+======================================================================
+FAIL: test_destination_activation_crash (__main__.ActorTransitionRecoveryTests.test_destination_activation_crash)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 337, in test_destination_activation_crash
+    self.crash_transition(core.FAULT_WORLD_BEFORE_COMMIT, activation=True)
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 326, in crash_transition
+    self.request(stop_world=fresh); self.request(recover_world=fresh); self.request(retire_world=fresh)
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", line 76, in request
+    self.assertEqual(reply.HasField('error'), expect_error, reply)
+AssertionError: True != False : protocol_version: 1
+request_id: 30
+error {
+  code: INVALID_ARGUMENT
+  message: "Retirement requires stopped ownership, an issuer fence, and dependent cleanup"
+}
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 24.787s
+
+FAILED (failures=3)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service/adapter-f9521a5a2471458893f8f3c66fa5e612", "device": 31, "inode": 11737889, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service/adapter-f9521a5a2471458893f8f3c66fa5e612\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source/tests/native/test_actor_transition_recovery.py", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/source", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/spatial-authority-launch-probe", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/spatial-security-auth", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-retained-recovery-20261012-02/run02-debug/bin/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 25.110s
+CPU time consumed: 14.222s
+Memory peak: 2.8M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service: Unit spatial-m03-resources-8f57d2e42c05443f986c80e629e1bacf.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

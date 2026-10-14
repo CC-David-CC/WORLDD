@@ -1,0 +1,14 @@
+run02-debug/bin/spatial-actor-transition-recovery-probe: OK
+run02-debug/bin/python/actor_transition_recovery_probe_pb2.py: OK
+run02-debug/source/tests/native/test_actor_transition_recovery.py: OK
+run02-debug/source/tests/native/test_session_world.py: OK
+run02-debug/source/src/testing/actor_transition_recovery_probe.cpp: OK
+run02-debug/source/src/testing/actor_transition_recovery_probe.proto: OK
+run02-debug/source/docs/M06_RETAINED_TRANSITION_RECOVERY.txt: OK
+run02-asan/bin/spatial-actor-transition-recovery-probe: OK
+run02-asan/bin/python/actor_transition_recovery_probe_pb2.py: OK
+run02-asan/source/tests/native/test_actor_transition_recovery.py: OK
+run02-asan/source/tests/native/test_session_world.py: OK
+run02-asan/source/src/testing/actor_transition_recovery_probe.cpp: OK
+run02-asan/source/src/testing/actor_transition_recovery_probe.proto: OK
+run02-asan/source/docs/M06_RETAINED_TRANSITION_RECOVERY.txt: OK

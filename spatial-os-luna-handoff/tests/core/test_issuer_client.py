@@ -19,6 +19,7 @@ from test_identity_tls import TlsFixture
 from test_identity_issuer import Connection
 
 CLIENT = Path(sys.argv.pop(1))
+DIAGNOSTIC = CLIENT.parent/'spatial-issuer-failure-diagnostic'
 
 
 class ClientProcess(Connection):
@@ -109,7 +110,7 @@ class ClientFixture(TlsFixture):
         config = pb.IssuerTlsClientConfig(protocol_version=1, address='127.0.0.1', port=endpoint_port or self.port,
             server_name='issuer.test', server_ca_path=str(self.server_cert),
             certificate_path=str(self.service_cert), private_key_path=str(self.service_key),
-            issuer_id=self.info.issuer_id, issuer_public_key=self.info.public_key, io_timeout_ms=700)
+            issuer_id=self.info.issuer_id, issuer_public_key=self.info.public_key, io_timeout_ms=5000)
         for key, value in overrides.items(): setattr(config, key, value)
         with tempfile.NamedTemporaryFile(mode='w',dir=self.root,prefix='client-',suffix='.textproto',delete=False) as file:
             file.write(text_format.MessageToString(config))
@@ -130,6 +131,12 @@ class ClientFixture(TlsFixture):
 
 
 class ClientTests(ClientFixture):
+    def test_callback_failure_diagnostic_is_bounded_and_fail_closed(self):
+        self.ready()
+        result = subprocess.run([str(DIAGNOSTIC), str(self.config_file())], capture_output=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn(b'diagnostic-secret-marker', result.stdout + result.stderr)
+
     def test_bootstrap_profile_publication_and_exact_read_reach_real_issuer(self):
         self.ready(); client = self.client()
         profile = pb.BootstrapProfile(id='starter')
@@ -332,7 +339,7 @@ class ClientTests(ClientFixture):
             peer.stream.sendall(prefix(frame(reply)))
             peer.stop.wait(2)
         peer = FaultPeer(self, response=respond)
-        client = self.client(peer.port)
+        client = self.client(peer.port, io_timeout_ms=700)
         request = pb.IssuerRequest(protocol_version=1, info=pb.IssuerInfoRequest())
         output, _ = client.proc.communicate(frame(request)*2, timeout=3)
         self.assertEqual(client.proc.returncode, 2)

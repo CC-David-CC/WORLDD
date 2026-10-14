@@ -1,0 +1,6 @@
+flock local/m06-crosshost/run03-debug.lock cmake -S spatial-os-luna-handoff -B local/m06-crosshost/run03-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=OFF -DSPATIAL_ACTOR_TRANSITION_PLAN=/tmp/spatial-m06-run03-private/plan.pb
+flock local/m06-crosshost/run03-debug.lock cmake --build local/m06-crosshost/run03-debug --target worldd identityd spatial-issuer-client spatial-actor-transition-crosshost-probe -j2 
+flock local/m06-crosshost/run03-debug.lock ctest --test-dir local/m06-crosshost/run03-debug -N -R \^actor-transition-crosshost\$ 
+flock local/m06-crosshost/run03-asan.lock cmake -S spatial-os-luna-handoff -B local/m06-crosshost/run03-asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=ON -DSPATIAL_ACTOR_TRANSITION_PLAN=/tmp/spatial-m06-run03-private/plan.pb 
+flock local/m06-crosshost/run03-asan.lock cmake --build local/m06-crosshost/run03-asan --target worldd identityd spatial-issuer-client spatial-actor-transition-crosshost-probe -j2 
+flock local/m06-crosshost/run03-asan.lock ctest --test-dir local/m06-crosshost/run03-asan -N -R \^actor-transition-crosshost\$ 

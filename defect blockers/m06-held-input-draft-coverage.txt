@@ -1,0 +1,18 @@
+Luna held-input draft review
+
+The live draft adds a stale-action check but omits the requested combined native input fixture.
+Recheck the terminal handoff before correction. Do not edit live worker source.
+
+The stale request is an object move without an object ID or complete pose.
+The test accepts any exception. Normal validation could therefore satisfy the stale-generation assertion.
+Use a valid, authorized consequential action and require the stale-generation rejection specifically.
+Show the equivalent current-generation action succeeds with an independent native effect witness.
+Verify both source and destination remain unchanged when the stale request is rejected.
+
+Implement real held keys/buttons, balanced release during A-to-B, and application survival.
+Verify B-to-A does not restore old input or leases, then establish fresh authorized input.
+Use the actual HostActorController transition and existing confined application/native witness patterns.
+Separate session replacement tests do not prove these combined transition requirements.
+Keep private-denial source application usability and retained process identities in scope.
+
+Source observations are not runtime evidence. All draft input regressions remain unqualified.

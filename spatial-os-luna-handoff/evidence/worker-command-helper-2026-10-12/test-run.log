@@ -1,0 +1,14 @@
+test_dangling_symlink_is_untouched (__main__.RunCommandTests.test_dangling_symlink_is_untouched) ... ok
+test_existing_directory_is_untouched (__main__.RunCommandTests.test_existing_directory_is_untouched) ... ok
+test_exit_seven_is_preserved (__main__.RunCommandTests.test_exit_seven_is_preserved) ... ok
+test_invalid_checkout_refuses_before_run_directory (__main__.RunCommandTests.test_invalid_checkout_refuses_before_run_directory) ... ok
+test_receipt_write_failure_never_starts_command (__main__.RunCommandTests.test_receipt_write_failure_never_starts_command) ... ok
+test_success_exit_and_exact_argv (__main__.RunCommandTests.test_success_exit_and_exact_argv) ... ok
+test_term_does_not_fabricate_child_exit (__main__.RunCommandTests.test_term_does_not_fabricate_child_exit) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.139s
+
+OK
+TERM evidence: helper_pid=1730056 child_pid=1730107 child_alive_after_helper_exit=yes command_exit=UNKNOWN
+TERM cleanup evidence: child_pid=1730107 signal=SIGTERM then targeted_SIGKILL_if_needed child_running_after_cleanup=no

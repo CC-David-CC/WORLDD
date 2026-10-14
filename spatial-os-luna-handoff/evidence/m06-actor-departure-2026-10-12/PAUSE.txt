@@ -1,0 +1,5 @@
+Paused at user request. M06 departure and destination preparation implemented; final combined run04 passed both hosts Debug and ASan-UBSan. Changes and evidence remain uncommitted. No test jobs remain active.
+Last published commit: 30e018705d0d163e83b39612e01b223bdab3b28c on m06/world-transitions.
+Final run04: world-participant, world-identity, actor-runtime, both profiles on both hosts.
+Resume: review and commit current changes, then production transition client/coordinator and M06 gate.
+Host overlays remain authoritative; do not reset them to their old Git HEAD.

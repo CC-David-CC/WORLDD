@@ -1,0 +1,24 @@
+{
+  "host": "middle-child",
+  "checkout": "/home/dflanag3/src/spacial-m06-crosshost-20261012",
+  "branch": "m06/crosshost-actor-transitions",
+  "expected_head": "4d0c788e96b645d33e57268bd7c40d2a2b5a9f9b",
+  "qualification": "FOCUSED-PASS",
+  "action": "commit",
+  "state": "LOCAL COMMIT",
+  "started": "2026-10-12T13:24:10.366261+00:00",
+  "staged_tree": "8b7119d812006db682f568d24b980cb47f51c80b",
+  "paths": [
+    "spatial-os-luna-handoff/CMakeLists.txt",
+    "spatial-os-luna-handoff/docs/M06_CROSSHOST_TRANSITIONS.txt",
+    "spatial-os-luna-handoff/src/testing/actor_transition_crosshost_probe.cpp",
+    "spatial-os-luna-handoff/tests/core/actor_transition_crosshost_fixture.py",
+    "spatial-os-luna-handoff/tests/core/actor_transition_crosshost_host.py",
+    "spatial-os-luna-handoff/tests/core/actor_transition_crosshost_run03.txt",
+    "spatial-os-luna-handoff/tests/core/actor_transition_durable_witness.py",
+    "spatial-os-luna-handoff/tests/core/test_actor_transition_crosshost.py",
+    "spatial-os-luna-handoff/tests/proto/actor_transition_crosshost.proto"
+  ],
+  "commit": "c93e02b9695fe6716bf8c32054d06cc7caf084e9",
+  "remaining_status": "?? local/\n?? run03-inputs"
+}

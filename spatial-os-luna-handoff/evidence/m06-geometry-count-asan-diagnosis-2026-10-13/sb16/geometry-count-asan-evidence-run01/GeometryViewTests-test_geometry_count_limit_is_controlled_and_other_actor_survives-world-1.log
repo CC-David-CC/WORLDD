@@ -1,0 +1,3 @@
+worldd: geometry failed category=geometry_failure stage=validation construction_ms=4265 validation_ms=15
+worldd: issuer exchange failed operation=info since_last_success_ms=4296 category=issuer_eof phase=reply_header elapsed_ms=0 timeout_ms=5000 gap_ms=0 tick_ms=0 progress=0/4
+worldd: identity service disabled at identity_sessions.cpp:303

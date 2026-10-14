@@ -1,0 +1,8 @@
+Reviewed source departure and destination preparation increment.
+Final combined run04 passed world-participant (6), world-identity (27), and actor-runtime (10).
+43 cases per host/profile, 172 passing executions on sb16 and sb16-2 in Debug and ASan-UBSan.
+Checks include native held-input release, direct SQLite persistence, fresh sequences, prepared-state inactivity, wrong activation IDs, revocation and denial preserving source control.
+Earlier runs and source hashes retained. All 41 locked acceptance files remain unchanged.
+No production transition client or full M06 qualification is claimed.
+Further integration must cover loss during deferred cleanup and prepared-session expiry under the transition coordinator.
+User requested committing this checkpoint to box-git while the main goal remains paused.

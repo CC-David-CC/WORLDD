@@ -1,0 +1,391 @@
+ELF-DEPENDENCIES.txt: OK
+bin/identityd: OK
+bin/runtime.textproto: OK
+bin/spatial-actor-transition-integration-driver: OK
+bin/spatial-app-init: OK
+bin/spatial-issuer-client: OK
+bin/spatial-process-scope-probe: OK
+bin/spatialwm: OK
+bin/workspaced: OK
+bin/worldd: OK
+python/actor_transition_integration_pb2.py: OK
+python/actor_transition_pb2.py: OK
+python/broker_pb2.py: OK
+python/compositor_native_pb2.py: OK
+python/core_pb2.py: OK
+python/grants_pb2.py: OK
+python/grants_probe_pb2.py: OK
+python/issuer_pb2.py: OK
+python/key_pb2.py: OK
+python/launch_pb2.py: OK
+python/native_scope_pb2.py: OK
+python/process_scope_pb2.py: OK
+python/security_pb2.py: OK
+python/storage_pb2.py: OK
+python/world_session_pb2.py: OK
+python/world_topology_pb2.py: OK
+run-delegated.sh: OK
+run-qualification.sh: OK
+run03-source.sha256: OK
+run03-test-host-steps.txt: OK
+source/docs/M06_ACTOR_INTEGRATION_TESTS.txt: OK
+source/harness/__init__.py: OK
+source/harness/base.py: OK
+source/harness/git_fixture.py: OK
+source/harness/oracles.py: OK
+source/harness/probe.py: OK
+source/harness/resource_broker.py: OK
+source/harness/rpc.py: OK
+source/harness/wire.py: OK
+source/harness/xbase.py: OK
+source/tests/core/child_handle_witness.py: OK
+source/tests/core/control_admin_witness.py: OK
+source/tests/core/test_actor_pixels.py: OK
+source/tests/core/test_actor_status.py: OK
+source/tests/core/test_actor_tls_retries.py: OK
+source/tests/core/test_actor_transition_integration.py: OK
+source/tests/core/test_actors.py: OK
+source/tests/core/test_adapter_resources.py: OK
+source/tests/core/test_app_initializer.py: OK
+source/tests/core/test_application_access.py: OK
+source/tests/core/test_application_control_lease.py: OK
+source/tests/core/test_application_observation.py: OK
+source/tests/core/test_authenticated_resources.py: OK
+source/tests/core/test_authority.py: OK
+source/tests/core/test_authority_bootstrap.py: OK
+source/tests/core/test_authority_fencing.py: OK
+source/tests/core/test_authority_fencing_client.py: OK
+source/tests/core/test_authority_prepared_launch.py: OK
+source/tests/core/test_authority_process_scope.py: OK
+source/tests/core/test_authority_retirement.py: OK
+source/tests/core/test_authority_retirement_client.py: OK
+source/tests/core/test_broker_bootstrap_client.py: OK
+source/tests/core/test_broker_control_client.py: OK
+source/tests/core/test_broker_control_client_live.py: OK
+source/tests/core/test_broker_resources.py: OK
+source/tests/core/test_child_handle_client.py: OK
+source/tests/core/test_collision.py: OK
+source/tests/core/test_control_admin.py: OK
+source/tests/core/test_control_owner_channels.py: OK
+source/tests/core/test_control_reply.py: OK
+source/tests/core/test_identity_bootstrap.py: OK
+source/tests/core/test_identity_enrollment.py: OK
+source/tests/core/test_identity_issuer.py: OK
+source/tests/core/test_identity_keys.py: OK
+source/tests/core/test_identity_participant_barrier.py: OK
+source/tests/core/test_identity_participant_barrier_client.py: OK
+source/tests/core/test_identity_participant_client.py: OK
+source/tests/core/test_identity_participant_runtime.py: OK
+source/tests/core/test_identity_participant_session.py: OK
+source/tests/core/test_identity_participant_session_client.py: OK
+source/tests/core/test_identity_participants.py: OK
+source/tests/core/test_identity_revocation.py: OK
+source/tests/core/test_identity_tls.py: OK
+source/tests/core/test_identity_watch.py: OK
+source/tests/core/test_input.py: OK
+source/tests/core/test_issuer_client.py: OK
+source/tests/core/test_issuer_client_defaults.py: OK
+source/tests/core/test_launch_authorization.py: OK
+source/tests/core/test_objects.py: OK
+source/tests/core/test_observation.py: OK
+source/tests/core/test_parent_mutation_parser.py: OK
+source/tests/core/test_participant_channel.py: OK
+source/tests/core/test_participant_incarnation.py: OK
+source/tests/core/test_portals.py: OK
+source/tests/core/test_presentation_owner.py: OK
+source/tests/core/test_presentation_stream.py: OK
+source/tests/core/test_process_scope_resources.py: OK
+source/tests/core/test_process_termination.py: OK
+source/tests/core/test_processes.py: OK
+source/tests/core/test_production_profile.py: OK
+source/tests/core/test_protocol.py: OK
+source/tests/core/test_recovery.py: OK
+source/tests/core/test_render.py: OK
+source/tests/core/test_render_observation_client.py: OK
+source/tests/core/test_retained_child_handle.py: OK
+source/tests/core/test_revocation_command.py: OK
+source/tests/core/test_session_launch_exit.py: OK
+source/tests/core/test_storage.py: OK
+source/tests/core/test_supervisor_registry.py: OK
+source/tests/core/test_surfaces.py: OK
+source/tests/core/test_workspace_authority.py: OK
+source/tests/core/test_workspace_bootstrap.py: OK
+source/tests/core/test_workspace_bootstrap_owner_idle.py: OK
+source/tests/core/test_workspace_bootstrap_races.py: OK
+source/tests/core/test_workspace_git.py: OK
+source/tests/core/test_workspace_participant.py: OK
+source/tests/core/test_workspace_participant_native.py: OK
+source/tests/core/test_workspace_participant_races.py: OK
+source/tests/core/test_workspace_participant_settlement.py: OK
+source/tests/core/test_workspaces.py: OK
+source/tests/core/test_world_application_control.py: OK
+source/tests/core/test_world_authority.py: OK
+source/tests/core/test_world_bootstrap.py: OK
+source/tests/core/test_world_bootstrap_races.py: OK
+source/tests/core/test_world_identity.py: OK
+source/tests/core/test_world_participant.py: OK
+source/tests/core/test_world_participant_native.py: OK
+source/tests/core/test_world_remote.py: OK
+source/tests/core/test_world_remote_config.py: OK
+source/tests/core/test_world_remote_keys.py: OK
+source/tests/core/test_world_remote_lifecycle.py: OK
+source/tests/core/test_world_remote_native.py: OK
+source/tests/core/test_world_remote_races.py: OK
+source/tests/core/test_world_remote_security.py: OK
+source/tests/core/test_world_revision_interleave.py: OK
+source/tests/core/test_world_revocation_receipts.py: OK
+source/tests/core/test_world_shared_crosshost.py: OK
+source/tests/core/test_world_shared_state.py: OK
+source/tests/core/test_world_topology.py: OK
+source/tests/core/test_worldd.py: OK
+source/tests/core/world_tls_witness.py: OK
+source/tests/core/world_topology_launcher.py: OK
+source/tests/proto/actor_transition_integration.proto: OK
+source/tools/with_adapter_resources.py: OK
+source/tools/with_resource_delegate.py: OK
+{"unit": "spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/python:/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/evidence/resources", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/evidence", "--", "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/run-delegated.sh"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service"]}
+Running as unit: spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service; invocation ID: d6324aaa41214d2aa12c0e910a23d597
+ELF-DEPENDENCIES.txt: OK
+bin/identityd: OK
+bin/runtime.textproto: OK
+bin/spatial-actor-transition-integration-driver: OK
+bin/spatial-app-init: OK
+bin/spatial-issuer-client: OK
+bin/spatial-process-scope-probe: OK
+bin/spatialwm: OK
+bin/workspaced: OK
+bin/worldd: OK
+python/actor_transition_integration_pb2.py: OK
+python/actor_transition_pb2.py: OK
+python/broker_pb2.py: OK
+python/compositor_native_pb2.py: OK
+python/core_pb2.py: OK
+python/grants_pb2.py: OK
+python/grants_probe_pb2.py: OK
+python/issuer_pb2.py: OK
+python/key_pb2.py: OK
+python/launch_pb2.py: OK
+python/native_scope_pb2.py: OK
+python/process_scope_pb2.py: OK
+python/security_pb2.py: OK
+python/storage_pb2.py: OK
+python/world_session_pb2.py: OK
+python/world_topology_pb2.py: OK
+run-delegated.sh: OK
+run-qualification.sh: OK
+run03-source.sha256: OK
+run03-test-host-steps.txt: OK
+source/docs/M06_ACTOR_INTEGRATION_TESTS.txt: OK
+source/harness/__init__.py: OK
+source/harness/base.py: OK
+source/harness/git_fixture.py: OK
+source/harness/oracles.py: OK
+source/harness/probe.py: OK
+source/harness/resource_broker.py: OK
+source/harness/rpc.py: OK
+source/harness/wire.py: OK
+source/harness/xbase.py: OK
+source/tests/core/child_handle_witness.py: OK
+source/tests/core/control_admin_witness.py: OK
+source/tests/core/test_actor_pixels.py: OK
+source/tests/core/test_actor_status.py: OK
+source/tests/core/test_actor_tls_retries.py: OK
+source/tests/core/test_actor_transition_integration.py: OK
+source/tests/core/test_actors.py: OK
+source/tests/core/test_adapter_resources.py: OK
+source/tests/core/test_app_initializer.py: OK
+source/tests/core/test_application_access.py: OK
+source/tests/core/test_application_control_lease.py: OK
+source/tests/core/test_application_observation.py: OK
+source/tests/core/test_authenticated_resources.py: OK
+source/tests/core/test_authority.py: OK
+source/tests/core/test_authority_bootstrap.py: OK
+source/tests/core/test_authority_fencing.py: OK
+source/tests/core/test_authority_fencing_client.py: OK
+source/tests/core/test_authority_prepared_launch.py: OK
+source/tests/core/test_authority_process_scope.py: OK
+source/tests/core/test_authority_retirement.py: OK
+source/tests/core/test_authority_retirement_client.py: OK
+source/tests/core/test_broker_bootstrap_client.py: OK
+source/tests/core/test_broker_control_client.py: OK
+source/tests/core/test_broker_control_client_live.py: OK
+source/tests/core/test_broker_resources.py: OK
+source/tests/core/test_child_handle_client.py: OK
+source/tests/core/test_collision.py: OK
+source/tests/core/test_control_admin.py: OK
+source/tests/core/test_control_owner_channels.py: OK
+source/tests/core/test_control_reply.py: OK
+source/tests/core/test_identity_bootstrap.py: OK
+source/tests/core/test_identity_enrollment.py: OK
+source/tests/core/test_identity_issuer.py: OK
+source/tests/core/test_identity_keys.py: OK
+source/tests/core/test_identity_participant_barrier.py: OK
+source/tests/core/test_identity_participant_barrier_client.py: OK
+source/tests/core/test_identity_participant_client.py: OK
+source/tests/core/test_identity_participant_runtime.py: OK
+source/tests/core/test_identity_participant_session.py: OK
+source/tests/core/test_identity_participant_session_client.py: OK
+source/tests/core/test_identity_participants.py: OK
+source/tests/core/test_identity_revocation.py: OK
+source/tests/core/test_identity_tls.py: OK
+source/tests/core/test_identity_watch.py: OK
+source/tests/core/test_input.py: OK
+source/tests/core/test_issuer_client.py: OK
+source/tests/core/test_issuer_client_defaults.py: OK
+source/tests/core/test_launch_authorization.py: OK
+source/tests/core/test_objects.py: OK
+source/tests/core/test_observation.py: OK
+source/tests/core/test_parent_mutation_parser.py: OK
+source/tests/core/test_participant_channel.py: OK
+source/tests/core/test_participant_incarnation.py: OK
+source/tests/core/test_portals.py: OK
+source/tests/core/test_presentation_owner.py: OK
+source/tests/core/test_presentation_stream.py: OK
+source/tests/core/test_process_scope_resources.py: OK
+source/tests/core/test_process_termination.py: OK
+source/tests/core/test_processes.py: OK
+source/tests/core/test_production_profile.py: OK
+source/tests/core/test_protocol.py: OK
+source/tests/core/test_recovery.py: OK
+source/tests/core/test_render.py: OK
+source/tests/core/test_render_observation_client.py: OK
+source/tests/core/test_retained_child_handle.py: OK
+source/tests/core/test_revocation_command.py: OK
+source/tests/core/test_session_launch_exit.py: OK
+source/tests/core/test_storage.py: OK
+source/tests/core/test_supervisor_registry.py: OK
+source/tests/core/test_surfaces.py: OK
+source/tests/core/test_workspace_authority.py: OK
+source/tests/core/test_workspace_bootstrap.py: OK
+source/tests/core/test_workspace_bootstrap_owner_idle.py: OK
+source/tests/core/test_workspace_bootstrap_races.py: OK
+source/tests/core/test_workspace_git.py: OK
+source/tests/core/test_workspace_participant.py: OK
+source/tests/core/test_workspace_participant_native.py: OK
+source/tests/core/test_workspace_participant_races.py: OK
+source/tests/core/test_workspace_participant_settlement.py: OK
+source/tests/core/test_workspaces.py: OK
+source/tests/core/test_world_application_control.py: OK
+source/tests/core/test_world_authority.py: OK
+source/tests/core/test_world_bootstrap.py: OK
+source/tests/core/test_world_bootstrap_races.py: OK
+source/tests/core/test_world_identity.py: OK
+source/tests/core/test_world_participant.py: OK
+source/tests/core/test_world_participant_native.py: OK
+source/tests/core/test_world_remote.py: OK
+source/tests/core/test_world_remote_config.py: OK
+source/tests/core/test_world_remote_keys.py: OK
+source/tests/core/test_world_remote_lifecycle.py: OK
+source/tests/core/test_world_remote_native.py: OK
+source/tests/core/test_world_remote_races.py: OK
+source/tests/core/test_world_remote_security.py: OK
+source/tests/core/test_world_revision_interleave.py: OK
+source/tests/core/test_world_revocation_receipts.py: OK
+source/tests/core/test_world_shared_crosshost.py: OK
+source/tests/core/test_world_shared_state.py: OK
+source/tests/core/test_world_topology.py: OK
+source/tests/core/test_worldd.py: OK
+source/tests/core/world_tls_witness.py: OK
+source/tests/core/world_topology_launcher.py: OK
+source/tests/proto/actor_transition_integration.proto: OK
+source/tools/with_adapter_resources.py: OK
+source/tools/with_resource_delegate.py: OK
+test_malformed_payload (__main__.DriverFramingTests.test_malformed_payload) ... ok
+test_nested_unknown_field (__main__.DriverFramingTests.test_nested_unknown_field) ... ok
+test_oversized_frame (__main__.DriverFramingTests.test_oversized_frame) ... ok
+test_trailing_malformed_payload (__main__.DriverFramingTests.test_trailing_malformed_payload) ... ok
+test_truncated_header (__main__.DriverFramingTests.test_truncated_header) ... ok
+test_truncated_payload (__main__.DriverFramingTests.test_truncated_payload) ... ok
+test_unknown_field (__main__.DriverFramingTests.test_unknown_field) ... ok
+test_a_b_a_b_inspects_every_context_and_durable_departure (__main__.RealActorTransitionTests.test_a_b_a_b_inspects_every_context_and_durable_departure) ... ok
+test_activation_crash_retains_departure_receipt_without_replay (__main__.RealActorTransitionTests.test_activation_crash_retains_departure_receipt_without_replay) ... ERROR
+test_after_commit_crash_is_uncertain_without_replay (__main__.RealActorTransitionTests.test_after_commit_crash_is_uncertain_without_replay) ... ERROR
+test_before_commit_crash_is_uncertain_without_replay (__main__.RealActorTransitionTests.test_before_commit_crash_is_uncertain_without_replay) ... ERROR
+test_departure_receipt_saves_live_motion_and_survives_restart (__main__.RealActorTransitionTests.test_departure_receipt_saves_live_motion_and_survives_restart) ... ok
+test_new_actor_explicit_spawn_uses_destination_context (__main__.RealActorTransitionTests.test_new_actor_explicit_spawn_uses_destination_context) ... ok
+test_new_actor_omitted_spawn_uses_destination_entry (__main__.RealActorTransitionTests.test_new_actor_omitted_spawn_uses_destination_entry) ... ok
+test_per_world_workspace_selection_is_independent (__main__.RealActorTransitionTests.test_per_world_workspace_selection_is_independent) ... ok
+test_private_denial_preserves_inspect_and_next_transition (__main__.RealActorTransitionTests.test_private_denial_preserves_inspect_and_next_transition) ... ok
+test_revoked_workspace_grant_clears_saved_selection_on_return (__main__.RealActorTransitionTests.test_revoked_workspace_grant_clears_saved_selection_on_return) ... ok
+test_unavailable_workspace_clears_saved_selection_on_return (__main__.RealActorTransitionTests.test_unavailable_workspace_clears_saved_selection_on_return) ... ok
+
+======================================================================
+ERROR: test_activation_crash_retains_departure_receipt_without_replay (__main__.RealActorTransitionTests.test_activation_crash_retains_departure_receipt_without_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_actor_transition_integration.py", line 369, in test_activation_crash_retains_departure_receipt_without_replay
+    restored_destination = self.world(state=destination.state_path)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 144, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 73, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+======================================================================
+ERROR: test_after_commit_crash_is_uncertain_without_replay (__main__.RealActorTransitionTests.test_after_commit_crash_is_uncertain_without_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_actor_transition_integration.py", line 377, in test_after_commit_crash_is_uncertain_without_replay
+    self.departure_fault('world.after_commit_before_reply', 87)
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_actor_transition_integration.py", line 331, in departure_fault
+    restored = self.world(state=source.state_path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 144, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 73, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+======================================================================
+ERROR: test_before_commit_crash_is_uncertain_without_replay (__main__.RealActorTransitionTests.test_before_commit_crash_is_uncertain_without_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_actor_transition_integration.py", line 374, in test_before_commit_crash_is_uncertain_without_replay
+    self.departure_fault('world.before_commit', 86)
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_actor_transition_integration.py", line 331, in departure_fault
+    restored = self.world(state=source.state_path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 144, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 73, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/source/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 18 tests in 37.853s
+
+FAILED (errors=3)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service/adapter-5f39f55a48a74c52ac74f73cc753b02b", "device": 31, "inode": 11709044, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service/adapter-5f39f55a48a74c52ac74f73cc753b02b\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["python3", "source/tests/core/test_actor_transition_integration.py", "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/bin/identityd", "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/bin/spatial-issuer-client", "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/bin/worldd", "/home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-03/debug/bin/spatial-actor-transition-integration-driver"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 38.463s
+CPU time consumed: 11.408s
+Memory peak: 1.9M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service: Unit spatial-m03-resources-29b08d3f55a54e6c9d97ac42e143e8b3.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

@@ -1,0 +1,199 @@
+M06 final gate: remaining wiring
+Read-only audit, 2026-10-12
+Audited root HEAD: 08bfca621814a9fcc3c4c63e6a00676b857b2c25.
+Status: gate wiring pending. This document adds no implementation or qualification claim.
+Current runtime status remains in CURRENT_STATE.md and the reviewed evidence directories.
+
+1. Existing gate adapter
+
+tools/m06_deployed_gate.py already provides these commands:
+prepare --candidate COMMIT --output NEW_PARENT --runtime-manifest PRIVATE_JSON
+verify-deploy --bundle ARCHIVE --sha256 HASH --archive-manifest JSON --host HOST --destination NEW_DIR
+run-local --deployment DIR --native-controller NAME --real-world NAME --recovery NAME --host-session NAME --held-input NAME
+crosshost-handoff --plan JSON
+
+prepare builds Debug and ASan-UBSan ON/OFF trees on a coding host.
+It pins source, generated bindings, executables, configs, dependencies, and CTest metadata.
+verify-deploy verifies and relocates artifacts on the named runtime host.
+run-local runs the complete registered CTest inventory for both profiles.
+It also runs OFF startup, harness, P10, and bounded-storage scenarios.
+OFF startup explicitly uses each OFF executable and its own generated Python bindings.
+The adapter rejects skipped cases and checks cleanup and postrun hashes.
+Its final local status is local_passed_crosshost_pending. phase_complete remains false.
+
+crosshost-handoff currently validates plan fields, prints BLOCKED, and returns 2.
+It invokes no fixture and accepts no completed cross-host evidence.
+A valid plan is not a passing cross-host run.
+
+2. Existing callable checks and provisioning
+
+Current local CTest names include:
+host-session-startup and host-session-production-native.
+host-actor-controller and host-actor-controller-native.
+actor-transition-real-world and actor-transition-recovery.
+The held-input category shares host-actor-controller-native. Do not run duplicate registrations for that category.
+The native host-session registration launches tests/native/test_host_session_production.py with the production executable.
+Preserve its declared resource and environment wrappers.
+
+The task candidate also has actor-geometry-client-hostile-peer and actor-geometry-world-headless checks.
+They are not registered in this audited root CMakeLists.txt yet.
+The audited root also lacks tests/core/test_geometry_view.py and geometry_view.proto.
+Integrate the reviewed candidate before treating these names as root gate inputs.
+The increment-1 Debug passes do not qualify the full combined candidate or increment 2.
+Its sanitizer count-limit failure remains a component qualification prerequisite.
+
+Actual cross-host provisioning now exists:
+python3 tests/core/actor_transition_crosshost_fixture.py --bundle BUNDLE --profile debug --output NEW_DIR
+Use --profile asan for the sanitizer profile.
+The fixture accepts --fail-after for reviewed partial-start cleanup regressions.
+Its precise accepted values are in main(), lines 537-589.
+
+The existing semantic harness is callable as:
+python3 tests/core/test_actor_transition_crosshost.py DRIVER PLAN.pb
+DRIVER is spatial-actor-transition-crosshost-probe from the matching profile.
+The harness requires exactly six protobuf plan cases.
+They cover round-trip, private denial, and unavailable destination in both authority directions.
+The fixture constructs those six cases and invokes the harness itself.
+It records harness.exit, runtime-status.txt, ownership.json, plan-summary.json, and cleanup.json.
+The fixture also runs stop_owner_backlog_regression before provisioning.
+Its injected issuer-record-after-spawn case checks ownership recovery after an identity-record failure.
+
+The trusted host helper is tests/core/actor_transition_crosshost_host.py.
+Its operations are create, put, initialize, authority, start, serve, management, status, snapshot, stop, and remove.
+Its token and root checks bind fixture ownership to UID, device, inode, and exact host-specific paths.
+The read-only durable witness is tests/core/actor_transition_durable_witness.py.
+Actor actions remain in the production C++ client and transition coordinator.
+Never route actor actions through the helper's trusted management socket.
+
+Related existing cross-host regressions also need explicit final-source mapping.
+They are not covered merely by the six transition cases:
+- tests/core/test_world_shared_crosshost.py uses one actor TLS connection from each host.
+- tests/native/test_session_crosshost_recovery.py runs two supervised replacement checks with a remote actor witness.
+- tests/native/crosshost_revocation.py supports controller/worker modes and delay/crash scenarios.
+The first two use tests/core/world_tls_witness.py through SPATIAL_REMOTE_WITNESS.
+They require SPATIAL_REMOTE_HOST, SPATIAL_REMOTE_PYTHONPATH, and SPATIAL_WORLD_ADDRESS provisioning.
+The revocation CLI takes --source, --build, --output, optional --bindings, and --scenario delay|crash.
+Its controller requires --address and --delayed-host sb16|sb16-2. Its worker requires --bundle with private bootstrap material.
+Reassess M05 topology, independent remote-key, and supervised-recovery requirements against the final candidate.
+Their earlier evidence does not automatically qualify changed source.
+Keep their native resource wrappers and exact owned cleanup when adding these stages.
+
+docs/M06_CROSSHOST_TRANSITIONS.txt contains historical run01/run02 limitations.
+Its claim that automated two-authority provisioning is absent is stale against the current fixture.
+tests/core/actor_transition_crosshost_run03.txt describes the actual provisioning and cleanup contract.
+Its old UNRUN heading does not override newer CURRENT_STATE.md and reviewed evidence.
+
+3. Concrete cross-host adapter gap
+
+The fixture currently expects the same absolute BUNDLE path on both hosts.
+Its layout uses debug/ and asan/ executables, python/, and lib/ directories.
+Its Python fixture, harness, and witness scripts reside at the bundle root.
+It checks SHA256SUMS remotely before provisioning.
+The deployed gate instead uses source/, build/Debug, build/ASan-UBSan, and production-off/PROFILE.
+The existing fixture cannot consume that deployment unchanged.
+There is no committed current run03.sh packager under tools/ to bridge these layouts.
+The run03.sh commands in the historical run notes describe an earlier task bundle.
+
+After source freeze, adapt the existing fixture to the gate's deployed layout explicitly.
+Map the existing debug/asan CLI choices to Debug/ASan-UBSan artifact profiles.
+Resolve the helper, harness, witness, imported fixtures, bindings, and libraries from the frozen deployment.
+Keep the private plan and credentials outside Git and outside the source archive.
+Keep both-host hash checks, genuine issuer enrollment, participant registration, and persistent world identities.
+Do not copy an older run03 binary bundle into the final gate.
+Do not configure a nonexistent private-plan placeholder into the local CTest inventory.
+CMake's actor-transition-crosshost registration is conditional on SPATIAL_ACTOR_TRANSITION_PLAN.
+The current prepare command does not set that private-plan option.
+Use an explicit runtime provisioning stage for these cases, with a recorded invocation and private plan hash.
+
+Replace crosshost-handoff's stub only with this reviewed fixture invocation and receipt validation.
+Require the final candidate, matching profiles on both hosts, expected cases, and successful checked cleanup.
+One six-case semantic fixture invocation per profile already covers both authority directions.
+Do not double-count directions or repeat cases solely to raise a count.
+Run the cross-host stage after both local gates release their runtime slots.
+The existing gate lock protects one host. A cross-host native run needs both hosts free.
+
+4. Native geometry remains a separate prerequisite
+
+Read docs/M06_GEOMETRY_VIEW_WORKER.txt, increment 2, for the required production presentation work.
+The existing semantic fixture launches no compositor and asserts no native pixels or compositor continuity.
+Its shared actor receives WORLD_ENTER and WORLD_NAVIGATE, not WORLD_OBSERVE.
+That provisioning cannot establish an authorized geometry observer without additional explicit grants.
+Do not broaden its existing grants silently or label its semantic cases as native coverage.
+Keep the six-case semantic plan and its current assertions intact.
+
+Increment 2 must deliver the actual callable native test/provisioning entrypoints and CTest registrations.
+The gate must use their reviewed names and CLIs. This audit does not invent them.
+Require one foreground actor per host and two independent actor identities in the shared-world scenario.
+Require both authority directions and both profiles.
+Use the production host-session entrypoint and retained local compositor.
+Grant observation and manipulation only to the actors that need those operations.
+The required witness must independently capture changing local native pixels after real remote object and actor movement.
+
+The final native matrix must map these requirements to executable assertions:
+A-B-A context restoration with exact XLibre/spatialwm PID and start identity continuity.
+Private denial with a usable, correctly rendered source view.
+Observation revocation with denied updates and cleared unauthorized presentation.
+Delayed source, wrong actor, wrong authority epoch, and stale generation fencing.
+Rejected remote native/application fields, pixel reads, input, and descriptor handoff.
+Remote authority loss that clears or fences the view without restarting the local compositor.
+Continued shared-world authority and peer-actor usability after one actor leaves.
+
+Geometry export, presentation selection, and displayed-frame confirmation are separate facts.
+Existing selected-binding or PID checks do not replace changing-pixel evidence.
+Remote application streaming, remote application input, and workspace migration remain excluded.
+General same-host multi-actor routing and physical device/soak gates are not added to this task.
+
+5. Minimum follow-up file scope
+
+tools/m06_deployed_gate.py:
+Add explicit mandatory mappings for the final geometry and production presentation suites.
+Keep the existing host-session and held-input mappings. Deduplicate shared registrations.
+Add the reviewed cross-host fixture invocation, deployment mapping, and terminal receipt validation.
+Record both profiles, both authority directions, native witnesses, failure evidence, and cleanup independently.
+Add a final review receipt that reconciles both local hosts and cross-host results.
+Never convert plan validation or a partial matrix into phase completion.
+
+tests/core/actor_transition_crosshost_fixture.py:
+Adapt only the fixture's artifact/layout resolution for the final deployment.
+Preserve existing provisioning, six-case semantic checks, ownership, deadlines, and cleanup.
+Native extensions belong to the reviewed increment-2 fixture, not guessed gate-side production APIs.
+
+tools/test_m06_deployed_gate_static.py:
+Add regressions for mandatory geometry registrations, profile/layout mismatch, missing indirect helpers,
+unrun cross-host plans, failed/incomplete cleanup, wrong source pins, and incomplete native witness results.
+Use positive invocation/receipt controls so an unrelated rejection does not prove the intended guard.
+These checks do not replace runtime qualification.
+
+CMakeLists.txt:
+Retain increment-2 test registrations, generated binding ownership, helper dependencies, and declared resource wrappers.
+Require the combined build inventory to contain the final mandatory names before deployment.
+Do not create duplicate protobuf generation commands.
+
+docs/M06_DEPLOYED_GATE.md:
+Document the actual final fixture CLI, suite mapping, profile mapping, and result-review rules.
+Update stale cross-host instructions as a separate reviewed documentation correction if required.
+No production file edit is required merely to connect already implemented checks to the gate.
+Missing increment-2 implementations or witnesses remain their own prerequisite work.
+
+6. Freeze and runtime closure
+
+Freeze one reviewed combined commit after increment 2 and affected regressions pass.
+Rebuild and package ON/OFF Debug and ASan-UBSan from that exact candidate.
+Record complete CTest inventories and transitive production Python imports.
+Keep one generator per protobuf output.
+Include runtime.textproto and every indirect helper needed by the actual fixture call chains.
+Explicitly include spatial-process-scope-probe used by ResourceBroker beside workspaced.
+Library resolution alone does not prove child-executable or fixture closure.
+Preserve per-suite resource wrappers and compare translated commands/environments before launch.
+
+Use the qualified M06 Xvfb wrapper, its exact server receipt, and patched EGL library closure.
+Verify every extension source against the frozen server/base.lock.json.
+Verify both installed root-owned helpers: spatial-bwrap and spatial-storage-owner.
+Keep GLX enabled, leak detection enabled, and no suppressions.
+Do not replace these checks with a raw Xvfb hash or core-only run.
+Verify transferred archives only after their transfer jobs are terminal.
+Keep preflight, raw outputs, command/wrapper exits, skip counts, native witnesses, and postrun hashes.
+Preserve failures and report passed, failed, pending, and unrun rows separately.
+Publish no credentials or runtime databases with reviewed evidence.
+The complete required local Debug/sanitizer/harness/acceptance matrix runs on both hosts at the final gate.
+A focused component pass remains a component pass until that gate and primary review complete.

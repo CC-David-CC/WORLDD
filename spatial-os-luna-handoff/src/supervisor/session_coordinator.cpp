@@ -4,8 +4,11 @@
 #include "supervisor/launch.hpp"
 #include "supervisor/control_admin.hpp"
 #include "platform/broker.hpp"
+#include "platform/presentation_owner.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
+#include "world/geometry_view_validation.hpp"
+#include "world/store.hpp"
 #include <map>
 #include <iostream>
 #include <vector>
@@ -50,6 +53,8 @@ struct World {
     std::optional<identity::v1::AuthorityRetirementState> retirement;
     std::filesystem::path journal_directory;
     std::vector<std::unique_ptr<File>> actors;
+    render::v1::WorldPresentationBinding presentation;
+    bool presentation_attached=false,presentation_retired=false,world_identity_checked=false;
     bool registered = false, stopped = false, failed = false;
     std::uint64_t sequence = 0;
 };
@@ -58,6 +63,9 @@ struct SessionCoordinator::Impl {
     const pid_t creator = getpid();
     std::filesystem::path executable;
     SessionBroker broker;
+    std::unique_ptr<PresentationOwner> presentation;
+    std::map<std::uint64_t,render::v1::GeometryPresentationTarget> geometry_targets;
+    std::uint64_t presentation_generation=0;
     // Reverse destruction closes world scopes before broker root ownership.
     std::map<std::string, std::unique_ptr<World>> worlds;
     std::uint64_t sequence = 0;
@@ -96,17 +104,95 @@ SessionCoordinator::SessionCoordinator(const std::filesystem::path& executable, 
     v1::AuthoritySupervisorConfig config, int native)
     : impl_(std::make_unique<Impl>(executable, path, std::move(config), native)) {}
 SessionCoordinator::~SessionCoordinator() = default;
+void SessionCoordinator::start_presentation(const std::filesystem::path& executable,const std::filesystem::path& path,int native){
+    auto& state=*impl_;state.live();
+    require(!state.presentation && state.worlds.empty(),"Start presentation before any world launches");
+    state.presentation=std::make_unique<PresentationOwner>(executable,path,native);
+}
+render::v1::PresentationState SessionCoordinator::select_world(const workspace::v1::ControlOwner& owner){
+    auto& state=*impl_;auto& world=state.find(owner);
+    require(state.presentation && world.presentation_attached && world.world_identity_checked && !world.stopped && !world.failed,
+        "World presentation is not available");world.supervisor->live();
+    return state.presentation->select(world.presentation);
+}
+render::v1::PresentationState SessionCoordinator::inspect_presentation(const workspace::v1::ControlOwner& owner){
+    auto& state=*impl_;auto& world=state.find_owned(owner);
+    require(state.presentation && world.presentation_attached && !world.presentation_retired,"No retained world presentation");
+    return state.presentation->inspect(world.presentation);
+}
+render::v1::GeometryPresentationTarget SessionCoordinator::attach_geometry(const identity::v1::ActorGeometryView& view){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    validate_geometry_view(view);require(state.presentation_generation!=UINT64_MAX,"Presentation generation exhausted");
+    render::v1::GeometryPresentationTarget target;target.set_protocol_version(1);target.set_world_id(view.world_id());
+    target.set_actor_id(view.actor_id());target.set_geometry_view_id(view.view_id());
+    target.set_authority_service_incarnation(view.authority_service_incarnation());target.set_authority_generation(view.authority_generation());
+    target.set_presentation_generation(++state.presentation_generation);
+    require(state.geometry_targets.emplace(target.presentation_generation(),target).second,"Duplicate geometry generation");
+    try {
+        const auto attached=state.presentation->attach_geometry(target);
+        require(attached.stage()==render::v1::ATTACHED,"Unexpected geometry attachment state");
+    } catch (const WorldError&) {
+        // A checked server rejection confirms that registration had no effect.
+        state.geometry_targets.erase(target.presentation_generation());
+        throw;
+    }
+    // Transport or malformed-reply failures retain attempted ownership for cleanup.
+    return target;
+}
+render::v1::GeometryPresentationState SessionCoordinator::select_geometry(const render::v1::GeometryPresentationTarget& target){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
+    return state.presentation->select_geometry(target);
+}
+render::v1::GeometryPresentationState SessionCoordinator::publish_geometry(const render::v1::GeometryPresentationTarget& target,
+    const identity::v1::ActorGeometryView& view){auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
+    return state.presentation->publish_geometry(target,view);}
+render::v1::GeometryPresentationState SessionCoordinator::retire_geometry(const render::v1::GeometryPresentationTarget& target){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
+    auto result=state.presentation->retire_geometry(target);state.geometry_targets.erase(found);return result;
+}
+void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner& owner){
+    auto& state=*impl_;auto& world=state.find_owned(owner);
+    require(state.presentation && world.presentation_attached && world.stopped,"Presentation recovery requires stopped retained world ownership");
+    if(world.presentation_retired)return;
+    const auto checked=world.supervisor->stop();
+    require(checked.SerializeAsString()==world.record.SerializeAsString() && checked.stage()==v1::OWNED_SCOPES_STOPPED &&
+        checked.has_process_stopped() && checked.has_native_stopped(),"Presentation recovery requires checked supervisor receipts");
+    state.presentation->recover(world.presentation,checked.process_stopped(),checked.native_stopped());
+    const auto retired=state.presentation->detach(world.presentation);
+    require(retired.stage()==render::v1::RETIRED,"Presentation retirement remains unconfirmed");world.presentation_retired=true;
+}
+void SessionCoordinator::clear_presentation(){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    state.presentation->clear_selection();
+}
+void SessionCoordinator::stop_presentation(){
+    auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");
+    for(const auto& [key,world]:state.worlds){
+        (void)key;require(!world->presentation_attached || world->presentation_retired,"World presentation cleanup remains unconfirmed");
+    }
+    while(!state.geometry_targets.empty()) {
+        const auto target=state.geometry_targets.begin()->second;
+        state.presentation->retire_geometry(target);state.geometry_targets.erase(state.geometry_targets.begin());
+    }
+    state.presentation->shutdown();state.presentation.reset();
+}
 workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesystem::path& path,
-    v1::AuthoritySupervisorConfig config, int native, int actor_listener, unsigned local_actor_channels) {
+    v1::AuthoritySupervisorConfig config, int native, int actor_listener, unsigned local_actor_channels,const std::string& world_id) {
     auto& state = *impl_; state.live(); validate_message(config);
     require(config.has_compositor_native_target_fd() && !config.has_broker_native_target_fd() &&
         config.inherited_source_fds_size() == 0 && config.launch().inherited_fds_size() == 0,
         "Session world requires an unmapped compositor launch configuration");
     require(config.binding().issuer_id() == state.broker.launch().binding().issuer_id(), "World issuer differs from the configured session issuer");
+    require(bool(state.presentation)==!world_id.empty(),"Shared presentation requires the explicit world identity");
+    require(world_id.size()<=256 && world_id.find('\0')==std::string::npos,"Invalid presentation world identity");
     const auto key = config.binding().service_incarnation();
     require(key.size() == 32 && !state.worlds.contains(key) && state.worlds.size() < 256, "Duplicate or excessive session world launch");
     for (const auto& arg : config.launch().arguments())
-        require(arg != "--workspace-fd" && arg != "--workspace-pid" && arg != "--control-supervisor-fd" && arg != "--control-supervisor-pid",
+        require(arg != "--workspace-fd" && arg != "--workspace-pid" && arg != "--control-supervisor-fd" && arg != "--control-supervisor-pid" && arg != "--presentation-fd" && arg != "--presentation-pidfd" &&
+            arg != "--presentation-pid" && arg != "--presentation-owner-pid",
             "Session owns world broker endpoint arguments");
     unsigned identity_configs = 0, tls_configs = 0;
     for (int i = 0; i < config.launch().arguments_size(); ++i) {
@@ -133,12 +219,27 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
         return target;
     };
     Pair endpoint, channel;
+    std::unique_ptr<Pair> presentation_channel;
+    if(state.presentation){
+        presentation_channel=std::make_unique<Pair>();int enabled=1;
+        require(setsockopt(presentation_channel->parent.value,SOL_SOCKET,SO_PASSCRED,&enabled,sizeof(enabled))==0 &&
+            setsockopt(presentation_channel->child.value,SOL_SOCKET,SO_PASSCRED,&enabled,sizeof(enabled))==0,
+            "Cannot authenticate world presentation channel");
+    }
     config.add_inherited_source_fds(endpoint.child.value); config.mutable_launch()->add_inherited_fds(target);
     config.mutable_launch()->add_arguments("--workspace-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
     config.mutable_launch()->add_arguments("--workspace-pid"); config.mutable_launch()->add_arguments(std::to_string(state.broker.broker_pid()));
     if (listener.value >= 3) {
         config.add_inherited_source_fds(listener.value); config.mutable_launch()->add_inherited_fds(next_target());
         config.mutable_launch()->add_arguments("--actor-listen-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
+    }
+    if(state.presentation){
+        config.add_inherited_source_fds(presentation_channel->child.value);config.mutable_launch()->add_inherited_fds(next_target());
+        config.mutable_launch()->add_arguments("--presentation-fd");config.mutable_launch()->add_arguments(std::to_string(target));
+        config.add_inherited_source_fds(state.presentation->pidfd());config.mutable_launch()->add_inherited_fds(next_target());
+        config.mutable_launch()->add_arguments("--presentation-pidfd");config.mutable_launch()->add_arguments(std::to_string(target));
+        config.mutable_launch()->add_arguments("--presentation-pid");config.mutable_launch()->add_arguments(std::to_string(state.presentation->pid()));
+        config.mutable_launch()->add_arguments("--presentation-owner-pid");config.mutable_launch()->add_arguments(std::to_string(state.creator));
     }
     std::vector<std::unique_ptr<Pair>> actors;
     for (unsigned index = 0; index < local_actor_channels; ++index) {
@@ -154,7 +255,7 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
     world.authorization = config.authorization();
     try {
         world.supervisor = std::make_unique<SessionLaunch>(state.executable, path, config, native,
-            std::array<int, 3>{channel.child.value, channel.child.value, STDERR_FILENO}, false);
+            std::array<int, 3>{channel.child.value, channel.child.value, STDERR_FILENO}, bool(state.presentation));
         endpoint.child.reset(); channel.child.reset(); listener.reset();
         world.actors.reserve(actors.size());
         for (auto& actor : actors) {
@@ -166,10 +267,27 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
         world.record = world.supervisor->record();
         require(world.record.native().server_id() == state.broker.launch().native().server_id(), "World and broker have different native server identities");
         world.owner = world.supervisor->control_owner();
+        if(state.presentation){
+            require(state.presentation_generation!=UINT64_MAX,"Presentation generation exhausted");
+            auto& binding=world.presentation;binding.set_protocol_version(1);binding.set_world_id(world_id);
+            binding.set_service_incarnation(world.owner.launch().service_incarnation());
+            binding.set_authority_generation(world.owner.launch().generation());binding.set_presentation_generation(++state.presentation_generation);
+            auto process=world.supervisor->world_handle();
+            world.presentation_attached=true; // Retain possible attachment even if its reply is lost.
+            const auto attached=state.presentation->attach(binding,presentation_channel->parent.value,process,world.owner,world.record.process());
+            require(attached.stage()==render::v1::ATTACHED,"Unexpected world attachment state");
+            presentation_channel.reset();
+        }
         world.management = std::make_unique<identity::ParticipantStream>(std::exchange(channel.parent.value, -1), state.creator);
         state.administrative(world.owner, endpoint.parent.value);
         endpoint.parent.reset();
         world.registered = true;
+        if(state.presentation){
+            core::v1::Request request;request.set_protocol_version(1);request.mutable_world_info();
+            const auto reply=world_call(world.owner,request);
+            require(reply.has_world_info() && reply.world_info().world_id()==world_id,"Presented world identity differs from launch request");
+            world.world_identity_checked=true;
+        }
         return world.owner;
     } catch (...) {
         world.failed = true;
@@ -234,6 +352,7 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
         std::cerr << "World broker fence unconfirmed; stopping owned scopes: " << error.what() << '\n';
     }
     world.record = world.supervisor->stop(); world.stopped = true; world.management.reset(); world.actors.clear();
+    if(world.presentation_attached)recover_presentation(owner);
     return world.record;
 }
 BrokerClient& SessionCoordinator::root() { impl_->live(); return impl_->broker.root(); }
@@ -278,5 +397,65 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop() {
         (void)key; require(world->stopped || !world->supervisor, "Stop retained world scopes before the session broker");
     }
     return state.broker.stop();
+}
+std::vector<std::string> SessionCoordinator::stop_retained_worlds() {
+    auto& state = *impl_; state.owned();
+    std::vector<std::string> unresolved;
+    for (auto& [key, entry] : state.worlds) {
+        constexpr char digits[] = "0123456789abcdef";
+        std::string label; label.reserve(key.size() * 2);
+        for (const unsigned char byte : key) {
+            label.push_back(digits[byte >> 4]); label.push_back(digits[byte & 15]);
+        }
+        auto& world = *entry;
+        std::string registered_stop_error;
+        if (world.registered && world.supervisor && !world.stopped) {
+            try { (void)stop_world(world.owner); }
+            catch (const std::exception& error) {
+                registered_stop_error = error.what();
+            }
+        }
+        if (world.supervisor && !world.stopped) {
+            if (world.owner.has_launch()) {
+                try { state.administrative(world.owner, -1, true); }
+                catch (const std::exception& error) {
+                    // The supervisor stop still must be attempted. Its receipt does not prove the fence.
+                    unresolved.push_back(label + ": broker fence: " + error.what());
+                }
+            }
+            try {
+                world.record = world.supervisor->stop();
+                require(world.record.stage() == v1::OWNED_SCOPES_STOPPED &&
+                    world.record.has_process_stopped() && world.record.has_native_stopped(),
+                    "Retained world lacks checked stop receipts");
+                world.stopped = true;
+                world.management.reset(); world.actors.clear();
+            } catch (const std::exception& error) {
+                unresolved.push_back(label + ": world stop: " + error.what());
+            }
+        }
+        if (!world.supervisor) {
+            // SessionLaunch construction can fail after a child starts. Its constructor
+            // cannot return ownership or a checked receipt in that case.
+            unresolved.push_back(label + ": launch construction has no checked stop receipt");
+        }
+        if (world.presentation_attached && !world.presentation_retired) {
+            try {
+                require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED &&
+                    world.record.has_process_stopped() && world.record.has_native_stopped() && state.presentation,
+                    "Presentation recovery lacks checked world stop receipts");
+                state.presentation->recover(world.presentation, world.record.process_stopped(), world.record.native_stopped());
+                const auto retired = state.presentation->detach(world.presentation);
+                require(retired.stage() == render::v1::RETIRED, "Presentation retirement remains unconfirmed");
+                world.presentation_retired = true;
+            } catch (const std::exception& error) {
+                unresolved.push_back(label + ": presentation: " + error.what());
+            }
+        }
+        if (!registered_stop_error.empty() && (!world.stopped ||
+            (world.presentation_attached && !world.presentation_retired)))
+            unresolved.push_back(label + ": registered world stop: " + registered_stop_error);
+    }
+    return unresolved;
 }
 }

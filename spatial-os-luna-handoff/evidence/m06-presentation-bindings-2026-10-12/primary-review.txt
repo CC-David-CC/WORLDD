@@ -1,0 +1,49 @@
+Primary review: M06 world presentation input bindings
+Status: reviewed and passed focused verification on sb16 and sb16-2.
+
+Scope
+PresentationInputs owns one NativeInput and XInputRouter for each world presentation binding.
+World ID, service incarnation, authority generation, and presentation generation must match on every operation.
+Presentation generations increase monotonically and cannot be reused after retirement.
+The map is bounded to 256 live bindings. Identifiers do not grant actor authority.
+A sealed input connection must authenticate to the same server identity as the graphics connection.
+Failed binding attempts close their descriptors. The NativeInput reader checks seals, role, and server pins.
+Each router has independent actor-seat state, even when two worlds use the same actor name.
+Retirement erases each seat only after its native close succeeds. Failed retirement produces no success acknowledgment.
+The first scoped binding confirms legacy seat closure and disables the unbound input path.
+Renderer destruction closes binding connections before graphics surface state.
+The schema adds a private versioned binding identity. Locked acceptance tests are unchanged.
+
+Witnesses and review
+The thin protobuf probe directly calls the production Renderer and pumps its events like spatialwm.
+It adds no alternative rendering, input, authorization, or cleanup implementation.
+Independent X clients create application windows, receive real key/button events, and read displayed pixels.
+Tests verify graphics process PID/start identity and exact pixels before and after input revocation.
+Both original binding worlds and a second native server use separate authenticated credentials.
+Tests cover stale fields, generation reuse, native-server mismatch, descriptor leaks, and failed retirement.
+Tests also verify that competing bindings cannot control the same application and that the first controller remains unchanged.
+The final review added a real held-key/button legacy handoff regression.
+
+Evidence
+Run03 passed seven selected suites and 76 checks per host/profile in Debug and ASan-UBSan.
+The focused legacy follow-up reran the binding suite with ten checks per host/profile.
+Final coverage is seven suites and 77 checks per host/profile: 308 checks across both hosts and profiles.
+There were 344 successful check executions across run03 and the focused follow-up, including repeated cases.
+No remaining failures, skips, or sanitizer findings were observed.
+The audits verify all 427 source files against both host checkouts and the local reviewed worktree.
+They also verify locked acceptance files, reused server binary hashes, individual test summaries, and retained log hashes.
+The supplemental audit verifies that only the new binding test changed after run03.
+Full run artifacts remain under local/m06-presentation-input-03 and local/m06-presentation-legacy-01 on each isolated host.
+
+Preserved failures
+Run01 exposed a missing event pump in the thin probe, causing the independent pixel read to see an unpainted window.
+It also tried two controllers on one application when testing independent seats; the server correctly denied the second.
+Run02 corrected those fixtures. The added explicit denial check expected IN_USE instead of the established BUSY result.
+Run03 corrected that new test expectation and retained all pixel, event, and ownership assertions.
+No production behavior was changed to accommodate these fixture failures.
+
+Limits and next work
+This increment verifies the production Renderer in a dedicated probe process.
+It does not yet connect the new binding API through spatialwm process transport or SessionCoordinator.
+The host-owned compositor process, per-world channel admission, context checkpointing, and full world transitions remain pending.
+M01-M05 remain qualified. M06 remains incomplete. No later milestone or physical-input qualification is claimed.

@@ -1,0 +1,18 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "issuer.proto";
+
+// Private client-side transport settings. Actor signing keys remain separate.
+message ActorSessionClientTlsConfig {
+  uint32 protocol_version = 1;
+  string address = 2; // Numeric IPv4 or IPv6 only; lookup stays outside the deadline.
+  uint32 port = 3;
+  string server_name = 4; // Independently checked against the server certificate.
+  string expected_world_id = 5;
+  string certificate_path = 6;
+  string private_key_path = 7;
+  string server_ca_path = 8;
+  string actor_signing_key_path = 9;
+  SignedCredential actor_credential = 10;
+  optional uint32 io_timeout_ms = 11;
+}

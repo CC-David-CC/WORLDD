@@ -1,0 +1,11 @@
+M06 presentation server increment. Qualification remains pending.
+Contract: only the private control owner selects the foreground world.
+Each world channel has an immutable binding and a retained process handle.
+World input initialization may finish in a different order from reservation.
+Malformed world traffic retires that channel without closing other worlds.
+Selected checks: presentation-server tests the actual spatialwm entry point.
+Related checks: presentation-input-bindings, presentation-stream, native-compositor-identity.
+Run Debug and ASan-UBSan on both sb16 and sb16-2.
+Additional native pixel, process death, descriptor, and input tests remain required.
+Expanded checks: replay, five-second partial frame, selected disconnect pixels, invalid pidfd, missing config descriptor, inherited foreign sender.
+Production input lifetime checks: balanced native key/button events on detach and EOF; UNCERTAIN after credential revocation; surviving graphics and denied clean shutdown.

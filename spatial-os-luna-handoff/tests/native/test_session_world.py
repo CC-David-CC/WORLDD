@@ -16,6 +16,7 @@ from google.protobuf import text_format
 import test_supervisor_broker_handoff_regressions as base
 import broker_pb2 as broker
 import core_pb2 as core
+import compositor_native_pb2 as compositor
 import issuer_pb2 as identity
 import launch_pb2 as launch
 import native_scope_pb2 as native
@@ -27,12 +28,14 @@ from harness.wire import frame, make_request, read_message
 
 class SessionWorldTests(base.BrokerHandoffRegressionTests):
     def world_config(self):
-        signer, public = self.issuer.key('world-authority')
-        registration = self.issuer.register(identity=b'w' * 32, public=public, domain=getattr(self, 'world_domain', 'world-one'), revision=1)
+        suffix=getattr(self,'world_instance_suffix','')
+        signer, public = self.issuer.key('world-authority'+suffix)
+        registration = self.issuer.register(identity=getattr(self, 'world_participant_identity', (b'w' if not suffix else b'v') * 32), public=public, domain=getattr(self, 'world_exact_domain', getattr(self, 'world_domain', 'world-one')+suffix), revision=self.last_world_registry_revision if suffix else 1)
+        self.last_world_registry_revision=registration.registered_revision
         approved = self.issuer.bind(participant=registration.participant.id, registration=registration.registered_revision)
         self.assertTrue(approved.HasField('supervision'), approved)
         config = self.config()
-        self.world_journal = self.root / 'world-journal'; self.world_journal.mkdir(mode=0o700)
+        self.world_journal = self.root / ('world-journal'+suffix); self.world_journal.mkdir(mode=0o700)
         config.journal_directory = str(self.world_journal)
         config.binding.CopyFrom(launch.AuthorityLaunchBinding(issuer_id=self.issuer.info.issuer_id,
             participant_id=registration.participant.id, registered_revision=registration.registered_revision,
@@ -41,12 +44,12 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
             issuer_client_config=str(self.issuer.config_file()), private_key_path=str(signer),
             participant_id=config.binding.participant_id, registered_revision=config.binding.registered_revision,
             service_incarnation=config.binding.service_incarnation)
-        path = self.root / 'world-participant-runtime.textproto'; path.write_text(text_format.MessageToString(runtime)); path.chmod(0o600)
+        path = self.root / ('world-participant-runtime'+suffix+'.textproto'); path.write_text(text_format.MessageToString(runtime)); path.chmod(0o600)
         config.participant.CopyFrom(launch.AuthorityParticipantAttach(runtime_config=str(path), domains=registration.participant.domains))
-        config.child_participant_config = str(self.root / 'world-child.textproto')
+        config.child_participant_config = str(self.root / ('world-child'+suffix+'.textproto'))
         config.compositor_native_target_fd = 38
         config.launch.CopyFrom(process.AuthorityProcessLaunch(executable=str(base.baseline.supervisor.owned.existing.PROBE.with_name('worldd')),
-            arguments=['--state-dir', str(self.root / 'world'), '--native-security-fd', '38']))
+            arguments=['--state-dir', str(self.root / ('world'+suffix)), '--native-security-fd', '38']))
         return config
 
     def start_coordinator(self, mutation=None, native_role=security.COMPOSITOR):
@@ -66,14 +69,54 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
             os.write(descriptor, value.SerializeToString())
             fcntl.fcntl(descriptor, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
             descriptors.append(descriptor); arguments += [str(path), str(descriptor)]
+        if getattr(self,'shared_presentation',False):
+            state=self.root/'world';state.mkdir(mode=0o700, exist_ok=True)
+            request=core.Request(protocol_version=1,request_id=1,world_info=core.WorldInfoRequest())
+            seed=subprocess.run([world_config.launch.executable,'--state-dir',str(state)],input=frame(request),capture_output=True,timeout=10)
+            self.assertEqual(seed.returncode,0,seed.stderr)
+            import struct
+            size=struct.unpack('!I',seed.stdout[:4])[0]
+            info=core.Reply.FromString(seed.stdout[4:4+size]);self.assertTrue(info.HasField('world_info'),info)
+            self.presented_world_id=info.world_info.world_id
+            grant=self.supervisor.issue(security.COMPOSITOR,b'',b'')
+            graphics=compositor.NativeCompositorConfig(protocol_version=1,display_number=self.display,
+                compositor_cookie=grant.cookie,server_id=self.supervisor.inspect().server_id,server_pid=self.server.pid,server_uid=os.getuid())
+            fd=os.memfd_create('host-graphics',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING);os.write(fd,graphics.SerializeToString())
+            fcntl.fcntl(fd,fcntl.F_ADD_SEALS,fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
+            descriptors.append(fd);graphics_state=self.root/'host-graphics';graphics_state.mkdir(mode=0o700)
+            arguments += [str(fd),str(graphics_state),'wrong-world' if getattr(self,'wrong_presented_world',False) else self.presented_world_id]
+            if getattr(self,'two_presented_worlds',False):
+                first_journal=self.world_journal;self.world_instance_suffix='-two'
+                second=self.world_config();self.second_world_journal=self.world_journal
+                self.world_journal=first_journal;self.world_instance_suffix=''
+                second_path=self.root/'session-world-two.textproto'
+                second_path.write_text(text_format.MessageToString(second));second_path.chmod(0o600)
+                second_state=self.root/'world-two';second_state.mkdir(mode=0o700, exist_ok=True)
+                seed=subprocess.run([second.launch.executable,'--state-dir',str(second_state)],input=frame(request),capture_output=True,timeout=10)
+                self.assertEqual(seed.returncode,0,seed.stderr)
+                size=struct.unpack('!I',seed.stdout[:4])[0];info=core.Reply.FromString(seed.stdout[4:4+size])
+                value=native.NativeScopeConfig(protocol_version=1,display_number=self.display,supervisor_cookie=self.cookie,
+                    server_id=self.supervisor.inspect().server_id,server_pid=self.server.pid,server_uid=os.getuid(),
+                    launch_id=os.urandom(32),role=security.COMPOSITOR)
+                fd=os.memfd_create('second-world-scope',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING);os.write(fd,value.SerializeToString())
+                fcntl.fcntl(fd,fcntl.F_ADD_SEALS,fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
+                descriptors.append(fd);arguments += [str(second_path),str(fd),info.world_info.world_id]
         self.logpath = self.root / 'session-world.log'; log = self.logpath.open('wb')
         listener = getattr(self, 'actor_listener', None)
         if listener is not None: arguments.append(str(listener.fileno()))
         extra = tuple(getattr(self, 'coordinator_fds', ()))
         arguments.extend(map(str, extra))
         try:
-            proc = subprocess.Popen([str(base.baseline.supervisor.owned.existing.PROBE.with_name(
-                getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))), *arguments],
+            configured_probe = Path(getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))
+            if configured_probe.is_absolute():
+                if not configured_probe.is_file() or not os.access(configured_probe, os.X_OK):
+                    raise RuntimeError('Explicit coordinator runner is unavailable')
+                probe = configured_probe
+            else:
+                if configured_probe.name != str(configured_probe):
+                    raise RuntimeError('Relative coordinator runner must be a basename')
+                probe = base.baseline.supervisor.owned.existing.PROBE.with_name(configured_probe.name)
+            proc = subprocess.Popen([str(probe), *arguments],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log,
                 pass_fds=tuple(descriptors) + (() if listener is None else (listener.fileno(),)) + extra)
         finally:
@@ -116,7 +159,7 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         self.assertNotEqual(ids.worldd_pid, ids.spatialwm_pid)
         self.assertEqual(ids.workspaced_pid, int((self.broker_process_group() / 'cgroup.procs').read_text().strip()))
         members = set(map(int, (self.cgroup / record.process.scope_name / 'cgroup.procs').read_text().split()))
-        self.assertEqual(members, {ids.worldd_pid, ids.spatialwm_pid})
+        self.assertEqual(members, {ids.worldd_pid} if getattr(self,'shared_presentation',False) else {ids.worldd_pid, ids.spatialwm_pid})
         self.world_ids = ids
         with sqlite3.connect("file:" + str(self.world_journal / "launch.db") + "?mode=ro", uri=True) as db:
             saved = launch.AuthorityLaunchRecord.FromString(db.execute("SELECT record FROM launch WHERE singleton=1").fetchone()[0])
@@ -162,6 +205,46 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         self.assertEqual(broker_stopped, self.checked_cleanup())
         self.assertEqual(proc.wait(timeout=10), 0, self.logpath.read_text())
         return response
+
+    def test_two_supervised_worlds_keep_the_same_host_compositor(self):
+        self.shared_presentation=True;self.two_presented_worlds=True
+        proc,owner,first=self.ready()
+        second=self.message(proc.stdout,launch.AuthorityLaunchReply).view.record
+        other=self.message(proc.stdout,launch.AuthorityLaunchReply).control_owner
+        ids=self.message(proc.stdout,core.Reply).identities
+        self.assertNotEqual(ids.worldd_pid,self.world_ids.worldd_pid)
+        self.assertEqual(ids.spatialwm_pid,self.world_ids.spatialwm_pid)
+        self.assertEqual(set(map(int,(self.cgroup/second.process.scope_name/'cgroup.procs').read_text().split())),{ids.worldd_pid})
+        proc.stdin.write(frame(broker.ControlSupervisorRequest(protocol_version=1,request_id=91,inspect=owner)));proc.stdin.flush()
+        self.assertEqual(self.message(proc.stdout,broker.ControlSupervisorReply).state.owner,owner)
+        self.assertEqual(self.message(proc.stdout,core.Reply).hello.implementation,'production')
+        self.assertEqual(self.message(proc.stdout,launch.AuthorityLaunchReply).view.record.stage,launch.OWNED_SCOPES_STOPPED)
+        survivor=self.message(proc.stdout,core.Reply).identities
+        self.assertEqual(survivor,ids)
+        stopped=self.message(proc.stdout,launch.AuthorityLaunchReply).view.record
+        self.assertEqual(stopped.stage,launch.OWNED_SCOPES_STOPPED);self.assertEqual(stopped.native,other.native)
+        self.assertEqual(self.message(proc.stdout,core.Reply).hello.implementation,'production')
+        self.assertEqual(self.message(proc.stdout,launch.AuthorityLaunchReply).view.record,self.checked_cleanup())
+        self.assertEqual(proc.wait(timeout=10),0,self.logpath.read_text())
+
+    def test_wrong_world_identity_cannot_be_selected(self):
+        self.shared_presentation=True;self.wrong_presented_world=True
+        proc=self.start_coordinator()
+        self.assertEqual(self.message(proc.stdout,core.Reply).hello.implementation,'production')
+        self.assertEqual(self.message(proc.stdout,launch.AuthorityLaunchReply).view.record,self.checked_cleanup())
+        self.assertEqual(proc.wait(timeout=10),2)
+        self.assertIn('Presented world identity differs from launch request',self.logpath.read_text())
+
+    def test_host_owns_shared_compositor_outside_world_process_scope(self):
+        self.shared_presentation=True
+        proc,owner,record=self.ready()
+        parent=int(next(line.split()[1] for line in Path('/proc/'+str(self.world_ids.spatialwm_pid)+'/status').read_text().splitlines() if line.startswith('PPid:')))
+        self.assertEqual(parent,proc.pid)
+        pin=os.pidfd_open(self.world_ids.spatialwm_pid)
+        try:
+            response=self.finish(proc,owner);self.assertTrue(response.HasField('state'),response)
+            self.assertEqual(select.select([pin],[],[],3)[0],[pin])
+        finally:os.close(pin)
 
     def test_actual_world_owner_registers_and_broker_survives_world_shutdown(self):
         proc, owner, record = self.ready()

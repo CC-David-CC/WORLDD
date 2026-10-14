@@ -1,0 +1,69 @@
+{
+  "captured_utc": "2026-10-12T16:00:49.128072+00:00",
+  "expected_tmux_sessions": {
+    "m06-geometry-count-sb16-01": false,
+    "m06-geometry-count-sb16-02": false,
+    "m06-issuer-regression-sb16-01": false
+  },
+  "host": "sb16",
+  "known_pids": {
+    "bounded-count-01": {
+      "pid": 1753749,
+      "present": false
+    },
+    "bounded-count-02": {
+      "pid": 1754602,
+      "present": false
+    },
+    "geometry-count-01": {
+      "pid": 1753750,
+      "present": false
+    },
+    "geometry-count-02": {
+      "pid": 1754603,
+      "present": false
+    },
+    "issuer-regression": {
+      "pid": 1753215,
+      "present": false
+    },
+    "run-command-count-01": {
+      "pid": 1753715,
+      "present": false
+    },
+    "run-command-count-02": {
+      "pid": 1754567,
+      "present": false
+    },
+    "run-command-regression": {
+      "pid": 1753358,
+      "present": false
+    }
+  },
+  "matching_attempt_processes": [],
+  "queries": {
+    "command_markers": [
+      "/bundle/bin/identityd",
+      "/bundle/bin/spatial-issuer-client",
+      "/bundle/bin/spatial-issuer-failure-diagnostic",
+      "/bundle/bin/worldd",
+      "/incoming/single_case_driver.py",
+      "/incoming/issuer_case_driver.py",
+      "/incoming/bounded_case.py"
+    ],
+    "proc_pids": [
+      "issuer-regression",
+      "geometry-count-01",
+      "geometry-count-02",
+      "run-command-regression",
+      "run-command-count-01",
+      "run-command-count-02",
+      "bounded-count-01",
+      "bounded-count-02"
+    ],
+    "tmux_list_sessions_exit": 1,
+    "tmux_stderr": "no server running on /tmp/tmux-1000/default\n",
+    "tmux_stdout": ""
+  },
+  "status": "PASS"
+}

@@ -57,7 +57,7 @@ class TlsFixture(EnrollmentFixture):
         self.service_key, self.service_cert = self.certificate('service', 'service.test')
         self.config = pb.IssuerTlsServerConfig(protocol_version=1,
             certificate_path=str(self.server_cert), private_key_path=str(self.server_key),
-            client_ca_path=str(self.service_cert), io_timeout_ms=700, idle_timeout_ms=3000,
+            client_ca_path=str(self.service_cert), io_timeout_ms=5000, idle_timeout_ms=3000,
             connection_limit=8)
         self.config_path = self.root/'tls.textproto'
         self.daemons = []
@@ -263,12 +263,14 @@ class TlsTests(TlsFixture):
         self.assertEqual(peer.call(info=pb.IssuerInfoRequest()).info, self.info)
 
     def test_partial_frame_deadline_is_not_refreshed_by_progress(self):
+        self.config.io_timeout_ms = 700
         good = self.ready(); bad = self.connect()
         bad.stream.sendall(b'\x00'); time.sleep(.4); bad.stream.sendall(b'\x00'); time.sleep(.4)
         self.closed(bad)
         self.assertEqual(good.call(info=pb.IssuerInfoRequest()).info, self.info)
 
     def test_stalled_handshake_does_not_block_other_peers(self):
+        self.config.io_timeout_ms = 700
         good = self.ready(); raw = socket.create_connection(('127.0.0.1', self.port), timeout=2)
         self.addCleanup(raw.close)
         started = time.monotonic()

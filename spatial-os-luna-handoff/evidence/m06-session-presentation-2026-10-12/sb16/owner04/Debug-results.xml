@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="3"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname="sb16"
+	time="35"
+	timestamp="2026-10-12T05:24:35"
+	>
+	<testcase name="presentation-owner" classname="presentation-owner" time="17.4351" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>test_lost_attach_reply (__main__.PresentationOwnerTests.test_lost_attach_reply) ... FAIL
+test_partial_reply (__main__.PresentationOwnerTests.test_partial_reply) ... ok
+test_unrequested_selection (__main__.PresentationOwnerTests.test_unrequested_selection) ... ok
+test_unsolicited_descriptor (__main__.PresentationOwnerTests.test_unsolicited_descriptor) ... ok
+test_wrong_attach_stage (__main__.PresentationOwnerTests.test_wrong_attach_stage) ... ok
+test_wrong_binding (__main__.PresentationOwnerTests.test_wrong_binding) ... ok
+test_wrong_request_id (__main__.PresentationOwnerTests.test_wrong_request_id) ... ok
+test_wrong_select_stage (__main__.PresentationOwnerTests.test_wrong_select_stage) ... ok
+
+======================================================================
+FAIL: test_lost_attach_reply (__main__.PresentationOwnerTests.test_lost_attach_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_presentation_owner.py", line 72, in test_lost_attach_reply
+    def test_lost_attach_reply(self):self.attempt('lost_attach','Presentation')
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/tests/core/test_presentation_owner.py", line 61, in attempt
+    self.assertIn(diagnostic,result.stdout)
+AssertionError: 'Presentation' not found in 'Host presentation reply deadline exceeded\nHost presentation ownership unavailable\n'
+
+----------------------------------------------------------------------
+Ran 8 tests in 17.376s
+
+FAILED (failures=1)
+</system-out>
+	</testcase>
+	<testcase name="presentation-stream" classname="presentation-stream" time="10.2188" status="run">
+		<properties/>
+		<system-out>test_descriptor_after_first_frame_byte_is_rejected (__main__.PresentationStreamTests.test_descriptor_after_first_frame_byte_is_rejected) ... ok
+test_excessive_frame_is_rejected (__main__.PresentationStreamTests.test_excessive_frame_is_rejected) ... ok
+test_inherited_socket_does_not_authorize_another_sender (__main__.PresentationStreamTests.test_inherited_socket_does_not_authorize_another_sender) ... ok
+test_partial_progress_does_not_refresh_five_second_deadline (__main__.PresentationStreamTests.test_partial_progress_does_not_refresh_five_second_deadline) ... ok
+test_protobuf_frames_remain_distinct (__main__.PresentationStreamTests.test_protobuf_frames_remain_distinct) ... ok
+test_stalled_reader_hits_fixed_output_deadline (__main__.PresentationStreamTests.test_stalled_reader_hits_fixed_output_deadline) ... ok
+test_three_descriptors_are_rejected (__main__.PresentationStreamTests.test_three_descriptors_are_rejected) ... ok
+test_truncated_ancillary_data_is_rejected_without_descriptor_leaks (__main__.PresentationS...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="presentation-server" classname="presentation-server" time="7.59809" status="run">
+		<properties/>
+		<system-out>test_attached_scope_rejects_another_native_credential (__main__.PresentationServerTests.test_attached_scope_rejects_another_native_credential) ... ok
+test_capture_rejects_nonregular_descriptor_and_keeps_world_usable (__main__.PresentationServerTests.test_capture_rejects_nonregular_descriptor_and_keeps_world_usable) ... ok
+test_checked_scope_receipts_resolve_uncertain_retirement (__main__.PresentationServerTests.test_checked_scope_receipts_resolve_uncertain_retirement) ... ok
+test_detach_releases_held_native_key_and_button (__main__.PresentationServerTests.test_detach_releases_held_native_key_and_button) ... ok
+test_disconnect_clears_selected_pixels (__main__.PresentationServerTests.test_disconnect_clears_selected_pixels) ... ok
+test_foreign_sender_on_inherited_socket_retires_world (__main__.PresentationServerTests.test_foreign_sender_on_inherited_socket_retires_world) ... ok
+test_malformed_world_is_retired_without_losing_other_world (__main__.PresentationServerTests.test_malformed_world_is_retired_without_los...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

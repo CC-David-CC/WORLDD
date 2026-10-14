@@ -1,0 +1,21 @@
+Run03 selected invariants and checks, recorded before edits/build.
+Host middle-child. Branch m06/crosshost-actor-transitions.
+HEAD/base 4d0c788e96b645d33e57268bd7c40d2a2b5a9f9b must remain unchanged.
+Own crosshost fixture/test support and new run03 artifacts only. No commit/push.
+Preserve run01/run02 and /home/dflanag3/start-m06-crosshost02.sh.
+Provision exactly two independent worldd authorities on distinct observed runtime hosts.
+Initialize actual world IDs through world.info. Register those WORLD domains at real issuer.
+Use explicit persistent root grants and real manual issuer enrollment.
+Seed actors through C++ ActorSessionClient authenticate and checked durable depart.
+Run existing six-case coordinator harness: roundtrip, denial, outage in both directions.
+Failure cases require live source navigation/stop and unchanged durable source entity/revision.
+No Python semantic actor implementation. No production library or headless retirement changes.
+Private keys/configs/plans stay in mode-0700 ephemeral directories outside Git.
+Record roots, markers, directory inode, PID/start, binary hash, port/inode, issuer row IDs.
+Partial setup cleanup verifies ownership, retains state/log snapshots, and uses retained pidfds.
+Keep failed cleanup resources and report exact recovery command. Never kill by process name.
+Selected compile-only checks: git diff --check; Python syntax (including helper);
+Debug/ASan-UBSan configure/build worldd identityd spatial-issuer-client crosshost probe;
+ctest -N registration only; source review; bundle dependency and SHA256 inventory.
+Runtime setup, six cases/profile, failure injection, cleanup and sanitizer runtime: UNRUN.
+Primary runs fixture on sb16 or sb16-2 after deploying identical bundle paths to both.

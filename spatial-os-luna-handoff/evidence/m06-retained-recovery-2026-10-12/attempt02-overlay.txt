@@ -1,0 +1,12 @@
+Attempt02 test-only overlay:
+Worker terminal was verified before editing.
+Only tests/native/test_session_world.py changed on a5500 recovery worktree.
+The first and second shared-world state mkdir calls now use exist_ok=True.
+Both changes match the already reviewed host-controller fixture correction.
+No production source, binaries, actor identities, or assertions changed.
+The same frozen Debug/ASan archives are verified before extraction.
+A separately hashed Python fixture overlay is applied after archive file verification.
+Overlay SHA256: 8b0243eedbda925141457374128873ef1df061ca90b3f824699e2d3e60aac7aa
+The already seeded world state is preserved. No directory is removed.
+Selected checks remain the three crash/recovery cases, both profiles and hosts.
+Runtime results will be recorded separately. No commit or push performed.
