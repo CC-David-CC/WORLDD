@@ -1,3 +1,21 @@
+## 2026-10-14: Production OFF build passed; snapshot quota cause confirmed
+
+The unmodified engine checkpoint 02bb2921ec371a22eaf998b764cc578458fac7a2 passed a complete production build on a5500.
+Configuration used Ninja, Debug, and BUILD_TESTING=OFF. All 229 default build steps completed.
+The primary checked command.exit=0, wrapper.exit=0, final link output, and empty build stderr.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-production-off-closure-20261014/run-v1.
+Generated world-session and copy-worker Python bindings exist in that production build.
+This is compile evidence. No production import test or runtime qualification ran on the coding host.
+The quota repair will require affected executables to be rebuilt. Final combined builds remain pending.
+
+Read-only inspection confirmed the engine failure's snapshot quota inheritance cause.
+Source subvolume 261 and read-only snapshot 270 each retain the source's 4 MiB individual limit.
+Their UUID relation and actor membership match. Actor and workspace parent limits remain intact.
+The retained image hash stayed unchanged. No mount or loop device was allocated for inspection.
+The primary inspected the original root and quota tree dumps.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/m07-engine15-quota-offline-v1.
+The bounded repair must initialize only a proven pending snapshot and preserve strict ready-snapshot verification.
+Repair runtime checks remain pending. M07 remains incomplete.
 ## 2026-10-14: Full engine Debug reached all eleven methods and exposed a quota defect
 
 The corrected sb16 Debug package imported the actual fixture and reached all eleven selected methods.

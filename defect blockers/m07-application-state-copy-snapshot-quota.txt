@@ -1,6 +1,6 @@
 M07 application-state copy fails snapshot quota verification
 
-Status: CONFIRMED RUNTIME FAILURE. Root-cause verification and repair are pending.
+Status: CONFIRMED RUNTIME FAILURE AND ROOT CAUSE. Repair and regression checks are pending.
 
 Frozen source: engine checkpoint 02bb2921ec371a22eaf998b764cc578458fac7a2 with reviewed setup06 overlay.
 Runtime: sb16 Debug, m07-engine15-debug11-v1.
@@ -21,17 +21,25 @@ Storage quota limit requires checked recovery
 The shared failure occurs at phase 2, before the later publication assertions.
 Project/history copy methods passed. That does not prove optional-class copy correctness.
 
-Candidate cause:
+Confirmed cause:
 Configured application-state objects have individual quota limits.
 Snapshot inspection requires an unlimited individual snapshot quota, beneath its bounded parent quota group.
 Snapshot creation currently does not explicitly normalize that individual limit.
 Kernel snapshot code can inherit the source object's individual limit.
-Verify the actual kernel, source limits, and snapshot limits before declaring this cause confirmed.
+Read-only inspection of the retained image confirmed the inherited limit.
+The image hash stayed unchanged. The inspection allocated no mount or loop device.
+Source subvolume 261 and snapshot 270 each have MAX_RFER set to 4,194,304 bytes.
+Snapshot 270 is read-only. Its parent UUID matches source subvolume 261.
+Both belong to actor quota group 1/101. Its limit remains 33,554,432 bytes.
+Workspace quota group 2/100 retains its 67,108,864-byte limit.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/m07-engine15-quota-offline-v1.
+The primary inspected the original root and quota tree dumps.
 
 Kernel reference inspected:
-https://raw.githubusercontent.com/torvalds/linux/v6.17/fs/btrfs/qgroup.c
+https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/btrfs/qgroup.c
 The full-mode snapshot block copies source quota limits after processing explicit inheritance limits.
 Setting inheritance flags alone may therefore be insufficient.
+Clearing MAX_RFER requires UINT64_MAX as the clear sentinel. Zero installs a zero-byte bound.
 
 Required repair properties:
 Preserve source limits and parent quota membership.
