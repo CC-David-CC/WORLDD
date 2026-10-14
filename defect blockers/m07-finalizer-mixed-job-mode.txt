@@ -1,0 +1,22 @@
+M07 finalizer accepts conflicting private job modes
+
+Status: source-confirmed validation defect in an unintegrated draft. Runtime regression remains unrun.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/source-review-v2-02.
+Files: spatial-os-luna-handoff/src/workspace/copy_worker.cpp and copy_finalize_worker.cpp.
+
+The finalizer launcher and helper require a finalization message.
+They do not reject a simultaneous state_export message in the same private job.
+The tree helper already rejects conflicting modes.
+The finalizer therefore accepts an ambiguous request and ignores one operation field.
+The primary found this gap during source review. The worker confirmed it.
+No attacker-controlled path or exploit has been established.
+
+Require finalization and reject state_export at both finalizer entrypoints.
+Use an otherwise-valid mixed-mode request for the negative regression.
+Run a valid finalization control through the same confined helper.
+Keep protocol versions, descriptor bounds, and unknown-field checks strict.
+
+The worker reports both guards and the confined regression implemented in a later draft.
+Primary delta review, compilation, and runtime evidence remain pending.

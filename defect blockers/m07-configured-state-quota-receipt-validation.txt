@@ -1,0 +1,22 @@
+M07 configured-state receipts omit quota validation
+
+Status: source-confirmed defect in an unintegrated draft. Corrected runtime evidence remains pending.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/source-review-v2-02.
+File: spatial-os-luna-handoff/src/workspace/storage_client.cpp.
+
+Configured allocation and state-query receipt checks validate object and subvolume identity.
+They do not require a positive quota group or exact independently selected profile ceilings.
+open_object validates physical identity and accounting. It does not supply the missing quota checks.
+The implementation worker confirmed this source-level gap.
+No bypass of the kernel quota boundary has been demonstrated.
+
+Require positive quota groups for configured persistent and runtime state receipts.
+Bind returned quota ceilings to the independently selected policy.
+Apply equivalent validation when querying an existing configured state object.
+Reject mismatched receipts before exposing directories or launching an application.
+Add otherwise-valid malformed-receipt cases and retain a successful authorized control.
+
+The worker reports a later correction. Primary delta review and runtime tests remain pending.
+No milestone qualification follows from that report.
