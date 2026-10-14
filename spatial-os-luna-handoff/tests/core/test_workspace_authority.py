@@ -479,17 +479,45 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.denied(self.broker.request(scoped_authority_check=query), core.UNAVAILABLE)
 
     def test_scoped_authority_denies_after_issuer_actor_revocation(self):
-        world = self.workspace()
+        def revoke_actor():
+            self.owner_peer = self.connect()
+            self.revoke(kind=issuer.ACTOR_TARGET)
+
+        relay = world_authority.RelayingIssuer(self, revoke_actor)
+        world = self.workspace(issuer_port=relay.port)
         query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(),
             right=grant.WORKSPACE_ACCESS)
         before = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(before.HasField('scoped_authority_check'), before)
         self.assertTrue(before.scoped_authority_check.allowed)
-        self.owner_peer = self.connect()
-        self.revoke(kind=issuer.ACTOR_TARGET)
-        after = self.broker.request(scoped_authority_check=query)
-        self.assertTrue(after.HasField('scoped_authority_check'), after)
-        self.assertFalse(after.scoped_authority_check.allowed)
-        self.assertGreater(after.scoped_authority_check.epoch, before.scoped_authority_check.epoch)
+        self.assertEqual(len(before.scoped_authority_check.incarnation), 16)
+
+        # Revoke during the next issuer status refresh. The cancellation guard may
+        # replace this in-flight result with its typed fail-closed error.
+        relay.armed.set()
+        in_flight = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(relay.delivered.is_set(), 'issuer revocation was not consumed during dispatch')
+        if in_flight.HasField('error'):
+            self.assertEqual(in_flight.error.code, core.UNAUTHORIZED)
+            self.assertEqual(in_flight.error.message,
+                'Issuer revocation invalidated the in-flight broker result')
+            self.assertFalse(in_flight.HasField('scoped_authority_check'))
+        else:
+            self.assertTrue(in_flight.HasField('scoped_authority_check'), in_flight)
+            self.assertFalse(in_flight.scoped_authority_check.allowed)
+            self.assertEqual(in_flight.scoped_authority_check.incarnation,
+                before.scoped_authority_check.incarnation)
+            self.assertGreater(in_flight.scoped_authority_check.epoch,
+                before.scoped_authority_check.epoch)
+
+        settled = self.broker.request(scoped_authority_check=query)
+        self.assertFalse(settled.HasField('error'), settled)
+        self.assertTrue(settled.HasField('scoped_authority_check'), settled)
+        self.assertFalse(settled.scoped_authority_check.allowed)
+        self.assertEqual(settled.scoped_authority_check.incarnation,
+            before.scoped_authority_check.incarnation)
+        self.assertGreater(settled.scoped_authority_check.epoch,
+            before.scoped_authority_check.epoch)
 
     def test_reserved_m07_actor_actions_fail_closed(self):
         world = self.workspace(); peer = world.peers[0]
