@@ -49,27 +49,34 @@ void copy_file(int s,int d,const std::string& name,const struct stat& st) {
     if(st.st_size<0||uint64_t(st.st_size)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
     hash->u64(static_cast<uint64_t>(st.st_size));
     Fd a(openat(s,name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+    if(a.n<0) throw Failure(errno==ENOENT?pb::FAILURE_SOURCE_CHANGED:pb::FAILURE_IO);
     Fd b(openat(d,name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
-    struct stat now{};need(a.n>=0&&b.n>=0);
-    if(fstat(a.n,&now)<0||now.st_dev!=st.st_dev||now.st_ino!=st.st_ino||!S_ISREG(now.st_mode)||now.st_nlink!=1)
+    if(b.n<0) throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:pb::FAILURE_IO);
+    struct stat now{};
+    if(fstat(a.n,&now)<0) throw Failure(pb::FAILURE_IO);
+    if(now.st_dev!=st.st_dev||now.st_ino!=st.st_ino||!S_ISREG(now.st_mode)||now.st_nlink!=1)
         throw Failure(pb::FAILURE_SOURCE_CHANGED);
     char buf[65536];uint64_t count=0;
     for(;;) {
-        ssize_t r=read(a.n,buf,sizeof buf);if(r<0&&errno==EINTR)continue;need(r>=0);
+        ssize_t r=read(a.n,buf,sizeof buf);if(r<0&&errno==EINTR)continue;
+        if(r<0)throw Failure(pb::FAILURE_IO);
         if(!r)break;
         if(uint64_t(r)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
         hash->add(buf,r);ssize_t off=0;
-        while(off<r){ssize_t w=write(b.n,buf+off,r-off);if(w<0&&errno==EINTR)continue;need(w>0);off+=w;}
+        while(off<r){ssize_t w=write(b.n,buf+off,r-off);if(w<0&&errno==EINTR)continue;
+            if(w<=0) throw Failure(pb::FAILURE_IO);
+            off+=w;
+        }
         count+=r;bytes+=r;
     }
     if(count!=uint64_t(st.st_size))throw Failure(pb::FAILURE_SOURCE_CHANGED);
-    need(fchmod(b.n,st.st_mode&0777)==0&&fsync(b.n)==0);
+    if(fchmod(b.n,st.st_mode&0777)!=0||fsync(b.n)!=0)throw Failure(pb::FAILURE_IO);
 }
 void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
     need(depth<=128,pb::FAILURE_DEPTH_LIMIT);
     need(depth<=max_depth,pb::FAILURE_DESCRIPTOR_LIMIT);
-    Fd dupfd(dup(s));need(dupfd.n>=0);
-    Dir dir(fdopendir(dupfd.n));need(bool(dir));dupfd.n=-1;
+    Fd dupfd(dup(s));if(dupfd.n<0)throw Failure(pb::FAILURE_IO);
+    Dir dir(fdopendir(dupfd.n));if(!dir)throw Failure(pb::FAILURE_IO);dupfd.n=-1;
     std::vector<std::string> names;
     for(;;) {
         dirent* e=nullptr;
@@ -94,7 +101,9 @@ void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
     std::sort(names.begin(),names.end(),[](const auto&a,const auto&b){return std::lexicographical_compare(a.begin(),a.end(),b.begin(),b.end(),[](unsigned char x,unsigned char y){return x<y;});});
     for(const auto& n:names) {
         need(n.find('/')==std::string::npos&&n.find('\0')==std::string::npos);
-        struct stat st{};need(fstatat(s,n.c_str(),&st,AT_SYMLINK_NOFOLLOW)==0);
+        struct stat st{};
+        if(fstatat(s,n.c_str(),&st,AT_SYMLINK_NOFOLLOW)!=0)
+            throw Failure(errno==ENOENT?pb::FAILURE_SOURCE_CHANGED:pb::FAILURE_IO);
         if(S_ISLNK(st.st_mode))throw Failure(pb::FAILURE_SYMLINK);
         if(++entries>max_entries)throw Failure(pb::FAILURE_ENTRY_LIMIT);
         auto rel=prefix.empty()?n:prefix+"/"+n;
@@ -103,17 +112,21 @@ void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
         if(type=='?')throw Failure(pb::FAILURE_SPECIAL_ENTRY);
         hash->add(&type,1);hash->u64(st.st_mode&0777);
         if(type=='D') {
-            if(mkdirat(d,n.c_str(),0700)!=0)throw Failure(pb::FAILURE_DESTINATION_CONFLICT);
-            Fd a(openat(s,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC)),b(openat(d,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
-            need(a.n>=0&&b.n>=0);
-            struct stat opened{};if(fstat(a.n,&opened)<0||opened.st_dev!=st.st_dev||opened.st_ino!=st.st_ino)throw Failure(pb::FAILURE_SOURCE_CHANGED);
+            if(mkdirat(d,n.c_str(),0700)!=0)
+                throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:pb::FAILURE_IO);
+            Fd a(openat(s,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+            Fd b(openat(d,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+            if(a.n<0||b.n<0)throw Failure(pb::FAILURE_IO);
+            struct stat opened{};
+            if(fstat(a.n,&opened)<0)throw Failure(pb::FAILURE_IO);
+            if(opened.st_dev!=st.st_dev||opened.st_ino!=st.st_ino)throw Failure(pb::FAILURE_SOURCE_CHANGED);
             tree(a.n,b.n,rel,depth+1);
-            need(fchmod(b.n,st.st_mode&0777)==0&&fsync(b.n)==0);
+            if(fchmod(b.n,st.st_mode&0777)!=0||fsync(b.n)!=0)throw Failure(pb::FAILURE_IO);
         } else {
             copy_file(s,d,n,st);
         }
     }
-    need(fsync(d)==0);
+    if(fsync(d)!=0)throw Failure(pb::FAILURE_IO);
 }
 bool write_all(int fd,const void* data,size_t size) {
     auto* p=static_cast<const unsigned char*>(data);
@@ -129,10 +142,15 @@ int emit(pb::WorkerResult result) {
 int main() {
     pb::WorkerResult result;result.set_protocol_version(1);
     try {
-        Fd request_fd(open("/job.pb",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));need(request_fd.n>=0);
-        struct stat st{};need(fstat(request_fd.n,&st)==0&&S_ISREG(st.st_mode)&&st.st_size>0&&st.st_size<=4096);
+        Fd request_fd(open("/job.pb",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));
+        if(request_fd.n<0)throw Failure(pb::FAILURE_IO);
+        struct stat st{};if(fstat(request_fd.n,&st)!=0)throw Failure(pb::FAILURE_IO);
+        need(S_ISREG(st.st_mode)&&st.st_size>0&&st.st_size<=4096);
         std::string input(static_cast<size_t>(st.st_size),'\0');size_t used=0;
-        while(used<input.size()){ssize_t n=read(request_fd.n,input.data()+used,input.size()-used);if(n<0&&errno==EINTR)continue;need(n>0);used+=n;}
+        while(used<input.size()){ssize_t n=read(request_fd.n,input.data()+used,input.size()-used);if(n<0&&errno==EINTR)continue;
+            if(n<=0) throw Failure(pb::FAILURE_IO);
+            used+=n;
+        }
         pb::WorkerRequest request;need(request.ParseFromString(input)&&request.protocol_version()==1&&request.maximum_bytes()>0&&request.maximum_bytes()<=4ULL*1024*1024*1024&&request.maximum_entries()>0&&request.maximum_entries()<=200000);
         need(request.GetReflection()->GetUnknownFields(request).empty());
         max_bytes=request.maximum_bytes();max_entries=request.maximum_entries();
@@ -153,7 +171,8 @@ int main() {
 #endif
         hash=std::make_unique<Hash>();
         Fd s(open("/source",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC)),d(open("/destination",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
-        struct stat a{},b{};need(s.n>=0&&d.n>=0&&fstat(s.n,&a)==0&&fstat(d.n,&b)==0);
+        if(s.n<0||d.n<0)throw Failure(pb::FAILURE_IO);
+        struct stat a{},b{};if(fstat(s.n,&a)!=0||fstat(d.n,&b)!=0)throw Failure(pb::FAILURE_IO);
         need(a.st_dev!=b.st_dev||a.st_ino!=b.st_ino);
         tree(s.n,d.n,"");
         auto* receipt=result.mutable_copied();receipt->set_actual_bytes(bytes);receipt->set_actual_entries(static_cast<uint32_t>(entries));receipt->set_content_digest(hash->end());
