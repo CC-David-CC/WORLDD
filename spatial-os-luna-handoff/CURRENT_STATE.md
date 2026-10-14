@@ -1,13 +1,16 @@
-## 2026-10-14: M07 store receipt test correction (current)
+## 2026-10-14: M07 focused C++ checks (current)
 
-The frozen Debug store test failed on both hosts.
-It read byte 20 for the removal marker.
-WPR1 stores the marker at byte 12 after its magic and length fields.
-The test now asserts NUL at byte 12 and changes that byte to SOH.
-The decoder must still return STORAGE_ERROR for a create tombstone.
-Production receipt encoding is unchanged.
-Focused rebuilds and reruns are pending.
-Initial failures remain under /home/dflanag3/spatial-artifacts/m07-pres-cpp-4501f6d-sb16/debug-store and /home/dflanag3/spatial-artifacts/m07-pres-cpp-4501f6d-sb16-2/debug-store-repro.
+Store-test source is checkpoint 1fe254faf9d818a3abb0004cb6d4054ea889ff0d.
+It corrects the WPR1 marker offset and batches quota fixture rows in one checked transaction.
+All 4094 fixture rows and the production quota oracle remain unchanged.
+Production code is unchanged.
+
+Store and projection CTests passed in Debug and ASan/UBSan on sb16 and sb16-2.
+These four C++ test targets do not qualify actor, broker, pixels, native runtime, or M07.
+The focused package is /home/dflanag3/spatial-artifacts/m07-presentation-cpp-qualified-partial-1fe254f/m07-presentation-cpp-focused-1fe254f.tar.gz.
+Archive SHA256: ce3d5ff5f0540efd9f9ad7b5df98c944e76ed5fa11775ab82679f51128f2a1c1.
+Run receipts and the earlier assertion and timeout evidence remain external in spatial-artifacts.
+The earlier timeout database was removed before the preservation instruction; its timeout receipt remains.
 
 ## 2026-10-14: M06 qualified; M07 is next
 
