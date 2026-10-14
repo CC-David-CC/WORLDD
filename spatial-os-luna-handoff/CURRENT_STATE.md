@@ -1,3 +1,24 @@
+## 2026-10-14: Corrected dual-native shared-workspace test passed the first Debug direction
+
+Fixture source: 5658b9fc35097df978f3d2504049f7947cb677df on box-git.
+Production binaries remain the reviewed 0bf3cd47ad3b0ed6bbe83d83f4876cc96ff8baad Debug package.
+The fixture-only overlay explicitly records that reuse. No production rebuild was required for constructor initialization.
+Two real TLS lifecycle regressions passed on sb16 Debug in 6.501 seconds with both exit receipts zero.
+They exercise plain-world close twice and mixed plain/broker-world cleanup twice.
+The first-direction native retry then passed: sb16 authority and sb16-2 observer.
+Its exact shared-workspace test passed in 39.102 seconds. Command and wrapper exits were zero.
+The primary read both terminal results and inspected the retained native audit.
+Seven remote identity records retained the same server and compositor identities.
+The audit records 18 remote pixel captures with three distinct hashes.
+Both native cleanup adapters report exit zero, removed scopes, and no unexpected population.
+Their generated units are absent and inactive. Both runtime lanes are released.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/m07-crosshost-source-repair-20261014/native-retry-debug-run02.
+The original failed attempt remains preserved. Reverse Debug and sanitizer cross-host runs remain unrun.
+
+The connection-fix Debug targets now build successfully with SPATIAL_INPUT_TESTS=ON.
+Their package review and engine12/native2 regressions remain pending. No connection-fix runtime pass is claimed.
+M07 remains in focused integration. The combined candidate and full both-host gate remain pending.
+
 ## 2026-10-14: Execution-v7 migration regressions passed both profiles on both hosts
 
 Source checkpoint: 4ab70182a463482f0f3db26a6281a671e31c7b8f on m07/execution-v7-migration-tests-20261014.
