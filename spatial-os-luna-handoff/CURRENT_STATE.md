@@ -1,3 +1,22 @@
+## 2026-10-14: Execution-v7 migration regressions passed both profiles on both hosts
+
+Source checkpoint: 4ab70182a463482f0f3db26a6281a671e31c7b8f on m07/execution-v7-migration-tests-20261014.
+The strengthened six-method migration suite passed in Debug and ASan/UBSan on sb16 and sb16-2.
+This is 24 case executions across four runs, including four fixture-shape validations.
+The primary read every named result and all eight zero command/wrapper exits.
+Strict sanitizer diagnostics were enabled. No sanitizer diagnostic appeared in the retained test results.
+The primary confirmed no package test or broker process remained on either host.
+Evidence root on each host: /home/dflanag3/spatial-artifacts/m07-execution-v7-migration-20261014/runtime-runs.
+Runs: sb16-debug-v2, sb16-sanitizer-primary01, sb16-2-debug-primary01, and sb16-2-sanitizer-primary01.
+The first Debug launch failed before testing because it omitted Bash when invoking the runner.
+The primary reused the completed Debug retry and used one hash-pinned launcher for the remaining three runs.
+
+The reviewed cross-host fixture correction is checkpoint 5658b9fc35097df978f3d2504049f7947cb677df on box-git.
+Its two real lifecycle regressions and the native retry remain pending.
+The keepalive regression sources passed primary review. Their focused build requires SPATIAL_INPUT_TESTS=ON.
+The initial headless configuration lacked that target. That setup failure is retained; normal reconfiguration is underway.
+No keepalive runtime pass is claimed. The combined M07 source freeze and full qualification remain pending.
+
 ## 2026-10-14: First dual-native cross-host attempt exposed fixture cleanup initialization
 
 Cross-host source checkpoint: 0bf3cd47ad3b0ed6bbe83d83f4876cc96ff8baad on box-git.
