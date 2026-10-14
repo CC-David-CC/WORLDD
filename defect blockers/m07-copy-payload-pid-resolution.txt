@@ -1,0 +1,19 @@
+M07 engine resolves the initializer instead of its held payload
+
+Status: Confirmed in the unintegrated engine.
+
+The retained bubblewrap namespace leader has namespace PID 1.
+Its child initializer has namespace PID 2.
+The initializer reports its held payload at namespace PID 3.
+The engine assumes that payload is the leader's immediate child.
+It therefore rejects application launch with Application payload namespace identity differs.
+
+Resolve a bounded unique child chain under the retained namespace leader.
+Check each parent link, live pidfd, start identity, and PID namespace inode.
+Accept only the exact namespace PID reported by the trusted initializer.
+Attach only the held payload before releasing its execution gate.
+Preserve the namespace leader and initializer outside the payload freeze group.
+
+Retained sb16 evidence:
+/home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1/failure-summary.json
+The complete engine has no end-to-end pass yet.

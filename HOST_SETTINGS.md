@@ -20,6 +20,18 @@ To revoke this added access, remove only the authorized_keys line ending spatial
 Remove only the marked sb16/sb16-2 configuration block on middle-child.
 Do not remove unrelated keys or the controller's recovery access.
 
+Run this command as dflanag3 on each test box when revocation is required:
+
+```sh
+sed -i '/spatial-middle-child-testboxes-20261014$/d' /home/dflanag3/.ssh/authorized_keys
+```
+
+On middle-child, remove the marked eight-line block only if it still matches the recorded configuration:
+
+```sh
+sed -i '/^# Spatial test boxes 20261014$/,+7d' /home/dflanag3/.ssh/config
+```
+
 ## Keep displays awake
 
 Applied on 2026-10-07 to the `dflanag3` desktop account on `sb16` and `sb16-2`.

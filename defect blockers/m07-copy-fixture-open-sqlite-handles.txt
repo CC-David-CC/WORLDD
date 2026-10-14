@@ -1,0 +1,16 @@
+M07 copy fixture leaves SQLite handles open during volume cleanup
+
+Status: Confirmed fixture lifetime defect in engine preflight08.
+
+The sqlite3 connection context manager commits or rolls back its transaction.
+It does not close the connection.
+Retained read connections keep all four test volumes busy during in-unit cleanup.
+The outer recovery unmounted and detached all four volumes after the fixture exited.
+Both temporary helper binaries were restored.
+
+Explicitly close each fixture connection before unmount.
+Keep the outer exact-volume recovery path for interrupted runs.
+Require applied unmount and detached-loop receipts before reporting cleanup success.
+
+Retained sb16 evidence:
+/home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1/failure-summary.json

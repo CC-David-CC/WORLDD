@@ -1,0 +1,16 @@
+M07 copy fixture shares one broker stream between two readers
+
+Status: Confirmed fixture defect in engine preflight08.
+
+The fixture sends direct broker requests while worldd owns the same broker stream.
+Either reader can consume the other's reply bytes.
+The retained world log reports Broker reply exceeds limit.
+This result does not establish a production framing defect.
+
+Use a private broker without world attachment for private admission tests.
+Use world actor routes and world grant queries for actor tests.
+Do not share that stream with a direct test reader.
+Retain intended denial, exact retry, and side-effect assertions.
+
+Retained sb16 evidence:
+/home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1/failure-summary.json
