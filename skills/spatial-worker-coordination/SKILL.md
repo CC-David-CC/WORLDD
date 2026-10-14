@@ -192,6 +192,10 @@ Separate error detection time from bounded cleanup time. A later nonzero exit al
 When builds fail on missing packages, fix and record normal dependencies before rebuilding.
 After adding CMake targets, run an explicit configure before requesting those targets from an existing Makefile build.
 When transport quoting corrupts scripts, transfer script files instead of adding another escaping layer.
+Windows OpenSSH joins remote command arguments into shell text. PowerShell argument quotes may not survive that step.
+Use separate `rg -e PATTERN` arguments for simple searches. Do not send an unquoted regex containing `|`.
+Transfer an LF script for commands containing quoted spaces, pipelines, Python code, or tmux format strings with `#`.
+If a search waits on stdin, inspect and stop its exact owned process before retrying through a script.
 When two branches change the same API, merge once and test the combined API before adding more dependent work.
 Keep improvements specific to observed failures. Do not create unrelated approval or compliance procedures.
 

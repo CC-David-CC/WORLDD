@@ -1,3 +1,28 @@
+## 2026-10-14: Authorized native copy control passed; full engine verification started
+
+The narrow production copy control passed on sb16 at 44c950b109d76996a64f55724125815bde112f59.
+It sealed 24 MiB, returned an identical retry, and verified an independent destination inode.
+The primary inspected 634 helper samples showing a private network namespace and configured limits.
+Observed limits were 256 MiB memory, 16 processes, and 200000/100000 CPU quota.
+The FD32 check and both physical-root rejection checks also passed.
+
+The fourth native case failed before BEGIN because the fixture exhausted its repository reservations.
+The 512 MiB volume supported three 128 MiB domains after two 64 MiB reserves.
+A reviewed fixture-only correction provides six domains, reserves, and bounded headroom in 1 GiB.
+Production capacity checks remain unchanged. Later native and recovery checks remain unrun.
+Retained sb16 evidence: /home/dflanag3/spatial-artifacts/runs/copy-worker-production-edwt8jux.
+The primary verified four empty roots removed, applied unmount, detached loop, inactive unit, and restored helper absence.
+
+The complete engine preflight08 Debug package passed target hash, library, and protobuf preflight on sb16.
+Its first four-method production run has started. No engine runtime pass is claimed.
+Its standalone journal check exposed an invalid fixture retry that omitted the pinned authorization binding.
+That journal failure remains preserved. The fixture correction must retain mismatched-binding rejection.
+
+Presentation fixture repair f066959060ce0a3155a387f4dc033e3a7ca37f64 uses independent issuer ancestor revocation.
+The primary reviewed the grant topology, unchanged denial assertions, and surviving independent-grant checks.
+Its runtime verification remains pending. Production worldd serialization remains unchanged.
+M07 integration, candidate freeze, and full both-host qualification remain pending.
+
 ## 2026-10-14: Copy bootstrap and presentation race causes isolated
 
 M07 remains incomplete. No storage capacity blocker remains.
