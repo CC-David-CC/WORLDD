@@ -1,5 +1,6 @@
 syntax = "proto3";
 package spatial.workspace.copyworker.v1;
+import "copy.proto";
 
 enum FailureReason {
   FAILURE_REASON_UNSPECIFIED = 0;
@@ -19,6 +20,8 @@ message WorkerRequest {
   uint32 protocol_version = 1;
   uint64 maximum_bytes = 2;
   uint32 maximum_entries = 3;
+  FinalizeRequest finalization = 4;
+  StateExportRequest state_export = 5;
 }
 message CopyReceipt {
   uint64 actual_bytes = 1;
@@ -33,5 +36,54 @@ message WorkerResult {
   oneof outcome {
     CopyReceipt copied = 2;
     Failure failure = 3;
+    FinalizeReceipt finalized = 4;
   }
+}
+
+message FinalizeRequest {
+  string source_repository_path = 1;
+  string destination_repository_path = 2;
+  string destination_project_path = 3;
+  string destination_admin_id = 4;
+  string expected_branch = 5;
+  repeated spatial.workspace.copy.v1.CopyDataClass classes = 6;
+  bool derive_head_from_snapshot = 7; // Finalization v2 reads the quiesced linked-worktree HEAD.
+  repeated StateExportValidation state_companions = 8;
+  string destination_application_profile = 9; // Independently assigned; never inherited from source.
+  uint32 state_collection_version = 10;
+  uint32 definition_collection_version = 11;
+}
+message DomainValidation {
+  spatial.workspace.copy.v1.CopyDataClass data_class = 1;
+  uint64 actual_bytes = 2;
+  uint32 actual_entries = 3;
+  bytes content_digest = 4;
+}
+enum GitHeadKind { GIT_HEAD_UNSPECIFIED = 0; SYMBOLIC_BRANCH = 1; DETACHED_COMMIT = 2; }
+message FinalizeReceipt {
+  string head = 1;
+  string branch = 2;
+  repeated DomainValidation domains = 3;
+  GitHeadKind head_kind = 4;
+  repeated StateExportValidation state_companions = 5;
+}
+
+
+// Source and destination descriptors remain pinned by the broker and owner.
+// Paths are fixed to the explicit application-owned data/config subdomains.
+message StateExportRequest {
+  string key = 1;
+  string schema_id = 2;
+  uint32 schema_version = 3;
+  repeated uint32 subdomains = 4; // PersistentStateSubdomain numeric values 1/2 only.
+}
+message StateExportValidation {
+  string key = 1;
+  bytes destination_storage_object = 2;
+  bytes snapshot_storage_object = 3;
+  bytes contract_digest = 4;
+  uint64 actual_bytes = 5;
+  uint32 actual_entries = 6;
+  bytes content_digest = 7;
+  bytes source_storage_object = 8;
 }

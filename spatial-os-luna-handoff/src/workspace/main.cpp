@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <sstream>
+#include <functional>
 
 namespace {
 spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::ExecutionStore& git) {
@@ -72,7 +73,8 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
         if (during_effect && !request.has_access() && !request.has_scoped_authority_check() && !request.has_authorization_fence() && !request.has_application_access() &&
-                !request.has_control_acquire() && !request.has_control_release())
+                !request.has_control_acquire() && !request.has_control_release() &&
+                !request.has_workspace_copy_status())
             throw spatial::WorldError(wire::BUSY, "Workspace effect is pending; retry execution after its checked result");
         if (request.has_management()) {
             if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
@@ -85,6 +87,18 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         else if (request.has_authorization_fence()) *reply.mutable_authorization_fence() = store.authorization_fence(request.authorization_fence());
         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
+        else if (request.has_workspace_copy_begin()) {
+            const auto& operation=request.workspace_copy_begin();
+            if(!operation.has_principal() || !operation.has_request())
+                throw spatial::WorldError(wire::FORBIDDEN,"Workspace copy requires authenticated actor identity and request");
+            *reply.mutable_workspace_copy_status()=store.workspace_copy_begin(operation.request(),operation.principal());
+        }
+        else if (request.has_workspace_copy_status()) {
+            const auto& operation=request.workspace_copy_status();
+            if(!operation.has_principal() || !operation.has_request())
+                throw spatial::WorldError(wire::FORBIDDEN,"Workspace copy status requires authenticated actor identity");
+            *reply.mutable_workspace_copy_status()=store.workspace_copy_status(operation.request(),operation.principal());
+        }
         else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire(), owner);
         else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release(), owner);
         else if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
@@ -150,6 +164,9 @@ int main(int argc, char** argv) {
             else if (argument == "--migrate-v2" && !migration) migration = 2;
             else if (argument == "--migrate-v3" && !migration) migration = 3;
             else if (argument == "--migrate-v4" && !migration) migration = 4;
+            else if (argument == "--migrate-v5" && !migration) migration = 5;
+            else if (argument == "--migrate-v6" && !migration) migration = 6;
+            else if (argument == "--migrate-v7" && !migration) migration = 7;
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
@@ -237,6 +254,8 @@ int main(int argc, char** argv) {
             controls.tick(); flush();
             if (channels) channels->administrative();
         });
+        std::function<void()> copy_progress;
+        bool advancing_copy = false, dispatching_root = false;
         const auto enforce = [&] {
             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
             if (storage) storage->check_alive();
@@ -251,7 +270,10 @@ int main(int argc, char** argv) {
             // Check that result before this iteration can acknowledge issuer revocation.
             if (native) native->check();
         };
-        if (storage) storage->set_observer(enforce);
+        if (storage) storage->set_observer([&] {
+            enforce();
+            if (advancing_copy && copy_progress) copy_progress();
+        });
         bool serving_effect = false;
         const auto serve_effect = [&] {
             if (!channels || serving_effect) return;
@@ -277,13 +299,77 @@ int main(int argc, char** argv) {
         };
         store.set_observer([&] {
             serve_effect(); enforce();
-            // This explicit effect wait is outside issuer callbacks. Do not recursively refresh from tick().
-            if (authority) { authority->keepalive(); enforce(); }
             serve_effect();
         });
+        // The owner stream remains single-flight. While copy I/O waits, service
+        // bounded, owner-independent requests on this same authority thread.
+        const auto pump_root = [&](bool during_copy) {
+            if (dispatching_root) return;
+            struct Guard {
+                bool& active;
+                explicit Guard(bool& value) : active(value) { active = true; }
+                ~Guard() { active = false; }
+            } guard(dispatching_root);
+            flush();
+            if (!output.empty()) return;
+            if (!input.empty() && Clock::now()-input_started > std::chrono::seconds(10))
+                throw std::runtime_error("Workspace transport deadline exceeded");
+            if (!eof && input.size() < spatial::max_frame_bytes+4) {
+                std::array<char, 65536> bytes{};
+                const auto count = read(STDIN_FILENO, bytes.data(), std::min(bytes.size(), spatial::max_frame_bytes+4-input.size()));
+                if (count < 0 && errno != EAGAIN && errno != EINTR) throw std::runtime_error("Workspace request failed");
+                if (!count) eof = true;
+                if (count > 0) {
+                    if (input.empty()) input_started = Clock::now();
+                    input.append(bytes.data(), static_cast<std::size_t>(count));
+                }
+            }
+            if (output.empty() && input.size() >= 4) {
+                const auto* header = reinterpret_cast<const unsigned char*>(input.data());
+                const auto length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) | (std::uint32_t(header[2]) << 8) | header[3];
+                if (length > spatial::max_frame_bytes) throw std::runtime_error("Excessive workspace frame");
+                if (input.size() >= length+4) {
+                    spatial::workspace::v1::Request request; spatial::workspace::v1::Reply reply;
+                    const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+                    if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
+                        reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
+                        reply.mutable_error()->set_message("Malformed broker protobuf payload");
+                    } else {
+                        // Leave effectful requests queued until the owning copy step returns.
+                        // These reads cannot start another storage exchange or copy transition.
+                        if (during_copy && !request.has_workspace_copy_status() &&
+                                !request.has_access() && !request.has_scoped_authority_check() &&
+                                !request.has_authorization_fence() && !request.has_application_access() &&
+                                !request.has_control_release()) return;
+                        reply = dispatch_broker(request, store, authority.get(), controls, {}, {}, during_copy);
+                    }
+                    enforce();
+                    if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                            !request.has_management() && !request.has_control_release()) {
+                        reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                        reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+                        reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
+                    }
+                    input.erase(0, length+4); input_started = Clock::now();
+                    enqueue(reply);
+                }
+            }
+            flush();
+        };
+        copy_progress = [&] { pump_root(true); };
         for (;;) {
             enforce();
-            if (authority) { authority->keepalive(); enforce(); }
+            pump_root(false);
+            // Deliver an existing reply before beginning another copy step.
+            if (output.empty() && !eof) {
+                struct CopyGuard {
+                    bool& active;
+                    explicit CopyGuard(bool& value) : active(value) { active = true; }
+                    ~CopyGuard() { active = false; }
+                } guard(advancing_copy);
+                store.advance_workspace_copies();
+            }
+            enforce();
             if (channels) channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
                 const auto cancellation = authority ? authority->cancellation_sequence() : 0;
                 auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
@@ -296,32 +382,11 @@ int main(int argc, char** argv) {
                 }
                 return reply;
             });
+            pump_root(false);
             const auto now = Clock::now();
             if ((!input.empty() && now-input_started > std::chrono::seconds(10)) ||
                     (!output.empty() && now-output_started > std::chrono::seconds(10)))
                 throw std::runtime_error("Workspace transport deadline exceeded");
-            if (output.empty() && input.size() >= 4) {
-                const auto* header = reinterpret_cast<const unsigned char*>(input.data());
-                const auto length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) | (std::uint32_t(header[2]) << 8) | header[3];
-                if (length > spatial::max_frame_bytes) throw std::runtime_error("Excessive workspace frame");
-                if (input.size() >= length+4) {
-                    spatial::workspace::v1::Request request; spatial::workspace::v1::Reply reply;
-                    const auto cancellation = authority ? authority->cancellation_sequence() : 0;
-                    if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
-                        reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
-                        reply.mutable_error()->set_message("Malformed broker protobuf payload");
-                    } else reply = dispatch_broker(request, store, authority.get(), controls);
-                    enforce();
-                    if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
-                            !request.has_management() && !request.has_control_release()) {
-                        reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
-                        reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
-                        reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
-                    }
-                    input.erase(0, length+4); input_started = Clock::now();
-                    enqueue(reply);
-                }
-            }
             if (eof && output.empty()) {
                 if (!input.empty()) throw std::runtime_error("Truncated workspace frame");
                 store.stop_all();
@@ -341,16 +406,7 @@ int main(int argc, char** argv) {
             if (!output.empty() && (fds[1].revents & POLLOUT)) {
                 flush();
             }
-            if (!eof && output.empty() && (fds[0].revents & (POLLIN | POLLHUP | POLLERR))) {
-                std::array<char, 65536> bytes{};
-                const auto count = read(STDIN_FILENO, bytes.data(), std::min(bytes.size(), spatial::max_frame_bytes+4-input.size()));
-                if (count < 0 && errno != EAGAIN && errno != EINTR) throw std::runtime_error("Workspace request failed");
-                if (!count) eof = true;
-                if (count > 0) {
-                    if (input.empty()) input_started = Clock::now();
-                    input.append(bytes.data(), static_cast<std::size_t>(count));
-                }
-            }
+
         }
     } catch (const std::exception& error) {
         std::cerr << "workspaced: " << error.what() << '\n'; return 2;

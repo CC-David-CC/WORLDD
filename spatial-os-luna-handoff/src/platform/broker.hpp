@@ -45,6 +45,8 @@ public:
     broker_wire::AccessReply access(const std::string& workspace, const std::string& actor, const authority::v1::ActorRef* principal = nullptr);
     broker_wire::ScopedAuthorityCheckReply scoped_authority_check(const broker_wire::ScopedAuthorityCheckRequest&);
     broker_wire::AuthorizationFence authorization_fence(const broker_wire::AuthorizationFenceRequest&);
+    workspace::copy::v1::WorkspaceCopyStatus workspace_copy_begin(const workspace::copy::v1::WorkspaceCopyRequest&, const authority::v1::ActorRef&);
+    workspace::copy::v1::WorkspaceCopyStatus workspace_copy_status(const workspace::copy::v1::WorkspaceCopyStatusRequest&, const authority::v1::ActorRef&);
     broker_wire::ApplicationAccessReply application_access(const broker_wire::ApplicationAccessRequest&);
     broker_wire::ApplicationControlLease control_acquire(const broker_wire::ApplicationControlRequest&);
     broker_wire::ApplicationControlReleased control_release(const broker_wire::ApplicationControlRelease&);

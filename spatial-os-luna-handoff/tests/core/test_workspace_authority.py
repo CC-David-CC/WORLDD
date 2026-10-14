@@ -210,8 +210,8 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='one'), components=components),
             rights=rights, delegable_rights=rights if delegable is None and depth else delegable or (), delegation_depth=depth)
 
-    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False):
-        self.execution = self.root/'execution'; first = BrokerProcess(self, self.execution)
+    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False, attach_world=True):
+        self.execution = getattr(self,'execution_override',self.root/'execution'); first = BrokerProcess(self, self.execution)
         repository = GitRepo(self.root)
         first.call('git.repo.import', id='repo-one', path=str(repository.path))
         work = first.call('git.worktree.create', repo='repo-one', id='tree-one', branch='branch-one', start='main', operation_id='tree')
@@ -225,6 +225,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             first.call('workspace.create', id='two', worktree='tree-two', policy=policy)
         if legacy: first.call('workspace.member.set', id='one', actor='legacy-member', rights=POLICY)
         first.close()
+        if hasattr(self,'after_workspace_storage_setup'): self.after_workspace_storage_setup()
         directory = self.root/'workspace-authority'; directory.mkdir(mode=0o700)
         seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='one', authority_directory=str(directory),
             roots=roots() if roots else [self.workspace_terms()])
@@ -266,6 +267,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
         self.authority_config = path
         self.broker = BrokerProcess(self, self.execution) if legacy else BrokerProcess(self, self.execution, path)
+        if not attach_world:return None
         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
         world.management('workspace.available', id='one', available=True)
         return world
@@ -515,6 +517,24 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         reply = self.broker.request(scoped_authority_check=query)
         self.assertTrue(reply.HasField('scoped_authority_check'), reply)
         self.assertFalse(reply.scoped_authority_check.allowed)
+
+    def test_project_copy_requires_project_root_read_not_object_id_filename(self):
+        self.enroll_second()
+        object_id = 'a' * 32
+        root = self.workspace_terms(self.second,
+            rights=[grant.WORKSPACE_COPY_PROJECT, grant.FILE_BROWSE], depth=0)
+        forged_path = self.workspace_terms(self.second, rights=[grant.FILE_READ], depth=0,
+            components=(object_id.encode(),))
+        self.workspace(roots=lambda: [root, forged_path])
+        scoped_file = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=self.principal(self.second), right=grant.FILE_READ,
+            components=[object_id.encode()]))
+        self.assertTrue(scoped_file.scoped_authority_check.allowed)
+        root_read = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=self.principal(self.second), right=grant.FILE_READ))
+        self.assertFalse(root_read.scoped_authority_check.allowed)
+        # Copy admission checks empty root components, so the filename-shaped grant cannot admit it.
+        self.assertGreater(root_read.scoped_authority_check.revision, 0)
 
     def test_scoped_authority_does_not_fall_back_to_legacy_membership(self):
         self.workspace(legacy=True)

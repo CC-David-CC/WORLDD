@@ -74,3 +74,11 @@ message ProcessScopeReply {
     ProcessScopeExitStatus exit_status = 13;
   }
 }
+
+// Private supervisor evidence. Application payload identities exclude its supervisors.
+message QuiescedProcess { uint32 pid = 1; uint64 start_ticks = 2; }
+message PayloadQuiescenceReceipt {
+  ProcessScopeIdentity scope = 1;
+  repeated QuiescedProcess processes = 2;
+  bool frozen = 3;
+}

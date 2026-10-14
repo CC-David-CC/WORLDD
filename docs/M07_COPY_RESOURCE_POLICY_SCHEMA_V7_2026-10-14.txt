@@ -1,0 +1,29 @@
+M07 resource-policy and publication binding contract. UNQUALIFIED.
+
+Source lineage: f7e8bbd is an unbuilt v6 admission draft. It has no qualified copy engine.
+Schema v7 adds workspace_copy_policies to the execution registry.
+Fresh databases create v7. Older registries require their explicit stopped --migrate-vN command.
+Existing v6 registries require --migrate-v6. Normal startup never silently adds this table.
+The v6 migration preserves terminal rows and marks unfinished v6 rows UNCERTAIN/COPY_UNAVAILABLE.
+It never invents missing admission, deadline, or resource-policy evidence.
+Published legacy copies without resource bindings fail closed before application launch.
+
+Operator BrokerResourceConfig.copy_profiles supplies versioned, independently configured resource policies.
+Each copy policy declares total, actor, and application ceilings. It has no actor-specific assignments.
+The owner destination profile references that policy by name and selects one application profile.
+Admission pins the exact selected WorkspaceCopyResourceProfile protobuf in the private immutable binding.
+Registry publication stores it in workspace_copy_policies within the workspace registry transaction.
+Startup reloads and checks every persisted policy against current operator configuration.
+Missing, malformed, or changed policies fail closed. There is no default-policy fallback for copied workspaces.
+No source execution budget is copied. The actor WorkspaceCopyRequest remains unchanged.
+
+Owner catalog schema v5 adds exact copy destination allocation and publication receipts.
+Publication binds the separately validated final Git/domain result after administrative links are rewritten.
+The source/staging SEALED digest remains source-copy evidence. It does not describe rewritten destination bytes.
+The owner receipt binds the exact final validation and publication request digests.
+Operator copy-catalog updates require both stopped authority locks and the next catalog revision.
+
+Selected first runtime checks: actual begin root-scope denial; root-read REQUESTED control;
+actor-route dirty/staged/untracked Git copy; source PID/start continuity; zero destination jobs and members;
+post-revocation status redaction; copy-journal and explicit schema migrations.
+All runtime checks remain UNRUN until primary approval and execution on sb16 and sb16-2.

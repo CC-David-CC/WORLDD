@@ -16,6 +16,7 @@ import uuid
 from google.protobuf import text_format
 import broker_pb2 as broker
 import storage_pb2 as storage
+import copy_pb2 as copy
 
 PROBE = Path(sys.argv.pop(1)).resolve()
 SOURCE = Path(sys.argv.pop(1)).resolve()
@@ -65,6 +66,28 @@ class StorageSnapshotTests(unittest.TestCase):
         config.default_policy.actor_state_default_bytes = 4 * 2**20
         for profile in config.default_policy.profiles:
             profile.state_bytes = 4 * 2**20
+        catalog = config.copy_catalog
+        catalog.protocol_version = 1
+        catalog.revision = 5
+        for data_class, kind, object_id, schema in (
+            (copy.PROJECT_TREE, storage.StorageObject.PROJECT, "c"*32, "spatial.workspace.project-tree"),
+            (copy.GIT_HISTORY, storage.StorageObject.REPOSITORY, "d"*32, "spatial.workspace.git-history"),
+        ):
+            entry = catalog.entries.add(workspace_id="b"*32, data_class=data_class,
+                                        schema_id=schema, schema_version=1,
+                                        maximum_bytes=4*2**20, maximum_entries=100,
+                                        consistency=1)
+            entry.source_object.kind = kind
+            entry.source_object.id = object_id
+        profile = config.copy_destination_profiles.add(
+            name="copy-default", revision=7, maximum_total_bytes=8*2**20,
+            maximum_entries=200, allowed_classes=[copy.PROJECT_TREE, copy.GIT_HISTORY],
+            execution_resource_profile="development", application_profile="development")
+        profile.storage_policy.CopyFrom(config.default_policy)
+        profile.storage_policy.ClearField("workspace")
+        profile.storage_policy.ClearField("actors")
+        profile.storage_policy.total_bytes = 8*2**20
+        profile.storage_policy.actor_state_default_bytes = 4*2**20
         self.owner_config.write_bytes(config.SerializeToString(deterministic=True))
         self.owner_config.chmod(0o600)
         self.start_owner()
@@ -339,6 +362,140 @@ class StorageSnapshotTests(unittest.TestCase):
         request.snapshot_prepare.CopyFrom(prepare)
         return request
 
+    def limited_application_source(self):
+        repository, project, project_state, _ = self.create_source(uuid.uuid4().hex, uuid.uuid4().hex)
+        workspace = uuid.uuid4().hex
+        bind = storage.StorageOwnerRequest()
+        bind.workspace_bind.workspace = workspace
+        bind.workspace_bind.repository.CopyFrom(repository)
+        bind.workspace_bind.project.CopyFrom(project)
+        self.state(bind)
+        source = storage.StorageObject(kind=storage.StorageObject.APPLICATION_STATE, id=uuid.uuid4().hex)
+        prepare = storage.StorageOwnerRequest()
+        prepare.application_prepare.workspace = workspace
+        prepare.application_prepare.object.CopyFrom(source)
+        prepare.application_prepare.fixture_actor = "limited-snapshot-source"
+        prepare.application_prepare.profile = "development"
+        state = self.state(prepare)
+        self.assertEqual(state.maximum_bytes, 4*2**20)
+        marker = self.volume / "applications" / source.id / "snapshot-witness"
+        marker.write_bytes(b"latest real application state")
+        return source, state, project_state.quota_group
+
+    def quota_limits(self, groups):
+        # Independently read exact kernel limit items through TREE_SEARCH.
+        # The Linux UAPI search buffer is 4096 bytes, including its 104-byte key.
+        code = r"""
+import fcntl,json,os,struct,sys
+fd=os.open(sys.argv[1],os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+result={}
+try:
+    for group in map(int,sys.argv[2:]):
+        data=bytearray(4096)
+        struct.pack_into('=7Q4I4Q',data,0,8,0,0,group,group,0,2**64-1,244,244,1,0,0,0,0,0)
+        fcntl.ioctl(fd,0xd0009411,data,True)
+        assert struct.unpack_from('=I',data,64)[0]==1
+        header=struct.unpack_from('=3Q2I',data,104)
+        assert header[1:]==(0,group,244,40),header
+        result[str(group)]=struct.unpack_from('<5Q',data,136)
+finally:os.close(fd)
+print(json.dumps(result,sort_keys=True))
+"""
+        result = subprocess.run(["sudo", "-n", sys.executable, "-B", "-c", code,
+                                 str(self.volume), *map(str, groups)],
+                                check=True, capture_output=True, text=True, timeout=5)
+        return json.loads(result.stdout)
+
+    def set_individual_quota(self, subvolume, maximum):
+        subprocess.run(["sudo", "-n", "btrfs", "qgroup", "limit", str(maximum),
+                        "0/" + str(subvolume), str(self.volume)],
+                       check=True, capture_output=True, timeout=5)
+        subprocess.run(["sudo", "-n", "btrfs", "filesystem", "sync", str(self.volume)],
+                       check=True, capture_output=True, timeout=5)
+
+    def rewind_pending_snapshot(self, snapshot_id):
+        self.assertIsNone(self.owner)
+        # Existing crash-boundary pattern: only rewind the stopped receipt.
+        # The snapshot, UUID, parent, membership, and limit remain real kernel state.
+        code = ("import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); "
+                "c.execute(\"UPDATE snapshots SET snapshot_subvolume=0,snapshot_uuid=X'',state='pending' WHERE snapshot_id=?\",(sys.argv[2],)); "
+                "c.execute(\"UPDATE objects SET subvolume=0,state='pending' WHERE kind=5 AND id=?\",(sys.argv[2],)); "
+                "c.commit(); c.close()")
+        subprocess.run(["sudo", "-n", sys.executable, "-B", "-c", code,
+                        str(self.volume / ".storage-owner" / "catalog.db"), snapshot_id],
+                       check=True, timeout=5)
+
+    def test_limited_application_snapshot_clears_only_new_limit_and_retries_exactly(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        self.assertEqual(before[str(source_state.subvolume_id)], [1, 4*2**20, 0, 0, 0])
+        request = self.prepare(source, uuid.uuid4().hex)
+        ready = self.state(request)
+        self.assertTrue(ready.read_only)
+        self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [0]*5)
+        self.assertEqual(self.quota_limits(groups), before, "source or parent quota changed")
+        marker = self.volume / "snapshots" / request.snapshot_prepare.snapshot_object.id / "snapshot-witness"
+        self.assertEqual(marker.read_bytes(), b"latest real application state")
+        self.assertEqual(self.state(request).SerializeToString(), ready.SerializeToString())
+        self.stop_owner()
+        self.start_owner()
+        self.assertEqual(self.state(request).SerializeToString(), ready.SerializeToString())
+        self.assertEqual(self.quota_limits(groups), before)
+
+    def test_pending_limited_snapshot_reconciles_before_and_after_quota_initialization(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        snapshot_id = uuid.uuid4().hex
+        request = self.prepare(source, snapshot_id)
+        ready = self.state(request)
+        for inherited in (True, False):
+            with self.subTest(interrupted_before_clear=inherited):
+                self.stop_owner()
+                if inherited:
+                    self.set_individual_quota(ready.subvolume_id, source_state.maximum_bytes)
+                self.rewind_pending_snapshot(snapshot_id)
+                self.start_owner()
+                recovered = self.state(request)
+                self.assertEqual(recovered.subvolume_id, ready.subvolume_id)
+                self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [0]*5)
+                self.assertEqual(self.quota_limits(groups), before)
+                self.assertEqual(self.state(request).SerializeToString(), recovered.SerializeToString())
+
+    def test_unexpected_pending_snapshot_limit_is_rejected_without_repair(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        snapshot_id = uuid.uuid4().hex
+        request = self.prepare(source, snapshot_id)
+        ready = self.state(request)
+        self.stop_owner()
+        self.set_individual_quota(ready.subvolume_id, 2*2**20)
+        self.rewind_pending_snapshot(snapshot_id)
+        self.start_owner()
+        error = self.error(request, "UNCERTAIN")
+        self.assertIn("unexpected individual quota", error.message)
+        self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [1, 2*2**20, 0, 0, 0])
+        self.assertEqual(self.quota_limits(groups), before)
+        self.error(request, "UNCERTAIN")
+
+    def test_ready_snapshot_tampered_limit_is_rejected_without_repair(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        request = self.prepare(source, uuid.uuid4().hex)
+        ready = self.state(request)
+        self.stop_owner()
+        self.set_individual_quota(ready.subvolume_id, 2*2**20)
+        self.start_owner()
+        inspect = storage.StorageOwnerRequest()
+        inspect.snapshot_inspect.snapshot_object.CopyFrom(request.snapshot_prepare.snapshot_object)
+        self.error(inspect, "UNCERTAIN")
+        self.error(request, "UNCERTAIN")
+        self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [1, 2*2**20, 0, 0, 0])
+        self.assertEqual(self.quota_limits(groups), before)
+
     def test_readonly_capture_is_idempotent_digest_bound_and_source_independent(self):
         repo_id, project_id, snapshot_id = (uuid.uuid4().hex for _ in range(3))
         repo, source, _, source_path = self.create_source(repo_id, project_id)
@@ -461,6 +618,84 @@ class StorageSnapshotTests(unittest.TestCase):
         retire.snapshot_retire.snapshot_object.CopyFrom(second_request.snapshot_prepare.snapshot_object)
         retire.snapshot_retire.operation_id = uuid.uuid4().bytes
         self.error(retire, "UNCERTAIN")
+
+    def test_copy_catalog_rejects_unknown_schemas_and_unenforceable_ceilings(self):
+        baseline = storage.StorageOwnerConfig.FromString(self.owner_config.read_bytes())
+        mutations = []
+        unknown_schema = storage.StorageOwnerConfig()
+        unknown_schema.CopyFrom(baseline)
+        unknown_schema.copy_catalog.entries[0].schema_id = "spatial.workspace.unknown"
+        mutations.append(unknown_schema)
+        oversized = storage.StorageOwnerConfig()
+        oversized.CopyFrom(baseline)
+        oversized.copy_catalog.entries[0].maximum_bytes = 8*2**30
+        mutations.append(oversized)
+        for index, config in enumerate(mutations):
+            with self.subTest(index=index):
+                candidate = self.root / f"invalid-copy-policy-{index}.pb"
+                candidate.write_bytes(config.SerializeToString(deterministic=True))
+                candidate.chmod(0o600)
+                result = subprocess.run(
+                    ["sudo", "-n", "env", str(PROBE), str(candidate)],
+                    capture_output=True, text=True, timeout=5)
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("Invalid workspace copy catalog", result.stderr)
+        self.assertIsNone(self.owner.poll(), "Rejected policy validation affected the live owner")
+
+    def test_copy_catalog_query_binds_registered_objects_and_profile_revisions(self):
+        workspace_id = "b"*32
+        repository = storage.StorageObject(kind=storage.StorageObject.REPOSITORY, id="d"*32)
+        project = storage.StorageObject(kind=storage.StorageObject.PROJECT, id="c"*32)
+        prepare_repo = storage.StorageOwnerRequest()
+        prepare_repo.repository_prepare.object.CopyFrom(repository)
+        self.state(prepare_repo)
+        prepare_project = storage.StorageOwnerRequest()
+        prepare_project.project_prepare.object.CopyFrom(project)
+        prepare_project.project_prepare.repository.CopyFrom(repository)
+        self.state(prepare_project)
+        bind = storage.StorageOwnerRequest()
+        bind.workspace_bind.workspace = workspace_id
+        bind.workspace_bind.repository.CopyFrom(repository)
+        bind.workspace_bind.project.CopyFrom(project)
+        self.state(bind)
+
+        request = storage.StorageOwnerRequest()
+        query = request.copy_catalog_query
+        query.workspace_id = workspace_id
+        query.destination_profile = "copy-default"
+        query.expected_destination_profile_revision = 7
+        query.expected_catalog_revision = 0
+        query.data_classes.extend([copy.PROJECT_TREE, copy.GIT_HISTORY])
+        discovered = self.call(request)
+        self.assertTrue(discovered.HasField("copy_catalog"), discovered)
+        self.assertEqual(discovered.copy_catalog.catalog_revision, 5)
+        query.expected_catalog_revision = discovered.copy_catalog.catalog_revision
+        result = self.call(request)
+        self.assertTrue(result.HasField("copy_catalog"), result)
+        self.assertEqual(result.copy_catalog.catalog_revision, 5)
+        self.assertEqual(result.copy_catalog.destination_profile.revision, 7)
+        self.assertEqual([entry.data_class for entry in result.copy_catalog.entries],
+                         [copy.PROJECT_TREE, copy.GIT_HISTORY])
+        self.assertEqual([entry.source_object.id for entry in result.copy_catalog.entries],
+                         ["c"*32, "d"*32])
+        self.assertEqual(self.call(request).copy_catalog, result.copy_catalog)
+
+        changed_catalog = storage.StorageOwnerRequest()
+        changed_catalog.copy_catalog_query.CopyFrom(query)
+        changed_catalog.copy_catalog_query.expected_catalog_revision = 6
+        self.error(changed_catalog, "CONFLICT")
+        changed = storage.StorageOwnerRequest()
+        changed.copy_catalog_query.CopyFrom(query)
+        changed.copy_catalog_query.expected_destination_profile_revision = 8
+        self.error(changed, "CONFLICT")
+        denied = storage.StorageOwnerRequest()
+        denied.copy_catalog_query.CopyFrom(query)
+        denied.copy_catalog_query.workspace_id = "e"*32
+        self.error(denied, "UNAVAILABLE")
+        unsupported = storage.StorageOwnerRequest()
+        unsupported.copy_catalog_query.CopyFrom(query)
+        unsupported.copy_catalog_query.data_classes.append(copy.APPLICATION_STATE)
+        self.error(unsupported, "UNAUTHORIZED")
 
     def test_copy_stage_claim_is_digest_bound_and_restart_is_uncertain(self):
         repo_id, project_id, snapshot_id, stage_id = (uuid.uuid4().hex for _ in range(4))

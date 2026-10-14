@@ -13,6 +13,7 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
+#include <set>
 #include <google/protobuf/unknown_field_set.h>
 #ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
 #include <cstdlib>
@@ -151,8 +152,21 @@ int main() {
             if(n<=0) throw Failure(pb::FAILURE_IO);
             used+=n;
         }
-        pb::WorkerRequest request;need(request.ParseFromString(input)&&request.protocol_version()==1&&request.maximum_bytes()>0&&request.maximum_bytes()<=4ULL*1024*1024*1024&&request.maximum_entries()>0&&request.maximum_entries()<=200000);
+        pb::WorkerRequest request;need(request.ParseFromString(input)&&request.maximum_bytes()>0&&request.maximum_bytes()<=4ULL*1024*1024*1024&&request.maximum_entries()>0&&request.maximum_entries()<=200000);
         need(request.GetReflection()->GetUnknownFields(request).empty());
+        const bool exporting=request.protocol_version()==2 && request.has_state_export() && !request.has_finalization();
+        need(exporting || (request.protocol_version()==1 && !request.has_state_export() && !request.has_finalization()));
+        result.set_protocol_version(request.protocol_version());
+        if(exporting) {
+            const auto& state=request.state_export();
+            need(state.GetReflection()->GetUnknownFields(state).empty() &&
+                 !state.key().empty() && state.key().size()<=64 &&
+                 state.key().find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-")==std::string::npos &&
+                 state.schema_id()=="spatial.application.quiesced-files" && state.schema_version()==1 &&
+                 state.subdomains_size()>0 && state.subdomains_size()<=2);
+            std::set<unsigned> selected;
+            for(const auto domain:state.subdomains())need((domain==1 || domain==2) && selected.insert(domain).second);
+        }
         max_bytes=request.maximum_bytes();max_entries=request.maximum_entries();
         struct rlimit nofile{};
         need(getrlimit(RLIMIT_NOFILE,&nofile)==0,pb::FAILURE_IO);
@@ -174,7 +188,28 @@ int main() {
         if(s.n<0||d.n<0)throw Failure(pb::FAILURE_IO);
         struct stat a{},b{};if(fstat(s.n,&a)!=0||fstat(d.n,&b)!=0)throw Failure(pb::FAILURE_IO);
         need(a.st_dev!=b.st_dev||a.st_ino!=b.st_ino);
-        tree(s.n,d.n,"");
+        if(exporting) {
+            // The trusted contract selects only these persistent roots. Runtime home,
+            // cache, temporary files, logs, credentials, and process records have no export path.
+            hash->field("spatial-application-state-export-v2");
+            hash->field(request.state_export().SerializeAsString());
+            std::set<unsigned> selected(request.state_export().subdomains().begin(),request.state_export().subdomains().end());
+            for(const auto domain:selected) {
+                const char* name=domain==1?"data":"config";
+                struct stat before{};need(fstatat(s.n,name,&before,AT_SYMLINK_NOFOLLOW)==0 && S_ISDIR(before.st_mode),pb::FAILURE_SOURCE_CHANGED);
+                need(++entries<=max_entries && ++enumerated<=max_entries,pb::FAILURE_ENTRY_LIMIT);
+                hash->field(name);const unsigned char type='D';hash->add(&type,1);hash->u64(before.st_mode&0777);
+                need(mkdirat(d.n,name,0700)==0,pb::FAILURE_DESTINATION_CONFLICT);
+                Fd input(openat(s.n,name,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+                Fd output(openat(d.n,name,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+                struct stat pinned{};
+                need(input.n>=0 && output.n>=0 && fstat(input.n,&pinned)==0 &&
+                     before.st_dev==pinned.st_dev && before.st_ino==pinned.st_ino,pb::FAILURE_SOURCE_CHANGED);
+                tree(input.n,output.n,name,1);
+                need(fchmod(output.n,before.st_mode&0777)==0 && fsync(output.n)==0,pb::FAILURE_IO);
+            }
+            need(fsync(d.n)==0,pb::FAILURE_IO);
+        } else tree(s.n,d.n,"");
         auto* receipt=result.mutable_copied();receipt->set_actual_bytes(bytes);receipt->set_actual_entries(static_cast<uint32_t>(entries));receipt->set_content_digest(hash->end());
     } catch(const Failure& e) {
         result.mutable_failure()->set_reason(e.reason);

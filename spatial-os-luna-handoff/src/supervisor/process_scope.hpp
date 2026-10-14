@@ -32,12 +32,20 @@ public:
     // Apply reclaim pressure before a bounded worker reaches its hard memory limit.
     void throttle_memory(std::uint64_t bytes);
     void enable_children();
+    // Attach only the held, owned payload before application exec.
+    void attach_payload(pid_t payload);
+    void begin_payload_freeze();
+    bool payload_frozen() const;
+    v1::PayloadQuiescenceReceipt payload_receipt() const;
+    void thaw_payload();
     v1::ProcessScopeStopped stop();
 private:
     ProcessScope() = default;
     bool populated() const;
     bool child_exited() const;
-    int parent_ = -1, scope_ = -1, pidfd_ = -1;
+    int parent_ = -1, scope_ = -1, pidfd_ = -1, payload_ = -1;
+    bool freeze_owned_ = false;
+    std::string frozen_inventory_;
     pid_t child_ = -1;
     bool reaped_ = false, removed_ = false, started_ = false;
     v1::ProcessScopeIdentity identity_;

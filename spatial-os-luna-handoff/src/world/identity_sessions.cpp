@@ -115,6 +115,7 @@ struct IdentitySessions::Impl {
     Clock::time_point last_exchange = Clock::now();
     world_diagnostic::LastSuccessfulExchange last_successful_exchange;
     bool ready = false, broken = false, ticking = false;
+    bool issuer_exchange_in_progress = false;
 
     Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution, int listener_fd, const std::filesystem::path& tls_config)
         : world(store), actors(engine), broker(execution) {
@@ -173,7 +174,7 @@ struct IdentitySessions::Impl {
         broken = true;
         for (auto& channel : channels) disconnect(*channel);
     }
-    void tick() {
+    void poll_authority() {
         if (ticking || broken || !participant) return;
         ticking = true;
         struct Reset { bool& value; ~Reset() { value = false; } } reset{ticking};
@@ -240,6 +241,19 @@ struct IdentitySessions::Impl {
             sync_authority();
         }
     }
+    void tick() {
+        if (ticking) return;
+        poll_authority();
+        // Keep the action issuer connection alive during component waits too.
+        // The polling guard has ended, so this call's progress callbacks still
+        // detect controller loss and consume revocations while INFO is pending.
+        if (!broken && participant && !issuer_exchange_in_progress &&
+                Clock::now()-last_exchange >= std::chrono::seconds(1)) {
+            pb::IssuerRequest request; request.mutable_info();
+            try { exchange(std::move(request)); }
+            catch (const WorldError&) { fail(); }
+        }
+    }
     void settle() {
         if(actors.cancellation_settled())for(auto& owned:channels){
             auto& channel=*owned;
@@ -285,6 +299,9 @@ struct IdentitySessions::Impl {
     }
     pb::IssuerReply exchange(pb::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
+        if (issuer_exchange_in_progress) throw std::logic_error("Recursive world issuer exchange is not allowed");
+        issuer_exchange_in_progress = true;
+        struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{issuer_exchange_in_progress};
         request.set_protocol_version(1);
         const auto operation = request.has_info() ? "info" :
             request.has_credential_check() ? "credential_check" :
@@ -756,13 +773,8 @@ struct IdentitySessions::Impl {
         return reply;
     }
     void pump() {
-        // Keep the checked action connection alive during an idle human session.
-        // The issuer's service idle timeout must exceed this one-second interval.
-        if (!broken && Clock::now()-last_exchange >= std::chrono::seconds(1)) {
-            pb::IssuerRequest request; request.mutable_info();
-            try { exchange(std::move(request)); }
-            catch (const WorldError&) { fail(); }
-        }
+        // Preserve maintenance cadence even when pump is used without serve's tick.
+        tick();
         for (auto& owned : channels) {
             auto& channel = *owned; if (channel.fd.value < 0) continue;
             auto drop = [&] { disconnect(channel); channel.close_transport(); channel.input.clear(); channel.output.clear(); };

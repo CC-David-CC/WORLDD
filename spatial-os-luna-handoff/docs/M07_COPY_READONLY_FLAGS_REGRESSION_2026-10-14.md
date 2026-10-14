@@ -202,3 +202,6 @@ Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-pcsz
 All six scopes, the native volume, socket directory, unit, and helper were restored.
 The separate recovery volume cleanup receipt also remains in its retained test evidence.
 The owner service and owner probe require fresh affected-target builds before another run.
+
+
+The merged asynchronous copy worker is UNQUALIFIED pending the required combined M07 gates. Historical evidence in this document remains scoped to its original checkpoint.

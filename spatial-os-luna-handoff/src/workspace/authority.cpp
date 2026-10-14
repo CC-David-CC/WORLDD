@@ -61,6 +61,7 @@ struct WorkspaceAuthority::Impl {
     std::uint64_t acknowledged_revision = 0, generation = 0, command_sequence = 0, cancellation_sequence = 0;
     id::ParticipantCommand::OperationCase pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
     bool ready = false, broken = false, changed = true, closing = false, released = false;
+    bool polling = false, issuer_exchange_in_progress = false;
     Clock::time_point last_exchange = Clock::now();
     std::function<void()> observer = [] {};
 
@@ -111,7 +112,10 @@ struct WorkspaceAuthority::Impl {
         ++epoch; invalidate();
     }
     void fail() { if (!broken) { broken = true; if (epoch != UINT64_MAX) ++epoch; ++cancellation_sequence; active.clear(); invalidate(); } }
-    void tick() {
+    void poll_authority() {
+        if (polling) return;
+        polling = true;
+        struct ResetPoll { bool& active; ~ResetPoll() { active = false; } } reset{polling};
         if (broken || !participant) { observer(); return; }
         if (participant->failed()) { fail(); observer(); return; }
         while (auto update = participant->poll()) {
@@ -157,6 +161,24 @@ struct WorkspaceAuthority::Impl {
         }
         observer();
     }
+    void keepalive() {
+        if (!polling && !broken && participant && !issuer_exchange_in_progress &&
+                Clock::now()-last_exchange >= std::chrono::seconds(1)) {
+            id::IssuerRequest request; request.mutable_info();
+            try { exchange(std::move(request)); }
+            catch (const WorldError&) {
+                std::cerr << "Workspace issuer keepalive failed; authority is unavailable\n";
+                fail();
+            }
+        }
+    }
+    void tick() {
+        if (polling) return;
+        poll_authority();
+        // The polling scope has ended. INFO progress must still consume revocations
+        // and run cached control cancellation without recursively starting INFO.
+        keepalive();
+    }
     void settle(bool effects_settled) {
         // Called only after dispatch, process reconciliation, and control cancellation.
         // A wait callback can consume another revision after reconciliation. changed blocks that acknowledgement.
@@ -187,6 +209,9 @@ struct WorkspaceAuthority::Impl {
     }
     id::IssuerReply exchange(id::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
+        if (issuer_exchange_in_progress) throw std::logic_error("Recursive workspace issuer exchange is not allowed");
+        issuer_exchange_in_progress = true;
+        struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{issuer_exchange_in_progress};
         request.set_protocol_version(1); id::IssuerReply reply;
         try { reply = client->call(std::move(request)); }
         catch (const std::exception&) { fail(); throw WorldError(wire::UNAVAILABLE, "Workspace issuer connection failed"); }
@@ -495,16 +520,7 @@ void WorkspaceAuthority::tick() { impl_->tick(); }
 void WorkspaceAuthority::settle(bool effects_settled) { impl_->settle(effects_settled); }
 void WorkspaceAuthority::shutdown(const std::function<void()>& reconcile) { impl_->shutdown(reconcile); }
 std::uint64_t WorkspaceAuthority::cancellation_sequence() const { return impl_->cancellation_sequence; }
-void WorkspaceAuthority::keepalive() {
-    if (!impl_->broken && Clock::now()-impl_->last_exchange >= std::chrono::seconds(1)) {
-        id::IssuerRequest request; request.mutable_info();
-        try { impl_->exchange(std::move(request)); }
-        catch (const WorldError&) {
-            std::cerr << "Workspace issuer keepalive failed; authority is unavailable\n";
-            impl_->fail();
-        }
-    }
-}
+void WorkspaceAuthority::keepalive() { impl_->keepalive(); }
 bool WorkspaceAuthority::consume_changes() { const bool result = impl_->changed; impl_->changed = false; return result; }
 void WorkspaceAuthority::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
 void initialize_workspace_authority(const std::filesystem::path& path, ExecutionStore& execution) {

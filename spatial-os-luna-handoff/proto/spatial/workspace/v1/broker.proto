@@ -6,6 +6,7 @@ import "issuer.proto";
 import "native_scope.proto";
 import "process_scope.proto";
 import "storage.proto";
+import "copy.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -37,6 +38,7 @@ message WorkspaceResourcePolicy {
   repeated ActorResourceLimit actors = 4;
   repeated ApplicationResourceProfile profiles = 5;
 }
+message WorkspaceCopyResourceProfile { string name = 1; uint64 revision = 2; WorkspaceResourcePolicy policy = 3; }
 message BrokerResourceConfig {
   uint32 protocol_version = 1;
   string delegated_cgroup = 2;
@@ -46,6 +48,7 @@ message BrokerResourceConfig {
   spatial.supervisor.v1.ProcessScopeBudget broker_budget = 5;
   // Reserved control-plane capacity. Applied to the manager before store initialization.
   spatial.supervisor.v1.ProcessScopeBudget manager_budget = 6;
+  repeated WorkspaceCopyResourceProfile copy_profiles = 7;
 }
 // Parent launch configuration. The child resource template must leave its root empty.
 message BrokerProcessConfig {
@@ -215,11 +218,20 @@ message BootstrapApplyRequest {
   string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
   spatial.identity.v1.SignedCredential credential = 3;
 }
+message WorkspaceCopyBeginRequest {
+  spatial.authority.v1.ActorRef principal = 1;
+  spatial.workspace.copy.v1.WorkspaceCopyRequest request = 2;
+}
+message WorkspaceCopyStatusQuery {
+  spatial.authority.v1.ActorRef principal = 1;
+  spatial.workspace.copy.v1.WorkspaceCopyStatusRequest request = 2;
+}
 // The broker and its namespace supervisor use this channel. Applications never receive it.
-message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
+message AppStart { uint32 protocol_version = 1; repeated string argv = 2; bool require_payload_boundary = 3; }
+message AppContinue { uint32 protocol_version = 1; bool release_payload = 2; }
 message AppEvent {
   uint32 protocol_version = 1;
-  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; }
+  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; uint32 payload_ready = 5; }
 }
 message Request {
   uint32 protocol_version = 1;
@@ -239,6 +251,8 @@ message Request {
     BootstrapApplyRequest bootstrap_apply = 112;
     ScopedAuthorityCheckRequest scoped_authority_check = 113;
     AuthorizationFenceRequest authorization_fence = 114;
+    WorkspaceCopyBeginRequest workspace_copy_begin = 115;
+    WorkspaceCopyStatusQuery workspace_copy_status = 116;
   }
 }
 message Reply {
@@ -260,5 +274,6 @@ message Reply {
     spatial.authority.v1.BootstrapReport bootstrap = 111;
     ScopedAuthorityCheckReply scoped_authority_check = 112;
     AuthorizationFence authorization_fence = 113;
+    spatial.workspace.copy.v1.WorkspaceCopyStatus workspace_copy_status = 115;
   }
 }

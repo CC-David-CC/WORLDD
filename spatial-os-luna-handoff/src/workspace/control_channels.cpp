@@ -2,6 +2,7 @@
 #include "workspace/control_owner.hpp"
 #include "identity/participant_stream.hpp"
 #include "world/store.hpp"
+#include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <poll.h>
@@ -129,7 +130,28 @@ struct ControlChannels::Impl {
         }
         return state(key, found->second);
     }
+    void poll_owner_loss() {
+        // Bound work by the 256 admitted owners. Never consume or dispatch their
+        // ordinary requests from an issuer progress callback.
+        for (auto& [key, owner] : owners) {
+            auto channel = owner.channel;
+            if (!channel) continue;
+            pollfd socket{channel->descriptor(), POLLIN | POLLRDHUP, 0};
+            const auto status = poll(&socket, 1, 0);
+            if (status < 0 && errno == EINTR) continue;
+            bool lost = status < 0 || (socket.revents & (POLLERR | POLLHUP | POLLRDHUP | POLLNVAL));
+            if (!lost && (socket.revents & POLLIN)) {
+                char byte;
+                const auto count = recv(socket.fd, &byte, 1, MSG_PEEK | MSG_DONTWAIT);
+                lost = count == 0 || (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR);
+            }
+            // The local shared_ptr keeps a borrowed stream alive. Existing fence
+            // semantics shut it down and retain every unresolved reservation.
+            if (lost) fence(key, owner);
+        }
+    }
     void administrative() {
+        poll_owner_loss();
         if (fd < 0) return;
         pollfd live{pidfd, POLLIN, 0};
         const auto status = poll(&live, 1, 0);

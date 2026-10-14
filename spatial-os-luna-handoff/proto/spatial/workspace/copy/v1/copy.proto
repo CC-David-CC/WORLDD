@@ -70,6 +70,8 @@ message CopyManifestEntry {
   uint64 byte_count = 6;
   bytes content_digest = 7;
   bytes snapshot_receipt_id = 8;
+  repeated CopyStateSourceComponent state_components = 9;
+  bytes destination_validation_digest = 10;
 }
 // Private operation journal only; never serialize this message in actor status.
 message SnapshotReceipt {
@@ -81,4 +83,17 @@ message SnapshotReceipt {
   bool readonly = 6;
   bytes receipt_id = 7;
   bytes request_digest = 8;
+}
+
+
+// Private collection source evidence. It never contains an application process identity.
+message CopyStateSourceComponent {
+  string key = 1;
+  bytes contract = 2;
+  bytes source_storage_object = 3;
+  bytes snapshot_receipt_id = 4;
+  bytes destination_storage_object = 5;
+  uint64 byte_count = 6;
+  uint32 entry_count = 7;
+  bytes content_digest = 8;
 }
