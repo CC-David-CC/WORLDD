@@ -1,0 +1,17 @@
+M07 copy barrier interrupts existing source applications
+
+Status: Confirmed by source review. Runtime regression remains pending.
+
+The unintegrated engine preflight06 rejects generic workspace access during copy quiescence.
+Existing application authority checks use that same access function.
+Broker reaping checks application authority after the barrier is inserted.
+The BUSY exception can therefore interrupt the broker and existing source processes.
+
+Remove the generic access barrier.
+Keep barriers on new launches and workspace mutations.
+Verify source PID and start time through the real copy operation.
+Verify ordinary authorized access remains available during the copy.
+
+Reviewed correction: isolated engine preflight07 on middle-child.
+The targeted Debug build passed. Runtime remains unrun.
+This draft has not entered the milestone integration branch.

@@ -1,0 +1,28 @@
+M07 copy worker cannot mount its sealed request
+
+Status: Confirmed. Correction is under focused verification.
+
+The production worker receives a sealed anonymous memfd at descriptor 7.
+The pathname-based --ro-bind-fd option cannot resolve that anonymous source.
+The authorized copy reached BEGIN and START, then failed before helper execution.
+Bounded diagnostics reported:
+bwrap: Can't find source path /proc/self/fd/7: No such file or directory
+
+Evidence on sb16:
+/home/dflanag3/spatial-artifacts/runs/m07-copy-debug-production-348-v1
+/home/dflanag3/spatial-artifacts/runs/copy-worker-production-nfm4h8to
+The command and wrapper both exited 1.
+The FD32 check and both physical-root rejection checks passed.
+The positive copy, malformed receipt, remaining native checks, and recovery did not pass.
+Applied volume cleanup, empty cgroup removal, and helper restoration were recorded.
+
+Use --ro-bind-data for the bounded sealed request only.
+Keep real source, destination, and helper descriptor mounts unchanged.
+The finalizer must accept the resulting unlinked regular request file.
+Keep the single-link requirement for copied project and Git files.
+The existing application credential handoff uses this data-mount mechanism.
+
+Narrow correction: 44c950b109d76996a64f55724125815bde112f59.
+Branch: m07/copy-readonly-flags-20261014 on box-git.
+The complete asynchronous engine has the equivalent correction in preflight08.
+Neither correction has a production runtime pass yet.

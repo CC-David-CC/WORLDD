@@ -1,0 +1,24 @@
+M07 presentation race fixture deadlocks during revocation
+
+Status: Confirmed fixture defect. Production implications remain under review.
+
+The relay holds an issuer reply while worldd waits for that reply.
+Its callback sends WorldGrantRevoke through the same blocked worldd.
+The nested grant query cannot complete.
+The issuer exchange times out after five seconds and disables the identity service.
+
+Candidate: 51ec522e4706bf443ce698af52ffcee3bbf80190.
+Host: sb16-2.
+Evidence:
+/home/dflanag3/spatial-artifacts/m07-presentation-combined-51ec522e/stage-20261014/debug-r1-results/workspace-presentation-actor
+
+Five test methods completed. Three passed and two failed.
+Four failure records include duplicate relay-cleanup failures.
+Both command and wrapper exited 1.
+The delegated scope was removed. No test or worldd process remained.
+The remaining focused selections and sanitizer checks remain unrun.
+
+Use a valid independently serviced authority mutation path for the race.
+Review whether production requires a narrowly scoped request pump.
+Do not increase deadlines or remove the revocation assertions to obtain a pass.
+Preserve the working two-workspace race schedule.

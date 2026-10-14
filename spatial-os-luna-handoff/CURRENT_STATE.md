@@ -1,3 +1,31 @@
+## 2026-10-14: Copy bootstrap and presentation race causes isolated
+
+M07 remains incomplete. No storage capacity blocker remains.
+Journal and fence focused passes remain valid for their recorded component pins.
+The complete engine changes journal schemas and needs fresh combined regression evidence.
+
+The sb16 diagnostic copy run at 34852fa628625f395a00e76c80bf2471c27c140f failed with worker exit 1.
+Bubblewrap could not resolve the sealed anonymous request through --ro-bind-fd.
+The FD32 check and both physical-root rejection checks passed.
+The authorized positive copy still failed. Later native and recovery checks remain unrun.
+Correction 44c950b109d76996a64f55724125815bde112f59 uses --ro-bind-data for the sealed request only.
+Its focused Debug build and runtime verification are in progress.
+Retained failure: sb16:/home/dflanag3/spatial-artifacts/runs/m07-copy-debug-production-348-v1.
+
+Presentation candidate 51ec522e4706bf443ce698af52ffcee3bbf80190 completed five methods on sb16-2.
+Three passed and two failed. Four failure records include duplicate cleanup failures.
+The relay synchronously revoked through the same worldd blocked on its held issuer reply.
+This fixture deadlock caused an issuer timeout and disabled the world identity service.
+A separate repair branch preserves the old candidate and failure evidence.
+The remaining focused presentation selections and sanitizer checks remain unrun.
+
+The complete asynchronous engine passed its targeted preflight07 Debug build.
+Source review removed a generic access barrier that could interrupt existing source applications.
+Exact publication-kind checks now cover all selected data classes.
+Preflight08 adds the sealed request correction and valid journal fixture identities.
+Engine runtime checks, all-class copy, restart, fault, and combined qualification remain pending.
+No M07 integration freeze or phase pass is claimed.
+
 ## 2026-10-14: Presentation and production-copy retries exposed fixture defects
 
 M07 remains incomplete. No storage capacity blocker remains.
