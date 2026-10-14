@@ -1101,7 +1101,20 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
         test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication)
+    add_test(NAME workspace-copy-lost-publication-ack COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish)
+    add_test(NAME workspace-copy-hostile-git COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects)
+    add_test(NAME workspace-copy-worker-death-recovery COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch)
     set_tests_properties(workspace-copy-absolute-deadline workspace-copy-actor-revocation
+        workspace-copy-lost-publication-ack workspace-copy-hostile-git workspace-copy-worker-death-recovery
         PROPERTIES TIMEOUT 450 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"

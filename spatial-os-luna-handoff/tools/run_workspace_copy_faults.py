@@ -73,7 +73,7 @@ def main():
         report['fixture_discovery_exit']=discovery.returncode;save()
         if discovery.returncode:
             raise RuntimeError('Copy fixture import/discovery failed before helper installation: '+discovery.stderr[-16000:])
-        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==2
+        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==5
         if selected_case:assert selected_case in discovered['methods']
         assert not discovered['services_started'] and discovered['methods_executed']==0
         report['fixture_discovery']=discovered;save()
@@ -93,7 +93,7 @@ def main():
         command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
                  str(source/'tests/core/test_workspace_copy_faults.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd')]
-        command.append('WorkspaceCopyFaultTests.'+selected_case)
+        command.extend(['-v','WorkspaceCopyFaultTests.'+selected_case])
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
             SPATIAL_SECURITY_EVIDENCE=str(evidence/'cases'),SPATIAL_SCOPE_EVIDENCE=str(evidence/'scopes'),
@@ -134,6 +134,9 @@ def main():
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
         assert re.search(r'Ran '+str(report['selected_methods'])+r' tests? in ',output) and '\nOK' in output,output[-16000:]
+        named_result=r'^'+re.escape(selected_case)+r' \((?:__main__\.)?WorkspaceCopyFaultTests(?:\.'+re.escape(selected_case)+r')?\) \.\.\. ok$'
+        assert len(re.findall(named_result,output,re.MULTILINE))==1,'Selected method lacks its actual named unittest PASS: '+selected_case
+        report['verified_named_method']=selected_case
         report['runtime_status']='focused-pass'
     except BaseException as error:
         report['runtime_status']='failed-or-incomplete';report['failure']=repr(error);raise

@@ -23,7 +23,7 @@ def main():
     p=argparse.ArgumentParser()
     for name,kind in (('--channel-fd',int),('--build',Path),('--config',Path),('--audit',Path)):
         p.add_argument(name,type=kind,required=True)
-    p.add_argument('--mode',choices=('delay-copy-replies','hold-copy-seal'),required=True);a=p.parse_args()
+    p.add_argument('--mode',choices=('delay-copy-replies','hold-copy-seal','pass-through','drop-publication-ack'),required=True);a=p.parse_args()
     if os.getuid()!=0 or socket.gethostname().split('.')[0] not in ('sb16','sb16-2'):raise RuntimeError('approved root test host required')
     sys.path.insert(0,str(a.build/'python'));import storage_pb2 as storage
     operator=pwd.getpwnam('dflanag3');client=socket.socket(fileno=a.channel_fd);client.settimeout(190)
@@ -41,6 +41,10 @@ def main():
                 send(upstream,data);reply=receive(upstream)
                 if reply is None:raise RuntimeError('owner closed before reply')
                 send(broker,reply)
+            # The owner pins this sender PID. Keep it alive until the owner
+            # consumes EOF and closes its channel, avoiding dead-peer races.
+            upstream.shutdown(socket.SHUT_WR)
+            if receive(upstream) is not None:raise RuntimeError('unexpected owner frame after clean EOF')
             os._exit(0)
         except BaseException:traceback.print_exc();sys.stderr.flush();os._exit(2)
     broker.close();upstream.close();owner=None;waited=False
@@ -63,6 +67,28 @@ def main():
             send(relay,data);wire_reply=receive(relay);owner_reply_at=time.monotonic()
             if wire_reply is None:raise RuntimeError('broker closed before owner reply')
             reply=storage.StorageOwnerReply.FromString(wire_reply)
+            if a.mode=='drop-publication-ack' and method=='copy_destination_publish':
+                if not reply.HasField('copy_destination') or reply.copy_destination.state!=storage.StorageCopyDestinationReceipt.PUBLISHED:
+                    raise RuntimeError('fault requires an actual successful PUBLISHED receipt')
+                witness=a.audit.with_suffix('.publication-held')
+                release_publication=a.audit.with_suffix('.publication-release')
+                record=dict(method=method,request_sha256=hashlib.sha256(data).hexdigest(),
+                    reply_sha256=hashlib.sha256(wire_reply).hexdigest(),
+                    owner_reply_monotonic_ns=time.monotonic_ns(),state=reply.copy_destination.state,
+                    request_hex=data.hex(),reply_hex=wire_reply.hex())
+                pending=witness.with_name(witness.name+'.pending')
+                pending.write_text(json.dumps(record,sort_keys=True)+'\n')
+                os.replace(pending,witness)
+                audit['dropped_publication']=record
+                # The fixture kills its exact broker before this release.
+                until=time.monotonic()+4
+                while not release_publication.exists() and time.monotonic()<until:time.sleep(.005)
+                if not release_publication.exists():raise TimeoutError('Publication fault release was not witnessed')
+                record['release_monotonic_ns']=time.monotonic_ns()
+                record['elapsed_seconds']=time.monotonic()-exchange_start
+                if record['elapsed_seconds']>=5:raise TimeoutError('Publication fault exceeded owner exchange budget')
+                record['forwarded']=False
+                continue
             if method in methods:
                 record={'method':method,'request_sha256':hashlib.sha256(data).hexdigest(),
                     'reply_sha256':hashlib.sha256(wire_reply).hexdigest(),'start_monotonic':exchange_start,
@@ -70,7 +96,7 @@ def main():
                 if a.mode=='delay-copy-replies':
                     until=time.monotonic()+4.1
                     while time.monotonic()<until:time.sleep(min(.02,max(0,until-time.monotonic())))
-                elif method=='copy_stage_seal':
+                elif a.mode=='hold-copy-seal' and method=='copy_stage_seal':
                     if not reply.HasField('copy_stage') or held.exists():raise RuntimeError('invalid or duplicate SEAL receipt')
                     record['held_receipt_sha256']=hashlib.sha256(wire_reply).hexdigest()
                     held.write_text(json.dumps(record,sort_keys=True)+'\n')
@@ -86,6 +112,7 @@ def main():
             else:send(client,wire_reply)
         relay.close();_,status=os.waitpid(child,0);waited=True
         audit['broker_exit']=os.waitstatus_to_exitcode(status);audit['owner_stderr']=owner.communicate(timeout=10)[1];audit['owner_exit']=owner.returncode
+        audit['forwarder_shutdown']='owner-eof-before-forwarder-exit'
         if audit['broker_exit'] or owner.returncode:raise RuntimeError('relay or owner failed')
     except BaseException as error:audit['relay_failure']=repr(error);raise
     finally:
