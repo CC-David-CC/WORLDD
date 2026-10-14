@@ -1087,6 +1087,23 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env)
     set_tests_properties(workspace-copy-engine PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
+    add_custom_target(workspace-copy-fault-fixture
+        DEPENDS workspace-copy-engine-fixture
+        SOURCES tests/core/test_workspace_copy_faults.py
+            tests/native/storage_owner_copy_fault_relay.py
+            tools/inspect_workspace_copy_fault_fixture.py
+            tools/run_workspace_copy_faults.py)
+    add_test(NAME workspace-copy-absolute-deadline COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies)
+    add_test(NAME workspace-copy-actor-revocation COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication)
+    set_tests_properties(workspace-copy-absolute-deadline workspace-copy-actor-revocation
+        PROPERTIES TIMEOUT 450 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
