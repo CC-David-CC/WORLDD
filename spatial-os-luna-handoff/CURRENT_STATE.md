@@ -1,3 +1,27 @@
+## 2026-10-14: Native Debug passes expanded; engine12 exposes two remaining failures
+
+The shared-workspace native test passed both Debug directions with fixture5658 and binaries0bf3.
+The reverse direction ran on sb16-2 authority with sb16 observer: one test passed in 43.857 seconds.
+The primary read the exact method result and both zero exit receipts. Cleanup audits released both lanes.
+The normal cross-host sanitizer aggregate built 189 steps. Its package and runtime checks remain pending.
+Thirteen binaries link ASan/UBSan. The independent confined X probe retains its declared RLIMIT_AS exception.
+
+World issuer maintenance checkpoint: 02dbb69b7dc26a71ff8742b321b00d68813b102d on box-git.
+Two native Debug regressions passed on sb16 in 9.004 seconds, with both outer exits zero.
+They confirm independent held-input cancellation during delayed INFO and actual issuer shutdown.
+The primary inspected both named results, exit receipts, and retained timing/probe records.
+The same frozen package ran twelve engine methods in 233.380 seconds: ten passed and two failed.
+Both outer exits were one. The five-class application-state copy now passes.
+The delayed owner-reply control exposes the broker's separate issuer-maintenance gap.
+The other failure reaches destination authority setup after publication, then receives participant-domain IN_USE.
+The primary read both complete failure traces. See defect blockers/m07-long-copy-issuer-connection-loss.txt.
+Do not weaken domain uniqueness or substitute fake provisioning to bypass that failure.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine17a-engine12-debug-v1-evidence.
+All twelve images were detached. Helpers were restored absent, and the cleanup audit released the runtime lane.
+Broker repair and destination-provisioning diagnosis remain pending before combined integration.
+Full deadline, in-flight revocation, lost acknowledgment, worker death, per-class bounds, and hostile-Git coverage remain pending.
+M07 is incomplete. Combined freeze and full both-host qualification remain pending.
+
 ## 2026-10-14: Corrected dual-native shared-workspace test passed the first Debug direction
 
 Fixture source: 5658b9fc35097df978f3d2504049f7947cb677df on box-git.

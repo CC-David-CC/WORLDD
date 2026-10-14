@@ -1,6 +1,31 @@
 M07 long copies lose their world actor connection
 
-Status: CONFIRMED RUNTIME FAILURE. Root cause and repair remain pending.
+Status: WORLD-SIDE REPAIR PASSED NATIVE DEBUG REGRESSIONS. Broker-side repair remains pending.
+
+Reviewed checkpoint: 02dbb69b7dc26a71ff8742b321b00d68813b102d on box-git.
+World maintenance now keeps its action issuer connection alive during component waits.
+An exchange guard prevents recursive issuer calls. Authority polling remains active during INFO waits.
+Two native Debug regressions passed on sb16 in 9.004 seconds, with command/wrapper exits zero.
+The independent X probe observed held key/button controls before cancellation.
+Controller loss released input in 10.1 ms while an actual INFO reply remained pending for 4.1167 seconds.
+Actual issuer shutdown released input in 10.0 ms. Further input returned typed UNAVAILABLE.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine17a-native2-debug-v1-evidence.
+
+The unchanged twelve-case engine suite then ran in 233.380 seconds: ten passed and two failed.
+Both outer exits were one. The real five-class copy passed.
+The new 4.1-second owner-reply control failed at the actor response deadline.
+Its broker log reports Workspace issuer connection failed during phase 4.
+WorkspaceAuthority::tick polls authority changes, but its action keepalive runs only in the main loop.
+This leaves the broker's separate issuer connection exposed during longer storage waits.
+Prepare a guarded broker keepalive repair. Preserve revocation polling, deadlines, and fail-closed behavior.
+Do not reconnect, replay uncertain effects, or increase timeouts to mask this failure.
+
+The other failure is a separate participant-provisioning gap after initial publication.
+Read m07-copied-workspace-participant-provisioning.txt. Do not weaken registry uniqueness or bypass real enrollment.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine17a-engine12-debug-v1-evidence.
+Sanitizer, second-host engine, remaining copy faults, and full M07 qualification remain pending.
+
+Original failure:
 
 Runtime: sb16 Debug, m07-engine16c-debug11-v1.
 Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine16c-debug11-v1-evidence.

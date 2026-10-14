@@ -1,0 +1,28 @@
+M07 copied workspace cannot extend its broker participant domain set
+
+Status: CONFIRMED PROVISIONING GAP. Protocol plan required before implementation.
+
+Source checkpoint: 02dbb69b7dc26a71ff8742b321b00d68813b102d.
+Runtime: sb16 Debug, engine17a, twelve methods with two failures.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine17a-engine12-debug-v1-evidence.
+
+The publication/reassignment/restart test completes its first copy before this failure.
+assign_destination_authority adds the copied workspace to the broker bindings.
+configure_participant then registers a new participant over existing and new authority domains.
+The real issuer correctly returns IN_USE: Authority domain already has a registered participant.
+
+Issuer registration requires a fresh participant identity/key and globally unique domain claims.
+Releasing an authority generation does not remove its persistent domain registration.
+The current issuer protocol provides no domain-update or unregister operation.
+A destination-only participant cannot satisfy the test's later recopy through the same broker and fixed workspace-registry authority.
+Do not weaken uniqueness, edit issuer tables directly, remove the recopy assertion, or substitute fake enrollment.
+
+Prepare a separate reviewed production protocol plan for explicit owner-authorized domain additions.
+Preserve the participant identity/key and existing domain claims.
+Require a checked registry revision and a released, quiescent participant generation.
+Require unique new domains and atomic persistent updates.
+Reject stale authenticated connections and configurations after a registration revision change.
+Define exact retry, migration, compatibility, and failure behavior before implementation.
+Do not copy actor grants, credentials, or active execution authority during workspace copy.
+
+Later replay, relaunch, recopy, sanitizer, second-host, and full M07 checks remain unproven for this path.
