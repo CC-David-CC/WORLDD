@@ -1,0 +1,23 @@
+UNQUALIFIED M07 presentation fixture schedule
+
+The actor races revoke a real issuer ancestor while worldd awaits a workspace reply.
+The actor keeps independent world entry, exact representation view, and workspace grants.
+Independent real issuer streams let worldd consume the ancestor event first.
+The broker feed holds its genuine event for at most two seconds.
+The actor operation releases that hold in finally and cleanup.
+No reply contents or protobuf messages change.
+Strict FORBIDDEN replies retain their precise world postcheck messages.
+The tests retain unchanged revision, state, replay, and independent grant proofs.
+
+The new pixel case revokes the requesting actor identity after authorized post-render access.
+Its exact UNAUTHORIZED reply identifies the broker in-flight revocation fence.
+It must return no action or pixel payload.
+This case proves identity revocation, not the post-render observation grant guard.
+Existing grant revocation and partial-write assertions remain unchanged.
+The queued-write case triggers on access reply three: scene, post-render, first-write.
+Its strict EOF assertion remains unchanged.
+
+Compiled inputs do not change in this fixture checkpoint.
+Use explicit reused ELF source pins and verify the immutable source archive.
+Focused actor two and pixel two checks remain UNRUN at this checkpoint.
+This checkpoint does not qualify M07 or Spatial-M1.

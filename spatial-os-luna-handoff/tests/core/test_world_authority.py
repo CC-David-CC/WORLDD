@@ -28,7 +28,7 @@ class RelayingIssuer:
         self.armed = threading.Event(); self.triggered = threading.Event()
         self.delivered = threading.Event(); self.stop = threading.Event(); self.errors = []
         self.status_lock = threading.Lock(); self.status_seen = 0; self.trigger_after_status = 1
-        self.streams = []; self.workers = []
+        self.streams = []; self.workers = []; self.before_reply = None
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.minimum_version = ssl.TLSVersion.TLSv1_3
         self.context.load_cert_chain(str(fixture.server_cert), str(fixture.server_key))
@@ -74,6 +74,7 @@ class RelayingIssuer:
                             # Keep the issuer call pending while worldd consumes the watcher event.
                             time.sleep(.08)
                 reply = upstream.request(request); reply.request_id = sequence
+                if self.before_reply: self.before_reply(request, reply)
                 stream.sendall(frame(reply))
                 if reply.HasField('revocations') and reply.revocations.events: self.delivered.set()
         except (OSError, EOFError): pass

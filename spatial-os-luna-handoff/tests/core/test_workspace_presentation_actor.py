@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import sqlite3
+import threading
 import time
 import unittest
 import core_pb2 as core
@@ -52,6 +53,8 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
 
     def scoped_world(self, *args, **kwargs):
         kwargs['native'] = True
+        if hasattr(self, 'world_watch_relay'):
+            kwargs.setdefault('issuer_port', self.world_watch_relay.port)
         return super().scoped_world(*args, **kwargs)
 
     def principal(self, claims=None):
@@ -132,6 +135,42 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.assertEqual(reply.identity_status.actor_id, ancestor.actor_id)
         self.assertTrue(reply.identity_status.actor_revoked)
         self.assertFalse(reply.identity_status.active)
+
+    def world_grant_race(self, race):
+        # World and broker observe the same real issuer through independent streams.
+        self.world_watch_relay = world_authority.RelayingIssuer(self, lambda: None)
+        release_broker_feed = threading.Event()
+        broker_feed_held = threading.Event()
+
+        def verify_event(reply):
+            self.assertEqual(len(reply.revocations.events), 1)
+            target = reply.revocations.events[0].target
+            self.assertEqual(target.kind, world_authority.issuer.ACTOR_TARGET)
+            self.assertEqual(target.id, race['ancestor'].actor_id)
+
+        def world_reply(request, reply):
+            if reply.HasField('revocations') and reply.revocations.events:
+                verify_event(reply)
+
+        def broker_reply(request, reply):
+            if reply.HasField('revocations') and reply.revocations.events:
+                verify_event(reply)
+                broker_feed_held.set()
+                self.assertTrue(release_broker_feed.wait(2), 'Deferred broker feed was not released')
+
+        def revoke():
+            self.revoke_world_grant_ancestor(race['ancestor'])
+            self.assertTrue(broker_feed_held.wait(.3), 'Real broker revocation feed was not held')
+            self.assertTrue(self.world_watch_relay.delivered.wait(.3), 'Real world revocation feed was not forwarded')
+            # Use the existing relay progress yield while worldd waits for the broker.
+            time.sleep(.08)
+
+        self.world_watch_relay.before_reply = world_reply
+        relay = world_authority.RelayingIssuer(self, revoke, wait_for_revocation_event=False)
+        relay.before_reply = broker_reply
+        relay.trigger_after_status = 1
+        self.addCleanup(release_broker_feed.set)
+        return relay, release_broker_feed
 
     def presentation_state(self, world):
         database = world.state_path / 'world.db'
@@ -215,10 +254,8 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
     def test_move_replay_rechecks_world_grants_after_blocking_workspace_query(self):
         self.enroll_second()
         race = {}
-        relay = world_authority.RelayingIssuer(self,
-            lambda: self.revoke_world_grant_ancestor(race['ancestor']))
+        relay, release_broker_feed = self.world_grant_race(race)
         # The scoped workspace check batches actor statuses into one issuer request.
-        relay.trigger_after_status = 1
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
         race['ancestor'] = self.world_grant_second_via_ancestor(world)
@@ -246,7 +283,10 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         state_before_replay = self.presentation_state(world)
 
         relay.armed.set()
-        replay = peer.act(presentation_move=move)
+        try:
+            replay = peer.act(presentation_move=move)
+        finally:
+            release_broker_feed.set()
         triggered = relay.triggered.wait(.3)
         with relay.status_lock:
             status_count = relay.status_seen
@@ -256,8 +296,9 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.assertTrue(replay.HasField('error'), replay)
         self.assertEqual(replay.error.code, core.FORBIDDEN, replay)
         self.assertEqual(replay.error.message, 'Presentation action authority changed')
-        self.assertTrue(relay.delivered.is_set())
+        self.assertTrue(relay.delivered.wait(.3), 'Deferred broker feed was not forwarded')
         self.assertFalse(relay.errors)
+        self.assertFalse(self.world_watch_relay.errors)
         self.assertEqual(world.management('world.info')['world_revision'], revision_before_replay)
         self.assertEqual(self.presentation_state(world), state_before_replay)
         self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
@@ -289,9 +330,7 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
     def test_geometry_view_rechecks_generic_world_observe_after_workspace_query(self):
         self.enroll_second()
         race = {}
-        relay = world_authority.RelayingIssuer(self,
-            lambda: self.revoke_world_grant_ancestor(race["ancestor"]))
-        relay.trigger_after_status = 1
+        relay, release_broker_feed = self.world_grant_race(race)
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
         race["ancestor"] = self.world_grant_second_via_ancestor(world)
@@ -314,16 +353,21 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         revision_before_race = world.management('world.info')['world_revision']
         state_before_race = self.presentation_state(world)
         relay.armed.set()
-        raced = peer.call(geometry_view=session.WorldGeometryViewRequest())
+        try:
+            raced = peer.call(geometry_view=session.WorldGeometryViewRequest())
+        finally:
+            release_broker_feed.set()
         self.assertTrue(relay.triggered.wait(.5),
             "workspace query did not trigger the world-observe revocation")
         with relay.status_lock:
             self.assertEqual(relay.status_seen, 1)
         self.assertTrue(raced.HasField("error"), raced)
         self.assertEqual(raced.error.code, core.FORBIDDEN, raced)
+        self.assertEqual(raced.error.message, 'World observation authority changed during scene projection')
         self.assertFalse(raced.HasField("geometry_view"))
-        self.assertTrue(relay.delivered.is_set())
+        self.assertTrue(relay.delivered.wait(.3), 'Deferred broker feed was not forwarded')
         self.assertFalse(relay.errors)
+        self.assertFalse(self.world_watch_relay.errors)
         self.assertEqual(world.management('world.info')['world_revision'], revision_before_race)
         self.assertEqual(self.presentation_state(world), state_before_race)
         self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))

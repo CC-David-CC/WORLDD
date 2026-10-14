@@ -174,7 +174,8 @@ class ActorPixelTests(observation.ApplicationObservationTests):
     def test_revocation_before_first_queued_write_exports_no_pixel_reply(self):
         app, surface, record = self.setup_pixels()
         def revoke(count, reply):
-            if count == 2:
+            # Scene and post-render checks precede the queued reply's first-write check.
+            if count == 3:
                 control.access.ApplicationAccessTests.revoke_record(self, record)
         self.relay.calls = 0
         self.relay.hook = revoke
@@ -263,7 +264,8 @@ class PresentationPixelFenceTests(ActorPixelTests):
         self.assertTrue(delegated.HasField('grant'), delegated)
         created = self.viewer.act(presentation_create=core.PresentationCreateRequest(
             protocol_version=1, operation_id=os.urandom(16), workspace_id='one', room_id=entry,
-            transform=pose((.8, 0, -2)),
+            transform=core.Pose(position=core.Vec3(x=.8, z=-2),
+                                orientation=core.Quaternion(w=1)),
             expected_world_revision=self.world_process.management('world.info')['world_revision']))
         self.assertTrue(created.HasField('action'), created)
         baseline = self.pixels()
@@ -294,7 +296,9 @@ class PresentationPixelFenceTests(ActorPixelTests):
         with self.presentation_relay.status_lock:
             self.assertEqual(self.presentation_relay.status_seen, 1)
         self.assertTrue(raced.HasField('error'), raced)
-        self.assertIn(raced.error.code, (core.FORBIDDEN, core.UNAVAILABLE), raced)
+        self.assertEqual(raced.error.code, core.UNAUTHORIZED, raced)
+        self.assertEqual(raced.error.message,
+            'Issuer revocation invalidated the in-flight broker result', raced)
         self.assertFalse(raced.HasField('action'), 'revoked observation must return no pixel payload')
         self.assertTrue(self.presentation_relay.delivered.is_set())
         self.assertFalse(self.presentation_relay.errors)
