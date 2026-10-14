@@ -1503,6 +1503,27 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(geometry-native-crosshost PROPERTIES TIMEOUT 1800
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};SPATIAL_GEOMETRY_EVIDENCE=$ENV{SPATIAL_GEOMETRY_EVIDENCE};SPATIAL_GEOMETRY_OBSERVER_HOST=$ENV{SPATIAL_GEOMETRY_OBSERVER_HOST};SPATIAL_GEOMETRY_AUTHORITY_ADDRESS=$ENV{SPATIAL_GEOMETRY_AUTHORITY_ADDRESS};SPATIAL_GEOMETRY_REMOTE_SOURCE=$ENV{SPATIAL_GEOMETRY_REMOTE_SOURCE};SPATIAL_GEOMETRY_REMOTE_BIN=$ENV{SPATIAL_GEOMETRY_REMOTE_BIN};SPATIAL_GEOMETRY_REMOTE_PYTHON=$ENV{SPATIAL_GEOMETRY_REMOTE_PYTHON};SPATIAL_GEOMETRY_REMOTE_XSERVER=$ENV{SPATIAL_GEOMETRY_REMOTE_XSERVER};SPATIAL_GEOMETRY_REMOTE_EVIDENCE=$ENV{SPATIAL_GEOMETRY_REMOTE_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME workspace-geometry-native-crosshost COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- env
+        "SPATIAL_GEOMETRY_EVIDENCE=$ENV{SPATIAL_GEOMETRY_EVIDENCE}"
+        "SPATIAL_GEOMETRY_OBSERVER_HOST=$ENV{SPATIAL_GEOMETRY_OBSERVER_HOST}"
+        "SPATIAL_GEOMETRY_AUTHORITY_ADDRESS=$ENV{SPATIAL_GEOMETRY_AUTHORITY_ADDRESS}"
+        "SPATIAL_GEOMETRY_REMOTE_SOURCE=$ENV{SPATIAL_GEOMETRY_REMOTE_SOURCE}"
+        "SPATIAL_GEOMETRY_REMOTE_BIN=$ENV{SPATIAL_GEOMETRY_REMOTE_BIN}"
+        "SPATIAL_GEOMETRY_REMOTE_PYTHON=$ENV{SPATIAL_GEOMETRY_REMOTE_PYTHON}"
+        "SPATIAL_GEOMETRY_REMOTE_XSERVER=$ENV{SPATIAL_GEOMETRY_REMOTE_XSERVER}"
+        "SPATIAL_GEOMETRY_REMOTE_EVIDENCE=$ENV{SPATIAL_GEOMETRY_REMOTE_EVIDENCE}"
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" --
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_geometry_native_crosshost.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-geometry-native-crosshost PROPERTIES TIMEOUT 1800
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_custom_target(workspace-geometry-native-crosshost-fixture
+        DEPENDS identityd spatial-issuer-client worldd spatial-authority-launch-probe spatial-security-auth
+            spatial-host-session spatialwm workspaced spatial-process-scope-probe
+            broker-python-protobuf world-session-python-protobuf geometry-native-python
+            host-actor-python-protobuf actor-session-client-python-protobuf grants-python-protobuf python-protobuf)
 endif()
 
 if(BUILD_TESTING)

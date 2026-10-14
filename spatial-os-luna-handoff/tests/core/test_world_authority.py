@@ -21,6 +21,12 @@ from test_world_identity import WorldIdentityFixture, WorldProcess, WORLD
 RIGHTS = (grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE, grant.WORLD_MANIPULATE, grant.POLICY_ADMINISTER)
 
 
+def m07_presentation_rights():
+    """Exact world rights needed to view and place M07 presentations."""
+    return (grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE,
+            grant.REPRESENTATION_VIEW, grant.REPRESENTATION_MOVE, grant.WORLD_PLACEMENT_CREATE)
+
+
 class RelayingIssuer:
     """Forward real issuer requests. Delay one status request across real revocation."""
     def __init__(self, fixture, revoke, wait_for_revocation_event=True):
