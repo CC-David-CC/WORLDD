@@ -31,9 +31,16 @@ def pose(x=0, z=-2):
 
 class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTests):
     def terms(self, claims=None, rights=None, depth=3, components=(), delegable=None):
-        return world_authority.WorldAuthorityTests.terms(
+        # grants.proto defines Scope.components as repeated bytes; Domain.id stays a string.
+        scope_components = tuple(component.encode("utf-8") if isinstance(component, str) else component
+                                 for component in components)
+        self.assertTrue(all(isinstance(component, bytes) for component in scope_components))
+        terms = world_authority.WorldAuthorityTests.terms(
             self, claims, rights=WORLD_RIGHTS if rights is None else rights,
-            depth=depth, components=components, delegable=delegable)
+            depth=depth, components=scope_components, delegable=delegable)
+        self.assertEqual(terms.scope.domain.id, self.world_info["world_id"])
+        self.assertIsInstance(terms.scope.domain.id, str)
+        return terms
 
     def workspace_terms(self, claims=None, rights=None, depth=3, components=(), delegable=None):
         terms = super().workspace_terms(claims=claims,
@@ -195,9 +202,12 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
 
         relay.armed.set()
         replay = peer.act(presentation_move=move)
-        self.assertTrue(relay.triggered.wait(.3), 'the workspace access query did not reach the revocation barrier')
+        triggered = relay.triggered.wait(.3)
         with relay.status_lock:
-            self.assertEqual(relay.status_seen, 2)
+            status_count = relay.status_seen
+        self.assertTrue(triggered,
+            f'the workspace access query did not reach the revocation barrier; observed {status_count} actor_status request(s)')
+        self.assertEqual(status_count, 2)
         self.assertTrue(replay.HasField('error'), replay)
         self.assertEqual(replay.error.code, core.FORBIDDEN)
         self.assertEqual(world.management('world.info')['world_revision'], revision_before_replay)
@@ -205,14 +215,15 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
     def workspace_grant_second_domain(self, world, domain, rights):
         peer = world.peers[0]
         request = session.WorldGrantList(workspace=domain)
-        page = peer.call(grants=request)
-        self.assertTrue(page.HasField('grants'), page)
+        response = peer.call(grants=request)
+        self.assertTrue(response.HasField('grants'), response)
+        page = response.grants
         parent = next(record for record in page.grants if not record.parent_id)
         terms = super().workspace_terms(claims=self.second, rights=rights, depth=0)
         terms.scope.domain.id = domain
         peer.action_sequence += 1
         delegated = peer.call(delegate=session.WorldGrantDelegate(workspace=domain,
-            seq=peer.action_sequence, parent_id=parent.id, terms=terms, expected_revision=page.grants.revision))
+            seq=peer.action_sequence, parent_id=parent.id, terms=terms, expected_revision=page.revision))
         self.assertTrue(delegated.HasField('grant'), delegated)
         return delegated.grant
 
