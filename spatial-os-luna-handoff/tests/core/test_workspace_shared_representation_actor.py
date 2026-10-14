@@ -11,6 +11,7 @@ import core_pb2 as core
 import grants_pb2 as grant
 import world_session_pb2 as session
 from test_workspace_presentation_actor import pose
+from test_world_authority import WorldAuthorityTests
 from test_workspace_presentation_actor import WorkspacePresentationActorTests
 
 
@@ -104,7 +105,9 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         owner, viewer = first.peers
         self.assertTrue(self.authenticate_second(viewer).HasField('opened'))
 
-        second = self.scoped_world(session.REGISTERED_ACTORS, authenticate=False, broker=self.broker)
+        # Keep the second authority headless; this case owns one native display.
+        second = WorldAuthorityTests.scoped_world(self, session.REGISTERED_ACTORS, native=False,
+                                                  authenticate=False, broker=self.broker)
         second.management('workspace.available', id='one', available=True)
         second_info = second.management('world.info')
         self.assertNotEqual(first_info['world_id'], second_info['world_id'])
@@ -162,14 +165,13 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         self.assertEqual(self.execution_inventory(), inventory)
         self.assertEqual(self.process_identity(token), pid_before)
 
-        before_second = self.actor_pixels(second_owner)
         right = self.create_presentation(second, second_owner, -.8)
-        right_pixels = self.pixel_change(second_owner, before_second.image.rgb8)
         right_row = self.presentation_row(second, right.representation_id)
         self.assertEqual(right_row[:2], ('one', second_info['entry_room']))
         self.assertEqual(right_row[3], 1)
         self.assertEqual(self.execution_inventory(), inventory)
-        right_view = next(v for v in right_pixels.presentation_views if v.representation_id == right.representation_id)
+        second_geometry = second_owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
+        right_view = next(v for v in second_geometry.presentation_views if v.representation_id == right.representation_id)
         self.assertFalse(right_view.locked)
 
         private_view = second_viewer.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
@@ -179,9 +181,8 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
             {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
         self.assertNotIn(b'one', locked.SerializeToString())
         self.denied(second_viewer.act(workspace_select=core.WorkspaceIdRequest(id='one')), core.FORBIDDEN)
-        hidden = self.actor_pixels(second_viewer)
-        self.assertTrue(any(v.locked for v in hidden.presentation_views))
-        self.assertNotIn(str(self.project).encode(), hidden.SerializeToString())
+        self.assertTrue(any(v.locked for v in private_view.presentation_views))
+        self.assertNotIn(str(self.project).encode(), private_view.SerializeToString())
 
         destination = 'm07-native-destination'
         first.management('world.create', entity={'id': destination, 'kind': 'room', 'label': destination})
@@ -249,7 +250,7 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
 
         second_state, second_config, second_runtime = second.state_path, second.config_path, second.runtime_path
         second.close(); self.worlds.remove(second)
-        restarted = WorldProcess(self, second_config, second_state, native=True,
+        restarted = WorldProcess(self, second_config, second_state, native=False,
                                  runtime_config=second_runtime, broker=self.broker)
         restarted.state_path, restarted.config_path, restarted.runtime_path = second_state, second_config, second_runtime
         self.worlds.append(restarted); restarted.management('system.hello')
@@ -259,10 +260,9 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         self.assertEqual(restored_row, right_row)
         self.assertEqual(self.presentation_state(restarted),
             {'available': 1, 'selected': 0, 'presentations': 1, 'operations': 1})
-        restored_pixels = self.actor_pixels(restored_owner)
+        restored_geometry = restored_owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
         self.assertTrue(any(v.representation_id == right.representation_id and not v.locked
-                            for v in restored_pixels.presentation_views))
-        self.assertEqual(restored_pixels.image.rgb8, right_pixels.image.rgb8)
+                            for v in restored_geometry.presentation_views))
         self.assertEqual(self.execution_inventory(), inventory)
         self.assertEqual(self.file_identity(self.project / 'm07-nonce'), file_before)
         self.assertEqual(self.process_identity(token), pid_before)
