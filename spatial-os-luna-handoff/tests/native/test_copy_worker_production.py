@@ -1,4 +1,5 @@
 """Production storage-owner and ProcessScope copy-stage witness for approved world hosts."""
+import errno
 import fcntl
 import hashlib
 import json
@@ -230,7 +231,17 @@ def start_owner_client(mode):
                         samples.append(sample)
                         break
                     except (FileNotFoundError, ProcessLookupError): pass
-            except (FileNotFoundError, ProcessLookupError): pass
+            except OSError as error:
+                if error.errno in (errno.ENOENT, errno.ESRCH):
+                    continue
+                # cgroupfs can return ENODEV after a listed worker group is removed.
+                # The operation root must remain readable; all other errors stay fatal.
+                if error.errno != errno.ENODEV or group == scope:
+                    raise
+                races = case.setdefault('sampler_teardown_races', [])
+                if len(races) >= 64:
+                    raise RuntimeError('copy sampler teardown race bound exceeded') from error
+                races.append({'group':str(group), 'errno':error.errno})
         if time.monotonic()-started > 180:
             client.kill(); raise TimeoutError('copy probe exceeded 180 seconds')
         time.sleep(.001)
