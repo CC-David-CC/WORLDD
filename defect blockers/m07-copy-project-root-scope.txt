@@ -1,0 +1,27 @@
+M07 draft workspace-copy uses storage identity as filesystem scope
+
+Status: confirmed by source review in an unintegrated draft. Correction and runtime regression remain pending.
+Date: 2026-10-14.
+Draft branch: m07/copy-engine-20261014 on a5500.
+Affected functions: ExecutionStore::workspace_copy_begin and workspace_copy_status.
+The qualified baseline does not contain these draft actor routes.
+
+Existing FILE_READ scope components are relative filesystem names.
+The draft checks FILE_READ using the registered project's opaque StorageObject ID as one component.
+That ID identifies storage. It does not identify the workspace filesystem root.
+A read grant for a filename matching that ID could therefore authorize copying the entire project.
+Separate copy/create rights do not replace the required file-access intersection.
+
+M1 has one project root per workspace.
+Require FILE_BROWSE and FILE_READ with empty components for full PROJECT_TREE export.
+Keep WORKSPACE_COPY_PROJECT, WORKSPACE_COPY_GIT, destination creation, and revision checks separate.
+Future registered subroot exports must bind real relative components and check their ancestors.
+Never derive filesystem scope components from an opaque storage ID.
+
+Required regression:
+Give an actor root browse, selected copy rights, and destination creation authority.
+Grant FILE_READ only to the filename-shaped opaque object ID.
+Require copy denial without a REQUESTED row or external copy effects.
+Use a successful authorized root-read control case.
+Exercise the actual broker begin path, not only the generic grant-prefix matcher.
+No runtime reproduction or successful correction is claimed in this record.

@@ -1,3 +1,26 @@
+## 2026-10-14: Copy helper Debug and sanitizer core checks passed on sb16
+
+All eight selected helper methods passed in both profiles on sb16 at source f2cf41d2e69db6347dd6004368aa6ea053eaae30.
+The primary independently reproduced the earlier destination-collision classification failure on both hosts.
+The corrected helper's Debug and sanitizer core suites passed with inner and outer command/wrapper exits 0/0.
+Retained evidence: /home/dflanag3/spatial-artifacts/runs/m07-copy-{debug,san}-core-v3 on sb16.
+
+The first production-path Debug attempt failed during the authorized relay's hello exchange.
+It did not reach the malformed-BEGIN regression or the actual copy worker.
+Retained evidence: /home/dflanag3/spatial-artifacts/runs/m07-copy-debug-production-v3 on sb16.
+The fixture omitted --apply from volume cleanup; its initial exit zero represented a planned unmount only.
+Exact task-owned cleanup is required and must have a separate applied receipt.
+Cgroup delegation, scope removal, socket removal, and helper restoration were independently verified.
+The relay also omitted owner failure diagnostics. Its cause remains unproven until a diagnostic retry.
+No production-path pass or complete copy-stage qualification is claimed.
+
+Combined presentation source 5f028764ebf062bbbed5cc7d8b70f57fd7afff5d built in all three profiles.
+Its relocated runtime launcher and prerequisite checks remain under review.
+The full copy engine remains an unbuilt draft on a separate branch.
+Review caught incorrect filesystem scope, reentrancy, and mutable authorization-binding assumptions in that draft.
+Corrections require actual broker regressions and applicable qualification before integration.
+M07 remains incomplete. The journal and fence focused passes below remain valid component evidence.
+
 ## 2026-10-14: Journal and fence focused checks passed on both hosts
 
 M07 remains incomplete. No storage blocker remains.
