@@ -106,7 +106,7 @@ message ScopedAuthorityCheckRequest {
   string workspace = 1;
   spatial.authority.v1.ActorRef principal = 2;
   spatial.authority.v1.Right right = 3;
-  repeated string components = 4;
+  repeated bytes components = 4;
 }
 // Deliberately returns no grants or workspace metadata.
 message ScopedAuthorityCheckReply { bool allowed = 1; uint64 revision = 2; }

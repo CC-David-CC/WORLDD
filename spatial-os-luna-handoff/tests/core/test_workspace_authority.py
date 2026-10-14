@@ -218,6 +218,9 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(reply_fields['presentation'].message_type.full_name, 'spatial.core.v1.PresentationView')
         self.assertEqual(reply_fields['copy_status'].message_type.full_name, 'spatial.workspace.copy.v1.WorkspaceCopyStatus')
         self.assertEqual(set(broker.ScopedAuthorityCheckReply.DESCRIPTOR.fields_by_name), {'allowed','revision'})
+        self.assertEqual(broker.ScopedAuthorityCheckRequest.DESCRIPTOR.fields_by_name['components'].number, 4)
+        self.assertEqual(broker.ScopedAuthorityCheckRequest.DESCRIPTOR.fields_by_name['components'].type,
+                         descriptor_pb2.FieldDescriptorProto.TYPE_BYTES)
         self.assertEqual(broker.Request.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 113)
         self.assertEqual(broker.Reply.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 112)
         public_view = core.PresentationView.DESCRIPTOR
@@ -229,20 +232,21 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.enroll_second()
         world = self.workspace(roots=lambda: [self.workspace_terms(
             rights=[*RIGHTS, grant.WORKSPACE_PRESENTATION_ATTACH])])
-        record = self.grant_second(world, [grant.WORKSPACE_PRESENTATION_ATTACH], ('presentations','rep-1'))
+        components = (b'presentations\x00', b'\xffrep-1')
+        record = self.grant_second(world, [grant.WORKSPACE_PRESENTATION_ATTACH], components)
         query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(self.second),
-            right=grant.WORKSPACE_PRESENTATION_ATTACH, components=['presentations','rep-1'])
+            right=grant.WORKSPACE_PRESENTATION_ATTACH, components=list(components))
         reply = self.broker.request(scoped_authority_check=query)
         self.assertTrue(reply.HasField('scoped_authority_check'), reply)
         self.assertTrue(reply.scoped_authority_check.allowed)
         self.assertGreater(reply.scoped_authority_check.revision, 0)
-        query.components[-1] = 'other-representation'
+        query.components[-1] = b'\xffother-representation'
         denied = self.broker.request(scoped_authority_check=query)
         self.assertFalse(denied.scoped_authority_check.allowed)
         for right in (grant.WORLD_PLACEMENT_CREATE, 99, grant.WORKSPACE_CREATE):
             invalid = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(self.second), right=right)
             self.denied(self.broker.request(scoped_authority_check=invalid), core.INVALID_ARGUMENT)
-        query.components[:] = ['presentations','rep-1']
+        query.components[:] = components
         before = self.broker.request(scoped_authority_check=query).scoped_authority_check.revision
         self.revoke_grant(world.peers[0], record)
         after = self.broker.request(scoped_authority_check=query)
