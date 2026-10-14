@@ -1,3 +1,37 @@
+## 2026-10-14: M07 focused results and retained failures
+
+M07 remains incomplete. No storage blocker remains.
+The primary verified four standalone journal passes across Debug and sanitizer profiles on both hosts.
+The primary verified eight presentation store/projection passes across both profiles and both hosts.
+These checks do not qualify actor presentation, native pixels, the copy engine, or M07.
+Presentation store source is 1fe254faf9d818a3abb0004cb6d4054ea889ff0d.
+Projection production source remains 4501f6dd8062e4ac26eebb1f17c534d49d52380d.
+Retained presentation receipts include earlier launcher failures and the quota-fixture timeout.
+
+The corrected journal package reached a legacy migration assertion on both hosts.
+Both Debug runs returned command and wrapper exits 1/1.
+The fixture retained current presentation tables while labeling the world database as version 1.
+The reviewed correction removes those tables and asserts authentic legacy schemas before migration.
+It preserves migration idempotency, world state, Git state, and corruption rejection checks.
+Its reruns remain pending.
+Retain /home/dflanag3/spatial-artifacts/m07-journal-v4r1-20261014/runs/debug-legacy-v2 on both hosts.
+
+Fence source e14046524e02989ef70c6f6fa5ceb01dcfac7138 fixes initial revision tracking and fixture channel serialization.
+Primary launcher review caught incorrect test-selection indexes before runtime execution.
+The corrected launcher now has seven explicit selection-plan regressions and clears inherited LSAN_OPTIONS.
+Both-host corrected-package preflight and focused fence reruns are scheduled.
+Presentation actor/native checks follow the fence checks.
+
+Copy-stage checkpoint cbcd26d97e8e41fde4757bb2b2956f5ffa893b1b remains unqualified.
+Primary review identified incomplete receipt validation and missing descriptor-to-subvolume identity checks.
+Strict parsing, deadline coverage, and production-path regressions also require correction.
+The worker is addressing these findings before full copy-engine integration.
+The full actor route, copy classes, and recovery qualification remain incomplete.
+
+Integrate only reviewed components with applicable focused evidence.
+Freeze the combined candidate before the full M07 gate on sb16 and sb16-2.
+M01-M06 remain qualified. M08-M16 remain pending.
+
 ## 2026-10-14: M07 resumed after verified repository recovery
 
 David resumed the active Spatial-M1 goal.
