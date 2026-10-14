@@ -1522,6 +1522,7 @@ if(BUILD_TESTING)
     add_custom_target(workspace-geometry-native-crosshost-fixture
         DEPENDS identityd spatial-issuer-client worldd spatial-authority-launch-probe spatial-security-auth
             spatial-host-session spatialwm workspaced spatial-process-scope-probe
+            spatial-storage-broker-launch-probe spatial-confined-xprobe session-probe-python compositor-python-protobuf
             broker-python-protobuf world-session-python-protobuf geometry-native-python
             host-actor-python-protobuf actor-session-client-python-protobuf grants-python-protobuf python-protobuf)
 endif()
