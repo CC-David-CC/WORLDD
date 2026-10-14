@@ -1,3 +1,36 @@
+## 2026-10-14: Local native workspace witness passed both profiles on sb16-2
+
+The repaired local witness passed one exact method in Debug and one in ASan/UBSan on sb16-2.
+Source: 91453112a010a1d51327182515672b79225dba40 on m07/native-fixture-review-20261014, verified on box-git.
+It uses one native world and an independent headless world with one shared execution authority.
+Real portal navigation preserves the visibility and reach rules during presentation moves.
+The fixture checks real pixels, independent placements, availability, selection, process identity, and file continuity.
+It also checks presentation removal and headless-world restart.
+The availability oracle now reads the stored flag instead of counting the retained registration row.
+
+The primary inspected raw named-method results, both case and outer exit layers, and exact source hashes.
+It independently scanned 32 logs and verified profile-specific XACE wrappers and sanitizer options.
+Both delegated scopes were absent. Both services were collected. No skips or sanitizer findings were found.
+Evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-native-shared-witness-20261014.
+Read results-debug1-91453112, results-san1-91453112, and primary-local-91453112-audit.json.
+The earlier fixture failures remain preserved.
+The same witness on sb16 and the dual-native shared-world witness remain unrun.
+This focused result does not qualify M07A or M07.
+
+The engine's frozen13 selected Debug target closure passed with command and wrapper exits zero.
+Its four confined finalizer methods then passed on sb16 Debug in 0.509 seconds.
+The primary inspected all four named results and both zero exit receipts.
+Those checks cover real staged/dirty/history preservation, mixed-mode rejection, and depth 128/129.
+They use unchanged frozen13 helper bytes with an explicit fixture-only import and no-hardlink correction.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine13-finalizer-debug-v3.
+The first two-pass/two-failure fixture run remains preserved.
+Engine actor-route V2, sanitizer, second-host, fault, recovery, and complete gate checks remain pending.
+Review05 corrects published-effect replay ordering and adds an explicit full-engine CTest registration.
+Its next build and runtime evidence remain pending. No full-engine V2 runtime pass is claimed.
+
+M07 remains in implementation and focused integration.
+Combined integration, candidate freeze, and the full both-host gate remain ahead.
+
 ## 2026-10-14: Engine review03 compile exposed a missing journal-test link dependency
 
 The primary verified all 26 task-file hashes and reviewed the nine changed-file deltas in source-review-v2-03.

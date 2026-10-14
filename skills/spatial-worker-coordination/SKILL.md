@@ -147,6 +147,8 @@ Freeze source hashes or a commit before distributing binaries.
 After a build-input change, rebuild each executable that will enter the package.
 Check source-derived build IDs when available. A sibling target build does not refresh every executable.
 Compare the worker base with integrated fixes to imported fixtures and packaging before deployment.
+Inspect a commit's tree before declaring a source file absent.
+Use `git ls-tree` or `git show COMMIT:PATH`. A merge commit's displayed diff can omit files present in its tree.
 Apply needed fixes only after the worker stops. Record the resulting source and rebuild affected artifacts.
 Do not silently combine new fixture source with old binaries. Record and review any test-only overlay explicitly.
 Verify artifact hashes after transfer to each test host.
