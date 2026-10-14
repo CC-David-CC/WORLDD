@@ -1,6 +1,7 @@
 # Btrfs copy read-only flag correction
 
-Status: UNQUALIFIED. New candidate runtime checks remain UNRUN.
+Status: FOCUSED-PASS on sb16 and sb16-2 in Debug and ASan/UBSan.
+See M07_COPY_STAGE_FOCUSED_QUALIFICATION_2026-10-14.md for frozen inputs and current results.
 Base: f2cf41d2e69db6347dd6004368aa6ea053eaae30.
 Branch: m07/copy-readonly-flags-20261014.
 Checkout: /home/dflanag3/src/spacial-clean-m07-copy-readonly-flags on a5500.
@@ -89,7 +90,8 @@ The harness owns its systemd delegation and root helper lifecycle.
 The launcher checks six native witnesses, one FD check, one recovery check, and scoped cleanup.
 The authenticated relay remains root private-protocol coverage.
 All reachable helper targets and generated Python bindings are target dependencies.
-CTest registration inspection is compile-host-only; runtime remains UNRUN for this candidate.
+CTest registration inspection was compile-host-only.
+Subsequent results from both hosts appear in the focused qualification summary.
 
 The root fixture emits a framed JSON receipt from finally.
 The nonroot launcher reads that captured receipt instead of traversing root-private setup evidence.
