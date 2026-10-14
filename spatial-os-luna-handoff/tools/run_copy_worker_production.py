@@ -48,6 +48,9 @@ def validate_receipt(record):
     recovery = record['restart_recovery']
     assert recovery['uid'] == pwd.getpwnam('dflanag3').pw_uid > 0 and recovery['exit'] == 0
     assert 'Ran 1 test' in recovery['stderr'] and 'OK' in recovery['stderr']
+    scans=record['restart_owner_stderr_scans']
+    assert len(scans)==2 and {Path(scan['path']).name for scan in scans}=={'owner-1.stderr.log','owner-2.stderr.log'}
+    assert all(scan['sanitizer_free'] and 0<=scan['bytes']<=8*2**20 and len(scan['sha256'])==64 for scan in scans)
     assert 'MALFORMED_OWNER_FD_STABLE 32' in record['malformed_owner_fd_regression']
     witnesses = record['witnesses']
     assert len(witnesses) == 6 and {item['mode'] for item in witnesses} == MODES

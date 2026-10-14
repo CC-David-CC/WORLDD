@@ -358,7 +358,22 @@ try:
     recovery=subprocess.run([sys.executable,'-B',SOURCE/'tests/core/test_storage_snapshot.py',BUILD/'spatial-storage-owner-probe',SOURCE,'-k','copy_stage_claim_is_digest_bound_and_restart_is_uncertain'],capture_output=True,text=True,timeout=300,env=restart_env,cwd=SOURCE,preexec_fn=drop_to_operator)
     record['restart_recovery']={'uid':uid,'exit':recovery.returncode,'stdout':recovery.stdout,'stderr':recovery.stderr}
     reject_sanitizer_diagnostics(recovery.stdout, recovery.stderr)
+    record['restart_owner_stderr_scans']=[]
+    for diagnostics_path in sorted(restart_evidence.rglob('owner-*.stderr.log')):
+        assert diagnostics_path.resolve().is_relative_to(restart_evidence)
+        descriptor=os.open(diagnostics_path,os.O_RDONLY|os.O_CLOEXEC|os.O_NOFOLLOW)
+        with os.fdopen(descriptor,'rb') as stream:
+            info=os.fstat(stream.fileno())
+            assert stat.S_ISREG(info.st_mode) and info.st_uid==uid
+            contents=stream.read(8*2**20+1)
+        assert len(contents)<=8*2**20, 'recovery owner diagnostics exceeded8MiB'
+        scan={'path':str(diagnostics_path),'bytes':len(contents),'sha256':hashlib.sha256(contents).hexdigest(),
+              'sanitizer_free':False}
+        record['restart_owner_stderr_scans'].append(scan)
+        reject_sanitizer_diagnostics(contents.decode(errors='replace'))
+        scan['sanitizer_free']=True
     if recovery.returncode: raise RuntimeError('COPYING restart recovery regression failed: '+recovery.stdout+' '+recovery.stderr)
+    assert {Path(scan['path']).name for scan in record['restart_owner_stderr_scans']}=={'owner-1.stderr.log','owner-2.stderr.log'}
 finally:
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     signal.signal(signal.SIGINT, signal.SIG_IGN)

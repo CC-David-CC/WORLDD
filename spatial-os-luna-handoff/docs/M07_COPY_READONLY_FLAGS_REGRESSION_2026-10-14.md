@@ -173,3 +173,13 @@ This adds512MiB logical image capacity, with about49GiB free observed before the
 The earlier image, failure, positive control, and full scoped cleanup remain preserved.
 Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-edwt8jux.
 No production or compiled input changes for this fixture correction.
+
+The recovery method creates a separate512MiB m07-snap volume with a new UUID.
+Its own pool is384MiB and its sole repository reserves8MiB.
+Restart reuses that same domain, so native-volume headroom is not consumed.
+The two recovery owner generations write separate stderr files.
+The native fixture now scans both retained files, including zero-exit diagnostics.
+Each scan rejects sanitizer markers and files larger than8MiB.
+It records path, byte count, SHA256, and successful scan status.
+The launcher requires both owner-generation scan receipts before accepting recovery.
+All previously captured client, relay, direct-owner, and command diagnostics remain checked.
