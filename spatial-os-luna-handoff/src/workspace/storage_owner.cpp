@@ -13,6 +13,7 @@
 #include <linux/btrfs_tree.h>
 #include <linux/magic.h>
 #include <limits>
+#include <string_view>
 #include <optional>
 #include <set>
 #include <sqlite3.h>
@@ -71,6 +72,8 @@ std::string collection(pb::StorageObject::Kind kind) {
         case pb::StorageObject::PROJECT: return "worktrees";
         case pb::StorageObject::APPLICATION_STATE: return "applications";
         case pb::StorageObject::RETIRED: return "retired";
+        case pb::StorageObject::SNAPSHOT: return "snapshots";
+        case pb::StorageObject::COPY_STAGING: return "staging";
         default: throw Error(pb::StorageOwnerError::INVALID_ARGUMENT, "Unknown storage collection");
     }
 }
@@ -192,6 +195,14 @@ std::uint64_t subvolume(int directory) {
     check(ioctl(directory, BTRFS_IOC_GET_SUBVOL_INFO, &arguments) >= 0, "Cannot verify storage subvolume identity"); return arguments.treeid;
 }
 struct Object { std::uint64_t group, subvolume, maximum; std::string payload, state; };
+struct SnapshotRecord {
+    std::uint64_t domain = 0, source_subvolume = 0, snapshot_subvolume = 0;
+    int source_kind = 0;
+    std::string source_id, source_uuid, operation_id, request_digest, state, retire_operation_id, snapshot_uuid;
+};
+// Count bound only: this divisor is not reserved space or reported snapshot usage.
+constexpr std::uint64_t snapshot_min_charge = 4 * 1024 * 1024;
+constexpr std::uint64_t snapshot_owner_limit = 256;
 }
 void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config) {
     validate_message(config);
@@ -260,16 +271,23 @@ struct StorageOwner::Impl {
                 (catalog_status.st_mode & 0077) == 0, "Storage catalog file must remain private and singly linked");
         sql(db, "PRAGMA synchronous=EXTRA;PRAGMA journal_mode=DELETE;PRAGMA foreign_keys=ON;PRAGMA trusted_schema=OFF;");
         if (fresh) {
-            sql(db, "CREATE TABLE metadata(next INTEGER NOT NULL,policy BLOB NOT NULL);CREATE TABLE domains(id INTEGER PRIMARY KEY,repo TEXT UNIQUE NOT NULL,maximum INTEGER NOT NULL,workspace TEXT UNIQUE);CREATE TABLE objects(kind INTEGER NOT NULL,id TEXT NOT NULL,domain INTEGER NOT NULL,subvolume INTEGER NOT NULL,maximum INTEGER NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,PRIMARY KEY(kind,id));CREATE TABLE actors(workspace TEXT NOT NULL,subject BLOB NOT NULL,id INTEGER UNIQUE NOT NULL,maximum INTEGER NOT NULL,PRIMARY KEY(workspace,subject));PRAGMA user_version=1;");
+            sql(db, "CREATE TABLE metadata(next INTEGER NOT NULL,policy BLOB NOT NULL);CREATE TABLE domains(id INTEGER PRIMARY KEY,repo TEXT UNIQUE NOT NULL,maximum INTEGER NOT NULL,workspace TEXT UNIQUE);CREATE TABLE objects(kind INTEGER NOT NULL,id TEXT NOT NULL,domain INTEGER NOT NULL,subvolume INTEGER NOT NULL,maximum INTEGER NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,PRIMARY KEY(kind,id));CREATE TABLE actors(workspace TEXT NOT NULL,subject BLOB NOT NULL,id INTEGER UNIQUE NOT NULL,maximum INTEGER NOT NULL,PRIMARY KEY(workspace,subject));CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE);PRAGMA user_version=2;");
             auto stable = config; stable.clear_broker_pid();
             Query insert(db, "INSERT INTO metadata VALUES(100,?)"); insert.blob(1, stable.SerializeAsString()); insert.row();
             create_group(root.value, pool); limit(root.value, pool, capacity); limit(root.value, BTRFS_FS_TREE_OBJECTID, config.control_plane_bytes());
         } else {
-            Query version(db, "PRAGMA user_version"); require(version.row() && version.number(0) == 1, "Storage catalog requires explicit migration");
+            Query version(db, "PRAGMA user_version"); require(version.row(), "Storage catalog has no schema version");
+            const auto catalog_version = version.number(0);
+            require(catalog_version == 1 || catalog_version == 2, "Storage catalog requires an explicit supported migration");
             auto stable = config; stable.clear_broker_pid(); Query previous(db, "SELECT policy FROM metadata");
             require(previous.row() && previous.blob(0) == stable.SerializeAsString(), "Storage policy changes require a stopped explicit migration");
+            if (catalog_version == 1) {
+                Transaction migration(db);
+                sql(db, "CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE);PRAGMA user_version=2;");
+                migration.commit();
+            }
         }
-        for (const auto* directory : {"repositories", "worktrees", "applications", "retired", "effects"}) {
+        for (const auto* directory : {"repositories", "worktrees", "applications", "retired", "snapshots", "staging", "effects"}) {
             if (mkdirat(root.value, directory, 0700) != 0) check(errno == EEXIST, "Cannot create storage collection");
             Fd pinned(openat(root.value, directory, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
             check(pinned.value >= 0 && fchown(pinned.value, config.broker_uid(), static_cast<gid_t>(-1)) == 0, "Cannot provision storage collection ownership");
@@ -320,7 +338,190 @@ struct StorageOwner::Impl {
         if (result.state != "ready") throw Error(pb::StorageOwnerError::UNCERTAIN, "Storage allocation requires checked recovery");
         return result;
     }
+    SnapshotRecord snapshot_record(const std::string& id) {
+        Query q(db, "SELECT domain,source_kind,source_id,source_subvolume,source_uuid,operation_id,request_digest,snapshot_subvolume,state,retire_operation_id,snapshot_uuid FROM snapshots WHERE snapshot_id=?"); q.text(1,id);
+        if (!q.row()) throw Error(pb::StorageOwnerError::UNAVAILABLE, "Snapshot receipt is not registered");
+        return SnapshotRecord{q.number(0),q.number(3),q.number(7),static_cast<int>(q.number(1)),q.text(2),q.blob(4),q.blob(5),q.blob(6),q.text(8),q.blob(9),q.blob(10)};
+    }
+    btrfs_ioctl_get_subvol_info_args subvol_info(int fd, const char* message) {
+        btrfs_ioctl_get_subvol_info_args value{}; check(ioctl(fd,BTRFS_IOC_GET_SUBVOL_INFO,&value)==0,message); return value;
+    }
+    Fd source_directory(const pb::StorageObject& source) {
+        Fd parent(openat(root.value,collection(source.kind()).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+        check(parent.value>=0,"Cannot pin registered snapshot source collection");
+        const int child=openat(parent.value,name(source).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        check(child>=0,"Cannot pin registered snapshot source object"); return Fd(child);
+    }
+    Fd snapshot_collection() {
+        const int directory=openat(root.value,"snapshots",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        check(directory>=0,"Cannot pin snapshot collection"); return Fd(directory);
+    }
+    bool snapshot_name_exists(int directory,const std::string& component) {
+        struct stat status{}; if(fstatat(directory,component.c_str(),&status,AT_SYMLINK_NOFOLLOW)==0) return true;
+        if(errno==ENOENT) return false;
+        check(false,"Cannot inspect exact snapshot name"); return false;
+    }
+    Fd open_snapshot(int directory,const std::string& component) {
+        const int child=openat(directory,component.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        check(child>=0,"Cannot pin exact snapshot subvolume"); return Fd(child);
+    }
+    void uncertain_snapshot(const std::string& id) {
+        Transaction tx(db); Query a(db,"UPDATE snapshots SET state='uncertain' WHERE snapshot_id=?"); a.text(1,id); a.row();
+        Query b(db,"UPDATE objects SET state='uncertain' WHERE kind=? AND id=?"); b.number(1,pb::StorageObject::SNAPSHOT); b.text(2,id); b.row(); tx.commit();
+    }
+    bool physical_snapshot_matches(const SnapshotRecord& r,const std::string& component) {
+        auto directory=snapshot_collection(); if(!snapshot_name_exists(directory.value,component)) return false;
+        auto child=open_snapshot(directory.value,component); const auto si=subvol_info(child.value,"Cannot inspect snapshot identity");
+        std::uint64_t flags=0; if(ioctl(child.value,BTRFS_IOC_SUBVOL_GETFLAGS,&flags)<0) return false;
+        return si.treeid==r.snapshot_subvolume &&
+            !r.snapshot_uuid.empty() &&
+            std::string(reinterpret_cast<const char*>(si.uuid),sizeof(si.uuid))==r.snapshot_uuid &&
+            std::string(reinterpret_cast<const char*>(si.parent_uuid),sizeof(si.parent_uuid))==r.source_uuid &&
+            (le64toh(flags)&BTRFS_SUBVOL_RDONLY) &&
+            relation(root.value,si.treeid,r.domain) && relation(root.value,r.domain,si.treeid);
+    }
+    pb::StorageObjectState snapshot_state(const pb::StorageObject& value,const SnapshotRecord& r,bool readonly) {
+        pb::StorageObjectState result; *result.mutable_object()=value;
+        result.set_subvolume_id(r.snapshot_subvolume); result.set_quota_group(r.domain);
+        result.set_maximum_bytes(checked_group(r.domain));
+        if (readonly) {
+            checked_limit(root.value, r.snapshot_subvolume, 0);
+            checked_membership(root.value, r.snapshot_subvolume, r.domain);
+            const auto accounting = item<btrfs_qgroup_info_item>(root.value, 0, BTRFS_QGROUP_INFO_KEY, r.snapshot_subvolume);
+            if (!accounting) throw Error(pb::StorageOwnerError::UNCERTAIN, "Snapshot quota receipt is missing");
+            result.set_referenced_bytes(le64toh(accounting->rfer));
+            result.set_exclusive_bytes(le64toh(accounting->excl));
+        }
+        result.set_accounting_consistent(true);
+        result.mutable_source_object()->set_kind(static_cast<pb::StorageObject::Kind>(r.source_kind));
+        result.mutable_source_object()->set_id(r.source_id); result.set_source_subvolume_id(r.source_subvolume);
+        result.set_read_only(readonly); result.set_operation_digest(r.request_digest); return result;
+    }
+    pb::StorageObjectState snapshot_inspect(const pb::StorageObject& value) {
+        require(value.kind()==pb::StorageObject::SNAPSHOT,"Expected a snapshot identity"); (void)name(value);
+        const auto r=snapshot_record(value.id());
+        if(r.state=="retired") throw Error(pb::StorageOwnerError::UNAVAILABLE,"Snapshot has been retired");
+        if(r.state!="ready") throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot requires checked recovery");
+        pb::StorageObject source; source.set_kind(static_cast<pb::StorageObject::Kind>(r.source_kind)); source.set_id(r.source_id);
+        const auto src=object(source); if(src.subvolume!=r.source_subvolume) throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot source registration changed");
+        auto source_fd=source_directory(source); const auto si=subvol_info(source_fd.value,"Cannot inspect registered snapshot source");
+        if(si.treeid!=r.source_subvolume || std::string(reinterpret_cast<const char*>(si.uuid),sizeof(si.uuid))!=r.source_uuid)
+            throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot source identity cannot be proven");
+        if(!physical_snapshot_matches(r,name(value))) { uncertain_snapshot(value.id()); throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot physical receipt does not match its registered source"); }
+        checked_limit(root.value,r.snapshot_subvolume,0);
+        checked_membership(root.value,r.snapshot_subvolume,r.domain);
+        if(!item<btrfs_qgroup_info_item>(root.value,0,BTRFS_QGROUP_INFO_KEY,r.snapshot_subvolume))
+            throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot quota receipt is missing");
+        return snapshot_state(value,r,true);
+    }
+    pb::StorageObjectState snapshot_prepare(const pb::StorageSnapshotPrepare& request) {
+        require(request.has_source_object()&&request.has_snapshot_object()&&
+            request.source_object().kind()!=pb::StorageObject::UNSPECIFIED&&request.source_object().kind()!=pb::StorageObject::RETIRED&&
+            request.source_object().kind()!=pb::StorageObject::SNAPSHOT&&request.source_object().kind()!=pb::StorageObject::COPY_STAGING&&
+            request.snapshot_object().kind()==pb::StorageObject::SNAPSHOT&&request.source_object().id()!=request.snapshot_object().id()&&
+            request.operation_id().size()==16&&request.request_digest().size()==32,"Incomplete immutable snapshot request");
+        (void)name(request.source_object()); (void)name(request.snapshot_object());
+        const auto src=object(request.source_object()); const auto max=checked_group(src.group);
+        auto source_fd=source_directory(request.source_object()); const auto si=subvol_info(source_fd.value,"Cannot inspect registered snapshot source");
+        require(si.treeid==src.subvolume,"Snapshot source catalog identity changed");
+        const std::string uuid(reinterpret_cast<const char*>(si.uuid),sizeof(si.uuid));
+        const auto id=request.snapshot_object().id(); const auto op=request.operation_id(); const auto digest=request.request_digest();
+        SnapshotRecord r; bool found=false;
+        {
+            Query q(db,"SELECT domain,source_kind,source_id,source_subvolume,source_uuid,operation_id,request_digest,snapshot_subvolume,state,retire_operation_id,snapshot_uuid FROM snapshots WHERE snapshot_id=?"); q.text(1,id);
+            if(q.row()){ found=true; r=SnapshotRecord{q.number(0),q.number(3),q.number(7),static_cast<int>(q.number(1)),q.text(2),q.blob(4),q.blob(5),q.blob(6),q.text(8),q.blob(9),q.blob(10)}; }
+        }
+        if(found){
+            if(r.source_kind!=request.source_object().kind()||r.source_id!=request.source_object().id()||r.source_subvolume!=src.subvolume||r.source_uuid!=uuid||r.operation_id!=op||r.request_digest!=digest)
+                throw Error(pb::StorageOwnerError::CONFLICT,"Snapshot identity is bound to a different source or operation digest");
+            if(r.state=="retired") throw Error(pb::StorageOwnerError::CONFLICT,"Retired snapshot identity cannot be reused");
+            if(r.state=="uncertain") throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot requires explicit repair");
+            if(r.state=="ready") return snapshot_inspect(request.snapshot_object());
+            if(r.state!="pending") throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot effect requires checked recovery");
+        } else {
+            Query opq(db,"SELECT snapshot_id FROM snapshots WHERE operation_id=?"); opq.blob(1,op);
+            if(opq.row()) throw Error(pb::StorageOwnerError::CONFLICT,"Snapshot operation identity is already bound");
+            Query collision(db,"SELECT payload FROM objects WHERE kind=? AND id=?"); collision.number(1,pb::StorageObject::SNAPSHOT); collision.text(2,id);
+            if(collision.row()) throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot object lacks its immutable operation receipt");
+            auto existing_directory=snapshot_collection();
+            if(snapshot_name_exists(existing_directory.value,name(request.snapshot_object())))
+                throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot path exists without a durable operation receipt");
+            Query count(db,"SELECT count(*) FROM snapshots WHERE domain=? AND state!='retired'"); count.number(1,src.group);
+            require(count.row(),"Cannot inspect retained snapshot quota");
+            const auto count_limit=std::min(snapshot_owner_limit,std::max<std::uint64_t>(1,max/snapshot_min_charge));
+            if(count.number(0)>=count_limit) throw Error(pb::StorageOwnerError::EXHAUSTED,"Retained snapshot count quota is exhausted");
+            Transaction tx(db);
+            Query a(db,"INSERT INTO snapshots(snapshot_id,domain,source_kind,source_id,source_subvolume,source_uuid,operation_id,request_digest,snapshot_subvolume,state,retire_operation_id) VALUES(?,?,?,?,?,?,?,?,0,'pending',NULL)");
+            a.text(1,id); a.number(2,src.group); a.number(3,request.source_object().kind()); a.text(4,request.source_object().id()); a.number(5,src.subvolume); a.blob(6,uuid); a.blob(7,op); a.blob(8,digest); a.row();
+            Query b(db,"INSERT INTO objects(kind,id,domain,subvolume,maximum,payload,state) VALUES(?,?,?,0,0,?,'pending')");
+            b.number(1,pb::StorageObject::SNAPSHOT); b.text(2,id); b.number(3,src.group); b.blob(4,request.SerializeAsString()); b.row(); tx.commit();
+            r=SnapshotRecord{src.group,src.subvolume,0,request.source_object().kind(),request.source_object().id(),uuid,op,digest,"pending",{},{}};
+        }
+        auto directory=snapshot_collection(); const auto component=name(request.snapshot_object());
+        if(!snapshot_name_exists(directory.value,component)){
+            std::array<std::uint64_t,(sizeof(btrfs_qgroup_inherit)+sizeof(std::uint64_t)+7)/8> inherited{};
+            auto* member=reinterpret_cast<btrfs_qgroup_inherit*>(inherited.data()); member->num_qgroups=1; member->qgroups[0]=src.group;
+            btrfs_ioctl_vol_args_v2 create{}; create.fd=source_fd.value; create.flags=BTRFS_SUBVOL_RDONLY|BTRFS_SUBVOL_QGROUP_INHERIT;
+            create.size=sizeof(btrfs_qgroup_inherit)+sizeof(std::uint64_t); create.qgroup_inherit=member; std::memcpy(create.name,component.c_str(),component.size()+1);
+            if(ioctl(directory.value,BTRFS_IOC_SNAP_CREATE_V2,&create)<0&&errno!=EEXIST){
+                const int failure=errno; if(failure==EDQUOT||failure==ENOSPC) throw Error(pb::StorageOwnerError::EXHAUSTED,"Snapshot storage quota is exhausted");
+                if(!snapshot_name_exists(directory.value,component)){ uncertain_snapshot(id); throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot creation outcome cannot be reconciled"); }
+            }
+        }
+        try{
+            auto child=open_snapshot(directory.value,component); const auto ci=subvol_info(child.value,"Cannot verify created snapshot");
+            const auto si2=subvol_info(source_fd.value,"Cannot reverify registered snapshot source"); std::uint64_t flags=0;
+            check(ioctl(child.value,BTRFS_IOC_SUBVOL_GETFLAGS,&flags)==0,"Cannot verify immutable snapshot flags");
+            if(ci.treeid==0||std::string(reinterpret_cast<const char*>(ci.parent_uuid),sizeof(ci.parent_uuid))!=uuid||
+                !(le64toh(flags)&BTRFS_SUBVOL_RDONLY)||si2.treeid!=r.source_subvolume||
+                std::string(reinterpret_cast<const char*>(si2.uuid),sizeof(si2.uuid))!=r.source_uuid||
+                !relation(root.value,ci.treeid,src.group)||!relation(root.value,src.group,ci.treeid)){
+                uncertain_snapshot(id); throw Error(pb::StorageOwnerError::UNCERTAIN,"Created snapshot does not match its immutable source receipt");
+            }
+            r.snapshot_subvolume=ci.treeid;
+            r.snapshot_uuid=std::string(reinterpret_cast<const char*>(ci.uuid),sizeof(ci.uuid));
+            sync(root.value);
+            Transaction tx(db);
+            Query a(db,"UPDATE snapshots SET snapshot_subvolume=?,snapshot_uuid=?,state='ready' WHERE snapshot_id=? AND state IN ('pending','ready')");
+            a.number(1,ci.treeid); a.blob(2,r.snapshot_uuid); a.text(3,id); a.row();
+            Query b(db,"UPDATE objects SET subvolume=?,state='ready' WHERE kind=? AND id=? AND state IN ('pending','ready')"); b.number(1,ci.treeid); b.number(2,pb::StorageObject::SNAPSHOT); b.text(3,id); b.row(); tx.commit();
+            return snapshot_inspect(request.snapshot_object());
+        }catch(const Error& e){ if(e.code==pb::StorageOwnerError::EXHAUSTED||e.code==pb::StorageOwnerError::UNCERTAIN) throw; uncertain_snapshot(id); throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot recovery could not prove its immutable source receipt"); }
+        catch(...){ uncertain_snapshot(id); throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot recovery could not prove its immutable source receipt"); }
+    }
+    pb::StorageObjectState snapshot_retire(const pb::StorageSnapshotRetire& request) {
+        require(request.has_snapshot_object()&&request.snapshot_object().kind()==pb::StorageObject::SNAPSHOT&&request.operation_id().size()==16,"Incomplete snapshot retirement request");
+        const auto value=request.snapshot_object(); (void)name(value); auto r=snapshot_record(value.id());
+        Query reused(db,"SELECT snapshot_id FROM snapshots WHERE retire_operation_id=?"); reused.blob(1,request.operation_id());
+        if(reused.row()&&reused.text(0)!=value.id())
+            throw Error(pb::StorageOwnerError::CONFLICT,"Snapshot retirement operation identity is already bound to another snapshot");
+        if(r.state=="retired"){ if(r.retire_operation_id!=request.operation_id()) throw Error(pb::StorageOwnerError::CONFLICT,"Snapshot retirement identity is already bound"); return snapshot_state(value,r,false); }
+        if(r.state=="uncertain") throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot requires explicit repair");
+        if(r.state!="ready"&&r.state!="retiring") throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot retirement requires a ready receipt");
+        if(!r.retire_operation_id.empty()&&r.retire_operation_id!=request.operation_id()) throw Error(pb::StorageOwnerError::CONFLICT,"Snapshot already has a different retirement operation");
+        if(r.retire_operation_id.empty()){
+            (void)snapshot_inspect(value); Transaction tx(db);
+            Query a(db,"UPDATE snapshots SET state='retiring',retire_operation_id=? WHERE snapshot_id=? AND state='ready'"); a.blob(1,request.operation_id()); a.text(2,value.id()); a.row();
+            Query b(db,"UPDATE objects SET state='retiring' WHERE kind=? AND id=?"); b.number(1,pb::StorageObject::SNAPSHOT); b.text(2,value.id()); b.row(); tx.commit();
+            r.retire_operation_id=request.operation_id(); r.state="retiring";
+        }
+        auto directory=snapshot_collection(); const auto component=name(value);
+        if(snapshot_name_exists(directory.value,component)){
+            if(!physical_snapshot_matches(r,component)){ uncertain_snapshot(value.id()); throw Error(pb::StorageOwnerError::UNCERTAIN,"Refusing to retire a snapshot without its matching immutable receipt"); }
+            btrfs_ioctl_vol_args_v2 destroy{}; std::memcpy(destroy.name,component.c_str(),component.size()+1);
+            if(ioctl(directory.value,BTRFS_IOC_SNAP_DESTROY_V2,&destroy)<0&&errno!=ENOENT){
+                const int failure=errno; if(failure==EDQUOT||failure==ENOSPC) throw Error(pb::StorageOwnerError::EXHAUSTED,"Snapshot retirement was blocked by storage quota");
+                throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot retirement outcome requires checked recovery");
+            }
+            sync(root.value);
+        }
+        if(snapshot_name_exists(directory.value,component)){ uncertain_snapshot(value.id()); throw Error(pb::StorageOwnerError::UNCERTAIN,"Snapshot retirement receipt remains physically present"); }
+        Transaction tx(db); Query a(db,"UPDATE snapshots SET state='retired' WHERE snapshot_id=? AND state='retiring'"); a.text(1,value.id()); a.row();
+        Query b(db,"UPDATE objects SET state='retired' WHERE kind=? AND id=?"); b.number(1,pb::StorageObject::SNAPSHOT); b.text(2,value.id()); b.row(); tx.commit();
+        r.state="retired"; return snapshot_state(value,r,false);
+    }
     pb::StorageObjectState inspect(const pb::StorageObject& value) {
+        if(value.kind()==pb::StorageObject::SNAPSHOT) return snapshot_inspect(value);
         const auto record = object(value); const auto parent_maximum = checked_group(record.group);
         checked_limit(root.value, record.subvolume, record.maximum);
         checked_membership(root.value, record.subvolume, record.group);
@@ -412,7 +613,10 @@ workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::Stora
             const auto& operation = request.retirement_prepare(); require(operation.has_object() && operation.object().kind() == pb::StorageObject::RETIRED && operation.has_repository() && operation.has_project(), "Incomplete retirement allocation");
             const auto group = impl_->domain(operation.repository()); require(operation.project().kind() == pb::StorageObject::PROJECT && impl_->object(operation.project()).group == group, "Retirement changes storage authority");
             *reply.mutable_state() = impl_->allocate(operation.object(), group, 0, operation.SerializeAsString());
-        } else if (request.has_inspect()) *reply.mutable_state() = impl_->inspect(request.inspect().object());
+        } else if (request.has_snapshot_prepare()) *reply.mutable_state() = impl_->snapshot_prepare(request.snapshot_prepare());
+        else if (request.has_snapshot_inspect()) *reply.mutable_state() = impl_->snapshot_inspect(request.snapshot_inspect().snapshot_object());
+        else if (request.has_snapshot_retire()) *reply.mutable_state() = impl_->snapshot_retire(request.snapshot_retire());
+        else if (request.has_inspect()) *reply.mutable_state() = impl_->inspect(request.inspect().object());
         else if (request.has_hello()) {
             auto* identity = reply.mutable_identity(); identity->set_filesystem_id(impl_->config.filesystem_id()); identity->set_process_id(getpid()); identity->set_volume_bytes(impl_->config.volume_bytes()); identity->set_accounting_consistent(true);
         } else throw Error(pb::StorageOwnerError::INVALID_ARGUMENT, "Unknown storage operation");

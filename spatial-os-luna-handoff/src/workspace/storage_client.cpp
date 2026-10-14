@@ -73,7 +73,14 @@ workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest re
     else if (request.has_application_prepare()) expected = request.application_prepare().object();
     else if (request.has_retirement_prepare()) expected = request.retirement_prepare().object();
     else if (request.has_inspect()) expected = request.inspect().object();
+    else if (request.has_snapshot_prepare()) expected = request.snapshot_prepare().snapshot_object();
+    else if (request.has_snapshot_inspect()) expected = request.snapshot_inspect().snapshot_object();
+    else if (request.has_snapshot_retire()) expected = request.snapshot_retire().snapshot_object();
     else throw std::invalid_argument("Expected a storage object operation");
+    const bool snapshot_prepare = request.has_snapshot_prepare();
+    const bool snapshot_inspect = request.has_snapshot_inspect();
+    const bool snapshot_retire = request.has_snapshot_retire();
+    const std::string snapshot_digest = snapshot_prepare ? request.snapshot_prepare().request_digest() : std::string{};
     pb::StorageOwnerReply reply;
     try { reply = impl_->exchange(std::move(request), tick); }
     catch (const WorldError&) { throw; }
@@ -89,6 +96,17 @@ workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest re
     if (!reply.has_state() || !reply.state().accounting_consistent() ||
         reply.state().object().SerializeAsString() != expected.SerializeAsString()) {
         impl_->channel.reset(); unavailable();
+    }
+    if (expected.kind() == pb::StorageObject::SNAPSHOT) {
+        const auto& state = reply.state();
+        if (!state.has_source_object() || state.source_object().kind() == pb::StorageObject::UNSPECIFIED ||
+            state.source_object().id().size() != 32 || state.source_subvolume_id() == 0 ||
+            state.operation_digest().size() != 32 ||
+            ((snapshot_prepare || snapshot_inspect) && !state.read_only()) ||
+            (snapshot_retire && state.read_only()) ||
+            (snapshot_prepare && state.operation_digest() != snapshot_digest)) {
+            impl_->channel.reset(); unavailable();
+        }
     }
     return reply.state();
 }
