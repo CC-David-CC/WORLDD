@@ -196,7 +196,8 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,const std::vector<int>& d
  const auto bytes=request.SerializeAsString();require(!bytes.empty() && bytes.size()<=4096,"Finalization job exceeds protobuf bound");
  Fd config(memfd_create("spatial-copy-finalize",MFD_CLOEXEC|MFD_ALLOW_SEALING));require(config.value>=0,"Cannot create finalization input");
  std::size_t offset=0;while(offset<bytes.size()){auto n=write(config.value,bytes.data()+offset,bytes.size()-offset);if(n<0&&errno==EINTR)continue;require(n>0,"Cannot write finalization input");offset+=n;}
- require(fcntl(config.value,F_ADD_SEALS,F_SEAL_WRITE|F_SEAL_GROW|F_SEAL_SHRINK|F_SEAL_SEAL)==0,"Cannot seal finalization input");
+ require(lseek(config.value,0,SEEK_SET)==0 &&
+         fcntl(config.value,F_ADD_SEALS,F_SEAL_WRITE|F_SEAL_GROW|F_SEAL_SHRINK|F_SEAL_SEAL)==0,"Cannot rewind and seal finalization input");
  impl_->job=resources.prepare_git_job(directories);auto& scope=impl_->job->scope();
  int pipes[2];require(pipe2(pipes,O_CLOEXEC)==0,"Cannot create finalization receipt pipe");Fd out(pipes[0]),writer(pipes[1]);
  require(fcntl(out.value,F_SETFL,O_NONBLOCK)==0,"Cannot bound finalization receipt");

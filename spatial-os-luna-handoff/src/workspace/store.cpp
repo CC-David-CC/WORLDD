@@ -22,6 +22,7 @@
 #include <optional>
 #include <set>
 #include <fstream>
+#include <iostream>
 #include <future>
 #include <map>
 #include <cmath>
@@ -1563,6 +1564,13 @@ void ExecutionStore::advance_workspace_copies() {
         }
         impl_->copy_task.reset();
     } catch(const std::exception& error) {
+        constexpr char digits[]="0123456789abcdef";std::string operation_hex;
+        for(const unsigned char byte:task.id){operation_hex+=digits[byte>>4];operation_hex+=digits[byte&15];}
+        const auto* reason=error.what();std::size_t length=0;
+        while(length<512 && reason[length])++length;
+        std::string detail(reason,length);
+        for(auto& byte:detail)if(static_cast<unsigned char>(byte)<32 || static_cast<unsigned char>(byte)>126)byte='?';
+        std::cerr<<"workspace copy failed operation="<<operation_hex<<" phase="<<operation.phase<<" reason="<<detail<<'\n';
         bool cleanup_uncertain=false;
         try {release();}catch(...) {cleanup_uncertain=true;}
         task.worker.reset();

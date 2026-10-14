@@ -130,15 +130,39 @@ class WorkspaceCopyEngineTests(fixtures.WorkspaceAuthorityTests):
         args=[sys.executable,'-B',SOURCE/'tools/provision_storage.py',operation,'--bindings-dir',BUILD/'python']
         args+=['--definition',self.definition_path] if operation=='create' else ['--name',self.name]
         return self.operator_run([*args,'--apply'])
+    def retain_copy_journal(self):
+        evidence=dict(operations=[],effects=[])
+        if hasattr(self,'execution') and (self.execution/'execution.db').exists():
+            with closing(sqlite3.connect('file:'+str(self.execution/'execution.db')+'?mode=ro',uri=True,timeout=1)) as db:
+                for identity,phase,error,request,binding in db.execute('SELECT operation_id,phase,error,request,authorization_binding FROM copy_operations LIMIT 65'):
+                    evidence['operations'].append(dict(operation_id=identity.hex(),phase=phase,error=error,
+                        request_bytes=len(request),request_sha256=hashlib.sha256(request).hexdigest(),
+                        binding_bytes=len(binding),binding_sha256=hashlib.sha256(binding).hexdigest()))
+                for identity,kind,state,intent,receipt in db.execute('SELECT operation_id,kind,state,intent,receipt FROM copy_effects ORDER BY rowid LIMIT 1025'):
+                    evidence['effects'].append(dict(operation_id=identity.hex(),kind=kind,state=state,intent_bytes=len(intent),
+                        intent_sha256=hashlib.sha256(intent).hexdigest(),receipt_bytes=len(receipt),
+                        receipt_sha256=hashlib.sha256(receipt).hexdigest()))
+                self.assertLessEqual(len(evidence['operations']),64);self.assertLessEqual(len(evidence['effects']),1024)
+        (self.copy_evidence/'journal.json').write_text(json.dumps(evidence,sort_keys=True,indent=2)+chr(10))
     def cleanup_volume(self):
-        # Close retained processes before unmount. Keep failure data in the normal evidence archive.
-        for world in reversed(self.worlds):world.close()
-        for item in reversed(self.brokers):item.close()
-        if self.entry.exists():self.provision('unmount')
+        # Attempt every close. Capture durable evidence before the image is unmounted.
+        failures=[]
+        for item in [*reversed(self.worlds),*reversed(self.brokers)]:
+            try:item.close()
+            except BaseException as error:failures.append(repr(error))
+        try:self.retain_copy_journal()
+        except BaseException as error:failures.append('journal capture: '+repr(error))
+        unmounted=False
+        try:
+            if self.entry.exists():self.provision('unmount')
+            unmounted=True
+        except BaseException as error:failures.append('volume cleanup: '+repr(error))
         if hasattr(self,'copy_evidence'):
-            path=self.copy_evidence/'volume.json';record=json.loads(path.read_text());record['cleanup']='unmounted'
-            path.write_text(json.dumps(record,indent=2)+'\n')
-        self.operator_run(['rm','-r','--',self.operator_directory])
+            path=self.copy_evidence/'volume.json';record=json.loads(path.read_text())
+            record['cleanup']='unmounted' if unmounted else 'unconfirmed';record['cleanup_failures']=failures
+            path.write_text(json.dumps(record,indent=2)+chr(10))
+        if not failures:self.operator_run(['rm','-r','--',self.operator_directory])
+        self.assertFalse(failures,'Fixture cleanup failed: '+repr(failures))
     def after_workspace_storage_setup(self):
         with closing(sqlite3.connect(self.execution/'execution.db')) as db:
             repo,project=db.execute('SELECT r.path,t.path FROM workspaces w JOIN repositories r ON r.id=w.repo JOIN worktrees t ON t.id=w.worktree WHERE w.id=?',('one',)).fetchone()

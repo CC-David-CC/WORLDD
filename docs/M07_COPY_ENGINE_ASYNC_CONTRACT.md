@@ -1,6 +1,6 @@
 # M07 explicit workspace copy engine contract
 
-Status: production implementation draft, UNQUALIFIED. Actor forwarding, admission, immutable binding, async phases, payload quiescence, typed validation, destination construction, and publication have draft code. Successful engine copies remain unqualified. The first four-case runtime failed on fixture topology and payload lookup. The standalone journal regression passed on sb16-2. Actual all-class registration/copy, Git-state changes, policy restart, recovery, and full qualification remain required.
+Status: production implementation draft, UNQUALIFIED. The first actor-route project/history copy passed on sb16 Debug in frozen11a. The four focused cases also passed admission, retry, malformed-receipt fencing, source process continuity, and independent Git checks. The standalone journal regression passed on sb16-2. Multi-application collection exports, actual all-class registration/copy, Git-state changes, policy restart, recovery, sanitizer/OFF closure, and full qualification remain required. Earlier runtime failures remain preserved.
 
 ## Public operation binding
 

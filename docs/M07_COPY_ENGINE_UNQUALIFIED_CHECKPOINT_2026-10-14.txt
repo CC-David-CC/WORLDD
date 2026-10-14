@@ -57,7 +57,24 @@ Runtime evidence:
 - Outer recovery independently verified all four volumes unmounted and detached; both helpers restored absent.
 - Engine evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1.
 - Journal evidence: sb16-2:/home/dflanag3/spatial-artifacts/runs/m07-engine09-journal-v1.
-- Production engine success remains UNRUN after corrections. No successful copy is claimed.
+- Engine10 passed three cases but the actor copy became UNCERTAIN during finalization.
+- Its finalization job memfd remained at EOF before Bubblewrap read the sealed data.
+- Read-only image inspection proved two completed SEALED copies and a valid387-byte finalization intent.
+- Image SHA256 remained 670d4f354e3bd17c541e9432d847c643cd98dde991a29218ce910623db70ab6e.
+- The inspection mount was read-only with rescue=nologreplay. Its loop and mount were removed.
+- Engine11a passed all four cases on sb16 Debug. Child and canonical wrapper exited0/0.
+- Actor copy reached PUBLISHED7 with19 completed durable effects and no unresolved effects.
+- Actual dirty/staged/untracked/history bytes and independent Git administration passed.
+- Source PID/start identities and frozen payload access passed. Destination jobs/members remained zero.
+- Exact filename-root denial, root-read retry, malformed BEGIN fencing, and revoked status redaction passed.
+- All four images were independently unmounted/detached. Both root helper paths were restored absent.
+- Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1.
+- Independent terminal review SHA256: a61c6a813c4741fd89d09c578292ab9525158d7c60770fc9dad7ac01beab5e90.
+- Package SHA256: c527f283df3698506a713a31ac8a017815ad7f3e7c105fae82d5bf3000750dfe.
+- Effective source manifest SHA256: 445d63dd87f3f4337326a78821418783f2ee9ddabdd13e0cbaec3e0558c6c613.
+- Production11 compiled with an explicit test-only11a JSON-newline overlay.
+- This summary and status wording are documentation-only changes after that freeze.
+- First copy success is focused component evidence. It does not qualify the full engine or M07.
 
 The focused launcher verifies the installed Bubblewrap bootstrap.
 It records and temporarily installs both copy helpers.
@@ -68,8 +85,8 @@ It then unmounts the exact image and detaches its loop through the production pr
 Unconfirmed cleanup fails and retains exact recovery commands.
 
 Still required before qualification:
-- First real actor-route successful copy and exact admission denial on sb16 and sb16-2.
-- Actual all-class source export/registration workflow and all-class copy.
+- Actor-route copy and exact denial on sb16-2. sb16 Debug first four cases passed.
+- Bounded multi-application collection schemas, real export/registration, and all-class copies.
 - Restricted destination profile rejection after restart.
 - Finalizer depth128 positive and depth129 negative.
 - Worker malformed finalization class/outcome checks.
