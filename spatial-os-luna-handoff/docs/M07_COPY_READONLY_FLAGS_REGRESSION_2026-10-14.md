@@ -157,3 +157,19 @@ Official source references:
 https://raw.githubusercontent.com/containers/bubblewrap/main/bubblewrap.c
 https://raw.githubusercontent.com/containers/bubblewrap/v0.9.0/bubblewrap.c
 No broader file authority or production validation changes were made.
+
+The44c Debug attempt proved the sealed job-data correction through the real helper.
+Its authorized relay copied24MiB, sealed, and returned an identical retry with an independent inode.
+The sampled helper had256MiB memory,16 PIDs,200000/100000 CPU, and a private network namespace.
+Both physical-root negative markers and FD32 also passed.
+The fourth repository allocation stopped before binding BEGIN: Volume storage capacity is reserved.
+The fixture's512MiB volume left384MiB after64MiB control and64MiB filesystem reserves.
+Repository preparation reserves128MiB for each independent domain.
+Three domains consumed that384MiB pool; the fourth correctly failed admission.
+The fixture now provisions1024MiB: six128MiB domains, two64MiB reserves, and128MiB headroom.
+One shared six-mode tuple drives both the capacity plan and case execution.
+The capacity plan is recorded before provisioning; production checks remain unchanged.
+This adds512MiB logical image capacity, with about49GiB free observed before the prior run.
+The earlier image, failure, positive control, and full scoped cleanup remain preserved.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-edwt8jux.
+No production or compiled input changes for this fixture correction.

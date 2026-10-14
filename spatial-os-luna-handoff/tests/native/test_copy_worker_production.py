@@ -14,6 +14,7 @@ import time
 import uuid
 
 assert os.getuid() == 0 and socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
+NATIVE_MODES = ('readonly-destination','writable-source','receipt-control','receipt-binding','success','symlink')
 BUILD, SOURCE, EVIDENCE = (Path(arg).resolve() for arg in sys.argv[1:4])
 assert BUILD.is_dir() and SOURCE.is_dir() and not EVIDENCE.exists()
 EVIDENCE.mkdir(mode=0o700, parents=True)
@@ -300,8 +301,15 @@ try:
     record['package_sha256']={str(p.relative_to(package)):hashlib.sha256(p.read_bytes()).hexdigest() for p in package.rglob('*') if p.is_file()}
     template=broker.StorageVolumeDefinition(); text_format.Parse((SOURCE/'config/operator-storage.textproto').read_text(),template)
     template.name=name; policy=template.owner_policy; policy.broker_uid=uid
-    policy.volume_bytes=512*2**20; policy.control_plane_bytes=64*2**20; policy.filesystem_reserve_bytes=64*2**20
+    policy.volume_bytes=1024*2**20; policy.control_plane_bytes=64*2**20; policy.filesystem_reserve_bytes=64*2**20
     policy.default_policy.total_bytes=128*2**20; policy.default_policy.actor_state_default_bytes=4*2**20
+    domain_bytes=len(NATIVE_MODES)*policy.default_policy.total_bytes
+    pool_bytes=policy.volume_bytes-policy.control_plane_bytes-policy.filesystem_reserve_bytes
+    assert pool_bytes-domain_bytes==128*2**20
+    record['capacity_plan']={'volume_bytes':policy.volume_bytes,'control_plane_bytes':policy.control_plane_bytes,
+        'filesystem_reserve_bytes':policy.filesystem_reserve_bytes,'native_repositories':len(NATIVE_MODES),
+        'domain_maximum_bytes':policy.default_policy.total_bytes,'planned_domain_bytes':domain_bytes,
+        'available_pool_bytes':pool_bytes,'headroom_bytes':pool_bytes-domain_bytes}
     for profile in policy.default_policy.profiles: profile.state_bytes=4*2**20
     definition=EVIDENCE/'definition.textproto'; definition.write_text(text_format.MessageToString(template))
     run([sys.executable,'-B',SOURCE/'tools/provision_storage.py','create','--bindings-dir',BUILD/'python',
@@ -342,12 +350,8 @@ try:
     leak=run([BUILD/'spatial-copy-worker-production-probe','-1',volume,resource_path,'fd-leak'])
     assert 'MALFORMED_OWNER_FD_STABLE 32' in leak.stdout
     record['malformed_owner_fd_regression']=leak.stdout.strip()
-    start_owner_client('readonly-destination')
-    start_owner_client('writable-source')
-    start_owner_client('receipt-control')
-    start_owner_client('receipt-binding')
-    start_owner_client('success')
-    start_owner_client('symlink')
+    for mode in NATIVE_MODES:
+        start_owner_client(mode)
     restart_evidence=EVIDENCE/'owner-recovery'; restart_evidence.mkdir(mode=0o700)
     os.chown(restart_evidence,uid,gid)
     restart_env=dict(os.environ,SPATIAL_SECURITY_EVIDENCE=str(restart_evidence))
