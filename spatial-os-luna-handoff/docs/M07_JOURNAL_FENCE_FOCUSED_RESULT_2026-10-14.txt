@@ -1,0 +1,79 @@
+M07 journal and fence focused results - 2026-10-14
+
+Scope
+
+Both required hosts passed the selected Debug and ASan/UBSan checks.
+These results do not qualify M07 or the complete workspace-copy engine.
+The primary inspected terminal receipts, method counts, and diagnostic logs.
+No selected sanitizer run reported a sanitizer error.
+
+Journal
+
+Production source: cb69b84e389b294da23c9c89668a9c000f8d984a.
+Final C++ test overlay: c6c575f9b59594f738db88d95a0dd6e9b5fe176f.
+Authentic legacy fixture: 2d5756330745deb894a375cdd2727d5cc18aec53.
+The correction accepts migration retries against verified schema v3.
+It rejects mixed flags, unknown versions, and incomplete target schemas without repair.
+The C++ test expects the constructor's exact invalid_argument rejection for mixed flags.
+This changes the test expectation, not the production rejection.
+
+Seven named executions passed per host and profile:
+- Legacy execution-v2 and world-v1 migration, including retries.
+- Current world corruption rejection without repair.
+- Execution-v1 Git migration.
+- Process-record-v3 checks: the script actually runs 18 unittest methods.
+- Broker fault and explicit recovery.
+- Copy-journal-v4 script.
+- Presentation-store C++ regression executable.
+
+Each host/profile therefore ran 22 unittest methods, one script, and one C++ executable.
+Across both hosts and profiles, all 28 named executions passed.
+Do not invent individual assertion counts for the script or C++ executable.
+The earlier standalone journal checks remain separate evidence.
+
+Six Debug selections use this per-host external artifact root:
+/home/dflanag3/spatial-artifacts/m07-journal-idempotence-cb69b84-20261014
+The corrected Debug C++ and all seven sanitizer selections use:
+/home/dflanag3/spatial-artifacts/m07-journal-idempotence-c6c575f-testoverlay-20261014
+Read primary-debug-driver, primary-asan-driver, and runs/HOST/{debug-store-only,asan} under the latter root.
+Replace HOST with sb16 or sb16-2.
+Each accepted driver returned command and wrapper exits 0/0.
+The c6 overlay changes only the C++ regression. Production binaries retain the cb69 source pin.
+Overlay archive SHA256: 0242c645a358c3853921001ee5f9a2740f2c7d0c877861930d8ff655b2d3f08b.
+Overlay manifest SHA256: 815ef549dd85580057e917901cde051c52ee63426a900ea6054b2d429bd980e5.
+Earlier assertion failures and their database copies remain preserved separately.
+
+Fence
+
+Production source: e14046524e02989ef70c6f6fa5ceb01dcfac7138.
+Final fixture source: f7cba0c938eaaeb8acfcba3d0302b8bbd9abbe92.
+The production correction tracks issuer revision zero as an initialized state.
+The fixture serializes shared broker-channel traffic and preserves custom fixture callbacks.
+The revocation regression permits the supported typed in-flight cancellation rejection.
+It still requires a settled negative decision with an advanced authorization epoch.
+
+Per-host and per-profile method counts:
+- General fence: 4.
+- Scoped authority: 5.
+- Registry, credential, no-authority, and bootstrap: 1 each.
+Total: 13 distinct selected methods; 52 executions across both hosts and profiles.
+The standalone compatibility check also passed on each host.
+All outer command and wrapper exits were 0/0.
+All selected case command exits were zero.
+
+Per-host artifact root:
+/home/dflanag3/spatial-artifacts/m07-fence-e140465-v22-20261014
+Read debug-all-wrapper, asan-all-wrapper, debug-all-results, and asan-all-results.
+The primary's independent receipt audit is primary_fence_v22_audit.py in that directory.
+It verifies six cases, 13 methods, successful exits, and absence of sanitizer diagnostics per profile.
+Archive SHA256: 4e4e80e5badce12ab1a2675b48196ff5086046e3f8269bcacc234351dcaebabb.
+Manifest SHA256: af708c716fcc97a13752db70053eb5b2c83c3556c1c8288efb6f1f1875a53742.
+Earlier launcher and fixture failures remain retained in their original artifact directories.
+
+Remaining qualification
+
+Actor presentation and native pixel checks remain pending on combined source.
+The copy stage still needs its authenticated malformed-receipt regression and runtime checks.
+The complete asynchronous workspace-copy engine remains incomplete.
+Reviewed component passes do not imply integration or phase completion.
+Freeze the combined candidate before running the complete M07 gate on both hosts.

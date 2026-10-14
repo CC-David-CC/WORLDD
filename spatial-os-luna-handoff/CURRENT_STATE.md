@@ -1,3 +1,34 @@
+## 2026-10-14: Journal and fence focused checks passed on both hosts
+
+M07 remains incomplete. No storage blocker remains.
+M01-M06 remain qualified. M08-M16 remain pending.
+The primary audited the journal and fence terminal receipts and diagnostic logs.
+Both Debug and sanitizer profiles passed on sb16 and sb16-2.
+
+The journal migration retry defect is corrected in cb69b84e389b294da23c9c89668a9c000f8d984a.
+The final C++ regression correction is c6c575f9b59594f738db88d95a0dd6e9b5fe176f.
+Seven named journal executions passed per profile and host.
+Each selection includes 22 unittest methods, one journal script, and one C++ executable.
+The process-record script runs 18 methods despite its supplied selector.
+Earlier failures remain preserved. No unrun checks count as passed.
+
+Fence production source is e14046524e02989ef70c6f6fa5ceb01dcfac7138.
+Reviewed fixture source is f7cba0c938eaaeb8acfcba3d0302b8bbd9abbe92.
+All 13 selected methods passed per profile and host: 52 method executions total.
+The primary independently checked command exits, wrapper exits, method counts, and sanitizer logs.
+Read docs/M07_JOURNAL_FENCE_FOCUSED_RESULT_2026-10-14.txt for evidence and remaining work.
+
+Combined presentation source is building on a separate middle-child branch.
+Its migration fixture now contains authentic legacy tables before migration.
+Actor presentation, native pixel checks, and combined source regressions remain pending.
+The copy stage has reviewed hardening changes but lacks runtime qualification.
+A separate worker implements its missing authenticated receipt-binding regression.
+The complete asynchronous workspace-copy engine remains under implementation.
+
+Integrate reviewed components only after their applicable checks pass.
+Freeze the combined source before the complete M07 gate on both qualification hosts.
+The following sections retain earlier progress and failure history.
+
 ## 2026-10-14: M07 focused results and retained failures
 
 M07 remains incomplete. No storage blocker remains.

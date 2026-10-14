@@ -1,6 +1,6 @@
 M07 world migration retry defect
 
-Status: CONFIRMED. Correction and qualification remain pending.
+Status: CORRECTED. Both-host focused Debug and sanitizer checks passed. Combined M07 qualification remains pending.
 Date: 2026-10-14.
 Production base: df8ebab0d1185b06dbea563e425d1721cbc60907.
 Reviewed fixture correction: 2d5756330745deb894a375cdd2727d5cc18aec53.
@@ -45,3 +45,14 @@ Rebuild affected Debug, ASan/UBSan, and Production-OFF artifacts after the produ
 Run the six selected journal migration/startup checks in both runtime profiles on both hosts.
 Run related migration and presentation checks after integrating the combined source.
 The complete frozen M07 gate remains required.
+
+Focused correction and results
+
+Production correction: cb69b84e389b294da23c9c89668a9c000f8d984a.
+C++ regression correction: c6c575f9b59594f738db88d95a0dd6e9b5fe176f.
+Completed migrations accept verified schema v3 without changing the database.
+Unknown versions, incomplete targets, and mixed flags remain rejected.
+The primary audited seven named checks per profile on both hosts.
+All selected Debug and sanitizer checks passed. Earlier failure evidence remains preserved.
+Read spatial-os-luna-handoff/docs/M07_JOURNAL_FENCE_FOCUSED_RESULT_2026-10-14.txt.
+Combined presentation regressions and the frozen M07 gate remain pending.
