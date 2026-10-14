@@ -1,0 +1,35 @@
+syntax = "proto3";
+package spatial.workspace.copyworker.v1;
+
+enum FailureReason {
+  FAILURE_REASON_UNSPECIFIED = 0;
+  FAILURE_SYMLINK = 1;
+  FAILURE_HARD_LINK = 2;
+  FAILURE_SPECIAL_ENTRY = 3;
+  FAILURE_BYTE_LIMIT = 4;
+  FAILURE_ENTRY_LIMIT = 5;
+  FAILURE_SOURCE_CHANGED = 6;
+  FAILURE_DESTINATION_CONFLICT = 7;
+  FAILURE_IO = 8;
+  FAILURE_INTERNAL = 9;
+}
+message WorkerRequest {
+  uint32 protocol_version = 1;
+  uint64 maximum_bytes = 2;
+  uint32 maximum_entries = 3;
+}
+message CopyReceipt {
+  uint64 actual_bytes = 1;
+  uint32 actual_entries = 2;
+  bytes content_digest = 3;
+}
+message Failure {
+  FailureReason reason = 1;
+}
+message WorkerResult {
+  uint32 protocol_version = 1;
+  oneof outcome {
+    CopyReceipt copied = 2;
+    Failure failure = 3;
+  }
+}

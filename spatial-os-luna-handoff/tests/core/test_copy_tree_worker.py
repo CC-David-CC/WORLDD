@@ -7,7 +7,21 @@ import unittest
 from pathlib import Path
 
 WORKER = Path(sys.argv.pop(1)).resolve()
+sys.path.insert(0, str(WORKER.parent / "python"))
+from spatial.workspace.v1 import copy_worker_pb2
 BWRAP = Path("/usr/local/libexec/spatial-bwrap")
+
+def decode_result(result):
+    if result.returncode != 0 or len(result.stdout) < 5:
+        raise AssertionError(f"worker did not return a protobuf result: {result.stderr!r}")
+    size = int.from_bytes(result.stdout[:4], "big")
+    if size <= 0 or size > 4096 or len(result.stdout) != size + 4:
+        raise AssertionError("worker frame length is invalid")
+    message = copy_worker_pb2.WorkerResult()
+    message.ParseFromString(result.stdout[4:])
+    if message.protocol_version != 1 or message.WhichOneof("outcome") is None:
+        raise AssertionError("worker result version or outcome is invalid")
+    return message
 
 class CopyTreeWorkerTests(unittest.TestCase):
     def run_worker(self, source, destination, quota=1 << 20, entries=100):
@@ -29,7 +43,11 @@ class CopyTreeWorkerTests(unittest.TestCase):
             (source / "sub").mkdir()
             (source / "sub" / "data").write_bytes(b"immutable snapshot bytes")
             result = self.run_worker(source, destination)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            message = decode_result(result)
+            self.assertEqual(message.WhichOneof("outcome"), "copied")
+            self.assertEqual(message.copied.actual_bytes, len(b"immutable snapshot bytes"))
+            self.assertEqual(message.copied.actual_entries, 2)
+            self.assertEqual(len(message.copied.content_digest), 32)
             self.assertEqual((destination / "sub" / "data").read_bytes(), b"immutable snapshot bytes")
             self.assertNotEqual((source / "sub" / "data").stat().st_ino,
                                 (destination / "sub" / "data").stat().st_ino)
@@ -43,44 +61,58 @@ class CopyTreeWorkerTests(unittest.TestCase):
             for name in ("zeta", "alpha", "middle"): (left / name).write_bytes(name.encode())
             for name in ("middle", "alpha", "zeta"): (right / name).write_bytes(name.encode())
             first = self.run_worker(left, out_left); second = self.run_worker(right, out_right)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            self.assertEqual(second.returncode, 0, second.stderr)
-            self.assertEqual(first.stdout.split()[-1], second.stdout.split()[-1])
+            first_message = decode_result(first); second_message = decode_result(second)
+            self.assertEqual(first_message.WhichOneof("outcome"), "copied")
+            self.assertEqual(second_message.WhichOneof("outcome"), "copied")
+            self.assertEqual(first_message.copied.content_digest, second_message.copied.content_digest)
 
     def test_symlink_special_file_cross_root_link_and_quota_are_denied(self):
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             (source / "escape").symlink_to("/etc/passwd")
-            self.assertNotEqual(self.run_worker(source, destination).returncode, 0)
+            result = self.run_worker(source, destination)
+            message = decode_result(result)
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_SYMLINK)
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             os.mkfifo(source / "fifo")
-            self.assertNotEqual(self.run_worker(source, destination).returncode, 0)
+            message = decode_result(self.run_worker(source, destination))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_SPECIAL_ENTRY)
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             file = source / "linked"; file.write_bytes(b"linked")
             os.link(file, Path(temp) / "outside-link")
-            self.assertNotEqual(self.run_worker(source, destination).returncode, 0)
+            message = decode_result(self.run_worker(source, destination))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_HARD_LINK)
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             (source / "large").write_bytes(b"12345")
-            self.assertNotEqual(self.run_worker(source, destination, quota=4).returncode, 0)
+            message = decode_result(self.run_worker(source, destination, quota=4))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_BYTE_LIMIT)
 
     def test_entry_limit_and_existing_destination_entry_are_denied(self):
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             (source / "one").write_bytes(b"1"); (source / "two").write_bytes(b"2")
-            self.assertNotEqual(self.run_worker(source, destination, entries=1).returncode, 0)
+            message = decode_result(self.run_worker(source, destination, entries=1))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_ENTRY_LIMIT)
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             (source / "same").write_bytes(b"source"); (destination / "same").write_bytes(b"destination")
-            self.assertNotEqual(self.run_worker(source, destination).returncode, 0)
+            message = decode_result(self.run_worker(source, destination))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_DESTINATION_CONFLICT)
             self.assertEqual((destination / "same").read_bytes(), b"destination")
 
 if __name__ == "__main__":

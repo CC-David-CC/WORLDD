@@ -12,6 +12,7 @@ public:
     ~StorageClient();
     void set_observer(std::function<void()> observer);
     void check_alive() const;
+    void fence_unavailable() noexcept;
     workspace::v1::StorageObjectState call(workspace::v1::StorageOwnerRequest request,
                                          const std::function<void()>& tick = {});
     int open_object(const workspace::v1::StorageObjectState& registered) const; // Caller owns returned descriptor.

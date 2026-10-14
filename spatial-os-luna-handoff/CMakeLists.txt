@@ -29,6 +29,7 @@ protobuf_generate_cpp(selection_scope_proto_sources selection_scope_proto_header
 protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
 protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
 protobuf_generate_cpp(storage_proto_sources storage_proto_headers proto/spatial/workspace/v1/storage.proto)
+protobuf_generate_cpp(copy_worker_proto_sources copy_worker_proto_headers proto/spatial/workspace/v1/copy_worker.proto)
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
@@ -228,6 +229,14 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/copy_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1/copy.proto
     DEPENDS proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 add_custom_target(workspace-copy-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/copy_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1/copy_worker_pb2.py"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/copy_worker.proto
+    DEPENDS proto/spatial/workspace/v1/copy_worker.proto protobuf::protoc VERBATIM)
+add_custom_target(copy-worker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1/copy_worker_pb2.py")
+add_dependencies(python-protobuf copy-worker-python-protobuf)
 add_dependencies(python-protobuf workspace-copy-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/presentation/v1/presentation_pb2.py"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/presentation/v1"
@@ -333,6 +342,7 @@ add_library(spatial-protobuf STATIC ${presentation_proto_sources} ${presentation
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
+target_sources(spatial-protobuf PRIVATE ${copy_worker_proto_sources} ${copy_worker_proto_headers})
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}" "${presentation_interface_generated_dir}")
 add_library(spatial-scene STATIC src/x11/native_channel.cpp src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
@@ -439,11 +449,12 @@ target_link_libraries(spatial-app-initializer PUBLIC spatial-scene)
 add_executable(spatial-app-init src/workspace/app_init.cpp src/workspace/hardened_sanitizer.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-app-initializer)
 add_executable(spatial-copy-tree-worker src/workspace/copy_tree_worker.cpp)
-target_link_libraries(spatial-copy-tree-worker PRIVATE OpenSSL::Crypto)
+target_link_libraries(spatial-copy-tree-worker PRIVATE OpenSSL::Crypto spatial-protobuf)
+add_dependencies(spatial-copy-tree-worker copy-worker-python-protobuf)
 install(TARGETS spatial-copy-tree-worker RUNTIME DESTINATION libexec)
 add_library(spatial-workspace-copy-worker STATIC src/workspace/copy_worker.cpp)
 target_include_directories(spatial-workspace-copy-worker PUBLIC src)
-target_link_libraries(spatial-workspace-copy-worker PUBLIC spatial-storage-client spatial-workspace-resources spatial-scene)
+target_link_libraries(spatial-workspace-copy-worker PUBLIC spatial-storage-client spatial-workspace-resources spatial-scene spatial-protobuf)
 add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/copy_journal.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
 target_include_directories(workspaced PRIVATE src)
 target_link_libraries(workspaced PRIVATE spatial-workspace-copy-worker spatial-storage-client spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
@@ -553,6 +564,7 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-copy-worker-production-probe src/testing/copy_worker_production_probe.cpp)
     target_link_libraries(spatial-copy-worker-production-probe PRIVATE spatial-workspace-copy-worker OpenSSL::Crypto)
+    add_dependencies(spatial-copy-worker-production-probe storage-python-protobuf broker-python-protobuf scope-python-protobuf copy-worker-python-protobuf)
     add_executable(spatial-storage-client-probe src/testing/storage_client_probe.cpp)
     target_link_libraries(spatial-storage-client-probe PRIVATE spatial-storage-client)
     add_executable(spatial-storage-owner-probe src/testing/storage_owner_probe.cpp)

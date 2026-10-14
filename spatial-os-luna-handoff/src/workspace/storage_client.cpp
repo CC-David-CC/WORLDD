@@ -20,7 +20,7 @@ void require(bool condition, const char* message) { if (!condition) throw std::i
 }
 struct StorageClient::Impl {
     std::filesystem::path volume;
-    int volume_fd = -1;
+    identity::tls_detail::Fd volume_root;
     std::string filesystem_id;
     std::unique_ptr<StorageChannel> channel;
     std::uint64_t sequence = 0;
@@ -35,8 +35,8 @@ struct StorageClient::Impl {
             filesystem.f_type != BTRFS_SUPER_MAGIC || fstat(root.value, &directory) < 0 || directory.st_ino != 256 ||
             ioctl(root.value, BTRFS_IOC_GET_SUBVOL_INFO, &subvolume) < 0 || subvolume.treeid != 5 ||
             ioctl(root.value, BTRFS_IOC_FS_INFO, &info) < 0) unavailable();
-        volume_fd=fcntl(root.value,F_DUPFD_CLOEXEC,3);
-        if(volume_fd<0) unavailable();
+        volume_root.reset(fcntl(root.value,F_DUPFD_CLOEXEC,3));
+        if(volume_root.value<0) unavailable();
         filesystem_id=std::string(reinterpret_cast<char*>(info.fsid),BTRFS_FSID_SIZE);
         pb::StorageOwnerRequest request; request.mutable_hello();
         const auto reply = exchange(std::move(request), {});
@@ -45,7 +45,6 @@ struct StorageClient::Impl {
             reply.identity().process_id() != static_cast<unsigned>(channel->peer_pid()) ||
             !reply.identity().accounting_consistent()) unavailable();
     }
-    ~Impl() { if(volume_fd>=0) close(volume_fd); }
     pb::StorageOwnerReply exchange(pb::StorageOwnerRequest request, const std::function<void()>& tick) {
         if (!channel || sequence == UINT64_MAX) unavailable();
         request.set_protocol_version(1); request.set_request_id(++sequence);
@@ -75,6 +74,7 @@ void StorageClient::check_alive() const {
     try { if (!impl_->channel) unavailable(); impl_->channel->check_alive(); }
     catch (...) { unavailable(); }
 }
+void StorageClient::fence_unavailable() noexcept { if (impl_) impl_->channel.reset(); }
 workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest request, const std::function<void()>& tick) {
     pb::StorageObject expected;
     if (request.has_repository_prepare()) expected = request.repository_prepare().object();
@@ -177,7 +177,7 @@ int StorageClient::open_object(const workspace::v1::StorageObjectState& state) c
     case pb::StorageObject::COPY_STAGING: collection="staging"; break;
     default: throw WorldError(wire::INVALID_ARGUMENT,"Storage object has no copy descriptor");
     }
-    identity::tls_detail::Fd directory(openat(impl_->volume_fd,collection,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    identity::tls_detail::Fd directory(openat(impl_->volume_root.value,collection,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
     if(directory.value<0) unavailable();
     auto component=state.object().id();
     if(state.object().kind()==pb::StorageObject::REPOSITORY)component+=".git";

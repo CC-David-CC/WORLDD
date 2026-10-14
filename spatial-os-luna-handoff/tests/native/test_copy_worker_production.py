@@ -1,10 +1,12 @@
 """Production storage-owner and ProcessScope copy-stage witness for approved world hosts."""
+import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import pwd
 import socket
+import stat
 import subprocess
 import sys
 import time
@@ -23,9 +25,11 @@ volume = entry / 'mount'
 package = EVIDENCE / 'package'; package.mkdir(mode=0o700)
 record = {'host': socket.gethostname(), 'source': str(SOURCE), 'build': str(BUILD), 'commands': [], 'witnesses': []}
 unit = 'spatial-m07-copy-'+uuid.uuid4().hex+'.service'
+socket_dir = Path('/run') / ('s-m07-'+uuid.uuid4().hex[:12])
 scope = None; owner = None; client = None; helper = Path('/usr/local/libexec/spatial-copy-tree-worker')
+original_helper = None; installed_helper_hash = None; config_paths = []
 backup = EVIDENCE / 'prior-copy-worker'
-had_helper = helper.exists()
+had_helper = os.path.lexists(helper)
 
 
 def run(argv, timeout=120, check=True):
@@ -38,7 +42,7 @@ def run(argv, timeout=120, check=True):
 
 def start_owner_client(mode):
     global owner, client
-    socket_path = EVIDENCE / ('owner-'+mode+'.sock')
+    socket_path = socket_dir / ('o-'+mode+'.sock')
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     listener.bind(str(socket_path)); os.chmod(socket_path, 0o666); listener.listen(1); listener.settimeout(10)
     wrapper = ('import os,socket,sys; s=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM); s.connect(sys.argv[1]); '
@@ -54,7 +58,7 @@ def start_owner_client(mode):
     configuration = storage.StorageOwnerConfig.FromString((entry/'owner.pb').read_bytes())
     configuration.broker_uid = uid; configuration.broker_pid = client.pid
     config_path = Path('/run')/('m07-copy-owner-'+uuid.uuid4().hex+'.pb')
-    config_path.write_bytes(configuration.SerializeToString(deterministic=True)); config_path.chmod(0o600)
+    config_path.write_bytes(configuration.SerializeToString(deterministic=True)); config_path.chmod(0o600); config_paths.append(config_path)
     owner = subprocess.Popen([str(BUILD/'spatial-storage-owner'), '--channel-fd', str(connection.fileno()),
                               '--config', str(config_path)], pass_fds=[connection.fileno()],
                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
@@ -66,14 +70,21 @@ def start_owner_client(mode):
             try:
                 sample = {key:(group/key).read_text().strip() for key in ('memory.max','pids.max','cpu.max')}
                 children = (group/'cgroup.procs').read_text().split()
-                if children:
-                    pid = int(children[0]); sample['worker_pid'] = pid
-                    sample['private_netns'] = os.readlink(f'/proc/{pid}/ns/net') != os.readlink(f'/proc/{client.pid}/ns/net')
-                samples.append(sample)
+                for child in children:
+                    pid = int(child)
+                    try:
+                        executable = os.readlink(f'/proc/{pid}/exe')
+                        if Path(executable).name != 'spatial-copy-tree-worker': continue
+                        sample['worker_pid'] = pid
+                        sample['worker_cgroup'] = str(group)
+                        sample['private_netns'] = os.readlink(f'/proc/{pid}/ns/net') != os.readlink(f'/proc/{client.pid}/ns/net')
+                        samples.append(sample)
+                        break
+                    except (FileNotFoundError, ProcessLookupError): pass
             except (FileNotFoundError, ProcessLookupError): pass
         if time.monotonic()-started > 180:
             client.kill(); raise TimeoutError('copy probe exceeded 180 seconds')
-        time.sleep(.01)
+        time.sleep(.001)
     stdout, stderr = client.communicate(timeout=5)
     owner_stderr = owner.communicate(timeout=10)[1]
     result = {'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'scopes':samples}
@@ -84,7 +95,8 @@ def start_owner_client(mode):
         assert 'retry=identical inode=independent' in stdout
         assert any(sample.get('memory.max')==str(256*2**20) and sample.get('pids.max')=='16' and
                    sample.get('cpu.max')=='200000 100000' for sample in samples), samples
-        assert any(sample.get('private_netns') for sample in samples), samples
+        assert any(sample.get('worker_pid') and sample.get('private_netns') for sample in samples), samples
+        assert any(sample.get('worker_pid') and sample.get('worker_cgroup') for sample in samples), samples
     if mode=='symlink': assert 'SYMLINK_REJECTED UNCERTAIN' in stdout
     config_path.unlink(missing_ok=True); socket_path.unlink(missing_ok=True)
 
@@ -95,11 +107,15 @@ try:
     import storage_pb2 as storage
     import process_scope_pb2
     from google.protobuf import text_format
+    socket_dir.mkdir(mode=0o711)
+    socket_info=socket_dir.stat(); assert socket_info.st_uid==0 and stat.S_IMODE(socket_info.st_mode)==0o711
     for name_file in ('spatial-copy-worker-production-probe','spatial-copy-tree-worker','spatial-storage-owner','spatial-storage-owner-probe'):
         source_file=BUILD/name_file; dest=package/name_file
         dest.write_bytes(source_file.read_bytes()); dest.chmod(0o700)
     python_package=package/'python'; python_package.mkdir()
-    for binding in (BUILD/'python').glob('*_pb2.py'): (python_package/binding.name).write_bytes(binding.read_bytes())
+    for binding in (BUILD/'python').rglob('*_pb2.py'):
+        packaged=python_package/binding.relative_to(BUILD/'python'); target=python_package/packaged
+        target.parent.mkdir(parents=True,exist_ok=True); target.write_bytes(binding.read_bytes())
     (package/'operator-storage.textproto').write_bytes((SOURCE/'config/operator-storage.textproto').read_bytes())
     (package/'test_storage_snapshot.py').write_bytes((SOURCE/'tests/core/test_storage_snapshot.py').read_bytes())
     (package/'test_copy_worker_production.py').write_bytes(Path(__file__).read_bytes())
@@ -107,7 +123,7 @@ try:
     template=broker.StorageVolumeDefinition(); text_format.Parse((SOURCE/'config/operator-storage.textproto').read_text(),template)
     template.name=name; policy=template.owner_policy; policy.broker_uid=uid
     policy.volume_bytes=512*2**20; policy.control_plane_bytes=64*2**20; policy.filesystem_reserve_bytes=64*2**20
-    policy.default_policy.total_bytes=8*2**20; policy.default_policy.actor_state_default_bytes=4*2**20
+    policy.default_policy.total_bytes=128*2**20; policy.default_policy.actor_state_default_bytes=4*2**20
     for profile in policy.default_policy.profiles: profile.state_bytes=4*2**20
     definition=EVIDENCE/'definition.textproto'; definition.write_text(text_format.MessageToString(template))
     run([sys.executable,SOURCE/'tools/provision_storage.py','create','--bindings-dir',BUILD/'python',
@@ -122,7 +138,11 @@ try:
          'MemorySwapMax=0','-p','TasksMax=256','-p','CPUQuota=400%','-p','RuntimeMaxSec=600','-p',
          'TimeoutStopSec=5s','--','/usr/bin/sleep','600'])
     group=run(['systemctl','show',unit,'-p','ControlGroup','--value']).stdout.strip()
-    delegate=Path('/sys/fs/cgroup')/group.lstrip('/'); (delegate/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
+    delegate=Path('/sys/fs/cgroup')/group.lstrip('/')
+    controllers=set((delegate/'cgroup.controllers').read_text().split())
+    assert {'cpu','memory','pids','io'} <= controllers, controllers
+    (delegate/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
+    assert {'cpu','memory','pids','io'} <= set((delegate/'cgroup.subtree_control').read_text().split())
     scope=delegate/('broker-'+uuid.uuid4().hex); scope.mkdir(); os.chown(scope,uid,gid); os.chmod(scope,0o700)
     runtime.resources.delegated_cgroup=str(scope)
     resource_path=EVIDENCE/'resource.textproto'; resource_path.write_text(text_format.MessageToString(runtime.resources))
@@ -131,13 +151,17 @@ try:
     assert io_limits
     record.update(volume=str(volume),unit=unit,delegate=str(delegate),scope=str(scope),resource_config=str(resource_path))
     if had_helper:
-        info=helper.lstat(); assert info.st_uid==0 and info.is_file() and not helper.is_symlink()
+        info=helper.lstat(); assert stat.S_ISREG(info.st_mode) and info.st_uid==0 and not helper.is_symlink()
+        original_helper={'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode),'sha256':hashlib.sha256(helper.read_bytes()).hexdigest()}
         backup.write_bytes(helper.read_bytes()); backup.chmod(0o600)
     helper.parent.mkdir(parents=True,exist_ok=True)
-    helper.write_bytes((BUILD/'spatial-copy-tree-worker').read_bytes()); helper.chmod(0o755); os.chown(helper,0,0)
-    assert helper.stat().st_uid==0 and not helper.stat().st_mode&0o022
-    assert Path('/usr/local/libexec/spatial-bwrap').stat().st_uid==0
-    EVIDENCE.chown(uid,gid); EVIDENCE.chmod(0o700)
+    staged_helper=helper.with_name(helper.name+'.m07-'+uuid.uuid4().hex)
+    staged_bytes=(BUILD/'spatial-copy-tree-worker').read_bytes(); staged_helper.write_bytes(staged_bytes); staged_helper.chmod(0o755); os.chown(staged_helper,0,0); installed_helper_hash=hashlib.sha256(staged_bytes).hexdigest(); os.replace(staged_helper,helper)
+    assert helper.lstat().st_uid==0 and stat.S_ISREG(helper.lstat().st_mode) and not helper.lstat().st_mode&0o022
+    bwrap=Path('/usr/local/libexec/spatial-bwrap'); bwrap_info=bwrap.lstat()
+    assert stat.S_ISREG(bwrap_info.st_mode) and bwrap_info.st_uid==0 and not bwrap_info.st_mode&0o022
+    record['bwrap_sha256']=hashlib.sha256(bwrap.read_bytes()).hexdigest()
+    os.chown(EVIDENCE,uid,gid); EVIDENCE.chmod(0o700)
     start_owner_client('success')
     start_owner_client('symlink')
     restart_evidence=EVIDENCE/'owner-recovery'; restart_evidence.mkdir(mode=0o700)
@@ -147,15 +171,36 @@ try:
     if recovery.returncode: raise RuntimeError('COPYING restart recovery regression failed: '+recovery.stdout+' '+recovery.stderr)
 finally:
     if client and client.poll() is None: client.kill(); client.wait(timeout=5)
+    for config in config_paths: config.unlink(missing_ok=True)
     if owner and owner.poll() is None: owner.kill(); owner.wait(timeout=5)
-    try: run([sys.executable,SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name],check=False)
+    try:
+        cleanup=run([sys.executable,SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name],check=False)
+        if cleanup.returncode: record['cleanup_volume_error']='volume unmount command returned nonzero'
     except Exception as error: record['cleanup_volume_error']=repr(error)
+    try:
+        if scope and scope.exists(): scope.rmdir()
+    except Exception as error: record['cleanup_scope_error']=repr(error)
     try: run(['systemctl','stop',unit],timeout=20,check=False)
     except Exception as error: record['cleanup_unit_error']=repr(error)
     try:
-        if had_helper:
-            helper.write_bytes(backup.read_bytes()); helper.chmod(0o755); os.chown(helper,0,0)
-        elif helper.exists(): helper.unlink()
+        if installed_helper_hash is not None:
+            if os.path.lexists(helper):
+                current=helper.lstat()
+                if not stat.S_ISREG(current.st_mode) or current.st_uid!=0 or hashlib.sha256(helper.read_bytes()).hexdigest()!=installed_helper_hash:
+                    raise RuntimeError('installed helper changed during fixture; refusing to overwrite unexpected bytes')
+            if had_helper:
+                restore=helper.with_name(helper.name+'.restore-'+uuid.uuid4().hex)
+                restore.write_bytes(backup.read_bytes()); os.chown(restore,original_helper['uid'],original_helper['gid'])
+                restore.chmod(original_helper['mode']); os.replace(restore,helper)
+                restored=helper.lstat()
+                if (hashlib.sha256(helper.read_bytes()).hexdigest()!=original_helper['sha256'] or
+                    restored.st_uid!=original_helper['uid'] or restored.st_gid!=original_helper['gid'] or
+                    stat.S_IMODE(restored.st_mode)!=original_helper['mode']):
+                    raise RuntimeError('restored helper differs from the recorded original')
+            elif os.path.lexists(helper):
+                helper.unlink()
     except Exception as error: record['helper_restore_error']=repr(error)
     record['finished']=time.time()
     (EVIDENCE/'evidence.json').write_text(json.dumps(record,indent=2,sort_keys=True)+'\n')
+cleanup_errors=[key for key in record if key.startswith('cleanup_') or key=='helper_restore_error']
+if cleanup_errors: raise RuntimeError('fixture cleanup failed: '+json.dumps({key:record[key] for key in cleanup_errors}))
