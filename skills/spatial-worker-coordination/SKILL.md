@@ -157,6 +157,8 @@ Matching the raw Xvfb hash does not verify that graphics dependency closure. Che
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
 Compare translated launcher variables with the selected qualified lane before launch, including sanitizer options and graphics extensions.
+Before transferring a package to another authorized host, inspect host restrictions in its driver, preflight, installer, and verifier.
+Check the selected host and its qualified runtime wrapper through that complete launch path.
 Record excluded graphics coverage explicitly. A core-only sanitizer pass cannot replace graphics qualification.
 Do not apply one suite's broker wrapper to all suites. Different fixtures can observe different cgroup ownership paths.
 After a launcher-only setup failure, preserve the failure and rerun only affected cases with the corrected launcher.
