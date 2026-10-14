@@ -26,13 +26,22 @@ def validate_receipt(record):
     assert record['volume_cleanup']['status'] == 'unmounted'
     assert record['volume_cleanup']['mounted'] is False
     assert record['volume_cleanup']['loop'] is None
-    scope = record['scope_delegation']
-    assert scope['exit'] == 0 and scope['verified']['uid'] == pwd.getpwnam('dflanag3').pw_uid > 0
-    assert all(item['uid'] == scope['verified']['uid'] and item['writable_as_uid']
-               for item in scope['verified']['files'].values())
-    assert set(scope['verified']['files']) == {'cgroup.procs', 'cgroup.subtree_control', 'cgroup.threads'}
+    scopes = record['case_scopes']
+    assert len(scopes) == 6 and {case['mode'] for case in scopes} == MODES
+    assert len({case['scope'] for case in scopes}) == 6
+    assert len({case['resource_config'] for case in scopes}) == 6
+    for case in scopes:
+        scope = case['delegation']
+        assert scope['exit'] == 0 and scope['verified']['uid'] == pwd.getpwnam('dflanag3').pw_uid > 0
+        assert scope['verified']['scope'] == case['scope']
+        assert all(item['uid'] == scope['verified']['uid'] and item['writable_as_uid']
+                   for item in scope['verified']['files'].values())
+        assert set(scope['verified']['files']) == {'cgroup.procs', 'cgroup.subtree_control', 'cgroup.threads'}
+        assert scope['verified']['initial_limits'] == {'memory.max':'max\n','memory.swap.max':'max\n',
+               'pids.max':'max\n','cpu.max':'max 100000\n','io.max':''}
+        assert case['removed'] and case['empty_before_removal']
     assert record['scope_removed'] and record['socket_directory_removed']
-    assert record['empty_scope_before_unit_stop']
+    assert record['owned_scopes_empty_before_unit_stop'] is True
     assert record['unit_stop']['stop_exit'] == 0
     assert record['unit_stop']['state'] in ('inactive', 'unknown')
     assert record['unit_stop']['is_active_exit'] in (3, 4)
@@ -45,6 +54,9 @@ def validate_receipt(record):
     for item in witnesses:
         assert item['exit'] == 0
         mode = item['mode']
+        case = next(case for case in scopes if case['mode'] == mode)
+        assert item['broker_scope'] == case['scope']
+        assert all(Path(sample['worker_cgroup']).is_relative_to(Path(case['scope'])) for sample in item['scopes'])
         if mode in ('receipt-control', 'receipt-binding'):
             relay = item['relay']
             assert relay['peer_uid'] == 0

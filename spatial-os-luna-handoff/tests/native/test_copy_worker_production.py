@@ -24,7 +24,7 @@ name = 'm07-copy-' + uuid.uuid4().hex[:20]
 entry = Path('/var/lib/spatial/volumes') / name
 volume = entry / 'mount'
 package = EVIDENCE / 'package'; package.mkdir(mode=0o700)
-record = {'host': socket.gethostname(), 'source': str(SOURCE), 'build': str(BUILD), 'commands': [], 'witnesses': []}
+record = {'host': socket.gethostname(), 'source': str(SOURCE), 'build': str(BUILD), 'commands': [], 'witnesses': [], 'case_scopes': []}
 control = EVIDENCE.parent / 'copy-fixture-process.json'
 control_fd = os.open(control, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_CLOEXEC|os.O_NOFOLLOW, 0o600)
 with os.fdopen(control_fd, 'w') as stream:
@@ -79,8 +79,8 @@ def process_cgroup_path(pid):
     return (Path('/sys/fs/cgroup') / unified[0].lstrip('/')).resolve(strict=True)
 
 
-def verify_empty_owned_scope():
-    groups = owned_cgroup_descendants(scope)
+def verify_empty_owned_scope(root):
+    groups = owned_cgroup_descendants(root)
     for group in groups:
         members = (group/'cgroup.procs').read_text().split()
         events = dict(line.split() for line in (group/'cgroup.events').read_text().splitlines())
@@ -129,18 +129,46 @@ for name in ('cgroup.procs','cgroup.subtree_control','cgroup.threads'):
     assert info.st_uid==os.getuid(),name
     descriptor=os.open(path,os.O_WRONLY|os.O_CLOEXEC);os.close(descriptor)
     files[name]={'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode),'writable_as_uid':True}
-print(json.dumps({'uid':os.getuid(),'scope':str(scope),'files':files},sort_keys=True))
+limits={name:(scope/name).read_text() for name in ('memory.max','memory.swap.max','pids.max','cpu.max','io.max')}
+assert limits=={'memory.max':'max\\n','memory.swap.max':'max\\n','pids.max':'max\\n','cpu.max':'max 100000\\n','io.max':''},limits
+print(json.dumps({'uid':os.getuid(),'scope':str(scope),'files':files,'initial_limits':limits},sort_keys=True))
 """
     result=subprocess.run([sys.executable,'-B','-c',script,str(path)],preexec_fn=drop_to_operator,
                           capture_output=True,text=True,timeout=10)
-    record['scope_delegation']={'exit':result.returncode,'stdout':result.stdout,'stderr':result.stderr}
+    delegation={'exit':result.returncode,'stdout':result.stdout,'stderr':result.stderr}
     if result.returncode:
         raise RuntimeError('nonroot cgroup creation or control-file delegation failed: '+result.stderr)
-    record['scope_delegation']['verified']=json.loads(result.stdout)
+    delegation['verified']=json.loads(result.stdout)
+    return delegation
+
+
+def cleanup_case_scope(case):
+    path=Path(case['scope'])
+    if not path.exists():
+        assert case.get('removed'), 'case scope disappeared before verified removal'
+        return
+    groups=verify_empty_owned_scope(path)
+    case['empty_before_removal']=[str(group) for group in groups]
+    for group in sorted(groups,key=lambda entry:len(entry.parts),reverse=True):
+        if group.stat().st_uid!=uid:
+            raise RuntimeError('refusing to remove unowned case cgroup: '+str(group))
+        group.rmdir()
+    case['removed']=not path.exists()
+    assert case['removed']
 
 
 def start_owner_client(mode):
-    global owner, client
+    global owner, client, scope
+    scope=delegate/('broker-'+mode+'-'+uuid.uuid4().hex)
+    case={'mode':mode,'scope':str(scope),'removed':False}
+    record['case_scopes'].append(case)
+    case['delegation']=prepare_scope_as_operator(scope)
+    runtime.resources.delegated_cgroup=str(scope)
+    resource_path=EVIDENCE/('resource-'+mode+'.textproto')
+    resource_path.write_text(text_format.MessageToString(runtime.resources))
+    os.chown(resource_path,uid,gid); resource_path.chmod(0o600)
+    case['resource_config']=str(resource_path)
+    case['resource_config_sha256']=hashlib.sha256(resource_path.read_bytes()).hexdigest()
     socket_path = socket_dir / ('o-'+mode+'.sock')
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     listeners.append(listener); socket_paths.append(socket_path)
@@ -151,7 +179,7 @@ def start_owner_client(mode):
         (scope/'cgroup.procs').write_text(str(os.getpid())+'\n')
         drop_to_operator()
     client = subprocess.Popen([sys.executable,'-B', '-c', wrapper, str(socket_path), str(BUILD/'spatial-copy-worker-production-probe'),
-                              str(volume), str(EVIDENCE/'resource.textproto'), mode],
+                              str(volume), str(resource_path), mode],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                              preexec_fn=enter_scope)
     connection, _ = listener.accept(); connections.append(connection)
@@ -211,7 +239,7 @@ def start_owner_client(mode):
                'receipt-control':'copy_stage_authorized_receipt_relay_reaches_worker',
                'writable-source':'copy_worker_rejects_writable_source_before_launch',
                'readonly-destination':'copy_worker_rejects_readonly_destination_before_launch'}.get(mode, mode)
-    result = {'test_id':test_id,'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'scopes':samples}
+    result = {'test_id':test_id,'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'broker_scope':case['scope'],'scopes':samples}
     record['witnesses'].append(result)
     reject_sanitizer_diagnostics(stdout, stderr, owner_stderr)
     if client.returncode: raise RuntimeError(json.dumps(result, indent=2))
@@ -247,6 +275,7 @@ def start_owner_client(mode):
         assert 'WRITABLE_SOURCE_REJECTED exact-cause destination=unchanged worker=unprepared false-readonly=fenced' in stdout
         assert not samples, samples
     config_path.unlink(missing_ok=True); socket_path.unlink(missing_ok=True)
+    cleanup_case_scope(case)
 
 
 try:
@@ -292,14 +321,12 @@ try:
     assert {'cpu','memory','pids','io'} <= controllers, controllers
     (delegate/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
     assert {'cpu','memory','pids','io'} <= set((delegate/'cgroup.subtree_control').read_text().split())
-    scope=delegate/('broker-'+uuid.uuid4().hex)
-    prepare_scope_as_operator(scope)
-    runtime.resources.delegated_cgroup=str(scope)
-    resource_path=EVIDENCE/'resource.textproto'; resource_path.write_text(text_format.MessageToString(runtime.resources))
+    resource_path=EVIDENCE/'resource-template.textproto'
+    resource_path.write_text(text_format.MessageToString(runtime.resources))
     os.chown(resource_path,uid,gid); resource_path.chmod(0o600)
     io_limits=list(runtime.resources.manager_budget.io)
     assert io_limits
-    record.update(volume=str(volume),unit=unit,delegate=str(delegate),scope=str(scope),resource_config=str(resource_path))
+    record.update(volume=str(volume),unit=unit,delegate=str(delegate),resource_template=str(resource_path))
     if had_helper:
         info=helper.lstat(); assert stat.S_ISREG(info.st_mode) and info.st_uid==0 and not helper.is_symlink()
         original_helper={'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode),'sha256':hashlib.sha256(helper.read_bytes()).hexdigest()}
@@ -358,22 +385,30 @@ finally:
             record['cleanup_volume_error']='volume unmount did not confirm applied cleanup'
     except Exception as error: record['cleanup_volume_error']=repr(error)
     try:
-        if scope and scope.exists():
-            record['empty_scope_before_unit_stop'] = [str(path) for path in verify_empty_owned_scope()]
+        remaining=[]
+        for case in record['case_scopes']:
+            path=Path(case['scope'])
+            if path.exists():
+                remaining.extend(str(group) for group in verify_empty_owned_scope(path))
+            else:
+                assert case.get('removed'), 'case scope disappeared without a removal receipt'
+        record['empty_scope_before_unit_stop']=remaining
+        record['owned_scopes_empty_before_unit_stop']=True
+        for case in record['case_scopes']:
+            cleanup_case_scope(case)
     except Exception as error:
         record['cleanup_scope_error']=repr(error)
     try:
         stop_unit_and_verify()
     except Exception as error: record['cleanup_unit_error']=repr(error)
     try:
-        if scope and scope.exists():
-            groups=verify_empty_owned_scope()
-            for group in sorted(groups,key=lambda path:len(path.parts),reverse=True):
-                if group==scope.resolve(): continue
-                if group.stat().st_uid!=uid: raise RuntimeError(f'unowned cgroup cannot be removed: {group}')
-                group.rmdir()
-            scope.rmdir()
-        record['scope_removed'] = not scope.exists() if scope else True
+        for case in record['case_scopes']:
+            if Path(case['scope']).exists():
+                cleanup_case_scope(case)
+            elif not case.get('removed'):
+                raise RuntimeError('case scope disappeared without verified removal')
+        record['scope_removed']=all(case.get('removed') and not Path(case['scope']).exists()
+                                    for case in record['case_scopes'])
     except Exception as error:
         record['cleanup_scope_error']=repr(error)
     try:

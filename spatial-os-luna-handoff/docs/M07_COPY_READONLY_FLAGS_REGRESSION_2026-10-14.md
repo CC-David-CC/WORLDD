@@ -98,3 +98,16 @@ The launcher allows600 seconds for execution and240 seconds for graceful cleanup
 Cancellation validates that exact live root process identity before sending SIGTERM.
 The root SIGTERM handler raises into finally and ignores repeated cancellation during cleanup.
 A grace overrun kills only that verified fixture PID and reports cleanup incomplete.
+
+The first f4 Debug attempt stopped at the second case.
+The readonly-destination case returned its expected marker; its paired positive remained unrun.
+The writable-source case failed before its guard: Broker envelope must not replace existing root limits.
+The fixture reused one root across independent WorkspaceResources lifecycles.
+Production intentionally leaves its bound root limits in place.
+The fixture now creates a fresh operator-owned root and ResourceConfig for every case.
+Each root must begin with untouched limits and writable delegated controls.
+Each case records its unique root, configuration hash, empty state, and explicit removal.
+Cleanup checks all created roots, including the interrupted case.
+The failed f4 fixture, exact framed receipt, and full successful scoped cleanup remain preserved.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-a9u1rjm4.
+No production guard or compiled input changes for this fixture correction.
