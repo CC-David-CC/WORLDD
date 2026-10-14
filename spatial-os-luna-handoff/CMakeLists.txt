@@ -243,6 +243,14 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/
 add_custom_target(workspace-presentation-python-protobuf ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/presentation/v1/presentation_pb2.py")
 add_dependencies(workspace-presentation-python-protobuf python-protobuf)
+add_dependencies(native-scope-python-protobuf security-python-protobuf)
+add_dependencies(key-python-protobuf python-protobuf security-python-protobuf)
+add_dependencies(issuer-python-protobuf key-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf)
+add_dependencies(broker-python-protobuf issuer-python-protobuf native-scope-python-protobuf key-python-protobuf
+    python-protobuf grants-python-protobuf security-python-protobuf scope-python-protobuf storage-python-protobuf
+    workspace-copy-python-protobuf)
+add_custom_target(provision-storage-python-bindings)
+add_dependencies(provision-storage-python-bindings broker-python-protobuf)
 add_dependencies(world-session-python-protobuf geometry-view-python-protobuf issuer-python-protobuf grants-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/crosshost_revocation_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -441,6 +449,11 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(presentation-metadata-test tests/core/presentation_metadata.cpp)
+    target_include_directories(presentation-metadata-test PRIVATE src)
+    target_link_libraries(presentation-metadata-test PRIVATE spatial-scene)
+    add_test(NAME presentation-metadata COMMAND $<TARGET_FILE:presentation-metadata-test>)
+    set_tests_properties(presentation-metadata PROPERTIES TIMEOUT 30)
     add_executable(world-diagnostic-timing-test tests/core/world_diagnostic_timing.cpp)
     target_include_directories(world-diagnostic-timing-test PRIVATE src)
     add_dependencies(spatial-test-host world-diagnostic-timing-test)
@@ -1356,7 +1369,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.p
         proto/spatial/identity/v1/world_session.proto
         proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 add_custom_target(host-session-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.py")
-add_dependencies(spatial-host-session host-session-python-protobuf actor-session-client-python-protobuf launch-python-protobuf scope-python-protobuf
+add_dependencies(spatial-host-session provision-storage-python-bindings host-session-python-protobuf actor-session-client-python-protobuf launch-python-protobuf scope-python-protobuf
     native-scope-python-protobuf broker-python-protobuf storage-python-protobuf key-python-protobuf
     issuer-python-protobuf world-session-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"

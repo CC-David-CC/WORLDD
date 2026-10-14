@@ -1,7 +1,9 @@
 #include "core/scene.hpp"
+#include "core/presentation_identity.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <map>
 #include <stdexcept>
 namespace spatial {
 namespace {
@@ -14,6 +16,82 @@ Pose scene_pose(const wire::Pose& value) {
     const auto& p = value.position(); const auto& q = value.orientation();
     Pose result{{p.x(), p.y(), p.z()}, {q.x(), q.y(), q.z(), q.w()}};
     validate_pose(result); return result;
+}
+void validate_presentation_views(const wire::RenderScene& scene, std::string_view expected_room) {
+    std::map<std::string, const wire::PresentationView*> views;
+    std::string common_room;
+    const auto reject_reserved_identity = [](std::string_view id) {
+        require(!is_reserved_presentation_geometry_id(id),
+                "Reserved presentation identity used outside object geometry");
+    };
+    for (const auto& panel : scene.panels()) reject_reserved_identity(panel.id());
+    for (const auto& surface : scene.surfaces()) {
+        reject_reserved_identity(surface.handle().id());
+        reject_reserved_identity(surface.panel().id());
+    }
+    for (const auto& barrier : scene.barriers()) reject_reserved_identity(barrier.id());
+    for (const auto& portal : scene.portals()) reject_reserved_identity(portal.id());
+    for (const auto& actor : scene.actors()) reject_reserved_identity(actor.id());
+    for (const auto& view : scene.presentation_views()) {
+        require(view.representation_id().size() == 16 && !view.room_id().empty() &&
+                view.room_id().size() <= 256 && view.room_id().find('\0') == std::string::npos &&
+                view.generation() > 0 && view.has_transform(), "Invalid public presentation view");
+        if (!expected_room.empty())
+            require(view.room_id() == expected_room, "Presentation view room mismatch");
+        if (common_room.empty()) common_room = view.room_id();
+        else require(view.room_id() == common_room, "Mixed presentation view rooms");
+        scene_pose(view.transform());
+        const auto geometry_id = presentation_geometry_id(view.representation_id());
+        require(views.emplace(geometry_id, &view).second, "Duplicate presentation representation ID");
+    }
+    for (const auto& object : scene.objects()) {
+        if (!is_reserved_presentation_geometry_id(object.id())) continue;
+        require(object.kind() == wire::OBJECT, "Presentation identity used by non-object geometry");
+        const auto raw_id = presentation_representation_id(object.id());
+        require(raw_id.has_value(), "Malformed reserved presentation geometry ID");
+        const auto found = views.find(object.id());
+        require(found != views.end() && found->second->representation_id() == *raw_id,
+                "Projected presentation object has no matching public view");
+        if (object.has_room())
+            require(object.room() == found->second->room_id(), "Presentation object room mismatch");
+        const auto geometry_pose = scene_pose(object.pose());
+        const auto view_pose = scene_pose(found->second->transform());
+        require(geometry_pose.p == view_pose.p && geometry_pose.q == view_pose.q &&
+                (!object.has_revision() || object.revision() == found->second->generation()),
+                "Presentation metadata does not match projected geometry");
+        views.erase(found);
+    }
+    require(views.empty(), "Public presentation view has no projected object");
+}
+void validate_presentation_views(const wire::ActorObservation& observation) {
+    require(!observation.room().empty() && observation.room().size() <= 256 &&
+            observation.room().find('\0') == std::string::npos, "Invalid observation room");
+    std::map<std::string, const wire::PresentationView*> views;
+    for (const auto& view : observation.presentation_views()) {
+        require(view.representation_id().size() == 16 && view.room_id() == observation.room() &&
+                view.generation() > 0 && view.has_transform(), "Invalid observed presentation view");
+        scene_pose(view.transform());
+        const auto geometry_id = presentation_geometry_id(view.representation_id());
+        require(views.emplace(geometry_id, &view).second, "Duplicate observed presentation identity");
+    }
+    for (const auto& item : observation.visible()) {
+        if (!is_reserved_presentation_geometry_id(item.id())) continue;
+        const auto raw_id = presentation_representation_id(item.id());
+        require(raw_id.has_value(), "Malformed reserved visible presentation identity");
+        require(item.has_kind() && item.kind() == wire::OBJECT,
+                "Reserved presentation identity used by non-object observation");
+        const auto found = views.find(item.id());
+        require(found != views.end() && found->second->representation_id() == *raw_id,
+                "Visible presentation object has no matching public view");
+        const auto& view = *found->second;
+        require(item.generation() == view.generation(), "Stale visible presentation generation");
+        const auto visible_pose = scene_pose(item.pose());
+        const auto view_pose = scene_pose(view.transform());
+        require(visible_pose.p == view_pose.p && visible_pose.q == view_pose.q,
+                "Observed presentation pose mismatch");
+        views.erase(found);
+    }
+    require(views.empty(), "Presentation view has no matching visible object");
 }
 void validate_render_config(const wire::RenderConfig& value) {
     require(value.has_vertical_fov() && std::isfinite(value.vertical_fov()) &&
@@ -89,6 +167,7 @@ wire::AimReply pick_scene(const wire::RenderScene& scene, const wire::Vec3& inpu
 }
 std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
     validate_render_config(scene.config());
+    validate_presentation_views(scene);
     const auto camera = scene_pose(scene.camera());
     const Pose camera_rotation{{0, 0, 0}, camera.q};
     std::vector<ScenePanel> result;
@@ -191,8 +270,9 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
     }
     for (const auto& object : scene.objects()) {
         require(object.kind() == wire::OBJECT && object.has_pose(), "Invalid scene object");
+        const auto projected_id = object.id();
         wire::RenderScene single; *single.mutable_camera() = scene.camera(); *single.mutable_config() = scene.config();
-        auto* box = single.add_barriers(); *box = object; box->set_kind(wire::BARRIER);
+        auto* box = single.add_barriers(); *box = object; box->set_id("internal-object-face"); box->set_kind(wire::BARRIER);
         const double half = (scene.config().has_object_size() ? scene.config().object_size() : .2) / 2;
         auto* low = box->mutable_bounds()->mutable_min(); low->set_x(-half); low->set_y(-half); low->set_z(-half);
         auto* high = box->mutable_bounds()->mutable_max(); high->set_x(half); high->set_y(half); high->set_z(half);
@@ -200,8 +280,15 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
         if (scene.config().has_object_color()) *color = scene.config().object_color();
         else { color->set_red(224); color->set_green(174); color->set_blue(72); }
         auto converted = scene_panels(single);
+        const auto view = std::find_if(scene.presentation_views().begin(), scene.presentation_views().end(),
+            [&](const auto& candidate) { return presentation_geometry_id(candidate.representation_id()) == object.id(); });
         for (auto& face : converted) {
-            face.representation.set_kind(wire::OBJECT); face.representation.set_generation(object.revision());
+            face.representation.set_id(projected_id);
+            face.representation.set_kind(wire::OBJECT);
+            face.representation.set_generation(view == scene.presentation_views().end() ? object.revision() : view->generation());
+            if (view != scene.presentation_views().end() && view->locked()) {
+                for (auto& channel : face.color) channel = 1.0f - channel;
+            }
             result.push_back(std::move(face));
         }
     }
