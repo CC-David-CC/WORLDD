@@ -1,3 +1,19 @@
+## 2026-10-14: Journal retry fix frozen; focused runtime pending
+
+Production retry and schema-validation fixes are frozen at `cb69b84e389b294da23c9c89668a9c000f8d984a`.
+The source rejects invalid target schemas and preserves unsupported-version failures.
+Debug and sanitizer builds completed the nine approved runtime targets.
+The production-only build completed `workspaced` and `worldd`.
+Build receipts remain under `/home/dflanag3/spatial-artifacts/m07-journal-idempotence-20261014/build-runs/`.
+The package archive is `/home/dflanag3/spatial-artifacts/packages/m07-journal-idempotence-cb69b84-20261014.tar.gz`.
+Its SHA256 is `02df2be88adaa365f627ab9b088fdaed42e988fdd9664b42f0af2148ef9cd602`.
+Both test hosts verified 91 package entries, twenty ELF dependency closures, and protobuf imports.
+The frozen package source pin remains `cb69b84e389b294da23c9c89668a9c000f8d984a`.
+Seven focused checks are selected for Debug and sanitizer profiles on both hosts.
+Runtime remains pending until the fence worker confirms terminal scopes and process cleanup.
+A generated launcher once carried CRLF into CMake's `-j2` argument and failed before compilation.
+Preserve that failed receipt at `build-runs/asan-all-targets/`.
+Generate Linux launchers with LF, reject CR bytes before transfer, and run `bash -n` after transfer.
 ## 2026-10-14: M06 qualified; M07 is next
 
 The primary accepted the complete M06 qualification evidence on both test hosts.
