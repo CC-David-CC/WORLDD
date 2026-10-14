@@ -29,6 +29,17 @@ Read defect blockers/m07-runtime-fixture-package-closure.txt at the repository r
 Presentation source review withdrew an unsupported postcommit-race concern.
 Its final local grants are checked after broker I/O and before synchronous mutations.
 Presentation runtime checks remain unrun.
+The corrected standalone journal executable passed Debug and sanitizer checks on both hosts.
+All four command and wrapper results were 0/0. Sanitizer logs were clean.
+Read docs/M07_JOURNAL_FOCUSED_RESULT_2026-10-14.txt for source pins and evidence.
+Journal migration/startup package checks remain pending.
+Presentation Debug, sanitizer, and Production-OFF builds passed at 4501f6d.
+Presentation runtime checks remain unrun.
+The copy-engine dependency branch is pushed at a700433 as UNQUALIFIED.
+A bounded worker task now implements confined snapshot staging before full engine integration.
+Fence closure checkpoint 8338661 is reviewed and pushed as UNQUALIFIED.
+The corrected v18r1 package is approved for both-host preflight and focused testing.
+No new fence runtime pass is claimed here.
 Older paused status below is historical.
 
 ## 2026-10-14: Clean repository recovery; implementation paused

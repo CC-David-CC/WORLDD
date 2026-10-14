@@ -1,0 +1,42 @@
+M07 journal focused result - 2026-10-14
+
+Source: df8ebab0d1185b06dbea563e425d1721cbc60907.
+Branch: m07/copy-journal-storage-20261014. Box-git verified.
+The fixture uses fresh destination identities.
+It explicitly rejects publication using source or snapshot identities.
+The production collision guard remains unchanged.
+
+Passed: workspace-copy-journal standalone executable in Debug and ASan-UBSan on both hosts.
+Four executions passed. Each command and wrapper exit was zero.
+Each stdout reported successful journal checks. Sanitizer stderr was empty.
+ASAN_OPTIONS=detect_leaks=1:abort_on_error=1.
+UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1.
+LSAN_OPTIONS was unset. Each execution had a 60-second limit.
+No individual assertion count is claimed.
+
+Debug executable SHA256: 41ef33ee46e7d84c66823bf4c84373510b8f6494d7aafe24074f36781b375ca1.
+Sanitizer executable SHA256: ae2f6f43becb03cd1b4b9b6005d9d239e1922cf468584911980e5ebfbcc2373d.
+Fixture source SHA256: 0fefaca87e8f0733e1583c52935d7a5b26081ca0ac78c55025eb54026fac875f.
+Each host verified binary hashes and dynamic dependencies before execution.
+
+Evidence on each host:
+/home/dflanag3/spatial-artifacts/m07-journal-standalone-df8ebab-20261014/selection.json
+/home/dflanag3/spatial-artifacts/m07-journal-standalone-df8ebab-20261014/runs/debug
+/home/dflanag3/spatial-artifacts/m07-journal-standalone-df8ebab-20261014/runs/asan
+/home/dflanag3/spatial-artifacts/m07-journal-standalone-df8ebab-20261014/outer-retry
+
+The first launcher placed logs inside its execution context and produced no test receipts.
+Its exit was not retained. Preserve launch.py and selection.json.
+The retry uses bin as the execution context and separate log directories.
+The outer launcher now retains stdout, stderr, and exit receipts.
+
+Artifact-root correction on both hosts:
+The directory /home/dflanag3/spatial-artifacts was root-owned and blocked new nonprivileged job directories.
+Its resolved path matched that exact directory. It was not a symlink.
+Command: sudo -n chown dflanag3:dflanag3 /home/dflanag3/spatial-artifacts
+Only the parent directory ownership changed. Existing child ownership and logs were preserved.
+Ownership rollback: sudo -n chown root:root /home/dflanag3/spatial-artifacts
+Rollback would again prevent ordinary creation of new job directories.
+
+Pending: corrected-package migration/startup checks on both hosts, fence suites, presentation runtime, and copy engine.
+This focused result resolves the retained journal abort. It does not qualify M07.
