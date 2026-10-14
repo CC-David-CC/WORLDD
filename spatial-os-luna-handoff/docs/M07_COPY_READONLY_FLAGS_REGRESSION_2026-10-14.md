@@ -75,3 +75,8 @@ M07 and Spatial-M1 remain incomplete.
 The destination negative was added after all frozen4a15 profile builds finished.
 It changes only the probe, harness, and this test plan.
 The production fix remains byte-identical to reviewed4a15 source.
+
+Every Python subprocess in the native harness now receives -B.
+The nested sudo Python invocations in the restart fixture also receive -B.
+This prevents bytecode writes even when sudo strips the outer environment.
+The root launch driver must still set PYTHONDONTWRITEBYTECODE after sudo.

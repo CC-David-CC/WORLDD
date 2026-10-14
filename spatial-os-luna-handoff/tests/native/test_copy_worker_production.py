@@ -114,7 +114,7 @@ for name in ('cgroup.procs','cgroup.subtree_control','cgroup.threads'):
     files[name]={'uid':info.st_uid,'gid':info.st_gid,'mode':stat.S_IMODE(info.st_mode),'writable_as_uid':True}
 print(json.dumps({'uid':os.getuid(),'scope':str(scope),'files':files},sort_keys=True))
 """
-    result=subprocess.run([sys.executable,'-c',script,str(path)],preexec_fn=drop_to_operator,
+    result=subprocess.run([sys.executable,'-B','-c',script,str(path)],preexec_fn=drop_to_operator,
                           capture_output=True,text=True,timeout=10)
     record['scope_delegation']={'exit':result.returncode,'stdout':result.stdout,'stderr':result.stderr}
     if result.returncode:
@@ -133,7 +133,7 @@ def start_owner_client(mode):
     def enter_scope():
         (scope/'cgroup.procs').write_text(str(os.getpid())+'\n')
         drop_to_operator()
-    client = subprocess.Popen([sys.executable, '-c', wrapper, str(socket_path), str(BUILD/'spatial-copy-worker-production-probe'),
+    client = subprocess.Popen([sys.executable,'-B', '-c', wrapper, str(socket_path), str(BUILD/'spatial-copy-worker-production-probe'),
                               str(volume), str(EVIDENCE/'resource.textproto'), mode],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                              preexec_fn=enter_scope)
@@ -147,7 +147,7 @@ def start_owner_client(mode):
     relay_mode = mode in ('receipt-binding', 'receipt-control')
     audit_path = EVIDENCE / (mode+'-relay.json')
     if relay_mode:
-        relay_command = [sys.executable, str(Path(__file__).with_name('storage_owner_receipt_relay.py')),
+        relay_command = [sys.executable,'-B', str(Path(__file__).with_name('storage_owner_receipt_relay.py')),
                          '--channel-fd', str(connection.fileno()), '--build', str(BUILD),
                          '--config', str(config_path), '--audit', str(audit_path)]
         if mode == 'receipt-binding': relay_command.append('--mutate')
@@ -258,7 +258,7 @@ try:
     policy.default_policy.total_bytes=128*2**20; policy.default_policy.actor_state_default_bytes=4*2**20
     for profile in policy.default_policy.profiles: profile.state_bytes=4*2**20
     definition=EVIDENCE/'definition.textproto'; definition.write_text(text_format.MessageToString(template))
-    run([sys.executable,SOURCE/'tools/provision_storage.py','create','--bindings-dir',BUILD/'python',
+    run([sys.executable,'-B',SOURCE/'tools/provision_storage.py','create','--bindings-dir',BUILD/'python',
          '--definition',definition,'--apply'])
     config=storage.StorageOwnerConfig.FromString((entry/'owner.pb').read_bytes())
     config.broker_uid=uid; config.broker_pid=os.getpid()
@@ -307,7 +307,7 @@ try:
     restart_evidence=EVIDENCE/'owner-recovery'; restart_evidence.mkdir(mode=0o700)
     os.chown(restart_evidence,uid,gid)
     restart_env=dict(os.environ,SPATIAL_SECURITY_EVIDENCE=str(restart_evidence))
-    recovery=subprocess.run([sys.executable,SOURCE/'tests/core/test_storage_snapshot.py',BUILD/'spatial-storage-owner-probe',SOURCE,'-k','copy_stage_claim_is_digest_bound_and_restart_is_uncertain'],capture_output=True,text=True,timeout=300,env=restart_env,cwd=SOURCE,preexec_fn=drop_to_operator)
+    recovery=subprocess.run([sys.executable,'-B',SOURCE/'tests/core/test_storage_snapshot.py',BUILD/'spatial-storage-owner-probe',SOURCE,'-k','copy_stage_claim_is_digest_bound_and_restart_is_uncertain'],capture_output=True,text=True,timeout=300,env=restart_env,cwd=SOURCE,preexec_fn=drop_to_operator)
     record['restart_recovery']={'uid':uid,'exit':recovery.returncode,'stdout':recovery.stdout,'stderr':recovery.stderr}
     reject_sanitizer_diagnostics(recovery.stdout, recovery.stderr)
     if recovery.returncode: raise RuntimeError('COPYING restart recovery regression failed: '+recovery.stdout+' '+recovery.stderr)
@@ -331,7 +331,7 @@ finally:
     if owner and owner.poll() is None:
         os.killpg(owner.pid, signal.SIGKILL); owner.wait(timeout=5)
     try:
-        cleanup=run([sys.executable,SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name,'--apply'],check=False)
+        cleanup=run([sys.executable,'-B',SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name,'--apply'],check=False)
         volume_cleanup=json.loads(cleanup.stdout)
         record['volume_cleanup']=volume_cleanup
         if (cleanup.returncode or not volume_cleanup.get('applied') or volume_cleanup.get('mounted') is not False or
