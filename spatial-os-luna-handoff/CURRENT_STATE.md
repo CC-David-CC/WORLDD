@@ -1,6 +1,6 @@
-## 2026-10-14: Focused presentation selection passed both profiles on sb16-2
+## 2026-10-14: Focused presentation selection passed both profiles on both hosts
 
-All 89 selected Python methods and the C++ presentation-store check passed in Debug and ASan/UBSan on sb16-2.
+All 89 selected Python methods and the C++ presentation-store check passed in Debug and ASan/UBSan on both hosts.
 The primary audited actual terminal counts, named control results, and command and wrapper exits.
 The selection includes 25 control, 28 access, 15 native-input, 5 actor-presentation, 15 pixel, and 1 migration methods.
 The 89 methods are a unique union. Separate targeted retries are not added to that count.
@@ -12,7 +12,11 @@ Read control-first-results, control-broad-fe1-results, and presentation-b486-res
 The independent broad audit scanned 1,450 retained logs without sanitizer diagnostics and verified removed scopes.
 The earlier actor, pixel, control, and setup failures remain retained.
 
-The full focused Debug selection also passed on sb16. Its sanitizer selection remains running.
+The complete matrix contains 356 Python method executions and four C++ executions.
+The primary independently checked all 14 sb16 case results, raw log hashes, receipts, and removed scopes.
+Its sb16 audit scanned 2,058 retained logs without sanitizer diagnostics.
+Evidence: sb16-focused-b486/primary-final-audit.json under that host's artifact root.
+The maintained worker summary is checkpointed on box-git at c5e5b84d5088f26d680ccfe46b8744b72bea007e.
 The corrected identity-pixel check passed before that host's full selection began.
 The host-specific preflight restriction was corrected without changing source or ELF inputs.
 

@@ -1,6 +1,6 @@
 M07 cached application checks perform fresh issuer I/O
 
-Status: Corrected in a separate branch. The first native control regression passed on sb16-2 in both profiles.
+Status: Corrected in a separate branch. Focused native control and related checks passed on both hosts in both profiles.
 
 ExecutionStore::application_access accepts a refresh flag.
 ControlBroker::enforce deliberately passes false during authority and control progress.
@@ -33,7 +33,10 @@ The fixture source pin is fe1fe40fc22f24e8be9d946e27dec491de05ec93. The workspac
 The selected control union also passed all 25 methods under ASan/UBSan on sb16-2.
 Related access, native-input, migration, actor, and pixel checks passed in both profiles.
 The full selected union is 89 Python methods plus one C++ executable per profile.
-Second-host sanitizer and combined M07 qualification remain pending.
+The same complete selected union passed on sb16 in Debug and ASan/UBSan.
+The primary independently audited actual results, raw log hashes, zero receipts, and scope removal.
+The reviewed documentation checkpoint is c5e5b84d5088f26d680ccfe46b8744b72bea007e on box-git.
+Combined-source regression and full M07 qualification remain pending.
 
 Source under review: f066959060ce0a3155a387f4dc033e3a7ca37f64.
 Retained sb16-2 evidence:
