@@ -30,7 +30,7 @@ class StorageSnapshotTests(unittest.TestCase):
         self.root.chmod(0o700)
         self.name = "m07-snap-" + uuid.uuid4().hex[:18]
         self.entry = Path("/var/lib/spatial/volumes") / self.name
-        self.volume = self.entry / "volume"
+        self.volume = self.entry / "mount"
         self.definition_path = self.root / "definition.textproto"
         definition = broker.StorageVolumeDefinition()
         text_format.Parse((SOURCE / "config/operator-storage.textproto").read_text(), definition)
@@ -132,7 +132,12 @@ class StorageSnapshotTests(unittest.TestCase):
         try:
             try:
                 self.owner = subprocess.Popen(
-                    ["sudo", "-n", str(PROBE), str(self.owner_config)],
+                    [
+                        "sudo", "-n", "env",
+                        "ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+                        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+                        str(PROBE), str(self.owner_config),
+                    ],
                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr_file,
                     start_new_session=True)
             except Exception as error:
