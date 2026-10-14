@@ -26,7 +26,14 @@ The retained c21 v4 package contains the identical large payloads from removed v
 Their distinct small metadata and tools remain in cleanup-evidence with hash mappings.
 Receipts: a5500:/home/dflanag3/spatial-artifacts/cleanup-batch-m07-six-builds-20261014.json
 and cleanup-batch-m07-component-integration-20261014.json.
-Further qualification-build cleanup is being inventoried. Required deployed test-host runtimes remain protected.
+A third batch removed twelve generated profile-build directories from three old M06 qualification preparations.
+Every retained archive member matched its manifest. Compressed archive hashes matched provenance before deletion.
+The third batch recovered 47,464,230,912 bytes. Total recovery across three batches is 67,138,301,952 bytes.
+a5500 now has about 215 GiB available. Its qualification directory uses about 15 GiB.
+All archives, source, provenance, build logs, and actual runtime evidence remain preserved.
+Receipt: a5500:/home/dflanag3/spatial-artifacts/cleanup-batch-m06-qualification-profile-builds-20261014.json.
+The primary read the cleanup receipt and independently confirmed the new available space.
+Required deployed test-host runtimes remain protected. The cleanup worker resumes copy-fault test planning.
 M07 remains in focused integration. Its combined freeze and full both-host gate remain pending.
 
 ## 2026-10-14: Cross-host sanitizer component passes; broker repair awaits runtime
