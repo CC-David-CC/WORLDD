@@ -1,3 +1,34 @@
+## 2026-10-14: Broker regressions expose owner-loss polling; obsolete builds removed
+
+The frozen 18a broker Debug package passed source, executable, graphics, and target verification.
+The primary verified 1,092 compiled source hashes against 02db plus four reviewed changes.
+Its three broker regressions failed during witness observation: a broker fixture overwrote the generic config attribute.
+The repaired witness pins each real issuer's launch configuration and guarantees shutdown despite observation errors.
+The separate source-only 18b overlay reused every original executable and generated binding.
+Its three regressions ran in 17.971 seconds: one passed and two failed. Command and wrapper exits were one.
+Actual issuer shutdown passed. Actor revocation reached cancellation and payload checks, then hit an incorrect access oracle.
+The real revoked actor receives UNAUTHORIZED. The test incorrectly expected an ordinary false access response.
+The owner-channel loss case did not observe fencing within its 1.5-second bound during delayed issuer INFO.
+Source review found that administrative progress polls supervisor packets but not owner-channel disconnection.
+A bounded disconnect scan and independent kernel-EOF witness are assigned. Their source and runtime remain pending.
+No timeout or authorization rule was weakened. The unchanged owner storage-wait test remains unrun after these failures.
+The primary read the complete 18b failure trace and both exit receipts. Cleanup released the sb16 runtime lane.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine18b-broker3-debug-v1-outer.
+
+The participant-domain draft remains unqualified and unintegrated.
+Primary review rejected its local registration increment because registration revisions are globally unique.
+Review also found a missing unittest entry point, which could falsely report success without running tests.
+Corrections and the missing lifecycle/replay regressions are assigned before any build or runtime.
+
+Two reviewed a5500 cleanup batches removed eleven obsolete build/package directories.
+Actual free-space recovery totaled 19,674,071,040 bytes. Source, Git data, logs, and failure evidence remain preserved.
+The retained c21 v4 package contains the identical large payloads from removed v1-v3 packages.
+Their distinct small metadata and tools remain in cleanup-evidence with hash mappings.
+Receipts: a5500:/home/dflanag3/spatial-artifacts/cleanup-batch-m07-six-builds-20261014.json
+and cleanup-batch-m07-component-integration-20261014.json.
+Further qualification-build cleanup is being inventoried. Required deployed test-host runtimes remain protected.
+M07 remains in focused integration. Its combined freeze and full both-host gate remain pending.
+
 ## 2026-10-14: Cross-host sanitizer component passes; broker repair awaits runtime
 
 Frozen cross-host source: 5658b9fc35097df978f3d2504049f7947cb677df.

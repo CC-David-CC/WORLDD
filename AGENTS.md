@@ -423,6 +423,11 @@ Keep source, required fixtures, schemas, maintained documents, and concise quali
 Keep generated evidence, logs, databases, disk images, packages, and build outputs outside checkouts.
 Use /home/dflanag3/spatial-artifacts for Linux runtime and worker outputs.
 Use separate external build directories.
+Remove superseded generated build directories after their replacement is verified and no process uses them.
+Remove duplicate deployment packages after verifying the retained package and its required dependencies.
+Keep active candidates, required qualified packages, source pins, manifests, logs, and unresolved failure evidence.
+Do not retain a complete build tree for every retry.
+Review exact cleanup paths before deletion. Record removed paths and recovered space.
 Check free space and projected output size before builds, transfers, or new checkouts.
 Report insufficient capacity before proceeding.
 Use configure_artifact_links.py for legacy output paths required by locked tools.
