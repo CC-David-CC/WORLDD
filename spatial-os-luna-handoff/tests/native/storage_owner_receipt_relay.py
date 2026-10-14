@@ -1,0 +1,146 @@
+"""Authenticated test peer. Forward production protobuf through a real broker UID."""
+import argparse
+import json
+import os
+from pathlib import Path
+import pwd
+import signal
+import socket
+import struct
+import subprocess
+import sys
+
+
+def receive(channel):
+    prefix = bytearray()
+    while len(prefix) < 4:
+        part = channel.recv(4-len(prefix))
+        if not part and not prefix:
+            return None
+        if not part:
+            raise RuntimeError('truncated private protobuf prefix')
+        prefix.extend(part)
+    size = struct.unpack('!I', prefix)[0]
+    if not 0 < size <= 1024*1024:
+        raise RuntimeError('invalid private protobuf frame length')
+    payload = bytearray()
+    while len(payload) < size:
+        part = channel.recv(size-len(payload))
+        if not part:
+            raise RuntimeError('truncated private protobuf payload')
+        payload.extend(part)
+    return bytes(payload)
+
+
+def send(channel, payload):
+    channel.sendall(struct.pack('!I', len(payload))+payload)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--channel-fd', type=int, required=True)
+    parser.add_argument('--build', type=Path, required=True)
+    parser.add_argument('--config', type=Path, required=True)
+    parser.add_argument('--audit', type=Path, required=True)
+    parser.add_argument('--mutate', action='store_true')
+    args = parser.parse_args()
+    if os.getuid() != 0 or socket.gethostname().split('.')[0] not in ('sb16', 'sb16-2'):
+        raise RuntimeError('receipt relay requires an approved root test host')
+    sys.path.insert(0, str(args.build/'python'))
+    import storage_pb2 as storage
+    operator = pwd.getpwnam('dflanag3')
+    client = socket.socket(fileno=args.channel_fd)
+    client.settimeout(190)
+    relay, broker = socket.socketpair()
+    upstream, owner_channel = socket.socketpair()
+    for channel in (relay, broker, upstream, owner_channel):
+        channel.settimeout(190)
+    child = os.fork()
+    if child == 0:
+        # The owner sees this process's actual nonroot UID and PID on every frame.
+        client.close(); relay.close(); owner_channel.close()
+        try:
+            os.setgroups([]); os.setgid(operator.pw_gid); os.setuid(operator.pw_uid)
+            while True:
+                payload = receive(broker)
+                if payload is None:
+                    break
+                send(upstream, payload)
+                reply = receive(upstream)
+                if reply is None:
+                    raise RuntimeError('production owner closed before reply')
+                send(broker, reply)
+            upstream.close(); broker.close()
+            os._exit(0)
+        except BaseException:
+            os._exit(2)
+    broker.close(); upstream.close()
+    owner = None
+    audit = {'peer_uid':os.getuid(), 'peer_pid':os.getpid(), 'broker_uid':operator.pw_uid,
+             'broker_pid':child, 'requests':[], 'mutations':[], 'client_eof':False,
+             'coverage':'authenticated root-negative private protocol' if args.mutate else 'authorized relay production control'}
+    waited = False
+    try:
+        config = storage.StorageOwnerConfig.FromString(args.config.read_bytes())
+        config.broker_uid = operator.pw_uid; config.broker_pid = child
+        args.config.write_bytes(config.SerializeToString(deterministic=True))
+        args.config.chmod(0o600)
+        owner = subprocess.Popen([str(args.build/'spatial-storage-owner'), '--channel-fd',
+                                  str(owner_channel.fileno()), '--config', str(args.config)],
+                                 pass_fds=[owner_channel.fileno()], stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.PIPE, text=True)
+        owner_channel.close()
+        while True:
+            payload = receive(client)
+            if payload is None:
+                audit['client_eof'] = True
+                break
+            request = storage.StorageOwnerRequest.FromString(payload)
+            method = request.WhichOneof('operation')
+            audit['requests'].append(method)
+            send(relay, payload)
+            original = receive(relay)
+            if original is None:
+                raise RuntimeError('broker closed before owner reply')
+            reply = storage.StorageOwnerReply.FromString(original)
+            if reply.HasField('identity'):
+                if reply.identity.process_id != owner.pid:
+                    raise RuntimeError('unexpected production owner identity')
+                reply.identity.process_id = os.getpid()
+            if args.mutate and request.HasField('copy_stage_begin'):
+                if not reply.HasField('copy_stage') or audit['mutations']:
+                    raise RuntimeError('expected exactly one valid BEGIN receipt')
+                before = reply.copy_stage.destination_subvolume_id
+                after = before+1
+                if after == reply.copy_stage.source_subvolume_id:
+                    after += 1
+                if not 0 < after < 2**64:
+                    raise RuntimeError('cannot select otherwise valid mismatched subvolume')
+                unchanged = storage.StorageOwnerReply(); unchanged.CopyFrom(reply)
+                reply.copy_stage.destination_subvolume_id = after
+                restored = storage.StorageOwnerReply(); restored.CopyFrom(reply)
+                restored.copy_stage.destination_subvolume_id = before
+                if restored != unchanged:
+                    raise RuntimeError('mutation changed another receipt field')
+                audit['mutations'].append({'field':'destination_subvolume_id','before':before,'after':after})
+            send(client, reply.SerializeToString(deterministic=True))
+        relay.close()
+        _, status = os.waitpid(child, 0); waited = True
+        audit['broker_exit'] = os.waitstatus_to_exitcode(status)
+        audit['owner_stderr'] = owner.communicate(timeout=10)[1]
+        audit['owner_exit'] = owner.returncode
+        if audit['broker_exit'] or owner.returncode:
+            raise RuntimeError('authenticated forwarding peer or owner failed')
+    finally:
+        client.close(); relay.close(); owner_channel.close()
+        if not waited:
+            try: os.kill(child, signal.SIGKILL)
+            except ProcessLookupError: pass
+            os.waitpid(child, 0)
+        if owner and owner.poll() is None:
+            owner.kill(); owner.communicate(timeout=10)
+        args.audit.write_text(json.dumps(audit, indent=2, sort_keys=True)+'\n')
+
+
+if __name__ == '__main__':
+    main()

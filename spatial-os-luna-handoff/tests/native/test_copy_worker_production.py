@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import pwd
+import signal
 import socket
 import stat
 import subprocess
@@ -80,12 +81,23 @@ def stop_unit_and_verify():
         raise RuntimeError(f'temporary unit did not become inactive: {current!r}')
 
 
+def reject_sanitizer_diagnostics(*outputs):
+    for output in outputs:
+        if any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:')):
+            raise RuntimeError('sanitizer diagnostics in fixture output: '+output)
+
+
 def run(argv, timeout=120, check=True):
     result = subprocess.run(list(map(str, argv)), capture_output=True, text=True, timeout=timeout)
     record['commands'].append({'argv': list(map(str, argv)), 'exit': result.returncode,
                                'stdout': result.stdout, 'stderr': result.stderr})
+    reject_sanitizer_diagnostics(result.stdout, result.stderr)
     if check and result.returncode: raise RuntimeError(f'{argv}: {result.stdout}\n{result.stderr}')
     return result
+
+
+def drop_to_operator():
+    os.setgroups([]); os.setgid(gid); os.setuid(uid)
 
 
 def start_owner_client(mode):
@@ -98,7 +110,7 @@ def start_owner_client(mode):
                'fd=s.detach(); os.set_inheritable(fd,True); os.execv(sys.argv[2],[sys.argv[2],str(fd),*sys.argv[3:]])')
     def enter_scope():
         (scope/'cgroup.procs').write_text(str(os.getpid())+'\n')
-        os.setgroups([]); os.setgid(gid); os.setuid(uid)
+        drop_to_operator()
     client = subprocess.Popen([sys.executable, '-c', wrapper, str(socket_path), str(BUILD/'spatial-copy-worker-production-probe'),
                               str(volume), str(EVIDENCE/'resource.textproto'), mode],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
@@ -110,9 +122,19 @@ def start_owner_client(mode):
     configuration.broker_uid = uid; configuration.broker_pid = client.pid
     config_path = Path('/run')/('m07-copy-owner-'+uuid.uuid4().hex+'.pb')
     config_path.write_bytes(configuration.SerializeToString(deterministic=True)); config_path.chmod(0o600); config_paths.append(config_path)
-    owner = subprocess.Popen([str(BUILD/'spatial-storage-owner'), '--channel-fd', str(connection.fileno()),
-                              '--config', str(config_path)], pass_fds=[connection.fileno()],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    relay_mode = mode in ('receipt-binding', 'receipt-control')
+    audit_path = EVIDENCE / (mode+'-relay.json')
+    if relay_mode:
+        relay_command = [sys.executable, str(SOURCE/'tests/native/storage_owner_receipt_relay.py'),
+                         '--channel-fd', str(connection.fileno()), '--build', str(BUILD),
+                         '--config', str(config_path), '--audit', str(audit_path)]
+        if mode == 'receipt-binding': relay_command.append('--mutate')
+        owner = subprocess.Popen(relay_command, pass_fds=[connection.fileno()],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, start_new_session=True)
+    else:
+        owner = subprocess.Popen([str(BUILD/'spatial-storage-owner'), '--channel-fd', str(connection.fileno()),
+                                  '--config', str(config_path)], pass_fds=[connection.fileno()],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, start_new_session=True)
     connection.close(); connections.remove(connection)
     started = time.monotonic()
     samples = []
@@ -146,11 +168,31 @@ def start_owner_client(mode):
         time.sleep(.001)
     stdout, stderr = client.communicate(timeout=5)
     owner_stderr = owner.communicate(timeout=10)[1]
-    result = {'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'scopes':samples}
+    test_id = {'receipt-binding':'copy_stage_begin_receipt_destination_binding_fences_before_worker',
+               'receipt-control':'copy_stage_authorized_receipt_relay_reaches_worker'}.get(mode, mode)
+    result = {'test_id':test_id,'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'scopes':samples}
     record['witnesses'].append(result)
+    reject_sanitizer_diagnostics(stdout, stderr, owner_stderr)
     if client.returncode: raise RuntimeError(json.dumps(result, indent=2))
     if owner.returncode: raise RuntimeError('Storage owner failed: '+owner_stderr)
-    if mode=='success':
+    if relay_mode:
+        audit = json.loads(audit_path.read_text())
+        result['relay'] = audit
+        reject_sanitizer_diagnostics(audit.get('owner_stderr',''))
+        assert audit['peer_uid'] == 0 and audit['broker_uid'] == uid
+        assert audit['broker_exit'] == 0 and audit['owner_exit'] == 0 and audit['client_eof']
+        assert audit['requests'].count('copy_stage_begin') >= 1, audit
+        if mode == 'receipt-binding':
+            assert 'BEGIN_BINDING_REJECTED UNAVAILABLE exact-cause channel=fenced destination=unchanged worker=unprepared' in stdout
+            assert len(audit['mutations']) == 1 and audit['mutations'][0]['field'] == 'destination_subvolume_id'
+            assert audit['requests'].count('copy_stage_begin') == 1
+            assert audit['requests'][-1] == 'copy_stage_begin', audit
+            assert not any(method in audit['requests'] for method in ('copy_stage_start','copy_stage_seal','copy_stage_uncertain','copy_stage_inspect'))
+            assert not samples, samples
+        else:
+            assert not audit['mutations']
+            assert audit['requests'].count('copy_stage_start') == 1 and audit['requests'].count('copy_stage_seal') == 1
+    if mode in ('success','receipt-control'):
         assert 'retry=identical inode=independent' in stdout
         assert any(sample.get('memory.max')==str(256*2**20) and sample.get('pids.max')=='16' and
                    sample.get('cpu.max')=='200000 100000' for sample in samples), samples
@@ -178,6 +220,7 @@ try:
     (package/'operator-storage.textproto').write_bytes((SOURCE/'config/operator-storage.textproto').read_bytes())
     (package/'test_storage_snapshot.py').write_bytes((SOURCE/'tests/core/test_storage_snapshot.py').read_bytes())
     (package/'test_copy_worker_production.py').write_bytes(Path(__file__).read_bytes())
+    (package/'storage_owner_receipt_relay.py').write_bytes((SOURCE/'tests/native/storage_owner_receipt_relay.py').read_bytes())
     record['package_sha256']={str(p.relative_to(package)):hashlib.sha256(p.read_bytes()).hexdigest() for p in package.rglob('*') if p.is_file()}
     template=broker.StorageVolumeDefinition(); text_format.Parse((SOURCE/'config/operator-storage.textproto').read_text(),template)
     template.name=name; policy=template.owner_policy; policy.broker_uid=uid
@@ -224,12 +267,16 @@ try:
     leak=run([BUILD/'spatial-copy-worker-production-probe','-1',volume,resource_path,'fd-leak'])
     assert 'MALFORMED_OWNER_FD_STABLE 32' in leak.stdout
     record['malformed_owner_fd_regression']=leak.stdout.strip()
+    start_owner_client('receipt-control')
+    start_owner_client('receipt-binding')
     start_owner_client('success')
     start_owner_client('symlink')
     restart_evidence=EVIDENCE/'owner-recovery'; restart_evidence.mkdir(mode=0o700)
+    os.chown(restart_evidence,uid,gid)
     restart_env=dict(os.environ,SPATIAL_SECURITY_EVIDENCE=str(restart_evidence))
-    recovery=subprocess.run([sys.executable,SOURCE/'tests/core/test_storage_snapshot.py',BUILD/'spatial-storage-owner-probe',SOURCE,'-k','copy_stage_claim_is_digest_bound_and_restart_is_uncertain'],capture_output=True,text=True,timeout=300,env=restart_env)
-    record['restart_recovery']={'exit':recovery.returncode,'stdout':recovery.stdout,'stderr':recovery.stderr}
+    recovery=subprocess.run([sys.executable,SOURCE/'tests/core/test_storage_snapshot.py',BUILD/'spatial-storage-owner-probe',SOURCE,'-k','copy_stage_claim_is_digest_bound_and_restart_is_uncertain'],capture_output=True,text=True,timeout=300,env=restart_env,cwd=SOURCE,preexec_fn=drop_to_operator)
+    record['restart_recovery']={'uid':uid,'exit':recovery.returncode,'stdout':recovery.stdout,'stderr':recovery.stderr}
+    reject_sanitizer_diagnostics(recovery.stdout, recovery.stderr)
     if recovery.returncode: raise RuntimeError('COPYING restart recovery regression failed: '+recovery.stdout+' '+recovery.stderr)
 finally:
     if client and client.poll() is None: client.kill(); client.wait(timeout=5)
@@ -248,7 +295,8 @@ finally:
                 socket_path.unlink()
         except Exception as error: record['cleanup_socket_error']=repr(error)
     for config in config_paths: config.unlink(missing_ok=True)
-    if owner and owner.poll() is None: owner.kill(); owner.wait(timeout=5)
+    if owner and owner.poll() is None:
+        os.killpg(owner.pid, signal.SIGKILL); owner.wait(timeout=5)
     try:
         cleanup=run([sys.executable,SOURCE/'tools/provision_storage.py','unmount','--bindings-dir',BUILD/'python','--name',name],check=False)
         if cleanup.returncode: record['cleanup_volume_error']='volume unmount command returned nonzero'

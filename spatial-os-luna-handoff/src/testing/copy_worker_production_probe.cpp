@@ -8,6 +8,9 @@
 #include <sys/socket.h>
 #include <dirent.h>
 #include <thread>
+#include <fstream>
+#include <set>
+#include <memory>
 #include <unistd.h>
 #include <array>
 #include <cerrno>
@@ -45,6 +48,30 @@ void write_all(int fd,const void* data,std::size_t size) {
     auto* bytes=static_cast<const char*>(data);
     while(size){ssize_t n=write(fd,bytes,size);if(n<0&&errno==EINTR)continue;require(n>0,"fake owner response write failed");bytes+=n;size-=static_cast<std::size_t>(n);}
 }
+std::set<std::filesystem::path> cgroup_children() {
+    std::ifstream membership("/proc/self/cgroup"); std::string line, unified;
+    while(std::getline(membership,line)) if(line.starts_with("0::")) unified=line.substr(3);
+    require(!unified.empty()&&unified.front()=='/',"probe lacks a unified cgroup");
+    const auto root=std::filesystem::path("/sys/fs/cgroup")/unified.substr(1);
+    std::set<std::filesystem::path> result;
+    for(const auto& entry:std::filesystem::recursive_directory_iterator(root))
+        if(entry.is_directory())result.insert(entry.path());
+    return result;
+}
+bool empty_directory(int descriptor) {
+    Fd copy(openat(descriptor,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC));
+    require(copy.value>=0,"cannot inspect pinned destination");
+    std::unique_ptr<DIR,decltype(&closedir)> directory(fdopendir(copy.value),&closedir);
+    require(directory!=nullptr,"cannot open destination entries");
+    copy.value=-1; bool empty=true;
+    for(;;) {
+        errno=0;const auto* entry=readdir(directory.get());
+        if(!entry){require(errno==0,"cannot read destination entries");break;}
+        if(std::string(entry->d_name)!="."&&std::string(entry->d_name)!="..")empty=false;
+    }
+    require(closedir(directory.release())==0,"cannot close destination entries");
+    return empty;
+}
 void exercise_constructor_failure_cleanup(const std::filesystem::path& volume) {
     const auto baseline=descriptor_count();
     for(int attempt=0;attempt<32;++attempt) {
@@ -65,7 +92,7 @@ int main(int argc,char** argv) {
     namespace pb=spatial::workspace::v1;
     try {
         if(argc!=5)throw std::invalid_argument("Expected storage fd, volume, resource config, and mode");
-        const auto mode=std::string(argv[4]); if(mode!="success"&&mode!="symlink"&&mode!="fd-leak")throw std::invalid_argument("Invalid probe mode");
+        const auto mode=std::string(argv[4]); if(mode!="success"&&mode!="symlink"&&mode!="fd-leak"&&mode!="receipt-binding"&&mode!="receipt-control")throw std::invalid_argument("Invalid probe mode");
         if(mode=="fd-leak") { require(geteuid()==0,"fd-leak probe requires root owner credentials"); exercise_constructor_failure_cleanup(argv[2]); std::cout<<"MALFORMED_OWNER_FD_STABLE 32\n"; return 0; }
         spatial::StorageClient storage(std::stoi(argv[1]),argv[2]);
         spatial::WorkspaceResources resources(argv[3]);
@@ -80,7 +107,7 @@ int main(int argc,char** argv) {
         constexpr char filename[]="production-copy-probe.bin";
         const std::size_t payload_size=24*1024*1024;
         std::vector<char> payload(payload_size,'p');
-        if(mode=="success") {
+        if(mode!="symlink") {
             Fd file(openat(project_fd.value,filename,O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC,0600));
             std::size_t written=0;while(written<payload.size()){const auto n=write(file.value,payload.data()+written,payload.size()-written);require(n>0,"cannot write source witness");written+=static_cast<std::size_t>(n);}
             require(file.value>=0&&fsync(file.value)==0,"cannot create source witness");
@@ -94,10 +121,41 @@ int main(int argc,char** argv) {
         pb::StorageObject staging; staging.set_kind(pb::StorageObject::COPY_STAGING); staging.set_id(object_id());
         request.Clear(); request.mutable_copy_stage_prepare()->mutable_object()->CopyFrom(staging);
         request.mutable_copy_stage_prepare()->mutable_repository()->CopyFrom(repo);
-        (void)storage.call(std::move(request));
+        const auto staging_state=storage.call(std::move(request));
         pb::StorageCopyStageBegin intent; *intent.mutable_snapshot_object()=snapshot.snapshot_object();
         *intent.mutable_destination_object()=staging; intent.set_operation_id(random_bytes(16));
         intent.set_request_digest(digest(intent.SerializeAsString())); intent.set_maximum_bytes(32*1024*1024); intent.set_maximum_entries(32);
+        if(mode=="receipt-binding") {
+            Fd pinned_destination(storage.open_object(staging_state));
+            struct stat before{},after{};
+            require(empty_directory(pinned_destination.value)&&fstat(pinned_destination.value,&before)==0,
+                    "negative destination is not initially empty");
+            const auto groups_before=cgroup_children();
+            try { (void)spatial::copy_registered_snapshot_to_staging(storage,resources,intent); }
+            catch(const spatial::WorldError& error) {
+                require(error.code==spatial::wire::UNAVAILABLE&&std::string(error.what())==
+                    "Storage owner copy receipt does not match pinned stage intent",
+                    "malformed BEGIN did not reach pinned-intent binding guard");
+                require(empty_directory(pinned_destination.value)&&fstat(pinned_destination.value,&after)==0&&
+                    before.st_dev==after.st_dev&&before.st_ino==after.st_ino&&before.st_size==after.st_size&&
+                    before.st_mtim.tv_sec==after.st_mtim.tv_sec&&before.st_mtim.tv_nsec==after.st_mtim.tv_nsec&&
+                    before.st_ctim.tv_sec==after.st_ctim.tv_sec&&before.st_ctim.tv_nsec==after.st_ctim.tv_nsec,
+                    "binding rejection changed destination entries or metadata");
+                require(cgroup_children()==groups_before,"binding rejection prepared a worker cgroup");
+                try {
+                    pb::StorageCopyStageInspect inspect;inspect.set_operation_id(intent.operation_id());
+                    inspect.set_request_digest(intent.request_digest());(void)storage.inspect_copy_stage(inspect);
+                } catch(const spatial::WorldError& fenced) {
+                    require(fenced.code==spatial::wire::UNAVAILABLE&&std::string(fenced.what())==
+                        "Storage owner unavailable; inspect pending effects before retrying",
+                        "binding failure did not fence storage channel");
+                    std::cout<<"BEGIN_BINDING_REJECTED UNAVAILABLE exact-cause channel=fenced destination=unchanged worker=unprepared\n";
+                    return 0;
+                }
+                throw std::runtime_error("binding rejection left storage channel usable");
+            }
+            throw std::runtime_error("copy accepted mismatched BEGIN destination subvolume");
+        }
         if(mode=="symlink") {
             try { (void)spatial::copy_registered_snapshot_to_staging(storage,resources,intent); }
             catch (const spatial::WorldError& error) {
