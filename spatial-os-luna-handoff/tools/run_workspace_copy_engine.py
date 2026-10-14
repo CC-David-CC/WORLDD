@@ -16,6 +16,25 @@ import uuid
 
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+def selected_method_passed(output,method):
+    pattern=r'^'+re.escape(method)+r' \(.+WorkspaceCopyEngineTests(?:\.'+re.escape(method)+r')?\) \.\.\. ok$'
+    return re.search(pattern,output,re.M) is not None
+def runtime_config_preflight(build):
+    config=build/'runtime.textproto'
+    assert config.is_file() and not config.is_symlink(),'Required runtime.textproto is missing or not a regular file'
+    assert config.stat().st_size<=16384,'runtime.textproto exceeds the runtime loader limit'
+    raw=config.read_bytes()
+    sys.path.insert(0,str(build/'python'))
+    from google.protobuf import text_format
+    import core_pb2
+    parsed=core_pb2.RuntimeConfig()
+    text_format.Parse(raw.decode('utf-8'),parsed)
+    helper_paths={name:build/name for name in ('spatial-copy-tree-worker','spatial-copy-finalize-worker')}
+    for name,path in helper_paths.items():
+        assert path.is_file() and not path.is_symlink() and path.stat().st_mode&0o111, 'Required copy helper is missing or not executable: '+name
+    helpers={name:digest(path) for name,path in helper_paths.items()}
+    return dict(path='runtime.textproto',size=len(raw),sha256=hashlib.sha256(raw).hexdigest(),
+        parsed_message='spatial.core.v1.RuntimeConfig',referenced_assets=[],helpers=helpers)
 def helper_state(path):
     if not os.path.lexists(path):return None
     info=path.lstat()
@@ -59,6 +78,10 @@ def main():
     assert helper_state(policy) and policy.read_bytes()==expected_policy
     report['bootstrap']=dict(binary=bootstrap_state,profile=helper_state(policy));save()
     sys.path.insert(0,str(build/'python'))
+    try:
+        report['runtime_preflight']=runtime_config_preflight(build);save()
+    except BaseException as error:
+        report['runtime_status']='setup-failed';report['failure']=repr(error);save();raise
     import broker_pb2 as broker
     installed=[]
     child=None
@@ -92,7 +115,7 @@ def main():
             report['helpers'][name]['installed']=expected;save()
         command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
-                 str(source/'tests/core/test_workspace_copy_engine.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd')]
+                 str(source/'tests/core/test_workspace_copy_engine.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd'),'-v']
         if selected_case:command.append('WorkspaceCopyEngineTests.'+selected_case)
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
@@ -134,6 +157,8 @@ def main():
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
         assert re.search(r'Ran '+str(report['selected_methods'])+r' tests? in ',output) and '\nOK' in output,output[-16000:]
+        if selected_case:
+            assert selected_method_passed(output,selected_case), 'Exact selected method did not report PASS: '+selected_case
         report['runtime_status']='focused-pass'
     except BaseException as error:
         report['runtime_status']='failed-or-incomplete';report['failure']=repr(error);raise
