@@ -134,3 +134,26 @@ The first diagnostic Debug build at94d3b20 failed at compilation.
 WorldError accepts const char*, so its dynamic exit-status message now uses a scoped string and c_str().
 No WorldError API changes were needed.
 Failure logs remain at a5500:/home/dflanag3/spatial-artifacts/runs/m07-copy-diagnostics-debug-94d3b20.
+
+The348 Debug diagnostic attempt reported child exit_status1 and:
+bwrap: Can't find source path /proc/self/fd/7: No such file or directory
+Its retained evidence is sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-nfm4h8to.
+Both physical negative markers and FD32 passed; the authorized control failed.
+All three roots were explicitly empty and removed, with applied volume/helper/socket/unit cleanup.
+The installed package reports bubblewrap0.9.0-1ubuntu0.3.
+Bubblewrap's path-bind source canonicalization explains the anonymous memfd failure.
+This is not evidence that ProcessScope closed FD7.
+The inherited descriptor mapping and dup2 clearing CLOEXEC are correct.
+
+The sealed job now uses --ro-bind-data7 /job.pb.
+Source, destination, helper, and executable descriptor mounts remain unchanged.
+The descriptor contains at most4096 bytes of validated versioned WorkerRequest protobuf.
+Its offset is rewound and its seals remain enforced before launch.
+Bubblewrap reads those fixed bytes into a private read-only bind mount.
+The existing ApplicationProcess sealed Xauthority handoff uses the same data-mount mechanism.
+The tree helper accepts the resulting regular file without a project-file hardlink rule.
+The real authorized relay control is the regression for this launch defect.
+Official source references:
+https://raw.githubusercontent.com/containers/bubblewrap/main/bubblewrap.c
+https://raw.githubusercontent.com/containers/bubblewrap/v0.9.0/bubblewrap.c
+No broader file authority or production validation changes were made.
