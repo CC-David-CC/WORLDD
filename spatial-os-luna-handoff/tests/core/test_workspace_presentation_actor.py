@@ -93,6 +93,36 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.assertTrue(reply.HasField('grant'), reply)
         return reply.grant
 
+    def world_grant_second_via_ancestor(self, world):
+        # Only the broad world grant depends on this enrolled actor.
+        # Workspace grants and exact representation grants retain the admin parent.
+        ancestor_key, ancestor_public = self.key('presentation-grant-ancestor')
+        ancestor_record = self.decide(self.owner_peer, self.enroll(self.owner_peer,
+            self.intent(public=ancestor_public), ancestor_key, ancestor_public)).enrollment
+        ancestor = self.claims(ancestor_record, self.info)
+        peer = world.peers[0]
+        parent = self.world_delegate(peer, self.world_root_grant(peer),
+            self.terms(ancestor, rights=WORLD_RIGHTS, depth=1))
+        self.assertTrue(peer.call(close=session.WorldSessionClose()).closed.closed)
+        self.assertTrue(self.authenticate(peer, ancestor_record, ancestor_key, ancestor_public).HasField('opened'))
+        child = self.world_delegate(peer, parent, self.terms(self.second, rights=WORLD_RIGHTS, depth=0))
+        self.assertEqual(child.parent_id, parent.id)
+        self.assertTrue(peer.call(close=session.WorldSessionClose()).closed.closed)
+        self.assertTrue(self.authenticate(peer).HasField('opened'))
+        return ancestor
+
+    def revoke_world_grant_ancestor(self, ancestor):
+        # The independent issuer remains serviceable while worldd waits for workspaced.
+        operation = world_authority.issuer.IssuerOperation(identity_revoke=world_authority.issuer.IdentityRevoke(
+            target=world_authority.issuer.IdentityReference(
+                kind=world_authority.issuer.ACTOR_TARGET, id=ancestor.actor_id),
+            expected_security_revision=0, reason='presentation world-grant ancestor regression'))
+        reply = self.execute(self.owner_peer, self.challenge(self.owner_peer, operation))
+        self.assertTrue(reply.HasField('identity_status'), reply)
+        self.assertEqual(reply.identity_status.actor_id, ancestor.actor_id)
+        self.assertTrue(reply.identity_status.actor_revoked)
+        self.assertFalse(reply.identity_status.active)
+
     def presentation_state(self, world):
         database = world.state_path / 'world.db'
         uri = 'file:' + str(database) + '?mode=ro'
@@ -176,14 +206,12 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.enroll_second()
         race = {}
         relay = world_authority.RelayingIssuer(self,
-            lambda: self.world_revoke(race['admin'], race['grant']),
-            wait_for_revocation_event=False)
+            lambda: self.revoke_world_grant_ancestor(race['ancestor']))
         # The scoped workspace check batches actor statuses into one issuer request.
         relay.trigger_after_status = 1
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
-        world_grant = self.world_grant_second(world, WORLD_RIGHTS)
-        race.update(admin=admin, grant=world_grant)
+        race['ancestor'] = self.world_grant_second_via_ancestor(world)
         self.grant_second(world, [grant.WORKSPACE_ACCESS, grant.WORKSPACE_PRESENTATION_ATTACH])
         peer = world.peers[1]
         self.assertTrue(self.authenticate_second(peer).HasField('opened'))
@@ -199,7 +227,12 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
             transform=pose(4), expected_representation_generation=1)
         moved = peer.act(presentation_move=move)
         self.assertTrue(moved.HasField('action'), moved)
+        # Exact view grants survive; only the ancestor supplies move authority.
+        for room in (entry, destination):
+            self.world_grant_second(world, [grant.WORLD_OBSERVE, grant.REPRESENTATION_VIEW],
+                components=[room, move.representation_id])
         revision_before_replay = world.management('world.info')['world_revision']
+        state_before_replay = self.presentation_state(world)
 
         relay.armed.set()
         replay = peer.act(presentation_move=move)
@@ -211,7 +244,21 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.assertEqual(status_count, 1)
         self.assertTrue(replay.HasField('error'), replay)
         self.assertEqual(replay.error.code, core.FORBIDDEN)
+        self.assertEqual(replay.error.message, 'Presentation action authority changed')
+        self.assertTrue(relay.delivered.is_set())
+        self.assertFalse(relay.errors)
         self.assertEqual(world.management('world.info')['world_revision'], revision_before_replay)
+        self.assertEqual(self.presentation_state(world), state_before_replay)
+        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
+        # Restore only move authority. A successful replay proves that exact world
+        # view grants and independent workspace access survived ancestor revocation.
+        self.world_grant_second(world, [grant.REPRESENTATION_MOVE])
+        restored = peer.act(presentation_move=move)
+        self.assertTrue(restored.HasField('action'), restored)
+        self.assertEqual(restored.action.presentation, moved.action.presentation)
+        self.assertFalse(restored.action.presentation.locked)
+        self.assertEqual(world.management('world.info')['world_revision'], revision_before_replay)
+        self.assertEqual(self.presentation_state(world), state_before_replay)
 
     def workspace_grant_second_domain(self, world, domain, rights):
         peer = world.peers[0]
@@ -232,13 +279,11 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.enroll_second()
         race = {}
         relay = world_authority.RelayingIssuer(self,
-            lambda: self.world_revoke(race["admin"], race["broad"]),
-            wait_for_revocation_event=False)
+            lambda: self.revoke_world_grant_ancestor(race["ancestor"]))
         relay.trigger_after_status = 1
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
-        broad = self.world_grant_second(world, WORLD_RIGHTS)
-        race.update(admin=admin, broad=broad)
+        race["ancestor"] = self.world_grant_second_via_ancestor(world)
         self.grant_second(world, [grant.WORKSPACE_ACCESS, grant.WORKSPACE_PRESENTATION_ATTACH])
         peer = world.peers[1]
         self.assertTrue(self.authenticate_second(peer).HasField("opened"), peer)
@@ -254,6 +299,8 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.assertTrue(valid_geometry.HasField("geometry_view"), valid_geometry)
         self.assertEqual(len(valid_geometry.geometry_view.presentation_views), 1)
 
+        revision_before_race = world.management('world.info')['world_revision']
+        state_before_race = self.presentation_state(world)
         relay.armed.set()
         raced = peer.call(geometry_view=session.WorldGeometryViewRequest())
         self.assertTrue(relay.triggered.wait(.5),
@@ -263,7 +310,21 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         self.assertTrue(raced.HasField("error"), raced)
         self.assertEqual(raced.error.code, core.FORBIDDEN)
         self.assertFalse(raced.HasField("geometry_view"))
+        self.assertTrue(relay.delivered.is_set())
         self.assertFalse(relay.errors)
+        self.assertEqual(world.management('world.info')['world_revision'], revision_before_race)
+        self.assertEqual(self.presentation_state(world), state_before_race)
+        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
+        # Restore generic observation only. The exact view grant and workspace
+        # access must still produce the original unlocked presentation.
+        self.world_grant_second(world, [grant.WORLD_OBSERVE])
+        restored = peer.call(geometry_view=session.WorldGeometryViewRequest())
+        self.assertTrue(restored.HasField('geometry_view'), restored)
+        self.assertEqual(list(restored.geometry_view.presentation_views),
+            list(valid_geometry.geometry_view.presentation_views))
+        self.assertFalse(restored.geometry_view.presentation_views[0].locked)
+        self.assertEqual(world.management('world.info')['world_revision'], revision_before_race)
+        self.assertEqual(self.presentation_state(world), state_before_race)
 
     def test_two_workspace_scene_fence_rejects_later_binding_revocation(self):
         self.enroll_second()
