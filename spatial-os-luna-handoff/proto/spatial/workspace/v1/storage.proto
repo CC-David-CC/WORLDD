@@ -61,6 +61,8 @@ message StorageObject {
     PROJECT = 2;
     APPLICATION_STATE = 3;
     RETIRED = 4;
+    SNAPSHOT = 5;
+    COPY_STAGING = 6;
   }
   Kind kind = 1;
   string id = 2; // Broker-generated 32-character hexadecimal path component.
@@ -85,6 +87,19 @@ message StorageApplicationPrepare {
   string profile = 5;
 }
 message StorageInspect { StorageObject object = 1; }
+// Private authenticated broker-to-owner snapshot operations. IDs are opaque
+// broker identities; the owner resolves them only through its registered catalog.
+message StorageSnapshotPrepare {
+  StorageObject source_object = 1;
+  StorageObject snapshot_object = 2;
+  bytes operation_id = 3; // Exact 16-byte broker operation identity.
+  bytes request_digest = 4; // SHA-256 of the exact broker request payload.
+}
+message StorageSnapshotInspect { StorageObject snapshot_object = 1; }
+message StorageSnapshotRetire {
+  StorageObject snapshot_object = 1;
+  bytes operation_id = 2; // Exact 16-byte retirement operation identity.
+}
 message StorageRetirementPrepare {
   StorageObject object = 1;
   StorageObject repository = 2;
@@ -105,6 +120,10 @@ message StorageObjectState {
   uint64 exclusive_bytes = 5;
   uint64 maximum_bytes = 6;
   bool accounting_consistent = 7;
+  StorageObject source_object = 8;
+  uint64 source_subvolume_id = 9;
+  bool read_only = 10;
+  bytes operation_digest = 11;
 }
 message StorageOwnerRequest {
   uint32 protocol_version = 1;
@@ -117,6 +136,9 @@ message StorageOwnerRequest {
     StorageInspect inspect = 14;
     StorageRetirementPrepare retirement_prepare = 15;
     StorageHello hello = 16;
+    StorageSnapshotPrepare snapshot_prepare = 17;
+    StorageSnapshotInspect snapshot_inspect = 18;
+    StorageSnapshotRetire snapshot_retire = 19;
   }
 }
 message StorageOwnerError {

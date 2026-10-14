@@ -69,7 +69,14 @@ struct WorkspaceAuthority::Impl {
         for (const auto& binding : config.bindings()) {
             domains.push_back(domain(binding.workspace()));
             require(!stores.contains(binding.workspace()), "Duplicate workspace authority binding");
-            execution.workspace_get(binding.workspace());
+            if (binding.workspace() == "workspace-registry") {
+                try {
+                    execution.workspace_get(binding.workspace());
+                    throw std::invalid_argument("Reserved workspace registry cannot have execution state");
+                } catch (const WorldError& error) {
+                    if (error.code != wire::NOT_FOUND) throw;
+                }
+            } else execution.workspace_get(binding.workspace());
             stores.emplace(binding.workspace(), std::make_unique<authority::Store>(binding.authority_directory(), domain(binding.workspace()), false));
         }
         client = std::make_unique<identity::IssuerClient>(config.issuer_client_config());
@@ -296,7 +303,41 @@ WorkspaceAuthority::WorkspaceAuthority(const std::filesystem::path& path, Execut
     : impl_(std::make_unique<Impl>(path, execution)) {}
 WorkspaceAuthority::~WorkspaceAuthority() = default;
 bool WorkspaceAuthority::bound(const std::string& workspace) const { return impl_->stores.contains(workspace); }
+pb::ScopedAuthorityCheckReply WorkspaceAuthority::scoped_check(const pb::ScopedAuthorityCheckRequest& request) {
+    require(!request.workspace().empty() && request.workspace().size() <= 256 && request.workspace().find('\0') == std::string::npos,
+            "Workspace authority identity is invalid");
+    require(request.has_principal(), "Authenticated actor reference is required");
+    principal(request.principal());
+    require(request.components_size() <= 32, "Authority scope exceeds 32 components");
+    std::vector<std::string> components;
+    components.reserve(request.components_size());
+    for (const auto& component : request.components()) {
+        require(!component.empty() && component.size() <= 256, "Invalid opaque authority component");
+        components.push_back(component);
+    }
+    constexpr auto registry = "workspace-registry";
+    if (request.right() == a::WORKSPACE_CREATE) {
+        require(request.workspace() == registry && components.empty(), "Workspace creation authority is registry-scoped");
+    } else if (request.workspace() == registry) {
+        require(request.right() == a::POLICY_ADMINISTER, "Registry authority cannot grant ordinary workspace rights");
+    } else {
+        require(request.right() != a::WORKSPACE_CREATE, "Workspace creation authority is registry-scoped");
+    }
+    try {
+        impl_->prepare(request.workspace(), request.principal());
+    } catch (const WorldError& error) {
+        if (error.code != wire::UNAUTHORIZED || impl_->identity_active(request.principal())) throw;
+    }
+    a::Scope scope; *scope.mutable_domain() = domain(request.workspace());
+    for (const auto& component : components) scope.add_components(component);
+    const auto decision = impl_->store(request.workspace()).check(request.principal(), scope, request.right(),
+        [this](const auto& actor) { return impl_->identity_active(actor); });
+    pb::ScopedAuthorityCheckReply reply; reply.set_allowed(decision.allowed()); reply.set_revision(decision.revision());
+    return reply;
+}
 unsigned WorkspaceAuthority::rights(const pb::AccessRequest& request, bool fresh) {
+    if (request.workspace() == "workspace-registry")
+        throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no executable workspace access");
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Workspace requires authenticated actor authority");
     principal(request.principal());
     require(request.actor() == actor_name(request.principal()), "Workspace actor name does not match authenticated principal");
@@ -413,7 +454,14 @@ void initialize_workspace_authority(const std::filesystem::path& path, Execution
     pb::WorkspaceAuthoritySeed seed;
     require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &seed), "Invalid workspace authority seed");
     validate_message(seed); require(seed.protocol_version() == 1, "Unsupported workspace authority seed version");
-    execution.workspace_get(seed.workspace());
+    if (seed.workspace() == "workspace-registry") {
+        try {
+            execution.workspace_get(seed.workspace());
+            throw std::invalid_argument("Reserved workspace registry cannot have execution state");
+        } catch (const WorldError& error) {
+            if (error.code != wire::NOT_FOUND) throw;
+        }
+    } else execution.workspace_get(seed.workspace());
     authority::Store store(seed.authority_directory(), domain(seed.workspace()), true);
     store.install_roots({seed.roots().begin(), seed.roots().end()}, 0);
 }

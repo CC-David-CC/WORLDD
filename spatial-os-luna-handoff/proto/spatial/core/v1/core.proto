@@ -408,7 +408,23 @@ message WorkspaceReply { string id = 1; string worktree = 2; repeated WorkspaceR
 message WorkspaceAck { bool accepted = 1; }
 message ProcessLaunchReply { string process_id = 1; string workspace = 2; }
 message ProcessWaitReply { optional sint32 exit_code = 1; }
-message ActorActionReply { bool accepted = 1; AimReply aim = 2; ActorObservation observation = 3; WorktreeReply worktree = 4; ProcessLaunchReply process = 5; }
+// Filtered public presentation data. Never include workspace or file metadata.
+message PresentationView {
+  bytes representation_id = 1;
+  string room_id = 2;
+  Pose transform = 3;
+  uint64 generation = 4;
+  bool locked = 5;
+}
+message ActorActionReply {
+  bool accepted = 1;
+  AimReply aim = 2;
+  ActorObservation observation = 3;
+  WorktreeReply worktree = 4;
+  ProcessLaunchReply process = 5;
+  PresentationView presentation = 6;
+  spatial.workspace.copy.v1.WorkspaceCopyStatus copy_status = 7;
+}
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }
 message ClockReply { double seconds = 1; }

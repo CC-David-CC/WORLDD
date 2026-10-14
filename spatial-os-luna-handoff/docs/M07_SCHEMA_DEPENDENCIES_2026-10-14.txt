@@ -18,3 +18,8 @@ The private SnapshotReceipt is journal data. Public WorkspaceCopyStatus reserves
 ## Runtime boundary
 
 Presentation handlers, copy execution, snapshot operations, persistence, publication, and CTest registrations remain unimplemented. Reserved actor actions must fail closed under the existing authenticated actor session and dispatch path. No direct actor-facing broker bypass exists. Workspace availability, selection, membership, credentials, grants, processes, and leases remain untouched.
+
+
+M07 authorization bridge contract update: public core.PresentationView is defined in spatial.core.v1 and uses canonical core.Pose. The workspace.presentation.v1 package owns only private resolve messages. ActorActionReply fields 6 and 7 hold the filtered view and public copy status. Neither reply carries workspace identity, paths, receipt IDs, or request digests.
+The scoped authorization query is private to the authenticated inherited broker channel. Its reply contains only allowed and authority revision. A private decision is not a copy execution grant. Copy consumers must apply operation-specific policy and default-deny rules. Legacy workspace membership is never consulted. Existing execution policy ceilings remain in force where those rights map to them. Presentation attachment uses its exact authority right.
+The reserved WORKSPACE domain ID workspace-registry may hold a distinct authority database without an execution row. WORKSPACE_CREATE is valid only at that domain with no components. Ordinary workspace data/process rights are invalid there. POLICY_ADMINISTER retains existing validation compatibility. ExecutionStore rejects workspace creation under the reserved ID.

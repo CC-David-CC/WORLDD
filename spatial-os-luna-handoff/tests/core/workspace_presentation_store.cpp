@@ -79,11 +79,11 @@ int main() {
             expect(move_replay.generation==2 && move_replay.room_id=="office","move replay returns committed result");
             bool stale=false;try { store.move_presentation(rep_a,"meeting",pose(7),1,move_stale,request_stale,principal); } catch(const WorldError& e) { stale=e.code==wire::REVISION_CONFLICT; }
             expect(stale,"stale generation is rejected");
-            auto visible=visible_presentations(store,"office",[](const auto&,const auto& id){return id==rep_a;},[](const auto&){return false;},[](const auto&,const auto&){return false;});
+            auto visible=visible_presentations(store,"office",[&rep_a](const auto&,const auto& id){return id==rep_a;},[](const auto&){return false;},[](const auto&,const auto&){return false;});
             expect(visible.size()==1 && visible.front().locked && visible.front().representation_id==rep_a,"scoped view omits unauthorized geometry and retains locked permitted geometry");
-            auto hidden=visible_presentations(store,"office",[](const auto&,const auto&){return true;},[](const auto&){return true;},[](const auto&,const auto&){return true;});
+            auto hidden=visible_presentations(store,"office",[](const auto&,const auto&){return false;},[](const auto&){return true;},[](const auto&,const auto&){return true;});
             expect(hidden.empty(),"world observation denial removes geometry");
-            auto uses=visible_presentations(store,"office",[](const auto&,const auto&){return true;},[](const auto& workspace){return workspace=="shared-workspace";},[](const auto& id,const auto& workspace){return id==rep_a && workspace=="shared-workspace";});
+            auto uses=visible_presentations(store,"office",[](const auto&,const auto&){return true;},[](const auto& workspace){return workspace=="shared-workspace";},[&rep_a](const auto& id,const auto& workspace){return id==rep_a && workspace=="shared-workspace";});
             expect(uses.size()==2 && !uses.front().locked && uses.front().usable && !uses.back().usable,"workspace use is freshly checked per representation");
             const auto before_failed_create=store.info().world_revision();
             sqlite3* fault_db=nullptr; expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&fault_db)==SQLITE_OK,"open database fault witness");

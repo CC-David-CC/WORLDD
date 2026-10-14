@@ -1,0 +1,462 @@
+"""Bounded immutable storage-owner snapshots on a real Btrfs volume."""
+import errno
+import hashlib
+import json
+import os
+from pathlib import Path
+import select
+import signal
+import struct
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+import uuid
+from google.protobuf import text_format
+import broker_pb2 as broker
+import storage_pb2 as storage
+
+PROBE = Path(sys.argv.pop(1)).resolve()
+SOURCE = Path(sys.argv.pop(1)).resolve()
+
+
+class StorageSnapshotTests(unittest.TestCase):
+    def setUp(self):
+        evidence = Path(os.environ["SPATIAL_SECURITY_EVIDENCE"])
+        self.assertTrue(evidence.is_absolute(), "Snapshot tests require a private evidence directory")
+        self.root = evidence / self._testMethodName
+        self.root.mkdir(mode=0o700, parents=True, exist_ok=False)
+        self.root.chmod(0o700)
+        self.name = "m07-snap-" + uuid.uuid4().hex[:18]
+        self.entry = Path("/var/lib/spatial/volumes") / self.name
+        self.volume = self.entry / "volume"
+        self.definition_path = self.root / "definition.textproto"
+        definition = broker.StorageVolumeDefinition()
+        text_format.Parse((SOURCE / "config/operator-storage.textproto").read_text(), definition)
+        definition.name = self.name
+        policy = definition.owner_policy
+        policy.broker_uid = os.getuid()
+        policy.volume_bytes = 512 * 2**20
+        policy.control_plane_bytes = 64 * 2**20
+        policy.filesystem_reserve_bytes = 64 * 2**20
+        policy.default_policy.total_bytes = 8 * 2**20
+        policy.default_policy.actor_state_default_bytes = 4 * 2**20
+        for profile in policy.default_policy.profiles:
+            profile.state_bytes = 4 * 2**20
+        self.definition_path.write_text(text_format.MessageToString(definition))
+        self.create_attempted = False
+        self.owner = None
+        self.owner_generation = 0
+        self.owner_pid = None
+        self.owner_start_time = None
+        self.evidence_path = self.root / "evidence.json"
+        self.owner_config = self.root / "owner.pb"
+        self.sequence = 0
+        self.addCleanup(self.cleanup)
+        self.create_attempted = True
+        self.provision("create")
+        raw = subprocess.run(["sudo", "-n", "cat", str(self.entry / "owner.pb")],
+                             check=True, capture_output=True, timeout=5).stdout
+        config = storage.StorageOwnerConfig.FromString(raw)
+        config.broker_uid = os.getuid()
+        config.broker_pid = os.getpid()
+        config.default_policy.total_bytes = 8 * 2**20
+        config.default_policy.actor_state_default_bytes = 4 * 2**20
+        for profile in config.default_policy.profiles:
+            profile.state_bytes = 4 * 2**20
+        self.owner_config.write_bytes(config.SerializeToString(deterministic=True))
+        self.owner_config.chmod(0o600)
+        self.start_owner()
+
+    def provision(self, operation):
+        command = ["sudo", "-n", sys.executable, str(SOURCE / "tools/provision_storage.py"),
+                   operation, "--bindings-dir", str(PROBE.parent / "python")]
+        command += ["--definition", str(self.definition_path)] if operation == "create" else ["--name", self.name]
+        if operation != "inspect":
+            command.append("--apply")
+        result = subprocess.run(command, capture_output=True, text=True, timeout=90)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        return result.stdout
+
+    def record_evidence(self, section, key, **fields):
+        try:
+            data = json.loads(self.evidence_path.read_text())
+        except FileNotFoundError:
+            data = {"test": self._testMethodName, "owners": {}, "cleanup": []}
+        if section == "owners":
+            entry = data.setdefault("owners", {}).setdefault(str(key), {})
+            entry.update(fields)
+        else:
+            data.setdefault(section, []).append({"key": key, **fields})
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=self.root,
+                                         prefix=".evidence-", delete=False) as output:
+            json.dump(data, output, sort_keys=True, indent=2)
+            output.write("\n")
+            output.flush()
+            os.fsync(output.fileno())
+            os.fchmod(output.fileno(), 0o600)
+            temporary = Path(output.name)
+        os.replace(temporary, self.evidence_path)
+        self.evidence_path.chmod(0o600)
+
+    @staticmethod
+    def process_start_time(pid):
+        try:
+            contents = Path(f"/proc/{pid}/stat").read_text()
+        except FileNotFoundError:
+            return None
+        close = contents.rfind(")")
+        if close < 0:
+            raise ValueError(f"Malformed process identity for PID {pid}")
+        fields = contents[close + 2:].split()
+        return fields[19]
+
+    def owner_diagnostics(self):
+        path = self.root / f"owner-{self.owner_generation}.stderr.log"
+        try:
+            with path.open("rb") as source:
+                source.seek(0, os.SEEK_END)
+                size = source.tell()
+                source.seek(max(0, size - 4096))
+                return source.read(4096).decode(errors="replace")
+        except FileNotFoundError:
+            return "(owner stderr log is unavailable)"
+
+    def start_owner(self):
+        self.owner_generation += 1
+        stderr_path = self.root / f"owner-{self.owner_generation}.stderr.log"
+        stderr_path.touch(mode=0o600, exist_ok=True)
+        stderr_path.chmod(0o600)
+        stderr_file = stderr_path.open("ab", buffering=0)
+        try:
+            try:
+                self.owner = subprocess.Popen(
+                    ["sudo", "-n", str(PROBE), str(self.owner_config)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr_file,
+                    start_new_session=True)
+            except Exception as error:
+                self.record_evidence("owners", self.owner_generation,
+                                     launch_pid=None, launch_error=repr(error),
+                                     terminal_exit_code=None, owner_gone=None, uncertain=True)
+                raise
+        finally:
+            stderr_file.close()
+        self.owner_pid = None
+        self.owner_start_time = None
+        self.record_evidence("owners", self.owner_generation,
+                             launch_pid=self.owner.pid, stderr_file=str(stderr_path),
+                             terminal_exit_code=None, owner_gone=None, uncertain=True)
+        request = storage.StorageOwnerRequest()
+        request.hello.SetInParent()
+        reply = self.call(request)
+        self.assertTrue(reply.HasField("identity"), reply)
+        self.owner_pid = reply.identity.process_id
+        self.record_evidence("owners", self.owner_generation,
+                             actual_owner_hello_pid=self.owner_pid, uncertain=True)
+        self.owner_start_time = self.process_start_time(self.owner_pid)
+        self.assertIsNotNone(self.owner_start_time, "owner Hello PID has no readable process identity")
+        self.record_evidence("owners", self.owner_generation,
+                             actual_owner_hello_pid=self.owner_pid,
+                             actual_owner_start_time=self.owner_start_time,
+                             uncertain=False)
+
+    def stop_owner(self):
+        owner = self.owner
+        if owner is None:
+            return
+        failures = []
+        try:
+            owner.stdin.close()
+        except Exception as error:
+            failures.append(f"closing owner input failed: {error}")
+        try:
+            result = owner.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            failures.append("owner did not stop after stdin close")
+            result = None
+        except Exception as error:
+            failures.append(f"waiting for owner failed: {error}")
+            result = owner.poll()
+        if result is None:
+            try:
+                os.killpg(owner.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            except OSError as error:
+                failures.append(f"signalling owner process group failed: {error}")
+            try:
+                result = owner.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                failures.append("owner process group did not stop after SIGTERM")
+                try:
+                    os.killpg(owner.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                except OSError as error:
+                    failures.append(f"stopping owner process group failed: {error}")
+                try:
+                    result = owner.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    result = owner.poll()
+                    failures.append("owner process group remains after bounded SIGKILL wait")
+                except Exception as error:
+                    result = owner.poll()
+                    failures.append(f"waiting after SIGKILL failed: {error}")
+            except Exception as error:
+                result = owner.poll()
+                failures.append(f"waiting after SIGTERM failed: {error}")
+        if result not in (0, None):
+            failures.append(f"owner exited with status {result}")
+        owner_gone = None
+        identity_error = None
+        if self.owner_pid is not None and self.owner_start_time is not None:
+            deadline = time.monotonic() + 2
+            while True:
+                try:
+                    current = self.process_start_time(self.owner_pid)
+                    owner_gone = current != self.owner_start_time
+                except Exception as error:
+                    identity_error = str(error)
+                    owner_gone = False
+                if owner_gone or time.monotonic() >= deadline:
+                    break
+                time.sleep(0.05)
+            if not owner_gone:
+                failures.append("owner Hello process remains present after bounded shutdown")
+                if identity_error:
+                    failures.append("owner process identity check failed: " + identity_error)
+        else:
+            failures.append("actual owner Hello PID was never proven; process exit is uncertain")
+        try:
+            owner.stdout.close()
+        except Exception as error:
+            failures.append(f"closing owner output failed: {error}")
+        self.owner = None
+        uncertain = result is None or not owner_gone
+        try:
+            self.record_evidence("owners", self.owner_generation,
+                                 terminal_exit_code=result, owner_gone=owner_gone,
+                                 uncertain=uncertain, shutdown_errors=failures)
+        except Exception as error:
+            failures.append(f"writing owner evidence failed: {error}")
+        if failures:
+            raise AssertionError("; ".join(failures) + "\n" + self.owner_diagnostics())
+
+    def cleanup(self):
+        failures = []
+        if self.owner is not None:
+            try:
+                self.stop_owner()
+            except Exception as error:
+                failures.append(f"owner shutdown: {error}")
+        if self.create_attempted:
+            unmount_error = None
+            try:
+                self.provision("unmount")
+            except Exception as error:
+                unmount_error = str(error)
+                failures.append(f"volume unmount: {error}")
+            inspection = None
+            inspect_error = None
+            try:
+                inspection = json.loads(self.provision("inspect"))
+                if inspection.get("status") != "verified" or inspection.get("mounted") is not False or inspection.get("loop") is not None:
+                    raise AssertionError(f"volume inspect does not prove detached state: {inspection}")
+            except Exception as error:
+                inspect_error = str(error)
+                failures.append(f"volume detached-state inspection: {error}")
+            try:
+                self.record_evidence("cleanup", self._testMethodName,
+                                     unmount_error=unmount_error,
+                                     detached_inspection=inspection,
+                                     inspection_error=inspect_error,
+                                     cleanup_uncertain=bool(unmount_error or inspect_error))
+            except Exception as error:
+                failures.append(f"writing cleanup evidence failed: {error}")
+        if failures:
+            raise AssertionError("\n".join(failures))
+
+    def read_exact(self, count):
+        result = bytearray()
+        deadline = time.monotonic() + 10
+        while len(result) < count:
+            self.assertLess(time.monotonic(), deadline, "timed out reading private owner probe")
+            if not select.select([self.owner.stdout], [], [], 0.05)[0]:
+                continue
+            chunk = os.read(self.owner.stdout.fileno(), count - len(result))
+            self.assertTrue(chunk, "owner closed its response stream; " + self.owner_diagnostics())
+            result.extend(chunk)
+        return bytes(result)
+
+    def call(self, request):
+        self.sequence += 1
+        request.protocol_version = 1
+        request.request_id = self.sequence
+        payload = request.SerializeToString(deterministic=True)
+        self.owner.stdin.write(struct.pack("!I", len(payload)) + payload)
+        self.owner.stdin.flush()
+        size = struct.unpack("!I", self.read_exact(4))[0]
+        self.assertLessEqual(size, 1024 * 1024)
+        return storage.StorageOwnerReply.FromString(self.read_exact(size))
+
+    def state(self, request):
+        reply = self.call(request)
+        self.assertTrue(reply.HasField("state"), reply)
+        return reply.state
+
+    def error(self, request, code):
+        reply = self.call(request)
+        self.assertTrue(reply.HasField("error"), reply)
+        self.assertEqual(reply.error.code, getattr(storage.StorageOwnerError, code), reply.error)
+        return reply.error
+
+    def create_source(self, repo_id, project_id):
+        repo = storage.StorageObject(kind=storage.StorageObject.REPOSITORY, id=repo_id)
+        req = storage.StorageOwnerRequest()
+        req.repository_prepare.object.CopyFrom(repo)
+        self.state(req)
+        project = storage.StorageObject(kind=storage.StorageObject.PROJECT, id=project_id)
+        req = storage.StorageOwnerRequest()
+        req.project_prepare.object.CopyFrom(project)
+        req.project_prepare.repository.CopyFrom(repo)
+        state = self.state(req)
+        path = self.volume / "worktrees" / project_id
+        return repo, project, state, path
+
+    def prepare(self, source, snapshot_id, operation_id=None):
+        snapshot = storage.StorageObject(kind=storage.StorageObject.SNAPSHOT, id=snapshot_id)
+        operation = operation_id or uuid.uuid4().bytes
+        prepare = storage.StorageSnapshotPrepare(source_object=source, snapshot_object=snapshot,
+                                                   operation_id=operation)
+        prepare.request_digest = hashlib.sha256(prepare.SerializeToString(deterministic=True)).digest()
+        request = storage.StorageOwnerRequest()
+        request.snapshot_prepare.CopyFrom(prepare)
+        return request
+
+    def test_readonly_capture_is_idempotent_digest_bound_and_source_independent(self):
+        repo_id, project_id, snapshot_id = (uuid.uuid4().hex for _ in range(3))
+        repo, source, _, source_path = self.create_source(repo_id, project_id)
+        marker = source_path / "capture.bin"
+        original = bytes(range(256)) * 512
+        marker.write_bytes(original)
+        request = self.prepare(source, snapshot_id)
+        state = self.state(request)
+        snapshot_path = self.volume / "snapshots" / snapshot_id
+        snapshot_marker = snapshot_path / "capture.bin"
+        self.assertTrue(state.read_only)
+        self.assertEqual(state.source_object, source)
+        self.assertEqual(state.operation_digest, request.snapshot_prepare.request_digest)
+        self.assertGreater(state.referenced_bytes, 0)
+        self.assertGreaterEqual(state.exclusive_bytes, 0)
+        self.assertEqual(marker.read_bytes(), original, "snapshot creation changed its source")
+        with self.assertRaises(OSError) as failure:
+            with snapshot_marker.open("ab") as output:
+                output.write(b"forbidden")
+        self.assertEqual(failure.exception.errno, errno.EROFS)
+        marker.write_bytes(b"new source bytes")
+        self.assertEqual(snapshot_marker.read_bytes(), original)
+        repeated = self.state(request)
+        self.assertEqual(repeated.subvolume_id, state.subvolume_id)
+        self.assertEqual(repeated.referenced_bytes, state.referenced_bytes)
+        changed_digest = storage.StorageOwnerRequest()
+        changed_digest.CopyFrom(request)
+        changed_digest.snapshot_prepare.request_digest = b"x" * 32
+        self.error(changed_digest, "CONFLICT")
+        _, other_source, _, _ = self.create_source(repo_id, uuid.uuid4().hex)
+        changed_source = storage.StorageOwnerRequest()
+        changed_source.CopyFrom(request)
+        changed_source.snapshot_prepare.source_object.CopyFrom(other_source)
+        self.error(changed_source, "CONFLICT")
+        missing = self.prepare(storage.StorageObject(kind=storage.StorageObject.PROJECT, id=uuid.uuid4().hex),
+                               uuid.uuid4().hex)
+        self.error(missing, "UNAVAILABLE")
+        bad_path = self.prepare(storage.StorageObject(kind=storage.StorageObject.PROJECT, id="../escape".ljust(32, "a")),
+                                uuid.uuid4().hex)
+        self.error(bad_path, "INVALID_ARGUMENT")
+
+    def test_snapshot_count_ceiling_and_receipt_checked_retirement(self):
+        repo, source, _, source_path = self.create_source(uuid.uuid4().hex, uuid.uuid4().hex)
+        (source_path / "retire.bin").write_bytes(b"retirement witness")
+        first, second, third = (uuid.uuid4().hex for _ in range(3))
+        first_request = self.prepare(source, first)
+        second_request = self.prepare(source, second)
+        first_state = self.state(first_request)
+        second_state = self.state(second_request)
+        self.assertTrue(first_state.read_only and second_state.read_only)
+        self.error(self.prepare(source, third), "EXHAUSTED")
+        unregistered = storage.StorageOwnerRequest()
+        unregistered.snapshot_retire.snapshot_object.CopyFrom(
+            storage.StorageObject(kind=storage.StorageObject.SNAPSHOT, id=uuid.uuid4().hex))
+        unregistered.snapshot_retire.operation_id = uuid.uuid4().bytes
+        self.error(unregistered, "UNAVAILABLE")
+        retire = storage.StorageOwnerRequest()
+        retire.snapshot_retire.snapshot_object.CopyFrom(first_request.snapshot_prepare.snapshot_object)
+        retire.snapshot_retire.operation_id = uuid.uuid4().bytes
+        retired = self.state(retire)
+        self.assertFalse(retired.read_only)
+        self.assertFalse((self.volume / "snapshots" / first).exists())
+        self.assertTrue((self.volume / "snapshots" / second).exists())
+        repeated = self.state(retire)
+        self.assertEqual(repeated.subvolume_id, first_state.subvolume_id)
+        reused_retire = storage.StorageOwnerRequest()
+        reused_retire.snapshot_retire.snapshot_object.CopyFrom(second_request.snapshot_prepare.snapshot_object)
+        reused_retire.snapshot_retire.operation_id = retire.snapshot_retire.operation_id
+        self.error(reused_retire, "CONFLICT")
+        second_inspect = storage.StorageOwnerRequest()
+        second_inspect.snapshot_inspect.snapshot_object.CopyFrom(
+            second_request.snapshot_prepare.snapshot_object)
+        second_after_conflict = self.state(second_inspect)
+        self.assertTrue(second_after_conflict.read_only)
+        self.assertEqual(second_after_conflict.subvolume_id, second_state.subvolume_id)
+        self.assertEqual((self.volume / "snapshots" / second).exists(), True)
+        self.assertEqual((self.volume / "snapshots" / second / "retire.bin").read_bytes(),
+                         b"retirement witness")
+        self.error(storage.StorageOwnerRequest(snapshot_inspect=storage.StorageSnapshotInspect(
+            snapshot_object=first_request.snapshot_prepare.snapshot_object)), "UNAVAILABLE")
+        third_state = self.state(self.prepare(source, third))
+        self.assertTrue(third_state.read_only)
+        self.error(self.prepare(source, uuid.uuid4().hex), "EXHAUSTED")
+
+    def test_restart_reconciles_pre_receipt_create_and_quarantines_identity_mismatch(self):
+        repo, source, source_state, source_path = self.create_source(uuid.uuid4().hex, uuid.uuid4().hex)
+        (source_path / "recovery.bin").write_bytes(b"crash boundary")
+        first = uuid.uuid4().hex
+        request = self.prepare(source, first)
+        ready = self.state(request)
+        self.stop_owner()
+        # Recreate the durable catalog state immediately after Btrfs creation and
+        # before the ready receipt transaction. The external snapshot remains real.
+        code = ("import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); "
+                "c.execute(\"UPDATE snapshots SET snapshot_subvolume=0,snapshot_uuid=X'',state='pending' WHERE snapshot_id=?\",(sys.argv[2],)); "
+                "c.execute(\"UPDATE objects SET subvolume=0,state='pending' WHERE kind=5 AND id=?\",(sys.argv[2],)); "
+                "c.commit(); c.close()")
+        subprocess.run(["sudo", "-n", sys.executable, "-c", code,
+                        str(self.volume / ".storage-owner" / "catalog.db"), first], check=True, timeout=5)
+        self.start_owner()
+        recovered = self.state(request)
+        self.assertEqual(recovered.subvolume_id, ready.subvolume_id)
+        second = uuid.uuid4().hex
+        second_request = self.prepare(source, second)
+        second_state = self.state(second_request)
+        self.stop_owner()
+        code = ("import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); "
+                "c.execute(\"UPDATE snapshots SET snapshot_uuid=? WHERE snapshot_id=?\",(bytes.fromhex(sys.argv[3]),sys.argv[2])); "
+                "c.commit(); c.close()")
+        subprocess.run(["sudo", "-n", sys.executable, "-c", code,
+                        str(self.volume / ".storage-owner" / "catalog.db"), second,
+                        '00' * 16], check=True, timeout=5)
+        self.start_owner()
+        inspect = storage.StorageOwnerRequest()
+        inspect.snapshot_inspect.snapshot_object.CopyFrom(second_request.snapshot_prepare.snapshot_object)
+        self.error(inspect, "UNCERTAIN")
+        self.assertTrue((self.volume / "snapshots" / second).exists())
+        self.error(second_request, "UNCERTAIN")
+        retire = storage.StorageOwnerRequest()
+        retire.snapshot_retire.snapshot_object.CopyFrom(second_request.snapshot_prepare.snapshot_object)
+        retire.snapshot_retire.operation_id = uuid.uuid4().bytes
+        self.error(retire, "UNCERTAIN")
+
+
+if __name__ == "__main__":
+    unittest.main()

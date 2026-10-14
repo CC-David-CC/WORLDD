@@ -170,7 +170,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
         protobuf::protoc VERBATIM)
 add_custom_target(storage-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py")
 add_dependencies(storage-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf scope-python-protobuf)
-add_dependencies(broker-python-protobuf storage-python-protobuf)
+add_dependencies(broker-python-protobuf storage-python-protobuf workspace-copy-python-protobuf)
 add_dependencies(launch-python-protobuf broker-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -405,7 +405,7 @@ add_executable(identityd src/identity/issuer_main.cpp)
 target_link_libraries(identityd PRIVATE spatial-issuer)
 add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources} ${input_proto_headers})
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
-add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
+add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/workspace_presentations.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
@@ -532,6 +532,17 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-storage-client-probe PRIVATE spatial-storage-client)
     add_executable(spatial-storage-owner-probe src/testing/storage_owner_probe.cpp)
     target_link_libraries(spatial-storage-owner-probe PRIVATE spatial-storage-owner)
+    add_dependencies(spatial-storage-owner-probe broker-python-protobuf storage-python-protobuf)
+    add_test(NAME storage-snapshot-owner COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_snapshot.py"
+        $<TARGET_FILE:spatial-storage-owner-probe> "${CMAKE_CURRENT_SOURCE_DIR}")
+    set_tests_properties(storage-snapshot-owner PROPERTIES TIMEOUT 900
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
+    add_executable(workspace-presentation-store-test tests/core/workspace_presentation_store.cpp)
+    target_include_directories(workspace-presentation-store-test PRIVATE src)
+    target_link_libraries(workspace-presentation-store-test PRIVATE spatial-core)
+    add_test(NAME workspace-presentation-store COMMAND $<TARGET_FILE:workspace-presentation-store-test>)
+    set_tests_properties(workspace-presentation-store PROPERTIES TIMEOUT 60)
     add_dependencies(workspaced broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
         python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
     add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)

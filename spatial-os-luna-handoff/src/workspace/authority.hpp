@@ -14,6 +14,7 @@ public:
     ~WorkspaceAuthority();
     bool bound(const std::string& workspace) const;
     unsigned rights(const workspace::v1::AccessRequest&, bool fresh);
+    workspace::v1::ScopedAuthorityCheckReply scoped_check(const workspace::v1::ScopedAuthorityCheckRequest&);
     ApplicationPermissions application_permissions(const workspace::v1::ApplicationRef&,
         const authority::v1::ActorRef&, bool fresh);
     authority::v1::GrantPage list(const workspace::v1::GrantListRequest&);

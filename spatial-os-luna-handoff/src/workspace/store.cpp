@@ -685,7 +685,9 @@ wire::WorkspaceReply ExecutionStore::workspace_get(const std::string& id) {
     return out;
 }
 wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreateRequest& request) {
-    valid_text(request.id()); valid_text(request.worktree()); const auto policy = rights_mask(request.policy());
+    valid_text(request.id()); valid_text(request.worktree());
+    if (request.id() == "workspace-registry") throw WorldError(wire::INVALID_ARGUMENT, "Reserved workspace identity cannot own execution state");
+    const auto policy = rights_mask(request.policy());
     { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE id=?"); q.text(1, request.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Workspace identity already exists"); }
     const auto worktree = impl_->worktree(request.worktree());
@@ -707,7 +709,9 @@ wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreat
 wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberRequest& request) {
     if (impl_->authority && impl_->authority->bound(request.id()))
         throw WorldError(wire::FORBIDDEN, "Persistent workspace authority cannot use static membership edits");
-    valid_text(request.id()); valid_text(request.actor()); const auto rights = rights_mask(request.rights());
+    valid_text(request.id()); valid_text(request.actor());
+    if (request.id() == "workspace-registry") throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no execution membership");
+    const auto rights = rights_mask(request.rights());
     Transaction transaction(impl_->db.get()); const auto workspace = workspace_get(request.id());
     unsigned previous = 0;
     { Query q(impl_->db.get(), "SELECT rights FROM workspace_members WHERE workspace=? AND actor=?"); q.text(1, request.id()); q.text(2, request.actor());
@@ -734,7 +738,9 @@ wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberR
     wire::WorkspaceAck out; out.set_accepted(true); return out;
 }
 workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessRequest& request, bool fresh) {
-    valid_text(request.workspace()); valid_text(request.actor()); const auto descriptor = workspace_get(request.workspace());
+    valid_text(request.workspace()); valid_text(request.actor());
+    if (request.workspace() == "workspace-registry") throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no executable workspace access");
+    const auto descriptor = workspace_get(request.workspace());
     unsigned rights = 0;
     if (impl_->authority && impl_->authority->bound(request.workspace())) {
         rights = impl_->authority->rights(request, fresh);
@@ -754,6 +760,28 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
     return out;
 }
 void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
+workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(const workspace::v1::ScopedAuthorityCheckRequest& request) {
+    if (!impl_->authority || !impl_->authority->bound(request.workspace()))
+        throw WorldError(wire::UNIMPLEMENTED, "Persistent scoped workspace authority is not configured");
+    auto decision = impl_->authority->scoped_check(request);
+    if (request.workspace() != "workspace-registry") {
+        const auto workspace = workspace_get(request.workspace());
+        const auto policy = rights_mask(workspace.policy());
+        std::optional<unsigned> required;
+        using a = authority::v1::Right;
+        switch (request.right()) {
+        case a::WORKSPACE_ACCESS: required = wire::WORKSPACE_SELECT; break;
+        case a::FILE_BROWSE: case a::FILE_READ: required = wire::FILES_READ; break;
+        case a::FILE_CREATE: case a::FILE_EDIT: case a::FILE_RENAME: case a::FILE_MOVE:
+        case a::FILE_COPY: case a::FILE_TRASH: case a::FILE_RESTORE: case a::FILE_PERMANENT_DELETE:
+            required = wire::FILES_WRITE; break;
+        case a::PROCESS_EXECUTE: required = wire::PROCESS_LAUNCH; break;
+        default: break;
+        }
+        if (required && !(policy & (1u << *required))) decision.set_allowed(false);
+    }
+    return decision;
+}
 workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh) {
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
     const auto& principal = request.principal();
@@ -762,6 +790,8 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
     std::set<std::string> unique;
     for (const auto& app : request.applications()) {
         valid_text(app.workspace()); valid_text(app.application());
+        if (app.workspace() == "workspace-registry")
+            throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no application execution");
         require(app.server_id().size() == 32, "Invalid native server identity");
         require(unique.insert(app.SerializeAsString()).second, "Duplicate application group");
     }

@@ -96,26 +96,43 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='one'), components=components),
             rights=rights, delegable_rights=rights if delegable is None and depth else delegable or (), delegation_depth=depth)
 
-    def workspace(self, policy=POLICY, roots=None, issuer_port=None):
+    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False):
         self.execution = self.root/'execution'; first = BrokerProcess(self, self.execution)
         repository = GitRepo(self.root)
         first.call('git.repo.import', id='repo-one', path=str(repository.path))
         work = first.call('git.worktree.create', repo='repo-one', id='tree-one', branch='branch-one', start='main', operation_id='tree')
         self.project = Path(work['path'])
-        first.call('workspace.create', id='one', worktree='tree-one', policy=policy); first.close()
+        first.call('workspace.create', id='one', worktree='tree-one', policy=policy)
+        if legacy: first.call('workspace.member.set', id='one', actor='legacy-member', rights=POLICY)
+        first.close()
         directory = self.root/'workspace-authority'; directory.mkdir(mode=0o700)
         seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='one', authority_directory=str(directory),
             roots=roots() if roots else [self.workspace_terms()])
         seed_path = self.root/'workspace-seed.textproto'; seed_path.write_text(text_format.MessageToString(seed)); seed_path.chmod(0o600)
         result = subprocess.run([str(BROKER), '--state-dir', str(self.execution), '--init-authority', str(seed_path)], capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
+        bindings = [broker.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))]
+        if registry:
+            registry_dir = self.root/'workspace-registry-authority'; registry_dir.mkdir(mode=0o700)
+            create_root = grant.GrantTerms(subject=self.principal(),
+                scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='workspace-registry')),
+                rights=[grant.WORKSPACE_CREATE], delegation_depth=0)
+            registry_seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='workspace-registry',
+                authority_directory=str(registry_dir), roots=[create_root])
+            registry_seed_path = self.root/'registry-seed.textproto'
+            registry_seed_path.write_text(text_format.MessageToString(registry_seed)); registry_seed_path.chmod(0o600)
+            registry_result = subprocess.run([str(BROKER), '--state-dir', str(self.execution),
+                '--init-authority', str(registry_seed_path)], capture_output=True, timeout=8)
+            self.assertEqual(registry_result.returncode, 0, registry_result.stderr)
+            bindings.append(broker.WorkspaceAuthorityBinding(workspace='workspace-registry',
+                authority_directory=str(registry_dir)))
         client_path = self.root/'workspace-issuer.textproto'
         client_path.write_bytes(self.config_file(endpoint_port=issuer_port).read_bytes()); client_path.chmod(0o600)
         config = broker.WorkspaceAuthorityConfig(protocol_version=1, issuer_client_config=str(client_path),
-            bindings=[broker.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))])
+            bindings=bindings)
         self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
-        self.broker = BrokerProcess(self, self.execution, path)
+        self.broker = BrokerProcess(self, self.execution) if legacy else BrokerProcess(self, self.execution, path)
         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
         world.management('workspace.available', id='one', available=True)
         return world
@@ -195,6 +212,89 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
                              for field in status.field))
         public_actor_fields = {field.message_type.full_name for field in action_fields if field.message_type}
         self.assertNotIn('spatial.workspace.copy.v1.SnapshotReceipt', public_actor_fields)
+        reply_fields = core.ActorActionReply.DESCRIPTOR.fields_by_name
+        self.assertEqual(reply_fields['presentation'].number, 6)
+        self.assertEqual(reply_fields['copy_status'].number, 7)
+        self.assertEqual(reply_fields['presentation'].message_type.full_name, 'spatial.core.v1.PresentationView')
+        self.assertEqual(reply_fields['copy_status'].message_type.full_name, 'spatial.workspace.copy.v1.WorkspaceCopyStatus')
+        self.assertEqual(set(broker.ScopedAuthorityCheckReply.DESCRIPTOR.fields_by_name), {'allowed','revision'})
+        self.assertEqual(broker.Request.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 113)
+        self.assertEqual(broker.Reply.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 112)
+        public_view = core.PresentationView.DESCRIPTOR
+        self.assertEqual({field.name for field in public_view.fields},
+                         {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
+        self.assertEqual(public_view.fields_by_name['transform'].message_type.full_name, 'spatial.core.v1.Pose')
+
+    def test_private_scoped_authority_check_uses_exact_scope_and_fresh_revocation(self):
+        self.enroll_second()
+        world = self.workspace(roots=lambda: [self.workspace_terms(
+            rights=[*RIGHTS, grant.WORKSPACE_PRESENTATION_ATTACH])])
+        record = self.grant_second(world, [grant.WORKSPACE_PRESENTATION_ATTACH], ('presentations','rep-1'))
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(self.second),
+            right=grant.WORKSPACE_PRESENTATION_ATTACH, components=['presentations','rep-1'])
+        reply = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(reply.HasField('scoped_authority_check'), reply)
+        self.assertTrue(reply.scoped_authority_check.allowed)
+        self.assertGreater(reply.scoped_authority_check.revision, 0)
+        query.components[-1] = 'other-representation'
+        denied = self.broker.request(scoped_authority_check=query)
+        self.assertFalse(denied.scoped_authority_check.allowed)
+        for right in (grant.WORLD_PLACEMENT_CREATE, 99, grant.WORKSPACE_CREATE):
+            invalid = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(self.second), right=right)
+            self.denied(self.broker.request(scoped_authority_check=invalid), core.INVALID_ARGUMENT)
+        query.components[:] = ['presentations','rep-1']
+        before = self.broker.request(scoped_authority_check=query).scoped_authority_check.revision
+        self.revoke_grant(world.peers[0], record)
+        after = self.broker.request(scoped_authority_check=query)
+        self.assertFalse(after.scoped_authority_check.allowed)
+        self.assertGreater(after.scoped_authority_check.revision, before)
+
+    def test_registry_authority_binding_needs_no_execution_workspace(self):
+        self.workspace(registry=True)
+        query = broker.ScopedAuthorityCheckRequest(workspace='workspace-registry', principal=self.principal(),
+            right=grant.WORKSPACE_CREATE)
+        reply = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(reply.HasField('scoped_authority_check'), reply)
+        self.assertTrue(reply.scoped_authority_check.allowed)
+        with self.assertRaisesRegex(AssertionError, 'INVALID_ARGUMENT'):
+            self.broker.call('workspace.create', id='workspace-registry', worktree='tree-one', policy=POLICY)
+        ordinary = broker.ScopedAuthorityCheckRequest(workspace='workspace-registry', principal=self.principal(),
+            right=grant.FILE_READ)
+        self.denied(self.broker.request(scoped_authority_check=ordinary), core.INVALID_ARGUMENT)
+        self.denied(self.broker.request(access=broker.AccessRequest(workspace='workspace-registry', actor='x')),
+                    core.INVALID_ARGUMENT)
+
+    def test_scoped_authority_obeys_workspace_policy_ceiling(self):
+        self.workspace(policy=['workspace.select'])
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(), right=grant.FILE_READ)
+        reply = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(reply.HasField('scoped_authority_check'), reply)
+        self.assertFalse(reply.scoped_authority_check.allowed)
+
+    def test_scoped_authority_does_not_fall_back_to_legacy_membership(self):
+        self.workspace(legacy=True)
+        request = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(), right=grant.WORKSPACE_ACCESS)
+        self.denied(self.broker.request(scoped_authority_check=request), core.UNIMPLEMENTED)
+
+    def test_scoped_authority_fails_closed_after_participant_transport_loss(self):
+        relay = world_authority.RelayingIssuer(self, lambda: None)
+        self.workspace(issuer_port=relay.port)
+        relay.close()
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(),
+            right=grant.WORKSPACE_ACCESS)
+        self.denied(self.broker.request(scoped_authority_check=query), core.UNAVAILABLE)
+
+    def test_scoped_authority_denies_after_issuer_actor_revocation(self):
+        world = self.workspace()
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(),
+            right=grant.WORKSPACE_ACCESS)
+        before = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(before.scoped_authority_check.allowed)
+        self.owner_peer = self.connect()
+        self.revoke(kind=issuer.ACTOR_TARGET)
+        after = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(after.HasField('scoped_authority_check'), after)
+        self.assertFalse(after.scoped_authority_check.allowed)
 
     def test_reserved_m07_actor_actions_fail_closed(self):
         world = self.workspace(); peer = world.peers[0]
