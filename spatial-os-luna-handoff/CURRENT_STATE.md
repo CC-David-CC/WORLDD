@@ -1,3 +1,26 @@
+## 2026-10-14: First dual-native cross-host attempt exposed fixture cleanup initialization
+
+Cross-host source checkpoint: 0bf3cd47ad3b0ed6bbe83d83f4876cc96ff8baad on box-git.
+Its corrected Debug aggregate built all 189 steps with command and wrapper exits zero.
+The primary matched all 942 package source files to that committed tree.
+Both host preflights verified 1,069 files, modes, executable dependencies, XACE sources, and qualified graphics.
+The first Debug test used sb16 authority and sb16-2 observer. It ran one method and failed during cleanup.
+Both outer exits were one. The terminal unittest summary reports one failure in 39.571 seconds.
+Two plain PersistentTlsWorld objects lacked broker_channel, which their inherited close method requires.
+The primary confirmed that constructor omission in source. A fixture correction remains under review.
+Do not claim a passing cross-host method from this attempt. Reverse direction and sanitizer runtime remain unrun.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/m07-crosshost-source-repair-20261014/first-debug-runtime01.
+
+The reviewed keepalive production change preserves authority polling during issuer waits and guards recursive exchanges.
+Its new regression tests remain under preparation. No keepalive runtime pass is claimed.
+The migration artifact target built 103 steps in each fresh Debug and sanitizer profile.
+Those are compile results. Updated migration runtime remains pending.
+
+Nine detached images from successful engine16c cases were removed after exact identity and detachment checks.
+This reclaimed 4,832,022,528 bytes on sb16. Failed images, records, logs, and packages remain preserved.
+Receipt SHA256: 9f72de20cf43729ae435a6ce297f27b3389d15747af2a3ad2a2f56b33e89ab2d.
+M07 remains incomplete. Combined integration, source freeze, and full both-host qualification remain ahead.
+
 ## 2026-10-14: Reviewed quota and migration sources checkpointed on box-git
 
 Quota repair checkpoint: 6391c8a8e001484a93ccea83c6dfea2cc7db9187 on m07/copy-engine-completion-20261014.
