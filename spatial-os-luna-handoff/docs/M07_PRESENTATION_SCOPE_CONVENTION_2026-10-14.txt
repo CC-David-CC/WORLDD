@@ -1,0 +1,18 @@
+# M07 presentation scope convention
+
+Status: implementation convention for the M07 presentation work branch.
+
+World scopes use `Domain{kind=WORLD,id=world_id}`. Do not repeat the world ID in components.
+
+- Create checks `WORLD_PLACEMENT_CREATE` with components `[destination_room_id]`. Resolve an omitted room to the entry room before checking.
+- Observe and view check `WORLD_OBSERVE` and `REPRESENTATION_VIEW` with components `[room_id, representation_id]` for each record. Omit every record that fails either check.
+- Move and use check `REPRESENTATION_MOVE` or `REPRESENTATION_USE` with components `[room_id, representation_id]`.
+- Remove checks `WORLD_PLACEMENT_REMOVE` with components `[room_id, representation_id]`.
+- Cross-room moves check source `[old_room_id, representation_id]` and destination `[new_room_id, representation_id]`. The destination grant does not follow a representation after it moves.
+- A room administrator may move a representation only when its grant authorizes `REPRESENTATION_MOVE` at `[room_id]`. `WORLD_MANIPULATE` and fixture `world.write` do not imply this right.
+- Workspace attach uses a fresh workspace-domain authority check. The workspace ID is the domain ID and does not appear again as a component.
+- Representation use also performs a fresh broker authorization check. It grants no file, process, or application rights. Each consequential operation checks its own workspace authority.
+
+A filtered view contains only representation ID, room, transform, generation, and locked state. It contains no workspace ID or workspace metadata. Missing and inaccessible references use the same denial.
+
+Protocol identity contract: operation and representation IDs remain exact 16-byte values. Internal SQLite keys use reversible lowercase hex, so embedded NUL bytes survive round trips. Request digests are raw 32-byte SHA-256 values and use the same reversible encoding in the operation journal. Journal principals are the concatenated 32-byte issuer ID and 32-byte actor ID, encoded losslessly for SQLite.

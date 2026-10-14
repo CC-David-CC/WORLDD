@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     std::filesystem::path state, config, identity_config, authority_seed, actor_tls_config;
     std::vector<int> actor_channels;
     std::string display;
-    bool fixture_clock = false, fixture_faults = false, migration = false;
+    bool fixture_clock = false, fixture_faults = false, migration_v1 = false, migration_v2 = false;
     int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1;
     int presentation_fd=-1,presentation_pidfd=-1,presentation_pid=-1,presentation_owner=-1;
     try {
@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
             const std::string_view argument(argv[i]);
             if (argument == "--fixture-clock" && !fixture_clock) fixture_clock = true;
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
-            else if (argument == "--migrate-v1" && !migration) migration = true;
+            else if (argument == "--migrate-v1" && !migration_v1 && !migration_v2) migration_v1 = true;
+            else if (argument == "--migrate-v2" && !migration_v1 && !migration_v2) migration_v2 = true;
             else if (argument == "--state-dir" && state.empty() && i + 1 < argc) state = argv[++i];
             else if (argument == "--config" && config.empty() && i + 1 < argc) config = argv[++i];
             else if (argument == "--display" && display.empty() && i + 1 < argc) display = argv[++i];
@@ -77,7 +78,7 @@ int main(int argc, char** argv) {
         const bool presentation=presentation_fd!=-1 || presentation_pidfd!=-1 || presentation_pid!=-1 || presentation_owner!=-1;
         if(presentation){
             if(presentation_fd<3 || presentation_pidfd<3 || presentation_pid<3 || presentation_owner<3 || native_fd<3 ||
-                migration || !authority_seed.empty())throw std::invalid_argument("Incomplete or incompatible presentation configuration");
+                migration_v1 || migration_v2 || !authority_seed.empty())throw std::invalid_argument("Incomplete or incompatible presentation configuration");
             std::set<int> private_fds{presentation_fd,presentation_pidfd,native_fd};
             if(private_fds.size()!=3 || private_fds.contains(broker_fd) || private_fds.contains(actor_listener))
                 throw std::invalid_argument("Presentation descriptors overlap another authority channel");
@@ -100,16 +101,16 @@ int main(int argc, char** argv) {
             spatial::prepare_actor_channel(fd);
         }
         if (!authority_seed.empty()) {
-            if (native_fd >= 0 || migration || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
+            if (native_fd >= 0 || migration_v1 || migration_v2 || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
                 throw std::invalid_argument("Authority initialization only accepts --state-dir and --init-authority");
             umask(0077); spatial::WorldStore world(state);
             spatial::initialize_world_authority(authority_seed, world.info().world_id());
             std::cerr << "World authority initialization complete\n"; return 0;
         }
-        if (migration) {
+        if (migration_v1 || migration_v2) {
             if (native_fd >= 0 || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
-                throw std::invalid_argument("World migration only accepts --state-dir and --migrate-v1");
-            umask(0077); spatial::WorldStore world(state, true);
+                throw std::invalid_argument("World migration only accepts --state-dir and one migration flag");
+            umask(0077); spatial::WorldStore world(state, migration_v1, false, migration_v2);
             std::cerr << "World context schema migration complete\n"; return 0;
         }
         if ((broker_fd == -1) != (broker_pid == -1)) throw std::invalid_argument("Incomplete broker connection");
