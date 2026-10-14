@@ -1,3 +1,39 @@
+## 2026-10-14: Crosshost03 passed; inherited regressions running
+
+The crosshost03 wrapper finished. Its exact PID 2384941 is absent.
+Helper receipts report COMPLETE with command and wrapper exits zero.
+Both semantic profiles passed. All four native suites passed nine tests each.
+This proves 12 semantic cases and 36 native methods in the frozen gate.
+Both hosts passed pre-run and post-run artifact checks.
+Semantic cleanup completed without errors in both profiles.
+The primary reviewed native cleanup validation and complete case coverage.
+An independent terminal evidence audit remains in progress.
+
+Reconciliation SHA256: 68cbc3d2d3f391e9d367ad7906b033084a3b521f5463e423f549555b459d66da.
+Sidecar SHA256: ca36c36abea212b6246141f70292e6a00876faffb4fa4bcf3d697ec53a9e98e5.
+Expanded candidate: production 4f241a95d98e28b037b17ad1826f6816c2cc17ad plus test-helper correction 6d62344ed550704c69406643ac03ae9aea52de46.
+Production source and binaries remained unchanged.
+Preserve the failed crosshost01 and crosshost02 evidence.
+
+The inherited cross-host checks now run on sb16 in tmux m06-inherited-sb16-02.
+Exact runner PID: 2416765, confirmed live during this update.
+Receipts: /home/dflanag3/spatial-qualification/m06-inherited-crosshost-4f241-20261013/run-command/sb16-02.
+Evidence: /home/dflanag3/spatial-qualification/m06-inherited-crosshost-4f241-20261013/evidence/m06-inherited-crosshost-sb16-01.
+Selected suites protect remote keys, world topology, and session recovery.
+Run both profiles and both driver directions for 32 methods.
+No completed inherited suite was recorded at this update.
+Keep the second driver serialized after the first driver's terminal review.
+
+The a5500 launcher failed SSH authentication before starting a job.
+A controller adaptation then expanded a peer path incorrectly before testing.
+Preserve sb16-01 receipts with exits 1/1. No case evidence was created.
+The corrected launcher uses explicit literal arguments and working controller SSH.
+Do not repeat unordered prefix replacement for shell variables.
+
+Permanent strict, batch-mode SSH works between both test hosts in both directions.
+The primary verified both directions. No key changes were needed.
+M01-M05 remain qualified. M06 remains unqualified. M07-M16 remain pending.
+
 ## 2026-10-14: Verified v2 fixture overlay; crosshost03 gate running
 
 The owner-guard fix is reviewed and verified on box-git at 6d62344ed550704c69406643ac03ae9aea52de46.
