@@ -22,7 +22,10 @@ Retained runs: /home/dflanag3/spatial-artifacts/m07-fence-runtime-e8b9a3d9-v16-2
 The replacement package must include all transitive executable helpers.
 The journal fixture reused snapshot identities as destination identities.
 Its production collision guard remains correct and unchanged.
-Four journal startup failures still require daemon-level diagnosis.
+A single journal migration diagnostic confirmed missing adjacent runtime.textproto.
+Its worldd startup failed before assertions. Command and wrapper exits were 1/1.
+The other three retained startup failures remain unverified individually.
+Read defect blockers/m07-runtime-fixture-package-closure.txt at the repository root.
 Presentation source review withdrew an unsupported postcommit-race concern.
 Its final local grants are checked after broker I/O and before synchronous mutations.
 Presentation runtime checks remain unrun.

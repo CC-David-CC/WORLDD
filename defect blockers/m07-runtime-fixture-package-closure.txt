@@ -1,0 +1,27 @@
+M07 runtime fixture package closure failures
+Confirmed: 2026-10-14. Status: corrective packaging in progress.
+
+Fence v16 omitted spatial-process-scope-probe beside workspaced.
+ResourceBroker requires this executable to create the broker ProcessScope.
+Both hosts reported three setup errors before fence assertions.
+Both outer runs recorded command and wrapper exits 1/1.
+Remaining fence cases and sanitizer checks were not run.
+Evidence: /home/dflanag3/spatial-artifacts/m07-fence-runtime-e8b9a3d9-v16-20261014/{sb16-debug,sb16-2-debug}.
+
+A single journal migration diagnostic confirmed a second package omission.
+worldd could not read its required adjacent runtime.textproto.
+The unchanged v3 diagnostic failed before migration assertions.
+The other three retained startup errors require individual corrected-package reruns.
+Evidence: /home/dflanag3/spatial-artifacts/jobs/m07-journal-diagnostic-sb16-20261014/migration-startup.
+Daemon logs: /home/dflanag3/spatial-artifacts/m07-journal-diagnostic-sb16-20261014/evidence.
+
+Corrective work
+Declare transitive executable and protobuf dependencies in fixture targets.
+Package required executable-adjacent configuration from the frozen build.
+Validate relocated paths without removing confinement or security configuration.
+Record each binary source pin, build profile, and checksum.
+Check helper presence, dynamic libraries, protobuf imports, and runtime config before tests.
+Add regressions that remove a required helper or config and require preflight rejection.
+Preserve failed logs. Use fresh directories for corrected attempts.
+Run pending focused Debug checks on both hosts, followed by sanitizers.
+No packaging correction alone qualifies M07.
