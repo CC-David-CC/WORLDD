@@ -178,7 +178,8 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         relay = world_authority.RelayingIssuer(self,
             lambda: self.world_revoke(race['admin'], race['grant']),
             wait_for_revocation_event=False)
-        relay.trigger_after_status = 2
+        # The scoped workspace check batches actor statuses into one issuer request.
+        relay.trigger_after_status = 1
         world = self.workspace(issuer_port=relay.port)
         admin = world.peers[0]
         world_grant = self.world_grant_second(world, WORLD_RIGHTS)
@@ -207,7 +208,7 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
             status_count = relay.status_seen
         self.assertTrue(triggered,
             f'the workspace access query did not reach the revocation barrier; observed {status_count} actor_status request(s)')
-        self.assertEqual(status_count, 2)
+        self.assertEqual(status_count, 1)
         self.assertTrue(replay.HasField('error'), replay)
         self.assertEqual(replay.error.code, core.FORBIDDEN)
         self.assertEqual(world.management('world.info')['world_revision'], revision_before_replay)
