@@ -924,6 +924,14 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(identity-supervisor-registry PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-participant-domain-addition COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_domain_addition.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-participant-domain-addition PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(identity-participant-domain-addition-artifacts
+        DEPENDS identityd spatial-issuer-client issuer-python-protobuf key-python-protobuf
+                grants-python-protobuf python-protobuf)
     add_test(NAME identity-participant-incarnation COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_incarnation.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)

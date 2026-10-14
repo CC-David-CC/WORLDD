@@ -1,6 +1,7 @@
 """Owner-signed, durable authority service registration without actor grants."""
 import sqlite3
 import subprocess
+from issuer_migration_runner import run_issuer_migration
 import unittest
 import core_pb2 as core
 import grants_pb2 as grants
@@ -172,14 +173,14 @@ class ParticipantTests(EnrollmentFixture):
         self.client.close();secret=(self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
             before={table:db.execute('SELECT * FROM '+table).fetchall() for table in ('issuer','actor','credential','enrollment','security_state','revocation','bootstrap_profile')}
-            db.executescript(DROP_REGISTRY+'PRAGMA user_version=4;')
+            db.executescript(DROP_REGISTRY+'DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=4;')
         command=[str(BINARY),'--state-dir',str(self.state)]
-        denied=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+        denied=run_issuer_migration(command,input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(denied.returncode,0);self.assertIn(b'migration',denied.stderr.lower())
         for _ in range(2):
-            result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+            result=run_issuer_migration(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
         with sqlite3.connect(self.state/'identity.db') as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],10)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],11)
             self.assertEqual({table:db.execute('SELECT * FROM '+table).fetchall() for table in before},before)
         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
         self.client=self.start();self.assertFalse(self.client.call(credential_check=enrolled.credential).identity_status.active)
@@ -188,8 +189,8 @@ class ParticipantTests(EnrollmentFixture):
     def test_failed_migration_rolls_back_new_tables_and_version(self):
         self.client.close()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript(DROP_REGISTRY+'PRAGMA user_version=4; CREATE TABLE authority_participant_domain(marker INTEGER);')
-        result=subprocess.run([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+            db.executescript(DROP_REGISTRY+'DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=4; CREATE TABLE authority_participant_domain(marker INTEGER);')
+        result=run_issuer_migration([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0)
         with sqlite3.connect(self.state/'identity.db') as db:
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],4)
