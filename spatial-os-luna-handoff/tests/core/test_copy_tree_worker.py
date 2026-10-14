@@ -120,12 +120,22 @@ class CopyTreeWorkerTests(unittest.TestCase):
             self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_ENTRY_LIMIT)
             self.assertEqual(list(destination.iterdir()), [])
 
-    def test_tree_depth_is_bounded_with_a_typed_limit(self):
+    def test_depth_128_succeeds_and_depth_129_has_typed_limit(self):
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"; destination = Path(temp) / "destination"
             source.mkdir(); destination.mkdir()
             current = source
-            for _ in range(130):
+            for _ in range(128):
+                current = current / "d"
+                current.mkdir()
+            message = decode_result(self.run_worker(source, destination, entries=1000))
+            self.assertEqual(message.WhichOneof("outcome"), "copied")
+            self.assertEqual(message.copied.actual_entries, 128)
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"; destination = Path(temp) / "destination"
+            source.mkdir(); destination.mkdir()
+            current = source
+            for _ in range(129):
                 current = current / "d"
                 current.mkdir()
             message = decode_result(self.run_worker(source, destination, entries=1000))

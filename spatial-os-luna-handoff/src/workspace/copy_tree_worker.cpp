@@ -44,6 +44,27 @@ long fail_readdir_after=-1;
 bool readdir_fault_used=false;
 #endif
 std::unique_ptr<Hash> hash;
+void copy_file(int s,int d,const std::string& name,const struct stat& st) {
+    if(st.st_nlink!=1)throw Failure(pb::FAILURE_HARD_LINK);
+    if(st.st_size<0||uint64_t(st.st_size)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
+    hash->u64(static_cast<uint64_t>(st.st_size));
+    Fd a(openat(s,name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+    Fd b(openat(d,name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
+    struct stat now{};need(a.n>=0&&b.n>=0);
+    if(fstat(a.n,&now)<0||now.st_dev!=st.st_dev||now.st_ino!=st.st_ino||!S_ISREG(now.st_mode)||now.st_nlink!=1)
+        throw Failure(pb::FAILURE_SOURCE_CHANGED);
+    char buf[65536];uint64_t count=0;
+    for(;;) {
+        ssize_t r=read(a.n,buf,sizeof buf);if(r<0&&errno==EINTR)continue;need(r>=0);
+        if(!r)break;
+        if(uint64_t(r)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
+        hash->add(buf,r);ssize_t off=0;
+        while(off<r){ssize_t w=write(b.n,buf+off,r-off);if(w<0&&errno==EINTR)continue;need(w>0);off+=w;}
+        count+=r;bytes+=r;
+    }
+    if(count!=uint64_t(st.st_size))throw Failure(pb::FAILURE_SOURCE_CHANGED);
+    need(fchmod(b.n,st.st_mode&0777)==0&&fsync(b.n)==0);
+}
 void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
     need(depth<=128,pb::FAILURE_DEPTH_LIMIT);
     need(depth<=max_depth,pb::FAILURE_DESCRIPTOR_LIMIT);
@@ -89,23 +110,7 @@ void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
             tree(a.n,b.n,rel,depth+1);
             need(fchmod(b.n,st.st_mode&0777)==0&&fsync(b.n)==0);
         } else {
-            if(st.st_nlink!=1)throw Failure(pb::FAILURE_HARD_LINK);
-            if(st.st_size<0||uint64_t(st.st_size)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
-            hash->u64(static_cast<uint64_t>(st.st_size));
-            Fd a(openat(s,n.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK)),b(openat(d,n.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
-            struct stat now{};need(a.n>=0&&b.n>=0);
-            if(fstat(a.n,&now)<0||now.st_dev!=st.st_dev||now.st_ino!=st.st_ino||!S_ISREG(now.st_mode)||now.st_nlink!=1)throw Failure(pb::FAILURE_SOURCE_CHANGED);
-            char buf[65536];uint64_t count=0;
-            for(;;) {
-                ssize_t r=read(a.n,buf,sizeof buf);if(r<0&&errno==EINTR)continue;need(r>=0);
-                if(!r)break;
-                if(uint64_t(r)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
-                hash->add(buf,r);ssize_t off=0;
-                while(off<r){ssize_t w=write(b.n,buf+off,r-off);if(w<0&&errno==EINTR)continue;need(w>0);off+=w;}
-                count+=r;bytes+=r;
-            }
-            if(count!=uint64_t(st.st_size))throw Failure(pb::FAILURE_SOURCE_CHANGED);
-            need(fchmod(b.n,st.st_mode&0777)==0&&fsync(b.n)==0);
+            copy_file(s,d,n,st);
         }
     }
     need(fsync(d)==0);

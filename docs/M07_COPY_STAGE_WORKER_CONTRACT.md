@@ -23,7 +23,9 @@ every observed name before queuing it, including names waiting in parent directo
 The worker supports at most 200,000 entries and 128 nested directories. It reserves
 16 descriptors and budgets three descriptors per nested level against RLIMIT_NOFILE.
 A lower process limit yields a typed descriptor-limit failure. The depth limit bounds
-recursive stack and descriptor use. The broker maps entry, depth, and byte
+recursive stack and descriptor use. File copying runs in a separate nonrecursive helper,
+so its 64 KiB transfer buffer does not multiply with directory depth. Regression cases
+cover depth 128 success and exact depth 129 rejection. The broker maps entry, depth, and byte
 limits to resource exhaustion. The broker rejects bad lengths, versions, unknown fields,
 enums, counts, and digest sizes. The former ASCII result protocol is
 superseded and was never a qualified component interface.
