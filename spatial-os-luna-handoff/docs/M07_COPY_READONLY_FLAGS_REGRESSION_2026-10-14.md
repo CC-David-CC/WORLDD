@@ -129,3 +129,8 @@ No caller credentials or arbitrary sanitizer environment are inherited.
 The change follows the reviewed engine preflight06 diagnostic mechanism without importing its async API.
 The earlier inner-helper diagnostic limitation applies to retained pre-diagnostic evidence.
 The new diagnostic increment requires new affected probe and broker builds before runtime.
+
+The first diagnostic Debug build at94d3b20 failed at compilation.
+WorldError accepts const char*, so its dynamic exit-status message now uses a scoped string and c_str().
+No WorldError API changes were needed.
+Failure logs remain at a5500:/home/dflanag3/spatial-artifacts/runs/m07-copy-diagnostics-debug-94d3b20.

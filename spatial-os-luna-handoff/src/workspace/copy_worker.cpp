@@ -188,7 +188,7 @@ CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_
  diagnostics.drain();diagnostics.emit();
  if(diagnostics.overflow)throw WorldError(wire::STORAGE_ERROR,"Copy helper diagnostics exceeded their bound");
  if(diagnostics.sanitizer())throw WorldError(wire::STORAGE_ERROR,"Copy helper emitted sanitizer diagnostics");
- if(status!=0)throw WorldError(wire::STORAGE_ERROR,"copy worker failed (exit_status="+std::to_string(status)+"); stage outcome requires inspection");
+ if(status!=0){const auto message="copy worker failed (exit_status="+std::to_string(status)+"); stage outcome requires inspection";throw WorldError(wire::STORAGE_ERROR,message.c_str());}
  const auto receipt_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
  while(std::chrono::steady_clock::now()<receipt_deadline) {
   if(output.size()>=4) {
