@@ -5,6 +5,7 @@ import "compositor_native.proto";
 import "broker.proto";
 import "process_scope.proto";
 import "native_scope.proto";
+import "geometry_view.proto";
 message PresentationEmpty {}
 // Attach carries exactly two descriptors: world channel, then its retained pidfd.
 message PresentationAttach {
@@ -21,6 +22,28 @@ message PresentationRecovery {
 }
 enum PresentationStage { PRESENTATION_STAGE_UNSPECIFIED = 0; ATTACHED = 1; READY = 2; RETIRED = 3; UNCERTAIN = 4; }
 message PresentationState { WorldPresentationBinding binding = 1; PresentationStage stage = 2; bool selected = 3; }
+// A trusted host presentation target for authenticated actor-session geometry.
+// This target has no local process, input credential, or application identity.
+message GeometryPresentationTarget {
+  uint32 protocol_version = 1;
+  string world_id = 2;
+  string actor_id = 3;
+  bytes geometry_view_id = 4;
+  bytes authority_service_incarnation = 5;
+  uint64 authority_generation = 6;
+  uint64 presentation_generation = 7;
+}
+message GeometryPresentationAttach { GeometryPresentationTarget target = 1; }
+message GeometryPresentationPublish {
+  GeometryPresentationTarget target = 1;
+  spatial.identity.v1.ActorGeometryView view = 2;
+}
+message GeometryPresentationState {
+  GeometryPresentationTarget target = 1;
+  PresentationStage stage = 2;
+  bool selected = 3;
+  uint64 last_view_sequence = 4;
+}
 message PresentationControlRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -31,6 +54,12 @@ message PresentationControlRequest {
     WorldPresentationBinding inspect = 13;
     PresentationEmpty shutdown = 14;
     PresentationRecovery recover = 15;
+    GeometryPresentationAttach attach_geometry = 16;
+    GeometryPresentationTarget select_geometry = 17;
+    GeometryPresentationPublish publish_geometry = 18;
+    GeometryPresentationTarget retire_geometry = 19;
+    // Blank foreground pixels and deselect producers without retiring channels.
+    PresentationEmpty clear_selection = 20;
   }
 }
 message PresentationControlReply {
@@ -41,6 +70,8 @@ message PresentationControlReply {
     PresentationState state = 4;
     spatial.core.v1.Error error = 5;
     bool shutting_down = 6;
+    GeometryPresentationState geometry_state = 7;
+    bool selection_cleared = 8;
   }
 }
 // A channel is bound by the control owner. The world cannot choose its binding.

@@ -1,0 +1,94 @@
+M06 native geometry implementation review
+Date: 2026-10-13
+Branch: m06/native-shared-geometry-20261013
+Host: a5500
+Worktree: /home/dflanag3/src/m06-native-shared-geometry-20261013
+Base: 45eabb37cf16a815d91b1bf659d9bf317d0f6cb7
+Status: incomplete and unqualified.
+Current summary: the first full sanitizer build passed. New runtime checks remain unrun.
+The entries below preserve the sequence of earlier failures and reviews.
+
+The draft adds typed geometry targets and remote TLS world registrations.
+The renderer converts validated actor geometry into real native drawing.
+The host-session loop requests and publishes foreground geometry.
+No new runtime behavior is qualified.
+
+Preserved build evidence
+Debug configuration passed.
+The first Debug build failed at 93 percent.
+Four unique_ptr checks needed explicit boolean conversion.
+The second full Debug build passed before subsequent source changes.
+Those changes require another Debug build.
+At this earlier checkpoint, sanitizer builds and new runtime checks were unrun.
+
+Required corrections and regressions
+Retain target ownership before selection or publication can fail.
+Apply this rule to initial, recreated, and transition targets.
+Retain cleanup handles when retirement fails. Report uncertainty.
+Clear revoked observation without removing unrelated valid actor authority.
+Preserve published sequence values during reselection and retirement.
+Retire every geometry target before compositor shutdown.
+Preserve local attachment semantics and use the shared generation allocator.
+Reject unexpected descriptors before state changes or drawing.
+Preserve control priority and absolute framing deadlines during scene requests.
+Support initial remote worlds without local process ownership.
+Preserve existing source line endings.
+Implement the nine native and cross-host oracles in the selected test plan.
+Use actual sb16 and sb16-2 endpoints and independent pixel witnesses.
+
+Ownership
+Luna returned an incomplete handoff with no new regressions implemented.
+A stronger worker now owns completion of this same isolated task.
+Preserve the existing edits and all failed build logs.
+Do not merge this draft merely because an intermediate build passed.
+The earlier component matrix has 136 passes. It does not qualify this new source.
+The full M06 milestone gate remains unrun.
+
+Further source review
+The third full Debug build passed with zero command and wrapper exits.
+Attempted-attach accounting changes came afterward. They require a fresh build.
+Nine native target boundary cases are written. They remain unrun.
+The separate cross-host semantic fixture uses real production actor controls.
+Its pixel witness reads the native compositor through GetImage.
+Boundary cases do not substitute for the nine required cross-host semantic oracles.
+Wire-field injection and descriptor rejection require otherwise valid control cases.
+Use bounded executable hashing in witnesses. Do not load complete sanitizer binaries into memory.
+Preserve binary protobuf framing when resource wrappers print their receipts.
+Hold observer camera and context fixed when checking other actors or object motion.
+At this earlier checkpoint, cross-host qualification and sanitizer builds were pending.
+
+Latest review checkpoint
+The fourth Debug build failed with command and wrapper exits of 2.
+SessionCoordinator lacked the WorldError declaration at its catch clause.
+The worker added world/store.hpp. A fresh full build remains required.
+At this earlier checkpoint, the first sanitizer build was live. No duplicate build started.
+Nine cross-host cases and three owner lifecycle regressions now exist.
+These cases remain unrun. Their existence does not prove their assertions.
+The cross-host stale-generation case now checks production HostControl rejection.
+It also checks unchanged destination context and pixels after rejection.
+Use one absolute deadline for each launch receipt and complete protobuf frame.
+Stop the observer before removing its remote credential profiles.
+Recover only the exact verified owned systemd unit after protocol failure.
+Validate scope removal, population, exit status, unit state, and cgroup cleanup.
+Preserve diagnostic evidence when cleanup fails. Do not silently accept leftovers.
+Sanitizer build and pixel-oracle review
+The first full sanitizer build completed with command and wrapper exits of zero.
+Its tmux session is gone. The completion receipts and build output agree.
+This proves compilation only. Runtime and cross-host checks remain unrun.
+The native witness now hashes executables in bounded chunks.
+Establish the initial visible native scene before object edits or actor motion.
+An initially blank frame must not count as the edit's baseline.
+Use presentation sequence or revision evidence when available.
+Keep observer context fixed while checking pixels after the actual mutation.
+The worker received this required regression correction before source freeze.
+Deployment and acknowledgement review
+A read-only worker now checks both test hosts before candidate deployment.
+The fixture delegate uses an exact controller-generated unit name.
+Its resource envelope matches the previously qualified host-session lane.
+Bound systemctl queries and recovery commands with explicit timeouts.
+Reject uncertain unit state, active units, and remaining cgroups independently of command success.
+Use the authenticated HostControl channel for acknowledged geometry status.
+Report only the selected target's acknowledged context, sequence, revision, and camera.
+Clear status after observation denial, retirement, authority loss, or pending transitions.
+Reject stale generations before disclosing status.
+Add regression checks for acknowledgement and status clearing before source freeze.

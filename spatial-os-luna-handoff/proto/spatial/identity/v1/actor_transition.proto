@@ -1,0 +1,42 @@
+syntax = "proto3";
+package spatial.identity.v1;
+
+import "core.proto";
+
+// Actor-side world transition facts. Host presentation selection is separate.
+enum ActorTransitionPhase {
+  ACTOR_TRANSITION_PHASE_UNSPECIFIED = 0;
+  SOURCE_INSPECTED = 1;
+  DESTINATION_PREPARED = 2;
+  SOURCE_DEPARTURE_CONFIRMED = 3;
+  DESTINATION_ACTIVE = 4;
+  PREPARATION_REJECTED = 5;
+  PREPARATION_UNCERTAIN = 6;
+  DEPARTURE_UNCERTAIN = 7;
+  // Reserved legacy draft classification. Production errors do not prove no effects.
+  ACTIVATION_REJECTED = 8 [deprecated = true];
+  ACTIVATION_UNCERTAIN = 9;
+  SOURCE_INSPECTION_UNCERTAIN = 10;
+  DEPARTURE_REJECTED = 11 [deprecated = true];
+  SOURCE_INSPECTION_REJECTED = 12;
+}
+message ActorTransitionResult {
+  uint32 protocol_version = 1;
+  bytes transition_id = 2;
+  ActorTransitionPhase phase = 3;
+  string actor_id = 4;
+  string source_world_id = 5;
+  string destination_world_id = 6;
+  bool source_inspection_confirmed = 7;
+  bool destination_preparation_confirmed = 8;
+  bool source_departure_confirmed = 9;
+  bool destination_activation_confirmed = 10;
+  optional uint64 departure_world_revision = 11;
+  // Effects or lifecycle consumption cannot be confirmed from a success receipt.
+  // A matched server_error may coexist with uncertainty.
+  bool effect_uncertain = 12;
+  string detail = 13;
+  bool host_presentation_selection_pending = 14;
+  // Present only for a validated, request-matched Error envelope.
+  spatial.core.v1.Error server_error = 15;
+}

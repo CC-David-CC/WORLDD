@@ -1,0 +1,38 @@
+M06 combined host-session qualification
+Date: 2026-10-13
+Candidate: fc302de44670f87737dd7ab46ef83b24c60f1612
+Launcher SHA256: 1bb4ce243e7a32712f0dd7c19fb6853e15caf02a5fadd16c73afac6d8a418894
+Attempt on both hosts: host-session-debug-runtime02
+Remote evidence root: /home/dflanag3/spatial-qualification/m06-candidate-fc302-20261013
+
+The corrected launcher reached all 24 production native tests.
+sb16: 23 passed, one failed.
+sb16-2: 22 passed, one failed, one error.
+Both hosts failed test_private_destination_denial_keeps_source_usable.
+The response confirmed destination activation when the test expected denial.
+sb16-2 also reported issuer EOF during world registration.
+Both input invariants passed. No frozen input hash changed.
+Both launchers confirmed process-group and system-unit cleanup.
+Startup testing-on and testing-off remain unrun.
+Sanitizer host-session qualification remains unrun.
+These results do not qualify M06.
+
+Source review confirmed a fixture mismatch.
+The imported world setup provisions WORLD_ENTER in its authority ledger.
+The denied setup removes legacy lists but retains that ledger.
+The private destination still had an authoritative WORLD_ENTER grant.
+Do not weaken the private-world rejection assertion.
+Native shared-world presentation and the full M06 gate remain pending.
+
+Launcher checkpoint: dad4045aa0155c1210add16401c0129289f55e85
+Branch: m06/combined-hostsession-launcher-correction-20261013
+Box-git verified this checkpoint. Qualification remains pending.
+Admission correction and issuer EOF diagnosis use separate task worktrees.
+
+Fixture correction checkpoint: 62ea4e88c18ff60cfcc0029d1b51d7c7ef4426f7
+Box-git verified the isolated correction. Runtime remains unrun.
+The issuer failure occurred before the intentional EOF exercise.
+Its retained issuer log is empty. The close reason is unproven.
+The imported fixture configures an idle timeout of 3000 ms.
+Production defaults to 60000 ms. This difference is a diagnostic lead only.
+Record peer idle duration and daemon state before changing any deadline.

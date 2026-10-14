@@ -1,4 +1,5 @@
 #include "world/actors.hpp"
+#include "world/geometry_view_validation.hpp"
 #include "platform/broker.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
@@ -121,7 +122,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
         require(grants.insert(grant).second, "Duplicate actor grant");
     }
     auto found = actors_.find(request.id());
-    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending))
+    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending || found->second.departure_pending))
         throw WorldError(wire::IN_USE, "Actor already has a controller");
     const auto token = random_token();
     if (sessions_.contains(token)) throw std::runtime_error("Session entropy collision");
@@ -161,6 +162,14 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
         result.set_focus(actor.native.focus().id()); result.set_focus_generation(actor.native.focus().generation());
     }
     return result;
+}
+std::string Actors::depart(const std::string& token) {
+    // Native cleanup can run revocation callbacks that clear the channel's token.
+    const std::string retained=token;
+    auto& actor=authenticated(retained);const auto id=actor.entity.id();
+    actor.departure_pending=true;
+    try{close(retained);}catch(...){actor.departure_pending=false;throw;}
+    return id;
 }
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
@@ -522,9 +531,9 @@ bool Actors::application_observation_valid(const std::string& token) {
     const auto applications = actor.observed_applications;
     return observable_applications(actor, applications).size() == applications.size();
 }
-wire::RenderScene Actors::scene(const std::string& token) {
+wire::RenderScene Actors::scene(const std::string& token, bool geometry_only) {
     auto& actor = authenticated(token);
-    actor.observed_applications.clear();
+    if (!geometry_only) actor.observed_applications.clear();
     require(config_.has_render(), "Render configuration is missing");
     refresh_objects();
     auto snapshot = store_.snapshot();
@@ -535,7 +544,7 @@ wire::RenderScene Actors::scene(const std::string& token) {
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }
     auto result = panel_scene(snapshot, actor.entity, config_.render());
-    if (surfaces_ && actor.local_application_output) {
+    if (!geometry_only && surfaces_ && actor.local_application_output) {
         surfaces_->append(result, actor.entity.room());
         std::vector<ObservedApplication> applications;
         std::set<std::string> diagnostic;
@@ -551,6 +560,33 @@ wire::RenderScene Actors::scene(const std::string& token) {
                 surfaces->DeleteSubrange(i, 1);
         for (const auto& app : applications) if (allowed.contains(app.handle.id())) actor.observed_applications.push_back(app);
     }
+    return result;
+}
+identity::v1::ActorGeometryView Actors::geometry_view(const std::string& token, const std::string& world_id,
+        const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
+        std::uint64_t sequence) {
+    auto scene_data = scene(token, true);
+    require(!world_id.empty() && !actor_id.empty() && view_id.size() == 32 && authority_generation > 0 && sequence > 0,
+            "Invalid geometry view context");
+    identity::v1::ActorGeometryView result;
+    result.set_world_id(world_id); result.set_actor_id(actor_id); result.set_view_id(view_id);
+    result.set_authority_generation(authority_generation); result.set_sequence(sequence);
+    result.set_world_revision(scene_data.world_revision());
+    const auto state = inspect(token);
+    result.set_room(state.room()); *result.mutable_camera() = state.pose(); *result.mutable_config() = scene_data.config();
+    const auto copy = [](const auto& input, auto* output) {
+        for (const auto& entity : input) {
+            auto* item = output->Add(); item->set_id(entity.id());
+            if (entity.has_kind()) item->set_kind(entity.kind());
+            if (entity.has_pose()) *item->mutable_pose() = entity.pose();
+            if (entity.has_size()) *item->mutable_size() = entity.size();
+            if (entity.has_color()) *item->mutable_color() = entity.color();
+            if (entity.has_bounds()) *item->mutable_bounds() = entity.bounds();
+        }
+    };
+    copy(scene_data.panels(), result.mutable_panels()); copy(scene_data.barriers(), result.mutable_barriers());
+    copy(scene_data.portals(), result.mutable_portals()); copy(scene_data.objects(), result.mutable_objects());
+    copy(scene_data.actors(), result.mutable_actors());
     return result;
 }
 wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
@@ -714,6 +750,17 @@ wire::ClockReply Actors::advance(const wire::ClockAdvanceRequest& request) {
     step(now_ + request.seconds());
     flush_input();
     wire::ClockReply result; result.set_seconds(now_); return result;
+}
+wire::WorldCheckpointReply Actors::checkpoint_closed(const std::string& id) {
+    auto found=actors_.find(id);
+    if(found==actors_.end())throw WorldError(wire::NOT_FOUND,"Departing actor is unavailable");
+    if(!found->second.token.empty() || !cancellation_settled())
+        throw WorldError(wire::IN_USE,"Actor departure cleanup is not settled");
+    if(!found->second.departure_pending)throw WorldError(wire::IN_USE,"No retained actor departure");
+    struct Clear {bool& pending;~Clear(){pending=false;}} clear{found->second.departure_pending};
+    const auto saved=store_.checkpoint_actors({found->second.entity});
+    if(!saved.empty())found->second.entity=saved.front();
+    wire::WorldCheckpointReply reply;reply.set_world_revision(store_.info().world_revision());return reply;
 }
 wire::WorldCheckpointReply Actors::checkpoint() {
     std::vector<wire::Entity> entities;

@@ -19,6 +19,7 @@ from test_identity_tls import TlsFixture
 from test_identity_issuer import Connection
 
 CLIENT = Path(sys.argv.pop(1))
+DIAGNOSTIC = CLIENT.parent/'spatial-issuer-failure-diagnostic'
 
 
 class ClientProcess(Connection):
@@ -130,6 +131,12 @@ class ClientFixture(TlsFixture):
 
 
 class ClientTests(ClientFixture):
+    def test_callback_failure_diagnostic_is_bounded_and_fail_closed(self):
+        self.ready()
+        result = subprocess.run([str(DIAGNOSTIC), str(self.config_file())], capture_output=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn(b'diagnostic-secret-marker', result.stdout + result.stderr)
+
     def test_bootstrap_profile_publication_and_exact_read_reach_real_issuer(self):
         self.ready(); client = self.client()
         profile = pb.BootstrapProfile(id='starter')

@@ -1,0 +1,278 @@
+M06 native runtime increment 2
+Date: 2026-10-13
+Compiled candidate: d9969c8b925b5cf97633286bbb319778e4bfdf2b.
+Reviewed test-only correction: d2bb820ebd90666db55eacfc29fe75f1632dd5d4.
+Corrective source candidate: 9f8405b57ab3b1fd7bc27dd2a8f3f8ec96f0e00d.
+Status: UNQUALIFIED. M06 remains active. Its full gate is UNRUN.
+
+Deployment root on both qualification hosts:
+/home/dflanag3/spatial-qualification/m06-native-d9969c8-20261013
+Both profiles verified archive hashes, payload hashes, and inventory pins.
+Debug archive: bb54aca6f6242c67cd7a43e18616201d4bad4ee48af721200b848dd22767a108.
+ASan archive: 25f146cf15da3bb2dc16206c35213ee7788f82b7b29b91f8f3d3a07a2cc47573.
+Both hosts used the reviewed XACE wrappers and graphics dependency closures.
+
+Completed focused runtime suites
+Each host passed ten native geometry boundary checks in Debug and ASan/UBSan.
+Each host passed eleven presentation-owner checks in Debug and ASan/UBSan.
+Total: 84 passed checks across eight completed suite executions.
+Evidence: runs/{debug,asan}-{boundary,owner}01 on each host.
+Every command and wrapper returned zero. No skips were reported.
+Independent payload audits passed after execution. Sanitizer log scans found no diagnostics.
+Audit receipts: component-boundary-owner-audit01.json on each host.
+
+Production host-session failures
+Each host completed 26 Debug checks: 24 passed and two failed.
+Evidence: runs/debug-hostsession01 on each host.
+Both failures concern local observation denial and continued session usability.
+The initial denial closed the actor session before a normal inspect reply.
+The destination denial fenced selection after destination activation.
+Source review found geometry_view omitted from the checked read-error reuse path.
+A validated matching geometry denial therefore closed the client unnecessarily.
+Original failure evidence remains intact. No test deadline changed.
+
+Corrective checkpoint
+The primary reviewed all three files in 9f8405b57.
+The correction retains the channel after validated inspect or geometry_view errors.
+Mutating errors, malformed envelopes, and transport failures still fence the client.
+New probe cases cover pressed-key input after denial and two malformed error replies.
+Full Debug and ASan/UBSan builds passed with command/wrapper exits zero.
+The checkpoint is box-git verified on m06/geometry-denial-session-reuse-20261013.
+Packaging is pending. Corrected-candidate runtime checks remain UNRUN.
+The original two production-host denial tests remain unchanged.
+
+Remaining qualification
+Deploy immutable corrected artifacts to both hosts after package review.
+Run client regressions and unchanged host-session checks in both profiles.
+Run native shared-world semantic checks in both authority directions and profiles.
+Freeze the combined source before the complete M06 qualification gate.
+Focused component results do not prove milestone completion.
+
+Disk cleanup
+Nine redundant unpacked baseline bundle directories were removed after content validation.
+All 88 embedded logs were exported and rehashed before deletion.
+Recovered space: sb16 6,244,708,352 bytes; sb16-2 4,996,132,864 bytes.
+Current artifacts, recovery evidence, archives, failures, and successful replacements remain intact.
+Cleanup report: local/m06-obsolete-testdata-inventory-20261013.txt at the project root.
+
+Failed-run cleanup audit
+Both adapter receipts report scope_removed=true and unexpected_population=false.
+Both failed runs returned command/wrapper exits 1/1, consistent with their failures.
+Primary checked each exact systemd unit and its cgroup path after completion.
+Both units are not-found and inactive. Both exact cgroup paths are absent.
+The cleanup stop returned 5 because systemd had already collected each unit.
+This cleanup result does not change the failed test classifications.
+
+Corrected candidate deployment and first runtime results
+Both final packages passed validation and terminal packaging receipts returned 0/0.
+Debug archive SHA256: ef9d4998bf06f7429f25f9109c27ddfb84111b359f1e51101ac24dfbc754091a.
+ASAN archive SHA256: 17e91be18597f76d4222de4cf2eb7fbbd5dc10e1e6d017f221808fb08287e352.
+Both Debug transfers completed with exit zero.
+Both hosts verified 1068 Debug manifest entries and the immutable archive hash.
+Corrected source matches all 20 XACE extension inputs in both profile receipts on both hosts.
+Actual Xvfb and Xorg binaries match those receipts too.
+Deployment root: /home/dflanag3/spatial-qualification/m06-geometry-denial-9f8405b-20261013.
+Both Debug actor-session-client runs passed 56 probe cases each, command/wrapper 0/0.
+Raw evidence: runs/debug-client01 on each host. Stderr is empty.
+These 112 focused probe executions include valid denial reuse and malformed error fencing.
+Debug production host-session suites are RUNNING on both hosts in persistent tmux.
+Exact tmux session: m06-denial-debug-hostsession01; evidence: runs/debug-hostsession01.
+Observed pane PIDs: sb16 1830841; sb16-2 1749001. Revalidate before any restart.
+ASAN transfers remain running under controller handles 59162 and 39321.
+TLS probes, corrected sanitizer runtime, cross-host native semantics, and full M06 gate remain UNRUN.
+Earlier pending packaging statements are superseded by this append.
+
+Corrected Debug host-session and TLS results
+Both host-session suites completed with 26 tests passed and command/wrapper exits 0/0.
+sb16 elapsed 108.275 seconds; sb16-2 elapsed 130.675 seconds.
+The original two local observation-denial tests passed unchanged on both hosts.
+Evidence: corrected deployment root runs/debug-hostsession01.
+Both TLS probes completed with 31 cases passed and command/wrapper exits 0/0.
+Evidence: corrected deployment root runs/debug-tls01.
+Together with client probes, corrected Debug totals are 226 checks passed across six completed suites.
+This supersedes the preceding RUNNING host-session status.
+Original failing candidate evidence remains preserved.
+Sanitizer runtime, native cross-host semantics, and the complete M06 gate remain UNRUN.
+Post-run payload, diagnostics, and cleanup audits remain pending for these new suites.
+
+Corrected runtime audit and sanitizer progress
+Debug post-run audits passed on both hosts: inputs unchanged, no sanitizer diagnostics, exact unit and cgroup cleanup verified.
+Audit receipts: debug-client-hostsession-audit01.json at the corrected deployment root.
+Each audit scanned 90 logs across the three suites.
+The initial audit incorrectly required empty TLS stderr. Its source-verified invalid-configuration case emits one expected protobuf parse diagnostic.
+Audit02 requires that exact diagnostic and keeps full sanitizer scanning. Original audit script and raw stderr remain preserved.
+Both ASAN deployments verified archive hashes and all 1071 manifest entries.
+Both ASAN client probes passed 56 cases with command/wrapper exits 0/0 and empty stderr.
+Both ASAN TLS probes passed 31 cases with command/wrapper exits 0/0 and the exact expected parse diagnostic.
+Corrected total so far: 400 passed checks across ten completed suites.
+ASAN host-session suites remain RUNNING on both hosts.
+Exact tmux session: m06-denial-asan-hostsession01.
+Observed pane PIDs: sb16 1835291; sb16-2 1753450. Revalidate before restart.
+No transfer or deployment tool sessions remain active.
+Cross-host native semantics and the full M06 gate remain UNRUN.
+
+Corrected focused qualification complete
+Both ASAN host-session suites passed all 26 original tests with command/wrapper exits 0/0.
+sb16 elapsed 133.975 seconds; sb16-2 elapsed 164.823 seconds.
+Both ASAN post-run audits passed: payload unchanged, no sanitizer diagnostics, exact owned units and cgroups absent.
+Audit receipts: asan-client-hostsession-audit01.json on each host.
+All four host/profile audits report 113 passing cases each.
+Corrected increment total: 452 passed checks across twelve completed suite executions.
+Both original denial cases pass in Debug and ASAN on both hosts.
+The session-denial correction is FOCUSED-PASS, not milestone qualified or integrated.
+All corrected local suite jobs are terminal. No transfer or deployment jobs remain active.
+Cross-host manifests are prepared for Debug and ASAN; actual cross-host runtime remains UNRUN.
+A read-only worker is checking cross-host loader and helper prerequisites.
+The full M06 gate remains UNRUN. M07-M16 remain pending.
+
+First native cross-host runtime failed in setup
+Debug sb16 authority to sb16-2 observer runtime01 completed: nine failures and nine secondary errors in 157.230 seconds, command/wrapper 1/1.
+All cases hit unprivileged /proc/PID/exe PermissionError before ready; no behavioral assertion is qualified.
+All nine exact-unit terminal receipts report absent units and cgroups.
+Read defect blockers/m06-native-geometry-process-witness-permission.txt at project root for diagnosis and correction assignment.
+Other directions/profiles remain UNRUN. Local 452 checks remain passed. Full M06 gate remains UNRUN.
+
+Cross-host loader preflight reviewed
+All 62 ELFs resolve on both hosts in both profiles, with no missing library.
+Primary independently verified all 62 headings, all resolved-path hashes, and all nine fixture source pins.
+Debug has 25 resolved paths per host. ASAN has 28 per host.
+Same-profile executable and system-library hashes match across both hosts.
+Report: project-root local/m06-crosshost-loader-preflight-20261013/REVIEW.txt and primary-audit.json.
+This is static launch evidence, not runtime qualification.
+
+Witness overlay dffc deployed; real import failure reproduced
+Test-only checkpoint: dffc661795a3f0a65fff16e35e72d51fb794dff2; box-git verified.
+Overlay archive SHA256: c893c2951bd3aaf696943614be2c23198ae796f43356808884ddbca6008e346f.
+Exactly four fixture files were verified and deployed to new source-overlay trees on both hosts and profiles.
+All original packages, binaries, bindings, and first-run evidence remain unchanged.
+Each host/profile binding layout passed 16 helper unit methods, command/wrapper 0/0.
+Total: 64 Python fixture methods passed. These mocks do not prove real privileged execution or native sanitizer coverage.
+Evidence: runs/witness-{debug,asan}-unit01 at the existing qualification root.
+Debug cross-host runtime02 completed nine setup failures and nine secondary errors in 161.146 seconds.
+Command and wrapper exits were 1/1. No behavioral assertion passed.
+Primary retained all raw output and per-case evidence under local/m06-crosshost-debug-runtime02-failure.
+All nine exact-unit terminal receipts report absent units and cgroups.
+A real non-dumpable child reproduction showed privileged helper exit 1 and ModuleNotFoundError.
+An isolated root trace identified the missing module as google.
+The helper replaces Python-I default import paths with sysconfig paths, excluding Ubuntu system dist-packages.
+Direct root-I protobuf import and roundtrip with the generated bindings path passed.
+The primary's final snapshot review missed that replacement. Next review must read complete frozen files.
+An escalated bounded worker owns the two helper/regression files on m06/witness-isolated-import-fix-20261013.
+It must preserve trusted isolated default paths and add actual importer and non-dumpable-child regressions.
+The 452 prior local native/client checks remain passed. Cross-host qualification and full M06 gate remain incomplete.
+
+Isolated import correction passes real helper qualification
+Checkpoint: 93da03e18fef673b586d2f668b90efa615d8f508; box-git verified.
+Overlay SHA256: 90535834a3c1e2a89202bec6f05fbe857d41e58db1765103a33a7dede07e4258.
+The primary reviewed both complete frozen helper and regression files.
+New overlay trees verified all four source hashes on both hosts and profiles.
+Each binding layout passed 18 methods with command/wrapper exits 0/0.
+Total: 72 Python fixture checks passed across four completed runs.
+Evidence: runs/witness2-{debug,asan}-unit01 at the qualification root.
+New checks execute the real isolated interpreter and sudo helper against an owned non-dumpable child.
+They verify PID/start/executable hash and reject environment/CWD injection, wrong request context, and missing isolated mode.
+These Python checks do not establish native sanitizer coverage.
+The first Debug direction is RUNNING with sb16 authority and sb16-2 observer.
+Source: source-overlays/93da03e18fef673b586d2f668b90efa615d8f508/debug/source/spatial-os-luna-handoff.
+Compiled production remains 9f8405b57 with unchanged original binaries and bindings.
+Run: runs/crosshost-witness2-debug/runtime03/authority-sb16.
+Tmux: m06-geometry-debug-sb16-runtime03; observed pane PID 1848720.
+The launcher adds the declared 1800-second deadline with TERM and ten-second KILL grace.
+No cross-host result is claimed yet. Remaining directions/profiles and the full M06 gate remain UNRUN.
+
+Cross-host runtime03 and runtime04 terminal results
+Runtime03 with 93da overlay completed nine methods in 155.067 seconds: one pass, five failures, three errors.
+Five failures exposed a discarded initial HostControl counter and generation.
+Three errors exposed state() shadowing the inherited filesystem path.
+All nine observer cleanup receipts passed.
+Correction 7dd9c9b2 carries the actual initial control response and renames the query actor_state.
+Runtime04 completed nine methods in 162.728 seconds: one pass, five failures, eight errors including secondary cleanup errors.
+Transitions and geometry-status queries now reach production. The startup sequence correction works.
+New fixture blockers: owner() collides with an inherited path, and a 128x128 observer cannot supply the required 512x384 pixels.
+All nine exact-unit terminal records confirm absent units and cgroups.
+Raw controller copies: local/m06-crosshost-debug-runtime03-failure and local/m06-crosshost-debug-runtime04-failure.
+Original host evidence remains preserved.
+
+Handoff regression entrypoint qualification
+The first entrypoint parsed fixture binary arguments as unittest test names.
+The second exposed an imported TestCase class to unittest discovery.
+Preserve failed unit01 and unit02 logs on both hosts and profiles.
+An explicit HostControlHandoffTests selection passed all three methods in unit03 across four lanes.
+Correction 69abf808 uses a module import alias and is box-git verified.
+Its default entrypoint passed all three methods in unit04 across four lanes: twelve checks.
+Every unit04 command/wrapper receipt is 0/0 COMPLETE.
+The six-file overlay is test-only; compiled production remains 9f8405b57.
+Its archive SHA256 is 0f44c50f537ec2cecd04a2094c393b6e0d9e2cfb01ab6e5c1c51eba6b7691a5c.
+Focused Python passes do not prove native shared geometry or the full M06 gate.
+
+Owner-channel and display correction focused qualification
+Checkpoint: d9ba2c3a26c800f21452715b038ba11f789bd529; BOX-GIT VERIFIED, unintegrated.
+The primary reviewed the owner helper rename, shared screen selector, and independent regressions.
+Eight-file test-only overlay SHA256: 2419a8bd0cf0ccfcc42e3ab36cbc4200ac32cfce4b55996bd208efe892239a14.
+Both hosts and both profiles verified the archive and every source hash.
+Each host/profile passed six helper methods and twenty-two unchanged native-security-identity methods.
+Total: 112 focused checks across eight completed runs. Command/wrapper receipts are 0/0 COMPLETE.
+Debug identity elapsed: sb16 1.055 seconds; sb16-2 1.095 seconds.
+ASAN identity elapsed: sb16 2.675 seconds; sb16-2 2.942 seconds.
+GLX remains enabled. Each profile uses its qualified XACE wrapper.
+Audit02 verified source hashes and scanned 64 logs per host with no sanitizer diagnostics or skips.
+The initial audit incorrectly reported the global total as each host count. Preserve audit01 and use derived audit02 counts: 56 per host.
+Evidence: runs/owner-screen-{debug,asan}-{helper,identity}01 and owner-screen-focused-audit02.json.
+Compiled production remains 9f8405b57. No acceptance assertion or pixel sample requirement changed.
+Debug native runtime05 is running on sb16 with sb16-2 observer.
+Run: runs/crosshost-owner-screen-debug/runtime05/authority-sb16.
+Tmux: m06-geometry-debug-sb16-runtime05; observed pane PID 1856085.
+No terminal native result is claimed here. Reverse Debug and both ASAN directions remain UNRUN.
+Full M06 gate remains UNRUN.
+
+First real native cross-host geometry result
+Debug runtime05 completed nine methods in 166.241 seconds: eight passed and one failed.
+Command/wrapper exits are 1/1. No test errors or cleanup errors occurred.
+Passed: real object-edit pixels, actor-motion pixels, private denial, observation revocation,
+stale-context fencing, forged application/native fields, authority-loss clearing, and surviving shared world after departure.
+Case03 failed during room provisioning: INVALID_ARGUMENT, Missing entity label.
+It did not reach that case's transition assertions.
+All nine normal observer cleanup and exact-unit terminal receipts passed.
+Raw evidence: local/m06-crosshost-debug-runtime05-evidence; host run remains preserved.
+
+Destination-room fixture correction
+Checkpoint 805c69e05ffaa7d5e59499b95c2ff95c02693b0f adds only the required room label.
+The primary reviewed the one-line change. Production validation and all assertions remain unchanged.
+Both hosts/profiles verified the eight-file test-only overlay.
+Archive SHA256: 0626d7123befdcf899d5c2dc2f40f95137acdb76ef891705d9ffb45bf83fc63d.
+Focused case03 passed in 18.892 seconds with command/wrapper 0/0 COMPLETE.
+It verifies A-B-A saved context, pixel equality, and exact native process identities.
+Its observer cleanup and exact-unit records passed.
+Evidence: runs/crosshost-destination-label-debug/case03-01/authority-sb16.
+The full nine-method Debug retry runtime06 is running on sb16 with sb16-2 observer.
+No combined nine-method result is claimed yet. Reverse Debug and both ASAN directions remain UNRUN.
+Full M06 gate remains UNRUN.
+
+Complete first native cross-host direction
+Source overlay 805c69e passed all nine Debug methods in 168.417 seconds.
+Run: runs/crosshost-destination-label-debug/runtime06/authority-sb16.
+Authority sb16, observer sb16-2. Command/wrapper 0/0 COMPLETE. No skips or test errors.
+All nine normal peer cleanup and exact-unit records passed.
+Post-run source hashes match all eight overlay files on both hosts.
+Authority audit scanned 114 logs; observer audit scanned 36 logs. No sanitizer diagnostics were found.
+Receipts: crosshost-runtime06-authority-audit.json on sb16; crosshost-runtime06-observer-audit.json on sb16-2.
+Reverse Debug runtime07 and forward sanitizer runtime08 are running concurrently.
+They use independent worlds, X servers, exact service units, and evidence directories.
+Reverse sanitizer and the full combined M06 gate remain UNRUN.
+This evidence does not establish physical-input, performance, or complete Spatial-M1 acceptance.
+
+Native cross-host focused matrix complete
+Source overlay: 805c69e05ffaa7d5e59499b95c2ff95c02693b0f. Compiled production remains 9f8405b57.
+Debug sb16 authority to sb16-2 observer: runtime06, nine passed, 168.417 seconds.
+Debug sb16-2 authority to sb16 observer: runtime07, nine passed, 157.350 seconds.
+ASAN sb16 authority to sb16-2 observer: runtime08, nine passed, 209.723 seconds.
+ASAN sb16-2 authority to sb16 observer: runtime09, nine passed, 215.780 seconds.
+Total: 36 passed native methods in four completed executions. Every command/wrapper is 0/0 COMPLETE.
+Each direction passed all nine exact-unit and normal peer cleanup checks.
+Each authority audit scanned 114 logs. Each observer audit scanned 36 logs.
+All eight overlay source hashes match on both hosts and profiles. No sanitizer diagnostics or skips were found.
+Runtime07/08 ran concurrently with separate worlds, servers, units, and evidence paths.
+Audit receipts: crosshost-runtime{06,07,08,09}-{authority,observer}-audit.json on the relevant hosts.
+This qualifies the focused native matrix. It does not substitute for the frozen combined M06 gate.
+Combined source, gate guard, and CMake regression registrations are being consolidated on a separate candidate branch.
+Production rebuild, full gate, semantic fixture integration, recovery, and final milestone reconciliation remain pending.

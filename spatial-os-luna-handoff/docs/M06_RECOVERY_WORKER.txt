@@ -1,0 +1,25 @@
+Bounded retained transition recovery assignment
+
+Host: a5500.
+Model: gpt-6-luna, medium reasoning.
+Run01 ended without implementation or builds. Its zero exit does not satisfy the task.
+Run02 escalates to gpt-6.1-sol, medium reasoning, after that failed implementation attempt.
+Branch: m06/retained-transition-recovery.
+Base: 411f531.
+Worktree: /home/dflanag3/src/spacial-m06-retained-recovery-20261012.
+Tmux: spatial-m06-retained-recovery01.
+Logs and terminal exit: local/m06-retained-recovery/run01-* in that worktree.
+Current tmux: spatial-m06-retained-recovery02. Current outputs use run02-*.
+
+Implement native recovery tests for departure before commit, departure after commit, and destination activation crash.
+Use real ActorTransitionCoordinator and retained SessionCoordinator worlds.
+Preserve durability, uncertainty, and no-replay assertions through checked retirement and restart.
+Own new recovery probe, protobuf schema if needed, native test, documentation, and corresponding CMake registration.
+Do not change production libraries or existing acceptance assertions without primary review.
+Build only on a5500. Runtime checks remain UNRUN until executed on sb16 and sb16-2.
+Use separate build directories with flock and two compile jobs.
+The host-controller and real-world integration workers retain separate checkouts and ownership.
+
+Integrate only after review and both-host Debug and sanitizer evidence.
+Resolve shared CMake changes deliberately after the controller and integration branches are reviewed.
+This assignment does not complete the M06 gate or authorize GitHub publication.

@@ -1,0 +1,45 @@
+M06 held-input fixture provisioning, 2026-10-12
+
+Attempt01: four failures across sb16 and sb16-2 in Debug and ASan/UBSan.
+All stopped before native transition assertions.
+The denied world had zero authority root grants.
+worldd rejected initialization: Provision between one and 64 root grants.
+
+Correction applied on the isolated held-input branch:
+Provision one WORLD_OBSERVE grant without WORLD_ENTER for the denied actor.
+Admission denial still requires actual FORBIDDEN from the production transition.
+No authority implementation, production limits, or rejection assertion changed.
+The reviewed Python overlay hash is recorded beside attempt02 evidence.
+
+Attempt02: sb16 Debug advanced beyond provisioning but failed before the denial reply.
+Coordinator log: Session supervisor failed: Issuer TLS connection failed.
+The test received EOF from the coordinator.
+The underlying issuer cause remains unconfirmed.
+The inherited TLS fixture permits eight connections.
+This fixture adds three worlds, native supervisors, and a resource-backed broker.
+Check concurrent connection demand and issuer lifecycle before changing any limit.
+Keep deadlines and authority checks intact. Do not treat EOF as a valid denial.
+
+All five executions failed. Native input assertions remain unqualified.
+Both hosts' attempt01 jobs and sb16 attempt02 are terminal.
+Resource wrapper reports scope_removed=true and final unit inactive/not-found.
+Evidence: spatial-os-luna-handoff/evidence/m06-held-input-2026-10-12.
+
+Diagnostic03 confirmed capacity exhaustion with limit eight.
+The live issuer reached nine socket descriptors: one listener plus eight peers.
+Diagnostic04 used the production-default limit of 32 and reached ten socket descriptors.
+TLS startup then completed. No request or idle deadline changed.
+The isolated fixture now selects capacity 32 before issuer startup.
+
+Diagnostic04 then reached native input and failed with Native input controller denied.
+The primary runtime launcher selected the old M04 XACE server.
+Its controller() implementation lacks the already-qualified M06 SpatialSecurityInputController check.
+This is a backend selection defect, not evidence that the M06 server change failed.
+The correct servers are recorded in m06-presentation-bindings-2026-10-12 host audits.
+Both hosts' M06 server binary hashes and nine applied overlay hashes were reverified.
+All receipt extension source hashes match the current project source.
+Use local/m06-scoped-input-05/{profile}/server-launch/Xvfb under spacial_desktop-m06-20261012.
+The corrected-backend held-input runtime check remains pending.
+
+Earlier combined80 evidence remains limited to its recorded server and source.
+It does not qualify M06 scoped native input. Reassess native evidence on the compatible backend at the final gate.

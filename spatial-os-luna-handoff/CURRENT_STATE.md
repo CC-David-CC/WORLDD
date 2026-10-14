@@ -1,4 +1,466 @@
+## 2026-10-13: Native focused matrix passes; combined qualification candidate is next
+
+The native geometry matrix passed all 36 methods across both hosts, both profiles, and both authority directions.
+All source, diagnostic, exact-unit, and normal peer cleanup audits passed.
+The extended gate fixtures passed all 62 checks across both hosts.
+These are focused results. The full M06 gate remains UNRUN.
+A separate combined candidate merges reviewed geometry, witness fixes, CMake registrations, and gate changes.
+It preserves history and leaves the milestone branch source unchanged until qualification.
+Both witness regression modules are now registered in the candidate's full CTest inventory.
+The inventory has 165 registrations with input tests enabled. Registration is not execution evidence.
+The final mandatory-suite guard is under focused qualification before source freeze and production builds.
+Next: freeze and build the combined candidate, deploy it, then run the full gate on both qualification hosts.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt and docs/M06_DEPLOYED_GATE_FOCUSED_STATUS_2026-10-13.txt for evidence.
+
+## 2026-10-13: First complete native cross-host direction passes
+
+Source overlay 805c69e passed all nine Debug native cross-host methods in 168.417 seconds.
+Authority: sb16. Observer: sb16-2. Command and wrapper returned zero.
+All nine cleanup records passed. Source hashes and diagnostic audits passed on both hosts.
+The authority audit scanned 114 logs. The observer audit scanned 36 logs.
+This proves the selected native geometry cases for one profile and direction.
+Reverse Debug runtime07 and forward sanitizer runtime08 are running in separate sessions and evidence paths.
+Reverse sanitizer remains UNRUN. The combined M06 gate remains UNRUN.
+A reviewed CMake checkpoint registers both new witness regression modules for the full gate.
+A reviewed artifact-recheck checkpoint awaits its focused static qualification.
+Source integration and full Debug, sanitizer, harness, acceptance, recovery, and native qualification remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Real cross-host pixels and authority checks pass; complete retry running
+
+Native Debug runtime05 passed eight of nine methods on sb16 authority and sb16-2 observer.
+It proves object-edit pixels, actor-motion pixels, denial and revocation, context fencing, and authority-loss behavior for that direction.
+The remaining method failed in fixture provisioning because its room lacked a required label.
+Reviewed correction 805c69e adds the label. The focused round-trip method passed all unchanged assertions.
+All runtime05 and focused round-trip observer cleanup receipts passed.
+The complete nine-method retry runtime06 is running. Its terminal result remains pending.
+The owner/display correction separately passed 112 focused checks across both hosts and both profiles.
+Gate fixture correction passed 52 checks across both hosts.
+Source integration, remaining directions/profiles, and the complete M06 gate remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt for source pins and evidence.
+
+## 2026-10-13: Deployed gate fixtures pass on both hosts
+
+Gate checkpoint 7298e1a6 is box-git verified and remains unintegrated.
+Both hosts passed all 26 pure gate fixture checks: 52 total.
+The earlier sb16-2 receipt-host mismatch is corrected. The wrong-host rejection guard remains tested.
+These checks cover launch plans and receipt validation. They do not prove native geometry or the full gate.
+Read docs/M06_DEPLOYED_GATE_FOCUSED_STATUS_2026-10-13.txt for source pins, failures, and results.
+The native owner-channel and bounded observer-display correction is reviewed and awaiting checkpoint packaging.
+The unchanged 512x384 pixel requirement remains mandatory.
+A separate worker will add crossstage artifact and external-runtime hash rechecks before integration.
+M06 remains active. The full gate remains UNRUN. M07-M16 remain pending.
+
+## 2026-10-13: Corrected native startup reaches geometry; pixel fixture setup remains defective
+
+Correction 7dd9c9b2 fixed startup control sequence adoption and the actor_state method collision.
+Debug runtime04 completed nine methods in 162.728 seconds: one passed, five failed, and eight errors occurred.
+Errors include secondary cleanup errors. They are not eight additional test methods.
+Transitions and geometry-status requests now reach the production service.
+The owner() fixture helper collides with an inherited filesystem path.
+The observer launches a 128x128 display, but its pixel witness requires 512x384 pixels.
+A separate fixture correction is assigned. The pixel contract remains unchanged.
+Raw evidence remains in local/m06-crosshost-debug-runtime04-failure.
+All nine exact-unit receipts confirm inactive, absent units and absent cgroups.
+The three handoff regressions passed on both hosts and both binding profiles: twelve checks.
+Correction 69abf808 fixes default test discovery and is box-git verified.
+The default entrypoint also passed all twelve checks in the four unit04 lanes.
+The gate-wiring review found separate host-evidence, timeout, cleanup, and output-directory defects.
+Their corrections are implemented but remain under primary review and untested.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+The full M06 gate remains UNRUN.
+
+## 2026-10-13: Cross-host runtime reaches behavioral checks; fixture corrections reviewed
+
+The real privileged process witness passed 72 checks across both hosts and both profiles.
+Witness correction 93da03e is box-git verified. It remains a test-only overlay.
+The third Debug cross-host run completed nine methods: one passed, five failed, and three errored.
+All nine observer cleanup receipts passed their unit and cgroup checks.
+Five failures exposed a discarded startup control counter and generation.
+Three errors exposed a fixture method collision with its inherited state-directory path.
+The primary reviewed both corrections on their separate worker branch.
+Correction 7dd9c9b2 is box-git verified and deployed to both hosts and profiles.
+Its first corrected Debug runtime is running. The result remains pending.
+The standalone regression launcher failed before test execution. Its entrypoint correction is reviewed.
+The nine behavioral assertions and production binaries remain unchanged.
+Raw evidence remains in local/m06-crosshost-debug-runtime03-failure and both hosts' qualification directories.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+The full M06 gate remains UNRUN.
+
+## 2026-10-13: First native cross-host run exposes witness setup defect
+
+The first Debug direction completed with nine setup failures and nine secondary errors.
+The observer cannot read a confined process executable through its unprivileged /proc witness.
+No shared-world behavioral assertion passed in that run.
+All nine exact-unit receipts confirm absent units and cgroups after recovery.
+The raw run and all per-case evidence remain preserved.
+Read the project-root defect blockers/m06-native-geometry-process-witness-permission.txt for diagnosis and correction assignment.
+A separate test-only witness correction is underway. Production confinement remains intact.
+The loader preflight passed for all 62 executables in all four host/profile combinations.
+The 452 local focused checks remain passed. M06 and its complete gate remain incomplete.
+
+## 2026-10-13: Geometry-read denial correction passes focused qualification
+
+Correction 9f8405b57 passed 452 focused checks across both hosts and both profiles.
+The original local observation-denial tests passed unchanged in Debug and ASAN.
+Post-run payload, sanitizer diagnostic, and owned cleanup audits passed.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt for exact source, artifacts, results, and limitations.
+The correction remains on a separate candidate branch. Integration is pending.
+Cross-host native geometry runtime and the full M06 gate remain UNRUN.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Native geometry candidate tested; session-denial correction pending runtime
+
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Native geometry presentation is implemented on a separate, unintegrated candidate branch.
+The milestone branch has not received this candidate yet.
+Read docs/M06_NATIVE_RUNTIME01_STATUS.txt for exact commits, results, and failure evidence.
+Both hosts passed 84 focused native boundary and owner checks across Debug and sanitizer profiles.
+Each host passed 24 Debug host-session checks and failed two local observation-denial checks.
+A validated geometry-read denial incorrectly closed the actor client.
+The primary reviewed correction 9f8405b57. Both full build profiles passed.
+Corrected artifacts are being packaged. Their runtime checks remain UNRUN.
+Cross-host visible geometry and the complete M06 qualification gate remain UNRUN.
+Earlier entries describe historical source and evidence. They do not override this current status.
+
 # Implementation status
+
+## 2026-10-13: Combined host-session qualification remains incomplete
+
+Read docs/M06_HOST_SESSION_RUNTIME03_STATUS.txt for source pins and evidence paths.
+Correction 62ea4e8 fixes the private-world fixture's authority seed. Its denial assertion remains unchanged.
+Overlay launcher 0835d38 records binary source and fixture provenance separately.
+Both checkpoints are box-git verified. Neither is integrated into the milestone branch.
+sb16 passed 34 selected Debug checks and 34 selected sanitizer checks.
+sb16-2 passed private denial but encountered issuer EOF during native setup.
+Its instrumented Debug and sanitizer runs each passed all 34 selected checks.
+The earlier issuer close reason remains unproven. Read docs/M06_HOST_SESSION_RUNTIME04_STATUS.txt.
+Diagnostics will record peer idle duration and daemon state without changing deadlines.
+Native shared-world presentation remains unimplemented. The complete M06 gate remains pending.
+M01 through M05 remain qualified. M06 is active. M07 through M16 remain pending.
+
+## 2026-10-13: Preserve XACE and assess CallbackList in parallel
+
+David requests a five-minute assessment of the separate CallbackList implementation.
+Finish XACE. Keep both implementations for comparison. Do not replace the M06 baseline.
+Read docs/XACE_CALLBACKLIST_DRI3_STATUS.txt for upstream feedback, source locations, and evidence limits.
+The existing callback draft has selected wrapper checks. Native policy integration remains unqualified.
+The current SpatialSecurity consumer registers seven remaining XACE hooks, not an established count of five.
+DRI3 export ownership and revocation require a separate security review.
+No project DRI3 bypass is claimed without a reproducer.
+This bounded assessment does not stop M06 host-session qualification or shared-world geometry work.
+
+## 2026-10-13: Combined geometry passes Debug and sanitizer on both hosts
+
+Read evidence/m06-combined-geometry-asan-2026-10-13/REVIEW.txt and the matching Debug evidence.
+Candidate fc302de passed all thirteen selected suites in both profiles on both hosts.
+All fifty-two suite executions passed. No checks were skipped.
+Each terminal audit passed. All 1,162 input hashes remained unchanged per run.
+No attempt processes remained. The audits scanned 1,564 logs without sanitizer diagnostics.
+Both qualification lanes are now idle. No geometry runtime job needs restarting.
+Debug evidence checkpoint 3dc3562 is verified on box-git.
+The combined host-session qualification launcher is under preparation on middle-child.
+Those related runtime checks remain unrun before source integration and native presentation work.
+Native shared-world geometry presentation remains unimplemented. The full M06 gate remains pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Fresh combined geometry Debug qualification passes on both hosts
+
+Read evidence/m06-combined-geometry-debug-2026-10-13/REVIEW.txt for receipts and the qualification limits.
+Candidate fc302de passed all thirteen selected Debug suites on both hosts.
+All twenty-six suite executions passed. No checks were skipped.
+The independent terminal audit scanned 782 logs without sanitizer diagnostics.
+Both runs preserved all 1,162 input hashes and left no attempt processes.
+Count-limit and oversized-snapshot rejection passed within the complete headless geometry suite.
+Fresh Debug/ASan ON/OFF builds passed on a5500. Both artifact profiles are deployed and hash-verified.
+Fresh backend audits verified both profiles on both qualification hosts.
+ASan runtime qualification is active in persistent tmux on both hosts.
+No ASan result or full M06 PASS is claimed.
+The deployed gate tooling is checkpointed as f9d17c6 on box-git, with twenty-nine static checks passed.
+Its real deployed cross-host qualification remains unrun.
+A bounded Luna task prepares combined host-session qualification in a separate middle-child worktree.
+Geometry source remains outside the milestone branch until its combined qualification passes.
+Native geometry presentation remains unimplemented. The full M06 gate remains pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Linear snapshot fix passes focused checks on both hosts
+
+Read evidence/m06-geometry-count-asan-diagnosis-2026-10-13/REVIEW.txt for preserved failures and passing receipts.
+Snapshot construction repeatedly measured the growing protobuf reply. This made the work quadratic.
+The measured 4,265 ms dispatch exceeded the fixture's 3,000 ms issuer idle window.
+Checkpoint fc302de44670f87737dd7ab46ef83b24c60f1612 counts each entity's encoded protobuf field once.
+The unchanged threshold, typed rejection, sorting, and transaction semantics remain intact.
+No timeout or existing acceptance assertion changed.
+The branch m06/linear-snapshot-size-20261013 is FOCUSED-PASS and verified on box-git.
+It remains outside the milestone branch.
+Both hosts passed Debug and ASan snapshot regression, eleven worldd lifecycle tests, count-limit, and oversized-snapshot checks.
+These are fifty-six focused check executions. The full M06 gate remains unrun.
+The sb16 ASan count construction fell to 247 ms and returned its controlled rejection.
+A fresh complete combined-source artifact bundle is assigned on a5500 in a separate worktree.
+A separate Luna task reviews the gate's path containment and timeout cleanup on middle-child.
+The gate draft's twenty static Linux fixture checks passed before that review.
+Native geometry presentation remains unimplemented. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-12: Issuer EOF isolated; geometry timing remains under diagnosis
+
+Read evidence/m06-issuer-diagnostic-2026-10-12 for the preserved sb16 diagnostic attempts.
+The real-TLS callback-failure diagnostic regression passed. Both count-limit reproductions failed.
+The first reproduction omitted the service-log retention setting. Its remaining evidence is preserved.
+The corrected reproduction retained issuer_eof at reply_header, with zero bytes received and zero milliseconds elapsed.
+This proves immediate closed-peer detection. It does not prove why the issuer closed the connection.
+The diagnostic runtime mixed a pinned baseline bundle with an explicit reviewed supplement. It is not qualification.
+Both attempts stopped. Cleanup found no remaining attempt processes.
+The corrected drivers require a writable evidence directory before importing fixtures. All eight guard checks passed.
+Source review found repeated snapshot-size computation before the geometry count guard.
+Timing instrumentation is assigned to an isolated Luna medium worker on a5500, based on 5cbec99.
+No timeout, idle policy, retry behavior, or acceptance assertion changed.
+M06 remains active. Remaining sanitizer suites, combined-source checks, visible geometry, and the full gate remain pending.
+
+## 2026-10-12: Geometry Debug passes; sanitizer issuer disconnect under diagnosis
+
+All nine selected Debug suites passed on both hosts across two corrected attempts.
+Read evidence/m06-geometry-debug-corrected-2026-10-12 for 434 credited checks and the preserved failed attempts.
+Primary verified all 1016 archived original records. This focused evidence does not complete the M06 gate.
+The first corrected attempt passed six suites, then exposed a missing process-scope helper in the bundle.
+A reviewed helper supplement let the remaining three suites pass. Earlier failures remain preserved.
+The combined geometry and host-session candidate is checkpointed as 9f790f4 on box-git.
+Its four Debug/ASan ON/OFF builds passed. Target-only builds also verified the missing helper dependency.
+This candidate remains unqualified and is not integrated into the milestone branch.
+Both sanitizer runs passed world-authority and eight of nine geometry cases.
+The geometry count-limit case received EOF instead of its expected controlled rejection on both hosts.
+Both affected world logs report identity-service failure at identity_sessions.cpp:290, during an issuer exchange.
+The underlying exchange failure remains under diagnosis. No timeout or authorization contract has changed.
+Later sanitizer suites remain unrun. Combined-source runtime checks and native geometry presentation remain pending.
+M01-M05 remain qualified. M06 remains active. The full M06 gate and M07-M16 remain pending.
+
+## 2026-10-12: Geometry Debug fixtures require correction
+
+Combined host-session builds passed all four Debug/ASan ON/OFF profiles. Evidence is committed as 1ecd27f.
+Geometry source 8bdda76 is checkpointed on box-git and remains unqualified.
+Both hosts passed deployment preflight and the hostile-peer command.
+Each first Debug geometry run completed nine tests with three failures. Both runtime attempts stopped and cleaned up.
+Revocation returned FORBIDDEN, while the fixture expected UNAUTHORIZED for an actor who remains registered.
+The headless object-grab assertion failed. Real edit coverage is moving to the existing native authority test.
+The oversized snapshot returned RESOURCE_EXHAUSTED, while the fixture expected INVALID_ARGUMENT.
+Reviewed fixture corrections preserve authority rules and explicitly record the tested snapshot guard.
+Fresh Debug checks will use a hashed two-file test overlay with unchanged production binaries.
+The remaining seven suites and all geometry sanitizer checks are unrun. No geometry qualification is claimed.
+Native geometry presentation, the full M06 gate, and M07-M16 remain pending.
+
+## 2026-10-12: Host-session evidence integrated; geometry artifacts frozen
+
+Host-session evidence is integrated as fe8867d and verified on box-git.
+Primary verified 1139 archived payload hashes per host, including the terminal launcher receipts.
+Read evidence/m06-host-session-production-2026-10-12 for the 400 focused checks and preserved failures.
+Geometry run04 builds and packaging passed on middle-child. All nine selected registrations have commands.
+The frozen sidecar binds both archives, source hashes, inventories, and separate Debug OFF bindings.
+Geometry runtime checks remain unrun. Launcher review requires timeout, skip, sanitizer, and sidecar checks before execution.
+Combined host-session Debug ON/OFF and ASan ON builds passed. ASan OFF is still running on a5500.
+Native geometry presentation and the complete M06 gate remain pending. M07-M16 remain pending.
+
+## 2026-10-12: Production host-session integrated after 400 focused checks
+
+Task ee416fc passed 400 selected checks on sb16 and sb16-2: startup 20, native 96, and related callers 284.
+Corrected runs used the qualified XACE wrapper with GLX enabled, leak detection enabled, and no suppressions.
+All selected checks passed with no skips. Earlier raw-Mesa failures and the failed launcher attempt remain preserved.
+Source is integrated as 2954de0. The merge retains resource-wrapped native checks and one actor-client Python generator.
+Combined ON/OFF Debug and ASan build validation is active on a5500 in spatial-host-session-integrated-build01.
+Build checkout: /home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012, pinned at 2954de0.
+Runtime on that combined source and the full M06 gate remain pending.
+Geometry run02 remains unqualified. Its CTest registration, queued-revocation witness, and complete native/OFF bundle are being corrected.
+Geometry runtime qualification and foreground native presentation still precede the M06 gate.
+M07-M16 remain pending. No full Spatial-M1 qualification is claimed.
+
+## 2026-10-12: Cross-host evidence checkpoint; geometry correction required
+
+The cross-host evidence audit verified 83 files and the focused results recorded below.
+Geometry run01 finished unqualified. Both builds passed; all nine regression groups and the runtime bundle are missing.
+Review found queued-view revocation, client fencing, authority binding, frame bounds, shape validation, and Python generation defects.
+A bounded Sol medium correction follows the failed Luna medium attempt. No geometry runtime PASS is claimed.
+Host-session Debug passed 24 checks on each host. OFF startup passed 20 checks across both profiles and hosts.
+Default-GLX sanitizer runs failed during server cleanup with a 3176-byte GLX allocation leak on each host.
+The failed launcher bypassed the qualified wrapper and its patched Mesa EGL dependency closure.
+Both hosts passed all 24 host-session native sanitizer checks through the corrected wrapper with GLX and leak detection enabled.
+Related cleanup regressions remain active. The full M06 gate remains unrun.
+Current host receipts: /home/dflanag3/spatial-qualification/m06-host-session-run03-20261012-01/evidence/runner03.log.
+Final evidence collection and source integration remain pending.
+The failure evidence remains preserved. Core-only testing is not used to replace graphics coverage.
+M06 and its full gate remain incomplete. M07-M16 remain pending.
+Read docs/M07_WORKSPACE_INCREMENT_PLAN.txt for the prepared next-milestone gap map; it does not advance M07.
+
+## 2026-10-12: Held-input checkpoint integrated; shared geometry work starts
+
+Held-input task 9222918 is integrated as c8c43ee after all 28 related lifecycle checks passed.
+Both hosts passed session-application and session-replacement in Debug and ASan/UBSan.
+All eight suite executions returned zero with checked scope cleanup and no skipped cases.
+The evidence audit scanned 178 logs without sanitizer findings.
+Read evidence/m06-held-input-2026-10-12/related-lifecycle/review.json.
+These checks supplement the four earlier held-input executions. They are not the full M06 gate.
+The selected production source, schemas, and native fixtures match the qualified task checkpoint.
+The remaining source differences are unrelated transition/recovery test drivers.
+
+Cross-host worker checkpoint c93e02b is integrated as 23a2554 after primary source and evidence review.
+All 12 semantic cases, two slow-stop checks, and one injected-startup cleanup check passed.
+Read evidence/m06-crosshost-transitions-2026-10-12/primary-review.json for the scope and preserved initial cleanup failure.
+The CMake conflict retained both real-world and cross-host registrations.
+Combined source 38f6605 configured and built all three selected targets in Debug and ASan/UBSan on a5500.
+Both CTest inventories contain the real-world, cross-host, and native host-controller registrations; no runtime tests ran there.
+Read evidence/m06-combined-build-check-2026-10-12. All six command exits were zero; the malformed aggregate exit remains unknown.
+No native presentation claim follows from the headless cross-host checks.
+Gate tooling is integrated as a10744b. All 12 static checks passed; its complete deployed workflow remains unrun.
+Production host-session deployment and focused qualification are active on both runtime hosts.
+
+Review confirmed that foreground selection alone does not draw the destination world.
+A Luna medium worker now implements authenticated geometry export on middle-child.
+Branch: m06/actor-geometry-view. Base: 5368e7d. Tmux: spatial-m06-geometry-view01.
+Read docs/M06_GEOMETRY_VIEW_WORKER.txt for its bounded scope and required presentation integration.
+Runtime checks for that new implementation remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-12: Held-input transitions pass the focused native matrix
+
+Task checkpoint 9222918f5 passed on both hosts in Debug and ASan/UBSan: four test executions.
+The native fixture checks held-input release, stale-generation rejection, return restoration, and private denial.
+It preserves actual application and retained service identities.
+The checkpoint is on box-git but awaits related lifecycle regressions before milestone integration.
+Read evidence/m06-held-input-2026-10-12/focused-review.txt.
+
+TLS diagnosis confirmed that the old eight-peer fixture limit was too small for three supervised worlds.
+The scoped fixture now uses the production-default capacity of 32. Deadlines remain unchanged.
+The final launcher uses the qualified M06 XACE backend with scoped input support.
+The old M04 backend caused the later native denial; no additional server patch was needed.
+Earlier combined80 results remain limited to their recorded backend and source.
+
+Cross-host runtime, production host-session qualification, remote presentation/routing integration,
+and the final M06 gate remain incomplete. M07-M16 remain pending.
+
+## 2026-10-12: Held-input runtime exposes fixture setup defects
+
+The namespace PID correction compiled in both profiles and passed source review.
+Four initial executions failed before native assertions because the private-world seed had no root grants.
+A scoped test correction adds WORLD_OBSERVE without WORLD_ENTER. Admission checks remain unchanged.
+One subsequent sb16 Debug execution advanced past seeding, then failed during issuer TLS startup.
+The TLS cause remains under diagnosis. No held-input runtime PASS is claimed.
+Read evidence/m06-held-input-2026-10-12 and ../defect blockers/m06-held-input-provisioning.txt.
+
+Cross-host source review found a partial-startup cleanup defect; its correction awaits runtime qualification.
+Production host-session corrections and the artifact-only full-gate runner remain separate active tasks.
+The old gate runner cannot run unchanged because it compiles on qualification hosts.
+M06 remains active. The prior combined 80-check checkpoint remains qualified for its recorded source.
+
+## 2026-10-12: Combined M06 transition checks pass
+
+Combined source b7b684e passed all 80 selected executions on sb16 and sb16-2 in Debug and ASan/UBSan.
+Each host/profile passed 15 real-service, four retained recovery, and one native host-controller case.
+Four initial host-controller setup errors came from an incorrect resource-wrapper combination.
+The corrected launcher follows the declared CMake environment. No source changed for that retry.
+Failure logs and final results remain in evidence/m06-transition-combined-2026-10-12.
+These focused results do not complete the M06 gate.
+
+Production host-session review still requires production protobuf packaging and two stronger lifetime/deadline regressions.
+Cross-host provisioning has compiled; runtime qualification remains unrun.
+The held-input correction worker remains active after the incomplete Luna draft.
+A live-draft review found namespace-local application PIDs used as host PIDs.
+Recheck and resolve that finding before accepting its process-continuity evidence.
+See ../defect blockers/m06-held-input-namespace-pid-review.txt.
+
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-12: M06 four-case native recovery passes focused qualification
+
+All four recovery cases passed on both hosts in Debug and ASan/UBSan: 16 executions.
+Both departure and activation now have before-commit and after-commit coverage.
+Read evidence/m06-retained-recovery-2026-10-12/final-review.txt for hashes, diagnostics, and prior failures.
+Recovery checkpoint 11a193c3e is verified on box-git.
+
+Combined candidate b7b684e integrates 15 real-service cases and four retained recovery cases.
+The three unsupported direct-launch crash tests have explicit native replacements.
+The common actor-transition Python binding now has one generator.
+Combined checks select 80 executions, including the native controller consumer, across both hosts and profiles.
+The candidate is on box-git branch m06/recovery-combined-candidate. Its combined checks are pending.
+
+Cross-host provisioning and production host-session corrections remain separate active workers.
+A Luna worker owns combined held-input and delayed-request regressions on m06/held-input-transitions.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending.
+
+## 2026-10-12: M06 recovery and production-entrypoint review
+
+Recovery attempt01 had 12 setup errors from an outdated shared fixture.
+Attempt02 reached crash recovery but failed all 12 cases during healthy-owner teardown.
+The teardown incorrectly requested issuer retirement without a failure fence.
+The corrected test preserves crash retirement and verifies checked cleanup for healthy owners.
+Attempt03 passed 10 of 12 executions.
+Two sb16-2 ASan/UBSan departure cases lost the issuer TLS connection during setup.
+Diagnostic04 reproduced a 5.149-second idle gap against the three-second fixture idle limit.
+The issuer stayed alive. Registration immediately received EOF on the expired administrative connection.
+A scoped fresh connection before registration is being implemented. Request and idle limits remain unchanged.
+Coverage review also requires destination activation after commit, in addition to the existing rollback case.
+Do not replace the earlier after-commit test with before-commit coverage.
+Read evidence/m06-retained-recovery-2026-10-12 and defect blockers at the repository root.
+
+The cross-host Luna draft compiled but omitted runnable two-world provisioning.
+The production host-session Luna draft compiled but lacks required native tests and has reviewed lifetime defects.
+Both drafts remain unintegrated. Bounded Sol corrections run in persistent tmux sessions on their existing isolated branches.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending.
+
+## 2026-10-12: M06 native actor controller integration passes focused checks
+
+HostActorController is integrated at 3b0d39c from worker checkpoint eea077c79.
+Both hosts passed the native A-B-A/private-denial case and 14 session-world regressions in both profiles.
+All 60 executions passed. The separate controller fixture also passed all 44 executions.
+Exact retained owners and XLibre/compositor/world PID-start identities survived ordinary transitions.
+Read evidence/m06-native-packaging-2026-10-12/review.txt for final evidence and preserved failures.
+The commit remains labeled UNQUALIFIED because the full M06 gate has not passed.
+
+Real-service attempt03 passed 15 of 18 cases in each host/profile after fixing Git worker configuration.
+Three crash-recovery cases still error. Read evidence/m06-realworld-attempt03-2026-10-12/review.txt.
+Their supervised replacements are being implemented on a separate recovery branch.
+Production entrypoint use, cross-host transition integration, held-input/delayed-message checks, and the full gate remain pending.
+M06 is incomplete. M07-M16 remain pending.
+
+## 2026-10-12: M06 real-service qualification exposes setup gaps
+
+Both hosts ran 18 integration cases in Debug and ASan/UBSan.
+Each execution passed 12 cases, failed three, and errored on three.
+Workspace cases lacked required Git worker configuration. Crash recovery lacked prior authority retirement.
+The issuer correctly refused unsafe restart. Corrections must preserve these production checks.
+Read evidence/m06-realworld-attempt01-2026-10-12/review.txt and its four runtime logs.
+The native controller test stopped at a missing generated Python binding. Native behavior remains unverified.
+The final host-controller fixture passed 11 cases per host and profile, totaling 44 executions.
+Both worker branches remain unintegrated. M06 is incomplete. M07-M16 remain pending.
+
+## 2026-10-12: M06 combined actor client and sequencing checks pass
+
+Combined source 9275727 passes 119 cases on both hosts in Debug and ASan/UBSan: 476 executions.
+Typed server errors preserve uncertainty after possible effects. Departure receipts precede destination activation.
+Read evidence/m06-actor-combined-2026-10-12/primary-review.txt for merged-source evidence and limits.
+Real issuer/worldd integration and trusted host selection are active separate worker tasks.
+M06 native integration, recovery, and full qualification remain pending. M07-M16 remain pending.
+
+## 2026-10-12: M06 actor TLS transport passes focused checks
+
+ActorSessionClient supports mutual TLS through versioned protobuf configuration.
+All 43 local and 31 TLS cases pass on both hosts in Debug and ASan/UBSan: 296 final executions.
+Read evidence/m06-actor-tls-2026-10-12/primary-review.txt for source pins, corrections, and limits.
+The integrated checkpoint is b80d143. Transition sequencing and production host selection remain pending.
+Real-world/native transition integration, recovery, and the full M06 gate remain pending.
+M06 remains incomplete. M07-M16 remain pending qualification.
+
+## 2026-10-12: M06 local actor client passes focused checks
+
+The reviewed client uses authenticated protobuf exchanges over private local actor channels.
+It enforces bounded deadlines, descriptor ownership, and fail-closed reply validation.
+All 43 cases passed on both test hosts in Debug and ASan/UBSan: 172 executions.
+Read evidence/m06-actor-client-2026-10-12/primary-review.txt for scope and evidence.
+The integrated checkpoint is e28b20c. The worker checkpoint is 4f403b7b9.
+TLS transport and transition sequencing remain separate, unqualified worker drafts.
+Host foreground selection, real-world transition integration, recovery, and the full M06 gate remain pending.
+M01-M05 remain qualified. M06 remains incomplete. M07-M16 remain pending qualification.
+Workers coordinate through box-git branches and isolated checkouts or worktrees.
+Stable deployment is authorized on all four hosts. Both sb16 hosts remain required qualification targets.
+XACE remains the active baseline. CallbackList work remains deferred.
 
 ## 2026-10-12: M06 shared worldd client and captures pass focused checks
 

@@ -1,0 +1,18 @@
+Native recovery does not yet replace every direct-launch crash assertion.
+
+The real-service branch 2ba05eb tests destination activation after durable commit, before its reply.
+It requires the destination actor and requested pose to survive recovery.
+The current native destination activation test faults before commit.
+It requires rollback and creation at the entry spawn after fresh authentication.
+These tests check different outcomes. Neither replaces the other.
+
+Keep the native rollback case.
+Add a native activation-after-commit case using an explicit destination spawn.
+Require the durable destination actor and pose before restart and after fresh authentication.
+Preserve confirmed source departure, effect uncertainty, no replay, checked retirement, and fresh-generation checks.
+Run both activation cases on both hosts in Debug and ASan/UBSan.
+Do not remove the old after-commit coverage until its supported-runtime replacement passes.
+
+Integration must also reuse the existing actor_transition_pb2.py generator.
+The recovery branch base predates host-actor-python-protobuf and currently declares a duplicate output.
+Remove the duplicate generation when combining these branches. Keep an explicit target dependency.

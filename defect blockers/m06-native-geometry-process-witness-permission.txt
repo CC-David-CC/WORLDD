@@ -1,0 +1,41 @@
+M06 native geometry witness cannot read confined process executable
+Status: confirmed fixture defect; correction underway; cross-host behavior unverified.
+Date: 2026-10-13
+Candidate: 9f8405b57ab3b1fd7bc27dd2a8f3f8ec96f0e00d.
+
+Reproduction
+Debug cross-host run runtime01 used sb16 authority and sb16-2 observer.
+All nine tests failed during setup. Nine secondary cleanup errors were reported.
+Final runtime: 157.230 seconds. Command and wrapper exits: 1/1.
+Evidence: sb16:/home/dflanag3/spatial-qualification/m06-geometry-denial-9f8405b-20261013/runs/crosshost-debug/runtime01/authority-sb16.
+The unittest summary is in stdout.log. Outer stderr.log is empty.
+Controller retained copy: local/m06-crosshost-debug-runtime01-failure.
+
+Root cause
+geometry_native_host.py witness_processes directly opens /proc/<pid>/exe.
+Production confines the native process. Its executable cannot be opened by this unprivileged witness.
+PermissionError errno 13 occurs before the observer sends its ready reply.
+The observer exits. Its adapter emits a JSON cleanup footer into the stream.
+The controller correctly rejects that footer as an oversized protobuf frame.
+Cleanup attempts another protocol exchange and preserves that error after exact-unit recovery.
+
+Required correction
+Use a trusted independent privileged witness for process identity where necessary.
+Preserve PID, start identity, and actual executable hash checks.
+Reject PID reuse, death, and executable changes during measurement.
+Keep production confinement, dumpability, and namespace restrictions intact.
+Do not weaken strict protobuf framing or behavioral assertions.
+Handle startup failure through exact owned cleanup without replay into a broken stream.
+
+Cleanup evidence
+All nine exact-unit terminal receipts report not-found, inactive, and cgroup absent.
+Primary reviewed all nine retained receipts. This does not convert failures into passes.
+
+Correction assignment
+Coding host: middle-child.
+Worktree: /home/dflanag3/src/spacial-m06-geometry-process-witness-20261013.
+Branch: m06/geometry-process-witness-20261013.
+Base: 9f8405b57ab3b1fd7bc27dd2a8f3f8ec96f0e00d.
+Source review, regressions, and runtime requalification remain pending.
+Other cross-host directions and sanitizer cross-host checks remain UNRUN.
+The 452 corrected local checks remain passed. The full M06 gate remains UNRUN.

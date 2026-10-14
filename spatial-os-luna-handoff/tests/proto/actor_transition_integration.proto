@@ -1,0 +1,47 @@
+syntax = "proto3";
+package spatial.testing.v1;
+import "issuer.proto";
+import "core.proto";
+import "world_session.proto";
+import "actor_transition.proto";
+
+message ActorTransitionStep {
+  string destination_world_id = 1;
+  int32 destination_fd = 2;
+  bytes transition_id = 3;
+  optional string destination_room = 4;
+  optional spatial.core.v1.Pose destination_pose = 5;
+  uint64 departure_sequence = 6;
+  repeated spatial.core.v1.ActorActionRequest after_actions = 7;
+}
+message ActorTransitionIntegrationRequest {
+  uint32 protocol_version = 1;
+  bytes actor_identity = 2;
+  string source_world_id = 3;
+  int32 source_fd = 4;
+  spatial.identity.v1.SignedCredential credential = 5;
+  string signing_key_path = 6;
+  repeated ActorTransitionStep steps = 7;
+  optional string source_room = 8;
+  optional spatial.core.v1.Pose source_pose = 9;
+  repeated spatial.core.v1.ActorActionRequest initial_actions = 10;
+}
+// A barrier permits the independent harness to inspect durable storage or change policy.
+message ActorTransitionIntegrationContinue { uint32 protocol_version = 1; }
+message ActorTransitionObservation {
+  string world_id = 1;
+  spatial.core.v1.ActorStateReply state = 2;
+  bool client_failed = 3;
+  string inspection_error = 4;
+}
+message ActorTransitionIntegrationReply {
+  uint32 protocol_version = 1;
+  repeated spatial.identity.v1.ActorTransitionResult results = 2;
+  string active_world_id = 3;
+  spatial.core.v1.ActorStateReply active_state = 4;
+  string driver_error = 5;
+  spatial.identity.v1.WorldSessionOpened source_opened = 6;
+  // Initial source state, then the active client state after each transition.
+  repeated ActorTransitionObservation observations = 7;
+  bool done = 8;
+}

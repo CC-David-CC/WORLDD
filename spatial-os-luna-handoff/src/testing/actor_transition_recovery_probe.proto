@@ -1,0 +1,55 @@
+syntax = "proto3";
+package spatial.testing.v1;
+import "session_probe.proto";
+import "core.proto";
+import "broker.proto";
+import "issuer.proto";
+import "world_session.proto";
+import "actor_transition.proto";
+message RecoveryActor {
+  spatial.workspace.v1.ControlOwner owner = 1;
+  spatial.identity.v1.SignedCredential credential = 2;
+  string key_path = 3;
+  string world_id = 4;
+  oneof operation {
+    spatial.identity.v1.WorldAuthenticationBegin authenticate = 10;
+    spatial.identity.v1.WorldSessionInspect inspect = 11;
+    spatial.core.v1.ActorActionRequest action = 12;
+  }
+}
+message RecoveryTransition {
+  spatial.workspace.v1.ControlOwner source = 1;
+  spatial.workspace.v1.ControlOwner destination = 2;
+  spatial.identity.v1.SignedCredential credential = 3;
+  string key_path = 4;
+  string source_world = 5;
+  string destination_world = 6;
+  bytes transition_id = 7;
+  uint64 sequence = 8;
+  string destination_room = 9;
+  spatial.core.v1.Pose destination_pose = 10;
+}
+message RecoveryWorldStart {
+  SessionWorldStart start = 1;
+  string world_id = 2;
+}
+message RecoveryProbeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    SessionProbeRequest session = 10;
+    RecoveryActor actor = 11;
+    RecoveryTransition transition = 12;
+    RecoveryWorldStart start = 13;
+  }
+}
+message RecoveryProbeReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    SessionProbeReply session = 10;
+    spatial.identity.v1.WorldSessionReply actor = 11;
+    spatial.identity.v1.ActorTransitionResult transition = 12;
+    spatial.core.v1.Error error = 13;
+  }
+}

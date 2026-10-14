@@ -1,0 +1,20 @@
+Bounded cross-host actor transition assignment
+
+Host: middle-child. Model: gpt-6-luna, medium reasoning.
+Branch: m06/crosshost-actor-transitions. Base: 4d0c788.
+Worktree: /home/dflanag3/src/spacial-m06-crosshost-20261012.
+Tmux: spatial-m06-crosshost01.
+Logs and terminal exit: local/m06-crosshost/run01-*.
+
+Implement three real-service cases using ActorSessionClient TLS and ActorTransitionCoordinator.
+Place authoritative world A on sb16 and world B on sb16-2. Support reversed roles.
+Check A-B-A saved context, private-world denial, and unavailable-destination preparation.
+Use SSH only for trusted fixture orchestration. Actor actions must use authenticated production TLS.
+Keep ephemeral fixture credentials outside Git. Restrict runtime hosts to the two qualification hosts.
+
+Own a new thin C++ probe, protobuf fixture schema if needed, Python cross-host orchestration, CMake registration, and documentation.
+Do not edit production authority checks, locked tests, or another worker checkout.
+Build Debug and ASan on middle-child. Runtime tests remain UNRUN until the primary deploys them.
+Provide complete hashed bundles, both-role commands, and exact test-owned cleanup instructions.
+This task does not prove native compositor continuity or remote application streaming.
+Review source and evidence before integration. Preserve all failed attempts.

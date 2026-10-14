@@ -1,0 +1,31 @@
+M06 destination workspace-selection regression
+
+The exact regression is
+RealActorTransitionTests.test_valid_workspace_selection_is_saved_independently_in_both_worlds.
+It selects distinct valid workspaces in two worlds. It checks A(one) -> B(two)
+-> A(one) -> B(two) across repeated transitions. It verifies exact world, room,
+pose, and workspace observations.
+
+The selection actions use the production actor session, issuer, broker,
+workspace authority, and real Git worktrees.
+
+The existing CTest registration is actor-transition-real-world. The focused
+qualification-host command is:
+ctest --test-dir <deployment>/build/Debug --output-on-failure -R '^actor-transition-real-world$'
+The ASan-UBSan profile uses the corresponding sanitizer build directory.
+
+Status: source regression added; runtime UNRUN. The focused command requires a
+deployment containing this exact test-source checksum. The existing frozen
+258920de candidate and its live gates do not include this addition. This
+addition does not qualify or complete M06. Run it on both required
+qualification hosts as part of a newly frozen candidate gate.
+
+
+Fixture correction after initial runtime diagnosis
+
+The initial db490 sb16 Debug run passed 15/16 module methods. The new two-world regression failed while starting the second real workspaced broker: TLS material requires an owned private parent directory. The workspace_two() helper created its root with the default 0755 mode, then stored TLS client material beneath it. Production TLS validation correctly requires the immediate parent to be owned and private. The fixture now creates workspace-two with mode 0700. Production checks and TLS file modes remain unchanged. The initial failure evidence remains preserved under the qualification attempt directory. Corrected overlay source changed; runtime remains pending on both hosts and profiles.
+
+
+Second fixture diagnosis and correction
+
+The corrected-v2 sb16 Debug run also passed 15/16 methods. The new regression failed at its initial source observation: it expected workspace-one-room but observed the world entry room. Both workspace helpers use scoped_world(), whose default authenticates the actor before the production driver starts. The actor therefore already has a persistent entry context, and production correctly ignores the later spawn request. The regression now defers fixture authentication only while creating its two worlds. The production driver performs initial authentication with the explicit source spawn, then creates the destination actor with its requested spawn. The room, pose, workspace, and repeated-return assertions remain unchanged. Corrected runtime remains pending.

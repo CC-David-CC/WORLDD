@@ -30,7 +30,7 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
     def world_config(self):
         suffix=getattr(self,'world_instance_suffix','')
         signer, public = self.issuer.key('world-authority'+suffix)
-        registration = self.issuer.register(identity=(b'w' if not suffix else b'v') * 32, public=public, domain=getattr(self, 'world_domain', 'world-one')+suffix, revision=self.last_world_registry_revision if suffix else 1)
+        registration = self.issuer.register(identity=getattr(self, 'world_participant_identity', (b'w' if not suffix else b'v') * 32), public=public, domain=getattr(self, 'world_exact_domain', getattr(self, 'world_domain', 'world-one')+suffix), revision=self.last_world_registry_revision if suffix else 1)
         self.last_world_registry_revision=registration.registered_revision
         approved = self.issuer.bind(participant=registration.participant.id, registration=registration.registered_revision)
         self.assertTrue(approved.HasField('supervision'), approved)
@@ -70,7 +70,7 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
             fcntl.fcntl(descriptor, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
             descriptors.append(descriptor); arguments += [str(path), str(descriptor)]
         if getattr(self,'shared_presentation',False):
-            state=self.root/'world';state.mkdir(mode=0o700)
+            state=self.root/'world';state.mkdir(mode=0o700, exist_ok=True)
             request=core.Request(protocol_version=1,request_id=1,world_info=core.WorldInfoRequest())
             seed=subprocess.run([world_config.launch.executable,'--state-dir',str(state)],input=frame(request),capture_output=True,timeout=10)
             self.assertEqual(seed.returncode,0,seed.stderr)
@@ -91,7 +91,7 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
                 self.world_journal=first_journal;self.world_instance_suffix=''
                 second_path=self.root/'session-world-two.textproto'
                 second_path.write_text(text_format.MessageToString(second));second_path.chmod(0o600)
-                second_state=self.root/'world-two';second_state.mkdir(mode=0o700)
+                second_state=self.root/'world-two';second_state.mkdir(mode=0o700, exist_ok=True)
                 seed=subprocess.run([second.launch.executable,'--state-dir',str(second_state)],input=frame(request),capture_output=True,timeout=10)
                 self.assertEqual(seed.returncode,0,seed.stderr)
                 size=struct.unpack('!I',seed.stdout[:4])[0];info=core.Reply.FromString(seed.stdout[4:4+size])
@@ -107,8 +107,16 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         extra = tuple(getattr(self, 'coordinator_fds', ()))
         arguments.extend(map(str, extra))
         try:
-            proc = subprocess.Popen([str(base.baseline.supervisor.owned.existing.PROBE.with_name(
-                getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))), *arguments],
+            configured_probe = Path(getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))
+            if configured_probe.is_absolute():
+                if not configured_probe.is_file() or not os.access(configured_probe, os.X_OK):
+                    raise RuntimeError('Explicit coordinator runner is unavailable')
+                probe = configured_probe
+            else:
+                if configured_probe.name != str(configured_probe):
+                    raise RuntimeError('Relative coordinator runner must be a basename')
+                probe = base.baseline.supervisor.owned.existing.PROBE.with_name(configured_probe.name)
+            proc = subprocess.Popen([str(probe), *arguments],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log,
                 pass_fds=tuple(descriptors) + (() if listener is None else (listener.fileno(),)) + extra)
         finally:

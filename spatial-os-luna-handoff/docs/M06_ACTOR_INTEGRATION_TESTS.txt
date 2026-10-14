@@ -1,0 +1,60 @@
+M06 real-service and retained recovery integration
+
+The combined candidate has 15 real-service cases and four native recovery cases.
+Combined-source qualification is pending. M06 and Spatial-M1 remain incomplete.
+The original real-service checkpoint is 2ba05eb.
+The reviewed native recovery checkpoint is 11a193c3e.
+
+Production boundary
+
+The driver uses ActorSessionClient and ActorTransitionCoordinator.
+The fixture starts actual identityd, spatial-issuer-client, worldd, and workspaced.
+Enrollment, participant registration, grants, Git confinement, and persistence use production services.
+Actor traffic uses inherited local sockets. Issuer traffic uses TLS.
+This suite does not qualify cross-host actor transport or production host-session startup.
+
+Real-service cases
+
+Eight cases verify repeated world-local room/pose restoration, durable departure, omitted and explicit spawns,
+private admission denial, independent workspace selection, unavailable selection, and revoked workspace grants.
+Seven driver checks reject oversized, truncated, malformed, trailing-malformed, and unknown protobuf fields.
+Unknown-field checks include a nested credential message.
+The existing scoped Git worker configuration and resource delegation remain mandatory.
+
+Explicit recovery coverage relocation
+
+Three direct-launch crash tests could not safely restart an unretired authority generation.
+Their failures remain recorded in evidence/m06-realworld-attempt03-2026-10-12.
+They are replaced by supported retained-native cases in tests/native/test_actor_transition_recovery.py:
+
+test_before_commit_crash_is_uncertain_without_replay
+  -> test_departure_before_durable_commit
+test_after_commit_crash_is_uncertain_without_replay
+  -> test_departure_after_durable_commit
+test_activation_crash_retains_departure_receipt_without_replay
+  -> test_destination_activation_after_durable_commit
+
+The additional test_destination_activation_crash checks activation rollback before commit.
+Both activation outcomes remain covered. The before-commit case does not replace the after-commit case.
+Native cases preserve uncertainty, source departure receipts, no replay, and independent durable-state witnesses.
+They require checked cleanup, crashed-owner retirement, fresh generations, and authenticated context restoration.
+The after-commit activation case preserves an explicit destination spawn across recovery.
+No locked acceptance contract or production authority check changed.
+
+Prior evidence
+
+Real-service attempt03 passed 15 cases per host/profile; its three crash cases errored.
+Native recovery attempt05 passed all four cases on both hosts in Debug and ASan/UBSan: 16 executions.
+Read evidence/m06-retained-recovery-2026-10-12/final-review.txt for corrections, hashes, and prior failures.
+These results do not replace combined-source checks after integration.
+
+Combined check selection
+
+Build spatial-actor-transition-integration-driver, spatial-actor-transition-recovery-probe,
+and spatial-host-actor-native-runner on an authorized coding host in Debug and ASan/UBSan.
+Use the existing host-actor-python-protobuf target as the single actor_transition_pb2.py generator.
+Run actor-transition-real-world, actor-transition-recovery, and host-actor-controller-native on both test hosts.
+These cover service semantics, crash recovery, and the retained controller consumer of shared generated bindings.
+Record source/artifact hashes, delegated resource configuration, all exits, and sanitizer diagnostics.
+The selected runtime total is 80 case executions: (15 + 4 + 1) across two hosts and two profiles.
+The full M06 gate remains separate and pending.

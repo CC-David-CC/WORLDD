@@ -1,0 +1,28 @@
+Production host-session assignment
+
+Host: a5500. Model: gpt-6-luna, medium reasoning.
+Branch: m06/production-host-session. Base: 03242c5.
+Worktree: /home/dflanag3/src/spacial-m06-host-session-20261012.
+Tmux: spatial-m06-host-session01.
+Logs and terminal exit: local/m06-host-session/run01-*.
+
+Implement spatial-host-session outside BUILD_TESTING.
+Compose the existing SessionCoordinator and HostActorController production libraries.
+Keep trusted startup configuration separate from semantic actor requests.
+Use versioned protobuf startup and control schemas with bounded private transport.
+Actor requests must not supply credentials, executable paths, retained owners, or supervisor administration.
+Keep worldd authentication, admission, and action authorization unchanged.
+
+Retain the host compositor across ordinary world transitions.
+Use fresh authenticated channels so repeat transitions do not exhaust a fixed channel pair.
+Reject stale generations before effects. Preserve uncertainty and no-replay behavior.
+Use existing checked cleanup on disconnect and failure. Report unresolved cleanup explicitly.
+Document the authorized parent provisioning inputs. Do not change normal login or claim a complete installer.
+The initial scope supplies one authenticated actor control context.
+Remote-world presentation mapping and multi-actor host routing remain explicit integration requirements.
+
+Own new host-session implementation, protobuf schema, focused tests, CMake registration, and documentation.
+Do not modify another worker checkout, locked tests, or production authority checks.
+Build Debug, sanitizer, and BUILD_TESTING=OFF targets on a5500.
+Primary runs native and semantic protocol tests on both qualification hosts.
+Review source and runtime evidence before integration. A plan or successful build alone is incomplete.

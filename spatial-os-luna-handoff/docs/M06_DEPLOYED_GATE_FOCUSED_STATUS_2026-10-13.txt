@@ -1,0 +1,44 @@
+M06 deployed gate focused fixture qualification
+Date: 2026-10-13
+Source: 7e42251fcb3d778ad868859a13b92aa16872c6a8; BOX-GIT VERIFIED, UNQUALIFIED.
+Four-file source archive SHA256: 96d815c7e21c8040bcdbccae6b17b061f6f33755fe32dd199fcdea5cc07bd323.
+Production binaries remain unchanged. This run executes pure mocked gate fixtures only.
+
+sb16: 25 passed. Command/wrapper 0/0 COMPLETE. Elapsed 0.080 seconds.
+sb16-2: 22 passed, two failed, one errored. Command/wrapper 1/1 COMPLETE. Elapsed 0.084 seconds.
+All three peer failures occur at the server receipt host guard.
+The test fixture supplies an actual sb16-2 receipt but expects sb16.
+A reviewed test-only correction reads the expected host from the receipt.
+A new negative test must reject the other host. Production verify_runtime remains unchanged.
+Corrected qualification remains pending.
+
+Raw evidence: local/m06-gate-wiring-static01-sb16 and local/m06-gate-wiring-static01-sb16-2.
+Host evidence: m06-geometry-denial-9f8405b-20261013/runs/gate-wiring-static01.
+No semantic cross-host runtime or full gate is qualified by these static cases.
+Before integration, add crossstage artifact/helper/runtime hash rechecks around execution.
+Full M06 gate remains UNRUN. M06 remains active.
+
+Corrected focused result
+Source: 7298e1a6b4dd277e197be537d545f7ef3e014e8d; BOX-GIT VERIFIED.
+The primary reviewed the receipt-host fixture correction and wrong-host rejection case.
+Archive SHA256: ca10335946231d563daeb964b120dda53aace68e40d0dcd5da84f2efe5534c69.
+sb16: all 26 methods passed in 0.090 seconds.
+sb16-2: all 26 methods passed in 0.121 seconds.
+Both command/wrapper receipts are 0/0 COMPLETE. No skips were reported.
+Total: 52 pure gate fixture checks passed. This does not qualify cross-host runtime.
+Evidence: runs/gate-wiring-static02 under the existing qualification root on each host.
+A new bounded worker task will add pre/post crossstage artifact and external-runtime hash checks.
+Full preparation, combined deployment, semantic runtime, and full M06 gate remain UNRUN.
+
+Crossstage artifact recheck focused qualification
+Reviewed checkpoint: e061612c06eca5a34d2aa2bba6992c4bf2363ea4; BOX-GIT VERIFIED.
+Four-file archive SHA256: 45c4438597eff127c25a64111708fd5fb8d689b09acaba204c06cf4aeba5643d.
+The primary reviewed all changed gate, regression, and documentation files.
+The checker verifies actual host, receipt host, source pins before import, ON/OFF artifacts, bindings, helpers, XACE/EGL, and metadata.
+Before and after checks require exactly both hosts and both profiles. Failures preserve the original execution error.
+Behavioral subprocess regressions prove source/checker/receipt rejection occurs before checker import.
+sb16 passed all 31 methods in 0.281 seconds. sb16-2 passed all 31 in 0.308 seconds.
+Total: 62 focused gate checks passed. Both command/wrapper receipts are 0/0 COMPLETE.
+Evidence: runs/gate-artifact-static01 at the existing qualification root on each host.
+This resolves the recorded artifact-recheck gap at the focused fixture level.
+Combined-source preparation, real semantic fixture, and full M06 gate remain UNRUN.

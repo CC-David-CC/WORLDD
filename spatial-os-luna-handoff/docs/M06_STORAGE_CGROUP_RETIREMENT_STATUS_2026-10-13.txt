@@ -1,0 +1,23 @@
+M06 cgroup retirement witness
+Date: 2026-10-13
+Status: UNQUALIFIED. Python syntax compilation and git diff --check passed on middle-child. Native qualification remains pending release of both test-host slots.
+
+Frozen source and retained failure
+Base candidate: 258920de00e45448f104eedcc97147cf878406b3.
+The original sb16-2 ASan-UBSan storage-contention run ended with 2 passing methods and 1 error. The final Git-import method had already observed a positive Git PID before the post-revocation sample failed at test_storage_contention.py:202 with OSError [Errno 19] No such device. Raw evidence: /home/dflanag3/spatial-qualification/m06-final258920de-20261013/test-overlay-m06-surface-identity-642548ca0f56be01a32871b90b3e644f284cafa4/runs/storage-fixture/sb16-2-ASan-UBSan-session-storage-contention-run01/launcher/stderr.log.
+
+Kernel basis
+Linux v7.0 fs/kernfs/file.c documents kernfs_seq_start returning ERR_PTR(-ENODEV) when kernfs_get_active_of fails. Source: https://raw.githubusercontent.com/torvalds/linux/v7.0/fs/kernfs/file.c, lines 122-165. This supports treating ENODEV as a possible retired kernfs node, but not as proof of retirement.
+
+Correction and regression scope
+The cgroup reader accepts a process list only when the cgroup directory identity remains stable across the read. It treats ENOENT or ENODEV as retirement only after confirming the directory is absent or its identity changed. A stable ENODEV gets one bounded resample, then raises. ENOENT on an unchanged directory and other I/O errors propagate. Repeated identity changes raise after two samples.
+
+The original three native storage-contention methods remain unchanged in their actor authority, positive in-flight worker, nested BUSY/no-effect, revocation, pending-reply, import reply, barrier, and cleanup assertions. Ten pure cgroup-sampling regression methods cover stable positive IDs, absent path, retired ENOENT, retired ENODEV, transient ENODEV, persistent active ENODEV, active-directory ENOENT, EIO propagation, changed-identity stale-sample discard, and bounded repeated identity changes.
+
+Selected validation
+- Middle-child Python syntax compilation: checks the edited module parses without running tests.
+- Middle-child git diff --check: checks whitespace and patch formatting.
+- Pending on sb16 and sb16-2 after host slots release: run the full test module in Debug and ASan-UBSan with the frozen resource-delegate and adapter-resource wrappers. This checks all 3 original native methods and 10 helper regressions through the actual test entrypoint.
+- A separate real cgroup stale-FD reproduction is reserved only if the corrected full module still fails.
+
+No behavioral test, build, runtime, cgroup reproduction, production edit, schema edit, CMake edit, or acceptance-lock edit has been performed for this correction.

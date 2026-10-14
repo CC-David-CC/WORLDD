@@ -3,6 +3,8 @@
 #include "presentation.pb.h"
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace spatial { class BrokerClient; }
 namespace spatial::supervisor {
@@ -21,6 +23,12 @@ public:
     void start_presentation(const std::filesystem::path& compositor,const std::filesystem::path& state,int borrowed_native);
     render::v1::PresentationState select_world(const workspace::v1::ControlOwner&);
     render::v1::PresentationState inspect_presentation(const workspace::v1::ControlOwner&);
+    render::v1::GeometryPresentationTarget attach_geometry(const identity::v1::ActorGeometryView&);
+    render::v1::GeometryPresentationState select_geometry(const render::v1::GeometryPresentationTarget&);
+    render::v1::GeometryPresentationState publish_geometry(const render::v1::GeometryPresentationTarget&,
+        const identity::v1::ActorGeometryView&);
+    render::v1::GeometryPresentationState retire_geometry(const render::v1::GeometryPresentationTarget&);
+    void clear_presentation();
     void stop_presentation();
     void recover_presentation(const workspace::v1::ControlOwner&);
     // Transfers one actor-only endpoint to the caller, which must close it. No caller FD is admitted.
@@ -38,6 +46,9 @@ public:
     v1::AuthorityLaunchRecord stop_broker();
     identity::v1::AuthorityRetirementState retire_broker();
     v1::AuthorityLaunchRecord stop();
+    // Trusted shutdown of all retained entries, including failed starts without a returned owner.
+    // Empty means every world has checked stop receipts and no retained presentation.
+    std::vector<std::string> stop_retained_worlds();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

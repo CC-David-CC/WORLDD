@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <string>
 
 namespace spatial::identity {
 // Single-threaded checked transport. The calling process must ignore SIGPIPE.
@@ -18,6 +19,8 @@ public:
     void set_tick(std::function<void()> tick);
     bool failed() const noexcept;
     std::chrono::milliseconds timeout() const noexcept;
+    // Fixed-category diagnostics contain timing and transfer counters only.
+    std::string failure_diagnostic() const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

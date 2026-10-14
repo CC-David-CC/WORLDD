@@ -1,0 +1,67 @@
+M06 held-input and delayed-request native transition regression
+Status: focused held-input runtime PASS on both hosts and profiles. Related regressions remain pending.
+
+Invariants and selected checks recorded before builds
+
+HI-1: A confined workspace process owns a real X surface. Its independent X
+probe witnesses a held Shift key and button. The production HostActorController
+A-to-B transition must release both before B becomes usable. The source
+application and retained worldd, spatialwm, XLibre, broker, and presentation
+owners keep their PID/start or immutable launch identities. The source control
+reservation must be gone.
+
+HI-2: A delayed, otherwise valid key press carries the prior host generation.
+The exact HostActorController stale-context rejection must occur before action
+validation or X delivery. Both independent A and B X probes bracket the attempt
+with sync acknowledgements and must see no key/button event. The B actor state
+and foreground selection remain unchanged. The identical request with the
+current generation must produce a real B key press and release.
+
+HI-3: B-to-A restores the saved A room, pose, and workspace selection. No old
+held key, button, focus, or application control reservation returns. Fresh
+semantic actor aim, pointer, and key actions must reach A's original live X
+probe. A and B confined application processes remain alive through return.
+
+HI-4: A private destination denies entry with actual FORBIDDEN. The source
+foreground and actor context remain available. A key press and release after
+denial must reach A's independent X probe while Shift and button remain held.
+
+Selected check: host-actor-controller-native. It combines the existing real
+SessionApplicationTests broker, worktree, authority grants, confinement, and
+X probe with retained A/B/private worlds and the production SessionCoordinator,
+ActorSessionClient, ActorTransitionCoordinator, and HostActorController. Its
+management calls stay in a trusted fixture. Semantic actor actions use the
+controller. The Python oracle reads the independent X application logs.
+
+Build checks: configure Debug and ASan/UBSan first, then build the native
+runner and all declared dependencies with one flock per directory and -j2.
+Run ctest -N only to inspect registration. Never run the fixture or a probe on
+middle-child. Qualification on sb16 and sb16-2 remains UNRUN.
+
+No production library, production schema, or locked acceptance test changes.
+The regression uses the existing host operation-generation field. The native
+fixture does not infer a stale rejection from an arbitrary exception.
+
+2026-10-12 namespace identity correction, selected before rebuild:
+The witness ready PID is local to its CLONE_NEWPID application namespace.
+Resolve the host process through the owned workspaced descendant tree, the
+matching wrapper and mounted application data, the PID namespace, and NSpid.
+Pin both wrapper and X witness with pidfds. Recheck their host start identities,
+namespace identity, parent relationship, and liveness after each transition.
+Selected compile checks: Debug and ASan spatial-host-actor-native-runner with
+per-directory flock and -j2; Python syntax; git diff --check; ctest -N for
+registration; bundle hash and archive listing. Native runtime remains UNRUN.
+
+Primary qualification, 2026-10-12:
+All four host-actor-controller-native executions passed on sb16 and sb16-2,
+Debug and ASan/UBSan, using the qualified M06 scoped-input XACE server.
+Source header and compiled runner binaries remain pinned to the run03 bundle.
+Python fixture overlay SHA256:
+78ce6f3c28f4c42e933e9c69ef78ede35c6faf1b2afc19c3bdbf7045bcd328f9.
+The overlay provisions observation without admission for the denied world.
+It also uses issuer connection capacity 32 for three supervised worlds.
+No request deadlines or authority checks changed.
+Earlier seed, TLS-capacity, and old-server failures remain recorded.
+Evidence: evidence/m06-held-input-2026-10-12 on the milestone branch.
+Related session-application/session-replacement and the full M06 gate remain pending.
+This task checkpoint does not claim complete milestone qualification.

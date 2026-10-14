@@ -3,6 +3,7 @@
 #include "core/navigation.hpp"
 #include "grants.pb.h"
 #include "broker.pb.h"
+#include "geometry_view.pb.h"
 #include <array>
 #include <map>
 #include <set>
@@ -25,10 +26,15 @@ public:
     void refresh_authority();
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
+    std::string depart(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
-    wire::RenderScene scene(const std::string& token);
+    wire::RenderScene scene(const std::string& token, bool geometry_only = false);
+    identity::v1::ActorGeometryView geometry_view(const std::string& token, const std::string& world_id,
+        const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
+        std::uint64_t sequence);
     bool application_observation_valid(const std::string& token);
     wire::WorldCheckpointReply checkpoint();
+    wire::WorldCheckpointReply checkpoint_closed(const std::string& actor_id);
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
     void tick(double monotonic_seconds);
     void flush_input();
@@ -66,6 +72,7 @@ private:
         bool capture_motion_pending = false;
         bool interaction_reset_pending = false;
         bool close_pending = false;
+        bool departure_pending = false;
         std::vector<ObservedApplication> observed_applications;
         std::optional<ObjectHold> object;
         wire::ErrorCode object_error = wire::NO_TARGET;

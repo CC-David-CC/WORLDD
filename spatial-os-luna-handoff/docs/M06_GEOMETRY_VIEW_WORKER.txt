@@ -1,0 +1,163 @@
+M06 authenticated geometry views and native presentation
+Design and bounded assignments, 2026-10-12
+Status: proposed implementation. No new runtime evidence is claimed.
+
+Required result
+Actors on sb16 and sb16-2 can enter the same persistent world.
+Each host renders its actor's authorized geometry through its existing spatialwm.
+Real object edits and other actors' motion change that local native presentation.
+Ordinary transitions preserve exact XLibre and spatialwm process identities.
+Remote application streaming and remote application input remain excluded.
+Both increments below must integrate and pass before the M06 gate.
+
+Inspected boundaries
+src/core/protocol.cpp handles trusted management render_present/render_capture.
+Those operations intentionally accept management actor tokens. Preserve them.
+They are not an authenticated user-facing presentation route.
+src/world/server.cpp services actor channels and ticks state. It does not draw automatically.
+src/render/presentation_server.cpp selection clears the old frame and selects a binding.
+It draws only when its bound producer supplies a scene command.
+The current host-session draft selects worlds but does not pump actor scenes.
+Selection flags and process continuity alone do not prove visible world presentation.
+
+HostActorController currently registers local retained ControlOwner values.
+SessionCoordinator::select_world resolves a locally supervised world.
+PresentationOwner::attach requires a local process handle and a private world channel.
+PresentationAttach carries a local pidfd. Hello supplies sealed local native-input configuration.
+Do not manufacture these identities or descriptors for a remote authority.
+
+Actors::scene uses authoritative persistent geometry and live actor/object poses.
+panel_scene filters the actor's current room and builds drawable geometry.
+Actors::observe additionally requires the authority-host renderer.
+Its ActorObservation is visibility metadata, not a complete local drawing specification.
+WorldSessionReply currently has no geometry view or remote authority epoch.
+
+The production host-session draft uses TLS even for locally hosted actor connections.
+IdentitySessions opens TLS actors with local_application_output=false.
+Actors::scene excludes their application surfaces; native application input rejects.
+Preserve that boundary. Never classify a TLS peer as local to enable application output.
+Fresh local actor channels require separate trusted provisioning when that integration is implemented.
+
+Increment 1: authenticated geometry schema, authority export, and client
+Recommended worker: Luna medium on middle-child or a5500, coding/builds only.
+Base: current milestone 5368e7d. Use a new isolated branch/worktree.
+Suggested branch: m06/actor-geometry-view.
+Read root AGENTS.md and skills/spatial-worker-coordination/SKILL.md first.
+Do not depend on unqualified host-session source.
+
+Own these narrowly related files:
+- A new versioned proto for geometry-only actor views.
+- Additive operations in proto/spatial/identity/v1/world_session.proto.
+- src/world/identity_sessions.cpp and its header if necessary.
+- src/world/actors.cpp and actors.hpp for the authorized view builder.
+- src/world/actor_session_client.cpp and actor_session_client.hpp.
+- Minimal read-only participant-binding access if required for the authority epoch.
+- CMake generation/dependencies, new focused tests/probes, and focused documentation.
+
+Do not edit locked core.proto, acceptance.lock.json, or locked acceptance assertions.
+Use existing core pose/color/bounds types by import where useful.
+Do not add a remote raw RenderCommand interface.
+
+The view request travels over the existing authenticated actor session.
+The caller supplies neither an actor ID, management token, credential path, nor grants.
+IdentitySessions derives the actor from its authenticated channel.
+Use the current WORLD_OBSERVE authority checks, admission, and revocation path.
+Granting entry must not grant observation, workspace authority, or execution.
+Prepared-but-inactive and departed sessions cannot obtain active views.
+
+Build geometry from the same authoritative scene data used by Actors::scene.
+Reuse its live actor/object pose logic and panel_scene room filtering.
+The geometry export itself must not require a renderer or an X server.
+Do not create a second world database, scene authority, or simulated world.
+Do not modify existing application observation tracking merely to export geometry.
+Actors::scene currently clears observed_applications and can append native surfaces.
+Refactor or reuse a geometry-only builder without those application-observation side effects.
+scene_panels can supply drawable geometry. Never append native surfaces to this export.
+
+Use a geometry-only wire type with explicit drawable fields.
+Include camera, current room, world revision, panels, barriers, portals, objects, and other actor markers.
+Include only fields needed for drawing and stable geometry identity.
+Exclude labels, workspace/file metadata, application identities, surfaces, XIDs, pixels, native input, and file descriptors.
+Portal rendering does not authorize disclosure of private destination metadata.
+Validate finite poses/configuration, geometry shapes, field combinations, entity counts, and total frame bytes.
+Reject unknown fields and oversized/truncated/trailing messages through normal protocol validation.
+
+Stamp replies with world ID, authenticated actor ID, and an opaque session-view identity.
+Include authority service incarnation/generation from trusted participant registration.
+IdentitySessions already retains the activated participant generation.
+Do not confuse issuer incarnation with authority service incarnation.
+The actor must not choose an authority epoch.
+Use a monotonically checked view sequence within that session and a recorded world revision.
+Live pose changes can change the view without a durable world revision increment.
+
+Add ActorSessionClient::geometry_view using its existing owned authenticated connection.
+Bind returned context to the client's expected world, authenticated actor, session, and authority epoch.
+Reject mismatches before returning geometry to a presenter.
+Do not create a second controller session or give a carrier the actor's private key.
+Keep one bounded in-flight exchange and existing transport deadlines.
+Failure must fence the client as required by its current no-replay contract.
+No automatic action retry, authority failover, or unsafe reconnect is added.
+
+Required implemented regressions for increment 1:
+1. Valid authenticated local and TLS actors receive their own current-room view.
+2. Entry without observation authority returns the intended denial and no geometry.
+3. Revocation, departure, inactive preparation, and revoked credentials reject view access.
+4. A real authorized object edit changes geometry and its durable revision.
+5. A second real actor's motion changes its marker without inventing a durable revision.
+6. Other-room geometry and excluded workspace/application metadata are absent.
+7. Wrong actor/world/session/authority epoch, stale view sequences, and malformed fields reject.
+8. A headless authoritative world supplies geometry without invoking a compositor.
+9. Existing actor transition, authority, observation, and application-boundary checks remain intact.
+
+Build Debug and ASan/UBSan on the coding host. Runtime remains UNRUN there.
+Provide a complete hashed bundle, exact test commands, and a source handoff.
+Primary reviews and runs focused checks on both qualification hosts.
+A successful build or worker exit does not complete this increment.
+
+Increment 2: typed presentation targets and production foreground frame pump
+Start only after increment 1 and production host-session are reviewed and qualified.
+Use a separate branch from their integrated source.
+Own HostActorController, SessionCoordinator, PresentationOwner, presentation.proto,
+presentation_server.cpp, and the production host-session loop, plus focused tests.
+Reuse existing PresentationStream authentication, bounded queues, and private control ownership.
+RenderWorker::Shared is the existing local world producer; preserve its lifecycle and native-input semantics.
+
+Introduce distinct local-retained and host-owned geometry-only presentation targets.
+A remote target has an actor/world/session/authority tuple and a local view generation.
+It has no local world ControlOwner, world pidfd, sealed native-input credential, or application surface authority.
+The trusted host owns registration, selection, geometry publication, and retirement.
+The compositor accepts only geometry draw for that target.
+Reject native input, surface synchronization, application capture, remote XIDs, and descriptor handoff.
+Existing local world attachment, scoped input cleanup, and recovery remain unchanged.
+
+Expose a generation-checked HostActorController geometry-view operation on its existing client.
+The host-session loop refreshes the foreground view after successful authentication/activation.
+Use bounded polling with at most one pending scene; coalesce obsolete frames.
+Keep network scene reads outside unrelated actor-operation authority decisions.
+Fence delayed source frames and clear unauthorized/unavailable remote views.
+Do not display destination data before confirmed activation.
+Keep actor activation, presentation selection, and displayed-frame confirmation as separate facts.
+Denied preparation must leave source context and presentation usable.
+Uncertain effects do not authorize action replay.
+
+Required native/cross-host oracles for increment 2:
+1. Real remote object movement changes peer-host geometry and independently captured native pixels.
+2. Another actor's real movement changes its marker in the observer's native frame.
+3. A-B-A restores room/pose/workspace context with unchanged local XLibre/spatialwm PID/start identities.
+4. Private denial preserves a usable, correctly rendered source view.
+5. Observation revocation prevents subsequent geometry updates and removes active unauthorized presentation.
+6. Delayed source/wrong-epoch/wrong-actor frames cannot repaint a newly selected destination.
+7. Forged application/native fields cannot read pixels or generate local native input.
+8. Remote authority loss clears or fences its view without restarting the local compositor.
+9. Shared-world authority and the other actor remain usable when one actor leaves.
+Run both authority directions and both profiles on sb16 and sb16-2.
+Use independent X pixel witnesses and actual changing geometry, not only selection flags or frame counters.
+
+Scope allocation
+One foreground actor per host can establish the required two-host M06 shared-world scenario.
+Do not claim arbitrary same-host multi-actor routing from that configuration.
+A future same-host router needs immutable per-endpoint actor contexts and a trusted foreground-view owner.
+One actor or agent must not silently select another actor's physical display.
+Full device/agent adapter routing belongs to M10. Application-group leases belong to M09.
+Physical device trials and performance/soak remain M14/M15 requirements.
+These allocations do not defer actual visible shared-world geometry beyond M06.

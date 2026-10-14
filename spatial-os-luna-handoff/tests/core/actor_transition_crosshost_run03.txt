@@ -1,0 +1,133 @@
+Run03 trusted semantic orchestration
+
+Source-reviewed implementation. Runtime qualification remains UNRUN.
+This fixture does not qualify native presentation, input retirement, or M06.
+It adds no production library API and makes no headless retirement claim.
+
+Deploy the complete run03 bundle to the SAME absolute path on sb16 and sb16-2.
+Use an unprivileged dflanag3 account. Keep normal login and recovery routes open.
+The launcher accepts a profile and a NEW absolute evidence directory.
+Run one profile at a time. Each run creates fresh independent worlds and issuer.
+Primary may launch the fixture in its own persistent tmux session.
+
+Example, with bundle at /home/dflanag3/spatial-test-artifacts/m06-crosshost-run03:
+
+  cd /home/dflanag3/spatial-test-artifacts/m06-crosshost-run03
+  sha256sum -c SHA256SUMS
+  ./run03.sh debug /tmp/m06-crosshost-run03-debug-evidence
+  ./run03.sh asan /tmp/m06-crosshost-run03-asan-evidence
+
+The fixture checks both hostname and machine ID through bounded read-only SSH.
+It verifies bundle hashes on both hosts before creating runtime resources.
+It obtains numeric endpoint addresses from hostname -I.
+Both hosts must permit BatchMode SSH, including SSH to the driver host itself.
+Required host tools are python3, openssl, ssh, sha256sum, sh and tmux.
+Python must be CPython 3.12 on Ubuntu 24.04 with the supplied standard library.
+Linux must expose /proc and pidfds. No sudo or system service installation occurs.
+The bundle includes protobuf Python modules and its pure Python protobuf dependency.
+It includes ELF shared dependencies from the build host and their loader inventory.
+System Python, OpenSSL CLI, SSH, tmux, kernel and standard tools remain prerequisites.
+The bundled spatialwm is an executable-adjacent dependency; this fixture never launches it.
+
+Provisioning sequence
+
+Create a private dedicated issuer directory outside Git on the driver host.
+Generate distinct Ed25519 owner, actor, TLS and participant keys using OpenSSL.
+Use existing WorldIdentityFixture/ClientFixture/TlsFixture issuer methods.
+Initialize the real issuer with identityd --init --owner-public.
+Manually approve the shared actor and two source-only actors through issuer proofs.
+No existing issuer database or actor identity is modified.
+All created issuer rows belong to the isolated recorded identity.db.
+No participant-unregister command is needed to remove another issuer's rows.
+
+Record each remote /tmp/spatial-m06-run03-TOKEN-HOST path before sending create.
+Each new private root has an owner marker binding token, UID, device and inode.
+Use stopped worldd management world.info to initialize each real state/world.db.
+Create saved-room using trusted production world.create management.
+Read each actual world ID from production protobuf replies, never caller labels.
+Register one real issuer AuthorityParticipant for each persisted WORLD domain.
+Reuse WorldIdentityFixture.configure_participant; rewrite only material paths per host.
+Create authority directories and install persistent roots through worldd --init-authority.
+Grant the shared actor WORLD_ENTER and WORLD_NAVIGATE in both worlds.
+Grant each source-only actor those rights only in its source world.
+Private denial therefore exercises real persisted policy and real actor credentials.
+Admission has no static actor/grant override.
+
+Launch one worldd on each host through a bounded private tmux owner.
+Each owner binds a real host address and passes its inherited listener to worldd.
+It retains the production management pipe behind a mode-0700 local Unix socket.
+SSH invokes only trusted setup management; actor actions never use that socket.
+Mutual TLS uses per-world server certificates, DNS SAN identity and explicit client trust.
+The production issuer client pins issuer ID and public key.
+An unlistening bound socket reserves each unavailable endpoint until cleanup.
+No listener is killed or repurposed to construct an outage.
+
+Record exact world/owner PID, /proc start ticks, command, executable hash and port.
+Independently map each live listener inode to its worldd PID and durable state path.
+Require the observed owner to match the launched worldd.
+Read saved actor rows using the read-only SQLite protobuf witness.
+The two host-specific roots and world IDs must differ.
+
+Seed shared and source-only actor contexts before constructing the six-case plan.
+The crosshost C++ probe's SeedContext mode authenticates via ActorSessionClient.
+It checks the real inspection and calls checked depart to persist the context.
+The independent witness verifies saved-room, pose and world ID afterward.
+The six coordinator cases do not use SeedContext or an explicit transition spawn.
+They exercise round-trip, private denial and unavailable destination in both directions.
+Failure follow-up performs authorized zero-axis navigation and stop through C++.
+The existing harness requires source inspection and unchanged durable entity/revision.
+The same shared actor resumes distinct saved contexts on both authoritative worlds.
+The denial cases use real source-only actors, since the shared actor can enter both worlds.
+
+Test-support contract additions
+
+SeedContext and seeded_departure are additive fields in the private test protobuf.
+They do not change production transport messages or production authority behavior.
+SPATIAL_ACTOR_TRANSITION_WITNESS and its PYTHONPATH select the deployed read-only witness.
+This avoids extra temporary witness directories during the run03 harness.
+SPATIAL_ACTOR_TRANSITION_EVIDENCE records C++ PID/start, stderr, replies and exits.
+The normal six-case assertions remain mandatory; durable failure assertions are stronger.
+
+Cleanup and recovery
+
+Cleanup runs after success, setup error, harness failure, cancellation or timeout.
+Each run first checks slow-owner shutdown: one stop request is sent, then the exact owner is polled.
+The evidence directory records cleanup-transport-regression.txt after this check passes.
+The owner has a 1200-second lifetime. The controller has separate cleanup deadlines.
+Before terminating/removing resources, retain coherent database backups and command logs.
+Backups read authoritative databases through SQLite mode=ro and online backup.
+They do not edit semantic state. They exclude private keys and actor TLS configs.
+Evidence directories are private and contain real issuer rows and credentials.
+Never add runtime evidence databases or credentials to Git.
+
+Closing the owned worldd management pipe requests production orderly shutdown.
+If shutdown expires, signal only a retained pidfd after PID/start/executable/command checks.
+Do not restart a stopped authority or claim its issuer generation is retired.
+Forced shutdown is recorded as a nonzero worldd exit and a cleanup qualification failure.
+Before removal, verify the token, UID, device/inode, absence of live owners and link/mount safety.
+If a launch lacks a PID record, scan exact state-dir references and retain any ambiguous process.
+Unknown or changed ownership leaves resources in place and makes cleanup fail.
+Snapshot or SSH failure also retains resources for recovery.
+Preserve the original failing logs; do not retry with altered authority rules.
+
+cleanup.json lists retained roots and the exact helper stop argv on incomplete cleanup.
+Run that stop command only on its recorded host, with the bundle's Python environment.
+Then run helper snapshot and save stdout before helper remove.
+The ownership token and paths are recorded in ownership.json.
+Issuer snapshots and row inventories precede owned issuer shutdown/removal.
+No shared issuer rows, unrelated PID, path, listener, tmux session or service are removed.
+
+Primary-only partial-setup regressions
+
+Use a NEW evidence directory for every injected failure.
+Add --fail-after issuer-record-after-spawn, issuer, sb16-root, sb16-world,
+sb16-authority, sb16-started, sb16-2-root, sb16-2-world, sb16-2-authority,
+sb16-2-started or seeded.
+Invoke actor_transition_crosshost_fixture.py directly with --bundle/--profile/--output.
+Use the same environment as run03.sh.
+The deliberate error must exit nonzero. cleanup.json must say complete=true.
+For issuer-record-after-spawn, require issuer-process-attempt.json, issuer.stderr,
+issuer.exit=0, issuer-record-failure-regression.txt, and a removed owned issuer root.
+Verify all recorded world PIDs/listeners exited and their owned roots are absent.
+Verify unrelated pre-existing resources and deployment bundle hashes remain unchanged.
+These regressions require runtime evidence; none ran on the compile-only host.

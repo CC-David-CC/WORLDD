@@ -1,0 +1,41 @@
+M06 integration sequence after combined qualification on 2026-10-12
+
+M06 remains incomplete. M07-M16 remain pending.
+Preserve the current XACE runtime. CallbackList remains separate.
+
+Completed: combined source b7b684e passed 80 selected checks on both hosts and profiles.
+Checkpoint 81c06a7 includes the reviewed evidence on box-git.
+Read evidence/m06-transition-combined-2026-10-12/final-review.txt.
+Each host/profile passed 15 real-service, four retained recovery, and one native controller case.
+The four initial controller setup failures remain recorded beside the corrected-launch results.
+Do not repeat these focused checks solely because another worker finishes.
+Reassess affected evidence after integration and run the full matrix at the phase gate.
+
+Completed: retained native recovery covers departure and activation before and after durable commit.
+The unsupported direct-launch cases have explicit qualified replacements.
+The mapping is recorded in docs/M06_ACTOR_INTEGRATION_TESTS.txt.
+Keep original failing evidence. Do not introduce headless retirement shortcuts or fabricated cleanup receipts.
+
+1. Complete production entrypoint integration.
+HostActorController currently has fixture and test-runner callers.
+Verify and connect the actual runtime actor-control entrypoint.
+Keep semantic actor operations, generation fencing, and authority checks intact.
+Review the production BUILD_TESTING=OFF artifact closure before deployment.
+Require discriminating deadline tests and separate constructor-failure uncertainty coverage.
+Qualify native startup, repeated transitions, stale actions, disconnect, signals, and partial cleanup.
+
+2. Close remaining integration coverage.
+Verify held-input release across transitions and rejection of delayed source messages.
+Verify real cross-host TLS transitions with authenticated worlds on both qualification hosts.
+Preserve source and destination failure uncertainty and checked recovery behavior.
+Recheck related session-world, replacement, retirement, and authority integration suites.
+Review namespace-local versus host PID handling before accepting application process-continuity evidence.
+Use each fixture's declared resource environment. The held-input fixture requires adapter resources.
+Cross-host fixture compilation does not prove provisioning or transition behavior.
+Require actual authenticated actor traffic and independent durable-state witnesses in both directions.
+
+3. Freeze and qualify the M06 candidate.
+Review all worker changes and integrate coherent commits through box-git.
+Run the full required Debug, sanitizer, harness, acceptance, and cross-host M06 gate on both hosts.
+Report passed, failed, blocked, skipped, pending, and unrun requirements separately.
+Advance the milestone only when its actual requirements have evidence.

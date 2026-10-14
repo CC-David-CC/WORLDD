@@ -28,8 +28,22 @@ def exact(n):
 def receive():return p.PresentationControlRequest.FromString(exact(struct.unpack('!I',exact(4))[0]))
 send(p.PresentationControlReply(protocol_version=1,ready=c.RendererReady()))
 r=receive()
-if mode=='lost_attach':s.shutdown(socket.SHUT_RDWR);s.close();time.sleep(10);sys.exit(0)
+if mode in ('lost_attach','lost_geometry_attach'):s.shutdown(socket.SHUT_RDWR);s.close();time.sleep(10);sys.exit(0)
 if mode=='partial':s.sendall(b'\x00');time.sleep(10);sys.exit(0)
+if mode=='missing_geometry_state':
+ send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,shutting_down=True));receive();sys.exit(0)
+if mode=='geometry_sequence':
+ state=p.GeometryPresentationState(target=r.attach_geometry.target,stage=p.ATTACHED)
+ send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,geometry_state=state))
+ for operation in ('select_geometry','publish_geometry','select_geometry','retire_geometry'):
+  r=receive()
+  if not r.HasField(operation):raise RuntimeError('Unexpected geometry owner operation')
+  state.stage=p.READY;state.selected=True
+  if operation=='publish_geometry':state.last_view_sequence=r.publish_geometry.view.sequence
+  if operation=='retire_geometry':state.stage=p.RETIRED;state.selected=False
+  send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,geometry_state=state))
+ r=receive();send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,shutting_down=True));sys.exit(0)
+
 state=p.PresentationState(binding=r.attach.binding,stage=p.ATTACHED)
 if mode=='binding':state.binding.world_id='foreign'
 if mode=='attach_stage':state.stage=p.RETIRED
@@ -59,7 +73,7 @@ class PresentationOwnerTests(unittest.TestCase):
             finally:os.close(fd)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             self.assertIn(diagnostic,result.stdout)
-            self.assertIn('Host presentation ownership unavailable',result.stdout)
+            if mode!='geometry_sequence':self.assertIn('Host presentation ownership unavailable',result.stdout)
             for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'):
                 self.assertNotIn(marker,result.stderr)
 
@@ -71,5 +85,11 @@ class PresentationOwnerTests(unittest.TestCase):
     def test_unsolicited_descriptor(self):self.attempt('descriptor','Invalid host presentation reply')
     def test_lost_attach_reply(self):self.attempt('lost_attach','Presentation input closed or truncated')
     def test_partial_reply(self):self.attempt('partial','Presentation input deadline exceeded')
+    def test_lost_geometry_attach_retains_attempted_cleanup_identity(self):
+        self.attempt('lost_geometry_attach','Presentation input closed or truncated')
+    def test_missing_geometry_reply_fences_owner_and_retains_cleanup_identity(self):
+        self.attempt('missing_geometry_state','Missing geometry presentation state')
+    def test_geometry_select_and_retire_preserve_published_sequence(self):
+        self.attempt('geometry_sequence','geometry sequence confirmed')
 
 if __name__=='__main__':unittest.main(verbosity=2)

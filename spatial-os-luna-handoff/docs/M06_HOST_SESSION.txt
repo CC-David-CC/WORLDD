@@ -1,0 +1,180 @@
+# M06 production host session
+
+Status: first production executable implementation. Runtime qualification is pending.
+
+`spatial-host-session` owns one `SessionCoordinator`. It starts the presentation,
+starts every trusted local world, selects the initial presentation, authenticates
+one initial actor TLS session, and registers every retained owner with
+`HostActorController`. A private
+inherited AF_UNIX stream carries framed `HostControlRequest` and
+`HostControlReply` protobuf messages. The controller and worldd retain the
+semantic authorization checks.
+
+The control channel accepts inspect, actor action, and world transition only.
+The actor protocol contains no owner, credential, executable, supervisor,
+compositor command, or authority mutation fields. It checks peer PID and UID,
+protocol version, monotonically increasing request IDs, recursive unknown
+fields, frame size, and actor context generation. The control socket is nonblocking.
+Idle waiting has no deadline. A frame's header, body, and reply share one
+ten-second absolute deadline. Queued output is bounded to one frame.
+Transition replies preserve the controller's actor transition
+facts and presentation selection facts.
+
+## Parent provisioning contract
+
+The trusted parent starts the executable with three arguments:
+
+```text
+spatial-host-session CONFIG_FD CONTROL_FD PARENT_PID
+```
+
+`CONFIG_FD` is a read-only sealed memfd containing text-format
+`spatial.supervisor.v1.HostSessionConfig`, protocol version 1. The required
+write, grow, shrink, and seal seals must be set. The configuration embeds the
+versioned broker and world `AuthoritySupervisorConfig` messages. Its absolute
+paths name the supervisor executable, compositor executable and state, broker
+and per-world launch journals, plus each world's private configuration. Those
+paths and messages are trusted parent inputs. They are not actor inputs.
+
+The parent inherits broker and compositor native configuration descriptors,
+plus one compositor-native configuration descriptor and one TCP TLS actor
+listener per world. The parent must keep descriptors open until startup
+completes. Descriptor numbers and open-file identities must be unique and at least 3.
+Configuration, control, native, actor-listener, and inherited startup descriptors
+may not alias. World launch
+arguments must name the matching identity and TLS configuration paths.
+Actor TLS client profiles are separate versioned `ActorSessionClientTlsConfig`
+files. The initial profile must name `initial_world_id`. Every later
+transition creates a fresh authenticated TLS client from the configured
+destination profile.
+
+`CONTROL_FD` must be an inherited connected unnamed AF_UNIX stream socket.
+Both local and peer endpoints must be unnamed. Its peer
+credentials must match `PARENT_PID` and the effective UID. The parent must
+create it before fork/exec so Linux peer credentials identify the parent.
+The parent owns provisioning and recovery of these inputs. This executable
+does not install a login session, modify normal login, or provision secrets.
+
+TLS profiles, executable paths, credentials, native descriptors, and world
+registrations remain trusted startup configuration. Keep credential files out
+of Git and logs. This increment provides one authenticated actor context per
+host process. It does not implement multi-actor host routing.
+
+## Cleanup and limits
+
+EOF, SIGINT/SIGTERM, transport failure, and partial startup close actor clients.
+The trusted `stop_retained_worlds` API then attempts every retained entry,
+including a failed start with no returned owner. It checks process and native
+stop receipts and detaches attached presentations. A failure in one entry does
+not skip another. The host then attempts broker stop and presentation shutdown.
+Exit status 0 requires an ordinary loop exit and checked cleanup. Uncertain
+steps remain visible on stderr and cause nonzero exit. Healthy owners do not
+use issuer retirement. Failed-generation retirement remains an explicit fenced
+recovery operation outside actor control.
+
+The current `SessionCoordinator::start_world` API consumes an inherited TLS
+listener at launch and retains no reusable actor TLS client. This executable
+uses `ActorSessionClient`'s existing TLS-config constructor for fresh repeat
+connections. The coordinator gained only the trusted retained-entry cleanup API.
+
+Remote-world presentation mapping remains a separate gap. Retained local
+owners only select worlds attached to this host's presentation. This code does
+not provide remote application surfaces or cross-host presentation mapping.
+It does not complete the login installer, host recovery service, or M06 gate.
+
+## Build and runtime qualification
+
+The executable is outside `BUILD_TESTING`. CMake generates its C++ protobuf
+binding from `proto/spatial/supervisor/v1/host_session.proto` during the build.
+It also builds `host_session_pb2.py` and its dependent Python bindings. The
+`tools/host_session_client.py` helper sends one bounded semantic request on an
+inherited control descriptor. Build with `-DBUILD_TESTING=OFF` and target
+`spatial-host-session`.
+
+Runtime tests were not run on the a5500 compile host. The registered
+`host-session-production-native` suite provisions the real issuer, XLibre,
+broker, worldd, and compositor through a parent-created sealed config and
+private AF_UNIX socketpair. It launches the production binary with the three
+arguments above. Required assertions are:
+
+1. Build with `BUILD_TESTING=OFF`; verify `spatial-host-session` exists.
+2. Reject malformed, unknown-field, unsealed, wrong-version, and oversized
+   startup/control inputs before semantic effects.
+3. Authenticate actor A, deny private world C, then prove A remains usable.
+4. Complete A-B-A through the production binary with fresh TLS profiles.
+5. Reject stale inspect, action, and transition generations before effects.
+6. Compare XLibre and spatialwm PID/start identities before and after each
+   transition.
+7. Disconnect the parent and verify bounded checked cleanup or explicit
+   uncertainty with retained receipts.
+
+The startup and production native regressions are registered as
+`host-session-startup` and `host-session-production-native`.
+Build on middle-child or a5500. Do not build on sb16 or sb16-2.
+Create separate ON and OFF build directories for each profile.
+Use `SPATIAL_SANITIZERS=ON` for the ASan/UBSan profile.
+Run configure before building a target. Keep one builder per build directory.
+For example, run this on a coding host:
+
+```sh
+cmake -S SOURCE -B BUILD_OFF -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Debug
+cmake --build BUILD_OFF --target spatial-host-session -j2
+cmake -S SOURCE -B BUILD_ON -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug
+cmake --build BUILD_ON --target spatial-host-session -j2
+```
+
+Package the binaries, generated Python bindings, runtime.textproto, and source fixtures.
+Include the executable-adjacent supervisor, issuer, broker, world, and compositor helpers.
+Freeze source and artifact hashes. Verify them after deployment to both runtime hosts.
+Use the reviewed M06 scoped-input XLibre server and its recorded source receipt.
+An older M04 server does not satisfy the M06 native input contract.
+
+Run selected checks only on sb16 and sb16-2 after the runtime slot handoff.
+Set SOURCE to the deployed spatial-os-luna-handoff fixture directory.
+Set OFF and ON to the deployed profile artifact directories.
+Repeat with the matching Debug and ASan/UBSan profiles.
+The explicit OFF invocation checks all five startup cases without a packaging skip:
+
+```sh
+PYTHONPATH="$OFF/python:$SOURCE" python3 "$SOURCE/tests/core/test_host_session_startup.py" \
+  "$OFF/spatial-host-session" "$OFF/python"
+```
+
+The native suite imports fixtures that consume five CLI arguments.
+It captures the production host executable before those imports.
+Pass SOURCE, launch probe, security auth, identityd, issuer client, and host session in that order.
+Use the suite's declared user-delegated CMake environment:
+
+```sh
+systemd-run --user --wait --pipe --collect --unit="spatial-host-session-$RUN_ID" \
+  --property=Delegate=yes \
+  --setenv="PYTHONPATH=$ON/python:$SOURCE" \
+  --setenv="SPATIAL_TEST_XSERVER=$M06_XVFB" \
+  --setenv="SPATIAL_SECURITY_EVIDENCE=$EVIDENCE" \
+  --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 \
+  --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
+  python3 "$SOURCE/tests/native/test_host_session_production.py" "$SOURCE" \
+  "$ON/spatial-authority-launch-probe" "$ON/spatial-security-auth" \
+  "$ON/identityd" "$ON/spatial-issuer-client" "$ON/spatial-host-session"
+```
+
+Keep required broker resource configuration in resource-qualified runs.
+Use the reviewed resource launcher when a fixture requires the spatial-m03-resources cgroup layout.
+Do not forward that configuration into an unrelated user service with an incompatible cgroup name.
+Related SessionCoordinator application and cleanup suites use
+`with_resource_delegate.py --native` followed by `with_adapter_resources.py`.
+Their registered environment and wrappers differ from the command above.
+Do not apply one suite's wrapper to every suite.
+
+For an inherited live parent channel, inspect with:
+
+```sh
+PYTHONPATH=build-host-session/python python3 tools/host_session_client.py \
+  --fd CONTROL_FD --generation 0 --request-id 1 inspect
+```
+
+The native suite launches the production executable through parent-provisioned
+sealed configuration and a kernel-authenticated private channel. The parent
+fixture must retain generated Python bindings and profile files beside its
+existing world/session bindings. No production runtime claim is made until
+these tests pass on both qualification hosts in Debug and ASan/UBSan.

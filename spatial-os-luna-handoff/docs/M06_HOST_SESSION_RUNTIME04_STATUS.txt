@@ -1,0 +1,35 @@
+M06 instrumented host-session check
+Date: 2026-10-13
+Binary candidate: fc302de44670f87737dd7ab46ef83b24c60f1612
+Fixture correction: 62ea4e88c18ff60cfcc0029d1b51d7c7ef4426f7
+Issuer diagnostics: 0739c52715281b89bc7f09689a67decd9821a836
+Diagnostic launcher: fb97306b7a6eac44bcb65720cf21541ee0efbf8f
+
+sb16-2 Debug attempt: host-session-debug-runtime04
+Native: 24 passed in 117.616 seconds.
+Startup testing-on: 5 passed. Startup testing-off: 5 passed.
+All three suite summaries passed independent review.
+No sanitizer diagnostic appeared in those suite outputs.
+Input invariant: PASS. No input hashes changed.
+No issuer failure record appeared during this successful run.
+The maximum measured peer-idle interval was 1.941957136 seconds.
+The fixture's configured idle timeout was 3000 milliseconds.
+The earlier issuer close cause remains unproven. Preserve runtime02 and runtime03.
+
+sb16-2 sanitizer attempt: host-session-asan-runtime01
+It ran in tmux m06-hostsession-asan-diagnostic01.
+It passed all 34 selected checks. Native 24 passed in 150.228 seconds.
+sb16 already passed 34 selected Debug and 34 selected sanitizer checks.
+Combined source preparation uses an isolated branch. It remains unqualified.
+Native shared-world presentation remains unimplemented.
+The complete M06 gate remains pending.
+
+Final sanitizer command and wrapper exits: 0. The original process is gone.
+All four host/profile combinations passed 34 selected checks each.
+Successful matrix: 136 test methods across 12 suite executions.
+The earlier issuer close cause remains unproven. No deadlines changed.
+Combined source checkpoint: 45eabb37cf16a815d91b1bf659d9bf317d0f6cb7.
+Production input comparison passed. Test fixture provenance matches the overlays.
+Native geometry implementation is assigned on a separate worktree from that checkpoint.
+Reviewed evidence checkpoint bffeaad88233fb9ab917fd9ecc59003e34625132 is box-git verified.
+Milestone integration remains pending.

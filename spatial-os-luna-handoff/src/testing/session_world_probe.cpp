@@ -6,10 +6,23 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#ifdef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
+#include "host_actor_native_checks.hpp"
+#endif
+
 // Transport-only fixture for the production coordinator and real broker/world children.
 int main(int argc, char** argv) {
     try {
+#ifdef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
+        if (argc != 12) throw std::runtime_error("Expected native host controller fixture arguments");
+        signal(SIGPIPE, SIG_IGN);
+        const unsigned actor_channels = 2;
+        const bool two_worlds = true;
+#else
+        const unsigned actor_channels = 0;
+        const bool two_worlds = argc == 11;
         if (argc != 5 && argc != 6 && argc != 8 && argc != 11) throw std::runtime_error("Expected broker and world configs with sealed native descriptors and optional actor listener");
+#endif
         const auto binary = std::filesystem::canonical("/proc/self/exe").parent_path();
         const auto load = [](const char* path) {
             spatial::supervisor::v1::AuthoritySupervisorConfig config;
@@ -35,32 +48,45 @@ int main(int argc, char** argv) {
         spatial::workspace::v1::ControlOwner owner;
         try {
             owner = session->start_world(std::string(argv[3]) + ".owned", load(argv[3]), std::stoi(argv[4]),
-                argc == 6 ? std::stoi(argv[5]) : -1,0,argc>=8?argv[7]:"");
+                argc == 6 ? std::stoi(argv[5]) : -1,actor_channels,argc>=8?argv[7]:"");
             if (argc == 6) close(std::stoi(argv[5]));
         } catch (const std::exception& error) {
             std::cerr << "world start rejected: " << error.what() << '\n';
             spatial::write_frame(std::cout, session->root().call(hello)); report(session->stop()); return 2;
         }
+#ifndef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
         if(argc>=8){
             const auto selected=session->select_world(owner);
             if(!selected.selected() || selected.stage()!=spatial::render::v1::READY)throw std::runtime_error("Host world selection failed");
         }
+#endif
         report(session->world_launch(owner));
         spatial::supervisor::v1::AuthorityLaunchReply binding; binding.set_protocol_version(1);
         *binding.mutable_control_owner() = owner; spatial::write_frame(std::cout, binding);
         spatial::core::v1::Request identities; identities.set_protocol_version(1); identities.set_request_id(45); identities.mutable_runtime_identities();
         spatial::write_frame(std::cout, session->world_call(owner, identities));
         spatial::workspace::v1::ControlOwner second;
-        if(argc==11){
-            second=session->start_world(std::string(argv[8])+".owned",load(argv[8]),std::stoi(argv[9]),-1,0,argv[10]);
+        if(two_worlds){
+            second=session->start_world(std::string(argv[8])+".owned",load(argv[8]),std::stoi(argv[9]),-1,actor_channels,argv[10]);
+#ifndef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
             const auto b=session->select_world(second);const auto a=session->select_world(owner);
             if(!a.selected() || !b.selected() || session->inspect_presentation(second).selected())
                 throw std::runtime_error("Independent world selection failed");
+#else
+            if(session->inspect_presentation(owner).selected() || session->inspect_presentation(second).selected())
+                throw std::runtime_error("Host actor fixture raw world producers must start unselected");
+#endif
             report(session->world_launch(second));
             spatial::supervisor::v1::AuthorityLaunchReply binding;binding.set_protocol_version(1);
             *binding.mutable_control_owner()=second;spatial::write_frame(std::cout,binding);
             spatial::write_frame(std::cout,session->world_call(second,identities));
         }
+#ifdef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
+        const auto denied_config = native_setting("SPATIAL_HOST_ACTOR_DENIED_CONFIG");
+        const auto denied = session->start_world(std::string(denied_config) + ".owned", load(denied_config),
+            std::stoi(argv[11]), -1, 1, native_setting("SPATIAL_HOST_ACTOR_DENIED_WORLD"));
+        host_actor_native_checks(*session, owner, second, denied);
+#endif
         std::string bytes; spatial::workspace::v1::ControlSupervisorRequest request;
         if (!spatial::read_frame(std::cin, bytes) || !request.ParseFromString(bytes) || (!request.has_inspect() && !request.has_fence()))
             throw std::runtime_error("Expected fixture owner inspection");
@@ -84,12 +110,15 @@ int main(int argc, char** argv) {
         spatial::write_frame(std::cout, response);
         spatial::write_frame(std::cout, session->world_call(owner, hello));
         report(session->stop_world(owner));
-        if(argc==11){
+        if(two_worlds){
             if(!session->select_world(second).selected())throw std::runtime_error("Second world lost presentation after first stop");
             spatial::write_frame(std::cout,session->world_call(second,identities));
             report(session->stop_world(second));
         }
         spatial::write_frame(std::cout, session->root().call(hello));
+#ifdef SPATIAL_HOST_ACTOR_NATIVE_RUNNER
+        report(session->stop_world(denied));
+#endif
         if(argc>=8)session->stop_presentation();
         report(session->stop()); return 0;
     } catch (const std::exception& error) { std::cerr << "session world rejected: " << error.what() << '\n'; return 2; }

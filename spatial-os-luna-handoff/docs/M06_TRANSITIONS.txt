@@ -1,5 +1,11 @@
 M06 transition implementation plan, 2026-10-12
-Status: host presentation ownership and cleanup recovery implemented; actor transitions remain pending.
+Status: host ownership, departure receipts, and destination preparation implemented.
+The local actor-session client passes focused checks on both hosts in Debug and ASan/UBSan.
+TLS actor transport also passes focused checks on both hosts in Debug and ASan/UBSan.
+Transition sequencing, host selection integration, and full actor transition qualification remain pending.
+Departure confirms input cleanup and persists the source actor before replying.
+Prepared destination authentication does not create a controller or enable actions.
+Activation consumes the preparation and rechecks credential status and admission.
 SessionCoordinator owns a persistent PresentationOwner independently of supervised worlds.
 Each world uses a private authenticated channel and its own native input credential.
 Normal world shutdown leaves shared graphics available to surviving worlds.
@@ -77,8 +83,15 @@ Transition ordering to implement and test
 4. Require checked cancellation completion before destination control becomes active.
 5. Persist the source actor's valid context through its authoritative world.
 6. Restore and authorize the destination's own actor context and workspace selection.
-7. Activate a fresh presentation binding and invalidate the prior binding.
+7. Select the retained destination presentation after confirmed destination activation.
 8. Acknowledge the committed selection with explicit world and generation identity.
+Contract correction, 2026-10-12: actor transitions do not retire or detach world presentation bindings.
+Other actors and applications can still use the source world.
+Keep both world attachments. Replace their generations only when their authority or attachment changes.
+Revoke the departing actor's source interaction through its session and checked input cleanup.
+Keep host selection behind a trusted controller. Do not expose SessionCoordinator administration to actors.
+Destination admission does not grant workspace access or require workspace selection authority.
+If host selection fails after destination activation, report those separate facts without replaying the transition.
 Admission denial leaves the source usable. Partial failure after departure must report its actual state.
 Do not claim distributed atomicity or replay uncertain input after recovery.
 Old connections, delayed replies, and reused actor or surface identifiers must not reach the new binding.
