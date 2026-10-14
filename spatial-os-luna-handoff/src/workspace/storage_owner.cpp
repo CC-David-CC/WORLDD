@@ -344,7 +344,7 @@ struct StorageOwner::Impl {
         return SnapshotRecord{q.number(0),q.number(3),q.number(7),static_cast<int>(q.number(1)),q.text(2),q.blob(4),q.blob(5),q.blob(6),q.text(8),q.blob(9),q.blob(10)};
     }
     btrfs_ioctl_get_subvol_info_args subvol_info(int fd, const char* message) {
-        btrfs_ioctl_get_subvol_info_args value{}; check(ioctl(fd,BTRFS_IOC_GET_SUBVOL_INFO,&value)==0,message); return value;
+        btrfs_ioctl_get_subvol_info_args value{}; check(ioctl(fd,BTRFS_IOC_GET_SUBVOL_INFO,&value)>=0,message); return value;
     }
     Fd source_directory(const pb::StorageObject& source) {
         Fd parent(openat(root.value,collection(source.kind()).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
