@@ -62,10 +62,25 @@ class WorldProcess:
         if runtime_config: command+=['--config',str(runtime_config)]
         if fixture_faults: command+=['--fixture-faults']
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
-        if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(getattr(broker,'pid',broker.proc.pid))]
+        workspace_channel = None; workspace_channel_owned = False; self.broker_channel = None
+        if broker:
+            if hasattr(broker, 'open_world_channel'):
+                workspace_channel, self.broker_channel = broker.open_world_channel()
+                workspace_channel_owned = True
+            else:
+                workspace_channel = broker.stream
+            command += ['--workspace-fd', str(workspace_channel.fileno()), '--workspace-pid',
+                        str(getattr(broker, 'pid', broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
-        self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
-            pass_fds=tuple(server.fileno() for _,server in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))
+        extra_fds = (tuple([workspace_channel.fileno()]) if workspace_channel else ())
+        try:
+            self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
+                pass_fds=tuple(server.fileno() for _,server in pairs)+extra_fds)
+        except BaseException:
+            if workspace_channel_owned: workspace_channel.close()
+            if self.broker_channel: self.broker_channel.close(); self.broker_channel = None
+            raise
+        if workspace_channel_owned: workspace_channel.close()
         for _,server in pairs: server.close()
     def management(self, method, **args):
         request=make_request(method,args); self.sequence+=1;request.request_id=self.sequence
@@ -82,6 +97,7 @@ class WorldProcess:
             except subprocess.TimeoutExpired:self.proc.kill();self.proc.wait(timeout=3);raise
         for stream in (self.proc.stdin,self.proc.stdout,self.log):
             if not stream.closed:stream.close()
+        if self.broker_channel: self.broker_channel.close(); self.broker_channel = None
 
 
 class WorldIdentityFixture(ClientFixture):

@@ -5,6 +5,7 @@ import socket
 import sqlite3
 import subprocess
 import time
+import threading
 import unittest
 from google.protobuf import text_format
 from google.protobuf import descriptor_pb2
@@ -15,7 +16,7 @@ import grants_pb2 as grant
 import issuer_pb2 as issuer
 import world_session_pb2 as session
 from harness.git_fixture import GitRepo
-from harness.wire import frame, make_request, result_value
+from harness.wire import frame, make_request, result_value, read_message
 from harness.resource_broker import ResourceBroker
 from test_world_identity import WorldIdentityFixture, WorldProcess, WORLD, receive
 import test_world_authority as world_authority
@@ -26,6 +27,41 @@ WRITE = [grant.FILE_CREATE, grant.FILE_EDIT, grant.FILE_RENAME, grant.FILE_MOVE,
 PROJECT = [grant.FILE_BROWSE, grant.FILE_READ, *WRITE, grant.PROCESS_EXECUTE]
 RIGHTS = [grant.WORKSPACE_ACCESS, *PROJECT, grant.POLICY_ADMINISTER]
 POLICY = ['workspace.select', 'files.read', 'files.write', 'process.launch']
+
+
+class BrokerChannel:
+    """Give each worldd a private endpoint and serialize it with direct fixture requests."""
+    def __init__(self, broker_process, stream):
+        self.broker = broker_process; self.stream = stream
+        self.reader = stream.makefile('rb'); self.send_lock = threading.Lock(); self.errors = []
+        self.thread = threading.Thread(target=self.run, daemon=True); self.thread.start()
+
+    def send(self, reply):
+        with self.send_lock: self.stream.sendall(frame(reply))
+
+    def run(self):
+        try:
+            while True:
+                request = read_message(self.reader, broker.Request)
+                if request.protocol_version != 1 or request.request_id <= 0:
+                    raise AssertionError('Invalid world broker request identity')
+                self.broker.world_request_count += 1
+                self.send(self.broker.exchange(request))
+        except (EOFError, OSError):
+            pass
+        except BaseException as error:
+            self.errors.append(error)
+
+    def close(self):
+        if not getattr(self, 'closed', False):
+            try: self.stream.shutdown(socket.SHUT_RDWR)
+            except OSError: pass
+            self.stream.close(); self.thread.join(5)
+            if self.thread.is_alive(): raise AssertionError('Serialized broker channel did not stop')
+            if not self.reader.closed: self.reader.close()
+            self.closed = True
+            if self in self.broker.channels: self.broker.channels.remove(self)
+        if self.errors: raise self.errors[0]
 
 
 class BrokerProcess:
@@ -45,25 +81,52 @@ class BrokerProcess:
         else:
             self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
             self.pid = self.proc.pid
-        child.close(); fixture.brokers.append(self)
+        child.close()
+        self.io_lock = threading.RLock(); self.channels = []
+        self.world_request_count = 0
+        fixture.brokers.append(self)
+
+    def dispatch_control(self, reply):
+        if not reply.HasField('control_revoked') or reply.request_id != 0:
+            raise AssertionError('Invalid unsolicited broker control reply')
+        if len(self.channels) != 1:
+            raise AssertionError('Selected fixture relay supports one active world for control delivery')
+        self.channels[0].send(reply)
+
+    def exchange(self, request):
+        with self.io_lock:
+            self.stream.sendall(frame(request))
+            while True:
+                reply = receive(self.stream.recv, self.stream, broker.Reply)
+                if reply.protocol_version != 1: raise AssertionError('Invalid broker reply protocol')
+                if reply.HasField('control_revoked'):
+                    self.dispatch_control(reply)
+                    continue
+                if reply.request_id != request.request_id:
+                    raise AssertionError(f'Broker reply {reply.request_id} did not match request {request.request_id}')
+                return reply
+
+    def open_world_channel(self):
+        world, relay = socket.socketpair()
+        channel = BrokerChannel(self, relay); self.channels.append(channel)
+        return world, channel
 
     def call(self, method, **args):
-        self.sequence += 1; request = make_request(method, args); request.request_id = self.sequence
-        self.stream.sendall(frame(broker.Request(protocol_version=1, request_id=self.sequence, management=request)))
-        reply = receive(self.stream.recv, self.stream, broker.Reply)
-        if reply.request_id != self.sequence or reply.HasField('error') or reply.management.HasField('error'):
-            raise AssertionError(reply)
-        return result_value(reply.management)
+        with self.io_lock:
+            self.sequence += 1; request = make_request(method, args); request.request_id = self.sequence
+            reply = self.exchange(broker.Request(protocol_version=1, request_id=self.sequence, management=request))
+            if reply.HasField('error') or reply.management.HasField('error'): raise AssertionError(reply)
+            return result_value(reply.management)
 
     def request(self, **operation):
-        self.sequence += 1
-        self.stream.sendall(frame(broker.Request(protocol_version=1, request_id=self.sequence, **operation)))
-        reply = receive(self.stream.recv, self.stream, broker.Reply)
-        if reply.protocol_version != 1 or reply.request_id != self.sequence: raise AssertionError(reply)
-        return reply
+        with self.io_lock:
+            self.sequence += 1
+            request = broker.Request(protocol_version=1, request_id=self.sequence, **operation)
+            return self.exchange(request)
 
     def close(self):
         if self.stream.fileno()<0:return
+        for channel in tuple(self.channels): channel.close()
         if self.resources:
             try:
                 self.stream.shutdown(socket.SHUT_WR)
@@ -315,7 +378,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual((repeated.incarnation, repeated.epoch), (after.incarnation, after.epoch))
 
     def test_authorization_fence_is_stable_and_changes_incarnation_on_restart(self):
-        self.workspace()
+        world = self.workspace()
         principal = self.principal()
         request = broker.AuthorizationFenceRequest(principal=principal)
         first_reply = self.broker.request(authorization_fence=request)
@@ -324,6 +387,28 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(len(first.incarnation), 16); self.assertGreater(first.epoch, 0)
         second = self.broker.request(authorization_fence=request).authorization_fence
         self.assertEqual((second.incarnation, second.epoch), (first.incarnation, first.epoch))
+        baseline_world_requests = self.broker.world_request_count
+        direct_results = []; direct_errors = []; start = threading.Barrier(2)
+        def query_fence_repeatedly():
+            try:
+                start.wait()
+                for _ in range(6):
+                    direct_results.append(self.broker.request(authorization_fence=request).authorization_fence)
+            except BaseException as error:
+                direct_errors.append(error)
+        query_thread = threading.Thread(target=query_fence_repeatedly, daemon=True)
+        query_thread.start(); start.wait()
+        for _ in range(3):
+            selected = world.peers[0].act(workspace_select=core.WorkspaceIdRequest(id='one'))
+            self.assertTrue(selected.HasField('action'), selected)
+            cleared = world.peers[0].act(workspace_clear=core.ActorStopRequest())
+            self.assertTrue(cleared.HasField('action'), cleared)
+        query_thread.join(5)
+        self.assertFalse(query_thread.is_alive(), 'direct broker requests exceeded the existing 5-second bound')
+        self.assertFalse(direct_errors, direct_errors)
+        self.assertEqual(len(direct_results), 6)
+        self.assertGreater(self.broker.world_request_count, baseline_world_requests)
+        self.assertIsNone(world.proc.poll(), 'worldd must remain live through serialized broker traffic')
         scoped = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
             workspace='one', principal=principal, right=grant.WORKSPACE_ACCESS)).scoped_authority_check
         app_batch = self.broker.request(application_access=broker.ApplicationAccessRequest(principal=principal,
@@ -350,6 +435,8 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(unchanged.epoch, changed.epoch)
         self.assertLess(scoped.epoch, changed.epoch)
         self.assertLess(app_batch.application_access.epoch, changed.epoch)
+        world.close()
+        self.assertEqual(world.proc.returncode, 0, 'worldd must close before its broker restarts')
         self.broker.close()
         self.broker = BrokerProcess(self, self.execution, self.authority_config)
         restarted = self.broker.request(authorization_fence=request).authorization_fence

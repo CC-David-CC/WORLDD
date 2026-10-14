@@ -54,6 +54,7 @@ struct WorkspaceAuthority::Impl {
     std::set<std::string> revoked;
     std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
     std::uint64_t observed_revision = 0;
+    bool observed_revision_initialized = false;
     std::string incarnation = std::string(16, '\0');
     std::uint64_t epoch = 1;
     std::optional<std::uint64_t> consumed_revision;
@@ -137,8 +138,9 @@ struct WorkspaceAuthority::Impl {
             }
             const auto& batch = update->revocations();
             if (batch.issuer_id() != issuer) { fail(); observer(); return; }
-            if (batch.head_revision() > observed_revision && observed_revision != 0) bump_epoch();
+            if (observed_revision_initialized && batch.head_revision() > observed_revision) bump_epoch();
             observed_revision = std::max(observed_revision, batch.head_revision());
+            observed_revision_initialized = true;
             consumed_revision = batch.through_revision();
             for (const auto& event : batch.events()) {
                 ++cancellation_sequence;
@@ -233,8 +235,11 @@ struct WorkspaceAuthority::Impl {
             }
             revision = batch.security_revision(); states.insert(states.end(), batch.actors().begin(), batch.actors().end());
         }
-        bool changed_state = revision && *revision > observed_revision && observed_revision != 0;
-        if (revision) observed_revision = std::max(observed_revision, *revision);
+        bool changed_state = revision && observed_revision_initialized && *revision > observed_revision;
+        if (revision) {
+            observed_revision = std::max(observed_revision, *revision);
+            observed_revision_initialized = true;
+        }
         for (const auto& state : states) {
             const bool was_active = active.contains(state.actor_id()) && active.at(state.actor_id());
             const bool was_revoked = revoked.contains(state.actor_id());
@@ -286,8 +291,9 @@ struct WorkspaceAuthority::Impl {
         }
         if (result.security_revision() < observed_revision)
             throw WorldError(wire::UNAVAILABLE, "Issuer security state changed during workspace credential check");
-        if (observed_revision && result.security_revision() > observed_revision) bump_epoch();
+        if (observed_revision_initialized && result.security_revision() > observed_revision) bump_epoch();
         observed_revision = result.security_revision();
+        observed_revision_initialized = true;
         if (!result.active() || result.actor_revoked() || result.credential_revoked())
             throw WorldError(wire::UNAUTHORIZED, "Workspace bootstrap credential is revoked");
         return result;
