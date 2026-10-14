@@ -1,0 +1,101 @@
+CLEAN REPOSITORY RECOVERY HANDOFF - 2026-10-14
+
+State: repository recovery is verified. Windows canonical folder rename is pending.
+M01-M06 remain qualified against their recorded source and retained evidence.
+M07 remains incomplete and paused. M08-M16 remain pending.
+No M07 implementation or runtime test was resumed during recovery.
+
+New origin: dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git
+Default branch: main. Main tracks origin/main.
+Commit identity: David <david@code.contractors>.
+GitHub WORLDD remains unchanged.
+Old origin remains available as a recovery archive.
+
+Preservation:
+The source import contains 21 original branch refs and 22 selected source snapshots.
+It preserves shared ancestors needed for later branch integration.
+All imported source bytes, file modes, required fixtures, and locked files verified.
+The paused presentation patch was committed separately as UNQUALIFIED.
+Its 14 files matched the original dirty checkout byte for byte.
+SOURCE_HISTORY_MAP.json maps original commits to imported source commits.
+The external archive contains later branch-policy mappings and checkpoint receipts.
+
+Archive root on middle-child:
+/home/dflanag3/spatial-artifacts/repository-recovery-20261014
+old-repository.git preserves original remote and controller/coding-host branch history.
+controller-state, a5500-state, and middle-child-state preserve dirty source captures.
+Existing failed and qualified runtime evidence remains on its recorded hosts.
+Do not duplicate raw historical evidence into new source checkouts.
+
+Active coding checkouts:
+middle-child: /home/dflanag3/src/spacial-desktop-clean (main)
+middle-child: /home/dflanag3/src/spacial-clean-m07-presentations
+a5500: /home/dflanag3/src/spacial-desktop-clean (main)
+a5500: /home/dflanag3/src/spacial-clean-m07-broker
+a5500: /home/dflanag3/src/spacial-clean-m07-copy-journal
+a5500: /home/dflanag3/src/spacial-clean-m07-copy-engine
+These checkouts are clean. No coding workers were launched.
+Both test hosts can read the new origin.
+Test hosts receive selected runtime artifacts and fixtures, not source repository copies.
+
+Future generated outputs:
+Use /home/dflanag3/spatial-artifacts for evidence, runs, receipts, and packages.
+Use separate external build directories.
+Legacy evidence/local links redirect locked tools without changing acceptance files.
+Checkpoint validation and the box-git receive hook reject known generated-data paths.
+Ignore rules cover both directories and symbolic links.
+Review source additions. Ignore rules and path guards do not classify arbitrary content.
+Keep credentials outside Git and output.
+
+Recovery verification:
+15 checkpoint checks passed.
+5 source-data guard checks passed.
+6 artifact routing and safe sparse cleanup checks passed.
+7 persistent command-runner checks passed.
+Total: 33 passed. No skipped cases in these final runs.
+Debug and BUILD_TESTING=OFF CMake configurations passed on middle-child.
+Default Debug registration enumerated 128 tests. No runtime test ran there.
+This enumeration does not replace the configured native qualification matrix.
+Bare repository integrity and installed guard hashes verified.
+Acceptance locks remained unchanged.
+
+Disk recovery:
+Unchanged tracked historical evidence was removed from archived worker checkouts.
+Git sparse checkout preserved modified and untracked files.
+Both cleanup jobs returned zero. No recursive deletion failed.
+A5500 free space increased from about 1.4 GB to 47 GB.
+Middle-child free space increased from about 229 GB to 264 GB.
+Approximately 80 GB was recovered across both coding hosts.
+The clean checkout uses about 19 MB, including Git.
+The clean bare repository uses about 4 MB.
+Tracked content fell from about 904 MB to about 7 MB.
+Additional network storage is not required for this recovery.
+
+Windows manual cutover:
+Clean clone: C:\Users\dflanag3\Documents\spacial_desktop-clean
+Original folder remains unchanged because Windows reports it is in use.
+Close Codex and other programs using the original project folder.
+Run this script from a PowerShell window outside that folder:
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\dflanag3\Documents\cutover_spatial_clean_repository_20261014.ps1
+The script verifies repositories, archives the old folder, and installs the clean folder.
+It repairs the archived CallbackList worktree and verifies skill file hashes.
+Archive destination: C:\Users\dflanag3\Documents\spacial_desktop-archive-20261014
+Failure record: Documents\spatial-artifacts\repository-recovery-20261014\windows-cutover-failure.txt
+The coordination skill is already updated on Windows and both coding hosts.
+Installed artifact tests need SPATIAL_SOURCE_CHECKOUT set to the clean checkout.
+Installed runner tests need RUN_COMMAND_CHECKOUT set to the clean checkout.
+
+Resume M07 only after David requests it.
+Inspect retained journal Debug errors before implementing corrections.
+Resume pending fence runtime checks on both test hosts.
+Review presentation source and run its focused native checks.
+Implement the missing complete workspace-copy engine.
+Integrate reviewed source, freeze the combined candidate, and run the full M07 gate.
+Do not call component passes a milestone qualification.
+
+Preserved active branch heads:
+m07/broker-authorization-fence-20261014 472581ec0014d7e6dcbc3b9e73ffd23e4863a2ff
+m07/copy-journal-storage-20261014 cbc7f23fefa55159c38adf12611accc3e459da7b
+m07/presentation-fence-integration-20261014 06013de28ba3f79a5fb7d46cc22ce585fede83df
+m07/copy-engine-20261014 472581ec0014d7e6dcbc3b9e73ffd23e4863a2ff
+integration/callbacklist-pixel-authorization a7076c6bc0da36956bd53c025d2268cbbc660291
