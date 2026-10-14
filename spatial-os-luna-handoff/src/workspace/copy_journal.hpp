@@ -20,11 +20,14 @@ class CopyJournal {
 public:
     struct PublicationTarget { workspace::v1::StorageObject object; std::string operation_digest; };
     struct Limits { std::size_t max_operation_records = 4096; std::size_t max_effects_per_operation = 64; };
-    struct Operation { std::string operation_id, requester, request_bytes, request_digest; workspace::copy::v1::CopyPhase phase; workspace::copy::v1::CopyErrorCode error; std::string destination_workspace_id, manifest, manifest_digest, snapshot_receipts; };
+    struct Operation { std::string operation_id, requester, request_bytes, request_digest; workspace::copy::v1::CopyPhase phase; workspace::copy::v1::CopyErrorCode error; std::string destination_workspace_id, manifest, manifest_digest, snapshot_receipts, phase_payload, authorization_binding; };
     struct Effect { std::string effect_id, kind, request_digest, intent, receipt; bool uncertain = false; };
     explicit CopyJournal(sqlite3* db);
     CopyJournal(sqlite3* db, Limits limits);
-    Operation begin(const workspace::copy::v1::WorkspaceCopyRequest&, const std::string& authenticated_requester);
+    Operation begin(const workspace::copy::v1::WorkspaceCopyRequest&, const std::string& authenticated_requester,
+                    const std::string& authorization_binding = {});
+    bool exact_binding(const std::string& operation_id, const std::string& authenticated_requester,
+                       const std::string& exact_request_bytes) const;
     Operation get(const std::string& operation_id, const std::string& authenticated_requester) const;
     workspace::copy::v1::WorkspaceCopyRequest request(const std::string& operation_id, const std::string& authenticated_requester) const;
     std::vector<Effect> effects(const std::string& operation_id, const std::string& authenticated_requester) const;
@@ -50,6 +53,7 @@ public:
     std::string record_publication_receipts(const std::string& operation_id, const std::string& authenticated_requester, const std::string& publication_effect_id,
                                     const std::vector<workspace::v1::StorageObjectState>& destination_receipts);
     static void migrate_schema(sqlite3* db);
+    static void migrate_v5(sqlite3* db);
     static void validate_manifest(const std::vector<workspace::copy::v1::CopyManifestEntry>& entries,
                                   const std::map<std::string, workspace::copy::v1::SnapshotReceipt>& receipts,
                                   std::uint64_t max_total_bytes, std::size_t max_entries);

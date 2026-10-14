@@ -38,6 +38,9 @@ void check(bool value, const char* message) {
     if (!value) throw Error(errno == EDQUOT || errno == ENOSPC ? pb::StorageOwnerError::EXHAUSTED : pb::StorageOwnerError::UNAVAILABLE, std::string(message) + ": " + std::strerror(errno));
 }
 bool identifier(const std::string& value) { return !value.empty() && value.size() <= 128 && value.find('\0') == std::string::npos; }
+bool safe_identifier(const std::string& value) {
+    return identifier(value) && std::none_of(value.begin(), value.end(), [](unsigned char c) { return c < 0x20 || c == 0x7f; });
+}
 void bytes(std::uint64_t value) { require(value >= 4*1024*1024 && value <= (1ULL << 50) && value % 4096 == 0, "Storage limit must be a bounded positive block multiple"); }
 std::string actor_key(const authority::v1::ActorRef& principal) {
     require(principal.issuer_id().size() == 32 && principal.actor_id().size() == 32, "Expected exact storage actor identity");
@@ -71,6 +74,8 @@ std::string collection(pb::StorageObject::Kind kind) {
         case pb::StorageObject::REPOSITORY: return "repositories";
         case pb::StorageObject::PROJECT: return "worktrees";
         case pb::StorageObject::APPLICATION_STATE: return "applications";
+        case pb::StorageObject::APPLICATION_DEFINITION: return "definitions";
+        case pb::StorageObject::ENVIRONMENT_CONFIG: return "environments";
         case pb::StorageObject::RETIRED: return "retired";
         case pb::StorageObject::SNAPSHOT: return "snapshots";
         case pb::StorageObject::COPY_STAGING: return "staging";
@@ -204,6 +209,74 @@ struct SnapshotRecord {
 constexpr std::uint64_t snapshot_min_charge = 4 * 1024 * 1024;
 constexpr std::uint64_t snapshot_owner_limit = 256;
 }
+void validate_copy_configuration(const pb::StorageOwnerConfig& config) {
+    const auto& catalog = config.copy_catalog();
+    require(config.copy_destination_profiles_size() <= 64, "Too many workspace copy destination profiles");
+    if (!config.has_copy_catalog()) {
+        require(config.copy_destination_profiles_size() == 0, "Copy profiles require a versioned copy catalog");
+        return;
+    }
+    require(catalog.protocol_version() == 1 && catalog.revision() > 0 &&
+            catalog.entries_size() > 0 && catalog.entries_size() <= 4096,
+            "Invalid or empty workspace copy catalog");
+    using Data = workspace::copy::v1::CopyDataClass;
+    std::set<std::pair<std::string,int>> entries;
+    for (const auto& entry : catalog.entries()) {
+        require(identifier(entry.workspace_id()) &&
+                entry.has_source_object() && identifier(entry.schema_id()) &&
+                safe_identifier(entry.schema_id()) &&
+                entry.schema_version() > 0 && entry.maximum_bytes() >= 4*1024*1024 &&
+                entry.maximum_bytes() <= (4ULL << 30) && entry.maximum_bytes() % 4096 == 0 &&
+                entry.maximum_entries() > 0 && entry.maximum_entries() <= 200000 &&
+                entry.consistency() == pb::CRASH_CONSISTENT_AFTER_QUIESCENCE,
+                "Invalid workspace copy catalog entry or unsupported consistency contract");
+        pb::StorageObject::Kind expected = pb::StorageObject::UNSPECIFIED;
+        const char* schema = nullptr;
+        switch (entry.data_class()) {
+        case Data::PROJECT_TREE: expected = pb::StorageObject::PROJECT; schema = "spatial.workspace.project-tree"; break;
+        case Data::GIT_HISTORY: expected = pb::StorageObject::REPOSITORY; schema = "spatial.workspace.git-history"; break;
+        case Data::APPLICATION_DEFINITION: expected = pb::StorageObject::APPLICATION_DEFINITION; schema = "spatial.workspace.application-definition"; break;
+        case Data::APPLICATION_STATE: expected = pb::StorageObject::APPLICATION_STATE; schema = "spatial.workspace.application-state"; break;
+        case Data::ENVIRONMENT_CONFIG: expected = pb::StorageObject::ENVIRONMENT_CONFIG; schema = "spatial.workspace.environment-config"; break;
+        default: throw Error(pb::StorageOwnerError::INVALID_ARGUMENT, "Unknown workspace copy class");
+        }
+        require(entry.schema_id() == schema && entry.schema_version() == 1 &&
+                entry.source_object().kind() == expected &&
+                entry.source_object().id().size() == 32 &&
+                entry.source_object().id().find_first_not_of("0123456789abcdef") == std::string::npos &&
+                entries.emplace(entry.workspace_id(), static_cast<int>(entry.data_class())).second,
+                "Workspace copy class must map to a unique exact registered object");
+    }
+    std::set<std::string> profiles;
+    for (const auto& profile : config.copy_destination_profiles()) {
+        require(safe_identifier(profile.name()) && profile.revision() > 0 &&
+                profile.maximum_total_bytes() >= 4*1024*1024 &&
+                profile.maximum_total_bytes() <= (4ULL << 30) &&
+                profile.maximum_total_bytes() <= config.volume_bytes() &&
+                profile.maximum_total_bytes() % 4096 == 0 &&
+                profile.maximum_entries() > 0 && profile.maximum_entries() <= 200000 &&
+                profile.has_storage_policy() && profile.storage_policy().workspace().empty() &&
+                profile.storage_policy().actors_size() == 0 &&
+                profile.storage_policy().total_bytes() <= profile.maximum_total_bytes() &&
+                safe_identifier(profile.execution_resource_profile()) &&
+                safe_identifier(profile.application_profile()) &&
+                profiles.insert(profile.name()).second,
+                "Invalid or duplicate workspace copy destination profile");
+        policy(profile.storage_policy(), true);
+        std::set<int> classes;
+        for (const auto data_class : profile.allowed_classes()) {
+            require(data_class >= Data::PROJECT_TREE && data_class <= Data::ENVIRONMENT_CONFIG &&
+                    classes.insert(static_cast<int>(data_class)).second,
+                    "Invalid or duplicate destination copy class");
+        }
+        require(classes.contains(Data::PROJECT_TREE) && classes.contains(Data::GIT_HISTORY),
+                "Destination profile must allow the mandatory project and Git classes");
+        bool app_profile = false;
+        for (const auto& app : profile.storage_policy().profiles())
+            if (app.name() == profile.application_profile()) app_profile = true;
+        require(app_profile, "Destination profile references an unknown application storage profile");
+    }
+}
 void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config) {
     validate_message(config);
     require(config.protocol_version() == 1 && config.filesystem_id().size() == BTRFS_FSID_SIZE &&
@@ -216,7 +289,7 @@ void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config) {
     bytes(config.volume_bytes()); bytes(config.control_plane_bytes()); bytes(config.filesystem_reserve_bytes());
     require(config.control_plane_bytes() < config.volume_bytes() && config.filesystem_reserve_bytes() < config.volume_bytes()-config.control_plane_bytes(), "Storage reservations exceed volume capacity");
     require(config.has_default_policy() && config.workspaces_size() <= 64, "Expected bounded default storage policy");
-    policy(config.default_policy(), true); std::set<std::string> workspaces;
+    policy(config.default_policy(), true); validate_copy_configuration(config); std::set<std::string> workspaces;
     for (const auto& selected : config.workspaces()) { policy(selected, false); require(workspaces.insert(selected.workspace()).second, "Duplicate workspace storage policy"); }
 }
 struct StorageOwner::Impl {
@@ -296,7 +369,7 @@ struct StorageOwner::Impl {
             }
         }
         if (!fresh) sql(db, "UPDATE copy_stages SET state=4 WHERE state=2;");
-        for (const auto* directory : {"repositories", "worktrees", "applications", "retired", "snapshots", "staging", "effects"}) {
+        for (const auto* directory : {"repositories", "worktrees", "applications", "definitions", "environments", "retired", "snapshots", "staging", "effects"}) {
             if (mkdirat(root.value, directory, 0700) != 0) check(errno == EEXIST, "Cannot create storage collection");
             Fd pinned(openat(root.value, directory, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
             check(pinned.value >= 0 && fchown(pinned.value, config.broker_uid(), static_cast<gid_t>(-1)) == 0, "Cannot provision storage collection ownership");
@@ -667,6 +740,51 @@ struct StorageOwner::Impl {
         require(r.operation_id().size()==16 && r.request_digest().size()==32,"Invalid copy stage inspect");
         auto receipt=copy_stage_receipt(r.operation_id()); require(receipt.request_digest()==r.request_digest(),"Copy stage digest conflict"); return receipt;
     }
+    pb::StorageCopyCatalogReply copy_catalog(const pb::StorageCopyCatalogQuery& request) {
+        if (!config.has_copy_catalog())
+            throw Error(pb::StorageOwnerError::UNAVAILABLE,"Workspace copy catalog is not configured");
+        require(identifier(request.workspace_id()) &&
+                identifier(request.destination_profile()),
+                "Workspace copy query identity is invalid");
+        if (request.expected_catalog_revision()!=0 &&
+            request.expected_catalog_revision()!=config.copy_catalog().revision())
+            throw Error(pb::StorageOwnerError::CONFLICT,"Workspace copy catalog revision changed");
+        const pb::WorkspaceCopyDestinationProfile* profile=nullptr;
+        for (const auto& candidate : config.copy_destination_profiles())
+            if (candidate.name()==request.destination_profile()) profile=&candidate;
+        if (!profile || profile->revision()!=request.expected_destination_profile_revision())
+            throw Error(pb::StorageOwnerError::CONFLICT,"Workspace copy destination profile revision changed");
+        require(request.data_classes_size()>=2 && request.data_classes_size()<=5,
+                "Workspace copy query requires bounded selected classes");
+        pb::StorageCopyCatalogReply reply; reply.set_catalog_revision(config.copy_catalog().revision());
+        *reply.mutable_destination_profile()=*profile;
+        std::set<int> seen;
+        for (const auto selected : request.data_classes()) {
+            require(selected>=workspace::copy::v1::PROJECT_TREE &&
+                    selected<=workspace::copy::v1::ENVIRONMENT_CONFIG &&
+                    seen.insert(static_cast<int>(selected)).second,
+                    "Workspace copy query has unknown or duplicate class");
+            bool allowed=false;
+            for (const auto value : profile->allowed_classes()) if (value==selected) allowed=true;
+            if (!allowed) throw Error(pb::StorageOwnerError::UNAUTHORIZED,"Destination profile denies a selected copy class");
+            const pb::WorkspaceCopyCatalogEntry* match=nullptr;
+            for (const auto& entry : config.copy_catalog().entries())
+                if (entry.workspace_id()==request.workspace_id() && entry.data_class()==selected) match=&entry;
+            if (!match) throw Error(pb::StorageOwnerError::UNAVAILABLE,"Selected workspace copy class is not registered");
+            const auto registered=object(match->source_object());
+            Query domain_query(db,"SELECT workspace FROM domains WHERE id=?"); domain_query.number(1,registered.group);
+            if (!domain_query.row() || domain_query.text(0)!=request.workspace_id())
+                throw Error(pb::StorageOwnerError::UNAVAILABLE,"Copy object is not registered to the requested workspace");
+            *reply.add_entries()=*match;
+        }
+        bool project=false,git=false;
+        for (const auto item : request.data_classes()) {
+            if (item==workspace::copy::v1::PROJECT_TREE) project=true;
+            if (item==workspace::copy::v1::GIT_HISTORY) git=true;
+        }
+        require(project && git,"Workspace copy must include project and Git history");
+        return reply;
+    }
 
 };
 StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io)
@@ -701,6 +819,7 @@ workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::Stora
         else if (request.has_copy_stage_seal()) *reply.mutable_copy_stage() = impl_->copy_stage_seal(request.copy_stage_seal());
         else if (request.has_copy_stage_inspect()) *reply.mutable_copy_stage() = impl_->copy_stage_inspect(request.copy_stage_inspect());
         else if (request.has_copy_stage_uncertain()) *reply.mutable_copy_stage() = impl_->copy_stage_uncertain(request.copy_stage_uncertain());
+        else if (request.has_copy_catalog_query()) *reply.mutable_copy_catalog() = impl_->copy_catalog(request.copy_catalog_query());
         else if (request.has_inspect()) *reply.mutable_state() = impl_->inspect(request.inspect().object());
         else if (request.has_hello()) {
             auto* identity = reply.mutable_identity(); identity->set_filesystem_id(impl_->config.filesystem_id()); identity->set_process_id(getpid()); identity->set_volume_bytes(impl_->config.volume_bytes()); identity->set_accounting_consistent(true);

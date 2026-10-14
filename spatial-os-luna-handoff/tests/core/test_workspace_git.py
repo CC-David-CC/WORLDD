@@ -399,9 +399,28 @@ class WorkspaceGitTests(unittest.TestCase):
             migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with self.registry() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 5)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 6)
             for name, rows in before.items(): self.assertEqual(db.execute('SELECT * FROM ' + name).fetchall(), rows)
         self.start(); self.assertEqual(self.create(), work); self.remove()
+
+    def test_execution_v5_migration_is_explicit_and_idempotent(self):
+        self.imported(); self.client.stop()
+        with self.registry() as db:
+            db.execute('ALTER TABLE copy_operations DROP COLUMN authorization_binding')
+            db.execute('PRAGMA user_version=5')
+        refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')],
+            input=b'', capture_output=True, timeout=5)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn(b'--migrate-v5', refused.stderr)
+        command = [BROKER, '--state-dir', str(self.state / 'execution'), '--migrate-v5']
+        for _ in range(2):
+            migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
+            self.assertEqual(migrated.returncode, 0, migrated.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 6)
+            columns = {row[1] for row in db.execute('PRAGMA table_info(copy_operations)')}
+            self.assertIn('authorization_binding', columns)
+        self.start()
 
     def test_submodule_index_entries_require_explicit_retirement(self):
         self.imported(); work = self.create(); path = Path(work['path'])
@@ -615,7 +634,7 @@ class WorkspaceGitTests(unittest.TestCase):
                 with sqlite3.connect(state/'execution.db') as database:
                     self.assertEqual(database.execute('SELECT state FROM operations').fetchone(), ('pending' if enabled else 'ready',))
                 self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=replies[5].repository.path).count('branch refs/heads/direct'), 1)
-        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--migrate-v4', '--fixture-clock'):
+        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--migrate-v4', '--migrate-v5', '--fixture-clock'):
             rejected = self.root/('rejected'+flag)
             process = subprocess.run([BROKER, '--state-dir', str(rejected), flag, '--fixture-faults'], capture_output=True, timeout=5)
             self.assertEqual(process.returncode, 2)

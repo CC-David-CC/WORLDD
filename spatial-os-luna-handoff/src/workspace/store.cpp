@@ -27,6 +27,8 @@
 
 namespace spatial {
 namespace {
+namespace copy = workspace::copy::v1;
+namespace auth = authority::v1;
 void require(bool value, const char* message) { if (!value) throw std::invalid_argument(message); }
 workspace::v1::StorageObject storage_object(workspace::v1::StorageObject::Kind kind, const std::filesystem::path& path) {
     workspace::v1::StorageObject object; object.set_kind(kind);
@@ -210,7 +212,9 @@ struct ExecutionStore::Impl {
             throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v1, --migrate-v2, or --migrate-v3 while the broker is stopped");
         if (version == 4 && !migrate_from)
             throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v4 while the broker is stopped");
-        if (version < 0 || version > 5 || (migrate_from && (version == 0 || (version != 5 && version != static_cast<int>(migrate_from)))))
+        if (version == 5 && !migrate_from)
+            throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v5 while the broker is stopped");
+        if (version < 0 || version > 6 || (migrate_from && (version == 0 || (version != 6 && version != static_cast<int>(migrate_from)))))
             throw WorldError(wire::STORAGE_ERROR, "Unknown execution schema; explicit migration required");
         if (version == 0) {
             Query existing(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"); existing.step();
@@ -227,6 +231,11 @@ struct ExecutionStore::Impl {
         }
         { Query q(db.get(), "PRAGMA quick_check"); q.step(); if (q.text(0) != "ok") throw WorldError(wire::STORAGE_ERROR, "Execution registry integrity failure"); }
         { Query q(db.get(), "PRAGMA foreign_key_check"); if (q.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Execution registry reference failure"); }
+        if (version == 5 && migrate_from == 5) {
+            Transaction transaction(db.get());
+            CopyJournal::migrate_v5(db.get());
+            transaction.commit();
+        }
         if (version > 0 && version < 5) {
             Transaction transaction(db.get());
             if (version == 1) {
@@ -793,6 +802,192 @@ workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(
         if (required && !(policy & (1u << *required))) decision.set_allowed(false);
     }
     return decision;
+}
+namespace {
+using CopyStatus = workspace::copy::v1::WorkspaceCopyStatus;
+CopyStatus copy_status_for(const CopyJournal::Operation& operation, bool authorized) {
+    CopyStatus status;
+    status.set_operation_id(operation.operation_id);
+    status.set_phase(operation.phase);
+    if (operation.error != workspace::copy::v1::COPY_ERROR_UNSPECIFIED)
+        status.set_error_code(operation.error);
+    const bool outcome_phase = operation.phase == workspace::copy::v1::VALIDATED ||
+        operation.phase == workspace::copy::v1::PUBLISHED || operation.phase == workspace::copy::v1::UNCERTAIN;
+    if (authorized && outcome_phase && !operation.destination_workspace_id.empty()) {
+        status.set_authorized_destination_workspace_id(operation.destination_workspace_id);
+        if (operation.manifest_digest.size()==32)
+            status.set_authorized_manifest_digest(operation.manifest_digest);
+    }
+    return status;
+}
+}
+workspace::copy::v1::WorkspaceCopyStatus ExecutionStore::workspace_copy_begin(
+        const workspace::copy::v1::WorkspaceCopyRequest& request,
+        const authority::v1::ActorRef& principal) {
+    validate_message(request);
+    valid_text(request.source_workspace_id(),128);
+    require(principal.issuer_id().size()==32 && principal.actor_id().size()==32,
+            "Workspace copy requires a complete authenticated principal");
+    const std::string requester=principal.issuer_id()+principal.actor_id();
+    require(request.operation_id().size()==16 && request.protocol_version()==1 &&
+            request.expected_source_authority_revision()>0 &&
+            request.expected_source_policy_revision()>0 &&
+            request.expected_destination_profile_revision()>0 &&
+            !request.destination_policy_profile().empty() &&
+            request.destination_policy_profile().size()<=128 &&
+            request.destination_policy_profile().find_first_of("\r\n\t") == std::string::npos &&
+            request.data_class_size()>=2 && request.data_class_size()<=5,
+            "Invalid workspace copy request");
+    const auto exact_request=request.SerializeAsString();
+    if (impl_->copy_journal->exact_binding(request.operation_id(),requester,exact_request)) {
+        workspace::copy::v1::WorkspaceCopyStatusRequest status_request;
+        status_request.set_protocol_version(1); status_request.set_operation_id(request.operation_id());
+        return workspace_copy_status(status_request,principal);
+    }
+    std::set<int> classes;
+    bool has_project=false,has_git=false;
+    for (const auto data_class:request.data_class()) {
+        require(data_class>=copy::PROJECT_TREE && data_class<=copy::ENVIRONMENT_CONFIG &&
+                classes.insert(static_cast<int>(data_class)).second,
+                "Unknown or duplicate workspace copy class");
+        if(data_class==copy::PROJECT_TREE)has_project=true;
+        if(data_class==copy::GIT_HISTORY)has_git=true;
+    }
+    require(has_project && has_git,"Workspace copy requires project and Git history");
+    if (!impl_->authority || !impl_->storage || !impl_->resources)
+        throw WorldError(wire::UNAVAILABLE,"Workspace copy authority, storage owner, or resource profile is unavailable");
+    const auto source=workspace_get(request.source_workspace_id());
+    if(source.revision()!=request.expected_source_policy_revision())
+        throw WorldError(wire::REVISION_CONFLICT,"Source workspace policy revision changed");
+    std::optional<std::string> incarnation;
+    std::optional<std::uint64_t> epoch;
+    auto check_right=[&](const std::string& workspace, auth::Right right,
+                         const std::vector<std::string>& components, bool source_right) {
+        workspace::v1::ScopedAuthorityCheckRequest check;
+        check.set_workspace(workspace); *check.mutable_principal()=principal; check.set_right(right);
+        for(const auto& component:components)check.add_components(component);
+        const auto result=scoped_authority_check(check);
+        if(!result.allowed())throw WorldError(wire::FORBIDDEN,"Workspace copy authority is denied");
+        if(result.incarnation().size()!=16 || !result.epoch())
+            throw WorldError(wire::UNAVAILABLE,"Workspace authority fence is malformed");
+        if(!incarnation){incarnation=result.incarnation();epoch=result.epoch();}
+        else if(*incarnation!=result.incarnation() || *epoch!=result.epoch())
+            throw WorldError(wire::UNAVAILABLE,"Workspace authority changed during copy admission");
+        if(source_right && result.revision()!=request.expected_source_authority_revision())
+            throw WorldError(wire::REVISION_CONFLICT,"Source authority revision changed");
+    };
+    check_right("workspace-registry",auth::WORKSPACE_CREATE,{},false);
+    check_right(request.source_workspace_id(),auth::WORKSPACE_COPY_PROJECT,{},true);
+    check_right(request.source_workspace_id(),auth::WORKSPACE_COPY_GIT,{},true);
+    auto right_for=[](copy::CopyDataClass data_class) {
+        switch(data_class) {
+        case copy::APPLICATION_DEFINITION:return auth::WORKSPACE_COPY_DEFINITION;
+        case copy::APPLICATION_STATE:return auth::WORKSPACE_COPY_STATE;
+        case copy::ENVIRONMENT_CONFIG:return auth::WORKSPACE_COPY_ENVIRONMENT;
+        default:return auth::RIGHT_UNSPECIFIED;
+        }
+    };
+    for(const auto data_class:request.data_class()) {
+        const auto right=right_for(data_class);
+        if(right!=auth::RIGHT_UNSPECIFIED)
+            check_right(request.source_workspace_id(),right,{},true);
+    }
+    workspace::v1::StorageCopyCatalogQuery query;
+    query.set_workspace_id(request.source_workspace_id());
+    query.set_destination_profile(request.destination_policy_profile());
+    query.set_expected_destination_profile_revision(request.expected_destination_profile_revision());
+    query.set_expected_catalog_revision(0);
+    for(const auto data_class:request.data_class())query.add_data_classes(data_class);
+    const auto catalog=impl_->storage->query_copy_catalog(query);
+    if(!impl_->resources->has_profile(catalog.destination_profile().execution_resource_profile()))
+        throw WorldError(wire::FORBIDDEN,"Destination execution resource profile is unavailable");
+    const auto project=std::find_if(catalog.entries().begin(),catalog.entries().end(),
+        [](const auto& entry){return entry.data_class()==copy::PROJECT_TREE;});
+    require(project!=catalog.entries().end(),"Owner copy catalog omitted the registered project object");
+    check_right(request.source_workspace_id(),auth::FILE_BROWSE,{},true);
+    check_right(request.source_workspace_id(),auth::FILE_READ,{},true);
+    workspace::v1::WorkspaceCopyAuthorizationBinding binding;
+    binding.set_protocol_version(1);
+    *binding.mutable_owner_catalog()=catalog;
+    binding.set_source_authority_incarnation(*incarnation);
+    binding.set_source_authority_epoch(*epoch);
+    binding.set_source_policy_revision(source.revision());
+    binding.set_exact_request_digest(CopyJournal::digest(exact_request));
+    const auto final_source=workspace_get(request.source_workspace_id());
+    if(final_source.revision()!=request.expected_source_policy_revision())
+        throw WorldError(wire::REVISION_CONFLICT, Source workspace policy changed during copy admission);
+    const auto serialized_binding=binding.SerializeAsString();
+    const auto operation=impl_->copy_journal->begin(request,requester,serialized_binding);
+    return copy_status_for(operation,true);
+}
+workspace::copy::v1::WorkspaceCopyStatus ExecutionStore::workspace_copy_status(
+        const workspace::copy::v1::WorkspaceCopyStatusRequest& request,
+        const authority::v1::ActorRef& principal) {
+    require(request.protocol_version()==1 && request.operation_id().size()==16 &&
+            principal.issuer_id().size()==32 && principal.actor_id().size()==32,
+            "Invalid workspace copy status identity");
+    const std::string requester=principal.issuer_id()+principal.actor_id();
+    const auto operation=impl_->copy_journal->get(request.operation_id(),requester);
+    const auto stored_request=impl_->copy_journal->request(request.operation_id(),requester);
+    bool authorized=false;
+    try {
+        if(!impl_->authority || !impl_->storage || !impl_->resources)
+            throw WorldError(wire::UNAVAILABLE,"Workspace copy authority is unavailable");
+        const auto source=workspace_get(stored_request.source_workspace_id());
+        if(source.revision()!=stored_request.expected_source_policy_revision())
+            throw WorldError(wire::REVISION_CONFLICT,"Source policy changed");
+        std::optional<std::string> incarnation;std::optional<std::uint64_t> epoch;
+        auto check_right=[&](const std::string& workspace,authority::v1::Right right,
+                             const std::vector<std::string>& components,bool source_right) {
+            workspace::v1::ScopedAuthorityCheckRequest check;
+            check.set_workspace(workspace);*check.mutable_principal()=principal;check.set_right(right);
+            for(const auto& component:components)check.add_components(component);
+            const auto result=scoped_authority_check(check);
+            if(!result.allowed())throw WorldError(wire::FORBIDDEN,"Workspace copy status authority is denied");
+            if(!incarnation){incarnation=result.incarnation();epoch=result.epoch();}
+            else if(*incarnation!=result.incarnation() || *epoch!=result.epoch())
+                throw WorldError(wire::UNAVAILABLE,"Workspace authority changed during status query");
+            if(source_right && result.revision()!=stored_request.expected_source_authority_revision())
+                throw WorldError(wire::REVISION_CONFLICT,"Source authority revision changed");
+        };
+        check_right("workspace-registry",authority::v1::WORKSPACE_CREATE,{},false);
+        check_right(stored_request.source_workspace_id(),authority::v1::WORKSPACE_COPY_PROJECT,{},true);
+        check_right(stored_request.source_workspace_id(),authority::v1::WORKSPACE_COPY_GIT,{},true);
+        for(const auto data_class:stored_request.data_class()) {
+            authority::v1::Right right=authority::v1::RIGHT_UNSPECIFIED;
+            if(data_class==copy::APPLICATION_DEFINITION)right=authority::v1::WORKSPACE_COPY_DEFINITION;
+            if(data_class==copy::APPLICATION_STATE)right=authority::v1::WORKSPACE_COPY_STATE;
+            if(data_class==copy::ENVIRONMENT_CONFIG)right=authority::v1::WORKSPACE_COPY_ENVIRONMENT;
+            if(right!=authority::v1::RIGHT_UNSPECIFIED)
+                check_right(stored_request.source_workspace_id(),right,{},true);
+        }
+        workspace::v1::WorkspaceCopyAuthorizationBinding binding;
+        if(!binding.ParseFromString(operation.authorization_binding) ||
+           binding.SerializeAsString()!=operation.authorization_binding || binding.protocol_version()!=1 ||
+           binding.exact_request_digest()!=operation.request_digest ||
+           binding.source_policy_revision()!=stored_request.expected_source_policy_revision() ||
+           binding.source_authority_incarnation()!=*incarnation ||
+           binding.source_authority_epoch()!=*epoch || !binding.has_owner_catalog())
+            throw WorldError(wire::UNAVAILABLE,"Workspace copy authorization binding is invalid");
+        workspace::v1::StorageCopyCatalogQuery query;
+        query.set_workspace_id(stored_request.source_workspace_id());
+        query.set_destination_profile(stored_request.destination_policy_profile());
+        query.set_expected_destination_profile_revision(stored_request.expected_destination_profile_revision());
+        query.set_expected_catalog_revision(binding.owner_catalog().catalog_revision());
+        for(const auto data_class:stored_request.data_class())query.add_data_classes(data_class);
+        const auto current=impl_->storage->query_copy_catalog(query);
+        if(current.SerializeAsString()!=binding.owner_catalog().SerializeAsString() ||
+           !impl_->resources->has_profile(current.destination_profile().execution_resource_profile()))
+            throw WorldError(wire::UNAVAILABLE,"Pinned workspace copy catalog or destination profile changed");
+        const auto project=std::find_if(current.entries().begin(),current.entries().end(),
+            [](const auto& entry){return entry.data_class()==copy::PROJECT_TREE;});
+        if(project==current.entries().end())
+            throw WorldError(wire::UNAVAILABLE,"Pinned workspace project object is missing");
+        check_right(stored_request.source_workspace_id(),authority::v1::FILE_BROWSE,{},true);
+        check_right(stored_request.source_workspace_id(),authority::v1::FILE_READ,{},true);
+        authorized=true;
+    } catch(const WorldError&) { authorized=false; }
+    return copy_status_for(operation,authorized);
 }
 workspace::v1::AuthorizationFence ExecutionStore::authorization_fence(const workspace::v1::AuthorizationFenceRequest& request) {
     if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");

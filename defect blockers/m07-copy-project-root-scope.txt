@@ -1,0 +1,13 @@
+M07 copy engine checkpoint: remaining review findings
+
+This branch checkpoint is UNQUALIFIED and has not been built.
+
+The implementation currently forwards WorkspaceCopy begin/status through the actor and private broker, validates trusted catalog/profile receipts, authorizes requested classes, and persists an immutable authorization binding. It does not yet advance asynchronous copy phases or perform destination publication.
+
+Required production regression still missing: call actual broker workspace_copy_begin with an otherwise valid source, owner catalog/profile, WORKSPACE_CREATE, and class rights. Grant FILE_READ only for a filename equal to the opaque project object ID. Assert FORBIDDEN and no journal row or external effect. Add the authorized workspace-root READ control case that reaches REQUESTED. The generic scoped grant matcher test does not replace this case.
+
+Review defects corrected in the current diff: project object IDs no longer become FILE_READ components; copy begin/status return BUSY during another external effect; immutable authorization evidence moved out of phase_payload; v5 operations without evidence become UNCERTAIN during explicit migration; source workspace IDs retain the existing bounded string grammar.
+
+Preserved failed protoc-era build attempt: /home/dflanag3/spatial-artifacts/runs/m07-copy-stage-pb-debug-1/command-receipt.txt, stdout.log, stderr.log, command.exit, and wrapper.exit. The attempt failed while compiling copy_worker_production_probe.cpp because spatial::WorldError was not declared. This is historical evidence, not a result for the current diff.
+
+Remaining implementation: real combined authority/storage/resource broker fixture, asynchronous 300-second copy progression, workspace-scoped quiescence, typed definition/state/environment validation, full Git-history closure and independent worktree, destination policy/profile allocation, publication, restart reconciliation, and all five-class end-to-end tests. Runtime remains reserved to sb16 and sb16-2.

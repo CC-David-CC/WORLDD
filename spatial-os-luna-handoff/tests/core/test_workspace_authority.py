@@ -378,6 +378,24 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertTrue(reply.HasField('scoped_authority_check'), reply)
         self.assertFalse(reply.scoped_authority_check.allowed)
 
+    def test_project_copy_requires_project_root_read_not_object_id_filename(self):
+        self.enroll_second()
+        object_id = 'a' * 32
+        root = self.workspace_terms(self.second,
+            rights=[grant.WORKSPACE_COPY_PROJECT, grant.FILE_BROWSE], depth=0)
+        forged_path = self.workspace_terms(self.second, rights=[grant.FILE_READ], depth=0,
+            components=(object_id.encode(),))
+        self.workspace(roots=lambda: [root, forged_path])
+        scoped_file = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=self.principal(self.second), right=grant.FILE_READ,
+            components=[object_id.encode()]))
+        self.assertTrue(scoped_file.scoped_authority_check.allowed)
+        root_read = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=self.principal(self.second), right=grant.FILE_READ))
+        self.assertFalse(root_read.scoped_authority_check.allowed)
+        # Copy admission checks empty root components, so the filename-shaped grant cannot admit it.
+        self.assertGreater(root_read.scoped_authority_check.revision, 0)
+
     def test_scoped_authority_does_not_fall_back_to_legacy_membership(self):
         self.workspace(legacy=True)
         request = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(), right=grant.WORKSPACE_ACCESS)

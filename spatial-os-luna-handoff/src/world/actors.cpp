@@ -272,9 +272,19 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kPresentationCreate:
     case wire::ActorActionRequest::kPresentationMove:
     case wire::ActorActionRequest::kPresentationRemove:
-    case wire::ActorActionRequest::kWorkspaceCopy:
-    case wire::ActorActionRequest::kWorkspaceCopyStatus:
-        throw WorldError(wire::UNIMPLEMENTED, "M07 workspace actions are not implemented");
+        throw WorldError(wire::UNIMPLEMENTED, "Workspace presentation actions are not implemented");
+    case wire::ActorActionRequest::kWorkspaceCopy: {
+        if (!actor.principal) throw WorldError(wire::FORBIDDEN, "Workspace copy requires an authenticated principal");
+        if (!broker_) throw WorldError(wire::UNAVAILABLE, "Workspace copy authority is unavailable");
+        const auto status = broker_->workspace_copy_begin(request.workspace_copy(), *actor.principal);
+        wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_copy_status() = status; return reply;
+    }
+    case wire::ActorActionRequest::kWorkspaceCopyStatus: {
+        if (!actor.principal) throw WorldError(wire::FORBIDDEN, "Workspace copy status requires an authenticated principal");
+        if (!broker_) throw WorldError(wire::UNAVAILABLE, "Workspace copy authority is unavailable");
+        const auto status = broker_->workspace_copy_status(request.workspace_copy_status(), *actor.principal);
+        wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_copy_status() = status; return reply;
+    }
     case wire::ActorActionRequest::ACTION_NOT_SET:
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }

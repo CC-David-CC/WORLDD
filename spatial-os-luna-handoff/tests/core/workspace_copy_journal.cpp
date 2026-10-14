@@ -17,15 +17,25 @@ template<class F> void exhausted(F f) { bool rejected=false; try { f(); } catch 
 workspace::copy::v1::WorkspaceCopyRequest request(char ch='a') {
     workspace::copy::v1::WorkspaceCopyRequest r; r.set_protocol_version(1); r.set_operation_id(std::string(16,ch)); r.set_source_workspace_id("workspace-01");
     r.set_expected_source_authority_revision(7); r.set_expected_source_policy_revision(8); r.set_destination_policy_profile("personal"); r.set_expected_destination_profile_revision(9);
-    r.add_data_class(workspace::copy::v1::PROJECT_TREE); r.add_data_class(workspace::copy::v1::GIT_HISTORY); r.add_data_class(workspace::copy::v1::APPLICATION_STATE); return r;
+    r.add_data_class(workspace::copy::v1::PROJECT_TREE); r.add_data_class(workspace::copy::v1::GIT_HISTORY); r.add_data_class(workspace::copy::v1::APPLICATION_DEFINITION); r.add_data_class(workspace::copy::v1::APPLICATION_STATE); r.add_data_class(workspace::copy::v1::ENVIRONMENT_CONFIG); return r;
 }
 std::vector<workspace::copy::v1::CopyManifestEntry> entries(std::map<std::string, workspace::copy::v1::SnapshotReceipt>& receipts, const std::string& digest) {
     std::vector<workspace::copy::v1::CopyManifestEntry> out;
-    for (int i=0;i<4;++i) {
-        const auto kind=i==0?workspace::v1::StorageObject::PROJECT:i==1?workspace::v1::StorageObject::REPOSITORY:workspace::v1::StorageObject::APPLICATION_STATE;
-        workspace::v1::StorageObject source; source.set_kind(kind); source.set_id(i==0?"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":i==1?"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb":i==2?"11111111111111111111111111111111":"22222222222222222222222222222222");
-        workspace::copy::v1::CopyManifestEntry e; e.set_data_class(i==0?workspace::copy::v1::PROJECT_TREE:i==1?workspace::copy::v1::GIT_HISTORY:workspace::copy::v1::APPLICATION_STATE); e.set_object_id(std::string(16, static_cast<char>('x'+i)));
-        e.set_schema_id(i==0?"spatial.workspace.project-tree":i==1?"spatial.workspace.git-history":"spatial.workspace.application-state"); e.set_schema_version(1); e.set_source_storage_object(source.SerializeAsString()); e.set_byte_count(128 + i); e.set_content_digest(std::string(32, static_cast<char>('d'+i)));
+    const workspace::copy::v1::CopyDataClass classes[] = {
+        workspace::copy::v1::PROJECT_TREE, workspace::copy::v1::GIT_HISTORY,
+        workspace::copy::v1::APPLICATION_DEFINITION, workspace::copy::v1::APPLICATION_STATE,
+        workspace::copy::v1::ENVIRONMENT_CONFIG};
+    const workspace::v1::StorageObject::Kind kinds[] = {
+        workspace::v1::StorageObject::PROJECT, workspace::v1::StorageObject::REPOSITORY,
+        workspace::v1::StorageObject::APPLICATION_DEFINITION, workspace::v1::StorageObject::APPLICATION_STATE,
+        workspace::v1::StorageObject::ENVIRONMENT_CONFIG};
+    const char* schemas[] = {"spatial.workspace.project-tree", "spatial.workspace.git-history",
+        "spatial.workspace.application-definition", "spatial.workspace.application-state",
+        "spatial.workspace.environment-config"};
+    for (int i=0;i<5;++i) {
+        workspace::v1::StorageObject source; source.set_kind(kinds[i]); source.set_id(std::string(32, static_cast<char>('1'+i)));
+        workspace::copy::v1::CopyManifestEntry e; e.set_data_class(classes[i]); e.set_object_id(std::string(16, static_cast<char>('x'+i)));
+        e.set_schema_id(schemas[i]); e.set_schema_version(1); e.set_source_storage_object(source.SerializeAsString()); e.set_byte_count(128 + i); e.set_content_digest(std::string(32, static_cast<char>('d'+i)));
         workspace::copy::v1::SnapshotReceipt r; r.set_source_storage_object(e.source_storage_object()); workspace::v1::StorageObject snap; snap.set_kind(workspace::v1::StorageObject::SNAPSHOT); snap.set_id(std::string(32,static_cast<char>('c'+i))); r.set_snapshot_storage_object(snap.SerializeAsString()); r.set_source_subvolume_id(10+i); r.set_snapshot_subvolume_id(20+i); r.set_content_digest(e.content_digest()); r.set_readonly(true); r.set_receipt_id(std::string(16, static_cast<char>('r'+i))); r.set_request_digest(digest); e.set_snapshot_receipt_id(r.receipt_id()); receipts.emplace(r.receipt_id(),r); out.push_back(e);
     }
     return out;
@@ -68,15 +78,15 @@ int main() {
     rejects([&]{CopyJournal(db).begin(request('x'),"actor-key-1");});
     auto r=request(); std::string bound_digest, expected_snapshot_receipts;
     {
-        CopyJournal journal(db); auto first=journal.begin(r,actor); assert(first.phase==workspace::copy::v1::REQUESTED); bound_digest=first.request_digest;
+        CopyJournal journal(db); auto first=journal.begin(r,actor,"immutable-auth-binding"); assert(first.phase==workspace::copy::v1::REQUESTED && first.authorization_binding=="immutable-auth-binding"); bound_digest=first.request_digest;
         assert(journal.begin(r,actor).operation_id==first.operation_id);
         auto changed=request(); changed.set_source_workspace_id("workspace-02"); rejects([&]{journal.begin(changed,actor);}); rejects([&]{journal.begin(r,std::string(64,'b'));});
         journal.transition(r.operation_id(),actor,workspace::copy::v1::REQUESTED,workspace::copy::v1::AUTHORIZED,"auth-proof-v1");
     }
     sqlite3_close(db); db=nullptr; assert(sqlite3_open(path,&db)==SQLITE_OK);
     {
-        CopyJournal journal(db); auto recovered=journal.begin(r,actor); assert(recovered.phase==workspace::copy::v1::AUTHORIZED);
-        assert(journal.get(r.operation_id(),actor).request_bytes==r.SerializeAsString()); assert(journal.request(r.operation_id(),actor).SerializeAsString()==r.SerializeAsString()); rejects([&]{journal.request(r.operation_id(),std::string(64,'z'));});
+        CopyJournal journal(db); auto recovered=journal.begin(r,actor,"immutable-auth-binding"); assert(recovered.phase==workspace::copy::v1::AUTHORIZED && recovered.authorization_binding=="immutable-auth-binding");
+        assert(journal.get(r.operation_id(),actor).request_bytes==r.SerializeAsString()); assert(journal.get(r.operation_id(),actor).authorization_binding=="immutable-auth-binding"); assert(journal.request(r.operation_id(),actor).SerializeAsString()==r.SerializeAsString()); rejects([&]{journal.request(r.operation_id(),std::string(64,'z'));});
         journal.transition(r.operation_id(),actor,workspace::copy::v1::AUTHORIZED,workspace::copy::v1::AUTHORIZED,"auth-proof-v1");
         rejects([&]{journal.transition(r.operation_id(),actor,workspace::copy::v1::AUTHORIZED,workspace::copy::v1::AUTHORIZED,"changed-proof");}); rejects([&]{journal.transition(r.operation_id(),actor,workspace::copy::v1::AUTHORIZED,workspace::copy::v1::VALIDATED,"bypass-validation");}); rejects([&]{journal.transition(r.operation_id(),actor,workspace::copy::v1::AUTHORIZED,workspace::copy::v1::ABORTED,"bypass-abort");});
         auto effect_id=std::string(16,'e'); journal.record_effect_intent(r.operation_id(),actor,effect_id,"snapshot",bound_digest,"registered-object-intent"); journal.record_effect_intent(r.operation_id(),actor,effect_id,"snapshot",bound_digest,"registered-object-intent"); rejects([&]{journal.record_effect_intent(r.operation_id(),actor,effect_id,"snapshot",bound_digest,"changed-intent");});
@@ -111,7 +121,7 @@ int main() {
     { CopyJournal journal(db); assert(journal.get(r.operation_id(),actor).snapshot_receipts==expected_snapshot_receipts); auto pending=request('b'); assert(journal.get(pending.operation_id(),actor).phase==workspace::copy::v1::AUTHORIZED); auto pending_effects=journal.effects(pending.operation_id(),actor); assert(pending_effects.size()==1 && pending_effects[0].uncertain); journal.recover_unresolved_effects(pending.operation_id(),actor); assert(journal.get(pending.operation_id(),actor).phase==workspace::copy::v1::UNCERTAIN); journal.recover_unresolved_effects(pending.operation_id(),actor); rejects([&]{journal.abort(pending.operation_id(),actor,workspace::copy::v1::COPY_UNAVAILABLE,"abort");}); }
     sqlite3_close(db); unlink(path);
     sqlite3* outside=nullptr; assert(sqlite3_open(":memory:",&outside)==SQLITE_OK); rejects([&]{CopyJournal::migrate_schema(outside);}); sqlite3_close(outside);
-    sqlite3* rollback=nullptr; assert(sqlite3_open(":memory:",&rollback)==SQLITE_OK); exec(rollback,"PRAGMA user_version=4; CREATE TABLE copy_effects(bad TEXT);"); exec(rollback,"BEGIN IMMEDIATE"); rejects([&]{CopyJournal::migrate_schema(rollback);}); exec(rollback,"ROLLBACK"); sqlite3_stmt* q=nullptr; assert(sqlite3_prepare_v2(rollback,"PRAGMA user_version",-1,&q,nullptr)==SQLITE_OK); assert(sqlite3_step(q)==SQLITE_ROW && sqlite3_column_int(q,0)==4); sqlite3_finalize(q); sqlite3_close(rollback);
+    sqlite3* old5=nullptr; assert(sqlite3_open(":memory:",&old5)==SQLITE_OK); exec(old5,"CREATE TABLE copy_operations(phase INTEGER NOT NULL,error INTEGER NOT NULL); INSERT INTO copy_operations VALUES(4,0),(8,0),(9,7); PRAGMA user_version=5; BEGIN IMMEDIATE"); CopyJournal::migrate_v5(old5); exec(old5,"COMMIT"); sqlite3_stmt* migrated=nullptr; assert(sqlite3_prepare_v2(old5,"SELECT count(*) FROM copy_operations WHERE phase=9 AND error=6 AND length(authorization_binding)=0",-1,&migrated,nullptr)==SQLITE_OK); assert(sqlite3_step(migrated)==SQLITE_ROW && sqlite3_column_int(migrated,0)==1); sqlite3_finalize(migrated); assert(sqlite3_prepare_v2(old5,"SELECT count(*) FROM copy_operations WHERE phase=8 OR (phase=9 AND error=7)",-1,&migrated,nullptr)==SQLITE_OK); assert(sqlite3_step(migrated)==SQLITE_ROW && sqlite3_column_int(migrated,0)==2); sqlite3_finalize(migrated); sqlite3_close(old5); sqlite3* rollback=nullptr; assert(sqlite3_open(":memory:",&rollback)==SQLITE_OK); exec(rollback,"PRAGMA user_version=4; CREATE TABLE copy_effects(bad TEXT);"); exec(rollback,"BEGIN IMMEDIATE"); rejects([&]{CopyJournal::migrate_schema(rollback);}); exec(rollback,"ROLLBACK"); sqlite3_stmt* q=nullptr; assert(sqlite3_prepare_v2(rollback,"PRAGMA user_version",-1,&q,nullptr)==SQLITE_OK); assert(sqlite3_step(q)==SQLITE_ROW && sqlite3_column_int(q,0)==4); sqlite3_finalize(q); sqlite3_close(rollback);
     sqlite3* limited=nullptr; assert(sqlite3_open(":memory:",&limited)==SQLITE_OK); exec(limited,"PRAGMA user_version=4; BEGIN IMMEDIATE"); CopyJournal::migrate_schema(limited); exec(limited,"COMMIT");
     { CopyJournal journal(limited, CopyJournal::Limits{1,1}); auto only=request('l'); const std::string opaque_principal=std::string(32,'\0')+std::string(32,static_cast<char>(0xff)); auto first=journal.begin(only,opaque_principal); assert(journal.begin(only,opaque_principal).operation_id==first.operation_id); exhausted([&]{journal.begin(request('m'),opaque_principal);}); journal.transition(only.operation_id(),opaque_principal,workspace::copy::v1::REQUESTED,workspace::copy::v1::AUTHORIZED,"limit-authorized");
       const auto effect=std::string(16,'q'); journal.record_effect_intent(only.operation_id(),opaque_principal,effect,"stage",first.request_digest,"bounded-intent"); journal.record_effect_intent(only.operation_id(),opaque_principal,effect,"stage",first.request_digest,"bounded-intent"); exhausted([&]{journal.record_effect_intent(only.operation_id(),opaque_principal,std::string(16,'w'),"stage",first.request_digest,"over-limit");}); journal.record_effect_receipt(only.operation_id(),opaque_principal,effect,first.request_digest,"bounded-receipt"); journal.record_effect_receipt(only.operation_id(),opaque_principal,effect,first.request_digest,"bounded-receipt"); assert(journal.effects(only.operation_id(),opaque_principal).front().receipt=="bounded-receipt");

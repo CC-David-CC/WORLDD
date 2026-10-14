@@ -370,6 +370,15 @@ supervisor::ProcessScope& GitJobResources::scope() { return *impl_->scope; }
 ApplicationResources::ApplicationResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 ApplicationResources::~ApplicationResources() = default;
 supervisor::ProcessScope& ApplicationResources::scope() { return *impl_->scope; }
+bool WorkspaceResources::has_profile(const std::string& name, const std::string& workspace) const {
+    if (name.empty() || name.size()>128 ||
+        std::any_of(name.begin(),name.end(),[](unsigned char c){return c<0x20 || c==0x7f;})) return false;
+    const auto* policy=&impl_->config.default_policy();
+    for (const auto& selected:impl_->config.workspaces())
+        if (!workspace.empty() && selected.workspace()==workspace) policy=&selected;
+    for (const auto& selected:policy->profiles()) if (selected.name()==name) return true;
+    return false;
+}
 std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job(std::span<const int> directory_handles) {
     require(!directory_handles.empty() && directory_handles.size() <= 12, "Git worker requires bounded directory handles");
     validate_storage_device_handles(impl_->config.broker_budget(), directory_handles);

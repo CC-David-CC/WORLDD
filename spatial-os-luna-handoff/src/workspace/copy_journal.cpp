@@ -77,7 +77,8 @@ CopyJournal::CopyJournal(sqlite3* db, Limits limits) : db_(db), limits_(limits) 
     require(limits_.max_operation_records > 0 && limits_.max_operation_records <= 65536 &&
             limits_.max_effects_per_operation > 0 && limits_.max_effects_per_operation <= 256, "copy journal limits out of bounds");
 }
-CopyJournal::Operation CopyJournal::begin(const workspace::copy::v1::WorkspaceCopyRequest& request, const std::string& requester) {
+CopyJournal::Operation CopyJournal::begin(const workspace::copy::v1::WorkspaceCopyRequest& request, const std::string& requester,
+                                          const std::string& authorization_binding) {
     require(requester.size() == 64, "authenticated requester must be exact issuer and actor key bytes");
     require(request.protocol_version() == 1 && request.operation_id().size() == 16 && !request.source_workspace_id().empty() && request.source_workspace_id().size() <= 128, "invalid copy request identity");
     const auto max_revision = static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
@@ -90,20 +91,32 @@ CopyJournal::Operation CopyJournal::begin(const workspace::copy::v1::WorkspaceCo
         (void)checked_class(raw);
         require(classes.insert(raw).second, "duplicate copy data class");
     }
+    require(authorization_binding.size() <= 1024*1024, "copy authorization binding exceeds journal bound");
     const std::string bytes = request.SerializeAsString(); require(bytes.size() <= 64 * 1024, "copy request exceeds journal bound");
     const auto request_digest = digest(bytes);
-    Statement query(db_, "SELECT requester,request,request_digest,phase,error,destination,manifest,manifest_digest FROM copy_operations WHERE operation_id=?"); query.blob(1, request.operation_id());
+    Statement query(db_, "SELECT requester,request,request_digest,phase,error,destination,manifest,manifest_digest,authorization_binding FROM copy_operations WHERE operation_id=?"); query.blob(1, request.operation_id());
     if (query.step() == SQLITE_ROW) {
-        if (query.bytes(0) != requester || query.bytes(1) != bytes || query.bytes(2) != request_digest) throw std::invalid_argument("copy operation id is bound to different request or requester");
+        if (query.bytes(0) != requester || query.bytes(1) != bytes || query.bytes(2) != request_digest || query.bytes(8) != authorization_binding) throw std::invalid_argument("copy operation id is bound to different request, requester, or authorization evidence");
         return get(request.operation_id(), requester);
     }
-    Statement insert(db_, "INSERT INTO copy_operations(operation_id,requester,request,request_digest,source_workspace,source_authority_revision,source_policy_revision,destination_profile,destination_profile_revision,data_classes,phase,error,phase_payload) SELECT ?,?,?,?,?,?,?,?,?,?,?,0,? WHERE (SELECT count(*) FROM copy_operations) < ?");
+    Statement insert(db_, "INSERT INTO copy_operations(operation_id,requester,request,request_digest,source_workspace,source_authority_revision,source_policy_revision,destination_profile,destination_profile_revision,data_classes,phase,error,authorization_binding) SELECT ?,?,?,?,?,?,?,?,?,?,?,0,? WHERE (SELECT count(*) FROM copy_operations) < ?");
     insert.blob(1, request.operation_id()); insert.blob(2, requester); insert.blob(3, bytes); insert.blob(4, request_digest); insert.text(5, request.source_workspace_id());
     insert.integer(6, static_cast<std::int64_t>(request.expected_source_authority_revision())); insert.integer(7, static_cast<std::int64_t>(request.expected_source_policy_revision()));
     insert.text(8, request.destination_policy_profile()); insert.integer(9, static_cast<std::int64_t>(request.expected_destination_profile_revision()));
     std::string packed; for (int i = 0; i < request.data_class_size(); ++i) { const auto raw = static_cast<unsigned>(request.data_class(i)); packed.push_back(static_cast<char>((raw >> 8) & 255)); packed.push_back(static_cast<char>(raw & 255)); }
-    insert.blob(10, packed); insert.integer(11, workspace::copy::v1::REQUESTED); insert.blob(12, std::string{}); insert.integer(13, static_cast<std::int64_t>(limits_.max_operation_records)); insert.step(); if (sqlite3_changes(db_) != 1) throw CopyJournalCapacityError(workspace::copy::v1::COPY_EXHAUSTED);
-    return {request.operation_id(), requester, bytes, request_digest, workspace::copy::v1::REQUESTED, workspace::copy::v1::COPY_ERROR_UNSPECIFIED, {}, {}, {}, {}};
+    insert.blob(10, packed); insert.integer(11, workspace::copy::v1::REQUESTED); insert.blob(12, authorization_binding); insert.integer(13, static_cast<std::int64_t>(limits_.max_operation_records)); insert.step(); if (sqlite3_changes(db_) != 1) throw CopyJournalCapacityError(workspace::copy::v1::COPY_EXHAUSTED);
+    return {request.operation_id(), requester, bytes, request_digest, workspace::copy::v1::REQUESTED, workspace::copy::v1::COPY_ERROR_UNSPECIFIED, {}, {}, {}, {}, {}, authorization_binding};
+}
+bool CopyJournal::exact_binding(const std::string& operation_id, const std::string& requester,
+                                const std::string& request_bytes) const {
+    require(operation_id.size()==16 && requester.size()==64 && request_bytes.size()<=64*1024,
+            "Invalid copy request binding");
+    Statement query(db_,"SELECT requester,request FROM copy_operations WHERE operation_id=?");
+    query.blob(1,operation_id);
+    if (query.step()!=SQLITE_ROW) return false;
+    if (query.bytes(0)!=requester || query.bytes(1)!=request_bytes)
+        throw std::invalid_argument("copy operation id is bound to different request or requester");
+    return true;
 }
 workspace::copy::v1::WorkspaceCopyRequest CopyJournal::request(const std::string& operation_id, const std::string& requester) const {
     const auto operation = get(operation_id, requester);
@@ -120,15 +133,15 @@ void CopyJournal::require_requester(const std::string& operation_id, const std::
 }
 CopyJournal::Operation CopyJournal::get(const std::string& operation_id, const std::string& requester) const {
     require(operation_id.size() == 16, "invalid copy operation id"); require_requester(operation_id, requester);
-    Statement q(db_, "SELECT request,request_digest,phase,error,destination,manifest,manifest_digest,snapshot_receipts FROM copy_operations WHERE operation_id=?"); q.blob(1, operation_id);
+    Statement q(db_, "SELECT request,request_digest,phase,error,destination,manifest,manifest_digest,snapshot_receipts,phase_payload,authorization_binding FROM copy_operations WHERE operation_id=?"); q.blob(1, operation_id);
     if (q.step() != SQLITE_ROW) throw std::invalid_argument("copy operation not found");
     const auto raw_phase = q.integer_value(2), raw_error = q.integer_value(3);
-    const auto request_bytes=q.bytes(0), request_digest=q.bytes(1), destination=q.text_value(4), manifest=q.bytes(5), manifest_digest=q.bytes(6), snapshot_receipts=q.bytes(7);
+    const auto request_bytes=q.bytes(0), request_digest=q.bytes(1), destination=q.text_value(4), manifest=q.bytes(5), manifest_digest=q.bytes(6), snapshot_receipts=q.bytes(7), phase_payload=q.bytes(8), authorization_binding=q.bytes(9);
     require(raw_phase >= workspace::copy::v1::REQUESTED && raw_phase <= workspace::copy::v1::UNCERTAIN, "stored copy phase is invalid");
     require(raw_error == workspace::copy::v1::COPY_ERROR_UNSPECIFIED || (raw_error >= workspace::copy::v1::COPY_INVALID_ARGUMENT && raw_error <= workspace::copy::v1::COPY_OPERATION_CONFLICT), "stored copy error is invalid");
-    require(request_bytes.size()<=64*1024 && request_digest.size()==32 && destination.size()<=128 && manifest.size()<=1024*1024 && manifest_digest.size()<=32 && snapshot_receipts.size()<=1024*1024, "stored copy operation exceeds configured bounds");
+    require(request_bytes.size()<=64*1024 && request_digest.size()==32 && destination.size()<=128 && manifest.size()<=1024*1024 && manifest_digest.size()<=32 && snapshot_receipts.size()<=1024*1024 && phase_payload.size()<=1024*1024 && authorization_binding.size()<=1024*1024, "stored copy operation exceeds configured bounds");
     require(manifest.empty() ? (manifest_digest.empty() && snapshot_receipts.empty()) : (!destination.empty() && manifest_digest.size()==32 && !snapshot_receipts.empty()), "stored validated copy result is incomplete");
-    return {operation_id, requester, request_bytes, request_digest, static_cast<workspace::copy::v1::CopyPhase>(raw_phase), static_cast<workspace::copy::v1::CopyErrorCode>(raw_error), destination, manifest, manifest_digest, snapshot_receipts};
+    return {operation_id, requester, request_bytes, request_digest, static_cast<workspace::copy::v1::CopyPhase>(raw_phase), static_cast<workspace::copy::v1::CopyErrorCode>(raw_error), destination, manifest, manifest_digest, snapshot_receipts, phase_payload, authorization_binding};
 }
 void CopyJournal::transition(const std::string& id, const std::string& requester, workspace::copy::v1::CopyPhase expected,
                              workspace::copy::v1::CopyPhase next, const std::string& payload) {
@@ -318,6 +331,14 @@ std::string CopyJournal::record_publication_receipts(const std::string& id, cons
     record_effect_receipt_impl(id,requester,effect_id,request_digest,packed);
     return packed;
 }
+void CopyJournal::migrate_v5(sqlite3* db) {
+    require(db != nullptr && sqlite3_get_autocommit(db) == 0, "copy journal v5 migration requires an active transaction");
+    char* message = nullptr;
+    const char* sql = "ALTER TABLE copy_operations ADD COLUMN authorization_binding BLOB NOT NULL DEFAULT X'';"
+        "UPDATE copy_operations SET phase=9,error=6 WHERE phase NOT IN (8,9);PRAGMA user_version=6;";
+    const int rc=sqlite3_exec(db,sql,nullptr,nullptr,&message);
+    if(rc!=SQLITE_OK){sqlite3_free(message);throw std::runtime_error("copy journal v5 migration failed");}
+}
 void CopyJournal::migrate_schema(sqlite3* db) {
     require(db != nullptr && sqlite3_get_autocommit(db) == 0, "copy journal migration requires an active transaction");
     char* message = nullptr;
@@ -325,11 +346,11 @@ void CopyJournal::migrate_schema(sqlite3* db) {
         "operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),requester BLOB NOT NULL CHECK(length(requester)=64),request BLOB NOT NULL,request_digest BLOB NOT NULL CHECK(length(request_digest)=32),"
         "source_workspace TEXT NOT NULL,source_authority_revision INTEGER NOT NULL CHECK(source_authority_revision>0),source_policy_revision INTEGER NOT NULL CHECK(source_policy_revision>0),"
         "destination_profile TEXT NOT NULL,destination_profile_revision INTEGER NOT NULL CHECK(destination_profile_revision>0),data_classes BLOB NOT NULL,"
-        "phase INTEGER NOT NULL CHECK(phase BETWEEN 1 AND 9),error INTEGER NOT NULL DEFAULT 0,destination TEXT NOT NULL DEFAULT '',manifest BLOB NOT NULL DEFAULT X'',manifest_digest BLOB NOT NULL DEFAULT X'',phase_payload BLOB NOT NULL DEFAULT X'',snapshot_receipts BLOB NOT NULL DEFAULT X'');"
+        "phase INTEGER NOT NULL CHECK(phase BETWEEN 1 AND 9),error INTEGER NOT NULL DEFAULT 0,destination TEXT NOT NULL DEFAULT '',manifest BLOB NOT NULL DEFAULT X'',manifest_digest BLOB NOT NULL DEFAULT X'',phase_payload BLOB NOT NULL DEFAULT X'',authorization_binding BLOB NOT NULL DEFAULT X'',snapshot_receipts BLOB NOT NULL DEFAULT X'');"
         "CREATE TABLE copy_effects(operation_id BLOB NOT NULL REFERENCES copy_operations(operation_id) ON DELETE CASCADE,effect_id BLOB NOT NULL CHECK(length(effect_id)=16),"
         "kind TEXT NOT NULL,request_digest BLOB NOT NULL CHECK(length(request_digest)=32),intent BLOB NOT NULL,state INTEGER NOT NULL CHECK(state IN(0,1)),receipt BLOB NOT NULL,"
         "PRIMARY KEY(operation_id,effect_id));"
-        "CREATE INDEX copy_effects_pending ON copy_effects(operation_id,state);PRAGMA user_version=5;";
+        "CREATE INDEX copy_effects_pending ON copy_effects(operation_id,state);PRAGMA user_version=6;";
     const int rc = sqlite3_exec(db, sql, nullptr, nullptr, &message);
     if (rc != SQLITE_OK) { sqlite3_free(message); throw std::runtime_error("copy journal schema migration failed"); }
 }void CopyJournal::validate_manifest(const std::vector<workspace::copy::v1::CopyManifestEntry>& entries,

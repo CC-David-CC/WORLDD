@@ -16,6 +16,7 @@ import uuid
 from google.protobuf import text_format
 import broker_pb2 as broker
 import storage_pb2 as storage
+import copy_pb2 as copy
 
 PROBE = Path(sys.argv.pop(1)).resolve()
 SOURCE = Path(sys.argv.pop(1)).resolve()
@@ -65,6 +66,28 @@ class StorageSnapshotTests(unittest.TestCase):
         config.default_policy.actor_state_default_bytes = 4 * 2**20
         for profile in config.default_policy.profiles:
             profile.state_bytes = 4 * 2**20
+        catalog = config.copy_catalog
+        catalog.protocol_version = 1
+        catalog.revision = 5
+        for data_class, kind, object_id, schema in (
+            (copy.PROJECT_TREE, storage.StorageObject.PROJECT, "c"*32, "spatial.workspace.project-tree"),
+            (copy.GIT_HISTORY, storage.StorageObject.REPOSITORY, "d"*32, "spatial.workspace.git-history"),
+        ):
+            entry = catalog.entries.add(workspace_id="b"*32, data_class=data_class,
+                                        schema_id=schema, schema_version=1,
+                                        maximum_bytes=4*2**20, maximum_entries=100,
+                                        consistency=1)
+            entry.source_object.kind = kind
+            entry.source_object.id = object_id
+        profile = config.copy_destination_profiles.add(
+            name="copy-default", revision=7, maximum_total_bytes=8*2**20,
+            maximum_entries=200, allowed_classes=[copy.PROJECT_TREE, copy.GIT_HISTORY],
+            execution_resource_profile="development", application_profile="development")
+        profile.storage_policy.CopyFrom(config.default_policy)
+        profile.storage_policy.ClearField("workspace")
+        profile.storage_policy.ClearField("actors")
+        profile.storage_policy.total_bytes = 8*2**20
+        profile.storage_policy.actor_state_default_bytes = 4*2**20
         self.owner_config.write_bytes(config.SerializeToString(deterministic=True))
         self.owner_config.chmod(0o600)
         self.start_owner()
@@ -461,6 +484,84 @@ class StorageSnapshotTests(unittest.TestCase):
         retire.snapshot_retire.snapshot_object.CopyFrom(second_request.snapshot_prepare.snapshot_object)
         retire.snapshot_retire.operation_id = uuid.uuid4().bytes
         self.error(retire, "UNCERTAIN")
+
+    def test_copy_catalog_rejects_unknown_schemas_and_unenforceable_ceilings(self):
+        baseline = storage.StorageOwnerConfig.FromString(self.owner_config.read_bytes())
+        mutations = []
+        unknown_schema = storage.StorageOwnerConfig()
+        unknown_schema.CopyFrom(baseline)
+        unknown_schema.copy_catalog.entries[0].schema_id = "spatial.workspace.unknown"
+        mutations.append(unknown_schema)
+        oversized = storage.StorageOwnerConfig()
+        oversized.CopyFrom(baseline)
+        oversized.copy_catalog.entries[0].maximum_bytes = 8*2**30
+        mutations.append(oversized)
+        for index, config in enumerate(mutations):
+            with self.subTest(index=index):
+                candidate = self.root / f"invalid-copy-policy-{index}.pb"
+                candidate.write_bytes(config.SerializeToString(deterministic=True))
+                candidate.chmod(0o600)
+                result = subprocess.run(
+                    ["sudo", "-n", "env", str(PROBE), str(candidate)],
+                    capture_output=True, text=True, timeout=5)
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("Invalid workspace copy catalog", result.stderr)
+        self.assertIsNone(self.owner.poll(), "Rejected policy validation affected the live owner")
+
+    def test_copy_catalog_query_binds_registered_objects_and_profile_revisions(self):
+        workspace_id = "b"*32
+        repository = storage.StorageObject(kind=storage.StorageObject.REPOSITORY, id="d"*32)
+        project = storage.StorageObject(kind=storage.StorageObject.PROJECT, id="c"*32)
+        prepare_repo = storage.StorageOwnerRequest()
+        prepare_repo.repository_prepare.object.CopyFrom(repository)
+        self.state(prepare_repo)
+        prepare_project = storage.StorageOwnerRequest()
+        prepare_project.project_prepare.object.CopyFrom(project)
+        prepare_project.project_prepare.repository.CopyFrom(repository)
+        self.state(prepare_project)
+        bind = storage.StorageOwnerRequest()
+        bind.workspace_bind.workspace = workspace_id
+        bind.workspace_bind.repository.CopyFrom(repository)
+        bind.workspace_bind.project.CopyFrom(project)
+        self.state(bind)
+
+        request = storage.StorageOwnerRequest()
+        query = request.copy_catalog_query
+        query.workspace_id = workspace_id
+        query.destination_profile = "copy-default"
+        query.expected_destination_profile_revision = 7
+        query.expected_catalog_revision = 0
+        query.data_classes.extend([copy.PROJECT_TREE, copy.GIT_HISTORY])
+        discovered = self.call(request)
+        self.assertTrue(discovered.HasField("copy_catalog"), discovered)
+        self.assertEqual(discovered.copy_catalog.catalog_revision, 5)
+        query.expected_catalog_revision = discovered.copy_catalog.catalog_revision
+        result = self.call(request)
+        self.assertTrue(result.HasField("copy_catalog"), result)
+        self.assertEqual(result.copy_catalog.catalog_revision, 5)
+        self.assertEqual(result.copy_catalog.destination_profile.revision, 7)
+        self.assertEqual([entry.data_class for entry in result.copy_catalog.entries],
+                         [copy.PROJECT_TREE, copy.GIT_HISTORY])
+        self.assertEqual([entry.source_object.id for entry in result.copy_catalog.entries],
+                         ["c"*32, "d"*32])
+        self.assertEqual(self.call(request).copy_catalog, result.copy_catalog)
+
+        changed_catalog = storage.StorageOwnerRequest()
+        changed_catalog.copy_catalog_query.CopyFrom(query)
+        changed_catalog.copy_catalog_query.expected_catalog_revision = 6
+        self.error(changed_catalog, "CONFLICT")
+        changed = storage.StorageOwnerRequest()
+        changed.copy_catalog_query.CopyFrom(query)
+        changed.copy_catalog_query.expected_destination_profile_revision = 8
+        self.error(changed, "CONFLICT")
+        denied = storage.StorageOwnerRequest()
+        denied.copy_catalog_query.CopyFrom(query)
+        denied.copy_catalog_query.workspace_id = "e"*32
+        self.error(denied, "UNAVAILABLE")
+        unsupported = storage.StorageOwnerRequest()
+        unsupported.copy_catalog_query.CopyFrom(query)
+        unsupported.copy_catalog_query.data_classes.append(copy.APPLICATION_STATE)
+        self.error(unsupported, "UNAUTHORIZED")
 
     def test_copy_stage_claim_is_digest_bound_and_restart_is_uncertain(self):
         repo_id, project_id, snapshot_id, stage_id = (uuid.uuid4().hex for _ in range(4))

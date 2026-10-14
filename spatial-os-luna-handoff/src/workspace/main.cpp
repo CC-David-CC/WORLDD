@@ -85,6 +85,18 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         else if (request.has_authorization_fence()) *reply.mutable_authorization_fence() = store.authorization_fence(request.authorization_fence());
         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
+        else if (request.has_workspace_copy_begin()) {
+            const auto& operation=request.workspace_copy_begin();
+            if(!operation.has_principal() || !operation.has_request())
+                throw spatial::WorldError(wire::FORBIDDEN,"Workspace copy requires authenticated actor identity and request");
+            *reply.mutable_workspace_copy_status()=store.workspace_copy_begin(operation.request(),operation.principal());
+        }
+        else if (request.has_workspace_copy_status()) {
+            const auto& operation=request.workspace_copy_status();
+            if(!operation.has_principal() || !operation.has_request())
+                throw spatial::WorldError(wire::FORBIDDEN,"Workspace copy status requires authenticated actor identity");
+            *reply.mutable_workspace_copy_status()=store.workspace_copy_status(operation.request(),operation.principal());
+        }
         else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire(), owner);
         else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release(), owner);
         else if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
@@ -150,6 +162,7 @@ int main(int argc, char** argv) {
             else if (argument == "--migrate-v2" && !migration) migration = 2;
             else if (argument == "--migrate-v3" && !migration) migration = 3;
             else if (argument == "--migrate-v4" && !migration) migration = 4;
+            else if (argument == "--migrate-v5" && !migration) migration = 5;
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
