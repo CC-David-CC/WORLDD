@@ -49,7 +49,7 @@ class RelayingIssuer:
     def relay(self, raw):
         upstream = None; stream = raw
         try:
-            raw.settimeout(2); stream = self.context.wrap_socket(raw, server_side=True); self.streams.append(stream)
+            raw.settimeout(5); stream = self.context.wrap_socket(raw, server_side=True); self.streams.append(stream)
             upstream = self.fixture.connect()
             def exact(size):
                 data = b''

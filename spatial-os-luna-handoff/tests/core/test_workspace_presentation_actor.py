@@ -97,8 +97,12 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         # Only the broad world grant depends on this enrolled actor.
         # Workspace grants and exact representation grants retain the admin parent.
         ancestor_key, ancestor_public = self.key('presentation-grant-ancestor')
-        ancestor_record = self.decide(self.owner_peer, self.enroll(self.owner_peer,
-            self.intent(public=ancestor_public), ancestor_key, ancestor_public)).enrollment
+        owner = self.connect()
+        try:
+            ancestor_record = self.decide(owner, self.enroll(owner,
+                self.intent(public=ancestor_public), ancestor_key, ancestor_public)).enrollment
+        finally:
+            owner.close()
         ancestor = self.claims(ancestor_record, self.info)
         self.assertNotEqual(ancestor.actor_id, self.identity.actor_id)
         self.assertNotEqual(ancestor.actor_id, self.second.actor_id)
@@ -119,7 +123,11 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
             target=world_authority.issuer.IdentityReference(
                 kind=world_authority.issuer.ACTOR_TARGET, id=ancestor.actor_id),
             expected_security_revision=0, reason='presentation world-grant ancestor regression'))
-        reply = self.execute(self.owner_peer, self.challenge(self.owner_peer, operation))
+        owner = self.connect()
+        try:
+            reply = self.execute(owner, self.challenge(owner, operation))
+        finally:
+            owner.close()
         self.assertTrue(reply.HasField('identity_status'), reply)
         self.assertEqual(reply.identity_status.actor_id, ancestor.actor_id)
         self.assertTrue(reply.identity_status.actor_revoked)
