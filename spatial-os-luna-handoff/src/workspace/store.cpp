@@ -814,7 +814,9 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         if (impl_->native) impl_->native->check();
     }
     if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Application authority fence is not configured");
-    const auto stamp = impl_->authority->authorization_fence(principal);
+    // Cached control checks run inside issuer waits. Do not start another issuer request.
+    const auto stamp = refresh ? impl_->authority->authorization_fence(principal)
+                               : impl_->authority->fence_snapshot();
     workspace::v1::ApplicationAccessReply reply; reply.set_incarnation(stamp.incarnation()); reply.set_epoch(stamp.epoch());
     for (const auto& app : request.applications()) {
         auto* result = reply.add_applications(); *result->mutable_application() = app;
