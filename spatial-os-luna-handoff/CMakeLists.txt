@@ -569,6 +569,14 @@ if(BUILD_TESTING)
     add_executable(spatial-copy-worker-production-probe src/testing/copy_worker_production_probe.cpp)
     target_link_libraries(spatial-copy-worker-production-probe PRIVATE spatial-workspace-copy-worker OpenSSL::Crypto)
     add_dependencies(spatial-copy-worker-production-probe storage-python-protobuf broker-python-protobuf scope-python-protobuf copy-worker-python-protobuf)
+    add_dependencies(spatial-copy-worker-production-probe spatial-copy-tree-worker
+        spatial-storage-owner-service spatial-storage-owner-probe)
+    add_test(NAME copy-worker-production COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_copy_worker_production.py"
+        "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    set_tests_properties(copy-worker-production PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE
+        RESOURCE_LOCK spatial-copy-worker
+        ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-storage-client-probe src/testing/storage_client_probe.cpp)
     target_link_libraries(spatial-storage-client-probe PRIVATE spatial-storage-client)
     add_executable(spatial-storage-owner-probe src/testing/storage_owner_probe.cpp)

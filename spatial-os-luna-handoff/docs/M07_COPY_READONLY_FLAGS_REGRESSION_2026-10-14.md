@@ -80,3 +80,13 @@ Every Python subprocess in the native harness now receives -B.
 The nested sudo Python invocations in the restart fixture also receive -B.
 This prevents bytecode writes even when sudo strips the outer environment.
 The root launch driver must still set PYTHONDONTWRITEBYTECODE after sudo.
+
+CTest now registers copy-worker-production with TIMEOUT900 and RUN_SERIAL.
+Its RESOURCE_LOCK is spatial-copy-worker.
+The nonroot launcher creates a private UUID evidence parent under spatial-artifacts/runs.
+It invokes the existing root harness with explicit environment after sudo and Python -B.
+The harness owns its systemd delegation and root helper lifecycle.
+The launcher checks six native witnesses, one FD check, one recovery check, and scoped cleanup.
+The authenticated relay remains root private-protocol coverage.
+All reachable helper targets and generated Python bindings are target dependencies.
+CTest registration inspection is compile-host-only; runtime remains UNRUN for this candidate.
