@@ -1,0 +1,25 @@
+M06 sanitizer storage setup lacks disk headroom on sb16.
+
+Candidate: 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Attempt: m06-final-4f241-sb16-20261013-01.
+Status: Confirmed setup failure. Recovery pending.
+
+The sanitizer bounded-storage-Git stage exited 1 before creating its volume or running scenarios.
+Its preflight requires more than 4 GiB available.
+The recorded available space was 3,667,283,968 bytes.
+The assertion is at tests/native/test_storage_git_integration.py:238.
+
+Retain the original failed run.json, bounded-storage-git.log, and bounded-storage-git/review.json.
+Evidence root: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/deployment/evidence/m06-final-4f241-sb16-20261013-01.
+The complete Debug profile passed. Sanitizer core passed 164 cases without failures or skips.
+All 151 sanitizer acceptance cases passed.
+Source, profile artifacts, production-only artifacts, metadata, runtime, and storage-evidence postchecks passed.
+These results do not establish a full local PASS or M06 qualification.
+
+Corrective work:
+Review exact obsolete f860 ELF files against verified 4f replacements and the retained a5500 archive.
+Verify no active process or mount uses those files before deletion.
+Preserve source, logs, receipts, metadata, current binaries, and native runtime dependencies.
+Restore enough disk headroom before retrying the affected storage stage.
+Link recovery evidence to the immutable failed attempt. Do not rewrite its status.
+Review qualification reconciliation before any cross-host launch.

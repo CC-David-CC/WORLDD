@@ -1,3 +1,24 @@
+## 2026-10-13: sb16 storage preflight failed; disk-headroom recovery active
+
+The original sb16 gate returned FAILED after sanitizer core and P10 passed.
+The bounded storage/Git stage failed before running scenarios.
+Recorded free space was 3,667,283,968 bytes. Its preflight requires more than 4 GiB.
+Preserve m06-final-4f241-sb16-20261013-01 and its failed run.json unchanged.
+Primary verified all 164 sanitizer core cases passed without failures or skips.
+Primary verified all 151 sanitizer acceptance cases passed.
+The failed report's source, artifact, production-only, metadata, runtime, and storage-evidence rechecks passed.
+The full local gate remains failed. These stage passes do not establish qualification.
+Read defect blockers/m06-sanitizer-storage-disk-headroom.txt at the repository root.
+
+Reviewed cleanup preparation targets only superseded f860 regular ELF files on sb16.
+Current 4f binaries, native runtime dependencies, source, logs, and all evidence remain protected.
+The retained f860 archive on a5500 has been independently rehashed successfully.
+Cleanup remains pending primary review of the exact inventory and process/mount checks.
+A separate worker is preparing truthful recovery and evidence-reconciliation rules.
+Do not change failed receipts or launch cross-host tests before accepted local qualification.
+sb16-2's original sanitizer gate remains live. Its latest diagnostic core count is 130/164 passed.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Both complete Debug profiles passed; sanitizers running
 
 The frozen M06 candidate remains 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
