@@ -112,10 +112,10 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         second_info = second.management('world.info')
         self.assertNotEqual(first_info['world_id'], second_info['world_id'])
         self.world_info = second_info
-        self.world_grant_second(second, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE,
-            grant.WORLD_OBSERVE, grant.REPRESENTATION_VIEW])
         second_owner, second_viewer = second.peers
         self.assertTrue(self.authenticate(second_owner).HasField('opened'))
+        self.world_grant_second(second, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE,
+            grant.WORLD_OBSERVE, grant.REPRESENTATION_VIEW])
         self.assertTrue(self.authenticate_second(second_viewer).HasField('opened'))
 
         inventory = self.execution_inventory()
