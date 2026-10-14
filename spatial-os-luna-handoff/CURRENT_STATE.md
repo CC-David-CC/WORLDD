@@ -1,3 +1,25 @@
+## 2026-10-14: Focused presentation selection passed both profiles on sb16-2
+
+All 89 selected Python methods and the C++ presentation-store check passed in Debug and ASan/UBSan on sb16-2.
+The primary audited actual terminal counts, named control results, and command and wrapper exits.
+The selection includes 25 control, 28 access, 15 native-input, 5 actor-presentation, 15 pixel, and 1 migration methods.
+The 89 methods are a unique union. Separate targeted retries are not added to that count.
+The control fix uses workspaced source cc13001a9b5d386c43dd727eab027cece7f1bdc7.
+Other ELF source pins remain 5f028764ebf062bbbed5cc7d8b70f57fd7afff5d.
+Fixture checkpoints are fe1fe40fc22f24e8be9d946e27dec491de05ec93 and b486f83ae1ded853c6729b4389f01cc361083c44.
+Evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-presentation-race-repair-20261014.
+Read control-first-results, control-broad-fe1-results, and presentation-b486-results there.
+The independent broad audit scanned 1,450 retained logs without sanitizer diagnostics and verified removed scopes.
+The earlier actor, pixel, control, and setup failures remain retained.
+
+The full focused Debug selection also passed on sb16. Its sanitizer selection remains running.
+The corrected identity-pixel check passed before that host's full selection began.
+The host-specific preflight restriction was corrected without changing source or ELF inputs.
+
+These are component checks. They do not qualify M07.
+The complete multi-application copy engine and native shared-world witnesses remain unfinished.
+Combined integration, candidate freeze, and both-host phase qualification remain pending.
+
 ## 2026-10-14: First complete actor-route project/history copy passed
 
 Engine preflight11a passed all four focused Debug methods on sb16.
