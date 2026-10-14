@@ -13,13 +13,22 @@ Both Debug runs returned command and wrapper exits 1/1.
 The fixture retained current presentation tables while labeling the world database as version 1.
 The reviewed correction removes those tables and asserts authentic legacy schemas before migration.
 It preserves migration idempotency, world state, Git state, and corruption rejection checks.
-Its reruns remain pending.
+Its Debug reruns reached the second migration invocation and failed on both hosts.
+The first migration succeeds, but the production flag rejects its already-completed schema v3 retry.
+Read defect blockers/m07-world-migration-retry.txt at the repository root.
+The production correction and remaining journal checks are pending.
 Retain /home/dflanag3/spatial-artifacts/m07-journal-v4r1-20261014/runs/debug-legacy-v2 on both hosts.
 
 Fence source e14046524e02989ef70c6f6fa5ceb01dcfac7138 fixes initial revision tracking and fixture channel serialization.
 Primary launcher review caught incorrect test-selection indexes before runtime execution.
 The corrected launcher now has seven explicit selection-plan regressions and clears inherited LSAN_OPTIONS.
 Both-host corrected-package preflight and focused fence reruns are scheduled.
+The corrected fence candidate passed all twelve focused Debug methods on each host.
+Sanitizer runs exposed a test timing assumption about in-flight issuer revocation.
+The broker correctly returned its supported typed UNAUTHORIZED cancellation error.
+The reviewed test correction forces that race and then requires a settled negative decision.
+Primary review also found missing transport initialization in a custom application-access fixture.
+The worker is correcting that fixture and keeping its custom control callbacks intact.
 Presentation actor/native checks follow the fence checks.
 
 Copy-stage checkpoint cbcd26d97e8e41fde4757bb2b2956f5ffa893b1b remains unqualified.

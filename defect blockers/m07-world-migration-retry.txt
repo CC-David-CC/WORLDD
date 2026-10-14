@@ -1,0 +1,47 @@
+M07 world migration retry defect
+
+Status: CONFIRMED. Correction and qualification remain pending.
+Date: 2026-10-14.
+Production base: df8ebab0d1185b06dbea563e425d1721cbc60907.
+Reviewed fixture correction: 2d5756330745deb894a375cdd2727d5cc18aec53.
+
+Failure
+
+The authentic legacy fixture contains world schema v1.
+Its first worldd --migrate-v1 invocation migrates successfully to schema v3.
+Its second identical invocation rejects the completed migration.
+The error states: --migrate-v1 requires world schema v1.
+Both sb16 and sb16-2 reproduced the assertion failure in Debug.
+Each command and wrapper returned 1/1.
+This failure occurs after correcting the fixture's leftover presentation tables.
+
+Cause
+
+src/world/store.cpp accepts the migration flag only when the input version equals 1.
+The migration commits version 3.
+The retained test requires an identical migration retry to succeed.
+The production guard rejects that retry before validating the current schema.
+
+Proposed correction
+
+Accept an already-completed version 3 migration as a validated no-op.
+Preserve rejection of incompatible, unknown, and corrupt schemas.
+Do not repair a corrupt database or downgrade its schema.
+Check the corresponding --migrate-v2 retry behavior.
+Preserve the existing two-invocation assertion and durable world/Git preservation checks.
+Add current-schema validation and invalid-target regressions.
+
+Evidence
+
+Each host retains this external run directory:
+/home/dflanag3/spatial-artifacts/m07-journal-overlay-2d57563-20261014/runs/HOST/debug/legacy-v2
+Replace HOST with sb16 or sb16-2.
+Read stderr.log, argv.nul, command.exit, wrapper.exit, and adjacent resource evidence.
+The earlier duplicate-table fixture failure remains in the separate v4r1 journal run.
+
+Required qualification
+
+Rebuild affected Debug, ASan/UBSan, and Production-OFF artifacts after the production correction.
+Run the six selected journal migration/startup checks in both runtime profiles on both hosts.
+Run related migration and presentation checks after integrating the combined source.
+The complete frozen M07 gate remains required.
