@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import importlib.util, subprocess, tempfile, unittest
+import importlib.util, os, subprocess, tempfile, unittest
 from pathlib import Path
 SCRIPTS=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('links',SCRIPTS/'configure_artifact_links.py'); links=importlib.util.module_from_spec(spec);spec.loader.exec_module(links)
@@ -45,7 +45,7 @@ class RoutingTests(unittest.TestCase):
     def test_artifact_links_are_ignored_by_repository_policy(self):
         with tempfile.TemporaryDirectory() as temp:
             base=Path(temp); root=base/'source'; (root/'spatial-os-luna-handoff').mkdir(parents=True)
-            (root/'.gitignore').write_bytes((SCRIPTS.parents[2]/'.gitignore').read_bytes())
+            (root/'.gitignore').write_bytes((Path(os.environ.get('SPATIAL_SOURCE_CHECKOUT', str(SCRIPTS.parents[2])))/'.gitignore').read_bytes())
             subprocess.check_call(['git','init',str(root)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             subprocess.check_call(['git','-C',str(root),'add','.gitignore'])
             links.configure(root,base/'artifacts')
