@@ -1,0 +1,22 @@
+{
+  "id": "identity.participant_relay",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/AUTHORITY_PARTICIPANT_RELAY.txt",
+  "candidate": 1,
+  "source_files": 277,
+  "new_tests": 10,
+  "integrated": false,
+  "evidence": "evidence/participant-relay-2026-10-09",
+  "remaining": [
+    "Integrate the reviewed cumulative runtime after supervisor qualification.",
+    "Wire worldd and workspaced.",
+    "Implement fencing and checked recovery."
+  ],
+  "Debug": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
+  "next": "Qualify the corrected production supervisor, then wire worldd and workspaced.",
+  "runtime_sanitizers": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
+  "full_Debug": "Both hosts passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+  "full_runtime_sanitizers": "Both hosts passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases. No failures or skips."
+}

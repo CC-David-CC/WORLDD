@@ -1,0 +1,32 @@
+M05 actor representation contract increment
+
+Actors in the observer's current room have solid spatial representations.
+The observer's own actor does not appear as a separate representation.
+An actor marker is a cube centered on its authoritative pose.
+The default side length is 0.4 metres. RenderConfig.actor_size can override it.
+The default RGB color is 96, 176, 224. RenderConfig.actor_color can override it.
+Markers use the same depth, clipping, and visibility paths as other world geometry.
+An observation identifies these markers with EntityKind ACTOR.
+Live actor poses override saved snapshot poses when constructing the render scene.
+Disconnected persistent actors retain their last world representation.
+This representation does not add articulated bodies or change collision dimensions.
+
+Protobuf additions
+RenderConfig adds optional actor_size at field 9 and actor_color at field 10.
+RenderScene adds repeated actors at field 9.
+Regenerate both worldd and spatialwm bindings together.
+Old compositors can ignore the added field but cannot meet actor-population acceptance.
+Existing field numbers and locked acceptance tests remain unchanged.
+The locked core.proto schema requires an explicit additive migration.
+Update only its recorded hash after descriptor comparison proves existing definitions are identical.
+Preserve the previous hash in migration evidence. Do not relabel the schema as unchanged.
+
+The rotated-camera observation regression now includes the disconnected actor's marker color.
+It retains exact visible-ID, pixel-count, sample-color, and picking checks.
+The former oracle assumed actors had no representation. M05 intentionally changes that behavior.
+
+Regression requirements
+Check same-room visibility and observer exclusion with actual compositor pixels.
+Check live motion, room exclusion, occlusion, and persisted actor restoration.
+Reject invalid size and color configuration.
+Run related geometry, rendering, observation, and authority tests on both hosts.

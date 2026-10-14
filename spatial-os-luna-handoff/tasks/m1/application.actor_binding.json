@@ -1,0 +1,47 @@
+{
+  "id": "application.actor_binding",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "One application group uses one controlling actor device pair; cancellation releases old input before the devices can serve another group.",
+  "production_roots": [
+    "server/xlibre/spatialinput.c"
+  ],
+  "counterexample_suite": "tests/native/test_actor_binding.py",
+  "test_ids": [
+    "ActorBindingTests.test_application_uses_genuine_actor_device",
+    "ActorBindingTests.test_group_connections_share_actor_focus_and_keys",
+    "ActorBindingTests.test_swapped_application_observes_actor_state",
+    "ActorBindingTests.test_second_actor_cannot_take_same_application",
+    "ActorBindingTests.test_different_applications_have_simultaneous_controllers",
+    "ActorBindingTests.test_cancel_releases_real_key_before_returning_to_idle",
+    "ActorBindingTests.test_cancel_preserves_other_actor",
+    "ActorBindingTests.test_transfer_to_new_application_releases_old_keys",
+    "ActorBindingTests.test_transfer_to_second_actor_after_cancel",
+    "ActorBindingTests.test_late_connection_inherits_current_actor",
+    "ActorBindingTests.test_application_dialog_uses_same_lease",
+    "ActorBindingTests.test_application_focus_change_stays_within_group",
+    "ActorBindingTests.test_unmap_releases_binding",
+    "ActorBindingTests.test_controller_disconnect_releases_binding",
+    "ActorBindingTests.test_revoked_target_connection_cancels_without_closing_peer",
+    "ActorBindingTests.test_service_window_cannot_receive_application_binding",
+    "ActorBindingTests.test_cancel_clears_locked_and_held_modifiers",
+    "ActorBindingTests.test_busy_acquisition_preserves_existing_application",
+    "ActorBindingTests.test_cancel_delivers_button_release",
+    "ActorBindingTests.test_new_application_does_not_inherit_motion_history",
+    "ActorBindingTests.test_binding_releases_idle_active_grabs",
+    "ActorBindingTests.test_cancel_releases_active_grabs",
+    "ActorBindingTests.test_cancel_drains_frozen_key_events_before_transfer",
+    "ActorBindingTests.test_passive_key_grab_survives_actor_close",
+    "ActorBindingTests.test_actor_close_returns_application_to_idle"
+  ],
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Baseline failures and positive controls on both hosts.",
+    "Debug, runtime sanitizer, and native-server sanitizer checks on both hosts.",
+    "Real native input release, device rebinding, grabs, and lifecycle observations."
+  ],
+  "limitations": [
+    "Trusted compositor still needs production application-authority integration.",
+    "This component does not complete M04, M09, or Spatial-M1."
+  ]
+}

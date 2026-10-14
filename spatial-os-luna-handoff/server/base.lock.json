@@ -1,0 +1,56 @@
+{
+  "format": 1,
+  "xserver": {
+    "repository": "https://github.com/X11Libre/xserver.git",
+    "ref": "refs/tags/xlibre-xserver-25.1.9",
+    "commit": "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+  },
+  "xorgproto": {
+    "repository": "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git",
+    "ref": "refs/tags/xorgproto-2024.1",
+    "commit": "67469711055522b8adb2d795b01e7ba98cb8816c"
+  },
+  "reason": "Use the inspected stable XLibre release for shared DIX input routing in native Xorg and diagnostic Xvfb. Its Present and DRI3 protocols require project-local xorgproto 2024.1 headers.",
+  "inspected_utc_date": "2026-10-07",
+  "meson_options": [
+    "--buildtype=debug",
+    "-Dxorg=true",
+    "-Dxvfb=true",
+    "-Dxephyr=false",
+    "-Dxnest=false",
+    "-Dxwin=false",
+    "-Dxquartz=false",
+    "-Ddocs=false",
+    "-Ddevel-docs=false",
+    "-Dtests=true",
+    "-Dsystemd_logind=true",
+    "-Dseatd_libseat=false",
+    "-Dxkb_dir=/usr/share/X11/xkb",
+    "-Dxkb_bin_dir=/usr/bin",
+    "-Dfontrootdir=/usr/share/fonts/X11"
+  ],
+  "patches": [
+    "server/patches/0001-spatial-input.patch",
+    "server/patches/0002-spatial-security.patch",
+    "server/patches/0003-server-shutdown.patch",
+    "server/patches/0004-spatial-resource-policy.patch",
+    "server/patches/0005-animated-cursor-cleanup.patch",
+    "server/patches/0006-global-server-access.patch",
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch",
+    "server/patches/0008-application-atom-privacy.patch",
+    "server/patches/0009-private-configure-event-metadata.patch",
+    "server/patches/0010-private-parent-metadata.patch",
+    "server/patches/0011-xlibre-child-pixel-isolation.patch"
+  ],
+  "overlays": {
+    "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
+    "server/xlibre/spatialinput.h": "include/spatialinput.h",
+    "server/xlibre/meson.build": "Xext/spatial/meson.build",
+    "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto",
+    "server/xlibre/spatialsecurity.c": "Xext/spatial/spatialsecurity.c",
+    "server/xlibre/spatialpolicy.c": "Xext/spatial/spatialpolicy.c",
+    "server/xlibre/spatialsecurity.h": "include/spatialsecurity.h",
+    "proto/spatial/security/v1/security.proto": "Xext/spatial/security.proto",
+    "proto/spatial/security/v1/selection_scope.proto": "Xext/spatial/selection_scope.proto"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "warning": "Public fixture keys and synthetic resources only. Not real authority.",
+  "objects": [
+    {
+      "type": "resource",
+      "id": "sk1:sha256:eaadb266b6694bfc15dee113bc7b533b271e2b3bf02417960df0dbd166997d3b",
+      "file": "eaadb266b6694bfc15dee113bc7b533b271e2b3bf02417960df0dbd166997d3b.json"
+    },
+    {
+      "type": "policy",
+      "id": "sk1:sha256:de7736c51b74f0f248c7c50f5d02d981b055edb8a1f7ebf430a02a7584855ff5",
+      "file": "de7736c51b74f0f248c7c50f5d02d981b055edb8a1f7ebf430a02a7584855ff5.json"
+    },
+    {
+      "type": "capability",
+      "id": "sk1:sha256:655b0397c71aad08beba70279df7851040e2490e062bb24ca79d68c925f8f1d5",
+      "file": "655b0397c71aad08beba70279df7851040e2490e062bb24ca79d68c925f8f1d5.json"
+    },
+    {
+      "type": "capability",
+      "id": "sk1:sha256:c2e31f8fcc5373ab89c529b47abd13001e57b3c0403e4cdab752ddc5a5b6284a",
+      "file": "c2e31f8fcc5373ab89c529b47abd13001e57b3c0403e4cdab752ddc5a5b6284a.json"
+    },
+    {
+      "type": "intent",
+      "id": "sk1:sha256:cbff7b72ac3d0dc2942a31a9c1c96e4bed4369a62646a7d7c94a9b562a4ea473",
+      "file": "cbff7b72ac3d0dc2942a31a9c1c96e4bed4369a62646a7d7c94a9b562a4ea473.json"
+    }
+  ]
+}

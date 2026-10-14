@@ -1,0 +1,20 @@
+M03 authenticated broker fixture provisioning
+
+Use the production process-scope owner to prepare an owned broker scope before execution.
+Bind the existing explicit resource template to that scope. Seal its binary protobuf descriptor.
+Give the world the actual broker PID. Do not substitute the owner's PID.
+Retain checked cleanup after normal broker shutdown and require the owned scope to disappear.
+Keep issuer deadlines, authority checks, and existing test assertions unchanged.
+
+Reproduce the existing authenticated launch failure with the prior unconfigured fixture and current broker.
+Run all existing workspace-authority checks in Debug and runtime sanitizers on both hosts.
+Run fifteen non-native world-identity checks because their shared fixture consumes the broker PID.
+Leave five native world-identity scenarios pending for the native integration gate.
+Inspect kernel limits after a real authenticated actor launch. Verify the actual broker identity independently.
+Preserve raw issuer, broker, owner, and world logs before fixture deletion.
+Verify source pins and all locked files. Verify test bodies remain unchanged.
+Verify transient service cleanup and the normal host checkouts after testing.
+
+This increment changes fixture provisioning and CMake registration.
+It does not change production source or qualify operator deployment.
+Storage quotas, broker Git/file accounting, issuer contention, and the full M03 gate remain pending.

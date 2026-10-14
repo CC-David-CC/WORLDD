@@ -1,0 +1,26 @@
+{
+  "id": "application.atom_privacy",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_ATOM_PRIVACY.txt",
+  "invariant": "Dynamic atom names and existence probes require declaration by the immutable application identity. Predefined atoms remain usable.",
+  "production_roots": ["server/xlibre/spatialsecurity.c", "server/xlibre/spatialsecurity.h", "server/patches/0008-application-atom-privacy.patch"],
+  "counterexample_suite": "tests/native/test_atom_privacy.py",
+  "status": "focused_core_X_checks_passed_full_M04_pending",
+  "required_evidence": [
+    "Foreign-name enumeration and existence probes fail on the unchanged native baseline on both hosts.",
+    "Corrected Debug and core-X native-server ASan/UBSan checks pass on both hosts.",
+    "Both native byte orders and full workspace/application identity separation are checked.",
+    "Same-application peers, explicit declarations, predefined atoms, and privileged compositor inspection remain usable.",
+    "Creator and final connection closure release declaration ownership correctly.",
+    "The 65536-entry declaration limit returns BadAlloc without preventing another application's declaration.",
+    "Related resource, selection, extension, identity, private-input, and actor-binding regressions pass.",
+    "Full native graphics sanitizer qualification remains mandatory at the M04 gate."
+  ],
+  "limitations": [
+    "GLX-enabled native-server sanitizer suites fail through software-provider shutdown allocations.",
+    "Independent selection namespaces and asynchronous metadata remain pending.",
+    "Global atom allocation and timing side channels are not qualified by this component.",
+    "Focused checks do not complete M04 or Spatial-M1."
+  ]
+}

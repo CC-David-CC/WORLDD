@@ -1,0 +1,51 @@
+Automatic supervisor crash fencing
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
+
+Invariant
+
+An owning supervisor requests an exact issuer fence after unexpected loss of its started authority service.
+It preserves outstanding obligations and records checked cleanup separately.
+
+Triggers and exclusions
+
+Handle unexpected child death and loss of the private management parent.
+Also handle termination signals and fatal participant-channel failures after an owned start.
+Use retained launch ownership and authorization. Do not accept a caller-supplied generation.
+Do not infer successful activation from the previous_generation counter.
+Require the issuer to verify the exact consumed authorization, as the explicit fence operation does.
+
+Keep graceful release and ordinary explicit stop behavior unchanged.
+Do not repeat an explicit fence operation merely because its failure reaches the outer error handler.
+Do not fence a generation whose checked graceful release already completed.
+Do not fence an unstarted launch or reconstruct ownership from a reopened journal.
+An interrupted startup may have an unconsumed authorization. Preserve its unresolved status accurately.
+
+Failure ordering
+
+Stop private participant forwarding before attempting the issuer fence.
+Use the existing checked IssuerClient and retained supervisor key.
+Use bounded transport deadlines. Do not add automatic reconnect or unbounded retries.
+Persist an exact checked fence when the issuer confirms it.
+Attempt existing checked process and native cleanup even if fencing fails.
+Preserve the original fatal error and the nonzero supervisor exit status.
+Report a fencing failure separately. Do not report issuer retirement or completed recovery.
+Preserve a committed fence when later cleanup fails.
+Preserve unknown cleanup when receipts cannot be verified.
+
+Required evidence
+
+Reproduce child-death and management-loss failures against the unchanged supervisor candidate.
+Use real activated children, the production supervisor, real issuer state, and checked native/process cleanup.
+Keep a pending revocation obligation through both crashes.
+Verify the complete returned fence binding and unchanged activation history after implementation.
+Verify graceful release, unconsumed authorization, explicit stop, and explicit fence failure paths.
+Verify issuer unavailability, signing-key replacement, native cleanup uncertainty, and local journal failure.
+Run focused and cumulative checks in Debug and runtime ASan/UBSan on both hosts.
+Keep existing test assertions and locked files unchanged.
+
+Limits
+
+This increment does not implement dependent application-control cleanup or verified issuer retirement.
+It does not recover a dead supervisor's lost ownership handles.
+It does not authorize replacement execution.
+M02 and Spatial-M1 remain incomplete.

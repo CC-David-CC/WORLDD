@@ -1,0 +1,68 @@
+Private broker handle transfer
+Status: Development branch. Eight transfer checks passed in Debug and runtime sanitizers on sb16.
+One related participant-approval startup failure remains unresolved after five passing targeted repetitions.
+The coordinator receiver now passes focused checks. Full phase qualification remains incomplete.
+
+Contract change, 2026-10-10
+
+Add AuthorityChildHandleRequest and AuthorityChildHandleReply to launch.proto.
+Existing messages and field numbers remain unchanged.
+No locked acceptance file changes.
+
+The supervisor accepts an optional fourth argument after its program name and existing three arguments.
+That argument identifies a private AF_UNIX SOCK_SEQPACKET socket created by its coordinator parent.
+The existing management channel still transports framed protobuf lifecycle operations.
+The new channel transports one protobuf message per packet, at most 65,536 bytes.
+
+Only the original parent process may send queries.
+Check socket creator credentials, per-packet credentials, and parent process liveness.
+Keep the socket close-on-exec. Reject direct and duplicated child mappings of its endpoint.
+Do not pass this endpoint to a world, compositor, actor, or application.
+
+Each request supplies protocol version 1, a request ID, and the expected complete launch record.
+Compare that snapshot with the retained supervisor record.
+Require a successfully started, supervised, authorized, live broker launch.
+Reject stopped, fenced, failed, released, reopened, or unrelated launch ownership.
+Duplicate the retained ProcessScope pidfd. Do not discover or reopen a broker PID.
+
+A successful reply repeats the version, request ID, and retained launch record.
+It carries exactly one SCM_RIGHTS descriptor with the duplicated pidfd.
+An error reply carries no descriptor.
+Retain at most one pending response. Bound its delivery to five seconds.
+Close the response duplicate after transfer or failure. Preserve the original ProcessScope handle.
+Reject descriptors in requests. Close received descriptors before reporting transport failure.
+Treat authentication failure, truncation, channel loss, and output timeout as supervisor failure.
+Run existing checked process and native cleanup after that failure.
+
+The coordinator must authenticate the responding supervisor with its own retained process handle.
+It must validate reply correlation, launch identity, descriptor count, and live pidfd type.
+Receiving a descriptor does not prove launch activation or completed cleanup.
+ChildHandleClient now implements reception. SessionBroker uses it for the retained supervised broker.
+World coordination and the complete recovery path remain unfinished.
+
+Focused selection
+
+Run supervisor-child-handle for the eight new production transfer scenarios.
+Run retained-child-handle for the five direct process-handle lifetime scenarios.
+Run authority-supervisor, authority-broker-handoff, and supervisor-handoff-lifetime for related lifecycle behavior.
+Run authority-control-binding because both queries inspect retained launch ownership.
+Run control-administrative-transport because the coordinator will consume the transferred broker handle there.
+Run these checks in Debug and runtime sanitizers on the available build host.
+Run the complete required qualification on both hosts at the coherent M02 gate.
+
+Coordinator receiver and ownership checks, 2026-10-10
+
+The coordinator retains its actual supervisor child before requesting a broker handle.
+Authenticate each reply with that retained supervisor and SCM_CREDENTIALS.
+Require the exact expected launch record and one live close-on-exec pidfd.
+Verify that the transferred process is a live direct child of that supervisor.
+Reject unrelated, dead, missing, duplicate, ordinary-file, or truncated descriptors.
+Close all received descriptors after rejection.
+Reject unknown protobuf fields, wrong versions, wrong requests, malformed packets, and foreign senders.
+Bound the complete exchange to five seconds.
+
+Run supervisor-child-handle-client for its 15 independent packet cases.
+Run session-broker for four real supervisor and broker ownership scenarios.
+Run authority-supervisor, supervisor-child-handle, control-administrative-transport, and workspace-context for connected behavior.
+All 65 selected cases passed in Debug and runtime sanitizers on sb16.
+The complete M02 gate remains pending on both hosts.

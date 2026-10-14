@@ -1,0 +1,24 @@
+Remaining M03 combined increment
+
+Implement the remaining execution, storage, and competing-I/O boundary as one coherent milestone increment.
+This workflow follows David's 2026-10-10 request for larger chunks and regression qualification before moving on.
+Use focused checks when needed during implementation. Avoid repeating full matrices after individual fixture edits.
+
+Complete explicit controller and resource-policy provisioning for remaining broker fixtures and operator session launch.
+Keep the retained production supervisor, immutable workspace identity, and existing actor authority decisions.
+Enforce bounded persistent storage below applications and broker effects.
+Include project files, bare Git metadata, application state, cache, temporary files, and recoverable trash.
+Preserve real filesystem and Git semantics. Report exhaustion and uncertain external effects accurately.
+Account for broker file and Git writes within workspace budgets. Contain background competing I/O.
+Preserve durable commit ordering and existing SQLite durability.
+Preserve normal login and the working SSH/TTY recovery route on both hosts.
+
+Test the combined change with independent exhaustion, escape, sibling-survival, authority, and recovery witnesses.
+Measure issuer availability and durable acknowledgements under bounded competing writes.
+Preserve short fault deadlines. Retain the five-second production default until evidence supports a contract change.
+Keep the unexplained earlier startup failure visible. Capture complete service logs if it recurs.
+Run related regressions across all changed callers and shared authority boundaries.
+Use source history or git bisect only for a reproducible failure with known good and bad revisions.
+Fix reproduced defects, then run the complete required M03 Debug, sanitizer, harness, and acceptance gate on both hosts.
+Require applicable cross-host and native evidence. Report physical and later-phase work separately.
+Advance to M04 after the full M03 requirements pass. Focused passes alone do not complete M03.

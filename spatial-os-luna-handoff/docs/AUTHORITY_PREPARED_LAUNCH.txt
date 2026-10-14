@@ -1,0 +1,70 @@
+Prepared authority launch
+Status: isolated candidate01 passed focused Debug and runtime sanitizer qualification on both hosts.
+Full combined qualification and production integration remain pending.
+
+Invariant
+
+Prepare and identify the owned process scope before authority execution.
+Start the authority once, with only explicitly selected streams and inherited descriptors.
+Do not expose supervisor credentials, pidfds, cgroup descriptors, or startup gates through accidental inheritance.
+
+Purpose
+
+The supervisor must know the process launch identity before it issues native authority credentials.
+It must persist the coordinated ownership record before releasing authority execution.
+The existing combined process launcher cannot expose that preparation boundary.
+This change supplies the boundary. It does not implement the durable coordinator itself.
+
+Private API and protobuf fields
+
+ProcessScope::prepare creates and retains an empty scope without forking an authority.
+ProcessScope::start validates the launch and releases one owned child through the existing startup gate.
+Keep the existing launch convenience method as prepare followed by start.
+Both paths use the same production implementation.
+
+Add repeated uint32 inherited_fds at field 3 of AuthorityProcessLaunch.
+Each element specifies the child descriptor for the corresponding descriptor in the private out-of-band table.
+Require exactly one table entry per target. Allow at most sixteen entries.
+Targets must be unique and between 3 and 255 inclusive.
+Standard streams remain the three separately selected descriptors.
+The private supervisor supplies the descriptor table. Actor requests cannot select supervisor descriptors.
+
+Add bool started at field 4 of ProcessScopeState.
+Add ProcessScopeQuery prepare at field 13 of ProcessScopeRequest.
+Add AuthorityProcessLaunch start at field 14 of ProcessScopeRequest.
+Preserve every existing field and its meaning.
+A prepared scope reports no population, no started child, and no exited child.
+A stopped scope cannot start. A scope cannot start twice.
+After an uncertain fork or exec attempt, require explicit cleanup. Do not retry execution automatically.
+The started field records the one-shot attempt. It does not prove service readiness or issuer activation.
+
+Descriptor handling
+
+Duplicate selected descriptors above the allowed target range before fork.
+Keep the child startup gate outside that target range too.
+Mark all nonstandard descriptors close-on-exec before assigning selected targets.
+Assign selected targets from the retained copies. Do not overwrite another source during assignment.
+Preserve the parent's descriptor table.
+Unselected inherited descriptors must be closed by exec, including descriptors deliberately exposed by a test fixture.
+
+Qualification
+
+Verify the prepared scope through the real cgroup filesystem before any child exists.
+Verify unchanged launch identity after start and actual child membership before its first recorded action.
+Verify stop before start, rejection of a second start, and rejection after failed exec.
+Pass two real sealed memfds to low child descriptors and verify exact contents.
+Pass an additional unselected memfd to the probe and verify that the authority cannot access it.
+Reject invalid, duplicate, excessive, and mismatched descriptor targets before executing authority code.
+Keep all existing process-scope cleanup and kernel-denial checks unchanged.
+Run Debug and runtime sanitizers on both hosts before integration.
+
+Both hosts passed eight new checks and ten unchanged process-scope checks in each profile.
+Each profile also passed 51 harness checks. No check failed or skipped.
+All 265 source hashes and 41 locked hashes match.
+See evidence/authority-prepared-launch-2026-10-09 for the original failures, patch, logs, and review.
+
+Limits
+
+This boundary does not persist launch records or authorize issuer retirement.
+It does not copy supervisor secrets into workspace processes.
+Durable coordinator recovery, dependent broker reservation cleanup, and signed fencing receipts remain required.

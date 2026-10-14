@@ -1,0 +1,90 @@
+2026-10-10: M01 qualification complete at the adopted M02 source
+
+The final audit reassessed all nine required M01 components.
+Each host/profile has 355 passing identity-related checks across 23 registered suites.
+The audit matched 121 exact case IDs, including keys, enrollment, revocation, and authenticated world sessions.
+These are retained executions from the complete M02 gate, not new test runs.
+All selected source hashes match the frozen runtime manifest.
+
+M02 now supplies the previously missing checked cancellation and recovery dependency.
+Its reviewed matrix includes delayed delivery, held native cleanup, failed authorities, and both cross-host directions.
+Both normal host checkouts adopted b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+The tested runtime source remains 1f5088e026573d86be8388cf1f41dfce20189db9.
+Read evidence/m01-audit-2026-10-10/primary-review.json for component mapping, case IDs, source hashes, and raw log references.
+
+M01 and M02 are qualified at those pins. The concurrent M03 draft is not covered by this sign-off.
+The tests use fixture human identities. They do not provision David's personal credential or issuer.
+All later mandatory milestones remain. Spatial-M1 is incomplete.
+Historical failures and unknown original causes remain recorded in docs/M02_FAILURE_DISPOSITION.txt.
+The earlier audit below records its original checkpoint and resolved cancellation dependency.
+
+M01 qualification audit, 2026-10-09
+Status: pending as a complete milestone.
+
+This audit checks the integrated source and retained execution evidence.
+It does not count isolated patches as integrated features.
+It does not run new runtime tests.
+
+Source and evidence
+
+The integrated runtime has 242 source files from commit 94c6cb6.
+Their current hashes match the integration manifest.
+Both host adoption records identify this source.
+Both hosts passed Debug and runtime ASan/UBSan for this increment.
+Each profile passed 1192 core checks, 51 harness checks, and 151 P10 cases.
+The audit also located 85 explicit issuer, enrollment, bootstrap, and revocation test IDs in each profile's raw logs.
+Read evidence/m01-audit-2026-10-09/integrated-evidence-01.json for exact paths, test IDs, and suite counts.
+
+Required components
+
+identity.key_material
+The integrated key executable has sixteen passing checks per profile.
+The checks use actual files, independent OpenSSL operations, and concurrent processes.
+
+identity.issuer_control
+Eighteen passing issuer checks cover owner proofs, durable policy, concurrency, restart, and invalid operations.
+
+identity.manual_enrollment
+Twenty-five passing enrollment checks cover proven keys, owner decisions, separate actor identities, and additional credentials.
+
+identity.approve_always
+The enrollment suite tests automatic issuance through the same credential format.
+The bootstrap suite tests nonempty profiles and rejection of automatic administration grants.
+These checks overlap other component evidence. Do not count them as separate completed milestones.
+
+identity.bootstrap_profile
+The integrated issuer pins immutable profiles.
+World and workspace adapter suites test explicit authorized delivery and rollback.
+The bootstrap-profile task records completed integration and both-host adoption.
+
+identity.proof_freshness
+Issuer, enrollment, revocation, and world-session suites test expiry, replay, audience, key, and restart binding.
+TLS and checked-client suites provide the protected transport evidence.
+
+identity.credential_revocation
+Issuer-side denial and survival of independent credentials have passing evidence.
+Normal notification delivery also has local and remote session evidence.
+Checked completion across all affected authorities remains pending integration.
+
+identity.actor_revocation
+Issuer tests cover all credentials belonging to a revoked actor and preservation of unrelated actors.
+Checked cancellation across world and workspace effects remains pending integration.
+
+identity.world_session
+Local authenticated actor sessions and protected remote channels have passing production evidence.
+The remote component includes direct cross-host scenarios and real actor movement.
+Its completed transport scope does not complete distributed cancellation or all of M01.
+
+Why M01 remains open
+
+The integrated world and workspace services do not yet use ParticipantRuntime.
+Their issuer notification and current-status checks cannot alone prove completed distributed cancellation.
+The retained delayed-delivery diagnostic observed actor motion after the issuer's durable commit reply.
+Motion stopped after the real event arrived.
+That diagnostic does not mean cryptographic enrollment is missing.
+It identifies the integration dependency shared with M02.
+
+Finish the participant and supervisor path before signing off the full milestone.
+Then require delayed delivery, blocked native cleanup, failed authorities, and cross-host cancellation evidence.
+Keep issuer commit, cancellation completion, and recovery as separate reported results.
+No completion percentage follows from the number of tests or prepared patches.

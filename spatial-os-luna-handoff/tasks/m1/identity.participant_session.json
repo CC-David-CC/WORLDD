@@ -1,0 +1,93 @@
+{
+  "id": "identity.participant_session",
+  "phase": "M02",
+  "status": "complete",
+  "current_step": "qualified_integrated_and_adopted",
+  "parent": "identity.revocation_barrier",
+  "integration_dependency": "identity.participant_registry",
+  "contract": "docs/AUTHORITY_PARTICIPANT_SESSION.txt",
+  "evidence": "evidence/participant-session-2026-10-09",
+  "invariant": "A service proves its registered key on the actual TLS connection that receives its authenticated context.",
+  "isolated_source": "local/participant-session-draft-01",
+  "candidate": 4,
+  "source_files": 238,
+  "focused_Debug": {
+    "host": "sb16",
+    "new_checks": 32,
+    "regression_checks": 88,
+    "failed": 0,
+    "skipped": 0
+  },
+  "integrated": true,
+  "remaining": [],
+  "limitations": [
+    "A proof-only session does not activate execution or acknowledge cancellation.",
+    "Durable activation, fencing, obligations, and cancellation acknowledgements remain pending."
+  ],
+  "schema_audit": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "preserved_messages": 253,
+    "preserved_fields": 966,
+    "preserved_enum_values": 122,
+    "unchanged_existing_tests": 89,
+    "locked_files": 41
+  },
+  "sb16_full_Debug": {
+    "core_checks": 1152,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "both_host_full_Debug": {
+    "core_checks": 1152,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ]
+  },
+  "full_qualification": "both hosts Debug and runtime ASan/UBSan; explicit fixture replacement; original failure preserved",
+  "sb16_final": {
+    "core_checks": 1152,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ]
+  },
+  "qualified_final": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 1153,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed_final": 0,
+    "skipped_final": 0,
+    "fixture_correction": "evidence/workspace-owner-idle-2026-10-09"
+  },
+  "integration_commit": "69d661810b1faa0bcd947b825c03fb157630bf32",
+  "adopted_hosts": [
+    "sb16",
+    "sb16-2"
+  ]
+}

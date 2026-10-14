@@ -1,0 +1,161 @@
+Final M03 qualification, 2026-10-11
+
+All nine requirements pass the final primary audit.
+Both hosts pass complete local Debug and runtime sanitizer qualification after affected evidence reassessment.
+Eight production-profile cross-host cases pass. All twenty-four nodes exit successfully.
+Qualified source a99b7e46c5151ba47d0a53797b470cae6aaa5d13 is adopted in dedicated worktrees on both hosts.
+Sixty-four focused adopted-source runtime checks pass. Ordinary checkouts and normal login remain preserved.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+Earlier sections below record historical gaps and failures. They do not describe the final qualified state.
+
+Authenticated resource fixture final checkpoint, 2026-10-10
+
+Candidate04 passed 144 selected checks across both hosts and build profiles.
+The primary audit verified 980 attachments and scanned 934 logs. All 41 locked files remain unchanged.
+All 32 transient services are unloaded. Normal operator checkouts and runtime remain unchanged.
+Read evidence/m03-authenticated-resources-2026-10-10/primary-review.json.
+The earlier startup EOF remains unexplained. Its missing detailed logs cannot be recovered.
+This qualification does not claim repaired storage latency or a completed M03 phase.
+David requested larger coherent milestone increments and regression work before moving on.
+Read docs/M03_REMAINING_INCREMENT.txt. Complete its combined scope and full M03 gate before M04.
+
+Authenticated fixture draft checkpoint, 2026-10-10
+
+The draft resource fixture uses the production owner, sealed policy, and actual broker PID.
+Forty existing test bodies remain unchanged. Production source remains unchanged.
+Candidate02 passed Debug on both hosts and sanitizer qualification on sb16-2.
+One sb16 sanitizer world startup closed its channel before an application launch.
+The failed suite transcript is preserved. Detailed service logs were lost because the runner omitted retention configuration.
+Do not claim a known fdatasync cause for that failure.
+Isolated and complete-suite diagnostics passed with full sanitizers and service logs retained.
+Fresh candidate04 qualification runs on both hosts. The fixture remains uncommitted pending review.
+Read evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+
+Current M03 checkpoint, 2026-10-10
+
+Aggregate resource primitives, broker policy enforcement, and retained native-session handoff passed focused qualification.
+The non-native adapter now provisions the same broker with an explicit owned scope and sealed resource policy.
+Its selected broker, context, confinement, and adapter suites passed 200 checks across both hosts and build profiles.
+All 46 existing test bodies remain unchanged. Four new adapter checks passed in each host/profile combination.
+Read evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+The work branch has resource enforcement. Normal operator checkouts retain their earlier qualified source.
+Authenticated/direct-broker fixtures and operator deployment still need explicit policy and controller provisioning.
+Bounded persistent storage and broker Git/file accounting remain pending.
+Repeat issuer contention and durable acknowledgement checks after containing competing writes.
+The existing five-second client default passed one pressure trial. It is not proof of repaired storage latency.
+Keep SQLite durability and existing fault deadlines unchanged.
+The complete M03 phase gate, independent exhaustion and escape qualification remain required.
+
+Earlier sections below are historical observations. Their implementation gaps describe the source inspected at those checkpoints.
+
+Focused process-scope resource qualification, 2026-10-10
+
+The production primitive applies explicit aggregate limits before startup.
+Candidate02 passed 108 focused checks across both hosts and both build profiles.
+The kernel witnesses cover bounded process and memory exhaustion, sibling survival, CPU throttling, and disk writes.
+Review reproduced and corrected omitted I/O device-minor acceptance before integration.
+All earlier source and failure evidence remains preserved.
+Read evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+
+This is a qualified primitive, not completed workspace resource enforcement.
+Workspaced still needs policy intersection, workspace parents, application attachment, and bounded persistent storage.
+Broker Git and file effects must use the same workspace budgets.
+Retain independent escape, recovery, availability, and complete M03 phase-gate requirements.
+
+Read-only I/O delegation inspection, 2026-10-10
+
+M02 source adoption and its scoped qualification are complete. M03 resource implementation is now active.
+Both kernels advertise the io controller at the root cgroup.
+Neither host enables it in the root subtree or delegates it to David's user service.
+The user boundary receives cpu, memory, and pids only. It cannot currently apply io.max.
+Read evidence/m03-io-prerequisites-2026-10-10/primary-review.json for exact commands and output hashes.
+No host configuration, process placement, mount, or filesystem feature changed.
+Next, select project-scoped controller delegation and bounded storage. Preserve normal login and SSH recovery.
+The older observations below remain useful. Their M02-pending statements describe earlier checkpoints.
+
+Read-only host prerequisites, 2026-10-10
+
+Both hosts expose cpu, memory, and pids under David's delegated user service.
+Both report systemd 255 and kernel 7.0.0-38-generic.
+The user service reports Delegate=yes and DelegateControllers=cpu memory pids.
+This proves controller availability. It does not prove application budget enforcement.
+No cgroup, process placement, mount, filesystem feature, or host setting changed during this inspection.
+
+Both project checkouts use the root ext4 filesystem on /dev/nvme0n1p2.
+Its recorded features include neither project nor quota. Quota administration tools were not found in the command search path.
+Do not assume a project-quota storage backend is ready.
+Select and qualify a bounded storage backend before claiming M03 storage enforcement.
+Include project files, Git objects, application state, cache, temporary files, and trash in its accounting design.
+Preserve the normal root filesystem, desktop, and recovery route during implementation.
+
+The kernel requires empty internal domain cgroups before enabling domain controllers for children.
+Prepare limits before application startup. Keep controller descriptors outside application access.
+Use the existing held-start boundary and verify inherited limits with independent descendants.
+Reference: https://docs.kernel.org/admin-guide/cgroup-v2.html#no-internal-process-constraint
+These are implementation constraints, not newly executed qualification results.
+Raw observations and hashes are in evidence/m03-host-prerequisites-2026-10-10/primary-review.json.
+M03 production work and its selected runtime checks still follow the M02 gate.
+
+M03 confinement audit, 2026-10-10
+
+Reviewed source: 54715f9a78aaa92911d2bb0a9c782f316f78902f.
+The current M02 gate uses these same 351 source inputs.
+This audit prepares the next milestone while M02 qualification runs.
+It does not mark either milestone complete.
+
+Existing production boundary
+Actor process requests reach workspaced through the private protobuf broker.
+Workspace policy, actor authority, and the requested profile determine effective access.
+The broker uses ApplicationProcess in src/workspace/process.cpp for application execution.
+Native applications add only their provisioned display socket and application credential.
+The native path uses the same application process boundary.
+
+ApplicationProcess configures separate namespaces through the project Bubblewrap entry point.
+It pins project, repository, and state directories before mounting them.
+System dependencies and the namespace root are read-only.
+Project and Git mounts follow effective write authority.
+The application has its own writable state and temporary directories.
+The environment is explicit. Host SSH agents, desktop buses, and provider credentials are absent.
+The process setup closes unselected descriptors and drops capabilities.
+The application initializer checks no_new_privs before execution.
+The seccomp filter rejects namespace creation, mount changes, process-memory inspection, and selected kernel administration operations.
+The startup pipe holds the namespace until the broker pins its leader.
+Process stop uses retained pidfds and confirms namespace exit.
+
+Existing independent checks
+tests/core/test_processes.py launches actual application code through the production broker.
+Its namespace witness compares six namespace identities with the host.
+It reads kernel status, effective capabilities, inherited descriptors, environment, and hard resource limits.
+Its escape witness attempts host files, an outside-project symlink, a host process environment, and an abstract socket.
+Its syscall witness attempts namespace creation, mount changes, process inspection, BPF, and io_uring setup.
+Other cases check writable private state, read-only project and Git aliases, actual exits, and operation identity.
+Revocation and broker-loss cases check detached descendants and independent surviving applications.
+tests/core/test_workspace_authority.py adds authenticated authority and effective resource-intersection checks.
+The current complete gate includes these registered suites in both build profiles on both hosts.
+Their current results remain pending until the running jobs finish and their evidence is reviewed.
+
+Confirmed remaining resource boundary
+src/workspace/app_init.cpp applies per-process hard limits through setrlimit.
+It limits address space, file size, CPU time, descriptors, process count, and core dumps.
+Those calls do not configure an aggregate application or workspace resource budget.
+The authority process-scope code owns cgroups for lifecycle cleanup.
+It does not configure memory.max, pids.max, or cpu.max for application budgets.
+No application disk quota implementation was found in the reviewed workspace and supervisor source.
+docs/WORKSPACE_PROCESSES.md explicitly leaves aggregate limits, storage quotas, and full M03 attack qualification unfinished.
+Do not treat the existing cgroup cleanup receipt as proof of resource-budget enforcement.
+Do not mark M03 complete from the process limit inspection alone.
+
+Evidence still required
+Define explicit resource budgets at the workspace and application authority boundary.
+Apply effective budgets before releasing application startup.
+Keep child processes inside the same enforced budget after fork, exec, and detachment.
+Keep budget-control descriptors and paths outside application access.
+Verify exhaustion with bounded independent witnesses that preserve the operator's recovery route.
+Verify isolation between two applications and between two workspaces.
+Cover budget inheritance, rejected widening, setup failure, and cleanup after exhaustion.
+Keep ordinary editors, terminals, Git, compilers, and interpreters usable within their declared profiles.
+Run the complete M03 phase gate on both hosts after its focused implementation checks pass.
+
+This audit did not modify production code, the frozen candidate, host configuration, or running jobs.
+The next M03 implementation step follows the M02 gate and its remaining failure, cross-host, and mutation review.

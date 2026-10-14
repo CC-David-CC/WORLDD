@@ -1,0 +1,52 @@
+syntax = "proto3";
+package spatial.testing.v1;
+import "core.proto";
+import "broker.proto";
+import "launch.proto";
+import "issuer.proto";
+
+// Test-driver transport only. Actors never receive this coordinator interface.
+message SessionWorldStart {
+  string configuration_path = 1;
+  int32 native_fd = 2; // One of the fixture's explicitly inherited sealed configurations.
+  optional int32 actor_listener_fd = 3; // Explicitly inherited listener; production validates its socket type.
+}
+message SessionWorldStarted {
+  spatial.workspace.v1.ControlOwner owner = 1;
+  spatial.supervisor.v1.AuthorityLaunchRecord record = 2;
+}
+message SessionWorldCall {
+  spatial.workspace.v1.ControlOwner owner = 1;
+  spatial.core.v1.Request request = 2;
+}
+message SessionProbeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    spatial.core.v1.Request world = 10;
+    spatial.core.v1.Request broker = 11;
+    spatial.workspace.v1.ControlOwner inspect = 12;
+    spatial.workspace.v1.ControlOwner stop_world = 13;
+    spatial.supervisor.v1.AuthorityLaunchQuery stop_session = 14;
+    spatial.workspace.v1.ControlOwner recover_world = 15;
+    spatial.workspace.v1.ControlOwner retire_world = 16;
+    spatial.supervisor.v1.AuthorityLaunchQuery stop_broker = 17;
+    spatial.supervisor.v1.AuthorityLaunchQuery retire_broker = 18;
+    spatial.workspace.v1.ControlOwner recover_stopped_broker_world = 19;
+    SessionWorldStart start_world = 20;
+    SessionWorldCall owned_world = 21;
+  }
+}
+message SessionProbeReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.Reply result = 10;
+    spatial.workspace.v1.ControlOwnerState owner = 11;
+    spatial.supervisor.v1.AuthorityLaunchRecord cleanup = 12;
+    spatial.core.v1.Error error = 13;
+    spatial.identity.v1.AuthorityRetirementState retirement = 14;
+    spatial.supervisor.v1.AuthorityDependentCleanup dependent = 15;
+    SessionWorldStarted started = 16;
+  }
+}

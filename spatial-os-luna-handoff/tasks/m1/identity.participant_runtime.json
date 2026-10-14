@@ -1,0 +1,49 @@
+{
+  "id": "identity.participant_runtime",
+  "phase": "M02",
+  "status": "in_progress",
+  "current_step": "both_host_world_focused_passed_broker_and_full_regression_pending",
+  "parent": "identity.revocation_barrier",
+  "integration_dependency": "identity.participant_barrier",
+  "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
+  "invariant": "Every protected world and workspace authority participates before admission and acknowledges only settled cancellation effects.",
+  "baseline_evidence": "evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01/sb16",
+  "integrated": false,
+  "remaining": [
+    "Finish sb16 focused verification and connect the worker to real world and broker effects.",
+    "Require world and broker participation before protected activity.",
+    "Track handler, native input, deferred lease, observation, and process cancellation completion.",
+    "Add independently witnessed delayed-effect and both-host cases.",
+    "Implement verified supervisor fencing for stranded generations.",
+    "Qualify both hosts in Debug and runtime sanitizer profiles."
+  ],
+  "isolated_source": "local/participant-runtime-draft-01",
+  "focused_Debug": {
+    "host": "sb16-2",
+    "candidate": 3,
+    "new_checks": 13,
+    "related_regression_checks": 96,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate": 4,
+  "focused_sb16_2": {
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "new_checks": 14,
+    "regression_checks": 96,
+    "failed": 0,
+    "skipped": 0,
+    "source_files": 244,
+    "locked_files": 41
+  },
+  "world_candidate": {
+    "candidate": 3,
+    "files": 246,
+    "sb16": "six world plus two native plus fourteen worker checks passed each Debug/runtime sanitizers",
+    "sb16_2": "six world plus two native plus fourteen worker checks passed each Debug/runtime sanitizers",
+    "integrated": false
+  }
+}

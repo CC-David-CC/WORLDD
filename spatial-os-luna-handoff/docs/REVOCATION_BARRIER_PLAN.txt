@@ -1,0 +1,119 @@
+Distributed cancellation acknowledgement: implementation plan
+Status: historical design plan. Read CURRENT_STATE.md and tasks/m1/identity.control_recovery.json for current implementation evidence.
+The requirements remain in force. The starting point below describes the original baseline.
+This plan extends the existing revocation contract. It does not change locked acceptance tests.
+
+Historical starting point
+
+The issuer commits a monotonically numbered revocation in SQLite.
+Its reply confirms that commit. The reply does not confirm external cancellation.
+IssuerWatcher receives the durable event feed on a worker thread.
+World and workspace authorities process those events later on their authority threads.
+The delayed-event diagnostic confirms continued motion between commit and event delivery.
+See evidence/revocation-barrier-2026-10-09/baseline-01/sb16.
+
+Existing cancellation effects need explicit completion tracking.
+Actors::release_input checks the renderer's native input reply.
+It can queue application lease release when the broker is busy.
+WorkspaceAuthority::tick can run during another issuer request.
+The broker observer processes control leases, but process reconciliation occurs separately.
+Receiving an event inside either callback therefore cannot establish complete cancellation.
+The existing observed_revision can advance to a feed head beyond the batch's through_revision.
+A barrier must track a separate contiguous applied revision.
+
+Required external meaning
+
+Expose committed and cancellation-complete as distinct states.
+Report completed revocation only after all obligated authorities confirm their effects.
+The issuer must refuse new affected admissions after its ordered revocation commit.
+Operations admitted earlier remain in-flight obligations until they finish or are cancelled.
+A successful status check does not make a later filesystem or X effect atomic with revocation.
+The user-visible revocation operation must use the completion result, not only the legacy commit reply.
+Keep the existing commit-only result explicit for compatibility and diagnostics.
+
+Increment 1: durable participants and barrier obligations
+
+Register trusted authority services through the existing owner-signed administration mechanism.
+Give each service its own key and stable participant identity.
+Bind its registration to the issuer and an explicit set of world or workspace domains.
+Do not infer a domain from a host name, TLS certificate name, or actor identity.
+A broker serving several workspaces must register every domain it serves.
+Reject conflicting active registrations for the same authoritative domain.
+Registration itself grants no actor, workspace, or issuer-administration capability.
+
+Record revocation and its required participant obligations in the same issuer transaction.
+Store the participant generation, domain set, and applied revision used by each obligation.
+Keep disconnected obligations durable. Do not delete them when a socket closes.
+Persist pending completion across issuer restart.
+An unstarted participant cannot execute before it synchronizes current authority.
+New registration and revocation must have an explicit transaction order.
+
+Add a separate participant-registry revision. Do not reuse enrollment policy revision.
+Add an explicit issuer schema migration. Normal startup must reject an old schema.
+Test migration on disposable fixture databases only. Do not migrate operator state automatically.
+Use additive versioned protobuf messages. Preserve existing field numbers and meanings.
+Document the exact fields and validation before implementing this increment.
+
+Increment 2: authenticated participation and acknowledgements
+
+Authenticate service keys with fresh, purpose-separated proofs.
+Bind proof and acknowledgement to issuer, registration generation, service incarnation, and transport connection.
+Have the server derive the connection binding. A request cannot invent that binding.
+Reject actor proofs and ordinary transport credentials as participant authority.
+Reject acknowledgements for an unregistered domain, future revision, or another service incarnation.
+Reject gaps in the applied revision. An observed feed head is not an applied revision.
+Allow an exact duplicate acknowledgement without duplicating effects.
+Do not replace an active incarnation solely because another process holds the same key.
+
+Expose bounded, authenticated completion-status queries.
+A timeout reports unresolved completion and preserves the committed revocation.
+Lost replies do not trigger automatic replay of administrative mutations.
+Old sessions cannot acknowledge after an issuer restart.
+Do not treat elapsed lease time or connection loss as proof that native effects stopped.
+
+Increment 3: production cancellation completion
+
+Enroll world and workspace authorities before they admit protected activity.
+Process events on their existing authority threads.
+Continue the existing immediate local cancellation on event receipt.
+Send the acknowledgement only after the affected handler stack and queued effects are safe.
+
+World completion requires stopped motion and cancelled object previews.
+It also requires released native keys, buttons, focus, capture, and interaction leases.
+Drain deferred broker lease releases before acknowledging their completion.
+Discard protected queued output that is no longer authorized.
+Prevent delayed issuer or broker replies from restoring cancelled authority.
+
+Workspace completion requires current grant decisions and application-control revocation.
+Reconcile affected process authority and confirm required process termination.
+Do not terminate an application solely because one controller credential was revoked.
+Keep applications and grants with independently valid authority usable.
+Coordinate broker and world acknowledgements; flushing a broker event is not native input release.
+
+If a cancellation fails, retain an unresolved obligation and disable affected routing.
+Process exit is not sufficient evidence of remote native-device cleanup by itself.
+Recovery needs a trusted supervisor to confirm the required fencing and cleanup.
+Record explicit recovery actions. Do not acknowledge unknown external effects.
+This requirement does not add automatic world failover or workspace migration.
+
+Increment 4: independent completion witnesses
+
+Hold a real event after issuer commit. Completion must stay pending.
+Release the event. Completion must wait for actual cancellation acknowledgements.
+Hold a native cancellation reply. A received event must not complete the barrier.
+Hold a broker lease release. The world must retain its outstanding obligation.
+Revoke during process launch and delayed issuer replies. No stale operation may restore authority.
+Disconnect or crash an authority. The issuer must retain the unresolved obligation.
+Restart the issuer. Committed revocation and pending obligations must survive.
+Try stale keys, wrong domains, replayed proofs, duplicate incarnations, and future applied revisions.
+Preserve independent credentials, actors, grants, applications, and worlds during these cases.
+Run real worlds and authorities on both allowed hosts, with delayed delivery in either direction.
+Use independent native input and process witnesses for external effects.
+Run complete Debug and runtime sanitizer qualification on both hosts before integration.
+
+Completion boundary
+
+These increments complete only the distributed cancellation component when all evidence passes.
+Full M02 still requires every scoped delegation and authority decision in the mandatory profile.
+Shared worlds, world transitions, cabinets, restoration, models, and physical acceptance remain required.
+Do not modify the active remote transport qualification trees to implement this plan.

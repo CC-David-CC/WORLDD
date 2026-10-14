@@ -1,0 +1,59 @@
+XLibre cross-application child pixel isolation flaw
+
+Confirmed baseline on sb16 and sb16-2
+
+A trusted supervisor can reparent one application's window inside another
+application's window. The parent application can then read the foreign
+child's actual pixels with GetImage. Core IncludeInferiors operations can
+also access foreign child pixels. CopyArea copied the secret pixel into a
+parent-owned pixmap on both hosts. PolyFillRectangle is accepted on both
+hosts; its child-pixel effect still needs confirmation by the strengthened
+pixel witness.
+
+Evidence
+
+The native wire probe is spatial-os-luna-handoff/tests/native/test_topology_pixels.py.
+Original run evidence is on both hosts under
+spatial-os-luna-handoff/evidence/m04-topology-pixels-2026-10-11/baseline-02.
+Strengthened baseline evidence is under baseline-03-strong on both hosts.
+CopyArea copied the secret into the attacker's pixmap. PolyFillRectangle
+changed the foreign child pixel from 0xc3a57b to 0x789abc. The probe found
+these effects on both hosts. Positive-control failures in that baseline run
+followed the server abort during test cleanup and need a clean fixed rerun.
+
+An initial sanitizer test run found an existing 2680-byte Mesa GLX teardown
+leak. The pixel tests do not use GLX. Re-run this focused sanitizer suite with
+GLX disabled, as recorded by the core-only test profile. Keep the GLX leak as
+a separate M04 blocker.
+
+Proposed fix
+
+1. For GetImage on a window, mask visible regions that belong to foreign
+   applications. Keep the parent's own pixels, same-application child pixels,
+   and privileged reads. Fail closed if region processing cannot complete.
+2. For core IncludeInferiors drawing and copy requests, deny access to a
+   foreign child subtree. Check both copy sources and destinations. Keep normal
+   parent drawing and same-application IncludeInferiors behavior.
+3. Audit Render picture subwindow modes and add a regression test if an
+   equivalent foreign-child read or write path exists. The candidate rejects
+   Render writes through IncludeInferiors pictures when a foreign visible
+   descendant exists; its native regression checks foreign denial and
+   same-application behavior.
+4. Strengthen native tests to inspect actual source and destination pixels.
+   Include both X byte orders and positive controls.
+5. Run focused Debug and ASan/UBSan checks on sb16 and sb16-2. Preserve raw
+   logs and update this finding only after the fixed candidate passes.
+
+Status: confirmed. The local integration candidate includes core GetImage
+filtering, core IncludeInferiors source and destination checks, and Render
+IncludeInferiors picture checks. All 14 focused pixel tests and all 228
+selected M04 native checks pass on both hosts in Debug and ASan/UBSan.
+Sanitizer runs disable GLX to avoid the separately tracked Mesa GLX teardown
+leak. CMake registers the new suite on both hosts.
+
+The XLibre fork contains no SpatialSecurity identity or policy layer. The
+passing patch calls those project-local APIs, so it is not a standalone
+upstream XLibre PR. Keep the tested patch in the project integration branch.
+An upstream PR needs a separate generic XACE interface and a policy consumer,
+or a deliberate decision to bring the complete downstream identity layer.
+The GitHub fork is not changed by this work. M04 remains incomplete.

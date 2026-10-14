@@ -1,0 +1,88 @@
+Supervisor world and compositor native handoff
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
+
+Invariant
+
+The supervised world must start its real compositor under the exact native scope owned by that launch.
+Keep the parent supervisor credential outside worldd and spatialwm.
+Keep native credentials out of environment variables, command lines, management replies, and disk files.
+
+Observed source gap
+
+ProcessScope starts child processes with PATH and LANG only.
+Worldd and RenderWorker currently start spatialwm with a display argument.
+The compositor opens that display through XOpenDisplay.
+Current native compositor fixtures supply an Xauthority file through the environment.
+That fixture path does not provide the production supervisor handoff.
+
+Proposed contract addition
+
+Add optional compositor_native_target_fd to AuthoritySupervisorConfig at field 12.
+Preserve broker_native_target_fd at field 11.
+Reject configurations that request both native roles from one launch scope.
+Require a COMPOSITOR scope for the compositor handoff.
+Reject another role before ownership with: Compositor handoff requires a compositor native scope.
+Apply the same descriptor range, collision, privileged-source, and capacity checks as the broker handoff.
+Reserve capacity for the participant channel and the selected native configuration.
+
+Add NativeCompositorConfig in proto/spatial/render/v1/compositor_native.proto.
+Use package spatial.render.v1.
+Use uint32 protocol_version field 1 and optional uint32 display_number field 2.
+Use bytes compositor_cookie field 3 and bytes server_id field 4.
+Use optional uint32 server_pid field 5 and optional uint32 server_uid field 6.
+The supervisor derives all values from its verified, newly issued COMPOSITOR scope.
+Store the protobuf only in a fully sealed private memfd.
+
+Worldd accepts --native-security-fd and forwards the sealed configuration to its actual compositor child.
+Spatialwm accepts --native-security-fd and consumes the configuration before ordinary rendering.
+Validate the sealed size, protocol, required fields, live native server pins, and native role.
+Limit the configuration to 1 MiB. Reject empty, malformed, unknown-field, and incomplete configurations.
+Prefix configuration rejection diagnostics with: Native compositor configuration.
+Do not infer the server generation from a display number.
+Use the configured local display and reject a conflicting explicit display argument.
+Close configuration descriptors in both processes after the handoff.
+Disable unprivileged process inspection before loading credential material.
+Do not weaken the existing display fixture path to make production checks pass.
+
+Baseline and correction evidence
+
+The baseline requests field 12 through the actual supervisor text parser.
+Require the missing-field diagnostic against unchanged candidate02 binaries.
+After correction, require real worldd and spatialwm in the owned cgroup.
+Pin both processes and verify checked cleanup.
+Add independent native identity, wrong-role, wrong-server, malformed-config, and descriptor-leak counterexamples.
+Verify genuine rendered application surfaces and held-input cleanup under the owned compositor credential.
+Qualify both hosts in Debug and runtime sanitizers before integration.
+
+Candidate01 adds eleven correction tests. They do not alter the queued baseline or frozen broker candidate.
+Two tests exposed the borrowed reader's failure to handle MappingNotify before a native reply.
+Preserve those failures. The corrected witness adds a twelfth test for its reply validation.
+It keeps the original connection and compares its complete identity after cleanup.
+Candidate02 also revokes the owned credential through an independent supervisor connection.
+Require the actual compositor to disconnect, release input, and preserve the independent application.
+Require CLEANUP_PENDING when the launch supervisor cannot obtain its own native cleanup receipt.
+Retain the checked process receipt. Do not fabricate a native receipt or change issuer obligations.
+This follows AUTHORITY_NATIVE_SCOPE.txt: NOT_FOUND is not a cleanup receipt.
+The original contradictory receipt assertion and both failures remain recorded under native-attribution-03.
+Each direct compositor denial test first requires successful startup with a valid sealed configuration.
+The descriptor witness tracks the memfd device and inode across live, pidfd-pinned processes.
+A retained parent descriptor provides a positive observation control.
+The pixel and input witnesses use the independently compiled native application probe.
+They use trusted management fixtures, not issuer-backed actor admission.
+
+Candidate01 connection boundary
+
+The compositor exports a narrow adapter for xcb_connect_to_display_with_auth_info.
+The native path opens the configured Unix socket and checks its SO_PEERCRED before authentication.
+Then xcb_connect_to_fd supplies that exact connection to Xlib.
+Xlib receives a non-secret placeholder instead of the compositor credential.
+Require proof that the adapter ran. A missing adapter must fail startup.
+Inspect the actual connection's native role and server ID before rendering.
+The existing display fixture path calls the original libxcb function.
+The independent fake-server test requires an accepted connection with zero received authentication bytes.
+
+Scope
+
+This handoff does not replace issuer-backed world participation or trusted recovery.
+Keep admission, broker control leases, fencing, and issuer retirement as separate required checks.
+Do not claim native GPU, physical input, or full Spatial-M1 acceptance from startup alone.

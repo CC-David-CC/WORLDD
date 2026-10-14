@@ -1,0 +1,57 @@
+{
+  "id": "identity.bootstrap_profile",
+  "phase": "M01",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/BOOTSTRAP_PROFILES.md",
+  "status": "complete",
+  "current_step": "integrated_and_adopted",
+  "invariant": "Enrollment pins an owner-selected immutable profile; only explicitly authorized domain delegation can turn its templates into durable grants.",
+  "production_roots": [
+    "proto/spatial/identity/v1/issuer.proto",
+    "src/identity/issuer.cpp",
+    "src/identity/protocol.cpp",
+    "src/identity/issuer_client.cpp",
+    "src/authority/store.cpp",
+    "src/world/authority.cpp",
+    "src/workspace/authority.cpp"
+  ],
+  "test_ids": [
+    "BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable",
+    "BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects",
+    "BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce",
+    "BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap",
+    "BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential",
+    "BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile",
+    "BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval",
+    "BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials",
+    "BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state",
+    "BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval",
+    "BootstrapTests.test_malformed_templates_are_rejected_before_publication",
+    "BootstrapTests.test_profile_size_and_unknown_fields_are_rejected",
+    "BootstrapTests.test_service_reads_require_exact_valid_revisions",
+    "BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision",
+    "BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance",
+    "BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance",
+    "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
+    "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+  ],
+  "current_test_scope": "Both hosts passed complete candidate 04 Debug and runtime sanitizer: 1037 core checks/55 suites, 51 harness, 151 P10 per profile, zero failed/skipped. Each exact binary set also passed six new witness checks and twelve unchanged process tests.",
+  "remaining_steps": [],
+  "preceding_gate": "P10",
+  "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
+  "limitations": [
+    "This completes authenticated enrollment delivery, not the full M01 identity milestone.",
+    "Remote authenticated world transport is separately qualified and integrated. Distributed revocation acknowledgement remains required.",
+    "M01, M02, native-server GLX sanitizers, and Spatial-M1 remain incomplete."
+  ],
+  "issuer_commit": "9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f",
+  "integration_commit": "d4b025e3705fabad151c97e60de010187a85ed7e",
+  "next_components": [
+    "identity.world_session",
+    "identity.revocation_barrier"
+  ],
+  "adoption_evidence": [
+    "evidence/bootstrap-workspace-adapters-2026-10-09/sb16/adoption-04.json",
+    "evidence/bootstrap-workspace-adapters-2026-10-09/sb16-2/adoption-04.json"
+  ]
+}

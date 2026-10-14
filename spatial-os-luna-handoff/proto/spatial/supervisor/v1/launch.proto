@@ -1,0 +1,136 @@
+syntax = "proto3";
+package spatial.supervisor.v1;
+import "process_scope.proto";
+import "native_scope.proto";
+import "issuer.proto";
+import "grants.proto";
+import "broker.proto";
+import "storage.proto";
+
+// Private supervisor context. Recording this does not authorize issuer activation.
+message AuthorityLaunchBinding {
+  bytes issuer_id = 1;
+  bytes participant_id = 2;
+  uint64 registered_revision = 3;
+  bytes service_incarnation = 4;
+  bool supervised = 5;
+}
+enum AuthorityLaunchStage {
+  LAUNCH_STAGE_UNSPECIFIED = 0;
+  PREPARING = 1;
+  PREPARED = 2;
+  START_ATTEMPTED = 3;
+  CLEANUP_PENDING = 4;
+  OWNED_SCOPES_STOPPED = 5;
+}
+// Contains identities and checked receipts, never cookies or private keys.
+message AuthorityLaunchRecord {
+  uint32 schema_version = 1;
+  uint64 revision = 2;
+  AuthorityLaunchBinding binding = 3;
+  ProcessScopeIdentity process = 4;
+  NativeScopeIdentity native = 5;
+  AuthorityLaunchStage stage = 6;
+  ProcessScopeStopped process_stopped = 7;
+  NativeScopeStopped native_stopped = 8;
+  spatial.identity.v1.AuthorityLaunchAuthorization authorization = 9;
+  spatial.identity.v1.AuthorityFenceState fence = 10;
+}
+// Durable evidence from retained coordinator ownership. Reopening it creates no live handles.
+message AuthorityDependentCleanup {
+  // Version 1: running broker plus controls. Version 2: stopped broker, no controls.
+  uint32 schema_version = 1;
+  AuthorityLaunchRecord world = 2;
+  AuthorityLaunchRecord broker = 3;
+  spatial.workspace.v1.ControlRecoveryReceipt controls = 4;
+}
+message AuthorityParticipantAttach {
+  string runtime_config = 1;
+  repeated spatial.authority.v1.Domain domains = 2;
+}
+message AuthorityLaunchAuthorize {
+  string issuer_client_config = 1;
+  string private_key_path = 2;
+  uint64 supervision_revision = 3;
+  optional uint64 previous_generation = 4;
+}
+// Private local supervisor configuration. No actor receives this interface.
+message AuthoritySupervisorConfig {
+  uint32 protocol_version = 1;
+  string journal_directory = 2;
+  string delegated_cgroup = 3;
+  AuthorityLaunchBinding binding = 4;
+  AuthorityParticipantAttach participant = 5;
+  AuthorityLaunchAuthorize authorization = 6;
+  AuthorityProcessLaunch launch = 7;
+  string child_participant_config = 8;
+  uint32 participant_target_fd = 9;
+  repeated uint32 inherited_source_fds = 10;
+  optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
+  optional uint32 compositor_native_target_fd = 12; // Sealed issued compositor credential; never the supervisor credential.
+  // Policy template. delegated_cgroup must be empty; the supervisor binds its owned scope.
+  spatial.workspace.v1.BrokerResourceConfig broker_resources = 13;
+  optional uint32 broker_resource_target_fd = 14; // Sealed binary policy consumed by the broker.
+  spatial.workspace.v1.StorageOwnerLaunchConfig broker_storage_owner = 15;
+  optional uint32 broker_storage_target_fd = 16; // Private owner channel; never inherited by applications.
+  bool require_broker_confinement = 17; // Mandatory resource and storage profile for an operator broker.
+}
+message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+message AuthorityLaunchQuery {}
+message AuthorityLaunchRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    AuthorityLaunchBinding prepare = 10;
+    AuthorityProcessLaunch start = 11;
+    AuthorityLaunchQuery inspect = 12;
+    AuthorityLaunchQuery stop = 13;
+    AuthorityParticipantAttach attach = 14;
+    AuthorityLaunchQuery participant_poll = 15;
+    AuthorityLaunchAuthorize authorize = 16;
+    spatial.identity.v1.ParticipantCommand participant_command = 17;
+    AuthorityParticipantChannelPrepare prepare_channel = 18;
+    AuthorityLaunchQuery pump_channel = 19;
+    AuthorityLaunchQuery fence = 20;
+    AuthorityLaunchQuery control_owner = 21;
+  }
+}
+message AuthorityLaunchView {
+  AuthorityLaunchRecord record = 1;
+  NativeScopeReady ready = 2; // Only during live preparation. Never persisted.
+}
+message AuthorityLaunchError {
+  string message = 1;
+  // Optional final checked teardown, sent on the retained private management channel.
+  // This does not turn the failed launch into success or retire issuer obligations.
+  AuthorityLaunchRecord cleanup_record = 2;
+}
+// Dedicated private SOCK_SEQPACKET channel. No actor can access this interface.
+// A successful reply carries exactly one SCM_RIGHTS pidfd; an error carries none.
+// The snapshot must match the retained authorized running launch exactly.
+// Default requests remain broker-only. World export requires the explicit world flag.
+message AuthorityChildHandleRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  AuthorityLaunchRecord expected = 3;
+  bool world = 4;
+}
+message AuthorityChildHandleReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    AuthorityLaunchRecord launch = 10;
+    AuthorityLaunchError error = 11;
+  }
+}
+message AuthorityLaunchReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    AuthorityLaunchView view = 10;
+    AuthorityLaunchError error = 11;
+    spatial.identity.v1.ParticipantUpdate participant_update = 12;
+    spatial.identity.v1.AuthorityParticipantRuntimeConfig participant_config = 13;
+    spatial.workspace.v1.ControlOwner control_owner = 14;
+  }
+}

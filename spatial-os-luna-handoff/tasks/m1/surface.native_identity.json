@@ -1,0 +1,47 @@
+{
+  "id": "surface.native_identity",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "The compositor obtains application attribution from the native window owner in the same checked reply as target generation and geometry.",
+  "production_roots": [
+    "server/xlibre/spatialinput.c",
+    "server/xlibre/spatialsecurity.c",
+    "server/xlibre/spatialsecurity.h",
+    "server/xlibre/meson.build",
+    "src/x11/surfaces.cpp",
+    "proto/spatial/input/v1/input.proto",
+    "proto/spatial/security/v1/security.proto",
+    "proto/spatial/core/v1/core.proto"
+  ],
+  "test_ids": [
+    "SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply",
+    "SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct",
+    "SurfaceIdentityTests.test_same_workspace_different_application_is_distinct",
+    "SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids",
+    "SurfaceIdentityTests.test_window_properties_cannot_spoof_authority",
+    "SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner",
+    "SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner",
+    "SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation",
+    "SurfaceIdentityTests.test_non_application_window_has_no_application_identity",
+    "SurfaceIdentityTests.test_application_cannot_query_foreign_attribution",
+    "SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution",
+    "SurfaceIdentityTests.test_owner_disconnect_removes_attribution",
+    "SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application",
+    "SurfaceIdentityTests.test_child_window_uses_its_creator_connection",
+    "SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels",
+    "CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity",
+    "CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity",
+    "CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot",
+    "CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it",
+    "CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface",
+    "CompositorIdentityTests.test_revoked_application_disappears_from_snapshot",
+    "CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution"
+  ],
+  "preceding_gate": "P10",
+  "contract": "docs/NATIVE_SURFACE_IDENTITY.md",
+  "limitations": [
+    "Worldd application grants and actor metadata filtering remain required.",
+    "Session provisioning and physical native qualification remain required.",
+    "This component does not complete M04, M09, or Spatial-M1."
+  ]
+}

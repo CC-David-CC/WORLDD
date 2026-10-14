@@ -1,0 +1,62 @@
+M06 independently revocable native input, 2026-10-12
+Status: implementation candidate. Focused qualification is running.
+
+Required invariant
+Each world keeps an independently revocable native input connection.
+The host presentation must survive the loss of one world's input connection.
+Server-side credential revocation must still close that world's connections and release their seats.
+A different connection cannot operate those seats, even when it uses the same compositor credential.
+
+Previous contract
+SPATIAL-INPUT required the requesting connection to own SubstructureRedirect on the root window.
+This made the input connection also own the window-manager role.
+Two independent world input connections could not satisfy that exclusive role simultaneously.
+The new native probe reproduced this restriction before the server change.
+Three configuration rejection checks passed. Two independent seat scenarios failed before readiness.
+The original failure evidence remains in sb16 local/m06-scoped-input-baseline-01.log and its native directory.
+
+Explicit contract addition
+A live authenticated COMPOSITOR connection can use SPATIAL-INPUT without owning SubstructureRedirect.
+The existing root-owner path remains supported.
+Without SpatialSecurity, the existing root-owner requirement remains mandatory.
+BROKER and APPLICATION roles receive no additional input permission.
+The server still binds each seat to the exact creating connection.
+NativeScope still revokes credentials through its retained supervisor connection.
+worldd still checks actor authority and application control before requesting input effects.
+This change does not give actors a raw input channel or server credential.
+The input.proto interface comment records the admission rule. Message fields and protocol version remain unchanged.
+No locked test or oracle changes.
+
+Implementation
+NativeChannel extracts the existing bounded local X transport from NativeLaunch.
+NativeLaunch and NativeScope retain the same peer checks, request framing, deadlines, and cleanup behavior.
+NativeInput adds a sealed-configuration constructor that uses this transport with the COMPOSITOR role.
+It checks the exact server process before sending authentication data.
+A broken input channel closes and raises an error. It does not invoke Xlib's fatal connection-loss path.
+The legacy Display-based constructor remains for the current rendering path and development fixtures.
+Persistent presentation binding and world transitions still require integration after these checks pass.
+
+Selected evidence
+The new probe hosts two production NativeInput connections in the same process.
+After every first-connection operation, it checks that the second connection's seat remains usable.
+The Python witness revokes the first credential through an independent supervisor connection.
+It requires repeated unavailable replies and a live caller process afterward.
+Independent wire clients test foreign-seat denial and broker denial directly against the server.
+Configuration tests cover sealed input, server process pins, and credential role.
+Existing native scope, input, launch, security, renderer, supervisor, and session cleanup suites cover shared callers.
+Run all selected checks in Debug and ASan/UBSan on both hosts.
+This increment does not qualify M06 or demonstrate a complete world switch.
+
+First combined Debug run
+Both hosts completed server builds and application builds.
+Both then reported eight failed suites out of eighteen.
+Seven suites received an empty SPATIAL_TEST_XSERVER in their systemd unit.
+CMake captures that value during configuration. The first runner set it only for ctest.
+The corrected runner supplies the same test environment during CMake configuration.
+The scoped-input suite passed six of seven checks, including revocation and foreign-seat denial.
+Its broker check stopped because QueryExtension hid SPATIAL-INPUT from the broker.
+The corrected independent client obtains the opcode through its separate supervisor connection.
+It then attempts that opcode as the broker and requires explicit denial.
+This strengthens the direct bypass test instead of accepting name hiding as sufficient.
+No production source changed for either correction. Original failed runs remain preserved.
+The corrected both-host Debug and sanitizer runs use local/m06-scoped-input-02.

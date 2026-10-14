@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "directed": true,
+  "edge_semantics": "source requires target; runtime bootstrap must install network-zero enforcement before untrusted imports regardless of qualification scheduling",
+  "nodes": [
+    {
+      "id": "accounting",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "agent-confinement",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "authority",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "build-identity",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "canonical",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "crash-consistency",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "execution",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "hashes",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "independent-vectors",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "network-zero",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "policy",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "readiness-supervisor",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "recovery",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "replay",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "revocation",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "rollback-anchor",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "signatures",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    },
+    {
+      "id": "store",
+      "type": "acceptance-gate",
+      "mandatory_for_local_ready": true,
+      "delivered_status": "PENDING_FULL_ACCEPTANCE"
+    }
+  ],
+  "edges": [
+    {
+      "source": "accounting",
+      "target": "authority",
+      "relation": "requires"
+    },
+    {
+      "source": "accounting",
+      "target": "policy",
+      "relation": "requires"
+    },
+    {
+      "source": "agent-confinement",
+      "target": "network-zero",
+      "relation": "requires"
+    },
+    {
+      "source": "agent-confinement",
+      "target": "authority",
+      "relation": "requires"
+    },
+    {
+      "source": "agent-confinement",
+      "target": "execution",
+      "relation": "requires"
+    },
+    {
+      "source": "authority",
+      "target": "signatures",
+      "relation": "requires"
+    },
+    {
+      "source": "build-identity",
+      "target": "hashes",
+      "relation": "requires"
+    },
+    {
+      "source": "crash-consistency",
+      "target": "store",
+      "relation": "requires"
+    },
+    {
+      "source": "crash-consistency",
+      "target": "execution",
+      "relation": "requires"
+    },
+    {
+      "source": "crash-consistency",
+      "target": "revocation",
+      "relation": "requires"
+    },
+    {
+      "source": "execution",
+      "target": "accounting",
+      "relation": "requires"
+    },
+    {
+      "source": "execution",
+      "target": "store",
+      "relation": "requires"
+    },
+    {
+      "source": "execution",
+      "target": "revocation",
+      "relation": "requires"
+    },
+    {
+      "source": "execution",
+      "target": "policy",
+      "relation": "requires"
+    },
+    {
+      "source": "hashes",
+      "target": "canonical",
+      "relation": "requires"
+    },
+    {
+      "source": "independent-vectors",
+      "target": "canonical",
+      "relation": "requires"
+    },
+    {
+      "source": "independent-vectors",
+      "target": "hashes",
+      "relation": "requires"
+    },
+    {
+      "source": "independent-vectors",
+      "target": "signatures",
+      "relation": "requires"
+    },
+    {
+      "source": "policy",
+      "target": "authority",
+      "relation": "requires"
+    },
+    {
+      "source": "readiness-supervisor",
+      "target": "agent-confinement",
+      "relation": "requires"
+    },
+    {
+      "source": "readiness-supervisor",
+      "target": "rollback-anchor",
+      "relation": "requires"
+    },
+    {
+      "source": "readiness-supervisor",
+      "target": "independent-vectors",
+      "relation": "requires"
+    },
+    {
+      "source": "readiness-supervisor",
+      "target": "build-identity",
+      "relation": "requires"
+    },
+    {
+      "source": "readiness-supervisor",
+      "target": "crash-consistency",
+      "relation": "requires"
+    },
+    {
+      "source": "recovery",
+      "target": "signatures",
+      "relation": "requires"
+    },
+    {
+      "source": "recovery",
+      "target": "revocation",
+      "relation": "requires"
+    },
+    {
+      "source": "recovery",
+      "target": "replay",
+      "relation": "requires"
+    },
+    {
+      "source": "replay",
+      "target": "store",
+      "relation": "requires"
+    },
+    {
+      "source": "replay",
+      "target": "signatures",
+      "relation": "requires"
+    },
+    {
+      "source": "revocation",
+      "target": "authority",
+      "relation": "requires"
+    },
+    {
+      "source": "revocation",
+      "target": "replay",
+      "relation": "requires"
+    },
+    {
+      "source": "rollback-anchor",
+      "target": "recovery",
+      "relation": "requires"
+    },
+    {
+      "source": "rollback-anchor",
+      "target": "store",
+      "relation": "requires"
+    },
+    {
+      "source": "signatures",
+      "target": "canonical",
+      "relation": "requires"
+    },
+    {
+      "source": "signatures",
+      "target": "hashes",
+      "relation": "requires"
+    },
+    {
+      "source": "store",
+      "target": "hashes",
+      "relation": "requires"
+    },
+    {
+      "source": "store",
+      "target": "signatures",
+      "relation": "requires"
+    }
+  ]
+}

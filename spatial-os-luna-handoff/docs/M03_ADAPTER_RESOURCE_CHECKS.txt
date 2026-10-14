@@ -1,0 +1,26 @@
+M03 non-native adapter resource provisioning
+
+Invariant
+The non-native adapter launches the same production broker under explicit resource policy.
+Use the existing held process scope and sealed policy handoff.
+Do not add default application budgets or an unlimited launch fallback.
+Keep the world process outside the broker's nested application groups.
+An owning delegated test service contains abrupt adapter death and reclaims empty residual groups.
+This test-service recovery does not replace retained native-session supervision.
+
+Selected checks
+Reproduce ignored resource configuration with the prior adapter.
+Run existing workspace context and process confinement checks without changing test assertions.
+Inspect broker, world, and application kernel group membership independently.
+Verify configured application limits and consumed policy descriptors.
+Reject invalid delegation before creating broker state.
+Preserve denial when no resource configuration is supplied.
+Exercise restart, detached descendants, read-only files, namespaces, and syscall escape attempts.
+Run focused Debug and runtime sanitizer checks on both hosts.
+Preserve all failure evidence. Verify source hashes and locked acceptance files.
+
+Limits
+This increment provisions the non-native regression adapter.
+Authenticated native sessions retain their separate qualified supervisor entry point.
+Other direct-broker fixtures, operator deployment, storage quotas, and contention testing remain pending.
+Keep issuer timeouts and SQLite durability unchanged.

@@ -1,0 +1,20 @@
+﻿Confirmed Xvfb shutdown defect: a sanitized two-screen Xvfb run double-frees CRTC cleanup state during server shutdown.
+
+Evidence: the upstream witness reported a double-free in freeScreenInfo at hw/vfb/InitOutput.c:278. The one-screen animated-cursor lifetime test passed. A separate two-screen test triggered this shutdown failure.
+
+Project context: the project already carries patch 0003 in spatial-os-luna-handoff/server/patches/0003-server-shutdown.patch. That patch clears freed Xvfb XWD/CRTC pointers. Fresh upstream master still reproduced the two-screen failure in the tested configuration.
+
+Status: confirmed upstream defect in the tested tree. No upstream fix branch or PR prepared. Compare current upstream cleanup code with the project patch before proposing a focused change.
+
+Proposed patch:
+1. Compare current upstream Xvfb freeScreenInfo() cleanup with project patch 0003 in spatial-os-luna-handoff/server/patches/0003-server-shutdown.patch.
+2. Identify the CRTC and XWD pointers freed more than once during multi-screen shutdown.
+3. Make cleanup idempotent by clearing each pointer immediately after freeing it, or by moving ownership to one cleanup path. Follow upstream ownership conventions.
+4. Keep the change limited to the confirmed Xvfb shutdown ownership defect.
+
+Regression checks:
+- Start and stop sanitized Xvfb with one and two screens.
+- Exercise partial initialization failure and normal shutdown.
+- Repeat shutdown lifecycle tests under ASan/UBSan.
+
+Status: double-free reproduced at hw/vfb/InitOutput.c:278 in the tested upstream tree. Project patch 0003 is a reference candidate, but it must be compared to the exact upstream revision before porting. No upstream patch or PR exists.

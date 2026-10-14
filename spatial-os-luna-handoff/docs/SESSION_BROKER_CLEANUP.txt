@@ -1,0 +1,45 @@
+Retained broker cleanup after supervisor exit
+Status: Focused Debug and sanitizer checks passed. Full M02 qualification remains pending.
+
+Invariant
+
+The session retains the original broker supervisor and its private reply channel.
+Supervisor exit must not discard a checked final cleanup receipt.
+Accept the receipt only through that retained channel and the existing exact-launch validation.
+Require matching process and native cleanup identities.
+Require the actual supervisor exit status to match its reported completion.
+Remember the actual exit status after waitpid reaps the child.
+A retry must not replace a rejected nonzero exit with zero.
+Return the same checked receipt after successful cleanup without repeating external effects.
+Do not reconstruct ownership from a journal, PID, or serialized caller data.
+
+Coordinator behavior
+
+Separate original coordinator ownership from current broker liveness.
+Use broker liveness checks for normal work and administrative requests.
+Allow checked cleanup through retained ownership after the broker or its supervisor exits.
+Expose stop_broker only on the trusted coordinator interface.
+This operation returns broker process and native cleanup. It does not imply world cleanup.
+Require checked world cleanup before reporting complete session shutdown.
+Preserve exact owner validation when stopping a world after broker loss.
+Attempt broker channel fencing before stopping that world.
+Record failed broker fencing. Continue checked process and native cleanup through the retained world supervisor.
+Do not report broker reservation recovery from this partial cleanup operation.
+Keep issuer retirement separate and pending.
+
+Required checks
+
+Kill the real broker after it launches a confined native application.
+Pin the broker, application processes, and supervisor before the crash.
+Observe their exit through those retained handles.
+Match the delivered cleanup against the original launch and saved journal.
+Keep unrelated native credentials usable.
+Recover broker cleanup while a world still needs cleanup.
+Reject complete session shutdown until that world's cleanup is checked.
+Pause the disposable native server. Process exit alone must not produce successful cleanup.
+Resume it and require the checked native reply before completion.
+Kill the supervisor before final receipt delivery. Cleanup must remain unresolved.
+Use an independent lifecycle fault peer to reject the same bad exit on every retry.
+Use real native cases for external cleanup evidence. The fault peer proves only protocol and exit validation.
+Run focused Debug and runtime sanitizer checks.
+Complete M02 qualification remains required on both hosts.

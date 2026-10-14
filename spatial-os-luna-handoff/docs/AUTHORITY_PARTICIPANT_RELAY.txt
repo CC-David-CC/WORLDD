@@ -1,0 +1,67 @@
+Supervisor participant relay
+Status: isolated candidate01 passed focused Debug on both hosts. Sanitizer qualification is running.
+
+Invariant
+
+The supervisor forwards exact child commands through its retained authenticated participant connection.
+Only the owned child receives the inherited channel endpoint.
+Transport receipt does not acknowledge completed child-side cancellation.
+
+Launch and ownership
+
+Prepare the private channel only for a live supervised launch with durable approval.
+Require authentication and an initial revocation baseline before channel preparation.
+Return child configuration with the exact issuer, participant, registration, and service incarnation.
+Do not include TLS configuration or private-key paths.
+Reserve one child descriptor between 3 and 255.
+Reject duplicate targets and collisions with other inherited descriptors.
+Pass the child endpoint only through the owned ProcessScope startup gate.
+Close the parent's child-endpoint copy after the start attempt.
+Do not reconstruct channel ownership after restart or retry execution after uncertain startup.
+
+Forwarding
+
+Use bounded, nonblocking ParticipantCommand and ParticipantUpdate frames.
+The supervisor event loop pumps the channel through AuthorityLaunch.
+Retain authenticated bootstrap updates in order until they can reach the child.
+Disable the external participant poll and command paths once the relay owns consumption.
+Before accepting child commands, check the retained process scope and direct child lifetime.
+Forward one consequential child command at a time.
+Preserve the request ID, command payload, and worker update ordering.
+Do not manufacture authentication, activation, acknowledgement, or release results.
+Do not automatically activate, acknowledge, release, reconnect, or replay.
+
+Revision races
+
+The parent's received revision can exceed the child's consumed revision.
+An explicitly forwarded activation may name an earlier received revision.
+It cannot name a revision beyond the parent's received feed.
+Forward the child's revision unchanged. The real issuer still requires its exact current revision.
+Return the issuer's revision conflict to the child for explicit synchronization and retry.
+Keep the direct ParticipantRuntime submit contract unchanged.
+Applied acknowledgements retain their contiguous revision and active-generation checks.
+Parent receipt and channel writes never complete a revocation barrier.
+
+Failure
+
+Malformed commands, queue overflow, channel failure, and child exit permanently disable relay routing.
+Close the channel and participant connection. Preserve unresolved issuer generations and obligations.
+The supervisor must perform checked process and native cleanup separately.
+A successful release closes the relay only after its reply has drained.
+Cleanup and restart do not infer issuer retirement.
+
+Qualification
+
+First reproduce the unsupported channel-preparation operation on both hosts.
+Use a real supervised child ParticipantRuntime and real issuer for activation, acknowledgement, and release.
+Verify the durable approval, exact process scope, private descriptor, and absence of child signing configuration.
+Test stale activation after parent receipt, pending revocation before child acknowledgement, malformed commands, and child loss.
+Keep the existing direct runtime and launch tests unchanged.
+Run Debug and runtime ASan/UBSan on both hosts before integration.
+
+This primitive does not complete worldd or workspaced wiring, supervisor recovery, or M02.
+
+Both hosts passed 366 focused Debug checks across 23 suites and 51 harness checks.
+All ten new relay tests passed. No Debug case failed or skipped.
+Existing protobuf declarations and 41 locked files remain unchanged.
+Full cumulative scripts reuse the frozen builds and do not repeat completed focused tests.

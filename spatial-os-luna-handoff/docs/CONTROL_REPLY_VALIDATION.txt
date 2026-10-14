@@ -1,0 +1,54 @@
+Private control reply validation
+Status: Full Debug qualification passed on sb16. Complete both-host qualification and integration remain pending.
+
+Invariant
+
+A coordinator interprets control state only after validating the exact request and complete reply.
+A valid remote error remains an error. It cannot establish registration, fencing, or cleanup.
+
+Implementation
+
+The shared control-owner validator preserves the broker's existing binding checks.
+Both ends use the same owner shape and bounds.
+No protobuf schema or locked acceptance file changes.
+
+Reject unsupported versions, unknown nested fields, oversized messages, and unmatched request IDs.
+Require a recognized request operation and a valid expected owner.
+Require a typed error or a state outcome.
+Require the returned owner to match the requested owner exactly.
+Require a fence reply to confirm that the channel is fenced.
+Require a registration reply to contain an unfenced owner with no reservations.
+The broker produces that initial snapshot before dispatching requests on the new channel.
+
+Inspect and fence may return reservations that still require checked recovery.
+Validate each lease ID, actor identity, application identity, and native server identity.
+Reject duplicate lease IDs and duplicate application groups.
+Enforce the existing 256-reservation and 60000-byte snapshot bounds.
+Keep actor issuer identity separate from the control owner's authority issuer identity.
+This validator does not create a new cross-issuer authorization rule.
+
+Evidence limits
+
+The thin probe calls the production validator on two protobuf frames.
+The 16 checks exercise valid replies and malformed or substituted replies.
+They do not implement another broker or simulate a successful application task.
+They cannot establish transport authentication, descriptor ownership, or native cleanup.
+
+The production administrative transport and session coordinator remain required.
+They must invoke this validator before interpreting replies.
+Transport failure must preserve uncertain effects and pending recovery obligations.
+These functions alone do not provide automatic reservation release or issuer retirement.
+
+Qualification
+
+Both hosts have isolated copies of all 303 source files and 41 unchanged locked files.
+Each driver starts after successful binding01 qualification on the same host.
+sb16 passed full Debug: 1496 core checks, 51 harness checks, 151 P10 cases, and three native-world checks.
+Its full sanitizer profile remains required.
+Read evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json.
+Then each driver builds Debug and runtime sanitizer profiles with two compiler jobs.
+Builds finish before qualification starts.
+Each profile runs 16 reply checks, the preceding cumulative core suite, harness checks, P10, and native-world checks.
+Expected totals are 1496 core checks across 102 suites, 51 harness checks, 151 P10 cases, and three native-world checks.
+Expected totals are not execution results.
+Require primary review and both-host passing evidence before integration.

@@ -1,0 +1,32 @@
+Broker memory admission counts reserved usage twice
+Confirmed on sb16 during the real production-owner integration, 2026-10-11.
+
+The 288 MiB import, retirement, actor quotas, and read-only check passed.
+The independent sibling application then received RESOURCE_EXHAUSTED.
+Its broker root held 402739200 bytes, including 291483648 bytes of file cache.
+The admission formula also subtracted the manager and Git reservations that already funded some of that usage.
+The hard broker limit remained one GiB. No actual memory-limit failure was reported for this refusal.
+
+Required invariant
+Reserve future process capacity once. Count existing funded usage once.
+Keep unreserved and reparented cache charges in the admission calculation.
+Keep every kernel hard limit, workspace limit, actor limit, and profile limit.
+
+Tested correction
+Pin manager and live resource-group descriptors for accounting.
+Remove only the measured portion covered by each existing reservation from aggregate current usage.
+Count the remaining usage as additional headroom. Do not raise the broker envelope.
+Clamp each subtraction to its reservation. Keep excess cache charges visible.
+
+Reproducer
+sb16: local/m03-git-storage-integration-13/review.json and first-broker.log.
+The failure remains preserved. Its volume is detached and its root owner service is unloaded.
+Repeat the production-owner integration and broker/resource regressions on both hosts before closing this defect.
+
+Verification, 2026-10-11
+sb16 integration-15 and sb16-2 integration-14 passed all five original integration scenarios.
+The independent sibling application wrote four MiB after actor storage exhaustion.
+Both hosts passed 106 selected broker, Git, process, workspace, and lifecycle regressions.
+All hard limits remain unchanged. Neither repeated integration reported a sanitizer finding.
+Read spatial-os-luna-handoff/evidence/m03-storage-launch-2026-10-11/primary-review.json.
+Status: corrected and verified within this focused scope. Full M03 qualification remains pending.

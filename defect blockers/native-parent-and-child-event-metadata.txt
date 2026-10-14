@@ -1,0 +1,25 @@
+Defect: Native parent replies and child events disclose foreign window identities.
+Status: Corrected in focused Debug and native sanitizer checks on both hosts. Full M04 remains pending.
+
+Trusted reparenting can place an owned window below a foreign application's window.
+QueryTree and ReparentNotify then disclose that foreign parent's XID.
+A subscription to an owned parent also receives events for foreign children.
+Create, map, unmap, destroy, configure, and reparent events disclose those child XIDs.
+
+The final baseline has 16 security failures and 12 passing controls per host.
+The first witness had one additional fixture failure in its privileged positive case.
+That fixture tried to fence a request before consuming its own subscribed event.
+The corrected fixture consumes the actual event. All original baseline evidence remains preserved.
+
+Proposed correction:
+Filter unauthorized parent IDs to None in QueryTree and recipient-specific ReparentNotify copies.
+Reject core structure-event delivery when the subject window belongs to another application.
+Keep same-application and privileged views usable.
+
+Contract: spatial-os-luna-handoff/docs/NATIVE_PARENT_METADATA.txt.
+Evidence: spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/.
+
+Each host passes 214 selected checks per profile, including all 28 parent-metadata checks.
+Three isolated native bypasses are detected per host.
+The current mutation verifier rejects extra unittest errors. Its five regressions pass in each configured profile.
+Review: spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/primary-review.json.

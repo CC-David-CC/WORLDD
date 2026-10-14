@@ -1,0 +1,60 @@
+Control owner derivation from the retained launch
+Status: Retained-launch binding is integrated after full qualification on both hosts. Complete recovery remains pending.
+
+Invariant
+
+Only the supervisor that retains a live authorized compositor launch can derive its control owner for registration.
+The caller supplies no owner fields.
+
+The owner contains the issuer identity, exact prospective generation, launch authorization, and native scope identity.
+Use the same generation construction for broker registration and issuer fencing.
+Derive the generation from the approved previous generation plus one.
+This identity does not prove that issuer activation occurred.
+It does not prove cleanup or authorize issuer retirement.
+
+Require retained process, native, participant, and authorization context.
+Reject unapproved launches, failed participant channels, released launches, and launches with cleanup in progress.
+Reject broker native scopes. Application control belongs to a compositor launch.
+Reject a reopened journal without the original live ownership handles.
+Reject a started child after its retained process handle reports exit.
+Do not write the journal or change issuer state during this query.
+
+Protocol
+
+Add control_owner as operation 21 in the private AuthorityLaunchRequest envelope.
+Its payload is an empty AuthorityLaunchQuery.
+Return ControlOwner as outcome 14 in AuthorityLaunchReply.
+Retain strict recursive validation and reject caller-supplied unknown fields.
+The production supervisor and the thin test probe call the same AuthorityLaunch method.
+No actor endpoint receives this operation.
+No existing journal schema or locked acceptance assertion changes.
+
+Required checks
+
+Compare the prepared binding with the actual activated generation and checked issuer fence.
+Reject a query before local authorization commits.
+Reject reconstruction from a reopened authorized journal.
+Reject a broker native scope.
+Reject unknown fields without changing the journal.
+Query the actual supervisor while its authorized child runs.
+Run the same checks against the preceding candidate to preserve the missing implementation evidence.
+Run Debug and sanitizer checks on both hosts before integration.
+
+Remaining work
+
+The session coordinator must retain broker communication independently of world processes.
+It must obtain this binding from its retained supervisor instance and register the corresponding world endpoint.
+Keep the broker administrative endpoint with its configured kernel peer.
+Do not pass that endpoint to another process and bypass the per-packet sender check.
+An inherited endpoint identifies its creator. It does not identify the later world process.
+The coordinator must preserve this exact endpoint-to-launch mapping.
+Selective release and durable dependent receipts remain separate required recovery operations.
+
+Integration guard
+
+local/integrate-control-binding-01.py prepares the exact seven-file patch from the frozen owner04 base.
+The apply path requires owner04 integration, both hosts' full binding profiles, and final primary review.
+It checks raw logs, baseline failures, unchanged locks, binary hashes, and compiler monitoring.
+The rejection check preserved all 294 current production source hashes.
+Read evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json.
+This preparation does not integrate the draft or satisfy runtime qualification.

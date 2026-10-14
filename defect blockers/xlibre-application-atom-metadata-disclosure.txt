@@ -1,0 +1,34 @@
+Defect: XLibre application atom metadata disclosure.
+Status: Corrected in focused Debug and core-X sanitizer profiles on both hosts.
+Full M04 qualification remains pending.
+Phase: M04. This does not invalidate the qualified M03 storage milestone.
+
+An application can enumerate names from another application's global atom table.
+GetAtomName returns the name for a supplied foreign atom ID.
+InternAtom with onlyIfExists reveals whether a private name was already declared.
+The baseline leaks across workspaces and between applications in one workspace.
+A byte-swapped client also obtains the private name.
+
+Baseline: Five privacy failures and three positive controls on each host.
+Server SHA256: 5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107.
+Evidence: spatial-os-luna-handoff/evidence/m04-plan-2026-10-11/atom-baseline/.
+Independent witness: tests/native/test_atom_privacy.py.
+
+Proposed correction:
+Track declared dynamic atoms by immutable workspace and application identity.
+Permit predefined atoms and names explicitly interned by that application.
+Return BadAtom for an undeclared dynamic atom name query.
+Return None for an undeclared dynamic atom existence probe.
+Share declarations between live connections with the same application identity.
+Release declaration memory when the last application connection closes.
+Keep supervisor and compositor inspection available.
+Bound each application declaration set to 65536 dynamic atoms.
+Return BadAlloc when the declaration set cannot grow.
+
+Patch: server/patches/0008-application-atom-privacy.patch.
+Implementation: server/xlibre/spatialsecurity.c and spatialsecurity.h.
+Required checks: Debug and native-server ASan/UBSan on both hosts.
+Related regressions: identity, resource, selection, and extension isolation.
+
+Independent selection namespaces and asynchronous event metadata remain separate M04 work.
+This correction does not claim removal of timing or allocation-count side channels.

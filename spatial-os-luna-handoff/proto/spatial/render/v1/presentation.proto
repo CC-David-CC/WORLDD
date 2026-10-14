@@ -1,0 +1,55 @@
+syntax = "proto3";
+package spatial.render.v1;
+import "core.proto";
+import "compositor_native.proto";
+import "broker.proto";
+import "process_scope.proto";
+import "native_scope.proto";
+message PresentationEmpty {}
+// Attach carries exactly two descriptors: world channel, then its retained pidfd.
+message PresentationAttach {
+  WorldPresentationBinding binding = 1;
+  uint64 world_pid = 2;
+  // Required together for supervisor-backed cleanup recovery.
+  spatial.workspace.v1.ControlOwner owner = 3;
+  spatial.supervisor.v1.ProcessScopeIdentity process = 4;
+}
+message PresentationRecovery {
+  WorldPresentationBinding binding = 1;
+  spatial.supervisor.v1.ProcessScopeStopped process_stopped = 2;
+  spatial.supervisor.v1.NativeScopeStopped native_stopped = 3;
+}
+enum PresentationStage { PRESENTATION_STAGE_UNSPECIFIED = 0; ATTACHED = 1; READY = 2; RETIRED = 3; UNCERTAIN = 4; }
+message PresentationState { WorldPresentationBinding binding = 1; PresentationStage stage = 2; bool selected = 3; }
+message PresentationControlRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    PresentationAttach attach = 10;
+    WorldPresentationBinding select = 11;
+    WorldPresentationBinding detach = 12;
+    WorldPresentationBinding inspect = 13;
+    PresentationEmpty shutdown = 14;
+    PresentationRecovery recover = 15;
+  }
+}
+message PresentationControlReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.RendererReady ready = 3;
+    PresentationState state = 4;
+    spatial.core.v1.Error error = 5;
+    bool shutting_down = 6;
+  }
+}
+// A channel is bound by the control owner. The world cannot choose its binding.
+// The first hello carries exactly one sealed world-scoped input configuration.
+message PresentationWorldRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation { PresentationEmpty hello = 3; spatial.core.v1.RenderCommand command = 4; }
+}
+// A capture command carries one private empty writable regular file descriptor.
+// The world owns its path. The compositor writes PPM bytes and returns no path.
+// World replies use core.RenderResult with the same request identity.

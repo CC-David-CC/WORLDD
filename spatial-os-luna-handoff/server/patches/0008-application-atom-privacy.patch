@@ -1,0 +1,21 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -1122,7 +1122,7 @@
+         return BadValue;
+     }
+     tchar = (char *) &stuff[1];
+-    atom = MakeAtom(tchar, stuff->nbytes, !stuff->onlyIfExists);
++    atom = SpatialSecurityInternAtom(client, tchar, stuff->nbytes, !stuff->onlyIfExists);
+     if (atom == BAD_RESOURCE)
+         return BadAlloc;
+ 
+@@ -1148,7 +1148,8 @@
+     if (client->swapped)
+         swapl(&stuff->id);
+ 
+-    if (!(str = NameForAtom(stuff->id))) {
++    if (!SpatialSecurityAtomVisible(client, stuff->id) ||
++        !(str = NameForAtom(stuff->id))) {
+         client->errorValue = stuff->id;
+         return BadAtom;
+     }

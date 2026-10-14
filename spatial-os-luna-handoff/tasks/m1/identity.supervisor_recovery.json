@@ -1,0 +1,115 @@
+{
+  "id": "identity.supervisor_recovery",
+  "phase": "M02",
+  "parent": "identity.revocation_barrier",
+  "status": "in_progress",
+  "current_step": "m02_failure_evidence_and_gate_audit",
+  "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
+  "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
+  "evidence": "evidence/participant-recovery-2026-10-09",
+  "baseline": {
+    "candidate": 4,
+    "profile": "Debug",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "checks_per_host": 2,
+    "world_result": "World and compositor exit preceded native release. Confirmed cleanup still left one pending obligation and blocked replacement.",
+    "broker_result": "Five pinned descendants exited. Confirmed cleanup still left one pending obligation and blocked replacement.",
+    "recovery_qualified": false
+  },
+  "remaining": [
+    "Follow tasks/m1/identity.control_recovery.json for the current integrated recovery evidence.",
+    "Complete the remaining requirement audit, resolve preserved intermittent failures, and run the full M02 gate on both hosts."
+  ],
+  "process_scope": {
+    "candidate": 3,
+    "source_files": 258,
+    "checks_per_profile": 10,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "integrated": false,
+    "evidence": "evidence/authority-process-scope-2026-10-09"
+  },
+  "native_scope_task": "tasks/m1/identity.native_scope.json",
+  "combined_candidate": {
+    "candidate": 1,
+    "source_files": 264,
+    "evidence": "evidence/authority-scopes-combined-2026-10-09",
+    "status": "Both full profiles passed on both hosts:1260core81suites51harness151P10 perprofile",
+    "integrated": false
+  },
+  "prepared_launch_task": "tasks/m1/identity.prepared_launch.json",
+  "launch_coordinator_task": "tasks/m1/identity.launch_coordinator.json",
+  "service_incarnation_task": "tasks/m1/identity.service_incarnation.json",
+  "supervisor_registry_task": "tasks/m1/identity.supervisor_registry.json",
+  "launch_authorization_task": "tasks/m1/identity.launch_authorization.json",
+  "owned_participant_task": "tasks/m1/identity.owned_participant.json",
+  "participant_relay_task": "tasks/m1/identity.participant_relay.json",
+  "authority_supervisor_task": "tasks/m1/identity.authority_supervisor.json",
+  "native_configuration_ownership": "docs/NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt",
+  "current_supervisor": {
+    "source_files": 294,
+    "integrated": true,
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "full_debug": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+    "full_runtime_sanitizers": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+    "evidence": "evidence/supervisor-crash-fencing-2026-10-09",
+    "remaining": "Dependent control cleanup, verified cleanup receipts, issuer retirement, replacement recovery, and cross-host cancellation."
+  },
+  "supervised_broker_participation_task": "tasks/m1/identity.supervised_broker_participation.json",
+  "supervisor_world_handoff_task": "tasks/m1/identity.supervisor_world_handoff.json",
+  "supervised_world_participation_task": "tasks/m1/identity.supervised_world_participation.json",
+  "authority_fencing_task": "tasks/m1/identity.authority_fencing.json",
+  "real_world_fencing": {
+    "reviewer": "primary agent",
+    "source_files": 292,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "checks_per_profile": 2,
+    "failed": 0,
+    "skipped": 0,
+    "source_changed": false,
+    "integrated": false,
+    "scope": "Real owned world crash, checked native/process cleanup, exact fence authorization, denied service key and mismatched launch, preserved issuer obligation.",
+    "limitation": "The diagnostic signs the issuer request. The production supervisor still needs automatic fence, cleanup receipt, and retirement coordination.",
+    "remaining": [
+      "Complete cumulative world and fencing qualification.",
+      "Integrate reviewed source.",
+      "Connect the production supervisor to exact fencing and verified cleanup receipts.",
+      "Verify dependent control cleanup before issuer retirement.",
+      "Test replacement, recovery races, and cross-host cancellation."
+    ]
+  },
+  "supervisor_fencing_task": "tasks/m1/identity.supervisor_fencing.json",
+  "historical_supervisor": {
+    "source_files": 283,
+    "integrated": true,
+    "commit": "f4c41482aa9d92eec42436bf0c73dadb8674a6e5",
+    "full_debug": "Both hosts passed1393 core checks across93 suites,51 harness checks,151 P10 cases.",
+    "full_runtime_sanitizers": "Both hosts passed the same1393/93+51+151 with zero failures or skips.",
+    "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
+    "remaining": "World full qualification/integration, fencing, verified recovery, and issuer retirement."
+  },
+  "control_recovery_task": "tasks/m1/identity.control_recovery.json",
+  "historical_remaining_before_control_recovery": [
+    "Bind control reservations to retained exact recovery ownership.",
+    "Verify dependent application-control cleanup before retirement.",
+    "Persist verified cleanup receipts and retire only the exact fenced issuer generation.",
+    "Test replacement recovery, concurrent revocation, replay, and issuer or supervisor failure.",
+    "Complete cross-host cancellation and full M02 qualification."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "identity.owned_participant",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "invariant": "A supervised child executes only after durable approval of its coordinator-owned participant connection.",
+  "contract": "docs/AUTHORITY_OWNED_PARTICIPANT.txt",
+  "candidate": 1,
+  "source_files": 274,
+  "integrated": false,
+  "evidence": "evidence/owned-participant-2026-10-09",
+  "baseline": "Both hosts reproduced missing start protection and unsupported attachment. Independent children confirmed execution in exact owned cgroups without approval.",
+  "focused": "Both hosts passed339checks21suites51harness in Debug and runtime ASan/UBSan;0failures0skips.",
+  "remaining": [
+    "Complete full qualification on both hosts.",
+    "Connect worldd and workspaced through a private inherited participant channel.",
+    "Implement fencing, checked recovery reconciliation, and exact generation retirement."
+  ],
+  "setup_failure": "Original output01 passed328checks20suites; native-input dependencies were absent, so11checks remained unrun. Original failure preserved; output02 builds all targets without source or assertion changes.",
+  "full_Debug": "Both hosts passed1339core87suites51harness151P10; no failures or skips. Runtime sanitizer active."
+}

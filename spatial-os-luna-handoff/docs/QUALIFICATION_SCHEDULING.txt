@@ -1,0 +1,99 @@
+Qualification scheduling on the world hosts
+
+Scope
+
+Run Linux qualification on sb16 and sb16-2.
+Both hosts may qualify the same frozen source in parallel.
+Run one cumulative qualification job per host.
+Do not run compiler workloads during that host's cumulative qualification.
+Build first. Then run Debug and runtime sanitizer profiles against the frozen binaries.
+Keep the operator's session and recovery route available.
+
+Reason
+
+The issuer performs synchronous durable database writes before it acknowledges authority changes.
+The transport tests use a 700 ms client deadline.
+The production client's default deadline is 5000 ms.
+These configured bounds have different purposes. Do not change either bound to obtain a pass.
+
+A diagnostic reproduced an 881 ms issuer event-loop gap during a two-job compiler workload.
+The participant client exceeded its configured deadline and disabled authority.
+A syscall trace then reproduced similar failures on sb16-2.
+Five consecutive fdatasync calls took 1.021265 seconds in one failed scenario.
+The corresponding issuer event-loop gap was 1035 ms.
+A second sequence took 0.783983 seconds and corresponded to an 800 ms gap.
+The same workspace-authority suite passed after the compiler exited.
+
+The trace affects timing. A prior untraced run also recorded the long event-loop gap.
+These results explain a reproduced failure mechanism, not every historical failure individually.
+Preserve original qualification failures and their incomplete profiles.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json.
+
+Qualification rules
+
+Keep assertions, authority checks, durability settings, and test deadlines unchanged.
+Keep ASan, LeakSanitizer, and UBSan enabled in runtime sanitizer qualification.
+Do not use traced diagnostic runs as sanitizer qualification.
+Record the source manifest, binary hashes, commands, and raw results.
+Observe compiler processes during qualification and record unexpected overlap.
+Treat detected overlap as an invalid qualification environment.
+Process sampling can miss short jobs. Also check the jobs started by the driver.
+Do not silently restart or replace a failed run.
+Use a new result directory for each explicit rerun.
+
+Limits
+
+This scheduling rule does not change production timeout or recovery behavior.
+It does not waive native performance, resource, soak, or fault acceptance.
+Storage contention remains part of later native performance evaluation.
+Do not reduce database durability or continue authority use after a failed participant channel.
+
+2026-10-10 residual-writeback evidence
+
+The candidate02 diagnostic failed on sb16 without a live compiler.
+Its issuer spent 1.433958 seconds in two fdatasync calls during a 700 ms activation request.
+The issuer recorded 1487 ms of event-loop work. The concurrent resource samples show substantial filesystem writeback.
+The build ended about 22 seconds earlier. Build and fixture paths share one ext4 filesystem on each host.
+On sb16-2, four fdatasync calls took 0.739860 seconds during a 703 ms release timeout.
+That host's overall stale-reply suite passed. Preserve the distinction between a native cleanup timeout and a failed test.
+Read evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json.
+
+The next scheduling correction must finish build writeback before qualification starts.
+Use sync -f with the build directory as its filesystem selector. Require successful completion before tests.
+Record the command, exit status, elapsed time, and resource samples before and after it.
+Do not add this operation to an active frozen test sequence.
+Do not change client deadlines, database durability, kernel writeback settings, caches, or mount options.
+GNU Coreutils documents -f as synchronizing pending I/O for the filesystem containing the supplied path.
+Source: https://www.gnu.org/software/coreutils/manual/html_node/sync-invocation.html.
+Installed help confirms this option on both hosts. The synchronization step remains unexecuted and unqualified.
+
+The measured stall identifies a delayed operation in candidate02. The timing supports residual build contention.
+It does not prove the cause of every historical failure or qualify operation under arbitrary disk contention.
+Native performance and resource testing must still cover workload contention under production settings.
+
+2026-10-10 retry execution checkpoint
+
+The sb16 retry executed sync -f successfully in 0.039 seconds before testing.
+Both hosts are now running untraced Debug qualification. Full results remain pending.
+Initial passing suites do not establish that synchronization fixes all historical failures.
+
+CMake embeds native evidence paths in systemd-run test arguments during configuration.
+Changing an inherited environment variable cannot override those explicit arguments.
+When reusing the frozen build, change only those generated evidence-directory arguments.
+Preserve the generated file before and after the change.
+Require complete CTest inventory equality except for the exact log-directory replacement.
+Do not change test source, assertions, timeouts, executable bytes, or other metadata.
+The sb16 Debug inventory verified all 26 such argument changes before core execution.
+Read evidence/m02-gate-2026-10-10/untraced03-launch-sb16.json.
+
+2026-10-10 second-host evidence collision
+
+The unchanged original sb16-2 sequence reused its diagnostic native evidence paths during untraced Debug.
+session-operator-revocation failed all three setups because their evidence directories already existed.
+Those cases require exclusive directory creation before their operator assertions.
+Changing inherited environment variables did not override the generated systemd arguments.
+Preserve the completed diagnostic checkpoint and the complete terminal failed attempt.
+Then use the prepared retry with verified generated evidence-path isolation and unchanged binaries.
+Do not delete old evidence directories or accept diagnostic passes as untraced qualification.
+The terminal attempt also failed five session-deferred-fence setups with the same directory collision.
+It passed 122 of 124 core suites. Debug acceptance and runtime sanitizer tests did not execute.

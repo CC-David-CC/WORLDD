@@ -1,0 +1,86 @@
+M02 durability diagnosis: bounded write interference
+
+Status: planned experiment. This is not milestone qualification.
+
+The captured sb16 failure spent 1.433958 seconds in two successful fdatasync calls.
+The client deadline was 700 milliseconds. The issuer handles database work in its TLS loop.
+The older approval and revocation failures lack equivalent issuer traces.
+An induced reproduction cannot prove an uncaptured historical timeline.
+
+Hypothesis
+Concurrent filesystem writeback can stall issuer commits and unrelated participant requests.
+Start pressure only after fixture setup, at the selected operation boundary.
+Compare baseline, pressure, and recovery with the same binaries and original test method.
+
+First selected check
+AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery
+This check requires real activation, revocation delivery, application acknowledgement, and checked cleanup.
+Start the bounded writer immediately before its existing revoke method.
+Do not replace the method or change its assertions.
+
+Limits and evidence
+Use sb16 and the frozen candidate02 runtime-sanitize build.
+Take the qualification lock. Reject concurrent compilers, qualification, and tracers.
+Use one new scratch file. Limit its extent to 512 MiB and total writes to 2 GiB.
+Stop writes after 20 seconds or an explicit stop request.
+Do not change mount settings, kernel settings, database settings, or test deadlines.
+Record source and binary hashes before and after the experiment.
+Record issuer process IDs, monotonic timestamps, disk pressure, and kernel syscall timing.
+Retain failing logs and original exit codes. Report instrumentation failures separately.
+Synchronize the test filesystem before each independent case. Record its duration.
+Exclude scratch data, private fixture state, and credentials from collected evidence.
+
+Decision rules
+Correlate each timeout with its issuer process and syscall interval.
+A passing pressure case does not establish the cause of an older failure.
+A reproduced timeout does not authorize reduced durability or automatic replay.
+Consider workload I/O limits if interference is confirmed.
+Consider serialized database work outside the transport loop only with explicit ordering rules.
+Never publish authority before its durable commit completes.
+Any database-mode change requires durability and crash-recovery tests.
+Keep the completed full qualification matrix unless a source change invalidates affected evidence.
+
+Follow-up: explicit 2000 ms diagnostic client budget
+The unchanged baseline and recovery passed. Write pressure caused a release timeout at 705 ms.
+Three successful issuer fdatasync calls took 1.308466 seconds in the delayed loop.
+The supervisor failed closed. This run did not reproduce the older revocation-read stage.
+The original failure remains a failure.
+
+The user asked whether a two-second timeout is more reasonable.
+Repeat the same baseline, pressure, and recovery comparison with a 2000 ms client configuration.
+Use the existing configuration override. Keep server timeout, idle timeout, assertions, and durability unchanged.
+Record every generated client budget without copying credentials.
+This diagnostic does not change tracked fixture settings, production defaults, or qualification results.
+A pass establishes only the observed run. It does not establish a worst-case storage bound.
+
+Follow-up: existing production client default
+The two-second client also timed out. Its issuer recorded 2948 ms of work in one loop iteration.
+The timeout occurred while acknowledging applied revocation, at 2009 ms.
+Its baseline and recovery passed. The two-second result does not establish a suitable runtime budget.
+Compare the existing 5000 ms client default with the same bounded workload next.
+Omit the diagnostic client timeout field. Verify the pinned client default in production source.
+Keep the original server fixture timeout and test assertions unchanged.
+Use the result to evaluate availability. Do not claim a complete production configuration test.
+
+Reviewed outcome
+The five-second default passed baseline, pressure, and recovery.
+Nine selected runs produced seven passes and two failures, with no skipped case.
+The pressure runs each wrote 1 GiB into a scratch file with a 512 MiB maximum extent.
+All source and binary hashes matched before and after each comparison.
+The collector verified 135 attachments and scanned 59 logs without selected sanitizer markers.
+Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json.
+
+The SSD reports zero media errors, no critical warning, and 33 degrees Celsius.
+The sixteen recent error-log entries report Invalid Field in Command.
+This does not prove healthy worst-case latency or identify every controller error's origin.
+The package tool was extracted under local/m02-storage-health-01. No system package or service changed.
+
+Recommendation
+Retain the existing five-second production client default.
+Keep short deadlines for deliberate timeout tests.
+Propose normal-operation test configuration separately. Do not silently change the 700 ms fixture.
+Measure and contain competing workspace or build writes.
+Investigate transport responsiveness separately from durable commit latency.
+A database worker can preserve transport progress but cannot make a pending durable commit complete sooner.
+Do not authorize actions from stale or uncommitted authority state while database work is pending.
+The original three historical timeout causes remain individually unproven.

@@ -1,0 +1,45 @@
+{
+  "id": "workspace.room_independence",
+  "phase": "P08",
+  "title": "workspace / room independence",
+  "invariant": "Git owns real refs and files. Explicit workspace authority determines confined execution. Rooms do not select workspaces.",
+  "contract_sections": [
+    "4",
+    "5",
+    "8"
+  ],
+  "objective": "Implement the production behavior exercised by the exact listed assertions; preserve the phase invariant.",
+  "acceptance_tests": [
+    "tests.acceptance.test_08_git_processes.GitTests.test_portal_entry_keeps_selection_and_does_not_restart_runtime"
+  ],
+  "suggested_production_roots": [
+    "src/world/",
+    "src/platform/"
+  ],
+  "read_first": [
+    "AGENTS.md",
+    "docs/CONTRACT.md",
+    "tests/acceptance/test_08_git_processes.py"
+  ],
+  "prior_gate": "P07",
+  "diagnostic_commands": [
+    "python3 tools/gate.py --through P08 --case tests.acceptance.test_08_git_processes.GitTests.test_portal_entry_keeps_selection_and_does_not_restart_runtime"
+  ],
+  "completion_command": "python3 tools/gate.py --through P08",
+  "command_note": "Set SPATIAL_SUT to the real JSON argv before these commands, or pass --sut with that same JSON argv. P04+ also requires the explicit dedicated test display.",
+  "steps": [
+    "Read the named assertions and relevant normative contract sections.",
+    "Run the focused case and retain the failing evidence.",
+    "Implement the smallest production change; do not put product logic in the harness.",
+    "Run the focused cases and inspect independent evidence.",
+    "Run the unfiltered cumulative gate and inspect regressions.",
+    "Record commit, evidence and a representative mutation result before closing the phase."
+  ],
+  "helper_rule": "After two failures on the same invariant, delegate a bounded diagnosis with exact evidence; Luna reviews and runs all tests.",
+  "forbidden_changes": [
+    "locked acceptance/oracle/gate changes merely to pass",
+    "fake native events or screenshots",
+    "a parallel test-only world/renderer",
+    "silent weakening or skipping of earlier gates"
+  ]
+}

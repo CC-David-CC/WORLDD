@@ -1,0 +1,28 @@
+{
+  "id": "authority.store",
+  "phase": "M02",
+  "scope": "Persistent domain grants and structural delegation",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/AUTHORITY_STORE.md",
+  "invariant": "Each authorized operation has one active grant chain, and every delegated grant narrows its parent's explicitly delegable authority.",
+  "production_roots": ["src/authority/", "proto/spatial/authority/v1/grants.proto"],
+  "counterexample_suite": "tests/core/test_authority.py",
+  "focused_command": "ctest --test-dir build -V -R '^authority-store$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Full P00-P10 baseline and unchanged locked assertions",
+    "Real SQLite persistence, restart, process death, and transactional failure",
+    "Structural scope, rights and depth attenuation, and administration separation",
+    "Parent revocation, inactive ancestors, and surviving independent grants",
+    "A counterexample detects removal of ancestor revocation enforcement"
+  ],
+  "limitations": [
+    "The store does not authenticate caller-supplied actor references.",
+    "The fixture driver is not an actor endpoint or a world implementation.",
+    "Worldd and workspaced integration remains required.",
+    "Nonempty bootstrap profiles and live cancellation remain required.",
+    "This component does not implement resource budgets or distributed revocation acknowledgement."
+  ],
+  "next_components": ["authority.world", "authority.workspace", "identity.bootstrap_profile", "identity.world_session"]
+}

@@ -1,0 +1,75 @@
+Authenticated retirement after external cleanup
+Status: Issuer, client, and retained coordinator integration pass focused checks. Complete M02 qualification remains pending.
+
+Invariant
+
+Retire only one exact fenced service generation after authenticated supervisor proof.
+Bind the proof to the exact durable cleanup bytes through their SHA-256 digest.
+World retirement uses its dependent-cleanup record. Broker retirement uses its checked stopped launch record.
+Read BROKER_RETIREMENT.txt for the explicit broker journal layout.
+Keep the original fence and historical obligations.
+Do not change the service's applied_revision.
+Do not infer external cleanup from a closed connection, inactive process, or supplied digest alone.
+The trusted coordinator signs only after it verifies and persists actual cleanup.
+The issuer verifies the authorized signer and exact generation. It cannot inspect remote kernel effects.
+An issuer outage may leave checked failed-supervisor cleanup without its original fence.
+Read DEFERRED_RECOVERY_FENCE.txt for retained recovery ownership and separate fence persistence before retirement.
+The original cleanup digest and the issuer retirement protocol remain unchanged.
+
+Protocol
+
+Add AUTHORITY_RETIREMENT signature purpose 8.
+Add AuthorityRetireBegin with owner field 1, fence_id field 2, and cleanup_sha256 field 3.
+Owner uses the existing AuthorityFenceBegin and all its exact identity fields.
+Require a 32-byte fence ID and 32-byte cleanup digest.
+Add retirement request operations 32 and 33 and retirement reply field 29.
+Use a fresh, expiring challenge bound to the server-derived TLS connection and issuer incarnation.
+Use audience identityd/authority-retirement/v1.
+Keep owner, service, launch, fence, and retirement signature purposes separate.
+Only the registered supervisor key for that consumed launch may complete the proof.
+Revalidate the durable fence, generation, registration, and supervisor binding at completion.
+Consume each nonce once, including failed proofs and cross-connection attempts.
+
+AuthorityRetirementState records the issuer, exact request, registration, supervisor key, and unique retirement ID.
+It also records the security revision and unchanged applied revision at retirement.
+Return the original result for a fresh authenticated retry of the identical request.
+Reject a changed cleanup digest or fence after retirement.
+Persist retirement and deactivate the exact generation in one transaction.
+Failure must preserve the active generation and pending obligations.
+
+History and replacement
+
+Add an optional retirement record to each AuthorityBarrierObligation.
+An obligation is complete when its revision was applied or its exact generation was retired.
+Retirement never deletes obligations or pretends unapplied events were processed.
+Keep revocations committed before retirement covered, including events after fencing.
+Revocations after retirement do not create new obligations for the inactive generation.
+Do not affect another participant or a replacement generation.
+Keep old service sockets fenced. Never reuse their launch authorization or process incarnation.
+A replacement requires a new service connection, supervisor authorization, and current revision synchronization.
+An exact retirement retry after replacement must not change the replacement.
+
+Storage
+
+Migrate issuer SQLite user_version 9 to 10 only with the explicit migration option.
+Add authority_retirement with one immutable row per fenced participant and generation.
+Keep the existing issuer key and all previous tables and revisions.
+Create the new table and update user_version in one transaction.
+Preserve the existing private-file, locking, and SQLite durability requirements.
+This increment changes fixture databases only. Do not migrate normal host services during development.
+
+Checks
+
+First preserve a missing-retirement failure against the frozen current issuer.
+Test the issuer and its production client through real TLS and independent signatures.
+Cover exact retirement, pending barriers, unchanged history, and unrelated active participants.
+Cover fresh retries, lost replies, changed receipts, restart, and replacement authorization.
+Reject wrong keys, purposes, connections, expired or replayed proofs, malformed fields, and absent fences.
+Inject transaction failures and prove rollback before retry.
+Use independent TLS peers to test challenge, result, and barrier-response substitution.
+Verify explicit schema migration and failed migration rollback.
+Run affected identity, fencing, launch, barrier, migration, and dependent-cleanup checks in both profiles.
+Retained world and broker signers require actual checked cleanup before signing.
+World retirement accepts durable live-broker control recovery or checked stopped-broker scope recovery.
+Read STOPPED_BROKER_DEPENDENCIES.txt for the two distinct proof versions.
+Full M02 qualification remains pending on both hosts.

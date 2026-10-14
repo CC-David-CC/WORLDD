@@ -1,0 +1,151 @@
+{
+  "id": "workspace.resources",
+  "phase": "M03",
+  "status": "qualified",
+  "contract": "docs/M03_QUALIFICATION_AUDIT.txt",
+  "invariant": "Every workspace process and descendant remains inside its effective aggregate resource budget. Exhaustion cannot widen authority or produce a false durable acknowledgement.",
+  "required": [
+    "Define workspace and application budgets for aggregate memory, processes, CPU, storage, and competing I/O.",
+    "Derive effective application budgets from workspace policy, launching actor authority, and requested profile.",
+    "Apply limits before releasing held application startup. Keep resource-control paths and descriptors outside the application.",
+    "Account for project files, Git objects, application state, cache, temporary files, and trash within bounded workspace storage.",
+    "Verify inheritance after fork, exec, detachment, and broker recovery.",
+    "Verify independent applications and workspaces retain usable authority after another exhausts its budget.",
+    "Use independent bounded exhaustion and escape witnesses on both hosts in Debug and runtime sanitizers.",
+    "Qualify issuer availability and safe recovery under bounded competing writes. Preserve durable commit ordering.",
+    "Run the complete M03 phase gate after focused implementation checks pass."
+  ],
+  "known_limitations": [
+    "The complete M03 gate remains pending. Focused evidence does not qualify the milestone.",
+    "The normal root ext4 filesystem does not provide the project storage quota. The dedicated checked Btrfs storage owner supplies bounded workspace storage.",
+    "Project-scoped services delegate I/O on both hosts. Ordinary user delegation still provides cpu, memory, and pids only.",
+    "Both persistent 4 GiB David volumes are provisioned. Provisioning does not start an operator broker or a spatial session.",
+    "The five-second client default remains. Earlier initialization timeout and startup EOF causes remain unproven.",
+    "Filesystem flushes use a joined worker. SQLite remains on the broker thread. Durable acknowledgement ordering remains unchanged."
+  ],
+  "availability_evidence": [
+    "evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json",
+    "evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json",
+    "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
+  ],
+  "remaining": [],
+  "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
+  "current_step": "M03_qualified_source_adopted",
+  "qualified_primitive": {
+    "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
+    "passed": 108,
+    "failed": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "broker_integrated": false
+  },
+  "broker_resource_integration": {
+    "evidence": "evidence/m03-broker-resources-2026-10-10/primary-review.json",
+    "passed": 176,
+    "failed_final": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "session_launchers_provisioned": false
+  },
+  "session_resource_handoff": {
+    "evidence": "evidence/m03-session-resources-2026-10-10/primary-review.json",
+    "passed": 172,
+    "failed_final": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "retained_session_handoff_qualified": true,
+    "operator_deployment_qualified": false
+  },
+  "adapter_resource_provisioning": {
+    "evidence": "evidence/m03-adapter-resources-2026-10-10/primary-review.json",
+    "passed": 200,
+    "failed_final": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "existing_test_bodies_unchanged": 46,
+    "operator_deployment_qualified": false
+  },
+  "authenticated_resource_fixture": {
+    "status": "focused_qualification_passed",
+    "evidence": "evidence/m03-authenticated-resources-2026-10-10/primary-review.json",
+    "passed": 144,
+    "failed_final": 0,
+    "skipped": 0,
+    "production_source_changed": false,
+    "existing_test_bodies_unchanged": 40,
+    "phase_complete": false,
+    "operator_deployment_qualified": false,
+    "original_startup_failure_cause": "unknown"
+  },
+  "remaining_increment": "docs/M03_REMAINING_INCREMENT.txt",
+  "operator_storage_and_production_profile": {
+    "status": "focused_qualification_passed",
+    "evidence": "evidence/m03-operator-storage-2026-10-11/primary-review.json",
+    "checks_per_host_per_profile": 115,
+    "total_passes": 460,
+    "phase_complete": false,
+    "operator_session_started": false
+  },
+  "contention_and_fixture_increment": {
+    "status": "reviewed_focused_qualification_passed",
+    "evidence": "evidence/m03-contention-2026-10-11/preserved-review.json",
+    "native_contention_cases_per_host_sanitizer": 3,
+    "preserved_baseline_application_exits_within_two_seconds": 0,
+    "corrected_application_exits": 9,
+    "corrected_exit_seconds": {
+      "sb16": 0.3712779860034061,
+      "sb16-2": 0.7376739589999488
+    },
+    "import_reply_still_pending": true,
+    "locked_files_unchanged": 41,
+    "existing_test_bodies_unchanged": 112,
+    "phase_complete": false,
+    "full_gate_queued_behind_checked_focused_runner": true,
+    "debug_cases_per_host": 367,
+    "debug_suites_per_host": 29,
+    "primary_review": "evidence/m03-contention-2026-10-11/primary-review.json",
+    "current_related_checks_per_host_per_profile": 216,
+    "current_acceptance_cases_per_host_per_profile": 151
+  },
+  "full_gate_candidate_01": {
+    "status": "terminal_failed_both_hosts",
+    "registered_suites": 135,
+    "sb16_debug_failed_suites": 6,
+    "sb16_debug_bounded_storage_git": "passed",
+    "P10_native_witness_environment_failure": "The resource delegate omitted SPATIAL_XPROBE. Thirty-three native cases errored on sb16. No assertions changed.",
+    "correction_manifest": "local/m03-gate-corrections-02.json",
+    "correction_files": 9,
+    "correction_status": "reviewed_selected_checks_passed_both_hosts",
+    "phase_complete": false,
+    "sb16_2_sanitizer_failed_suites": 4
+  },
+  "corrected_candidate_02": {
+    "selected_sb16": {
+      "status": "reviewed_passed",
+      "related_checks_per_profile": 216,
+      "acceptance_cases_per_profile": 151,
+      "debug_review": "evidence/m03-contention-2026-10-11/correction-02-sb16-debug-review.json",
+      "sanitizer_review": "evidence/m03-contention-2026-10-11/correction-02-sb16-sanitizer-review.json"
+    },
+    "selected_sb16_2": "reviewed_passed: 216 related checks and 151 acceptance cases per profile",
+    "full_gate_sb16": "running",
+    "full_gate_sb16_2": "running",
+    "crosshost": "eight scenarios prepared, unrun",
+    "phase_complete": false
+  },
+  "qualification": {
+    "status": "passed",
+    "evidence": "evidence/m03-contention-2026-10-11/M03-final-primary-review.json",
+    "source_commit": "a99b7e46c5151ba47d0a53797b470cae6aaa5d13",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_checkout": "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011",
+    "ordinary_checkout_preserved": true,
+    "local_core_suites_per_host_profile": 135,
+    "local_python_checks_per_host_profile": 1740,
+    "crosshost_cases": 8,
+    "adoption_checks_total": 64
+  }
+}

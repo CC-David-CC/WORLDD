@@ -1,0 +1,200 @@
+Runtime participation and cancellation completion
+Status: required runtime integration. A real world diagnostic reproduces missing participation.
+Dependency: identity.participant_barrier candidate04. Keep all active qualification sources frozen.
+
+Observed gap
+A real TLS actor starts moving in the current world runtime.
+The new issuer commits its revocation and reports a complete barrier with zero participants.
+The diagnostic relay holds the genuine revocation event while the actor continues moving.
+The world never registered or activated an authority participant, so the issuer cannot include it.
+Delivery then stops motion. The issuer's empty obligation set does not establish runtime cancellation.
+This is missing runtime integration, not a passed Spatial-M1 requirement.
+See evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01/sb16.
+
+Required invariant
+Every world or broker that admits protected activity has an active, registered service generation.
+It acknowledges a revision only after its actual cancellation effects and affected handler stack are settled.
+
+Reusable transport component
+Add src/identity/participant_runtime.hpp and participant_runtime.cpp.
+ParticipantRuntime owns its checked issuer TLS client on one worker thread.
+Main-thread poll never waits for network I/O.
+Only activate, applied, and release commands enter its bounded command queue.
+Use existing checked IssuerClient operations. Do not create a second authorization implementation.
+Generate a fresh process incarnation inside the runtime.
+Load the registered service key from an owned private file outside workspace mounts.
+Verify the returned registration matches the configured identity, revision, key, and exact expected authority domains.
+The world derives expected domains from its stable world identity.
+The broker derives expected domains from every configured workspace authority binding.
+Do not infer domains from host names or actor identities.
+
+Proposed additive issuer.proto messages
+AuthorityParticipantRuntimeConfig:
+  uint 32 protocol_version=1; string issuer_client_config=2; string private_key_path=3;
+  bytes participant_id=4; uint64 registered_revision=5.
+ParticipantCommand:
+  uint64 request_id=1;
+  oneof operation: AuthorityActivate activate=10; AuthorityApplied applied=11; AuthorityRelease release=12.
+ParticipantUpdate:
+  uint 32 protocol_version=1; uint64 request_id=2;
+  oneof outcome: AuthorityAuthenticationResult authenticated=10; RevocationBatch revocations=11;
+  AuthorityActivationState activated=12; AuthorityActivationState applied=13;
+  AuthorityActivationState released=14; spatial.core.v1.Error error=15.
+All messages remain internal trusted component messages. They grant no actor access.
+Do not expose this command channel or service keys to workspace applications.
+Preserve existing protobuf field numbers and meanings.
+
+Worker lifecycle
+Authenticate the service on the actual TLS connection.
+Publish a checked revocation baseline before activation.
+Continue polling contiguous events while the authority synchronizes.
+A matching baseline is observed state. It is not permission to admit protected work.
+The authority explicitly requests activation after synchronization and cleanup.
+A concurrent revocation can reject activation with REVISION_CONFLICT.
+Publish that rejection and new feed events. Require a new explicit synchronized activation request.
+Never automatically retry an uncertain mutation.
+Publish activated only after the issuer confirms the durable generation.
+Keep feed and mutation traffic on that original service connection.
+Bound idle feed waits so queued acknowledgements and stop requests make progress.
+Do not advance applied state merely because a feed batch advertises a newer head.
+Require queued application revisions to be contiguous and no newer than events delivered to the consumer.
+Bound both update and command queues. Overflow permanently disables the channel and reports uncertainty.
+A transport failure permanently disables that instance. Do not silently reconnect or replace its generation.
+Clean release requires the authority's explicit quiescence confirmation.
+Destroying the worker stops I/O without claiming release or deleting issuer obligations.
+
+World integration boundary
+IdentitySessions currently owns an IssuerWatcher and an observed_revision.
+Replace the receive-only watcher for actor-serving configurations with ParticipantRuntime.
+Require participation configuration before admitting local or remote actor sessions.
+Keep trusted initialization and management-only startup separate from actor admission.
+Do not restart XLibre or the compositor to activate a world participant.
+Keep observed, locally settled, and issuer-acknowledged revisions distinct.
+Apply revocations on the existing world authority thread.
+Cancel affected motion, previews, authentication completion, observations, and queued protected replies immediately.
+Wait until affected handlers unwind before requesting an application acknowledgement.
+Actors::release_input already checks native cancellation replies.
+Actors::drain_control_releases can defer release while BrokerClient is busy.
+An actor close therefore must not be treated as proof that the broker reservation has been released.
+Expose a production settlement condition that includes deferred releases and native close/reset state.
+Do not acknowledge if any required native cancellation failed or remains uncertain.
+
+Broker integration boundary
+WorkspaceAuthority currently uses a receive-only watcher and invalidates decisions during callbacks.
+Its observer can run while another issuer request is in flight.
+ExecutionStore::reconcile_authority and process reaping occur separately from event receipt.
+Require participant activation for authority-enabled workspace execution.
+Retain each event until grant decisions, application control changes, process authority, and required termination are settled.
+Do not terminate applications merely because a controller credential was revoked.
+Preserve independently valid credentials, grants, and applications.
+Do not acknowledge from a reentrant callback before the outer launch or control operation finishes.
+Coordinate world and broker completion: broker event delivery alone does not prove native input release.
+
+Configuration and fixture migration
+Document exact new world and workspace configuration fields before implementation.
+Require participation for actor-serving worlds and authority-enabled workspace brokers.
+Do not introduce a production bypass that qualifies unregistered execution as Spatial-M1.
+Update affected core fixture bootstrap helpers to register distinct service keys before starting these authorities.
+Keep all locked acceptance files unchanged.
+Preserve every old denial, confinement, native-isolation, and recovery assertion.
+Test missing configuration and domain mismatches as explicit startup failures.
+Test bootstrap with independent worlds and a broker serving multiple workspace domains.
+
+Recovery
+A disconnected or crashed generation remains unresolved at the issuer.
+A second process with the same service key cannot replace it.
+Add a separately reviewed trusted-supervisor fencing and cleanup path before recovery acceptance.
+Require verified native input, process, lease, and observation cleanup before resolving a stranded generation.
+An owner assertion, elapsed timeout, lost socket, or process exit alone is insufficient.
+Do not clear unknown external effects to obtain a successful barrier.
+
+Required independent evidence
+Demonstrate that the current zero-participant diagnostic fails after runtime integration.
+A running world must appear in the committed obligation set.
+Hold the genuine event: owner status stays pending while previously admitted motion continues.
+Release the event: status completes only after motion and all other required effects stop.
+Hold native input cancellation and broker release replies independently; each must retain pending completion.
+Revoke during launch and delayed replies; stale work cannot restore access after acknowledgement.
+Disconnect and restart the issuer or authority; pending obligations survive and replacement is denied.
+Run real native input and process witnesses and both-host delayed-delivery cases.
+Run complete Debug and runtime sanitizer qualification on both hosts before integration.
+Physical input, GPU timing, models, and full Spatial-M1 remain separate mandatory requirements.
+
+Worker implementation checkpoint, 2026-10-09
+An isolated production ParticipantRuntime worker now implements the proposed protobuf component interface.
+Candidate 03 passes 13 real-issuer Debug checks and 96 related regression checks on sb16-2.
+The activation-race witness commits a real revocation before forwarding activation.
+The worker reports REVISION_CONFLICT, delivers the new event, and waits for an explicit synchronized activation request.
+Owner barrier reads and SQLite inspection independently witness activation and acknowledgement state.
+Candidate 04 adds a stalled-handshake command-overflow test. Its two-profile focused qualification is running.
+The worker is not integrated or connected to worldd or workspaced.
+
+Queue contract clarification
+The command queue holds at most 128 outstanding commands, including unread command results.
+Request IDs must be unique among outstanding commands. Zero is a valid request ID.
+Consume all previous command results before submitting release.
+A release request rejects subsequent submissions to prevent silently stranded commands.
+The update queue holds at most 256 updates.
+Receiving a feed update advances only the consumer-delivered cursor. It does not acknowledge cancellation.
+The worker rejects skipped, future, and wrong-generation acknowledgements before sending them.
+The consumer remains responsible for proving effects have settled before submission.
+
+Configuration fields selected for runtime integration
+Add string participant_runtime_config = 7 to WorldIdentityConfig.
+Add string participant_runtime_config = 4 to WorkspaceAuthorityConfig.
+Each path identifies an owned private AuthorityParticipantRuntimeConfig file.
+Actor-serving worlds and authority-enabled brokers require this path before protected activity.
+Keep trusted management-only world creation available without actor admission.
+Require the participant issuer to match the existing configured actor issuer.
+Derive expected domains from the persisted world identity or all configured workspace bindings.
+A clean shutdown must settle effects and explicitly release its generation before permitting replacement.
+An uncertain shutdown retains the issuer's unresolved generation for verified supervisor recovery.
+
+Focused verification update
+Candidate04 passes 14 new worker checks and 96 related regression checks on sb16-2 in Debug and runtime ASan/UBSan.
+All 244 source hashes and 41 locked files match. The schema preserves 265 existing messages and adds 3 messages.
+The matching sb16 focused qualification is running.
+
+World integration checkpoint, 2026-10-09
+Candidate03 requires WorldIdentityConfig participant_runtime_config and registers its persisted world domain.
+It acknowledges only from the outer loop after actor cancellation and pending control releases settle.
+It invalidates late replies when an operation's session was cancelled during a component wait.
+Clean shutdown explicitly releases the generation. Uncertain shutdown retains the unresolved generation.
+On sb16, each Debug and runtime sanitizer profile passes six world, two native, and fourteen worker checks.
+The independent native client witnesses held input release without a management fence from worldd.
+The sb16-2 Debug checks passed. Its sanitizer run remains active.
+Both-host worker focused qualification also passed fourteen new and ninety-six related checks per profile.
+Broker integration, broad regression, and supervisor fencing remain pending. Nothing here completes M02.
+
+Both-host focused world result
+Candidate03 passed six world, two native cancellation, and fourteen worker checks in each profile on both hosts.
+Each host passed Debug and runtime ASan/UBSan. Source and lock hashes match.
+The world implementation remains isolated pending broader fixture migration and qualification.
+
+Broker integration checkpoint, 2026-10-09
+WorkspaceAuthorityConfig field4 is implemented in the isolated broker draft.
+Activation verifies the configured issuer and exact workspace domains before protected activity.
+The outer loop settles only after dispatch, process reconciliation, and revoked reservation release.
+Newly consumed actor events prevent acknowledgement until their process effects are reconciled.
+Protected replies are invalidated when revocation occurs during dispatch. Confirmed control-release replies remain deliverable.
+Clean shutdown records interrupted jobs as uncertain, requires no reservations, and explicitly releases its generation.
+Native broker witnesses confirm that process exit alone does not clear an unreleased control reservation.
+Candidate01 and candidate02 focused Debug results are recorded in evidence/workspace-participant-2026-10-09.
+Both-host Debug and runtime sanitizer focused qualification is running. Integration and full M02 remain pending.
+
+Broad integration correction
+The late-reply guard invalidates successful protected outcomes after revocation.
+Preserve an existing typed error outcome. Do not replace UNAVAILABLE with UNAUTHORIZED after a failed operation.
+The broker Reply schema has one outcome, so an error does not retain a protected success payload.
+Existing workspace retry assertions exposed this regression and now pass unchanged on the corrected draft.
+Registered-service fixtures preserve distinct keys, exact domains, and service identity across clean restarts.
+All original test methods remain unchanged. The full combined qualification uses candidate04 in output05.
+
+
+Native settlement correction, candidate06
+A native credential destructor can lose its checked revoke reply during process reconciliation or reaping.
+Check the native authority channel after those effects and before submitting any issuer acknowledgement.
+Do not rely on the next loop iteration to discover that failure.
+The same checked reconciliation applies before a clean participant release.
+The isolated correction passes 81 focused Debug checks on each host. Full qualification remains pending.
+See evidence/participant-native-settlement-2026-10-09 for the original failure and diagnostic scheduling limits.

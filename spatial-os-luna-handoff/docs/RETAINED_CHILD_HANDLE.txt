@@ -1,0 +1,53 @@
+Retained child handle: coordinator integration prerequisite
+Status: The development branch implements the private handle server. Coordinator reception is implemented through ChildHandleClient.
+
+Observed source
+
+ProcessScope retains child_ and pidfd_ privately.
+Its public interface now duplicates the retained live pidfd after process-lifetime checks.
+ProcessScopeState contains no direct child PID or process descriptor.
+AuthorityLaunch retains ProcessScope through its private implementation.
+AuthorityLaunchRecord contains durable scope identity, not live kernel handles.
+The supervisor management stream still carries framed protobuf bytes without ancillary descriptors.
+A separate optional private socket transfers broker handles. Read CHILD_HANDLE_PROTOCOL.txt for the additive contract.
+
+Required behavior
+
+The coordinator must authenticate replies from the exact supervised broker child.
+The administrative socket creator is the coordinator, not that child.
+A journal record cannot supply a live process handle.
+Do not replace the retained child identity with PID discovery or command-name matching.
+Do not accept the first administrative sender as proof of ownership.
+
+Next production interface
+
+Provide a narrowly scoped live child-handle query from the retained supervisor.
+Return a duplicate of the existing pidfd, not a newly opened PID lookup.
+Correlate the transfer with the exact launch and private parent request.
+Require a started, authorized, live launch with retained process ownership.
+Reject reopened journals, stopped scopes, failed authorization, and unrelated launch identities.
+Use a descriptor-capable private channel with bounded framing and credential checks.
+Close received descriptors on every rejected or uncertain reply.
+Keep the original supervisor pidfd until checked process teardown completes.
+Do not give this descriptor to worlds, actors, or workspace applications.
+
+The additive protobuf messages and private socket contract are recorded in CHILD_HANDLE_PROTOCOL.txt.
+Keep all locked acceptance files unchanged unless a separate reviewed contract change requires otherwise.
+
+Independent acceptance
+
+Transfer the exact live broker child's pidfd through the production supervisor path.
+Verify its kernel PID matches the authenticated administrative reply sender.
+Reject another launch's handle, a dead handle, ordinary files, and duplicated reply descriptors.
+Reject queries before authorization and after teardown.
+Reject recovery from serialized journal identity alone.
+Run the coordinator, supervised broker, and supervised world through production paths.
+The existing packet witness is transport evidence only.
+It does not establish this coordinator mapping or prove selective cleanup.
+
+2026-10-10 implementation update
+
+ChildHandleClient receives the retained supervisor's broker pidfd through the private protobuf channel.
+SessionBroker owns that handle and both broker management channels independently of future world launches.
+Fifteen receiver cases and four real broker lifecycle cases passed both focused build profiles on sb16.
+World registration, selective recovery, and complete M02 qualification remain pending.

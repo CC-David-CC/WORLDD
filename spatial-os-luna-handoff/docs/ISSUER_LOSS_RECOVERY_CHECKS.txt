@@ -1,0 +1,40 @@
+Issuer loss during native recovery
+
+First invariant
+An issuer outage must stop unsafe execution and preserve pending revocation obligations.
+After restart, retained production ownership must permit verified cleanup and exact retirement.
+Do not reconstruct ownership from a PID, journal, or caller assertion.
+Do not treat process exit, elapsed time, or issuer restart as cancellation completion.
+
+Baseline scenario
+Use the existing native production session and pinned Debug binaries.
+Hold native input in a real confined application.
+Pin the world, compositor, broker descendants, and supervisors before fault injection.
+Pause only the fixture world and broker through those pidfds.
+Commit a real credential revocation. Require two pending obligations with applied revision zero.
+Kill the exact fixture issuer process.
+Crash the exact owned world and broker through retained pidfds while the issuer remains unavailable.
+Let production supervisors stop their owned scopes.
+Require checked native and process receipts and stopped pinned descendants.
+Keep an independent native credential valid. Preserve uncommitted workspace data.
+Restart identityd on the same retained listener and persistent fixture database.
+Require the original pending obligations to remain unchanged.
+Use production dependency recovery and retirement operations through the retained coordinator.
+Require completion only after exact checked retirement. Preserve applied revision zero.
+Preserve any rejected recovery reply as baseline evidence.
+
+Selection
+First run this baseline in Debug on sb16.
+Do not change production code or existing deadlines before observing the result.
+Preserve source, command, binary, native, process, and issuer evidence.
+If the baseline exposes a missing recovery path, specify that path before implementation.
+Then add focused regression, rejection, interruption, and sanitizer checks for the changed boundary.
+Full M02 qualification remains pending on both hosts.
+
+Baseline correction
+Candidates 01 and 02 incorrectly expected issuer loss to terminate management daemons automatically.
+Candidate 02 observed terminated application processes, with surviving world, compositor, broker, and supervisors.
+Native input was released. Identity access was disabled.
+These observations do not prove complete scope cleanup or retirement.
+Candidate 03 adds the actual child crashes required to exercise supervisor recovery during issuer loss.
+Keep the original failures. Do not change production deadlines or existing acceptance requirements.

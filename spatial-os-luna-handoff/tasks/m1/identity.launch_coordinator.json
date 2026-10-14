@@ -1,0 +1,22 @@
+{
+  "id": "identity.launch_coordinator",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "invariant": "Persist exact launch ownership before execution and checked owned-scope receipts before reporting cleanup.",
+  "contract": "docs/AUTHORITY_LAUNCH_COORDINATOR.txt",
+  "source_files": 270,
+  "candidate": 3,
+  "integrated": false,
+  "evidence": "evidence/authority-launch-coordinator-2026-10-09",
+  "baseline": "Missing durable record witnessed on both hosts; candidate01 partial prepared-commit cleanup failed on both hosts.",
+  "candidate01": "28 focused and51harness passed each profile on both hosts; additional partial-commit failure excludes integration.",
+  "candidate02": "42 of43 focused checks passed perhost; one new fixture assertion failed. Full remaining Debug and runtime profiles unrun.",
+  "remaining": [
+    "Integrate only after the remaining authenticated launch and recovery boundaries are qualified.",
+    "Bind service incarnation to authenticated supervisor launch authorization.",
+    "Implement restart reconciliation through trusted process/native ownership evidence.",
+    "Verify external broker reservation release before issuer retirement."
+  ],
+  "candidate03": "Full Debug and runtime ASan/UBSan passed both hosts:1282core83suites51harness151P10, zero failures or skips."
+}

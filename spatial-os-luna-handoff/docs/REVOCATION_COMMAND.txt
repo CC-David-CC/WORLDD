@@ -1,0 +1,53 @@
+Operator revocation and cancellation completion
+
+Status: implementation increment for M02. Full qualification remains pending.
+This adds an operator command. It preserves existing issuer messages and database schemas.
+
+Run spatial-revoke --config ABSOLUTE_TLS_CONFIG --key ABSOLUTE_OWNER_KEY.
+Send one framed RevocationCommand protobuf and EOF. Read one framed RevocationResult.
+The command uses the pinned issuer transport and an issuer-owner signing key.
+The owner key stays in local configuration. Never put it in Git or a workspace.
+The raw spatial-issuer-client remains a diagnostic transport. Its identity_status reply confirms only a commit.
+
+Add these messages to proto/spatial/identity/v1/issuer.proto.
+RevocationCompletionRead has target=1 and revision=2.
+RevocationCommand has protocol_version=1, revoke=2 or resume=3, and optional wait_ms=4.
+RevocationResult has protocol_version=1, target=2, state=3, optional revision=4, barrier=5, and error=6.
+RevocationCommandState uses unspecified=0, not_submitted=1, commit_uncertain=2, committed=3, complete=4, rejected=5.
+These messages are local command interfaces. They do not add unsigned issuer operations.
+
+A revoke request requires a target and expected security revision.
+Read the target first. Reject an already revoked target and direct the operator to explicit resume.
+Check every administration challenge before signing. Bind its issuer, owner, operation, nonce, incarnation, purpose, and audience.
+Send the mutation once. Never reconnect or replay it automatically.
+Validate the returned identity, revoked state, and exact next revision before reporting committed.
+A lost or invalid mutation reply reports commit_uncertain, with the candidate revision for explicit reconciliation.
+Definitive authorization, validation, target, and revision rejections report rejected.
+Other mutation errors remain uncertain. A transaction error cannot prove that an external observer received no commit.
+
+After commit, query the exact revision through authenticated barrier reads.
+Require the barrier target to match the requested target.
+Global pending_count covers all obligations, including obligations beyond the returned page.
+Only a checked barrier with complete=true reports complete and exit status zero.
+A pending barrier, timeout, or transport failure never reports complete.
+Retain committed status and the latest checked barrier when a later read fails.
+The barrier is an observation, not a current connection or authority lease.
+
+Resume accepts an explicit target and positive revision. It performs no identity mutation.
+It starts with unverified commit status. A checked matching barrier proves the commit.
+An unrelated revision cannot satisfy the requested target.
+Issuer restart preserves barriers. Resume creates a new explicitly requested connection.
+The wait budget is 50 through 60000 milliseconds, with a 5000 millisecond default.
+It bounds the completion phase using a monotonic clock, including network waits.
+Initial connection and mutation use the configured issuer I/O deadlines.
+Input framing still requires the caller to finish its one request and close stdin.
+
+Focused checks selected before implementation
+
+New command tests: real commit, pending cancellation, acknowledgement completion, explicit resume, issuer restart,
+wrong revision target, credential versus actor targets, stale revisions, duplicate revocation, invalid input, and wrong owner.
+Independent TLS fault peers: substituted challenges and replies, lost commit replies, and failed completion reads.
+Assert one mutation at most, no automatic reconnect, and preserved pending obligations.
+Related suites: issuer client, identity revocation, participant barrier, and checked barrier client.
+Run the selected checks in Debug and runtime ASan/UBSan on sb16.
+Both-host full qualification remains at the M02 phase gate.

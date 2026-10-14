@@ -1,0 +1,254 @@
+Session control coordinator
+Status: Partial production implementation. SessionCoordinator owns the broker and registers retained world launches. Complete control recovery remains unfinished.
+
+Invariant
+
+The session retains broker management independently of every world launch.
+Each world endpoint maps to one retained, authorized compositor launch.
+A world failure closes only that world's control path.
+It does not close broker management or stop independently authorized applications.
+
+Existing implementation boundaries
+
+src/platform/broker.cpp provides BrokerProcess and BrokerClient.
+BrokerProcess starts workspaced directly. It does not provide supervised authority launch ownership.
+src/platform/worker.cpp uses that path for the conformance host.
+Do not promote that fixture launch into the production session coordinator.
+
+src/supervisor/main.cpp supervises one authorized process launch.
+It retains process scope, native scope, participant connection, and launch authorization.
+Its private parent channel supports lifecycle operations.
+The binding01 candidate adds a control_owner query derived from those retained handles.
+That query does not activate a generation or prove cleanup.
+
+The owner04 broker candidate accepts separate root, administrative, and world channels.
+Root EOF still shuts down workspaced and its applications.
+Administrative failure fences admitted world channels but preserves reservations and application execution.
+World-channel failure affects only its immutable owner.
+
+Required process and descriptor ownership
+
+Add one production session coordinator above the existing per-launch supervisors.
+Keep the broker supervisor independent of all world supervisors.
+Launch the broker through the existing authorized supervisor path.
+Retain the broker root channel in the session coordinator.
+Create the broker administrative socket pair in that same coordinator process.
+Pass only the broker endpoint through its supervisor into workspaced.
+Configure the administrative peer as the coordinator, not the intermediary supervisor.
+Keep the administrative sender endpoint in the coordinator for its complete lifetime.
+
+Create each world socket pair in the coordinator.
+Pass the world endpoint only to the corresponding retained world supervisor and child.
+Close unused endpoint copies after their checked handoff.
+Never pass root or administrative channels to a world, compositor, actor, or application.
+Keep all descriptors close-on-exec except explicitly mapped child descriptors.
+Keep the existing supervisor checks against privileged descriptor aliases.
+
+Kernel socket credentials identify the socket creator.
+They do not identify a later process that inherits the endpoint.
+The coordinator therefore owns the endpoint-to-launch mapping.
+Do not infer that mapping from a caller's PID, world name, or serialized owner fields.
+Do not relax the broker's per-packet sender check to permit another sender.
+
+World admission sequence
+
+1. Retain the exact world supervisor process and its private management connection.
+2. Start its authorized world launch with the dedicated world endpoint.
+3. Read the initial launch record from that retained supervisor.
+4. Query control_owner through the same private connection.
+5. Validate the returned binding against that launch record and expected issuer.
+6. Register the paired broker endpoint with that exact owner.
+7. Validate the complete registration reply before reporting control-channel readiness.
+
+The world may queue its initial broker request before registration.
+Do not report readiness from process creation or a queued request alone.
+Registration does not replace actor, application, or workspace authorization.
+Do not accept a caller-selected owner or an unrelated inherited endpoint.
+
+Failure handling
+
+Correlate every supervisor and broker reply with its request and expected operation.
+Validate protobuf messages recursively, including versions and nested fields.
+Bound packet sizes, pending requests, and response deadlines.
+Treat timeout, malformed replies, and lost registration replies as uncertain effects.
+Inspect the exact owner when the administrative connection remains usable.
+Do not retry registration with a different identity to bypass uncertainty.
+
+On world failure, fence its broker channel before accepting replacement control work.
+Then obtain checked process and native cleanup through the retained supervisor.
+Keep unrelated worlds and application execution active.
+Retain reservations until the separate selective recovery operation verifies cleanup.
+Never infer cleanup from EOF, process exit, or elapsed time alone.
+
+Coordinator failure must fence managed world channels through the existing broker transport rules.
+Do not promise application survival after coordinator or broker failure.
+Reopening a journal cannot recreate lost live handles or authorize replacement execution.
+Record unresolved ownership and require the existing checked recovery path.
+
+Required independent tests
+
+Run the real coordinator, supervised broker, supervised world, and native application.
+Kill one world after it holds a real key, button, and application control reservation.
+Verify native input release and continued application response.
+Verify the broker root connection remains owned by the live coordinator.
+Verify only the failed world's channel is fenced.
+Verify an unrelated world's reservation and application remain usable.
+Verify the failed world's reservation remains pending before selective checked release.
+
+Reject substitution of another supervisor's owner, generation, or endpoint.
+Reject unapproved launches and ownership reconstructed from journal contents alone.
+Exercise supervisor failure before and after registration.
+Exercise a lost registration reply and verify exact-owner reconciliation.
+Verify world and application descriptor inventories contain no administrative endpoint.
+Exercise coordinator loss and preserve unresolved recovery obligations.
+
+Run focused checks during implementation.
+Run full Debug and runtime sanitizer profiles on both hosts at the phase gate.
+Keep locked acceptance files unchanged.
+This contract does not claim M02 completion or issuer retirement.
+
+Administrative client implementation requirements
+
+The coordinator creates and owns the administrative socket pair.
+SO_PEERCRED therefore identifies its creator, not the supervised broker child.
+Pin the exact retained broker child with a pidfd before accepting replies.
+Require SCM_CREDENTIALS with that child PID and the configured UID on every reply.
+Enable SO_PASSCRED before the broker can send its first reply.
+Reject missing, duplicate, or mismatched credentials.
+Reject reply descriptors and close every received descriptor, including malformed packets.
+Reject MSG_TRUNC and MSG_CTRUNC before protobuf interpretation.
+Use recvmsg with MSG_CMSG_CLOEXEC.
+Use MSG_NOSIGNAL for sends.
+
+Permit one administrative request in flight.
+Use a bounded deadline for both sending and receiving.
+Check broker process liveness while waiting.
+Send one SCM_RIGHTS descriptor only for registration.
+Registration uses the coordinator's exact endpoint-to-retained-launch mapping.
+Inspect, fence, and recover send no descriptors.
+Call validate_control_reply before interpreting any response.
+A validated remote error remains an error.
+A transport failure after sending leaves the operation uncertain.
+Do not synthesize successful registration, fencing, cleanup, or retirement.
+Do not replay an uncertain registration with another identity.
+
+The development branch contains the administrative client in src/supervisor/control_admin.cpp.
+Its packet tests do not prove the coordinator's endpoint-to-launch mapping.
+The private handle server and coordinator receiver are implemented on the development branch.
+Do not report the complete recovery path as implemented from these component checks.
+
+Broker ownership implementation, 2026-10-10
+
+SessionBroker starts the real authorized supervisor and retains its kernel process handle.
+It creates the root, administrative, lifecycle, and handle-transfer channels in the coordinator process.
+Only explicit child endpoints survive supervisor exec.
+ChildHandleClient verifies the supervisor sender, exact launch record, and one live direct-child pidfd.
+BrokerClient and ControlAdmin duplicate that retained broker handle.
+They do not reopen a broker PID on this production path.
+The session validates checked process and native cleanup before accepting explicit shutdown.
+Neither EOF nor shutdown acknowledges issuer retirement.
+
+The library is production code. The probe only drives it with real supervisor and broker processes.
+The broker increment tests cover authenticated broker ownership and rejection paths.
+Later increments below cover world registration and application survival after world failure.
+The selective recovery increment below adds checked reservation release.
+
+Focused checks passed 65 cases in each of Debug and runtime sanitizers on sb16.
+This includes 15 receiver cases, four session-broker cases, and 46 related cases.
+An incorrect early-rejection journal assertion was corrected without changing production binaries.
+The original failed assertion and corrected evidence remain preserved.
+Complete M02 qualification on both hosts remains pending.
+
+Final cleanup delivery contract change, 2026-10-10
+
+AuthorityLaunchError gains optional cleanup_record field 2. Existing field numbers remain unchanged.
+The supervisor includes this field only after its owned process and native cleanup both succeed.
+The launch failure remains an error. The supervisor still exits with status 2.
+A startup error cannot authorize a world or become a successful launch.
+
+SessionLaunch can drain the retained management channel after supervisor exit.
+It accepts a final record only against its already retained START_ATTEMPTED snapshot.
+Require the exact binding, authorization, process identity, native identity, and both matching cleanup receipts.
+Require a later record revision, the same schema version, and OWNED_SCOPES_STOPPED.
+Require the retained child exit status to match the reported failure or normal completion.
+Preserve the original failure diagnostic.
+EOF, a dead pidfd, or a reopened journal cannot substitute for this receipt.
+A supervisor killed before delivery leaves cleanup unconfirmed.
+This receipt does not release broker reservations or retire issuer obligations.
+
+The real crash reproducer found that cleanup finished but the prior coordinator lost its final evidence.
+The corrected path and the no-receipt supervisor-crash counterexample passed Debug and runtime sanitizers on sb16.
+All 77 selected checks passed per profile. Full M02 qualification remains pending.
+
+Current implementation limits
+
+The coordinator accepts an unmapped world launch configuration and supplies its broker endpoint.
+The actor-listener candidate accepts one explicitly supplied TCP listening descriptor.
+It duplicates and checks the descriptor before creating world ownership.
+Require AF_INET or AF_INET6, SOCK_STREAM, IPPROTO_TCP, and SO_ACCEPTCONN.
+Require one absolute identity configuration path for local or TLS actor channels.
+Require one absolute TLS configuration path when a TLS listener is supplied.
+Reject caller-supplied actor descriptor arguments and generic descriptor mappings.
+Allocate the child descriptor without colliding with participant, native, or broker targets.
+Close the coordinator's duplicate after the supervisor accepts the launch.
+The caller retains ownership of its original descriptor and must close that copy after handoff.
+The test probe closes its original descriptor after successful handoff.
+Private coordinator sockets use AF_UNIX. Their duplicates cannot pass listener validation.
+Worldd applies the existing mutual TLS, signed actor proof, admission, and action authorization checks.
+The listener does not grant actor identity, workspace access, or management authority.
+The local actor candidate creates actor-only socket pairs inside the coordinator.
+It accepts a requested channel count. It never admits a caller-supplied local endpoint.
+Each world inherits only its actor endpoint. The coordinator retains the paired endpoint until explicit transfer.
+Require the exact retained live world owner before transferring an endpoint.
+Transfer each endpoint once. The recipient must close it after use.
+Close untransferred endpoints during failed startup or world shutdown.
+The existing process supervisor enforces its sixteen-descriptor launch budget.
+Broker, native, and participant channels consume three descriptors. A TLS listener consumes one additional descriptor.
+Local socket actors use the same signed identity proof and semantic actions.
+TLS actors remain remote. They cannot control native application input in M1.
+The application candidate uses local actors and real persistent world and workspace grants.
+Its first remote-input attempt and fixture evidence error remain preserved.
+Read evidence/control-recovery-2026-10-09/connected-application-baseline01/sb16/baseline-review.json.
+The connected application candidate passed all 100 selected cases in Debug and runtime sanitizers on sb16.
+These comprise two new native scenarios and 98 related cases.
+Read evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary-review.json.
+Actor cancellation releases native input and the actor's reservation.
+A world crash releases native input while the confined application and broker remain responsive.
+Checked process and native cleanup match the saved world journal.
+That application increment leaves the failed owner's reservation fenced and pending before explicit selective recovery.
+The earlier TLS actor increment passed all 117 selected cases per profile on sb16.
+Read evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json.
+Full M02 qualification remains pending on both hosts.
+The focused native cases use one world and its actual compositor on a disposable native server.
+They do not prove selective reservation release or simultaneous independent world presentation.
+The current world process starts its own compositor.
+Shared compositor lifetime across world transitions remains required before M1 acceptance.
+Do not start a second exclusive renderer on an operator display.
+
+Selective recovery implementation, 2026-10-10
+
+SessionCoordinator.recover_world accepts only an exact retained owner after checked stop_world cleanup.
+It derives both receipts from its retained launch record. Callers cannot supply replacement cleanup data.
+The authenticated broker recovery operation requires the exact fenced channel and both matching receipts.
+It releases that owner's reservations while preserving unrelated owners and application execution.
+The broker retains the original receipt for exact retry, inspection, and lost-reply reconciliation.
+Read docs/CONTROL_OWNER_CHANNELS.txt for the additive protobuf fields and complete validation contract.
+
+All 154 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include one new native scenario, nine new broker cases, and five new reply-validator cases.
+The native scenario uses actual process and native cleanup. Component fixtures supply private coordinator receipt data.
+Read evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
+All 41 locked files remain unchanged. No normal host session adopted this branch.
+Durable dependent receipt storage is now implemented. Issuer retirement remains unimplemented.
+Complete M02 qualification remains pending on both hosts.
+
+Durable dependent cleanup implementation, 2026-10-10
+
+Recovery now records checked world cleanup and broker release before reporting success.
+The saved protobuf binds the original stopped world to the exact retained, live broker.
+The launch journal migrates from user_version 1 to 2 in one transaction.
+The original launch row and revision remain unchanged.
+Read docs/DEPENDENT_CLEANUP_PERSISTENCE.txt for the storage and retry contract.
+All 113 selected cases passed in Debug and runtime sanitizers on sb16.
+Read evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json.
+Reopened journals do not recreate live ownership. Issuer retirement and full phase qualification remain pending.

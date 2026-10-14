@@ -1,0 +1,49 @@
+{
+  "id": "identity.revocation_command",
+  "phase": "M02",
+  "parent": "identity.revocation_barrier",
+  "status": "in_progress",
+  "current_step": "m02_failure_evidence_and_gate_audit",
+  "contract": "docs/REVOCATION_COMMAND.txt",
+  "invariant": "Operator success requires a checked cancellation barrier for the exact issuer, target, and revocation revision.",
+  "implementation": "spatial-revoke uses owner-signed issuer operations, bounded completion queries, explicit uncertainty, and read-only resume.",
+  "evidence": "evidence/revocation-command-2026-10-10/candidate-02/primary-review.json",
+  "qualification": {
+    "host": "sb16",
+    "debug_cases_passed": 97,
+    "runtime_sanitizer_cases_passed": 97,
+    "new_command_cases_per_profile": 12,
+    "related_cases_per_profile": 85,
+    "source_files": 350,
+    "locked_files_unchanged": 41,
+    "full_phase_gate": "pending"
+  },
+  "preserved_failures": [
+    "Runner01 omitted imported Python protobuf bindings. All five suite imports failed before case execution.",
+    "Runner02 omitted the existing issuer-client probe executable. Its affected Debug case errored; the other 96 cases passed.",
+    "Runner03 built the probe and passed that one Debug case, then passed all 97 sanitizer cases.",
+    "The first evidence collector rejected its own literal secret patterns. Corrected full patterns passed; the original collector remains preserved."
+  ],
+  "remaining": [
+    "Include the command in complete M02 qualification on both hosts."
+  ],
+  "limitations": [
+    "The connected scenarios qualify software native XLibre behavior on sb16. They do not qualify GPU performance or physical devices.",
+    "The two previously preserved intermittent M02 failures remain unresolved.",
+    "M02 and Spatial-M1 remain incomplete."
+  ],
+  "native_qualification": {
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "cases_per_profile": 3,
+    "evidence": "evidence/operator-native-2026-10-10/candidate-01/primary-review.json",
+    "source_files": 351,
+    "locked_files_unchanged": 41,
+    "raw_attachments": 139,
+    "production_changed": false,
+    "existing_assertions_changed": false
+  }
+}

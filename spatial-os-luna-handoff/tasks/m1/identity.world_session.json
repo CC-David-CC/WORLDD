@@ -1,0 +1,71 @@
+{
+  "id": "identity.world_session",
+  "phase": "M01",
+  "status": "complete",
+  "scope": "Protected remote actor channels for the authoritative world runtime",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/WORLD_IDENTITY.md",
+  "invariant": "Remote actors prove their own identity over protected transport and use the same world authority and actor handlers as local actors.",
+  "preceding_component": "identity.bootstrap_profile",
+  "preceding_gate": "P10",
+  "production_roots": [
+    "src/world/identity_sessions.cpp",
+    "src/world/identity_sessions.hpp",
+    "src/world/main.cpp",
+    "src/world/server.cpp",
+    "src/identity/tls_support.cpp",
+    "proto/spatial/identity/v1/world_session.proto",
+    "src/world/actor_tls.cpp",
+    "src/world/actor_tls.hpp",
+    "src/world/actors.cpp",
+    "src/world/actors.hpp"
+  ],
+  "current_evidence": [
+    "Both hosts passed complete Debug and runtime ASan/UBSan:1089 core/62 suites,51 harness,151 P10 per profile;zero failed/skipped.",
+    "Both direct cross-host TLS actor scenarios passed with distinct identities, actual movement, and durable world checkpoints.",
+    "All233 integrated source hashes match both host manifests. All80 existing test files and41 locked files remain unchanged.",
+    "46 remote checks cover functional access, transport security, lifecycle, native observation, delayed issuer races, listener configuration, and TLS retry deadlines."
+  ],
+  "required_evidence": [
+    "Explicit protected listener configuration; no network access to trusted management operations",
+    "Trusted server authentication and fresh actor proof; transport credentials alone grant no actor authority",
+    "Rejected plaintext, untrusted peers, mismatched server identity, replayed proofs, and cross-channel proofs",
+    "Real authenticated actions through the existing world authority and actor engine",
+    "Shared persistent world actors connected from both sb16 and sb16-2",
+    "No workspace creation, selection, or authority granted by connection or world admission",
+    "Bounded handshakes, connections, frames, partial writes, and slow peers",
+    "Controller disconnect and credential revocation cancel motion and affected control while other valid actors continue",
+    "World restart invalidates old sessions and proofs while preserving durable actor context",
+    "Independent Debug and runtime sanitizer qualification on both hosts with the complete baseline"
+  ],
+  "implementation_constraints": [
+    "Keep the trusted management pipe separate from remote actor traffic.",
+    "Reuse the production WorldSessionRequest and WorldSessionReply protobuf interface.",
+    "Do not relay the management interface or create a second actor engine.",
+    "Keep TLS private material outside workspace data and Git.",
+    "Preserve local actor channels and existing authorization checks.",
+    "Do not add remote application streaming or remote application input to M1 scope.",
+    "Record interface changes before implementation. Keep locked acceptance assertions unchanged."
+  ],
+  "limitations": [
+    "Remote transport completion does not complete M01, M02, M05, world transitions, or Spatial-M1.",
+    "Issuer commit replies do not prove distributed cancellation completion. The separate barrier requirement remains open.",
+    "Native application witnesses use the qualified private XLibre software display. Physical GPU and native-server GLX sanitizer qualification remain separate.",
+    "Remote live application streaming and remote application input remain outside M1 scope."
+  ],
+  "next_components": [
+    "identity.revocation_barrier",
+    "M05",
+    "M06"
+  ],
+  "current_step": "integrated_and_adopted",
+  "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16",
+  "focused_evidence": "evidence/world-remote-2026-10-09/draft-review-01.txt",
+  "candidate_evidence": "evidence/world-remote-2026-10-09/candidate-review-02.txt",
+  "final_evidence": "evidence/world-remote-2026-10-09/candidate-02",
+  "integration_commit": "62a617af79dbb7a282dc11f96e17a143fe086774",
+  "adoption_evidence": [
+    "evidence/world-remote-2026-10-09/candidate-02/sb16/adoption.json",
+    "evidence/world-remote-2026-10-09/candidate-02/sb16-2/adoption.json"
+  ]
+}

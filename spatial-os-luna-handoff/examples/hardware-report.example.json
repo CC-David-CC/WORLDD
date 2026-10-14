@@ -1,0 +1,63 @@
+{
+  "kind": "target-native-hardware-acceptance",
+  "status": "not_run",
+  "base_commit": null,
+  "product_commit": null,
+  "machine_evidence": null,
+  "server_executable": null,
+  "gpu_renderer": null,
+  "spacemouse_device": null,
+  "automated_gate_report": null,
+  "checks": [
+    {
+      "id": "H01",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H02",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H03",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H04",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H05",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H06",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H07",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    },
+    {
+      "id": "H08",
+      "status": "not_run",
+      "evidence": [],
+      "notes": null
+    }
+  ],
+  "remaining_limits": [],
+  "recovery_instructions": null
+}

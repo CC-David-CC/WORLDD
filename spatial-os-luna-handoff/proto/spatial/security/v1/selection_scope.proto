@@ -1,0 +1,21 @@
+syntax = "proto3";
+package spatial.security.v1;
+import "security.proto";
+
+// Extension operation 1. Operation 0 retains the locked security.proto contract.
+message SelectionScope {
+  bytes workspace = 1;
+  bytes application = 2;
+  bool default_scope = 3;
+}
+message SelectionScopeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  SelectionScope scope = 100;
+}
+message SelectionScopeReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  Code code = 3;
+  bool scope_set = 4;
+}

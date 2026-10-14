@@ -1,0 +1,41 @@
+Actual session replacement recovery
+Status: Focused Debug and sanitizer checks passed. Full M02 qualification remains pending.
+
+Invariant
+
+Retire the failed world's exact generation after checked scope cleanup and durable dependency recovery.
+Start its replacement through the existing production SessionCoordinator and AuthoritySupervisor.
+Use a fresh launch journal, service incarnation, native credential, and issuer authorization.
+Reuse the original world state, workspace state, project directory, and authority policy.
+Do not create a new world identity to avoid recovery obligations.
+Require current authority synchronization before actor admission.
+Launch registration precedes asynchronous activation. Observe the actual issuer activation record before claiming readiness.
+Do not restore old actor connections, held input, or interaction leases.
+Keep independently authorized application execution alive when its broker survives.
+An old retirement retry must not affect replacement authority or control.
+
+Scope of this increment
+
+Exercise replacement through the existing production start_world operation.
+The private test driver accepts only its explicitly inherited native fixture descriptors.
+Actors do not receive coordinator management or native configuration access.
+Use protobuf requests and replies. Transfer actor channels with SCM_RIGHTS.
+Each test supplies separate journals and original persistent data paths.
+Do not infer application identity from reused XIDs.
+Explicitly present the surviving application before new control acquisition.
+Automatic application placement restoration remains a later M1 requirement.
+Broker replacement and complete coordinator restart recovery remain separate work.
+
+Selected checks
+
+Run three new native scenarios in Debug and runtime ASan/UBSan on sb16.
+Check persistent world and workspace data, fresh authority, and cleared actor control state.
+Reject replacement before old-generation retirement.
+Reject a credential revoked before replacement synchronization.
+Open a fresh authenticated administrator connection after recovery. Keep the fixture's idle timeout unchanged.
+Run session-world and session-application for the shared test driver.
+Run session-dependent-cleanup and session-coordinator-retirement for original recovery behavior.
+Run session-broker-cleanup and session-broker-retirement for the shared test driver.
+Run session-stopped-broker-dependency for both durable dependency versions.
+Preserve any failure against the frozen source before changing it.
+Full M02 qualification remains pending on both hosts.

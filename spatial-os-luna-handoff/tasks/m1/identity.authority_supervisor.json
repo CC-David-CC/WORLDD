@@ -1,0 +1,26 @@
+{
+  "id": "identity.authority_supervisor",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/AUTHORITY_SUPERVISOR_RUNTIME.txt",
+  "evidence": "evidence/authority-supervisor-2026-10-09",
+  "candidate": 2,
+  "source_files": 281,
+  "new_tests": 17,
+  "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
+  "review": "Primary cumulative review of all 77 changed files is recorded in integration-primary-review-02.json. Exact candidate hashes match all 281 files. All 41 locked files remain unchanged. Six existing assertion lists changed explicitly as documented. Complete four-profile qualification remains required before integration.",
+  "qualification": "Focused and full Debug/runtime ASan/UBSan passed on sb16 and sb16-2.",
+  "integrated": true,
+  "remaining": [
+    "Complete real broker participant and world/compositor native credential handoff.",
+    "Implement fencing, checked recovery, and issuer retirement.",
+    "Qualify complete distributed revocation and recovery."
+  ],
+  "native_scope_review": "Ownership loss confirmed on both hosts in both profiles. The isolated correction passed all three ownership checks on both hosts in Debug and runtime sanitizers.",
+  "cumulative": "All four full host/profile runs passed: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases each. Zero failures or skips.",
+  "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json",
+  "integration_test_audit": "evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json",
+  "integration_preparation": "Integrated at 534a94c after exact review, all four full profiles, and staged-source audit. Both hosts adopted all281 qualified hashes with clean worktrees, no session restart, and no database migration.",
+  "adopted_commit": "534a94c594429b095b8a3ee1e8f99c176e5d6121"
+}

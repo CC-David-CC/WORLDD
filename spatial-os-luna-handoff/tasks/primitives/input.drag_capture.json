@@ -1,0 +1,45 @@
+{
+  "id": "input.drag_capture",
+  "phase": "P06",
+  "title": "input / drag capture",
+  "invariant": "Actual XI2 events reach the selected live surface in local coordinates without a root-coordinate atlas or cross-actor leakage.",
+  "contract_sections": [
+    "5",
+    "7"
+  ],
+  "objective": "Implement the production behavior exercised by the exact listed assertions; preserve the phase invariant.",
+  "acceptance_tests": [
+    "tests.acceptance.test_06_input.InputTests.test_drag_release_goes_to_original_target"
+  ],
+  "suggested_production_roots": [
+    "src/x11/",
+    "src/world/",
+    "server/"
+  ],
+  "read_first": [
+    "AGENTS.md",
+    "docs/CONTRACT.md",
+    "tests/acceptance/test_06_input.py"
+  ],
+  "prior_gate": "P05",
+  "diagnostic_commands": [
+    "python3 tools/gate.py --through P06 --case tests.acceptance.test_06_input.InputTests.test_drag_release_goes_to_original_target"
+  ],
+  "completion_command": "python3 tools/gate.py --through P06",
+  "command_note": "Set SPATIAL_SUT to the real JSON argv before these commands, or pass --sut with that same JSON argv. P04+ also requires the explicit dedicated test display.",
+  "steps": [
+    "Read the named assertions and relevant normative contract sections.",
+    "Run the focused case and retain the failing evidence.",
+    "Implement the smallest production change; do not put product logic in the harness.",
+    "Run the focused cases and inspect independent evidence.",
+    "Run the unfiltered cumulative gate and inspect regressions.",
+    "Record commit, evidence and a representative mutation result before closing the phase."
+  ],
+  "helper_rule": "After two failures on the same invariant, delegate a bounded diagnosis with exact evidence; Luna reviews and runs all tests.",
+  "forbidden_changes": [
+    "locked acceptance/oracle/gate changes merely to pass",
+    "fake native events or screenshots",
+    "a parallel test-only world/renderer",
+    "silent weakening or skipping of earlier gates"
+  ]
+}

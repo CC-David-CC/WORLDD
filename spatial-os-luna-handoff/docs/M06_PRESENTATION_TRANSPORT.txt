@@ -1,0 +1,30 @@
+M06 private presentation transport increment
+Status: passed focused Debug and sanitizer verification on both hosts; not yet connected to spatialwm.
+
+Invariant
+Use bounded nonblocking protobuf frames over private UNIX stream sockets.
+Check the socket creator and each message sender separately through kernel credentials.
+Retain transferred descriptors before queuing output. Transfer at most two descriptors per frame.
+Accept descriptors only on the first frame byte. Close all descriptors on rejection.
+Keep a fixed five-second deadline for partial frames and queued output.
+Bound receive work, output work, frame size, queued bytes, and queued messages.
+Poison the channel after framing, credential, or I/O failure. Do not resume uncertain framing.
+A descriptor transport does not validate sealed configurations or process handles; the operation handler must do that.
+
+Selected focused tests
+Run presentation-stream in Debug and ASan-UBSan on sb16 and sb16-2.
+Check protobuf correlation, sealed descriptor round trips, excessive descriptors, ancillary truncation, and misplaced descriptors.
+Check socket creator mismatch and a different process using an inherited socket.
+Check frame bounds, truncated payloads, absolute deadlines, and descriptor counts after rejection.
+Keep existing renderer/binding evidence separate. No existing renderer caller uses this transport yet.
+
+Next integration
+Define versioned attach, select, detach, inspect, and shutdown control messages.
+Attach a world channel and a retained process handle through the host session control channel.
+Receive world-scoped sealed input configuration through that world's authenticated startup frame.
+The actual compositor loop must service control, world, graphics, and deadline events independently.
+Retain graphics ownership outside worldd. Preserve supervisor cleanup receipts and report uncertain retirement.
+
+Evidence: evidence/m06-presentation-transport-2026-10-12/primary-review.txt.
+Eleven tests passed per host/profile, including a stalled-reader output deadline.
+Call receive and flush on periodic event-loop ticks even without readiness.

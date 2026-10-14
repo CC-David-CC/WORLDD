@@ -1,0 +1,524 @@
+{
+  "id": "identity.control_recovery",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "passed",
+  "current_step": "m02_qualified_and_source_adopted",
+  "development_branch": "m02/control-recovery",
+  "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
+  "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
+  "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
+  "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
+  "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
+  "production_changed": true,
+  "remaining": [],
+  "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
+  "candidate": {
+    "version": 3,
+    "source_files": 297,
+    "changed_files": 8,
+    "new_checks": 19,
+    "production_changed": false,
+    "evidence": "evidence/control-recovery-2026-10-09/control-owner-review-03.json",
+    "state": "Both hosts completed full Debug and sanitizer profiles. Candidate03 remains ineligible for integration because the additional validation-order regressions fail.",
+    "drivers": {
+      "sb16": 1679232,
+      "sb16-2": 1463045
+    },
+    "debug_evidence": "evidence/control-recovery-2026-10-09/owner-debug-03",
+    "full_debug": {
+      "sb16": "1472 core/100 suites;51 harness;151 P10 passed. Evidence collected.",
+      "sb16-2": "1472 core/100 suites; 51 harness; 151 P10 passed. Evidence collected."
+    },
+    "runtime": "Both hosts: 1472 core/100 suites, 51 harness, and 151 P10 passed in Debug and runtime sanitizers.",
+    "matrix_evidence": "evidence/control-recovery-2026-10-09/matrix-review-03.json"
+  },
+  "preserved_failures": [
+    "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",
+    "Both hosts:18 new checks and51 harness passed;1 descriptor-count witness errored on protected procfs."
+  ],
+  "native_integration": {
+    "state": "Both hosts passed all three native-world checks in Debug and runtime sanitizers.",
+    "checks_per_profile": 3,
+    "drivers": {
+      "sb16": 1693702,
+      "sb16-2": 1475338
+    },
+    "evidence": "evidence/control-recovery-2026-10-09/owner-world-preparation-01.json",
+    "sb16_evidence": "evidence/control-recovery-2026-10-09/owner-world-01/sb16/collected.json",
+    "sb16_2_evidence": "evidence/control-recovery-2026-10-09/owner-world-01/sb16-2/collected.json"
+  },
+  "candidate03_integration_ready": false,
+  "validation_order_correction": {
+    "candidate": 4,
+    "state": "Both hosts passed complete Debug and sanitizer qualification. Exact owner04 source is integrated and adopted on both hosts at 4779f731.",
+    "total_owner_checks": 21,
+    "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
+    "drivers": {
+      "sb16": 1713719,
+      "sb16-2": 1490463
+    },
+    "sb16_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16/debug/focused-review.json",
+    "sb16_2_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16-2/debug/focused-review.json",
+    "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16.json",
+    "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16-2.json",
+    "debug_matrix_evidence": "evidence/control-recovery-2026-10-09/debug-matrix-review-04.json",
+    "sb16_full_evidence": "evidence/control-recovery-2026-10-09/full-review-04-sb16.json",
+    "adoption_script": "local/adopt-control-owner-04.py",
+    "integrated": true,
+    "integration_evidence": "evidence/control-recovery-2026-10-09/integration-applied-04.json",
+    "adoption_evidence": "evidence/control-recovery-2026-10-09/adoption-review-04.json"
+  },
+  "retained_launch_binding": {
+    "candidate": "binding01",
+    "base": "owner04",
+    "state": "Both hosts passed full Debug and sanitizer qualification. Exact binding01 source is integrated and adopted at 0fb875454df3cc582c35e076c96043035312fdff. All 298 source hashes match.",
+    "source_files": 298,
+    "changed_files": 7,
+    "new_checks": 6,
+    "drivers": {
+      "sb16": 1774639,
+      "sb16-2": 1540587
+    },
+    "evidence": "evidence/control-recovery-2026-10-09/control-binding-review-01.json",
+    "production_changed": true,
+    "integration_guard": "local/integrate-control-binding-01.py",
+    "guard_rejection_evidence": "evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json",
+    "sb16_baseline_evidence": "evidence/control-recovery-2026-10-09/binding-baseline-01/sb16/baseline-review.json",
+    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json",
+    "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/qualified-binding01/sb16/summary-debug.json",
+    "sb16_full_evidence": "evidence/control-recovery-2026-10-09/binding-final-review-01-sb16.json",
+    "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/binding-debug-review-01-sb16-2.json",
+    "adoption_script": "local/adopt-control-binding-01.py",
+    "integrated": true,
+    "integration_evidence": "evidence/control-recovery-2026-10-09/integration-applied-binding-01.json",
+    "adoption_evidence": "evidence/control-recovery-2026-10-09/binding-adoption-review-01.json"
+  },
+  "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt",
+  "control_reply_validation": {
+    "candidate": "reply01",
+    "base": "binding01",
+    "state": "Both hosts passed full Debug and sanitizer qualification. Exact seven-file reply01 source is integrated and adopted at 14a889396f22708cebbf0b968ed518a70f540607. All 303 source hashes match. Administrative transport and complete recovery remain pending.",
+    "source_files": 303,
+    "changed_files": 7,
+    "new_checks": 16,
+    "drivers": {
+      "sb16": 1872025,
+      "sb16-2": 1616004
+    },
+    "evidence": "evidence/control-recovery-2026-10-09/control-reply-review-01.json",
+    "production_changed": true,
+    "transport_implemented": false,
+    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json",
+    "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/reply-debug-review-01-sb16.json",
+    "sb16_full_evidence": "evidence/control-recovery-2026-10-09/reply-final-review-01-sb16.json",
+    "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/reply-debug-review-01-sb16-2.json",
+    "integration_guard": "local/integrate-control-reply-01.py",
+    "adoption_evidence": [
+      "evidence/control-recovery-2026-10-09/reply-adoption-sb16-01.json",
+      "evidence/control-recovery-2026-10-09/reply-adoption-sb16-2-01.json"
+    ]
+  },
+  "supervisor_handoff_lifetime": {
+    "candidate": "handoff01",
+    "base": "reply01",
+    "state": "Both hosts passed full Debug and sanitizer qualification. Exact handoff01 source is integrated and adopted at 0ed35eb3e21268fcaed38b190b93619a17260088. All 304 source hashes match.",
+    "source_files": 304,
+    "changed_files": 3,
+    "new_checks": 2,
+    "drivers": {
+      "sb16": 2020931,
+      "sb16-2": 1739758
+    },
+    "evidence": "evidence/control-recovery-2026-10-09/supervisor-handoff-review-01.json",
+    "production_changed": true,
+    "collector": "local/collect-control-owner-qualified.py --candidate handoff01",
+    "focused_evidence": "evidence/control-recovery-2026-10-09/handoff-focused-01/sb16/debug/review.json",
+    "baseline_evidence": "evidence/control-recovery-2026-10-09/handoff-baseline-01/sb16/review.json",
+    "integration_guard": "local/integrate-supervisor-handoff-01.py",
+    "adoption_evidence": [
+      "evidence/control-recovery-2026-10-09/handoff-adoption-sb16-01.json",
+      "evidence/control-recovery-2026-10-09/handoff-adoption-sb16-2-01.json"
+    ]
+  },
+  "administrative_transport": {
+    "candidate": "admin01",
+    "source_files": 309,
+    "new_checks": 11,
+    "state": "Both hosts passed full Debug and sanitizer qualification for admin01. Its source is on the development branch. Complete M02 integration remains pending.",
+    "drivers": {
+      "sb16": 2148249,
+      "sb16-2": 1839205
+    },
+    "production_changed": false,
+    "evidence": "evidence/control-recovery-2026-10-09/control-admin-transport-draft-review-01.json",
+    "final_evidence": [
+      "evidence/control-recovery-2026-10-09/admin-final-review-01-sb16.json",
+      "evidence/control-recovery-2026-10-09/admin-final-review-01-sb16-2.json"
+    ]
+  },
+  "retained_child_handle": {
+    "candidate": "handle01",
+    "source_files": 311,
+    "new_checks": 5,
+    "state": "sb16 corrected checks passed all five scenarios in Debug and runtime sanitizers. The obsolete sb16-2 candidate was canceled before its build. The development branch includes the corrected helper. Full phase qualification remains pending.",
+    "focused_correction_evidence": "evidence/control-recovery-2026-10-09/handle-focused-02/sb16/review.json",
+    "preserved_failure_evidence": "evidence/control-recovery-2026-10-09/handle-failure-01/sb16/review.json",
+    "drivers": {
+      "sb16": 2180756,
+      "sb16-2": 1880094
+    },
+    "production_changed": false,
+    "evidence": "evidence/control-recovery-2026-10-09/retained-child-handle-draft-review-01.json",
+    "secure_supervisor_transfer_implemented": true,
+    "canceled_queue_evidence": "evidence/control-recovery-2026-10-09/retained-handle-obsolete-queue-canceled-01.json"
+  },
+  "private_handle_server": {
+    "state": "Server and receiver implemented on the development branch. Eight server and 15 receiver cases passed both profiles on sb16.",
+    "contract": "docs/CHILD_HANDLE_PROTOCOL.txt",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-01/sb16/primary-review.json",
+    "integrated_to_main": false,
+    "related_debug_passed": 39,
+    "related_sanitizer_passed": 38,
+    "related_sanitizer_failed": 1,
+    "unresolved": "Existing participant startup failed during supervisor approval. Five unchanged targeted repetitions passed. Root cause remains unproven."
+  },
+  "session_broker": {
+    "state": "Broker lifecycle foundation passed focused checks. Later sections record connected world coordination and recovery.",
+    "new_receiver_cases": 15,
+    "new_session_cases": 4,
+    "selected_cases_per_profile": 65,
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "host": "sb16",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-02/sb16/primary-review.json",
+    "integrated_to_main": false,
+    "complete_M02_qualified": false
+  },
+  "world_registration": {
+    "candidate": "connected04",
+    "state": "Production coordinator registration and checked final receipt delivery passed all 77 selected cases per profile in Debug and runtime sanitizers on sb16. Complete M02 qualification remains pending.",
+    "host": "sb16",
+    "source_files": 330,
+    "locked_files": 41,
+    "new_world_cases": 6,
+    "related_cases": 71,
+    "baseline": "evidence/control-recovery-2026-10-09/world-crash-baseline01/sb16/primary-review.json",
+    "prior_registration_evidence": "evidence/control-recovery-2026-10-09/connected-03/sb16/focused-review.json",
+    "integrated_to_main": false,
+    "complete_M02_qualified": false,
+    "evidence": "evidence/control-recovery-2026-10-09/connected-04/sb16/primary-review.json",
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ]
+  },
+  "multi_world_presentation_limit": "Current worldd starts its own compositor. Shared compositor lifetime must be implemented before M1 world-transition acceptance.",
+  "actor_transport": {
+    "state": "Focused checks passed. Real signed actors use a validated TLS listener through retained production world ownership.",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json",
+    "cases_per_profile": 117,
+    "new_actor_cases": 5,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "connected_application": {
+    "state": "Focused native application recovery passed. Selective reservation recovery is recorded separately below.",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary-review.json",
+    "cases_per_profile": 100,
+    "new_cases": 2,
+    "related_cases": 98,
+    "failed": 0,
+    "skipped": 0,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "full_phase_gate": "pending on both hosts"
+  },
+  "selective_recovery": {
+    "state": "Focused selective reservation recovery passed. Durable receipts and actual retirement are recorded separately below.",
+    "evidence": "evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json",
+    "cases_per_profile": 154,
+    "new_cases": 15,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "dependent_cleanup": {
+    "state": "Version 1 durable control-recovery receipts passed focused checks. Version 2 scope receipts are recorded under stopped_broker_dependency.",
+    "evidence": "evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json",
+    "contract": "docs/DEPENDENT_CLEANUP_PERSISTENCE.txt",
+    "cases_per_profile": 113,
+    "new_cases": 5,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "issuer_retirement": {
+    "state": "Issuer and client protocol passed focused checks. Actual coordinator and broker integration are recorded separately below.",
+    "evidence": "evidence/control-recovery-2026-10-09/issuer-retirement-01/sb16/primary-review.json",
+    "contract": "docs/AUTHORITY_RETIREMENT.txt",
+    "host": "sb16",
+    "cases_per_profile": 230,
+    "new_cases": 27,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "coordinator_retirement": {
+    "state": "Actual cleanup-to-retirement passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/coordinator-retirement-02/sb16/primary-review.json",
+    "contract": "docs/COORDINATOR_RETIREMENT.txt",
+    "host": "sb16",
+    "cases_per_profile": 110,
+    "new_cases": 8,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "broker_cleanup": {
+    "state": "Checked broker cleanup after supervisor exit passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/session-broker-cleanup-01/sb16/primary-review.json",
+    "contract": "docs/SESSION_BROKER_CLEANUP.txt",
+    "host": "sb16",
+    "cases_per_profile": 69,
+    "new_cases": 6,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "broker_retirement": {
+    "state": "Actual checked broker cleanup-to-retirement passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/broker-retirement-01/sb16/primary-review.json",
+    "contract": "docs/BROKER_RETIREMENT.txt",
+    "host": "sb16",
+    "cases_per_profile": 93,
+    "new_cases": 9,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "stopped_broker_dependency": {
+    "state": "Checked stopped-broker dependency recovery passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/stopped-broker-dependency-01/sb16/primary-review.json",
+    "contract": "docs/STOPPED_BROKER_DEPENDENCIES.txt",
+    "host": "sb16",
+    "cases_per_profile": 71,
+    "new_cases": 9,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "actual_world_replacement": {
+    "state": "Actual world replacement passed focused native checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/session-replacement-03/sb16/primary-review.json",
+    "contract": "docs/SESSION_REPLACEMENT_RECOVERY.txt",
+    "host": "sb16",
+    "cases_per_profile": 52,
+    "new_cases": 3,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "actual_broker_replacement": {
+    "state": "Actual broker replacement passed focused native checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/broker-replacement-02/sb16/primary-review.json",
+    "selection": "docs/BROKER_REPLACEMENT_CHECKS.txt",
+    "host": "sb16",
+    "cases_per_profile": 42,
+    "new_cases": 3,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "participant_failure_diagnostics": {
+    "state": "Bounded diagnostics and log retention passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/participant-diagnostics-02/sb16/primary-review.json",
+    "contract": "docs/PARTICIPANT_FAILURE_DIAGNOSTICS.txt",
+    "cases_per_profile": 53,
+    "new_cases": 2,
+    "startup_repetitions_per_profile": 10,
+    "historical_startup_cause": "unconfirmed",
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "full_phase_gate": "pending on both hosts"
+  },
+  "approval_interruption": {
+    "state": "Four controlled scenarios passed; earlier intermittent failures remain open.",
+    "evidence": "evidence/control-recovery-2026-10-09/approval-interruption-03/sb16/primary-review.json",
+    "contract": "docs/APPROVAL_INTERRUPTION_CHECKS.txt",
+    "cases_per_profile": 4,
+    "host": "sb16",
+    "full_phase_gate": "pending on both hosts",
+    "original_timeout_resolved": false,
+    "preserved_failure": "evidence/control-recovery-2026-10-09/approval-interruption-failure02/sb16/failure-review.json",
+    "timing_evidence": "evidence/control-recovery-2026-10-09/approval-timeout-timing-02/primary-review.json"
+  },
+  "crosshost_cancellation": {
+    "state": "Delayed credential cancellation passed both issuer directions and both profiles.",
+    "evidence": "evidence/control-recovery-2026-10-09/crosshost-cancellation-03/primary-review.json",
+    "selection": "docs/CROSS_HOST_CANCELLATION_CHECKS.txt",
+    "coordinated_cases_passed": 4,
+    "related_cases_per_host_per_profile": 14,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "full_phase_gate": "pending on both hosts",
+    "preserved_failed_candidate": "01",
+    "shared_world_geometry_qualified": false
+  },
+  "crosshost_crash_recovery": {
+    "state": "Eight selected coordinated scenarios passed both profiles and directions.",
+    "evidence": "evidence/control-recovery-2026-10-09/crosshost-recovery-02/primary-review.json",
+    "selection": "docs/CROSS_HOST_RECOVERY_CHECKS.txt",
+    "new_crash_cases": 4,
+    "delayed_delivery_regressions": 4,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "full_phase_gate": "pending on both hosts",
+    "preserved_failed_candidate": "01"
+  },
+  "deferred_fencing": {
+    "state": "Focused issuer-outage recovery passed with immutable cleanup and checked deferred fencing.",
+    "evidence": "evidence/control-recovery-2026-10-09/deferred-fence-01/primary-review.json",
+    "contract": "docs/DEFERRED_RECOVERY_FENCE.txt",
+    "host": "sb16",
+    "cases_per_profile": 49,
+    "new_cases": 5,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "operator_completion_task": "tasks/m1/identity.revocation_command.json",
+  "operator_native_evidence": "evidence/operator-native-2026-10-10/candidate-01/primary-review.json",
+  "gate_coverage_map": "docs/M02_GATE_COVERAGE.txt",
+  "reviewed_final_gate_2026_10_10": {
+    "local_hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "per_host_per_profile": {
+      "core_checks": 1668,
+      "core_suites": 124,
+      "harness_checks": 51,
+      "acceptance_cases": 151,
+      "failed": 0,
+      "skipped": 0
+    },
+    "crosshost_scenarios_passed": 8,
+    "local_evidence_commit": "f772e38",
+    "crosshost_evidence_commit": "3b56c4e",
+    "crosshost_review": "evidence/m02-gate-2026-10-10/crosshost03-final/primary-review.json",
+    "phase_complete": false
+  },
+  "durability_diagnosis_2026_10_10": {
+    "status": "reviewed",
+    "host": "sb16",
+    "profile": "runtime-sanitize",
+    "review": "evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json",
+    "passed": 7,
+    "failed": 2,
+    "skipped": 0,
+    "production_changed": false,
+    "tracked_tests_changed": false,
+    "pressure_results": {
+      "700_ms": "release_timeout",
+      "2000_ms": "applied_acknowledgement_timeout",
+      "5000_ms_default": "passed_one_trial"
+    },
+    "historical_causes_proved": false,
+    "phase_complete": false
+  },
+  "timeout_policy_2026_10_10": {
+    "status": "focused_checks_reviewed",
+    "review": "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "existing_checks_passed": 120,
+    "new_checks_passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "existing_fixture_changed": false,
+    "production_changed": false,
+    "existing_ctest_entries_preserved": 124
+  },
+  "requirement_execution_reassessment": {
+    "review": "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/coverage-reassessment.json",
+    "case_definitions": 285,
+    "matched_existing_passes": 1140,
+    "new_execution": false,
+    "phase_complete": false
+  },
+  "integrated_branch": "main",
+  "integrated_commit": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "completion_evidence": "evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json",
+  "mandatory_followup": "tasks/m1/workspace.resources.json"
+}

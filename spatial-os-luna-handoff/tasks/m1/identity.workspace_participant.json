@@ -1,0 +1,136 @@
+{
+  "id": "identity.workspace_participant",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.revocation_barrier",
+  "invariant": "Acknowledge issuer revocation only after broker process and control effects settle.",
+  "candidate": 9,
+  "source_files": 255,
+  "integrated": false,
+  "source": "local/participant-fixtures-draft-01",
+  "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
+  "evidence": "evidence/workspace-participant-2026-10-09",
+  "baseline": {
+    "host": "sb16",
+    "failed": 3,
+    "passed": 0
+  },
+  "focused_Debug": {
+    "host": "sb16",
+    "broker": 6,
+    "native_broker": 2,
+    "world": 6,
+    "worker": 14,
+    "process": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "current_step": "candidate09_full_combined_qualification",
+  "remaining": [
+    "Complete full Debug and runtime sanitizer qualification on both hosts.",
+    "Resolve any repeated startup failure using retained service diagnostics.",
+    "Verify remote obligations and supervisor fencing before M02 completion."
+  ],
+  "candidate02_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "checks": 36,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate04_Debug_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "checks": 61,
+    "suites": 8,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate04_full_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "passed": 1226,
+    "failed": 1,
+    "skipped": 0,
+    "harness_checks": 51,
+    "failed_test": "WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access",
+    "P10": "unrun",
+    "runtime_sanitize": "unrun"
+  },
+  "candidate05_Debug_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "checks": 79,
+    "suites": 10,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate05_full_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "core_checks": 1230,
+    "core_suites": 76,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "limit": "Separate native-settlement diagnostic failed; candidate05 cannot be integrated."
+  },
+  "candidate06_Debug_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "checks": 81,
+    "suites": 11,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate09_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "world_checks": 111,
+    "native_checks": 43,
+    "failed": 0,
+    "skipped": 0,
+    "integrated": false
+  },
+  "candidate09_full_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "core_checks": 1239,
+    "core_suites": 79,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "runtime_sanitize": "running",
+    "integrated": false
+  }
+}

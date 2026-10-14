@@ -1,0 +1,37 @@
+Supervised broker participation
+Status: All four checks passed on both hosts in Debug and runtime ASan/UBSan.
+
+Invariant
+
+The real broker must activate the exact issuer-approved workspace participant through its supervisor-owned channel.
+Each application launch still requires the actor's effective workspace authority.
+The native application must inherit the launch's broker credential ancestry.
+
+Required evidence
+
+Enroll a fixture actor through the real issuer and seed a persistent workspace grant.
+Create a real Git worktree before launching the supervised authority broker.
+Bind the broker to its workspace domain only.
+Use the supervisor-generated participant configuration and sealed native handoff.
+Verify active generation 1 in the issuer database.
+Launch a real confined application and inspect its identity through an independent native client.
+Require graceful EOF to release the issuer generation before checked supervisor completion.
+Deny application launch when the actor principal is missing.
+Revoke the actor and require native EOF when the issuer barrier reports completion.
+Deny further application launch after actor revocation.
+Kill the broker and verify native and process cleanup.
+Require the unresolved issuer obligation to remain visible until trusted retirement is implemented.
+
+Execution
+
+Run Debug and runtime ASan/UBSan on both authorized hosts.
+Wait for each exact broker full-qualification driver before running these new checks.
+Verify the qualified source and binary hashes before execution.
+Preserve failures without changing frozen candidates or acceptance locks.
+Use protobuf on every production interface exercised by the tests.
+
+Scope
+
+Passing these checks establishes supervised broker participation for the tested local paths.
+It does not complete M02 or prove trusted recovery.
+World/compositor handoff, fencing, issuer retirement, and cross-host cancellation remain required.

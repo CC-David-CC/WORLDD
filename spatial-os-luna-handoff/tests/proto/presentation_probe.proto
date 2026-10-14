@@ -1,0 +1,23 @@
+syntax = "proto3";
+package spatial.testing;
+import "core.proto";
+import "compositor_native.proto";
+// Thin test adapter only. Descriptor indices refer to inherited sealed fixtures.
+message PresentationProbeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  spatial.render.v1.WorldPresentationBinding binding = 3;
+  oneof operation {
+    uint32 bind_descriptor = 10;
+    bool retire = 11;
+    bool snapshot = 12;
+    spatial.core.v1.RendererInputCommand input = 13;
+    spatial.core.v1.RenderCommand draw = 14;
+    spatial.core.v1.RendererInputCommand unbound_input = 15;
+    bool descriptors = 16;
+  }
+}
+message PresentationProbeReply {
+  spatial.core.v1.RenderResult result = 1;
+  uint64 descriptors = 2;
+}

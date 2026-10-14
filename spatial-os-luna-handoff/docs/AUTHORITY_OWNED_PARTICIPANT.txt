@@ -1,0 +1,92 @@
+Supervisor-owned participant connection
+Status: isolated candidate01 passed both focused profiles on both hosts. Full qualification is running.
+
+Invariant
+
+A supervised launch cannot execute until its retained participant connection has durable, exact supervisor approval.
+The coordinator constructs that connection. It does not accept caller-supplied authentication results.
+The coordinator retains the process and native scope before authentication or approval.
+
+Ownership
+
+AuthorityLaunch owns the ParticipantRuntime worker in the trusted supervisor process.
+The worker authenticates through the existing checked issuer client.
+Its configured issuer, participant, registration revision, and explicit service incarnation must match the launch binding.
+Its registered domains must match the configured domain set.
+The supervisor private key remains outside the child and workspace boundaries.
+The service connection stays with the coordinator for activation, revocation acknowledgement, and release.
+The authority child must later use a private inherited participant channel.
+That child-channel integration is a separate remaining requirement, not an alternate authority path.
+
+Private protobuf additions
+
+AuthorityLaunchBinding adds supervised, bool field 5.
+AuthorityLaunchRecord adds authorization, identity.AuthorityLaunchAuthorization field 9.
+AuthorityParticipantAttach contains runtime_config, string field 1, and repeated authority.Domain domains, field 2.
+AuthorityLaunchAuthorize contains issuer_client_config, string field 1, and private_key_path, string field 2.
+It also contains supervision_revision, uint64 field 3, and optional previous_generation, uint64 field 4.
+AuthorityLaunchRequest adds attach field 14, participant_poll field 15, authorize field 16, and participant_command field 17.
+AuthorityLaunchReply adds participant_update, identity.ParticipantUpdate field 12.
+All existing fields keep their numbers and meanings.
+These are private supervisor operations. They grant no actor execution access.
+
+Persistence
+
+Existing unsupervised records retain record schema version 1.
+New supervised records use record schema version 2.
+The SQLite container remains version 1. Existing records are not silently converted.
+Record validation requires the matching supervised flag and record version.
+The exact approval must match the record binding and retained process launch identity.
+Persist approval before START_ATTEMPTED and before child execution.
+Do not persist configuration paths, credentials, signing keys, or native cookies.
+Issuer approval and journal persistence are separate transactions.
+A lost reply or failed journal write does not permit child execution.
+An exact retry may retrieve the same issuer approval through the existing checked protocol.
+Restart cannot reconstruct a live participant connection from a saved record.
+Do not replay a launch or reuse its service connection identity after restart.
+
+Live operations
+
+Attach only once, while the supervised launch is prepared and retains both owned scopes.
+Validate the runtime configuration against the binding before opening its issuer connection.
+Consume authenticated updates only from the retained worker.
+Reject identity mismatch and permanent worker failure.
+Construct the approval request from the retained worker identity and durable launch record.
+Sign only the checked issuer challenge for that exact request.
+Store the checked approval before allowing start.
+Reject start without approval, after cleanup starts, after worker failure, or without retained scopes.
+Accept participant commands only after the owned launch starts.
+Use the existing worker validation and issuer checks for every command.
+Closing the worker does not retire its issuer generation or clear revocation obligations.
+
+Qualification
+
+First reproduce execution without approval with a real child and an independent output file.
+Then test exact approval, real activation, identity mismatch, wrong supervisor key, and premature commands.
+Test journal write failure after issuer approval and an exact retry.
+Test worker failure, cleanup, and restart without recovered handles.
+An independent child must observe the durable approval before its first application instruction.
+Keep the existing coordinator, participant, registry, authorization, native, and acceptance checks intact.
+Run Debug and runtime ASan/UBSan on both allowed hosts before integration.
+
+Remaining system requirements
+
+Connect worldd and workspaced through the private inherited participant channel.
+Implement authenticated fencing, checked external cleanup reconciliation, and exact generation retirement.
+Preserve pending revocation obligations until the complete recovery proof succeeds.
+M02 and Spatial-M1 remain incomplete.
+
+Current evidence
+
+Both hosts reproduced the missing gate and attachment before implementation.
+The independent baseline child recorded its PID and exact owned cgroup without approval.
+Candidate01 passed eleven new Debug checks and 51 harness checks on both hosts.
+The first regression command omitted native-input build dependencies.
+Twenty suites passed 328 checks. The native scope suite could not import its binding; eleven checks remained unrun.
+Output02 builds all targets with native input enabled and supplies the independent xprobe path.
+Source and assertions are unchanged. Both corrected Debug runs passed 339 checks across 21 suites and 51 harness checks.
+No corrected Debug case failed or skipped. Runtime sanitizer and full qualification remain pending.
+All 274 source hashes and 41 locked hashes match. Existing protobuf declarations remain unchanged.
+
+Both focused profiles now passed 339 checks across 21 suites and 51 harness checks on each host.
+No final focused case failed or skipped. Full qualification reuses the frozen output02 binaries.

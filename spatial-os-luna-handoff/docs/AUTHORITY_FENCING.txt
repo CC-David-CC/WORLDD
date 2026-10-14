@@ -1,0 +1,137 @@
+Authority fencing
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
+
+Invariant
+
+Only the registered supervisor can durably fence its exact active, previously authorized authority launch.
+Fencing blocks service acknowledgements, service release, and replacement activation.
+Fencing alone never completes a revocation obligation.
+
+Relationship to recovery
+
+Use fencing before accepting a supervisor cleanup receipt or authorizing replacement execution.
+Local crash cleanup can happen before the issuer becomes reachable.
+Such cleanup does not authorize retirement until the exact generation is fenced and its receipt is verified.
+Keep the activation active and preserve its applied_revision until separate checked retirement is implemented.
+Never infer external cleanup from fencing, process exit, a timeout, or an issuer signature.
+
+Additive protobuf contract
+
+Add SignaturePurpose.AUTHORITY_FENCING with value 7.
+Add these messages to spatial.identity.v1 in issuer.proto.
+Preserve all existing field numbers and enum values.
+
+AuthorityFenceBegin fields:
+  bytes participant_id = 1
+  uint64 registered_revision = 2
+  uint64 generation = 3
+  bytes service_incarnation = 4
+  bytes launch_id = 5
+  uint64 supervision_revision = 6
+  bytes authorization_id = 7
+
+AuthorityFenceChallenge fields:
+  uint32 protocol_version = 1
+  bytes issuer_id = 2
+  bytes issuer_incarnation = 3
+  bytes nonce = 4
+  bytes connection_binding = 5
+  AuthorityFenceBegin request = 6
+  bytes supervisor_public_key = 7
+  uint32 lifetime_ms = 8
+  string audience = 9
+
+AuthorityFenceComplete fields:
+  bytes nonce = 1
+  KeyProof proof = 2
+
+AuthorityFenceState fields:
+  bytes issuer_id = 1
+  AuthorityParticipantRecord registration = 2
+  uint64 generation = 3
+  bytes service_incarnation = 4
+  bytes authorization_id = 5
+  bytes launch_id = 6
+  uint64 supervision_revision = 7
+  bytes fence_id = 8
+  uint64 security_revision = 9
+  bytes supervisor_public_key = 10
+
+Add IssuerRequest.authority_fence_begin at field 30.
+Add IssuerRequest.authority_fence_complete at field 31.
+Return the existing ChallengeReply for begin.
+Add IssuerReply.authority_fence at field 28 for completion.
+
+Validation and proof
+
+Require a real TLS connection binding before creating or completing a challenge.
+Require 32-byte participant, incarnation, launch, and authorization identifiers.
+Require positive generation and revision values within the signed SQLite integer range.
+Match the complete registered participant record and current supervisor binding.
+Match the exact active activation and its consumed durable launch authorization.
+Verify service incarnation, generation, authorization ID, launch ID, supervisor revision, and supervisor key together.
+Reject unsupervised activations and inactive generations.
+Do not require the old activation's issuer incarnation to equal the current issuer incarnation.
+Recovery must remain possible after an issuer restart.
+
+Use audience identityd/authority-fence/v1 and signature purpose AUTHORITY_FENCING.
+Bind the proof to a fresh nonce, exact request, issuer incarnation, and requesting TLS connection.
+Consume a nonce on the first completion attempt.
+Reject expired proofs, wrong keys, wrong purposes, cross-connection proofs, and replay.
+Revalidate all mutable authority context inside the completion transaction.
+An owner key or participant key cannot substitute for the registered supervisor key.
+
+Durable state and service behavior
+
+Add schema version 9 through the explicit --migrate path.
+Create authority_fence with a primary key on participant_id and generation.
+Reference the exact authority_activation row with a foreign key.
+Store the canonical request, fence ID, fence security revision, supervisor key, and canonical state.
+Require unique fence IDs and consistent serialized and indexed identities on read.
+Keep activation rows, applied revisions, obligations, launch authorization, and supervisor binding unchanged during fencing.
+Commit one fence atomically. A failed insert changes no durable state.
+An identical request with a fresh valid proof returns the same committed fence.
+Conflicting requests never replace that fence.
+
+Reject applied and release requests for the fenced generation, including previously valid retries.
+Keep read-only authority-state inspection available.
+Block new launch authorization and activation while the fenced active generation remains unresolved.
+Old or second service sockets cannot bypass the generation gate.
+Keep pre-existing barriers pending where the fenced service had not acknowledged them.
+New revocations still include the fenced active generation.
+Do not change the original applied_revision to represent supervisor action.
+
+Migration and test changes
+
+Normal startup must reject version 8 databases until explicit migration succeeds.
+Migration must preserve all existing rows and issuer signing material.
+Repeated migration must be safe. Failed migration must roll back schema and version changes.
+Never migrate an operator database during development.
+The existing launch-authorization migration test expects version 8.
+Update that expectation to version 9 as an explicit schema-contract change when implementing fencing.
+Keep its original version 7 fixture, row-preservation assertions, and failure rollback assertions.
+Preserve the original test and its successful version 8 evidence.
+Older issuer migration fixtures must also remove authority_fence when constructing their historical schemas.
+Record each fixture change. Preserve every existing row, key, rollback, and migration-refusal assertion.
+Do not change acceptance.lock.json.
+
+Required checks
+
+Observe missing fence support through a real issuer connection before implementation.
+Verify exact fencing after an active supervised launch.
+Reject wrong signer, purpose, nonce, connection, generation, registration, incarnation, launch, and authorization.
+Test replay, fresh-proof idempotence, competing requests, and transaction failure.
+Test issuer restart before challenge, between challenge and completion, and after committed fencing.
+Test old and second service connections after fencing.
+Test concurrent revocation and require unchanged pending obligations.
+Test explicit version 8 migration, repeated migration, and rollback.
+Run focused and full qualification in Debug and runtime ASan/UBSan on both hosts.
+
+Deferred to the next required recovery primitive
+
+Define the checked native, process, observation, and dependent-control cleanup receipt.
+Bind that receipt to the committed fence and exact retained launch ownership.
+Persist verified receipt state before issuer retirement.
+Retire the exact generation without forging acknowledgement history.
+Authorize and synchronize a separately owned replacement launch.
+M02 remains incomplete until these steps and cross-host cancellation pass.

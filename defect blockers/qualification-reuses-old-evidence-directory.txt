@@ -1,0 +1,30 @@
+Defect: The first healthy-setup qualification runner reused configured evidence paths.
+Status: Confirmed runner defect. Corrected runner is queued. Real-runtime rerun remains pending.
+
+CMake embeds SPATIAL_SECURITY_EVIDENCE in generated CTest commands and environment properties.
+Changing only the external CTest environment does not replace those embedded values.
+The first runner omitted configuration because production binaries did not change.
+Its native fixtures still received the previous gate-02 evidence directory.
+
+Four Debug suites failed before their affected test bodies.
+They are session-operator-revocation, session-storage-owner, session-storage-contention, and session-deferred-fence.
+The retained tracebacks show FileExistsError in fixture setup.
+The complete supervisor suite passed with the scoped deadline correction.
+This does not qualify the combined matrix.
+
+The original complete gate archives were created before this run and remain intact.
+The first runner's transcripts remain under m03-healthy-setup-qualification-03 on sb16.
+Do not delete old evidence directories to obtain PASS.
+
+Proposed correction: Configure each existing build under the new qualification environment.
+Use a fresh per-profile evidence directory.
+Inspect generated commands before running tests.
+Verify production binary hashes remain unchanged.
+Run all 33 related suites in both profiles on both hosts.
+The corrected runner is m03-healthy-setup-qualify-04.py.
+Each queue waits for its exact predecessor process to finish before configuration.
+The idle sb16-2 correction-03 queue was replaced without stopping its full gate.
+
+2026-10-11: Corrected runner passes all 33 suites in all four host/profile combinations.
+Fresh generated CTest paths and unchanged production binary pins were verified.
+Status: Runner defect resolved. Original failed transcripts remain preserved.

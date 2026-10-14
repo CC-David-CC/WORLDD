@@ -1,0 +1,33 @@
+{
+  "id": "identity.supervisor_world_handoff",
+  "phase": "M02",
+  "status": "complete",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/SUPERVISOR_WORLD_NATIVE_HANDOFF.txt",
+  "evidence": "evidence/supervisor-world-handoff-2026-10-09",
+  "production_changed": true,
+  "qualification": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+  "remaining": [],
+  "correction_tests": "evidence/supervisor-world-handoff-2026-10-09/correction-prepared-review-01.json",
+  "baseline": "evidence/supervisor-world-handoff-2026-10-09/debug-baseline-01",
+  "draft": "Frozen candidate02:290 files; only new world regression test differs from candidate01. No production change between candidates.",
+  "candidate_review": "evidence/supervisor-world-handoff-2026-10-09/candidate-prepared-review-02.json",
+  "reader_correction": "evidence/supervisor-world-handoff-2026-10-09/reader-correction-review-02.json",
+  "participation_task": "tasks/m1/identity.supervised_world_participation.json",
+  "schema_comment_review": "evidence/supervisor-world-handoff-2026-10-09/schema-comment-review-03.json",
+  "failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/failure-review-01.json",
+  "historical_qualification": "sb16 passed both full profiles. sb16-2 Debug passed; runtime sanitizer core recorded1406 passes and1 bootstrap failure. Runtime P10 is unrun.",
+  "historical_integration_preparation": "Verified 16-file integration plan with one comment-only source delta. Both hosts produced identical before/after protobuf descriptors. Apply refused missing full qualification evidence before production mutation.",
+  "integration": {
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "source_files": 294,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_delta": "none: exact frozen294",
+    "review": "evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json",
+    "adoption": "evidence/supervisor-crash-fencing-2026-10-09/adoption-review-04.json"
+  },
+  "followup_task": "tasks/m1/identity.control_recovery.json"
+}

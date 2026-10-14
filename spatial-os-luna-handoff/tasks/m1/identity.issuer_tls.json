@@ -1,0 +1,26 @@
+{
+  "id": "identity.issuer_tls",
+  "phase": "M01",
+  "scope": "Mutually authenticated issuer service listener",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/ISSUER_TLS.md",
+  "invariant": "Only trusted TLS service peers reach the shared issuer handlers, and stalled peers cannot block other connections.",
+  "production_roots": ["src/identity/", "proto/spatial/identity/v1/"],
+  "counterexample_suite": "tests/core/test_identity_tls.py",
+  "focused_command": "ctest --test-dir build -V -R '^identity-(issuer|enrollment|revocation|tls)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Complete existing P00-P10 acceptance and unchanged acceptance lock",
+    "Independent Python TLS peers and OpenSSL actor proofs",
+    "Direct cross-host mutual TLS",
+    "Missing-client-certificate mutation detected"
+  ],
+  "limitations": [
+    "Authenticated world sessions remain required. The production client is qualified separately.",
+    "Service certificates do not grant actor or owner authority.",
+    "Trust changes require restart; online service-certificate revocation is not implemented.",
+    "Immediate live world revocation and nonempty bootstrap profiles remain required."
+  ],
+  "next_component": "identity.world_session"
+}

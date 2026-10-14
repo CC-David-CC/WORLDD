@@ -1,0 +1,33 @@
+{
+  "profile": "Spatial-M1",
+  "version": 1,
+  "authority": "../AGENTS.md",
+  "implementation_plan": "docs/MILESTONES.md",
+  "status_source": "CURRENT_STATE.md",
+  "baseline": {"through": "P10", "required": true, "acceptance_lock": "acceptance.lock.json"},
+  "completion_rule": "Every required item needs complete production evidence. Missing, partial, skipped, or unrun evidence does not pass.",
+  "report_statuses": ["passed", "failed", "blocked", "pending", "unrun"],
+  "required_hosts": ["sb16", "sb16-2"],
+  "required_automated_builds": ["Debug", "ASan/UBSan"],
+  "requirements": [
+    {"id": "M01", "required": true, "name": "Cryptographic human and agent identities", "contract": "docs/IDENTITY.md", "components": ["identity.key_material", "identity.issuer_control", "identity.manual_enrollment", "identity.approve_always", "identity.bootstrap_profile", "identity.proof_freshness", "identity.credential_revocation", "identity.actor_revocation", "identity.world_session"]},
+    {"id": "M02", "required": true, "name": "Delegation and immediate scoped revocation"},
+    {"id": "M03", "required": true, "name": "Inherited workspace execution confinement and independent escape attempts"},
+    {"id": "M04", "required": true, "name": "Immutable XLibre workspace identities and independent native client attacks"},
+    {"id": "M05", "required": true, "name": "Independent private worlds and one shared persistent world across both hosts"},
+    {"id": "M06", "required": true, "name": "Actor world transitions with preserved per-world context and no compositor restart"},
+    {"id": "M07", "required": true, "name": "Explicit workspace identity, availability, presentation, and authorized copying"},
+    {"id": "M08", "required": true, "name": "Cabinets, filtered metadata, real file operations, and recoverable deletion"},
+    {"id": "M09", "required": true, "name": "Broker application-group control, observation, and immediate revocation"},
+    {"id": "M10", "required": true, "name": "One human and agent semantic action path with real filtered metadata and pixels"},
+    {"id": "M11", "required": true, "name": "Provider-independent model configuration, authorized export, and safe provider failure"},
+    {"id": "M12", "required": true, "name": "A real model completes a bounded task through production actor mechanisms"},
+    {"id": "M13", "required": true, "name": "Declarative restoration, explicit migrations, and external-effect uncertainty"},
+    {"id": "M14", "required": true, "name": "Visible native session and physical keyboard, mouse, and SpaceMouse", "hardware": ["H01", "H02", "H03", "H04", "H05", "H06"]},
+    {"id": "M15", "required": true, "name": "Native performance and lifecycle soak", "minimum_surface_cycles": 1000, "minimum_session_minutes": 30, "target_fps": 60, "resolution": [1920, 1080], "hardware": ["H07"]},
+    {"id": "M16", "required": true, "name": "Reproducible builds, recorded system changes, recovery, and reviewed box-git commits", "hardware": ["H08"]}
+  ],
+  "hardware": {"required": true, "contract": "docs/HARDWARE_ACCEPTANCE.md", "items": ["H01", "H02", "H03", "H04", "H05", "H06", "H07", "H08"]},
+  "limits": ["P00-P10 success alone does not complete Spatial-M1.", "Software displays do not qualify physical devices, GPU output, or native timing.", "Spatial-M1 does not establish unrelated LOCAL_READY targets."],
+  "exclusions": ["remote live application-surface streaming", "remote application input", "cross-host workspace migration", "articulated bodies", "general rigid-body simulation", "store simulations"]
+}

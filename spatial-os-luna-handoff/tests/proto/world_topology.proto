@@ -1,0 +1,11 @@
+syntax = "proto3";
+package spatial.testing.topology.v1;
+
+// Trusted fixture launch receipt. It does not authorize actor operations.
+message WorldEndpoint {
+  uint32 protocol_version = 1;
+  string host = 2;
+  string address = 3;
+  uint32 port = 4;
+  uint64 process_id = 5;
+}

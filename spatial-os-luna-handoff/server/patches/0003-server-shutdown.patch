@@ -1,0 +1,39 @@
+--- a/glx/vndext.c
++++ b/glx/vndext.c
+@@ -197,6 +197,9 @@
+ {
+     // LogMessageVerb(X_INFO, 1, "GLX: GLXReset\n");
+ 
++    /* serverClient does not receive the ordinary client-state callback. */
++    GlxFreeClientData(serverClient);
++
+     GlxVendorExtensionReset(extEntry);
+     GlxDispatchReset();
+     GlxMappingReset();
+--- a/hw/vfb/InitOutput.c
++++ b/hw/vfb/InitOutput.c
+@@ -244,10 +244,12 @@
+ 
+     case NORMAL_MEMORY_FB:
+         free(pvfb->pXWDHeader);
++        pvfb->pXWDHeader = NULL;
+         break;
+     }
+ 
+     free(pvfb->crtcs);
++    pvfb->crtcs = NULL;
+ }
+ 
+ void
+--- a/os/Xtrans.c
++++ b/os/Xtrans.c
+@@ -929,5 +929,9 @@
+ 	if ((status = _XSERVTransCreateListener (ciptr, port, flags)) < 0)
+ 	{
++            /* A busy display leaves this unbound socket and its record open.
++             * Preserve the existing server's path while discarding our copy. */
++            if (status == TRANS_ADDR_IN_USE)
++                _XSERVTransCloseForCloning(ciptr);
+             if (*partial != 0)
+ 		continue;
+ 

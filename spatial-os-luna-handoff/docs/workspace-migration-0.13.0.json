@@ -1,0 +1,82 @@
+{
+  "migration": "0.13.0",
+  "contract_version": 3,
+  "predecessor_commit": "d305fd86c4d9c6f9494ea450389dc5749038e1c8",
+  "predecessor_lock_sha256": "3a3a4a8b1f56f88511205eb3ae7e1c4d90c7b5c2f89b5effdbfb9f25fb8971c6",
+  "test_id_renames": {
+    "tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_rooms_actual_worktree": "tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_selected_workspaces_project",
+    "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_into_branch_room_use_real_window_launch_work_and_return": "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return"
+  },
+  "added_acceptance_tests": [
+    "tests.acceptance.test_08_git_processes.GitTests.test_application_profile_and_actor_rights_both_limit_writes",
+    "tests.acceptance.test_08_git_processes.GitTests.test_child_process_cannot_read_or_write_outside_workspace",
+    "tests.acceptance.test_08_git_processes.GitTests.test_independent_workspaces_cannot_share_writable_git_metadata",
+    "tests.acceptance.test_08_git_processes.GitTests.test_launch_retry_cannot_change_workspace_context",
+    "tests.acceptance.test_08_git_processes.GitTests.test_ordinary_git_in_workspace_updates_real_worktree",
+    "tests.acceptance.test_08_git_processes.GitTests.test_portal_entry_keeps_selection_and_does_not_restart_runtime",
+    "tests.acceptance.test_08_git_processes.GitTests.test_two_workspaces_use_same_project_path_in_distinct_mount_namespaces",
+    "tests.acceptance.test_08_git_processes.GitTests.test_unavailability_and_revocation_clear_selection",
+    "tests.acceptance.test_08_git_processes.GitTests.test_workspace_creation_availability_and_selection_are_separate",
+    "tests.acceptance.test_08_git_processes.GitTests.test_world_presence_and_global_grants_do_not_grant_workspace_access"
+  ],
+  "changed_locked_files": {
+    "docs/CONTRACT.md": {
+      "before": "3f2538156a01e3118c8b0a09a5b6ded97012faad403320ad39f18eefe74723b0",
+      "after": "784506e661aa36de6683a5dc493a952306216ef9206b5b51e20d265960e40b84"
+    },
+    "tests/acceptance/test_08_git_processes.py": {
+      "before": "b1389f611baff58b5f04d55af25dec06ce9ebcd057c298aed9cef8845386834d",
+      "after": "44cb2909d3787c59e3591a0ec82bfb6a80c177047e9c3dd04a4fc92ca6bc0b76"
+    },
+    "tests/acceptance/test_09_recovery.py": {
+      "before": "0ee4dfc4c1f8f090495985decad89c6d4f25ec92a2355606a70bbb2d7d07b86a",
+      "after": "0b866f1cfd1d8a6c74ccc6e41d49178a0ba10245e3341b34c24a2973695ebcea"
+    },
+    "tests/acceptance/test_10_walkthrough.py": {
+      "before": "8eee8bfd0d378741779c068eb007626ce91df2114bce5b19d4b8c63ffbe6d628",
+      "after": "2fa2329c2e1cfabe4f67c0befe7b4c1ff0e7d14ac811ffdb1c6da7916e25903e"
+    },
+    "proto/spatial/core/v1/core.proto": {
+      "before": "85790a0ccad18c303939e7cb3ca7a26e3499db47318061699a6957ebd7b83757",
+      "after": "d26f8e9b0a6042799693a606d3d1b319d29e066c53fa395e9704fb05417b4314"
+    },
+    "harness/wire.py": {
+      "before": "4676c89d907855ba36637bde20b92cfc504033a61302068b6688e70f8444627a",
+      "after": "9f2d1a651f8c522fbb5228d21abb4be9b625775cd8312fa9dfd181961b00ba3f"
+    }
+  },
+  "added_locked_files": {
+    "tests/harness/test_workspace_wire.py": "87b8db839ce2bcb1b5be778f5564b438d883be7787524763d07c2b714c717378"
+  },
+  "counts": {
+    "previous_acceptance": 141,
+    "retained_requirements": 141,
+    "added_acceptance": 10,
+    "acceptance": 151,
+    "primitive_tickets": 140,
+    "harness_self_tests_expected": 43
+  },
+  "review": {
+    "reviewer": "primary coding agent",
+    "local_model": "Unavailable. David authorized continuation after its hardware failure. No local-model review is claimed."
+  },
+  "implementation_status": "Workspace broker and its Git/process effects remain unimplemented. Typed requests return explicit UNIMPLEMENTED errors.",
+  "qualification_status": "Regression qualification passed on both hosts in Debug and ASan/UBSan. The targeted P08 case fails with the expected production UNIMPLEMENTED error.",
+  "qualification": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "builds": [
+      "debug",
+      "sanitize"
+    ],
+    "acceptance_passed": 113,
+    "acceptance_errors": 1,
+    "acceptance_unrun": 37,
+    "core_checks_per_run": 135,
+    "harness_checks_per_run": 43,
+    "evidence": "evidence/workspace-contract-2026-10-07",
+    "source_audit": "85 final source hashes verified; 84 qualification inputs remain byte-identical. The acceptance lock changed only CRLF to LF. Original bytes are retained. Final harness and diagnostic checks use the normalized lock."
+  }
+}

@@ -1,0 +1,66 @@
+M03 production storage launch increment, 2026-10-11
+
+The Git I/O correction is committed at be35ee6. The previous goal turn made verified progress.
+This increment connects the retained supervisor to a bounded privileged storage-owner service.
+The existing private socket and credential checks remain the production storage transport.
+
+Explicit additive contract
+storage.proto adds StorageOwnerLaunchConfig with the fixed volume, protected owner-policy path, and process budget.
+The owner receives the retained broker pidfd outside the configuration message.
+The launch service inherits the storage socket on stdin and the retained pidfd on stdout.
+These standard descriptors carry kernel handles. They are not application input or output.
+The owner duplicates both handles with close-on-exec before using the normal protobuf channel.
+The owner checks the original broker UID and actual pidfd identity before accepting storage requests.
+StorageChannel can use the transferred handle directly. It does not reopen a numeric PID in this path.
+Existing owner configurations and private protocol fields remain supported for the recorded diagnostic runners.
+
+The service uses a root-owned installed executable and private root-owned policy.
+Its configuration and executable require canonical paths and protected parent directories.
+Operator volume/configuration paths exclude whitespace and systemd expansion characters.
+This restriction does not limit filenames within a workspace.
+systemd-run disables environment expansion and inherits the original descriptors without a relay.
+The service applies memory, swap, process, CPU, and declared block-device I/O limits.
+Its CPU budget requires the service manager's 0.01 percent precision. Unsupported precision is rejected explicitly.
+The launcher waits for the actual service to become active before returning its live state.
+Its network namespace is private. Only AF_UNIX is permitted.
+The system is read-only except for the explicit volume. The normal login session remains available.
+The launcher verifies service shutdown. An uncertain cleanup preserves its exact unit name for recovery.
+
+Source reference
+https://github.com/systemd/systemd/blob/v255/man/systemd-run.xml
+The installed systemd 255 manual confirms that --pipe passes the original standard descriptors as-is.
+
+Selected checks before integration
+Compile the actual owner and launch library with warnings treated as errors and runtime sanitizers.
+Use the production launcher with an actual unprivileged broker and a dedicated quota volume.
+Verify inherited pidfd identity, peer UID rejection, kernel resource limits, network isolation, and restricted writes.
+Exercise owner exit, broker exit, bad policy, unavailable executable, and cleanup retry.
+Preserve the actual service and application diagnostics.
+Run affected retained-session and broker lifecycle regressions after wiring the normal entry points.
+Keep full M03 qualification pending until normal provisioning and contention/revocation checks pass.
+
+Production-owner integration findings
+sb16-2 passed the real Git, quota, read-only, sibling, restart, and owner-cleanup checks.
+sb16 reproduced a separate conservative admission failure after successful storage exhaustion.
+The draft resource correction counts existing reservations and their funded usage once.
+It retains unreserved/reparented cache charges and all existing hard limits.
+Pin the manager and live group descriptors for these queries.
+Selected regression scope expands to broker resources, process scope resources, Git, process termination, workspace context, and worldd lifecycle.
+Repeat production-owner integration on both hosts with independent kernel owner witnesses.
+
+Reviewed checkpoint
+sb16 integration-15 passed in 119.722 seconds.
+sb16-2 integration-14 passed in 122.461 seconds.
+Both passed all five existing integration scenarios and checked two owner incarnations.
+Both passed 106 selected regression cases. All 41 locked files remain unchanged.
+The primary review verified 300 attachments and 364 source inputs per host.
+Read evidence/m03-storage-launch-2026-10-11/primary-review.json.
+
+The binary installer ran on both hosts. It installed one root-owned executable.
+Its receipts record the exact executable hash and removal command.
+No persistent production data volume was provisioned. Normal login remains unchanged.
+
+Normal session and direct BrokerProcess wiring remain unimplemented.
+The launch-failure matrix, including wrong peer UID and cleanup retry, remains unrun.
+Do not infer these results from successful startup or existing unrelated lifecycle tests.
+Contention/revocation checks and the complete M03 gate remain pending.

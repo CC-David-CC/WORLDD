@@ -1,0 +1,38 @@
+Defect: Mesa 25.2.8 GLVND vendor does not register its default EGL cleanup.
+Status: A private candidate passes rendering and selected sanitizer checks on both hosts.
+Qualification remains incomplete. System graphics libraries remain unchanged.
+
+The native XLibre sanitizer run leaks 3176 bytes in five allocations on both hosts.
+Loaded-module diagnostics resolve the allocations to Mesa EGL display and device records.
+The device records also own allocations from libdrm.
+
+Mesa defines default cleanup functions for its global display and device lists.
+The release source registers exit cleanup only when _eglAddAtExitCall receives a function.
+No remaining EGL source caller registers that handler.
+The candidate permits registration without adding another cleanup function.
+It calls that registration during GLVND vendor initialization.
+
+Patch: spatial-os-luna-handoff/server/mesa/mesa-egl-default-cleanup.patch.
+Source: https://archive.mesa3d.org/mesa-25.2.8.tar.xz.
+Evidence: spatial-os-luna-handoff/evidence/m04-glx-diagnosis-2026-10-11/.
+
+Both comparison vendors initialize and unload with matching dependencies and the same native server.
+The unpatched vendor leaks the same 3176 bytes. The patched vendor reports no sanitizer error.
+Earlier apparent passes used a copied vendor with a missing libgallium dependency.
+Those passes are invalid and remain preserved as debugging evidence.
+
+The corrected broader run passes eight suites and fails one shutdown timeout assertion.
+The unchanged 23-case selection suite passes its isolated recheck.
+Do not discard the original timeout or claim a completed graphics gate.
+
+Next: Qualify the intended graphics configuration and native GPU path.
+Keep the unexplained timeout evidence. Keep the patch separate from XLibre source changes.
+
+2026-10-11 validation update:
+Each host passes 186 GLX-enabled native security checks and 100 targeted shutdown repetitions.
+Each host renders 32 checked frames through direct GLX with FP64 support.
+Loader logs prove the candidate vendor initializes and unloads.
+sb16-2 builds its own candidate from the recorded inputs.
+The original timeout remains unexplained. Its deadline remains four seconds.
+Native GPU, installed-vendor configuration, and full M04 qualification remain pending.
+Evidence: spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/primary-review.json.

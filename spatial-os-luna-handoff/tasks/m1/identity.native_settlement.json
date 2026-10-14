@@ -1,0 +1,54 @@
+{
+  "id": "identity.native_settlement",
+  "phase": "M02",
+  "parent": "identity.revocation_barrier",
+  "status": "in_progress",
+  "current_step": "candidate06_full_qualification",
+  "invariant": "A lost native credential cleanup reply prevents broker acknowledgement in the same reconciliation iteration.",
+  "candidate": 6,
+  "source_files": 253,
+  "integrated": false,
+  "evidence": "evidence/participant-native-settlement-2026-10-09",
+  "production_files": [
+    "src/workspace/main.cpp"
+  ],
+  "test_files": [
+    "tests/core/test_workspace_participant_settlement.py"
+  ],
+  "baseline": {
+    "host": "sb16",
+    "candidate": 5,
+    "profile": "Debug",
+    "result": "Issuer completion became true while the native server was stopped and cleanup was unconfirmed.",
+    "limit": "Timing-sensitive failure under debugger scheduling. The sustained-pause marker was not reached."
+  },
+  "focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profile": "Debug",
+    "checks": 81,
+    "suites": 11,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "remaining": [
+    "Complete runtime sanitizer qualification on both hosts.",
+    "Resolve the retained broader bootstrap and native-control failures before combined integration.",
+    "Review and integrate only the fully qualified source manifest."
+  ],
+  "full_debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "core_checks": 1232,
+    "core_suites": 77,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  }
+}

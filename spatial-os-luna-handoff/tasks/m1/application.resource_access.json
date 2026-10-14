@@ -1,0 +1,30 @@
+{
+  "id": "application.resource_access",
+  "phase": "M04",
+  "scope": "Native resource ownership, lookup authorization, and root enumeration",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_RESOURCE_POLICY.md",
+  "invariant": "Native resource lookups enforce application identity and explicit public-resource exceptions.",
+  "production_roots": ["server/xlibre/spatialpolicy.c", "server/xlibre/spatialsecurity.c", "server/patches/0004-spatial-resource-policy.patch"],
+  "counterexample_suite": "tests/native/test_resource_isolation.py",
+  "focused_command": "ctest --test-dir build -V -R '^native-(resource-isolation|security-identity)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Missing-feature failures against the preceding native server",
+    "Positive same-application access and negative cross-application access",
+    "Root enumeration filtering and root pixel/property denial",
+    "Independent native attacks against windows, pixmaps, graphics contexts, properties, and events",
+    "Connection teardown, revocation, and retained-resource denial",
+    "Native byte-order coverage",
+    "Unchanged locked P00-P10 assertions",
+    "Focused instrumented native server checks with the GLX limitation recorded",
+    "Independent mutation detection"
+  ],
+  "next_components": ["application.extension_isolation", "application.global_isolation", "application.device_authority", "authority.application"],
+  "limitations": [
+    "This component does not complete native resource isolation or M04.",
+    "Extension dispatch, atoms, selections, device access, aliases, and asynchronous metadata still require qualification.",
+    "Strict mode remains explicit. Trusted diagnostic mode is not an application security boundary.",
+    "Do not connect untrusted applications before the complete native boundary and broker provisioning pass."
+  ]
+}

@@ -1,0 +1,42 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -1231,6 +1231,9 @@
+ ProcUngrabServer(ClientPtr client)
+ {
+     REQUEST_SIZE_MATCH(xReq);
++    int rc = dixCallServerAccessCallback(client, DixGrabAccess);
++    if (rc != Success)
++        return rc;
+     UngrabServer(client);
+     return Success;
+ }
+@@ -3510,6 +3513,9 @@
+     int rc;
+ 
+     if (stuff->id == AllTemporary) {
++        rc = dixCallServerAccessCallback(client, DixDestroyAccess);
++        if (rc != Success)
++            return rc;
+         CloseDownRetainedResources();
+         return Success;
+     }
+--- a/os/access.c
++++ b/os/access.c
+@@ -1244,13 +1244,16 @@
+ {
+     int rc;
+ 
+-    if (!client || defeatAccessControl)
++    if (!client)
+         return Success;
+ 
+     /* untrusted clients can't change host access */
+     rc = dixCallServerAccessCallback(client, DixManageAccess);
+     if (rc != Success)
+         return rc;
++
++    if (defeatAccessControl)
++        return Success;
+ 
+     return client->local ? Success : BadAccess;
+ }

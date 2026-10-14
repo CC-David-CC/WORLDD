@@ -1,0 +1,69 @@
+{
+  "id": "identity.participant_barrier",
+  "phase": "M02",
+  "status": "complete",
+  "current_step": "qualified_integrated_and_adopted",
+  "parent": "identity.revocation_barrier",
+  "integration_dependency": "identity.participant_session",
+  "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",
+  "isolated_source": "local/participant-barrier-draft-01",
+  "invariant": "Commit revocation and active-generation obligations atomically; require contiguous authenticated application before completion.",
+  "integrated": true,
+  "remaining": [],
+  "limitations": [
+    "Trusted service acknowledgements require later independent production effect witnesses.",
+    "Stranded generations need explicit supervisor fencing; disconnect never proves cleanup."
+  ],
+  "candidate": 4,
+  "source_files": 240,
+  "evidence": "evidence/participant-barrier-2026-10-09",
+  "focused_Debug": {
+    "host": "sb16",
+    "new_checks": 33,
+    "regression_checks": 187,
+    "failed": 0,
+    "skipped": 0,
+    "new_server_checks": 19,
+    "new_client_checks": 14
+  },
+  "service_dependency": "qualified and adopted69d6618",
+  "sb16_final": {
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 1185,
+    "core_suites": 68,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sb16_2_Debug": {
+    "core_checks": 1185,
+    "core_suites": 68,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sb16_2_final": {
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 1185,
+    "core_suites": 68,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "prepared_candidate": 5,
+  "prepared_core_checks": 1186,
+  "integration_commit": "1d129f7827478de20bdd5896b077ced33f2aab78",
+  "adopted_hosts": [
+    "sb16",
+    "sb16-2"
+  ]
+}

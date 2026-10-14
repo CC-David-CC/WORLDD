@@ -1,0 +1,53 @@
+{
+    "id":  "application.broker_access",
+    "phase":  "M04",
+    "profile":  "tasks/spatial-m1.json",
+    "invariant":  "The broker authorizes observation and control only for a live native application within explicit workspace grants and the actor effective execution authority.",
+    "production_roots":  [
+                             "proto/spatial/workspace/v1/broker.proto",
+                             "src/workspace/authority.cpp",
+                             "src/workspace/authority.hpp",
+                             "src/workspace/store.cpp",
+                             "src/workspace/store.hpp",
+                             "src/workspace/main.cpp",
+                             "src/workspace/native_launch.cpp",
+                             "src/workspace/native_launch.hpp"
+                         ],
+    "test_ids":  [
+                     "ApplicationAccessTests.test_explicit_grants_authorize_live_application",
+                     "ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control",
+                     "ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants",
+                     "ApplicationAccessTests.test_control_grant_does_not_imply_observation",
+                     "ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access",
+                     "ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application",
+                     "ApplicationAccessTests.test_readonly_actor_can_control_readonly_application",
+                     "ApplicationAccessTests.test_workspace_policy_limits_recorded_application_authority",
+                     "ApplicationAccessTests.test_control_requires_application_execution_authority",
+                     "ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application",
+                     "ApplicationAccessTests.test_application_scope_does_not_authorize_another_application",
+                     "ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes",
+                     "ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application",
+                     "ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied",
+                     "ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority",
+                     "ApplicationAccessTests.test_exited_application_loses_access",
+                     "ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority",
+                     "ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution",
+                     "ApplicationAccessTests.test_observation_revocation_also_removes_control",
+                     "ApplicationAccessTests.test_independent_application_grant_survives_other_revocation",
+                     "ApplicationAccessTests.test_parent_revocation_invalidates_dependent_application_grant",
+                     "ApplicationAccessTests.test_application_scoped_execution_grant_does_not_authorize_project_execution",
+                     "ApplicationAccessTests.test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement",
+                     "ApplicationAccessTests.test_foreign_issuer_principal_cannot_use_local_grants",
+                     "ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority",
+                     "ApplicationAccessTests.test_request_requires_authenticated_principal",
+                     "ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets",
+                     "ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions"
+                 ],
+    "preceding_gate":  "P10",
+    "contract":  "docs/APPLICATION_ACCESS.md",
+    "limitations":  [
+                        "Worldd application observation, control, and revocation integration remain required.",
+                        "This private broker suite does not prove actor-channel enforcement.",
+                        "M04, M09, and Spatial-M1 remain incomplete."
+                    ]
+}

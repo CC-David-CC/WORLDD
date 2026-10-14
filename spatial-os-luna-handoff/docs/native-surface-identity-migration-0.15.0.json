@@ -1,0 +1,47 @@
+{
+  "migration": "0.15.0",
+  "predecessor_commit": "972b61f9a3275647ca264c447dd81f27037d5d0e",
+  "predecessor_lock_sha256": "cdcc8989fa4ab908ecd5b69910d3e651b407396aa101d11cabed66ef2565d075",
+  "changed_locked_files": {
+    "proto/spatial/core/v1/core.proto": {
+      "before": "afa5846fd245e28e04e47cec12d44d15642d5ac59f6fd6144a9f8976e318ce76",
+      "after": "f035d055f1d9a12c4d2d32830e48dba5ddb74c883e36c4b46d571efd833ae513"
+    }
+  },
+  "added_locked_files": {
+    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48"
+  },
+  "acceptance_test_ids_unchanged": true,
+  "acceptance_count": 151,
+  "assertions_changed": false,
+  "oracles_changed": false,
+  "review": "Primary agent; David waived local-model review.",
+  "qualification": {
+    "scope": "Combined schema and production implementation",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "builds": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks_per_profile": 729,
+    "ctest_suites": 38,
+    "harness_checks_per_profile": 51,
+    "P10_cases_per_profile": 151,
+    "native_server_sanitizer_checks_per_host": 210,
+    "skipped": 0,
+    "evidence": "evidence/native-surface-identity-2026-10-08"
+  },
+  "descriptor_audit": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "existing_fields": 481,
+    "existing_enum_values": 71,
+    "existing_messages": 135,
+    "status": "passed"
+  }
+}

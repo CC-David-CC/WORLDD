@@ -1,0 +1,57 @@
+Defect: A broker filesystem flush delays actor revocation.
+Status: The contention regression passes on both hosts. Final combined qualification remains in progress.
+
+Source baseline: 32d8242, M03 resource-boundary branch.
+Reproducer: tests/native/test_storage_contention.py.
+Case: test_native_storage_actor_revocation_during_bounded_git_import.
+Witness: A retained native application and bounded writer run through the production broker.
+An independent issuer client revokes their actor during an 80 MiB local repository import.
+Both hosts retain all nine pinned application processes after two seconds.
+The import reply remains outstanding.
+The root kernel witness shows the broker blocked in Btrfs fsync.
+The syscall number is 74. The kernel stack includes folio_wait_writeback and btrfs_sync_file.
+The normal authority loop cannot consume revocation during this synchronous filesystem flush.
+Preserved runs: local/m03-git-storage-20261011/storage-contention-04 through storage-contention-06 on both hosts.
+
+Proposed correction:
+Run each filesystem flush in a joined worker within the broker's existing resource boundary.
+Keep SQLite operations and authority decisions on the broker thread.
+Service checked authority events while the filesystem worker runs.
+Service the same events while administrative Git runs.
+Complete each flush before recording its ready state or sending a success acknowledgement.
+Preserve errors, operation uncertainty, quota limits, and existing Git deadlines.
+Clear callbacks before their authority and control targets leave scope.
+
+This evidence does not explain the older startup EOF or change SQLite durability.
+The five-second issuer default and short fault deadlines remain unchanged.
+M03 remains incomplete until its full phase gate passes.
+
+Historical intermediate results:
+Joined flushes and Git progress stop all nine handles during the import on both hosts.
+Checked world-channel service lets the world acknowledge cancellation during the wait.
+Workspace completion remains pending in the second correction's evidence.
+A bounded read-only review identified omitted query keepalive as its likely cause.
+The new correction runs the existing keepalive only from the explicit effect wait.
+The old silent exception does not prove which transport failure occurred.
+The current code records a fixed keepalive-failure diagnostic.
+Final combined qualification remains pending.
+
+Verified combined contention evidence:
+Read spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/preserved-review.json.
+The baseline retains all nine application processes after two seconds on both hosts.
+The corrected checks-07 run stops all nine in 0.371 seconds on sb16 and 0.738 seconds on sb16-2.
+The import reply remains pending in both corrected samples.
+Nested execution receives BUSY and creates neither its requested file nor a process registry row.
+Later source review routed the removal-receipt flush through the same joined worker.
+Final current-source Debug, sanitizer, and full-gate evidence remains pending.
+
+Corrected sb16 current qualification passes all 216 related checks and 151 acceptance cases in both profiles.
+The new sanitizer contention sample stops all nine applications in 0.459 seconds while the import reply remains pending.
+Its Debug sample records 0.480 seconds. Nested execution still creates no file or process record.
+Read spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/correction-02-sb16-sanitizer-review.json.
+The corrected full gates and second-host combined qualification remain pending.
+
+Selected final qualification now passes both hosts in both profiles.
+Each profile passes 216 related checks and all 151 acceptance cases.
+The corrected sb16-2 sanitizer sample stops all nine applications in 0.401 seconds before its import reply.
+Both complete gates and eight cross-host cases remain required before closing M03.

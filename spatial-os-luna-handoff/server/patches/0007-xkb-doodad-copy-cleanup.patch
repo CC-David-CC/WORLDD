@@ -1,0 +1,15 @@
+diff --git a/xkb/xkbUtils.c b/xkb/xkbUtils.c
+--- a/xkb/xkbUtils.c
++++ b/xkb/xkbUtils.c
+@@ -1790,9 +1790,8 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
+ 
+         /* doodads */
+         if (dst->geom->num_doodads) {
+-            for (i = src->geom->num_doodads,
+-                 ddoodad = dst->geom->doodads +
+-                 src->geom->num_doodads;
++            /* Every destination entry is cleared before the copy below. */
++            for (i = 0, ddoodad = dst->geom->doodads;
+                  i < dst->geom->num_doodads; i++, ddoodad++) {
+                 if (ddoodad->any.type == XkbTextDoodad) {
+                     free(ddoodad->text.text);

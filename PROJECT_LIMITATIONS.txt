@@ -1,0 +1,134 @@
+Spatial desktop: incomplete verification and demonstration notes
+Updated: 2026-10-08
+
+David requested this file for work that cannot yet be shown or verified.
+These notes do not convert incomplete requirements into passed requirements.
+Continue independent implementation and testing while each limit remains recorded.
+
+1. Full Spatial-M1 acceptance remains incomplete.
+   P00-P10 baseline success does not prove complete M01-M16 or H01-H08 acceptance.
+   See spatial-os-luna-handoff/CURRENT_STATE.md for tested implementation status.
+
+2. Physical keyboard, mouse, and six-axis SpaceMouse qualification remains pending.
+   Software displays and injected input do not establish physical-device acceptance.
+   No complete physical trial or unplug-recovery demonstration is claimed.
+
+3. Native GPU performance and the full session soak remain pending.
+   The required target is 60 FPS at 1920x1080, 1,000 surface cycles, and 30 minutes.
+   Current disposable Xvfb tests do not establish these measurements.
+
+4. Local-model review is active again.
+   David authorized the Strata restart on llm-79 on 2026-10-08.
+   The model loaded and reviewed the device-disable patch.
+   Image input remains disabled.
+   Real-model actor task and visual-agent acceptance remain pending.
+
+5. Instrumented GLX graphics-provider shutdown still has a recorded cleanup failure.
+   Focused core-X sanitizer runs explicitly disable GLX.
+   They do not prove instrumented GLX cleanup or native GPU correctness.
+
+6. Native X application isolation remains incomplete.
+   Global core operations, device authority, atoms, selections, aliases, and event metadata need qualification.
+   Broker credential provisioning and compositor authority integration also remain required.
+   Do not expose untrusted applications before the complete boundary passes.
+
+7. Ordinary applications have an explicit extension profile.
+   Unqualified native extension families remain denied.
+   RENDER window pictures support drawing, but application source reads are denied.
+   Required editor and terminal profiles still need integration qualification.
+   See spatial-os-luna-handoff/docs/NATIVE_EXTENSION_POLICY.md.
+
+8. Routine development splits Debug and runtime sanitizer suites between hosts.
+   Omitted host/build combinations are unrun for that increment.
+   Final qualification still requires the complete two-host profile.
+
+9. The animated-cursor timer leak now has a locally tested production fix.
+   The original 40-byte leak and failing logs remain preserved.
+   All 90 focused native sanitizer checks passed after the fix, with GLX disabled.
+   Both final cumulative runs passed all 151 acceptance cases.
+   Final Debug ran on sb16. Final runtime ASan/UBSan ran on sb16-2.
+   All three final policy mutations were detected.
+   Final evidence collection, source audit, commit, and push remain pending.
+   Patch: spatial-os-luna-handoff/server/patches/0005-animated-cursor-cleanup.patch
+   Raw failure: sb16-2 project local/m04-extension-server-sanitize-focused-01
+   Raw native success: sb16-2 project local/m04-extension-server-sanitize-focused-02
+   Final cumulative logs: local/m04-extension-debug-02 on sb16
+   Final cumulative logs: local/m04-extension-sanitize-02 on sb16-2
+
+10. The animated-cursor timer fix is in open PR #3860.
+    PR: https://github.com/X11Libre/xserver/pull/3860
+    It targets X11Libre master from branch fix/animated-cursor-timer-leak.
+    Commit: df4104269a2bde4ec1a87dbfaac3d25ac377cbb6.
+    A fresh ASan/UBSan Xvfb build ran from upstream commit 71f28ae on sb16.
+    One-screen cursor lifetime checks passed after the TimerFree change.
+    Two-screen shutdown still reproduces the separate Xvfb double-free.
+    The open PR body still says the fresh upstream build was not run.
+    Add the newer evidence to the PR before review.
+
+11. The device-disable cursor callback fix is pushed for a separate PR.
+    Branch: fix/disable-device-animated-cursor.
+    Commit: 3eb9751cf6b845918567f703fe979d4e0a12b2c6.
+    The change is limited to dix/events.c in FreeSprite().
+    The local XI witness exits client=0 and server=0 with LeakSanitizer disabled.
+    ASan/UBSan reports no invalid access in that run.
+    LeakSanitizer reports 1,256 bytes in seven allocations on server exit.
+    This includes the separate 40-byte timer leak and 1,216-byte device/sprite leak.
+    The Meson unit suite reports no suitable tests.
+    Compare link: https://github.com/X11Libre/xserver/compare/master...CC-David-CC:fix/disable-device-animated-cursor?expand=1
+    PR creation awaits David.
+
+12. Strata was restarted on llm-79 on 2026-10-08.
+    The stop drop-in was /etc/systemd/system/fleet-iq3.service.d/99-fleet-llm-stop.conf.
+    Its ConditionPathExists=!/ prevented the service from starting.
+    David authorized service restoration by SSH.
+    The stop drop-in was removed. systemd was reloaded and fleet-iq3.service restarted.
+    Strata loaded the model and answered bounded patch reviews.
+    No credential is recorded in this file.
+
+    Recovery, only if the stop override must be restored:
+    The local model proposed incorrect unit sections and file paths.
+    This block was checked against the removed drop-in.
+
+sudo install -d /etc/systemd/system/fleet-iq3.service.d
+sudo tee /etc/systemd/system/fleet-iq3.service.d/99-fleet-llm-stop.conf <<'EOF'
+# LLM shutdown requested 2026-10-07; remove this drop-in only when serving is authorized again.
+[Unit]
+ConditionPathExists=!/
+
+[Service]
+Restart=no
+EOF
+sudo systemctl daemon-reload
+    sudo systemctl stop fleet-iq3.service
+
+13. XLibre animated-cursor timer backports are ready on local branches.
+    release/25.0: 626fce12562ca431394a1bd6d7ec2ea6fb35af9e on sb16.
+    release/25.1: 8859d2e50d49aab3024c6c198dd1f23eb3cd27d6 on sb16-2.
+    release/25.2: 9b7a0c16305d600de7333f42de63e20c27183b9c on sb16-2.
+    ASan/UBSan Xvfb builds passed with GLX disabled.
+    Each cursor-witness run passed 32 unused and 32 retained/displayed lifecycles.
+    No sanitizer report occurred.
+    Builds used host-local xorgproto 2024.1. System packages stayed unchanged.
+    The branches are not pushed. No release backport PRs exist.
+    AGENTS.md line 368 prohibits GitHub publishing for this task.
+
+14. The M04 native extension-isolation component passed focused checks.
+    Debug CTest passed all three focused suites on sb16 and sb16-2.
+    ASan/UBSan passed the same suites on both hosts, with GLX disabled.
+    sb16's first security-identity run hit an Xvfb displayfd startup error.
+    Its retry passed all 22 security-identity tests.
+    The pre-M04 server exposed 18 extra extensions to applications.
+    A direct XTEST version request also succeeded on that server.
+    The baseline SHAPE-hole test stopped at CreatePicture denial.
+    That result is a capability mismatch, not proof of pixel exposure.
+    Mutations for dispatch, discovery, window pixels, resource access,
+    root enumeration, and parent-relative pixels were detected.
+    See local/m04-extension-mutation-02/mutation.json,
+    local/m04-extension-mutation-03/mutation.json, and
+    local/m04-isolation-mutation-02/mutation.json on sb16.
+    No TimerFree-specific mutation was run.
+    GLX cleanup, remaining M04 components, and full Spatial-M1 acceptance remain pending.
+
+No external blocker currently prevents further project implementation.
+David resumed XLibre stability work and Spatial-M1 implementation on 2026-10-08.
+The local model endpoint is active for bounded code review.

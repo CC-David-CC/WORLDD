@@ -1,0 +1,8 @@
+{
+  "endpoint": null,
+  "model": null,
+  "api_key_env": null,
+  "timeout_seconds": 120,
+  "max_context_bytes": 120000,
+  "request_options": {"temperature": 0, "max_tokens": 4096}
+}

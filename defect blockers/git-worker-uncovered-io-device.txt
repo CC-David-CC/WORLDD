@@ -1,0 +1,46 @@
+Administrative Git accepts an uncovered storage device
+Correction verified on 2026-10-11 after the goal resumed.
+Production validates the exact pinned mount descriptors before reserving or starting its Git worker.
+The uncovered-source fixture now returns INVALID_ARGUMENT without repository or operation records.
+Each host passed 106 selected regressions and repeated the real 288 MiB quota-volume integration.
+Read spatial-os-luna-handoff/evidence/m03-git-io-device-2026-10-11/primary-review.json.
+All 41 locked files remain unchanged. Complete M03 qualification remains pending.
+
+Historical reproducer and proposal
+Confirmed on sb16 and sb16-2 on 2026-10-11. Open at the requested pause.
+
+The resource configuration names a valid whole block device other than the project disk.
+All policy levels name that same incorrect device, so their schemas and intersections are valid.
+The application launch path rejects this configuration before creating a process record.
+The administrative Git path imports the repository successfully without a matching limit on its actual disk.
+
+Cause
+WorkspaceResources::prepare validates the real application storage devices.
+WorkspaceResources::prepare_git_job copies configured I/O limits without validating Git mount devices.
+ExecutionStore::Impl::run_git calls prepare_git_job without passing those paths.
+The configured io.max entries therefore do not prove that Git's actual storage is bounded.
+
+Required invariant
+Validate every administrative Git source and destination device before its worker runs.
+Include Btrfs volume identity, loop devices, and backing storage where applicable.
+Keep the existing namespace and process boundary. Do not substitute command-name filtering.
+Return INVALID_ARGUMENT before repository mutation when the requested disk has no configured budget.
+
+Proposed correction
+Pass the explicit Git mount set to the resource preparation boundary.
+Reuse the production storage-device resolver. Validate all mounts before reserving or starting the worker.
+Keep the 256 MiB hard cap, 192 MiB throttle, zero swap, sixteen processes, and two CPUs.
+Keep the five-minute import and sixty-second ordinary-job deadlines.
+
+Saved regression
+tests/core/test_broker_resources.py:
+BrokerResourceTests.test_uncovered_git_device_denies_before_repository_mutation
+The test expects INVALID_ARGUMENT and no repository or operation records.
+Both unpatched runs returned a successful RepositoryReply. The failing evidence is preserved.
+
+Evidence
+spatial-os-luna-handoff/evidence/m03-git-storage-2026-10-11/sb16/m03-git-storage-20261011/io-device-before
+spatial-os-luna-handoff/evidence/m03-git-storage-2026-10-11/sb16-2/m03-git-storage-20261011/io-device-before
+
+No production patch was applied before David requested the pause.
+Run the regression, affected Git/resource suites, and quota-volume integration after the correction.

@@ -1,0 +1,32 @@
+Broker replacement: focused development checks
+
+Invariant
+Start a fresh session only after checked cleanup and issuer retirement.
+Keep the original world, workspace, project, and authority data directories.
+Use fresh launch identities, journals, credentials, and actor authentication.
+Mark interrupted execution as uncertain. Do not replay old launch operations.
+Require an explicit new operation to launch a new application.
+Apply current revocation state before actor admission.
+
+New scenarios
+1. Recover saved state and uncommitted files after actual broker and world crashes.
+   Reject replay of the interrupted launch. Allow an explicit new confined application.
+   Verify actual native input, a fresh lease, and checked shutdown.
+2. Revoke the actor credential between sessions. Reject admission after replacement.
+3. Reject replacement before broker retirement. Succeed after checked retirement.
+
+Development selection
+First run the three new scenarios with verified existing Debug and sanitizer binaries.
+The exploratory snapshot changes only the Python test.
+Then register the suite in CMake and rebuild the final candidate.
+Run session-broker-replacement, session-broker-retirement, session-stopped-broker-dependency,
+session-replacement, and workspace-processes in Debug and runtime ASan/UBSan.
+These check the new path, its retirement prerequisites, world replacement, and execution storage.
+Preserve failed attempts and exact source and binary hashes.
+Keep locked acceptance files unchanged.
+
+Limits
+These checks do not qualify the complete M02 phase.
+Run the full required suites on both hosts at the phase gate.
+Failure races, startup failure diagnosis, and cross-host cancellation remain required.
+Automatic placement restoration and shared compositor lifetime remain M1 work.

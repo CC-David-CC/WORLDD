@@ -1,0 +1,45 @@
+M05 remaining topology and qualification
+
+Status: focused topology passed on 2026-10-12. Full phase qualification remains pending.
+Read evidence/m05-shared-state-2026-10-11/topology-review.txt for actual coverage and limits.
+This file describes requirements. It is not execution evidence.
+Use docs/MILESTONES.md and the root AGENTS.md as the requirements.
+
+Combined topology
+Start one issuer and keep it reachable from both authorized hosts.
+Generate the two actor keypairs on their respective hosts. Enroll only their public keys.
+Reuse the remote signing and independent verification checks in test_world_remote_keys.py.
+Start a private world authority on sb16 and another on sb16-2.
+Start one shared world authority on the selected authority host.
+Keep all three authorities active during the topology checks.
+Register each authority with its own persisted world identity and explicit issuer domain.
+Keep issuer administration within trusted fixture provisioning.
+Send actor actions over production authenticated channels.
+Use Protocol Buffers for test control and actor traffic.
+
+Assertions
+Require three distinct world IDs. Do not derive identity from hostnames or listening ports.
+Admit each private owner. Deny the other actor before explicit admission.
+Admit both registered actors to the public shared world without granting workspace authority.
+Grant explicit observation and manipulation rights for the shared interaction checks.
+Verify both actors observe the same committed geometry and actor population.
+Verify a private edit cannot change either other world.
+Checkpoint each world, restart its authority, and verify its identity and committed content.
+Verify old challenges, sessions, and manipulation leases cannot authorize the restarted world.
+Make the shared authority unavailable. Require both clients to report the loss.
+Verify both private worlds remain usable during that loss.
+Use checked supervision and issuer retirement for crash recovery.
+Do not use direct restart to bypass an active authority generation.
+Repeat with the shared authority on the other host.
+
+Evidence and gate
+Retain exact commands, source hashes, binary hashes, public identity records, and endpoint traces.
+Retain service logs after process shutdown. Keep failures and cleanup receipts.
+Keep credentials and live databases outside Git.
+Run focused topology checks in Debug and ASan/UBSan on both hosts.
+Reconcile every M05 requirement against specific assertions and runtime artifacts.
+Freeze the reviewed candidate before the full gate.
+Run the required full Debug, sanitizer, harness, acceptance, and integration suites on both hosts.
+Include the cross-host topology, remote-key, and supervised recovery cases explicitly.
+Reassess source changes against the frozen evidence before qualifying M05.
+Physical devices, final performance, and later milestone behavior retain their own gates.

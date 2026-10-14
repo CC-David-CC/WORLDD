@@ -1,0 +1,83 @@
+M02 failure disposition, 2026-10-10
+
+Purpose
+Decide whether current M02 authority and recovery evidence supports source integration.
+Preserve failed attempts and uncertainty about their original causes.
+Do not require a retrospective timing trace that was never captured.
+Do not classify a later passing repetition as proof of an earlier failure's cause.
+
+Decision
+The reviewed current runtime satisfies the tested M02 authority and recovery requirements.
+The complete local gate passed on both hosts in both profiles with unchanged 700 ms fixture deadlines.
+All eight current cross-host delay and crash scenarios passed independent witness review.
+Five enforcement mutations triggered their intended failing assertions and restored positive results.
+The focused default-budget suite adds coverage without changing existing fixtures or production settings.
+Source adoption still requires exact Git and file verification on both hosts.
+
+Historical incident A: participant failed during approval
+Original evidence: evidence/control-recovery-2026-10-09/connected-01/sb16/checks-retry02/runtime-sanitize/related.log.
+The supervisor rejected the launch before returning its initial view.
+The original participant stderr was not retained. Its underlying cause remains unknown.
+The current authorize function checks participant failure before persisting local launch authorization.
+The current approval-interruption suite withholds committed approval replies or terminates the participant.
+It verifies absent child execution, exact owned cleanup, no implicit replay, and checked fresh launch.
+All four cases passed in every current host/profile gate.
+Disposition: preserved failed historical attempt; cause unconfirmed; current failure handling qualified.
+
+Historical incident B: active revocation-read timeout
+Original evidence: evidence/control-recovery-2026-10-09/approval-interruption-failure02/sb16/failure-review.json.
+The actual supervisor activated successfully, then its participant exceeded the revocation-read deadline.
+Its stderr identifies the failed stage but not the issuer delay's cause.
+The current active-revocation fault test withholds a real committed revocation reply.
+It checks stopped owned scopes, an exact fence, and a still-pending durable barrier obligation.
+It rejects replacement execution before retirement and preserves the original journal.
+It observes no applied or release operation from the timed-out participant.
+This test passed in every current host/profile gate.
+Disposition: preserved failed historical attempt; delay cause unconfirmed; current terminal failure and recovery handling qualified.
+
+Historical incident C: participant-runtime reply-header timeout
+Original evidence: evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/primary-review.json.
+The client reported zero of four reply-header bytes after 705 ms during revocation polling.
+The original issuer wait was not captured. Its underlying cause remains unknown.
+The current runtime permanently fails the connection and clears pending commands after transport failure.
+The runtime tests verify no reconnect, no release on transport loss, and preservation of pending obligations.
+The exact original barrier case and these failure cases passed in all four full local gate logs.
+The separate default-budget suite verifies bounded five-second failure without queued-request replay on both hosts and profiles.
+Disposition: preserved failed historical attempt; delay cause unconfirmed; current protocol and failure behavior qualified.
+
+Confirmed availability issue: storage contention
+Evidence: evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json.
+Evidence: evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json.
+Successful fdatasync calls stalled issuer work beyond the short fixture deadline.
+Bounded writes reproduced failures at 700 ms and 2000 ms.
+The existing five-second client default passed one pressure trial. This is not a worst-case guarantee.
+No production deadline, SQLite durability setting, or original test assertion changed.
+The source already uses terminal failure rather than replay or successful acknowledgement after a timeout.
+Disposition: confirmed availability limitation; mandatory follow-up at the M03 resource boundary and M1 performance gate.
+Keep it open until bounded competing workloads and recovery are qualified.
+Do not claim that M02 establishes responsiveness under unbounded storage saturation.
+
+Other failed gate attempts
+The original sb16-2 untraced run reused native evidence directories and failed eight fixture setups.
+Fresh generated evidence paths resolved that setup conflict. All original assertions remained unchanged.
+The full replacement run passed both profiles. The failed original run remains retained.
+The cross-host collector rejected credential-search literals in its own source.
+A spelling-only correction preserved the effective guard and witness functions.
+Positive and negative collector controls passed. All runtime results preceded that collection correction.
+These are resolved qualification-tool defects, not hidden runtime passes.
+
+Evidence and scope
+The frozen runtime source is 1f5088e026573d86be8388cf1f41dfce20189db9.
+Read evidence/m02-gate-2026-10-10/untraced03-final for both complete local reviews.
+Read evidence/m02-gate-2026-10-10/crosshost03-final/primary-review.json for the eight coordinated scenarios.
+Read evidence/m02-gate-2026-10-10/candidate02-mutation-reassessment.json for mutation applicability and its limits.
+Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01 for focused results and the 285-case coverage reassessment.
+The newer CMake change adds one test registration. It does not change runtime compiler or linker settings.
+Current-source binaries were not rebuilt after that test-only change. Keep the tested binary pins explicit.
+
+This disposition supersedes the earlier open historical-cause prerequisites in M02_GATE_COVERAGE.txt.
+It changes no acceptance contract, test oracle, or required phase gate.
+The old failures remain failures. Their unknown causes remain unknown.
+Current qualification relies on current source, complete gates, independent witnesses, and targeted failure tests.
+It does not infer successful behavior from the absence of a diagnostic.
+Spatial-M1 still requires every later mandatory milestone, including workload containment and physical-session qualification.

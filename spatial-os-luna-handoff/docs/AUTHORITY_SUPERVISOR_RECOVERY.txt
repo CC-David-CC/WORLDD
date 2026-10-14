@@ -1,0 +1,117 @@
+Authority supervisor recovery
+Status: recovery requirements and historical baseline.
+Read CURRENT_STATE.md and tasks/m1/identity.control_recovery.json for current cleanup, retirement, and qualification evidence.
+
+Invariant
+
+A replacement authority starts only after a trusted supervisor proves that the old generation cannot perform protected work.
+Keep every unresolved revocation obligation until that proof is complete.
+
+Observed baseline
+
+The candidate04 world and broker use the durable issuer barrier.
+Both hosts passed two independent crash witnesses against that candidate's Debug binaries.
+See evidence/participant-recovery-2026-10-09/baseline-01.
+
+The world witness holds a real native key and button.
+It stops its own disposable X server, then kills the world.
+The world exits. Its compositor also exits, as confirmed through a pinned pidfd.
+The application receives no release event while the X server is stopped.
+After server resume, the independent application receives both release events.
+The issuer retains the old generation and rejects a replacement world.
+
+The broker witness starts a real confined application and a detached child.
+It pins all five observed descendant processes before killing the broker.
+All five exit. The heartbeat file stops changing.
+The issuer retains the old generation and rejects a replacement broker.
+
+These checks verify the recovery gap and the current refusal to bypass it.
+They do not qualify a recovery mechanism, native GPU behavior, or physical input.
+The diagnostic world display uses trusted test clients. It does not qualify strict native workspace isolation.
+
+Required trust boundary
+
+The supervisor must own the launch boundary before an authority accepts protected work.
+It must retain kernel process handles and native credential ownership for that exact launch.
+Do not reconstruct ownership from a PID, process name, host name, or an untrusted service report.
+Keep the supervisor key outside the authority process and every workspace boundary.
+The issuer owner explicitly binds the supervisor key to the participant and its domain set.
+Actor credentials and the participant service key cannot authorize supervisor recovery.
+
+A signed supervisor receipt represents verified production cleanup.
+Signing an operator assertion or a caller-supplied cleanup checklist is insufficient.
+The issuer trusts the registered supervisor implementation to verify external effects.
+A signature alone does not prove a kernel or native-server effect occurred.
+
+Required recovery order
+
+1. Bind the recovery request to the issuer, registration, generation, and service incarnation.
+2. Commit a fencing state that blocks old service operations and replacement activation.
+3. Stop the old generation's admission, action routing, and protected output paths.
+4. Confirm required process termination through handles retained before execution.
+5. Confirm native credential revocation, held-input release, and observation withdrawal at the native server.
+6. Confirm dependent control-reservation release through the owning broker or its recovery supervisor.
+7. Persist the verified cleanup receipt before reporting completion to the issuer.
+8. Let the issuer retire the exact fenced generation in one checked transaction.
+9. Synchronize current authority before starting a separately authorized replacement generation.
+
+Issuer-outage exception
+Do not delay local safety cleanup because the issuer cannot commit a fence.
+After a checked supervisor failure, stop owned process and native scopes through retained ownership.
+Keep the issuer obligation pending. Persist the original cleanup receipts without adding an unconfirmed fence.
+After issuer recovery, the retained coordinator may obtain and persist the exact missing fence before retirement.
+Require its checked failure receipt, verified supervisor exit, original signing configuration, and required dependent cleanup.
+This exception does not authorize unfenced graceful shutdowns or ownership reconstructed from journals.
+Read DEFERRED_RECOVERY_FENCE.txt for the additional journal states and checks.
+
+Do not restore held input, expired leases, old session tokens, or uncertain command execution.
+Preserve application definitions, committed workspace data, and durable placements.
+Normal revocation must preserve independently authorized applications and grants.
+Do not use broad crash cleanup as a substitute for selective normal revocation.
+
+Protocol and persistence design constraints
+
+Use additive versioned protobuf messages for supervision, fencing, receipts, and completion queries.
+Document exact fields and validation before implementing the issuer mutation interface.
+Use separate proof purposes for launch authorization and fence completion.
+Bind every proof to a fresh challenge and the exact authenticated connection context.
+An old service socket must not activate again after fencing.
+A second socket authenticated before fencing must not bypass the replacement gate.
+Require supervisor authorization for each new supervised launch, including after successful recovery.
+
+Keep the original applied revision as an acknowledgement history.
+Record verified fencing separately. Do not pretend the crashed service applied later events.
+Revocations committed during fencing must retain their obligations until verified cleanup completes.
+An exact receipt retry may report the same committed result without repeating external effects.
+Reject changed receipts, another generation's receipts, and incomplete cleanup evidence.
+
+Add an explicit schema migration for durable supervision and fencing state.
+Migrate only disposable databases during development.
+Existing unsupervised activations must remain unresolved until their external ownership can be proved.
+Do not add an owner-only clear-pending command.
+
+Native cleanup boundary
+
+Process exit and socket closure precede native server processing in the stopped-server witness.
+Require a checked native-server response or independently proved destruction of that exact server generation.
+Do not infer native cleanup from a timeout, a changed display number, or local descriptor closure.
+Keep unrelated native credentials and application groups valid.
+Treat missing or failed cleanup replies as unresolved.
+
+Implementation sequence
+
+First, add production launch ownership and checked external cleanup without an issuer force-complete operation.
+Test failure at each cleanup boundary with real processes and an independent native client.
+Then add the issuer supervision schema, authenticated fencing transitions, and checked client validation.
+Connect successful production cleanup to the signed receipt path.
+Finally, test issuer restart, supervisor failure, stale connections, replay, and both-host operation.
+
+Remaining evidence
+
+Recovery must succeed after a real authority crash and preserve durable state.
+Recovery must stay pending while native cancellation is blocked.
+A failed signal, failed wait, lost native reply, or missing lease owner must prevent completion.
+Crashes before and after receipt persistence must not clear unknown effects or repeat uncertain operations.
+Concurrent revocation and replacement attempts must preserve one authoritative generation.
+Complete Debug and runtime sanitizer qualification is required on sb16 and sb16-2.
+M02 and Spatial-M1 remain incomplete.

@@ -1,0 +1,26 @@
+{
+  "id": "identity.world_channel",
+  "phase": "M01",
+  "scope": "Authenticated local world sessions and native credential cancellation",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/WORLD_IDENTITY.md",
+  "invariant": "Derive each session identity from a fresh verified credential proof, and cancel its control when that credential becomes invalid.",
+  "production_roots": ["src/world/", "proto/spatial/identity/v1/"],
+  "counterexample_suite": "tests/core/test_world_identity.py",
+  "focused_command": "ctest --test-dir build -V -R '^world-identity$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Complete P00-P10 baseline and unchanged acceptance lock",
+    "Fresh signed proofs, separate world admission, and production actor actions",
+    "Independent native key and button release on revocation, disconnect, and issuer failure",
+    "Revocation-consumer mutation detected by a native witness",
+    "World sessions against an issuer on the other authorized host"
+  ],
+  "limitations": [
+    "Inherited local actor channels do not implement remote shared-world transport.",
+    "Static baseline action grants do not complete M02 or workspace and application authority.",
+    "Issuer acknowledgement is not a distributed cancellation barrier."
+  ],
+  "next_components": ["identity.bootstrap_profile", "identity.world_session", "M02"]
+}

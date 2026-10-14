@@ -1,0 +1,44 @@
+{
+  "id": "protocol.handshake",
+  "phase": "P00",
+  "title": "protocol / handshake",
+  "invariant": "Requests are correlated and validated; failure is never successful acknowledgment.",
+  "contract_sections": [
+    "1",
+    "2"
+  ],
+  "objective": "Implement the production behavior exercised by the exact listed assertions; preserve the phase invariant.",
+  "acceptance_tests": [
+    "tests.acceptance.test_00_protocol.ProtocolTests.test_hello_has_version_and_build"
+  ],
+  "suggested_production_roots": [
+    "src/testing/",
+    "src/core/"
+  ],
+  "read_first": [
+    "AGENTS.md",
+    "docs/CONTRACT.md",
+    "tests/acceptance/test_00_protocol.py"
+  ],
+  "prior_gate": null,
+  "diagnostic_commands": [
+    "python3 tools/gate.py --through P00 --case tests.acceptance.test_00_protocol.ProtocolTests.test_hello_has_version_and_build"
+  ],
+  "completion_command": "python3 tools/gate.py --through P00",
+  "command_note": "Set SPATIAL_SUT to the real JSON argv before these commands, or pass --sut with that same JSON argv. P04+ also requires the explicit dedicated test display.",
+  "steps": [
+    "Read the named assertions and relevant normative contract sections.",
+    "Run the focused case and retain the failing evidence.",
+    "Implement the smallest production change; do not put product logic in the harness.",
+    "Run the focused cases and inspect independent evidence.",
+    "Run the unfiltered cumulative gate and inspect regressions.",
+    "Record commit, evidence and a representative mutation result before closing the phase."
+  ],
+  "helper_rule": "After two failures on the same invariant, delegate a bounded diagnosis with exact evidence; Luna reviews and runs all tests.",
+  "forbidden_changes": [
+    "locked acceptance/oracle/gate changes merely to pass",
+    "fake native events or screenshots",
+    "a parallel test-only world/renderer",
+    "silent weakening or skipping of earlier gates"
+  ]
+}

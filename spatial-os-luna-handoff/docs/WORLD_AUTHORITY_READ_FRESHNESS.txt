@@ -1,0 +1,37 @@
+World authority read freshness
+Status: isolated correction passed 111 focused Debug checks on both hosts. Sanitizer qualification continues.
+
+Invariant
+
+Discard a superseded authority read without disabling unrelated actors or acknowledging unprocessed revocation.
+
+Two authenticated issuer channels can deliver different revisions in a valid order.
+The action channel can hold a read reply while the participant channel delivers a later revocation.
+That ordering does not imply that the issuer reversed its state.
+
+Capture the known security revision before each status query.
+Reject an identity mismatch or a reply older than that starting revision as an invalid issuer context.
+Keep the existing terminal service-failure behavior for that invalid context.
+
+If the participant advances during the query, reject the now-superseded read with UNAVAILABLE.
+Do not apply its status, mutate authority, or execute the requested action from that read.
+Do not disconnect an unrelated actor solely because this read became stale.
+Affected actors remain cancelled by the participant event.
+A later explicit actor request obtains new status and uses its own action sequence.
+Do not replay an action or restore a cancelled session.
+
+All batches for one authority preparation must describe one revision.
+Discard the complete buffered snapshot when batch revisions differ.
+Do not apply a partial snapshot.
+
+Qualification
+
+Delay genuine credential_check and actor_status replies through an authenticated fixture relay.
+Revoke a different credential through the real issuer before forwarding each held reply.
+The first action may fail because its read is stale.
+The unrelated actor must still inspect its world through the same session afterward.
+Retain the existing revocation, authorization, bootstrap-race, and malformed-context checks.
+Verify that replies older than the revision already known before the query still disable the invalid context.
+
+This correction is not proof of the cause of the historical native-control failure.
+Keep that original failure and its diagnostic limits in the evidence record.

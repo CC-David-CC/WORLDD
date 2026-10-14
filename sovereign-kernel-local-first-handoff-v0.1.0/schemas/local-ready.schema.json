@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sovereign-kernel:local-ready:1",
+  "allOf": [
+    {
+      "$ref": "urn:sovereign-kernel:object:1"
+    }
+  ],
+  "properties": {
+    "type": {
+      "const": "local-ready"
+    },
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "public_key",
+        "signature"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "public_key": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      }
+    },
+    "refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "build",
+        "state",
+        "requirements",
+        "evidence"
+      ],
+      "properties": {
+        "build": {
+          "type": "string",
+          "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+        },
+        "state": {
+          "type": "string",
+          "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+        },
+        "requirements": {
+          "type": "string",
+          "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+        },
+        "evidence": {
+          "type": "string",
+          "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "challenge",
+        "gates"
+      ],
+      "properties": {
+        "challenge": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "gates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "accounting",
+            "agent-confinement",
+            "authority",
+            "build-identity",
+            "canonical",
+            "crash-consistency",
+            "execution",
+            "hashes",
+            "independent-vectors",
+            "network-zero",
+            "policy",
+            "readiness-supervisor",
+            "recovery",
+            "replay",
+            "revocation",
+            "rollback-anchor",
+            "signatures",
+            "store"
+          ],
+          "properties": {
+            "accounting": {
+              "const": "PASS"
+            },
+            "agent-confinement": {
+              "const": "PASS"
+            },
+            "authority": {
+              "const": "PASS"
+            },
+            "build-identity": {
+              "const": "PASS"
+            },
+            "canonical": {
+              "const": "PASS"
+            },
+            "crash-consistency": {
+              "const": "PASS"
+            },
+            "execution": {
+              "const": "PASS"
+            },
+            "hashes": {
+              "const": "PASS"
+            },
+            "independent-vectors": {
+              "const": "PASS"
+            },
+            "network-zero": {
+              "const": "PASS"
+            },
+            "policy": {
+              "const": "PASS"
+            },
+            "readiness-supervisor": {
+              "const": "PASS"
+            },
+            "recovery": {
+              "const": "PASS"
+            },
+            "replay": {
+              "const": "PASS"
+            },
+            "revocation": {
+              "const": "PASS"
+            },
+            "rollback-anchor": {
+              "const": "PASS"
+            },
+            "signatures": {
+              "const": "PASS"
+            },
+            "store": {
+              "const": "PASS"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "This schema cannot establish trusted signing authority, truth of evidence, freshness, native enforcement or launch binding. Those require the independent local supervisor."
+}

@@ -1,0 +1,52 @@
+{
+  "id": "identity.supervisor_crash_fencing",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "complete",
+  "contract": "docs/SUPERVISOR_CRASH_FENCING.txt",
+  "evidence": "evidence/supervisor-crash-fencing-2026-10-09",
+  "production_changed": true,
+  "implementation": "Exact frozen294 is qualified, integrated, and adopted on both hosts.",
+  "baseline": "Two expected missing-feature failures in each of four host/profile combinations.",
+  "review": "Primary review of the exact combined source and raw results: evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json.",
+  "remaining": [],
+  "candidate": {
+    "number": 1,
+    "source_files": 294,
+    "changed_files": 5,
+    "new_checks": 10,
+    "locked_files_unchanged": 41
+  },
+  "qualification": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+  "debug_review": "evidence/supervisor-crash-fencing-2026-10-09/debug-results-review-01.json",
+  "focused_review": "evidence/supervisor-crash-fencing-2026-10-09/focused-results-review-01.json",
+  "terminal_drivers": {
+    "sb16": 1403725,
+    "sb16_2": 1196184
+  },
+  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json",
+  "qualification_rerun": {
+    "status": "passed",
+    "output": "local/crash-fencing-serial-02",
+    "sb16_pid": 1544923,
+    "sb16_2_pid": 1334189,
+    "source_unchanged": true,
+    "assertions_and_deadlines_unchanged": true,
+    "debug_review": "evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json",
+    "full_review": "evidence/supervisor-crash-fencing-2026-10-09/serial-full-results-review-02.json"
+  },
+  "diagnosis": "evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json",
+  "historical_qualification": "Focused checks passed on both hosts in both profiles. Full Debug failed one test method on each host. Full P10 and runtime cumulative checks are unrun.",
+  "integration": {
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "source_files": 294,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_delta": "none: exact frozen294",
+    "review": "evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json",
+    "adoption": "evidence/supervisor-crash-fencing-2026-10-09/adoption-review-04.json"
+  },
+  "followup_task": "tasks/m1/identity.control_recovery.json"
+}

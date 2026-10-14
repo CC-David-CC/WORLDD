@@ -1,0 +1,232 @@
+2026-10-10: M02 qualification and reviewed adoption complete
+
+M02 delegation, scoped revocation, and recovery qualification is complete for the recorded source.
+Both normal host checkouts adopted b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd on main.
+Each host verified 352 source files and 41 locked files before and after adoption.
+Both checkouts are clean. Neither host restarted a runtime or migrated operator state.
+Four older sb16 helper files remain preserved in a verified local backup.
+
+Both hosts passed Debug and runtime-sanitize gates on the frozen runtime source 1f5088e026573d86be8388cf1f41dfce20189db9.
+Each host/profile passed 1668 core checks, 51 harness checks, and 151 P00-P10 acceptance cases.
+All eight cross-host delay and crash scenarios passed. Five mutations triggered their intended failures.
+The additive timeout suite and related checks passed 132 executions across both hosts and profiles.
+The composed qualification preserves exact source and binary pins. Current-source binaries were not rebuilt after the test-only addition.
+Read evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json.
+
+Historical failures remain failed. Their unrecorded original causes remain unknown.
+Read docs/M02_FAILURE_DISPOSITION.txt for the explicit disposition and evidence limits.
+Storage contention remains open under tasks/m1/workspace.resources.json and the M1 performance gate.
+The existing five-second client default remains. Neither 700 ms nor 2000 ms passed the bounded pressure reproduction.
+
+Next: M03 aggregate resource enforcement and bounded storage, with focused checks before its full phase gate.
+M01's earlier cancellation dependency has current M02 evidence. Its final identity audit still needs reassessment.
+M03-M16 and physical-session qualification remain incomplete. Spatial-M1 remains incomplete.
+Older sections below describe historical checkpoints; their pending statements are not current status.
+
+2026-10-10: Production timeout checks and requirement-family reassessment
+
+Both hosts passed thirty existing issuer-client checks and three new default-budget checks in both build profiles.
+All 132 selected executions passed without skips. The 700 ms shared fixture and existing assertions remain unchanged.
+The default accepts a valid response after 2.2 seconds and fails a withheld response near five seconds.
+An explicit 700 ms limit remains effective. Both timeout checks reject reconnect and queued-request replay.
+The collector verified 82 attachments. All 70 scanned logs lack selected sanitizer markers.
+The new CMake registration preserves all 124 existing entries after generated path and build-hash normalization.
+The focused checks reused pinned candidate02 binaries. Current-source binaries were not rebuilt.
+Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json.
+
+The execution coverage reassessment located these case definitions in unchanged source:
+43 structural delegation cases.
+27 authenticated world authority cases.
+20 workspace execution authority cases.
+94 separate observation, control, and execution cases.
+49 distributed completion cases.
+37 failure and recovery cases.
+15 operator completion cases.
+All 285 definitions have exact passing lines in each host and profile's full gate log.
+These 1140 executions are reused evidence. They are not additional test runs.
+Read coverage-reassessment.json beside the primary review.
+The prior source and independent-witness review still defines what these assertions prove.
+Historical-failure disposition and reviewed host adoption remain pending. M02 remains incomplete.
+
+2026-10-10: Storage-pressure diagnosis and timeout comparison
+
+All nine selected diagnostic cases ran on sb16 using the frozen runtime-sanitize binaries.
+Baseline and recovery passed at 700 ms, 2000 ms, and the existing 5000 ms client default.
+Pressure caused a 705 ms release timeout and a 2009 ms applied-acknowledgement timeout.
+The five-second pressure case passed. These are single realizations of the same bounded workload.
+The second and third cases changed generated diagnostic client budgets only.
+No production source, tracked fixture, locked acceptance file, or durability setting changed.
+The collector verified 135 attachments and scanned 59 logs without selected sanitizer markers.
+Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json.
+
+This establishes a current storage-contention reproduction. It does not prove every older failure's cause.
+Do not turn the two failed diagnostics into qualification passes.
+Retain the five-second production default. Separate normal-operation and deliberate fault-test budgets in an explicit proposal.
+Workload I/O containment and issuer responsiveness remain follow-up work. Preserve durable commit ordering.
+The existing complete local and cross-host matrix remains reviewed. Final audit and host adoption remain pending.
+
+2026-10-10: Complete cross-host M02 matrix reviewed
+
+All eight coordinated scenarios passed on unchanged candidate02 source and binaries.
+The matrix covered delayed cancellation and crash recovery, both host directions, and both build profiles.
+All 24 controller and worker processes exited successfully. Both hosts used reviewed m02-untraced-03 local qualification.
+All 179 attachments per host and 56 coordinator files passed hash verification.
+Primary review checked all 16 native worker event logs and eight controller witness summaries.
+The evidence records actual key and button release, confined application response, and exact authority generations.
+Crash cases kept retirement pending through dependent cleanup and preserved independently authorized applications.
+The complete scans checked 106 collected logs and found no selected sanitizer markers.
+Read evidence/m02-gate-2026-10-10/crosshost03-final/primary-review.json.
+
+The collector initially rejected credential search literals in its own source.
+One expression was respelled without changing its effective checks or the three witness functions.
+The preserved failure and positive/negative controls are in evidence/m02-gate-2026-10-10/collector-correction-01.
+No production source, runtime test assertion, deadline, or locked file changed.
+
+Both local gates and the cross-host matrix now have reviewed passing evidence.
+Historical timeout disposition and the final M02 requirement audit remain pending.
+Software-display evidence does not qualify physical devices, GPU performance, or shared-world geometry.
+M02 and Spatial-M1 remain incomplete. Do not repeat the completed matrix without a new evidence-based reason.
+
+2026-10-10: Both hosts completed reviewed local M02 qualification
+
+sb16-2 completed both Debug and runtime sanitizer profiles with unchanged candidate02 source and binaries.
+Each profile passed 1668 core checks across 124 suites, 51 harness checks, and 151 acceptance cases.
+No selected case failed or skipped. Both native evidence inventories matched the permitted 26 path changes.
+All 7122 copied attachment hashes match. The complete 7115-log scan found no selected sanitizer markers.
+No compiler overlap or monitor error was recorded. Both check-only cross-host preflights passed.
+Read evidence/m02-gate-2026-10-10/untraced03-final/sb16-2-review.json.
+
+Both hosts now have complete reviewed local passes. Do not repeat these local gates without new evidence.
+All eight coordinated cross-host scenarios remain unrun on this candidate.
+Historical failure disposition and the final M02 requirement audit remain pending.
+The original failed attempts remain preserved. These passes do not establish every historical timeout cause.
+M02 and Spatial-M1 remain incomplete.
+
+Completed sb16 local review, 2026-10-10
+
+The unchanged candidate02 retry passed both complete local profiles on sb16.
+Each profile passed 1668 core checks across 124 suites, 51 harness checks, and 151 acceptance cases.
+All 7122 terminal attachment hashes match. The 7115-log sanitizer scan found no selected markers.
+Read evidence/m02-gate-2026-10-10/untraced03-final/sb16-review.json.
+The check-only cross-host preflight accepted both completed profiles and their exact evidence hashes.
+The second host's runtime sanitizer qualification, all eight cross-host scenarios, and historical failure disposition remain pending.
+This closes the first host's local automated gate. It does not close M02 or Spatial-M1.
+
+Terminal log review, 2026-10-10
+
+Scan all preserved native child logs before approving terminal qualification or starting cross-host checks.
+The collectors retain these logs. Their automatic sanitizer assertion scans only the core log.
+Use local/review-m02-sanitizer-logs-01.py with each complete attachment review.
+Review every reported marker. A clean scan does not establish sanitizer instrumentation or phase completion.
+The scanner detected a recorded native leak beside a passing harness log.
+Both completed Debug diagnostics had no selected markers. Runtime sanitizer qualification remains pending.
+Read evidence/m02-gate-2026-10-10/sanitizer-log-scan-primary-review.json.
+No live runner or frozen candidate changed.
+
+Candidate02 reassessment, 2026-10-10
+
+Current source: 1f5088e026573d86be8388cf1f41dfce20189db9, candidate m02-phase-gate-02.
+The original audit below describes candidate01. Its authority and native coverage still applies to unchanged production code.
+Only one enrollment migration test method changed. Shared fixtures, imports, production code, and locked files are unchanged.
+Read evidence/m02-gate-2026-10-10/candidate02-mutation-reassessment.json.
+All five prior sensitivity witnesses remain applicable to the unchanged source. Their original limitations remain recorded.
+No new mutation execution or binary equivalence is claimed. Full candidate02 qualification remains required.
+
+Candidate02 adds a complete traced Debug core sequence as diagnostic evidence.
+Untraced Debug and runtime sanitizer qualification remain separate and mandatory on both hosts.
+The cross-host follow-up selects eight coordinated runs: two scenarios, two directions, and two profiles.
+Its preflight requires reviewed local passes. Both hosts refused overlap before any cross-host setup.
+Read evidence/m02-gate-2026-10-10/crosshost02-preparation.json and crosshost02-overlap-guards.json.
+Cross-host runtime execution remains unrun. M02 and Spatial-M1 remain incomplete.
+
+Original candidate01 audit follows.
+
+M02 qualification audit, 2026-10-10
+
+Candidate: 54715f9a78aaa92911d2bb0a9c782f316f78902f.
+Source archive SHA-256: 2755d25b62b9acdd2d2b8b6f4a71460a46de0dcf544e9beb63e14b574e16eb51.
+The archive contains 351 source files and the same 41 locked files.
+All tracked source, schema, test, harness, native, configuration, and tool inputs are included.
+This audit defines evidence coverage. It does not certify M02 completion.
+
+1. Structural delegation
+The production authority store checks authenticated subjects, scope containment, rights, depth, and the complete parent chain.
+Its check method accepts one valid grant chain. It does not combine siblings into a wider delegation.
+Review locations: src/authority/store.cpp, Store::delegate, Impl::active, and Impl::check.
+tests/core/test_authority.py exercises denied widening, explicit delegation, parent revocation, and independent surviving grants.
+It also checks restart persistence and database failure through the production store.
+The fixture principal is not evidence of transport authentication. The world tests provide that separate layer.
+
+2. World authority
+tests/core/test_world_authority.py uses authenticated actor sessions and the production world daemon.
+The selected cases check caller identity, separate workspace authority, revoked ancestors, scoped objects, and cancelled object drafts.
+The coverage map names seven concrete assertions for this boundary.
+Additional observation revocation checks cover removal of an existing object lease.
+
+3. Workspace and execution authority
+tests/core/test_workspace_authority.py checks actual confined processes and project-file effects.
+Credential or access revocation can preserve independently authorized execution.
+Actor or required execution revocation must stop the affected process tree.
+Independent execution grants preserve the process. A narrow file scope cannot authorize a whole-project mount.
+The surviving-process cases require the process to write its completion file after revocation.
+The termination cases check real process disappearance and absent completion effects.
+
+4. Observation and application control
+The application-access, application-observation, application-control-lease, and world-application-control suites cover separate decisions.
+tests/core/test_world_application_control.py checks actual application events and native input release.
+Observation alone does not permit control. Read-only authority cannot control a writable application.
+Control revocation releases input while the independently authorized application stays mapped and observable.
+Observation revocation removes pixels and cancels control. Independent control grants remain usable.
+These checks use the dedicated software display. They do not certify physical devices or GPU performance.
+
+5. Distributed completion
+Participant barrier, checked client, and participant runtime suites cover durable obligations and acknowledgement validation.
+Connection loss cannot count as completed cancellation.
+The previous cross-host cancellation and recovery runs cover both directions and both build profiles.
+Their evidence is under evidence/control-recovery-2026-10-09/crosshost-cancellation-03 and crosshost-recovery-02.
+Those older binary pins do not qualify this new candidate automatically.
+Repeat the required cross-host scenarios after the local candidate checks and reassess their independent witnesses.
+
+6. Recovery and operator completion
+Registered native session suites cover retained ownership, child exit, native cleanup, dependent cleanup, and retirement.
+The deferred-fence suite covers issuer loss during recovery.
+The revocation-command and session-operator-revocation suites connect operator completion to actual cancellation.
+The earlier native evidence requires pending results while input remains held or dependent cleanup remains incomplete.
+It also verifies explicit resume without a second mutation and preservation of uncommitted application data.
+Run these registered suites against the frozen candidate on both hosts in both profiles.
+
+7. Regression sensitivity
+Existing mutation helpers deliberately remove parent-revocation enforcement, world cache invalidation, or object-scope enforcement.
+Their expected failing witnesses remain required evidence of regression sensitivity.
+Reassess their source pins and run affected mutations in a separate candidate copy.
+Do not mutate the active qualification source or binaries.
+Do not compile mutation candidates while qualification runs on the same host.
+
+2026-10-10 focused witness checkpoint:
+The parent-revocation, object-scope, and world-cache mutations each caused their intended existing assertion to fail on sb16.
+Additional mutations checked partial file-write authority and premature barrier completion.
+All five witnesses passed before mutation and after restoration: ten positive passes and five expected failures.
+All 351 source files were restored. All 41 locked files remain unchanged.
+Read evidence/m02-gate-2026-10-10/mutations-04/primary-review.json and cache-mutation-05/primary-review.json under the same parent.
+These witnesses used the frozen 54715f9 production inputs in an isolated Debug checkout.
+They do not replace both-host qualification or resolve the retained timeout failures.
+
+Open evidence
+The earlier participant approval startup failure remains unexplained.
+The earlier revocation-read timeout and the diagnostic candidate's 705 ms reply-header timeout remain unexplained.
+Later passing repetitions do not close those failures.
+The new diagnostics passed 88 selected cases per profile on sb16.
+Those results prove the diagnostic behavior, not a timeout fix or a complete phase gate.
+
+Current gate
+Both hosts build Debug and runtime ASan/UBSan first, with two compiler jobs per host.
+Each host then runs all registered CTest suites, 51 harness cases, and 151 locked P00-P10 cases.
+Enumerate the selected suites and case IDs before executing them.
+Record source and binary hashes, commands, raw logs, resource pressure, and compiler overlap.
+Keep ASan, LeakSanitizer, and UBSan enabled. Keep original assertions and deadlines.
+A failed segment preserves its results and leaves later segments unrun.
+No phase passes until required evidence is reviewed and unresolved defects are resolved.
+
+The preliminary map check found all 23 explicitly named structural, world, and workspace cases.
+Finding a test name is a coverage check only. Its execution and assertions must also pass.
+Full M02 qualification and Spatial-M1 completion remain pending.

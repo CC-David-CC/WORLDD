@@ -1,0 +1,47 @@
+--- a/src/egl/main/eglglobals.c
++++ b/src/egl/main/eglglobals.c
+@@ -118,21 +118,21 @@
+ void
+ _eglAddAtExitCall(void (*func)(void))
+ {
++   static EGLBoolean registered = EGL_FALSE;
++
++   simple_mtx_lock(_eglGlobal.Mutex);
++
++   if (!registered) {
++      atexit(_eglAtExit);
++      registered = EGL_TRUE;
++   }
++
+    if (func) {
+-      static EGLBoolean registered = EGL_FALSE;
+-
+-      simple_mtx_lock(_eglGlobal.Mutex);
+-
+-      if (!registered) {
+-         atexit(_eglAtExit);
+-         registered = EGL_TRUE;
+-      }
+-
+       assert(_eglGlobal.NumAtExitCalls < ARRAY_SIZE(_eglGlobal.AtExitCalls));
+       _eglGlobal.AtExitCalls[_eglGlobal.NumAtExitCalls++] = func;
++   }
+ 
+-      simple_mtx_unlock(_eglGlobal.Mutex);
+-   }
++   simple_mtx_unlock(_eglGlobal.Mutex);
+ }
+ 
+ EGLBoolean
+--- a/src/egl/main/eglglvnd.c
++++ b/src/egl/main/eglglvnd.c
+@@ -87,6 +87,9 @@
+        EGL_VENDOR_ABI_MAJOR_VERSION)
+       return EGL_FALSE;
+ 
++   /* Register the default display and device cleanup at vendor load. */
++   _eglAddAtExitCall(NULL);
++
+    __eglGLVNDApiExports = exports;
+    __eglInitDispatchStubs(exports);
+ 

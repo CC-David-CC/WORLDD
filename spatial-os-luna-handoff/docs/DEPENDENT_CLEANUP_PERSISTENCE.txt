@@ -1,0 +1,90 @@
+Dependent cleanup persistence
+Status: Implemented on the M02 development branch. Focused checks passed. Full phase qualification remains pending.
+
+Invariant
+
+Report dependent cleanup only after its checked receipt is durable.
+The receipt binds one stopped world to its exact retained broker and checked dependency cleanup.
+The coordinator must retain the original launch ownership until it verifies and persists that result.
+A saved record cannot recreate lost process handles or authorize replacement execution.
+
+Typed record
+
+Add AuthorityDependentCleanup to launch.proto.
+Use schema_version field 1, world field 2, broker field 3, and controls field 4.
+World and broker use AuthorityLaunchRecord. Controls uses ControlRecoveryReceipt.
+Do not add recursive receipt fields to AuthorityLaunchRecord.
+Schema version 1 records live-broker control recovery. Schema version 2 records stopped-broker scope cleanup.
+Both versions record one complete immutable result.
+Limit the complete receipt to 262144 bytes.
+Limit each embedded launch record to 65536 bytes.
+Keep the administrative reply and reservation bounds already defined in CONTROL_OWNER_CHANNELS.txt.
+
+World must exactly match the stopped launch record checked through the retained supervisor.
+Require OWNED_SCOPES_STOPPED and both matching external cleanup receipts.
+Derive its ControlOwner from the same launch authorization, generation, and native identity.
+Version 1 controls must contain that exact owner and those exact process and native cleanup receipts.
+Validate released reservation identities, uniqueness, application attribution, and existing size bounds.
+
+For version 1, broker must match the retained, live SessionBroker launch snapshot.
+Require an authorized supervised broker with BROKER native role and START_ATTEMPTED stage.
+Require the world's issuer and native server identity.
+Record its exact process, native credential, participant, incarnation, authorization, and generation context.
+Do not replace the broker binding with a host name, PID, or display number.
+
+Version 2 instead requires exact checked broker process and native cleanup.
+It must not contain controls. It does not claim a reservation-release reply.
+Read STOPPED_BROKER_DEPENDENCIES.txt for its complete validation and retirement contract.
+The following journal rules apply to both receipt versions.
+
+Journal ownership and migration
+
+Reuse the world's private launch.db after its supervisor exits with checked cleanup.
+Acquire its existing launch.lock before reading or writing.
+Preserve the original launch row and its revision.
+Require that row to exactly match the coordinator's retained stopped record.
+Reject an active launch, changed journal, unknown schema, or missing checked receipt.
+
+The existing database application_id remains unchanged.
+Database user_version 1 has no dependent cleanup table.
+Migrate to user_version 2 only while recording the first verified dependent cleanup.
+Create dependent_cleanup with one checked singleton row and a non-null protobuf record.
+Create the table, insert the receipt, and set user_version 2 in one SQLite transaction.
+Rollback on failure. Do not acknowledge persistence from an attempted write.
+Use the existing private file checks, exclusive lock, synchronous=EXTRA, and DELETE journal mode.
+Synchronize the owned directory before reporting durable completion.
+
+Opening version 2 validates the saved dependent record against its unchanged launch row.
+It does not create process ownership or allow a new launch.
+An exact write retry returns the same saved result without changing either record.
+Reject a changed world, broker, or control receipt.
+Expose inspection separately from verified live recovery.
+Do not expose a caller-supplied receipt mutation through an actor or supervisor request.
+Only SessionCoordinator's checked recovery path may invoke the journal writer.
+
+Failure behavior
+
+For version 1, the broker may release reservations before the journal write fails.
+Report that persistence failure. Preserve the broker's cached release receipt.
+A retry uses the original retained world and broker ownership plus the exact broker receipt.
+Do not repeat external cleanup or infer success from an empty reservation list.
+For version 2, retry with both original checked scope records and retained coordinator ownership.
+After coordinator loss, a reopened journal remains evidence only.
+Unknown cleanup stays unresolved until an independently valid recovery path proves it.
+
+The record does not retire issuer obligations.
+Issuer retirement requires a separate authenticated proof bound to this verified durable result.
+Keep the existing generation and replacement barrier until that protocol succeeds.
+
+Focused evidence
+
+Use an actual coordinator, supervised world, supervised broker, issuer, and confined native application.
+Recover after a real world crash and compare the stored protobuf with independently observed cleanup.
+Verify the original launch row is unchanged and the migration commits version 2.
+Retry recovery and require byte-identical persisted records and continued application response.
+Force a journal failure after broker release. Require an error and successful exact retry after repair.
+Reject changed persisted data, incomplete receipts, unknown schemas, and concurrent journal ownership.
+Reopen the journal through the normal supervisor library and verify it cannot start another authority.
+Run related launch-journal, coordinator, broker-recovery, and reply-validation checks.
+Use focused Debug and runtime sanitizers during implementation.
+Complete M02 qualification on both hosts remains required at the phase gate.

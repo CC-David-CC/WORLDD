@@ -1,0 +1,43 @@
+Native parent and child-event metadata
+
+This additive M04 policy preserves immutable workspace and application identities.
+It does not change Protocol Buffer schemas or locked acceptance requirements.
+
+QueryTree returns None for an unauthorized parent of an owned window.
+It retains the actual public root and authorized same-application parent.
+Trusted supervisor and compositor recipients retain the actual parent.
+The child list continues to contain only authorized children.
+
+ReparentNotify uses a private recipient copy when its parent is unauthorized.
+The copy sets that parent field to None.
+The original event remains available to privileged recipients.
+The shared root remains a public parent.
+
+ConfigureRequest also uses a private recipient copy when its requested sibling is unauthorized.
+The copy sets the sibling to None and clears CWSibling from valueMask.
+Other requested fields remain intact. Same-application and privileged recipients retain the original sibling and mask.
+This filtering occurs before per-recipient byte swapping.
+The event metadata suite checks native and swapped privacy failures and both authorized controls.
+
+An event subscription to an owned parent does not grant observation of foreign children.
+Receive authorization checks the subject window of core structure events and requests.
+It rejects the complete delivery when that subject belongs to another application.
+The check runs before recipient byte swapping.
+It does not interpret GenericEvent using the core event layout.
+
+The independent regression suite sends ordinary X11 requests and receives real server events.
+It covers parent queries and ReparentNotify in both byte orders.
+It covers foreign child CreateNotify, MapNotify, UnmapNotify, DestroyNotify, ConfigureNotify, and ReparentNotify.
+It checks both byte orders for those negative cases.
+Same-application and privileged positive cases must continue to work.
+The suite also covers MapRequest, ConfigureRequest, GravityNotify, CirculateNotify, and CirculateRequest.
+Each added parent-delivery path has native and swapped denial checks and a same-application delivery control.
+ResizeRedirect rejects foreign subscriptions and preserves authorized ResizeRequest delivery in both byte orders.
+These checks cover the core structure-event subjects listed in the receive callback.
+They do not qualify unrelated extension events or physical input.
+
+The isolated mutation suite bypasses each new guard separately.
+Expected failures must match the guard's exact counterexamples.
+Mutation success requires the primary source to remain unchanged.
+
+M04 remains incomplete until its full required qualification passes on both hosts.

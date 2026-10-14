@@ -1,0 +1,50 @@
+Confirmed process cleanup defects, 2026-10-09
+
+The unchanged production baseline failed three independent checks on sb16.
+One successful stop returned while two of five pinned descendant pidfds had not reported exit.
+A kernel-denied wait call returned success. A kernel-denied signal call left cleanup blocked beyond three seconds.
+The fixture installs seccomp only after the real application starts. It does not fabricate process state.
+The application, detached child, namespace leader, and outer monitor are real Linux processes.
+The namespace exit test uses independently opened pidfds. It does not wait after a reported successful stop.
+Baseline results: four checks, one passed, three failed. Raw results and source hashes remain preserved.
+
+Required invariant
+Successful cancellation requires confirmed namespace-leader exit and successful reap of the owned outer child.
+A denied signal, failed wait, or cleanup deadline cannot produce cancellation success.
+Retain uncertainty when cleanup fails. The broker must not acknowledge a revocation barrier after failed cleanup.
+
+Isolated correction
+Hold Bubblewrap before application execution with its existing block-fd option.
+Pin the direct child with pidfd_open while startup remains held.
+Check the direct parent and nested PID-namespace leader identity through proc status.
+Use the pinned handle for termination. Never signal a guessed or reused PID.
+Wait for that namespace leader to exit. Then check waitpid for the owned outer process.
+Use bounded cleanup waits. An unconfirmed destructor or constructor rollback stops the broker with an error.
+This preserves unresolved issuer obligations once broker participation is integrated.
+No protobuf schema changes are needed. Application and fixture commands still use framed protobuf.
+
+Candidate01 changes process.cpp and process.hpp and adds a thin test target.
+Candidate02 keeps identical production code and adds destructor failure coverage.
+Candidate01 passes four focused and 51 related checks on both hosts in Debug and runtime ASan/UBSan.
+Candidate02 passes six focused tests and 51 harness checks on sb16 Debug.
+Full qualification is running on both hosts. It requires 1192 core checks, 51 harness checks, and 151 P10 cases per profile.
+No production integration or operator session changes occurred.
+Broker participant activation, lease settlement, and supervisor fencing remain pending.
+
+Inspected dependency source
+https://raw.githubusercontent.com/containers/bubblewrap/v0.9.0/bubblewrap.c
+Bubblewrap's block-fd wait precedes the sandbox command. Its monitor and namespace leader have separate lifetimes.
+The project pins the existing namespace leader. It does not change Bubblewrap or install a different helper.
+
+Full Debug qualification update
+Candidate02 passed 1192 core checks, 51 harness checks, and 151 P10 cases on both hosts.
+All 242 source hashes and 41 locked hashes match. No Debug check failed or skipped.
+Both full runtime sanitizer matrices remain active. The correction remains isolated.
+
+Integration result
+Candidate02 passed full Debug and runtime ASan/UBSan qualification on both sb16 and sb16-2.
+Each profile passed 1192 core checks across 69 suites, 51 harness checks, and 151 P10 cases.
+The five reviewed source and test files are integrated. All 242 qualification source hashes match.
+The six new tests include direct stop and destructor failures under actual kernel syscall denial.
+Existing tests, schemas, and all 41 locked files remain unchanged.
+This completes the checked process-termination primitive. Distributed participation and recovery remain separate M02 work.

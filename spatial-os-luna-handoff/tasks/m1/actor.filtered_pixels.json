@@ -1,0 +1,69 @@
+{
+  "id": "actor.filtered_pixels",
+  "phase": "M10",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "An authorized actor receives real RGB8 pixels and metadata from one filtered frame, and revocation stops queued export.",
+  "production_roots": [
+    "proto/spatial/core/v1/core.proto",
+    "src/core/scene.cpp",
+    "src/core/scene.hpp",
+    "src/render/renderer.cpp",
+    "src/render/main.cpp",
+    "src/platform/render_worker.cpp",
+    "src/platform/render_worker.hpp",
+    "src/world/actors.cpp"
+  ],
+  "test_ids": [
+    "ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows",
+    "ActorPixelTests.test_ungranted_application_pixels_match_empty_world",
+    "ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels",
+    "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation",
+    "ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application",
+    "ActorPixelTests.test_other_application_scope_does_not_export_its_pixels",
+    "ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata",
+    "ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent",
+    "ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority",
+    "ActorPixelTests.test_metadata_only_requests_have_no_image_and_keep_larger_viewports",
+    "ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world",
+    "ActorPixelTests.test_revocation_before_post_render_check_returns_no_pixels",
+    "ActorPixelTests.test_revocation_before_first_queued_write_exports_no_pixel_reply",
+    "ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply",
+    "RenderObservationClientTests.test_valid_pixels_use_checked_frame_and_exact_dimensions",
+    "RenderObservationClientTests.test_metadata_only_reply_has_no_image",
+    "RenderObservationClientTests.test_missing_requested_image_is_rejected",
+    "RenderObservationClientTests.test_unsolicited_image_is_rejected",
+    "RenderObservationClientTests.test_changed_or_zero_image_dimensions_are_rejected",
+    "RenderObservationClientTests.test_truncated_rgb_data_is_rejected",
+    "RenderObservationClientTests.test_extra_rgb_data_is_rejected",
+    "RenderObservationClientTests.test_unknown_image_field_is_rejected",
+    "RenderObservationClientTests.test_excessive_pixel_request_is_not_sent_to_compositor"
+  ],
+  "preceding_gate": "P10",
+  "contract": "docs/ACTOR_PIXELS.md",
+  "status": "component_qualified",
+  "limitations": [
+    "Native-server GLX sanitizer remains unqualified.",
+    "Physical devices and full Spatial-M1 qualification remain pending."
+  ],
+  "test_support": [
+    "src/testing/render_observation_probe.cpp"
+  ],
+  "schema_migration": "docs/ACTOR_PIXELS_MIGRATION.md",
+  "evidence": "evidence/actor-pixels-2026-10-08",
+  "qualification": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 914,
+    "core_suites": 47,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  }
+}

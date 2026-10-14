@@ -1,0 +1,81 @@
+Supervisor broker native handoff
+Status: Candidate02 passed both-host full qualification and is integrated.
+
+Invariant
+
+The supervised broker receives only the native broker credential owned by its exact launch.
+The supervisor retains the parent credential and checked revocation ownership.
+
+Original gap, preserved baseline
+
+AuthorityLaunch::prepare returns the new NativeScopeReady credential.
+The production supervisor discards that returned view.
+Workspaced already accepts a sealed NativeLaunchConfig through --native-security-fd.
+The supervisor does not create or pass that configuration.
+Existing supervisor tests launch a ParticipantRuntime probe. They do not prove native broker startup.
+
+Contract addition
+
+Add optional broker_native_target_fd to AuthoritySupervisorConfig with field number 11.
+Require a target from 3 through 255 when the field is present.
+Reject collisions with the participant target and caller-supplied descriptor targets before creating ownership.
+Reserve descriptor-table capacity for both generated descriptors.
+Require the native scope role to be BROKER for this handoff.
+
+Derive NativeLaunchConfig from the retained native scope's newly issued credential and verified server pins.
+Never substitute the supervisor cookie or a caller-selected broker credential.
+Serialize the configuration as binary protobuf in a fully sealed private memfd.
+Pass it through the existing checked ProcessScope descriptor mapping.
+Close the supervisor's temporary configuration descriptor after exec or failure.
+Keep credentials out of launch records, management replies, and files on disk.
+Preserve existing configurations that omit this optional field.
+
+Baseline
+
+The prepared test launches the production supervisor and real workspaced.
+It requests the new configuration field through the actual text parser.
+It supplies the broker's existing --native-security-fd argument.
+The test requires a real broker hello reply, then checked supervisor cleanup.
+An unknown-field diagnostic confirms that this handoff is absent in candidate02.
+Other failures require separate diagnosis.
+Run against unchanged candidate02 binaries after that host finishes its timed qualification.
+
+Correction evidence
+
+Require successful real broker startup and native application launch under the owned credential.
+Verify application identity with an independent native client.
+Reject invalid targets, descriptor collisions, and the compositor role.
+Verify cleanup after failed exec and broker death.
+Verify no supervisor cookie reaches the child, the journal, or management replies.
+Run Debug and runtime sanitizers on both hosts before integration.
+
+Scope
+
+This step provides the broker credential handoff.
+Complete broker participant configuration and world/compositor credential handoff remain separate required steps.
+The startup baseline does not establish broker participant activation, native application confinement, or completed M02 recovery.
+
+Prepared correction tests, 2026-10-09
+
+Eight regression methods are prepared in test_supervisor_broker_handoff_regressions.py.
+Read evidence/supervisor-broker-handoff-2026-10-09/correction-tests-prepared-01.json.
+They use the production broker, real confined native applications, independent X clients, and pidfds.
+A transport adapter only serializes protobuf requests to the actual broker child.
+Reject a compositor scope before creating journal ownership.
+Use the diagnostic: Broker handoff requires a broker native scope.
+The boundary test permits fourteen explicit descriptors plus the two generated descriptors.
+A fifteenth explicit descriptor must fail before ownership.
+Candidate01 ran all eight on sb16 Debug: six passed and two stopped on observer PermissionError.
+The unchanged-source baseline confirmed the missing handoff on sb16 in both profiles.
+Candidate02 preserves production code and corrects the observer, with one additional control test.
+Read evidence/supervisor-broker-handoff-2026-10-09/observer-failure-01.txt.
+Both-host qualification remains required.
+Complete issuer-backed broker participation remains separate required work.
+
+Qualification and integration, 2026-10-09
+
+Both hosts passed Debug and runtime ASan/UBSan.
+Each profile passed 1393 core checks, 51 harness checks, and 151 P10 cases.
+All four issuer-backed broker participation checks also passed in each profile.
+The reviewed five-file handoff is integrated. All 41 acceptance locks remain unchanged.
+World handoff and trusted crash recovery remain separate required work.

@@ -1,0 +1,18 @@
+{
+  "id": "identity.supervised_broker_participation",
+  "phase": "M02",
+  "status": "complete",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/SUPERVISED_BROKER_PARTICIPATION.txt",
+  "evidence": "evidence/supervised-broker-participation-2026-10-09",
+  "production_changed": false,
+  "tests": [
+    "test_real_authority_broker_activates_launches_native_app_and_releases_on_eof",
+    "test_missing_actor_principal_cannot_use_supervised_broker_launch_authority",
+    "test_actor_revocation_closes_native_app_before_barrier_acknowledgement",
+    "test_broker_death_cleans_native_scope_but_preserves_unretired_issuer_obligation"
+  ],
+  "qualification": "Both hosts passed all four integration checks in Debug and runtime ASan/UBSan.",
+  "remaining": [],
+  "scope": "Local participation checks are complete. Unretired crash obligations remain required recovery work under the parent task."
+}
