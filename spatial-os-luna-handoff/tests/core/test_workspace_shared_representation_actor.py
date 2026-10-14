@@ -52,13 +52,14 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
             processes = tuple(db.execute('SELECT id,workspace,state FROM processes ORDER BY id'))
         return repositories, worktrees, workspaces, processes
 
-    def presentation_row(self, world, representation_id):
+    def presentation_row(self, world, representation_id, expect_present=True):
         self.assertEqual(len(representation_id), 16, f'Expected raw 16-byte presentation ID, got {representation_id!r}')
         uri = 'file:' + str(world.state_path / 'world.db') + '?mode=ro'
         with closing(sqlite3.connect(uri, uri=True)) as db:
             row = db.execute('SELECT workspace_id,room_id,pose,generation FROM workspace_presentations WHERE id=?',
                              (representation_id.hex(),)).fetchone()
-        self.assertIsNotNone(row, f'No persisted row for binary presentation ID {representation_id.hex()} in {world.state_path}')
+        if expect_present:
+            self.assertIsNotNone(row, f'No persisted row for binary presentation ID {representation_id.hex()} in {world.state_path}')
         return row
 
     def presentation_state(self, world):
@@ -245,7 +246,7 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         self.pixel_change(owner, before_remove.image.rgb8)
         self.assertEqual(self.presentation_state(first),
             {'available': 1, 'selected': 1, 'presentations': 0, 'operations': 4})
-        self.assertIsNone(self.presentation_row(first, left.representation_id))
+        self.assertIsNone(self.presentation_row(first, left.representation_id, expect_present=False))
         self.assertEqual(self.presentation_row(second, right.representation_id), right_row)
         self.assertEqual(self.execution_inventory(), inventory)
         self.assertEqual(self.file_identity(self.project / 'm07-nonce'), file_before)
