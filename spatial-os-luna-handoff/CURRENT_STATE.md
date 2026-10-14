@@ -1,3 +1,28 @@
+## 2026-10-14: Cross-host sanitizer lifecycle passes; broker repair builds separately
+
+Frozen cross-host source: 5658b9fc35097df978f3d2504049f7947cb677df.
+The primary verified all 943 source hashes and 41 package metadata/tool hashes.
+Both target preflights passed, including qualified graphics and the declared confined-X-probe sanitizer exception.
+Two real TLS lifecycle methods passed on each host with strict ASan/UBSan settings.
+sb16 ran two methods in 8.759 seconds. sb16-2 ran two methods in 10.522 seconds.
+The primary read both named results and all four zero command/wrapper exit receipts.
+Evidence on each host: /home/dflanag3/spatial-artifacts/m07-crosshost-source-repair-20261014/san-lifecycle-HOST-run01.
+Native sanitizer checks in both directions remain pending. These results do not qualify combined M07.
+
+The broker issuer-maintenance patch and three broker-specific regressions passed source review.
+Their frozen Debug build is running on middle-child. Runtime remains unrun.
+The separate owner-authorized stopped-participant domain-addition increment is assigned on a5500.
+It must preserve existing domain claims, historical receipts, and stale-service rejection.
+Its protocol, migration, implementation, and tests require review before compilation and runtime.
+It must not provision actor grants or participant scope automatically during workspace copy.
+
+The primary removed only ten detached successful-case engine17a volume images after fresh identity checks.
+The cleanup recovered 5,369,008,128 bytes. sb16 then had 14,669,922,304 bytes available.
+Both failed-case images remain present. All test logs and volume records remain preserved.
+Receipt: sb16:/home/dflanag3/spatial-artifacts/engine17a-success-image-cleanup-applied01.json.
+Inventory SHA-256: 8d4a701a67c38efa7bcde3ba19142f2a815bac5602c55f94958231e4d997d031.
+M07 remains in focused component integration. Combined freeze and full qualification remain pending.
+
 ## 2026-10-14: Native Debug passes expanded; engine12 exposes two remaining failures
 
 The shared-workspace native test passed both Debug directions with fixture5658 and binaries0bf3.
