@@ -622,9 +622,10 @@ struct StorageOwner::Impl {
         Query q(db,"SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?");
         q.blob(1,r.operation_id());
         if(q.row()) {
-            require(q.blob(0)==r.request_digest() && q.text(1)==r.snapshot_object().id() && q.number(2)==static_cast<std::uint64_t>(r.destination_object().kind()) &&
+            if(!(q.blob(0)==r.request_digest() && q.text(1)==r.snapshot_object().id() && q.number(2)==static_cast<std::uint64_t>(r.destination_object().kind()) &&
                 q.text(3)==r.destination_object().id() && q.number(4)==source.subvolume_id() && q.number(5)==dest.subvolume_id() &&
-                q.number(6)==r.maximum_bytes() && q.number(7)==r.maximum_entries(),"Copy stage operation conflict");
+                q.number(6)==r.maximum_bytes() && q.number(7)==r.maximum_entries()))
+                throw Error(pb::StorageOwnerError::CONFLICT,"Copy stage operation conflict");
             return copy_stage_receipt(r.operation_id());
         }
         Transaction tx(db); Query ins(db,"INSERT INTO copy_stages(operation_id,request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,maximum_bytes,maximum_entries,state) VALUES(?,?,?,?,?,?,?,?,?,1)");

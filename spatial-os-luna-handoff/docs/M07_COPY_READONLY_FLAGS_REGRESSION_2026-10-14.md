@@ -183,3 +183,20 @@ Each scan rejects sanitizer markers and files larger than8MiB.
 It records path, byte count, SHA256, and successful scan status.
 The launcher requires both owner-generation scan receipts before accepting recovery.
 All previously captured client, relay, direct-owner, and command diagnostics remain checked.
+
+The fb21 Debug attempt passed all six native witnesses and FD32.
+The authenticated binding negative changed only destination_subvolume_id272 to273.
+It reached the exact UNAVAILABLE binding guard, fenced the channel, and launched no worker.
+The authorized relay and direct copies sealed24MiB with independent inodes and identical retries.
+Recovery then failed before restart on its unchanged conflict assertion.
+A reused operation with changed maximum_bytes returned INVALID_ARGUMENT1 instead of CONFLICT6.
+The owner reused BEGIN branch incorrectly called the generic INVALID_ARGUMENT require helper.
+It now throws typed CONFLICT for the same unchanged eight-field binding mismatch.
+Malformed request checks, physical object checks, and identical retries remain unchanged.
+Other stage-method error branches are outside this narrow correction.
+StorageClient already maps owner CONFLICT to wire OPERATION_CONFLICT.
+The existing recovery method remains the regression; its oracle is unchanged.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-pcszud0s.
+All six scopes, the native volume, socket directory, unit, and helper were restored.
+The separate recovery volume cleanup receipt also remains in its retained test evidence.
+The owner service and owner probe require fresh affected-target builds before another run.
