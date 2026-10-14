@@ -39,7 +39,14 @@ The copy-engine dependency branch is pushed at a700433 as UNQUALIFIED.
 A bounded worker task now implements confined snapshot staging before full engine integration.
 Fence closure checkpoint 8338661 is reviewed and pushed as UNQUALIFIED.
 The corrected v18r1 package is approved for both-host preflight and focused testing.
-No new fence runtime pass is claimed here.
+Both-host v18r1 preflight passed, including four helper/config omission regressions per host.
+Focused fence Debug then failed at source 8338661.
+On sb16, nine of ten executed methods passed; credential revocation left epoch unchanged.
+On sb16-2, two of three executed methods passed; a broker response timed out.
+Both suite command and wrapper exits were 1/1. Remaining Debug cases and all SAN cases are unrun.
+Retain each host's debug-run-retry and debug-cases-retry under spatial-artifacts/m07-fence-v18-20261014.
+The fence worker now diagnoses both failures. No deadline or assertion has been weakened.
+Independent presentation store/projection checks are authorized. Native actor/pixel checks remain queued.
 Older paused status below is historical.
 
 ## 2026-10-14: Clean repository recovery; implementation paused
