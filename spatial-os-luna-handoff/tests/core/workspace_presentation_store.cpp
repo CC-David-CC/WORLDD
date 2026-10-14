@@ -77,8 +77,8 @@ int main() {
             const auto receipt_size=sqlite3_column_bytes(receipt_query,0);
             std::string malformed_receipt(receipt_blob,static_cast<std::size_t>(receipt_size));
             sqlite3_finalize(receipt_query);
-            expect(malformed_receipt.size()>20 && malformed_receipt.compare(0,4,"WPR1")==0 && malformed_receipt[20]=='\0',"create receipt has canonical nonremoved marker");
-            malformed_receipt[20]='\1';
+            expect(malformed_receipt.size()>20 && malformed_receipt.compare(0,4,"WPR1")==0 && malformed_receipt[12]=='\0',"create receipt has canonical nonremoved marker");
+            malformed_receipt[12]='\1';
             sqlite3_stmt* receipt_update=nullptr;
             expect(sqlite3_prepare_v2(receipt_db,"UPDATE workspace_presentation_ops SET result=?1 WHERE operation_id=lower(hex(?2))",-1,&receipt_update,nullptr)==SQLITE_OK,"prepare malformed receipt update");
             sqlite3_bind_blob(receipt_update,1,malformed_receipt.data(),static_cast<int>(malformed_receipt.size()),SQLITE_TRANSIENT);

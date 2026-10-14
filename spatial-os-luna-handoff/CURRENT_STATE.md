@@ -1,3 +1,14 @@
+## 2026-10-14: M07 store receipt test correction (current)
+
+The frozen Debug store test failed on both hosts.
+It read byte 20 for the removal marker.
+WPR1 stores the marker at byte 12 after its magic and length fields.
+The test now asserts NUL at byte 12 and changes that byte to SOH.
+The decoder must still return STORAGE_ERROR for a create tombstone.
+Production receipt encoding is unchanged.
+Focused rebuilds and reruns are pending.
+Initial failures remain under /home/dflanag3/spatial-artifacts/m07-pres-cpp-4501f6d-sb16/debug-store and /home/dflanag3/spatial-artifacts/m07-pres-cpp-4501f6d-sb16-2/debug-store-repro.
+
 ## 2026-10-14: M06 qualified; M07 is next
 
 The primary accepted the complete M06 qualification evidence on both test hosts.
@@ -7248,4 +7259,3 @@ The additional mandatory milestones include identity, delegation, confinement, c
 shared worlds, model actors, application restoration, native devices, performance, and lifecycle soak.
 None is implied by the current rendering result.
 No Spatial-M1 or LOCAL_READY qualification is claimed.
-
