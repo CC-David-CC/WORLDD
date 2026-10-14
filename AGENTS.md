@@ -403,12 +403,34 @@ Do not close the working SSH or TTY recovery route.
 The workspace root is the local Git repository.
 The default branch is main.
 Local main tracks origin/main.
-Origin is dflanag3@box-git:/srv/data/git/spacial_desktop.git.
+Origin is dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git.
 The repository-local commit identity is David <david@code.contractors>.
 David authorizes ongoing project pushes to CC-David-CC/WORLDD through box-git.
 Use the configured project credentials without asking again for each checkpoint.
 This authorization includes reviewed milestone work branches, not unrelated repositories.
-Keep credentials outside Git and tool output. Preserve the box-git origin.
+Keep credentials outside Git and tool output. Preserve the configured clean box-git origin.
 
 Push reviewed, coherent commits to origin.
 Preserve history. Do not force-push.
+
+## Source repository and generated data
+
+Use the clean source repository after the 2026-10-14 recovery.
+The previous repository remains a recovery archive.
+Do not add its history as parents or fetch it into active source clones.
+GitHub remains unchanged until David selects the publication cutover.
+Keep source, required fixtures, schemas, maintained documents, and concise qualification summaries in Git.
+Keep generated evidence, logs, databases, disk images, packages, and build outputs outside checkouts.
+Use /home/dflanag3/spatial-artifacts for Linux runtime and worker outputs.
+Use separate external build directories.
+Check free space and projected output size before builds, transfers, or new checkouts.
+Report insufficient capacity before proceeding.
+Use configure_artifact_links.py for legacy output paths required by locked tools.
+Run repository_data_guard.py before every checkpoint.
+Never stage generated files, including through forced staging.
+Preserve failed and qualified evidence externally with source pins and checksums.
+Record archive locations in maintained summaries.
+Do not duplicate historical evidence into worker checkouts or test-host packages.
+If deletion fails, create a machine-specific script with exact verified paths and safety checks.
+Preserve the failure log and tell David which script to run.
+M07 development remains paused until David resumes it.
