@@ -1,6 +1,6 @@
 M07 engine resolves the initializer instead of its held payload
 
-Status: Confirmed in the unintegrated engine.
+Status: Corrected in the unintegrated engine. Focused Debug actor-route copying passed on sb16.
 
 The retained bubblewrap namespace leader has namespace PID 1.
 Its child initializer has namespace PID 2.
@@ -16,4 +16,9 @@ Preserve the namespace leader and initializer outside the payload freeze group.
 
 Retained sb16 evidence:
 /home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1/failure-summary.json
-The complete engine has no end-to-end pass yet.
+Later preflight11a independently recorded namespace PIDs 1, 2, and 3 with stable host PID/start identities.
+Only the Python payload occupied the payload cgroup.
+The source survived quiescence and successful destination publication.
+The first complete actor-route pair copy passed among four focused methods.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1.
+All-class, sanitizer, second-host, and combined M07 qualification remain pending.

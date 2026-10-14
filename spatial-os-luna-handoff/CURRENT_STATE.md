@@ -1,3 +1,31 @@
+## 2026-10-14: First complete actor-route project/history copy passed
+
+Engine preflight11a passed all four focused Debug methods on sb16.
+The primary audited actual Ran 4 / OK in 38.378 seconds and both command layers at zero.
+The positive copy reached PUBLISHED with error zero and all 19 durable effects completed.
+It preserved staged, unstaged, untracked, and committed Git data with independent destination administration.
+Source process identity and execution survived quiescence. The destination had no processes or inherited membership.
+Exact admission denial, retry binding, malformed-BEGIN rejection, and revoked-status redaction checks passed.
+All four test volumes were unmounted and detached. Temporary helpers and delegated scope were restored.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1.
+Frozen source manifest: 445d63dd87f3f4337326a78821418783f2ee9ddabdd13e0cbaec3e0558c6c613.
+
+This is the first project/history pair pass. It does not qualify the full engine or M07.
+The next coherent increment must cover actual multi-application definitions and state, all five classes, independent policy restart, Git-state changes, migrations, and fault recovery.
+Engine sanitizer and second-host checks remain pending.
+
+The narrow copy helper core passed eight methods in each profile on sb16-2.
+Its native Debug run exposed a cgroup sampler teardown race after four successful witnesses.
+A reviewed fixture-only correction handles bounded ENODEV from removed descendant groups.
+Required valid samples, terminal results, and all other errors remain enforced.
+Corrected native Debug and sanitizer checks on sb16-2 remain pending.
+
+The broader presentation control suite ran 25 methods and failed at a shared native-control path.
+Source review found unexpected fresh issuer I/O inside cached control enforcement.
+The independent production correction is cc13001a9b5d386c43dd727eab027cece7f1bdc7.
+Its runtime regression verification remains pending. Actor and pixel race fixture repairs also remain pending.
+No combined integration freeze or M07 phase pass is claimed.
+
 ## 2026-10-14: Native copy Debug and sanitizer suites passed on sb16
 
 Source lineage 7ee84fd3001d963e99b8e241bc015eac34812edd passed both focused production profiles on sb16.

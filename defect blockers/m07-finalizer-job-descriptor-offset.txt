@@ -1,6 +1,6 @@
 M07 finalizer receives an empty sealed request
 
-Status: Confirmed in the unintegrated engine preflight10.
+Status: Corrected. The first complete actor-route pair copy passed in Debug on sb16 at preflight11a.
 
 The constructor writes and seals its request memfd but leaves the offset at EOF.
 Bubblewrap --ro-bind-data reads from the current descriptor offset.
@@ -19,3 +19,10 @@ Read-only inspection preserved the image hash and detached its loop.
 Image SHA256: 670d4f354e3bd17c541e9432d847c643cd98dde991a29218ce910623db70ab6e.
 Evidence on sb16:
 /home/dflanag3/spatial-artifacts/runs/m07-engine10-debug-v1/readonly-positive-journal-v2.json
+
+The correction rewinds the request before applying the unchanged full seals.
+Preflight11a passed all four focused engine methods on sb16.
+The positive operation reached PUBLISHED with all 19 durable effects completed.
+The primary audited actual Ran 4 / OK and both command layers at zero.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1.
+All-class, sanitizer, second-host, and combined M07 qualification remain pending.

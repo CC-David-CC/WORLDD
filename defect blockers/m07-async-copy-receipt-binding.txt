@@ -1,6 +1,6 @@
 M07 asynchronous copy omitted pinned stage receipt checks
 
-Status: confirmed source defect in an unintegrated draft. Correction and runtime qualification remain pending.
+Status: corrected in the unintegrated draft. Focused Debug actor-route checks passed on sb16.
 Date: 2026-10-14.
 Host: middle-child.
 Source snapshot: spatial-artifacts/m07-engine-completion-20261014/preflight02/source.
@@ -18,4 +18,9 @@ Check returned counts and content digest at SEAL.
 Fence the channel on a mismatch. Preserve the exact failure evidence.
 Run an authenticated malformed-BEGIN regression through the actual asynchronous broker path.
 Require its successful authorized control and unchanged destination and worker state for the denied case.
-The implementation worker has accepted this review finding. No corrected runtime pass is claimed.
+The implementation worker applied complete receipt binding before START and worker launch.
+Preflight11a passed the actual authenticated malformed-BEGIN actor-route regression on sb16.
+It also passed a complete authorized pair copy through publication.
+The malformed operation remained UNCERTAIN with no worker-launch effect or published workspace.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1.
+Sanitizer, second-host, and combined M07 qualification remain pending.
