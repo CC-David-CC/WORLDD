@@ -15,6 +15,7 @@
 #include <limits>
 #include <string_view>
 #include <optional>
+#include <openssl/evp.h>
 #include <set>
 #include <sqlite3.h>
 #include <stdexcept>
@@ -36,6 +37,11 @@ struct Error : std::runtime_error {
 void require(bool value, const char* message) { if (!value) throw Error(pb::StorageOwnerError::INVALID_ARGUMENT, message); }
 void check(bool value, const char* message) {
     if (!value) throw Error(errno == EDQUOT || errno == ENOSPC ? pb::StorageOwnerError::EXHAUSTED : pb::StorageOwnerError::UNAVAILABLE, std::string(message) + ": " + std::strerror(errno));
+}
+std::string sha256(const std::string& bytes) {
+    std::array<unsigned char,32> result{};unsigned count=0;
+    check(EVP_Digest(bytes.data(),bytes.size(),result.data(),&count,EVP_sha256(),nullptr)==1 && count==32,"Cannot digest owner receipt");
+    return {reinterpret_cast<const char*>(result.data()),result.size()};
 }
 bool identifier(const std::string& value) { return !value.empty() && value.size() <= 128 && value.find('\0') == std::string::npos; }
 bool safe_identifier(const std::string& value) {
@@ -277,13 +283,13 @@ void validate_copy_configuration(const pb::StorageOwnerConfig& config) {
         require(app_profile, "Destination profile references an unknown application storage profile");
     }
 }
-void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config) {
+void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config, bool require_broker) {
     validate_message(config);
     require(config.protocol_version() == 1 && config.filesystem_id().size() == BTRFS_FSID_SIZE &&
             std::filesystem::path(config.volume_root()).is_absolute() && config.volume_root().find('\0') == std::string::npos,
             "Invalid fixed storage volume identity");
     require(config.has_broker_uid() && config.broker_uid() > 0 && config.broker_uid() != UINT32_MAX &&
-            config.has_broker_pid() && config.broker_pid() > 1 && config.broker_pid() <= INT32_MAX,
+            (!require_broker || (config.has_broker_pid() && config.broker_pid() > 1 && config.broker_pid() <= INT32_MAX)),
             "Storage owner requires an exact unprivileged broker process");
     require(config.has_volume_bytes() && config.has_control_plane_bytes() && config.has_filesystem_reserve_bytes(), "Storage volume requires explicit capacity reservations");
     bytes(config.volume_bytes()); bytes(config.control_plane_bytes()); bytes(config.filesystem_reserve_bytes());
@@ -294,12 +300,12 @@ void validate_storage_policy(const workspace::v1::StorageOwnerConfig& config) {
 }
 struct StorageOwner::Impl {
     pb::StorageOwnerConfig config;
-    Fd root, metadata, lock;
+    Fd root, metadata, lock, stopped_broker;
     std::unique_ptr<CatalogVfs> catalog_vfs;
     Database db;
     std::uint64_t capacity = 0;
-    explicit Impl(pb::StorageOwnerConfig value, bool require_kernel_io) : config(std::move(value)) {
-        require(getuid() == 0 && geteuid() == 0, "Storage owner requires operator privilege"); validate_storage_policy(config);
+    explicit Impl(pb::StorageOwnerConfig value, bool require_kernel_io, bool migrate_catalog) : config(std::move(value)) {
+        require(getuid() == 0 && geteuid() == 0, "Storage owner requires operator privilege"); validate_storage_policy(config, !migrate_catalog);
         root.reset(open(config.volume_root().c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)); check(root.value >= 0, "Cannot pin storage volume");
         struct statfs filesystem{}; check(fstatfs(root.value, &filesystem) == 0, "Cannot inspect storage filesystem");
         require(filesystem.f_type == BTRFS_SUPER_MAGIC && subvolume(root.value) == BTRFS_FS_TREE_OBJECTID, "Storage owner requires the dedicated Btrfs top-level volume");
@@ -309,7 +315,21 @@ struct StorageOwner::Impl {
         check(ioctl(root.value, BTRFS_IOC_DEV_INFO, &device) == 0, "Cannot inspect storage device capacity");
         require(device.total_bytes == config.volume_bytes(), "Storage device capacity differs from its reservation");
         if (require_kernel_io) validate_current_storage_io(root.value);
+        if (migrate_catalog) {
+            // Hold both authority locks. A stopped update may change copy export policy only.
+            struct stat registry{};
+            require(fstatat(root.value,"execution.db",&registry,AT_SYMLINK_NOFOLLOW)==0 &&
+                    S_ISREG(registry.st_mode) && registry.st_uid==config.broker_uid(),
+                    "Catalog migration requires an existing stopped execution registry");
+            stopped_broker.reset(openat(root.value,"execution.lock",O_RDWR|O_CLOEXEC|O_NOFOLLOW));
+            struct stat broker_lock{};
+            require(stopped_broker.value>=0 && fstat(stopped_broker.value,&broker_lock)==0 &&
+                    S_ISREG(broker_lock.st_mode) && broker_lock.st_uid==config.broker_uid() &&
+                    broker_lock.st_nlink==1 && flock(stopped_broker.value,LOCK_EX|LOCK_NB)==0,
+                    "Catalog migration requires the broker to be stopped");
+        }
         const bool fresh = mkdirat(root.value, ".storage-owner", 0700) == 0;
+        require(!migrate_catalog || !fresh,"Catalog migration requires an existing storage owner registry");
         if (!fresh) check(errno == EEXIST, "Cannot create private storage catalog");
         metadata.reset(openat(root.value, ".storage-owner", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
         struct stat status{}; check(metadata.value >= 0 && fstat(metadata.value, &status) == 0, "Cannot pin private storage catalog");
@@ -351,9 +371,34 @@ struct StorageOwner::Impl {
         } else {
             Query version(db, "PRAGMA user_version"); require(version.row(), "Storage catalog has no schema version");
             const auto catalog_version = version.number(0);
-            require(catalog_version >= 1 && catalog_version <= 4, "Storage catalog requires an explicit supported migration");
+            require(catalog_version >= 1 && catalog_version <= 5, "Storage catalog requires an explicit supported migration");
             auto stable = config; stable.clear_broker_pid(); Query previous(db, "SELECT policy FROM metadata");
-            require(previous.row() && previous.blob(0) == stable.SerializeAsString(), "Storage policy changes require a stopped explicit migration");
+            require(previous.row(),"Storage policy record is absent");
+            const auto previous_bytes=previous.blob(0);
+            if (previous_bytes!=stable.SerializeAsString()) {
+                require(migrate_catalog,"Storage policy changes require a stopped explicit migration");
+                pb::StorageOwnerConfig old;
+                require(old.ParseFromString(previous_bytes),"Stored storage policy is malformed");
+                auto old_base=old, new_base=stable;
+                old_base.clear_copy_catalog();old_base.clear_copy_destination_profiles();
+                new_base.clear_copy_catalog();new_base.clear_copy_destination_profiles();
+                require(old_base.SerializeAsString()==new_base.SerializeAsString(),
+                        "Copy catalog migration cannot change storage or execution policy");
+                const auto old_revision=old.has_copy_catalog()?old.copy_catalog().revision():0;
+                require(old_revision<INT64_MAX && config.has_copy_catalog() &&
+                        config.copy_catalog().revision()==old_revision+1,
+                        "Copy catalog migration requires the next exact catalog revision");
+                for(const auto& entry:config.copy_catalog().entries()) {
+                    const auto registered=object(entry.source_object());
+                    require(registered_workspace(registered.group)==entry.workspace_id(),
+                            "Catalog migration requires exact registered workspace objects");
+                }
+                Transaction migration(db);
+                Query update(db,"UPDATE metadata SET policy=? WHERE policy=?");
+                update.blob(1,stable.SerializeAsString());update.blob(2,previous_bytes);update.row();
+                require(sqlite3_changes(db)==1,"Catalog migration raced with another policy update");
+                migration.commit();
+            }
             if (catalog_version == 1 || catalog_version == 2) {
                 Transaction migration(db);
                 if (catalog_version == 1)
@@ -368,6 +413,9 @@ struct StorageOwner::Impl {
                 migration.commit();
             }
         }
+        sql(db,"CREATE TABLE IF NOT EXISTS copy_destinations(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),intent BLOB NOT NULL,state INTEGER NOT NULL,receipt BLOB NOT NULL DEFAULT X'',publication BLOB NOT NULL DEFAULT X''); PRAGMA user_version=5;");
+        // An interrupted allocating or publishing effect needs exact inspection. Never replay allocation.
+        sql(db,"UPDATE copy_destinations SET state=3 WHERE state IN (0,4);");
         if (!fresh) sql(db, "UPDATE copy_stages SET state=4 WHERE state=2;");
         for (const auto* directory : {"repositories", "worktrees", "applications", "definitions", "environments", "retired", "snapshots", "staging", "effects"}) {
             if (mkdirat(root.value, directory, 0700) != 0) check(errno == EEXIST, "Cannot create storage collection");
@@ -382,6 +430,14 @@ struct StorageOwner::Impl {
     }
     const pb::WorkspaceStoragePolicy& selected(const std::string& workspace) const {
         for (const auto& value : config.workspaces()) if (value.workspace() == workspace) return value;
+        Query copied(db,"SELECT intent FROM copy_destinations WHERE state=2");
+        while(copied.row()) {
+            pb::StorageCopyDestinationPrepare allocation;require(allocation.ParseFromString(copied.blob(0)),"Stored destination policy binding is malformed");
+            if(allocation.workspace_id()!=workspace)continue;
+            for(const auto& profile:config.copy_destination_profiles())
+                if(profile.name()==allocation.profile_name() && profile.revision()==allocation.profile_revision())return profile.storage_policy();
+            throw Error(pb::StorageOwnerError::UNAVAILABLE,"Copied workspace independent storage profile is unavailable");
+        }
         return config.default_policy();
     }
     std::uint64_t next(unsigned level) {
@@ -661,6 +717,14 @@ struct StorageOwner::Impl {
     }
     pb::StorageObjectState application(const pb::StorageApplicationPrepare& request) {
         require(identifier(request.workspace()) && request.has_object() && request.object().kind() == pb::StorageObject::APPLICATION_STATE && identifier(request.profile()), "Incomplete application storage request");
+        Query copied(db,"SELECT intent FROM copy_destinations WHERE state=2");
+        while(copied.row()) {
+            pb::StorageCopyDestinationPrepare allocation;require(allocation.ParseFromString(copied.blob(0)),"Stored copy policy is malformed");
+            if(allocation.workspace_id()==request.workspace()) {
+                const auto& profile=copy_profile(allocation);
+                if(profile.application_profile()!=request.profile())throw Error(pb::StorageOwnerError::UNAUTHORIZED,"Copied workspace application profile is not assigned");
+            }
+        }
         const auto key = subject(request); const auto& rules = selected(request.workspace());
         auto actor_maximum = std::min(rules.total_bytes(), rules.actor_state_default_bytes());
         for (const auto& actor : rules.actors()) if (subject(actor) == key) actor_maximum = std::min(rules.total_bytes(), actor.state_bytes());
@@ -695,9 +759,10 @@ struct StorageOwner::Impl {
         Query q(db,"SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?");
         q.blob(1,r.operation_id());
         if(q.row()) {
-            require(q.blob(0)==r.request_digest() && q.text(1)==r.snapshot_object().id() && q.number(2)==static_cast<std::uint64_t>(r.destination_object().kind()) &&
+            if(!(q.blob(0)==r.request_digest() && q.text(1)==r.snapshot_object().id() && q.number(2)==static_cast<std::uint64_t>(r.destination_object().kind()) &&
                 q.text(3)==r.destination_object().id() && q.number(4)==source.subvolume_id() && q.number(5)==dest.subvolume_id() &&
-                q.number(6)==r.maximum_bytes() && q.number(7)==r.maximum_entries(),"Copy stage operation conflict");
+                q.number(6)==r.maximum_bytes() && q.number(7)==r.maximum_entries()))
+                throw Error(pb::StorageOwnerError::CONFLICT,"Copy stage operation conflict");
             return copy_stage_receipt(r.operation_id());
         }
         Transaction tx(db); Query ins(db,"INSERT INTO copy_stages(operation_id,request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,maximum_bytes,maximum_entries,state) VALUES(?,?,?,?,?,?,?,?,?,1)");
@@ -740,6 +805,156 @@ struct StorageOwner::Impl {
         require(r.operation_id().size()==16 && r.request_digest().size()==32,"Invalid copy stage inspect");
         auto receipt=copy_stage_receipt(r.operation_id()); require(receipt.request_digest()==r.request_digest(),"Copy stage digest conflict"); return receipt;
     }
+    std::string registered_workspace(std::uint64_t group) {
+        Query q(db,"SELECT workspace FROM domains WHERE id=? UNION ALL SELECT workspace FROM actors WHERE id=?");
+        q.number(1,group);q.number(2,group);
+        require(q.row(),"Registered storage object has no workspace ownership");
+        const auto result=q.text(0);require(!result.empty() && !q.row(),"Storage ownership is ambiguous");return result;
+    }
+    pb::StorageObjectState copy_domain_prepare(const pb::StorageCopyDomainPrepare& request) {
+        require(identifier(request.workspace_id()) && request.has_repository() && request.has_object() &&
+                (request.object().kind()==pb::StorageObject::APPLICATION_DEFINITION ||
+                 request.object().kind()==pb::StorageObject::APPLICATION_STATE ||
+                 request.object().kind()==pb::StorageObject::ENVIRONMENT_CONFIG),"Unsupported registered export domain");
+        const auto group=domain(request.repository());
+        require(registered_workspace(group)==request.workspace_id(),"Export domain belongs to another workspace");
+        return allocate(request.object(),group,0,request.SerializeAsString());
+    }
+    const pb::WorkspaceCopyDestinationProfile& copy_profile(const pb::StorageCopyDestinationPrepare& request) {
+        require(config.has_copy_catalog() && config.copy_catalog().revision()==request.catalog_revision(),"Copy catalog changed");
+        for(const auto& profile:config.copy_destination_profiles())
+            if(profile.name()==request.profile_name() && profile.revision()==request.profile_revision())return profile;
+        throw Error(pb::StorageOwnerError::CONFLICT,"Copy destination profile changed");
+    }
+    void validate_copy_allocation(const pb::StorageCopyDestinationPrepare& request) {
+        require(request.operation_id().size()==16 && request.request_digest().size()==32 &&
+                request.workspace_id().size()==32 && request.workspace_id().find_first_not_of("0123456789abcdef")==std::string::npos &&
+                request.domains_size()>=2 && request.domains_size()<=5,"Invalid copy allocation identity");
+        const auto& profile=copy_profile(request);
+        std::set<int> classes;std::set<std::string> ids;
+        for(const auto& selected:request.domains()) {
+            const auto data_class=selected.data_class();
+            require(data_class>=workspace::copy::v1::PROJECT_TREE && data_class<=workspace::copy::v1::ENVIRONMENT_CONFIG &&
+                    classes.insert(data_class).second,"Unknown or duplicate copy allocation class");
+            bool allowed=false;for(const auto value:profile.allowed_classes())if(value==data_class)allowed=true;
+            require(allowed,"Destination profile denies a selected copy class");
+            const auto expected=data_class==workspace::copy::v1::PROJECT_TREE?pb::StorageObject::PROJECT:
+                data_class==workspace::copy::v1::GIT_HISTORY?pb::StorageObject::REPOSITORY:
+                data_class==workspace::copy::v1::APPLICATION_DEFINITION?pb::StorageObject::APPLICATION_DEFINITION:
+                data_class==workspace::copy::v1::APPLICATION_STATE?pb::StorageObject::APPLICATION_STATE:pb::StorageObject::ENVIRONMENT_CONFIG;
+            require(selected.staging().kind()==pb::StorageObject::COPY_STAGING && selected.destination().kind()==expected &&
+                    selected.snapshot().kind()==pb::StorageObject::SNAPSHOT,"Copy allocation class/kind mismatch");
+            for(const auto* object:{&selected.staging(),&selected.destination(),&selected.snapshot()}) {
+                (void)name(*object);require(ids.insert(object->id()).second,"Copy allocation reuses storage identities");
+            }
+        }
+        require(classes.contains(workspace::copy::v1::PROJECT_TREE) && classes.contains(workspace::copy::v1::GIT_HISTORY),
+                "Copy allocation requires project and Git history");
+    }
+    pb::StorageCopyDestinationReceipt destination_receipt(const pb::StorageCopyDestinationPrepare& intent,int state) {
+        pb::StorageCopyDestinationReceipt result;*result.mutable_allocation()=intent;
+        result.set_allocation_digest(sha256(intent.SerializeAsString()));
+        result.set_state(static_cast<pb::StorageCopyDestinationReceipt::State>(state));
+        if(state==pb::StorageCopyDestinationReceipt::UNCERTAIN)return result;
+        if(state==pb::StorageCopyDestinationReceipt::PUBLISHED) {
+            Query published(db,"SELECT publication FROM copy_destinations WHERE operation_id=?");published.blob(1,intent.operation_id());
+            pb::StorageCopyDestinationPublish publication;
+            require(published.row() && publication.ParseFromString(published.blob(0)) && publication.has_validation(),"Published destination omitted its exact final validation binding");
+            result.set_publication_digest(sha256(publication.SerializeAsString()));result.set_validation_digest(sha256(publication.validation().SerializeAsString()));
+        }
+        for(const auto& domain:intent.domains()) {
+            auto object=inspect(state==pb::StorageCopyDestinationReceipt::PUBLISHED?domain.destination():domain.staging());
+            object.set_operation_digest(state==pb::StorageCopyDestinationReceipt::PUBLISHED?result.publication_digest():result.allocation_digest());*result.add_objects()=object;
+        }
+        return result;
+    }
+    pb::StorageCopyDestinationReceipt copy_destination_inspect(const pb::StorageCopyDestinationInspect& request) {
+        require(request.operation_id().size()==16 && request.request_digest().size()==32,"Malformed copy destination inspect");
+        Query old(db,"SELECT intent,state FROM copy_destinations WHERE operation_id=?");old.blob(1,request.operation_id());
+        if(!old.row())throw Error(pb::StorageOwnerError::UNAVAILABLE,"Copy destination has no exact owner intent");
+        pb::StorageCopyDestinationPrepare intent;
+        require(intent.ParseFromString(old.blob(0)) && intent.request_digest()==request.request_digest(),"Copy destination inspection binding differs");
+        return destination_receipt(intent,static_cast<int>(old.number(1)));
+    }
+    pb::StorageCopyDestinationReceipt copy_destination_prepare(const pb::StorageCopyDestinationPrepare& request) {
+        validate_copy_allocation(request);
+        {Query old(db,"SELECT intent,state FROM copy_destinations WHERE operation_id=?");old.blob(1,request.operation_id());
+         if(old.row()) {
+             if(old.blob(0)!=request.SerializeAsString())throw Error(pb::StorageOwnerError::CONFLICT,"Copy destination ID binds different bytes");
+             return destination_receipt(request,static_cast<int>(old.number(1)));
+         }}
+        const auto& profile=copy_profile(request);std::string repository;
+        for(const auto& domain:request.domains())if(domain.data_class()==workspace::copy::v1::GIT_HISTORY)repository=domain.destination().id();
+        std::uint64_t group=0;
+        {
+            Transaction tx(db);
+            Query usage(db,"SELECT coalesce(sum(maximum),0) FROM domains");require(usage.row(),"Cannot inspect copy reservation");
+            const auto used=usage.number(0),maximum=profile.storage_policy().total_bytes();
+            if(used>capacity || maximum>capacity-used)throw Error(pb::StorageOwnerError::EXHAUSTED,"Copy destination capacity is unavailable");
+            Query owner(db,"SELECT count(*) FROM domains WHERE repo=? OR workspace=?");owner.text(1,repository);owner.text(2,request.workspace_id());
+            require(owner.row() && owner.number(0)==0,"Copy destination identity already exists");
+            Query insert(db,"INSERT INTO copy_destinations(operation_id,intent,state) VALUES(?,?,0)");
+            insert.blob(1,request.operation_id());insert.blob(2,request.SerializeAsString());insert.row();
+            group=next(2);Query domain(db,"INSERT INTO domains VALUES(?,?,?,?)");domain.number(1,group);domain.text(2,repository);
+            domain.number(3,maximum);domain.text(4,request.workspace_id());domain.row();tx.commit();
+        }
+        try {
+            create_group(root.value,group);limit(root.value,group,profile.storage_policy().total_bytes());assign(root.value,group,pool);
+            for(const auto& domain:request.domains())allocate(domain.staging(),group,0,request.SerializeAsString()+domain.staging().SerializeAsString());
+            const auto receipt=destination_receipt(request,pb::StorageCopyDestinationReceipt::ALLOCATED);
+            Query done(db,"UPDATE copy_destinations SET state=1,receipt=? WHERE operation_id=? AND state=0");
+            done.blob(1,receipt.SerializeAsString());done.blob(2,request.operation_id());done.row();return receipt;
+        }catch(...) {Query uncertain(db,"UPDATE copy_destinations SET state=3 WHERE operation_id=?");uncertain.blob(1,request.operation_id());uncertain.row();throw;}
+    }
+    pb::StorageCopyDestinationReceipt copy_destination_publish(const pb::StorageCopyDestinationPublish& request) {
+        const auto& intent=request.allocation();validate_copy_allocation(intent);
+        require(request.has_validation() && request.validation().domains_size()==intent.domains_size(),"Publication requires exact post-rewrite destination validation");
+        std::set<int> expected,validated;std::uint64_t bytes=0;std::uint32_t entries=0;
+        for(const auto& domain:intent.domains())expected.insert(domain.data_class());
+        for(const auto& domain:request.validation().domains()) {
+            require(validated.insert(domain.data_class()).second && domain.content_digest().size()==32 &&
+                    domain.actual_bytes()<=copy_profile(intent).maximum_total_bytes()-bytes &&
+                    domain.actual_entries()<=copy_profile(intent).maximum_entries()-entries,"Final validation exceeds destination ceilings");
+            bytes+=domain.actual_bytes();entries+=domain.actual_entries();
+        }
+        require(expected==validated && !request.validation().head().empty() && !request.validation().branch().empty(),"Publication final validation classes differ");
+        Query old(db,"SELECT intent,state,publication FROM copy_destinations WHERE operation_id=?");old.blob(1,intent.operation_id());
+        require(old.row() && old.blob(0)==intent.SerializeAsString(),"Publication requires its exact owner allocation");
+        if(old.number(1)==pb::StorageCopyDestinationReceipt::PUBLISHED) {
+            require(old.blob(2)==request.SerializeAsString(),"Publication retry changed its final validation receipt");
+            return destination_receipt(intent,pb::StorageCopyDestinationReceipt::PUBLISHED);
+        }
+        if(old.number(1)!=pb::StorageCopyDestinationReceipt::ALLOCATED)
+            throw Error(pb::StorageOwnerError::UNCERTAIN,"Publication outcome requires inspection");
+        // Require every source stage's exact sealed receipt before any publication rename.
+        for(const auto& domain:intent.domains()) {
+            Query sealed(db,"SELECT count(*) FROM copy_stages WHERE destination_id=? AND destination_kind=? AND state=3");
+            sealed.text(1,domain.staging().id());sealed.number(2,pb::StorageObject::COPY_STAGING);
+            require(sealed.row() && sealed.number(0)==1,"Publication requires one sealed receipt for every domain");
+        }
+        {Query mark(db,"UPDATE copy_destinations SET state=4,publication=? WHERE operation_id=? AND state=1");mark.blob(1,request.SerializeAsString());mark.blob(2,intent.operation_id());mark.row();}
+        try {
+            for(const auto& domain:intent.domains()) {
+                const auto registered=object(domain.staging());
+                Fd from(openat(root.value,"staging",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+                Fd to(openat(root.value,collection(domain.destination().kind()).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+                check(from.value>=0 && to.value>=0,"Cannot pin copy publication collections");
+                // RENAME_NOREPLACE prevents an unregistered path from being overwritten.
+                check(renameat2(from.value,name(domain.staging()).c_str(),to.value,name(domain.destination()).c_str(),RENAME_NOREPLACE)==0,
+                      "Copy destination publication rename failed");
+                sync(root.value);
+                Transaction tx(db);
+                Query add(db,"INSERT INTO objects VALUES(?,?,?,?,?,?,'ready')");
+                add.number(1,domain.destination().kind());add.text(2,domain.destination().id());add.number(3,registered.group);
+                add.number(4,registered.subvolume);add.number(5,registered.maximum);add.blob(6,intent.SerializeAsString());add.row();
+                Query retire(db,"UPDATE objects SET state='published' WHERE kind=? AND id=?");
+                retire.number(1,pb::StorageObject::COPY_STAGING);retire.text(2,domain.staging().id());retire.row();tx.commit();
+            }
+            const auto receipt=destination_receipt(intent,pb::StorageCopyDestinationReceipt::PUBLISHED);
+            Query done(db,"UPDATE copy_destinations SET state=2,receipt=? WHERE operation_id=? AND state=4");
+            done.blob(1,receipt.SerializeAsString());done.blob(2,intent.operation_id());done.row();return receipt;
+        } catch(...) {Query uncertain(db,"UPDATE copy_destinations SET state=3 WHERE operation_id=?");uncertain.blob(1,intent.operation_id());uncertain.row();throw;}
+    }
     pb::StorageCopyCatalogReply copy_catalog(const pb::StorageCopyCatalogQuery& request) {
         if (!config.has_copy_catalog())
             throw Error(pb::StorageOwnerError::UNAVAILABLE,"Workspace copy catalog is not configured");
@@ -772,8 +987,7 @@ struct StorageOwner::Impl {
                 if (entry.workspace_id()==request.workspace_id() && entry.data_class()==selected) match=&entry;
             if (!match) throw Error(pb::StorageOwnerError::UNAVAILABLE,"Selected workspace copy class is not registered");
             const auto registered=object(match->source_object());
-            Query domain_query(db,"SELECT workspace FROM domains WHERE id=?"); domain_query.number(1,registered.group);
-            if (!domain_query.row() || domain_query.text(0)!=request.workspace_id())
+            if (registered_workspace(registered.group)!=request.workspace_id())
                 throw Error(pb::StorageOwnerError::UNAVAILABLE,"Copy object is not registered to the requested workspace");
             *reply.add_entries()=*match;
         }
@@ -787,8 +1001,8 @@ struct StorageOwner::Impl {
     }
 
 };
-StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io)
-    : impl_(std::make_unique<Impl>(std::move(configuration), require_kernel_io)) {}
+StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io, bool migrate_copy_catalog)
+    : impl_(std::make_unique<Impl>(std::move(configuration), require_kernel_io, migrate_copy_catalog)) {}
 StorageOwner::~StorageOwner() = default;
 const workspace::v1::StorageOwnerConfig& StorageOwner::configuration() const { return impl_->config; }
 workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::StorageOwnerRequest& request) {
@@ -819,6 +1033,10 @@ workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::Stora
         else if (request.has_copy_stage_seal()) *reply.mutable_copy_stage() = impl_->copy_stage_seal(request.copy_stage_seal());
         else if (request.has_copy_stage_inspect()) *reply.mutable_copy_stage() = impl_->copy_stage_inspect(request.copy_stage_inspect());
         else if (request.has_copy_stage_uncertain()) *reply.mutable_copy_stage() = impl_->copy_stage_uncertain(request.copy_stage_uncertain());
+        else if(request.has_copy_domain_prepare()) *reply.mutable_state()=impl_->copy_domain_prepare(request.copy_domain_prepare());
+        else if(request.has_copy_destination_prepare()) *reply.mutable_copy_destination()=impl_->copy_destination_prepare(request.copy_destination_prepare());
+        else if(request.has_copy_destination_publish()) *reply.mutable_copy_destination()=impl_->copy_destination_publish(request.copy_destination_publish());
+        else if(request.has_copy_destination_inspect()) *reply.mutable_copy_destination()=impl_->copy_destination_inspect(request.copy_destination_inspect());
         else if (request.has_copy_catalog_query()) *reply.mutable_copy_catalog() = impl_->copy_catalog(request.copy_catalog_query());
         else if (request.has_inspect()) *reply.mutable_state() = impl_->inspect(request.inspect().object());
         else if (request.has_hello()) {

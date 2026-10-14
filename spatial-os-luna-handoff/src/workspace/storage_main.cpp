@@ -24,20 +24,22 @@ int descriptor(const char* input) {
 int main(int argc, char** argv) {
     try {
         int channel = -1; std::string configuration;
-        bool channel_stdin = false, peer_stdout = false;
+        bool channel_stdin = false, peer_stdout = false, migrate_catalog = false;
         for (int i = 1; i < argc; ++i) {
             const std::string argument(argv[i]);
             if (argument == "--channel-fd" && channel < 0 && i+1 < argc) channel = descriptor(argv[++i]);
             else if (argument == "--config" && configuration.empty() && i+1 < argc) configuration = argv[++i];
             else if (argument == "--channel-stdin" && !channel_stdin && channel < 0) channel_stdin = true;
             else if (argument == "--broker-pidfd-stdout" && !peer_stdout) peer_stdout = true;
+            else if (argument == "--migrate-copy-catalog" && !migrate_catalog) migrate_catalog = true;
             else throw std::invalid_argument("Invalid storage owner arguments");
         }
         if (channel_stdin) {
             if (channel >= 0) throw std::invalid_argument("Conflicting storage channel arguments");
             channel = fcntl(STDIN_FILENO, F_DUPFD_CLOEXEC, 3);
         }
-        if (getuid() || geteuid() || channel < 3 || configuration.empty() || channel_stdin != peer_stdout)
+        if (getuid() || geteuid() || (!migrate_catalog && channel < 3) || configuration.empty() || channel_stdin != peer_stdout ||
+            (migrate_catalog && (channel >= 0 || channel_stdin || peer_stdout)))
             throw std::invalid_argument("Storage owner requires operator configuration and a private channel");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         spatial::identity::tls_detail::Fd file(open(configuration.c_str(), O_RDONLY | O_NOFOLLOW | O_CLOEXEC));
@@ -54,6 +56,12 @@ int main(int argc, char** argv) {
         }
         spatial::workspace::v1::StorageOwnerConfig config;
         if (!config.ParseFromString(bytes)) throw std::invalid_argument("Invalid storage configuration protobuf");
+        if (migrate_catalog) {
+            spatial::validate_storage_policy(config,false);
+            spatial::StorageOwner owner(std::move(config),false,true);
+            std::cerr << "Stopped copy catalog migration complete\n";
+            return 0;
+        }
         spatial::ProcessHandle peer;
         if (peer_stdout) {
             peer = spatial::ProcessHandle::take(fcntl(STDOUT_FILENO, F_DUPFD_CLOEXEC, 3));

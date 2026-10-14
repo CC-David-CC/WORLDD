@@ -172,18 +172,28 @@ void CopyJournal::record_publication_intent(const std::string& id, const std::st
     require_requester(id,requester); require(effect_id.size()==16 && targets.size()>=2 && targets.size()<=64, "publication target count out of bounds");
     Statement op(db_, "SELECT phase,request_digest,destination,manifest,snapshot_receipts FROM copy_operations WHERE operation_id=?"); op.blob(1,id); require(op.step()==SQLITE_ROW && op.integer_value(0)==workspace::copy::v1::VALIDATED && !op.text_value(2).empty(), "publication intent requires a validated destination");
     std::vector<PublicationTarget> ordered=targets; std::sort(ordered.begin(),ordered.end(),[](const auto& a,const auto& b){ return std::make_pair(static_cast<int>(a.object.kind()),a.object.id())<std::make_pair(static_cast<int>(b.object.kind()),b.object.id()); });
-    bool project=false,repository=false; std::size_t app_targets=0, app_entries=0; std::set<std::string> ids, source_ids, snapshot_ids; std::string intent; const auto destination=op.text_value(2); const auto destination_len=static_cast<std::uint32_t>(destination.size()); intent.push_back(static_cast<char>(destination_len>>24)); intent.push_back(static_cast<char>(destination_len>>16)); intent.push_back(static_cast<char>(destination_len>>8)); intent.push_back(static_cast<char>(destination_len)); intent.append(destination);
-    for(const auto& bytes:unframe(op.bytes(3),1024*1024)) { workspace::copy::v1::CopyManifestEntry entry; require(entry.ParseFromString(bytes) && entry.SerializeAsString()==bytes, "stored manifest entry is corrupt"); if(entry.data_class()==workspace::copy::v1::APPLICATION_STATE) ++app_entries; workspace::v1::StorageObject source; require(source.ParseFromString(entry.source_storage_object()), "stored source identity is corrupt"); source_ids.insert(source.id()); }
+    bool project=false,repository=false; std::set<std::string> ids, source_ids, snapshot_ids; std::string intent; const auto destination=op.text_value(2); const auto destination_len=static_cast<std::uint32_t>(destination.size()); intent.push_back(static_cast<char>(destination_len>>24)); intent.push_back(static_cast<char>(destination_len>>16)); intent.push_back(static_cast<char>(destination_len>>8)); intent.push_back(static_cast<char>(destination_len)); intent.append(destination);
+    for(const auto& bytes:unframe(op.bytes(3),1024*1024)) { workspace::copy::v1::CopyManifestEntry entry; require(entry.ParseFromString(bytes) && entry.SerializeAsString()==bytes, "stored manifest entry is corrupt"); workspace::v1::StorageObject source; require(source.ParseFromString(entry.source_storage_object()), "stored source identity is corrupt"); source_ids.insert(source.id()); }
     for(const auto& bytes:unframe(op.bytes(4),1024*1024)) { workspace::copy::v1::SnapshotReceipt snap; require(snap.ParseFromString(bytes) && snap.SerializeAsString()==bytes, "stored snapshot receipt is corrupt"); workspace::v1::StorageObject source,snapshot; require(source.ParseFromString(snap.source_storage_object()) && snapshot.ParseFromString(snap.snapshot_storage_object()), "stored snapshot identity is corrupt"); source_ids.insert(source.id()); snapshot_ids.insert(snapshot.id()); }
     for(const auto& target:ordered) {
-        const auto& object=target.object; require((object.kind()==workspace::v1::StorageObject::PROJECT || object.kind()==workspace::v1::StorageObject::REPOSITORY || object.kind()==workspace::v1::StorageObject::APPLICATION_STATE) && object.id().size()==32 && object.id().find_first_not_of("0123456789abcdef")==std::string::npos && target.operation_digest.size()==32, "invalid typed publication target");
+        const auto& object=target.object; require((object.kind()==workspace::v1::StorageObject::PROJECT || object.kind()==workspace::v1::StorageObject::REPOSITORY || object.kind()==workspace::v1::StorageObject::APPLICATION_STATE || object.kind()==workspace::v1::StorageObject::APPLICATION_DEFINITION || object.kind()==workspace::v1::StorageObject::ENVIRONMENT_CONFIG) && object.id().size()==32 && object.id().find_first_not_of("0123456789abcdef")==std::string::npos && target.operation_digest.size()==32, "invalid typed publication target");
         require(ids.insert(object.id()).second && !source_ids.contains(object.id()) && !snapshot_ids.contains(object.id()), "duplicate or reused publication target identity");
         if(object.kind()==workspace::v1::StorageObject::PROJECT) { require(!project,"duplicate project target"); project=true; }
         if(object.kind()==workspace::v1::StorageObject::REPOSITORY) { require(!repository,"duplicate repository target"); repository=true; }
-        if(object.kind()==workspace::v1::StorageObject::APPLICATION_STATE) ++app_targets;
         const auto bytes=object.SerializeAsString(); require(bytes.size()<=65536-36 && intent.size()<=65536-36-bytes.size(), "publication intent exceeds journal record bound"); const auto n=static_cast<std::uint32_t>(bytes.size()); intent.push_back(static_cast<char>(n>>24)); intent.push_back(static_cast<char>(n>>16)); intent.push_back(static_cast<char>(n>>8)); intent.push_back(static_cast<char>(n)); intent.append(bytes); intent.append(target.operation_digest);
     }
-    require(project && repository && app_targets==app_entries, "publication targets must exactly match project, repository, and application-state allocation");
+    require(project && repository, "publication requires the selected project and Git repository pair");
+    std::map<int,int> required,actual;
+    for(const auto& bytes:unframe(op.bytes(3),1024*1024)) {
+        workspace::copy::v1::CopyManifestEntry entry;require(entry.ParseFromString(bytes),"Malformed manifest");
+        const auto kind=entry.data_class()==workspace::copy::v1::PROJECT_TREE?workspace::v1::StorageObject::PROJECT:
+            entry.data_class()==workspace::copy::v1::GIT_HISTORY?workspace::v1::StorageObject::REPOSITORY:
+            entry.data_class()==workspace::copy::v1::APPLICATION_DEFINITION?workspace::v1::StorageObject::APPLICATION_DEFINITION:
+            entry.data_class()==workspace::copy::v1::APPLICATION_STATE?workspace::v1::StorageObject::APPLICATION_STATE:workspace::v1::StorageObject::ENVIRONMENT_CONFIG;
+        ++required[kind];
+    }
+    for(const auto& target:ordered)++actual[target.object.kind()];
+    require(required==actual,"Publication kinds must exactly match the selected manifest classes");
     record_effect_intent_impl(id,requester,effect_id,"publication",op.bytes(1),intent);
 }
 void CopyJournal::record_effect_intent(const std::string& id, const std::string& requester, const std::string& effect_id,
@@ -242,6 +252,18 @@ void CopyJournal::abort(const std::string& id, const std::string& requester, wor
     require(phase>=workspace::copy::v1::REQUESTED && phase<=workspace::copy::v1::VALIDATED,"copy operation is terminal");
     Statement pending(db_,"SELECT count(*) FROM copy_effects WHERE operation_id=? AND state=0"); pending.blob(1,id); pending.step(); require(pending.integer_value(0)==0,"cannot abort with unresolved external effect");
     Statement u(db_,"UPDATE copy_operations SET phase=?,error=?,phase_payload=? WHERE operation_id=? AND phase=?"); u.integer(1,workspace::copy::v1::ABORTED); u.integer(2,error); u.blob(3,payload); u.blob(4,id); u.integer(5,phase); u.step(); require(sqlite3_changes(db_)==1,"copy abort raced");
+}
+std::vector<CopyJournal::Operation> CopyJournal::pending() const {
+    std::vector<std::pair<std::string,std::string>> keys;
+    {Statement q(db_,"SELECT operation_id,requester FROM copy_operations WHERE phase BETWEEN 1 AND 6 ORDER BY rowid");
+     while(q.step()==SQLITE_ROW){require(keys.size()<limits_.max_operation_records,"Copy queue exceeds its bound");keys.emplace_back(q.bytes(0),q.bytes(1));}}
+    std::vector<Operation> result;for(const auto& [id,requester]:keys)result.push_back(get(id,requester));return result;
+}
+void CopyJournal::mark_uncertain(const std::string& id,const std::string& requester,workspace::copy::v1::CopyErrorCode error) {
+    require_requester(id,requester);
+    require(error>=workspace::copy::v1::COPY_INVALID_ARGUMENT && error<=workspace::copy::v1::COPY_OPERATION_CONFLICT,"Uncertainty requires a typed failure");
+    Statement q(db_,"UPDATE copy_operations SET phase=9,error=? WHERE operation_id=? AND phase BETWEEN 1 AND 6");
+    q.integer(1,error);q.blob(2,id);q.step();
 }
 void CopyJournal::recover_unresolved_effects(const std::string& id, const std::string& requester) {
     require_requester(id, requester);
@@ -307,14 +329,15 @@ std::string CopyJournal::record_publication_receipts(const std::string& id, cons
     require(publication!=nullptr, "publication receipt requires its exact pre-effect intent");
     std::map<std::pair<int,std::string>,std::string> targets;
     const auto& intent=publication->intent; require(intent.size()>=4, "publication intent malformed"); std::size_t offset=0; const auto dest_len=(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[0]))<<24)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[1]))<<16)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[2]))<<8)|static_cast<unsigned char>(intent[3]); offset=4; require(dest_len>0 && dest_len<=128 && intent.size()-offset>=dest_len && intent.substr(offset,dest_len)==op.text_value(4), "publication intent destination mismatch"); offset+=dest_len;
-    for (std::size_t i=offset;i<intent.size();) { require(intent.size()-i>=4, "publication intent frame truncated"); const auto n=(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i]))<<24)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i+1]))<<16)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i+2]))<<8)|static_cast<unsigned char>(intent[i+3]); i+=4; require(n>0 && n<=65536 && intent.size()-i>=n+32, "publication intent item invalid"); StorageObject target; require(target.ParseFromArray(intent.data()+i,static_cast<int>(n)) && target.SerializeAsString()==intent.substr(i,n), "publication target identity not canonical"); i+=n; const auto digest=intent.substr(i,32); i+=32; require((target.kind()==StorageObject::PROJECT || target.kind()==StorageObject::REPOSITORY || target.kind()==StorageObject::APPLICATION_STATE) && target.id().size()==32 && target.id().find_first_not_of("0123456789abcdef")==std::string::npos && targets.emplace(std::make_pair(static_cast<int>(target.kind()),target.id()),digest).second, "duplicate or invalid publication target"); }
-    std::set<std::string> source_ids, snapshot_ids, protected_subvolumes; std::size_t expected_app_states=0;
-    for(const auto& bytes:unframe(op.bytes(2),1024*1024)) { workspace::copy::v1::CopyManifestEntry entry; require(entry.ParseFromString(bytes) && entry.SerializeAsString()==bytes, "stored manifest entry is corrupt"); if(entry.data_class()==workspace::copy::v1::APPLICATION_STATE) ++expected_app_states; workspace::v1::StorageObject source; require(source.ParseFromString(entry.source_storage_object()), "stored source identity is corrupt"); source_ids.insert(source.id()); }
+    for (std::size_t i=offset;i<intent.size();) { require(intent.size()-i>=4, "publication intent frame truncated"); const auto n=(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i]))<<24)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i+1]))<<16)|(static_cast<std::uint32_t>(static_cast<unsigned char>(intent[i+2]))<<8)|static_cast<unsigned char>(intent[i+3]); i+=4; require(n>0 && n<=65536 && intent.size()-i>=n+32, "publication intent item invalid"); StorageObject target; require(target.ParseFromArray(intent.data()+i,static_cast<int>(n)) && target.SerializeAsString()==intent.substr(i,n), "publication target identity not canonical"); i+=n; const auto digest=intent.substr(i,32); i+=32; require((target.kind()==StorageObject::PROJECT || target.kind()==StorageObject::REPOSITORY || target.kind()==StorageObject::APPLICATION_STATE || target.kind()==StorageObject::APPLICATION_DEFINITION || target.kind()==StorageObject::ENVIRONMENT_CONFIG) && target.id().size()==32 && target.id().find_first_not_of("0123456789abcdef")==std::string::npos && targets.emplace(std::make_pair(static_cast<int>(target.kind()),target.id()),digest).second, "duplicate or invalid publication target"); }
+    std::set<std::string> source_ids, snapshot_ids, protected_subvolumes; std::map<int,int> expected_kinds, actual_kinds;
+    for(const auto& bytes:unframe(op.bytes(2),1024*1024)) { workspace::copy::v1::CopyManifestEntry entry; require(entry.ParseFromString(bytes) && entry.SerializeAsString()==bytes, "stored manifest entry is corrupt"); workspace::v1::StorageObject source; require(source.ParseFromString(entry.source_storage_object()), "stored source identity is corrupt"); ++expected_kinds[source.kind()]; source_ids.insert(source.id()); }
     for(const auto& bytes:unframe(op.bytes(3),1024*1024)) { workspace::copy::v1::SnapshotReceipt snap; require(snap.ParseFromString(bytes) && snap.SerializeAsString()==bytes, "stored snapshot receipt is corrupt"); workspace::v1::StorageObject source, snapshot; require(source.ParseFromString(snap.source_storage_object()) && snapshot.ParseFromString(snap.snapshot_storage_object()), "stored snapshot identities are corrupt"); source_ids.insert(source.id()); snapshot_ids.insert(snapshot.id()); protected_subvolumes.insert(std::to_string(snap.source_subvolume_id())); protected_subvolumes.insert(std::to_string(snap.snapshot_subvolume_id())); }
     for (const auto& receipt : receipts) {
         const auto& object = receipt.object();
+        ++actual_kinds[object.kind()];
         require(receipt.accounting_consistent() && !receipt.read_only() && receipt.subvolume_id() > 0 && receipt.quota_group() > 0 && receipt.maximum_bytes() > 0 && receipt.referenced_bytes() <= receipt.maximum_bytes() && receipt.exclusive_bytes() <= receipt.referenced_bytes(), "destination receipt accounting or mutability invalid");
-        require(object.kind() == StorageObject::PROJECT || object.kind() == StorageObject::REPOSITORY || object.kind() == StorageObject::APPLICATION_STATE, "destination receipt object kind invalid");
+        require(object.kind() == StorageObject::PROJECT || object.kind() == StorageObject::REPOSITORY || object.kind() == StorageObject::APPLICATION_STATE || object.kind() == StorageObject::APPLICATION_DEFINITION || object.kind() == StorageObject::ENVIRONMENT_CONFIG, "destination receipt object kind invalid");
         require(receipt.source_object().kind()==StorageObject::UNSPECIFIED && receipt.source_object().id().empty() && receipt.source_subvolume_id()==0, "destination receipt carries source snapshot identity");
         require(object.id().size() == 32 && object.id().find_first_not_of("0123456789abcdef") == std::string::npos, "destination receipt object is not registered");
         require(object_ids.insert(object.id()).second && subvolume_ids.insert(std::to_string(receipt.subvolume_id())).second, "duplicate destination receipt identity");
@@ -325,8 +348,8 @@ std::string CopyJournal::record_publication_receipts(const std::string& id, cons
         const auto bytes = receipt.SerializeAsString(); require(bytes.size() <= 65536, "destination receipt exceeds limit");
         const auto n = static_cast<std::uint32_t>(bytes.size()); packed.push_back(static_cast<char>(n>>24)); packed.push_back(static_cast<char>(n>>16)); packed.push_back(static_cast<char>(n>>8)); packed.push_back(static_cast<char>(n)); packed.append(bytes);
     }
-    const auto app_targets=static_cast<std::size_t>(std::count_if(targets.begin(),targets.end(),[](const auto& t){return t.first.first==StorageObject::APPLICATION_STATE;}));
-    require(have_project && have_repository && targets.size()==receipts.size() && app_targets==expected_app_states, "publication requires exact project, Git repository, and application receipt targets");
+    require(have_project && have_repository && targets.size()==receipts.size() && expected_kinds==actual_kinds,
+            "publication receipt kinds must exactly match the selected manifest classes");
     require(packed.size() <= 1024 * 1024, "publication receipt set exceeds transport bound");
     record_effect_receipt_impl(id,requester,effect_id,request_digest,packed);
     return packed;
@@ -335,7 +358,7 @@ void CopyJournal::migrate_v5(sqlite3* db) {
     require(db != nullptr && sqlite3_get_autocommit(db) == 0, "copy journal v5 migration requires an active transaction");
     char* message = nullptr;
     const char* sql = "ALTER TABLE copy_operations ADD COLUMN authorization_binding BLOB NOT NULL DEFAULT X'';"
-        "UPDATE copy_operations SET phase=9,error=6 WHERE phase NOT IN (8,9);PRAGMA user_version=6;";
+        "UPDATE copy_operations SET phase=9,error=6 WHERE phase NOT IN (7,8,9);PRAGMA user_version=6;";
     const int rc=sqlite3_exec(db,sql,nullptr,nullptr,&message);
     if(rc!=SQLITE_OK){sqlite3_free(message);throw std::runtime_error("copy journal v5 migration failed");}
 }
@@ -363,9 +386,11 @@ void CopyJournal::migrate_schema(sqlite3* db) {
         require(e.object_id().size() == 16 && valid_schema_id(e.schema_id()) && valid_schema(data_class, e.schema_id(), e.schema_version()), "invalid typed manifest identity or schema");
         require(e.source_storage_object().size() <= 512 && e.content_digest().size() == 32 && e.snapshot_receipt_id().size() == 16, "manifest identity or digest length invalid");
         workspace::v1::StorageObject source; require(source.ParseFromString(e.source_storage_object()) && source.SerializeAsString() == e.source_storage_object(), "manifest storage identity is not canonical");
-        require(source.kind() == workspace::v1::StorageObject::PROJECT || source.kind() == workspace::v1::StorageObject::REPOSITORY || source.kind() == workspace::v1::StorageObject::APPLICATION_STATE, "manifest source storage kind is not copyable");
+        require(source.kind() == workspace::v1::StorageObject::PROJECT || source.kind() == workspace::v1::StorageObject::REPOSITORY || source.kind() == workspace::v1::StorageObject::APPLICATION_STATE || source.kind() == workspace::v1::StorageObject::APPLICATION_DEFINITION || source.kind() == workspace::v1::StorageObject::ENVIRONMENT_CONFIG, "manifest source storage kind is not copyable");
         if (data_class == PROJECT_TREE) require(source.kind() == workspace::v1::StorageObject::PROJECT, "project tree must reference a registered project object");
         if (data_class == GIT_HISTORY) require(source.kind() == workspace::v1::StorageObject::REPOSITORY, "Git history must reference a registered repository object");
+        if (data_class == APPLICATION_DEFINITION) require(source.kind() == workspace::v1::StorageObject::APPLICATION_DEFINITION, "definition must reference its registered object");
+        if (data_class == ENVIRONMENT_CONFIG) require(source.kind() == workspace::v1::StorageObject::ENVIRONMENT_CONFIG, "environment must reference its registered object");
         if (data_class == APPLICATION_STATE) require(source.kind() == workspace::v1::StorageObject::APPLICATION_STATE, "application state must reference its registered object");
         require(source.id().size() == 32 && source.id().find_first_not_of("0123456789abcdef") == std::string::npos, "manifest storage identity is not registered-object form");
         require(identities.emplace(static_cast<int>(e.data_class()), e.object_id()).second, "duplicate manifest class/object id");

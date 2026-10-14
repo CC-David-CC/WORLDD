@@ -47,7 +47,7 @@ class ResourceBroker:
         arguments=list(command)
         extra_fds=extra_fds or {}
         try:
-            if set(extra_fds)-{'--native-security-fd','--control-supervisor-fd'}:
+            if set(extra_fds)-{'--native-security-fd','--control-supervisor-fd','--storage-fd'}:
                 raise ValueError('Unexpected broker descriptor role')
             for flag,descriptor in extra_fds.items():
                 if arguments.count(flag)!=1:raise ValueError('Expected one explicit broker descriptor binding')

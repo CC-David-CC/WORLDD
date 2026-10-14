@@ -43,6 +43,9 @@ public:
                                const std::string& receipt);
     void abort(const std::string& operation_id, const std::string& authenticated_requester,
                workspace::copy::v1::CopyErrorCode error, const std::string& terminal_payload);
+    std::vector<Operation> pending() const;
+    void mark_uncertain(const std::string& operation_id, const std::string& authenticated_requester,
+                        workspace::copy::v1::CopyErrorCode error);
     void recover_unresolved_effects(const std::string& operation_id, const std::string& authenticated_requester);
     static std::string digest(const std::string& bytes);
     void record_validated_result(const std::string& operation_id, const std::string& authenticated_requester,

@@ -93,7 +93,7 @@ class StorageSnapshotTests(unittest.TestCase):
         self.start_owner()
 
     def provision(self, operation):
-        command = ["sudo", "-n", sys.executable, str(SOURCE / "tools/provision_storage.py"),
+        command = ["sudo", "-n", sys.executable, "-B", str(SOURCE / "tools/provision_storage.py"),
                    operation, "--bindings-dir", str(PROBE.parent / "python")]
         command += ["--definition", str(self.definition_path)] if operation == "create" else ["--name", self.name]
         if operation != "inspect":
@@ -459,7 +459,7 @@ class StorageSnapshotTests(unittest.TestCase):
                 "c.execute(\"UPDATE snapshots SET snapshot_subvolume=0,snapshot_uuid=X'',state='pending' WHERE snapshot_id=?\",(sys.argv[2],)); "
                 "c.execute(\"UPDATE objects SET subvolume=0,state='pending' WHERE kind=5 AND id=?\",(sys.argv[2],)); "
                 "c.commit(); c.close()")
-        subprocess.run(["sudo", "-n", sys.executable, "-c", code,
+        subprocess.run(["sudo", "-n", sys.executable, "-B", "-c", code,
                         str(self.volume / ".storage-owner" / "catalog.db"), first], check=True, timeout=5)
         self.start_owner()
         recovered = self.state(request)
@@ -471,7 +471,7 @@ class StorageSnapshotTests(unittest.TestCase):
         code = ("import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); "
                 "c.execute(\"UPDATE snapshots SET snapshot_uuid=? WHERE snapshot_id=?\",(bytes.fromhex(sys.argv[3]),sys.argv[2])); "
                 "c.commit(); c.close()")
-        subprocess.run(["sudo", "-n", sys.executable, "-c", code,
+        subprocess.run(["sudo", "-n", sys.executable, "-B", "-c", code,
                         str(self.volume / ".storage-owner" / "catalog.db"), second,
                         '00' * 16], check=True, timeout=5)
         self.start_owner()

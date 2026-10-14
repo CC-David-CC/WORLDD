@@ -4,8 +4,11 @@
 #include "identity/tls_support.hpp"
 #include "world/store.hpp"
 #include <set>
+#include <array>
+#include <openssl/evp.h>
 #include <fcntl.h>
 #include <linux/btrfs.h>
+#include <linux/btrfs_tree.h>
 #include <linux/magic.h>
 #include <sys/ioctl.h>
 #include <sys/statfs.h>
@@ -25,6 +28,7 @@ struct StorageClient::Impl {
     std::string filesystem_id;
     std::unique_ptr<StorageChannel> channel;
     std::uint64_t sequence = 0;
+    bool exchanging = false;
     std::function<void()> observer;
     Impl(int fd, const std::filesystem::path& volume_path) {
         if (!volume_path.is_absolute()) unavailable();
@@ -47,6 +51,8 @@ struct StorageClient::Impl {
             !reply.identity().accounting_consistent()) unavailable();
     }
     pb::StorageOwnerReply exchange(pb::StorageOwnerRequest request, const std::function<void()>& tick) {
+        if (exchanging) throw WorldError(wire::BUSY,"Storage owner exchange is already pending");
+        struct ExchangeGuard { bool& active; explicit ExchangeGuard(bool& value):active(value){active=true;} ~ExchangeGuard(){active=false;} } guard(exchanging);
         if (!channel || sequence == UINT64_MAX) unavailable();
         request.set_protocol_version(1); request.set_request_id(++sequence);
         validate_message(request);
@@ -88,6 +94,7 @@ workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest re
     else if (request.has_snapshot_inspect()) expected = request.snapshot_inspect().snapshot_object();
     else if (request.has_snapshot_retire()) expected = request.snapshot_retire().snapshot_object();
     else if (request.has_copy_stage_prepare()) expected = request.copy_stage_prepare().object();
+    else if (request.has_copy_domain_prepare()) expected=request.copy_domain_prepare().object();
     else throw std::invalid_argument("Expected a storage object operation");
     const bool snapshot_prepare = request.has_snapshot_prepare();
     const bool snapshot_inspect = request.has_snapshot_inspect();
@@ -191,10 +198,72 @@ int StorageClient::open_object(const workspace::v1::StorageObjectState& state) c
        ioctl(object.value,BTRFS_IOC_FS_INFO,&fs)<0 ||
        subvolume.treeid!=state.subvolume_id() ||
        std::string(reinterpret_cast<char*>(fs.fsid),BTRFS_FSID_SIZE)!=impl_->filesystem_id ||
-       static_cast<bool>(subvolume.flags&BTRFS_SUBVOL_RDONLY)!=state.read_only()) {
+       static_cast<bool>(subvolume.flags&BTRFS_ROOT_SUBVOL_RDONLY)!=state.read_only()) {
         impl_->channel.reset(); unavailable();
     }
     return std::exchange(object.value,-1);
+}
+namespace {
+std::string destination_digest(const std::string& bytes) {
+    std::array<unsigned char,32> value{};unsigned count=0;
+    require(EVP_Digest(bytes.data(),bytes.size(),value.data(),&count,EVP_sha256(),nullptr)==1 && count==32,"Cannot digest destination receipt");
+    return {reinterpret_cast<char*>(value.data()),value.size()};
+}
+void validate_destination_receipt(const pb::StorageCopyDestinationReceipt& receipt,
+                                 const pb::StorageCopyDestinationPrepare* intent) {
+    validate_message(receipt);
+    const auto& allocation=receipt.allocation();
+    require(receipt.has_allocation() && allocation.operation_id().size()==16 &&
+            allocation.request_digest().size()==32 && allocation.workspace_id().size()==32 &&
+            allocation.domains_size()>=2 && allocation.domains_size()<=5 &&
+            receipt.allocation_digest().size()==32 &&
+            (receipt.state()==pb::StorageCopyDestinationReceipt::ALLOCATED ||
+             receipt.state()==pb::StorageCopyDestinationReceipt::PUBLISHED ||
+             receipt.state()==pb::StorageCopyDestinationReceipt::UNCERTAIN),
+            "Malformed copy destination receipt");
+    if(intent)require(allocation.SerializeAsString()==intent->SerializeAsString(),"Destination receipt differs from pinned allocation");
+    require(receipt.allocation_digest()==destination_digest(allocation.SerializeAsString()),"Destination allocation digest does not match exact intent");
+    if(receipt.state()==pb::StorageCopyDestinationReceipt::PUBLISHED)require(receipt.validation_digest().size()==32 && receipt.publication_digest().size()==32,"Publication omitted final-validation binding");
+    if(receipt.state()==pb::StorageCopyDestinationReceipt::UNCERTAIN)return;
+    require(receipt.objects_size()==allocation.domains_size(),"Destination receipt omitted an allocated domain");
+    std::set<std::string> ids;std::set<std::uint64_t> subvolumes;
+    for(int i=0;i<receipt.objects_size();++i) {
+        const auto& object=receipt.objects(i);
+        const auto& domain=allocation.domains(i);
+        const auto& expected=receipt.state()==pb::StorageCopyDestinationReceipt::PUBLISHED?domain.destination():domain.staging();
+        require(object.object().SerializeAsString()==expected.SerializeAsString() &&
+                object.subvolume_id()>0 && object.quota_group()>0 && object.maximum_bytes()>0 &&
+                object.accounting_consistent() && !object.read_only() &&
+                object.operation_digest()==(receipt.state()==pb::StorageCopyDestinationReceipt::PUBLISHED?receipt.publication_digest():receipt.allocation_digest()) &&
+                ids.insert(object.object().id()).second && subvolumes.insert(object.subvolume_id()).second,
+                "Copy destination receipt failed identity or accounting validation");
+    }
+}
+}
+pb::StorageCopyDestinationReceipt StorageClient::prepare_copy_destination(const pb::StorageCopyDestinationPrepare& intent) {
+    pb::StorageOwnerRequest request;*request.mutable_copy_destination_prepare()=intent;
+    const auto reply=impl_->exchange(std::move(request),{});copy_error(reply);
+    try {require(reply.has_copy_destination(),"Missing destination receipt");validate_destination_receipt(reply.copy_destination(),&intent);}
+    catch(...){fence_unavailable();throw;}
+    return reply.copy_destination();
+}
+pb::StorageCopyDestinationReceipt StorageClient::publish_copy_destination(const pb::StorageCopyDestinationPublish& intent) {
+    pb::StorageOwnerRequest request;*request.mutable_copy_destination_publish()=intent;
+    const auto reply=impl_->exchange(std::move(request),{});copy_error(reply);
+    try {require(reply.has_copy_destination(),"Missing publication receipt");validate_destination_receipt(reply.copy_destination(),&intent.allocation());
+        require(reply.copy_destination().publication_digest()==destination_digest(intent.SerializeAsString()) &&
+                reply.copy_destination().validation_digest()==destination_digest(intent.validation().SerializeAsString()),"Publication receipt differs from exact final-validation intent");}
+    catch(...){fence_unavailable();throw;}
+    return reply.copy_destination();
+}
+pb::StorageCopyDestinationReceipt StorageClient::inspect_copy_destination(const pb::StorageCopyDestinationInspect& intent) {
+    pb::StorageOwnerRequest request;*request.mutable_copy_destination_inspect()=intent;
+    const auto reply=impl_->exchange(std::move(request),{});copy_error(reply);
+    try {require(reply.has_copy_destination(),"Missing destination inspection receipt");validate_destination_receipt(reply.copy_destination(),nullptr);
+        require(reply.copy_destination().allocation().operation_id()==intent.operation_id() &&
+                reply.copy_destination().allocation().request_digest()==intent.request_digest(),"Destination inspection binding differs");}
+    catch(...){fence_unavailable();throw;}
+    return reply.copy_destination();
 }
 workspace::v1::StorageCopyCatalogReply StorageClient::query_copy_catalog(const workspace::v1::StorageCopyCatalogQuery& request) {
     workspace::v1::StorageOwnerRequest message; *message.mutable_copy_catalog_query()=request;

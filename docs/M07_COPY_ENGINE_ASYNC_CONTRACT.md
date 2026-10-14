@@ -1,6 +1,6 @@
 # M07 explicit workspace copy engine contract
 
-Status: partial implementation checkpoint. Actor forwarding, admission, owner catalog, and immutable journal binding are implemented in this branch. The async copy phases, quiescence, typed exports, destination construction, and publication remain incomplete.
+Status: production implementation draft, UNQUALIFIED. Actor forwarding, admission, immutable binding, async phases, payload quiescence, typed validation, destination construction, and publication have draft code. Successful engine copies remain unqualified. The first four-case runtime failed on fixture topology and payload lookup. The standalone journal regression passed on sb16-2. Actual all-class registration/copy, Git-state changes, policy restart, recovery, and full qualification remain required.
 
 ## Public operation binding
 
@@ -66,8 +66,9 @@ application-profile references. Destination policy never comes from source polic
 Use existing grant rights.
 WORKSPACE_CREATE is scoped only to the reserved workspace-registry domain and checked
 against the configured destination profile. It is independent of all source rights.
-For PROJECT_TREE, every project ancestor needs FILE_BROWSE, the exact project object
-needs FILE_READ, and the source workspace needs WORKSPACE_COPY_PROJECT. GIT_HISTORY
+PROJECT_TREE copies the registered project root. It requires FILE_BROWSE and FILE_READ
+at the workspace root, both with empty relative components, plus WORKSPACE_COPY_PROJECT.
+The opaque storage object ID is never an authority path component. GIT_HISTORY
 needs WORKSPACE_COPY_GIT on the source workspace. APPLICATION_DEFINITION needs
 WORKSPACE_COPY_DEFINITION, APPLICATION_STATE needs WORKSPACE_COPY_STATE, and
 ENVIRONMENT_CONFIG needs WORKSPACE_COPY_ENVIRONMENT, each scoped to the source
@@ -106,11 +107,12 @@ and registry effects atomic.
 
 ## Coherent capture and data classes
 
-The current tree has no workspace-quiescence API. Full-engine implementation must add
-one to the trusted process supervisor before it can claim coherent multi-domain capture.
-The broker acquires a workspace-scoped lease that blocks new launches, records the
-complete tracked process inventory as PID plus start-time identity, freezes each owned
-workspace process cgroup, and verifies the same inventory remains frozen. It snapshots
+The draft adds payload quiescence to the trusted process supervisor.
+The broker acquires a workspace-scoped lease that blocks new launches and Git mutations.
+It records the complete tracked payload inventory as PID plus start-time identity.
+It freezes only owned payload cgroups and verifies the same inventory remains frozen.
+The supervisor, initializer, manager, broker, and issuer remain outside those freezes.
+Existing application authority queries remain available. It snapshots
 all selected mutable domains while that lease remains held, then releases only the
 freezes and launch barrier acquired by that lease. It never sends signals to unrelated
 processes or terminates source jobs. Snapshot objects are immutable; catalog entries
@@ -163,4 +165,9 @@ byte/entry ceilings, absolute deadline behavior, source PID continuity, destinat
 identity independence, crash/lost acknowledgment, restart reconciliation, and exact
 uncertainty. Runtime qualification remains reserved to sb16 and sb16-2.
 
-PROJECT_TREE export uses the registered workspace project root. It requires FILE_BROWSE and FILE_READ at the workspace root, both with empty relative components, plus WORKSPACE_COPY_PROJECT. The opaque storage object ID is never an authority path component.
+
+Private resource-policy clarification (2026-10-14): execution_resource_profile names an explicit
+versioned BrokerResourceConfig.copy_profiles policy. It does not name a default application ceiling.
+The selected independent policy is pinned privately and persisted with registry publication.
+Execution registry schema v7 requires explicit stopped migration from existing v6 databases.
+See M07_COPY_RESOURCE_POLICY_SCHEMA_V7_2026-10-14.txt for lineage and startup rules.

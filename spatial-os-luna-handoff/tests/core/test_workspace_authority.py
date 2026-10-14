@@ -96,8 +96,8 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='one'), components=components),
             rights=rights, delegable_rights=rights if delegable is None and depth else delegable or (), delegation_depth=depth)
 
-    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False):
-        self.execution = self.root/'execution'; first = BrokerProcess(self, self.execution)
+    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False, attach_world=True):
+        self.execution = getattr(self,'execution_override',self.root/'execution'); first = BrokerProcess(self, self.execution)
         repository = GitRepo(self.root)
         first.call('git.repo.import', id='repo-one', path=str(repository.path))
         work = first.call('git.worktree.create', repo='repo-one', id='tree-one', branch='branch-one', start='main', operation_id='tree')
@@ -111,6 +111,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             first.call('workspace.create', id='two', worktree='tree-two', policy=policy)
         if legacy: first.call('workspace.member.set', id='one', actor='legacy-member', rights=POLICY)
         first.close()
+        if hasattr(self,'after_workspace_storage_setup'): self.after_workspace_storage_setup()
         directory = self.root/'workspace-authority'; directory.mkdir(mode=0o700)
         seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='one', authority_directory=str(directory),
             roots=roots() if roots else [self.workspace_terms()])
@@ -152,6 +153,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
         self.authority_config = path
         self.broker = BrokerProcess(self, self.execution) if legacy else BrokerProcess(self, self.execution, path)
+        if not attach_world:return None
         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
         world.management('workspace.available', id='one', available=True)
         return world

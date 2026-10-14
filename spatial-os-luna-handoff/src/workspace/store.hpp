@@ -45,10 +45,12 @@ public:
     void set_observer(std::function<void()> observer);
     void reconcile_authority();
     void reap();
+    void advance_workspace_copies();
     void stop_all();
     wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
     wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);
 private:
+    void revalidate_copy(const CopyJournal::Operation&);
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

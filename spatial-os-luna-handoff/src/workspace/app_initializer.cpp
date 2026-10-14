@@ -45,9 +45,15 @@ int supervise_application(int state_directory) {
         argv.push_back(nullptr);
         int errors[2];
         if (pipe2(errors, O_CLOEXEC) != 0) throw std::runtime_error("Cannot create exec witness");
+        int gate[2];
+        if(pipe2(gate,O_CLOEXEC)!=0)throw std::runtime_error("Cannot hold application payload");
         const auto child = fork();
         if (child == 0) {
-            close(errors[0]);
+            close(errors[0]);close(gate[1]);
+            char release=0;ssize_t received;
+            do{received=read(gate[0],&release,1);}while(received<0 && errno==EINTR);
+            close(gate[0]);
+            if(received!=1 || release!='1')_exit(127);
             const int input = open("/dev/null", O_RDONLY | O_CLOEXEC);
             const int output = openat(state_directory, "stdout", O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC | O_NOFOLLOW, 0600);
             const int diagnostic = openat(state_directory, "stderr", O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC | O_NOFOLLOW, 0600);
@@ -64,8 +70,28 @@ int supervise_application(int state_directory) {
             while (write(errors[1], &failure, sizeof(failure)) < 0 && errno == EINTR) {}
             _exit(127);
         }
-        close(errors[1]);
-        if (child < 0) { close(errors[0]); throw std::runtime_error("Cannot fork application"); }
+        close(errors[1]);close(gate[0]);
+        if (child < 0) { close(gate[1]);close(errors[0]); throw std::runtime_error("Cannot fork application"); }
+        try {
+            if(request.require_payload_boundary()) {
+                protocol::AppEvent held;held.set_protocol_version(1);held.set_payload_ready(child);
+                spatial::write_frame(std::cout,held);
+                std::string release_bytes;protocol::AppContinue release;
+                if(!spatial::read_frame(std::cin,release_bytes) || !release.ParseFromString(release_bytes))
+                    throw std::runtime_error("Missing application payload release");
+                spatial::validate_message(release);
+                if(release.protocol_version()!=1 || !release.release_payload())
+                    throw std::runtime_error("Invalid application payload release");
+            }
+            char release='1';ssize_t sent;
+            do{sent=write(gate[1],&release,1);}while(sent<0 && errno==EINTR);
+            if(sent!=1)throw std::runtime_error("Application payload release failed");
+            close(gate[1]);
+        } catch(...) {
+            close(gate[1]);close(errors[0]);
+            while(waitpid(child,nullptr,0)<0 && errno==EINTR){}
+            throw;
+        }
         int failure = 0;
         ssize_t read_count;
         do { read_count = read(errors[0], &failure, sizeof(failure)); } while (read_count < 0 && errno == EINTR);

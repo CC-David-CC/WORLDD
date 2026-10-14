@@ -163,6 +163,7 @@ int main(int argc, char** argv) {
             else if (argument == "--migrate-v3" && !migration) migration = 3;
             else if (argument == "--migrate-v4" && !migration) migration = 4;
             else if (argument == "--migrate-v5" && !migration) migration = 5;
+            else if (argument == "--migrate-v6" && !migration) migration = 6;
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
@@ -295,6 +296,8 @@ int main(int argc, char** argv) {
             serve_effect();
         });
         for (;;) {
+            enforce();
+            store.advance_workspace_copies();
             enforce();
             if (authority) { authority->keepalive(); enforce(); }
             if (channels) channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {

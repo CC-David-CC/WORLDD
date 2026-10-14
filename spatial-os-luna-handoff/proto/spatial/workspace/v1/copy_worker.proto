@@ -1,5 +1,6 @@
 syntax = "proto3";
 package spatial.workspace.copyworker.v1;
+import "copy.proto";
 
 enum FailureReason {
   FAILURE_REASON_UNSPECIFIED = 0;
@@ -19,6 +20,7 @@ message WorkerRequest {
   uint32 protocol_version = 1;
   uint64 maximum_bytes = 2;
   uint32 maximum_entries = 3;
+  FinalizeRequest finalization = 4;
 }
 message CopyReceipt {
   uint64 actual_bytes = 1;
@@ -33,5 +35,26 @@ message WorkerResult {
   oneof outcome {
     CopyReceipt copied = 2;
     Failure failure = 3;
+    FinalizeReceipt finalized = 4;
   }
+}
+
+message FinalizeRequest {
+  string source_repository_path = 1;
+  string destination_repository_path = 2;
+  string destination_project_path = 3;
+  string destination_admin_id = 4;
+  string expected_branch = 5;
+  repeated spatial.workspace.copy.v1.CopyDataClass classes = 6;
+}
+message DomainValidation {
+  spatial.workspace.copy.v1.CopyDataClass data_class = 1;
+  uint64 actual_bytes = 2;
+  uint32 actual_entries = 3;
+  bytes content_digest = 4;
+}
+message FinalizeReceipt {
+  string head = 1;
+  string branch = 2;
+  repeated DomainValidation domains = 3;
 }

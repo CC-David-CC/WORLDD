@@ -38,6 +38,7 @@ message WorkspaceResourcePolicy {
   repeated ActorResourceLimit actors = 4;
   repeated ApplicationResourceProfile profiles = 5;
 }
+message WorkspaceCopyResourceProfile { string name = 1; uint64 revision = 2; WorkspaceResourcePolicy policy = 3; }
 message BrokerResourceConfig {
   uint32 protocol_version = 1;
   string delegated_cgroup = 2;
@@ -47,6 +48,7 @@ message BrokerResourceConfig {
   spatial.supervisor.v1.ProcessScopeBudget broker_budget = 5;
   // Reserved control-plane capacity. Applied to the manager before store initialization.
   spatial.supervisor.v1.ProcessScopeBudget manager_budget = 6;
+  repeated WorkspaceCopyResourceProfile copy_profiles = 7;
 }
 // Parent launch configuration. The child resource template must leave its root empty.
 message BrokerProcessConfig {
@@ -225,10 +227,11 @@ message WorkspaceCopyStatusQuery {
   spatial.workspace.copy.v1.WorkspaceCopyStatusRequest request = 2;
 }
 // The broker and its namespace supervisor use this channel. Applications never receive it.
-message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
+message AppStart { uint32 protocol_version = 1; repeated string argv = 2; bool require_payload_boundary = 3; }
+message AppContinue { uint32 protocol_version = 1; bool release_payload = 2; }
 message AppEvent {
   uint32 protocol_version = 1;
-  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; }
+  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; uint32 payload_ready = 5; }
 }
 message Request {
   uint32 protocol_version = 1;
