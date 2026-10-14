@@ -1,3 +1,24 @@
+## 2026-10-13: sb16-2 local gate validated; sb16 storage recovery started
+
+sb16-2 completed the frozen 4f241 full local gate with command and wrapper exits zero.
+Both profiles passed 164 core cases, 151 acceptance cases, 51 harness checks, and five startup checks.
+Both profiles passed all five bounded storage scenarios and their cleanup checks.
+Primary validated the full artifact hash maps and the normal cross-stage artifact checks.
+Its run.json SHA256 is 1174bdaae059f5854d11196c280b37e7aaef72c9ca5f2e3819008a6c0c79b28a.
+The report remains local_passed_crosshost_pending. This is not complete M06 qualification.
+Audit receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/final-evidence-audit01.
+
+sb16 storage-only recovery passed its third preflight with 10,488,827,904 bytes free.
+Earlier preflight failures remain preserved in storage-recovery-preflight01 and storage-recovery-preflight02.
+Corrections preserve private directory permissions and distinguish profile logs from storage witness logs.
+The reviewed recovery utility SHA256 is ea90d01e5c1fdf987d45182c9fba0c6f92ad3ca4e46502d64dba538fa8ae0d8b.
+All 15 controller static fixtures passed, including the actual pinned failure receipt.
+The storage recovery command started in tmux m06-storage-recovery-execute-sb16-01.
+Its exact worker PID was 2373816 when launched. Completion remains unproven.
+Receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/storage-recovery-execute01.
+The original failed sb16 run remains unchanged. Reconciliation and cross-host checks remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: Disk headroom restored; both sanitizer core suites passed
 
 Primary verified completed sanitizer XML reports from both hosts.
