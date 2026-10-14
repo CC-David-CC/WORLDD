@@ -618,6 +618,12 @@ if(BUILD_TESTING)
     add_test(NAME workspace-copy-journal-migration COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_journal_migration.py" $<TARGET_FILE:workspaced>)
     set_tests_properties(workspace-copy-journal-migration PROPERTIES TIMEOUT 60)
+    add_test(NAME workspace-execution-v7-migration COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_m07_execution_migrations.py" $<TARGET_FILE:workspaced>)
+    set_tests_properties(workspace-execution-v7-migration PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1;SPATIAL_SECURITY_EVIDENCE=${CMAKE_CURRENT_BINARY_DIR}/execution-v7-migration-evidence;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_custom_target(workspace-execution-v7-migration-artifacts
+        DEPENDS workspaced workspace-copy-python-protobuf)
     add_executable(workspace-presentation-store-test tests/core/workspace_presentation_store.cpp)
     target_include_directories(workspace-presentation-store-test PRIVATE src)
     target_link_libraries(workspace-presentation-store-test PRIVATE spatial-core)
