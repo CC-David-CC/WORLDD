@@ -1,4 +1,4 @@
-## 2026-10-14: Cross-host sanitizer lifecycle passes; broker repair builds separately
+## 2026-10-14: Cross-host sanitizer component passes; broker repair awaits runtime
 
 Frozen cross-host source: 5658b9fc35097df978f3d2504049f7947cb677df.
 The primary verified all 943 source hashes and 41 package metadata/tool hashes.
@@ -7,10 +7,20 @@ Two real TLS lifecycle methods passed on each host with strict ASan/UBSan settin
 sb16 ran two methods in 8.759 seconds. sb16-2 ran two methods in 10.522 seconds.
 The primary read both named results and all four zero command/wrapper exit receipts.
 Evidence on each host: /home/dflanag3/spatial-artifacts/m07-crosshost-source-repair-20261014/san-lifecycle-HOST-run01.
-Native sanitizer checks in both directions remain pending. These results do not qualify combined M07.
+The native shared-workspace method also passed both sanitizer directions.
+sb16 authority ran one method in 56.355 seconds. sb16-2 authority ran one method in 61.090 seconds.
+The primary read both raw summaries and all four zero command/wrapper exit receipts.
+Both audits record seven stable remote process-identity receipts and changing application pixels.
+Forward captured 20 pixel observations with four hashes. Reverse captured 18 observations with three hashes.
+Each direction's three adapters exited zero and removed their scopes without unexpected processes.
+Native units and cgroups were absent after cleanup. Both runtime lanes were released.
+No sanitizer reports appeared across the inspected local and peer logs.
+Evidence: san-forward-native-run01 on sb16 and san-reverse-native-run01 on sb16-2 under the same artifact root.
+These focused component results do not qualify combined M07.
 
 The broker issuer-maintenance patch and three broker-specific regressions passed source review.
-Their frozen Debug build is running on middle-child. Runtime remains unrun.
+Their frozen Debug build and executable inventory passed with zero command/wrapper exits on middle-child.
+Package verification and runtime remain pending.
 The separate owner-authorized stopped-participant domain-addition increment is assigned on a5500.
 It must preserve existing domain claims, historical receipts, and stale-service rejection.
 Its protocol, migration, implementation, and tests require review before compilation and runtime.
