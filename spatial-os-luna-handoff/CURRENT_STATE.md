@@ -1,3 +1,29 @@
+## 2026-10-13: Disk headroom restored; both sanitizer core suites passed
+
+Primary verified completed sanitizer XML reports from both hosts.
+Each report contains 164 cases, zero failures, zero disabled cases, and zero skips.
+sb16 passed all 151 sanitizer acceptance cases before its storage preflight failure.
+sb16-2's original gate remains live and has entered sanitizer acceptance.
+Neither host is yet accepted as a complete M06 local qualification pass.
+
+sb16 cleanup removed exactly 184 superseded f860 regular ELF files.
+It reclaimed 6,822,682,624 allocated bytes. Immediate free space reached 10,489,401,344 bytes.
+The reviewed script's dry-run and execution returned command and wrapper exits zero.
+Both terminal receipts report COMPLETE. All 160 retained non-ELF files remain unchanged by hash.
+Postchecks found no remaining candidates, unexpected files, active references, mounts, or unreadable entries.
+The original failed 4f report remains unchanged at SHA256 f02f65bfb5830cfa67917f5e3cfbd93915f2de9e1ef37fdf103cbdd9fbdf0679.
+Cleanup receipts: /home/dflanag3/spatial-qualification/m06-f860-cleanup-20261013/{dryrun01,execute01}.
+Reviewed script SHA256: 0c5a03714c85072e8c81c5fce2e1aed041ac2a659b177fad109dea9cb767385d.
+Execution stdout SHA256: a317d1033369cf1e267520f6747ea815ff8898cfdd8f7a727018cdcaa67da461.
+Source, original evidence, current 4f artifacts, and native runtime dependencies remain intact.
+The retained f860 archive remains verified on a5500.
+
+Storage-only recovery tooling failed primary review and is being corrected.
+Findings include command-path mismatch, context initialization, provenance pins, lineage, and complete evidence validation.
+Do not launch the rejected tool or convert the original failed report to PASS.
+Dedicated and inherited cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: sb16 storage preflight failed; disk-headroom recovery active
 
 The original sb16 gate returned FAILED after sanitizer core and P10 passed.

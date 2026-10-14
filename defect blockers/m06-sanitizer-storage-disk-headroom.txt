@@ -2,7 +2,12 @@ M06 sanitizer storage setup lacks disk headroom on sb16.
 
 Candidate: 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
 Attempt: m06-final-4f241-sb16-20261013-01.
-Status: Confirmed setup failure. Recovery pending.
+Status: Disk headroom corrected. Storage-stage recovery and qualification remain pending.
+
+Reviewed cleanup removed 184 superseded f860 ELF files and reclaimed 6,822,682,624 allocated bytes.
+Immediate free space reached 10,489,401,344 bytes.
+All 160 non-ELF files remained unchanged. Cleanup command and wrapper returned zero.
+The original failed report remained unchanged. Current source, binaries, and runtime evidence were preserved.
 
 The sanitizer bounded-storage-Git stage exited 1 before creating its volume or running scenarios.
 Its preflight requires more than 4 GiB available.
