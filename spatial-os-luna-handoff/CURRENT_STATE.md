@@ -1,3 +1,21 @@
+## 2026-10-14: Clean repository recovery; implementation paused
+
+Read docs/SOURCE_REPOSITORY_RECOVERY_2026-10-14.md at the repository root first.
+Origin is dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git.
+The old repository remains a recovery archive. GitHub is unchanged.
+M01-M06 remain qualified against their recorded source and external evidence.
+M07 remains incomplete and paused. M08-M16 remain pending.
+The broker fence package passed preflight on both hosts. Runtime checks remain unrun.
+Journal Debug failed on both hosts. The migration case passed on both hosts.
+The journal rejected duplicate publication identities. Four wrapped checks reported test errors.
+Their cleanup reported already-collected units; scopes were removed.
+Journal sanitizer runtime checks remain unrun.
+The dirty presentation integration is preserved as an unqualified source checkpoint.
+Presentation builds passed; runtime checks remain unrun.
+The complete workspace-copy engine remains unimplemented.
+Do not resume older task instructions merely because they remain in historical notes below.
+Store generated outputs outside source checkouts.
+
 ## 2026-10-14: M06 qualified; M07 is next
 
 The primary accepted the complete M06 qualification evidence on both test hosts.
