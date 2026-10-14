@@ -50,7 +50,7 @@ public:
     wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
     wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);
 private:
-    void revalidate_copy(const CopyJournal::Operation&);
+    void revalidate_copy(const CopyJournal::Operation&, bool query_owner = true);
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

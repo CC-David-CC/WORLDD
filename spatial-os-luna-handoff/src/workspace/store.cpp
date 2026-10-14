@@ -1034,10 +1034,12 @@ workspace::copy::v1::WorkspaceCopyStatus ExecutionStore::workspace_copy_status(
     const std::string requester=principal.issuer_id()+principal.actor_id();
     const auto operation=impl_->copy_journal->get(request.operation_id(),requester);
     bool authorized=false;
-    try {revalidate_copy(operation);authorized=true;}catch(const WorldError&){}catch(const std::invalid_argument&){}
+    // Status observes the journal. It cannot borrow the owner's in-flight effect channel.
+    // Actor rights, policy, configured state and the authorization fence remain fresh.
+    try {revalidate_copy(operation,false);authorized=true;}catch(const WorldError&){}catch(const std::invalid_argument&){}
     return copy_status_for(operation,authorized);
 }
-void ExecutionStore::revalidate_copy(const CopyJournal::Operation& operation) {
+void ExecutionStore::revalidate_copy(const CopyJournal::Operation& operation, bool query_owner) {
     const auto stored_request=impl_->copy_journal->request(operation.operation_id,operation.requester);
     require(operation.requester.size()==64,"Stored copy requester is malformed");
     authority::v1::ActorRef principal;principal.set_issuer_id(operation.requester.substr(0,32));principal.set_actor_id(operation.requester.substr(32));
@@ -1093,7 +1095,11 @@ void ExecutionStore::revalidate_copy(const CopyJournal::Operation& operation) {
             require(binding.state_companions(index).source().SerializeAsString()==binding.owner_catalog().state_mapping().entries(index).SerializeAsString(),
                     "Pinned copy state companion differs from its owner mapping");
         for(const auto data_class:stored_request.data_class())query.add_data_classes(static_cast<copy::CopyDataClass>(data_class));
-        const auto current=impl_->storage->query_copy_catalog(query);
+        // Owner configuration is fixed for this authenticated owner process. Effect
+        // advancement still queries it before external effects. Observation validates
+        // the pinned definition against current broker state without another exchange.
+        impl_->storage->check_alive();
+        const auto current=query_owner?impl_->storage->query_copy_catalog(query):binding.owner_catalog();
         if(current.has_state_mapping())impl_->validate_state_mapping(current.state_mapping());
         const auto current_resources=impl_->resources->resolve_copy_profile(current.destination_profile().execution_resource_profile(),current.destination_profile().application_profile());
         if(current.SerializeAsString()!=binding.owner_catalog().SerializeAsString() ||

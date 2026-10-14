@@ -23,7 +23,7 @@ expected_source_policy_revision binds the workspace execution-policy store revis
 expected_destination_profile_revision binds the configured destination profile.
 The trusted owner records the versioned catalog revision in its private immutable
 authorization binding column. The actor schema does not gain a catalog revision field. Every
-revalidation compares the current owner-config revision with that pinned intent.
+effect revalidation compares the current owner-config revision with that pinned intent.
 
 ## Owner catalog and profiles
 
@@ -92,6 +92,18 @@ ABORTED and UNCERTAIN require a known nonzero error code. Other phases forbid an
 Destination IDs and manifest digests may appear only after VALIDATED, PUBLISHED, or
 UNCERTAIN; a digest requires a destination ID. Unknown protobuf fields, wrong operation
 IDs, invalid phase values, and malformed digests fence the private broker channel.
+
+Status authorization and effect revalidation are separate operations.
+Status checks the current actor rights, authority revision and fence, source policy,
+local resource profile, and configured-state mapping against the pinned binding.
+It checks the authenticated owner's process liveness without borrowing its pending
+effect stream. The owner catalog and destination profiles are immutable for that
+owner process. Replacing them requires a stopped migration under the existing locks.
+Status therefore does not request the catalog again. Every effect retains full
+owner-catalog revalidation. This clarification preserves fresh actor authorization
+and allows status replies while a storage effect awaits its exact receipt.
+Only bounded status and existing checked authority or control operations may run
+during that wait. New copy operations and other effects remain queued until the step returns.
 
 All SQLite owner access stays serialized on its existing owner thread. No shared
 NOMUTEX SQLite handle crosses worker threads. Workers receive immutable protobuf

@@ -163,6 +163,14 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         for item in [*reversed(self.worlds),*reversed(self.brokers)]:
             try:item.close()
             except BaseException as error:failures.append(repr(error))
+        if hasattr(self,'copy_evidence'):
+            for index,broker in enumerate(getattr(self,'brokers',[])):
+                audit_path=getattr(broker,'audit_path',None)
+                try:
+                    if audit_path is not None:
+                        audit=self.operator_run(['cat',audit_path])
+                        (self.copy_evidence/f'relay-audit-{index}.json').write_bytes(audit)
+                except BaseException as error:failures.append('relay audit retention: '+repr(error))
         try:self.retain_copy_journal()
         except BaseException as error:failures.append('journal capture: '+repr(error))
         unmounted=False
@@ -626,6 +634,13 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.assertEqual(delay['method'],'copy_stage_begin')
         self.assertGreaterEqual(delay['elapsed_seconds'],4.1)
         self.assertLess(delay['elapsed_seconds'],5)
+        # A real status reply must complete while the owner effect is still pending.
+        delay_start_ns=int(delay['start_monotonic']*1_000_000_000)
+        delay_end_ns=int(delay['end_monotonic']*1_000_000_000)
+        during_wait=[item for item in self.copy_status_timing_records
+                     if item['started_monotonic_ns']>=delay_start_ns and
+                        item['ended_monotonic_ns']<=delay_end_ns and item['error'] is None]
+        self.assertTrue(during_wait,'No actor status response completed inside the pending owner exchange')
         self.assertEqual(audit['mutations'],[])
         self.assertEqual(audit['owner_exit'],0)
         self.assertEqual(audit['broker_exit'],0)
@@ -635,6 +650,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.copy_actor_git_state(changed_head=True,detached=True)
     def copy_actor_git_state(self,changed_head=False,detached=False):
         self.copy_status_timings=[]
+        self.copy_status_timing_records=[]
         self.relay_mode=False
         def roots():
             result=self.copy_roots(True)
@@ -705,8 +721,26 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
                 self.assertLess(time.monotonic()-started_access,5)
                 observed_frozen_access=True
             status_started=time.monotonic()
-            result=peer.act(workspace_copy_status=copy.WorkspaceCopyStatusRequest(protocol_version=1,operation_id=request.operation_id))
-            self.copy_status_timings.append(time.monotonic()-status_started)
+            status_started_ns=time.monotonic_ns()
+            status_error=None
+            try:
+                result=peer.act(workspace_copy_status=copy.WorkspaceCopyStatusRequest(protocol_version=1,operation_id=request.operation_id))
+            except BaseException as error:
+                status_error=repr(error)
+                raise
+            finally:
+                status_ended_ns=time.monotonic_ns()
+                elapsed=time.monotonic()-status_started
+                self.copy_status_timings.append(elapsed)
+                self.copy_status_timing_records.append(dict(
+                    attempt=len(self.copy_status_timing_records)+1,
+                    started_monotonic_ns=status_started_ns,
+                    ended_monotonic_ns=status_ended_ns,
+                    elapsed_ns=status_ended_ns-status_started_ns,
+                    elapsed_seconds=elapsed,
+                    error=status_error))
+                (self.copy_evidence/'actor-status-timings.json').write_text(
+                    json.dumps(self.copy_status_timing_records,sort_keys=True,indent=2)+chr(10))
             self.assertTrue(result.HasField('action'),result)
             status=result.action.copy_status
             self.assertNotIn(status.phase,(copy.ABORTED,copy.UNCERTAIN),status)
