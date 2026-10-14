@@ -192,7 +192,8 @@ def start_owner_client(mode):
     owner_stderr = owner.communicate(timeout=10)[1]
     test_id = {'receipt-binding':'copy_stage_begin_receipt_destination_binding_fences_before_worker',
                'receipt-control':'copy_stage_authorized_receipt_relay_reaches_worker',
-               'writable-source':'copy_worker_rejects_writable_source_before_launch'}.get(mode, mode)
+               'writable-source':'copy_worker_rejects_writable_source_before_launch',
+               'readonly-destination':'copy_worker_rejects_readonly_destination_before_launch'}.get(mode, mode)
     result = {'test_id':test_id,'mode':mode,'exit':client.returncode,'stdout':stdout,'stderr':stderr,'owner_stderr':owner_stderr,'scopes':samples}
     record['witnesses'].append(result)
     reject_sanitizer_diagnostics(stdout, stderr, owner_stderr)
@@ -222,6 +223,9 @@ def start_owner_client(mode):
         assert any(sample.get('worker_pid') and sample.get('private_netns') for sample in samples), samples
         assert any(sample.get('worker_pid') and sample.get('worker_cgroup') for sample in samples), samples
     if mode=='symlink': assert 'SYMLINK_REJECTED UNCERTAIN' in stdout
+    if mode=='readonly-destination':
+        assert 'READONLY_DESTINATION_REJECTED exact-cause destination=unchanged worker=unprepared channel=alive' in stdout
+        assert not samples, samples
     if mode=='writable-source':
         assert 'WRITABLE_SOURCE_REJECTED exact-cause destination=unchanged worker=unprepared false-readonly=fenced' in stdout
         assert not samples, samples
@@ -294,6 +298,7 @@ try:
     leak=run([BUILD/'spatial-copy-worker-production-probe','-1',volume,resource_path,'fd-leak'])
     assert 'MALFORMED_OWNER_FD_STABLE 32' in leak.stdout
     record['malformed_owner_fd_regression']=leak.stdout.strip()
+    start_owner_client('readonly-destination')
     start_owner_client('writable-source')
     start_owner_client('receipt-control')
     start_owner_client('receipt-binding')

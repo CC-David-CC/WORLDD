@@ -95,7 +95,7 @@ int main(int argc,char** argv) {
     namespace pb=spatial::workspace::v1;
     try {
         if(argc!=5)throw std::invalid_argument("Expected storage fd, volume, resource config, and mode");
-        const auto mode=std::string(argv[4]); if(mode!="success"&&mode!="symlink"&&mode!="fd-leak"&&mode!="receipt-binding"&&mode!="receipt-control"&&mode!="writable-source")throw std::invalid_argument("Invalid probe mode");
+        const auto mode=std::string(argv[4]); if(mode!="success"&&mode!="symlink"&&mode!="fd-leak"&&mode!="receipt-binding"&&mode!="receipt-control"&&mode!="writable-source"&&mode!="readonly-destination")throw std::invalid_argument("Invalid probe mode");
         if(mode=="fd-leak") { require(geteuid()==0,"fd-leak probe requires root owner credentials"); exercise_constructor_failure_cleanup(argv[2]); std::cout<<"MALFORMED_OWNER_FD_STABLE 32\n"; return 0; }
         spatial::StorageClient storage(std::stoi(argv[1]),argv[2]);
         spatial::WorkspaceResources resources(argv[3]);
@@ -128,6 +128,49 @@ int main(int argc,char** argv) {
         pb::StorageCopyStageBegin intent; *intent.mutable_snapshot_object()=snapshot.snapshot_object();
         *intent.mutable_destination_object()=staging; intent.set_operation_id(random_bytes(16));
         intent.set_request_digest(digest(intent.SerializeAsString())); intent.set_maximum_bytes(32*1024*1024); intent.set_maximum_entries(32);
+        if(mode=="readonly-destination") {
+            pb::StorageSnapshotPrepare target_snapshot;*target_snapshot.mutable_source_object()=project;
+            target_snapshot.mutable_snapshot_object()->set_kind(pb::StorageObject::SNAPSHOT);
+            target_snapshot.mutable_snapshot_object()->set_id(object_id());target_snapshot.set_operation_id(random_bytes(16));
+            target_snapshot.set_request_digest(digest(target_snapshot.SerializeAsString()));
+            request.Clear();*request.mutable_snapshot_prepare()=target_snapshot;
+            const auto target_state=storage.call(std::move(request));
+            Fd pinned_source(storage.open_object(snapshot_state)),pinned_destination(storage.open_object(target_state));
+            require(snapshot_state.subvolume_id()!=target_state.subvolume_id(),"read-only destination aliases source identity");
+            std::uint64_t target_flags=0;
+            require(ioctl(pinned_destination.value,BTRFS_IOC_SUBVOL_GETFLAGS,&target_flags)>=0&&
+                    (target_flags&BTRFS_SUBVOL_RDONLY)!=0,"destination witness is not physically read-only");
+            struct stat before{},after{};
+            require(fstat(pinned_destination.value,&before)==0,"cannot inspect read-only destination metadata");
+            const auto groups_before=cgroup_children();
+            bool rejected=false;
+            try {
+                (void)spatial::run_copy_tree_worker(resources,pinned_source.value,pinned_destination.value,
+                    snapshot_state.subvolume_id(),target_state.subvolume_id(),intent.maximum_bytes(),intent.maximum_entries());
+            } catch(const std::invalid_argument& error) {
+                require(std::string(error.what())=="pinned copy roots do not match registered snapshot/staging subvolumes",
+                    "read-only destination did not reach the physical writable-destination guard");
+                rejected=true;
+            }
+            require(rejected,"copy worker accepted a read-only destination");
+            require(fstat(pinned_destination.value,&after)==0&&before.st_dev==after.st_dev&&before.st_ino==after.st_ino&&
+                before.st_size==after.st_size&&before.st_mtim.tv_sec==after.st_mtim.tv_sec&&
+                before.st_mtim.tv_nsec==after.st_mtim.tv_nsec&&before.st_ctim.tv_sec==after.st_ctim.tv_sec&&
+                before.st_ctim.tv_nsec==after.st_ctim.tv_nsec,"read-only rejection changed destination metadata");
+            require(cgroup_children()==groups_before,"read-only destination rejection prepared a worker cgroup");
+            Fd witness(openat(pinned_destination.value,filename,O_RDONLY|O_NOFOLLOW|O_CLOEXEC));
+            require(witness.value>=0,"read-only rejection removed destination witness");
+            std::vector<char> bytes(payload.size());std::size_t consumed=0;
+            while(consumed<bytes.size()) {
+                const auto count=read(witness.value,bytes.data()+consumed,bytes.size()-consumed);
+                if(count<0&&errno==EINTR)continue;
+                require(count>0,"read-only rejection truncated destination witness");consumed+=static_cast<std::size_t>(count);
+            }
+            char extra=0;require(read(witness.value,&extra,1)==0&&bytes==payload,"read-only rejection changed destination bytes");
+            storage.check_alive();
+            std::cout<<"READONLY_DESTINATION_REJECTED exact-cause destination=unchanged worker=unprepared channel=alive\n";
+            return 0;
+        }
         if(mode=="writable-source") {
             Fd pinned_destination(storage.open_object(staging_state));
             std::uint64_t source_flags=0;
