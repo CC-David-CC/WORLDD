@@ -617,6 +617,8 @@ struct StorageOwner::Impl {
         const auto src=object(request.source_object()); const auto max=checked_group(src.group);
         auto source_fd=source_directory(request.source_object()); const auto si=subvol_info(source_fd.value,"Cannot inspect registered snapshot source");
         require(si.treeid==src.subvolume,"Snapshot source catalog identity changed");
+        checked_limit(root.value,src.subvolume,src.maximum);
+        checked_membership(root.value,src.subvolume,src.group);
         const std::string uuid(reinterpret_cast<const char*>(si.uuid),sizeof(si.uuid));
         const auto id=request.snapshot_object().id(); const auto op=request.operation_id(); const auto digest=request.request_digest();
         SnapshotRecord r; bool found=false;
@@ -674,6 +676,31 @@ struct StorageOwner::Impl {
             r.snapshot_subvolume=ci.treeid;
             r.snapshot_uuid=std::string(reinterpret_cast<const char*>(ci.uuid),sizeof(ci.uuid));
             sync(root.value);
+            // Full-mode Btrfs snapshots inherit the source's individual quota.
+            // Only this exact pending effect may initialize its intended zero limit.
+            // A retry after the clear is valid; ready receipts never take this path.
+            const auto inherited=item<btrfs_qgroup_limit_item>(root.value,0,BTRFS_QGROUP_LIMIT_KEY,ci.treeid);
+            const auto expected_flags=src.maximum?BTRFS_QGROUP_LIMIT_MAX_RFER:0;
+            const bool cleared=inherited && le64toh(inherited->flags)==0 && le64toh(inherited->max_rfer)==0;
+            const bool expected=inherited && le64toh(inherited->flags)==expected_flags &&
+                le64toh(inherited->max_rfer)==src.maximum;
+            if(!inherited || (!cleared&&!expected) || le64toh(inherited->max_excl)!=0 ||
+                le64toh(inherited->rsv_rfer)!=0 || le64toh(inherited->rsv_excl)!=0) {
+                uncertain_snapshot(id);
+                throw Error(pb::StorageOwnerError::UNCERTAIN,"Pending snapshot has an unexpected individual quota limit");
+            }
+            checked_limit(root.value,src.subvolume,src.maximum);
+            if(!cleared) {
+                // BTRFS_IOC_QGROUP_LIMIT uses UINT64_MAX to clear MAX_RFER.
+                // Passing zero would install a zero-byte limit instead.
+                limit(root.value,ci.treeid,UINT64_MAX);
+            }
+            sync(root.value);
+            checked_limit(root.value,ci.treeid,0);
+            checked_limit(root.value,src.subvolume,src.maximum);
+            checked_membership(root.value,src.subvolume,src.group);
+            checked_membership(root.value,ci.treeid,src.group);
+            (void)checked_group(src.group);
             Transaction tx(db);
             Query a(db,"UPDATE snapshots SET snapshot_subvolume=?,snapshot_uuid=?,state='ready' WHERE snapshot_id=? AND state IN ('pending','ready')");
             a.number(1,ci.treeid); a.blob(2,r.snapshot_uuid); a.text(3,id); a.row();

@@ -362,6 +362,140 @@ class StorageSnapshotTests(unittest.TestCase):
         request.snapshot_prepare.CopyFrom(prepare)
         return request
 
+    def limited_application_source(self):
+        repository, project, project_state, _ = self.create_source(uuid.uuid4().hex, uuid.uuid4().hex)
+        workspace = uuid.uuid4().hex
+        bind = storage.StorageOwnerRequest()
+        bind.workspace_bind.workspace = workspace
+        bind.workspace_bind.repository.CopyFrom(repository)
+        bind.workspace_bind.project.CopyFrom(project)
+        self.state(bind)
+        source = storage.StorageObject(kind=storage.StorageObject.APPLICATION_STATE, id=uuid.uuid4().hex)
+        prepare = storage.StorageOwnerRequest()
+        prepare.application_prepare.workspace = workspace
+        prepare.application_prepare.object.CopyFrom(source)
+        prepare.application_prepare.fixture_actor = "limited-snapshot-source"
+        prepare.application_prepare.profile = "development"
+        state = self.state(prepare)
+        self.assertEqual(state.maximum_bytes, 4*2**20)
+        marker = self.volume / "applications" / source.id / "snapshot-witness"
+        marker.write_bytes(b"latest real application state")
+        return source, state, project_state.quota_group
+
+    def quota_limits(self, groups):
+        # Independently read exact kernel limit items through TREE_SEARCH.
+        # The Linux UAPI search buffer is 4096 bytes, including its 104-byte key.
+        code = r"""
+import fcntl,json,os,struct,sys
+fd=os.open(sys.argv[1],os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+result={}
+try:
+    for group in map(int,sys.argv[2:]):
+        data=bytearray(4096)
+        struct.pack_into('=7Q4I4Q',data,0,8,0,0,group,group,0,2**64-1,244,244,1,0,0,0,0,0)
+        fcntl.ioctl(fd,0xd0009411,data,True)
+        assert struct.unpack_from('=I',data,64)[0]==1
+        header=struct.unpack_from('=3Q2I',data,104)
+        assert header[1:]==(0,group,244,40),header
+        result[str(group)]=struct.unpack_from('<5Q',data,136)
+finally:os.close(fd)
+print(json.dumps(result,sort_keys=True))
+"""
+        result = subprocess.run(["sudo", "-n", sys.executable, "-B", "-c", code,
+                                 str(self.volume), *map(str, groups)],
+                                check=True, capture_output=True, text=True, timeout=5)
+        return json.loads(result.stdout)
+
+    def set_individual_quota(self, subvolume, maximum):
+        subprocess.run(["sudo", "-n", "btrfs", "qgroup", "limit", str(maximum),
+                        "0/" + str(subvolume), str(self.volume)],
+                       check=True, capture_output=True, timeout=5)
+        subprocess.run(["sudo", "-n", "btrfs", "filesystem", "sync", str(self.volume)],
+                       check=True, capture_output=True, timeout=5)
+
+    def rewind_pending_snapshot(self, snapshot_id):
+        self.assertIsNone(self.owner)
+        # Existing crash-boundary pattern: only rewind the stopped receipt.
+        # The snapshot, UUID, parent, membership, and limit remain real kernel state.
+        code = ("import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); "
+                "c.execute(\"UPDATE snapshots SET snapshot_subvolume=0,snapshot_uuid=X'',state='pending' WHERE snapshot_id=?\",(sys.argv[2],)); "
+                "c.execute(\"UPDATE objects SET subvolume=0,state='pending' WHERE kind=5 AND id=?\",(sys.argv[2],)); "
+                "c.commit(); c.close()")
+        subprocess.run(["sudo", "-n", sys.executable, "-B", "-c", code,
+                        str(self.volume / ".storage-owner" / "catalog.db"), snapshot_id],
+                       check=True, timeout=5)
+
+    def test_limited_application_snapshot_clears_only_new_limit_and_retries_exactly(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        self.assertEqual(before[str(source_state.subvolume_id)], [1, 4*2**20, 0, 0, 0])
+        request = self.prepare(source, uuid.uuid4().hex)
+        ready = self.state(request)
+        self.assertTrue(ready.read_only)
+        self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [0]*5)
+        self.assertEqual(self.quota_limits(groups), before, "source or parent quota changed")
+        marker = self.volume / "snapshots" / request.snapshot_prepare.snapshot_object.id / "snapshot-witness"
+        self.assertEqual(marker.read_bytes(), b"latest real application state")
+        self.assertEqual(self.state(request).SerializeToString(), ready.SerializeToString())
+        self.stop_owner()
+        self.start_owner()
+        self.assertEqual(self.state(request).SerializeToString(), ready.SerializeToString())
+        self.assertEqual(self.quota_limits(groups), before)
+
+    def test_pending_limited_snapshot_reconciles_before_and_after_quota_initialization(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        snapshot_id = uuid.uuid4().hex
+        request = self.prepare(source, snapshot_id)
+        ready = self.state(request)
+        for inherited in (True, False):
+            with self.subTest(interrupted_before_clear=inherited):
+                self.stop_owner()
+                if inherited:
+                    self.set_individual_quota(ready.subvolume_id, source_state.maximum_bytes)
+                self.rewind_pending_snapshot(snapshot_id)
+                self.start_owner()
+                recovered = self.state(request)
+                self.assertEqual(recovered.subvolume_id, ready.subvolume_id)
+                self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [0]*5)
+                self.assertEqual(self.quota_limits(groups), before)
+                self.assertEqual(self.state(request).SerializeToString(), recovered.SerializeToString())
+
+    def test_unexpected_pending_snapshot_limit_is_rejected_without_repair(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        snapshot_id = uuid.uuid4().hex
+        request = self.prepare(source, snapshot_id)
+        ready = self.state(request)
+        self.stop_owner()
+        self.set_individual_quota(ready.subvolume_id, 2*2**20)
+        self.rewind_pending_snapshot(snapshot_id)
+        self.start_owner()
+        error = self.error(request, "UNCERTAIN")
+        self.assertIn("unexpected individual quota", error.message)
+        self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [1, 2*2**20, 0, 0, 0])
+        self.assertEqual(self.quota_limits(groups), before)
+        self.error(request, "UNCERTAIN")
+
+    def test_ready_snapshot_tampered_limit_is_rejected_without_repair(self):
+        source, source_state, workspace_group = self.limited_application_source()
+        groups = [source_state.subvolume_id, source_state.quota_group, workspace_group]
+        before = self.quota_limits(groups)
+        request = self.prepare(source, uuid.uuid4().hex)
+        ready = self.state(request)
+        self.stop_owner()
+        self.set_individual_quota(ready.subvolume_id, 2*2**20)
+        self.start_owner()
+        inspect = storage.StorageOwnerRequest()
+        inspect.snapshot_inspect.snapshot_object.CopyFrom(request.snapshot_prepare.snapshot_object)
+        self.error(inspect, "UNCERTAIN")
+        self.error(request, "UNCERTAIN")
+        self.assertEqual(self.quota_limits([ready.subvolume_id])[str(ready.subvolume_id)], [1, 2*2**20, 0, 0, 0])
+        self.assertEqual(self.quota_limits(groups), before)
+
     def test_readonly_capture_is_idempotent_digest_bound_and_source_independent(self):
         repo_id, project_id, snapshot_id = (uuid.uuid4().hex for _ in range(3))
         repo, source, _, source_path = self.create_source(repo_id, project_id)
