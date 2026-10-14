@@ -21,6 +21,8 @@ class PersistentTlsWorld(WorldProcess):
     def __init__(self, fixture, local, native=False, address='127.0.0.1'):
         self.sequence = 0
         self.peers = []
+        # This constructor bypasses WorldProcess.__init__; it owns no broker relay.
+        self.broker_channel = None
         self.state_path = local.state_path
         self.config_path = local.config_path
         self.runtime_path = local.runtime_path
