@@ -1,0 +1,24 @@
+M07 copy-tree regression sandbox omits ELF loader paths
+
+Status: CONFIRMED. Reviewed fixture correction permits execution on both hosts.
+Date: 2026-10-14.
+Retained fixture source: 805713a420ab9e5df27201f0b641a6d59dc5ce28.
+Corrected fixture source: f2cf41d2e69db6347dd6004368aa6ea053eaae30.
+
+The core fixture binds /usr/lib and /usr/lib64 but omits /lib and /lib64 aliases.
+The Linux ELF interpreter is therefore unavailable inside its sandbox.
+Both hosts reported: bwrap: execvp /copy-worker: No such file or directory.
+The helper never executed. These failures do not prove rejection behavior.
+Both test commands and wrappers returned 1/1.
+
+The correction supplies production loader aliases and private /proc, /dev, and /tmp.
+It keeps system paths read-only and preserves network isolation.
+It forwards only explicit sanitizer options and rejects sanitizer diagnostics.
+The production copy-worker launcher already supplies these dependencies.
+No locked acceptance file or rejection assertion changed.
+
+Each host retains the original failure at:
+/home/dflanag3/spatial-artifacts/m07-copy-tree-baseline-805-20261014/debug-collision
+The corrected fixture reached the intended collision assertion on both hosts.
+That separate production classification defect is recorded in m07-copy-tree-destination-collision.txt.
+The complete helper suites still require Debug and sanitizer execution on both hosts.

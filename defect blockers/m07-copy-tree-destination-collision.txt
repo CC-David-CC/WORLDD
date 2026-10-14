@@ -1,0 +1,29 @@
+M07 copy-tree destination collision classification
+
+Status: CONFIRMED on both hosts. Source correction awaits runtime qualification.
+Date: 2026-10-14.
+Retained helper production source: 805713a420ab9e5df27201f0b641a6d59dc5ce28.
+Reviewed correction: de3d73a230225eb948dee5f2b0b84c5d2b60488b.
+Corrected test launcher: f2cf41d2e69db6347dd6004368aa6ea053eaae30.
+
+A regular destination file already exists before copying.
+The helper opens that path with O_CREAT and O_EXCL.
+The retained code classifies EEXIST as FAILURE_INTERNAL (9).
+The existing regression requires FAILURE_DESTINATION_CONFLICT (7).
+The source correction classifies EEXIST explicitly and preserves the destination.
+Ordinary filesystem errors receive FAILURE_IO.
+No acceptance assertion changed.
+
+Both sb16 and sb16-2 reproduced the exact 9 != 7 assertion.
+Each test command and wrapper returned 1/1.
+Selected test: test_entry_limit_and_existing_destination_entry_are_denied.
+The entry-limit portion passed before the existing-file collision assertion failed.
+Each host retains:
+/home/dflanag3/spatial-artifacts/m07-copy-tree-baseline-805-20261014/debug-collision-loader-fixed
+The original missing-loader setup failure remains in debug-collision beside that directory.
+
+Fixture overlay SHA256: 658ef6655b496f597b6afe05f9b63e49c496bcbbf1737172aa4d984762c206b7.
+Baseline archive SHA256: 1b31ad6cb29aba04b5cd6866ff8f943849ba168145388e38018a0cfbf34510ab.
+The overlay changes sandbox prerequisites and diagnostic checks only.
+Required: rebuild revised helpers and run all eight core methods in both profiles on both hosts.
+The production copy-stage boundary and complete M07 gate remain separate requirements.

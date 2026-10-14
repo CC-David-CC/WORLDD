@@ -1,5 +1,5 @@
 M07 runtime fixture package closure failures
-Confirmed: 2026-10-14. Status: corrective packaging in progress.
+Confirmed: 2026-10-14. Status: corrected for journal and fence focused checks; full M07 gate remains pending.
 
 Fence v16 omitted spatial-process-scope-probe beside workspaced.
 ResourceBroker requires this executable to create the broker ProcessScope.
@@ -25,3 +25,12 @@ Add regressions that remove a required helper or config and require preflight re
 Preserve failed logs. Use fresh directories for corrected attempts.
 Run pending focused Debug checks on both hosts, followed by sanitizers.
 No packaging correction alone qualifies M07.
+
+Focused resolution
+
+Fence v22 preflight and all 13 selected methods passed in each profile on both hosts.
+The corrected journal package passed all seven named selections in each profile on both hosts.
+The primary audited receipts and diagnostics. Earlier setup failures remain preserved.
+Read spatial-os-luna-handoff/docs/M07_JOURNAL_FENCE_FOCUSED_RESULT_2026-10-14.txt for exact pins and evidence.
+These passes do not qualify new copy-stage or combined presentation package closures.
+Each new frozen package still requires its own prerequisite audit.
