@@ -126,6 +126,10 @@ int main() {
             sqlite3_stmt* quota_insert=nullptr;
             expect(sqlite3_prepare_v2(fault_db,"INSERT INTO workspace_presentations(id,workspace_id,room_id,pose,generation) VALUES(?1,'shared-workspace','office',?2,1)",-1,&quota_insert,nullptr)==SQLITE_OK,"prepare legal quota rows");
             const auto legal_pose=pose(0).SerializeAsString();
+            trigger_error=nullptr;
+            const auto quota_begin=sqlite3_exec(fault_db,"BEGIN IMMEDIATE",nullptr,nullptr,&trigger_error);
+            const std::string quota_begin_message=trigger_error?trigger_error:""; sqlite3_free(trigger_error);
+            expect(quota_begin==SQLITE_OK,quota_begin_message.c_str());
             for(int i=0;i<4094;++i){
                 std::string key(32,'0'); key[0]='f'; key[1]='e'; auto n=static_cast<unsigned>(i+1);
                 constexpr char hex[]="0123456789abcdef"; for(int j=31;j>=2;--j){key[j]=hex[n&15];n>>=4;}
@@ -133,7 +137,12 @@ int main() {
                 sqlite3_bind_blob(quota_insert,2,legal_pose.data(),static_cast<int>(legal_pose.size()),SQLITE_TRANSIENT);
                 const auto row_rc=sqlite3_step(quota_insert); expect(row_rc==SQLITE_DONE,"seed legal presentation quota row"); sqlite3_reset(quota_insert); sqlite3_clear_bindings(quota_insert);
             }
-            sqlite3_finalize(quota_insert); sqlite3_close(fault_db);
+            sqlite3_finalize(quota_insert);
+            trigger_error=nullptr;
+            const auto quota_commit=sqlite3_exec(fault_db,"COMMIT",nullptr,nullptr,&trigger_error);
+            const std::string quota_commit_message=trigger_error?trigger_error:""; sqlite3_free(trigger_error);
+            expect(quota_commit==SQLITE_OK,quota_commit_message.c_str());
+            sqlite3_close(fault_db);
             const auto quota_revision=store.info().world_revision();
             WorkspacePresentation over_quota; over_quota.id=rep_quota; over_quota.workspace_id="shared-workspace"; over_quota.room_id="office"; over_quota.pose=pose(9);
             bool quota_rejected=false; try { store.create_presentation(over_quota,quota_revision,quota_op,request_quota,principal); } catch(const WorldError& e) { quota_rejected=e.code==wire::RESOURCE_EXHAUSTED; }
