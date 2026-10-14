@@ -13,15 +13,19 @@
 namespace spatial {
 namespace {
 namespace pb = workspace::v1;
+void require(bool condition, const char* message) { if (!condition) throw std::invalid_argument(message); }
 [[noreturn]] void unavailable() {
     throw WorldError(wire::UNAVAILABLE, "Storage owner unavailable; inspect pending effects before retrying");
 }
 }
 struct StorageClient::Impl {
+    std::filesystem::path volume;
     std::unique_ptr<StorageChannel> channel;
     std::uint64_t sequence = 0;
     std::function<void()> observer;
-    Impl(int fd, const std::filesystem::path& volume) {
+    Impl(int fd, const std::filesystem::path& volume_path) {
+        if (!volume_path.is_absolute()) unavailable();
+        volume = std::filesystem::canonical(volume_path);
         channel = std::make_unique<StorageChannel>(fd, 0, std::nullopt);
         identity::tls_detail::Fd root(open(volume.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
         struct statfs filesystem{}; struct stat directory{}; btrfs_ioctl_fs_info_args info{}; btrfs_ioctl_get_subvol_info_args subvolume{};
@@ -76,6 +80,7 @@ workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest re
     else if (request.has_snapshot_prepare()) expected = request.snapshot_prepare().snapshot_object();
     else if (request.has_snapshot_inspect()) expected = request.snapshot_inspect().snapshot_object();
     else if (request.has_snapshot_retire()) expected = request.snapshot_retire().snapshot_object();
+    else if (request.has_copy_stage_prepare()) expected = request.copy_stage_prepare().object();
     else throw std::invalid_argument("Expected a storage object operation");
     const bool snapshot_prepare = request.has_snapshot_prepare();
     const bool snapshot_inspect = request.has_snapshot_inspect();
@@ -111,3 +116,81 @@ workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest re
     return reply.state();
 }
 }
+
+namespace spatial {
+namespace {
+void copy_error(const workspace::v1::StorageOwnerReply& reply) {
+    namespace pb = workspace::v1;
+    if (!reply.has_error()) return;
+    const auto code = reply.error().code();
+    throw WorldError(code == pb::StorageOwnerError::EXHAUSTED ? wire::RESOURCE_EXHAUSTED :
+        code == pb::StorageOwnerError::CONFLICT ? wire::OPERATION_CONFLICT :
+        code == pb::StorageOwnerError::INVALID_ARGUMENT ? wire::INVALID_ARGUMENT :
+        code == pb::StorageOwnerError::UNCERTAIN ? wire::UNAVAILABLE :
+        code == pb::StorageOwnerError::UNAUTHORIZED ? wire::FORBIDDEN : wire::STORAGE_ERROR,
+        reply.error().message().c_str());
+}
+}
+std::filesystem::path StorageClient::object_path(const workspace::v1::StorageObjectState& state) const {
+    namespace pb = workspace::v1;
+    require(state.accounting_consistent() && state.subvolume_id() > 0 && state.object().id().size()==32 &&
+        state.object().id().find_first_not_of("0123456789abcdef")==std::string::npos,
+        "Unverified storage path identity");
+    const char* collection = nullptr;
+    switch (state.object().kind()) {
+    case pb::StorageObject::PROJECT: collection="worktrees"; break;
+    case pb::StorageObject::REPOSITORY: collection="repositories"; break;
+    case pb::StorageObject::APPLICATION_STATE: collection="applications"; break;
+    case pb::StorageObject::SNAPSHOT: collection="snapshots"; break;
+    case pb::StorageObject::COPY_STAGING: collection="staging"; break;
+    default: throw WorldError(wire::INVALID_ARGUMENT,"Storage object has no copy path");
+    }
+    auto path=impl_->volume/collection/(state.object().id()+(state.object().kind()==pb::StorageObject::REPOSITORY?".git":""));
+    if(path.parent_path()!=impl_->volume/collection || !std::filesystem::is_directory(path) || std::filesystem::is_symlink(path))
+        throw WorldError(wire::UNAVAILABLE,"Registered storage path changed");
+    return path;
+}
+workspace::v1::StorageCopyStageReceipt StorageClient::begin_copy_stage(const workspace::v1::StorageCopyStageBegin& request) {
+    workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_begin()=request;
+    const auto reply=impl_->exchange(std::move(message),{});
+    copy_error(reply);
+    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() ||
+       reply.copy_stage().request_digest()!=request.request_digest() ||
+       reply.copy_stage().snapshot_object().SerializeAsString()!=request.snapshot_object().SerializeAsString() ||
+       reply.copy_stage().destination_object().SerializeAsString()!=request.destination_object().SerializeAsString())
+        unavailable();
+    return reply.copy_stage();
+}
+workspace::v1::StorageCopyStageReceipt StorageClient::start_copy_stage(const workspace::v1::StorageCopyStageStart& request) {
+    workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_start()=request;
+    const auto reply=impl_->exchange(std::move(message),{});
+    copy_error(reply);
+    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() || reply.copy_stage().request_digest()!=request.request_digest()) unavailable();
+    return reply.copy_stage();
+}
+workspace::v1::StorageCopyStageReceipt StorageClient::seal_copy_stage(const workspace::v1::StorageCopyStageSeal& request) {
+    workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_seal()=request;
+    const auto reply=impl_->exchange(std::move(message),{});
+    copy_error(reply);
+    if(!reply.has_copy_stage() || reply.copy_stage().state()!=workspace::v1::StorageCopyStageReceipt::SEALED ||
+       reply.copy_stage().operation_id()!=request.operation_id() || reply.copy_stage().request_digest()!=request.request_digest() ||
+       reply.copy_stage().actual_bytes()!=request.actual_bytes() || reply.copy_stage().actual_entries()!=request.actual_entries() ||
+       reply.copy_stage().content_digest()!=request.content_digest()) unavailable();
+    return reply.copy_stage();
+}
+workspace::v1::StorageCopyStageReceipt StorageClient::mark_copy_stage_uncertain(const workspace::v1::StorageCopyStageUncertain& request) {
+    workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_uncertain()=request;
+    const auto reply=impl_->exchange(std::move(message),{}); copy_error(reply);
+    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() || reply.copy_stage().request_digest()!=request.request_digest()) unavailable();
+    return reply.copy_stage();
+}
+workspace::v1::StorageCopyStageReceipt StorageClient::inspect_copy_stage(const workspace::v1::StorageCopyStageInspect& request) {
+    workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_inspect()=request;
+    const auto reply=impl_->exchange(std::move(message),{});
+    copy_error(reply);
+    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() ||
+       reply.copy_stage().request_digest()!=request.request_digest()) unavailable();
+    return reply.copy_stage();
+}
+
+} // namespace spatial

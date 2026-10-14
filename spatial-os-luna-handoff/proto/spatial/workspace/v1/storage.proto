@@ -100,6 +100,43 @@ message StorageSnapshotRetire {
   StorageObject snapshot_object = 1;
   bytes operation_id = 2; // Exact 16-byte retirement operation identity.
 }
+// The broker records an intent before launching the bounded copy worker.
+// Object IDs are opaque and resolved only by the storage owner.
+message StorageCopyStagePrepare { StorageObject object = 1; StorageObject repository = 2; }
+message StorageCopyStageBegin {
+  StorageObject snapshot_object = 1;
+  StorageObject destination_object = 2;
+  bytes operation_id = 3;
+  bytes request_digest = 4;
+  uint64 maximum_bytes = 5;
+  uint32 maximum_entries = 6;
+}
+message StorageCopyStageStart { bytes operation_id = 1; bytes request_digest = 2; }
+message StorageCopyStageSeal {
+  StorageObject snapshot_object = 1;
+  StorageObject destination_object = 2;
+  bytes operation_id = 3;
+  bytes request_digest = 4;
+  uint64 actual_bytes = 5;
+  uint32 actual_entries = 6;
+  bytes content_digest = 7;
+}
+message StorageCopyStageInspect { bytes operation_id = 1; bytes request_digest = 2; }
+message StorageCopyStageUncertain { bytes operation_id = 1; bytes request_digest = 2; }
+message StorageCopyStageReceipt {
+  bytes operation_id = 1;
+  bytes request_digest = 2;
+  StorageObject snapshot_object = 3;
+  StorageObject destination_object = 4;
+  uint64 source_subvolume_id = 5;
+  uint64 destination_subvolume_id = 6;
+  uint64 actual_bytes = 7;
+  uint32 actual_entries = 8;
+  bytes content_digest = 9;
+  enum State { STATE_UNSPECIFIED = 0; PREPARED = 1; COPYING = 2; SEALED = 3; UNCERTAIN = 4; }
+  bool claimed = 11;
+  State state = 10;
+}
 message StorageRetirementPrepare {
   StorageObject object = 1;
   StorageObject repository = 2;
@@ -139,6 +176,12 @@ message StorageOwnerRequest {
     StorageSnapshotPrepare snapshot_prepare = 17;
     StorageSnapshotInspect snapshot_inspect = 18;
     StorageSnapshotRetire snapshot_retire = 19;
+    StorageCopyStageBegin copy_stage_begin = 20;
+    StorageCopyStageSeal copy_stage_seal = 21;
+    StorageCopyStageInspect copy_stage_inspect = 22;
+    StorageCopyStagePrepare copy_stage_prepare = 23;
+    StorageCopyStageStart copy_stage_start = 24;
+    StorageCopyStageUncertain copy_stage_uncertain = 25;
   }
 }
 message StorageOwnerError {
@@ -161,5 +204,6 @@ message StorageOwnerReply {
     StorageObjectState state = 10;
     StorageOwnerError error = 11;
     StorageOwnerIdentity identity = 12;
+    StorageCopyStageReceipt copy_stage = 13;
   }
 }

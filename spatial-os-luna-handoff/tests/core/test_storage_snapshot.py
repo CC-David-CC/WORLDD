@@ -462,6 +462,56 @@ class StorageSnapshotTests(unittest.TestCase):
         retire.snapshot_retire.operation_id = uuid.uuid4().bytes
         self.error(retire, "UNCERTAIN")
 
+    def test_copy_stage_claim_is_digest_bound_and_restart_is_uncertain(self):
+        repo_id, project_id, snapshot_id, stage_id = (uuid.uuid4().hex for _ in range(4))
+        repo, project, _, source_path = self.create_source(repo_id, project_id)
+        (source_path / "copy.bin").write_bytes(b"owner stage source")
+        snapshot_request = self.prepare(project, snapshot_id)
+        snapshot_state = self.state(snapshot_request)
+        stage = storage.StorageObject(kind=storage.StorageObject.COPY_STAGING, id=stage_id)
+        prepare_stage = storage.StorageOwnerRequest()
+        prepare_stage.copy_stage_prepare.object.CopyFrom(stage)
+        prepare_stage.copy_stage_prepare.repository.CopyFrom(repo)
+        destination_state = self.state(prepare_stage)
+        self.assertFalse(destination_state.read_only)
+        operation_id = uuid.uuid4().bytes
+        begin = storage.StorageCopyStageBegin(
+            snapshot_object=snapshot_request.snapshot_prepare.snapshot_object,
+            destination_object=stage, operation_id=operation_id,
+            request_digest=hashlib.sha256(b"copy request binding").digest(),
+            maximum_bytes=1024 * 1024, maximum_entries=32)
+        request = storage.StorageOwnerRequest()
+        request.copy_stage_begin.CopyFrom(begin)
+        prepared = self.call(request)
+        self.assertTrue(prepared.HasField("copy_stage"), prepared)
+        self.assertEqual(prepared.copy_stage.state, storage.StorageCopyStageReceipt.PREPARED)
+        self.assertEqual(prepared.copy_stage.source_subvolume_id, snapshot_state.subvolume_id)
+        self.assertEqual(prepared.copy_stage.destination_subvolume_id, destination_state.subvolume_id)
+        self.assertEqual(self.call(request).copy_stage, prepared.copy_stage)
+        changed = storage.StorageOwnerRequest()
+        changed.CopyFrom(request)
+        changed.copy_stage_begin.maximum_bytes += 1
+        self.error(changed, "CONFLICT")
+
+        start = storage.StorageOwnerRequest()
+        start.copy_stage_start.operation_id = operation_id
+        start.copy_stage_start.request_digest = begin.request_digest
+        claimed = self.call(start).copy_stage
+        self.assertTrue(claimed.claimed)
+        self.assertEqual(claimed.state, storage.StorageCopyStageReceipt.COPYING)
+        repeated = self.call(start).copy_stage
+        self.assertFalse(repeated.claimed, "same operation must not launch a second worker")
+        self.assertEqual(repeated.state, storage.StorageCopyStageReceipt.COPYING)
+
+        self.stop_owner()
+        self.start_owner()
+        inspect = storage.StorageOwnerRequest()
+        inspect.copy_stage_inspect.operation_id = operation_id
+        inspect.copy_stage_inspect.request_digest = begin.request_digest
+        uncertain = self.call(inspect).copy_stage
+        self.assertEqual(uncertain.state, storage.StorageCopyStageReceipt.UNCERTAIN)
+        self.assertFalse(self.call(start).copy_stage.claimed)
+
 
 if __name__ == "__main__":
     unittest.main()
