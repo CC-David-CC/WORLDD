@@ -1,3 +1,24 @@
+## 2026-10-14: Copy responsiveness passes three isolated Debug runs
+
+David authorized the responsiveness fix and subsequent M07 qualification.
+Source checkpoint 14547ba4b17af35a4e4780812fd9a00c811f4dcc is verified on box-git.
+Its branch is m07/copy-responsive-event-loop-20261014. The coding worktree is clean.
+The broker services bounded status requests during owner I/O without nesting storage exchanges.
+Status keeps fresh actor rights, policy, state mapping, resource profile, fence, and owner-liveness checks.
+Effectful requests remain queued. Full owner-catalog revalidation remains before copy effects.
+The contract records why immutable owner configuration permits owner-independent status authorization.
+The strengthened regression requires a status reply to complete wholly inside the delayed owner exchange.
+Three sb16 Debug fixtures passed in 23.359, 23.580, and 23.401 seconds, with exits 0/0.
+Maximum status times were 0.311, 0.330, and 0.325 seconds. Each run recorded 30 replies inside the owner wait.
+Each copy published. Helper restoration, unmount, loop detach, and unit cleanup were confirmed.
+The primary independently audited the raw summaries, timings, and cleanup records.
+Runtime source manifest: f2b86880e4fb48bd51fbdbba535f30bb166caf949eba626fc6b3770869fd24e3.
+Broker ELF: 8551d95361168b67c7039a008d2be92b3be8090d18b6b0a8c156ed8a4c662cc4.
+Evidence on sb16: /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-run{1,2,3}.
+The branch's docs/M07_COPY_RESPONSIVENESS_FOCUSED_20261014.md records the remaining pins and evidence paths.
+Related regressions, sanitizer coverage, complete copy faults, and combined source integration remain in progress.
+M07 remains UNQUALIFIED. The full frozen both-host gate has not run.
+
 ## 2026-10-14: Focused runtime checks pass broker repairs; copy status still fails
 
 The user authorized this focused runtime round after pausing the broader milestone work.

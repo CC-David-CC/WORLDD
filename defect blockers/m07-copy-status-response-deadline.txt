@@ -1,6 +1,23 @@
 M07 workspace copy status response exceeds the actor deadline
 
-Status: REPRODUCED. Root cause remains under investigation.
+Status: FOCUSED FIX PASSED. Both-host qualification remains pending.
+
+Update: 2026-10-14. Source checkpoint 14547ba4b17af35a4e4780812fd9a00c811f4dcc is verified on box-git.
+Branch: m07/copy-responsive-event-loop-20261014. M07 remains UNQUALIFIED.
+The broker now services bounded status requests while copy owner I/O waits.
+Status retains fresh actor authority, policy, mapping, profile, and fence checks.
+It checks owner process liveness without nesting an owner exchange.
+Owner configuration is immutable until a stopped migration. Effect revalidation still queries the owner.
+The source contract explicitly records the status/effect distinction.
+Three isolated sb16 Debug runs passed in 23.359, 23.580, and 23.401 seconds.
+Maximum status times were 0.311, 0.330, and 0.325 seconds.
+Each run completed 30 status replies wholly inside the real 4.1-second owner wait.
+Each copy published. All command and wrapper exits were zero.
+The primary independently checked raw summaries, timings, helper restoration, volume detach, and unit cleanup.
+Read docs/M07_COPY_RESPONSIVENESS_FOCUSED_20261014.md on that branch for source and evidence pins.
+Related regressions, sanitizers, both-host copy coverage, and the combined M07 gate remain pending.
+
+Historical failure and diagnosis:
 
 Host: sb16. Profile: Debug. Candidate: frozen engine19.
 Base commit: 02dbb69b7dc26a71ff8742b321b00d68813b102d plus reviewed changes.
