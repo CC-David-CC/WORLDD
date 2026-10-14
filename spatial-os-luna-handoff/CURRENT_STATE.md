@@ -1,3 +1,22 @@
+## 2026-10-14: M07 resumed after verified repository recovery
+
+David resumed the active Spatial-M1 goal.
+M01-M06 remain qualified. M07 is incomplete. M08-M16 remain pending.
+The clean source repository and external artifact routing are active.
+Test-host cleanup restored 58 GiB on sb16 and 62 GiB on sb16-2.
+Read docs/WINDOWS_IN_PLACE_CUTOVER_2026-10-14.txt for verified recovery evidence.
+
+Bounded work is assigned on separate preserved branches.
+The journal worker diagnoses retained Debug failures before changing source.
+The fence worker verifies the existing v16 package and runs focused Debug checks.
+Sanitizer checks follow successful Debug checks on each test host.
+The presentation worker reviews preserved source and prepares a focused package.
+The primary reviews changes before integration.
+The complete workspace-copy engine remains unimplemented.
+M07 requires combined regression checks, a frozen candidate, and both-host qualification.
+No new runtime result is claimed by this resume record.
+Older paused status below is historical.
+
 ## 2026-10-14: Clean repository recovery; implementation paused
 
 Read docs/SOURCE_REPOSITORY_RECOVERY_2026-10-14.md at the repository root first.

@@ -433,4 +433,4 @@ Record archive locations in maintained summaries.
 Do not duplicate historical evidence into worker checkouts or test-host packages.
 If deletion fails, create a machine-specific script with exact verified paths and safety checks.
 Preserve the failure log and tell David which script to run.
-M07 development remains paused until David resumes it.
+David resumed M07 development on 2026-10-14.
