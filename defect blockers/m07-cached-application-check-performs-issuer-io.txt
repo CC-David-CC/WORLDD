@@ -24,7 +24,13 @@ The cached path now uses fence_snapshot. The fresh path retains authorization_fe
 The primary audited actual Ran 1 / OK in Debug and ASan/UBSan, with command and wrapper exits zero.
 The passing method is test_authorized_native_input_without_workspace_selection.
 Evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-presentation-race-repair-20261014/control-first-results.
-Broader control, revocation, input, second-host, and combined M07 checks remain pending.
+The remaining 24 Debug control methods also passed on sb16-2 in 161.135 seconds.
+The primary audited actual Ran 24 / OK, both command layers, and the named method results.
+Together with the unchanged first case, all 25 selected Debug control methods passed.
+They cover revocation, native input, handoff, popup ownership, disconnects, and cancellation.
+Evidence: control-broad-fe1-results/debug-world-application-control under the same artifact directory.
+The fixture source pin is fe1fe40fc22f24e8be9d946e27dec491de05ec93. The workspaced ELF remains cc13001a.
+Broader sanitizer, input, second-host, and combined M07 checks remain pending.
 
 Source under review: f066959060ce0a3155a387f4dc033e3a7ca37f64.
 Retained sb16-2 evidence:

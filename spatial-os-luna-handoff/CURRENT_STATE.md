@@ -36,8 +36,17 @@ The independent production correction is cc13001a9b5d386c43dd727eab027cece7f1bdc
 Its first authorized native-input regression passed on sb16-2 in Debug and ASan/UBSan.
 The primary audited actual Ran 1 / OK in each profile and both command layers at zero.
 Evidence: spatial-artifacts/m07-presentation-race-repair-20261014/control-first-results on sb16-2.
-Broader control, revocation, native-input, and second-host checks remain pending.
-Actor and pixel race fixture repairs also remain pending.
+The remaining 24 Debug control methods passed on sb16-2 in 161.135 seconds.
+The primary audited their actual method results and both command layers at zero.
+All 25 selected Debug control methods passed across the two runs with the same cc13001a workspaced ELF.
+Evidence: control-broad-fe1-results/debug-world-application-control under that artifact directory.
+Broader sanitizer, native-input, and second-host checks remain pending.
+Both repaired actor race methods passed in Debug with precise world denials.
+The queued-write pixel method preserved its strict EOF pass.
+The new identity-pixel method returned UNAUTHORIZED without pixels but failed an incorrect message assertion.
+Source review found the outer session-cancellation guard replaces the inner broker message.
+The separate b486f83ae1ded853c6729b4389f01cc361083c44 fixture correction retains the exact outer denial.
+Its runtime verification remains pending. The failed fe1 evidence remains retained.
 No combined integration freeze or M07 phase pass is claimed.
 
 ## 2026-10-14: Native copy Debug and sanitizer suites passed on sb16
