@@ -9,7 +9,7 @@ import socket
 import subprocess
 import sys
 
-ORIGIN = "dflanag3@box-git:/srv/data/git/spacial_desktop.git"
+ORIGIN = "dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git"
 
 
 def main():
@@ -79,6 +79,8 @@ def main():
                 raise RuntimeError("Receipt must not be staged")
             git("diff", "--cached", "--check")
             record["staged_tree"] = git("write-tree")
+            guard = Path(__file__).with_name("repository_data_guard.py")
+            subprocess.run([sys.executable, str(guard), "--tree", record["staged_tree"]], cwd=root, check=True)
             record["paths"] = staged
             save()
             git("commit", "--file", str(Path(a.message_file).resolve(strict=True)))
