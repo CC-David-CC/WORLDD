@@ -1,4 +1,5 @@
 #include "workspace/store.hpp"
+#include "workspace/copy_journal.hpp"
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
 #include "workspace/process.hpp"
@@ -147,6 +148,7 @@ struct ExecutionStore::Impl {
     bool exit_after_worktree = false;
     File lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
+    std::unique_ptr<CopyJournal> copy_journal;
     std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
     WorkspaceAuthority* authority = nullptr;
     NativeLaunch* native = nullptr;
@@ -206,7 +208,9 @@ struct ExecutionStore::Impl {
         { Query q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
         if (version >= 1 && version <= 3 && !migrate_from)
             throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v1, --migrate-v2, or --migrate-v3 while the broker is stopped");
-        if (version < 0 || version > 4 || (migrate_from && (version == 0 || (version != 4 && version != static_cast<int>(migrate_from)))))
+        if (version == 4 && !migrate_from)
+            throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v4 while the broker is stopped");
+        if (version < 0 || version > 5 || (migrate_from && (version == 0 || (version != 5 && version != static_cast<int>(migrate_from)))))
             throw WorldError(wire::STORAGE_ERROR, "Unknown execution schema; explicit migration required");
         if (version == 0) {
             Query existing(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"); existing.step();
@@ -218,30 +222,34 @@ struct ExecutionStore::Impl {
             sql(db.get(), removal_schema);
             sql(db.get(), workspace_schema);
             sql(db.get(), process_schema);
+            CopyJournal::migrate_schema(db.get());
             transaction.commit();
         }
         { Query q(db.get(), "PRAGMA quick_check"); q.step(); if (q.text(0) != "ok") throw WorldError(wire::STORAGE_ERROR, "Execution registry integrity failure"); }
         { Query q(db.get(), "PRAGMA foreign_key_check"); if (q.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Execution registry reference failure"); }
-        if (version == 1) {
+        if (version > 0 && version < 5) {
             Transaction transaction(db.get());
-            Query tables(db.get(), "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
-            for (const auto* expected : {"operations", "repositories", "worktrees"})
-                if (tables.step() != SQLITE_ROW || tables.text(0) != expected) throw WorldError(wire::STORAGE_ERROR, "Unexpected v1 schema");
-            if (tables.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Unexpected v1 schema");
-            Query old_operations(db.get(), "SELECT id,payload,result,worktree,state FROM operations LIMIT 0");
-            Query old_worktrees(db.get(), "SELECT id,repo,branch,path,head,state FROM worktrees LIMIT 0");
-            Query old_repositories(db.get(), "SELECT id,source,path,state FROM repositories LIMIT 0");
-            sql(db.get(), removal_schema); sql(db.get(), workspace_schema); sql(db.get(), process_schema); transaction.commit();
-        } else if (version == 2) {
-            Transaction transaction(db.get());
-            Query old_removals(db.get(), "SELECT id,payload,record,worktree,retired,state FROM removals LIMIT 0");
-            sql(db.get(), workspace_schema); sql(db.get(), process_schema); transaction.commit();
-        } else if (version == 3) {
-            Transaction transaction(db.get());
-            Query old_workspaces(db.get(), "SELECT id,worktree,repo,policy,revision FROM workspaces LIMIT 0");
-            Query old_members(db.get(), "SELECT workspace,actor,rights FROM workspace_members LIMIT 0");
-            sql(db.get(), process_schema); transaction.commit();
+            if (version == 1) {
+                Query tables(db.get(), "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+                for (const auto* expected : {"operations", "repositories", "worktrees"})
+                    if (tables.step() != SQLITE_ROW || tables.text(0) != expected) throw WorldError(wire::STORAGE_ERROR, "Unexpected v1 schema");
+                if (tables.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Unexpected v1 schema");
+                Query old_operations(db.get(), "SELECT id,payload,result,worktree,state FROM operations LIMIT 0");
+                Query old_worktrees(db.get(), "SELECT id,repo,branch,path,head,state FROM worktrees LIMIT 0");
+                Query old_repositories(db.get(), "SELECT id,source,path,state FROM repositories LIMIT 0");
+                sql(db.get(), removal_schema); sql(db.get(), workspace_schema); sql(db.get(), process_schema);
+            } else if (version == 2) {
+                Query old_removals(db.get(), "SELECT id,payload,record,worktree,retired,state FROM removals LIMIT 0");
+                sql(db.get(), workspace_schema); sql(db.get(), process_schema);
+            } else if (version == 3) {
+                Query old_workspaces(db.get(), "SELECT id,worktree,repo,policy,revision FROM workspaces LIMIT 0");
+                Query old_members(db.get(), "SELECT workspace,actor,rights FROM workspace_members LIMIT 0");
+                sql(db.get(), process_schema);
+            }
+            CopyJournal::migrate_schema(db.get());
+            transaction.commit();
         }
+        copy_journal = std::make_unique<CopyJournal>(db.get());
         std::filesystem::create_directories(state / "retired");
         std::filesystem::create_directories(state / "applications");
         if (migrate_from) { sync_path(state, true); return; }
@@ -457,6 +465,8 @@ ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migr
                                StorageClient* storage, WorkspaceResources* resources)
     : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults, storage, resources)) {}
 ExecutionStore::~ExecutionStore() = default;
+CopyJournal& ExecutionStore::copy_journal() { return *impl_->copy_journal; }
+const CopyJournal& ExecutionStore::copy_journal() const { return *impl_->copy_journal; }
 bool ExecutionStore::fixture_faults() const { return impl_->fixture_faults; }
 wire::FaultArmReply ExecutionStore::arm_fault(const wire::FaultArmRequest& request) {
     if (!fixture_faults()) throw WorldError(wire::FORBIDDEN, "Fixture faults are disabled");

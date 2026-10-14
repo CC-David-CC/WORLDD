@@ -174,7 +174,7 @@ Path('/state/home/settings').write_text('own state');Path('/tmp/temporary').writ
         process = self.launch('raise SystemExit(19)'); self.wait_job(process, 19)
         self.client.stop(); self.start(); self.wait_job(process, 19)
         self.client.stop()
-        with self.registry() as db: db.execute('DROP TABLE processes'); db.execute('PRAGMA user_version=3')
+        with self.registry() as db: db.execute('DROP TABLE processes'); db.execute('DROP TABLE copy_effects'); db.execute('DROP TABLE copy_operations'); db.execute('PRAGMA user_version=3')
         state = self.state / 'execution'
         denied = subprocess.run([BROKER, '--state-dir', str(state)], input=b'', capture_output=True, timeout=5)
         self.assertNotEqual(denied.returncode, 0); self.assertIn(b'--migrate-v3', denied.stderr)

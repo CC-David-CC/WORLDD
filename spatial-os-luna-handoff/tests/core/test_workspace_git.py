@@ -390,7 +390,7 @@ class WorkspaceGitTests(unittest.TestCase):
         self.imported(); work = self.create(); self.client.stop()
         with self.registry() as db:
             db.execute('DROP TABLE processes'); db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces')
-            db.execute('DROP TABLE removals'); db.execute('PRAGMA user_version=1')
+            db.execute('DROP TABLE removals'); db.execute('DROP TABLE copy_effects'); db.execute('DROP TABLE copy_operations'); db.execute('PRAGMA user_version=1')
             before = {name: db.execute('SELECT * FROM ' + name).fetchall() for name in ['repositories', 'worktrees', 'operations']}
         refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')], input=b'', capture_output=True, timeout=5)
         self.assertNotEqual(refused.returncode, 0); self.assertIn(b'--migrate-v1', refused.stderr)
@@ -399,7 +399,7 @@ class WorkspaceGitTests(unittest.TestCase):
             migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with self.registry() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 5)
             for name, rows in before.items(): self.assertEqual(db.execute('SELECT * FROM ' + name).fetchall(), rows)
         self.start(); self.assertEqual(self.create(), work); self.remove()
 
@@ -615,7 +615,7 @@ class WorkspaceGitTests(unittest.TestCase):
                 with sqlite3.connect(state/'execution.db') as database:
                     self.assertEqual(database.execute('SELECT state FROM operations').fetchone(), ('pending' if enabled else 'ready',))
                 self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=replies[5].repository.path).count('branch refs/heads/direct'), 1)
-        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--fixture-clock'):
+        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--migrate-v4', '--fixture-clock'):
             rejected = self.root/('rejected'+flag)
             process = subprocess.run([BROKER, '--state-dir', str(rejected), flag, '--fixture-faults'], capture_output=True, timeout=5)
             self.assertEqual(process.returncode, 2)

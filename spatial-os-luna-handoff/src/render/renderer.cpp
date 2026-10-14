@@ -309,6 +309,8 @@ wire::FrameReply Renderer::draw_geometry(const identity::v1::ActorGeometryView& 
     copy(view.portals(), scene.mutable_portals());
     copy(view.objects(), scene.mutable_objects());
     copy(view.actors(), scene.mutable_actors());
+    for (const auto& metadata : view.presentation_views())
+        *scene.add_presentation_views() = metadata;
     const auto& display = impl_->display;
     const int screen = DefaultScreen(display);
     const int width = DisplayWidth(display, screen), height = DisplayHeight(display, screen);

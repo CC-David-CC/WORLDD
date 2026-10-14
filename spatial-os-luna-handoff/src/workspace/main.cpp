@@ -148,6 +148,7 @@ int main(int argc, char** argv) {
             else if (argument == "--migrate-v1" && !migration) migration = 1;
             else if (argument == "--migrate-v2" && !migration) migration = 2;
             else if (argument == "--migrate-v3" && !migration) migration = 3;
+            else if (argument == "--migrate-v4" && !migration) migration = 4;
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");

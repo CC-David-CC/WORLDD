@@ -27,4 +27,5 @@ message ActorGeometryView {
   repeated DrawableGeometry portals = 12;
   repeated DrawableGeometry objects = 13;
   repeated DrawableGeometry actors = 14;
+  repeated spatial.core.v1.PresentationView presentation_views = 16;
 }
