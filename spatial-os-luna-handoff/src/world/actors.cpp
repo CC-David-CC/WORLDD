@@ -331,9 +331,11 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kPresentationCreate: {
         const auto& input = request.presentation_create();
         if (input.protocol_version() != 1 || input.operation_id().size() != 16 || input.workspace_id().empty() ||
-            !input.has_transform() || !actor.principal || !broker_)
+            !input.has_transform() || !actor.principal)
             throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation create request");
         (void)scene_pose(input.transform());
+        if (!broker_)
+            throw WorldError(wire::UNAVAILABLE, "Workspace authorization broker is unavailable");
         const auto room = input.has_room_id() ? input.room_id() : store_.info().entry_room();
         const std::vector<std::string> scope{room};
         if (!granted(actor, "presentation.create", scope)) throw WorldError(wire::FORBIDDEN, "Presentation placement authority required");

@@ -74,6 +74,14 @@ Authority design must explicitly separate world manipulation from workspace acce
 Do not infer file authority from WORLD_MANIPULATE or representation visibility.
 New authority rights, if needed, require documented nonlocked schema contract changes and validator tests.
 
+Contract clarification, 2026-10-14: workspace presentation authorization is optional for
+world geometry queries. A world geometry query without a workspace broker succeeds and
+returns no workspace presentations. A valid presentation-create request without that
+broker returns UNAVAILABLE with reason "Workspace authorization broker is unavailable".
+It must not change availability, selection, presentation rows, world revision, or processes.
+Malformed create requests remain INVALID_ARGUMENT. Empty workspace-fence collections
+are valid for geometry-only observation.
+
 A regression oracles
 Two representations in different rooms/worlds reference exact same workspace/worktree authority.
 Adding/removing/moving them never duplicates processes or mutates Git/credentials/membership.

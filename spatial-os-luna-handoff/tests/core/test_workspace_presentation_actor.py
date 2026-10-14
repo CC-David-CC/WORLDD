@@ -1,5 +1,7 @@
 """Actor envelope regressions for durable M07 presentation receipts."""
 import os
+from pathlib import Path
+import sqlite3
 import time
 import unittest
 import core_pb2 as core
@@ -83,6 +85,82 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         reply = peer.call(revoke=request)
         self.assertTrue(reply.HasField('grant'), reply)
         return reply.grant
+
+    def presentation_state(self, world):
+        database = world.state_path / 'world.db'
+        uri = 'file:' + str(database) + '?mode=ro'
+        with sqlite3.connect(uri, uri=True) as connection:
+            return {
+                'available': connection.execute(
+                    "SELECT COUNT(*) FROM world_workspaces WHERE id='one'").fetchone()[0],
+                'selected': connection.execute(
+                    'SELECT COUNT(*) FROM actor_workspaces').fetchone()[0],
+                'presentations': connection.execute(
+                    'SELECT COUNT(*) FROM workspace_presentations').fetchone()[0],
+                'operations': connection.execute(
+                    'SELECT COUNT(*) FROM workspace_presentation_ops').fetchone()[0],
+            }
+
+    @staticmethod
+    def process_tree(root_pid):
+        pending = [root_pid]
+        seen = set()
+        while pending:
+            parent = pending.pop()
+            try:
+                children = Path(f'/proc/{parent}/task/{parent}/children').read_text().split()
+            except FileNotFoundError:
+                continue
+            for child in map(int, children):
+                if child not in seen:
+                    seen.add(child)
+                    pending.append(child)
+        return seen
+
+    def test_create_without_broker_denies_without_side_effects(self):
+        # This valid request succeeds with the configured authority broker.
+        control = self.workspace()
+        control_peer = control.peers[0]
+        control_room = control.management('world.info')['entry_room']
+        control_reply = control_peer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='one',
+            room_id=control_room, transform=pose(.8),
+            expected_world_revision=control.management('world.info')['world_revision']))
+        self.assertTrue(control_reply.HasField('action'), control_reply)
+        control_state = self.presentation_state(control)
+        self.assertEqual(control_state, {
+            'available': 1, 'selected': 0, 'presentations': 1, 'operations': 1})
+
+        # Geometry remains available without the optional workspace broker.
+        world = world_authority.WorldAuthorityTests.scoped_world(self, native=False)
+        peer = world.peers[0]
+        self.assertFalse(peer.call(inspect=session.WorldSessionInspect()).state.HasField('workspace'))
+        before = world.management('world.info')
+        geometry = peer.call(geometry_view=session.WorldGeometryViewRequest())
+        self.assertTrue(geometry.HasField('geometry_view'), geometry)
+        self.assertFalse(geometry.geometry_view.presentation_views)
+        before_state = self.presentation_state(world)
+        children_before = self.process_tree(world.proc.pid)
+
+        # The same valid action fails because the authority broker is absent.
+        denied = peer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='one',
+            room_id=before['entry_room'], transform=pose(.8),
+            expected_world_revision=before['world_revision']))
+        self.assertTrue(denied.HasField('error'), denied)
+        self.assertEqual(denied.error.code, core.UNAVAILABLE)
+        self.assertEqual(denied.error.message, 'Workspace authorization broker is unavailable')
+
+        after = world.management('world.info')
+        geometry_after = peer.call(geometry_view=session.WorldGeometryViewRequest())
+        self.assertTrue(geometry_after.HasField('geometry_view'), geometry_after)
+        self.assertFalse(geometry_after.geometry_view.presentation_views)
+        self.assertEqual(after['world_revision'], before['world_revision'])
+        self.assertEqual(self.presentation_state(world), before_state)
+        self.assertEqual(before_state, {
+            'available': 0, 'selected': 0, 'presentations': 0, 'operations': 0})
+        self.assertEqual(self.process_tree(world.proc.pid), children_before)
+        self.assertNotIn('--workspace-fd', world.proc.args)
 
     def setUp(self):
         super().setUp()

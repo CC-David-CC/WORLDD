@@ -570,6 +570,11 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_custom_target(workspace-presentation-actor-fixture
         DEPENDS identityd spatial-issuer-client worldd workspaced
+            broker-python-protobuf world-session-python-protobuf spatial-process-scope-probe
+            spatial-security-auth)
+    add_custom_target(actor-pixels-fixture
+        DEPENDS identityd spatial-issuer-client worldd workspaced spatial-security-auth
+            spatial-process-scope-probe spatial-confined-xprobe
             broker-python-protobuf world-session-python-protobuf)
     add_dependencies(workspaced broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
         python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
