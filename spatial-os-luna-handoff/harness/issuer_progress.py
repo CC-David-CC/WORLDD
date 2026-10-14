@@ -8,6 +8,7 @@ import struct
 import threading
 import time
 import issuer_pb2 as issuer
+from google.protobuf import text_format
 from harness.wire import frame
 from test_world_authority import RelayingIssuer
 
@@ -22,9 +23,13 @@ class IssuerLifetimeWitness:
         daemons = getattr(self, "daemons", [])
         self.assertLessEqual(len(daemons), 8)
         processes = []
+        policies = getattr(self, "_issuer_server_policies", {})
         for proc, _ in daemons:
             exit_code = proc.poll()
-            item = dict(pid=proc.pid, exit_code=exit_code, start_ticks=None, cgroup=None, memory_events=[])
+            pinned = policies.get(proc.pid)
+            item = dict(pid=proc.pid, exit_code=exit_code, start_ticks=None, cgroup=None, memory_events=[],
+                server_policy=dict(zip(("protocol_version", "io_timeout_ms", "idle_timeout_ms", "connection_limit"), pinned[0])) if pinned else None,
+                server_config_sha256=pinned[1] if pinned else None)
             stat_path = Path("/proc") / str(proc.pid) / "stat"
             starts = getattr(self, "_issuer_start_ticks", {})
             self._issuer_start_ticks = starts
@@ -63,8 +68,7 @@ class IssuerLifetimeWitness:
                     group = group.parent
             processes.append(item)
         observations.append(dict(stage=stage, monotonic_ns=time.monotonic_ns(),
-            policy=dict(protocol_version=self.config.protocol_version, io_timeout_ms=self.config.io_timeout_ms,
-                        idle_timeout_ms=self.config.idle_timeout_ms, connection_limit=self.config.connection_limit),
+            policy=processes[-1]["server_policy"] if processes else None,
             processes=processes))
         self.assertLessEqual(len(observations), 32)
         path = target/(self._testMethodName+"-issuer-lifetime.json")
@@ -74,15 +78,30 @@ class IssuerLifetimeWitness:
 
     def launch(self, *args, **kwargs):
         proc = super().launch(*args, **kwargs)
+        # Pin the exact serialized configuration passed to this real issuer.
+        # Other fixtures later reuse self.config for their broker configuration.
+        arguments = list(proc.args)
+        self.assertEqual(arguments.count("--tls-config"), 1)
+        payload = Path(arguments[arguments.index("--tls-config")+1]).read_bytes()
+        configured = text_format.Parse(payload.decode(), issuer.IssuerTlsServerConfig())
+        policies = getattr(self, "_issuer_server_policies", {})
+        self._issuer_server_policies = policies
+        self.assertLess(len(policies), 8)
+        policies[proc.pid] = ((configured.protocol_version, configured.io_timeout_ms,
+            configured.idle_timeout_ms, configured.connection_limit), hashlib.sha256(payload).hexdigest())
         self.capture_issuer_lifetime("after_actual_tls_launch")
         return proc
 
     def stop_daemons(self):
-        self.capture_issuer_lifetime("before_actual_tls_shutdown")
         try:
-            return super().stop_daemons()
+            self.capture_issuer_lifetime("before_actual_tls_shutdown")
         finally:
-            self.capture_issuer_lifetime("after_actual_tls_shutdown")
+            # Evidence failure must never skip actual owned-daemon shutdown.
+            # Neither finally block returns or suppresses the observation error.
+            try:
+                super().stop_daemons()
+            finally:
+                self.capture_issuer_lifetime("after_actual_tls_shutdown")
 
 
 class DelayedInfoIssuer(RelayingIssuer):

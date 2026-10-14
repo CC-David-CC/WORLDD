@@ -1,4 +1,5 @@
 """Run the frozen M07 actor-copy checks with reviewed, temporary helper binaries."""
+import ast
 import hashlib
 import json
 import os
@@ -22,16 +23,27 @@ def helper_state(path):
     return dict(sha256=digest(path),uid=info.st_uid,gid=info.st_gid,mode=stat.S_IMODE(info.st_mode))
 
 def main():
-    assert len(sys.argv)==4
+    assert len(sys.argv) in (4,5)
     assert socket.gethostname().split('.')[0] in ('sb16','sb16-2')
     assert os.getuid()==pwd.getpwnam('dflanag3').pw_uid>0
     build,source=map(lambda value:Path(value).resolve(),sys.argv[1:3])
     evidence=(Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/('workspace-copy-engine-'+uuid.uuid4().hex)).resolve() if sys.argv[3]=='--evidence-from-env' else Path(sys.argv[3]).resolve()
+    selected_case=sys.argv[4] if len(sys.argv)==5 else None
+    if selected_case is not None:
+        # Reject unsupported or multiple selectors before creating evidence or
+        # installing helpers. Read the existing literal fixture selection only.
+        assert re.fullmatch(r'test_[a-z0-9_]+',selected_case),'Invalid exact method selector'
+        tree=ast.parse((source/'tests/core/test_workspace_copy_engine.py').read_bytes())
+        load=next(node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name=='load_tests')
+        allowed=[node.value for node in ast.walk(load) if isinstance(node,ast.Constant) and
+                 isinstance(node.value,str) and node.value.startswith('test_')]
+        assert selected_case in allowed,'Method is outside the existing copy fixture selection'
     assert build.is_dir() and source.is_dir() and not evidence.exists()
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
     assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
     evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
-    report=dict(qualification='UNQUALIFIED',selected_methods=12,runtime_status='running',helpers={},commands=[])
+    report=dict(qualification='UNQUALIFIED',selected_methods=1 if selected_case else 12,
+        selected_case=selected_case,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
     def root_command(arguments,timeout=30):
         result=subprocess.run(['sudo','-n',*map(str,arguments)],capture_output=True,text=True,timeout=timeout)
@@ -61,7 +73,8 @@ def main():
         report['fixture_discovery_exit']=discovery.returncode;save()
         if discovery.returncode:
             raise RuntimeError('Copy fixture import/discovery failed before helper installation: '+discovery.stderr[-16000:])
-        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==report['selected_methods']
+        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==12
+        if selected_case:assert selected_case in discovered['methods']
         assert not discovered['services_started'] and discovered['methods_executed']==0
         report['fixture_discovery']=discovered;save()
         for name in ('spatial-copy-tree-worker','spatial-copy-finalize-worker'):
@@ -80,6 +93,7 @@ def main():
         command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
                  str(source/'tests/core/test_workspace_copy_engine.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd')]
+        if selected_case:command.append('WorkspaceCopyEngineTests.'+selected_case)
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
             SPATIAL_SECURITY_EVIDENCE=str(evidence/'cases'),SPATIAL_SCOPE_EVIDENCE=str(evidence/'scopes'),
@@ -116,10 +130,10 @@ def main():
                 diagnostic_tail=output[-16000:]);save()
             raise RuntimeError('Copy engine inner fixture exited '+str(status)+'; original stdout/stderr retained: '+output[-16000:])
         volumes=list((evidence/'cases').glob('*/volume.json'))
-        assert len(volumes)==12 and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
+        assert len(volumes)==report['selected_methods'] and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
-        assert 'Ran 12 tests' in output and '\nOK' in output,output[-16000:]
+        assert re.search(r'Ran '+str(report['selected_methods'])+r' tests? in ',output) and '\nOK' in output,output[-16000:]
         report['runtime_status']='focused-pass'
     except BaseException as error:
         report['runtime_status']='failed-or-incomplete';report['failure']=repr(error);raise

@@ -292,15 +292,12 @@ int main(int argc, char** argv) {
         };
         store.set_observer([&] {
             serve_effect(); enforce();
-            // This explicit effect wait is outside issuer callbacks. Do not recursively refresh from tick().
-            if (authority) { authority->keepalive(); enforce(); }
             serve_effect();
         });
         for (;;) {
             enforce();
             store.advance_workspace_copies();
             enforce();
-            if (authority) { authority->keepalive(); enforce(); }
             if (channels) channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
                 const auto cancellation = authority ? authority->cancellation_sequence() : 0;
                 auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
