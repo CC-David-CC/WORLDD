@@ -50,6 +50,10 @@ Target preflight must check executable permission and expected modes. A successf
 Use a persistent tmux session and a unique run directory for each attempt.
 For builds and test commands, use `bash scripts/run-command.sh CHECKOUT NEW_RUN_DIR COMMAND ARG...` inside tmux.
 Resolve that script from the installed skill. Pass arguments directly; do not construct shell code around exit-status variables.
+Invoke the runner through bash, including when flock launches it. Do not rely on executable permission.
+Test hosts have no installed Codex skills. Give them a verified external runner copy and record its absolute path.
+Keep NEW_RUN_DIR outside CHECKOUT. For artifact-only jobs, use a dedicated staging directory as CHECKOUT, not its artifact parent.
+Check those resolved paths and the exact runner invocation before starting tmux. Preserve any prelaunch refusal without claiming a test ran.
 Read command.exit for the command result and wrapper.exit for the launcher result. COMPLETE means returned, not passed.
 An interrupted wrapper may leave its child running. A missing command.exit remains unknown; inspect the exact child before retrying.
 Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
