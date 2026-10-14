@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import ast
 import copy
+from contextlib import nullcontext
 import gzip
 import shutil
 import stat
@@ -842,6 +843,63 @@ def retained_files(build):
         raise RuntimeError('generated runtime.textproto missing')
     return keep
 
+def required_test_names(additional=(), required_slots=()):
+    return set(REQUIRED) | set(additional) | set(required_slots)
+
+def ctest_exclusion_expression(dedicated=DEDICATED_CROSSHOST):
+    dedicated = set(dedicated)
+    if dedicated == DEDICATED_CROSSHOST:
+        return "^geometry-native-crosshost$"
+    allowed = DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost"}
+    if dedicated != allowed:
+        raise RuntimeError("invalid dedicated cross-host exclusion set")
+    return "^(geometry-native-crosshost|workspace-geometry-native-crosshost)$"
+
+def _validated_build_paths(path):
+    if path is None:
+        return None
+    value = json.loads(Path(path).read_text())
+    expected = {"build": set(PROFILES), "production-off": set(PROFILES)}
+    if not isinstance(value, dict) or set(value) != set(expected):
+        raise RuntimeError("build-path map must contain exactly build and production-off")
+    resolved = {}
+    all_paths = []
+    for group, profiles in expected.items():
+        rows = value[group]
+        if not isinstance(rows, dict) or set(rows) != profiles:
+            raise RuntimeError(group + " build-path map must contain exactly " + ", ".join(PROFILES))
+        resolved[group] = {}
+        for profile, raw in rows.items():
+            candidate = Path(raw)
+            if not candidate.is_absolute():
+                raise RuntimeError("build cache paths must be absolute")
+            probe = candidate
+            while probe != probe.parent:
+                if probe.is_symlink():
+                    raise RuntimeError("build cache path contains a symlink component")
+                probe = probe.parent
+            candidate = candidate.resolve()
+            if candidate == ROOT or ROOT in candidate.parents or candidate in ROOT.parents:
+                raise RuntimeError("build cache must remain outside the source checkout")
+            resolved[group][profile] = candidate
+            all_paths.append(candidate)
+    for index, left in enumerate(all_paths):
+        if any(left == right or left in right.parents or right in left.parents for right in all_paths[index + 1:]):
+            raise RuntimeError("build cache paths must be distinct and non-nested")
+    return resolved
+
+def _validated_configure_env(path):
+    if path is None:
+        return {}
+    value = json.loads(Path(path).read_text())
+    allowed = {"SPATIAL_GEOMETRY_EVIDENCE", "SPATIAL_GEOMETRY_OBSERVER_HOST",
+               "SPATIAL_GEOMETRY_AUTHORITY_ADDRESS", "SPATIAL_GEOMETRY_REMOTE_SOURCE",
+               "SPATIAL_GEOMETRY_REMOTE_BIN", "SPATIAL_GEOMETRY_REMOTE_PYTHON",
+               "SPATIAL_GEOMETRY_REMOTE_XSERVER", "SPATIAL_GEOMETRY_REMOTE_EVIDENCE"}
+    if not isinstance(value, dict) or set(value) - allowed or any(not isinstance(v, str) or not v for v in value.values()):
+        raise RuntimeError("configure-env map contains unsupported or empty values")
+    return value
+
 def prepare(a):
     import fcntl
     actual_host = socket.gethostname().split(".")[0]
@@ -857,30 +915,48 @@ def prepare(a):
     for test_host in sorted(TEST_HOSTS):
         for profile in PROFILES:
             runtime_files(runtime, test_host, profile)
+    cache_paths = _validated_build_paths(getattr(a, "build_paths", None))
+    configure_env = _validated_configure_env(getattr(a, "configure_env", None))
     attempt = a.attempt or f"m06-{commit[:12]}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{uuid.uuid4().hex[:8]}"
     dest = a.output.resolve() / attempt
     dest.mkdir(parents=True, exist_ok=False)
     build_root = dest / "build"
+    cache_lock_handles = []
+    if cache_paths:
+        for cache in sorted((path for rows in cache_paths.values() for path in rows.values()), key=str):
+            lock_path = Path(str(cache) + ".lock")
+            lock_path.parent.mkdir(parents=True, exist_ok=True)
+            lock = lock_path.open("a")
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            cache_lock_handles.append(lock)
     rec = dict(schema=2, attempt=attempt, status="building", candidate=commit, source_root=str(ROOT),
                source_sha256=files, locked_files_verified=len(locked), builder=host,
-               builder_hostname=actual_host, profiles={}, stage_history=[], runtime_manifest=runtime)
+               builder_hostname=actual_host, profiles={}, stage_history=[], runtime_manifest=runtime,
+               cache_paths={group: {profile: str(path) for profile, path in rows.items()}
+                            for group, rows in (cache_paths or {}).items()},
+               configure_env=configure_env,
+               configure_env_sha256=hashlib.sha256(json.dumps(configure_env, sort_keys=True).encode()).hexdigest())
     write_json(dest / "provenance.json", rec)
     try:
         for profile in PROFILES:
-            build = build_root / profile
+            build = cache_paths["build"][profile] if cache_paths else build_root / profile
             logdir = dest / profile; logdir.mkdir()
             evidence = dest / "ctest-evidence" / profile
             xserver_placeholder = dest / "ctest-runtime" / profile / "xace-wrapper"
             env = os.environ.copy()
             env["SPATIAL_TEST_XSERVER"] = str(xserver_placeholder)
+            env.update(configure_env)
             for key in EVIDENCE_KEYS:
                 env[key] = str(evidence / key.lower())
             config = ["cmake", "-S", str(ROOT), "-B", str(build), "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug",
                       "-DBUILD_TESTING=ON", "-DSPATIAL_INPUT_TESTS=ON",
                       "-DSPATIAL_SANITIZERS=" + ("ON" if profile == "ASan-UBSan" else "OFF")]
-            lock_path = dest / (profile + ".build.lock")
-            with lock_path.open("w") as lock:
-                fcntl.flock(lock, fcntl.LOCK_EX)
+            lock_path = Path(str(build) + ".lock")
+            lock_path.parent.mkdir(parents=True, exist_ok=True)
+            lock_context = nullcontext(None) if cache_paths else lock_path.open("w")
+            with lock_context as lock:
+                if lock is not None:
+                    fcntl.flock(lock, fcntl.LOCK_EX)
                 for label, command, timeout in (("configure", config, 900),
                     ("build", ["cmake", "--build", str(build), "--parallel", "2"], 3600),
                     ("inventory", ["ctest", "--test-dir", str(build), "--show-only=json-v1"], 120)):
@@ -890,6 +966,19 @@ def prepare(a):
                     write_json(dest / "provenance.json", rec)
                     if result.returncode:
                         raise RuntimeError(f"{profile} {label} failed; see raw log")
+            for target_name in getattr(a, "artifact_targets", ()):
+                lock_context = nullcontext(None) if cache_paths else lock_path.open("w")
+                with lock_context as lock:
+                    if lock is not None:
+                        fcntl.flock(lock, fcntl.LOCK_EX)
+                    command = ["cmake", "--build", str(build), "--target", target_name, "--parallel", "2"]
+                    result, seconds = run(command, cwd=ROOT, env=env,
+                        log=logdir / ("artifact-" + target_name + ".log"), timeout=1800)
+                    rec["stage_history"].append(dict(profile=profile, name="artifact-" + target_name,
+                        command=command, exit_code=result.returncode, seconds=seconds))
+                    write_json(dest / "provenance.json", rec)
+                    if result.returncode:
+                        raise RuntimeError(profile + " artifact target failed: " + target_name)
             if source_pin() != (commit, files, locked):
                 raise RuntimeError("source pin changed during build")
             inventory = json.loads((logdir / "inventory.log").read_text())["tests"]
@@ -918,9 +1007,13 @@ def prepare(a):
         # Build production closure separately. No test-only generator may supply it.
         rec['production_off'] = {}
         for profile in PROFILES:
-            production = dest / 'production-off' / profile
-            with (dest / ('production-off-' + profile + '.lock')).open('w') as lock:
-                fcntl.flock(lock, fcntl.LOCK_EX)
+            production = cache_paths['production-off'][profile] if cache_paths else dest / 'production-off' / profile
+            production_lock = Path(str(production) + '.lock')
+            production_lock.parent.mkdir(parents=True, exist_ok=True)
+            production_context = nullcontext(None) if cache_paths else production_lock.open('w')
+            with production_context as lock:
+                if lock is not None:
+                    fcntl.flock(lock, fcntl.LOCK_EX)
                 for label, command in (
                     ('configure-production-off', ['cmake', '-S', str(ROOT), '-B', str(production), '-G', 'Ninja',
                      '-DCMAKE_BUILD_TYPE=Debug', '-DBUILD_TESTING=OFF', '-DSPATIAL_SANITIZERS=' + ('ON' if profile == 'ASan-UBSan' else 'OFF')]),
@@ -941,9 +1034,10 @@ def prepare(a):
         staged_build = dest / 'runtime-build'
         staged_off = dest / 'runtime-production-off'
         for profile in PROFILES:
-            copy_runtime_closure(dest / 'production-off' / profile, staged_off / profile,
+            production_source = cache_paths['production-off'][profile] if cache_paths else dest / 'production-off' / profile
+            copy_runtime_closure(production_source, staged_off / profile,
                                  rec['production_off'][profile]['runtime_files'])
-            build = build_root / profile
+            build = cache_paths['build'][profile] if cache_paths else build_root / profile
             copy_runtime_closure(build, staged_build / profile, rec['profiles'][profile]['runtime_files'])
             verify_inventory_paths(map_inventory(rec['profiles'][profile]['inventory'],
                 [(str(build), str(staged_build / profile))]), ROOT, staged_build / profile,
@@ -972,6 +1066,10 @@ def prepare(a):
         rec.update(status="failed", error=repr(exc))
         write_json(dest / "provenance.json", rec)
         raise
+    finally:
+        for lock in reversed(cache_lock_handles):
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            lock.close()
 
 def verify_bundle(a):
     host = socket.gethostname().split(".")[0]
@@ -1087,11 +1185,15 @@ def gate(a):
         raise RuntimeError("held-input shares host-actor-controller-native and must not create a duplicate suite mapping")
     requirement_suites = dict(zip(('native_controller', 'real_world', 'recovery', 'host_session', 'held_input'), required_slots))
     requirement_suites.update(native_geometry_presentation="geometry-presentation-native", native_geometry_crosshost="geometry-native-crosshost")
-    required = set(REQUIRED) | set(required_slots)
+    required = required_test_names(getattr(a, "required_tests", ()), required_slots)
+    dedicated_crosshost = set(getattr(a, "dedicated_crosshost", DEDICATED_CROSSHOST))
+    if not DEDICATED_CROSSHOST.issubset(dedicated_crosshost) or dedicated_crosshost - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
+        raise RuntimeError("invalid dedicated cross-host registration set")
     out = root / "evidence" / (a.attempt or f"{host}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{uuid.uuid4().hex[:8]}")
     out.mkdir(parents=True, exist_ok=False)
     report = dict(status="running", phase_complete=False, host=host, candidate=rec["candidate"], attempt=out.name,
-                  bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={})
+                  bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={},
+                  required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost))
     write_json(out / "run.json", report)
     source = root / "source"
     builds = root / "build"
@@ -1158,7 +1260,7 @@ def gate(a):
             if p.returncode: raise RuntimeError(profile + " inventory command failed")
             deployed = json.loads(p.stdout)["tests"]
             names = audit_inventory(deployed, required)
-            local_names = sorted(set(names) - DEDICATED_CROSSHOST)
+            local_names = sorted(set(names) - dedicated_crosshost)
             require_inventory_equal(deployed, expected_inventory, [])
             verify_inventory_paths(deployed, source, build,
                                    (target / 'ctest', *storage_evidence.values()))
@@ -1170,7 +1272,7 @@ def gate(a):
                                    and test["name"] in STORAGE_LOCAL_EVIDENCE_TESTS)
             if storage_names != sorted(STORAGE_LOCAL_EVIDENCE_TESTS):
                 raise RuntimeError("storage evidence augmentation escaped its two declared registrations")
-            write_json(invpath, dict(names=sorted(names), count=len(names), dedicated_crosshost=sorted(DEDICATED_CROSSHOST),
+            write_json(invpath, dict(names=sorted(names), count=len(names), dedicated_crosshost=sorted(dedicated_crosshost),
                                      local_names=local_names, sha256=sha(target / "inventory.log"),
                                      storage_local_evidence=dict(tests=storage_names,
                                          paths={name: str(path) for name, path in storage_evidence.items()})))
@@ -1179,7 +1281,7 @@ def gate(a):
             commands = [
                 ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
                 ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
-                ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", "^geometry-native-crosshost$", "--output-junit", str(target / "core.xml")], 14400),
+                ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")], 14400),
                 ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
                 ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
             ]
@@ -1339,13 +1441,13 @@ def _validate_remote_deployment(host, row, candidate):
         raise RuntimeError(host + " deployment/source pin mismatch: " + repr(record))
     return record
 
-def _validate_geometry_inventory(inventory, host, profile):
+def _validate_geometry_inventory(inventory, host, profile, required=REQUIRED, dedicated=DEDICATED_CROSSHOST):
     names = inventory.get("names", [])
-    if len(names) != len(set(names)) or not set(REQUIRED).issubset(set(names)):
+    if len(names) != len(set(names)) or not set(required).issubset(set(names)):
         raise RuntimeError(host + " " + profile + " inventory misses mandatory M06 suites or contains duplicates")
-    if "geometry-native-crosshost" not in inventory.get("dedicated_crosshost", []):
+    if not set(dedicated).issubset(inventory.get("dedicated_crosshost", [])):
         raise RuntimeError("native cross-host CTest must be deferred to its dedicated provisioned stage")
-    local_names = sorted(set(names) - DEDICATED_CROSSHOST)
+    local_names = sorted(set(names) - set(dedicated))
     if inventory.get("local_names") != local_names:
         raise RuntimeError(host + " " + profile + " local CTest inventory mapping is incomplete")
     return sorted(names)
@@ -1366,16 +1468,20 @@ def _validate_local_run(path, expected_host, candidate):
     if report.get("host") != expected_host or report.get("candidate") != candidate or report.get("status") != "local_passed_crosshost_pending" or report.get("phase_complete") is not False:
         raise RuntimeError(expected_host + " local gate receipt does not match the pending candidate")
     _validate_requirement_suites(report.get("requirement_suites", {}), expected_host)
+    required = set(REQUIRED) | set(report.get("required_tests", []))
+    dedicated = set(report.get("dedicated_crosshost", DEDICATED_CROSSHOST))
+    if not DEDICATED_CROSSHOST.issubset(dedicated) or dedicated - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
+        raise RuntimeError(expected_host + " local gate has invalid dedicated test set")
     inventories = {}
     for profile in PROFILES:
         profile_dir = path.parent / profile
         inventory = _read_json(profile_dir / "inventory.json", expected_host + " " + profile + " inventory")
-        names = _validate_geometry_inventory(inventory, expected_host, profile)
+        names = _validate_geometry_inventory(inventory, expected_host, profile, required, dedicated)
         row = report.get("profiles", {}).get(profile, {})
         if row.get("status") not in ("passed_needs_crosshost_and_review", "passed"):
             raise RuntimeError(expected_host + " " + profile + " local profile did not pass")
         core = next((item for item in row.get("commands", []) if item.get("name") == "core"), {})
-        if (core.get("exit_code") != 0 or core.get("junit_cases") != len(names) - len(DEDICATED_CROSSHOST)
+        if (core.get("exit_code") != 0 or core.get("junit_cases") != len(names) - len(dedicated)
                 or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
             raise RuntimeError(expected_host + " " + profile + " local CTest receipt is incomplete")
         inventories[profile] = dict(path=str(profile_dir / "inventory.json"), sha256=sha(profile_dir / "inventory.json"), names=names)
@@ -1929,16 +2035,20 @@ def crosshost(a):
             if any(remote_report.get("profiles", {}).get(profile, {}).get("status") not in ("passed_needs_crosshost_and_review", "passed") for profile in PROFILES):
                 raise RuntimeError("sb16-2 local profile result is incomplete")
             _validate_requirement_suites(remote_report.get("requirement_suites", {}), host)
+            required_remote = set(REQUIRED) | set(remote_report.get("required_tests", []))
+            dedicated_remote = set(remote_report.get("dedicated_crosshost", DEDICATED_CROSSHOST))
+            if not DEDICATED_CROSSHOST.issubset(dedicated_remote) or dedicated_remote - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
+                raise RuntimeError("sb16-2 local receipt has invalid dedicated test set")
             remote_inventories = {}
             for profile in PROFILES:
                 inventory_path = path.parent / profile / "inventory.json"
                 raw_inventory = _run_on_host(host, ["cat", str(inventory_path)], timeout=20)
                 data = json.loads(raw_inventory)
-                names = _validate_geometry_inventory(data, host, profile)
+                names = _validate_geometry_inventory(data, host, profile, required_remote, dedicated_remote)
                 row = remote_report.get("profiles", {}).get(profile, {})
                 core = next((item for item in row.get("commands", []) if item.get("name") == "core"), {})
                 if (row.get("status") not in ("passed_needs_crosshost_and_review", "passed") or core.get("exit_code") != 0
-                        or core.get("junit_cases") != len(names) - len(DEDICATED_CROSSHOST)
+                        or core.get("junit_cases") != len(names) - len(dedicated_remote)
                         or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
                     raise RuntimeError("sb16-2 local profile CTest receipt is incomplete")
                 remote_inventories[profile] = dict(path=str(inventory_path), sha256=hashlib.sha256(raw_inventory).hexdigest(), names=names)
@@ -2023,7 +2133,7 @@ def crosshost(a):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__); sub = p.add_subparsers(dest="mode", required=True)
-    b = sub.add_parser("prepare"); b.add_argument("--candidate", required=True); b.add_argument("--output", type=Path, required=True); b.add_argument("--attempt"); b.add_argument("--runtime-manifest", type=Path, required=True); b.set_defaults(fn=prepare)
+    b = sub.add_parser("prepare"); b.add_argument("--candidate", required=True); b.add_argument("--output", type=Path, required=True); b.add_argument("--attempt"); b.add_argument("--runtime-manifest", type=Path, required=True); b.add_argument("--build-paths", type=Path); b.add_argument("--configure-env", type=Path); b.add_argument("--artifact-target", dest="artifact_targets", action="append", default=[]); b.set_defaults(fn=prepare)
     d = sub.add_parser("verify-deploy"); d.add_argument("--bundle", type=Path, required=True); d.add_argument("--sha256", required=True); d.add_argument("--archive-manifest", type=Path, required=True); d.add_argument("--host", required=True); d.add_argument("--destination", type=Path, required=True); d.set_defaults(fn=verify_bundle)
     g = sub.add_parser("run-local"); g.add_argument("--deployment", type=Path, required=True); g.add_argument("--attempt")
     g.add_argument("--native-controller", required=True); g.add_argument("--real-world", required=True)
