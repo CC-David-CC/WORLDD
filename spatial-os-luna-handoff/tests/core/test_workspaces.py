@@ -217,6 +217,10 @@ class WorkspaceTests(unittest.TestCase):
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
             migrated_world_tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
             self.assertTrue({'workspace_presentations', 'workspace_presentation_ops'} <= migrated_world_tables)
+        mixed_before = (self.state / 'world.db').read_bytes()
+        mixed = subprocess.run([WORLD, '--state-dir', str(self.state), '--migrate-v1', '--migrate-v2'], input=b'', capture_output=True, timeout=5)
+        self.assertNotEqual(mixed.returncode, 0); self.assertEqual(mixed.stdout, b'')
+        self.assertEqual((self.state / 'world.db').read_bytes(), mixed_before)
         self.start(); self.assertEqual(self.call('world.snapshot'), before)
         self.assertEqual(self.call('git.status', worktree='work')['head'], work['head'])
         self.assertEqual(self.call('workspace.create', id='after', worktree='work', policy=RIGHTS)['revision'], 1)

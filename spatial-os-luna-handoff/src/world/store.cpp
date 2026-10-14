@@ -124,6 +124,15 @@ const char* workspace_context_schema =
     "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL);"
     "PRAGMA user_version=3";
 }
+void verify_workspace_presentation_schema(sqlite3* db) {
+    Statement tables(db, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('workspace_presentations','workspace_presentation_ops')");
+    if (tables.step() != SQLITE_ROW || sqlite3_column_int(tables.value, 0) != 2)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid v3 workspace presentation schema");
+    Statement presentations(db, "SELECT id,workspace_id,room_id,pose,generation FROM workspace_presentations LIMIT 0");
+    presentations.step();
+    Statement operations(db, "SELECT operation_id,principal,request_digest,kind,result FROM workspace_presentation_ops LIMIT 0");
+    operations.step();
+}
 struct WorldStore::Impl {
     File lock;
     CommitFault fault;
@@ -151,8 +160,8 @@ struct WorldStore::Impl {
         { Statement q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
         if (version == 1 && !migrate_v1) throw WorldError(wire::STORAGE_ERROR, "World schema v1 requires worldd --state-dir PATH --migrate-v1 while the world is stopped");
         if (version == 2 && !migrate_v2) throw WorldError(wire::STORAGE_ERROR, "World schema v2 requires worldd --state-dir PATH --migrate-v2 while the world is stopped");
-        if (migrate_v1 && version != 1) throw WorldError(wire::STORAGE_ERROR, "--migrate-v1 requires world schema v1");
-        if (migrate_v2 && version != 2) throw WorldError(wire::STORAGE_ERROR, "--migrate-v2 requires world schema v2");
+        if (migrate_v1 && version != 1 && version != 3) throw WorldError(wire::STORAGE_ERROR, "--migrate-v1 requires world schema v1 or its v3 target");
+        if (migrate_v2 && version != 2 && version != 3) throw WorldError(wire::STORAGE_ERROR, "--migrate-v2 requires world schema v2 or its v3 target");
         if (version < 0 || version > 3 || (migrate_v1 && version == 0)) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
         if (version == 0) {
             Statement q(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
@@ -200,6 +209,7 @@ struct WorldStore::Impl {
                             "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL); PRAGMA user_version=3");
             transaction.commit();
         }
+        verify_workspace_presentation_schema(db.get());
         Statement context(db.get(), "SELECT actor FROM actor_workspaces JOIN entities ON actor=entities.id JOIN world_workspaces ON workspace=world_workspaces.id WHERE kind<>? OR available<>1");
         context.integer(1, wire::ACTOR);
         if (context.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Invalid durable actor workspace context");
