@@ -56,7 +56,7 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
         self.owner=subprocess.Popen(['sudo','-n','env','ASAN_OPTIONS=detect_leaks=1:abort_on_error=1',
             'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',sys.executable,'-B','-c',code,*owner_command],
             stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
-        owner_end.close();fixture.brokers.append(self)
+        owner_end.close();self.initialize_transport(world_channel_opt_in=False);fixture.brokers.append(self)
 
 
     def close(self):
