@@ -90,3 +90,11 @@ The launcher checks six native witnesses, one FD check, one recovery check, and 
 The authenticated relay remains root private-protocol coverage.
 All reachable helper targets and generated Python bindings are target dependencies.
 CTest registration inspection is compile-host-only; runtime remains UNRUN for this candidate.
+
+The root fixture emits a framed JSON receipt from finally.
+The nonroot launcher reads that captured receipt instead of traversing root-private setup evidence.
+The root fixture publishes its exact PID, start time, and argv before privileged effects.
+The launcher allows600 seconds for execution and240 seconds for graceful cleanup.
+Cancellation validates that exact live root process identity before sending SIGTERM.
+The root SIGTERM handler raises into finally and ignores repeated cancellation during cleanup.
+A grace overrun kills only that verified fixture PID and reports cleanup incomplete.

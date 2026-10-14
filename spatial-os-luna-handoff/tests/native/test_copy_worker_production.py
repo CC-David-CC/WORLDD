@@ -25,6 +25,23 @@ entry = Path('/var/lib/spatial/volumes') / name
 volume = entry / 'mount'
 package = EVIDENCE / 'package'; package.mkdir(mode=0o700)
 record = {'host': socket.gethostname(), 'source': str(SOURCE), 'build': str(BUILD), 'commands': [], 'witnesses': []}
+control = EVIDENCE.parent / 'copy-fixture-process.json'
+control_fd = os.open(control, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_CLOEXEC|os.O_NOFOLLOW, 0o600)
+with os.fdopen(control_fd, 'w') as stream:
+    os.fchown(stream.fileno(), uid, gid)
+    process = {'pid': os.getpid(), 'start_ticks': Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19],
+               'argv': Path('/proc/self/cmdline').read_bytes().rstrip(b'\0').decode().split('\0')}
+    json.dump(process, stream, sort_keys=True)
+    stream.write('\n')
+
+
+def request_cancellation(signum, _frame):
+    record['cancelled_signal'] = signum
+    raise RuntimeError('copy fixture cancellation requested')
+
+
+signal.signal(signal.SIGTERM, request_cancellation)
+signal.signal(signal.SIGINT, request_cancellation)
 unit = 'spatial-m07-copy-'+uuid.uuid4().hex+'.service'
 socket_dir = Path('/run') / ('s-m07-'+uuid.uuid4().hex[:12])
 scope = None; owner = None; client = None; helper = Path('/usr/local/libexec/spatial-copy-tree-worker')
@@ -312,6 +329,8 @@ try:
     reject_sanitizer_diagnostics(recovery.stdout, recovery.stderr)
     if recovery.returncode: raise RuntimeError('COPYING restart recovery regression failed: '+recovery.stdout+' '+recovery.stderr)
 finally:
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
     if client and client.poll() is None: client.kill(); client.wait(timeout=5)
     for listener in listeners:
         try: listener.close()
@@ -387,6 +406,9 @@ finally:
                 helper.unlink()
     except Exception as error: record['helper_restore_error']=repr(error)
     record['finished']=time.time()
-    (EVIDENCE/'evidence.json').write_text(json.dumps(record,indent=2,sort_keys=True)+'\n')
+    try:
+        (EVIDENCE/'evidence.json').write_text(json.dumps(record,indent=2,sort_keys=True)+'\n')
+    finally:
+        print('SPATIAL_COPY_PRODUCTION_RECEIPT '+json.dumps(record,sort_keys=True,separators=(',',':')),flush=True)
 cleanup_errors=[key for key in record if key.startswith('cleanup_') or key=='helper_restore_error']
 if cleanup_errors: raise RuntimeError('fixture cleanup failed: '+json.dumps({key:record[key] for key in cleanup_errors}))

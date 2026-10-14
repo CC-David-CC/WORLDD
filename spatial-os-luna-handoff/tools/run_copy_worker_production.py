@@ -4,11 +4,13 @@ import json
 import os
 from pathlib import Path
 import pwd
+import signal
 import socket
 import stat
 import subprocess
 import sys
 import tempfile
+import time
 
 MODES = {'readonly-destination', 'writable-source', 'receipt-control',
          'receipt-binding', 'success', 'symlink'}
@@ -19,7 +21,7 @@ SANITIZER_MARKERS = ('AddressSanitizer', 'LeakSanitizer',
 def validate_receipt(record):
     assert not [key for key in record if key.startswith('cleanup_') or key == 'helper_restore_error']
     assert not any(marker in json.dumps(record) for marker in SANITIZER_MARKERS)
-    assert record['finished'] > 0
+    assert record['finished'] > 0 and 'cancelled_signal' not in record
     assert record['volume_cleanup']['applied'] is True
     assert record['volume_cleanup']['status'] == 'unmounted'
     assert record['volume_cleanup']['mounted'] is False
@@ -87,6 +89,91 @@ def helper_state():
             'uid': info.st_uid, 'gid': info.st_gid, 'mode': stat.S_IMODE(info.st_mode)}
 
 
+
+def cancel_owned_fixture(control, build, source, evidence, signum):
+    assert os.getuid() == 0
+    operator = pwd.getpwnam('dflanag3')
+    assert control == evidence.parent / 'copy-fixture-process.json'
+    assert evidence.parent.parent == Path(operator.pw_dir) / 'spatial-artifacts/runs'
+    assert evidence.parent.name.startswith('copy-worker-production-')
+    assert not control.is_symlink() and control.stat().st_uid == operator.pw_uid
+    process = json.loads(control.read_text())
+    pid = process['pid']
+    assert isinstance(pid, int) and pid > 1
+    expected = [sys.executable, '-B', str(source / 'tests/native/test_copy_worker_production.py'),
+                str(build), str(source), str(evidence)]
+    assert process['argv'] == expected
+    proc = Path('/proc') / str(pid)
+    descriptor = None
+    try:
+        descriptor = os.pidfd_open(pid)
+        assert (proc / 'status').read_text().split('Uid:', 1)[1].splitlines()[0].split()[1] == '0'
+        assert (proc / 'stat').read_text().rsplit(')', 1)[1].split()[19] == process['start_ticks']
+        assert (proc / 'cmdline').read_bytes().rstrip(b'\0').decode().split('\0') == expected
+        signal.pidfd_send_signal(descriptor, signum)
+    except ProcessLookupError:
+        pass
+    except FileNotFoundError:
+        pass
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def wait_for_fixture(command, parent, build, source, evidence):
+    cancelled = []
+    previous = {}
+    def request(signum, _frame):
+        cancelled.append(signum)
+    for signum in (signal.SIGTERM, signal.SIGINT):
+        previous[signum] = signal.signal(signum, request)
+    child = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    deadline = time.monotonic() + 600
+    cancellation = None
+    try:
+        while True:
+            try:
+                stdout, stderr = child.communicate(timeout=1)
+                return child.returncode, stdout, stderr, cancellation
+            except subprocess.TimeoutExpired:
+                if not cancelled and time.monotonic() < deadline:
+                    continue
+                reason = 'signal' if cancelled else '600-second execution deadline'
+                cancellation = {'reason': reason, 'grace_seconds': 240}
+                control = parent / 'copy-fixture-process.json'
+                cancel_command = ['sudo', '-n', sys.executable, '-B', str(Path(__file__).resolve()),
+                                  '--cancel', str(control), str(build), str(source), str(evidence)]
+                if control.exists():
+                    result = subprocess.run(cancel_command, capture_output=True, text=True, timeout=10)
+                    cancellation.update(signal_exit=result.returncode, signal_stdout=result.stdout,
+                                        signal_stderr=result.stderr)
+                    cancellation['recovery_command'] = cancel_command
+                else:
+                    # The root fixture writes control before any privileged project effects.
+                    child.terminate()
+                    cancellation['no_fixture_control'] = True
+                try:
+                    stdout, stderr = child.communicate(timeout=240)
+                except subprocess.TimeoutExpired:
+                    result = subprocess.run(cancel_command + ['--kill'], capture_output=True, text=True, timeout=10)
+                    cancellation.update(forced_kill_exit=result.returncode, forced_kill_stdout=result.stdout,
+                                        forced_kill_stderr=result.stderr, cleanup_incomplete=True,
+                                        recovery_command=cancel_command)
+                    try:
+                        stdout, stderr = child.communicate(timeout=10)
+                    except subprocess.TimeoutExpired as error:
+                        cancellation['root_exit_unconfirmed'] = True
+                        stdout = error.stdout or ''
+                        stderr = error.stderr or ''
+                        if isinstance(stdout, bytes): stdout = stdout.decode(errors='replace')
+                        if isinstance(stderr, bytes): stderr = stderr.decode(errors='replace')
+                        return 124, stdout, stderr, cancellation
+                return child.returncode, stdout, stderr, cancellation
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
+
+
 def main():
     operator = pwd.getpwnam('dflanag3')
     assert os.getuid() == operator.pw_uid > 0
@@ -109,19 +196,22 @@ def main():
     (parent / 'launch.json').write_text(json.dumps({'argv': command, 'operator_uid': operator.pw_uid,
                                                   'parent_mode': '0700', 'evidence': str(evidence)}, indent=2) + '\n')
     print('COPY_WORKER_PRODUCTION_EVIDENCE=' + str(parent), flush=True)
-    result = subprocess.run(command, capture_output=True, text=True)
-    (parent / 'stdout.log').write_text(result.stdout)
-    (parent / 'stderr.log').write_text(result.stderr)
-    (parent / 'command.exit').write_text(str(result.returncode) + '\n')
+    exit_code, stdout, stderr, cancellation = wait_for_fixture(command, parent, build, source, evidence)
+    (parent / 'stdout.log').write_text(stdout)
+    (parent / 'stderr.log').write_text(stderr)
+    (parent / 'command.exit').write_text(str(exit_code) + '\n')
     after = helper_state()
-    summary = {'command_exit': result.returncode, 'helper_before': before, 'helper_after': after,
+    summary = {'command_exit': exit_code, 'cancellation': cancellation, 'helper_before': before, 'helper_after': after,
                'helper_restored': before == after, 'validated': False}
     try:
-        assert not any(marker in result.stdout + result.stderr for marker in SANITIZER_MARKERS)
+        assert not any(marker in stdout + stderr for marker in SANITIZER_MARKERS)
         assert before == after
-        record = json.loads((evidence / 'evidence.json').read_text())
+        prefix = 'SPATIAL_COPY_PRODUCTION_RECEIPT '
+        receipts = [line[len(prefix):] for line in stdout.splitlines() if line.startswith(prefix)]
+        assert len(receipts) == 1, 'missing or ambiguous root fixture receipt'
+        record = json.loads(receipts[0])
         validate_receipt(record)
-        assert result.returncode == 0
+        assert exit_code == 0 and cancellation is None
         summary.update(validated=True, production_witnesses=6, malformed_owner_fd_checks=1, restart_recovery_checks=1)
     finally:
         (parent / 'summary.json').write_text(json.dumps(summary, indent=2, sort_keys=True) + '\n')
@@ -129,4 +219,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:2] == ['--cancel']:
+        assert len(sys.argv) in (6, 7)
+        assert len(sys.argv) == 6 or sys.argv[6] == '--kill'
+        control, build, source, evidence = (Path(arg).resolve() for arg in sys.argv[2:6])
+        cancel_owned_fixture(control, build, source, evidence,
+                             signal.SIGKILL if sys.argv[-1:] == ['--kill'] else signal.SIGTERM)
+    else:
+        main()
