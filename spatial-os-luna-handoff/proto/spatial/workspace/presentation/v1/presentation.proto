@@ -1,0 +1,6 @@
+syntax = "proto3";
+package spatial.workspace.presentation.v1;
+// Private broker/world interface. Resolve only after fresh world and workspace
+// authority checks. This request and its reply are never exposed to actors.
+message PresentationResolveRequest { bytes representation_id = 1; }
+message PresentationResolveReply { string workspace_id = 1; }

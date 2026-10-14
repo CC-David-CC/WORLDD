@@ -685,7 +685,9 @@ wire::WorkspaceReply ExecutionStore::workspace_get(const std::string& id) {
     return out;
 }
 wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreateRequest& request) {
-    valid_text(request.id()); valid_text(request.worktree()); const auto policy = rights_mask(request.policy());
+    valid_text(request.id()); valid_text(request.worktree());
+    if (request.id() == "workspace-registry") throw WorldError(wire::INVALID_ARGUMENT, "Reserved workspace identity cannot own execution state");
+    const auto policy = rights_mask(request.policy());
     { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE id=?"); q.text(1, request.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Workspace identity already exists"); }
     const auto worktree = impl_->worktree(request.worktree());
@@ -702,12 +704,15 @@ wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreat
     Transaction transaction(impl_->db.get());
     Query q(impl_->db.get(), "INSERT INTO workspaces VALUES(?,?,?,?,1)"); q.text(1, request.id()); q.text(2, worktree.id()); q.text(3, worktree.repo());
     check(sqlite3_bind_int(q.value, 4, static_cast<int>(policy))); q.step(); transaction.commit();
+    if (impl_->authority) impl_->authority->policy_changed();
     return workspace_get(request.id());
 }
 wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberRequest& request) {
     if (impl_->authority && impl_->authority->bound(request.id()))
         throw WorldError(wire::FORBIDDEN, "Persistent workspace authority cannot use static membership edits");
-    valid_text(request.id()); valid_text(request.actor()); const auto rights = rights_mask(request.rights());
+    valid_text(request.id()); valid_text(request.actor());
+    if (request.id() == "workspace-registry") throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no execution membership");
+    const auto rights = rights_mask(request.rights());
     Transaction transaction(impl_->db.get()); const auto workspace = workspace_get(request.id());
     unsigned previous = 0;
     { Query q(impl_->db.get(), "SELECT rights FROM workspace_members WHERE workspace=? AND actor=?"); q.text(1, request.id()); q.text(2, request.actor());
@@ -719,6 +724,7 @@ wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberR
         Query revision(impl_->db.get(), "UPDATE workspaces SET revision=revision+1 WHERE id=?"); revision.text(1, request.id()); revision.step();
     }
     transaction.commit();
+    if (previous != rights && impl_->authority) impl_->authority->policy_changed();
     // Selection and control are separate from the rights that sustain execution.
     const unsigned effective = rights & rights_mask(workspace.policy());
     std::vector<std::string> revoked;
@@ -734,7 +740,9 @@ wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberR
     wire::WorkspaceAck out; out.set_accepted(true); return out;
 }
 workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessRequest& request, bool fresh) {
-    valid_text(request.workspace()); valid_text(request.actor()); const auto descriptor = workspace_get(request.workspace());
+    valid_text(request.workspace()); valid_text(request.actor());
+    if (request.workspace() == "workspace-registry") throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no executable workspace access");
+    const auto descriptor = workspace_get(request.workspace());
     unsigned rights = 0;
     if (impl_->authority && impl_->authority->bound(request.workspace())) {
         rights = impl_->authority->rights(request, fresh);
@@ -754,6 +762,33 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
     return out;
 }
 void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
+workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(const workspace::v1::ScopedAuthorityCheckRequest& request) {
+    if (!impl_->authority || !impl_->authority->bound(request.workspace()))
+        throw WorldError(wire::UNIMPLEMENTED, "Persistent scoped workspace authority is not configured");
+    auto decision = impl_->authority->scoped_check(request);
+    if (request.workspace() != "workspace-registry") {
+        const auto workspace = workspace_get(request.workspace());
+        const auto policy = rights_mask(workspace.policy());
+        std::optional<unsigned> required;
+        using a = authority::v1::Right;
+        switch (request.right()) {
+        case a::WORKSPACE_ACCESS: required = wire::WORKSPACE_SELECT; break;
+        case a::FILE_BROWSE: case a::FILE_READ: required = wire::FILES_READ; break;
+        case a::FILE_CREATE: case a::FILE_EDIT: case a::FILE_RENAME: case a::FILE_MOVE:
+        case a::FILE_COPY: case a::FILE_TRASH: case a::FILE_RESTORE: case a::FILE_PERMANENT_DELETE:
+            required = wire::FILES_WRITE; break;
+        case a::PROCESS_EXECUTE: required = wire::PROCESS_LAUNCH; break;
+        default: break;
+        }
+        if (required && !(policy & (1u << *required))) decision.set_allowed(false);
+    }
+    return decision;
+}
+workspace::v1::AuthorizationFence ExecutionStore::authorization_fence(const workspace::v1::AuthorizationFenceRequest& request) {
+    if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+    if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Authorization fence requires authenticated actor authority");
+    return impl_->authority->authorization_fence(request.principal());
+}
 workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh) {
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
     const auto& principal = request.principal();
@@ -762,6 +797,8 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
     std::set<std::string> unique;
     for (const auto& app : request.applications()) {
         valid_text(app.workspace()); valid_text(app.application());
+        if (app.workspace() == "workspace-registry")
+            throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no application execution");
         require(app.server_id().size() == 32, "Invalid native server identity");
         require(unique.insert(app.SerializeAsString()).second, "Duplicate application group");
     }
@@ -776,7 +813,11 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         reconcile_authority(); reap();
         if (impl_->native) impl_->native->check();
     }
-    workspace::v1::ApplicationAccessReply reply;
+    if (!impl_->authority) throw WorldError(wire::UNIMPLEMENTED, "Application authority fence is not configured");
+    // Cached control checks run inside issuer waits. Do not start another issuer request.
+    const auto stamp = refresh ? impl_->authority->authorization_fence(principal)
+                               : impl_->authority->fence_snapshot();
+    workspace::v1::ApplicationAccessReply reply; reply.set_incarnation(stamp.incarnation()); reply.set_epoch(stamp.epoch());
     for (const auto& app : request.applications()) {
         auto* result = reply.add_applications(); *result->mutable_application() = app;
         result->set_observe(false); result->set_control(false);
@@ -797,6 +838,9 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         result->set_control(permission.observe && permission.control &&
             (effective & static_cast<unsigned>(stored)) == static_cast<unsigned>(stored));
     }
+    const auto current = impl_->authority->fence_snapshot();
+    if (current.incarnation() != stamp.incarnation() || current.epoch() != stamp.epoch())
+        throw WorldError(wire::UNAVAILABLE, "Authorization changed during application access evaluation");
     return reply;
 }
 void ExecutionStore::reconcile_authority() {

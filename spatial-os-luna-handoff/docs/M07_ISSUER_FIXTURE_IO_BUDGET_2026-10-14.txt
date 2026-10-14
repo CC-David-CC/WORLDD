@@ -1,0 +1,26 @@
+M07 issuer fixture I/O budget - 2026-10-14
+
+This change affects test peers only. Production deadlines and acceptance locks stay unchanged.
+The issuer fixture configures a 5,000 ms server I/O deadline.
+The production checked client fixture also uses 5,000 ms.
+The independent Python TLS peer previously used a shorter two-second socket timeout.
+The issuer relay used the same shorter timeout for its downstream peer.
+Both healthy fixture peers now use a bounded five-second timeout.
+
+The retained diagnostic82 run recorded real issuer work lasting 2,263 ms.
+The Python TLS peer timed out during enrollment before either presentation race began.
+Evidence remains under /home/dflanag3/spatial-artifacts/m07-presentation-race-repair-20261014/diagnostic82-results.
+The regression pauses the real issuer for 2.2 seconds and requires the existing info request to complete.
+It checks that the peer still has a finite five-second timeout.
+
+Explicit adversarial server deadlines remain 700 ms and 150 ms.
+The explicit 100 ms idle test and direct two-second raw fault peers remain unchanged.
+The default issuer idle deadline remains three seconds.
+Presentation ancestor enrollment and revocation each open a fresh authenticated mTLS connection.
+Each owner challenge and execute pair uses that same fresh connection and the existing owner proof.
+Each connection closes after its operation.
+This avoids reusing an owner peer across world provisioning beyond its allowed idle lifetime.
+
+This fixture correction does not classify the earlier UNAUTHORIZED race result as correct.
+The strict FORBIDDEN assertions and their full reply diagnostics remain in place.
+Focused runtime checks and the M07 phase gate remain separate requirements.

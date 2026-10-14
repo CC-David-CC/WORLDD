@@ -1,6 +1,7 @@
 syntax = "proto3";
 package spatial.core.v1;
 import "security.proto";
+import "copy.proto";
 
 // Units: meters, seconds, radians. Right-handed; forward is -Z.
 // Unspecified vector components are zero. Message presence is checked separately.
@@ -123,7 +124,7 @@ message RuntimeFenceRequest {}
 message RuntimeResourcesRequest {}
 message FenceReply { bool complete = 1; }
 message RendererSyncRequest {}
-message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; repeated Entity barriers = 6; repeated Entity portals = 7; repeated Entity objects = 8; repeated Entity actors = 9; }
+message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; repeated Entity barriers = 6; repeated Entity portals = 7; repeated Entity objects = 8; repeated Entity actors = 9; repeated PresentationView presentation_views = 10; }
 message RenderCommand {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -200,6 +201,31 @@ message FaultArmRequest {
   optional StorageFault storage_error = 3;
 }
 message FaultArmReply { optional bool armed = 1; }
+// Presentation request types live here because the authenticated actor envelope
+// also lives here and their transforms use the canonical core Pose type. This
+// keeps imports one-way while preserving the planned request fields and tags.
+message PresentationCreateRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  string workspace_id = 3;
+  optional string room_id = 4;
+  Pose transform = 5;
+  uint64 expected_world_revision = 6;
+}
+message PresentationMoveRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  bytes representation_id = 3;
+  string room_id = 4;
+  Pose transform = 5;
+  uint64 expected_representation_generation = 6;
+}
+message PresentationRemoveRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  bytes representation_id = 3;
+  uint64 expected_representation_generation = 4;
+}
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
@@ -214,6 +240,11 @@ message ActorActionRequest {
     WorkspaceIdRequest workspace_select = 22;
     ActorStopRequest workspace_clear = 23;
     ProcessLaunchRequest process_launch = 24;
+    PresentationCreateRequest presentation_create = 25;
+    PresentationMoveRequest presentation_move = 26;
+    PresentationRemoveRequest presentation_remove = 27;
+    spatial.workspace.copy.v1.WorkspaceCopyRequest workspace_copy = 28;
+    spatial.workspace.copy.v1.WorkspaceCopyStatusRequest workspace_copy_status = 29;
   }
 }
 message WorldCheckpointRequest {}
@@ -367,6 +398,7 @@ message ActorObservation {
   repeated ObservedRepresentation visible = 5;
   PixelExtent viewport = 6; uint64 frame_id = 7;
   PixelImage image = 8; // Present only when pixels were explicitly requested.
+  repeated PresentationView presentation_views = 9; // Public filtered presentation metadata for projected OBJECTs.
 }
 message RepositoryReply { string id = 1; string path = 2; string source = 3; }
 message WorktreeReply { string id = 1; string repo = 2; string branch = 3; string path = 4; string head = 5; }
@@ -377,7 +409,23 @@ message WorkspaceReply { string id = 1; string worktree = 2; repeated WorkspaceR
 message WorkspaceAck { bool accepted = 1; }
 message ProcessLaunchReply { string process_id = 1; string workspace = 2; }
 message ProcessWaitReply { optional sint32 exit_code = 1; }
-message ActorActionReply { bool accepted = 1; AimReply aim = 2; ActorObservation observation = 3; WorktreeReply worktree = 4; ProcessLaunchReply process = 5; }
+// Filtered public presentation data. Never include workspace or file metadata.
+message PresentationView {
+  bytes representation_id = 1;
+  string room_id = 2;
+  Pose transform = 3;
+  uint64 generation = 4;
+  bool locked = 5;
+}
+message ActorActionReply {
+  bool accepted = 1;
+  AimReply aim = 2;
+  ActorObservation observation = 3;
+  WorktreeReply worktree = 4;
+  ProcessLaunchReply process = 5;
+  PresentationView presentation = 6;
+  spatial.workspace.copy.v1.WorkspaceCopyStatus copy_status = 7;
+}
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }
 message ClockReply { double seconds = 1; }

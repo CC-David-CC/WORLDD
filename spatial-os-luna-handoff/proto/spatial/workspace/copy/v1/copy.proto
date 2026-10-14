@@ -1,0 +1,84 @@
+syntax = "proto3";
+package spatial.workspace.copy.v1;
+
+// Actor-facing messages travel only inside the authenticated core actor action envelope.
+// No request accepts a source path or caller-constructed manifest.
+enum CopyDataClass {
+  COPY_DATA_CLASS_UNSPECIFIED = 0;
+  PROJECT_TREE = 1;
+  GIT_HISTORY = 2;
+  APPLICATION_DEFINITION = 3;
+  APPLICATION_STATE = 4;
+  ENVIRONMENT_CONFIG = 5;
+}
+
+enum CopyPhase {
+  COPY_PHASE_UNSPECIFIED = 0;
+  REQUESTED = 1;
+  AUTHORIZED = 2;
+  SNAPSHOTS_READY = 3;
+  DESTINATION_ALLOCATED = 4;
+  DATA_STAGED = 5;
+  VALIDATED = 6;
+  PUBLISHED = 7;
+  ABORTED = 8;
+  UNCERTAIN = 9;
+}
+
+enum CopyErrorCode {
+  COPY_ERROR_UNSPECIFIED = 0;
+  COPY_INVALID_ARGUMENT = 1;
+  COPY_UNAUTHORIZED = 2;
+  COPY_FORBIDDEN = 3;
+  COPY_CONFLICT = 4;
+  COPY_EXHAUSTED = 5;
+  COPY_UNAVAILABLE = 6;
+  COPY_UNCERTAIN = 7;
+  COPY_OPERATION_CONFLICT = 8;
+}
+
+message WorkspaceCopyRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  string source_workspace_id = 3;
+  uint64 expected_source_authority_revision = 4;
+  repeated CopyDataClass data_class = 5;
+  string destination_policy_profile = 6;
+  uint64 expected_destination_profile_revision = 7;
+  uint64 expected_source_policy_revision = 8;
+}
+message WorkspaceCopyStatusRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+}
+// Public status is redacted after current authority is revoked. Fields 3 and 4
+// require fresh authorization and must be absent from unauthorized replies.
+message WorkspaceCopyStatus {
+  bytes operation_id = 1;
+  CopyPhase phase = 2;
+  optional string authorized_destination_workspace_id = 3;
+  optional bytes authorized_manifest_digest = 4;
+  reserved 5;
+  optional CopyErrorCode error_code = 6;
+}
+message CopyManifestEntry {
+  CopyDataClass data_class = 1;
+  bytes object_id = 2;
+  string schema_id = 3;
+  uint32 schema_version = 4;
+  bytes source_storage_object = 5;
+  uint64 byte_count = 6;
+  bytes content_digest = 7;
+  bytes snapshot_receipt_id = 8;
+}
+// Private operation journal only; never serialize this message in actor status.
+message SnapshotReceipt {
+  bytes source_storage_object = 1;
+  bytes snapshot_storage_object = 2;
+  uint64 source_subvolume_id = 3;
+  uint64 snapshot_subvolume_id = 4;
+  bytes content_digest = 5;
+  bool readonly = 6;
+  bytes receipt_id = 7;
+  bytes request_digest = 8;
+}

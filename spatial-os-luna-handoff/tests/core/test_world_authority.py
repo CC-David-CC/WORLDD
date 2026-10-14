@@ -23,10 +23,12 @@ RIGHTS = (grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE, grant.WO
 
 class RelayingIssuer:
     """Forward real issuer requests. Delay one status request across real revocation."""
-    def __init__(self, fixture, revoke):
-        self.fixture = fixture; self.revoke = revoke; self.armed = threading.Event()
+    def __init__(self, fixture, revoke, wait_for_revocation_event=True):
+        self.fixture = fixture; self.revoke = revoke; self.wait_for_revocation_event = wait_for_revocation_event
+        self.armed = threading.Event(); self.triggered = threading.Event()
         self.delivered = threading.Event(); self.stop = threading.Event(); self.errors = []
-        self.streams = []; self.workers = []
+        self.status_lock = threading.Lock(); self.status_seen = 0; self.trigger_after_status = 1
+        self.streams = []; self.workers = []; self.before_reply = None
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.minimum_version = ssl.TLSVersion.TLSv1_3
         self.context.load_cert_chain(str(fixture.server_cert), str(fixture.server_key))
@@ -47,7 +49,7 @@ class RelayingIssuer:
     def relay(self, raw):
         upstream = None; stream = raw
         try:
-            raw.settimeout(2); stream = self.context.wrap_socket(raw, server_side=True); self.streams.append(stream)
+            raw.settimeout(5); stream = self.context.wrap_socket(raw, server_side=True); self.streams.append(stream)
             upstream = self.fixture.connect()
             def exact(size):
                 data = b''
@@ -60,12 +62,19 @@ class RelayingIssuer:
                 size = struct.unpack('!I', exact(4))[0]
                 if size > 1048576: raise AssertionError('Excessive relay frame')
                 request = issuer.IssuerRequest.FromString(exact(size)); sequence = request.request_id
+                should_revoke = False
                 if request.HasField('actor_status') and self.armed.is_set():
-                    self.armed.clear(); self.revoke()
-                    if not self.delivered.wait(.3): raise AssertionError('Real revocation was not forwarded')
-                    # Keep the issuer call pending while worldd consumes the watcher event.
-                    time.sleep(.08)
+                    with self.status_lock:
+                        self.status_seen += 1
+                        should_revoke = self.status_seen == self.trigger_after_status
+                    if should_revoke:
+                        self.armed.clear(); self.triggered.set(); self.revoke()
+                        if self.wait_for_revocation_event:
+                            if not self.delivered.wait(.3): raise AssertionError('Real revocation was not forwarded')
+                            # Keep the issuer call pending while worldd consumes the watcher event.
+                            time.sleep(.08)
                 reply = upstream.request(request); reply.request_id = sequence
+                if self.before_reply: self.before_reply(request, reply)
                 stream.sendall(frame(reply))
                 if reply.HasField('revocations') and reply.revocations.events: self.delivered.set()
         except (OSError, EOFError): pass

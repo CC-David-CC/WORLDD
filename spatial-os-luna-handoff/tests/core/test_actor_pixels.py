@@ -1,10 +1,14 @@
 """Real filtered pixels through authenticated actor sessions and native C clients."""
+import os
 import select
 import socket
 import struct
+import threading
 import unittest
 from unittest.mock import patch
 import test_world_application_control as control
+import test_world_authority as world_authority
+import issuer_pb2 as issuer
 from harness.wire import frame
 from harness.oracles import pose
 from test_world_identity import receive
@@ -170,12 +174,17 @@ class ActorPixelTests(observation.ApplicationObservationTests):
     def test_revocation_before_first_queued_write_exports_no_pixel_reply(self):
         app, surface, record = self.setup_pixels()
         def revoke(count, reply):
-            if count == 2:
+            # Scene and post-render checks precede the queued reply's first-write check.
+            if count == 3:
                 control.access.ApplicationAccessTests.revoke_record(self, record)
         self.relay.calls = 0
         self.relay.hook = revoke
-        with self.assertRaises(EOFError):
-            self.viewer.act(observe=core.ActorObserveRequest(width=127, height=95, include_pixels=True))
+        try:
+            reply = self.viewer.act(observe=core.ActorObserveRequest(width=127, height=95, include_pixels=True))
+        except EOFError:
+            pass
+        else:
+            self.fail(f'Expected queued-write channel closure; received {reply}')
         self.assertGreaterEqual(self.relay.calls, 3)
 
     def test_revocation_stops_a_partially_written_pixel_reply(self):
@@ -200,8 +209,104 @@ class ActorPixelTests(observation.ApplicationObservationTests):
         self.assertTrue(self.world_process.management('surface.get', id=surface['id'])['mapped'])
 
 
+
+class PresentationPixelFenceTests(ActorPixelTests):
+    def terms(self, claims=None, rights=None, depth=3, components=(), delegable=None):
+        rights = [*world_authority.RIGHTS, grant.WORLD_PLACEMENT_CREATE,
+                  grant.REPRESENTATION_VIEW] if rights is None else rights
+        components = tuple(value.encode('utf-8') if isinstance(value, str) else value
+                           for value in components)
+        terms = super().terms(claims, rights, depth, components, delegable)
+        self.assertIsInstance(terms.scope.domain.id, str)
+        self.assertTrue(all(isinstance(value, bytes) for value in terms.scope.components))
+        return terms
+
+    def setup_world(self, rights=None, legacy=False):
+        rights = [*control.access.ALL, grant.WORKSPACE_PRESENTATION_ATTACH] if rights is None else rights
+        return super().setup_world(rights=rights, legacy=legacy)
+
+    def setUp(self):
+        super().setUp()
+        self.presentation_relay = world_authority.RelayingIssuer(self, self.revoke_second_actor)
+        self.presentation_relay.trigger_after_status = 1
+
+    def config_file(self, endpoint_port=None, **overrides):
+        return super().config_file(endpoint_port or self.presentation_relay.port, **overrides)
+
+    def revoke_second_actor(self):
+        target = issuer.IdentityReference(kind=issuer.ACTOR_TARGET, id=self.second.actor_id)
+        operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
+            target=target, expected_security_revision=0, reason='presentation observation race'))
+        owner = self.connect()
+        try:
+            reply = self.execute(owner, self.challenge(owner, operation))
+        finally:
+            owner.close()
+        self.assertTrue(reply.HasField('identity_status'), reply)
+        self.assertEqual(reply.identity_status.actor_id, self.second.actor_id)
+        self.assertTrue(reply.identity_status.actor_revoked)
+
+    def test_pixels_are_withheld_when_later_presentation_check_revokes_actor(self):
+        app, surface, _ = self.setup_pixels()
+        self.grant_viewer([grant.WORKSPACE_PRESENTATION_ATTACH])
+        entry = self.world_info['entry_room']
+        response = self.peer.call(grants=session.WorldGrantList())
+        self.assertTrue(response.HasField('grants'), response)
+        page = response.grants
+        root = next(item for item in page.grants if not item.parent_id)
+        terms = self.terms(self.second,
+            rights=[grant.WORLD_PLACEMENT_CREATE, grant.REPRESENTATION_VIEW],
+            depth=0, components=[entry])
+        self.peer.action_sequence += 1
+        delegated = self.peer.call(delegate=session.WorldGrantDelegate(
+            seq=self.peer.action_sequence, parent_id=root.id, terms=terms,
+            expected_revision=page.revision))
+        self.assertTrue(delegated.HasField('grant'), delegated)
+        created = self.viewer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='one', room_id=entry,
+            transform=core.Pose(position=core.Vec3(x=.8, z=-2),
+                                orientation=core.Quaternion(w=1)),
+            expected_world_revision=self.world_process.management('world.info')['world_revision']))
+        self.assertTrue(created.HasField('action'), created)
+        baseline = self.pixels()
+        self.assertTrue(baseline.HasField('image'), 'real application pixels are required for this control')
+        self.assertEqual(len(baseline.presentation_views), 1)
+        self.assertEqual(baseline.presentation_views[0].representation_id,
+            created.action.presentation.representation_id)
+
+        post_render_access = threading.Event()
+        def arm_after_post_render_access(count, reply):
+            if count == 2:
+                self.assertTrue(reply.HasField('application_access'), reply)
+                decisions = reply.application_access.applications
+                self.assertTrue(decisions and decisions[0].observe,
+                    'post-render application observation was not authorized')
+                post_render_access.set()
+                self.presentation_relay.armed.set()
+        self.relay.calls = 0
+        self.relay.hook = arm_after_post_render_access
+        raced = self.viewer.act(observe=core.ActorObserveRequest(
+            width=127, height=95, include_pixels=True))
+        self.assertTrue(post_render_access.is_set(),
+            'post-render application authorization did not complete before revocation')
+        self.assertEqual(self.relay.calls, 2,
+            'expected scene and post-render application authorization replies')
+        self.assertTrue(self.presentation_relay.triggered.wait(.5),
+            'subsequent presentation workspace check did not trigger issuer revocation')
+        with self.presentation_relay.status_lock:
+            self.assertEqual(self.presentation_relay.status_seen, 1)
+        self.assertTrue(raced.HasField('error'), raced)
+        self.assertEqual(raced.error.code, core.UNAUTHORIZED, raced)
+        self.assertEqual(raced.error.message,
+            'World session changed during operation', raced)
+        self.assertFalse(raced.HasField('action'), 'revoked observation must return no pixel payload')
+        self.assertTrue(self.presentation_relay.delivered.is_set())
+        self.assertFalse(self.presentation_relay.errors)
+
 def suite():
-    return unittest.TestSuite(ActorPixelTests(name) for name in vars(ActorPixelTests) if name.startswith('test_'))
+    tests = [ActorPixelTests(name) for name in vars(ActorPixelTests) if name.startswith('test_')]
+    tests.append(PresentationPixelFenceTests('test_pixels_are_withheld_when_later_presentation_check_revokes_actor'))
+    return unittest.TestSuite(tests)
 
 
 if __name__ == '__main__':

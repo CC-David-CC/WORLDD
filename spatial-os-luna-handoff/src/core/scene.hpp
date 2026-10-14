@@ -1,10 +1,13 @@
 #pragma once
 #include "core/geometry.hpp"
 #include "core/protocol.hpp"
+#include <string_view>
 #include <vector>
 namespace spatial {
 Pose scene_pose(const wire::Pose& value);
 void validate_render_config(const wire::RenderConfig& config);
+void validate_presentation_views(const wire::RenderScene& scene, std::string_view expected_room = {});
+void validate_presentation_views(const wire::ActorObservation& observation);
 void validate_render_extent(std::uint32_t width, std::uint32_t height);
 void validate_observation_extent(std::uint32_t width, std::uint32_t height, bool include_pixels);
 wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire::Entity& actor,

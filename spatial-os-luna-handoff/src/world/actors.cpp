@@ -1,5 +1,7 @@
 #include "world/actors.hpp"
 #include "world/geometry_view_validation.hpp"
+#include "world/workspace_presentations.hpp"
+#include "world/presentation_geometry.hpp"
 #include "platform/broker.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
@@ -7,6 +9,7 @@
 #include "core/scene.hpp"
 #include <google/protobuf/text_format.h>
 #include <sys/random.h>
+#include <limits>
 #include <algorithm>
 #include <cerrno>
 #include <cmath>
@@ -75,6 +78,62 @@ Actors::Actor& Actors::authenticated(const std::string& token) {
 }
 bool Actors::granted(const Actor& actor, const std::string& right, const std::vector<std::string>& components) const {
     return actor.authority ? actor.authority(right, components) : actor.grants.contains(right);
+}
+std::optional<broker_wire::ScopedAuthorityCheckReply> Actors::workspace_check(
+    const Actor& actor, const std::string& workspace, authority::v1::Right right,
+    const std::vector<std::string>& components, std::vector<broker_wire::AuthorizationFence>* fences) {
+    if (!broker_ || !actor.principal || workspace.empty()) return std::nullopt;
+    broker_wire::ScopedAuthorityCheckRequest check;
+    check.set_workspace(workspace); *check.mutable_principal() = *actor.principal; check.set_right(right);
+    for (const auto& component : components) check.add_components(component);
+    try {
+        auto reply=broker_->scoped_authority_check(check);
+        if (fences) {
+            broker_wire::AuthorizationFence stamp;
+            stamp.set_incarnation(reply.incarnation()); stamp.set_epoch(reply.epoch());
+            fences->push_back(std::move(stamp));
+        }
+        return reply;
+    }
+    catch (const WorldError& error) {
+        if (error.code == wire::NOT_FOUND || error.code == wire::FORBIDDEN || error.code == wire::UNAVAILABLE) return std::nullopt;
+        throw;
+    }
+}
+bool Actors::workspace_right(const Actor& actor, const std::string& workspace, authority::v1::Right right,
+                             const std::vector<std::string>& components) {
+    const auto decision=workspace_check(actor,workspace,right,components);
+    return decision && decision->allowed();
+}
+void Actors::validate_presentation_placement(const std::string& room, const wire::Pose& pose,
+                                               const std::string& exclude_id) {
+    if (store_.get(room).kind() != wire::ROOM) throw WorldError(wire::INVALID_ARGUMENT, "Presentation room is invalid");
+    const auto center=scene_pose(pose).p;
+    const double half=(config_.render().has_object_size()?config_.render().object_size():.2)/2;
+    const double radius=std::sqrt(3.0)*half;
+    const double diameter=2*radius;
+    const auto snapshot=store_.snapshot();
+    for (const auto& entity : snapshot.entities()) {
+        if (entity.room()!=room) continue;
+        if (entity.kind()==wire::OBJECT) {
+            const auto p=scene_pose(entity.pose()).p;
+            if (std::hypot(center[0]-p[0],center[1]-p[1],center[2]-p[2]) < diameter)
+                throw WorldError(wire::INVALID_ARGUMENT,"Presentation placement overlaps an object");
+        } else if (entity.kind()==wire::BARRIER) {
+            const auto local=inverse_point(scene_pose(entity.pose()),center);
+            const auto& low=entity.bounds().min(); const auto& high=entity.bounds().max();
+            if (local[0]>=low.x()-radius && local[0]<=high.x()+radius &&
+                local[1]>=low.y()-radius && local[1]<=high.y()+radius &&
+                local[2]>=low.z()-radius && local[2]<=high.z()+radius)
+                throw WorldError(wire::INVALID_ARGUMENT,"Presentation placement overlaps a room collider");
+        }
+    }
+    for (const auto& other : store_.presentations()) {
+        if (other.room_id!=room || other.id==exclude_id) continue;
+        const auto p=scene_pose(other.pose).p;
+        if (std::hypot(center[0]-p[0],center[1]-p[1],center[2]-p[2]) < diameter)
+            throw WorldError(wire::INVALID_ARGUMENT,"Presentation placement overlaps another presentation");
+    }
 }
 void Actors::consume_sequence(const std::string& token, std::uint64_t sequence) {
     auto& actor = authenticated(token);
@@ -269,6 +328,181 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         wire::ActorActionReply result; result.set_accepted(true); *result.mutable_aim() = actor.aim;
         return result;
     }
+    case wire::ActorActionRequest::kPresentationCreate: {
+        const auto& input = request.presentation_create();
+        if (input.protocol_version() != 1 || input.operation_id().size() != 16 || input.workspace_id().empty() ||
+            !input.has_transform() || !actor.principal)
+            throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation create request");
+        (void)scene_pose(input.transform());
+        if (!broker_)
+            throw WorldError(wire::UNAVAILABLE, "Workspace authorization broker is unavailable");
+        const auto room = input.has_room_id() ? input.room_id() : store_.info().entry_room();
+        const std::vector<std::string> scope{room};
+        if (!granted(actor, "presentation.create", scope)) throw WorldError(wire::FORBIDDEN, "Presentation placement authority required");
+        if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH))
+            throw WorldError(wire::FORBIDDEN, "Workspace presentation attachment authority required");
+        if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH) ||
+            !granted(actor, "presentation.create", scope))
+            throw WorldError(wire::FORBIDDEN, "Presentation creation authority changed");
+        const auto principal = actor.principal->issuer_id() + actor.principal->actor_id();
+        const auto replay = store_.presentation_operation(input.operation_id(), request_digest(input), principal,
+                                                           WorkspacePresentationOperation::create);
+        if (replay) {
+            if (replay->removed) throw WorldError(wire::STORAGE_ERROR, "Invalid create operation receipt");
+            const auto& committed=replay->presentation;
+            if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH) ||
+                !granted(actor,"presentation.create",scope))
+                throw WorldError(wire::FORBIDDEN,"Presentation creation authority changed");
+            const bool locked=!workspace_right(actor,committed.workspace_id,authority::v1::WORKSPACE_ACCESS);
+            if (!granted(actor,"presentation.create",scope))
+                throw WorldError(wire::FORBIDDEN,"Presentation creation authority changed");
+            const std::vector<std::string> view_scope{committed.room_id,committed.id};
+            if (!granted(actor,"observe",view_scope) || !granted(actor,"representation.view",view_scope))
+                throw WorldError(wire::FORBIDDEN,"Presentation view authority changed");
+            wire::ActorActionReply reply; reply.set_accepted(true);
+            auto* view=reply.mutable_presentation(); view->set_representation_id(committed.id); view->set_room_id(committed.room_id);
+            *view->mutable_transform()=committed.pose; view->set_generation(committed.generation); view->set_locked(locked);
+            return reply;
+        }
+        validate_presentation_placement(room, input.transform());
+        std::string id(16, '\0');
+        std::size_t offset = 0;
+        while (offset < id.size()) {
+            const auto count = getrandom(id.data() + offset, id.size() - offset, 0);
+            if (count < 0 && errno == EINTR) continue;
+            if (count <= 0) throw std::runtime_error("Cannot obtain presentation identity entropy");
+            offset += static_cast<std::size_t>(count);
+        }
+        if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH) ||
+            !granted(actor, "presentation.create", scope))
+            throw WorldError(wire::FORBIDDEN, "Presentation creation authority changed");
+        WorkspacePresentation desired{id, input.workspace_id(), room, input.transform(), 0};
+        const auto created = store_.create_presentation(desired, input.expected_world_revision(), input.operation_id(),
+                                                        request_digest(input), principal);
+        wire::ActorActionReply reply; reply.set_accepted(true);
+        auto* view = reply.mutable_presentation(); view->set_representation_id(created.id); view->set_room_id(created.room_id);
+        *view->mutable_transform() = created.pose; view->set_generation(created.generation);
+        view->set_locked(!workspace_right(actor, created.workspace_id, authority::v1::WORKSPACE_ACCESS));
+        const std::vector<std::string> view_scope{created.room_id,created.id};
+        if (!granted(actor,"observe",view_scope) || !granted(actor,"representation.view",view_scope))
+            throw WorldError(wire::FORBIDDEN,"Presentation view authority changed");
+        return reply;
+    }
+    case wire::ActorActionRequest::kPresentationMove:
+    case wire::ActorActionRequest::kPresentationRemove: {
+        const bool moving = request.action_case() == wire::ActorActionRequest::kPresentationMove;
+        const auto& id = moving ? request.presentation_move().representation_id() : request.presentation_remove().representation_id();
+        const auto& operation = moving ? request.presentation_move().operation_id() : request.presentation_remove().operation_id();
+        const auto expected_generation = moving ? request.presentation_move().expected_representation_generation() :
+                                                   request.presentation_remove().expected_representation_generation();
+        if (operation.size() != 16 || id.size() != 16 || expected_generation == 0 || !actor.principal ||
+            (moving && (request.presentation_move().protocol_version()!=1 || request.presentation_move().room_id().empty() ||
+                        !request.presentation_move().has_transform())) ||
+            (!moving && request.presentation_remove().protocol_version()!=1))
+            throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation action request");
+        if (moving) (void)scene_pose(request.presentation_move().transform());
+        const auto source_room = actor.entity.room();
+        const auto principal = actor.principal->issuer_id() + actor.principal->actor_id();
+        const auto digest = moving ? request_digest(request.presentation_move()) : request_digest(request.presentation_remove());
+        const auto operation_kind = moving ? WorkspacePresentationOperation::move : WorkspacePresentationOperation::remove;
+        const auto receipt = store_.presentation_operation(operation, digest, principal, operation_kind);
+        if (receipt) {
+            if (receipt->source_room_id.empty())
+                throw WorldError(wire::STALE_TARGET, "Presentation replay scope is unavailable");
+            const auto recorded_source = receipt->source_room_id;
+            const auto destination = moving ? request.presentation_move().room_id() : recorded_source;
+            const std::vector<std::string> source_scope{recorded_source, id};
+            const std::vector<std::string> destination_scope{destination, id};
+            const auto source_allowed = granted(actor, "observe", source_scope) && granted(actor, "representation.view", source_scope);
+            const auto destination_allowed = granted(actor, "observe", destination_scope) && granted(actor, "representation.view", destination_scope);
+            if (!source_allowed || !destination_allowed ||
+                (moving ? (!granted(actor, "representation.move", source_scope) || !granted(actor, "representation.move", destination_scope)) :
+                          !granted(actor, "presentation.remove", source_scope)))
+                throw WorldError(wire::FORBIDDEN, "Presentation action authority required");
+            bool locked=true;
+            if (moving && !receipt->removed) {
+                const auto& committed = receipt->presentation;
+                locked=!workspace_right(actor, committed.workspace_id, authority::v1::WORKSPACE_ACCESS);
+            }
+            if (!granted(actor,"observe",source_scope) || !granted(actor,"representation.view",source_scope) ||
+                !granted(actor,"observe",destination_scope) || !granted(actor,"representation.view",destination_scope) ||
+                (moving ? (!granted(actor, "representation.move", source_scope) || !granted(actor, "representation.move", destination_scope)) :
+                          !granted(actor, "presentation.remove", source_scope)))
+                throw WorldError(wire::FORBIDDEN,"Presentation action authority changed");
+            wire::ActorActionReply reply; reply.set_accepted(true);
+            if (moving && !receipt->removed) {
+                const auto& committed=receipt->presentation;
+                auto* view=reply.mutable_presentation(); view->set_representation_id(committed.id); view->set_room_id(committed.room_id);
+                *view->mutable_transform()=committed.pose; view->set_generation(committed.generation); view->set_locked(locked);
+            }
+            return reply;
+        }
+        const std::vector<std::string> source_scope{source_room, id};
+        if (!granted(actor, "observe", source_scope) || !granted(actor, "representation.view", source_scope) ||
+            !granted(actor, moving ? "representation.move" : "presentation.remove", source_scope))
+            throw WorldError(wire::FORBIDDEN, "Presentation action authority required");
+        WorkspacePresentation current;
+        try { current = store_.presentation(id); }
+        catch (const WorldError& error) {
+            if (error.code == wire::NOT_FOUND) throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
+            throw;
+        }
+        if (current.room_id != source_room) throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
+        const auto camera = scene_pose(actor.entity.pose());
+        const auto target = scene_pose(current.pose);
+        if (std::hypot(target.p[0]-camera.p[0], target.p[1]-camera.p[1], target.p[2]-camera.p[2]) > config_.interaction_reach())
+            throw WorldError(wire::OUT_OF_REACH, "Presentation target exceeds interaction reach");
+        const auto observation = observe(actor, wire::ActorObserveRequest{});
+        if (actor.entity.room() != observation.room() || actor.entity.pose().SerializeAsString() != observation.pose().SerializeAsString())
+            throw WorldError(wire::STALE_TARGET, "Actor moved during presentation visibility check");
+        const auto geometry_id = presentation_geometry_id(id);
+        const auto visible = std::find_if(observation.visible().begin(), observation.visible().end(),
+            [&](const auto& item) { return item.id() == geometry_id && item.kind() == wire::OBJECT; });
+        if (visible == observation.visible().end() || visible->generation() != current.generation)
+            throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
+        WorkspacePresentation after_observe;
+        try { after_observe = store_.presentation(id); }
+        catch (const WorldError& error) {
+            if (error.code == wire::NOT_FOUND) throw WorldError(wire::STALE_TARGET, "Presentation changed during visibility check");
+            throw;
+        }
+        if (after_observe.generation != current.generation || after_observe.room_id != current.room_id ||
+            after_observe.pose.SerializeAsString() != current.pose.SerializeAsString())
+            throw WorldError(wire::STALE_TARGET, "Presentation changed during visibility check");
+        if (!granted(actor, "observe", source_scope) || !granted(actor, "representation.view", source_scope) ||
+            !granted(actor, moving ? "representation.move" : "presentation.remove", source_scope))
+            throw WorldError(wire::FORBIDDEN, "Presentation action authority changed");
+        if (moving) {
+            const auto& input = request.presentation_move();
+            if (input.protocol_version() != 1 || !input.has_transform() || input.room_id().empty())
+                throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation move request");
+            const std::vector<std::string> destination_scope{input.room_id(), id};
+            if (!granted(actor, "representation.move", destination_scope))
+                throw WorldError(wire::FORBIDDEN, "Destination presentation movement authority required");
+            const auto placement_revision=store_.info().world_revision();
+            validate_presentation_placement(input.room_id(), input.transform(), id);
+            if (!granted(actor, "observe", source_scope) || !granted(actor, "representation.view", source_scope) ||
+                !granted(actor, "representation.move", source_scope) || !granted(actor, "representation.move", destination_scope))
+                throw WorldError(wire::FORBIDDEN, "Presentation movement authority changed");
+            const auto moved = store_.move_presentation(id, input.room_id(), input.transform(), expected_generation,
+                operation, digest, principal, placement_revision);
+            wire::ActorActionReply reply; reply.set_accepted(true);
+            auto* view = reply.mutable_presentation(); view->set_representation_id(moved.id); view->set_room_id(moved.room_id);
+            *view->mutable_transform() = moved.pose; view->set_generation(moved.generation);
+            view->set_locked(!workspace_right(actor, moved.workspace_id, authority::v1::WORKSPACE_ACCESS));
+            const std::vector<std::string> view_scope{moved.room_id,moved.id};
+            if (!granted(actor,"observe",view_scope) || !granted(actor,"representation.view",view_scope))
+                throw WorldError(wire::FORBIDDEN,"Presentation view authority changed");
+            actor.aim.Clear(); return reply;
+        }
+        const auto& input = request.presentation_remove();
+        if (input.protocol_version() != 1) throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation remove request");
+        store_.remove_presentation(id, expected_generation, operation, digest, principal);
+        actor.aim.Clear(); break;
+    }
+    case wire::ActorActionRequest::kWorkspaceCopy:
+    case wire::ActorActionRequest::kWorkspaceCopyStatus:
+        throw WorldError(wire::UNIMPLEMENTED, "M07 workspace copy actions are not implemented");
     case wire::ActorActionRequest::ACTION_NOT_SET:
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }
@@ -498,7 +732,39 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
     if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
 }
-std::set<std::string> Actors::observable_applications(const Actor& actor, const std::vector<ObservedApplication>& applications) {
+void Actors::validate_authority_fence(const Actor& actor,
+        const std::vector<broker_wire::AuthorizationFence>& stamps) {
+    if (stamps.empty()) return;
+    if (!broker_ || !actor.principal) throw WorldError(wire::UNAVAILABLE,"Workspace authority fence unavailable");
+    broker_wire::AuthorizationFenceRequest request; *request.mutable_principal()=*actor.principal;
+    broker_wire::AuthorizationFence current;
+    try { current=broker_->authorization_fence(request); }
+    catch (const WorldError&) { throw WorldError(wire::UNAVAILABLE,"Workspace authority fence unavailable"); }
+    if (current.incarnation().size()!=16 || current.epoch()==0)
+        throw WorldError(wire::UNAVAILABLE,"Workspace authority fence is malformed");
+    for (const auto& stamp : stamps)
+        if (stamp.incarnation()!=current.incarnation() || stamp.epoch()!=current.epoch())
+            throw WorldError(wire::FORBIDDEN,"Workspace authority changed during operation");
+}
+bool Actors::observed_application_current(const Actor& actor, const ObservedApplication& item) const {
+    if (!surfaces_) return false;
+    try {
+        const auto current=surfaces_->application(item.handle);
+        const auto placement=surfaces_->get(item.handle.id());
+        return current && current->SerializeAsString()==item.application.SerializeAsString() &&
+            placement.room()==actor.entity.room();
+    } catch (const WorldError& error) {
+        if (error.code==wire::NOT_FOUND || error.code==wire::STALE_TARGET) return false;
+        throw;
+    }
+}
+bool Actors::observed_applications_current(const Actor& actor) const {
+    return std::all_of(actor.observed_applications.begin(),actor.observed_applications.end(),
+        [&](const auto& item) { return observed_application_current(actor,item); });
+}
+std::set<std::string> Actors::observable_applications(const Actor& actor,
+        const std::vector<ObservedApplication>& applications,
+        std::vector<broker_wire::AuthorizationFence>* fences) {
     std::set<std::string> allowed;
     if (applications.empty() || !actor.principal || !broker_ || !surfaces_) return allowed;
     workspace::v1::ApplicationAccessRequest request; *request.mutable_principal() = *actor.principal;
@@ -512,6 +778,11 @@ std::set<std::string> Actors::observable_applications(const Actor& actor, const 
     }
     const auto token = actor.token;
     const auto result = broker_->application_access(request);
+    if (fences) {
+        broker_wire::AuthorizationFence stamp;
+        stamp.set_incarnation(result.incarnation()); stamp.set_epoch(result.epoch());
+        fences->push_back(std::move(stamp));
+    }
     if (actor.token.empty() || actor.token != token || !granted(actor, "observe")) return allowed;
     for (const auto& item : applications) {
         if (!result.applications(groups.at(item.application.SerializeAsString())).observe()) continue;
@@ -526,13 +797,23 @@ std::set<std::string> Actors::observable_applications(const Actor& actor, const 
     }
     return allowed;
 }
-bool Actors::application_observation_valid(const std::string& token) {
+bool Actors::application_observation_valid(const std::string& token, std::vector<broker_wire::AuthorizationFence>* fences) {
     const auto& actor = authenticated(token);
     const auto applications = actor.observed_applications;
-    return observable_applications(actor, applications).size() == applications.size();
+    std::vector<broker_wire::AuthorizationFence> local;
+    auto* collected=fences ? fences : &local;
+    const bool valid=observable_applications(actor, applications, collected).size() == applications.size();
+    if (!fences) {
+        validate_authority_fence(actor,local);
+        if (valid && !observed_applications_current(actor)) return false;
+    }
+    return valid;
 }
-wire::RenderScene Actors::scene(const std::string& token, bool geometry_only) {
+wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
+        std::vector<broker_wire::AuthorizationFence>* fences) {
     auto& actor = authenticated(token);
+    std::vector<broker_wire::AuthorizationFence> local_fences;
+    auto* collected=fences ? fences : &local_fences;
     if (!geometry_only) actor.observed_applications.clear();
     require(config_.has_render(), "Render configuration is missing");
     refresh_objects();
@@ -553,13 +834,63 @@ wire::RenderScene Actors::scene(const std::string& token, bool geometry_only) {
             if (app && actor.principal) applications.push_back({surface.handle(), *app});
             else if (!actor.authority && (!app || !actor.principal)) diagnostic.insert(surface.handle().id());
         }
-        const auto allowed = observable_applications(actor, applications);
+        const auto allowed = observable_applications(actor, applications, collected);
         auto* surfaces = result.mutable_surfaces();
         for (int i = surfaces->size() - 1; i >= 0; --i)
             if (!allowed.contains(surfaces->Get(i).handle().id()) && !diagnostic.contains(surfaces->Get(i).handle().id()))
                 surfaces->DeleteSubrange(i, 1);
         for (const auto& app : applications) if (allowed.contains(app.handle.id())) actor.observed_applications.push_back(app);
     }
+    struct ProjectionCandidate { PresentationGeometry geometry; std::string workspace_id; };
+    std::vector<ProjectionCandidate> candidates;
+    const auto projection_room=actor.entity.room();
+    const auto projection_pose=actor.entity.pose().SerializeAsString();
+    for (const auto& record : store_.presentations()) {
+        if (record.room_id!=projection_room) continue;
+        const std::vector<std::string> scope{record.room_id,record.id};
+        if (!granted(actor,"observe",scope) || !granted(actor,"representation.view",scope)) continue;
+        const auto decision=workspace_check(actor,record.workspace_id,authority::v1::WORKSPACE_ACCESS,{},collected);
+        ProjectionCandidate candidate;
+        candidate.geometry={record.id,record.room_id,record.pose,record.generation,
+                            !decision || !decision->allowed(),false};
+        candidate.workspace_id=record.workspace_id;
+        candidates.push_back(std::move(candidate));
+    }
+    if (!fences) validate_authority_fence(actor,local_fences);
+    if (actor.entity.room()!=projection_room || actor.entity.pose().SerializeAsString()!=projection_pose)
+        throw WorldError(wire::STALE_TARGET,"Actor moved during scene projection");
+    if (!granted(actor,"observe"))
+        throw WorldError(wire::FORBIDDEN,"World observation authority changed during scene projection");
+    if (!geometry_only && !actor.observed_applications.empty()) {
+        auto* panels=result.mutable_surfaces();
+        for (int i=panels->size()-1;i>=0;--i) {
+            const auto handle=panels->Get(i).handle();
+            const auto found=std::find_if(actor.observed_applications.begin(),actor.observed_applications.end(),
+                [&](const auto& item) { return item.handle.SerializeAsString()==handle.SerializeAsString(); });
+            if (found!=actor.observed_applications.end() && !observed_application_current(actor,*found))
+                panels->DeleteSubrange(i,1);
+        }
+        actor.observed_applications.erase(std::remove_if(actor.observed_applications.begin(),actor.observed_applications.end(),
+            [&](const auto& item) { return !observed_application_current(actor,item); }),actor.observed_applications.end());
+    }
+    std::vector<PresentationGeometry> visible;
+    for (auto& candidate : candidates) {
+        const auto& old=candidate.geometry;
+        WorkspacePresentation current;
+        try { current=store_.presentation(old.representation_id); }
+        catch (const WorldError& error) {
+            if (error.code==wire::NOT_FOUND) throw WorldError(wire::STALE_TARGET,"Presentation changed during scene projection");
+            throw;
+        }
+        if (current.room_id!=old.room_id || current.generation!=old.generation ||
+            current.pose.SerializeAsString()!=old.pose.SerializeAsString())
+            throw WorldError(wire::STALE_TARGET,"Presentation changed during scene projection");
+        const std::vector<std::string> scope{old.room_id,old.representation_id};
+        if (!granted(actor,"observe",scope) || !granted(actor,"representation.view",scope)) continue;
+        visible.push_back(std::move(candidate.geometry));
+    }
+    append_presentation_geometry(result,projection_room,visible);
+    validate_presentation_views(result,projection_room);
     return result;
 }
 identity::v1::ActorGeometryView Actors::geometry_view(const std::string& token, const std::string& world_id,
@@ -587,6 +918,8 @@ identity::v1::ActorGeometryView Actors::geometry_view(const std::string& token, 
     copy(scene_data.panels(), result.mutable_panels()); copy(scene_data.barriers(), result.mutable_barriers());
     copy(scene_data.portals(), result.mutable_portals()); copy(scene_data.objects(), result.mutable_objects());
     copy(scene_data.actors(), result.mutable_actors());
+    for (const auto& metadata : scene_data.presentation_views())
+        *result.add_presentation_views()=metadata;
     return result;
 }
 wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
@@ -596,15 +929,57 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     validate_observation_extent(width, height, request.include_pixels());
     if (!renderer_) throw WorldError(wire::UNIMPLEMENTED, "Observation requires the compositor");
     refresh_native();
-    const auto view = scene(actor.token);
+    const auto rendered_room=actor.entity.room();
+    const auto rendered_pose=actor.entity.pose().SerializeAsString();
+    std::vector<broker_wire::AuthorizationFence> fences;
+    const auto view = scene(actor.token,false,&fences);
+    struct RenderedPresentation { std::string id, room, workspace; wire::Pose pose; std::uint64_t generation; bool allowed; };
+    std::vector<RenderedPresentation> rendered_presentations;
+    for (const auto& metadata : view.presentation_views()) {
+        const auto& representation=metadata.representation_id();
+        const auto scope=std::vector<std::string>{metadata.room_id(),representation};
+        if (!granted(actor,"observe",scope) || !granted(actor,"representation.view",scope))
+            throw WorldError(wire::FORBIDDEN,"Presentation observation authority changed");
+        const auto record=store_.presentation(representation);
+        if (record.room_id!=metadata.room_id() || record.generation!=metadata.generation() ||
+            record.pose.SerializeAsString()!=metadata.transform().SerializeAsString())
+            throw WorldError(wire::STALE_TARGET,"Presentation changed before observation");
+        const auto decision=workspace_check(actor,record.workspace_id,authority::v1::WORKSPACE_ACCESS,{},&fences);
+        const bool allowed=decision&&decision->allowed();
+        if (metadata.locked()==allowed)
+            throw WorldError(wire::UNAVAILABLE,"Workspace authority changed before rendering observation");
+        rendered_presentations.push_back({representation,record.room_id,record.workspace_id,record.pose,record.generation,allowed});
+    }
     wire::ActorObservation result;
     result.set_actor(actor.entity.id()); result.set_room(actor.entity.room());
     *result.mutable_pose() = view.camera(); result.set_world_revision(view.world_revision());
     result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
-    // Copy camera context before compositor I/O. The scheduler may move actors while waiting.
     const auto visibility = renderer_->observe(view, width, height, request.include_pixels());
-    if (!application_observation_valid(actor.token))
+    if (!application_observation_valid(actor.token,&fences))
         throw WorldError(wire::FORBIDDEN, "Application observation authority changed");
+    for (const auto& before : rendered_presentations) {
+        const auto decision=workspace_check(actor,before.workspace,authority::v1::WORKSPACE_ACCESS,{},&fences);
+        const bool allowed=decision&&decision->allowed();
+        const auto current=store_.presentation(before.id);
+        if (current.room_id!=before.room || current.workspace_id!=before.workspace ||
+            current.generation!=before.generation || current.pose.SerializeAsString()!=before.pose.SerializeAsString())
+            throw WorldError(wire::STALE_TARGET,"Presentation changed during observation");
+        if (allowed != before.allowed)
+            throw WorldError(wire::UNAVAILABLE,"Workspace authority changed during observation");
+    }
+    validate_authority_fence(actor,fences);
+    if (!observed_applications_current(actor))
+        throw WorldError(wire::FORBIDDEN,"Application surface changed during observation");
+    if (!granted(actor,"observe"))
+        throw WorldError(wire::FORBIDDEN,"Application observation authority changed");
+    for (const auto& before : rendered_presentations) {
+        const std::vector<std::string> scope{before.room,before.id};
+        if (!granted(actor,"observe",scope) || !granted(actor,"representation.view",scope))
+            throw WorldError(wire::FORBIDDEN,"Presentation observation authority changed");
+    }
+    if (actor.entity.room()!=rendered_room || actor.entity.pose().SerializeAsString()!=rendered_pose)
+        throw WorldError(wire::STALE_TARGET,"Actor moved during observation");
+    if (!granted(actor,"observe")) throw WorldError(wire::FORBIDDEN,"Application observation authority changed");
     result.set_frame_id(visibility.frame_id());
     if (visibility.has_image()) *result.mutable_image() = visibility.image();
     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
@@ -621,7 +996,16 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
         direction->set_y((height - 2.0 * (sample.pixel().y() + .5)) / (focal * height));
         direction->set_z(-1);
     }
-    for (const auto& [id, item] : visible) { (void)id; *result.add_visible() = item; }
+    std::set<std::string> visible_presentation_ids;
+    for (const auto& [id, item] : visible) {
+        *result.add_visible() = item;
+        if (item.kind()==wire::OBJECT && is_reserved_presentation_geometry_id(id))
+            visible_presentation_ids.insert(id);
+    }
+    for (const auto& metadata : view.presentation_views())
+        if (visible_presentation_ids.contains(presentation_geometry_id(metadata.representation_id())))
+            *result.add_presentation_views()=metadata;
+    validate_presentation_views(result);
     if (result.ByteSizeLong() > max_frame_bytes - 128)
         throw WorldError(wire::RESOURCE_EXHAUSTED, "Observation exceeds message limit");
     return result;
