@@ -42,4 +42,13 @@ class RoutingTests(unittest.TestCase):
             self.assertEqual((root/'source.cpp').read_text(),'modified')
             self.assertEqual(dirty.read_text(),'modified evidence');self.assertEqual(unique.read_text(),'unique')
             self.assertFalse((root/'spatial-os-luna-handoff/evidence/clean.json').exists())
+    def test_artifact_links_are_ignored_by_repository_policy(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base=Path(temp); root=base/'source'; (root/'spatial-os-luna-handoff').mkdir(parents=True)
+            (root/'.gitignore').write_bytes((SCRIPTS.parents[2]/'.gitignore').read_bytes())
+            subprocess.check_call(['git','init',str(root)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            subprocess.check_call(['git','-C',str(root),'add','.gitignore'])
+            links.configure(root,base/'artifacts')
+            names=subprocess.check_output(['git','-C',str(root),'ls-files','--others','--exclude-standard']).decode()
+            self.assertEqual(names,'')
 if __name__=='__main__':unittest.main()
