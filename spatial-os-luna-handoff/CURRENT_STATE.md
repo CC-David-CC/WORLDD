@@ -1,3 +1,28 @@
+## 2026-10-14: Full copy-engine attempt stopped during fixture import
+
+The first frozen14 eleven-method Debug attempt ran zero test methods on sb16.
+The fixture could not import world_session_pb2 through test_workspace_authority.
+Both outer exit receipts were 1. This is a packaging failure, not an engine result.
+The harness then obscured the import failure with its expected-volume-count assertion.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine14a-debug11-v1-evidence.
+The cleanup report records absent helpers, no declared volumes, and an absent delegated scope.
+Its exact transient service was collected. The launcher was gone.
+
+The primary reviewed three setup corrections in immutable source-review-v2-06.
+CMake now declares the fixture's world-session generated-binding dependency.
+A maintained inspector imports the actual fixture and discovers all eleven selected methods.
+The harness runs that inspector before helper installation and preserves the original inner failure.
+Snapshot manifest: 0a1e472105c216d8cc86370988f386821c8b12fe48353407c01717e36cb646a0.
+All three source hashes match. Existing sixteen production executable hashes remain unchanged.
+The corrected sb16 Debug retry is authorized after target discovery passes.
+Its runtime result remains pending. Sanitizer and second-host engine checks remain unrun.
+
+The separate cross-host native witness remains under source review.
+Review found a Boolean cleanup-receipt mismatch and a missing descendant-discovery helper.
+It also found an initial-world assertion before transition and an invalid cross-room move sequence.
+Constructor failure cleanup needs correction before runtime testing.
+These are fixture defects. No production authorization weakening is authorized.
+M07 remains in implementation and focused integration. Full combined qualification remains ahead.
 ## 2026-10-14: Local native workspace witness passed both profiles on both hosts
 
 The repaired local witness passed one exact method per profile on both hosts. Four named executions passed.
