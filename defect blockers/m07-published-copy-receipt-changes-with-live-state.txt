@@ -1,0 +1,22 @@
+M07 published-copy receipts change with later state mappings
+
+Status: source-confirmed recovery defect in an unintegrated draft. Correction and regression remain pending.
+Date: 2026-10-14.
+Host: middle-child.
+Source snapshot: spatial-artifacts/m07-engine-completion-20261014/source-review-v2-03.
+File: spatial-os-luna-handoff/src/workspace/storage_owner.cpp.
+
+copy_destination_inspect reconstructs a published receipt instead of returning its stored receipt.
+Repeated copy_destination_prepare also reconstructs that receipt.
+destination_receipt reads the current destination state_mapping_revision.
+A later configured-state quota reassignment can increase that revision.
+The same completed copy operation can then return different receipt bytes.
+The client requires the original fresh publication revision and can fence the owner channel.
+This conclusion comes from source review. A runtime reproducer remains pending.
+
+Return the exact durable published receipt after validating its allocation and publication bindings.
+Inspect current mutable state separately before granting live directory access.
+Do not reconstruct historical publication evidence from mutable state.
+Test exact retry and inspection after destination state use, reassignment, and restart.
+Require unchanged original receipt bytes and unchanged operation identity.
+Keep missing or inconsistent receipts uncertain. Do not invent a successful historical receipt.

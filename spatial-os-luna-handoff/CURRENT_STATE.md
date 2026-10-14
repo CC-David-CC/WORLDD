@@ -1,3 +1,27 @@
+## 2026-10-14: Engine review03 compile exposed a missing journal-test link dependency
+
+The primary verified all 26 task-file hashes and reviewed the nine changed-file deltas in source-review-v2-03.
+Both finalizer entrypoints now reject conflicting job modes. Their runtime regression remains unrun.
+Review found that published-copy inspection reconstructs receipts from mutable destination mapping state.
+Exact receipt reuse and independent configured-state quota checks still need correction and runtime evidence.
+The new two-application, optional-class, and finalizer regression methods remain unrun.
+
+The frozen preflight12-v2 Debug build failed while linking workspace-copy-journal-test.
+copy_collections.hpp now calls validate_message, but that test target lacks the production validation dependency.
+The primary inspected the linker diagnostic and both terminal exits. Both exits were 2.
+Evidence: middle-child:/home/dflanag3/spatial-artifacts/m07-engine-completion-20261014/preflight12-v2/run-build.
+The worker must correct the normal target dependency and rebuild the affected closure.
+This engine build differs from the earlier combined component build, which passed.
+
+The local native witness reached further after its compositor-topology correction.
+It exposed a missing actor authentication step, then a database-ID encoding mismatch in the new fixture.
+The server correctly denied the unauthenticated request. No production authorization bypass was found.
+The raw protobuf representation ID must be hex-encoded for the database TEXT key.
+The corrected fixture preserves the explicit missing-row assertion after representation removal.
+Its latest source-only checkpoint is d703c4f9b9669336b67d60bd82c72bc7a794d1b9 on box-git.
+The corrected runtime retry, sanitizer case, and dual-native cross-host witness remain pending.
+M07 remains incomplete. Full candidate freeze and both-host qualification remain pending.
+
 ## 2026-10-14: Combined component builds passed; native witness correction pending runtime
 
 The reviewed component branch is m07/component-integration-20261014 at c21adfb3ae8e19a32ef479dc21b343d2a2f4625c.

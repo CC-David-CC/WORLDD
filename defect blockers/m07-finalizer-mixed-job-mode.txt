@@ -18,5 +18,7 @@ Use an otherwise-valid mixed-mode request for the negative regression.
 Run a valid finalization control through the same confined helper.
 Keep protocol versions, descriptor bounds, and unknown-field checks strict.
 
-The worker reports both guards and the confined regression implemented in a later draft.
-Primary delta review, compilation, and runtime evidence remain pending.
+The primary verified both guards and the confined regression in immutable source-review-v2-03.
+Its manifest SHA is 2613777a3e8f0eef58a228f1297c2170977542d1206e6d8c62159b49e7616940.
+The first Debug closure failed at an unrelated journal-test link dependency. Runtime evidence remains pending.
+The direct helper regression does not exercise the private launcher constructor guard.
