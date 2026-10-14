@@ -1,0 +1,49 @@
+M07 workspace copy status response exceeds the actor deadline
+
+Status: REPRODUCED. Root cause remains under investigation.
+
+Host: sb16. Profile: Debug. Candidate: frozen engine19.
+Base commit: 02dbb69b7dc26a71ff8742b321b00d68813b102d plus reviewed changes.
+Source manifest SHA256: b7485602706fba3d4925163ce284bd58058af279ab01a5d11472c11957bb7f71.
+Package metadata SHA256: 1d236af96fbf5cb0658c113fb55a82c8b1db940b82ceb539a32946a718ec2974.
+
+Failing method: test_copy_broker_wait_keeps_action_issuer_alive_beyond_tls_idle.
+One method ran in 17.175 seconds. Command and wrapper exits were one.
+The workspace_copy_status request exceeded the actor receive helper's five-second deadline.
+The issuer remained alive. Its recorded memory events show no OOM.
+The journal progressed beyond the intentionally delayed BEGIN reply.
+It recorded the first domain's stage-seal and the second domain's pending worker-output intent.
+These observations do not prove the cause of the unanswered status request.
+Do not increase timeouts or retry uncertain external effects to conceal this failure.
+
+Source review found a separate responsiveness risk.
+The broker advances copies before reading and dispatching ordinary root requests.
+One advancement pass can perform several synchronous owner exchanges and authority checks.
+Storage progress does not dispatch ordinary root requests. Each owner exchange has its own five-second bound.
+Status revalidation also performs owner catalog I/O. It must preserve fresh authorization and existing busy guards.
+The asynchronous-copy contract requires prompt status. Issuer keepalive alone does not ensure that behavior.
+The exact blocking call in this run remains unproven.
+Next diagnosis needs timestamps for actor status, broker dispatch, copy stages, and owner exchanges.
+David identified that slow work must not block status or authority handling.
+Keep the broker event loop responsive while owner replies are pending.
+Separate copy workers already exist. Synchronous coordination can still block their broker.
+Evaluate asynchronous coordination or isolated workers after measuring the exact waits.
+Preserve one ordered state transition path, fresh authorization, revocation, cancellation, and generation checks.
+Do not publish a late worker result after its authority becomes invalid.
+
+Evidence limitation: cleanup removed the private relay timing audits from the operator directory.
+The failed method did not copy those audits into retained evidence before cleanup.
+Preserve these audits before operator cleanup in the next diagnostic candidate.
+Retained logs, journal summaries, issuer records, and the detached image remain available.
+
+Evidence on sb16:
+/home/dflanag3/spatial-artifacts/runs/m07-engine19-owner1-debug-v1-outer
+/home/dflanag3/spatial-artifacts/runs/m07-engine19-owner1-debug-v1-evidence
+The primary read the complete failure trace, issuer-lifetime record, and journal summary.
+Cleanup preserved the failed volume image and detached its loop and mounts.
+Candidate helpers were restored absent. Task processes, unit, and scope were removed.
+
+Separate broker checks passed five methods in 32.139 seconds on this Debug candidate.
+They cover revocation, issuer shutdown, owner disconnect, half-close, and queued-request isolation during delayed INFO.
+Those passes do not prove successful workspace-copy publication.
+Sanitizer and second-host reproduction remain unrun for this failure.

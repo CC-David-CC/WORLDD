@@ -1,3 +1,43 @@
+## 2026-10-14: Focused runtime checks pass broker repairs; copy status still fails
+
+The user authorized this focused runtime round after pausing the broader milestone work.
+Frozen engine19 uses source manifest b7485602706fba3d4925163ce284bd58058af279ab01a5d11472c11957bb7f71.
+Five broker-progress tests and nine owner-channel regressions passed both profiles on both qualification hosts.
+This is 56 passing executions. Every command and wrapper exit was zero.
+Debug broker5/owners9 times were 32.139/17.599 seconds on sb16 and 37.337/27.071 seconds on sb16-2.
+Sanitizer times were 35.725/24.273 seconds on sb16 and 41.645/34.807 seconds on sb16-2.
+Sanitizer runs used the qualified ASan/UBSan XACE server wrapper and eight instrumented project executables.
+Final issuer, broker, and native-server logs were retained and scanned without sanitizer reports.
+Cleanup verified task processes, units, and cgroups absent. These suites did not change global helpers or create volumes.
+The primary inspected translated launch plans, terminal results, exit receipts, and the shutdown-log retention paths.
+Evidence on each host: /home/dflanag3/spatial-artifacts/runs/m07-engine19-{broker5,owners9}-{debug,san}-v1-{outer,evidence}.
+
+The separate real-copy control failed on sb16 Debug: one method ran in 17.175 seconds, with exits one.
+Its workspace_copy_status request exceeded the actor receive helper's five-second deadline.
+The real issuer remained alive. Journal progress passed the intentionally delayed BEGIN stage.
+Source review found synchronous copy advancement before ordinary broker request dispatch.
+This creates a responsiveness risk. The exact blocking span remains unproven without further timing records.
+Read defect blockers/m07-copy-status-response-deadline.txt for evidence and the next diagnostic boundary.
+The failed image remains detached and preserved. Candidate helpers were restored absent.
+No timeout increase, uncertain effect replay, or new production fix was applied in this test round.
+Real-copy sanitizer and second-host repetition remain unrun after this failure.
+
+Participant-domain addition passed ten new tests and 144 existing authority regressions on each host in Debug.
+Two new-test defects were corrected through an explicit source-only overlay. Production binaries were unchanged.
+The corrected overlay uses SHA256 d38852496c21cd517f30c422c59aff8f120942b69ce646132bafeff54d3a5221.
+Authority sanitizer checks also passed all 154 methods on each host.
+The final authority matrix contains 32 passing registrations and 616 passing method executions.
+Each final command and wrapper exit was zero. Persistent per-process ASan/UBSan report paths remained empty.
+These paths prevent fixture cleanup from deleting shutdown diagnostics. The earlier run without them was superseded.
+No issuer or package test processes remained after cleanup.
+Evidence on each host: /home/dflanag3/spatial-artifacts/m07-participant-domain-addition-20261014/runtime.
+The external focused-runtime-handoff-v1.md records all results and fourteen source hashes on a5500.
+Its SHA256 is 0c60706f1ea10be48579640f8c8df9717d75c4e874589bbb51f69fe204d84154.
+Broker checkpoint 9294323c75fc20dfacd5f4f572e0d3ab8049d8b1 is verified on box-git, not integrated.
+Authority checkpoint e7ef76f3685e6a58d138f271f5989dbba1e22d24 is also verified on box-git, not integrated.
+Both task worktrees are clean. Runtime jobs ended, and both qualification lanes are released.
+M07 remains unqualified. Combined integration, source freeze, remaining copy-fault coverage, and the full gate remain pending.
+
 ## 2026-10-14: Broker regressions expose owner-loss polling; obsolete builds removed
 
 The frozen 18a broker Debug package passed source, executable, graphics, and target verification.
