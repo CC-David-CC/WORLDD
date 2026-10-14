@@ -57,6 +57,16 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
             return db.execute('SELECT workspace_id,room_id,pose,generation FROM workspace_presentations WHERE id=?',
                               (representation_id,)).fetchone()
 
+    def presentation_state(self, world):
+        uri = 'file:' + str(world.state_path / 'world.db') + '?mode=ro'
+        with closing(sqlite3.connect(uri, uri=True)) as db:
+            return {
+                'available': db.execute("SELECT COUNT(*) FROM world_workspaces WHERE id='one'").fetchone()[0],
+                'selected': db.execute('SELECT COUNT(*) FROM actor_workspaces').fetchone()[0],
+                'presentations': db.execute('SELECT COUNT(*) FROM workspace_presentations').fetchone()[0],
+                'operations': db.execute('SELECT COUNT(*) FROM workspace_presentation_ops').fetchone()[0],
+            }
+
     def create_presentation(self, world, peer, x):
         info = world.management('world.info')
         result = peer.act(presentation_create=core.PresentationCreateRequest(
