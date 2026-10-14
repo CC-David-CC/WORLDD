@@ -20,6 +20,8 @@ void require(bool condition, const char* message) { if (!condition) throw std::i
 }
 struct StorageClient::Impl {
     std::filesystem::path volume;
+    int volume_fd = -1;
+    std::string filesystem_id;
     std::unique_ptr<StorageChannel> channel;
     std::uint64_t sequence = 0;
     std::function<void()> observer;
@@ -33,6 +35,9 @@ struct StorageClient::Impl {
             filesystem.f_type != BTRFS_SUPER_MAGIC || fstat(root.value, &directory) < 0 || directory.st_ino != 256 ||
             ioctl(root.value, BTRFS_IOC_GET_SUBVOL_INFO, &subvolume) < 0 || subvolume.treeid != 5 ||
             ioctl(root.value, BTRFS_IOC_FS_INFO, &info) < 0) unavailable();
+        volume_fd=fcntl(root.value,F_DUPFD_CLOEXEC,3);
+        if(volume_fd<0) unavailable();
+        filesystem_id=std::string(reinterpret_cast<char*>(info.fsid),BTRFS_FSID_SIZE);
         pb::StorageOwnerRequest request; request.mutable_hello();
         const auto reply = exchange(std::move(request), {});
         if (!reply.has_identity() || reply.identity().filesystem_id() !=
@@ -40,6 +45,7 @@ struct StorageClient::Impl {
             reply.identity().process_id() != static_cast<unsigned>(channel->peer_pid()) ||
             !reply.identity().accounting_consistent()) unavailable();
     }
+    ~Impl() { if(volume_fd>=0) close(volume_fd); }
     pb::StorageOwnerReply exchange(pb::StorageOwnerRequest request, const std::function<void()>& tick) {
         if (!channel || sequence == UINT64_MAX) unavailable();
         request.set_protocol_version(1); request.set_request_id(++sequence);
@@ -119,6 +125,32 @@ workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest re
 
 namespace spatial {
 namespace {
+bool valid_object_ref(const workspace::v1::StorageObject& object, workspace::v1::StorageObject::Kind kind) {
+    return object.kind()==kind && object.id().size()==32 &&
+        object.id().find_first_not_of("0123456789abcdef")==std::string::npos;
+}
+bool valid_stage_receipt(const workspace::v1::StorageCopyStageReceipt& r,
+                         const std::string& operation,const std::string& digest) {
+    using Receipt=workspace::v1::StorageCopyStageReceipt;
+    const bool known=r.state()==Receipt::PREPARED||r.state()==Receipt::COPYING||
+        r.state()==Receipt::SEALED||r.state()==Receipt::UNCERTAIN;
+    if(!known||r.operation_id()!=operation||r.request_digest()!=digest||
+       !valid_object_ref(r.snapshot_object(),workspace::v1::StorageObject::SNAPSHOT)||
+       !valid_object_ref(r.destination_object(),workspace::v1::StorageObject::COPY_STAGING)||
+       !r.source_subvolume_id()||!r.destination_subvolume_id()||
+       r.source_subvolume_id()==r.destination_subvolume_id()||
+       !r.maximum_bytes()||r.maximum_bytes()>4ULL*1024*1024*1024||
+       !r.maximum_entries()||r.maximum_entries()>200000||
+       r.actual_bytes()>r.maximum_bytes()||r.actual_entries()>r.maximum_entries()||
+       (r.claimed()&&r.state()!=Receipt::COPYING)) return false;
+    if(r.state()==Receipt::PREPARED)
+        return !r.claimed()&&!r.actual_bytes()&&!r.actual_entries()&&r.content_digest().empty();
+    if(r.state()==Receipt::COPYING)
+        return !r.actual_bytes()&&!r.actual_entries()&&r.content_digest().empty();
+    if(r.state()==Receipt::SEALED)
+        return !r.claimed()&&r.content_digest().size()==32;
+    return !r.claimed()&&!r.actual_bytes()&&!r.actual_entries()&&r.content_digest().empty();
+}
 void copy_error(const workspace::v1::StorageOwnerReply& reply) {
     namespace pb = workspace::v1;
     if (!reply.has_error()) return;
@@ -131,65 +163,90 @@ void copy_error(const workspace::v1::StorageOwnerReply& reply) {
         reply.error().message().c_str());
 }
 }
-std::filesystem::path StorageClient::object_path(const workspace::v1::StorageObjectState& state) const {
+int StorageClient::open_object(const workspace::v1::StorageObjectState& state) const {
     namespace pb = workspace::v1;
-    require(state.accounting_consistent() && state.subvolume_id() > 0 && state.object().id().size()==32 &&
-        state.object().id().find_first_not_of("0123456789abcdef")==std::string::npos,
-        "Unverified storage path identity");
-    const char* collection = nullptr;
-    switch (state.object().kind()) {
+    require(state.accounting_consistent() && state.subvolume_id()>0 &&
+        state.object().id().size()==32 && state.object().id().find_first_not_of("0123456789abcdef")==std::string::npos,
+        "Unverified storage object identity");
+    const char* collection=nullptr;
+    switch(state.object().kind()) {
     case pb::StorageObject::PROJECT: collection="worktrees"; break;
     case pb::StorageObject::REPOSITORY: collection="repositories"; break;
     case pb::StorageObject::APPLICATION_STATE: collection="applications"; break;
     case pb::StorageObject::SNAPSHOT: collection="snapshots"; break;
     case pb::StorageObject::COPY_STAGING: collection="staging"; break;
-    default: throw WorldError(wire::INVALID_ARGUMENT,"Storage object has no copy path");
+    default: throw WorldError(wire::INVALID_ARGUMENT,"Storage object has no copy descriptor");
     }
-    auto path=impl_->volume/collection/(state.object().id()+(state.object().kind()==pb::StorageObject::REPOSITORY?".git":""));
-    if(path.parent_path()!=impl_->volume/collection || !std::filesystem::is_directory(path) || std::filesystem::is_symlink(path))
-        throw WorldError(wire::UNAVAILABLE,"Registered storage path changed");
-    return path;
+    identity::tls_detail::Fd directory(openat(impl_->volume_fd,collection,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    if(directory.value<0) unavailable();
+    auto component=state.object().id();
+    if(state.object().kind()==pb::StorageObject::REPOSITORY)component+=".git";
+    identity::tls_detail::Fd object(openat(directory.value,component.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    struct stat status{}; btrfs_ioctl_get_subvol_info_args subvolume{}; btrfs_ioctl_fs_info_args fs{};
+    if(object.value<0 || fstat(object.value,&status)<0 || !S_ISDIR(status.st_mode) ||
+       ioctl(object.value,BTRFS_IOC_GET_SUBVOL_INFO,&subvolume)<0 ||
+       ioctl(object.value,BTRFS_IOC_FS_INFO,&fs)<0 ||
+       subvolume.treeid!=state.subvolume_id() ||
+       std::string(reinterpret_cast<char*>(fs.fsid),BTRFS_FSID_SIZE)!=impl_->filesystem_id ||
+       static_cast<bool>(subvolume.flags&BTRFS_SUBVOL_RDONLY)!=state.read_only()) {
+        impl_->channel.reset(); unavailable();
+    }
+    return std::exchange(object.value,-1);
 }
 workspace::v1::StorageCopyStageReceipt StorageClient::begin_copy_stage(const workspace::v1::StorageCopyStageBegin& request) {
     workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_begin()=request;
     const auto reply=impl_->exchange(std::move(message),{});
     copy_error(reply);
-    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() ||
-       reply.copy_stage().request_digest()!=request.request_digest() ||
+    if(!reply.has_copy_stage() || !valid_stage_receipt(reply.copy_stage(),request.operation_id(),request.request_digest()) ||
        reply.copy_stage().snapshot_object().SerializeAsString()!=request.snapshot_object().SerializeAsString() ||
-       reply.copy_stage().destination_object().SerializeAsString()!=request.destination_object().SerializeAsString())
-        unavailable();
+       reply.copy_stage().destination_object().SerializeAsString()!=request.destination_object().SerializeAsString() ||
+       reply.copy_stage().maximum_bytes()!=request.maximum_bytes() || reply.copy_stage().maximum_entries()!=request.maximum_entries()) {
+        impl_->channel.reset(); unavailable();
+    }
     return reply.copy_stage();
 }
 workspace::v1::StorageCopyStageReceipt StorageClient::start_copy_stage(const workspace::v1::StorageCopyStageStart& request) {
     workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_start()=request;
     const auto reply=impl_->exchange(std::move(message),{});
     copy_error(reply);
-    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() || reply.copy_stage().request_digest()!=request.request_digest()) unavailable();
+    if(!reply.has_copy_stage() || !valid_stage_receipt(reply.copy_stage(),request.operation_id(),request.request_digest()) ||
+       (reply.copy_stage().claimed() && reply.copy_stage().state()!=workspace::v1::StorageCopyStageReceipt::COPYING) ||
+       (!reply.copy_stage().claimed() && reply.copy_stage().state()==workspace::v1::StorageCopyStageReceipt::PREPARED)) {
+        impl_->channel.reset(); unavailable();
+    }
     return reply.copy_stage();
 }
 workspace::v1::StorageCopyStageReceipt StorageClient::seal_copy_stage(const workspace::v1::StorageCopyStageSeal& request) {
     workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_seal()=request;
     const auto reply=impl_->exchange(std::move(message),{});
     copy_error(reply);
-    if(!reply.has_copy_stage() || reply.copy_stage().state()!=workspace::v1::StorageCopyStageReceipt::SEALED ||
-       reply.copy_stage().operation_id()!=request.operation_id() || reply.copy_stage().request_digest()!=request.request_digest() ||
+    if(!reply.has_copy_stage() || !valid_stage_receipt(reply.copy_stage(),request.operation_id(),request.request_digest()) ||
+       reply.copy_stage().state()!=workspace::v1::StorageCopyStageReceipt::SEALED ||
+       reply.copy_stage().snapshot_object().SerializeAsString()!=request.snapshot_object().SerializeAsString() ||
+       reply.copy_stage().destination_object().SerializeAsString()!=request.destination_object().SerializeAsString() ||
        reply.copy_stage().actual_bytes()!=request.actual_bytes() || reply.copy_stage().actual_entries()!=request.actual_entries() ||
-       reply.copy_stage().content_digest()!=request.content_digest()) unavailable();
+       reply.copy_stage().content_digest()!=request.content_digest()) {
+        impl_->channel.reset(); unavailable();
+    }
     return reply.copy_stage();
 }
 workspace::v1::StorageCopyStageReceipt StorageClient::mark_copy_stage_uncertain(const workspace::v1::StorageCopyStageUncertain& request) {
     workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_uncertain()=request;
     const auto reply=impl_->exchange(std::move(message),{}); copy_error(reply);
-    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() || reply.copy_stage().request_digest()!=request.request_digest()) unavailable();
+    if(!reply.has_copy_stage() || !valid_stage_receipt(reply.copy_stage(),request.operation_id(),request.request_digest()) ||
+       (reply.copy_stage().state()!=workspace::v1::StorageCopyStageReceipt::UNCERTAIN &&
+        reply.copy_stage().state()!=workspace::v1::StorageCopyStageReceipt::SEALED)) {
+        impl_->channel.reset(); unavailable();
+    }
     return reply.copy_stage();
 }
 workspace::v1::StorageCopyStageReceipt StorageClient::inspect_copy_stage(const workspace::v1::StorageCopyStageInspect& request) {
     workspace::v1::StorageOwnerRequest message; *message.mutable_copy_stage_inspect()=request;
     const auto reply=impl_->exchange(std::move(message),{});
     copy_error(reply);
-    if(!reply.has_copy_stage() || reply.copy_stage().operation_id()!=request.operation_id() ||
-       reply.copy_stage().request_digest()!=request.request_digest()) unavailable();
+    if(!reply.has_copy_stage() || !valid_stage_receipt(reply.copy_stage(),request.operation_id(),request.request_digest())) {
+        impl_->channel.reset(); unavailable();
+    }
     return reply.copy_stage();
 }
 

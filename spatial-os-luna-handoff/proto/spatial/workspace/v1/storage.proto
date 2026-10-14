@@ -135,6 +135,8 @@ message StorageCopyStageReceipt {
   bytes content_digest = 9;
   enum State { STATE_UNSPECIFIED = 0; PREPARED = 1; COPYING = 2; SEALED = 3; UNCERTAIN = 4; }
   bool claimed = 11;
+  uint64 maximum_bytes = 12;
+  uint32 maximum_entries = 13;
   State state = 10;
 }
 message StorageRetirementPrepare {

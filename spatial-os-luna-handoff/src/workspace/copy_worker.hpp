@@ -11,7 +11,7 @@ struct CopyWorkerReceipt { std::uint64_t bytes=0; std::uint32_t entries=0; std::
 workspace::v1::StorageCopyStageReceipt copy_registered_snapshot_to_staging(StorageClient& storage, WorkspaceResources& resources,
     const workspace::v1::StorageCopyStageBegin& intent, const std::function<void()>& progress = {});
 CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,
-    const std::filesystem::path& immutable_source, const std::filesystem::path& writable_destination,
-    std::uint64_t maximum_bytes, std::uint32_t maximum_entries,
+    int immutable_source_fd, int writable_destination_fd, std::uint64_t source_subvolume_id,
+    std::uint64_t destination_subvolume_id, std::uint64_t maximum_bytes, std::uint32_t maximum_entries,
     const std::function<void()>& progress = {});
 }

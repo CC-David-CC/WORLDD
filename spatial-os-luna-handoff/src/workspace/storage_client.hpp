@@ -14,7 +14,7 @@ public:
     void check_alive() const;
     workspace::v1::StorageObjectState call(workspace::v1::StorageOwnerRequest request,
                                          const std::function<void()>& tick = {});
-    std::filesystem::path object_path(const workspace::v1::StorageObjectState& registered) const;
+    int open_object(const workspace::v1::StorageObjectState& registered) const; // Caller owns returned descriptor.
     workspace::v1::StorageCopyStageReceipt begin_copy_stage(const workspace::v1::StorageCopyStageBegin& request);
     workspace::v1::StorageCopyStageReceipt start_copy_stage(const workspace::v1::StorageCopyStageStart& request);
     workspace::v1::StorageCopyStageReceipt seal_copy_stage(const workspace::v1::StorageCopyStageSeal& request);

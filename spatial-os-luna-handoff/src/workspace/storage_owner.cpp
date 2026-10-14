@@ -605,12 +605,12 @@ struct StorageOwner::Impl {
     }
 
     pb::StorageCopyStageReceipt copy_stage_receipt(const std::string& id) {
-        Query q(db, "SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,state,actual_bytes,actual_entries,content_digest FROM copy_stages WHERE operation_id=?");
+        Query q(db, "SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,state,actual_bytes,actual_entries,content_digest,maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?");
         q.blob(1,id); require(q.row(),"Unknown copy stage"); pb::StorageCopyStageReceipt r; r.set_operation_id(id);
         r.set_request_digest(q.blob(0)); r.mutable_snapshot_object()->set_kind(pb::StorageObject::SNAPSHOT); r.mutable_snapshot_object()->set_id(q.text(1));
         r.mutable_destination_object()->set_kind(static_cast<pb::StorageObject::Kind>(q.number(2))); r.mutable_destination_object()->set_id(q.text(3));
         r.set_source_subvolume_id(q.number(4)); r.set_destination_subvolume_id(q.number(5)); r.set_state(static_cast<pb::StorageCopyStageReceipt::State>(q.number(6)));
-        r.set_actual_bytes(q.number(7)); r.set_actual_entries(q.number(8)); r.set_content_digest(q.blob(9)); return r;
+        r.set_actual_bytes(q.number(7)); r.set_actual_entries(q.number(8)); r.set_content_digest(q.blob(9)); r.set_maximum_bytes(q.number(10)); r.set_maximum_entries(q.number(11)); return r;
     }
     pb::StorageCopyStageReceipt copy_stage_begin(const pb::StorageCopyStageBegin& r) {
         require(r.snapshot_object().kind()==pb::StorageObject::SNAPSHOT &&
