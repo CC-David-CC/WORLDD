@@ -1,3 +1,28 @@
+## 2026-10-14: Verified v2 fixture overlay; crosshost03 gate running
+
+The owner-guard fix is reviewed and verified on box-git at 6d62344ed550704c69406643ac03ae9aea52de46.
+All five focused guard regressions passed on each test host.
+Crosshost02 failed before cases because its overlay lacked derived provenance.
+Its cleanup completed without errors. Preserve crosshost01 and crosshost02.
+Read defect blockers/m06-fixture-overlay-provenance-missing.txt at the repository root.
+
+The corrected v2 wrapper passed all 13 controller static regressions.
+Its overlay preparations completed with command and wrapper exits zero on both hosts.
+Both hosts have the same 914-file effective source map and explicit helper correction.
+Production source, binaries, and validators remain unchanged.
+Wrapper SHA256: 5a7dff392bbdbacaebbb90ff12d1949a7bfd522ea1b92460c56ab12751e55fc7.
+Overlay manifest SHA256: c4735a171a24421e35b09ffe9465ec3969f9ca6de254602ad45e07f7c611e890.
+Derived provenance SHA256: 75c19e09aadd5ed8bca3f629e14c08dd2a0d95c0e193052ccb191212cc8c74f6.
+Overlay root on both hosts: /home/dflanag3/spatial-qualification/m06-owner-guard-overlay-20261014-v2/bundle.
+
+The full 48-check gate started in tmux m06-crosshost-overlay-v2-03 on sb16.
+Its exact wrapper PID was 2384941 at launch. Completion remains unproven.
+Plan SHA256: a1fe66f648e80194136d3f5bbedbbb4898b4669ab009a17bad63c14124f6be81.
+Helper receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff03.
+Evidence: /home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost03.
+Both local gate reports remain accepted. The 32 inherited cross-host regressions remain unrun.
+M01-M05 remain qualified. M06 remains active and unqualified. M07-M16 remain pending.
+
 ## 2026-10-13: Cross-host Debug fixture cleanup failed
 
 The cross-host gate is terminal with command and wrapper exits 2.
