@@ -1,0 +1,44 @@
+M07 application-state copy fails snapshot quota verification
+
+Status: CONFIRMED RUNTIME FAILURE. Root-cause verification and repair are pending.
+
+Frozen source: engine checkpoint 02bb2921ec371a22eaf998b764cc578458fac7a2 with reviewed setup06 overlay.
+Runtime: sb16 Debug, m07-engine15-debug11-v1.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine15-debug11-v1-evidence.
+Outer evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine15-debug11-v1-outer.
+
+The suite ran 11 methods in 134.921 seconds. Eight passed. Three failed.
+Both outer exit receipts were 1. The original harness and fixture processes exited.
+
+Failing methods:
+- test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch
+- test_optional_state_and_definition_copy_do_not_add_unselected_classes
+- test_copied_policy_mapping_and_exact_publication_receipt_survive_reassignment_restart_and_recopy
+
+Each operation returned COPY_UNCERTAIN. Each broker log records this reason:
+Storage quota limit requires checked recovery
+
+The shared failure occurs at phase 2, before the later publication assertions.
+Project/history copy methods passed. That does not prove optional-class copy correctness.
+
+Candidate cause:
+Configured application-state objects have individual quota limits.
+Snapshot inspection requires an unlimited individual snapshot quota, beneath its bounded parent quota group.
+Snapshot creation currently does not explicitly normalize that individual limit.
+Kernel snapshot code can inherit the source object's individual limit.
+Verify the actual kernel, source limits, and snapshot limits before declaring this cause confirmed.
+
+Kernel reference inspected:
+https://raw.githubusercontent.com/torvalds/linux/v6.17/fs/btrfs/qgroup.c
+The full-mode snapshot block copies source quota limits after processing explicit inheritance limits.
+Setting inheritance flags alone may therefore be insufficient.
+
+Required repair properties:
+Preserve source limits and parent quota membership.
+Preserve immutable snapshot identity and durable creation intent.
+Establish the expected individual limit before publishing a ready snapshot receipt.
+Reject changed limits on existing ready snapshots. Do not silently repair unrelated objects.
+Cover interruption and exact retry without weakening quota verification.
+Rerun the failed methods and related snapshot regressions before combined qualification.
+
+Sanitizer, second-host engine, and full M07 qualification remain unrun for this candidate.

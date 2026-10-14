@@ -1,3 +1,21 @@
+## 2026-10-14: Full engine Debug reached all eleven methods and exposed a quota defect
+
+The corrected sb16 Debug package imported the actual fixture and reached all eleven selected methods.
+Eight passed. Three failed in 134.921 seconds. Both outer exit receipts were 1.
+The primary read the terminal summary and all three failing broker diagnostics.
+All failures report Storage quota limit requires checked recovery at phase 2.
+They affect five-class copy, optional state/definitions, and the later publication/restart scenario.
+The publication assertions were not reached. Project/history controls passed.
+Read defect blockers/m07-application-state-copy-snapshot-quota.txt for the failure and repair requirements.
+Snapshot inheritance of individual application-state quota limits is under verification.
+Quota checks and parent workspace limits must remain enforced.
+
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine15-debug11-v1-evidence.
+The retained cleanup audit records eleven unmounted images without loop attachments.
+It also records both helpers absent, the exact unit collected, the adapter scope absent, and the launcher gone.
+The primary checked terminal exits and confirmed the original fixture and wrapper PIDs were absent.
+No sanitizer or second-host full-engine pass is claimed.
+M07 remains in focused integration. Its combined freeze and full gate remain pending.
 ## 2026-10-14: Full copy-engine attempt stopped during fixture import
 
 The first frozen14 eleven-method Debug attempt ran zero test methods on sb16.
