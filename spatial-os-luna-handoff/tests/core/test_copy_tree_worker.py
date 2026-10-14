@@ -13,6 +13,8 @@ from spatial.workspace.v1 import copy_worker_pb2
 BWRAP = Path("/usr/local/libexec/spatial-bwrap")
 
 def decode_result(result):
+    if any(marker in result.stderr for marker in (b'AddressSanitizer', b'LeakSanitizer', b'UndefinedBehaviorSanitizer', b'runtime error:')):
+        raise AssertionError(f"sanitizer diagnostics from confined worker: {result.stderr!r}")
     if result.returncode != 0 or len(result.stdout) < 5:
         raise AssertionError(f"worker did not return a protobuf result: {result.stderr!r}")
     size = int.from_bytes(result.stdout[:4], "big")
@@ -34,9 +36,17 @@ class CopyTreeWorkerTests(unittest.TestCase):
             command = [str(BWRAP), "--unshare-all", "--unshare-user", "--disable-userns",
                        "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv",
                        "--ro-bind", "/usr/bin", "/usr/bin", "--ro-bind", "/usr/lib", "/usr/lib",
-                       "--ro-bind", "/usr/lib64", "/usr/lib64", "--ro-bind", str(WORKER), "/copy-worker",
+                       "--ro-bind", "/usr/lib64", "/usr/lib64", "--ro-bind", "/usr/share", "/usr/share",
+                       "--symlink", "usr/bin", "/bin", "--symlink", "usr/lib", "/lib",
+                       "--symlink", "usr/lib64", "/lib64", "--proc", "/proc", "--dev", "/dev",
+                       "--tmpfs", "/tmp", "--setenv", "PATH", "/usr/bin:/bin",
+                       "--setenv", "HOME", "/nonexistent", "--setenv", "TMPDIR", "/tmp",
+                       "--setenv", "LC_ALL", "C", "--ro-bind", str(WORKER), "/copy-worker",
                        "--dir", "/source", "--dir", "/destination", "--ro-bind", str(source), "/source",
                        "--bind", str(destination), "/destination", "--ro-bind", request_file.name, "/job.pb"]
+            for variable in ('ASAN_OPTIONS', 'UBSAN_OPTIONS'):
+                if variable in os.environ:
+                    command.extend(['--setenv', variable, os.environ[variable]])
             if fail_readdir_after is not None:
                 command.extend(["--setenv", "SPATIAL_COPY_TEST_FAIL_READDIR_AFTER", str(fail_readdir_after)])
             command.extend(["--remount-ro", "/", "--", "/copy-worker"])
