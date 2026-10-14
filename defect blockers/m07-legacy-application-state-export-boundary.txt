@@ -1,0 +1,18 @@
+M07 legacy application-state export includes the runtime root
+
+Status: Source-confirmed defect in the unqualified copy engine. Corrected runtime verification remains pending.
+
+The schema-1 APPLICATION_STATE export has no typed persistent-subdomain contract.
+A catalog entry can identify an ordinary per-process state object.
+Copying that whole object can include home directories, logs, caches, and temporary runtime material.
+This source review does not establish a direct native X authorization-cookie export.
+No qualified all-class schema-1 copy result exists in this lineage.
+
+Reject new schema-1 application-state catalog admission before copy effects.
+Require schema-2 registration with explicit application-owned data and config subdomains.
+Keep process runtime directories and credentials separate from persistent application state.
+Preserve old journal evidence. Do not resume unsafe legacy export effects automatically.
+Require a controlled negative owner-admission regression and a successful real multi-application copy.
+
+Source: middle-child:/home/dflanag3/src/spacial-clean-m07-engine-completion, M07 v2 draft review on 2026-10-14.
+The implementation worker accepted this explicit export-contract correction.
