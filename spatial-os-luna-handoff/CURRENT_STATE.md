@@ -1,3 +1,17 @@
+## 2026-10-13: Cross-host Debug fixture cleanup failed
+
+The cross-host gate is terminal with command and wrapper exits 2.
+Its report says failed_or_incomplete. phase_complete remains false.
+Six Debug semantic case results were recorded. Cleanup failed at command 0058.
+guarded_pidfd rejected the recorded owner's process identity during stop.
+The recorded owner and worldd processes were absent during primary's later inspection.
+worldd.exit is zero. A fixture exit race is suspected but not yet proven.
+Read defect blockers/m06-crosshost-owner-cleanup-race.txt at the repository root.
+Preserve crosshost01. Do not change its failure status or retry without a reviewed correction.
+The remaining six semantic cases, all 36 native checks, and inherited regressions remain unrun.
+Both previously reviewed local gate reports remain accepted.
+M06 remains active and unqualified. M07-M16 remain pending.
+
 ## 2026-10-13: Both local gates accepted; M06 cross-host gate started
 
 sb16 passed all five missing sanitizer storage scenarios. Cleanup checks passed.

@@ -1,0 +1,35 @@
+M06 cross-host fixture cleanup failure
+
+Status: reproduced failure; root cause under investigation.
+
+The frozen 4f241 Debug semantic fixture failed during cleanup on sb16.
+Command 0058 called actor_transition_crosshost_host.py stop.
+guarded_pidfd raised PID/start/executable/command ownership mismatch.
+The gate and helper returned exit 2. Preserve this failed attempt.
+
+The recorded owner PID was 2377066. The recorded worldd PID was 2377069.
+Both processes were absent when primary checked after failure.
+worldd.exit contains 0. owner.stderr is empty.
+These observations suggest an exit race. They do not prove its cause.
+
+The stop path creates cancel before it checks the owner's process identity.
+An owner can exit between pidfd_open and reads from /proc.
+A zombie can expose an empty command line during that interval.
+Keep live PID, start-time, executable, and command identity checks strict.
+Use pidfd readiness to distinguish confirmed exit from a live identity mismatch.
+Close every opened descriptor on rejected or exited paths.
+
+Add regressions for a matching live owner, an exit during identity inspection,
+a zombie owner, a live identity mismatch, and descriptor cleanup.
+Review the fixture change before deploying a test-only overlay.
+Do not change the frozen binaries or locked acceptance contracts.
+
+Evidence root:
+/home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost01/semantic/Debug
+Failure files: 0058.stderr, 0058-command.json, 0058.exit, cleanup.json.
+Helper receipts:
+/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff01
+
+Both local gate reports remain accepted.
+M06 cross-host qualification remains failed and incomplete.
+Native cross-host checks and inherited regressions remain unrun.
