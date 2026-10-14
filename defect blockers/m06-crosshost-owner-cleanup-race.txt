@@ -1,6 +1,17 @@
 M06 cross-host fixture cleanup failure
 
-Status: reproduced failure; root cause under investigation.
+Status: focused fix passed on both hosts; full cross-host retry remains unrun.
+
+The reviewed helper SHA256 is
+43e137b0a3b24715815029b89cab3482c07787d080d5e67a0e51f20511a0177c.
+Five focused regressions passed on sb16 and sb16-2.
+Command and wrapper exit codes were zero on both hosts.
+Receipts on each host:
+/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/owner-guard-focused01
+The controlled zombie test reproduces the old guard's ownership-mismatch failure.
+The corrected guard classifies that exit through kernel pidfd readiness.
+Live mismatches, unconfirmed identity-read failures, and poll errors remain rejected.
+Descriptor closure checks passed. These focused results do not qualify M06.
 
 The frozen 4f241 Debug semantic fixture failed during cleanup on sb16.
 Command 0058 called actor_transition_crosshost_host.py stop.
@@ -19,9 +30,9 @@ Keep live PID, start-time, executable, and command identity checks strict.
 Use pidfd readiness to distinguish confirmed exit from a live identity mismatch.
 Close every opened descriptor on rejected or exited paths.
 
-Add regressions for a matching live owner, an exit during identity inspection,
+The regressions cover a matching live owner, an exit during identity inspection,
 a zombie owner, a live identity mismatch, and descriptor cleanup.
-Review the fixture change before deploying a test-only overlay.
+Review the gate tooling before deploying the test-only overlay.
 Do not change the frozen binaries or locked acceptance contracts.
 
 Evidence root:
