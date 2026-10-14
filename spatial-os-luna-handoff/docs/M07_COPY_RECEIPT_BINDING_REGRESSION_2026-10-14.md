@@ -5,7 +5,13 @@ Base: 5ac265f805adbbcf8d012e78255c97033015eaee.
 Production binding code remains unchanged from 805713a420ab9e5df27201f0b641a6d59dc5ce28.
 The binding increment changes the compiled test probe and Python harness.
 The candidate also incorporates reviewed helper fix de3d73a230225eb948dee5f2b0b84c5d2b60488b.
-The acceptance contract and schemas remain unchanged.
+The core fixture also receives the production sandbox library aliases, /proc, /dev, and /tmp.
+It retains read-only system mounts and isolated namespaces.
+It forwards only ASAN_OPTIONS and UBSAN_OPTIONS when configured.
+It rejects sanitizer stderr even after exit zero.
+The prior launch lacked /lib64 and failed before reaching the helper.
+Primary preserved that failure on both test hosts.
+The acceptance contract, assertions, and schemas remain unchanged.
 
 The missing case now has an implemented test ID:
 `copy_stage_begin_receipt_destination_binding_fences_before_worker`.
@@ -46,10 +52,12 @@ The existing direct success and symlink scenarios remain selected.
 The existing malformed-owner descriptor check remains separate coverage.
 
 Selected checks, recorded before execution:
-- Python AST compilation: syntax of both changed Python files. Compile only.
+- Python AST compilation: syntax of all three changed Python files. Compile only.
 - Debug target build: spatial-copy-worker-production-probe. Compile only.
 - ASan/UBSan target build: spatial-copy-worker-production-probe. Compile only.
-- BUILD_TESTING=OFF configure: confirms the test-only probe remains excluded.
+- BUILD_TESTING=OFF helper build: verifies the production helper closure. Compile only.
+- Core CopyTreeWorkerTests: all eight cases on both hosts in Debug and sanitizer profiles. UNRUN.
+- Old-805 helper collision reproduction with the corrected fixture: both hosts. UNRUN.
 - Root native harness on sb16 and sb16-2: both relay cases and existing regressions. UNRUN.
 
 Builds use separate external directories and -j2.
@@ -73,3 +81,7 @@ Each run needs the root-owned spatial-bwrap and delegated cgroup prerequisites.
 The harness installs and restores the package helper with verified ownership and hashes.
 Preserve failed evidence and evaluate cleanup records even after scenario failure.
 M07 and Spatial-M1 remain incomplete.
+
+The first Debug and sanitizer probe builds failed on a closedir deleter attribute warning.
+Their canonical logs remain in m07-copy-binding-{debug,san}-c2a69e9.
+The corrected lambda deleter preserves RAII and explicit closedir checking.

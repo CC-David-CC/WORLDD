@@ -61,7 +61,8 @@ std::set<std::filesystem::path> cgroup_children() {
 bool empty_directory(int descriptor) {
     Fd copy(openat(descriptor,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC));
     require(copy.value>=0,"cannot inspect pinned destination");
-    std::unique_ptr<DIR,decltype(&closedir)> directory(fdopendir(copy.value),&closedir);
+    const auto close_directory=[](DIR* value){if(value)closedir(value);};
+    std::unique_ptr<DIR,decltype(close_directory)> directory(fdopendir(copy.value),close_directory);
     require(directory!=nullptr,"cannot open destination entries");
     copy.value=-1; bool empty=true;
     for(;;) {
