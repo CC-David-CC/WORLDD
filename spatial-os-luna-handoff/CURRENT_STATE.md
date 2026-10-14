@@ -1,3 +1,37 @@
+## 2026-10-14: Snapshot repair checks passed; longer engine copies expose issuer EOF
+
+Four new owner-probe methods passed on sb16 Debug in 11.127 seconds.
+They cover limited-source snapshots, exact retry/restart, pending initialization recovery, and tampered-limit rejection.
+The primary read all named results and both zero exit receipts.
+It checked nine exited owner identities and four detached volume receipts.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine16a-owner-quota-debug-v1-evidence.
+
+The first engine retry still used the old service executable. Its provenance label was wrong.
+CMake target spatial-storage-owner builds a library. Target spatial-storage-owner-service emits the service executable.
+The primary missed that distinction during build approval. The corrected service target subsequently built with exits 0/0.
+The primary verified the link mapping and correction receipt. Read the artifact-freshness defect note.
+Package 16c uses corrected service SHA505a66ed7591757564e0085944270667dcd9e6a738cb9136e1715e31cd8736d5.
+Its unchanged eleven-method engine suite ran in 180.130 seconds: nine passed and two reported errors.
+Optional state and definition copy checks now pass. The two errors close the world actor channel during status polling.
+World logs report issuer info EOF, identity-service disablement, and unresolved participant release.
+Later publication, replay, and relaunch assertions in those two methods remain unexecuted.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine16c-debug11-v1-evidence.
+The issuer connection's actual cause remains under diagnosis. No timeout or authorization check was weakened.
+
+Six migration checks passed on sb16-2 Debug in 1.784 seconds.
+Five broker scenarios made nine subprocess calls. One case validates the historical schema fixture.
+The primary read six named results, both zero exits, and the exact argv receipt.
+The first package removed executable permission and failed before broker execution. Its five failure databases remain retained.
+The corrected immutable package checks mode0555 and executable access before running.
+Reviewed test source SHA27fdde2446d192d4b00b58ab673e0efcf99b6db67c562cfb35622f5b74b5a806.
+Evidence: sb16-2:/home/dflanag3/spatial-artifacts/runs/m07-execution-v7-migration-review03-debug-sb16-2-v2.
+Source checkpoint, CMake registration, sb16, sanitizer, and combined migration checks remain pending.
+
+The cross-host witness source checkpoint is d1243a52e5a8238abd26ba3e97ac0065475c5a78 on box-git.
+The primary matched all five committed sources against its reviewed manifest.
+Its normal Debug aggregate build passed. Inspection found three missing transitive fixture dependencies.
+A reviewed CMake correction adds the missing broker-launch helper, confined X probe, and session-probe binding.
+Cross-host native runtime remains unrun. M07 remains in focused integration, before freeze and the full both-host gate.
 ## 2026-10-14: Production OFF build passed; snapshot quota cause confirmed
 
 The unmodified engine checkpoint 02bb2921ec371a22eaf998b764cc578458fac7a2 passed a complete production build on a5500.

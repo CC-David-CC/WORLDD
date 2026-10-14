@@ -1,0 +1,30 @@
+M07 storage-owner service package used a stale executable
+
+Status: CONFIRMED BUILD AND PROVENANCE ERROR. Corrected in package 16c.
+
+CMake target spatial-storage-owner builds a static library.
+CMake target spatial-storage-owner-service emits the executable named spatial-storage-owner.
+The initial repair build selected the library and probe targets. It did not relink the service.
+The primary missed that target distinction during build approval.
+
+The four new snapshot-owner probe methods genuinely passed with repaired code.
+The 16b full-engine rerun still used the old service and repeated the three old quota failures.
+Its package metadata incorrectly labeled that service as rebuilt from 16a.
+Those immutable packages and logs remain preserved with an explicit provenance correction.
+
+Old service SHA256:
+94913934e6336de554dd5254f57ddda39dff035e3a5659ae0c8d6dfc8f235fb0
+Corrected service SHA256:
+505a66ed7591757564e0085944270667dcd9e6a738cb9136e1715e31cd8736d5
+
+The exact service target subsequently built with both exit receipts zero.
+The corrected package verifies its executable hash, new diagnostic, and CMake target/output mapping.
+The primary read the link command and correction receipt.
+Evidence: middle-child:/home/dflanag3/spatial-artifacts/m07-engine-completion-20261014/preflight16a-snapshot-quota/service-provenance-correction.json.
+
+The corrected 16c engine run passed nine methods and reported two issuer-connection errors.
+Optional state and definition copies passed. The remaining errors differ from the quota failure.
+Full engine and M07 qualification remain incomplete.
+
+The coordination skill now requires executable-target mapping and rebuilt ELF hash comparison.
+It also requires preserved execute permissions and target executable-mode preflight checks.

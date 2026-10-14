@@ -1,0 +1,33 @@
+M07 long copies lose their world actor connection
+
+Status: CONFIRMED RUNTIME FAILURE. Root cause and repair remain pending.
+
+Runtime: sb16 Debug, m07-engine16c-debug11-v1.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine16c-debug11-v1-evidence.
+Outer evidence: /home/dflanag3/spatial-artifacts/runs/m07-engine16c-debug11-v1-outer.
+
+The actual corrected storage-owner service has SHA256:
+505a66ed7591757564e0085944270667dcd9e6a738cb9136e1715e31cd8736d5
+Reviewed source manifest: 6d5576bf53c15f844cdf421b4a680b7fc0b7e953a19276874ababe455b44eefa.
+
+Eleven engine methods ran in 180.130 seconds. Nine passed. Two reported errors.
+Both command and wrapper exits were 1.
+
+Affected methods:
+- test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch
+- test_copied_policy_mapping_and_exact_publication_receipt_survive_reassignment_restart_and_recopy
+
+Both errors occur while polling copy status. The actor channel closes with EOF.
+The world logs report issuer info EOF, identity-service disablement, and unresolved participant release.
+Time since the last successful issuer exchange was 3065 ms and 3724 ms.
+The failed exchange reports zero elapsed milliseconds before EOF.
+This differs from the earlier quota verification failure.
+Optional state-only and definition-only copies now pass.
+
+Check the real issuer process, configuration, connection limits, idle timeout, and cgroup evidence.
+Measure blocking storage stages and issuer-service progress during the longer copies.
+Do not infer an issuer crash from EOF alone.
+Do not mask the failure with an arbitrary timeout increase.
+Preserve fail-closed authorization and uncertainty rules for external effects.
+
+Later publication, replay, relaunch, sanitizer, second-host engine, and full gate assertions remain unproven.

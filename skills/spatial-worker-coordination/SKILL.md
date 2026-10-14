@@ -42,6 +42,10 @@ Use an output-specific flock for bundle packaging too. Two archive writers can c
 Write archives to a unique temporary path. Validate them before atomically replacing the final artifact.
 Check packaging scripts are nonempty and invoke their intended entrypoint before launch.
 After packaging, compare archived source hashes with the corrected checkout. Exit zero alone cannot detect a no-op packager.
+Record each executable's CMake target and output path separately. A library target can share the executable's output name.
+Build the executable target after its linked library changes. Verify claimed rebuilt ELF hashes against the previous package.
+Freeze packages by removing write permission. Preserve execute permission on binaries and directories.
+Target preflight must check executable permission and expected modes. A successful ldd check does not prove executability.
 
 Use a persistent tmux session and a unique run directory for each attempt.
 For builds and test commands, use `bash scripts/run-command.sh CHECKOUT NEW_RUN_DIR COMMAND ARG...` inside tmux.

@@ -1,6 +1,6 @@
 M07 application-state copy fails snapshot quota verification
 
-Status: CONFIRMED RUNTIME FAILURE AND ROOT CAUSE. Repair and regression checks are pending.
+Status: SOURCE REPAIR PASSED FOCUSED DEBUG CHECKS. Full combined qualification remains pending.
 
 Frozen source: engine checkpoint 02bb2921ec371a22eaf998b764cc578458fac7a2 with reviewed setup06 overlay.
 Runtime: sb16 Debug, m07-engine15-debug11-v1.
@@ -50,3 +50,15 @@ Cover interruption and exact retry without weakening quota verification.
 Rerun the failed methods and related snapshot regressions before combined qualification.
 
 Sanitizer, second-host engine, and full M07 qualification remain unrun for this candidate.
+
+Repair evidence:
+Reviewed source08 adds pending-only quota initialization and exact source/parent checks.
+Four actual owner-probe methods passed on sb16 Debug in 11.127 seconds.
+They cover limited-source creation, exact retry/restart, pending recovery, and tampered-limit rejection.
+The primary verified four named results, zero exit receipts, and nine exited owner processes.
+All four volumes were unmounted without loop attachments.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine16a-owner-quota-debug-v1-evidence.
+
+The initial engine rerun used a stale service executable. Read the artifact-freshness defect note.
+The corrected 16c service passed optional state and definition copies within the eleven-method suite.
+Its remaining two errors concern issuer connection loss. Full five-class and replay assertions remain incomplete.
