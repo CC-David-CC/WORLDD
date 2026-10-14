@@ -178,8 +178,12 @@ class ActorPixelTests(observation.ApplicationObservationTests):
                 control.access.ApplicationAccessTests.revoke_record(self, record)
         self.relay.calls = 0
         self.relay.hook = revoke
-        with self.assertRaises(EOFError):
-            self.viewer.act(observe=core.ActorObserveRequest(width=127, height=95, include_pixels=True))
+        try:
+            reply = self.viewer.act(observe=core.ActorObserveRequest(width=127, height=95, include_pixels=True))
+        except EOFError:
+            pass
+        else:
+            self.fail(f'Expected queued-write channel closure; received {reply}')
         self.assertGreaterEqual(self.relay.calls, 3)
 
     def test_revocation_stops_a_partially_written_pixel_reply(self):
@@ -206,6 +210,20 @@ class ActorPixelTests(observation.ApplicationObservationTests):
 
 
 class PresentationPixelFenceTests(ActorPixelTests):
+    def terms(self, claims=None, rights=None, depth=3, components=(), delegable=None):
+        rights = [*world_authority.RIGHTS, grant.WORLD_PLACEMENT_CREATE,
+                  grant.REPRESENTATION_VIEW] if rights is None else rights
+        components = tuple(value.encode('utf-8') if isinstance(value, str) else value
+                           for value in components)
+        terms = super().terms(claims, rights, depth, components, delegable)
+        self.assertIsInstance(terms.scope.domain.id, str)
+        self.assertTrue(all(isinstance(value, bytes) for value in terms.scope.components))
+        return terms
+
+    def setup_world(self, rights=None, legacy=False):
+        rights = [*control.access.ALL, grant.WORKSPACE_PRESENTATION_ATTACH] if rights is None else rights
+        return super().setup_world(rights=rights, legacy=legacy)
+
     def setUp(self):
         super().setUp()
         self.presentation_relay = world_authority.RelayingIssuer(self, self.revoke_second_actor)
@@ -218,15 +236,22 @@ class PresentationPixelFenceTests(ActorPixelTests):
         target = issuer.IdentityReference(kind=issuer.ACTOR_TARGET, id=self.second.actor_id)
         operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
             target=target, expected_security_revision=0, reason='presentation observation race'))
-        reply = self.execute(self.owner_peer, self.challenge(self.owner_peer, operation))
+        owner = self.connect()
+        try:
+            reply = self.execute(owner, self.challenge(owner, operation))
+        finally:
+            owner.close()
         self.assertTrue(reply.HasField('identity_status'), reply)
+        self.assertEqual(reply.identity_status.actor_id, self.second.actor_id)
+        self.assertTrue(reply.identity_status.actor_revoked)
 
     def test_pixels_are_withheld_when_later_presentation_check_revokes_actor(self):
         app, surface, _ = self.setup_pixels()
         self.grant_viewer([grant.WORKSPACE_PRESENTATION_ATTACH])
         entry = self.world_info['entry_room']
-        page = self.peer.call(grants=session.WorldGrantList())
-        self.assertTrue(page.HasField('grants'), page)
+        response = self.peer.call(grants=session.WorldGrantList())
+        self.assertTrue(response.HasField('grants'), response)
+        page = response.grants
         root = next(item for item in page.grants if not item.parent_id)
         terms = self.terms(self.second,
             rights=[grant.WORLD_PLACEMENT_CREATE, grant.REPRESENTATION_VIEW],
@@ -234,14 +259,18 @@ class PresentationPixelFenceTests(ActorPixelTests):
         self.peer.action_sequence += 1
         delegated = self.peer.call(delegate=session.WorldGrantDelegate(
             seq=self.peer.action_sequence, parent_id=root.id, terms=terms,
-            expected_revision=page.grants.revision))
+            expected_revision=page.revision))
         self.assertTrue(delegated.HasField('grant'), delegated)
         created = self.viewer.act(presentation_create=core.PresentationCreateRequest(
             protocol_version=1, operation_id=os.urandom(16), workspace_id='one', room_id=entry,
             transform=pose((.8, 0, -2)),
             expected_world_revision=self.world_process.management('world.info')['world_revision']))
         self.assertTrue(created.HasField('action'), created)
-        self.assertTrue(self.pixels().HasField('image'), 'real application pixels are required for this control')
+        baseline = self.pixels()
+        self.assertTrue(baseline.HasField('image'), 'real application pixels are required for this control')
+        self.assertEqual(len(baseline.presentation_views), 1)
+        self.assertEqual(baseline.presentation_views[0].representation_id,
+            created.action.presentation.representation_id)
 
         post_render_access = threading.Event()
         def arm_after_post_render_access(count, reply):
@@ -265,7 +294,7 @@ class PresentationPixelFenceTests(ActorPixelTests):
         with self.presentation_relay.status_lock:
             self.assertEqual(self.presentation_relay.status_seen, 1)
         self.assertTrue(raced.HasField('error'), raced)
-        self.assertIn(raced.error.code, (core.FORBIDDEN, core.UNAVAILABLE))
+        self.assertIn(raced.error.code, (core.FORBIDDEN, core.UNAVAILABLE), raced)
         self.assertFalse(raced.HasField('action'), 'revoked observation must return no pixel payload')
         self.assertTrue(self.presentation_relay.delivered.is_set())
         self.assertFalse(self.presentation_relay.errors)
