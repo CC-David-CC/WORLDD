@@ -1,3 +1,25 @@
+## 2026-10-14: Six native copy witnesses passed; recovery and engine repairs remain
+
+Candidate fb21bea71e704307a61b3fb482d581a3a940d29a ran all six native Debug witnesses on sb16.
+Both physical-root negatives, authenticated receipt binding, authorized relay, direct copy, and symlink rejection passed.
+The FD32 check passed. Real relay and direct workers sealed 24 MiB with independent inodes and identical retries.
+The malformed-BEGIN case observed no START, SEAL, or worker and verified the intended binding rejection.
+The suite still failed in recovery before owner restart.
+A well-formed conflicting BEGIN returned INVALID_ARGUMENT instead of the maintained CONFLICT contract.
+Keep that regression oracle. Correct the production error classification.
+Retained evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-pcszud0s.
+The six delegated roots were removed. Applied volume cleanup and helper restoration were recorded.
+Sanitizer production checks and completed restart recovery remain unrun.
+
+The first complete engine Debug fixture ran four methods and failed.
+It exposed payload PID resolution, a shared fixture RPC channel, and SQLite cleanup-lifetime defects.
+One negative request also encoded a bytes scope component as a string.
+The outer recovery verified all four exact test volumes unmounted and detached.
+Both temporary helpers were restored to their previous absent state.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1/failure-summary.json.
+The next engine increment must fix these causes before another runtime attempt.
+No engine pass, combined freeze, or M07 qualification is claimed.
+
 ## 2026-10-14: Authorized native copy control passed; full engine verification started
 
 The narrow production copy control passed on sb16 at 44c950b109d76996a64f55724125815bde112f59.

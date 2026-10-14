@@ -1,5 +1,25 @@
 # Host desktop settings
 
+## Persistent coding-host access to test boxes
+
+Verified on 2026-10-14 from middle-child to sb16 and sb16-2.
+Both strict, noninteractive SSH commands returned the expected hostname.
+The dedicated private key stays on middle-child at ~/.ssh/id_ed25519_spatial_testboxes.
+Its public fingerprint is SHA256:4no+9ogQo1xlA9ldeDj8sVbllXQ9dJZt8+94ai8ztEQ.
+Both test accounts authorize its public key with forwarding disabled.
+The appended middle-child SSH configuration block is marked Spatial test boxes 20261014.
+Existing Git keys, authorized keys, and SSH configuration remain present.
+Host trust uses the controller's existing known-host records, without accepting a new scanned key.
+
+The external recovery scripts and public-key receipts are in:
+C:/Users/dflanag3/Documents/spatial-artifacts/m07-resume-20261014.
+The coding-host scripts are under /home/dflanag3/spatial-artifacts.
+No private key or credential belongs in this repository.
+
+To revoke this added access, remove only the authorized_keys line ending spatial-middle-child-testboxes-20261014 on each test box.
+Remove only the marked sb16/sb16-2 configuration block on middle-child.
+Do not remove unrelated keys or the controller's recovery access.
+
 ## Keep displays awake
 
 Applied on 2026-10-07 to the `dflanag3` desktop account on `sb16` and `sb16-2`.
