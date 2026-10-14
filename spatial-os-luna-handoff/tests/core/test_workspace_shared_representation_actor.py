@@ -98,6 +98,34 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
             self.assertLess(time.monotonic(), deadline, 'Native workspace geometry did not repaint')
             time.sleep(.05)
 
+    def navigate_to_room(self, peer, room):
+        deadline = time.monotonic() + 5
+        try:
+            while True:
+                moved = peer.act(input=core.ActorInputRequest(axes=[0, 0, -1, 0, 0, 0]))
+                self.assertTrue(moved.HasField('action'), moved)
+                state = peer.call(inspect=session.WorldSessionInspect()).state
+                if state.room == room:
+                    break
+                self.assertLess(time.monotonic(), deadline, f'Actor did not enter {room}')
+                time.sleep(.02)
+        finally:
+            stopped = peer.act(stop=core.ActorStopRequest())
+            self.assertTrue(stopped.HasField('action'), stopped)
+        state = peer.call(inspect=session.WorldSessionInspect()).state
+        self.assertEqual(state.room, room)
+        self.assertEqual(list(state.axes), [0] * 6)
+        self.assertEqual(state.workspace, 'one')
+        return state
+
+    def assert_presentation_pixels(self, observation, representation, room, generation):
+        self.assertEqual(observation.room, room)
+        views = [view for view in observation.presentation_views
+                 if view.representation_id == representation]
+        self.assertEqual(len(views), 1, observation)
+        self.assertEqual(views[0].generation, generation)
+        self.assertFalse(views[0].locked)
+
     def test_native_shared_workspace_representations_keep_one_live_authority(self):
         from test_world_identity import WorldProcess
         self.enroll_second()
@@ -190,12 +218,16 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
 
         destination = 'm07-native-destination'
         first.management('world.create', entity={'id': destination, 'kind': 'room', 'label': destination})
+        before_departure = self.actor_pixels(owner)
         move = owner.act(presentation_move=core.PresentationMoveRequest(protocol_version=1,
             operation_id=os.urandom(16), representation_id=left.representation_id,
-            room_id=destination, transform=pose(4), expected_representation_generation=1))
+            room_id=destination, transform=pose(.8, -1.5), expected_representation_generation=1))
         self.assertTrue(move.HasField('action'), move)
         moved = move.action.presentation
         self.assertEqual(moved.generation, 2)
+        after_departure = self.pixel_change(owner, before_departure.image.rgb8)
+        self.assertEqual(after_departure.room, first_info['entry_room'])
+        self.assertFalse(after_departure.presentation_views)
         left_row = self.presentation_row(first, left.representation_id)
         self.assertEqual(left_row[:2], ('one', destination))
         self.assertEqual(left_row[3], 2)
@@ -204,18 +236,43 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         self.assertEqual(self.file_identity(self.project / 'm07-nonce'), file_before)
         self.assertEqual(self.process_identity(token), pid_before)
 
-        before_return = self.actor_pixels(owner)
-        returned = owner.act(presentation_move=core.PresentationMoveRequest(protocol_version=1,
+        return_request = core.PresentationMoveRequest(protocol_version=1,
             operation_id=os.urandom(16), representation_id=left.representation_id,
-            room_id=first_info['entry_room'], transform=pose(.2), expected_representation_generation=2))
+            room_id=first_info['entry_room'], transform=pose(.2), expected_representation_generation=2)
+        # A fresh request from the old room must fail without changing either authority.
+        self.denied(owner.act(presentation_move=return_request), core.NOT_VISIBLE)
+        self.assertEqual(self.presentation_row(first, left.representation_id), left_row)
+        self.assertEqual(self.presentation_row(second, right.representation_id), right_row)
+        self.assertEqual(self.execution_inventory(), inventory)
+
+        first.management('world.create', entity={'id': 'm07-native-outbound', 'kind': 'portal',
+            'room': first_info['entry_room'], 'pose': {'p': [0, 0, -.5], 'q': [0, 0, 0, 1]},
+            'size': [2, 2], 'destination': {'room': destination,
+                'pose': {'p': [0, 0, .5], 'q': [0, 0, 0, 1]}}})
+        self.navigate_to_room(owner, destination)
+        before_return = self.actor_pixels(owner)
+        self.assert_presentation_pixels(before_return, left.representation_id, destination, 2)
+        returned = owner.act(presentation_move=return_request)
         self.assertTrue(returned.HasField('action'), returned)
         left = returned.action.presentation
-        self.pixel_change(owner, before_return.image.rgb8)
+        after_return = self.pixel_change(owner, before_return.image.rgb8)
+        self.assertEqual(after_return.room, destination)
+        self.assertFalse(after_return.presentation_views)
         left_row = self.presentation_row(first, left.representation_id)
         self.assertEqual(left_row[:2], ('one', first_info['entry_room']))
         self.assertEqual(left_row[3], 3)
+        self.assertEqual(self.presentation_row(second, right.representation_id), right_row)
         self.assertEqual(self.execution_inventory(), inventory)
+        self.assertEqual(self.file_identity(nonce), file_before)
         self.assertEqual(self.process_identity(token), pid_before)
+
+        first.management('world.create', entity={'id': 'm07-native-return', 'kind': 'portal',
+            'room': destination, 'pose': {'p': [0, 0, 0], 'q': [0, 0, 0, 1]},
+            'size': [2, 2], 'destination': {'room': first_info['entry_room'],
+                'pose': {'p': [0, 0, -1], 'q': [0, 0, 0, 1]}}})
+        self.navigate_to_room(owner, first_info['entry_room'])
+        returned_pixels = self.actor_pixels(owner)
+        self.assert_presentation_pixels(returned_pixels, left.representation_id, first_info['entry_room'], 3)
 
         geometry_before_toggle = self.actor_pixels(owner)
         first.management('workspace.available', id='one', available=False)
