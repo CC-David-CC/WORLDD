@@ -1,3 +1,17 @@
+## 2026-10-14: Reviewed quota and migration sources checkpointed on box-git
+
+Quota repair checkpoint: 6391c8a8e001484a93ccea83c6dfea2cc7db9187 on m07/copy-engine-completion-20261014.
+Migration regression checkpoint: 709586698d95092979ed86410fd7bb905a22064a on m07/execution-v7-migration-tests-20261014.
+The primary fetched both branches and matched all four committed files against reviewed source hashes.
+These checkpoints preserve focused results. Neither checkpoint qualifies M07.
+Migration CMake registration remains pending. Its six-case pass covers sb16-2 Debug only.
+The longer-copy issuer EOF remains under diagnosis. A guarded keepalive change is under source review.
+Keepalive waits must preserve controller-loss and revocation polling without recursive issuer exchanges.
+The cross-host aggregate build completed 188 steps with both exit receipts zero.
+Static import inspection found one further missing compositor binding dependency before packaging.
+The primary approved its CMake dependency correction. Native cross-host runtime remains unrun.
+M07 remains in focused implementation and integration, before combined freeze and both-host qualification.
+
 ## 2026-10-14: Snapshot repair checks passed; longer engine copies expose issuer EOF
 
 Four new owner-probe methods passed on sb16 Debug in 11.127 seconds.
