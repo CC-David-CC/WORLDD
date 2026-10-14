@@ -1,6 +1,7 @@
 """Current issuer status, signed actor proofs, and durable independent revocation."""
 import sqlite3
 import subprocess
+from issuer_migration_runner import run_issuer_migration
 import time
 import unittest
 
@@ -199,15 +200,15 @@ class RevocationTests(EnrollmentFixture):
         self.client.close();secret=(self.state/'issuer.pem').read_bytes();policy=self.snapshot()
         with sqlite3.connect(self.state/'identity.db') as db:
             before=db.execute('SELECT * FROM credential').fetchall()
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
+            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=2;')
         command=[str(BINARY),'--state-dir',str(self.state)]
-        result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+        result=run_issuer_migration(command,input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
-        result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4)
+        result=run_issuer_migration(command+['--migrate'],input=b'',capture_output=True,timeout=4)
         self.assertEqual(result.returncode,0,result.stderr)
         with sqlite3.connect(self.state/'identity.db') as db:
             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(),before)
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],10)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],11)
         self.assertEqual(self.snapshot(),policy);self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
         self.client=self.start();self.assertTrue(self.authenticate().authentication.identity.active)
 

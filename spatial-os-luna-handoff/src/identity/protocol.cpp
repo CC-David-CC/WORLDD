@@ -25,6 +25,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.authority-barrier/v1");
             result->add_capabilities("identity.authority-supervisor-registry/v1");
             result->add_capabilities("identity.authority-launch-authorization/v1");
+            result->add_capabilities("identity.authority-domain-add/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -35,6 +36,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             else if (result.has_participant()) *reply.mutable_participant() = result.participant();
             else if (result.has_registry()) *reply.mutable_registry() = result.registry();
             else if (result.has_supervision()) *reply.mutable_supervision() = result.supervision();
+            else if (result.has_participant_domains_added()) *reply.mutable_participant_domains_added() = result.participant_domains_added();
             else if (result.has_barrier()) *reply.mutable_authority_barrier() = result.barrier();
             else *reply.mutable_identity_status() = result.identity_status();
         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());

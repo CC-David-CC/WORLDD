@@ -1,6 +1,7 @@
 """Real issuer persistence and service authority; external effect completion is tested separately."""
 import sqlite3
 import subprocess
+from issuer_migration_runner import run_issuer_migration
 import unittest
 import core_pb2 as core
 import grants_pb2 as grants
@@ -218,16 +219,16 @@ class BarrierTests(TlsFixture):
         self.revoke_actor(); self.peer.close(); self.service['peer'].close(); self.stop_daemons()
         secret = (self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; PRAGMA user_version=5;')
+            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=5;')
         before = self.snapshot(); command = [str(BINARY),'--state-dir',str(self.state)]
-        denied = subprocess.run(command,input=b'',capture_output=True,timeout=4)
+        denied = run_issuer_migration(command,input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(denied.returncode,0); self.assertIn(b'migration',denied.stderr.lower())
         for _ in range(2):
-            migrated = subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4)
+            migrated = run_issuer_migration(command+['--migrate'],input=b'',capture_output=True,timeout=4)
             self.assertEqual(migrated.returncode,0,migrated.stderr)
         after = self.snapshot(); self.assertEqual({n:after[n] for n in before},before)
         for name in ('authority_activation','authority_barrier','authority_obligation'):self.assertEqual(after[name],[])
-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],10)
+        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],11)
         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret); self.peer = self.ready()
         op = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
         self.denied(self.execute(self.peer,self.challenge(self.peer,op)),core.NOT_FOUND)
@@ -236,9 +237,9 @@ class BarrierTests(TlsFixture):
         self.peer.close(); self.service['peer'].close(); self.stop_daemons()
         with sqlite3.connect(self.state/'identity.db') as db:
             db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; '
-                'PRAGMA user_version=5; CREATE TABLE authority_obligation(marker INTEGER);')
+                'DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=5; CREATE TABLE authority_obligation(marker INTEGER);')
         before = self.snapshot()
-        result = subprocess.run([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+        result = run_issuer_migration([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0); self.assertEqual(self.snapshot(),before)
         with sqlite3.connect(self.state/'identity.db') as db:
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
