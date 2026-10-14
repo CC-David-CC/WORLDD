@@ -1,0 +1,53 @@
+TEST HOST STORAGE CLEANUP - 2026-10-14
+
+The repository recovery first removed duplicate data on the coding hosts.
+It did not initially finish the required test-host storage cleanup.
+The follow-up cleanup completed on sb16 and sb16-2.
+
+Before cleanup:
+sb16: about 17 GiB free.
+sb16-2: about 21 GiB free.
+
+After cleanup:
+sb16: about 58 GiB free.
+sb16-2: about 62 GiB free.
+
+Deleted detached volume.img test fixtures:
+sb16: 177 files, about 29.4 GiB allocated space recovered.
+sb16-2: 178 files, about 29.3 GiB allocated space recovered.
+Both deletion runs completed with zero failures.
+Mount, loop-device, and process references were checked before deletion.
+Cleanup targeted only project source, qualification, and artifact directories.
+The mounted /var/lib/spatial/volumes/david/volume.img was excluded and preserved.
+
+Git sparse checkout removed unchanged tracked evidence from ten old project
+checkouts on each test host. Both runs returned command.exit=0 and wrapper.exit=0.
+Source diffs matched before and after cleanup.
+Modified and untracked files were preserved by Git.
+Local runtime dependencies and current qualification packages were preserved.
+Older build and package copies remain where their retention has not been reviewed.
+The cleanup does not claim that every obsolete file has been removed.
+
+Receipts on each test host:
+/home/dflanag3/spatial-artifacts/test-host-cleanup-20261014/
+detached-image-cleanup.json
+tracked-evidence-cleanup.json
+tracked-evidence-run-lf/
+
+The first evidence-trim launcher used Windows CRLF shell text and did not start.
+The replacement was transferred directly from middle-child.
+Its SHA-256 matched the canonical runner and bash syntax validation passed.
+No duplicate cleanup job was started while another cleanup job was live.
+
+M07 development and runtime acceptance remain paused.
+Storage headroom is sufficient for the next focused M07 checks.
+No additional network storage is currently required for that work.
+
+Windows in-place alternative:
+The original project folder still uses the old origin.
+The clean repository is prepared in Documents/spacial_desktop-clean.
+Run Documents/clean_spatial_repository_in_place_20261014.ps1 to switch in place.
+It does not rename the terminal's working directory.
+It moves old Git metadata and files into an external backup before replacement.
+The script has not been run against the actual Windows project.
+Success and partial-copy rollback passed two temporary-repository checks.
