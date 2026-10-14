@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
@@ -11,6 +12,7 @@ namespace {
 const std::string actor(64, 'a');
 void exec(sqlite3* db, const char* sql) { char* error=nullptr; if (sqlite3_exec(db,sql,nullptr,nullptr,&error)!=SQLITE_OK) { std::string m=error?error:"sql error"; sqlite3_free(error); throw std::runtime_error(m); } }
 template<class F> void rejects(F f) { bool rejected=false; try { f(); } catch (const std::exception&) { rejected=true; } assert(rejected); }
+template<class F> void rejects_with(F f, const std::string& expected) { try { f(); } catch (const std::invalid_argument& error) { if (error.what()!=expected) throw std::runtime_error(std::string("unexpected rejection: ")+error.what()); return; } throw std::runtime_error(std::string("expected rejection: ")+expected); }
 template<class F> void exhausted(F f) { bool rejected=false; try { f(); } catch (const CopyJournalCapacityError& e) { rejected=e.code()==workspace::copy::v1::COPY_EXHAUSTED; } assert(rejected); }
 workspace::copy::v1::WorkspaceCopyRequest request(char ch='a') {
     workspace::copy::v1::WorkspaceCopyRequest r; r.set_protocol_version(1); r.set_operation_id(std::string(16,ch)); r.set_source_workspace_id("workspace-01");
@@ -32,6 +34,31 @@ std::string manifest_bytes(const std::vector<workspace::copy::v1::CopyManifestEn
     std::string out; for (const auto& e : entries) { auto b=e.SerializeAsString(); auto n=static_cast<std::uint32_t>(b.size()); out.push_back(static_cast<char>(n>>24)); out.push_back(static_cast<char>(n>>16)); out.push_back(static_cast<char>(n>>8)); out.push_back(static_cast<char>(n)); out += b; } return out;
 }
 std::string snapshot_receipt_bytes(const std::map<std::string,workspace::copy::v1::SnapshotReceipt>& receipts) { std::string out; for(const auto& item:receipts){ auto b=item.second.SerializeAsString(); auto n=static_cast<std::uint32_t>(b.size()); out.push_back(static_cast<char>(n>>24)); out.push_back(static_cast<char>(n>>16)); out.push_back(static_cast<char>(n>>8)); out.push_back(static_cast<char>(n)); out+=b; } return out; }
+void assert_fresh_targets(const std::vector<workspace::copy::v1::CopyManifestEntry>& entries,
+                          const std::map<std::string,workspace::copy::v1::SnapshotReceipt>& receipts,
+                          const std::vector<workspace::v1::StorageObjectState>& targets) {
+    std::set<std::string> protected_ids;
+    for (const auto& entry : entries) {
+        workspace::v1::StorageObject source;
+        if (!source.ParseFromString(entry.source_storage_object()))
+            throw std::runtime_error("fixture source identity is malformed");
+        protected_ids.insert(source.id());
+    }
+    for (const auto& item : receipts) {
+        workspace::v1::StorageObject source, snapshot;
+        if (!source.ParseFromString(item.second.source_storage_object()) ||
+            !snapshot.ParseFromString(item.second.snapshot_storage_object()))
+            throw std::runtime_error("fixture snapshot identity is malformed");
+        protected_ids.insert(source.id());
+        protected_ids.insert(snapshot.id());
+    }
+    std::set<std::string> target_ids;
+    for (const auto& target : targets) {
+        const auto& id = target.object().id();
+        if (!target_ids.insert(id).second || protected_ids.contains(id))
+            throw std::runtime_error("fixture publication targets must be unique and fresh");
+    }
+}
 }
 int main() {
     char path[]="/tmp/spatial-copy-journal-XXXXXX"; int fd=mkstemp(path); assert(fd>=0); close(fd);
@@ -62,8 +89,18 @@ int main() {
 
         auto extra_request=request('k'); extra_request.clear_data_class(); extra_request.add_data_class(workspace::copy::v1::PROJECT_TREE); extra_request.add_data_class(workspace::copy::v1::GIT_HISTORY); extra_request.add_data_class(workspace::copy::v1::ENVIRONMENT_CONFIG); auto extra=journal.begin(extra_request,actor); journal.transition(extra.operation_id,actor,workspace::copy::v1::REQUESTED,workspace::copy::v1::AUTHORIZED,"auth"); journal.transition(extra.operation_id,actor,workspace::copy::v1::AUTHORIZED,workspace::copy::v1::SNAPSHOTS_READY,"snapshots"); journal.transition(extra.operation_id,actor,workspace::copy::v1::SNAPSHOTS_READY,workspace::copy::v1::DESTINATION_ALLOCATED,"destination"); journal.transition(extra.operation_id,actor,workspace::copy::v1::DESTINATION_ALLOCATED,workspace::copy::v1::DATA_STAGED,"staging"); std::map<std::string,workspace::copy::v1::SnapshotReceipt> extra_rs; auto extra_es=entries(extra_rs,extra.request_digest); rejects([&]{journal.record_validated_result(extra.operation_id,actor,"different-destination",manifest_bytes(extra_es),extra_es,extra_rs,1024,8);});
         std::vector<workspace::v1::StorageObjectState> dest;
-        for (auto kind : {workspace::v1::StorageObject::PROJECT,workspace::v1::StorageObject::REPOSITORY,workspace::v1::StorageObject::APPLICATION_STATE,workspace::v1::StorageObject::APPLICATION_STATE}) { workspace::v1::StorageObjectState state; state.mutable_object()->set_kind(kind); const auto id=kind==workspace::v1::StorageObject::PROJECT?"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee":kind==workspace::v1::StorageObject::REPOSITORY?"ffffffffffffffffffffffffffffffff":dest.size()==2?"33333333333333333333333333333333":"44444444444444444444444444444444"; state.mutable_object()->set_id(id); state.set_subvolume_id(30+dest.size()); state.set_quota_group(100+dest.size()); state.set_referenced_bytes(8); state.set_exclusive_bytes(4); state.set_maximum_bytes(1024); state.set_accounting_consistent(true); state.set_operation_digest(std::string(32,static_cast<char>(dest.size()+1))); dest.push_back(state); }
-        auto publication_id=std::string(16,'p'); std::vector<CopyJournal::PublicationTarget> targets; for (const auto& receipt : dest) targets.push_back({receipt.object(),receipt.operation_digest()}); auto bad_targets=targets; bad_targets.front().object.set_id("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"); rejects([&]{journal.record_publication_intent(r.operation_id(),actor,std::string(16,'v'),bad_targets);}); journal.record_publication_intent(r.operation_id(),actor,publication_id,targets); rejects([&]{journal.record_effect_receipt(r.operation_id(),actor,publication_id,bound_digest,"forged-publication");}); rejects([&]{journal.transition(r.operation_id(),actor,workspace::copy::v1::VALIDATED,workspace::copy::v1::PUBLISHED,"forged-publication");}); rejects([&]{journal.record_effect_intent(r.operation_id(),actor,std::string(16,'u'),"publication",bound_digest,"untyped");}); auto bad_source_dest=dest; bad_source_dest.front().mutable_object()->set_id("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,bad_source_dest);}); auto bad_snapshot_dest=dest; bad_snapshot_dest.front().mutable_object()->set_id(std::string(32,'c')); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,bad_snapshot_dest);}); auto bad_subvolume_dest=dest; bad_subvolume_dest.front().set_subvolume_id(10); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,bad_subvolume_dest);}); auto wrong_digest_dest=dest; wrong_digest_dest.front().set_operation_digest(std::string(32,'z')); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,wrong_digest_dest);}); auto publication_proof=journal.record_publication_receipts(r.operation_id(),actor,publication_id,dest); assert(journal.record_publication_receipts(r.operation_id(),actor,publication_id,dest)==publication_proof);
+        for (auto kind : {workspace::v1::StorageObject::PROJECT,workspace::v1::StorageObject::REPOSITORY,workspace::v1::StorageObject::APPLICATION_STATE,workspace::v1::StorageObject::APPLICATION_STATE}) { workspace::v1::StorageObjectState state; state.mutable_object()->set_kind(kind); const auto id=kind==workspace::v1::StorageObject::PROJECT?"77777777777777777777777777777777":kind==workspace::v1::StorageObject::REPOSITORY?"88888888888888888888888888888888":dest.size()==2?"99999999999999999999999999999999":"00000000000000000000000000000000"; state.mutable_object()->set_id(id); state.set_subvolume_id(30+dest.size()); state.set_quota_group(100+dest.size()); state.set_referenced_bytes(8); state.set_exclusive_bytes(4); state.set_maximum_bytes(1024); state.set_accounting_consistent(true); state.set_operation_digest(std::string(32,static_cast<char>(dest.size()+1))); dest.push_back(state); }
+        assert_fresh_targets(es,rs,dest);
+        auto publication_id=std::string(16,'p');
+        std::vector<CopyJournal::PublicationTarget> targets;
+        for (const auto& receipt : dest) targets.push_back({receipt.object(),receipt.operation_digest()});
+        auto reused_source=targets; reused_source.front().object.set_id("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        rejects_with([&]{journal.record_publication_intent(r.operation_id(),actor,std::string(16,'v'),reused_source);},
+                     "duplicate or reused publication target identity");
+        auto reused_snapshot=targets; reused_snapshot.front().object.set_id("cccccccccccccccccccccccccccccccc");
+        rejects_with([&]{journal.record_publication_intent(r.operation_id(),actor,std::string(16,'w'),reused_snapshot);},
+                     "duplicate or reused publication target identity");
+        journal.record_publication_intent(r.operation_id(),actor,publication_id,targets); rejects([&]{journal.record_effect_receipt(r.operation_id(),actor,publication_id,bound_digest,"forged-publication");}); rejects([&]{journal.transition(r.operation_id(),actor,workspace::copy::v1::VALIDATED,workspace::copy::v1::PUBLISHED,"forged-publication");}); rejects([&]{journal.record_effect_intent(r.operation_id(),actor,std::string(16,'u'),"publication",bound_digest,"untyped");}); auto bad_source_dest=dest; bad_source_dest.front().mutable_object()->set_id("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,bad_source_dest);}); auto bad_snapshot_dest=dest; bad_snapshot_dest.front().mutable_object()->set_id(std::string(32,'c')); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,bad_snapshot_dest);}); auto bad_subvolume_dest=dest; bad_subvolume_dest.front().set_subvolume_id(10); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,bad_subvolume_dest);}); auto wrong_digest_dest=dest; wrong_digest_dest.front().set_operation_digest(std::string(32,'z')); rejects([&]{journal.record_publication_receipts(r.operation_id(),actor,publication_id,wrong_digest_dest);}); auto publication_proof=journal.record_publication_receipts(r.operation_id(),actor,publication_id,dest); assert(journal.record_publication_receipts(r.operation_id(),actor,publication_id,dest)==publication_proof);
         journal.transition(r.operation_id(),actor,workspace::copy::v1::VALIDATED,workspace::copy::v1::PUBLISHED,publication_proof);
         rejects([&]{journal.transition(r.operation_id(),actor,workspace::copy::v1::PUBLISHED,workspace::copy::v1::ABORTED,"late");});
         auto cancelled=request('c'); journal.begin(cancelled,actor); journal.abort(cancelled.operation_id(),actor,workspace::copy::v1::COPY_FORBIDDEN,"denied"); assert(journal.get(cancelled.operation_id(),actor).phase==workspace::copy::v1::ABORTED && journal.get(cancelled.operation_id(),actor).error==workspace::copy::v1::COPY_FORBIDDEN); journal.abort(cancelled.operation_id(),actor,workspace::copy::v1::COPY_FORBIDDEN,"denied"); rejects([&]{journal.abort(cancelled.operation_id(),actor,workspace::copy::v1::COPY_FORBIDDEN,"different");}); rejects([&]{journal.abort(cancelled.operation_id(),actor,workspace::copy::v1::COPY_UNAVAILABLE,"denied");});
