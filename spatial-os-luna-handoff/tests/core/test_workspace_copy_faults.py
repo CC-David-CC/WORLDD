@@ -3,6 +3,9 @@
 Runtime execution is restricted to sb16 and sb16-2 through the dedicated runner.
 """
 import json
+import hashlib
+from contextlib import closing
+import signal
 import os
 from pathlib import Path
 import socket
@@ -25,6 +28,7 @@ FAULT_RELAY=engine.SOURCE/'tests/native/storage_owner_copy_fault_relay.py'
 
 class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
     def __init__(self,fixture,state,config=None):
+        self.fixture=fixture
         self.stream,child=socket.socketpair();self.sequence=0
         self.log=(fixture.root/f'copy-fault-broker-{len(fixture.brokers)}.log').open('wb')
         self.owner_log=(fixture.root/f'copy-fault-resource-{len(fixture.brokers)}.log').open('wb')
@@ -53,6 +57,23 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
             'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',sys.executable,'-B','-c',code,*owner_command],
             stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
         owner_end.close();fixture.brokers.append(self)
+
+
+    def close(self):
+        try:
+            super().close()
+        finally:
+            # Keep every relay audit and service diagnostic before volume cleanup,
+            # including failed assertions and setup attempts.
+            fixture=self.fixture
+            if self.audit_path is not None:
+                result=subprocess.run(['sudo','-n','cat',str(self.audit_path)],capture_output=True,timeout=5)
+                if result.returncode==0:
+                    (fixture.copy_evidence/self.audit_path.name).write_bytes(result.stdout)
+            for log in (self.log,self.owner_log,self.storage_log):
+                if not log.closed:log.flush()
+                path=Path(log.name)
+                if path.exists():(fixture.copy_evidence/path.name).write_bytes(path.read_bytes())
 
 
 
@@ -379,11 +400,335 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             'copy_responses':audit['copy_responses']},sort_keys=True,indent=2)+'\n')
 
 
+    def fault_action(self,peer,**operation):
+        started=time.monotonic_ns()
+        reply=peer.act(**operation)
+        self.assertLess(time.monotonic_ns()-started,5_000_000_000,
+                        'Actor exchange exceeded its unchanged five-second budget')
+        return reply
+
+    def restart_fault_world(self,world):
+        world.close();self.broker.close()
+        self.copy_fault_mode='pass-through'
+        self.broker=CopyFaultStorageBrokerProcess(self,self.execution,self.authority_config)
+        replacement=engine.fixtures.WorldProcess(self,world.config_path,world.state_path,
+            runtime_config=world.runtime_path,broker=self.broker)
+        self.worlds.append(replacement);replacement.management('system.hello')
+        replacement.config_path=world.config_path;replacement.state_path=world.state_path
+        replacement.runtime_path=world.runtime_path
+        peer=replacement.peers[0]
+        self.assertTrue(self.authenticate(peer).HasField('opened'))
+        self.select(peer)
+        return replacement,peer
+
+    def copy_row(self,request):
+        with closing(sqlite3.connect('file:'+str(self.execution/'execution.db')+'?mode=ro',uri=True,timeout=.5)) as database:
+            row=database.execute('SELECT phase,error,request,authorization_binding FROM copy_operations WHERE operation_id=?',
+                                 (request.operation_id,)).fetchone()
+            effects=database.execute('SELECT kind,state,intent,receipt FROM copy_effects WHERE operation_id=? ORDER BY rowid',
+                                     (request.operation_id,)).fetchall()
+            count=database.execute('SELECT count(*) FROM workspaces').fetchone()[0]
+        self.assertIsNotNone(row)
+        self.assertEqual(row[2],request.SerializeToString())
+        return row,effects,count
+
+    def persist_fault_audit(self,broker,label):
+        data=self.operator_run(['cat',broker.audit_path])
+        (self.copy_evidence/(label+'-relay.json')).write_bytes(data)
+        audit=json.loads(data)
+        self.assertEqual(audit['mutations'],[])
+        self.assertEqual(audit['cleanup_errors'],[])
+        self.assertEqual(audit['owner_exit'],0,audit)
+        self.assertEqual(audit['broker_exit'],0,audit)
+        self.assertEqual(audit['forwarder_shutdown'],'owner-eof-before-forwarder-exit')
+        return audit
+
+    def assert_uncertain_retry(self,peer,request):
+        reply=self.fault_action(peer,workspace_copy=request)
+        self.assertTrue(reply.HasField('action'),reply)
+        status=reply.action.copy_status
+        self.assertEqual(status.operation_id,request.operation_id)
+        self.assertEqual(status.phase,copy.UNCERTAIN,status)
+        self.assertEqual(status.error_code,copy.COPY_UNCERTAIN,status)
+        changed=copy.WorkspaceCopyRequest();changed.CopyFrom(request)
+        changed.data_class[:]=list(reversed(changed.data_class))
+        self.assertNotEqual(changed.SerializeToString(),request.SerializeToString())
+        rejected=self.fault_action(peer,workspace_copy=changed)
+        self.assertTrue(rejected.HasField('error'),rejected)
+        self.assertEqual(rejected.error.code,core.OPERATION_CONFLICT,rejected)
+        return status
+
+    def test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish(self):
+        self.copy_fault_mode='drop-publication-ack'
+        world=self.workspace(roots=lambda:self.copy_roots(True),registry=True)
+        peer=world.peers[0];self.select(peer)
+        request=self.request_copy(peer)
+        accepted=self.fault_action(peer,workspace_copy=request)
+        self.assertTrue(accepted.HasField('action'),accepted)
+        self.assertEqual(accepted.action.copy_status.phase,copy.REQUESTED)
+        old=self.broker
+        held=old.audit_path.with_suffix('.publication-held')
+        release=old.audit_path.with_suffix('.publication-release')
+        self.addCleanup(lambda:self.operator_run(['touch',release]) if self.operator_directory.exists() else None)
+        deadline=time.monotonic()+290
+        while subprocess.run(['sudo','-n','test','-e',str(held)],capture_output=True).returncode:
+            self.assertLess(time.monotonic(),deadline,'Copy never reached the real publication receipt')
+            self.assertIsNone(old.proc.poll(),'Broker exited before the publication gate')
+            time.sleep(.01)
+        witnessed=json.loads(self.operator_run(['cat',held]))
+        (self.copy_evidence/'lost-publication-held.json').write_text(json.dumps(witnessed,sort_keys=True,indent=2)+'\n')
+        actual=storage.StorageOwnerReply.FromString(bytes.fromhex(witnessed['reply_hex']))
+        publication=storage.StorageOwnerRequest.FromString(bytes.fromhex(witnessed['request_hex']))
+        self.assertEqual(actual.copy_destination.state,storage.StorageCopyDestinationReceipt.PUBLISHED)
+        row,effects,count=self.copy_row(request)
+        self.assertEqual(row[0],copy.VALIDATED);self.assertEqual(count,1)
+        self.assertEqual([(kind,state) for kind,state,_,_ in effects if kind=='publication'],[('publication',0)])
+        binding_bytes=row[3]
+        # pidfd binds the signal to the inspected production broker.
+        pid=old.pid;start=self.start_time(pid);descriptor=os.pidfd_open(pid)
+        try:
+            self.assertEqual(self.start_time(pid),start)
+            self.assertEqual(os.readlink(f'/proc/{pid}/exe'),str(engine.fixtures.BROKER))
+            signal.pidfd_send_signal(descriptor,signal.SIGKILL)
+        finally:
+            os.close(descriptor)
+            self.operator_run(['touch',release])
+        self.assertNotEqual(old.proc.wait(timeout=15),0)
+        world,peer=self.restart_fault_world(world)
+        audit=self.persist_fault_audit(old,'lost-publication-before-restart')
+        self.assertEqual(audit['requests'].count('copy_destination_publish'),1,audit)
+        self.assertFalse(audit['dropped_publication']['forwarded'])
+        self.assertLess(audit['dropped_publication']['elapsed_seconds'],5)
+        status=self.assert_uncertain_retry(peer,request)
+        row,effects,count=self.copy_row(request)
+        self.assertEqual(row[0],copy.UNCERTAIN);self.assertEqual(row[1],copy.COPY_UNCERTAIN)
+        self.assertEqual(row[3],binding_bytes,'Restart or retry reset the pinned boot/deadline binding')
+        self.assertEqual(count,1,'Uncertain owner publication must not create a registry workspace')
+        publication_rows=[(state,receipt) for kind,state,_,receipt in effects if kind=='publication']
+        self.assertEqual(len(publication_rows),1);self.assertEqual(publication_rows[0][0],1)
+        exact_objects=b''.join(len(item.SerializeToString()).to_bytes(4,'big')+item.SerializeToString()
+            for item in [*actual.copy_destination.objects,*actual.copy_destination.state_companions])
+        self.assertEqual(publication_rows[0][1],exact_objects,'Recovery did not store the exact real owner object receipts')
+        world.close();self.broker.close()
+        after=self.persist_fault_audit(self.broker,'lost-publication-after-restart')
+        self.assertIn('copy_destination_inspect',after['requests'],after)
+        for method in ('copy_destination_prepare','copy_destination_publish','copy_stage_begin','copy_stage_start'):
+            self.assertNotIn(method,after['requests'],after)
+        inspect=storage.StorageCopyDestinationInspect(operation_id=request.operation_id,
+            request_digest=publication.copy_destination_publish.allocation.request_digest)
+        replies=self.stopped_owner_exchange([dict(copy_destination_inspect=inspect)],'lost-publication-exact-inspection')
+        self.assertEqual(replies[0].copy_destination.SerializeToString(),actual.copy_destination.SerializeToString())
+        (self.copy_evidence/'lost-publication-summary.json').write_text(json.dumps(dict(
+            operation_id=request.operation_id.hex(),phase=status.phase,error=status.error_code,
+            broker_pid=pid,broker_start_ticks=start,publication_receipt_sha256=hashlib.sha256(exact_objects).hexdigest(),
+            unchanged_authorization_binding_sha256=hashlib.sha256(binding_bytes).hexdigest(),
+            owner_publication_reply_sha256=witnessed['reply_sha256']),sort_keys=True,indent=2)+'\n')
+
+    def test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects(self):
+        self.copy_fault_mode='pass-through'
+        world=self.workspace(roots=lambda:self.copy_roots(True),registry=True)
+        peer=world.peers[0];self.select(peer)
+        (self.project/'filter-input.txt').write_bytes(b'authorized filter bytes\n')
+        (self.project/'.gitattributes').write_text('filter-input.txt filter=attack diff=attack\n')
+        # Prepare the real index before introducing any executable configuration.
+        self.git_oracle(self.project,'add','--','filter-input.txt','.gitattributes')
+        marker=self.root/'hostile-git-host-effect'
+        script=self.project/'hostile-git-command'
+        script.write_text('#!/bin/sh\n/usr/bin/touch '+str(marker)+'\n/usr/bin/touch /project/hostile-git-executed\n/bin/cat\n')
+        script.chmod(0o700)
+        source_repository=self.execution/'repositories'/(self.repository_object+'.git')
+        hooks=source_repository/'hooks';hooks.mkdir(exist_ok=True)
+        for name in ('post-checkout','post-merge','pre-auto-gc','reference-transaction','fsmonitor-watchman'):
+            hook=hooks/name;hook.write_bytes(script.read_bytes());hook.chmod(0o700)
+        with (source_repository/'config').open('a') as configuration:
+            configuration.write('\n[core]\n\thooksPath = '+str(hooks)+'\n\tfsmonitor = '+str(script)+
+                '\n[filter "attack"]\n\tclean = '+str(script)+'\n\tsmudge = '+str(script)+
+                '\n\trequired = true\n[diff "attack"]\n\ttextconv = '+str(script)+
+                '\n[credential]\n\thelper = !'+str(script)+'\n')
+        before=(source_repository/'config').read_bytes()
+        self.assertFalse(marker.exists());self.assertFalse((self.project/'hostile-git-executed').exists())
+        request=self.request_copy(peer)
+        accepted=self.fault_action(peer,workspace_copy=request)
+        self.assertTrue(accepted.HasField('action'),accepted)
+        self.assertEqual(accepted.action.copy_status.phase,copy.REQUESTED)
+        deadline=time.monotonic()+300
+        while True:
+            result=self.fault_action(peer,workspace_copy_status=copy.WorkspaceCopyStatusRequest(
+                protocol_version=1,operation_id=request.operation_id))
+            self.assertTrue(result.HasField('action'),result)
+            status=result.action.copy_status
+            self.assertNotIn(status.phase,(copy.ABORTED,copy.UNCERTAIN),status)
+            if status.phase==copy.PUBLISHED:break
+            self.assertLess(time.monotonic(),deadline,'Hostile Git control exceeded absolute operation budget')
+            time.sleep(.01)
+        self.assertEqual(status.phase,copy.PUBLISHED)
+        with sqlite3.connect(self.execution/'execution.db') as database:
+            repo,target=database.execute('SELECT r.path,t.path FROM workspaces w JOIN repositories r ON r.id=w.repo JOIN worktrees t ON t.id=w.worktree WHERE w.id=?',
+                (status.authorized_destination_workspace_id,)).fetchone()
+        target=Path(target);repo=Path(repo)
+        self.assertEqual((source_repository/'config').read_bytes(),before)
+        self.assertEqual((target/'filter-input.txt').read_bytes(),b'authorized filter bytes\n')
+        self.assertEqual((target/'.gitattributes').read_bytes(),(self.project/'.gitattributes').read_bytes())
+        self.assertFalse(marker.exists(),'Copy executed hostile Git configuration on the host')
+        self.assertFalse((self.project/'hostile-git-executed').exists())
+        self.assertFalse((target/'hostile-git-executed').exists(),'Copy executed hostile Git configuration in its sandbox')
+        self.assertFalse((repo/'hooks').exists())
+        config_bytes=(repo/'config').read_bytes()
+        for token in (b'attack',b'filter',b'credential',b'fsmonitor',b'hooksPath',str(script).encode()):
+            self.assertNotIn(token,config_bytes)
+        self.assertFalse((repo/'objects/info/alternates').exists())
+        self.assertTrue(all(item.stat().st_nlink==1 for item in repo.rglob('*') if item.is_file()))
+        row,effects,count=self.copy_row(request)
+        self.assertEqual(count,2);self.assertEqual(row[0],copy.PUBLISHED)
+        self.assertEqual(len([1 for kind,state,_,_ in effects if kind=='publication' and state==1]),1)
+        world.close();self.broker.close()
+        audit=self.persist_fault_audit(self.broker,'hostile-git')
+        self.assertEqual(audit['requests'].count('copy_destination_publish'),1)
+        (self.copy_evidence/'hostile-git-summary.json').write_text(json.dumps(dict(
+            phase=status.phase,source_config_sha256=hashlib.sha256(before).hexdigest(),
+            destination_config_sha256=hashlib.sha256(config_bytes).hexdigest(),
+            host_effect=False,sandbox_effect=False),sort_keys=True,indent=2)+'\n')
+
+
+    def test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch(self):
+        import process_scope_pb2 as scope
+        self.copy_fault_mode='pass-through'
+        world=self.workspace(roots=lambda:self.copy_roots(True),registry=True)
+        peer=world.peers[0];self.select(peer)
+        directory=self.project/'worker-death-input';directory.mkdir()
+        block=b'actual production copy worker death regression\n'.ljust(4096,b'x')
+        for number in range(3000):(directory/('%04d'%number)).write_bytes(block)
+        owner_config=storage.StorageOwnerConfig.FromString(self.owner_configuration.read_bytes())
+        storage_root=Path(owner_config.volume_root)
+        self.assertEqual(storage_root.resolve(),self.execution.resolve())
+        helper=Path('/usr/local/libexec/spatial-copy-tree-worker')
+        helper_identity=helper.stat()
+        self.assertEqual(helper_identity.st_uid,0)
+        self.assertFalse(helper_identity.st_mode&0o022)
+        request=self.request_copy(peer);stop=threading.Event();captured=[];errors=[]
+        def interrupt_exact_worker():
+            try:
+                deadline=time.monotonic()+90
+                while not stop.is_set() and time.monotonic()<deadline:
+                    row,effects,_=self.copy_row(request) if (self.execution/'execution.db').exists() else (None,[],0)
+                    launches=[receipt for kind,state,_,receipt in effects if kind=='worker-launch' and state==1]
+                    stages=[receipt for kind,state,_,receipt in effects if kind=='stage-begin' and state==1]
+                    if not launches or not stages:time.sleep(.001);continue
+                    identity=scope.ProcessScopeState.FromString(launches[0]).identity
+                    stage=storage.StorageCopyStageReceipt.FromString(stages[0])
+                    self.assertEqual(stage.destination_object.kind,storage.StorageObject.COPY_STAGING)
+                    staging=storage_root/'staging'/stage.destination_object.id
+                    # Require copied bytes before interrupting the production helper.
+                    progress=sum(item.stat().st_size for item in staging.rglob('*') if item.is_file())
+                    if progress==0:time.sleep(.001);continue
+                    for pid in self.descendants():
+                        try:
+                            executable=Path(f'/proc/{pid}/exe')
+                            actual_executable=executable.stat()
+                            if (actual_executable.st_dev,actual_executable.st_ino)!=(helper_identity.st_dev,helper_identity.st_ino):continue
+                            descriptor=os.pidfd_open(pid)
+                            try:
+                                start=self.start_time(pid)
+                                relative=Path(f'/proc/{pid}/cgroup').read_text().strip().split('::',1)[1]
+                                group=Path('/sys/fs/cgroup')/relative.lstrip('/')
+                                owned=next((item for item in (group,*group.parents)
+                                    if item.name==identity.scope_name),None)
+                                if owned is None:continue
+                                metadata=owned.stat()
+                                if (metadata.st_dev,metadata.st_ino)!=(identity.device,identity.inode):continue
+                                self.assertEqual(identity.boot_id,Path('/proc/sys/kernel/random/boot_id').read_text().strip())
+                                self.assertEqual(len(identity.launch_id),32)
+                                self.assertEqual(self.start_time(pid),start)
+                                pinned_executable=executable.stat()
+                                self.assertEqual((pinned_executable.st_dev,pinned_executable.st_ino),
+                                                 (helper_identity.st_dev,helper_identity.st_ino))
+                                self.assertEqual(Path(f'/proc/{pid}/cgroup').read_text().strip().split('::',1)[1],relative)
+                                # Pin first, then verify all identities, then signal that pidfd.
+                                executable_link=os.readlink(executable)
+                                signal.pidfd_send_signal(descriptor,signal.SIGKILL)
+                                record=dict(worker_pid=pid,start_ticks=start,cgroup=str(group),
+                                    scope_name=identity.scope_name,scope_device=identity.device,scope_inode=identity.inode,
+                                    launch_id=identity.launch_id.hex(),boot_id=identity.boot_id,
+                                    observed_staging_bytes=progress,signal='SIGKILL',
+                                    executable_link=executable_link,
+                                    executable_device=helper_identity.st_dev,executable_inode=helper_identity.st_ino,
+                                    configured_storage_root=str(storage_root),
+                                    worker_launch_receipt_sha256=hashlib.sha256(launches[0]).hexdigest(),
+                                    stage_begin_receipt_sha256=hashlib.sha256(stages[0]).hexdigest())
+                                captured.append(record)
+                                (self.copy_evidence/'worker-death-identity.json').write_text(json.dumps(record,sort_keys=True,indent=2)+'\n')
+                                return
+                            finally:os.close(descriptor)
+                        except (FileNotFoundError,ProcessLookupError):continue
+                    time.sleep(.001)
+                if not stop.is_set():raise AssertionError('No active production worker matched its durable scope receipt before capture bound')
+            except BaseException as error:errors.append(error)
+        # Admit first, then sample. The owner thread advances the copy independently.
+        accepted=self.fault_action(peer,workspace_copy=request)
+        self.assertTrue(accepted.HasField('action'),accepted)
+        self.assertEqual(accepted.action.copy_status.phase,copy.REQUESTED)
+        worker=threading.Thread(target=interrupt_exact_worker,name='copy-worker-identity-interrupt',daemon=False)
+        worker.start()
+        def stop_monitor():
+            stop.set();worker.join(timeout=5)
+            if worker.is_alive():raise AssertionError('Owned worker monitor did not stop')
+        self.addCleanup(stop_monitor)
+        try:
+            deadline=time.monotonic()+120
+            while True:
+                if errors:raise errors[0]
+                result=self.fault_action(peer,workspace_copy_status=copy.WorkspaceCopyStatusRequest(
+                    protocol_version=1,operation_id=request.operation_id))
+                self.assertTrue(result.HasField('action'),result)
+                status=result.action.copy_status
+                if status.phase in (copy.UNCERTAIN,copy.ABORTED,copy.PUBLISHED):break
+                self.assertLess(time.monotonic(),deadline,'Worker death did not reach bounded terminal status')
+                time.sleep(.01)
+            worker.join(timeout=5)
+            self.assertFalse(worker.is_alive())
+            if errors:raise errors[0]
+            self.assertEqual(len(captured),1,'Copy finished before actual worker interruption')
+            self.assertEqual(status.phase,copy.UNCERTAIN,status)
+            self.assertEqual(status.error_code,copy.COPY_UNCERTAIN,status)
+        finally:stop_monitor()
+        row,effects,count=self.copy_row(request)
+        binding_bytes=row[3];self.assertEqual(count,1)
+        self.assertEqual([(state,len(receipt)) for kind,state,_,receipt in effects if kind=='worker-output'],[(0,0)])
+        self.assertFalse(any(kind in ('publication','registry-publication') for kind,_,_,_ in effects))
+        stage_intent=next(intent for kind,state,intent,_ in effects if kind=='stage-begin' and state==1)
+        stage=storage.StorageCopyStageBegin.FromString(stage_intent)
+        old=self.broker
+        world,peer=self.restart_fault_world(world)
+        self.persist_fault_audit(old,'worker-death-before-restart')
+        self.assert_uncertain_retry(peer,request)
+        row,effects_after,count=self.copy_row(request)
+        self.assertEqual(row[3],binding_bytes);self.assertEqual(count,1)
+        self.assertEqual(effects_after,effects,'Restart or exact retry repeated or rewrote uncertain worker effects')
+        world.close();self.broker.close()
+        after=self.persist_fault_audit(self.broker,'worker-death-after-restart')
+        self.assertFalse(set(after['requests'])&{'copy_stage_begin','copy_stage_start','copy_destination_prepare','copy_destination_publish'},after)
+        inspect=storage.StorageCopyStageInspect(operation_id=stage.operation_id,request_digest=stage.request_digest)
+        replies=self.stopped_owner_exchange([dict(copy_stage_inspect=inspect)],'dead-worker-exact-owner-inspect')
+        receipt=replies[0].copy_stage
+        self.assertEqual(receipt.state,storage.StorageCopyStageReceipt.UNCERTAIN)
+        self.assertEqual(receipt.operation_id,stage.operation_id);self.assertEqual(receipt.request_digest,stage.request_digest)
+        self.assertEqual(receipt.snapshot_object,stage.snapshot_object)
+        self.assertEqual(receipt.destination_object,stage.destination_object)
+        self.assertEqual(receipt.maximum_bytes,stage.maximum_bytes);self.assertEqual(receipt.maximum_entries,stage.maximum_entries)
+        self.assertFalse(Path(captured[0]['cgroup']).exists(),'Owned worker cgroup survived checked cleanup')
+        diagnostic=Path(old.log.name).read_bytes()
+        self.assertIn(b'workspace copy failed operation='+request.operation_id.hex().encode(),diagnostic)
+        (self.copy_evidence/'worker-death-broker.log').write_bytes(diagnostic)
+
+
 def load_tests(loader,tests,pattern):
     names=('test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies',
-           'test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication')
+           'test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication',
+           'test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish',
+           'test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects',
+           'test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch')
     suite=unittest.TestSuite(WorkspaceCopyFaultTests(name) for name in names)
-    assert len(suite._tests)==2
+    assert len(suite._tests)==5
     return suite
 
 if __name__=='__main__':unittest.main()
