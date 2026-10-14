@@ -67,6 +67,28 @@ int main() {
             expect(other_actor_replay,"operation IDs are bound to the authenticated principal");
             bool conflict=false;try { store.create_presentation(a,0,create_a,digest_bytes(99),principal); } catch(const WorldError& e) { conflict=e.code==wire::REVISION_CONFLICT; }
             expect(conflict,"changed create replay conflicts");
+            sqlite3* receipt_db=nullptr;
+            expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&receipt_db)==SQLITE_OK,"open receipt validation witness");
+            sqlite3_stmt* receipt_query=nullptr;
+            expect(sqlite3_prepare_v2(receipt_db,"SELECT result FROM workspace_presentation_ops WHERE operation_id=lower(hex(?1))",-1,&receipt_query,nullptr)==SQLITE_OK,"prepare create receipt read");
+            sqlite3_bind_blob(receipt_query,1,create_a.data(),static_cast<int>(create_a.size()),SQLITE_TRANSIENT);
+            expect(sqlite3_step(receipt_query)==SQLITE_ROW,"read valid create receipt");
+            const auto* receipt_blob=static_cast<const char*>(sqlite3_column_blob(receipt_query,0));
+            const auto receipt_size=sqlite3_column_bytes(receipt_query,0);
+            std::string malformed_receipt(receipt_blob,static_cast<std::size_t>(receipt_size));
+            sqlite3_finalize(receipt_query);
+            expect(malformed_receipt.size()>20 && malformed_receipt.compare(0,4,"WPR1")==0 && malformed_receipt[20]=='\0',"create receipt has canonical nonremoved marker");
+            malformed_receipt[20]='\1';
+            sqlite3_stmt* receipt_update=nullptr;
+            expect(sqlite3_prepare_v2(receipt_db,"UPDATE workspace_presentation_ops SET result=?1 WHERE operation_id=lower(hex(?2))",-1,&receipt_update,nullptr)==SQLITE_OK,"prepare malformed receipt update");
+            sqlite3_bind_blob(receipt_update,1,malformed_receipt.data(),static_cast<int>(malformed_receipt.size()),SQLITE_TRANSIENT);
+            sqlite3_bind_blob(receipt_update,2,create_a.data(),static_cast<int>(create_a.size()),SQLITE_TRANSIENT);
+            expect(sqlite3_step(receipt_update)==SQLITE_DONE && sqlite3_changes(receipt_db)==1,"corrupt only the create removed marker");
+            sqlite3_finalize(receipt_update); sqlite3_close(receipt_db);
+            bool malformed_rejected=false;
+            try { store.presentation_operation(create_a,request_a,principal,WorkspacePresentationOperation::create); }
+            catch(const WorldError& e) { malformed_rejected=e.code==wire::STORAGE_ERROR; }
+            expect(malformed_rejected,"create decoder rejects tombstone marker under the wrong operation kind");
             a.id=rep_b; a.room_id="office"; a.pose=pose(2);
             auto second=store.create_presentation(a,store.info().world_revision(),create_b,request_b,principal);
             expect(second.workspace_id==created.workspace_id && store.presentations().size()==2,"multiple refs preserve one workspace identity");
@@ -82,7 +104,9 @@ int main() {
             auto visible=visible_presentations(store,"office",[&rep_a](const auto&,const auto& id){return id==rep_a;},[](const auto&){return false;},[](const auto&,const auto&){return false;});
             expect(visible.size()==1 && visible.front().locked && visible.front().representation_id==rep_a,"scoped view omits unauthorized geometry and retains locked permitted geometry");
             auto hidden=visible_presentations(store,"office",[](const auto&,const auto&){return false;},[](const auto&){return true;},[](const auto&,const auto&){return true;});
-            expect(hidden.empty(),"world observation denial removes geometry");
+            expect(hidden.empty(),"denied world observation omits every presentation");
+            auto all_visible=visible_presentations(store,"office",[](const auto&,const auto&){return true;},[](const auto&){return true;},[](const auto&,const auto&){return true;});
+            expect(all_visible.size()==2,"authorized world observation includes both same-room representations");
             auto uses=visible_presentations(store,"office",[](const auto&,const auto&){return true;},[](const auto& workspace){return workspace=="shared-workspace";},[&rep_a](const auto& id,const auto& workspace){return id==rep_a && workspace=="shared-workspace";});
             expect(uses.size()==2 && !uses.front().locked && uses.front().usable && !uses.back().usable,"workspace use is freshly checked per representation");
             const auto before_failed_create=store.info().world_revision();
@@ -118,6 +142,9 @@ int main() {
             trigger_error=nullptr; const auto clear_quota=sqlite3_exec(fault_db,"DELETE FROM workspace_presentations WHERE id LIKE 'fe%'",nullptr,nullptr,&trigger_error);
             const std::string clear_message=trigger_error?trigger_error:""; sqlite3_free(trigger_error); sqlite3_close(fault_db); expect(clear_quota==SQLITE_OK,clear_message.c_str());
             store.remove_presentation(rep_a,2,remove_a,request_remove,principal);
+            const auto remove_receipt=store.presentation_operation(remove_a,request_remove,principal,WorkspacePresentationOperation::remove);
+            expect(remove_receipt && remove_receipt->removed && remove_receipt->source_room_id=="office" &&
+                   remove_receipt->presentation.id==rep_a,"remove replay preserves the committed representation scope");
             store.remove_presentation(rep_a,0,remove_a,request_remove,principal);
             expect(store.presentations().size()==1 && store.presentation(rep_b).workspace_id=="shared-workspace","removal affects one reference only");
             expect(store.workspace_available("shared-workspace"),"presentation mutations preserve availability");

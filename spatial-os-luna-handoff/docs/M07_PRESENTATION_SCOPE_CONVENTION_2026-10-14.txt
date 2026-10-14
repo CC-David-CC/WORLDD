@@ -16,3 +16,21 @@ World scopes use `Domain{kind=WORLD,id=world_id}`. Do not repeat the world ID in
 A filtered view contains only representation ID, room, transform, generation, and locked state. It contains no workspace ID or workspace metadata. Missing and inaccessible references use the same denial.
 
 Protocol identity contract: operation and representation IDs remain exact 16-byte values. Internal SQLite keys use reversible lowercase hex, so embedded NUL bytes survive round trips. Request digests are raw 32-byte SHA-256 values and use the same reversible encoding in the operation journal. Journal principals are the concatenated 32-byte issuer ID and 32-byte actor ID, encoded losslessly for SQLite.
+
+
+Projection and recovery convention:
+
+- Durable presentation rows are the projection source. Actor scenes rebuild them from current rows on each request; no unfiltered scene cache exists.
+- Each scene checks WORLD_OBSERVE and REPRESENTATION_VIEW for each exact [room_id, representation_id] before adding geometry. Unauthorized rows are omitted.
+- Workspace access is checked per included row. The broker decision revision is rechecked while the scene is assembled. A revision change aborts the scene projection. World grants are rechecked after the final broker call. This does not claim one atomic snapshot across world and workspace authority services.
+- Projected records use the existing M06 OBJECT primitive and configured object dimensions. The internal entity ID is a reversible UTF-8 namespace encoding of the 16-byte representation ID.
+- Reserved IDs are rejected for durable world entities and existing reserved collisions fail closed during store startup. The projector also rejects deterministic collisions before returning a scene.
+- A committed mutation is durable before scene regeneration. A failed scene build leaves the row committed; the next authorized scene request regenerates it. No compositor pixel acknowledgement is implied.
+- Create does not change workspace availability or actor selection. Several records can reference the same workspace identity.
+
+Operation replay and placement checks:
+
+- The operation journal stores the source room and durable result for move/remove receipts. Actor retries compare principal, digest, and operation kind before attempting to load current geometry.
+- A replay checks current observe/view and action grants against the recorded source and destination scopes. It does not require the actor to remain in the original room or load the moved/deleted target. Receipts without a trustworthy source scope fail closed. Revoked authority denies or redacts replay output. Changed bytes under one operation ID conflict.
+- Create and move placements use the configured M06 object size. They reject overlap with same-room objects, presentations, and barrier colliders before commit. Room definitions have no enclosing bounds, so this path cannot reject positions outside a declared room volume.
+- Canonical locked-state metadata flows through RenderScene, ActorGeometryView, and renderer-visible ActorObservation. This source is unqualified until shared build registration and native tests are reviewed.

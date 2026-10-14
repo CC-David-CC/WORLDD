@@ -34,6 +34,11 @@ bool WorldAuthority::allowed(const pb::ActorRef& actor, const std::string& right
     else if (right == "navigate") selected = pb::WORLD_NAVIGATE;
     else if (right == "observe") selected = pb::WORLD_OBSERVE;
     else if (right == "world.write") selected = pb::WORLD_MANIPULATE;
+    else if (right == "presentation.create") selected = pb::WORLD_PLACEMENT_CREATE;
+    else if (right == "presentation.remove") selected = pb::WORLD_PLACEMENT_REMOVE;
+    else if (right == "representation.view") selected = pb::REPRESENTATION_VIEW;
+    else if (right == "representation.move") selected = pb::REPRESENTATION_MOVE;
+    else if (right == "representation.use") selected = pb::REPRESENTATION_USE;
     else return false;
     const DecisionKey key{actor.SerializeAsString(), right, components};
     const auto cached = decisions_.find(key); if (cached != decisions_.end()) return cached->second;

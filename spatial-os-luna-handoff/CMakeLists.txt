@@ -413,7 +413,7 @@ add_executable(identityd src/identity/issuer_main.cpp)
 target_link_libraries(identityd PRIVATE spatial-issuer)
 add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources} ${input_proto_headers})
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
-add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/workspace_presentations.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
+add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/workspace_presentations.cpp src/world/presentation_geometry.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
@@ -556,6 +556,21 @@ if(BUILD_TESTING)
     target_link_libraries(workspace-presentation-store-test PRIVATE spatial-core)
     add_test(NAME workspace-presentation-store COMMAND $<TARGET_FILE:workspace-presentation-store-test>)
     set_tests_properties(workspace-presentation-store PROPERTIES TIMEOUT 60)
+    add_executable(workspace-presentation-projection-test tests/core/test_workspace_presentation_projection.cpp)
+    target_include_directories(workspace-presentation-projection-test PRIVATE src)
+    target_link_libraries(workspace-presentation-projection-test PRIVATE spatial-core)
+    add_test(NAME workspace-presentation-projection COMMAND $<TARGET_FILE:workspace-presentation-projection-test>)
+    set_tests_properties(workspace-presentation-projection PROPERTIES TIMEOUT 60)
+    add_test(NAME workspace-presentation-actor COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_presentation_actor.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-presentation-actor PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(workspace-presentation-actor-fixture
+        DEPENDS identityd spatial-issuer-client worldd workspaced
+            broker-python-protobuf world-session-python-protobuf)
     add_dependencies(workspaced broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
         python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
     add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)

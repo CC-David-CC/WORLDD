@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 #include <string>
@@ -24,6 +25,8 @@ struct WorkspacePresentation {
     wire::Pose pose;
     std::uint64_t generation = 0;
 };
+enum class WorkspacePresentationOperation : int { create = 1, move = 2, remove = 3 };
+struct PresentationOperationReceipt { WorkspacePresentation presentation; std::string source_room_id; bool removed = false; };
 
 class WorldStore {
 public:
@@ -49,10 +52,12 @@ public:
     void clear_workspace(const std::string& actor);
     void revoke_workspace_selection(const std::string& workspace, const std::string& actor);
     WorkspacePresentation create_presentation(const WorkspacePresentation&, std::uint64_t expected_world_revision, const std::string& operation_id, const std::string& request_digest, const std::string& principal);
-    WorkspacePresentation move_presentation(const std::string& id, const std::string& room, const wire::Pose& pose, std::uint64_t expected_generation, const std::string& operation_id, const std::string& request_digest, const std::string& principal);
+    WorkspacePresentation move_presentation(const std::string& id, const std::string& room, const wire::Pose& pose, std::uint64_t expected_generation, const std::string& operation_id, const std::string& request_digest, const std::string& principal, std::uint64_t expected_world_revision = 0);
     void remove_presentation(const std::string& id, std::uint64_t expected_generation, const std::string& operation_id, const std::string& request_digest, const std::string& principal);
     std::vector<WorkspacePresentation> presentations();
     WorkspacePresentation presentation(const std::string& id);
+    std::optional<PresentationOperationReceipt> presentation_operation(const std::string& operation_id,
+        const std::string& request_digest, const std::string& principal, WorkspacePresentationOperation kind);
 private:
     wire::Entity insert_entity(const wire::Entity& entity);
     struct Impl;

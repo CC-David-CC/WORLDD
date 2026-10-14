@@ -23,8 +23,9 @@ RIGHTS = (grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE, grant.WO
 
 class RelayingIssuer:
     """Forward real issuer requests. Delay one status request across real revocation."""
-    def __init__(self, fixture, revoke):
-        self.fixture = fixture; self.revoke = revoke; self.armed = threading.Event()
+    def __init__(self, fixture, revoke, wait_for_revocation_event=True):
+        self.fixture = fixture; self.revoke = revoke; self.wait_for_revocation_event = wait_for_revocation_event
+        self.armed = threading.Event(); self.triggered = threading.Event()
         self.delivered = threading.Event(); self.stop = threading.Event(); self.errors = []
         self.status_lock = threading.Lock(); self.status_seen = 0; self.trigger_after_status = 1
         self.streams = []; self.workers = []
@@ -67,10 +68,11 @@ class RelayingIssuer:
                         self.status_seen += 1
                         should_revoke = self.status_seen == self.trigger_after_status
                     if should_revoke:
-                        self.armed.clear(); self.revoke()
-                        if not self.delivered.wait(.3): raise AssertionError('Real revocation was not forwarded')
-                        # Keep the issuer call pending while worldd consumes the watcher event.
-                        time.sleep(.08)
+                        self.armed.clear(); self.triggered.set(); self.revoke()
+                        if self.wait_for_revocation_event:
+                            if not self.delivered.wait(.3): raise AssertionError('Real revocation was not forwarded')
+                            # Keep the issuer call pending while worldd consumes the watcher event.
+                            time.sleep(.08)
                 reply = upstream.request(request); reply.request_id = sequence
                 stream.sendall(frame(reply))
                 if reply.HasField('revocations') and reply.revocations.events: self.delivered.set()

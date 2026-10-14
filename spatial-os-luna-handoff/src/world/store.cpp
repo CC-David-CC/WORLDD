@@ -1,4 +1,6 @@
 #include "world/store.hpp"
+#include "world/presentation_geometry.hpp"
+#include "core/presentation_identity.hpp"
 #include "world/snapshot_size.hpp"
 #include "world/storage_vfs.hpp"
 #include "core/geometry.hpp"
@@ -187,7 +189,10 @@ struct WorldStore::Impl {
             throw WorldError(wire::STORAGE_ERROR, "Invalid durable world identity or entry room");
         Statement all(db.get(), "SELECT id FROM entities ORDER BY id");
         while (all.step() == SQLITE_ROW) {
-            const auto entity = get(all.text(0)); references(entity);
+            const auto entity = get(all.text(0));
+            if (is_reserved_presentation_geometry_id(entity.id()))
+                throw WorldError(wire::STORAGE_ERROR, "World entity occupies the reserved presentation geometry namespace");
+            references(entity);
             if (entity.world_revision() > state.world_revision())
                 throw WorldError(wire::STORAGE_ERROR, "Entity revision exceeds world revision");
         }
@@ -293,6 +298,8 @@ wire::Entity WorldStore::create_actor(const wire::Entity& input) {
 }
 wire::Entity WorldStore::insert_entity(const wire::Entity& input) {
     valid_entity(input);
+    if (is_reserved_presentation_geometry_id(input.id()))
+        throw WorldError(wire::INVALID_ARGUMENT, "Entity ID uses a reserved presentation geometry namespace");
     require(!input.has_revision() && !input.has_world_revision(), "Revisions are assigned by the world");
     Transaction transaction(impl_->db.get(), true, &impl_->fault);
     { Statement q(impl_->db.get(), "SELECT 1 FROM entities WHERE id=?"); q.text(1, input.id());
@@ -516,6 +523,36 @@ std::string encode_presentation(const WorkspacePresentation& value) {
         result.push_back(static_cast<char>((value.generation >> shift) & 0xff));
     return result;
 }
+std::string encode_presentation_receipt(const WorkspacePresentation& value, const std::string& source_room, bool removed) {
+    std::string result="WPR1";
+    append_field(result, source_room); append_field(result, removed ? std::string(1, '\1') : std::string(1, '\0'));
+    append_field(result, encode_presentation(value)); return result;
+}
+PresentationOperationReceipt decode_presentation_receipt(const std::string& bytes, int kind) {
+    if (bytes.empty()) {
+        if (kind==presentation_remove_op) return {{}, {}, true}; // Legacy tombstone has no trustworthy replay scope.
+        throw WorldError(wire::STORAGE_ERROR, "Missing presentation operation receipt");
+    }
+    if (bytes.compare(0,4,"WPR1") != 0) {
+        auto value=decode_presentation(bytes);
+        if (kind==presentation_create_op) return {value, {}, false};
+        if (kind==presentation_move_op) return {value, {}, false}; // Legacy move has no trustworthy source scope.
+        throw WorldError(wire::STORAGE_ERROR, "Invalid legacy presentation receipt kind");
+    }
+    std::size_t offset=4; const auto source=take_field(bytes,offset); const auto removed=take_field(bytes,offset);
+    const auto payload=take_field(bytes,offset);
+    if (offset!=bytes.size() || removed.size()!=1 || (removed[0]!='\0' && removed[0]!='\1'))
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation operation receipt");
+    auto value=decode_presentation(payload);
+    const bool is_removed=removed[0]=='\1';
+    if ((kind==presentation_remove_op && (!is_removed || source.empty())) ||
+        ((kind==presentation_create_op || kind==presentation_move_op) && is_removed) ||
+        (kind==presentation_create_op && !source.empty()) ||
+        (kind==presentation_move_op && source.empty()) ||
+        (kind!=presentation_create_op && kind!=presentation_move_op && kind!=presentation_remove_op))
+        throw WorldError(wire::STORAGE_ERROR,"Invalid presentation receipt kind or scope");
+    return {std::move(value),source,is_removed};
+}
 }
 
 WorkspacePresentation WorldStore::presentation(const std::string& id) {
@@ -545,6 +582,19 @@ WorkspacePresentation WorldStore::presentation(const std::string& id) {
     return result;
 }
 
+std::optional<PresentationOperationReceipt> WorldStore::presentation_operation(const std::string& operation_id,
+    const std::string& digest, const std::string& principal, WorkspacePresentationOperation kind) {
+    validate_operation(operation_id,digest,principal);
+    const auto key=presentation_hex(operation_id);
+    Statement query(impl_->db.get(),"SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    query.text(1,key);
+    if (query.step()!=SQLITE_ROW) return std::nullopt;
+    if (query.text(0)!=presentation_hex(principal) || query.text(1)!=presentation_hex(digest) ||
+        sqlite3_column_int(query.value,2)!=static_cast<int>(kind))
+        throw WorldError(wire::REVISION_CONFLICT,"Presentation operation replay conflicts");
+    return decode_presentation_receipt(query.blob(3),static_cast<int>(kind));
+}
+
 std::vector<WorkspacePresentation> WorldStore::presentations() {
     std::vector<WorkspacePresentation> result;
     Statement query(impl_->db.get(), "SELECT id FROM workspace_presentations ORDER BY id");
@@ -569,7 +619,7 @@ WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentatio
     if (replay.step() == SQLITE_ROW) {
         if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_create_op)
             throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
-        auto result = decode_presentation(replay.blob(3));
+        auto result = decode_presentation_receipt(replay.blob(3), presentation_create_op).presentation;
         return result;
     }
     if (impl_->info().world_revision() != expected_world_revision)
@@ -611,7 +661,7 @@ WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentatio
     journal.text(2, principal_key);
     journal.text(3, digest_key);
     journal.integer(4, presentation_create_op);
-    journal.blob(5, encode_presentation(result));
+    journal.blob(5, encode_presentation_receipt(result, {}, false));
     journal.step();
     impl_->advance();
     transaction.commit();
@@ -620,7 +670,7 @@ WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentatio
 
 WorkspacePresentation WorldStore::move_presentation(const std::string& id, const std::string& room,
     const wire::Pose& pose, std::uint64_t expected_generation, const std::string& operation_id,
-    const std::string& digest, const std::string& principal) {
+    const std::string& digest, const std::string& principal, std::uint64_t expected_world_revision) {
     validate_operation(operation_id, digest, principal);
     const auto operation_key=presentation_hex(operation_id), principal_key=presentation_hex(principal), digest_key=presentation_hex(digest);
     validate_presentation_id(id, "Presentation ID must contain exactly 16 bytes");
@@ -634,12 +684,15 @@ WorkspacePresentation WorldStore::move_presentation(const std::string& id, const
     if (replay.step() == SQLITE_ROW) {
         if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_move_op)
             throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
-        auto result = decode_presentation(replay.blob(3));
+        auto result = decode_presentation_receipt(replay.blob(3), presentation_move_op).presentation;
         return result;
     }
+    if (expected_world_revision && impl_->info().world_revision()!=expected_world_revision)
+        throw WorldError(wire::REVISION_CONFLICT,"World changed during presentation placement validation");
     if (impl_->get(room).kind() != wire::ROOM)
         throw WorldError(wire::INVALID_ARGUMENT, "Presentation room must be a room");
     auto result = presentation(id);
+    const auto source_room = result.room_id;
     if (result.generation != expected_generation)
         throw WorldError(wire::REVISION_CONFLICT, "Stale presentation generation");
     if (result.generation == INT64_MAX)
@@ -664,7 +717,7 @@ WorkspacePresentation WorldStore::move_presentation(const std::string& id, const
     journal.text(2, principal_key);
     journal.text(3, digest_key);
     journal.integer(4, presentation_move_op);
-    journal.blob(5, encode_presentation(result));
+    journal.blob(5, encode_presentation_receipt(result, source_room, false));
     journal.step();
     impl_->advance();
     transaction.commit();
@@ -679,11 +732,13 @@ void WorldStore::remove_presentation(const std::string& id, std::uint64_t expect
     const auto id_key=presentation_hex(id);
     Transaction transaction(impl_->db.get(), true, &impl_->fault);
     Statement replay(impl_->db.get(),
-        "SELECT principal,request_digest,kind FROM workspace_presentation_ops WHERE operation_id=?");
+        "SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
     replay.text(1, operation_key);
     if (replay.step() == SQLITE_ROW) {
         if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_remove_op)
             throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
+        const auto receipt=decode_presentation_receipt(replay.blob(3),presentation_remove_op);
+        (void)receipt;
         return;
     }
     const auto current = presentation(id);
@@ -697,11 +752,12 @@ void WorldStore::remove_presentation(const std::string& id, std::uint64_t expect
     if (sqlite3_changes(impl_->db.get()) != 1)
         throw WorldError(wire::REVISION_CONFLICT, "Concurrent presentation removal");
 
-    Statement journal(impl_->db.get(), "INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,X'')");
+    Statement journal(impl_->db.get(), "INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,?)");
     journal.text(1, operation_key);
     journal.text(2, principal_key);
     journal.text(3, digest_key);
     journal.integer(4, presentation_remove_op);
+    journal.blob(5, encode_presentation_receipt(current, current.room_id, true));
     journal.step();
     impl_->advance();
     transaction.commit();
