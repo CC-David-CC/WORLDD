@@ -101,6 +101,15 @@ message AccessRequest {
   spatial.authority.v1.ActorRef principal = 3;
 }
 message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+// Private authenticated broker query. Components are opaque authority scope values.
+message ScopedAuthorityCheckRequest {
+  string workspace = 1;
+  spatial.authority.v1.ActorRef principal = 2;
+  spatial.authority.v1.Right right = 3;
+  repeated string components = 4;
+}
+// Deliberately returns no grants or workspace metadata.
+message ScopedAuthorityCheckReply { bool allowed = 1; uint64 revision = 2; }
 // Application groups come from trusted native attribution, not client properties.
 message ApplicationRef { bytes workspace = 1; bytes application = 2; bytes server_id = 3; }
 message ApplicationAccessRequest {
@@ -226,6 +235,7 @@ message Request {
     BootstrapBindRequest bootstrap_bind = 110;
     BootstrapRevokeRequest bootstrap_revoke = 111;
     BootstrapApplyRequest bootstrap_apply = 112;
+    ScopedAuthorityCheckRequest scoped_authority_check = 113;
   }
 }
 message Reply {
@@ -245,5 +255,6 @@ message Reply {
     ApplicationControlLease control_revoked = 109;
     spatial.authority.v1.BootstrapBinding binding = 110;
     spatial.authority.v1.BootstrapReport bootstrap = 111;
+    ScopedAuthorityCheckReply scoped_authority_check = 112;
   }
 }

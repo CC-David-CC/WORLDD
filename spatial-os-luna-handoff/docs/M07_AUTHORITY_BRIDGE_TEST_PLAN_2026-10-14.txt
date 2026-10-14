@@ -1,0 +1,7 @@
+Selected checks before execution:
+- Schema descriptor assertions preserve ActorActionRequest tags 25-29, ActorActionReply fields 6-7, filtered PresentationView fields, and private copy receipt exclusion.
+- Private scoped authority checks cover exact component success, wrong-component denial, typed invalid world/unknown/create rights, policy ceilings, and grant plus actor revocation; participant transport loss must return unavailable and never allow.
+- Registry test covers a bound authority domain with no execution row, authorized creation, and denial of ordinary access or ID collision.
+- Legacy fallback test ensures an unbound scope cannot produce a typed authority decision.
+- Compile-only checks: targeted Debug, ASan/UBSan, and BUILD_TESTING=OFF production closure on a5500. Do not run runtime probes or ctest on this host.
+All runtime checks remain UNRUN pending primary review and execution on a designated test host.

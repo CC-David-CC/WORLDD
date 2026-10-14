@@ -375,6 +375,8 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             }
             if (request.has_bootstrap_apply() && reply.has_bootstrap())
                 valid = bootstrap_report(reply.bootstrap(), request.bootstrap_apply());
+            if (request.has_scoped_authority_check() && reply.has_scoped_authority_check())
+                valid = reply.scoped_authority_check().revision() <= INT64_MAX;
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
@@ -403,6 +405,10 @@ broker_wire::AccessReply BrokerClient::access(const std::string& workspace, cons
     broker_wire::Request request; request.mutable_access()->set_workspace(workspace); request.mutable_access()->set_actor(actor);
     if (principal) *request.mutable_access()->mutable_principal() = *principal;
     return exchange(request).access();
+}
+broker_wire::ScopedAuthorityCheckReply BrokerClient::scoped_authority_check(const broker_wire::ScopedAuthorityCheckRequest& command) {
+    broker_wire::Request request; *request.mutable_scoped_authority_check() = command;
+    return exchange(request).scoped_authority_check();
 }
 broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
     broker_wire::Request request; *request.mutable_application_access() = command;

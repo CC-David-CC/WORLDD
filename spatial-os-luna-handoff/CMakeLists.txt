@@ -170,7 +170,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
         protobuf::protoc VERBATIM)
 add_custom_target(storage-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py")
 add_dependencies(storage-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf scope-python-protobuf)
-add_dependencies(broker-python-protobuf storage-python-protobuf)
+add_dependencies(broker-python-protobuf storage-python-protobuf workspace-copy-python-protobuf)
 add_dependencies(launch-python-protobuf broker-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
