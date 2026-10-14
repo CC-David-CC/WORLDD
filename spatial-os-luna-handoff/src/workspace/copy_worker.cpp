@@ -174,8 +174,8 @@ CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_
  require(result.ParseFromArray(output.data()+4,static_cast<int>(frame_size))&&result.protocol_version()==1&&result.outcome_case()!=spatial::workspace::copyworker::v1::WorkerResult::OUTCOME_NOT_SET&&result.GetReflection()->GetUnknownFields(result).field_count()==0,"invalid copy worker protobuf result");
  if(result.has_failure()) {
   const auto reason=result.failure().reason();
-  require(reason>=spatial::workspace::copyworker::v1::FAILURE_SYMLINK&&reason<=spatial::workspace::copyworker::v1::FAILURE_INTERNAL&&result.failure().GetReflection()->GetUnknownFields(result.failure()).field_count()==0,"invalid copy worker failure enum");
-  const auto code=reason==spatial::workspace::copyworker::v1::FAILURE_BYTE_LIMIT||reason==spatial::workspace::copyworker::v1::FAILURE_ENTRY_LIMIT?wire::RESOURCE_EXHAUSTED:
+  require(reason>=spatial::workspace::copyworker::v1::FAILURE_SYMLINK&&reason<=spatial::workspace::copyworker::v1::FAILURE_DESCRIPTOR_LIMIT&&result.failure().GetReflection()->GetUnknownFields(result.failure()).field_count()==0,"invalid copy worker failure enum");
+  const auto code=reason==spatial::workspace::copyworker::v1::FAILURE_BYTE_LIMIT||reason==spatial::workspace::copyworker::v1::FAILURE_ENTRY_LIMIT||reason==spatial::workspace::copyworker::v1::FAILURE_DEPTH_LIMIT||reason==spatial::workspace::copyworker::v1::FAILURE_DESCRIPTOR_LIMIT?wire::RESOURCE_EXHAUSTED:
       reason==spatial::workspace::copyworker::v1::FAILURE_SYMLINK?wire::INVALID_ARGUMENT:wire::STORAGE_ERROR;
   throw WorldError(code,reason==spatial::workspace::copyworker::v1::FAILURE_SYMLINK?"Copy source contains a symbolic link":"Copy worker rejected source tree");
  }

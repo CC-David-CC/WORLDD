@@ -18,8 +18,14 @@ The broker supplies a versioned WorkerRequest in a sealed memfd. It carries only
 maximum byte and entry counts. The helper returns a four-byte big-endian length followed
 by a versioned protobuf WorkerResult. Success carries actual counts and a raw SHA-256
 digest. Failure carries a typed reason such as symlink, hard link, special entry, byte
-limit, entry limit, or destination conflict. The broker rejects bad lengths, versions,
-unknown fields, enums, counts, and digest sizes. The former ASCII result protocol is
+limit, entry limit, depth limit, descriptor limit, I/O error, or destination conflict. Enumeration counts
+every observed name before queuing it, including names waiting in parent directories.
+The worker supports at most 200,000 entries and 128 nested directories. It reserves
+16 descriptors and budgets three descriptors per nested level against RLIMIT_NOFILE.
+A lower process limit yields a typed descriptor-limit failure. The depth limit bounds
+recursive stack and descriptor use. The broker maps entry, depth, and byte
+limits to resource exhaustion. The broker rejects bad lengths, versions, unknown fields,
+enums, counts, and digest sizes. The former ASCII result protocol is
 superseded and was never a qualified component interface.
 
 The storage owner records an immutable receipt keyed by operation ID, request digest,
@@ -46,4 +52,8 @@ ProcessScope limits and private networking, verifies independent copied inodes, 
 retries the same intent. The symlink case must leave an UNCERTAIN receipt and assert
 the typed symlink rejection. Run the existing storage-snapshot-owner test for owner
 restart recovery from COPYING to UNCERTAIN. Coding-host builds do not execute either
-runtime test. Runtime evidence is pending the primary's test-host schedule.
+runtime test. Runtime evidence is pending the primary's test-host schedule. The CMake test target
+uses a separate fixture build of the same algorithm with one compile-time-only
+readdir EIO faultpoint. The installed production helper has no faultpoint or environment
+override. That fixture checks typed I/O failure handling; it does not replace the
+production storage-owner and ProcessScope runtime witness.

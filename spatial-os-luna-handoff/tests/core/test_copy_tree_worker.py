@@ -1,5 +1,6 @@
 """Confined immutable tree-copy helper regressions."""
 import os
+import resource
 import subprocess
 import sys
 import tempfile
@@ -24,16 +25,26 @@ def decode_result(result):
     return message
 
 class CopyTreeWorkerTests(unittest.TestCase):
-    def run_worker(self, source, destination, quota=1 << 20, entries=100):
-        return subprocess.run(
-            [str(BWRAP), "--unshare-all", "--unshare-user", "--disable-userns",
-             "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv",
-             "--ro-bind", "/usr/bin", "/usr/bin", "--ro-bind", "/usr/lib", "/usr/lib",
-             "--ro-bind", "/usr/lib64", "/usr/lib64", "--ro-bind", str(WORKER), "/copy-worker",
-             "--dir", "/source", "--dir", "/destination", "--ro-bind", str(source), "/source",
-             "--bind", str(destination), "/destination", "--remount-ro", "/", "--",
-             "/copy-worker", str(quota), str(entries)],
-            capture_output=True, timeout=15)
+    def run_worker(self, source, destination, quota=1 << 20, entries=100, fail_readdir_after=None, nofile_limit=None):
+        request = copy_worker_pb2.WorkerRequest(
+            protocol_version=1, maximum_bytes=quota, maximum_entries=entries)
+        with tempfile.NamedTemporaryFile() as request_file:
+            request_file.write(request.SerializeToString())
+            request_file.flush()
+            command = [str(BWRAP), "--unshare-all", "--unshare-user", "--disable-userns",
+                       "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv",
+                       "--ro-bind", "/usr/bin", "/usr/bin", "--ro-bind", "/usr/lib", "/usr/lib",
+                       "--ro-bind", "/usr/lib64", "/usr/lib64", "--ro-bind", str(WORKER), "/copy-worker",
+                       "--dir", "/source", "--dir", "/destination", "--ro-bind", str(source), "/source",
+                       "--bind", str(destination), "/destination", "--ro-bind", request_file.name, "/job.pb"]
+            if fail_readdir_after is not None:
+                command.extend(["--setenv", "SPATIAL_COPY_TEST_FAIL_READDIR_AFTER", str(fail_readdir_after)])
+            command.extend(["--remount-ro", "/", "--", "/copy-worker"])
+            def lower_nofile():
+                if nofile_limit is not None:
+                    resource.setrlimit(resource.RLIMIT_NOFILE, (nofile_limit, resource.getrlimit(resource.RLIMIT_NOFILE)[1]))
+            return subprocess.run(command, capture_output=True, timeout=15,
+                                  preexec_fn=lower_nofile if nofile_limit is not None else None)
 
     def test_positive_copy_preserves_bytes_without_sharing_inodes(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -97,6 +108,52 @@ class CopyTreeWorkerTests(unittest.TestCase):
             message = decode_result(self.run_worker(source, destination, quota=4))
             self.assertEqual(message.WhichOneof("outcome"), "failure")
             self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_BYTE_LIMIT)
+
+    def test_wide_tree_is_bounded_before_name_queue_growth(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"; destination = Path(temp) / "destination"
+            source.mkdir(); destination.mkdir()
+            for index in range(2048):
+                (source / f"entry-{index:04}").touch()
+            message = decode_result(self.run_worker(source, destination, entries=8))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_ENTRY_LIMIT)
+            self.assertEqual(list(destination.iterdir()), [])
+
+    def test_tree_depth_is_bounded_with_a_typed_limit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"; destination = Path(temp) / "destination"
+            source.mkdir(); destination.mkdir()
+            current = source
+            for _ in range(130):
+                current = current / "d"
+                current.mkdir()
+            message = decode_result(self.run_worker(source, destination, entries=1000))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_DEPTH_LIMIT)
+
+    def test_low_descriptor_limit_caps_supported_depth(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"; destination = Path(temp) / "destination"
+            source.mkdir(); destination.mkdir()
+            current = source
+            for _ in range(20):
+                current = current / "d"
+                current.mkdir()
+            message = decode_result(self.run_worker(
+                source, destination, entries=1000, nofile_limit=64))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_DESCRIPTOR_LIMIT)
+
+    def test_readdir_error_is_reported_as_io_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"; destination = Path(temp) / "destination"
+            source.mkdir(); destination.mkdir(); (source / "entry").touch()
+            message = decode_result(self.run_worker(
+                source, destination, fail_readdir_after=0))
+            self.assertEqual(message.WhichOneof("outcome"), "failure")
+            self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_IO)
+            self.assertEqual(list(destination.iterdir()), [])
 
     def test_entry_limit_and_existing_destination_entry_are_denied(self):
         with tempfile.TemporaryDirectory() as temp:

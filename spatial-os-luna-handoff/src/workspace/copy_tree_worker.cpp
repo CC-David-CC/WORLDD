@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <cerrno>
 #include <cstdint>
@@ -13,6 +14,9 @@
 #include <stdexcept>
 #include <vector>
 #include <google/protobuf/unknown_field_set.h>
+#ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
+#include <cstdlib>
+#endif
 namespace {
 namespace pb = spatial::workspace::copyworker::v1;
 struct Failure final : std::runtime_error {
@@ -26,21 +30,46 @@ struct Fd { int n=-1; explicit Fd(int x=-1):n(x){} ~Fd(){if(n>=0)close(n);} Fd(c
 struct DirCloser { void operator()(DIR* d) const { if (d) closedir(d); } };
 using Dir = std::unique_ptr<DIR,DirCloser>;
 struct Hash {
-    EVP_MD_CTX* c=EVP_MD_CTX_new();
-    Hash(){need(c&&EVP_DigestInit_ex(c,EVP_sha256(),nullptr)==1);static const char domain[]="spatial-copy-tree-v1";add(domain,sizeof(domain)-1);}
-    ~Hash(){EVP_MD_CTX_free(c);}
-    void add(const void* p,size_t n){need(EVP_DigestUpdate(c,p,n)==1);}
+    std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> c{EVP_MD_CTX_new(), EVP_MD_CTX_free};
+    Hash(){need(c&&EVP_DigestInit_ex(c.get(),EVP_sha256(),nullptr)==1);static const char domain[]="spatial-copy-tree-v1";add(domain,sizeof(domain)-1);}
+    void add(const void* p,size_t n){need(EVP_DigestUpdate(c.get(),p,n)==1);}
     void u64(uint64_t v){unsigned char b[8];for(int i=7;i>=0;--i){b[i]=static_cast<unsigned char>(v);v>>=8;}add(b,8);}
     void field(const std::string& s){u64(s.size());add(s.data(),s.size());}
-    std::string end(){unsigned char b[32];unsigned n=0;need(EVP_DigestFinal_ex(c,b,&n)==1&&n==32);return {reinterpret_cast<char*>(b),n};}
+    std::string end(){unsigned char b[32];unsigned n=0;need(EVP_DigestFinal_ex(c.get(),b,&n)==1&&n==32);return {reinterpret_cast<char*>(b),n};}
 };
-uint64_t bytes=0,entries=0,max_bytes=0,max_entries=0;
+uint64_t bytes=0,entries=0,enumerated=0,max_bytes=0,max_entries=0;
+unsigned max_depth=128;
+#ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
+long fail_readdir_after=-1;
+bool readdir_fault_used=false;
+#endif
 std::unique_ptr<Hash> hash;
-void tree(int s,int d,const std::string& prefix) {
+void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
+    need(depth<=128,pb::FAILURE_DEPTH_LIMIT);
+    need(depth<=max_depth,pb::FAILURE_DESCRIPTOR_LIMIT);
     Fd dupfd(dup(s));need(dupfd.n>=0);
     Dir dir(fdopendir(dupfd.n));need(bool(dir));dupfd.n=-1;
     std::vector<std::string> names;
-    while(auto* e=readdir(dir.get())){std::string n=e->d_name;if(n!="."&&n!="..")names.push_back(std::move(n));}
+    for(;;) {
+        dirent* e=nullptr;
+#ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
+        if(!readdir_fault_used&&fail_readdir_after>=0&&enumerated>=static_cast<uint64_t>(fail_readdir_after)) {
+            errno=EIO;readdir_fault_used=true;
+        } else
+#endif
+        {
+            errno=0;e=readdir(dir.get());
+            if(!e&&errno!=0)throw Failure(pb::FAILURE_IO);
+        }
+#ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
+        if(readdir_fault_used&&errno==EIO&&e==nullptr)throw Failure(pb::FAILURE_IO);
+#endif
+        if(!e)break;
+        std::string n=e->d_name;
+        if(n=="."||n=="..")continue;
+        if(++enumerated>max_entries)throw Failure(pb::FAILURE_ENTRY_LIMIT);
+        names.push_back(std::move(n));
+    }
     std::sort(names.begin(),names.end(),[](const auto&a,const auto&b){return std::lexicographical_compare(a.begin(),a.end(),b.begin(),b.end(),[](unsigned char x,unsigned char y){return x<y;});});
     for(const auto& n:names) {
         need(n.find('/')==std::string::npos&&n.find('\0')==std::string::npos);
@@ -57,7 +86,7 @@ void tree(int s,int d,const std::string& prefix) {
             Fd a(openat(s,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC)),b(openat(d,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
             need(a.n>=0&&b.n>=0);
             struct stat opened{};if(fstat(a.n,&opened)<0||opened.st_dev!=st.st_dev||opened.st_ino!=st.st_ino)throw Failure(pb::FAILURE_SOURCE_CHANGED);
-            tree(a.n,b.n,rel);
+            tree(a.n,b.n,rel,depth+1);
             need(fchmod(b.n,st.st_mode&0777)==0&&fsync(b.n)==0);
         } else {
             if(st.st_nlink!=1)throw Failure(pb::FAILURE_HARD_LINK);
@@ -101,7 +130,23 @@ int main() {
         while(used<input.size()){ssize_t n=read(request_fd.n,input.data()+used,input.size()-used);if(n<0&&errno==EINTR)continue;need(n>0);used+=n;}
         pb::WorkerRequest request;need(request.ParseFromString(input)&&request.protocol_version()==1&&request.maximum_bytes()>0&&request.maximum_bytes()<=4ULL*1024*1024*1024&&request.maximum_entries()>0&&request.maximum_entries()<=200000);
         need(request.GetReflection()->GetUnknownFields(request).empty());
-        max_bytes=request.maximum_bytes();max_entries=request.maximum_entries();hash=std::make_unique<Hash>();
+        max_bytes=request.maximum_bytes();max_entries=request.maximum_entries();
+        struct rlimit nofile{};
+        need(getrlimit(RLIMIT_NOFILE,&nofile)==0,pb::FAILURE_IO);
+        constexpr rlim_t kDescriptorReserve=16;
+        if(nofile.rlim_cur!=RLIM_INFINITY) {
+            max_depth=nofile.rlim_cur>kDescriptorReserve
+                ? static_cast<unsigned>(std::min<rlim_t>(128,(nofile.rlim_cur-kDescriptorReserve)/3))
+                : 0;
+        }
+#ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
+        if(const char* fault=std::getenv("SPATIAL_COPY_TEST_FAIL_READDIR_AFTER")) {
+            char* end=nullptr;errno=0;const long parsed=std::strtol(fault,&end,10);
+            need(errno==0&&end&&*end=='\0'&&parsed>=0&&parsed<=200000);
+            fail_readdir_after=parsed;
+        }
+#endif
+        hash=std::make_unique<Hash>();
         Fd s(open("/source",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC)),d(open("/destination",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
         struct stat a{},b{};need(s.n>=0&&d.n>=0&&fstat(s.n,&a)==0&&fstat(d.n,&b)==0);
         need(a.st_dev!=b.st_dev||a.st_ino!=b.st_ino);
