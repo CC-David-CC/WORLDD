@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded behavior tests for the run-command.sh draft. Run only after approval."""
+"""Behavior checks for persistent command receipts and exact argv handling."""
 import os
 import signal
 import subprocess
@@ -11,12 +11,12 @@ from pathlib import Path
 
 DRAFT_DIR = Path(__file__).resolve().parent
 HELPER = DRAFT_DIR / "run-command.sh"
-CHECKOUT = Path(os.environ["RUN_COMMAND_CHECKOUT"]) if "RUN_COMMAND_CHECKOUT" in os.environ else Path(__file__).resolve().parents[5] / "Documents" / "spacial_desktop"
+CHECKOUT = Path(os.environ["RUN_COMMAND_CHECKOUT"]) if "RUN_COMMAND_CHECKOUT" in os.environ else Path(__file__).resolve().parents[3]
 
 
 def invoke(run_dir, argv, *, preexec_fn=None, cwd=None):
     return subprocess.run(
-        [str(HELPER), str(cwd or CHECKOUT), str(run_dir), *map(str, argv)],
+        ["bash", str(HELPER), str(cwd or CHECKOUT), str(run_dir), *map(str, argv)],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -122,7 +122,7 @@ class RunCommandTests(unittest.TestCase):
             pid_file = Path(td) / "child.pid"
             child_code = "import os,sys,time; open(sys.argv[1],'w').write(str(os.getpid())); time.sleep(60)"
             proc = subprocess.Popen(
-                [str(HELPER), str(CHECKOUT), str(run), sys.executable, "-c", child_code, str(pid_file)],
+                ["bash", str(HELPER), str(CHECKOUT), str(run), sys.executable, "-c", child_code, str(pid_file)],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
