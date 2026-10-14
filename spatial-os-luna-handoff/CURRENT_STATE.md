@@ -1,3 +1,24 @@
+## 2026-10-13: Both local gates accepted; M06 cross-host gate started
+
+sb16 passed all five missing sanitizer storage scenarios. Cleanup checks passed.
+The recovery command and reconciliation wrapper completed with exits zero.
+Primary reviewed the separate reconciled report and its preserved failure lineage.
+The original failed report remains unchanged at f02f65bfb5830cfa67917f5e3cfbd93915f2de9e1ef37fdf103cbdd9fbdf0679.
+Accepted recovery report: deployment/evidence/m06-storage-recovery-sb16-01/aggregate/run.json.
+Its SHA256 is e3a651ba296164354e4a93b3bedab92b2c3abcab46f99ab2ee7b806e16037f72.
+The executed recovery utility remains immutable. Reconciliation used a separate reviewed script.
+Reconciler SHA256: dcbf66b0af7f7d2bf8c3196111b6120e53c5a4e0df624d2352201b1e4b21d035.
+All 17 controller static checks passed. Normal local and cross-stage validators passed.
+
+The native M06 cross-host gate started in tmux m06-crosshost-handoff-4f241-01 on sb16.
+Its exact gate PID was 2375651 at launch. Runtime qualification remains unproven.
+It covers 36 native geometry checks and 12 semantic checks across both profiles and directions.
+Plan SHA256: c6c42203b55e0478a1973964fff4d7c8486ed5068e5f9d461ceec1c30b4bee65.
+Receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff01.
+Evidence: /home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost01.
+The 32 inherited cross-host regressions remain unrun. Do not overlap runtime suites.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-13: sb16-2 local gate validated; sb16 storage recovery started
 
 sb16-2 completed the frozen 4f241 full local gate with command and wrapper exits zero.
