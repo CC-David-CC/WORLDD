@@ -1,0 +1,46 @@
+M06 cross-host fixture cleanup failure
+
+Status: focused fix passed on both hosts; full cross-host retry remains unrun.
+
+The reviewed helper SHA256 is
+43e137b0a3b24715815029b89cab3482c07787d080d5e67a0e51f20511a0177c.
+Five focused regressions passed on sb16 and sb16-2.
+Command and wrapper exit codes were zero on both hosts.
+Receipts on each host:
+/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/owner-guard-focused01
+The controlled zombie test reproduces the old guard's ownership-mismatch failure.
+The corrected guard classifies that exit through kernel pidfd readiness.
+Live mismatches, unconfirmed identity-read failures, and poll errors remain rejected.
+Descriptor closure checks passed. These focused results do not qualify M06.
+
+The frozen 4f241 Debug semantic fixture failed during cleanup on sb16.
+Command 0058 called actor_transition_crosshost_host.py stop.
+guarded_pidfd raised PID/start/executable/command ownership mismatch.
+The gate and helper returned exit 2. Preserve this failed attempt.
+
+The recorded owner PID was 2377066. The recorded worldd PID was 2377069.
+Both processes were absent when primary checked after failure.
+worldd.exit contains 0. owner.stderr is empty.
+These observations suggest an exit race. They do not prove its cause.
+
+The stop path creates cancel before it checks the owner's process identity.
+An owner can exit between pidfd_open and reads from /proc.
+A zombie can expose an empty command line during that interval.
+Keep live PID, start-time, executable, and command identity checks strict.
+Use pidfd readiness to distinguish confirmed exit from a live identity mismatch.
+Close every opened descriptor on rejected or exited paths.
+
+The regressions cover a matching live owner, an exit during identity inspection,
+a zombie owner, a live identity mismatch, and descriptor cleanup.
+Review the gate tooling before deploying the test-only overlay.
+Do not change the frozen binaries or locked acceptance contracts.
+
+Evidence root:
+/home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost01/semantic/Debug
+Failure files: 0058.stderr, 0058-command.json, 0058.exit, cleanup.json.
+Helper receipts:
+/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff01
+
+Both local gate reports remain accepted.
+M06 cross-host qualification remains failed and incomplete.
+Native cross-host checks and inherited regressions remain unrun.

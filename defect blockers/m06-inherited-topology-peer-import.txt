@@ -1,0 +1,30 @@
+M06 inherited topology launcher import failure
+
+Status: reproduced; corrective diagnosis active; retry unrun.
+Candidate: 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+First driver: sb16. Peer: sb16-2. Profile: Debug.
+Five world_remote_keys tests passed before this failure.
+The topology launcher failed to import harness.wire on the peer.
+The topology test received EOF instead of its WorldEndpoint.
+Its cleanup command failed with the same ModuleNotFoundError.
+Evidence: /home/dflanag3/spatial-qualification/m06-inherited-crosshost-4f241-20261013/evidence/m06-inherited-crosshost-sb16-01/Debug/world_topology/output.log.
+Runner receipts: /home/dflanag3/spatial-qualification/m06-inherited-crosshost-4f241-20261013/run-command/sb16-02.
+Inspect remaining processes and resources before retrying.
+Correct the operational peer import environment from the registered CMake launch contract.
+Preserve frozen source, tests, validators, binaries, and failed receipts.
+The crosshost03 48-case pass remains valid. M06 remains unqualified.
+
+Confirmed cause: SPATIAL_REMOTE_PYTHONPATH included generated bindings but omitted deployment/source.
+RemotePrivateWorld appends WORLD.parents[3], which points outside the deployed source after relocation.
+Corrective scope: add deployment/source to the operational peer PYTHONPATH.
+The primary checked exact abandoned peer directory /tmp/spatial-m05-topology-4qm1rkEl.
+Its ownership and timestamps matched the failed fixture. No associated world process remained.
+The unchanged launcher cleanup passed with the corrected import path.
+The primary verified that exact directory is absent. Failed test evidence remains preserved.
+
+Corrected runner SHA256: e4fc9e92a545bb37d3f3d4805667b7d3357dec362f154cd23eac9c225e25ece4.
+Primary reviewed the complete diff. Four static self-checks passed on the controller.
+Actual harness import passed for both profiles on both hosts.
+The corrected runner was transferred and hash-verified on both hosts.
+Retry started in tmux m06-inherited-sb16-03 with fresh evidence m06-inherited-crosshost-sb16-02.
+Retry receipts use run-command/sb16-03. Qualification remains pending.

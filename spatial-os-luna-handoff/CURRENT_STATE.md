@@ -1,3 +1,649 @@
+## 2026-10-14: M06 qualified; M07 is next
+
+The primary accepted the complete M06 qualification evidence on both test hosts.
+Read evidence/m06-gate-2026-10-14/M06-final-review.txt for coverage, exact pins, failures, and limits.
+Production source is 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+The separately reviewed test-helper correction is 6d62344ed550704c69406643ac03ae9aea52de46.
+Both full local profiles passed their required checks, including the separately reconciled sb16 storage recovery.
+All 48 cross-host transition/geometry checks and all 32 inherited methods passed.
+Both inherited drivers completed with command and wrapper exits zero. Cleanup and artifact audits passed.
+The integration preserves production and build-input bytes. Documentation and evidence do not imply rebuilt binaries.
+Keep XACE active. Preserve CallbackList separately.
+M01-M06 are qualified for their stated software scope. M07-M16 remain pending.
+Spatial-M1 remains incomplete. Physical devices, model tasks, performance, soak, and reproducibility gates remain required.
+Older entries below preserve their historical status.
+
+## 2026-10-14: M06 gate and inherited regressions passed; final review pending
+
+The frozen 48-case M06 gate passed on both test hosts. Its candidate used production source 4f241a95d98e28b037b17ad1826f6816c2cc17ad plus the reviewed test-helper correction at 6d62344ed550704c69406643ac03ae9aea52de46.
+
+Both inherited cross-host directions passed 16 cases each, for 32 total. The second suite report SHA256 is b4be5ef4559b70621e5a0e2645510bdc69a00c9dbddd10501817cb171f7266e3. Its terminal receipt recorded COMPLETE with command and wrapper exits 0/0. Runner PID 2377163 is absent.
+
+Independent cleanup audit and final source/evidence review remain pending. M06 remains unqualified until the primary completes its final audit. The inherited checks do not replace any remaining Spatial-M1 acceptance requirements.
+
+## 2026-10-14: Crosshost03 passed; inherited regressions running (historical snapshot)
+
+The crosshost03 wrapper finished. Its exact PID 2384941 is absent.
+Helper receipts report COMPLETE with command and wrapper exits zero.
+Both semantic profiles passed. All four native suites passed nine tests each.
+This proves 12 semantic cases and 36 native methods in the frozen gate.
+Both hosts passed pre-run and post-run artifact checks.
+Semantic cleanup completed without errors in both profiles.
+The primary reviewed native cleanup validation and complete case coverage.
+An independent terminal evidence audit remains in progress.
+
+Reconciliation SHA256: 68cbc3d2d3f391e9d367ad7906b033084a3b521f5463e423f549555b459d66da.
+Sidecar SHA256: ca36c36abea212b6246141f70292e6a00876faffb4fa4bcf3d697ec53a9e98e5.
+Expanded candidate: production 4f241a95d98e28b037b17ad1826f6816c2cc17ad plus test-helper correction 6d62344ed550704c69406643ac03ae9aea52de46.
+Production source and binaries remained unchanged.
+Preserve the failed crosshost01 and crosshost02 evidence.
+
+The inherited cross-host checks now run on sb16 in tmux m06-inherited-sb16-02.
+Exact runner PID: 2416765, confirmed live during this update.
+Receipts: /home/dflanag3/spatial-qualification/m06-inherited-crosshost-4f241-20261013/run-command/sb16-02.
+Evidence: /home/dflanag3/spatial-qualification/m06-inherited-crosshost-4f241-20261013/evidence/m06-inherited-crosshost-sb16-01.
+Selected suites protect remote keys, world topology, and session recovery.
+Run both profiles and both driver directions for 32 methods.
+No completed inherited suite was recorded at this update.
+Keep the second driver serialized after the first driver's terminal review.
+
+The a5500 launcher failed SSH authentication before starting a job.
+A controller adaptation then expanded a peer path incorrectly before testing.
+Preserve sb16-01 receipts with exits 1/1. No case evidence was created.
+The corrected launcher uses explicit literal arguments and working controller SSH.
+Do not repeat unordered prefix replacement for shell variables.
+
+Permanent strict, batch-mode SSH works between both test hosts in both directions.
+The primary verified both directions. No key changes were needed.
+M01-M05 remain qualified. M06 remains unqualified. M07-M16 remain pending.
+
+## 2026-10-14: Verified v2 fixture overlay; crosshost03 gate running
+
+The owner-guard fix is reviewed and verified on box-git at 6d62344ed550704c69406643ac03ae9aea52de46.
+All five focused guard regressions passed on each test host.
+Crosshost02 failed before cases because its overlay lacked derived provenance.
+Its cleanup completed without errors. Preserve crosshost01 and crosshost02.
+Read defect blockers/m06-fixture-overlay-provenance-missing.txt at the repository root.
+
+The corrected v2 wrapper passed all 13 controller static regressions.
+Its overlay preparations completed with command and wrapper exits zero on both hosts.
+Both hosts have the same 914-file effective source map and explicit helper correction.
+Production source, binaries, and validators remain unchanged.
+Wrapper SHA256: 5a7dff392bbdbacaebbb90ff12d1949a7bfd522ea1b92460c56ab12751e55fc7.
+Overlay manifest SHA256: c4735a171a24421e35b09ffe9465ec3969f9ca6de254602ad45e07f7c611e890.
+Derived provenance SHA256: 75c19e09aadd5ed8bca3f629e14c08dd2a0d95c0e193052ccb191212cc8c74f6.
+Overlay root on both hosts: /home/dflanag3/spatial-qualification/m06-owner-guard-overlay-20261014-v2/bundle.
+
+The full 48-check gate started in tmux m06-crosshost-overlay-v2-03 on sb16.
+Its exact wrapper PID was 2384941 at launch. Completion remains unproven.
+Plan SHA256: a1fe66f648e80194136d3f5bbedbbb4898b4669ab009a17bad63c14124f6be81.
+Helper receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff03.
+Evidence: /home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost03.
+Both local gate reports remain accepted. The 32 inherited cross-host regressions remain unrun.
+M01-M05 remain qualified. M06 remains active and unqualified. M07-M16 remain pending.
+
+## 2026-10-13: Cross-host Debug fixture cleanup failed
+
+The cross-host gate is terminal with command and wrapper exits 2.
+Its report says failed_or_incomplete. phase_complete remains false.
+Six Debug semantic case results were recorded. Cleanup failed at command 0058.
+guarded_pidfd rejected the recorded owner's process identity during stop.
+The recorded owner and worldd processes were absent during primary's later inspection.
+worldd.exit is zero. A fixture exit race is suspected but not yet proven.
+Read defect blockers/m06-crosshost-owner-cleanup-race.txt at the repository root.
+Preserve crosshost01. Do not change its failure status or retry without a reviewed correction.
+The remaining six semantic cases, all 36 native checks, and inherited regressions remain unrun.
+Both previously reviewed local gate reports remain accepted.
+M06 remains active and unqualified. M07-M16 remain pending.
+
+## 2026-10-13: Both local gates accepted; M06 cross-host gate started
+
+sb16 passed all five missing sanitizer storage scenarios. Cleanup checks passed.
+The recovery command and reconciliation wrapper completed with exits zero.
+Primary reviewed the separate reconciled report and its preserved failure lineage.
+The original failed report remains unchanged at f02f65bfb5830cfa67917f5e3cfbd93915f2de9e1ef37fdf103cbdd9fbdf0679.
+Accepted recovery report: deployment/evidence/m06-storage-recovery-sb16-01/aggregate/run.json.
+Its SHA256 is e3a651ba296164354e4a93b3bedab92b2c3abcab46f99ab2ee7b806e16037f72.
+The executed recovery utility remains immutable. Reconciliation used a separate reviewed script.
+Reconciler SHA256: dcbf66b0af7f7d2bf8c3196111b6120e53c5a4e0df624d2352201b1e4b21d035.
+All 17 controller static checks passed. Normal local and cross-stage validators passed.
+
+The native M06 cross-host gate started in tmux m06-crosshost-handoff-4f241-01 on sb16.
+Its exact gate PID was 2375651 at launch. Runtime qualification remains unproven.
+It covers 36 native geometry checks and 12 semantic checks across both profiles and directions.
+Plan SHA256: c6c42203b55e0478a1973964fff4d7c8486ed5068e5f9d461ceec1c30b4bee65.
+Receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/crosshost-handoff01.
+Evidence: /home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost01.
+The 32 inherited cross-host regressions remain unrun. Do not overlap runtime suites.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: sb16-2 local gate validated; sb16 storage recovery started
+
+sb16-2 completed the frozen 4f241 full local gate with command and wrapper exits zero.
+Both profiles passed 164 core cases, 151 acceptance cases, 51 harness checks, and five startup checks.
+Both profiles passed all five bounded storage scenarios and their cleanup checks.
+Primary validated the full artifact hash maps and the normal cross-stage artifact checks.
+Its run.json SHA256 is 1174bdaae059f5854d11196c280b37e7aaef72c9ca5f2e3819008a6c0c79b28a.
+The report remains local_passed_crosshost_pending. This is not complete M06 qualification.
+Audit receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/final-evidence-audit01.
+
+sb16 storage-only recovery passed its third preflight with 10,488,827,904 bytes free.
+Earlier preflight failures remain preserved in storage-recovery-preflight01 and storage-recovery-preflight02.
+Corrections preserve private directory permissions and distinguish profile logs from storage witness logs.
+The reviewed recovery utility SHA256 is ea90d01e5c1fdf987d45182c9fba0c6f92ad3ca4e46502d64dba538fa8ae0d8b.
+All 15 controller static fixtures passed, including the actual pinned failure receipt.
+The storage recovery command started in tmux m06-storage-recovery-execute-sb16-01.
+Its exact worker PID was 2373816 when launched. Completion remains unproven.
+Receipts: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/storage-recovery-execute01.
+The original failed sb16 run remains unchanged. Reconciliation and cross-host checks remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Disk headroom restored; both sanitizer core suites passed
+
+Primary verified completed sanitizer XML reports from both hosts.
+Each report contains 164 cases, zero failures, zero disabled cases, and zero skips.
+sb16 passed all 151 sanitizer acceptance cases before its storage preflight failure.
+sb16-2's original gate remains live and has entered sanitizer acceptance.
+Neither host is yet accepted as a complete M06 local qualification pass.
+
+sb16 cleanup removed exactly 184 superseded f860 regular ELF files.
+It reclaimed 6,822,682,624 allocated bytes. Immediate free space reached 10,489,401,344 bytes.
+The reviewed script's dry-run and execution returned command and wrapper exits zero.
+Both terminal receipts report COMPLETE. All 160 retained non-ELF files remain unchanged by hash.
+Postchecks found no remaining candidates, unexpected files, active references, mounts, or unreadable entries.
+The original failed 4f report remains unchanged at SHA256 f02f65bfb5830cfa67917f5e3cfbd93915f2de9e1ef37fdf103cbdd9fbdf0679.
+Cleanup receipts: /home/dflanag3/spatial-qualification/m06-f860-cleanup-20261013/{dryrun01,execute01}.
+Reviewed script SHA256: 0c5a03714c85072e8c81c5fce2e1aed041ac2a659b177fad109dea9cb767385d.
+Execution stdout SHA256: a317d1033369cf1e267520f6747ea815ff8898cfdd8f7a727018cdcaa67da461.
+Source, original evidence, current 4f artifacts, and native runtime dependencies remain intact.
+The retained f860 archive remains verified on a5500.
+
+Storage-only recovery tooling failed primary review and is being corrected.
+Findings include command-path mismatch, context initialization, provenance pins, lineage, and complete evidence validation.
+Do not launch the rejected tool or convert the original failed report to PASS.
+Dedicated and inherited cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: sb16 storage preflight failed; disk-headroom recovery active
+
+The original sb16 gate returned FAILED after sanitizer core and P10 passed.
+The bounded storage/Git stage failed before running scenarios.
+Recorded free space was 3,667,283,968 bytes. Its preflight requires more than 4 GiB.
+Preserve m06-final-4f241-sb16-20261013-01 and its failed run.json unchanged.
+Primary verified all 164 sanitizer core cases passed without failures or skips.
+Primary verified all 151 sanitizer acceptance cases passed.
+The failed report's source, artifact, production-only, metadata, runtime, and storage-evidence rechecks passed.
+The full local gate remains failed. These stage passes do not establish qualification.
+Read defect blockers/m06-sanitizer-storage-disk-headroom.txt at the repository root.
+
+Reviewed cleanup preparation targets only superseded f860 regular ELF files on sb16.
+Current 4f binaries, native runtime dependencies, source, logs, and all evidence remain protected.
+The retained f860 archive on a5500 has been independently rehashed successfully.
+Cleanup remains pending primary review of the exact inventory and process/mount checks.
+A separate worker is preparing truthful recovery and evidence-reconciliation rules.
+Do not change failed receipts or launch cross-host tests before accepted local qualification.
+sb16-2's original sanitizer gate remains live. Its latest diagnostic core count is 130/164 passed.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Both complete Debug profiles passed; sanitizers running
+
+The frozen M06 candidate remains 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Both Debug profiles report passed_needs_crosshost_and_review.
+Each host passed 164 local CTest suites without failures, disabled cases, or skips.
+Primary downloaded both completed XML reports and both 151-row P10 reports.
+All 151 acceptance rows passed on each host.
+Both profiles passed production-only startup, the 51-test harness, and five bounded storage/Git scenarios.
+Both evidence collectors completed with reviewed private-image and cleaned-mountpoint exclusions.
+No Debug sanitizer findings were reported.
+Both original full gate processes remain live. Their ASan-UBSan core jobs are running.
+CTest handles: sb16 2256309; sb16-2 2187959.
+Gate handles remain sb16 2155578 and sb16-2 2087244.
+Full local qualification and final artifact rechecks remain incomplete.
+
+Dedicated cross-host qualification remains unrun: 36 native and 12 semantic cases.
+Primary accepted a fresh rerun disposition for 32 inherited M05 cross-host cases.
+Their production dependency paths changed during M06. Historical M05 receipts cannot establish current execution.
+The isolated operational runner fixes reviewed path defects and passed controller-only static checks.
+Runner SHA256: b69e73090ec5c7ce0b8d3d6d7b72a1040c8968ad7326281411953bf8a826db5d.
+Ordinary strict passwordless peer SSH was verified in both directions.
+Cross-host launches wait for both actual full local PASS receipts and reviewed pinned arguments.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: M07 qualification map reviewed and checkpointed
+
+M07 planning branch m07/qualification-map-20261013 is verified on box-git.
+Commit: b09b59af958c80782ba9716ad9a33465d0853997.
+Base: 149e75e90963a07560d4d1bcb70f76c086bbd2f5.
+The sole added file is docs/M07_QUALIFICATION_MAP_2026-10-13.txt.
+File SHA256: b7caaebdc21065a4c3ad0a235856a5f4e0594149d7cbcceff1abd67e6666138f.
+Primary reviewed the map and independently verified the remote ref and push receipt.
+The checkpoint is UNQUALIFIED planning evidence. No M07 implementation or runtime checks ran.
+The map covers presentation authority, independent copies, coherent captures, containment, resource limits, and recovery.
+Visibility revocation removes geometry. File-access revocation preserves otherwise authorized locked geometry.
+M07 implementation waits for M06 qualification.
+The pushed commit subject has a quoting defect. Preserve history; future messages use transferred literal files.
+
+Both original M06 gate and CTest processes remain live on the frozen 4f241 candidate.
+Latest completed Debug records are 142/164 on sb16 and 119/164 on sb16-2.
+These partial counts do not establish qualification. ASan, storage, and cross-host stages remain pending.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Peer SSH prerequisite repaired; local gates continue
+
+Primary verified strict fixture-key SSH in both directions. Both commands returned the expected hostnames and exit zero.
+Only missing verified host-key rows were added. Existing keys and file ownership remain unchanged.
+Both known_hosts files retain mode 0600. Original files have on-host backups.
+Backup: /home/dflanag3/.ssh/known_hosts.m06-4f241-peer-ssh-20261013.bak.
+Host-local receipts are under m06-4f241-final-20261013/runs/peer-ssh-readiness-HOST-02/remote-peer-ssh-receipt.txt.
+The first receipt copies were on middle-child. Their incorrect reported destination was corrected before acceptance.
+Primary downloaded and inspected the actual corrected host-local receipts.
+For rollback, restore the backup only if the current hash matches the receipt's recorded new hash.
+Otherwise review and remove only the recorded added row. Preserve later trust changes.
+No private keys were copied. No services, tests, or gates were restarted.
+
+The original full local gate jobs remain active on both hosts.
+Latest diagnostic core counts are 59/164 and 55/164 passed, respectively, with no failures.
+These partial counts do not establish full Debug or M06 qualification.
+Sanitizer and dedicated cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Verified 4f241 deployments; both full local gates running
+
+Candidate remains frozen at 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+All four normal builds passed. Packaging returned command and wrapper exits zero.
+Primary independently audited 1,215 archive files and 914 source pins without mismatches.
+Embedded provenance matches the final builder records. All 41 locked files remain verified.
+Archive SHA256 is e340c4b5f7d86ffb51135176f9202d4df7255030d5b23c34c7d8af4c5d51f1f4.
+Both normal deployments and external Debug/ASan runtimes are verified.
+Each translated CTest inventory contains 165 registrations. Both hosts have matching inventory hashes.
+
+Full local gates now run in parallel through the production qualification tool.
+Root: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013.
+Sessions: m06-4f241-run-local-sb16 and m06-4f241-run-local-sb16-2.
+Gate PIDs at launch: sb16 2155578; sb16-2 2087244.
+Helper PIDs: sb16 2155540; sb16-2 2087206.
+CTest PIDs: sb16 2155679; sb16-2 2087344.
+The selected suites and purpose were recorded before execution under runs/selected-suites-4f241-20261013.txt.
+Inventory, production-only Debug startup, and the 51-test harness passed on both hosts.
+Debug core remains active. Completed-record progress is 16/164 and 22/164 respectively, with no failures.
+These are partial diagnostic counts. Full Debug, sanitizer, acceptance, and cross-host results remain pending.
+Observe these exact jobs and terminal receipts before any retry.
+Do not launch duplicate tests or rewrite the original f860 failed reports.
+
+Both cleanup passes removed 352 obsolete binaries per host while preserving source and evidence.
+After verified deployment, only redundant incoming archives were removed; a5500 retains the exact audited archive.
+Available space before core testing was approximately 8.45 GB on sb16 and 19.41 GB on sb16-2.
+A missing strict peer-SSH host-name entry is being repaired separately for the later cross-host stage.
+The worker-client WSL SSH lookup issue was resolved through the existing Windows OpenSSH route.
+No private keys were copied and host-key checking remains enabled.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Fresh candidate builds; verified obsolete binaries removed
+
+New frozen candidate is 4f241a95d98e28b037b17ad1826f6816c2cc17ad.
+Box-git verified branch m06/postrun-final-qualification-20261013 points to that commit.
+The new source manifest differs from f860 only in the reviewed gate, static tests, and diagnosis document.
+All 41 locked files remain verified. The manifest contains 914 source files.
+Normal preparation runs on a5500 in tmux m06-prepare-4f241-a5500-20261013-01.
+ON Debug and ON ASan builds completed. Production-only builds and packaging remain in progress.
+Runtime qualification for this candidate remains unrun.
+
+Verified cleanup removed exactly 184 obsolete ELF files on each test host.
+Only old final258920 build and production-only profile binaries were removed.
+Both cleanup commands and wrappers returned zero. No directories or non-ELF files were removed.
+Fresh privileged process checks found no references or unreadable entries. Mount checks found no target mounts.
+The historical recovery package remains verified on a5500.
+Each host freed about 6.8 GB. Remaining free space is about 8 GB and 19 GB respectively.
+Preserve source, logs, XML, JSON, metadata, private storage images, and all current XACE dependencies.
+Cleanup receipts: m06-f860-final-20261013/runs/cleanup-remove-v2-delete-HOST-01/cleanup-receipt.json.
+Earlier cleanup launcher/script failures remain preserved. The reviewed correction passed both dry-runs before removal.
+Further obsolete-bundle inspection is active to provide sb16 qualification headroom.
+
+M07 interface planning is reviewed and verified on box-git as 149e75e90963a07560d4d1bcb70f76c086bbd2f5.
+Its branch is m07/workspace-presentation-interface-decisions-20261013. It contains planning only.
+M07 production implementation waits for M06 qualification.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Evidence collector correction passes focused review
+
+Both original f860 full-gate attempts are terminal failures during Debug evidence finalization.
+All Debug command stages passed on both hosts: 164 core CTests, 151 P10 cases, and 51 harness tests.
+Production-only startup and all five bounded storage/Git scenarios passed on both hosts.
+Neither original gate reached ASan. The dedicated cross-host gate remains unrun.
+Do not reinterpret the failed reports as qualified profiles.
+
+Primary reviewed the isolated evidence-collector correction and its regression tests.
+The focused static suite passed 46 tests on each qualification host.
+Read-only corrected audits hashed 6,394 ordinary evidence files on each host.
+Only the validated private storage image and empty mountpoint were excluded.
+The original failed run.json hashes remained unchanged.
+Checkpoint approval covers the three reviewed correction files only.
+The corrected full gate still requires a frozen candidate and fresh execution.
+
+Obsolete test-data cleanup is active under a separate bounded worker task.
+Fresh disk checks show 1.6 GiB available on sb16 and 12 GiB on sb16-2.
+Preserve evidence, source, qualified XACE dependencies, and current deployment artifacts.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: sb16 Debug commands pass; evidence finalization fails
+
+Frozen candidate remains f8609273fad1873db45fc316fd0200549b4c6b41.
+The original sb16 full-gate attempt ended with command and wrapper exits one.
+All Debug command stages passed before finalization failed.
+Primary verified 164 CTest cases without failures or skips and all 151 P10 acceptance cases.
+Production-only startup, the 51-test harness, and bounded storage/Git integration also passed.
+These command results do not qualify the Debug profile or M06.
+
+The report lost the original exception when its final audit wrote a generic integrity-failure error.
+Debug metadata/storage-path checks and both profiles' source/runtime artifact checks passed.
+Sanitizer metadata and storage-evidence checks are false because that profile never started.
+Read defect blockers/m06-gate-overwrites-original-error.txt for the confirmed reporting defect.
+The triggering PermissionError was reproduced against the retained private volume.img.
+The image is root-owned, mode 0600, and 2 GiB. All five storage scenarios passed.
+Read defect blockers/m06-gate-hashes-private-storage-image.txt for the exact diagnostic receipt.
+A narrow evidence-manifest and error-preservation correction is in progress on a separate a5500 branch.
+Preserve the failed run.json, XML, logs, and resource receipts. Do not rewrite them as PASS.
+The sb16 helper and gate processes have exited. Do not start an alternate sanitizer run.
+
+The original sb16-2 gate remains active after all 164 Debug CTest cases passed.
+Primary verified its XML contains no failures or skips. Later Debug stages remain in progress.
+Observe exact process identities and terminal receipts before any retry.
+Sanitizer qualification and the dedicated cross-host stage remain unrun.
+
+Redundant incoming archives were removed after verified deployment and no-reader checks.
+The unchanged archive remains on a5500 with its verified SHA256.
+Per-host cleanup receipts are under the new qualification root as cleanup-transfer-HOST-01.json.
+Source, deployed artifacts, metadata, logs, test images, and prior evidence remain preserved.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Both deployments verified; full local M06 gates running
+
+Frozen candidate remains f8609273fad1873db45fc316fd0200549b4c6b41.
+Both hosts deployed it under /home/dflanag3/spatial-qualification/m06-f860-final-20261013/deployment.
+Both verify-deploy commands and wrappers returned zero.
+Primary reviewed both deployment-receipt.json files.
+Each receipt records the correct candidate and archive hash, with both profile runtimes verified.
+Each profile retains a fresh CTest metadata baseline and verified relocated inventory.
+The first transfer attempts omitted the deployment key and stalled before creating package files.
+Their failed receipts remain preserved. Explicit-key batch-mode retries passed on both hosts.
+
+Full normal local gates now run in host tmux sessions m06-f860-run-sb16 and m06-f860-run-sb16-2.
+Gate PIDs at launch were 2037404 on sb16 and 1970348 on sb16-2.
+Confirm process identity and terminal receipts before any recovery or retry.
+Helper runs are under the new host root's runs/run-local-sb16-01 and runs/run-local-sb16-2-01.
+Evidence attempts are deployment/evidence/m06-final-f860-sb16-20261013-01 and m06-final-f860-sb16-2-20261013-01.
+Both gates use the explicit user-bus environment and the five required suite mappings.
+Each host runs Debug and ASan-UBSan sequentially. The hosts run in parallel.
+Both passed Debug inventory, production-only startup, and the 51-test harness.
+Debug CTest remains running. Its partial results do not qualify a profile or milestone.
+The large geometry count and snapshot registration passed on both hosts.
+Sanitizer qualification and dedicated cross-host qualification remain pending.
+Use the existing attempts. Do not combine recovered partial reports into a passing full gate.
+
+M07 proposal is separately BOX-GIT VERIFIED at 789eaac6c2fd0abdc3d8b23c601961fed6fcb76d.
+Branch: m07/workspace-presentation-copy-contract-20261013.
+It changes only docs/M07_PRESENTATION_COPY_CONTRACT_2026-10-13.txt.
+It remains UNQUALIFIED planning, with snapshot consistency and capability decisions explicitly unresolved.
+It does not modify or qualify the M06 candidate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Frozen M06 package verified; deployment authorized
+
+Candidate remains f8609273fad1873db45fc316fd0200549b4c6b41 on m06/final-qualification-20261013.
+Its a5500 checkout remains clean. No source changed during preparation.
+All four builds passed: testing-enabled Debug and ASan-UBSan, then production-only Debug and ASan-UBSan.
+The testing-enabled profiles include input tests. Production-only profiles exclude test fixtures.
+Each testing-enabled profile has 165 registrations, 66 executables, 98 runtime files, and 29 generated Python files.
+Each production-only profile has 52 runtime files.
+Preparation verified all 41 locked files and recorded 913 source files.
+No runtime tests ran on the coding host.
+
+Preparation receipts are under /home/dflanag3/spatial-qualification/m06-f860-final-20261013/runs/prepare01 on a5500.
+Both command.exit and wrapper.exit are zero. The preparation process exited.
+The package directory is /home/dflanag3/spatial-qualification/m06-f860-final-20261013/bundle/prepare01.
+Archive size is 1,236,263,850 bytes. Its manifest contains 1,214 regular files.
+Archive SHA256 is 2d96a86d6b7e01c0e1e94608e4dd921f1d47832779d35800fa292e3e39e90c42.
+Primary review confirmed the archive hash and all source and manifest mappings.
+Debug build identity is sha256:0cb5a55b120978411c498edd58a1ede83d8baf23910a69ab89c4732dccb455be.
+Sanitizer build identity is sha256:0ce2f8e16c21536a7482e0b724378729198f0337f3f22620fc0f07158a47cb9c.
+Testing-enabled and production-only builds share each profile's production identity.
+
+Both test hosts have fresh incoming staging directories and the verified gate tool.
+The gate tool hash is ce2ee458be3571bf3f64413b156959c8ade5913f33504af82568dd19e12c546b.
+Transfer and verify-deploy are authorized. Deployment receipts remain pending.
+Preserve the original deployment and all prior failure evidence.
+Run the full normal local gates only after reviewing both new deployment receipts.
+Run the normal cross-host stage after both local gates pass.
+
+M07 planning inventory is separately BOX-GIT VERIFIED at 9b488677a18386b473a90c2b368bf47fccb0aa4f.
+Its branch is m07/workspace-boundary-inventory-20261013. It changes only the read-only inventory document.
+It is UNQUALIFIED and is not integrated into the frozen M06 candidate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Combined candidate frozen and four-profile preparation started
+
+Frozen candidate: f8609273fad1873db45fc316fd0200549b4c6b41, clean and BOX-GIT VERIFIED.
+Branch: m06/final-qualification-20261013.
+Worktree: /home/dflanag3/src/m06-final-qualification-20261013 on a5500.
+Read its docs/M06_FINAL_CANDIDATE_REVIEW_2026-10-13.txt for source and evidence mappings.
+
+Destination-workspace selection passed all sixteen methods in every host/profile lane.
+Total: sixty-four passed. Cleanup, sanitizer scans, and 1,475-pin postchecks passed on both hosts.
+The corrected fixture retains strict differing room, pose, and workspace assertions.
+Its initial TLS-parent and pre-created-actor failures remain preserved.
+Focused commands used source cwd. The normal gate must use the registered build/profile cwd.
+
+The complete corrected gate static module passed forty methods on each host.
+Both profiles also passed actual read-only CTest metadata checks on both hosts.
+Each inventory preserved all 165 registrations after the declared augmentations.
+Clone-only implicit working-directory differences are recorded separately.
+Earlier stale-file launches and failed preflight attempts remain preserved and excluded.
+
+One persistent preparation job is active in a5500 tmux session m06-f860-prepare.
+Its helper run is /home/dflanag3/spatial-qualification/m06-f860-final-20261013/runs/prepare01.
+The job verified all forty-one locked files before compilation.
+Debug testing-enabled configuration passed with SPATIAL_INPUT_TESTS enabled.
+Its build is active. Sanitizer testing-enabled and both production-only profiles remain queued.
+No runtime tests run on the coding host.
+
+After package review, deploy fresh artifacts and metadata receipts to both qualification hosts.
+Then run full normal local and cross-host M06 gates.
+The original 258920de deployment and its evidence remain preserved.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Storage retirement correction passes all four focused lanes
+
+Both hosts passed thirteen storage-contention methods in Debug and ASan-UBSan.
+Total: fifty-two methods passed. Command and wrapper exits were zero.
+No sanitizer findings or skips were reported. Owned resource scopes were removed.
+Each host preserved all 1,475 explicit pinned inputs.
+Primary independently checked all twelve native volume receipts and image-specific loop mappings.
+All volumes are unmounted. No image retains a loop mapping.
+Read defect blockers/m06-retired-cgroup-procs-witness.txt for original and corrected evidence.
+
+The separate candidate assembly branch is m06/final-qualification-20261013 on a5500.
+Worktree: /home/dflanag3/src/m06-final-qualification-20261013.
+Current assembly: 281a42424cfa9d3a37fe83016e49fd7f319e67d0, clean and BOX-GIT VERIFIED.
+It includes reviewed attribution, controller, host-session launcher, and storage retirement corrections.
+The candidate remains UNQUALIFIED. The original 258920de deployment remains frozen.
+Destination-workspace selection now selects the complete sixteen-method module per lane.
+Its sixty-four executions remain pending. Debug runtime has started on sb16.
+Gate launcher and sequential archive corrections await focused static qualification.
+After those pass, freeze the combined candidate and build the four required profiles once.
+Then run complete normal local and cross-host M06 qualification.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Controller correction passes both hosts and profiles
+
+All four host-actor-controller-native registrations passed their inner native test.
+Debug elapsed times were 8.63 seconds on sb16 and 10.19 seconds on sb16-2.
+Sanitizer elapsed times were 12.23 seconds on sb16 and 10.40 seconds on sb16-2.
+Command and wrapper exits were zero. No sanitizer diagnostics or skips were reported.
+Owned resource scopes were removed. No unexpected population remained.
+Final controller input-pin and fixture cleanup audits passed on both hosts.
+Each host preserved all 1,475 explicit pins. No fixture processes remained.
+Runner source is d447ee6d0ddcc1197ab257d028e3b00012ccf9c9.
+Python caller correction is b4ae69e5d246c55893c3f343daa9e7ddfe806005.
+Production source and siblings remain frozen at 258920de00e45448f104eedcc97147cf878406b3.
+Evidence root: /home/dflanag3/spatial-qualification/m06-controller-native-runtime-b4ae69e5-20261013.
+
+Host-session final input audits passed on both hosts with zero source or runtime mismatches.
+The focused metadata snapshots match their manifests and actual test commands.
+The old full sanitizer metadata lacks a relocation receipt. Preserve this full-gate caveat.
+New combined qualification requires fresh metadata and relocation receipts for both profiles.
+
+The storage worker now owns both released hosts for thirteen-method retirement qualification.
+Then qualify destination-workspace selection and combine the reviewed corrections.
+The final gate launcher also needs source/local storage evidence placement.
+That correction has a separate bounded worker task. No normal gate result is synthesized.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Host-session correction passes all four focused runtime lanes
+
+The corrected launcher passed twenty-six methods per lane on both hosts in Debug and ASan-UBSan.
+Total: 104 inner methods passed. All four CTest registrations and command wrappers exited zero.
+Reported resource cleanup passed. Final explicit input postchecks remain pending.
+Production source and binaries remain frozen at 258920de00e45448f104eedcc97147cf878406b3.
+Launcher overlay source is 8d878f7f32319bc695836042a276161dcb759681.
+
+The storage witness correction is reviewed and checkpointed at d8acf84c6315f78e97bebf0a0e1d7b6b7f9de69b.
+It preserves the three native methods and adds ten retirement and unexpected-error regressions.
+Its thirteen-method host/profile reruns remain unrun.
+The controller fixture requires a Python follow-up to preserve admission-only observation-denial fixtures.
+Its compiled runner and production siblings remain unchanged. Native qualification remains pending.
+
+Complete focused corrections before freezing the next combined full-gate candidate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Storage recovery passes nineteen of twenty methods
+
+The corrected storage evidence roots preserve the volume helper's source/local confinement check.
+All ten Debug storage methods passed across both hosts.
+sb16 passed its five sanitizer storage methods.
+sb16-2 passed four sanitizer methods and errored in the Git-import cgroup witness.
+Read defect blockers/m06-retired-cgroup-procs-witness.txt for the retained failure and correction requirements.
+Volume, descriptor, loop, mount, and owned-resource cleanup completed.
+Both host post-run audits preserved all 1,309 frozen artifact pins.
+
+The controller overlays passed archive and actual-library audits on both hosts.
+Each host preserved 1,475 explicit deployment pins during that audit.
+Controller runtime remains unrun pending the host-session checks and native slot release.
+The corrected host-session registration checkpoint is 8d878f7f32319bc695836042a276161dcb759681 on box-git.
+Both metadata profiles retain 165 registrations. Focused host-session runtime is authorized.
+
+After focused corrections pass, freeze one combined candidate and run the complete normal M06 gate.
+Do not substitute partial recovery reports for a full passing phase gate.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: User-bus retries pass eighteen cases per host
+
+Both nineteen-case Debug user-bus retries completed.
+Each host passed eighteen registrations. host-session-production-native failed.
+Its twenty-five errors share the missing owned broker resource template setup failure.
+Read defect blockers/m06-host-session-owned-resource-template.txt for the required correction.
+The native broker resource guard remains intact.
+Recovery reports remain FAILED/PENDING. They do not qualify the phase.
+Both reports passed artifact, metadata, original-evidence, and owned-process postchecks.
+
+The separate controller fixture built and packaged successfully in Debug and ASan-UBSan.
+Its source remains d447ee6d0ddcc1197ab257d028e3b00012ccf9c9.
+Its runtime checks remain unrun pending artifact and deployment review.
+The storage fixture environment plan is reviewed and its bounded reruns are authorized.
+Full sanitizer gates, remaining Debug stages, and combined cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Attribution recovery passes on both hosts
+
+The reviewed attribution overlay passed all fifteen methods in all four host/profile lanes.
+Total: sixty passed, zero failed, zero skipped.
+Debug and ASan-UBSan command and wrapper receipts report zero exits and COMPLETE.
+Native server logs contain no sanitizer diagnostics.
+Primary compared 1,309 artifact pins per host. All pre/post actual hashes remain unchanged.
+Production candidate 258920de00e45448f104eedcc97147cf878406b3 remains frozen.
+Fixture overlay source is 642548ca0f56be01a32871b90b3e644f284cafa4.
+The original full Debug gate failures remain preserved.
+
+Recovery-tool fixture checks passed five methods on each host after two retained fixture failures.
+The reviewed tool checkpoint is 66e4fe6fc91e8a741e0ca94751c8894fbf18697f on box-git.
+Read-only recovery plans are being validated against the actual failed gate receipts.
+Native bus retries remain unrun.
+The controller fixture has a separate reviewed checkpoint at d447ee6d0ddcc1197ab257d028e3b00012ccf9c9.
+Its corrected Debug build passed. Its sanitizer build remains in progress.
+Storage fixture runtime correction remains pending.
+Full M06 sanitizer and cross-host gates remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Full Debug gate results and focused recovery
+
+Both full Debug core runs completed with 141 passed and 23 failed registrations each.
+All 164 local registrations ran. The dedicated cross-host registration remains separate.
+Both hosts previously passed five production-OFF startup tests and 51 harness tests.
+Original failed core and launcher receipts remain preserved.
+
+Nineteen failures report the exact missing-user-bus error before test-body output.
+Two further failures use obsolete fixture expectations.
+The attribution correction is reviewed at 642548ca0f56be01a32871b90b3e644f284cafa4.
+Its focused Debug and sanitizer qualification is assigned on both hosts.
+The controller fixture correction remains in development on a separate branch.
+Two storage registrations also fail because their deployed scratch root violates fixture setup requirements.
+Read defect blockers/m06-storage-fixture-deployment-root.txt for that separate diagnosis.
+
+Remaining Debug stages, full sanitizer gates, and combined cross-host qualification remain unrun.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+These results do not qualify M06.
+
+## 2026-10-13: Full Debug gate found a user-bus launcher failure
+
+Both host gates remain live. Fourteen completed Debug registrations failed before their test bodies ran.
+The primary's PATH-only env -i launch omitted XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS.
+Affected systemd-run --user tests report: Failed to connect to bus: No medium found.
+Both user managers respond with the verified /run/user/1000 bus environment.
+Preserve original gate logs and failed receipts. Corrected retries remain UNRUN.
+The current jobs continue collecting Debug results. Sanitizer stages remain UNRUN.
+Read defect blockers/m06-user-systemd-gate-launch-environment.txt for the recovery constraints.
+The full M06 gate is not passed. Cross-host qualification remains pending.
+A separate destination-workspace regression is BOX-GIT VERIFIED at db490b85bae61eb02cd2f15bb71152f8b55b9526.
+Its two-file test-only overlay preserves all 221 production build inputs. Runtime remains UNRUN.
+The frozen 258920de deployment remains unchanged.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
+## 2026-10-13: Verified combined deployment enters the full M06 gate
+
+Frozen candidate: 258920de00e45448f104eedcc97147cf878406b3.
+All four Debug and ASan-UBSan builds passed, with testing enabled and disabled.
+The completed archive contains 1,206 verified files, including 905 source files.
+Archive SHA256: 12f5fd4472b9fd8a5e1ad3c5548bf3ffc0ecc2becadd5357b7f6b303cf0041d1.
+Both qualification hosts received matching archive and manifest hashes.
+Both deployments passed source, runtime, helper, XACE, graphics, and CTest-relocation verification.
+Deployment root: /home/dflanag3/spatial-qualification/m06-final258920de-20261013/deployment.
+Full local gates run in tmux sessions m06fullgate-sb16-01 and m06fullgate-sb16-2-01.
+Both hosts passed five Debug production-off startup tests and 51 harness tests.
+Debug CTest is running. Remaining local stages and all sanitizer stages are pending.
+Each profile has 165 registrations. The dedicated cross-host suite runs after both local gates.
+Cross-host semantic and native qualification remain UNRUN for this combined deployment.
+Old duplicate test payload cleanup reclaimed 8,079,472,645 logical bytes per host.
+Matching archives, unique changed tests, and failure evidence remain preserved.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+The combined candidate is not integrated into the milestone source branch yet.
+
+## 2026-10-13: Frozen combined M06 candidate builds are running
+
+Candidate: 258920de00e45448f104eedcc97147cf878406b3.
+The candidate branch is m06/combined-qualification-20261013 on a5500.
+Its checkout is clean. Its box-git ref matches HEAD.
+The final mandatory-suite guard passed 31 checks on each qualification host.
+Primary runtime verification passed on both hosts for Debug and ASan-UBSan.
+The verification checked XACE receipts, server source pins, wrappers, graphics files, and root-owned helpers.
+All 41 locked acceptance hashes match. The candidate contains 905 pinned source files.
+Four-profile preparation is running in tmux session m06prep2589p01 on a5500.
+It builds testing-enabled and testing-disabled Debug and ASan-UBSan artifacts with two compile jobs.
+Preparation only records CTest registration. It runs no runtime tests on the coding host.
+Build logs are under /home/dflanag3/spatial-qualification/m06-combined-258920-20261013/prepare01.
+These builds remain IN PROGRESS. No final artifacts have been qualified.
+The full combined M06 gate remains UNRUN.
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+Old test-data cleanup preserves active qualification files and retained failure evidence.
+
 ## 2026-10-13: Native focused matrix passes; combined qualification candidate is next
 
 The native geometry matrix passed all 36 methods across both hosts, both profiles, and both authority directions.

@@ -49,10 +49,46 @@ def identity(pid):
                 command=[os.fsdecode(x) for x in (path / 'cmdline').read_bytes().split(b'\0') if x])
 
 
+def proc_start_ticks(pid):
+    """Read the process start tick without requiring executable or cmdline access."""
+    path = Path('/proc') / str(pid)
+    try:
+        fields = (path / 'stat').read_text().rsplit(') ', 1)[1].split()
+    except (FileNotFoundError, ProcessLookupError):
+        return None
+    return int(fields[19])
+
+
+def pidfd_proves_exit(fd, record):
+    """Require kernel pidfd readiness and reject a live PID-reuse mismatch."""
+    poller = select.poll()
+    poller.register(fd, select.POLLIN | select.POLLHUP | select.POLLERR)
+    events = poller.poll(0)
+    if not events:
+        return False
+    readiness = events[0][1]
+    if readiness & (select.POLLERR | select.POLLNVAL):
+        return False
+    if not readiness & (select.POLLIN | select.POLLHUP):
+        return False
+    start_ticks = proc_start_ticks(record['pid'])
+    if start_ticks is None:
+        return True
+    return start_ticks == record['start_ticks']
+
+
 def guarded_pidfd(record):
     fd = os.pidfd_open(record['pid'])
     try:
-        if identity(record['pid']) != record:
+        try:
+            current = identity(record['pid'])
+        except (FileNotFoundError, ProcessLookupError) as error:
+            if pidfd_proves_exit(fd, record):
+                raise ProcessLookupError('Recorded process exited during identity check') from error
+            raise RuntimeError('Could not verify recorded process identity') from error
+        if current != record:
+            if pidfd_proves_exit(fd, record):
+                raise ProcessLookupError('Recorded process exited during identity check')
             raise RuntimeError('PID/start/executable/command ownership mismatch')
         return fd
     except BaseException:

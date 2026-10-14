@@ -1,0 +1,51 @@
+Current status, 2026-10-13
+The observation-denial correction is included in candidate 258920de00e45448f104eedcc97147cf878406b3.
+Both production denial cases passed in the prior 9f8405b focused qualification on both hosts and profiles.
+The focused native matrix also passed denial, revocation, and stable-process assertions.
+See spatial-os-luna-handoff/docs/M06_NATIVE_RUNTIME01_STATUS.txt for retained qualification evidence.
+The frozen combined candidate requires fresh full qualification. Its full M06 gate remains UNRUN.
+The earlier source trace and correction records below remain preserved.
+
+M06 local observation denial retains a selected presentation
+Date: 2026-10-13
+Status: confirmed by production source trace. Runtime reproduction remains unrun.
+Scope: unqualified native shared-geometry candidate. M06 remains incomplete.
+
+The host selects a local world before requesting the foreground actor's geometry view.
+Startup and successful local destination entry use this ordering.
+Observation denial can occur before a geometry target exists.
+Retiring a missing geometry target does not deselect the local world.
+The selected local channel can still draw through an independent management route.
+
+Production trace
+core/protocol.cpp render_present calls Actors::scene(token).
+RenderWorker::render sends the scene through the retained local channel.
+Server::command draws the scene when that local binding remains selected.
+This management authorization does not establish the foreground actor's observation authority.
+
+Required correction
+Add a trusted clear-selection operation with a checked compositor acknowledgement.
+Clear and deselect the foreground after successful entry without observation authority.
+Retain world channels, valid navigation, application authority, and process lifetime.
+Report uncertainty if clearing cannot be confirmed.
+Preserve source pixels when destination entry itself is denied.
+
+Required regressions
+Initially deny observation to an admitted local actor. Check blank native pixels.
+Enter a local destination without observation. Check blank destination pixels.
+Check valid navigation and unchanged XLibre and compositor process identities.
+Use an authorized positive case that displays real geometry.
+Retain the private-entry-denial source-preservation regression.
+
+Build evidence
+The prior frozen candidate passed Debug5 and ASAN2 builds with zero exits.
+Those builds do not qualify this correction.
+Refresh source hashes and builds after the patch. Run focused checks on both test hosts.
+
+Correction checkpoint
+The patch is written and reviewed. It is not yet runtime-qualified.
+Startup and local transitions inspect readiness without selecting raw scene producers.
+Observation denial uses checked clearing while preserving retained channels and valid navigation.
+Two production denial cases and one native clearing positive-control case are written.
+Corrected Debug6 and ASAN3 builds passed with zero command and wrapper exits.
+Runtime regression results on sb16 and sb16-2 remain unrun.

@@ -22,6 +22,7 @@ import subprocess
 import sys
 import tarfile
 import time
+import traceback
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,6 +43,7 @@ REQUIRED = {
 }
 DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
 STORAGE_LOCAL_EVIDENCE_TESTS = ("session-storage-owner", "session-storage-contention")
+STORAGE_FIXTURE_UID = 0
 GEOMETRY_CASES = [f"test_{i:02d}_" for i in range(1, 10)]
 SAN_RE = re.compile(r"AddressSanitizer|LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:")
 INNER_SKIP_RE = re.compile(r'^(?:\d+: )?(?:OK|FAILED)\s*\([^\n)]*skipped\s*=|'
@@ -527,6 +529,134 @@ def scan_storage_evidence(registrations):
             if SAN_RE.search(path.read_text(errors='replace')):
                 raise RuntimeError('sanitizer diagnostic in storage evidence log: ' + name + '/' + str(path))
     return dict(files=files, cleanups=cleanups, exclusions=exclusions, logs_scanned=log_count)
+
+
+def _bounded_storage_artifact_exclusions(target):
+    """Validate the only root-owned files omitted from a gate artifact hash map."""
+    target = Path(target)
+    target_real = target.resolve(strict=True)
+    root = target / 'bounded-storage-git'
+    root_info = root.lstat()
+    if (not stat.S_ISDIR(root_info.st_mode) or root.is_symlink()
+            or root_info.st_uid != os.getuid() or root.resolve(strict=True).parent != target_real):
+        raise RuntimeError('bounded storage evidence root is not an owned real child directory')
+    review = root / 'review.json'
+    review_info = review.lstat()
+    if (not stat.S_ISREG(review_info.st_mode) or review.is_symlink()
+            or review_info.st_uid != os.getuid()):
+        raise RuntimeError('bounded storage review receipt is not an owned regular file')
+    record = json.loads(review.read_text())
+    expected_results = {'large_import_retirement', 'application_and_actor_quota', 'read_only',
+                        'sibling_survival', 'restart'}
+    results = record.get('results')
+    unit = record.get('unit')
+    scope = record.get('scope')
+    owner_units = record.get('owner_unit_cleanup')
+    if (record.get('status') != 'passed' or record.get('mounted') is not False
+            or not isinstance(results, dict) or set(results) != expected_results
+            or any(not isinstance(row, dict) or row.get('passed') is not True for row in results.values())
+            or not isinstance(unit, str) or not re.fullmatch(r'spatial-m03-storage-integration-[0-9a-f]{32}\.service', unit)
+            or not isinstance(scope, str) or not Path(scope).is_absolute() or Path(scope).exists()
+            or not isinstance(owner_units, dict) or len(owner_units) != 2
+            or any('ActiveState=inactive' not in str(state) for state in owner_units.values())
+            or record.get('service_stop', {}).get('exit_code') != 0
+            or 'ActiveState=inactive' not in str(record.get('service_after', ''))
+            or record.get('unmount', {}).get('exit_code') != 0
+            or record.get('detach', {}).get('exit_code') != 0):
+        raise RuntimeError('bounded storage review or cleanup receipt is incomplete')
+
+    volume, image = root / 'volume', root / 'volume.img'
+    volume_info = volume.lstat()
+    image_info = image.lstat()
+    if (not stat.S_ISDIR(volume_info.st_mode) or volume.is_symlink()
+            or volume_info.st_uid != STORAGE_FIXTURE_UID or volume_info.st_mode & 0o077
+            or volume.resolve(strict=True).parent != root.resolve(strict=True)
+            or os.path.ismount(volume)):
+        raise RuntimeError('bounded storage volume exclusion is not a private unmounted real directory')
+    if (not stat.S_ISREG(image_info.st_mode) or image.is_symlink()
+            or image_info.st_uid != STORAGE_FIXTURE_UID or image_info.st_mode & 0o077
+            or image_info.st_size != 2 * 2**30 or image_info.st_nlink != 1
+            or image.resolve(strict=True).parent != root.resolve(strict=True)):
+        raise RuntimeError('bounded storage image exclusion is not the expected private regular fixture')
+    try:
+        attached = subprocess.run(['sudo', '-n', 'losetup', '-j', str(image)],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+        contents = subprocess.run(['sudo', '-n', 'find', str(volume), '-mindepth', '1',
+                                   '-maxdepth', '1', '-print', '-quit'],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError('cannot verify bounded storage image and mountpoint cleanup') from error
+    if attached.returncode != 0 or attached.stdout.strip() or contents.returncode != 0 or contents.stdout.strip():
+        raise RuntimeError('bounded storage image is attached or volume mountpoint is not empty')
+    receipt_hash = sha(review)
+    return [
+        dict(path='bounded-storage-git/volume.img', kind='reviewed-root-owned-sparse-volume-image',
+             size_bytes=image_info.st_size, uid=image_info.st_uid, mode=stat.S_IMODE(image_info.st_mode),
+             review_sha256=receipt_hash, no_loop_mapping=True),
+        dict(path='bounded-storage-git/volume', kind='reviewed-cleaned-volume-mountpoint',
+             uid=volume_info.st_uid, mode=stat.S_IMODE(volume_info.st_mode), review_sha256=receipt_hash,
+             unmounted=True, empty=True),
+    ]
+
+
+def artifact_evidence_manifest(target):
+    """Hash gate output strictly, with two validated bounded-storage exclusions."""
+    target = Path(target)
+    if target.is_symlink() or not target.is_dir():
+        raise RuntimeError('gate artifact root is not a real directory')
+    exclusions = _bounded_storage_artifact_exclusions(target)
+    excluded = {row['path'] for row in exclusions}
+    hashes = {}
+    def walk_error(error):
+        raise RuntimeError('cannot inspect gate artifact tree: ' + str(error)) from error
+    for current, directories, filenames in os.walk(target, followlinks=False, onerror=walk_error):
+        here = Path(current)
+        for name in list(directories):
+            path = here / name
+            relative = str(path.relative_to(target))
+            if path.is_symlink():
+                raise RuntimeError('gate artifact tree contains a directory symlink: ' + relative)
+            if relative in excluded:
+                directories.remove(name)
+        for name in filenames:
+            path = here / name
+            relative = str(path.relative_to(target))
+            if path.is_symlink():
+                raise RuntimeError('gate artifact tree contains a file symlink: ' + relative)
+            if relative in excluded:
+                continue
+            if not stat.S_ISREG(path.lstat().st_mode):
+                raise RuntimeError('gate artifact is not a regular file: ' + relative)
+            try:
+                hashes[relative] = sha(path)
+            except OSError as error:
+                raise RuntimeError('cannot hash gate artifact: ' + relative) from error
+    if 'bounded-storage-git/review.json' not in hashes:
+        raise RuntimeError('bounded storage review receipt is missing from artifact hashes')
+    return dict(sha256=hashes, exclusions=exclusions)
+
+
+def finalize_postrun_audit(report):
+    """Keep execution failures primary and retain every failed or unrun postcheck."""
+    failures = []
+    if report.get('source_sha256_rechecked') is not True:
+        failures.append(dict(check='source_sha256_rechecked', value=report.get('source_sha256_rechecked')))
+    for check in ('profile_artifacts_rechecked', 'production_off_rechecked', 'runtime_rechecked',
+                  'metadata_rechecked', 'storage_evidence_rechecked'):
+        values = report.get(check, {})
+        for profile in PROFILES:
+            if values.get(profile) is not True:
+                profile_row = report.get('profiles', {}).get(profile)
+                failures.append(dict(check=check, profile=profile, value=values.get(profile),
+                    profile_status=profile_row.get('status') if isinstance(profile_row, dict) else None,
+                    reason='profile-not-run' if profile_row is None else
+                           'profile-incomplete' if profile_row.get('status') != 'passed_needs_crosshost_and_review'
+                           else 'postrun-check-failed'))
+    report['postrun_invariant_failures'] = failures
+    if failures:
+        report['status'] = 'failed'
+        report.setdefault('error', 'postrun source, artifact, runtime, or storage evidence invariant failed')
+    return failures
 
 
 def reject_inner_skips(output):
@@ -1115,12 +1245,15 @@ def gate(a):
             row["storage_cleanup_receipts"] = storage_receipt["cleanups"]
             row["storage_evidence_exclusions"] = storage_receipt["exclusions"]
             if findings: raise RuntimeError(profile + " sanitizer findings: " + ", ".join(findings))
+            artifact_manifest = artifact_evidence_manifest(target)
+            row["artifact_sha256"] = artifact_manifest['sha256']
+            row["artifact_exclusions"] = artifact_manifest['exclusions']
             row["status"] = "passed_needs_crosshost_and_review"
-            row["artifact_sha256"] = {str(p.relative_to(target)): sha(p) for p in target.rglob("*") if p.is_file()}
             write_json(out / "run.json", report)
         report["status"] = "local_passed_crosshost_pending"
     except BaseException as e:
         report["status"] = "failed"; report["error"] = repr(e)
+        report['execution_error'] = dict(type=type(e).__name__, message=str(e), traceback=traceback.format_exc())
     finally:
         report["source_sha256_rechecked"] = all((root / "source" / name).is_file() and sha(root / "source" / name) == expected for name, expected in rec["source_sha256"].items())
         report["profile_artifacts_rechecked"] = {}
@@ -1172,12 +1305,7 @@ def gate(a):
                 report["runtime_rechecked"][profile] = True
             except (OSError, KeyError, ValueError, RuntimeError):
                 report["runtime_rechecked"][profile] = False
-        if (not report["source_sha256_rechecked"] or not all(report['production_off_rechecked'].values())
-                or not all(report["profile_artifacts_rechecked"].values()) or not all(report["runtime_rechecked"].values())
-                or not all(report["metadata_rechecked"].values())
-                or not all(report["storage_evidence_rechecked"].values())):
-            report["status"] = "failed"
-            report["error"] = "postrun source, artifact, runtime, or storage evidence invariant failed"
+        finalize_postrun_audit(report)
         report["phase_complete"] = False
         write_json(out / "run.json", report)
     return 1 if report["status"] == "failed" else 0

@@ -1,0 +1,29 @@
+# Cross-host owner pidfd exit race
+
+Status: focused regression PASSED on sb16 and sb16-2; full production cross-host gate remains failed and has not been retried.
+
+Worktree: `/home/dflanag3/src/spacial-m06-crosshost-owner-exit-race-20261013`.
+Branch: `m06/crosshost-owner-exit-race-20261013`.
+Base: `4f241a95d98e28b037b17ad1826f6816c2cc17ad`.
+Owned files: `tests/core/actor_transition_crosshost_host.py`, `tests/core/test_actor_transition_crosshost_host_pidfd.py`, this note.
+
+## Retained failure evidence
+
+The frozen host fixture source is SHA256 `192d2e0c824bc96d78d8d8060ec274191459c885eaf511e4c9bafb00a33161ee`. Its `guarded_pidfd` compares PID, start tick, executable hash, and complete command. `stop_owner` publishes the cancel marker before this guard.
+
+The retained semantic failure is `/home/dflanag3/spatial-qualification/m06-crosshost-handoff-4f241-20261013/runs/crosshost01/semantic/Debug/0058.stderr`, SHA256 `01c276297d1d6093a11e7d67427ec053d47463589fa41b0ebd1df6d72b747ca1`. It reports an owner-identity mismatch in `stop_owner` through `guarded_pidfd`. The driver receipt is `0058.process.json`, SHA256 `94a0a765cf1437cea0665aa1a5f9467fa1d624c5ef2b94810e2d39b6fa0fcf98`.
+
+The retained host root is `/tmp/spatial-m06-run03-0f14d6fd58f34d0d9344649ce18b1f7f-sb16`. Its `process.json` SHA256 is `7d9e2bc1e102efe4a9f8e8c38c879c0b30cd4386994fcfea4e123d521095280e`; it records owner PID 2377066 and worldd PID 2377069 with start ticks and executable hashes. `owner.stderr` is empty. `worldd.exit` records zero. Root inspection later found both PIDs absent. This supports an exit race after cancellation, but does not capture the exact `/proc` state at the mismatch.
+
+## Guard invariant and change
+
+The complete recorded-identity match remains the only live-process acceptance path. On identity mismatch or read failure, the guard checks its already-open pidfd. Only POLLIN or POLLHUP readiness proves exit; POLLERR and POLLNVAL do not. The current `/proc` start tick must not identify a different live PID instance. An unconfirmed identity-read failure raises an error. A live identity mismatch remains an error. The guard closes its pidfd exactly once on every exception path. Callers already treat `ProcessLookupError` as an exited child and do not signal it.
+
+## Focused regression evidence
+
+The five tests in `tests/core/test_actor_transition_crosshost_host_pidfd.py` passed on both hosts using the Debug generated bindings and explicit patched and frozen-baseline fixture paths. The controlled zombie case calls `guarded_pidfd` on both fixtures: the baseline preserves the ownership-mismatch failure, and the patch classifies exit only through pidfd readiness.
+
+- sb16: `/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/owner-guard-focused01`; terminal COMPLETE, command exit 0, wrapper exit 0, 5 tests passed. stderr SHA256 `c1f9fc3a2ac914fca789cbb78b488146e5da7d84df52c061145395c8b4803922`.
+- sb16-2: `/home/dflanag3/spatial-qualification/m06-4f241-final-20261013/runs/owner-guard-focused01`; terminal COMPLETE, command exit 0, wrapper exit 0, 5 tests passed. stderr SHA256 `fc713fb7c8952bb40ecd6894aea20f18602f2386c16a5a1bd00e3469c85e499d`.
+
+These focused checks do not qualify or retry the full production cross-host gate. No production build or test was run on coding hosts.
