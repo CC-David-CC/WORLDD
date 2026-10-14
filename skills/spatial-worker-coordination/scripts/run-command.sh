@@ -39,6 +39,11 @@ esac
 mkdir -p -- "$run_parent" || exit 73
 run_parent=$(cd -- "$run_parent" && pwd -P) || exit 73
 run_dir=$run_parent/$run_base
+case "$run_dir" in
+    "$checkout"|"$checkout"/*)
+        printf 'run directory must be outside checkout: %s\n' "$run_dir" >&2
+        exit 65 ;;
+esac
 if [[ -e $run_dir || -L $run_dir ]]; then
     printf 'refusing existing run directory: %s\n' "$run_dir" >&2
     exit 73

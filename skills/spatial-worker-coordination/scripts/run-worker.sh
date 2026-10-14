@@ -10,9 +10,13 @@ branch=$2
 model=$3
 task=$(realpath -e -- "$4") || exit 65
 run=$(realpath -m -- "$5") || exit 65
+artifact_root=$(realpath -m -- "${SPATIAL_ARTIFACT_ROOT:-$HOME/spatial-artifacts}") || exit 65
 case "$run" in
-    "$checkout"/local/*) ;;
-    *) echo 'Run directory must be inside CHECKOUT/local' >&2; exit 65 ;;
+    "$checkout"|"$checkout"/*) echo 'Run directory must be outside the checkout' >&2; exit 65 ;;
+esac
+case "$run" in
+    "$artifact_root"/*) ;;
+    *) echo 'Run directory must be inside SPATIAL_ARTIFACT_ROOT' >&2; exit 65 ;;
 esac
 test -r "$task" || exit 65
 cd "$checkout" || exit 65

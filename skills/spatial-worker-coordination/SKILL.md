@@ -105,14 +105,14 @@ Read [references/git-handoff.md](references/git-handoff.md) when checking in, pu
 Use its checked Git helper for ordinary staged commits and explicit box-git pushes.
 The primary agent and Luna use the same receipt and review rules.
 
-Origin for this project is dflanag3@box-git:/srv/data/git/spacial_desktop.git.
+Origin for this project is dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git.
 Preserve repository remotes, history, and repository-restricted SSH keys.
 Use repository-local identity David <david@code.contractors>.
 Verify the current path, branch, remote, status, and staged diff before committing.
 
 Stage explicit files. Never use git add . or git add -A for these large worker checkouts.
 Exclude credentials, local/ run directories, databases, environments, and build outputs.
-Include selected evidence only after reviewing it for secrets and irrelevant output.
+Include concise qualification summaries and artifact checksums. Keep raw evidence outside Git.
 Review git diff --cached and run git diff --cached --check.
 Stop if a native command fails. PowerShell does not stop automatically on nonzero native exit codes.
 Check $LASTEXITCODE before dependent commits, pushes, or deployment steps.
@@ -194,3 +194,17 @@ After adding CMake targets, run an explicit configure before requesting those ta
 When transport quoting corrupts scripts, transfer script files instead of adding another escaping layer.
 When two branches change the same API, merge once and test the combined API before adding more dependent work.
 Keep improvements specific to observed failures. Do not create unrelated approval or compliance procedures.
+
+## Source and artifact separation
+
+Keep all generated data outside source checkouts.
+Use /home/dflanag3/spatial-artifacts for worker runs, receipts, packages, and retained evidence.
+Use separate external build directories.
+Configure legacy output links with scripts/configure_artifact_links.py.
+Use explicit current branch pins for source coordination.
+Do not clone the archived repository into active worker checkouts.
+Check free space and projected output size before launches or transfers.
+Report insufficient capacity before proceeding.
+The checkpoint helper validates staged source with repository_data_guard.py.
+The new box-git repository also validates incoming commit trees.
+Keep old qualification records through source mappings, not duplicated raw files.
