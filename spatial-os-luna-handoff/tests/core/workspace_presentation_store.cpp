@@ -1,8 +1,11 @@
 #include "world/store.hpp"
 #include "world/workspace_presentations.hpp"
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <cstdlib>
+#include <iterator>
+#include <utility>
 #include <vector>
 #include <stdexcept>
 #include <unistd.h>
@@ -12,6 +15,11 @@
 using namespace spatial;
 namespace {
 void expect(bool value, const char* message) { if (!value) throw std::runtime_error(message); }
+std::string read_bytes(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    expect(input.good(), "open database byte witness");
+    return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
 wire::Pose pose(double x) {
     wire::Pose value; value.mutable_position()->set_x(x); value.mutable_orientation()->set_w(1); return value;
 }
@@ -181,8 +189,27 @@ int main() {
         sqlite3_stmt* version=nullptr; expect(sqlite3_prepare_v2(db,"PRAGMA user_version",-1,&version,nullptr)==SQLITE_OK,"read migrated schema version");
         expect(sqlite3_step(version)==SQLITE_ROW && sqlite3_column_int(version,0)==3,"explicit migration advances schema to v3");
         sqlite3_finalize(version); sqlite3_close(db);
+        { WorldStore retried_v2(directory,false,false,true); expect(retried_v2.info().world_id()==world_id,"v2 migration retry accepts its verified v3 target"); }
+        { WorldStore retried_v1(directory,true); expect(retried_v1.info().world_id()==world_id,"v1 migration retry accepts its verified v3 target"); }
+        bool mixed_rejected=false;
+        try { WorldStore invalid(directory,true,false,true); } catch(const WorldError& e) { mixed_rejected=e.code==wire::STORAGE_ERROR; }
+        expect(mixed_rejected,"mixed world migration flags are rejected");
+        expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&db)==SQLITE_OK,"open unknown schema witness");
+        expect(sqlite3_exec(db,"PRAGMA user_version=4",nullptr,nullptr,nullptr)==SQLITE_OK,"set unknown schema version"); sqlite3_close(db);
+        const auto unknown_before=read_bytes(std::filesystem::path(directory)/"world.db");
+        bool unknown_rejected=false;
+        try { WorldStore invalid(directory,true); } catch(const WorldError& e) { unknown_rejected=e.code==wire::STORAGE_ERROR; }
+        expect(unknown_rejected && read_bytes(std::filesystem::path(directory)/"world.db")==unknown_before,"unknown version is rejected without repair");
+        expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&db)==SQLITE_OK,"restore target schema witness");
+        expect(sqlite3_exec(db,"PRAGMA user_version=3; DROP TABLE workspace_presentation_ops; CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL)",nullptr,nullptr,nullptr)==SQLITE_OK,"remove a required target schema column"); sqlite3_close(db);
+        const auto corrupt_target_before=read_bytes(std::filesystem::path(directory)/"world.db");
+        for (const auto& migration : std::vector<std::pair<bool,bool>>{{true,false},{false,true}}) {
+            bool corrupt_target_rejected=false;
+            try { WorldStore invalid(directory,migration.first,false,migration.second); } catch(const WorldError& e) { corrupt_target_rejected=e.code==wire::STORAGE_ERROR; }
+            expect(corrupt_target_rejected && read_bytes(std::filesystem::path(directory)/"world.db")==corrupt_target_before,"incomplete v3 target is rejected without repair");
+        }
     } catch(const std::exception& error) {
-        std::filesystem::remove_all(directory); std::cerr << error.what() << '\n'; return 1;
+        std::cerr << "workspace presentation store failure; preserved database directory: " << directory << ": " << error.what() << '\n'; return 1;
     }
     std::filesystem::remove_all(directory); return 0;
 }
