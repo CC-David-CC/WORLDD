@@ -271,22 +271,31 @@ struct StorageOwner::Impl {
                 (catalog_status.st_mode & 0077) == 0, "Storage catalog file must remain private and singly linked");
         sql(db, "PRAGMA synchronous=EXTRA;PRAGMA journal_mode=DELETE;PRAGMA foreign_keys=ON;PRAGMA trusted_schema=OFF;");
         if (fresh) {
-            sql(db, "CREATE TABLE metadata(next INTEGER NOT NULL,policy BLOB NOT NULL);CREATE TABLE domains(id INTEGER PRIMARY KEY,repo TEXT UNIQUE NOT NULL,maximum INTEGER NOT NULL,workspace TEXT UNIQUE);CREATE TABLE objects(kind INTEGER NOT NULL,id TEXT NOT NULL,domain INTEGER NOT NULL,subvolume INTEGER NOT NULL,maximum INTEGER NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,PRIMARY KEY(kind,id));CREATE TABLE actors(workspace TEXT NOT NULL,subject BLOB NOT NULL,id INTEGER UNIQUE NOT NULL,maximum INTEGER NOT NULL,PRIMARY KEY(workspace,subject));CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE);PRAGMA user_version=2;");
+            sql(db, "CREATE TABLE metadata(next INTEGER NOT NULL,policy BLOB NOT NULL);CREATE TABLE domains(id INTEGER PRIMARY KEY,repo TEXT UNIQUE NOT NULL,maximum INTEGER NOT NULL,workspace TEXT UNIQUE);CREATE TABLE objects(kind INTEGER NOT NULL,id TEXT NOT NULL,domain INTEGER NOT NULL,subvolume INTEGER NOT NULL,maximum INTEGER NOT NULL,payload BLOB NOT NULL,state TEXT NOT NULL,PRIMARY KEY(kind,id));CREATE TABLE actors(workspace TEXT NOT NULL,subject BLOB NOT NULL,id INTEGER UNIQUE NOT NULL,maximum INTEGER NOT NULL,PRIMARY KEY(workspace,subject));CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE );CREATE TABLE copy_stages(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),request_digest BLOB NOT NULL CHECK(length(request_digest)=32),snapshot_id TEXT NOT NULL,destination_kind INTEGER NOT NULL,destination_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,destination_subvolume INTEGER NOT NULL,maximum_bytes INTEGER NOT NULL,maximum_entries INTEGER NOT NULL,state INTEGER NOT NULL,actual_bytes INTEGER NOT NULL DEFAULT 0,actual_entries INTEGER NOT NULL DEFAULT 0,content_digest BLOB NOT NULL DEFAULT X'');PRAGMA user_version=4;");
             auto stable = config; stable.clear_broker_pid();
             Query insert(db, "INSERT INTO metadata VALUES(100,?)"); insert.blob(1, stable.SerializeAsString()); insert.row();
             create_group(root.value, pool); limit(root.value, pool, capacity); limit(root.value, BTRFS_FS_TREE_OBJECTID, config.control_plane_bytes());
         } else {
             Query version(db, "PRAGMA user_version"); require(version.row(), "Storage catalog has no schema version");
             const auto catalog_version = version.number(0);
-            require(catalog_version == 1 || catalog_version == 2, "Storage catalog requires an explicit supported migration");
+            require(catalog_version >= 1 && catalog_version <= 4, "Storage catalog requires an explicit supported migration");
             auto stable = config; stable.clear_broker_pid(); Query previous(db, "SELECT policy FROM metadata");
             require(previous.row() && previous.blob(0) == stable.SerializeAsString(), "Storage policy changes require a stopped explicit migration");
-            if (catalog_version == 1) {
+            if (catalog_version == 1 || catalog_version == 2) {
                 Transaction migration(db);
-                sql(db, "CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE);PRAGMA user_version=2;");
+                if (catalog_version == 1)
+                    sql(db, "CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY,domain INTEGER NOT NULL,source_kind INTEGER NOT NULL,source_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,source_uuid BLOB NOT NULL,operation_id BLOB NOT NULL UNIQUE,request_digest BLOB NOT NULL,snapshot_subvolume INTEGER NOT NULL DEFAULT 0,snapshot_uuid BLOB NOT NULL DEFAULT X'',state TEXT NOT NULL,retire_operation_id BLOB UNIQUE);");
+                sql(db, "CREATE TABLE copy_stages(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),request_digest BLOB NOT NULL CHECK(length(request_digest)=32),snapshot_id TEXT NOT NULL,destination_kind INTEGER NOT NULL,destination_id TEXT NOT NULL,source_subvolume INTEGER NOT NULL,destination_subvolume INTEGER NOT NULL,maximum_bytes INTEGER NOT NULL,maximum_entries INTEGER NOT NULL,state INTEGER NOT NULL,actual_bytes INTEGER NOT NULL DEFAULT 0,actual_entries INTEGER NOT NULL DEFAULT 0,content_digest BLOB NOT NULL DEFAULT X'');PRAGMA user_version=4;");
+                migration.commit();
+                if(catalog_version<3) sql(db, "UPDATE copy_stages SET state=4 WHERE state=2;");
+                else sql(db, "UPDATE copy_stages SET state=CASE state WHEN 1 THEN 4 WHEN 2 THEN 3 WHEN 3 THEN 4 ELSE state END; PRAGMA user_version=4;");
+            } else if (catalog_version == 3) {
+                Transaction migration(db);
+                sql(db, "UPDATE copy_stages SET state=CASE state WHEN 1 THEN 4 WHEN 2 THEN 3 WHEN 3 THEN 4 ELSE state END; PRAGMA user_version=4;");
                 migration.commit();
             }
         }
+        if (!fresh) sql(db, "UPDATE copy_stages SET state=4 WHERE state=2;");
         for (const auto* directory : {"repositories", "worktrees", "applications", "retired", "snapshots", "staging", "effects"}) {
             if (mkdirat(root.value, directory, 0700) != 0) check(errno == EEXIST, "Cannot create storage collection");
             Fd pinned(openat(root.value, directory, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
@@ -594,6 +603,72 @@ struct StorageOwner::Impl {
         }
         return allocate(request.object(), actor_group, maximum, request.SerializeAsString());
     }
+
+    pb::StorageCopyStageReceipt copy_stage_receipt(const std::string& id) {
+        Query q(db, "SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,state,actual_bytes,actual_entries,content_digest,maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?");
+        q.blob(1,id); require(q.row(),"Unknown copy stage"); pb::StorageCopyStageReceipt r; r.set_operation_id(id);
+        r.set_request_digest(q.blob(0)); r.mutable_snapshot_object()->set_kind(pb::StorageObject::SNAPSHOT); r.mutable_snapshot_object()->set_id(q.text(1));
+        r.mutable_destination_object()->set_kind(static_cast<pb::StorageObject::Kind>(q.number(2))); r.mutable_destination_object()->set_id(q.text(3));
+        r.set_source_subvolume_id(q.number(4)); r.set_destination_subvolume_id(q.number(5)); r.set_state(static_cast<pb::StorageCopyStageReceipt::State>(q.number(6)));
+        r.set_actual_bytes(q.number(7)); r.set_actual_entries(q.number(8)); r.set_content_digest(q.blob(9)); r.set_maximum_bytes(q.number(10)); r.set_maximum_entries(q.number(11)); return r;
+    }
+    pb::StorageCopyStageReceipt copy_stage_begin(const pb::StorageCopyStageBegin& r) {
+        require(r.snapshot_object().kind()==pb::StorageObject::SNAPSHOT &&
+            r.destination_object().kind()==pb::StorageObject::COPY_STAGING && r.operation_id().size()==16 && r.request_digest().size()==32 && r.maximum_bytes()>0 &&
+            r.maximum_bytes()<=4ULL*1024*1024*1024 && r.maximum_entries()>0 && r.maximum_entries()<=200000,
+            "Invalid copy stage intent");
+        auto source=snapshot_inspect(r.snapshot_object()); auto dest=inspect(r.destination_object());
+        require(source.read_only() && !dest.read_only() && source.subvolume_id()!=dest.subvolume_id(),"Copy source and destination are not independent");
+        Query q(db,"SELECT request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?");
+        q.blob(1,r.operation_id());
+        if(q.row()) {
+            if(!(q.blob(0)==r.request_digest() && q.text(1)==r.snapshot_object().id() && q.number(2)==static_cast<std::uint64_t>(r.destination_object().kind()) &&
+                q.text(3)==r.destination_object().id() && q.number(4)==source.subvolume_id() && q.number(5)==dest.subvolume_id() &&
+                q.number(6)==r.maximum_bytes() && q.number(7)==r.maximum_entries()))
+                throw Error(pb::StorageOwnerError::CONFLICT,"Copy stage operation conflict");
+            return copy_stage_receipt(r.operation_id());
+        }
+        Transaction tx(db); Query ins(db,"INSERT INTO copy_stages(operation_id,request_digest,snapshot_id,destination_kind,destination_id,source_subvolume,destination_subvolume,maximum_bytes,maximum_entries,state) VALUES(?,?,?,?,?,?,?,?,?,1)");
+        ins.blob(1,r.operation_id()); ins.blob(2,r.request_digest()); ins.text(3,r.snapshot_object().id()); ins.number(4,r.destination_object().kind());
+        ins.text(5,r.destination_object().id()); ins.number(6,source.subvolume_id()); ins.number(7,dest.subvolume_id()); ins.number(8,r.maximum_bytes()); ins.number(9,r.maximum_entries()); ins.row(); tx.commit(); sync(root.value);
+        return copy_stage_receipt(r.operation_id());
+    }
+    pb::StorageCopyStageReceipt copy_stage_start(const pb::StorageCopyStageStart& r) {
+        require(r.operation_id().size()==16 && r.request_digest().size()==32,"Invalid copy stage claim");
+        auto receipt=copy_stage_receipt(r.operation_id()); require(receipt.request_digest()==r.request_digest(),"Copy stage digest conflict");
+        if(receipt.state()!=pb::StorageCopyStageReceipt::PREPARED) { receipt.set_claimed(false); return receipt; }
+        Query up(db,"UPDATE copy_stages SET state=2 WHERE operation_id=? AND state=1"); up.blob(1,r.operation_id()); up.row();
+        receipt=copy_stage_receipt(r.operation_id()); receipt.set_claimed(sqlite3_changes(db)==1 && receipt.state()==pb::StorageCopyStageReceipt::COPYING); sync(root.value); return receipt;
+    }
+    pb::StorageCopyStageReceipt copy_stage_seal(const pb::StorageCopyStageSeal& r) {
+        require(r.operation_id().size()==16 && r.request_digest().size()==32 && r.content_digest().size()==32,"Invalid copy stage seal");
+        auto receipt=copy_stage_receipt(r.operation_id());
+        require(receipt.request_digest()==r.request_digest() && receipt.snapshot_object().SerializeAsString()==r.snapshot_object().SerializeAsString() &&
+            receipt.destination_object().SerializeAsString()==r.destination_object().SerializeAsString(),"Copy stage seal binding conflict");
+        if(receipt.state()==pb::StorageCopyStageReceipt::SEALED) {
+            require(receipt.actual_bytes()==r.actual_bytes() && receipt.actual_entries()==r.actual_entries() && receipt.content_digest()==r.content_digest(),"Copy stage retry conflict"); return receipt;
+        }
+        require(receipt.state()==pb::StorageCopyStageReceipt::COPYING,"Copy stage is uncertain");
+        auto source=snapshot_inspect(r.snapshot_object()); auto dest=inspect(r.destination_object());
+        require(source.read_only() && source.subvolume_id()==receipt.source_subvolume_id() && dest.subvolume_id()==receipt.destination_subvolume_id() && !dest.read_only(),"Copy stage object changed");
+        Query lim(db,"SELECT maximum_bytes,maximum_entries FROM copy_stages WHERE operation_id=?"); lim.blob(1,r.operation_id()); require(lim.row(),"Copy stage disappeared");
+        require(r.actual_bytes()<=lim.number(0) && r.actual_entries()<=lim.number(1) && r.actual_bytes()<=dest.maximum_bytes(),"Copy worker exceeded its bounds");
+        sync(root.value); Query up(db,"UPDATE copy_stages SET state=3,actual_bytes=?,actual_entries=?,content_digest=? WHERE operation_id=? AND state=2");
+        up.number(1,r.actual_bytes()); up.number(2,r.actual_entries()); up.blob(3,r.content_digest()); up.blob(4,r.operation_id()); up.row();
+        require(sqlite3_changes(db)==1,"Copy stage seal raced"); sync(root.value); return copy_stage_receipt(r.operation_id());
+    }
+    pb::StorageCopyStageReceipt copy_stage_uncertain(const pb::StorageCopyStageUncertain& r) {
+        require(r.operation_id().size()==16 && r.request_digest().size()==32,"Invalid uncertain copy stage");
+        auto receipt=copy_stage_receipt(r.operation_id()); require(receipt.request_digest()==r.request_digest(),"Copy stage digest conflict");
+        if(receipt.state()==pb::StorageCopyStageReceipt::SEALED || receipt.state()==pb::StorageCopyStageReceipt::UNCERTAIN) return receipt;
+        require(receipt.state()==pb::StorageCopyStageReceipt::COPYING,"Copy stage was not launched");
+        Query up(db,"UPDATE copy_stages SET state=4 WHERE operation_id=? AND state=2"); up.blob(1,r.operation_id()); up.row(); sync(root.value); return copy_stage_receipt(r.operation_id());
+    }
+    pb::StorageCopyStageReceipt copy_stage_inspect(const pb::StorageCopyStageInspect& r) {
+        require(r.operation_id().size()==16 && r.request_digest().size()==32,"Invalid copy stage inspect");
+        auto receipt=copy_stage_receipt(r.operation_id()); require(receipt.request_digest()==r.request_digest(),"Copy stage digest conflict"); return receipt;
+    }
+
 };
 StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io)
     : impl_(std::make_unique<Impl>(std::move(configuration), require_kernel_io)) {}
@@ -616,6 +691,17 @@ workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::Stora
         } else if (request.has_snapshot_prepare()) *reply.mutable_state() = impl_->snapshot_prepare(request.snapshot_prepare());
         else if (request.has_snapshot_inspect()) *reply.mutable_state() = impl_->snapshot_inspect(request.snapshot_inspect().snapshot_object());
         else if (request.has_snapshot_retire()) *reply.mutable_state() = impl_->snapshot_retire(request.snapshot_retire());
+        else if (request.has_copy_stage_prepare()) {
+            const auto& op=request.copy_stage_prepare();
+            require(op.has_object() && op.object().kind()==pb::StorageObject::COPY_STAGING && op.has_repository(),
+                "Incomplete copy staging allocation");
+            *reply.mutable_state()=impl_->allocate(op.object(),impl_->domain(op.repository()),0,op.SerializeAsString());
+        }
+        else if (request.has_copy_stage_begin()) *reply.mutable_copy_stage() = impl_->copy_stage_begin(request.copy_stage_begin());
+        else if (request.has_copy_stage_start()) *reply.mutable_copy_stage() = impl_->copy_stage_start(request.copy_stage_start());
+        else if (request.has_copy_stage_seal()) *reply.mutable_copy_stage() = impl_->copy_stage_seal(request.copy_stage_seal());
+        else if (request.has_copy_stage_inspect()) *reply.mutable_copy_stage() = impl_->copy_stage_inspect(request.copy_stage_inspect());
+        else if (request.has_copy_stage_uncertain()) *reply.mutable_copy_stage() = impl_->copy_stage_uncertain(request.copy_stage_uncertain());
         else if (request.has_inspect()) *reply.mutable_state() = impl_->inspect(request.inspect().object());
         else if (request.has_hello()) {
             auto* identity = reply.mutable_identity(); identity->set_filesystem_id(impl_->config.filesystem_id()); identity->set_process_id(getpid()); identity->set_volume_bytes(impl_->config.volume_bytes()); identity->set_accounting_consistent(true);

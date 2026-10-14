@@ -1,6 +1,7 @@
 #pragma once
 #include "core/protocol.hpp"
 #include "broker.pb.h"
+#include "workspace/copy_journal.hpp"
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -18,6 +19,8 @@ public:
     ~ExecutionStore();
     ExecutionStore(const ExecutionStore&) = delete;
     ExecutionStore& operator=(const ExecutionStore&) = delete;
+    CopyJournal& copy_journal();
+    const CopyJournal& copy_journal() const;
     bool fixture_faults() const;
     wire::FaultArmReply arm_fault(const wire::FaultArmRequest& request);
     wire::RepositoryReply import_repository(const wire::RepositoryImportRequest& request);
