@@ -111,3 +111,21 @@ Cleanup checks all created roots, including the interrupted case.
 The failed f4 fixture, exact framed receipt, and full successful scoped cleanup remain preserved.
 Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-a9u1rjm4.
 No production guard or compiled input changes for this fixture correction.
+
+The b293 Debug retry passed both physical-root negative markers and FD32.
+The authorized relay reached BEGIN and START, then marked the stage uncertain.
+Its worker exited before any helper sample; stderr was discarded by the production launcher.
+Its owner and authenticated forwarder exited0 without diagnostics.
+All three case roots, volume, socket, unit, and installed helper were cleaned.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/copy-worker-production-25hoiplm.
+Binding, direct copy, symlink, and recovery remain unrun for that attempt.
+
+The synchronous production worker now captures stderr through a nonblocking pipe.
+It drains stderr while waiting, caps retained diagnostics at64KiB, and rejects overflow.
+It emits bounded diagnostics and includes the actual child exit status in its private failure.
+Sanitizer markers reject even an exit0 worker.
+The confined environment sets fixed ASAN_OPTIONS and UBSAN_OPTIONS after clearenv.
+No caller credentials or arbitrary sanitizer environment are inherited.
+The change follows the reviewed engine preflight06 diagnostic mechanism without importing its async API.
+The earlier inner-helper diagnostic limitation applies to retained pre-diagnostic evidence.
+The new diagnostic increment requires new affected probe and broker builds before runtime.

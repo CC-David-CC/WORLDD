@@ -16,6 +16,7 @@
 #include <cerrno>
 #include <fcntl.h>
 #include <poll.h>
+#include <iostream>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -30,6 +31,31 @@ std::string read_pipe(int fd,std::size_t limit){
  std::string out; std::array<char,256>b{};
  for(;;){auto n=read(fd,b.data(),b.size());if(n==0)return out;if(n<0&&errno==EINTR)continue;if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))return out;if(n<0)throw std::runtime_error("copy worker pipe read failed");require(out.size()+static_cast<size_t>(n)<=limit,"copy worker receipt too large");out.append(b.data(),n);}
 }
+struct WorkerDiagnostics {
+ Fd descriptor;
+ std::string output;
+ bool overflow=false,emitted=false;
+ explicit WorkerDiagnostics(int fd):descriptor(fd){}
+ void drain() {
+  std::array<char,1024> bytes{};
+  for(;;){const auto n=read(descriptor.value,bytes.data(),bytes.size());if(n<0&&errno==EINTR)continue;
+   if(n<=0){if(n<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK)overflow=true;return;}
+   const auto remaining=65536-output.size();const auto count=std::min(remaining,static_cast<std::size_t>(n));
+   output.append(bytes.data(),count);
+   if(static_cast<std::size_t>(n)>remaining){overflow=true;return;}
+  }
+ }
+ void emit() {
+  if(emitted||output.empty())return;
+  emitted=true;
+  std::cerr<<"Bounded spatial copy helper diagnostics begin\n"<<output<<"\nBounded spatial copy helper diagnostics end\n";
+ }
+ bool sanitizer() const {
+  return output.find("AddressSanitizer")!=std::string::npos||output.find("LeakSanitizer")!=std::string::npos||
+   output.find("UndefinedBehaviorSanitizer")!=std::string::npos||output.find("runtime error:")!=std::string::npos;
+ }
+ ~WorkerDiagnostics(){drain();emit();}
+};
 bool matches_intent(const workspace::v1::StorageCopyStageReceipt& receipt,
                     const workspace::v1::StorageCopyStageBegin& intent,
                     const workspace::v1::StorageObjectState& source,
@@ -135,23 +161,34 @@ CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_
  require(lseek(job_config.value,0,SEEK_SET)==0&&fcntl(job_config.value,F_ADD_SEALS,F_SEAL_WRITE|F_SEAL_GROW|F_SEAL_SHRINK|F_SEAL_SEAL)==0,"cannot seal worker job config");
  std::array<int,2> handles{source_fd,destination_fd}; auto job=resources.prepare_git_job(handles); auto& scope=job->scope();
  int pipefd[2]; require(pipe2(pipefd,O_CLOEXEC)==0,"cannot create worker receipt pipe"); Fd out(pipefd[0]),writer(pipefd[1]); int flags=fcntl(out.value,F_GETFL);require(flags>=0&&fcntl(out.value,F_SETFL,flags|O_NONBLOCK)==0,"cannot make receipt reader nonblocking");
+ int error_pipe[2];require(pipe2(error_pipe,O_CLOEXEC)==0,"cannot create worker diagnostic pipe");
+ WorkerDiagnostics diagnostics(error_pipe[0]);Fd error_writer(error_pipe[1]);
+ const int error_flags=fcntl(diagnostics.descriptor.value,F_GETFL);
+ require(error_flags>=0&&fcntl(diagnostics.descriptor.value,F_SETFL,error_flags|O_NONBLOCK)==0,"cannot make worker diagnostics nonblocking");
  Fd nullfd(open("/dev/null",O_RDWR|O_CLOEXEC)); require(nullfd.value>=0,"cannot open worker null device");
- std::vector<std::string> args{bwrap,"--unshare-all","--unshare-user","--disable-userns","--die-with-parent","--new-session","--cap-drop","ALL","--hostname","spatial-copy-worker","--clearenv","--setenv","PATH","/usr/bin:/bin","--setenv","HOME","/nonexistent","--setenv","TMPDIR","/tmp","--setenv","LC_ALL","C","--ro-bind","/usr/bin","/usr/bin","--ro-bind","/usr/lib","/usr/lib","--ro-bind","/usr/lib64","/usr/lib64","--ro-bind","/usr/share","/usr/share","--symlink","usr/bin","/bin","--symlink","usr/lib","/lib","--symlink","usr/lib64","/lib64","--proc","/proc","--dev","/dev","--tmpfs","/tmp","--dir","/source","--dir","/destination","--dir","/usr/local","--dir","/usr/local/libexec","--ro-bind-fd","3","/source","--bind-fd","4","/destination","--ro-bind-fd","5","/usr/local/libexec/spatial-copy-tree-worker","--ro-bind-fd","7","/job.pb","--remount-ro","/","--",helper};
+ std::vector<std::string> args{bwrap,"--unshare-all","--unshare-user","--disable-userns","--die-with-parent","--new-session","--cap-drop","ALL","--hostname","spatial-copy-worker","--clearenv","--setenv","PATH","/usr/bin:/bin","--setenv","HOME","/nonexistent","--setenv","TMPDIR","/tmp","--setenv","LC_ALL","C","--setenv","ASAN_OPTIONS","detect_leaks=1:abort_on_error=1","--setenv","UBSAN_OPTIONS","halt_on_error=1:print_stacktrace=1","--ro-bind","/usr/bin","/usr/bin","--ro-bind","/usr/lib","/usr/lib","--ro-bind","/usr/lib64","/usr/lib64","--ro-bind","/usr/share","/usr/share","--symlink","usr/bin","/bin","--symlink","usr/lib","/lib","--symlink","usr/lib64","/lib64","--proc","/proc","--dev","/dev","--tmpfs","/tmp","--dir","/source","--dir","/destination","--dir","/usr/local","--dir","/usr/local/libexec","--ro-bind-fd","3","/source","--bind-fd","4","/destination","--ro-bind-fd","5","/usr/local/libexec/spatial-copy-tree-worker","--ro-bind-fd","7","/job.pb","--remount-ro","/","--",helper};
  auto command=args;
  supervisor::v1::AuthorityProcessLaunch launch; launch.set_executable("/proc/self/fd/6");
  for(std::size_t i=1;i<command.size();++i)launch.add_arguments(command[i]);
  launch.add_inherited_fds(6);launch.add_inherited_fds(3);launch.add_inherited_fds(4);launch.add_inherited_fds(5);launch.add_inherited_fds(7);
  tick();
- scope.start(launch,{nullfd.value,writer.value,nullfd.value},{bf.value,source_fd,destination_fd,hf.value,job_config.value});
- writer.close_now();
+ scope.start(launch,{nullfd.value,writer.value,error_writer.value},{bf.value,source_fd,destination_fd,hf.value,job_config.value});
+ writer.close_now();error_writer.close_now();
  try {
  tick(); std::string output; int status=-1;
  while(status<0){tick();
-  pollfd p{out.value,POLLIN|POLLHUP,0};int ready=poll(&p,1,20);if(ready<0&&errno!=EINTR){(void)scope.stop();throw std::runtime_error("copy worker poll failed");}
-  if(p.revents){auto part=read_pipe(out.value,4100);output+=part;require(output.size()<=4100,"copy worker protobuf result too large");}
+  std::array<pollfd,2> pipes{{{out.value,POLLIN|POLLHUP,0},{diagnostics.descriptor.value,POLLIN|POLLHUP,0}}};
+  const int ready=poll(pipes.data(),pipes.size(),20);
+  if(ready<0&&errno!=EINTR){(void)scope.stop();throw std::runtime_error("copy worker poll failed");}
+  diagnostics.drain();
+  if(diagnostics.overflow)throw WorldError(wire::STORAGE_ERROR,"Copy helper diagnostics exceeded their bound");
+  if(pipes[0].revents){auto part=read_pipe(out.value,4100);output+=part;require(output.size()<=4100,"copy worker protobuf result too large");}
   if(scope.state().direct_child_exited()){status=scope.exit_status();(void)scope.stop();}
  }
- if(status!=0)throw WorldError(wire::STORAGE_ERROR,"copy worker failed; stage outcome requires inspection");
+ diagnostics.drain();diagnostics.emit();
+ if(diagnostics.overflow)throw WorldError(wire::STORAGE_ERROR,"Copy helper diagnostics exceeded their bound");
+ if(diagnostics.sanitizer())throw WorldError(wire::STORAGE_ERROR,"Copy helper emitted sanitizer diagnostics");
+ if(status!=0)throw WorldError(wire::STORAGE_ERROR,"copy worker failed (exit_status="+std::to_string(status)+"); stage outcome requires inspection");
  const auto receipt_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
  while(std::chrono::steady_clock::now()<receipt_deadline) {
   if(output.size()>=4) {
@@ -183,6 +220,6 @@ CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_
  require(result.copied().GetReflection()->GetUnknownFields(result.copied()).field_count()==0&&result.copied().content_digest().size()==32,"invalid typed copy receipt");
  CopyWorkerReceipt copied;copied.bytes=result.copied().actual_bytes();copied.entries=result.copied().actual_entries();copied.digest=result.copied().content_digest();
  require(copied.bytes<=max_bytes&&copied.entries<=max_entries,"copy worker exceeded declared bounds");return copied;
- } catch (...) { if (!scope.state().direct_child_exited()) (void)scope.stop(); throw; }
+ } catch (...) { if (!scope.state().direct_child_exited()) (void)scope.stop(); diagnostics.drain();diagnostics.emit();throw; }
 }
 }
