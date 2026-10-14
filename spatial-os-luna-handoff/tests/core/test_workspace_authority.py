@@ -7,6 +7,7 @@ import subprocess
 import time
 import threading
 import unittest
+from unittest.mock import patch
 from google.protobuf import text_format
 from google.protobuf import descriptor_pb2
 import broker_pb2 as broker
@@ -82,9 +83,15 @@ class BrokerProcess:
             self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
             self.pid = self.proc.pid
         child.close()
-        self.io_lock = threading.RLock(); self.channels = []
-        self.world_request_count = 0
+        self.initialize_transport(world_channel_opt_in=True)
         fixture.brokers.append(self)
+
+    def initialize_transport(self, *, world_channel_opt_in):
+        self.io_lock = threading.RLock()
+        self.channels = []
+        self.world_request_count = 0
+        self.world_channel_opt_in = bool(world_channel_opt_in)
+        self.world_channel_factory = self.open_world_channel if self.world_channel_opt_in else None
 
     def dispatch_control(self, reply):
         if not reply.HasField('control_revoked') or reply.request_id != 0:
@@ -140,6 +147,48 @@ class BrokerProcess:
             try: self.proc.wait(timeout=5)
             except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3); raise
         self.stream.close();self.log.close()
+
+
+class BrokerTransportCompatibilityTests(unittest.TestCase):
+    def test_authorization_fence_custom_broker_transport_opt_out_preserves_callbacks(self):
+        class CustomBroker(BrokerProcess):
+            def exchange(self, request):
+                self.exchanges.append(request)
+                return broker.Reply(protocol_version=1, request_id=request.request_id,
+                    management=core.Reply())
+
+            def request(self, **operation):
+                self.sequence += 1
+                self.events.append(operation)
+                return 'custom-response'
+
+        stream, peer = socket.socketpair()
+        self.addCleanup(stream.close)
+        self.addCleanup(peer.close)
+        custom = CustomBroker.__new__(CustomBroker)
+        custom.stream = stream
+        custom.sequence = 0
+        custom.events = []
+        custom.exchanges = []
+        custom.initialize_transport(world_channel_opt_in=False)
+
+        endpoint, channel, owned = WorldProcess.workspace_channel(custom)
+        self.assertIs(endpoint, stream)
+        self.assertIsNone(channel)
+        self.assertFalse(owned)
+        self.assertIsNone(custom.world_channel_factory)
+        self.assertFalse(stream._closed)
+        self.assertEqual(custom.request(control_acquire='fixture-event'), 'custom-response')
+        self.assertEqual(custom.events, [{'control_acquire': 'fixture-event'}])
+        with patch('test_workspace_authority.result_value', return_value='system.hello'):
+            self.assertEqual(BrokerProcess.call(custom, 'system.hello'), 'system.hello')
+        self.assertEqual(len(custom.exchanges), 1)
+        sent = custom.exchanges[0]
+        self.assertTrue(sent.management.HasField('hello'), sent)
+        self.assertEqual(sent.request_id, 1)
+        self.assertEqual(custom.sequence, sent.request_id)
+        self.assertGreater(custom.sequence, 0)
+        self.assertFalse(stream._closed)
 
 
 class WorkspaceAuthorityTests(WorldIdentityFixture):

@@ -56,6 +56,7 @@ class Broker(workspace.BrokerProcess):
         finally:
             child.close()
             if fd is not None: os.close(fd)
+        self.initialize_transport(world_channel_opt_in=False)
         fixture.brokers.append(self)
         self.call('system.hello')
 

@@ -64,11 +64,7 @@ class WorldProcess:
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
         workspace_channel = None; workspace_channel_owned = False; self.broker_channel = None
         if broker:
-            if hasattr(broker, 'open_world_channel'):
-                workspace_channel, self.broker_channel = broker.open_world_channel()
-                workspace_channel_owned = True
-            else:
-                workspace_channel = broker.stream
+            workspace_channel, self.broker_channel, workspace_channel_owned = self.workspace_channel(broker)
             command += ['--workspace-fd', str(workspace_channel.fileno()), '--workspace-pid',
                         str(getattr(broker, 'pid', broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
@@ -82,6 +78,14 @@ class WorldProcess:
             raise
         if workspace_channel_owned: workspace_channel.close()
         for _,server in pairs: server.close()
+    @staticmethod
+    def workspace_channel(broker):
+        factory = getattr(broker, 'world_channel_factory', None)
+        if getattr(broker, 'world_channel_opt_in', False) and callable(factory):
+            stream, channel = factory()
+            return stream, channel, True
+        return getattr(broker, 'stream', None), None, False
+
     def management(self, method, **args):
         request=make_request(method,args); self.sequence+=1;request.request_id=self.sequence
         self.proc.stdin.write(frame(request));self.proc.stdin.flush()
