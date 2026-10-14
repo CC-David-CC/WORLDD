@@ -579,6 +579,17 @@ if(BUILD_TESTING)
         DEPENDS identityd spatial-issuer-client worldd workspaced
             broker-python-protobuf world-session-python-protobuf spatial-process-scope-probe
             spatial-security-auth)
+    add_test(NAME workspace-presentation-shared-representation COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_shared_representation_actor.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-presentation-shared-representation PROPERTIES TIMEOUT 300
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(workspace-presentation-shared-representation-fixture
+        DEPENDS identityd spatial-issuer-client worldd workspaced spatial-security-auth
+            spatial-process-scope-probe broker-python-protobuf world-session-python-protobuf)
     add_custom_target(actor-pixels-fixture
         DEPENDS identityd spatial-issuer-client worldd workspaced spatial-security-auth
             spatial-process-scope-probe spatial-confined-xprobe
