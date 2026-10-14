@@ -1,6 +1,6 @@
 M07 cached application checks perform fresh issuer I/O
 
-Status: Confirmed source regression. Runtime correction remains pending.
+Status: Corrected in a separate branch. The first native control regression passed on sb16-2 in both profiles.
 
 ExecutionStore::application_access accepts a refresh flag.
 ControlBroker::enforce deliberately passes false during authority and control progress.
@@ -18,6 +18,13 @@ Twenty-two control paths failed at their first pointer request.
 Cleanup produced additional failure records.
 Logs include Workspace control release remains unresolved and Workspace channel failed.
 Do not treat these as 22 separately diagnosed production defects.
+
+Correction: cc13001a9b5d386c43dd727eab027cece7f1bdc7 on box-git.
+The cached path now uses fence_snapshot. The fresh path retains authorization_fence.
+The primary audited actual Ran 1 / OK in Debug and ASan/UBSan, with command and wrapper exits zero.
+The passing method is test_authorized_native_input_without_workspace_selection.
+Evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-presentation-race-repair-20261014/control-first-results.
+Broader control, revocation, input, second-host, and combined M07 checks remain pending.
 
 Source under review: f066959060ce0a3155a387f4dc033e3a7ca37f64.
 Retained sb16-2 evidence:

@@ -33,7 +33,11 @@ Primary audit: sb16-2:/home/dflanag3/spatial-artifacts/runs/m07-copy-host2-prima
 The broader presentation control suite ran 25 methods and failed at a shared native-control path.
 Source review found unexpected fresh issuer I/O inside cached control enforcement.
 The independent production correction is cc13001a9b5d386c43dd727eab027cece7f1bdc7.
-Its runtime regression verification remains pending. Actor and pixel race fixture repairs also remain pending.
+Its first authorized native-input regression passed on sb16-2 in Debug and ASan/UBSan.
+The primary audited actual Ran 1 / OK in each profile and both command layers at zero.
+Evidence: spatial-artifacts/m07-presentation-race-repair-20261014/control-first-results on sb16-2.
+Broader control, revocation, native-input, and second-host checks remain pending.
+Actor and pixel race fixture repairs also remain pending.
 No combined integration freeze or M07 phase pass is claimed.
 
 ## 2026-10-14: Native copy Debug and sanitizer suites passed on sb16
