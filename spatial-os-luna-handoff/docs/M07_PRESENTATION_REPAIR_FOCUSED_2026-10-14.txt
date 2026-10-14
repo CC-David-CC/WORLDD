@@ -1,0 +1,133 @@
+UNQUALIFIED M07 presentation and cached-control repair checkpoint
+
+Focused checks passed on sb16 and sb16-2 in Debug and ASan-UBSan.
+Each host/profile passed 89 unique Python methods and the C++ store executable.
+The four combinations passed 356 Python method executions and four C++ executions.
+No current focused check failed or skipped.
+This evidence does not complete M07 or Spatial-M1.
+
+Source and ownership
+Branch: m07/presentation-race-repair-20261014
+Base: 51ec522e4706bf443ce698af52ffcee3bbf80190
+Production repair: cc13001a9b5d386c43dd727eab027cece7f1bdc7
+Frozen final fixture source: b486f83ae1ded853c6729b4389f01cc361083c44
+Coding checkout: middle-child:/home/dflanag3/src/spacial-clean-m07-presentation-race-repair
+Frozen build checkout: middle-child:/home/dflanag3/src/spacial-clean-m07-control-cc13001a
+This summary adds documentation only after the frozen runtime source.
+No integration or GitHub publication is claimed.
+
+Production behavior
+Cached application access checks use the current authorization fence snapshot.
+They no longer start issuer I/O during control enforcement inside an issuer wait.
+Fresh checks retain authorization_fence and issuer refresh.
+Permission calculations and final incarnation/epoch comparisons remain unchanged.
+The reproduced native input failure used the existing authorized native control regression.
+All 25 real native control methods now pass in each host/profile combination.
+Only workspaced compiles the changed workspace/store.cpp source.
+
+Fixture behavior
+Worldd serializes world actions while awaiting broker results.
+The previous callback recursively requested a world grant mutation and deadlocked that route.
+The repaired schedule revokes a real independent issuer ancestor.
+Separate genuine issuer streams deliver the world event before the held broker event.
+The broker hold is bounded and released by finally and cleanup.
+No protobuf reply contents change.
+The actor retains independent entry, exact representation view, and workspace grants.
+Strict FORBIDDEN replies, exact guard messages, unchanged state, and grant postproofs remain.
+The first queued pixel write triggers on access check three and still requires EOF.
+The new identity pixel case requires exact UNAUTHORIZED and no action/pixel payload.
+Its observable message comes from the outer world cancellation guard.
+It proves identity revocation and does not prove the post-render observation grant guard.
+See M07_PRESENTATION_RACE_FIXTURES_2026-10-14.txt for that contract note.
+
+Healthy TLS fixtures use five seconds, matching the issuer I/O configuration.
+Explicit adversarial deadlines and the three-second idle limit remain unchanged.
+Fresh mTLS owner connections preserve enrollment and revocation owner proofs.
+The real stopped-issuer budget regression passed Debug and ASan-UBSan on sb16-2.
+See M07_ISSUER_FIXTURE_IO_BUDGET_2026-10-14.txt.
+
+Selected checks per host/profile
+workspace-presentation-actor: 5
+actor-pixels declared suite(): 15
+application-access: 28
+world-application-control declared suite(): 25
+native-application-input: 15
+WorkspaceTests.test_explicit_database_migrations_preserve_existing_world_and_git_rows: 1
+workspace-presentation-store-test: one C++ executable, with successful named invocation and receipts.
+The Python union contains 89 methods.
+Actual terminal Ran counts, plain OK, no skips, receipts, and sanitizer logs were checked.
+Extra diagnostic and single-method regression runs are excluded from that union.
+
+Exact binary mapping
+Debug workspaced SHA256:
+f3588c88e4e55be2bee6c0b0c3a1e6c3f5cd2eece101f0cfb07695cf49971d35
+Debug GNU build ID: e2ca03d4e62133eb2ed90d82bbc84d775b459fe0
+ASan-UBSan workspaced SHA256:
+adc57270e994b291ec22c7e21ee88722bde85eae038b77db86081d85099c025d
+ASan-UBSan GNU build ID: b751ff3ee8f5dc98d88b5c000733f21f0cda3aa1
+Both workspaced binaries use production source cc13001a9b5d386c43dd727eab027cece7f1bdc7.
+All other deployed ELFs and generated protobuf modules retain exact source:
+5f028764ebf062bbbed5cc7d8b70f57fd7afff5d
+Per-executable hashes and source mappings remain in package manifests.
+Production-OFF retains the old workspaced and is explicitly excluded.
+No XLibre branch or graphics implementation changed.
+
+Build and runtime procedures
+External build root: ARTIFACT_BASE/control-build/{Debug,ASan-UBSan}
+Configure: cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+Also configure SPATIAL_INPUT_TESTS=ON and SPATIAL_SANITIZERS=OFF or ON by profile.
+Build: cmake --build BUILD_DIRECTORY --target workspaced -j2 under directory-specific flock.
+Canonical run-command.sh receipts record configure and build commands; every layer returned zero.
+Runtime used canonical delegated resource and adapter wrappers.
+Only actor presentation tests additionally used with_test_display.py.
+Other native fixtures owned their qualified native server.
+Each host/profile selected its wrapper through canonical M06 verify_runtime.
+The verifier checked wrapper, EGL/base.lock dependencies, and 20 XLibre extensions.
+Python used -B; immutable source executables used 0555 and data used 0444.
+All final scopes were removed without unexpected population.
+Final audits found no remaining production test processes.
+
+Source overlays and package pins
+Final fixture archive SHA256:
+cd5300891f29e99a0573d2a10cec145323a99f9467aaff6b33f50a86bd06eabd
+Host2 final fixture package manifest/checksums:
+de66e81e7d7fcce57b4277602bfcb2ed7f57fe889d23b9ced0997d5e28c5924c
+6bce1087677d12c60fda6315edef6e878215a332d0eb1f046e9b541eb594d3c5
+Host1 host-aware metadata-only package manifest/checksums:
+6b75ca5893d34315077ed985a027599272a0bfbb618a00802e8ee12cba75dc46
+c86169784d5adc39cb7df06f184f2dcca57e6a00541d69af6e05e16c6c0b5aba
+The host overlay changes only explicit host choices and actual-host validation.
+Source archive, ELFs, and protobuf modules remain byte-identical.
+Host-aware profile driver SHA256:
+eaecbfc029efac02b5838bdcc72813691bf78a3e062453a19a65d3a1cb2a3918
+Host-aware preflight SHA256:
+ef288b0d7de5702622521c56f42a5a0b329ec0f902e5f0f40457425dd73d9324
+Canonical runner SHA256:
+7053d5ffe05e7050b035d6b715b794dd742b68ee29b9198a703979391323f537
+
+Evidence and source split
+ARTIFACT_BASE=/home/dflanag3/spatial-artifacts/m07-presentation-race-repair-20261014
+Each test host retains ARTIFACT_BASE/focused89-final-audit.json with leaf logs and hashes.
+Middle-child retains both audit copies under ARTIFACT_BASE/terminal-audits.
+Sb16 uses sb16-focused-b486/{Debug,ASan-UBSan}/focused-driver-summary.json.
+Sb16-2 uses control-first-results, control-broad-fe1-results, and presentation-b486-results summaries.
+Sb16-2 combines one first control method, 68 independent methods, and 20 presentation methods.
+Its first control fixture source is cc13001a; independent fixture source is fe1fe40f.
+Its final presentation source is b486f83a. The full IDs are in each audit.
+The relevant production ELF mappings are identical across those runs and both hosts.
+No earlier failures were erased or relabeled as passing.
+Preserved failure roots include debug-actor5-results, diagnostic82-results,
+debug-remaining-results, debug-independent69-results, four-diagnostics-a683, and fe1-four-results.
+The sb16 host-choice setup failure remains under sb16-static-Debug and sb16-static-outer-run.
+The successful host-aware retry remains under sb16-static-r2-*.
+
+Pending and unrun
+The full M07 phase gate remains unrun.
+Production-OFF qualification for this production fix remains unrun.
+M07A native/shared witnesses remain a separate worker assignment.
+Cross-host, physical input, real-model, recovery, performance, and soak gates are not claimed here.
+Integration requires primary review and the combined-candidate checks appropriate to later source changes.
+
+sb16 final audit SHA256: 8106a5d6d1521cede2f90daa6fe301e84a90b70a46f99229e51be5dcfa78c5f2
+
+sb16-2 final audit SHA256: 0acb5177b2f35513cc399d4482efea708e5a1e30ccc2c667cd2b11539c560acf
