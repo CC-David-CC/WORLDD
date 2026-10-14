@@ -53,10 +53,13 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         return repositories, worktrees, workspaces, processes
 
     def presentation_row(self, world, representation_id):
+        self.assertEqual(len(representation_id), 16, f'Expected raw 16-byte presentation ID, got {representation_id!r}')
         uri = 'file:' + str(world.state_path / 'world.db') + '?mode=ro'
         with closing(sqlite3.connect(uri, uri=True)) as db:
-            return db.execute('SELECT workspace_id,room_id,pose,generation FROM workspace_presentations WHERE id=?',
-                              (representation_id,)).fetchone()
+            row = db.execute('SELECT workspace_id,room_id,pose,generation FROM workspace_presentations WHERE id=?',
+                             (representation_id.hex(),)).fetchone()
+        self.assertIsNotNone(row, f'No persisted row for binary presentation ID {representation_id.hex()} in {world.state_path}')
+        return row
 
     def presentation_state(self, world):
         uri = 'file:' + str(world.state_path / 'world.db') + '?mode=ro'
