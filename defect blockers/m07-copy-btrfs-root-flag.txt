@@ -1,0 +1,49 @@
+M07 copy stage uses the wrong Btrfs read-only flag
+
+Status: confirmed by source/API review and retained-snapshot inspection. Correction reviewed; runtime qualification remains pending.
+Date: 2026-10-14.
+Affected source: f2cf41d2e69db6347dd6004368aa6ea053eaae30 and retained805 baseline.
+Files: src/workspace/storage_client.cpp and src/workspace/copy_worker.cpp under spatial-os-luna-handoff.
+
+StorageClient::open_object reads BTRFS_IOC_GET_SUBVOL_INFO into subvolume.flags.
+run_copy_tree_worker reads the same API for both pinned roots.
+Both functions test that field with BTRFS_SUBVOL_RDONLY, which is bit 1.
+That API returns root-item flags. Its read-only flag is BTRFS_ROOT_SUBVOL_RDONLY, bit 0.
+The installed Linux headers on a5500 define those different values.
+Linux ioctl.c assigns subvol_info->flags from btrfs_root_flags(root_item).
+Primary source:
+https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux/+/0d508f1745b57272d4d4a3d50dc35aa2a3682238/fs/btrfs/ioctl.c
+
+A legitimate read-only snapshot can therefore fail the pinned-object check.
+The broker fences the channel before BEGIN instead of starting the copy.
+The sb16 v4 production attempt reached both inspect requests, then failed before BEGIN.
+Its authenticated relay and owner exited zero, with empty owner stderr.
+This trace is consistent with the wrong-bit defect. It does not yet identify every failing condition independently.
+Evidence: /home/dflanag3/spatial-artifacts/runs/m07-copy-debug-production-v4 on sb16.
+
+Correct both guards using the proper root-item flag or the separate SUBVOL_GETFLAGS API.
+Preserve exact filesystem ID, subvolume ID, read-only source, writable destination, and anti-alias checks.
+Do not remove the read-only requirement.
+Record actual root flags and GETFLAGS values for a retained task-owned snapshot and writable stage.
+Run real positive copying and a writable-source denial through the production path.
+Rebuild affected Debug, sanitizer, and Production-OFF targets before packaging.
+The eight helper algorithm checks do not cover this broker descriptor guard.
+
+Read-only runtime confirmation
+
+The primary audited sb16 runs/m07-btrfs-flags-readonly-inspection-v3/stdout.log.
+Snapshot treeid 258 reports root_flags=1 and SUBVOL_GETFLAGS=2.
+The old mask evaluates false. The correct root-item mask evaluates true.
+Writable project treeid 257 and staging treeid 259 report both flag sets as zero.
+The diagnostic records the actual ioctl returns and filesystem identities.
+The image remained unchanged: 697ed6e0d80b6bcf210768766bce6990b44753c7b73be43b53f1c0a42dd3db33.
+The read-only loop was detached after inspection.
+The diagnostic's uid field is file ownership, not the caller's effective UID.
+Its nonzero-success oracle is also defective; raw observations remain valid and preserved.
+The separate positive ioctl return assumption is recorded in m07-copy-ioctl-success-return.txt.
+
+Reviewed correction: 4a15d8544111b38a00956cd70f7ba2c4bdaea59f on m07/copy-readonly-flags-20261014.
+The corrected source uses BTRFS_ROOT_SUBVOL_RDONLY in both production guards.
+Its regression uses real writable roots and checks the exact prelaunch rejection without destination or cgroup changes.
+A separate owner/client lifecycle verifies false read-only metadata fences the channel.
+Targeted Debug, sanitizer, and Production-OFF builds are authorized. Corrected runtime checks remain unrun.

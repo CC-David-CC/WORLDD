@@ -1,0 +1,29 @@
+M07 copy worker rejects a positive successful ioctl return
+
+Status: confirmed by source review and retained runtime observations. Correction reviewed; runtime qualification remains pending.
+Date: 2026-10-14.
+Source: f2cf41d2e69db6347dd6004368aa6ea053eaae30.
+Function: run_copy_tree_worker in src/workspace/copy_worker.cpp.
+
+The pinned-root guard requires GET_SUBVOL_INFO to return exactly zero for both roots.
+The test host returned positive 1 with errno 0 and complete subvolume information.
+The equality test rejects that successful result before starting the worker.
+StorageClient::open_object already treats only negative ioctl returns as errors.
+Use the same nonnegative-success rule in the lower copy-worker guard.
+Preserve exact subvolume IDs, source read-only flags, destination flags, and anti-alias checks.
+
+The primary audited the actual diagnostic C++ raw ioctl assignment and retained output.
+Evidence: sb16 /home/dflanag3/spatial-artifacts/runs/m07-btrfs-flags-readonly-inspection-v3.
+The retained snapshot, project, and staging all report info_rc=1, info_errno=0.
+The diagnostic binary also wrongly treats positive results as failures.
+Do not treat the outer inspection wrapper's exit zero as proof that its child binary passed.
+Its raw return values, flags, IDs, and unchanged-image evidence remain useful.
+
+Rebuild the affected worker/probe targets after correcting this guard and the separate flag mask.
+Require actual read-only source copying and prelaunch writable-source denial.
+Core tree-algorithm checks alone do not exercise this Btrfs descriptor guard.
+
+Reviewed correction: 4a15d8544111b38a00956cd70f7ba2c4bdaea59f on m07/copy-readonly-flags-20261014.
+Both lower-worker GET_SUBVOL_INFO calls now accept nonnegative return values.
+All existing identity, read-only, writable-destination, and ancestry checks remain enforced.
+Targeted builds are authorized. A real successful production copy remains required before closing this defect.

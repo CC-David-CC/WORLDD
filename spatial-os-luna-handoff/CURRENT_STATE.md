@@ -1,3 +1,33 @@
+## 2026-10-14: Copy guard correction builds and presentation runtime checks
+
+M07 remains incomplete. No storage blocker remains.
+Journal and authorization-fence focused checks passed on both qualification hosts in Debug and sanitizer profiles.
+These component passes do not qualify the combined M07 source.
+
+The retained production copy failure now has two confirmed guard defects.
+GET_SUBVOL_INFO returns root-item flags. Both copy guards used the other API's read-only bit.
+The lower worker also rejected a successful positive ioctl return.
+Read-only inspection preserved the retained image and confirmed both mismatches.
+Read defect blockers/m07-copy-btrfs-root-flag.txt and m07-copy-ioctl-success-return.txt at the repository root.
+Reviewed correction: 4a15d8544111b38a00956cd70f7ba2c4bdaea59f, branch m07/copy-readonly-flags-20261014.
+Its targeted Debug, sanitizer, and BUILD_TESTING=OFF builds are authorized on a5500.
+Corrected production runtime qualification remains pending on sb16.
+
+Presentation candidate 5f028764ebf062bbbed5cc7d8b70f57fd7afff5d passed static preflight on sb16-2.
+The primary reviewed its canonical M06 XACE/EGL verification, source archive, helper closure, and protobuf imports.
+Evidence: spatial-artifacts/m07-presentation-combined-5f028764/preflight-r3-20261014/static-preflight-results on sb16-2.
+Static preflight ran no test methods.
+The primary authorized its focused Debug driver: 89 selected Python methods and one C++ store executable.
+The driver stops on failure. Declared method counts do not establish passes.
+Its qualified XACE wrapper remains an explicit environment prerequisite for inherited native fixtures.
+Sanitizer checks and the second host remain pending for this combined presentation candidate.
+
+The asynchronous copy engine remains under implementation on middle-child.
+Its branch is m07/copy-engine-completion-20261014.
+Required actual broker-route, all-class copy, authority, Git, revocation, and recovery regressions remain pending.
+No engine runtime pass, integration freeze, or M07 gate completion is claimed.
+Integrate reviewed components, freeze the combined source, and run the complete gate on both hosts.
+
 ## 2026-10-14: Copy helper Debug and sanitizer core checks passed on sb16
 
 All eight selected helper methods passed in both profiles on sb16 at source f2cf41d2e69db6347dd6004368aa6ea053eaae30.
