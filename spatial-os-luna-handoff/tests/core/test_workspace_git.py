@@ -1,6 +1,7 @@
 """Independent Git, process, and storage witnesses for the production broker."""
 import os
 import io
+import fcntl
 import broker_pb2 as broker_pb
 from pathlib import Path
 import select
@@ -9,6 +10,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
 import unittest
@@ -837,6 +839,97 @@ class WorkspaceGitTests(unittest.TestCase):
         self.assertEqual(replies[3].error.code, pb.UNSUPPORTED_VERSION)
         self.assertEqual(replies[4].error.code, pb.INVALID_ARGUMENT)
         self.assertEqual(stream.read(), b'')
+
+
+    def test_workspaced_root_rejects_truncated_frames_at_eof(self):
+        cases = (
+            ('short-header', b'\x00\x00'),
+            ('short-body', b'\x00\x00\x00\x08\x08'),
+        )
+        for name, payload in cases:
+            with self.subTest(frame=name):
+                process = subprocess.Popen(
+                    [BROKER, '--state-dir', str(self.root / ('truncated-' + name))],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    output, errors = process.communicate(payload, timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.communicate()
+                    raise
+                self.assertNotEqual(process.returncode, 0, errors)
+                self.assertEqual(output, b'', 'Truncated root frame received a fabricated reply')
+
+    def test_workspaced_root_pipelines_in_order_under_stdout_backpressure(self):
+        requests = []
+        for index in range(1, 257):
+            management = make_request('system.hello', {})
+            management.request_id = index
+            requests.append(frame(broker_pb.Request(
+                protocol_version=1, request_id=index, management=management)))
+        payload = b''.join(requests)
+        process = subprocess.Popen(
+            [BROKER, '--state-dir', str(self.root / 'backpressure-execution')],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        writer_errors = []
+        writer_done = threading.Event()
+
+        def write_all():
+            try:
+                process.stdin.write(payload)
+                process.stdin.flush()
+            except BaseException as error:
+                writer_errors.append(error)
+            finally:
+                try:
+                    process.stdin.close()
+                except BaseException as error:
+                    writer_errors.append(error)
+                writer_done.set()
+
+        writer = threading.Thread(target=write_all, name='workspaced-root-pipeline-writer')
+        try:
+            fcntl.fcntl(process.stdout.fileno(), fcntl.F_SETPIPE_SZ, 4096)
+            capacity = fcntl.fcntl(process.stdout.fileno(), fcntl.F_GETPIPE_SZ)
+            self.assertLessEqual(capacity, 4096)
+            writer.start()
+            time.sleep(0.1)
+            self.assertIsNone(process.poll(), 'Broker did not remain alive under undrained stdout')
+            output = bytearray()
+            poller = select.poll()
+            poller.register(process.stdout.fileno(), select.POLLIN | select.POLLHUP | select.POLLERR)
+            deadline = time.monotonic() + 10
+            while True:
+                remaining = deadline - time.monotonic()
+                self.assertGreater(remaining, 0, 'Broker stdout did not close after the pipelined EOF')
+                events = poller.poll(max(1, int(remaining * 1000)))
+                self.assertTrue(events, 'Broker stdout made no progress after the drain began')
+                chunk = os.read(process.stdout.fileno(), 65536)
+                if not chunk:
+                    break
+                output.extend(chunk)
+            writer.join(timeout=5)
+            self.assertFalse(writer.is_alive(), 'Request writer remained blocked after stdout drain')
+            self.assertTrue(writer_done.is_set())
+            self.assertEqual(writer_errors, [])
+            self.assertEqual(process.wait(timeout=5), 0, process.stderr.read())
+            self.assertGreater(len(output), capacity, 'Replies did not exceed the test pipe capacity')
+            stream = io.BytesIO(output)
+            replies = [read_message(stream, broker_pb.Reply) for _ in requests]
+            self.assertEqual([reply.request_id for reply in replies], list(range(1, 257)))
+            self.assertTrue(all(reply.HasField('management') and reply.management.HasField('hello')
+                                for reply in replies))
+            self.assertEqual(stream.read(), b'')
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
+            if writer.ident is not None:
+                writer.join(timeout=5)
+            self.assertFalse(writer.is_alive(), 'Pipeline writer survived subprocess cleanup')
+            for pipe in (process.stdin, process.stdout, process.stderr):
+                if pipe is not None:
+                    pipe.close()
 
 
 if __name__ == '__main__':
