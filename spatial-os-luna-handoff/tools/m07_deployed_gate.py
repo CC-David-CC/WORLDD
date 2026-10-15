@@ -29,6 +29,8 @@ M07_REQUIRED = frozenset({
     "workspace-copy-engine", "workspace-copy-absolute-deadline", "workspace-copy-actor-revocation",
     "workspace-copy-lost-publication-ack", "workspace-copy-hostile-git",
     "workspace-copy-worker-death-recovery", "workspace-geometry-native-crosshost",
+    "workspace-copy-fixture-profiles", "workspace-copy-fault-relay-timing",
+    "workspace-copy-fault-evidence-durability",
     "workspace-authorization-fence", "workspace-authorization-fence-scoped",
     "workspace-authorization-fence-registry", "workspace-authorization-fence-credential",
     "workspace-authorization-fence-no-authority", "workspace-authorization-fence-bootstrap",
