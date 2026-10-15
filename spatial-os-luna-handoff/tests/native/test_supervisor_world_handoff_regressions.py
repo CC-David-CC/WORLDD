@@ -114,7 +114,7 @@ class WorldHandoffRegressionTests(baseline.WorldNativeHandoffTests):
             self.assertLess(time.monotonic(), deadline, repr(value))
             time.sleep(.01)
 
-    def application_scene(self, actor_grants=('observe', 'interact')):
+    def application_scene(self, actor_grants=('interact',)):
         grant = self.supervisor.issue(workspace=b'one', application=b'independent-witness')
         data = b'\xff\xff'
         for part in (b'', str(self.display).encode(), b'MIT-MAGIC-COOKIE-1', grant.cookie):
@@ -181,25 +181,20 @@ class WorldHandoffRegressionTests(baseline.WorldNativeHandoffTests):
         self.stop_world()
         self.released_input()
 
-    def test_interact_only_actor_cannot_capture_pixels_or_aim_scene(self):
+    def test_diagnostic_interact_actor_can_capture_and_aim_unlabelled_surface(self):
         self.started_world()
-        self.application_scene(actor_grants=('interact',))
+        surface = self.application_scene(actor_grants=('interact',))
 
-        capture = self.world_reply('render.capture', token=self.actor, width=128, height=128)
-        self.assertEqual(capture.WhichOneof('outcome'), 'error')
-        self.assertEqual(capture.error.code, core.FORBIDDEN)
+        capture = self.world_call('render.capture', token=self.actor, width=128, height=128)
+        self.assertGreater(capture['frame_id'], 0)
+        self.assertTrue(os.path.isfile(capture['path']))
 
         self.actor_sequence += 1
-        aim = self.world_reply('actor.act', token=self.actor, seq=self.actor_sequence,
-                               op='aim', args={'direction': [0, 0, -1]})
-        self.assertEqual(aim.WhichOneof('outcome'), 'error')
-        self.assertEqual(aim.error.code, core.FORBIDDEN)
-        self.assertIsNone(self.world.poll(), 'Denied observation must not stop worldd')
-        self.assertIsNone(self.probe.proc.poll(), 'Denied observation must not stop the independent application')
-
-        self.stop_world()
-        self.assertEqual(self.native_witness.inspect(), self.native_identity)
-        self.assertIsNone(self.probe.proc.poll(), 'World cleanup must preserve the independent application')
+        aim = self.world_call('actor.act', token=self.actor, seq=self.actor_sequence,
+                              op='aim', args={'direction': [0, 0, -1]})
+        self.assertEqual(aim['hit']['id'], surface['id'])
+        self.assertIsNone(self.world.poll(), 'Diagnostic observation must keep worldd alive')
+        self.assertIsNone(self.probe.proc.poll(), 'Diagnostic observation must preserve the independent application')
 
     def test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application(self):
         self.started_world()
