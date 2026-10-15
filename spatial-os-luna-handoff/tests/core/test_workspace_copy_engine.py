@@ -407,10 +407,20 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         for key in processes:self.assert_overlap_denied_without_effects(peer,key)
         runtime_tokens={key:(self.execution/'applications'/process.process_id/'home'/'runtime-token').read_bytes()
                         for key,process in processes.items()}
-        owned={pid:self.start_time(pid) for pid in self.descendants()};frozen={}
+        owned={pid:self.start_time(pid) for pid in self.descendants()};frozen={};frozen_inodes={}
         def capture():
             frozen.update({key:self.application_tree(root) for key,(root,contract) in paths.items()})
             self.assertTrue(all(frozen.values()))
+            # Attempt1 reached PUBLISHED, then resumed writers renamed data/counter.tmp away.
+            # Capture inode witnesses with the bytes while every source payload is frozen.
+            frozen_inodes.update({key:{name:(paths[key][0]/name).stat().st_ino for name in files}
+                                  for key,files in frozen.items()})
+            self.assertEqual(set(frozen_inodes),set(frozen))
+            for key in frozen:self.assertEqual(set(frozen_inodes[key]),set(frozen[key]))
+            (self.copy_evidence/'frozen-source-file-identities.json').write_text(json.dumps(dict(
+                monotonic=time.monotonic(),operation_id=request.operation_id.hex(),source_inodes=frozen_inodes,
+                source_bytes_sha256={key:{name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()}
+                                     for key,files in frozen.items()}),sort_keys=True,indent=2)+chr(10))
         request=self.request_copy(peer)
         self.lifecycle_processes=processes;self.lifecycle_owned=owned
         self.retain_process_lifecycle('before-copy',owned,processes)
@@ -427,7 +437,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             actual=self.application_tree(target);self.assertEqual(actual,frozen[key])
             self.assertTrue(all(name.split('/')[0] in ('data','config') for name in actual))
             self.assertNotIn(runtime_tokens[key],actual.values())
-            for name in actual:self.assertNotEqual((target/name).stat().st_ino,(paths[key][0]/name).stat().st_ino)
+            for name in actual:self.assertNotEqual((target/name).stat().st_ino,frozen_inodes[key][name])
         with closing(sqlite3.connect(self.execution/'execution.db')) as db:
             binding=storage.WorkspaceCopyAuthorizationBinding.FromString(db.execute(
                 'SELECT authorization_binding FROM copy_operations WHERE operation_id=?',(request.operation_id,)).fetchone()[0])
