@@ -1,3 +1,12 @@
+## 2026-10-15: M07 additive schema baseline correction drafted
+
+The separate draft records the reviewed M07 additive schema baseline in acceptance.lock.json.
+It changes only the core.proto digest; all 151 acceptance IDs and the other 40 locked hashes remain unchanged.
+The source pin and guard are unchanged. Descriptor evidence preserves the existing declarations and records 18 rejected mutation controls.
+The launch key and copy-status semantics are clarified without changing authority or disclosure policy.
+The draft has no build or runtime qualification. Focused counterexamples and the full M07 gate remain pending.
+See the schema migration record at docs/M07_SCHEMA_BASELINE_MIGRATION_2026-10-15.md and external review artifacts under /home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015.
+
 ## 2026-10-14: Focused presentation selection passed both profiles on both hosts
 
 All 89 selected Python methods and the C++ presentation-store check passed in Debug and ASan/UBSan on both hosts.
