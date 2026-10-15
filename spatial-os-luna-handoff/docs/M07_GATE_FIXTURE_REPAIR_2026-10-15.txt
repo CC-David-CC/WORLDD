@@ -1,0 +1,19 @@
+M07 gate fixture repair - 2026-10-15
+
+This change corrects three stale fixtures. Production behavior and protobuf schemas remain unchanged.
+The acceptance IDs and acceptance lock remain unchanged.
+
+RemoteWorldProcess owns its initializer. It does not call WorldProcess.__init__.
+Inherited cleanup now releases an optional broker channel.
+The subclass initializes broker_channel to None. All TLS authentication assertions remain unchanged.
+
+Storage validation uses a separate diagnostic for each invalid field.
+The unknown schema must fail the exact registered-object mapping guard.
+The oversized byte ceiling must fail the catalog-entry bound.
+Both cases still require a nonzero exit. The existing owner must remain alive.
+
+The explicit v4 migration now reaches schema 8.
+The test checks authorization_binding and the policy and configured-state tables.
+It preserves refusal, row preservation, repeated migration, reopen, and rollback checks.
+
+Runtime qualification remains unrun. The reproduced gate cases remain required.

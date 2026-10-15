@@ -20,9 +20,14 @@ with tempfile.TemporaryDirectory(prefix='copy-journal-migration-') as temp:
     migrated=call(old,'--migrate-v4')
     assert migrated.returncode == 0, migrated.stderr
     repeated=call(old,'--migrate-v4'); assert repeated.returncode == 0, repeated.stderr
-    db=sqlite3.connect(old/'execution.db'); assert db.execute('PRAGMA user_version').fetchone()[0]==5
+    db=sqlite3.connect(old/'execution.db'); assert db.execute('PRAGMA user_version').fetchone()[0]==8
     assert db.execute("SELECT source FROM repositories WHERE id='retained'").fetchone()[0]=='origin'
-    assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} >= {'copy_operations','copy_effects'}; db.close()
+    tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    assert {'copy_operations','copy_effects','workspace_copy_policies',
+            'configured_application_states','configured_process_states'} <= tables
+    columns={r[1] for r in db.execute("PRAGMA table_info(copy_operations)")}
+    assert 'authorization_binding' in columns
+    db.close()
     proc=subprocess.Popen([str(binary),'--state-dir',str(old)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     time.sleep(.25); assert proc.poll() is None, proc.communicate(timeout=2)
     proc.terminate(); proc.wait(timeout=5)
@@ -30,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='copy-journal-migration-') as temp:
     db=sqlite3.connect(broken/'execution.db'); assert db.execute('PRAGMA user_version').fetchone()[0]==4
     assert db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='copy_operations'").fetchone() is None
     assert db.execute("SELECT source FROM repositories WHERE id='retained'").fetchone()[0]=='origin'; db.close()
-    print('v4 refusal, explicit migration, preserved rows, v5 reopen and rollback recovery passed')
+    print('v4 refusal, explicit migration to v8, preserved rows, v8 reopen and rollback recovery passed')
 
 with tempfile.TemporaryDirectory(prefix='copy-journal-v1-rollback-') as temp:
     root=pathlib.Path(temp)/'old-v1'; root.mkdir(); db=sqlite3.connect(root/'execution.db')

@@ -625,12 +625,14 @@ print(json.dumps(result,sort_keys=True))
         unknown_schema = storage.StorageOwnerConfig()
         unknown_schema.CopyFrom(baseline)
         unknown_schema.copy_catalog.entries[0].schema_id = "spatial.workspace.unknown"
-        mutations.append(unknown_schema)
+        mutations.append((unknown_schema,
+                          "Workspace copy class must map to a unique exact registered object"))
         oversized = storage.StorageOwnerConfig()
         oversized.CopyFrom(baseline)
         oversized.copy_catalog.entries[0].maximum_bytes = 8*2**30
-        mutations.append(oversized)
-        for index, config in enumerate(mutations):
+        mutations.append((oversized,
+                          "Invalid workspace copy catalog entry or unsupported consistency contract"))
+        for index, (config, expected_diagnostic) in enumerate(mutations):
             with self.subTest(index=index):
                 candidate = self.root / f"invalid-copy-policy-{index}.pb"
                 candidate.write_bytes(config.SerializeToString(deterministic=True))
@@ -639,7 +641,7 @@ print(json.dumps(result,sort_keys=True))
                     ["sudo", "-n", "env", str(PROBE), str(candidate)],
                     capture_output=True, text=True, timeout=5)
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
-                self.assertIn("Invalid workspace copy catalog", result.stderr)
+                self.assertIn(expected_diagnostic, result.stderr)
         self.assertIsNone(self.owner.poll(), "Rejected policy validation affected the live owner")
 
     def test_copy_catalog_query_binds_registered_objects_and_profile_revisions(self):
