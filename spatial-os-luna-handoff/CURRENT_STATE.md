@@ -1,3 +1,20 @@
+## 2026-10-15: Both-host Debug copy repair checks pass; sanitizer checks pending
+
+Reviewed fixture candidate d200833b7e09723dfc1a5900aab4981e388e1e9c is verified on box-git.
+It declares 64 MiB source state and 256 MiB parent budgets for the complete positive scenario only.
+Production runtime binaries remain unchanged at eb569742f843c59e988e813f3431cf292c516fe7.
+The deliberate small-quota case and fourteen-application deadline budgets remain unchanged.
+Both hosts passed three Debug copies, one deliberate quota rejection, and one responsiveness check.
+All six copies preserved ten source PID/start identities. Both application jobs remained running.
+All ten methods have zero command/wrapper exits and confirmed cleanup.
+The positive-only calibration also passed. It is excluded from these ten new methods.
+Reservations still approached the enlarged limit. No unconstrained headroom or production accounting fix is proved.
+The earlier eight-MiB failure remains retained and unresolved.
+The ASan/UBSan package is verified. Its actual runtime checks remain pending.
+The complete engine suite and five fault scenarios remain pending in all four lanes.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+M07 remains UNQUALIFIED. The full combined gate has not started.
+
 ## 2026-10-15: Known quota-failure case and diagnostic recorder pass
 
 The deliberate small-quota case passed on sb16-2 Debug in 14.399 seconds.

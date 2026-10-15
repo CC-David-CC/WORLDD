@@ -2,10 +2,11 @@ M07 workspace-copy repair execution -- 2026-10-15
 Status: IN PROGRESS. Known quota failure recording is validated. M07 remains UNQUALIFIED.
 
 Current source boundary
-Task branch: m07/copy-quota-diagnostic-validation-20261015.
-Reviewed checkpoint: f15ed797850d253a84137269eeeb923fe7328346, verified on box-git.
+Task branch: m07/copy-source-capacity-20261015.
+Reviewed candidate: d200833b7e09723dfc1a5900aab4981e388e1e9c, verified on box-git.
+It includes the earlier diagnostic checkpoint f15ed797850d253a84137269eeeb923fe7328346.
 Runtime binaries remain unchanged from eb569742f843c59e988e813f3431cf292c516fe7.
-The task checkout is on a5500. Runtime tests run on sb16-2.
+The task checkout is on a5500. Runtime tests use sb16 and sb16-2.
 No production quota accounting, process cleanup, or copy lifecycle code changed.
 No task commits have been integrated into the M07 milestone branch yet.
 
@@ -59,14 +60,73 @@ Case directory: 05-nocopy8m under the same evidence root's parent.
 Raw observer SHA256: e94cde316aff3f83c951d594092f9ab866125ce75c7fb81983e3462e9964c66c.
 Result SHA256: 8de465baccc381f702ae45992ef29388c2459fbb61d71255f5081ca20908a4fe.
 
-Current next check
-One positive-only calibration is approved: source state 64 MiB, actor 256 MiB, workspace 256 MiB.
-Keep the 512 MiB volume, both 64 MiB reserves, and all independent destination limits unchanged.
-Keep the negative and fourteen-application deadline budgets unchanged.
-The earlier intermittent positive-case failure remains unresolved.
-The calibration is not a final qualification budget or a production accounting fix. It remains unrun.
-Both-host positive repair qualification, sanitizer checks, and five copy-fault scenarios remain unrun in this round.
-The full combined M07 gate has not started.
+Positive-only capacity candidate
+The 64 MiB source-state calibration passed in 61.992 seconds on sb16-2 Debug.
+Its actor and workspace limits are 256 MiB each.
+The 512 MiB volume, both 64 MiB reserves, and independent destination limits remain unchanged.
+The deliberate negative and fourteen-application deadline budgets remain unchanged.
+All ten source PID/start identities matched. Both application jobs remained running.
+The complete positive assertions passed. The recorder and final owner/kernel snapshots were valid.
+All exits were zero. Helpers, volume, service, and observer cleanup are confirmed.
+Evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-source-capacity-d200833b-20261015/01-calibration64m.
+Result SHA256: a8291e7a83228cf1ff08fcfbd1606be735cab2c38b2011304d5c8537077df29f.
+Summary SHA256: 6bbf7d88a7983a8869eaec9fdb4650b4e56e7a7e4fe4faddbb9166c46aaff877.
+Source reservation peaks again reached the configured limit minus 16 KiB.
+This constrained result does not measure the unconstrained working set or establish spare capacity.
+The earlier intermittent eight-MiB failure remains unresolved. No production accounting defect is established.
+The 64 MiB profile is a declared fixture-capacity candidate, pending repeatability and fault checks.
+Do not raise its budgets automatically after another failure.
+
+Fresh repair matrix
+The reviewed candidate is frozen for eight new positive copies, four negatives, and four responsiveness checks.
+Each host runs three Debug positives and one ASan/UBSan positive.
+One Debug positive per host uses the recorder. The remaining positives use the ordinary runner.
+Each host and profile also runs the ordinary negative and responsiveness methods.
+Earlier calibration and control runs do not count toward these sixteen cases.
+SB16-2 completed all five Debug cases successfully.
+Positive durations: 61.678, 57.394, and 57.400 seconds. Each preserved all ten source PID/start identities.
+The ordinary negative passed in 11.695 seconds with errno 122, exit 73, and continuing peer progress.
+The responsiveness case passed in 23.715 seconds. Its largest recorded actor-status exchange was 0.266 seconds.
+All case command and wrapper exits were zero. All five cleanup checks are confirmed.
+The primary independently reviewed the five completed result records.
+SB16 also completed all five Debug cases successfully.
+Positive durations: 52.421, 50.211, and 50.482 seconds. Each preserved all ten source PID/start identities.
+Its negative passed in 11.231 seconds with errno 122, exit 73, and continuing peer progress.
+Its responsiveness case passed in 23.737 seconds. Its largest status exchange was 0.371 seconds.
+All five case exits were zero, and cleanup was confirmed. The primary reviewed the completed records.
+Its first preflight rejected legitimate library SONAME symlinks.
+The libraries were present and matched their pinned hashes. No runtime test ran during that preflight failure.
+The correction resolves those links strictly and verifies their targets, while preserving the qualified wrapper.
+Evidence roots: /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/{sb16,sb16-2}.
+Stop on the first failure. Inspect actual method results, shutdown diagnostics, and exact cleanup.
+The Debug subtotal is ten passed methods: six positive copies, two negatives, and two responsiveness checks.
+No earlier calibration or control is included in that subtotal.
+The sanitizer matrix, complete engine suite, and five fault scenarios remain pending.
+The full combined M07 gate has not started. M07 remains UNQUALIFIED.
+
+Bounded PASS-image retention
+SB16 reclaimed only the five reviewed Debug PASS images after fresh identity and inactivity checks.
+The helper verified hashes, filesystem IDs, provision locks, unit absence, mounts, loop mappings, and open holders.
+It retained owner records, volume inventories, logs, proof files, and their hashes.
+It removed 2,684,354,560 logical bytes. Free space increased to 11,708,575,744 bytes.
+Receipt: sb16:/home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16/retention/debug-passed-images-20261015/receipt.json.
+Receipt SHA256: ac6ce46e356315bf0bb680084c9e6c6c2ef5277e757dbd7f2a07e3fabd18cfc0.
+No unlisted image, historical failure image, David volume, or XACE closure was removed.
+
+Sanitizer package and setup evidence
+The ASan/UBSan package reuses the ten verified eb569 executables and 33 generated bindings.
+Actual ldd and readelf records confirm ASan and UBSan dependencies.
+All source files come from git archive at d200833b. Package files and directories are frozen.
+Archive SHA256: 2b1d4370ba4cf74b6524906acf16b42e3b8f8b47dc7c416db6ff8a869e5de089.
+Manifest SHA256: fe3449c8ddf2a210eb13b9a2ee007378be7f59605a85e0dd5bd954adb3b24c52.
+The package remains UNQUALIFIED until target preflight and actual sanitizer methods pass.
+Three package setup attempts failed before runtime: inventory-name lookup, nested binding directories, and frozen-directory publication.
+Their logs remain outside Git under a5500 spatial-artifacts/m07-quota-repair-gate-inventory-20261015/runs.
+The final archive publisher verified existing content and published its archive atomically.
+The future publisher correction passed temporary-directory success and failure-recovery checks.
+One sb16 inline tmux command also failed before starting a test. Its failed session remains retained.
+Its replacement uses a literal LF script and the canonical runner's exit receipts.
+These setup failures do not count as executed test methods or passing evidence.
 
 Permanent project artifact transport
 Direct SSH and scp now work from a5500 to sb16 and sb16-2.
