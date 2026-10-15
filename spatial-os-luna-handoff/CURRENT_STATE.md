@@ -1,4 +1,4 @@
-## 2026-10-15: Hostile Git passes; revocation observer lock needs diagnosis
+## 2026-10-15: Fault checks advance; observer repair passes real revocation
 
 M01-M06 remain qualified. M07 remains in focused fault qualification. M08-M16 remain pending.
 Both obsolete-output archival jobs finished. All nine selected directories per host have verified archive/removal receipts.
@@ -13,8 +13,7 @@ The earlier hostile-Git test completed its body assertions, then failed the same
 Source review found five SQLite contexts that end transactions without closing their connections.
 A reviewed fixture repair closes all five explicitly and retains bounded passive evidence if unmount fails again.
 Static checks preserve all other method bodies. A mechanism demonstration preserves commit/rollback and proves explicit descriptor closure.
-The original EBUSY holder was not captured. The repair now passes hostile-Git Debug runtime checks on both hosts.
-Lost-acknowledgment, worker-death, and fault sanitizer qualification remain unrun.
+The original EBUSY holder was not captured. The repair now passes hostile-Git and deadline Debug runtime checks on both hosts.
 Schema correction 92107bee is separately reviewed and verified on box-git.
 Its source-pin and guard checks passed with 41 locked hashes and 151 unchanged acceptance IDs.
 Combined draft 846e07b8736968ce526f6c922fc64d0400a62304 is reviewed and verified on box-git.
@@ -26,10 +25,35 @@ Runtime durations were 18.809 seconds on sb16 and 18.915 seconds on sb16-2.
 Both passing images and proof logs have verified retention manifests. No image deletion was authorized.
 Debug14 revocation passed on sb16-2 in 25.904 seconds, including cleanup and a verified retention manifest.
 Debug14 failed on sb16 in 23.744 seconds when its SQLite observer query raised database-is-locked.
-That failure has cleanup confirmed and retained evidence. The sb16 runtime lane is held for diagnosis.
-A bounded stronger review is investigating the lock without changing deadlines or authority assertions.
-The corrected Debug13 deadline test is running on sb16-2 after its passing Debug14 retention check.
-SB16 deadline13, supervised lost-ACK15, worker-death17, and all fault sanitizer runs remain pending.
+That failure has cleanup confirmed and retained evidence. The reviewed observer repair now passes its real retry on both hosts.
+Observer contention repair 549799e90b2d42fb52829de26cb7ded8ebf8915b is reviewed and verified on box-git.
+It retries only SQLITE_BUSY under the original absolute deadline. Other SQLite errors still propagate.
+Its three real SQLite regressions and required gate registration are implemented.
+Corrected Debug13 deadline passed on both hosts: sb16 330.093 seconds; sb16-2 334.061 seconds.
+These complete-run durations include setup and teardown. The original operation-deadline assertions remain unchanged.
+Debug17 worker-death passed on both hosts: sb16 15.190 seconds; sb16-2 15.221 seconds.
+Hostile-Git16 and worker-death17 also passed ASan/UBSan on both hosts.
+Sanitizer durations on sb16 were 21.022 and 16.996 seconds; sb16-2 recorded 23.477 and 18.730 seconds.
+All named passes have zero exits and cleanup confirmed. Retention checks preserve proof and image hashes.
+One sb16 sanitizer16/17 retention check occurred after the next Debug14 run. The execution record documents this deviation.
+Deadline13 passed ASan/UBSan on both hosts: sb16 334.079 seconds; sb16-2 348.703 seconds.
+Revocation14 also passed ASan/UBSan on both hosts: sb16 27.492 seconds; sb16-2 30.136 seconds.
+Lost-ACK Debug and sanitizer recovery checks remain unrun for the corrected supervisor fixture.
+Independent ee2 supervised lost-ACK15 failed on sb16 during startup, before the injected fault, in 6.718 seconds.
+Its unchanged method and helper dependencies were explicitly compared with combined846e07 before runtime reuse.
+The broker reported a missing required cgroup controller. The Python BrokenPipe exceptions were downstream failures.
+Static review found missing controller enablement on the fixture's fresh supervisor delegation parent.
+A reviewed Luna checkpoint 0d248205 fixes delegation and records controller state before related assertions.
+It is verified on box-git. Its actual supervised startup and recovery verification remain unrun.
+Do not disable resource controllers or weaken actual crash, retirement, restart, or reconciliation requirements.
+Combined candidate 0a385d57cc443910cf44249eddb4f834ac797c1a is reviewed and verified on box-git.
+Its separate branch combines observer549799 and supervisor0d248205 without production src/proto changes.
+Static checks preserved 41 locked hashes and 151 acceptance IDs. The required gate inventory now contains 30 names.
+Source packaging and Debug/SAN target preflight passed on both hosts.
+All three real SQLite contention checks passed on both hosts: sb16 0.523 seconds; sb16-2 0.503 seconds.
+The repaired Debug14 revocation case passed on both hosts, including its original assertions and cleanup.
+Durations: sb16 24.451 seconds; sb16-2 25.462 seconds. Both Debug retention checks passed 0/0.
+The supervised eleven-ELF artifact adaptation remains under review. Its corrected recovery test has not started.
 The milestone integration branch remains unchanged.
 Finish focused fault checks before milestone integration, source freeze, and the complete M07 gate on both hosts.
 Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).

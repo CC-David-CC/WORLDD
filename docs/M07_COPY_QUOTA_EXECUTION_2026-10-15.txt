@@ -871,3 +871,131 @@ Tmux: m07-846-deadline13-debug-primary-01.
 Root: matrix/sb16-2/focused846e07b8-debug-13-primary-01; outer has suffix -outer.
 This exercises the existing absolute 300-second operation budget. Allow roughly five minutes plus setup and cleanup.
 The result remains pending. No new sb16 test is running while its observer-lock failure is under review.
+
+Independent lost-acknowledgment check selected during observer diagnosis
+The primary verified identical lost-ACK method AST and copy_row helper between ee2af573 and combined846e07.
+Production src/proto, native supervisor fixture helpers, and copy_fault_evidence are also identical.
+The only changed existing fault methods are provision diagnostics, deadline13, revocation14, and hostile-Git16.
+Therefore the already reviewed ee2 supervised lost-ACK package may run as independent focused evidence.
+It does not qualify the complete combined candidate or remove its final frozen-gate requirement.
+Use the existing exact-hash launcher, eleven-ELF supervised view, and one index15 case only.
+Keep the failed sb16 revocation primitive held while its observer correction is reviewed.
+Run independent lost-ACK15 on sb16 while corrected deadline13 runs on sb16-2.
+Require observed broker death before releasing the held publication acknowledgment.
+Require real supervisor cleanup, signed generation retirement, same-participant restart, and exact nonduplicate reconciliation.
+Retain all failure images and receipts. Stop this focused lane after any failure.
+No inference, source change, timeout increase, or new runtime rebuild is needed for this selected case.
+
+Supervised lost-ACK startup failed; independent worker-death case selected
+The independent ee2 supervised case failed before system.hello completed.
+It ran one test in 6.718 seconds and reported two BrokenPipeError exceptions.
+One occurred at initial world management stdin.flush. The other occurred while closing the same pipe during teardown.
+All outer and case exits are 1. Cleanup is confirmed. No lost-ACK recovery success is claimed.
+No second run was started. A bounded Luna worker is investigating retained supervisor startup logs on a5500.
+It must preserve the exact crash, generation-retirement, and reconciliation requirements.
+The sb16 revocation observer primitive remains under separate stronger review.
+
+Select the independent Debug17 worker-death case on sb16 after confirmed prior helper restoration and cleanup.
+Use frozen combined846e07, the existing base runtime, and one index17 method only.
+Its source uses the already-closing copy_row helper and does not use the failing supervised-world startup path.
+Require real worker death, retained unresolved output, restart reconciliation, and no unintended relaunch.
+This is focused evidence only. Keep both failed cases and their volume images.
+
+The corrected deadline test then passed on sb16-2 in 334.061 seconds with cleanup confirmed.
+Its actual deadline detection was 300.355053049 seconds after acceptance.
+It returned UNCERTAIN 9 / COPY_UNCERTAIN 7, an allowed result after deadline uncertainty.
+Its terminal status call took 178.300205 milliseconds. No deadline or uncertainty assertion was changed.
+Retention passed 0/0. Manifest SHA256: 692ee6986d3ba978871273f5e30d578840fcad8ec3d16a7ae738080feb36a8fb.
+The independent Debug17 worker-death test passed on sb16 in 15.190 seconds, all four exits zero and cleanup confirmed.
+The primary read its exact named unittest report and result fields.
+After their retention checks, run the complementary cases: Debug13 deadline on sb16 and Debug17 worker-death on sb16-2.
+These cases test the same retained deadlines and worker-death reconciliation on the other required host.
+
+SB16-2 Debug17 worker death also passed: one named test in 15.221 seconds, all four exits zero, cleanup confirmed.
+After its verified retention, select ASan/UBSan hostile-Git16 on sb16-2.
+Use its already verified SAN composition and the unchanged explicit ASan-UBSan launch profile.
+This focused sanitizer check exercises Git confinement and resource teardown through the same production runtime.
+Preserve the existing 512 MiB sanitizer manager profile, leak checks, bounds, and no-image-deletion policy.
+The sb16 Debug13 deadline case continues independently.
+
+SB16-2 ASan/UBSan hostile-Git16 passed: one named test in 23.477 seconds with all four exits zero and cleanup confirmed.
+Retain its scanned diagnostics and volume image before advancing.
+Next select ASan/UBSan worker-death17 on sb16-2 to check process and descriptor lifetimes after forced worker death.
+Keep the same frozen846e07 source, verified SAN binaries, resource profile, and original reconciliation assertions.
+
+SB16 Debug13 passed: one named test in 330.093 seconds, all four exits zero, cleanup confirmed.
+SB16-2 ASan/UBSan worker-death17 passed: one named test in 18.730 seconds, all four exits zero, cleanup confirmed.
+The primary read both actual result records and raw unittest reports.
+Complete their read-only retention before advancing.
+Next select ASan/UBSan hostile-Git16 plus worker-death17 as one coherent two-case batch on sb16.
+Select ASan/UBSan deadline13 on sb16-2 while the short batch runs on sb16.
+These checks cover the complementary required host/profile cells. Keep all existing deadlines, resource caps, and assertions.
+Both failure investigations continue independently without modifying these frozen source trees.
+
+Both sb16 sanitizer16/17 cases passed: hostile Git in 21.022 seconds; worker death in 16.996 seconds.
+Each has one named test, all four exits zero, and cleanup confirmed.
+Their two-image retention manifest was generated after the next source candidate's Debug14 run, not before it.
+All original images and proof files remained intact. The read-only retention check passed 0/0 afterward.
+Future cross-candidate launches must check the previous host batch's retention receipt as well as the new candidate preflight.
+SB16-2 sanitizer13 deadline passed in 348.703 seconds, all four exits zero, cleanup confirmed.
+
+The reviewed observer repair is 549799e90b2d42fb52829de26cb7ded8ebf8915b, verified on box-git.
+It adds bounded SQLITE_BUSY-only observation and three actual SQLite regressions without changing production or the 35-second budget.
+The new workspace-copy-journal-observer registration raises M07_REQUIRED from 29 to 30 without removing any prior name.
+The supervisor startup repair is 0d24820501dc47f9e61d7e0769c2161c6207292e, also verified on box-git.
+Its 38-line fixture change enables all four controllers on the empty delegated parent before launching the supervisor child.
+Parent and child controller snapshots are durable before their related assertions.
+Production controller checks, limits, actual SIGKILL ordering, issuer retirement, and restart assertions remain required.
+Existing owner cleanup handles partial construction. No production C++ or schema changed.
+
+Combined candidate: 0a385d57cc443910cf44249eddb4f834ac797c1a.
+Branch: m07/copy-fault-observer-and-supervisor-20261015. BOX-GIT VERIFIED. UNQUALIFIED.
+Checkout: a5500:/home/dflanag3/src/spacial-m07-fault-observer-supervisor-20261015.
+It starts at observer549799 and cherry-picks supervisor0d248205. The pick applied cleanly.
+Its production src/proto diff against runtime eb569 is empty.
+Canonical combined static/source checks passed 0/0: 1,016 project files, 41 locked hashes, 151 acceptance IDs, 30 required tests.
+Its reviewed source package and per-host metadata were generated under a fresh artifact root.
+Artifact root: a5500:/home/dflanag3/spatial-artifacts/m07-copy-observer-supervisor-20261015.
+Package outer package-01 exited 0/0 with empty stderr. All six orchestration changes are exact source/CMake pin updates.
+Both target artifact preflights passed 0/0 using fresh 0a385d57-support-primary-01 and source-overlays/0a385d57 paths.
+No old package, source, failure, or image was overwritten.
+
+On sb16, all three actual SQLite observer regressions passed in 0.523 seconds, with command/wrapper exits 0/0.
+The actual Debug14 revocation retry then passed in 24.451 seconds, all four exits zero, cleanup confirmed.
+The primary read its raw named-test report. Existing authority, abort, no-publication, and source-process assertions remain unchanged.
+New candidate Debug14 retention passed 0/0 before further advancement.
+SB16-2's same three SQLite regressions and new-candidate Debug14 remain pending.
+Next select those SQLite regressions on sb16-2 before its real Debug14 retry.
+Select the complementary old846 sanitizer13 deadline case on sb16 after all preceding retention receipts pass.
+The deadline body and production source are unchanged by observer/supervisor fixture repairs.
+Its result remains focused evidence; the eventual frozen combined gate still requires every applicable check on both hosts.
+The new supervised lost-ACK artifacts are being adapted separately; actual corrected lost-ACK startup/recovery remains unrun.
+
+Latest focused completion and remaining recovery work
+SB16-2 passed all three real SQLite observer checks in 0.503 seconds.
+Its corrected candidate0a Debug14 passed in 25.462 seconds, all four exits zero and cleanup confirmed.
+Its retention builder passed 0/0 before further runtime.
+SB16 sanitizer13 deadline passed in 334.079 seconds, all four exits zero and cleanup confirmed.
+The deadline was detected 303.509268547 seconds after acceptance, within the existing test assertions.
+Its first retention invocation used an incorrect builder basename and exited 2/2 before examining evidence.
+The primary preserved that failure and launched fresh retention attempt02 with the verified existing builder.
+Attempt02 passed 0/0 with empty stderr. No runtime case was repeated.
+All prior source, raw logs, images, and results remain preserved.
+
+Select sanitizer14 on candidate0a on both hosts after their verified prior retention receipts.
+Purpose: exercise actual revocation and process cleanup under ASan/UBSan with the bounded SQLite observer.
+Keep the original 35-second completion budget and authority, abort, no-publication, and process-survival assertions.
+Launch record: matrix/HOST/launch0a-san-14-primary-01.json.
+Tmux: m07-0a385d57-revocation14-san-primary-01.
+Run root: matrix/HOST/focused0a385d57-san-14-primary-01; outer has suffix -outer.
+Both runs passed: sb16 27.492 seconds; sb16-2 30.136 seconds.
+The primary read both named unittest reports, zero exits, and confirmed cleanup.
+Their read-only retention manifests are selected before any next runtime batch.
+
+Corrected lost-ACK startup is implemented but not runtime-verified.
+The eleven-ELF adapter keeps the existing supervisor supplement immutable while changing the fixture source pin.
+Primary review caught a preparation refusal because the retained supplement already exists.
+The adapter must verify and reuse that immutable supplement and create only the new source-specific build view.
+No fixture startup, injected broker death, generation retirement, restart, or reconciliation is claimed for candidate0a yet.
+Finish this focused case in Debug and ASan/UBSan on both hosts before milestone integration and full gate.
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
