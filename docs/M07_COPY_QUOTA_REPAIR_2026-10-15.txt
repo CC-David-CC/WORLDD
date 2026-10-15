@@ -1,6 +1,11 @@
 M07 focused copy quota repair -- authorized 2026-10-15
 Status: DIAGNOSTIC PAIR COMPLETE. Quota repair remains unresolved. M07 remains UNQUALIFIED.
 
+Next-step plan, requested 2026-10-15
+Read docs/M07_COPY_QUOTA_FIX_AND_QUALIFICATION_PLAN_2026-10-15.txt.
+It defines bounded diagnosis, the evidence-based repair choice, both-host checks, and the final M07 gate.
+The plan is not execution evidence. No further runtime tests started while preparing it.
+
 Actual-copy observation with corrected instrumentation
 The complete named five-class copy method passed in 61.653 seconds on sb16-2 Debug.
 The fixture and outer command/wrapper exits were all zero.

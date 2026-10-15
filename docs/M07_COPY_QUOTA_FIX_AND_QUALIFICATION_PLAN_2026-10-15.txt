@@ -1,0 +1,165 @@
+M07 copy quota repair and qualification plan -- 2026-10-15
+Status: PLAN ONLY. M07 remains UNQUALIFIED. No runtime tests started while preparing this plan.
+
+Objective
+Make the complete workspace-copy case reliable under an explicitly supported storage budget.
+Preserve the source applications and enforce insufficient-budget failures correctly.
+Finish the remaining M07 checks, qualify both hosts, and advance to M08 cabinets and real files.
+M01-M06 are qualified. M08-M16 remain pending.
+
+Current evidence
+One complete Debug copy passed on sb16-2 in 61.653 seconds.
+All ten source PID/start identities survived publication. Both application jobs remained running.
+Frozen bytes, independent destination files, and source relaunch checks passed.
+Earlier runs failed with actual application EDQUOT errors and editor exit.
+The broker subsequently performed normal cleanup. No copy-induced process-kill defect is established.
+Each source state qgroup reached 8,372,224 metadata-reservation bytes against an 8,388,608-byte ceiling.
+The remaining 16 KiB excludes referenced usage and other reservations.
+This establishes tight headroom. It does not identify the earlier rejecting quota group.
+The corrected observer's userspace-error and parent-chain output paths remain untested.
+Recovered internal kernel reservation errors do not establish application failure.
+The no-copy workload passed, but its original quota capture was invalid.
+Host disk exhaustion is not the recorded cause.
+
+Source and execution boundaries
+Local planning baseline: 88c63757f6b393fce21fd5e56c5d2ab84e1d4299 on main.
+Diagnostic branch: m07/copy-quota-evidence-20261015.
+Diagnostic checkpoint: afd8f3497449866b632675113a74fa786c1edc13, verified on box-git.
+Checkout: a5500:/home/dflanag3/src/spacial-m07-copy-quota-evidence-20261015.
+Milestone integration branch: m07/qualification-integration-20261014.
+Integration checkpoint: 55a659a849c8bac73d3ceacdc0cb9b4e5b3e1ddd, unqualified.
+Reused production binaries were built from eb569742f843c59e988e813f3431cf292c516fe7.
+Use a separate repair branch from the diagnostic checkpoint when implementation resumes.
+Keep diagnostic observer tools optional. They are not a production dependency or qualification substitute.
+Use a5500 and middle-child for source work and builds.
+Use sb16 and sb16-2 for runtime tests. Coordinate checkpoints through box-git.
+Run one helper-changing test lane per host under the existing helper-install lock.
+Use tmux, the canonical bash runner, unique external evidence directories, and pinned packages.
+
+1. Validate the failure recorder, then collect the missing failure evidence.
+Extend the private diagnostic selector to run the existing small-quota negative test.
+Keep the ordinary mandatory test loader and its assertions unchanged.
+Selected test: test_small_source_quota_rejects_actual_writer_and_preserves_peer_application.
+Run it first on sb16-2 Debug with the scoped observer.
+Require actual application errno 122, durable exit code 73, and continuing peer progress.
+Require unchanged peer PID/start identities and owner records proving the configured quota still applies.
+Correlate the failing syscall with its process, state object, filesystem, and quota hierarchy.
+Record referenced usage, reservation types, limits, timestamps, and the requested allocation.
+Require the observer's error output and parent-chain output to execute without incomplete or lost data.
+If the observer misses the known error, fix that recorder before using its absence as evidence.
+Use a narrowly scoped syscall trace if attribution requires an independent witness.
+Do not interpret a later parent-chain sample as an atomic snapshot of the kernel's earlier decision.
+
+Then run the original eight-MiB positive case once with the validated recorder.
+Selected test: test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch.
+Keep actor32 MiB, workspace64 MiB, destination limits, and five-millisecond writers unchanged during diagnosis.
+Capture the copy phase, source/snapshot membership, application stderr, and durable process exit before teardown.
+Inspect quota ownership against the stored owner policy and actual copy snapshot lifecycle.
+If that run passes, allow one further matched no-copy/copy diagnostic pair for a stated missing measurement.
+Stop this diagnostic batch after those bounded runs. Do not launch identical retries indefinitely.
+Its deliverable is a causal classification, or a precise remaining uncertainty and a changed experiment.
+A passing eight-MiB run alone does not close this defect.
+
+2. Make one coherent repair selected by that evidence.
+Case A: correct quota accounting rejects an undersized positive-test workload.
+Document the positive scenario's storage requirement separately from its file-content size.
+Measure referenced bytes and simultaneous reservations across the source and ancestor quota groups.
+Include copy-stage charges, runtime state, concurrent applications, and explicit operating headroom.
+Do not size from independently observed reservation peaks added together.
+Do not assume a peak observed against an exhausted limit measures the unconstrained working set.
+If necessary, use one declared calibration budget within a disposable volume before selecting the final budget.
+Record the exact source, actor, workspace, and volume budgets before qualification runs begin.
+Review ancestor limits together so the adjustment does not merely move the rejection upward.
+Change only the positive scenario's explicit fixture profile and its documented resource requirement.
+Keep the deliberate four-MiB rejection regression and its enforcement assertions.
+Describe this result as a fixture-capacity correction, not a proven production accounting fix.
+
+Case B: copy assigns charges incorrectly or fails to release owned resources.
+Patch the smallest demonstrated storage-owner or copy-lifecycle error.
+Add a regression for the actual bad membership, duplicate charge, or missing release.
+Check success, abort, and recovery paths affected by that change.
+Keep budget enforcement active and prove the negative case still rejects the intended operation.
+
+In either case, preserve the five-millisecond writers and all ten source PID/start checks.
+Preserve frozen-byte equality, independent destination inodes, and source progress after thaw.
+Preserve new workspace identity and independently assigned destination authority and budgets.
+Do not copy runtime tokens, credentials, grants, live processes, or leases.
+Keep the existing five-second response checks and absolute copy deadline.
+Do not hide quota errors, slow writers, force global synchronization, or change process cleanup to obtain PASS.
+Do not start a kernel fork, filesystem replacement, or CallbackList migration for this repair.
+Record any test-contract change explicitly and review it separately from production code.
+
+3. Pass the small repair gate before running the full milestone gate.
+Freeze the reviewed repair source and package once.
+Run the complete positive case three times in Debug on each host.
+Use the recorder for one repetition per host. Run the other two without it to check observer dependence.
+Run the same complete case once with ASan/UBSan and leak detection on each host.
+This gives eight complete positive executions: six Debug and two sanitizer.
+Run the deliberate small-quota negative case once per host and profile: four negative executions.
+Run the existing delayed-owner responsiveness regression per host and profile.
+For a production repair, also run its new regression and the affected storage/recovery callers in all four lanes.
+Require zero unexpected process losses, quota errors, sanitizer findings, or changed authority behavior.
+Require the expected quota rejection in every negative case.
+Review actual named methods, method counts, command.exit, wrapper.exit, and retained shutdown diagnostics.
+Confirm helper restoration, volume unmount, loop detach, and exact service/cgroup cleanup after each run.
+If one repair check fails, retain that failure and return to its cause. Do not launch the full gate.
+Historical failure evidence remains retained even after the repaired scenario passes.
+Passing enlarged budgets alone does not establish that accounting or containment is correct.
+
+4. Finish the remaining focused M07 behavior checks on the repaired source.
+Run the complete workspace-copy engine suite in Debug and sanitizer on both hosts.
+Run all five existing copy-fault methods in those four lanes:
+- test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication.
+- test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish.
+- test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects.
+- test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch.
+- test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies.
+Use the genuine 300-second deadline in its fault test. Do not shorten the contract for speed.
+Reconcile authority, journal, fences, presentation, and native witness evidence against the combined source.
+Repeat affected checks when integration changes their source or dependencies.
+Independent host-local lanes may run in parallel. Reserve both hosts for cross-host checks.
+This checkpoint means focused M07 work is complete. It does not yet qualify M07.
+
+5. Integrate, freeze, and run the complete M07 gate.
+Review all repair commits before integrating them into the existing M07 integration branch.
+Freeze one candidate commit and inventory its required tests.
+The prior inventory had 193 registrations: 191 local and two dedicated cross-host registrations.
+Recalculate that inventory after integration. A registration count is not a pass count.
+Incrementally rebuild Debug and ASan/UBSan, with testing ON and OFF, from the exact candidate.
+Preserve build caches. Record and review any reuse of byte-identical binaries or graphics dependencies.
+Verify protobuf bindings, runtime configuration, helper binaries, qualified XACE wrappers, and transferred hashes.
+Audit the root storage-owner activation and recovery plan before native gate startup.
+Use disposable production startup checks. Preserve David's existing volume and recovery session.
+Run the complete required Debug, sanitizer, harness, and acceptance suites on both hosts.
+Run required native, cross-host, recovery, and continuity checks at the same candidate.
+Reserve physical-device and performance work for their declared M1 milestones unless an M07 requirement needs it.
+After any source repair, identify invalidated evidence and rerun the affected gate portion before reconciliation.
+
+6. Close M07 and advance to M08.
+Accept M07 only when every required result has reviewed passing evidence at the candidate.
+List failed, blocked, skipped, and unrun requirements separately. None can silently count as PASS.
+Record the quota failure classification, chosen budget or production fix, and regression results.
+Preserve any historical detail that could not be reconstructed. State the limitation precisely.
+Push the reviewed milestone checkpoint to box-git and the authorized project GitHub destination.
+Then begin M08: cabinets and real file operations, including trash/restore and separate access rights.
+
+Capacity and retention
+Check free bytes, inodes, live jobs, and projected output before each batch.
+The fixture currently creates a 512-MiB image for each method execution.
+Remove only verified disposable PASS images after retaining summaries, hashes, and cleanup receipts.
+Keep failed images and all compact failure evidence until their replacement is reviewed.
+Do not duplicate previous raw runs or build outputs into Git or new source checkouts.
+Batch image-producing checks so retained output stays inside verified available space.
+Report insufficient space before starting the next batch. Do not silently use another storage host.
+
+References and limits
+Local evidence: docs/M07_COPY_QUOTA_REPAIR_2026-10-15.txt.
+Detailed branch evidence: spatial-os-luna-handoff/docs/M07_COPY_QUOTA_EVIDENCE_2026-10-15.txt at afd8f349.
+Qualification sequence: spatial-os-luna-handoff/docs/M07_QUALIFICATION_SEQUENCE_2026-10-14.txt.
+Btrfs quota groups include subvolume data and filesystem-tree metadata, with hierarchical limits.
+Reference: https://btrfs.readthedocs.io/en/latest/Qgroups.html.
+Upstream implementation reference: https://raw.githubusercontent.com/torvalds/linux/master/fs/btrfs/qgroup.c.
+The upstream reference does not prove identical behavior in the installed Ubuntu kernel.
+No reliable full-gate ETA follows from one sixty-second copy pass.
+The first completion checkpoint is the causal classification and fixed candidate, followed by the small repair gate.
+Next implementation task: add the existing negative method to the private diagnostic selector and validate its error capture.
