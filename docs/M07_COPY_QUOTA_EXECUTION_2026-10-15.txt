@@ -1021,7 +1021,9 @@ Both tests completed initial supervisor/world startup and reached the actual hel
 The controller-delegation repair therefore passed this actual startup path on both hosts.
 Both then failed before SIGKILL at tests/core/test_workspace_copy_faults.py line728.
 The unprivileged test could not read /proc/PID/exe for the supervised broker.
-The broker uses different credentials. Its pidfd signal also needs the privileged test operator.
+Production NativeLaunch deliberately calls prctl(PR_SET_DUMPABLE, 0) in src/workspace/native_launch.cpp.
+This protects process inspection after startup. Different credentials were not demonstrated.
+The fixture will use privileged inspection and a pidfd-bound signal without changing production hardening.
 Durations: sb16 21.191 seconds; sb16-2 19.671 seconds.
 Both named reports failed with PermissionError. All recorded command/wrapper exits are 1.
 Cleanup is confirmed, both installed helpers restored, and failing volume images retained.
@@ -1033,3 +1035,125 @@ Preserve five-second death observation, signed generation retirement, restart, a
 Add wrong-identity rejection checks before signaling. Do not weaken production process permissions or confinement.
 Use a separate repair branch/worktree from candidate0a. The milestone integration branch remains unchanged.
 Current free bytes: sb16 41,561,759,744; sb16-2 48,498,167,808. Storage is not the present blocker.
+
+Primary review requires wrong-identity rejection checks outside the held acknowledgment interval.
+The existing dropped-publication elapsed-time assertion remains below five seconds.
+Repeated sudo calls and executable hashes must not consume that fault interval.
+
+Privileged crash observer checkpoint and focused retry
+Reviewed repair: 2fa73639c273fd35f8ccd18bac6d2943a222069d. BOX-GIT VERIFIED. UNQUALIFIED.
+Branch: m07/lostack-operator-observer-20261015. Parent: candidate0a385d57.
+Checkout: a5500:/home/dflanag3/src/spacial-m07-lostack-operator-observer-20261015.
+Only the lost-ACK fault fixture and its new narrow operator helper changed.
+The primary reviewed both complete files and the unchanged recovery assertions.
+Static checks passed. No production C++, protobuf, CMake registration, or locked acceptance changed.
+The helper validates expected PID, start ticks, exact executable, and executable hash around pidfd open.
+It rejects already-dead pidfds, sends SIGKILL through the bound descriptor, and observes death within five seconds.
+The caller retains an independent pidfd witness and records death before releasing the held receipt.
+Wrong PID/start/executable controls and a successful owned-process kill run before workspace startup and copy.
+Each rejection checks its intended error and confirms the owned process survives.
+The positive control requires exact identity proof and SIGKILL termination.
+The actual broker hash is streamed before copy starts. Production process inspection remains disabled.
+
+Candidate source package passed canonical production/validation with command/wrapper exits 0/0.
+It contains 1,177 frozen source files, including the helper at SHA256:
+8c75096cd4a6c4213503493e3f7e5f8b79758e48335ef90fc23b6218ede31fae.
+Artifact root: a5500:/home/dflanag3/spatial-artifacts/m07-lostack-operator-candidate-20261015.
+All orchestration adaptations are reviewed source-pin and artifact-path changes.
+Both target source preflights passed Debug and sanitizer verification with exits 0/0.
+New source target: matrix/HOST/source-overlays/2fa73639/source.
+The supervised compositions reuse the unchanged eleven-ELF runtime and immutable ee2 supplement.
+Metadata generation passed 0/0 at supervised-metadata-01. No runtime binaries were rebuilt.
+Target supervised artifact preparation uses supervised2fa-PROFILE-artifact-prepare-primary-01-outer.
+
+Select the one lost-ACK Debug method on both hosts after verified Debug artifact preflight.
+The previous failed attempt has confirmed cleanup, restored helpers, and no live recorded launcher.
+Purpose: validate actual protected-broker death, acknowledgment ordering, generation retirement, and exact recovery.
+Launch record: matrix/HOST/launch-lostack-supervised2fa-debug-primary-01.json.
+Tmux: m07-lostack-supervised2fa-debug-primary-01.
+Run root: matrix/HOST/lostack-supervised2fa-debug-primary-01; outer has suffix -outer.
+The primary observed both actual launcher processes and RUNNING case records.
+Results remain pending. No crash-recovery pass is claimed.
+
+Focused lost-ACK recovery passed; integrated gate candidate frozen
+Debug15 passed on both hosts: sb16 19.166 seconds; sb16-2 18.030 seconds.
+Both retain named-test PASS, all four recorded exits zero, confirmed cleanup, and restored helper binaries.
+Both Debug retention builders passed 0/0 before the sanitizer runs.
+The actual broker death timestamps precede receipt release in both retained crash-order proofs.
+Both recoveries preserved exact publication receipts and the original authorization binding.
+Both reported UNCERTAIN 9 / COPY_UNCERTAIN 7, as required for the lost acknowledgment.
+This is a deliberate uncertain result with exact reconciliation. It is not an invented success or duplicate publication.
+
+Select the same index15/count1 case under ASan/UBSan on both hosts.
+Purpose: check crash, supervisor cleanup, generation retirement, and receipt reconciliation with leak detection.
+Launch record: matrix/HOST/launch-lostack-supervised2fa-san-primary-01.json.
+Tmux: m07-lostack-supervised2fa-san-primary-01.
+Run root: matrix/HOST/lostack-supervised2fa-san-primary-01; outer has suffix -outer.
+Both passed: sb16 21.844 seconds; sb16-2 21.869 seconds.
+The primary read both named unittest reports and verified zero exits with confirmed cleanup.
+Both sanitizer retention builders passed 0/0 with empty stderr.
+Retention roots: matrix/HOST/retention2fa-lostack-PROFILE-primary-01-outer.
+Images, failed attempts, proof files, supervisor records, and runtime diagnostics remain retained.
+
+Only the existing lost-ACK method AST changed between candidate0a and candidate2fa.
+All other existing fault method ASTs match exactly. Production src/proto remains identical to runtime eb569.
+The focused copy/fault matrix now has passing recorded evidence across both hosts and profiles.
+This includes thirteen engine methods and five fault methods, with explicitly recorded source carry-forward.
+It does not replace the complete frozen M07 qualification gate.
+
+The primary fast-forwarded the isolated milestone integration branch from 55a659a to candidate2fa.
+No conflict resolution or new merge commit was needed. The integration branch is clean.
+Its explicit push passed 0/0 and verified refs/heads/m07/qualification-integration-20261014 at candidate2fa on box-git.
+Integrated source-policy, locked acceptance, required inventory, and CMake checks passed 0/0.
+Thirty required M07 test names remain present. The schema baseline and 151 acceptance IDs remain unchanged by this repair.
+Integration receipt: artifact-root/integration-receipt.json.
+Push receipt: artifact-root/integration-push-receipt.json.
+
+The primary verified that no build process was using the four gate caches.
+It then fast-forwarded the designated gate builder from d2dd4f1c to candidate2fa.
+Frozen candidate: 2fa73639c273fd35f8ccd18bac6d2943a222069d.
+Builder: a5500:/home/dflanag3/src/spacial-m07-gate-build-20261014.
+Freeze receipt: artifact-root/gate-freeze-receipt.json.
+The four build caches keep their original CMAKE_HOME_DIR. Builds remain pending.
+A bounded worker is preparing revised gate inputs without launching builds or tests.
+Next: review those exact inputs, prepare four build profiles, then deploy and run the full required gate on both hosts.
+M07 remains UNQUALIFIED until full-gate reconciliation passes. M08-M16 remain pending.
+
+Gate preparation caught one evidence-path registration defect
+Candidate2fa gate preparation exited 2/2 before runtime qualification.
+Debug configure, build, inventory, and all seven required artifact builds passed.
+The strict closure check then rejected build/execution-v7-migration-evidence, a future test output.
+The migration registration alone hardcoded that output under its build directory.
+Other relevant registrations already use the configured SPATIAL_SECURITY_EVIDENCE path.
+The primary preserved the failed preparation and made a one-line CMake correction on a separate worktree.
+No missing-input exemption or fake executable was introduced.
+
+Repair commit: 706fe47aae50000fa78ee1549b76356d3cf66eff. BOX-GIT VERIFIED. UNQUALIFIED.
+Branch: m07/migration-evidence-location-20261015.
+Checkout: a5500:/home/dflanag3/src/spacial-m07-migration-evidence-location-20261015.
+Only CMakeLists.txt and a concise repair note changed from candidate2fa.
+Actual configure/CTest JSON verification passed 0/0 with the supplied external output directory.
+That output directory remained absent before execution.
+The same verifier still rejected the missing real workspaced executable in the unbuilt probe.
+This confirms output handling without weakening the required-input check.
+Source-policy and locked acceptance guards passed. No fixture method ran during this check.
+
+The primary fast-forwarded integration and builder to candidate706fe47a.
+The integration push is verified on box-git. Both checkouts are clean.
+Production src/proto, fault methods, migration assertions, timeouts, and sanitizer policies remain unchanged.
+Focused copy/fault evidence therefore remains explicit carry-forward; full qualification still uses the successor.
+Refreeze receipt: a5500:/home/dflanag3/spatial-artifacts/m07-migration-evidence-location-repair-20261015/refreeze-receipt.json.
+
+Fresh preparation root: a5500:/home/dflanag3/spatial-artifacts/m07-706fe47a-gate-preparation-20261015.
+Tmux: m07-706fe47a-gate-prepare-01. Outer: prepare-outer-01.
+The six frozen inputs preserve build paths, profiles, cache homes, and runtime host/profile pins.
+The runtime manifest changes only its candidate field.
+The primary reviewed the exact script diffs, verified their hashes, and launched through the canonical runner.
+This preparation passed the previous closure failure, finished Debug, and advanced to sanitizer preparation.
+The Debug inventory contains 198 registrations. A registration is not a passing test result.
+All required full-gate runtime checks remain pending on sb16 and sb16-2.
+
+All four candidate706fe47a configurations then passed their builds.
+Debug and sanitizer inventories each contain 198 registrations. Production-off closure exists in both profiles.
+Verified runtime files total 8,619,574,588 bytes. This is an artifact package, not tracked source data.
+Archive creation and validation remain active under the same canonical preparer handle.

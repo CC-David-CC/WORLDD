@@ -1,3 +1,31 @@
+## 2026-10-15: Focused copy faults pass; M07 gate candidate frozen
+
+M01-M06 remain qualified. M07 has advanced from focused copy/fault repair to full-gate preparation.
+M08-M16 remain pending. Spatial-M1 is not yet qualified.
+Lost-ACK recovery passed in Debug on both hosts: sb16 19.166 seconds; sb16-2 18.030 seconds.
+The same recovery passed ASan/UBSan: sb16 21.844 seconds; sb16-2 21.869 seconds.
+All four named runs have zero exits, confirmed cleanup, and verified retention manifests.
+They observed actual broker death before receipt release, retired failed generations, and reconciled exact receipts after restart.
+The required outcome remains UNCERTAIN/COPY_UNCERTAIN without duplicate publication.
+Production process-inspection hardening remains enabled. The fixture uses a narrow privileged crash observer.
+The focused thirteen-method engine and five-method fault matrix now has passing evidence across both hosts and profiles.
+Its recorded carry-forward source evidence does not replace a full frozen gate.
+
+Focused repair 2fa73639c273fd35f8ccd18bac6d2943a222069d passed the four lost-ACK runs.
+Successor 706fe47aae50000fa78ee1549b76356d3cf66eff is integrated, frozen, and verified on box-git.
+It corrects one migration evidence-output registration. Configuration and missing-input rejection checks passed 0/0.
+The earlier preparation failure remains retained. No runtime behavior, assertion, timeout, or sanitizer policy changed.
+Integration branch: m07/qualification-integration-20261014. The isolated integration checkout is clean.
+Integrated source-policy, locked acceptance, thirty-name required inventory, and CMake checks passed 0/0.
+The designated a5500 gate builder is clean at the same frozen candidate.
+Four-profile build/package preparation is active on a5500 at the successor pin.
+All four build configurations passed. Debug and sanitizer each list 198 registrations.
+The verified runtime files total about 8.62 GB. Archive creation and its validation remain active.
+The full M07 runtime gate on both hosts remains pending.
+Run required Debug, sanitizer, production, harness, acceptance, cross-host, native, and recovery qualification on both hosts.
+M07 remains UNQUALIFIED until the complete gate passes and its evidence is reviewed.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
 ## 2026-10-15: Fault checks advance; observer repair passes real revocation
 
 M01-M06 remain qualified. M07 remains in focused fault qualification. M08-M16 remain pending.
