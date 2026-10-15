@@ -1,3 +1,24 @@
+## 2026-10-15: Expanded copy checks expose another undersized writer fixture
+
+Both hosts passed the first nine Debug engine methods at fixture checkpoint 8ea5cb60.
+These eighteen passes are separate from the earlier sixteen accepted repair executions.
+SB16-2 then failed the optional-state copy method. Its terminal writers reported actual EDQUOT 122.
+The terminal exited with code 1. The source continuity assertion failed before publication.
+That scenario still used four-MiB source state limits. Its failed image and logs remain retained.
+The missing supervisor's exact role was not recorded. No sibling-survival claim is made for this failure.
+Read-only forensic recovery preserved the image hash and confirmed unmount and loop detach.
+Its qgroup JSON query failed on an unsupported option. Later raw metadata supplied persisted quota limits.
+Reviewed fixture checkpoint 76ec0aea225b122eea97e8d4b41ab4c0f264d3ca is verified on box-git.
+It declares 64 MiB source state and 256 MiB parent limits for optional-copy and policy/restart positives.
+It preserves their destination limits, writer timing, assertions, deliberate negatives, and fault budgets.
+Common copy diagnostics now capture process identities before BEGIN and on failure.
+No production accounting fix is claimed. Production runtime remains eb569742f843c59e988e813f3431cf292c516fe7.
+The new candidate's runtime checks remain UNRUN. Source-only package preparation is active.
+Next run both affected methods in Debug and ASan/UBSan on each required host.
+Then finish remaining engine and fault coverage before combined integration and full qualification.
+M07 remains UNQUALIFIED. M01-M06 are qualified. M08-M16 remain pending.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
 ## 2026-10-15: Focused copy repair matrix passes; engine and fault checks next
 
 Both hosts passed the required focused repair checks: sixteen accepted executions in total.

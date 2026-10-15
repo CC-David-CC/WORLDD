@@ -224,3 +224,63 @@ bash /home/dflanag3/spatial-artifacts/m07-direct-test-ssh-20261015/remove-m07-sp
 Recovery remains UNRUN. Its exact removal code passed four temporary-file checks, including refusal cases.
 Use revision v2. Primary review found and corrected a token-index error in the earlier recovery script.
 Revision v2 SHA256: 5a6adea8a7aaefbbae2d858f948716ab1faf5ddccfa76529dfde5da1f142b465.
+
+Expanded engine batches and continuous-writer fixture correction
+The first nine Debug engine methods passed on each host at fixture checkpoint 8ea5cb60.
+Their runtime executables remain pinned to eb569742f843c59e988e813f3431cf292c516fe7.
+All eighteen methods have one named passing result, four zero exits, and confirmed cleanup.
+The primary reviewed the result records, helper restoration, and transient-unit absence.
+The complete five-class copies again preserved ten live source PID/start identities on each host.
+The deliberate small-quota cases reported EDQUOT 122, exit 73, and continuing peer progress.
+The delayed-owner tests remained responsive. These passes do not qualify the full engine or M07.
+
+SB16 batches: step4-debug-index-00-r2, -02-r1, -04-r1, -06-r1, and -08-r1.
+SB16-2 batches: step4-debug-00-02, step4-debug-03-05, and step4-debug-06-08.
+Each directory contains batch-results.json and individual case result.json records.
+Paths are under each host's existing m07-copy-repair-matrix-20261015/HOST evidence root.
+SB16's five-class process witness SHA256:
+4d5f4b8916ab2632b66241c03ac5ee673e184a5507ed5e834b3b3f470e92b7de
+SB16-2's five-class process witness SHA256:
+a38ecae63f677654f87628c56e731b7b588cf8ed89b4654cf8a5c4a5e6961fba
+
+SB16-2 stopped at the optional-state method in step4-debug-09-11.
+It reported Ran 1 / ERROR in 34.636 seconds, with all four exits equal to one.
+FileNotFoundError for /proc/2628230/stat broke the source continuity assertion.
+Recovered stderr identifies terminal application 1e75bc053d1420045e9466a46e5aac45.
+Both writers reported EDQUOT 122 for /state/data/counter.tmp and /state/config/counter.tmp.
+The terminal's durable exit is 1. Its stderr SHA256 is:
+b097df94f33bbbc332671d9c257ac9337a1197f9b75626edd1beda5dfe26b197
+The missing supervisor's precise role/start was not captured. Editor survival is not established.
+Only the first application-state copy ran. The application-definition-only copy remained unrun.
+The journal records completed quiescence release and seals, with destination validation unresolved.
+Publication was not recorded. No matching test-unit kernel OOM was found.
+This is a storage-quota failure, separate from the earlier sanitizer manager-memory failure.
+
+The failed image m07-engine-310d00853f3a491f remains retained on SB16-2.
+Read-only forensic recovery used a private mount namespace and ro,rescue=nologreplay.
+It detached the exact loop and removed the mount. Before/after image SHA256 is identical:
+8706cf2228b203724e3ee382a086b4469aa7c9a0e4ba490f093c7c57cebc99c1
+The qgroup JSON command failed because the installed tool rejects --format.
+Later offline raw metadata maps all four source state roots to four-MiB individual caps.
+Their actor and workspace limits are 32 MiB and 64 MiB. These are persisted limits, not failure-time reservations.
+Keep this failed diagnostic subcommand separate from successful log recovery and cleanup.
+
+Primary-reviewed fixture checkpoint 76ec0aea225b122eea97e8d4b41ab4c0f264d3ca is BOX-GIT VERIFIED, UNQUALIFIED.
+Branch: m07/copy-continuous-writer-capacity-20261015. Parent: 8ea5cb6076e85acad7cabba446e404e8a7e415a9.
+Checkout: a5500:/home/dflanag3/src/spacial-m07-copy-continuous-writer-capacity-20261015.
+Only the engine fixture and its explicit capacity-change record changed.
+Optional-copy and policy/restart positives now declare 64 MiB source state and 256 MiB actor/workspace limits.
+Their destination copy-source remains 4 MiB, copy-app 4 MiB, actor 12 MiB, and workspace 32 MiB.
+The full five-class positive retains its prior destination copy-source value of 8 MiB.
+Negative, stopped-writer, and fault budgets remain unchanged. Five-millisecond writers and all assertions remain unchanged.
+Common copy completion captures process identities before BEGIN and failure evidence before teardown.
+It retains the original failure. Production source, protobuf schemas, and executable hashes remain unchanged.
+This is a declared fixture-capacity correction. It does not prove a production accounting defect or fix.
+AST and whitespace checks passed. New-source runtime is UNRUN; source-only composition preparation is active.
+
+Selected next checks: optional-copy and policy/restart, each Debug and ASan/UBSan on both hosts.
+After those pass, finish the remaining engine methods and all five fault scenarios in all four lanes.
+At this checkpoint, expanded coverage totals eighteen passed, one failed, and fifty-three unrun executions.
+That count is the 13-engine plus 5-fault matrix across two hosts and two profiles.
+It excludes the earlier sixteen accepted repair executions and all setup-only attempts.
+No repair branch is integrated. The full combined M07 gate has not started.
