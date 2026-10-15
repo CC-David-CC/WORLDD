@@ -48,6 +48,18 @@ class QuotaDiagnosticStaticTests(unittest.TestCase):
         selected=constants(diagnostic.body)
         self.assertEqual(selected['qualification'],'UNQUALIFIED_DIAGNOSTIC')
         self.assertEqual(selected['completed_status'],'diagnostic-complete');self.assertNotEqual(selected['completed_status'],'focused-pass')
+        env_guard=next(node for node in ast.walk(main) if isinstance(node,ast.If)
+            and ast.unparse(node.test)=='fixture_spec is not None'
+            and any(isinstance(child,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='fixture_index'
+                for target in child.targets) for child in node.body))
+        index=env_guard.body[0]
+        self.assertEqual(ast.unparse(index.value), "command.index(str(source / 'tools/with_adapter_resources.py')) + 2")
+        self.assertEqual(ast.unparse(env_guard.body[1].test), "command[fixture_index - 1] == '--' and command[fixture_index] == sys.executable")
+        insertion=env_guard.body[2]
+        self.assertEqual(ast.unparse(insertion.targets[0]),'command[fixture_index:fixture_index]')
+        self.assertEqual(insertion.value.elts[0].value,'env')
+        self.assertEqual(insertion.value.elts[1].left.value,'SPATIAL_COPY_QUOTA_DIAGNOSTIC_DIR=')
+        self.assertEqual(insertion.value.elts[2].left.value,'SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE=')
         normal=loader_methods(SOURCE/'tests/core/test_workspace_copy_engine.py')
         separate=loader_methods(SOURCE/'tests/core/diagnose_workspace_copy_quota.py')
         self.assertEqual(len(normal),13);self.assertEqual(len(set(normal)),13);self.assertNotIn(CONTROL,normal)

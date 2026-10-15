@@ -132,6 +132,14 @@ def main(*,fixture_spec=None):
         command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
                  str(source/'tests/core'/fixture_name),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd'),'-v']
+        if fixture_spec is not None:
+            # systemd forwards a fixed environment allowlist. Place private diagnostic
+            # inputs below both resource wrappers, directly before fixture Python.
+            fixture_index=command.index(str(source/'tools/with_adapter_resources.py'))+2
+            assert command[fixture_index-1]=='--' and command[fixture_index]==sys.executable
+            command[fixture_index:fixture_index]=['env',
+                'SPATIAL_COPY_QUOTA_DIAGNOSTIC_DIR='+str(evidence/'observer'),
+                'SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE='+fixture_spec['mode']]
         if selected_case:command.append(fixture_class+'.'+selected_case)
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
@@ -140,8 +148,6 @@ def main(*,fixture_spec=None):
         environment.pop('LSAN_OPTIONS',None)
         if fixture_spec is not None:
             observer=evidence/'observer';observer.mkdir(mode=0o700)
-            environment['SPATIAL_COPY_QUOTA_DIAGNOSTIC_DIR']=str(observer)
-            environment['SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE']=fixture_spec['mode']
             report['diagnostic']=dict(mode=fixture_spec['mode'],observer_directory=str(observer),runtime_bound_seconds=runtime_bound)
         report['argv']=command;save()
         with (evidence/'stdout.log').open('wb') as stdout,(evidence/'stderr.log').open('wb') as stderr:
