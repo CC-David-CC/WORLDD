@@ -1101,8 +1101,11 @@ if(BUILD_TESTING)
     set_tests_properties(workspace-copy-engine PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_custom_target(workspace-copy-fault-fixture
-        DEPENDS workspace-copy-engine-fixture
+        DEPENDS workspace-copy-engine-fixture spatial-authority-supervisor launch-python-protobuf
+            native-scope-python-protobuf scope-python-protobuf
         SOURCES tests/core/test_workspace_copy_faults.py
+            tests/native/copy_fault_supervised_world.py
+            tools/inspect_workspace_copy_supervisor_closure.py
             tests/native/storage_owner_copy_fault_relay.py
             tools/inspect_workspace_copy_fault_fixture.py
             tools/run_workspace_copy_faults.py)

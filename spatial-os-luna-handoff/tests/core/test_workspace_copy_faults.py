@@ -35,11 +35,39 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
         self.storage_log=(fixture.root/f'copy-fault-storage-{len(fixture.brokers)}.log').open('wb')
         owner_end,broker_end=socket.socketpair()
         for end in (owner_end,broker_end):end.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
+        supervised=config is not None and (fixture.copy_fault_mode=='drop-publication-ack' or hasattr(fixture,'lostack_supervisors'))
+        self.partial_ready=not supervised
+        if supervised:
+            def cleanup_partial_supervised_broker():
+                if self.partial_ready:return
+                failures=[]
+                for stream in (self.stream,child,owner_end,broker_end):stream.close()
+                try:
+                    if getattr(self,'resources',None) is not None:self.resources.close()
+                except BaseException as error:failures.append('Supervisor cleanup: '+type(error).__name__)
+                owner=getattr(self,'owner',None)
+                if owner is not None:
+                    try:owner.wait(timeout=10)
+                    except BaseException as error:failures.append('Root owner cleanup: '+type(error).__name__)
+                for log in (self.log,self.owner_log,self.storage_log):
+                    if not log.closed:log.flush();log.close()
+                    if Path(log.name).exists():(fixture.copy_evidence/Path(log.name).name).write_bytes(Path(log.name).read_bytes())
+                (fixture.copy_evidence/'lost-publication-partial-broker-cleanup.json').write_text(json.dumps(
+                    dict(failures=failures,owner_exit=None if owner is None else owner.poll()),sort_keys=True,indent=2)+'\n')
+                if failures:raise AssertionError('; '.join(failures))
+            fixture.addCleanup(cleanup_partial_supervised_broker)
         command=[str(engine.fixtures.BROKER),'--state-dir',str(state),'--storage-fd',str(broker_end.fileno())]
         if config:command+=['--authority-config',str(config)]
         configuration=str(fixture.copy_resource_config)
-        self.resources=engine.ResourceBroker(engine.fixtures.BROKER,command,child,self.log,self.owner_log,configuration,
-                                             extra_fds={'--storage-fd':broker_end.fileno()})
+        if supervised:
+            # Both authority generations must have real crash ownership before the lost-ACK fault.
+            sys.path.insert(0,str(engine.SOURCE/'tests/native'))
+            from copy_fault_supervised_world import SupervisedBrokerResources
+            self.resources=SupervisedBrokerResources(fixture,engine.fixtures.BROKER,command,child,self.log,self.owner_log,
+                configuration,extra_fds={'--storage-fd':broker_end.fileno()})
+        else:
+            self.resources=engine.ResourceBroker(engine.fixtures.BROKER,command,child,self.log,self.owner_log,configuration,
+                                                 extra_fds={'--storage-fd':broker_end.fileno()})
         self.proc=self.resources.process;self.pid=self.resources.pid
         broker_end.close();child.close()
         owner_config=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
@@ -57,6 +85,7 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
             'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',sys.executable,'-B','-c',code,*owner_command],
             stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
         owner_end.close();self.initialize_transport(world_channel_opt_in=False);fixture.brokers.append(self)
+        self.partial_ready=True
 
 
     def close(self):
@@ -508,11 +537,20 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         return reply
 
     def restart_fault_world(self,world):
+        old_broker=self.broker
+        if hasattr(world,'retire_after_broker_death'):
+            # The exact broker crash has already happened. Clean and retire its failed world afterward.
+            self.broker.close()
+            world.retire_after_broker_death(old_broker)
         world.close();self.broker.close()
         self.copy_fault_mode='pass-through'
         self.broker=CopyFaultStorageBrokerProcess(self,self.execution,self.authority_config)
-        replacement=engine.fixtures.WorldProcess(self,world.config_path,world.state_path,
-            runtime_config=world.runtime_path,broker=self.broker)
+        if hasattr(world,'retire_after_broker_death'):
+            replacement=type(world)(self,world.original_config,world.state_path,
+                runtime_config=world.runtime_path,broker=self.broker,previous=world)
+        else:
+            replacement=engine.fixtures.WorldProcess(self,world.config_path,world.state_path,
+                runtime_config=world.runtime_path,broker=self.broker)
         self.worlds.append(replacement);replacement.management('system.hello')
         replacement.config_path=world.config_path;replacement.state_path=world.state_path
         replacement.runtime_path=world.runtime_path
@@ -560,7 +598,11 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
 
     def test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish(self):
         self.copy_fault_mode='drop-publication-ack'
-        world=self.workspace(roots=lambda:self.copy_roots(True),registry=True)
+        # Crash recovery needs a pre-bound real supervisor, not a fresh identity or a pre-crash close.
+        sys.path.insert(0,str(engine.SOURCE/'tests/native'))
+        from copy_fault_supervised_world import SupervisedCopyFaultWorld
+        with patch.object(engine.fixtures.world_authority,'WorldProcess',SupervisedCopyFaultWorld):
+            world=self.workspace(roots=lambda:self.copy_roots(True),registry=True)
         peer=world.peers[0];self.select(peer)
         request=self.request_copy(peer)
         accepted=self.fault_action(peer,workspace_copy=request)
@@ -590,9 +632,23 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             self.assertEqual(self.start_time(pid),start)
             self.assertEqual(os.readlink(f'/proc/{pid}/exe'),str(engine.fixtures.BROKER))
             signal.pidfd_send_signal(descriptor,signal.SIGKILL)
+            signal_sent=time.monotonic_ns()
+            self.assertTrue(__import__('select').select([descriptor],[],[],5)[0],
+                            'Actual broker pidfd did not confirm death before publication reply release')
+            death_observed=time.monotonic_ns()
+            self.operator_run(['touch',release])
+            receipt_released=time.monotonic_ns()
+            (self.copy_evidence/'lost-publication-crash-order.json').write_text(json.dumps(dict(
+                broker_pid=pid,broker_start_ticks=start,signal_sent_monotonic_ns=signal_sent,
+                death_observed_monotonic_ns=death_observed,receipt_released_monotonic_ns=receipt_released),
+                sort_keys=True,indent=2)+'\n')
+            self.assertLessEqual(signal_sent,death_observed)
+            self.assertLessEqual(death_observed,receipt_released)
         finally:
             os.close(descriptor)
+            # Exceptional cleanup still releases the owned relay; it never establishes the normal-path oracle.
             self.operator_run(['touch',release])
+        # This is the real supervisor wrapper exit; actual broker death was independently witnessed above.
         self.assertNotEqual(old.proc.wait(timeout=15),0)
         world,peer=self.restart_fault_world(world)
         audit=self.persist_fault_audit(old,'lost-publication-before-restart')

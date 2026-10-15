@@ -62,6 +62,20 @@ class CopyFixtureProfileTests(unittest.TestCase):
             self.assertEqual(set(proof['binaries']),set(COPY_BINARIES))
             self.assertEqual(proof['manager_memory_bytes'],256*2**20)
 
+    def test_supervisor_preflight_checks_the_added_actual_executable(self):
+        plain=' (NEEDED) Shared library: [libc.so.6]\n'
+        sanitized=' (NEEDED) Shared library: [libasan.so.8]\n (NEEDED) Shared library: [libubsan.so.1]\n'
+        with tempfile.TemporaryDirectory() as directory:
+            for name in (*COPY_BINARIES,'spatial-authority-supervisor'):(Path(directory)/name).write_bytes(name.encode())
+            def mixed(argv,**kwargs):
+                return subprocess.CompletedProcess(argv,0,sanitized if Path(argv[-1]).name=='spatial-authority-supervisor' else plain,'')
+            with patch('copy_fixture_profiles.subprocess.run',side_effect=mixed):
+                with self.assertRaisesRegex(ValueError,'spatial-authority-supervisor'):
+                    instrumentation_preflight(directory,'Debug',additional_binaries=('spatial-authority-supervisor',))
+            with patch('copy_fixture_profiles.subprocess.run',return_value=subprocess.CompletedProcess([],0,plain,'')):
+                proof=instrumentation_preflight(directory,'Debug',additional_binaries=('spatial-authority-supervisor',))
+            self.assertEqual(set(proof['binaries']),set(COPY_BINARIES)|{'spatial-authority-supervisor'})
+
     def test_file_based_runner_imports_find_adjacent_helper(self):
         tools=Path(__file__).resolve().parent
         for name in ('run_workspace_copy_engine','run_workspace_copy_faults'):

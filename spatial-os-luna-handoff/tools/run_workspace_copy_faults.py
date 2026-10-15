@@ -64,7 +64,16 @@ def main():
     report['bootstrap']=dict(binary=bootstrap_state,profile=helper_state(policy));save()
     sys.path.insert(0,str(build/'python'))
     try:
-        report['resource_profile'] = instrumentation_preflight(build, resource_profile);save()
+        extra=('spatial-authority-supervisor',) if selected_case=='test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish' else ()
+        report['resource_profile'] = instrumentation_preflight(build, resource_profile,additional_binaries=extra);save()
+        if extra:
+            closure=subprocess.run([sys.executable,'-B',str(source/'tools/inspect_workspace_copy_supervisor_closure.py'),
+                '--build',str(build),'--source',str(source),'--profile',resource_profile],capture_output=True,text=True,timeout=30)
+            (evidence/'supervisor-closure.stdout').write_text(closure.stdout)
+            (evidence/'supervisor-closure.stderr').write_text(closure.stderr)
+            report['supervisor_closure_exit']=closure.returncode;save()
+            if closure.returncode:raise RuntimeError('Lost-ACK supervisor closure preflight failed: '+closure.stderr[-4000:])
+            report['supervisor_closure']=json.loads(closure.stdout);save()
     except BaseException as error:
         report['runtime_status']='setup-failed';report['failure']=repr(error);save();raise
     import broker_pb2 as broker

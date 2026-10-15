@@ -24,11 +24,11 @@ def manager_memory_mib(profile):
         raise ValueError('Unsupported explicit copy resource profile: ' + profile)
     return 512 if profile == 'ASan-UBSan' else 256
 
-def instrumentation_preflight(build, profile):
+def instrumentation_preflight(build, profile, *, additional_binaries=()):
     manager_memory_mib(profile)
     result = dict(profile=profile, manager_memory_bytes=manager_memory_mib(profile)*2**20,
                   binaries={})
-    for name in COPY_BINARIES:
+    for name in (*COPY_BINARIES,*additional_binaries):
         path = Path(build)/name
         if not path.is_file() or path.is_symlink():
             raise ValueError('Missing regular SAN executable: ' + name)
