@@ -590,22 +590,30 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertGreater(settled.scoped_authority_check.epoch,
             before.scoped_authority_check.epoch)
 
-    def test_reserved_m07_actor_actions_fail_closed(self):
+    def test_m07_actor_actions_reject_malformed_requests(self):
         world = self.workspace(); peer = world.peers[0]
         actions = (
-            {'presentation_create': core.PresentationCreateRequest(protocol_version=1, operation_id=b'a' * 16)},
-            {'presentation_move': core.PresentationMoveRequest(protocol_version=1, operation_id=b'b' * 16)},
-            {'presentation_remove': core.PresentationRemoveRequest(protocol_version=1, operation_id=b'c' * 16)},
-            {'workspace_copy': workspace_copy.WorkspaceCopyRequest(protocol_version=1, operation_id=b'd' * 16)},
-            {'workspace_copy_status': workspace_copy.WorkspaceCopyStatusRequest(protocol_version=1, operation_id=b'd' * 16)},
+            ({'presentation_create': core.PresentationCreateRequest(protocol_version=1, operation_id=b'a' * 16)},
+             'Invalid presentation create request'),
+            ({'presentation_move': core.PresentationMoveRequest(protocol_version=1, operation_id=b'b' * 16)},
+             'Invalid presentation action request'),
+            ({'presentation_remove': core.PresentationRemoveRequest(protocol_version=1, operation_id=b'c' * 16)},
+             'Invalid presentation action request'),
+            ({'workspace_copy': workspace_copy.WorkspaceCopyRequest(protocol_version=1, operation_id=b'd' * 16, source_workspace_id='one')},
+             'Invalid workspace copy request'),
+            ({'workspace_copy_status': workspace_copy.WorkspaceCopyStatusRequest(protocol_version=0, operation_id=b'd' * 16)},
+             'Invalid workspace copy status identity'),
         )
-        for action in actions:
+        initial_revision = world.management('world.info')['world_revision']
+        for action, expected_message in actions:
             with self.subTest(action=next(iter(action))):
                 reply = peer.act(**action)
                 self.assertEqual(reply.WhichOneof('outcome'), 'error', reply)
-                self.assertEqual(reply.error.code, core.UNIMPLEMENTED, reply)
+                self.assertEqual(reply.error.code, core.INVALID_ARGUMENT, reply)
+                self.assertEqual(reply.error.message, expected_message, reply)
         state = peer.call(inspect=session.WorldSessionInspect()).state
         self.assertFalse(state.HasField('workspace'))
+        self.assertEqual(world.management('world.info')['world_revision'], initial_revision)
 
     def test_authenticated_workspace_selection_and_confined_process(self):
         world = self.workspace(); peer = world.peers[0]; self.select(peer)
