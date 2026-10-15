@@ -320,11 +320,16 @@ class AuthorityTests(AuthorityFixture):
             self.assertTrue(self.allowed(A, right=right))
 
         self.stop(); self.state = self.directory/'workspace-rights'; self.state.mkdir(mode=0o700)
-        self.domain = pb.Domain(kind=pb.WORKSPACE, id='workspace-one'); self.start(True)
+        self.domain = pb.Domain(kind=pb.WORKSPACE, id='workspace-one'); self.revision = 0; self.start(True)
+        fresh = self.call('check', probe.Check(caller=A, scope=self.scope(), right=workspace_rights[0]))
+        self.assertEqual(fresh.WhichOneof('outcome'), 'decision', fresh)
+        self.assertEqual(fresh.decision.revision, 0)
+        self.assertFalse(fresh.decision.allowed)
         for right in workspace_rights:
             with self.subTest(domain='workspace', right=right):
                 self.assertFalse(self.allowed(A, right=right))
         self.root(self.terms(rights=workspace_rights, delegable=(), depth=0))
+        self.assertEqual(self.revision, 1)
         for right in workspace_rights:
             self.assertTrue(self.allowed(A, right=right))
 
