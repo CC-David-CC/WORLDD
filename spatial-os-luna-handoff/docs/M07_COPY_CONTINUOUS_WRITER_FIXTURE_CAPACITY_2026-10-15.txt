@@ -1,0 +1,59 @@
+UNQUALIFIED continuous-writer copy fixture capacity repair, 2026-10-15
+
+Base: 8ea5cb6076e85acad7cabba446e404e8a7e415a9.
+Runtime source remains eb569742f843c59e988e813f3431cf292c516fe7.
+
+The SB16-2 Debug optional-state case failed its original source PID/start oracle.
+It reported Ran 1 / ERROR in 34.636 seconds and command/wrapper exits 1/1.
+Missing PID 2628230 was not retained in a pre-copy lifecycle snapshot. Its exact
+supervisor role and start ticks cannot be recovered from current evidence.
+
+The terminal application id 1e75bc053d1420045e9466a46e5aac45 exited with code 1.
+Its actual stderr contains EDQUOT 122 for both /state/data/counter.tmp and
+/state/config/counter.tmp. Stderr SHA-256:
+b097df94f33bbbc332671d9c257ac9337a1197f9b75626edd1beda5dfe26b197
+Quiescence and release receipts identify terminal payloads 2628233/36923026 and
+2628234/36923075. Editor payloads were 2628211/36922915 and 2628227/36922955.
+Editor stderr is empty. Its final uncertain/null row does not prove survival.
+
+Only the first copy was requested: project, Git history, and application state.
+It captured two state companions. No application-definition-only request ran.
+The retained journal has phase 5/error 0, completed quiescence release and all
+stage seals, with destination validation unresolved. Publication was not recorded.
+Kernel evidence has no matching test-unit OOM. This differs from the SAN manager
+OOM failure; it does not demonstrate a production quota accounting defect.
+
+Persisted Btrfs metadata maps terminal persistent/runtime roots 263/264 to their
+actual state/process ids. All four source state roots have 4 MiB individual caps,
+under actor 32 MiB and workspace 64 MiB. Snapshot membership is retained. These
+post-cleanup values do not measure transient reservations at failure.
+The full five-class positive already declares source 64 MiB and parents 256 MiB.
+The optional-state case keeps two 5 ms writers live across two copies. The policy,
+reassignment, restart and recopy case keeps one writer live during its first copy.
+Both now declare the same source 64 MiB and actor/workspace 256 MiB candidate.
+
+Destination profiles preserve their previous values: copy-source remains 4 MiB
+for these two scenarios, copy-app 4 MiB, actor 12 MiB and workspace 32 MiB.
+The earlier full five-class scenario retains its existing destination copy-source
+8 MiB value. Negative, stopped-writer, and fault policies remain unchanged.
+No writer timing, process, freeze, bytes, independence, authority, receipt or
+relaunch assertion changes. No production source or compiled executable changes.
+
+Common copy completion now records a bounded lifecycle snapshot before BEGIN.
+It also records failure evidence before teardown and rethrows the original error.
+The existing diagnostic helper preserves partial evidence and reports its own
+errors without replacing behavior failures. Operation-specific labels prevent
+multiple copies from overwriting these new snapshots.
+
+Evidence: SB16-2 /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/
+sb16-2/step4-debug-09-11/debug-10-engine-test_optional_state_and_definition_copy_do_not_add_unselected_classes.
+The failed 512 MiB image m07-engine-310d00853f3a491f remains retained.
+A private namespace, read-only loop and ro,rescue=nologreplay mount recovered logs.
+Original image SHA-256 before and after is identical:
+8706cf2228b203724e3ee382a086b4469aa7c9a0e4ba490f093c7c57cebc99c1
+The mount was removed and its loop detached. Raw evidence remains external.
+
+Selected focused checks are the optional-state and policy/restart methods, each
+in Debug and ASan/UBSan on both required hosts. They must retain all original
+assertions and actual named Ran 1 / OK proof. Related remaining engine/fault
+coverage follows primary review. No new runtime, checkpoint or PASS is claimed.

@@ -79,11 +79,17 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
 class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthorityTests):
     # Fixture inputs are selected before the volume and owner policy are created.
     SOURCE_STATE_BYTES_BY_SCENARIO={
-        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':64*2**20}
-    # One declared calibration profile. Other scenarios keep their existing policy.
+        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':64*2**20,
+        'test_optional_state_and_definition_copy_do_not_add_unselected_classes':64*2**20,
+        'test_copied_policy_mapping_and_exact_publication_receipt_survive_reassignment_restart_and_recopy':64*2**20}
+    # Continuous-writer positive scenarios declare capacity before owner/volume creation.
     SOURCE_POLICY_BYTES_BY_SCENARIO={
         'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':dict(
-            actor_state_bytes=256*2**20,workspace_bytes=256*2**20,destination_copy_source_bytes=8*2**20)}
+            actor_state_bytes=256*2**20,workspace_bytes=256*2**20,destination_copy_source_bytes=8*2**20),
+        'test_optional_state_and_definition_copy_do_not_add_unselected_classes':dict(
+            actor_state_bytes=256*2**20,workspace_bytes=256*2**20,destination_copy_source_bytes=4*2**20),
+        'test_copied_policy_mapping_and_exact_publication_receipt_survive_reassignment_restart_and_recopy':dict(
+            actor_state_bytes=256*2**20,workspace_bytes=256*2**20,destination_copy_source_bytes=4*2**20)}
     def operator_run(self,command):
         result=subprocess.run(['sudo','-n',*map(str,command)],capture_output=True,timeout=90)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
@@ -306,6 +312,16 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
     def application_tree(self,root):
         return {str(path.relative_to(root)):path.read_bytes() for path in root.rglob('*') if path.is_file()}
     def copy_to_completion(self,peer,request,owned,on_frozen=None):
+        # Capture supervisor identities while live. Optional-state failure previously
+        # lost its /proc evidence before teardown, although app stderr proved EDQUOT.
+        label=request.operation_id.hex()
+        processes=getattr(self,'lifecycle_processes',{})
+        self.retain_process_lifecycle('copy-start-'+label,owned,processes)
+        try:return self._copy_to_completion(peer,request,owned,on_frozen)
+        except BaseException:
+            self.retain_process_lifecycle('copy-failure-'+label,owned,processes)
+            raise
+    def _copy_to_completion(self,peer,request,owned,on_frozen=None):
         started=time.monotonic();reply=peer.act(workspace_copy=request)
         self.assertTrue(reply.HasField('action'),reply);self.assertEqual(reply.action.copy_status.phase,copy.REQUESTED,reply)
         self.assertLess(time.monotonic()-started,5)
