@@ -460,7 +460,16 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             self.assertEqual(self.configured_paths()[key][0],paths[key][0])
             runtime=self.execution/'applications'/relaunched.process_id
             deadline=time.monotonic()+10
-            while not (runtime/'home'/'runtime-token').exists():
+            # The token precedes initial state records in the actual payload startup sequence.
+            initialization=[runtime/'home'/name for name in ('runtime-token','initial-data','initial-config')]
+            while True:
+                try:
+                    ready=all(path.is_file() and path.stat().st_size>0 for path in initialization)
+                    if ready:
+                        with initialization[0].open('rb') as stream:token=stream.read(65)
+                        ready=len(token)==64 and all(value in b'0123456789abcdef' for value in token)
+                except FileNotFoundError:ready=False
+                if ready:break
                 self.assertLess(time.monotonic(),deadline);time.sleep(.01)
             self.assertNotEqual((runtime/'home'/'runtime-token').read_bytes(),runtime_tokens[key])
             for domain in ('data','config'):
