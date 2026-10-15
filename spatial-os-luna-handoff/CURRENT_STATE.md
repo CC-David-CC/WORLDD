@@ -1,3 +1,26 @@
+## 2026-10-15: M07 gate exposes fixture regressions; focused repairs prepared
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+Both common-path deployments passed verification. Superseded copies were removed after verification.
+The sb16-2 full Debug gate passed production startup and all 51 harness checks.
+Its CTest command remains live. A snapshot through 73/196 registrations contains ten failed suites.
+Six suites share a missing TLS fixture cleanup field. Three other fixture assumptions also failed.
+An issuer v7 fixture also retained future tables. These are partial counts, not a terminal result.
+The sb16 full gate is held while reviewed repairs receive focused checks.
+The pending full sanitizer and cross-host checks remain unrun.
+
+Reviewed task commits b5811cc and c650739 are verified on box-git.
+Their successor e263b328 repairs the issuer v7 fixture and is also verified on box-git.
+The combined task candidate is e263b32820faba67a76de559ccc68058fe84517f.
+It changes only eight test/documentation files. Production, protobuf, CMake, and acceptance locks remain unchanged.
+Static checks passed. Runtime checks for the repairs remain unrun.
+The milestone integration branch remains frozen at 706fe47 until focused repair qualification passes.
+Read the execution record for source pins, selected tests, evidence, and pending checks.
+
+sb16 gained 8,554,688,512 bytes after verified archival and deletion of one obsolete M06 qualification directory.
+Remaining cleanup is deferred during runtime qualification.
+M08 has a source-only gap report on a separate branch. That report does not implement M08.
+
 ## 2026-10-15: Focused copy faults pass; M07 gate candidate frozen
 
 M01-M06 remain qualified. M07 has advanced from focused copy/fault repair to full-gate preparation.

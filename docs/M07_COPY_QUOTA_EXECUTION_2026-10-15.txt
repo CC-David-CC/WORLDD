@@ -1,4 +1,56 @@
-Current gate preparation checkpoint: frozen package complete
+Current checkpoint: M07 full-gate failures and focused repair
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+Both common-path deployments passed verification with command and wrapper exits 0/0.
+Their path is /home/dflanag3/spatial-artifacts/deployments/m07-706fe47a/runtime.
+Superseded host-specific deployments were removed only after replacement verification.
+Their receipts remain under each host's m07-706fe47a-common-deployment-20261015 artifact directory.
+
+The sb16-2 full local gate started at frozen candidate 706fe47.
+Its Debug production startup and all 51 harness checks passed.
+The Debug CTest command remains live. Its result is not a terminal gate result.
+A snapshot through registration 73/196 contains ten failed suite records.
+Five remote suites share the missing broker_channel cleanup field.
+The geometry TLS case has the same cleanup error.
+The storage-catalog test expects an older diagnostic.
+The journal-migration test expects an older final schema.
+The native handoff fixture omits observation authority for its positive scene witnesses.
+The issuer v7 migration fixture retains future v11 tables and expects an older final schema.
+Preserve the full Debug run to collect related failures.
+Do not claim the pending sanitizer profile or the other host's full gate passed.
+The sb16 full gate is held until reviewed repairs pass focused checks.
+
+Reviewed fixture checkpoints are verified on box-git:
+b5811cc496aa8fbf6df4564a4dc3c57e9be53fa3: TLS cleanup, exact catalog diagnostics, and v8 migration assertions.
+c650739547c9ab8280f0223c8172659f4d6b86c2: explicit observe+interact scene witnesses and an interact-only denial regression.
+Combined task branch: m07/gate-fixture-combined-20261015.
+Final combined task candidate: e263b32820faba67a76de559ccc68058fe84517f, verified on box-git.
+The e263b328 commit repairs both v7 issuer fixtures and preserves migration, key, binding, and rollback assertions.
+Only eight test/documentation files changed. Production, protobuf, and CMake inputs remain unchanged.
+Static compilation, acceptance-lock checks, source policy, and whitespace checks passed.
+Runtime checks for these repairs remain UNRUN. The milestone integration branch remains frozen at 706fe47.
+
+Focused selection covers geometry TLS, all five remote suites, storage snapshots, journal migration,
+native handoff authority, and issuer launch authorization. Run both profiles on both hosts after review.
+Use verified deployed binaries only with an explicit source-equivalence proof.
+Preserve each original CMake command, environment, wrapper, timeout, and evidence boundary.
+Run full qualification again after the combined repairs pass focused checks.
+The focused driver is under primary review. Test hosts will receive fixtures and a pinned manifest, without Git worktrees.
+Cross-host plan preparation is reviewed but remains UNRUN until both local gates pass.
+The generator hash is e3a29d3487486d89446e687c73897d120eb9c99674779f7029e9ac7c60b81c99.
+
+Cleanup completed for sb16's obsolete m06-4f241-final-20261013 qualification directory.
+The verified archive remains on middle-child's /dev/sdf2 data drive.
+Archive SHA256: 0362efbf886ab82796275a424ee21209d2adf7b7a7c9301200ef98776b4c0209.
+Removal command and wrapper exited 0/0. The old archive controller was retired without resuming.
+sb16 free space increased from 30283046912 to 38837735424 bytes.
+Five remaining approved archive paths are deferred until qualification is quiet.
+Use one explicit directory per future archive job. Preserve verified receipts before deletion.
+
+M08 source gap review is complete on its separate branch. No M08 feature is implemented by this review.
+The report identifies reusable authority, placement, targeting, and real Git worktree foundations.
+Report hash: 8843fb7b6ea87c6ac55b64c9d08d413d38bec3cfcc3d9862ffa0ad366cb55f27.
+
+Earlier preparation checkpoint: frozen package complete
 Candidate: 706fe47aae50000fa78ee1549b76356d3cf66eff. M07 remains UNQUALIFIED.
 All four build configurations passed. Each testing profile has 198 registrations.
 Preparation command.exit and wrapper.exit are zero. The inventory preflight status is ready.
