@@ -588,3 +588,48 @@ The current corrected jobs are sb16-final-02 and sb16-2-all-02 under primary-arc
 Latest observed free bytes: SB16 25,432,395,776; SB16-2 18,453,938,176.
 Archival is still running. These values are progress snapshots, not final reclaimed totals.
 Keep timing-sensitive fault runs off each host until its heavy archive work completes.
+
+Fault-fixture review and corrected deployment
+Checkpoint 2e8c16bf is now deployed as a source-only overlay on both test hosts.
+The first preflight attempts failed because the copied extractor retained the earlier 517fc09b source pin.
+They failed before extraction or runtime. Preserve each 2e8c16bf-support-primary-01-outer-01 failure record.
+The correction checks agreement among all five deployment helpers and rejects the stale pin in a negative check.
+Fresh 2e8c16bf-support-primary-02-outer-01 preflights passed with command/wrapper exits 0/0 and empty stderr.
+Production runtime remains eb569742f843c59e988e813f3431cf292c516fe7.
+Each source overlay contains 1,165 frozen files. The ten runtime ELFs and 33 generated bindings are reused explicitly.
+Collection receipt: a5500:/home/dflanag3/spatial-artifacts/m07-copy-revocation-poller-deployment-20261015/preflight-collection.json.
+Receipt SHA256: 075e24a86f78f3fd7c292015f8f01dcbafe060e963d5d999476dbec5d29233c3.
+Debug compositions: SB16 48f613e8c2b1c300b6d430252fa68b004a179b3c70a2c0b23e88f8d063e600bf;
+SB16-2 0d81e324930ef48ba5f6d788deedfc75cbe5b302f9169674cf13e33142e46a13.
+The primary read both revocation launchers. They select index 14, count one, with fresh output directories.
+Earlier independent-fault launcher preparation exposed an SB16 path copied from SB16-2.
+All four affected launchers now derive paths and arguments from one validated host constant.
+Static checks validate host paths, source pins, method selection, hashes, and fresh output destinations.
+No runtime was launched by these preparation or preflight steps.
+
+The supervised lost-ACK fixture must retire BOTH broker and world authority generations after actual cleanup.
+The earlier 517fc09b run sent pidfd SIGKILL, released the held receipt, and then waited for broker exit.
+It did not retain evidence of observed death before release. The new fixture explicitly requires that ordering.
+The reviewed fixture uses the real authority supervisor, sealed native configuration, process scopes, and participant channels.
+It validates both failure exits, fence and cleanup receipts, root-owner EOF cleanup, and signed retirement.
+It restarts the same participant identities and domains at their respective next generations.
+No issuer database writes, relaxed activation guard, or graceful pre-crash world shutdown are permitted.
+The primary reviewed all eight changed files and the subsequent four cleanup and evidence corrections.
+The corrections close failed control sockets, synchronize retirement evidence, protect partial initialization, and correct historical ordering claims.
+Review delta: a5500:/home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/review-02/delta.diff.
+Delta SHA256: a39ac32e4d865d48d11e7b18009b9e49b4dcc52483d4273b5d34674cf69bce2c.
+Seven named pure profile checks passed on a5500 in 0.019 seconds, with canonical command/wrapper exits 0/0.
+Their stderr SHA256 is 37669298915bfd2411137f4245b33d1316389ca68b3f4a4c8b330dee23737a6e.
+These explicitly authorized coding-host checks are UNQUALIFIED. They do not exercise actual crash recovery on either test host.
+Checkpoint a83cff88d588a5624ebd488bd9a288f5bc1fa6fe is verified on box-git under m07/copy-supervised-lostack-20261015.
+Its final directory-synchronization addition exposed one compatibility defect during primary review.
+It restricted evidence to the personal spatial-artifacts directory, although the runner accepts other configured evidence locations.
+Packaging is held for a small follow-up correction and an independent path-compatibility regression.
+Keep the configured evidence-root boundary and synchronize its ancestors without introducing a personal path requirement.
+Preserve a83cff88 as an UNQUALIFIED checkpoint. Actual recovery runtime remains pending.
+
+Both archive jobs remain active. Seven selected directories per host have completed verified archival and removal.
+Both jobs are processing obsolete XLibre output. The selected M03 output follows it.
+Observed free bytes: SB16 29,597,917,184; SB16-2 34,265,096,192.
+These are progress snapshots. They are not final reclaimed totals.
+No additional storage is required. Preserve current runtime trees and failed M07 evidence.

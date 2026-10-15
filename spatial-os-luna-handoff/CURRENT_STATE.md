@@ -1,4 +1,4 @@
-## 2026-10-15: Revocation startup repaired; supervised crash recovery in progress
+## 2026-10-15: Fault-fixture preparation; runtime retries pending
 
 M01-M06 are qualified. M07 remains in focused copy/fault qualification. M08-M16 remain pending.
 All thirteen engine methods have passing Debug and sanitizer evidence on both hosts, with recorded carry-forward evidence.
@@ -7,13 +7,23 @@ The relay timing repair passed five focused regressions per host. Its actual dea
 The revocation startup correction worked. Its retry reached real SEAL, revocation, and durable ABORTED/COPY_FORBIDDEN.
 The test then failed because its status poller ignored typed authority errors. Independent continuity assertions were not reached.
 Reviewed checkpoint 2e8c16bf corrects that poller and records bounded status diagnostics. Its runtime retry remains unrun.
-The lost-acknowledgment test reached publication, killed the broker, and failed when restarting its unsupervised world.
+Its corrected source-only package passed preflight on both hosts. Initial stale-extractor-pin failures remain retained.
+Reviewed revocation launchers select exactly one case and derive all paths from the expected host.
+The lost-acknowledgment test reached publication, sent broker SIGKILL, released the receipt, and then waited for exit.
+That run did not record observed broker death before release. Replacement activation failed.
 The issuer correctly refused to reuse an active participant generation without cleanup.
-A separate fixture branch now adds the existing production supervisor, fencing, cleanup, and signed retirement.
+A separate fixture branch supervises both broker and world through the existing production API.
+It requires observed broker death before release, both cleanup receipts, signed retirement, and exact generation restart.
+Seven pure profile checks passed on a5500; test-host runtime remains unrun.
+Checkpoint a83cff88 preserves the reviewed recovery fixture. A final evidence-path compatibility correction remains in review.
+The runner accepts a configured evidence location. The fixture must preserve that contract.
+These coding-host checks do not qualify the recovery scenario. Production binaries remain unchanged.
 Keep the actual crash and same-participant recovery requirements. Do not bypass the generation guard.
 No fault method counts as passed in this expanded matrix. Hostile Git, worker-death, and fault sanitizers remain unrun.
 Verified archival of obsolete outputs is running on both hosts. Current evidence and qualified runtime trees remain protected.
 The selected obsolete directories contain about 37 GiB per host. Completed removals have already increased available capacity.
+Observed free space is about 28 GiB on SB16 and 32 GiB on SB16-2. Archival is still active.
+Keep timing-sensitive runtime tests clear of each host's active archive work. No additional storage is required.
 Finish focused fault checks before integration, source freeze, and the full required M07 gate on both hosts.
 Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
 
