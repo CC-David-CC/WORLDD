@@ -485,9 +485,14 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             'try:\n'
             ' with path.open("wb",buffering=0) as stream:\n'
             '  for index in range(128):\n'
-            '   count=stream.write(block)\n'
-            '   if count!=len(block):raise RuntimeError("Unexpected short quota probe write")\n'
-            '   os.fsync(stream.fileno());written+=count\n'
+            # A bounded POSIX write can accept a prefix before a later EDQUOT.
+            # Account every accepted byte; retain the original rejection oracle.
+            '   remainder=memoryview(block)\n'
+            '   while remainder:\n'
+            '    count=stream.write(remainder)\n'
+            '    if count is None or count<=0 or count>len(remainder):raise RuntimeError("Invalid quota probe write progress")\n'
+            '    written+=count;remainder=remainder[count:]\n'
+            '   os.fsync(stream.fileno())\n'
             'except OSError as error:\n'
             ' if error.errno!=errno.EDQUOT:raise\n'
             ' print(json.dumps(dict(errno=error.errno,written_bytes=written,chunk_bytes=65536,attempt_bound_bytes=8388608)),flush=True)\n'
