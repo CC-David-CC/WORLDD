@@ -474,3 +474,47 @@ Its canonical outer command and wrapper exits are 0/0. The primary read the fina
 Earlier quoting, path, and transfer failures remain documented. No cleanup operation was repeated during finalization.
 Use a local source path when sending a local receipt through scp. Create its exact destination directory first.
 M07 remains UNQUALIFIED. The repair branch is not yet integrated into the combined milestone candidate.
+
+Expanded engine coverage and two fault-fixture failures
+All thirteen engine methods have passing Debug and ASan/UBSan evidence on both hosts.
+Debug indices 0-6 and 8 reuse unchanged 8ea5cb60 evidence. Index 9 reuses 76ec0aea evidence.
+Debug indices 7 and 10-12, plus all thirteen SAN methods, passed at bf99393f on each host.
+This gives 52 engine coverage cells. It is not a full qualification of one frozen source tree.
+The primary independently rechecked the 34 bf99393f results, exact named unittest completion, exit records, and log hashes.
+Their recorded logs contain no matched fatal ASan/LSan/UBSan diagnostic.
+Primary review receipts are under each matrix/HOST/bf99393f-support-primary-01/primary-engine-review-01.json.
+SB16 review SHA256: aefa1c82619a001350e7f61ba7b256d435f66021184e8d733f3e735fd14ff7b8.
+SB16-2 review SHA256: 01345c0a8b6434db0a51c943403fd70076c17b2ac1ecbe2ae1afa5c4a3fe630c.
+
+The first absolute-deadline fault failed on SB16-2 Debug after 142.746 seconds, including setup and cleanup.
+Result: matrix/sb16-2/focusedbf99393f-debug-13-deadline/debug-14-fault-test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies/result.json.
+Result SHA256: fb6114768347739ad0f0dbf1ff03f36b054a53f5440e4b11e45ebd001c0a50ce.
+The real destination-prepare operation took 2.7449 seconds. The relay added another 4.1008 seconds.
+The broker correctly timed out the resulting 6.8457-second exchange against its five-second limit.
+Storage prefix deadline expired is a broker diagnostic. The actual owner had empty stderr and was killed during cleanup.
+The earlier description of an actual storage-owner failure was incorrect.
+The narrow relay repair targets exchange start plus 4.1 seconds. Production deadlines and absolute-copy assertions remain unchanged.
+Its separate branch is m07/copy-deadline-relay-budget-20261015, based on bf99393f.
+Its real deadline checks remain UNRUN. The failed image m07-engine-627661f7079343d4 remains on SB16-2.
+
+The first revocation fault failed on SB16 Debug during setup after 7.236 seconds.
+Result: matrix/sb16/focusedbf99393f-debug-14-revocation/debug-15-fault-test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication/result.json.
+The world config combined persistent authority with a static admitted-actor list.
+Worldd correctly rejected it: Persistent authority cannot combine with static actor profiles or admission lists.
+World-1 log SHA256: e858bbe4d37ebeb4110472f1d8ef7dbc7676b960d49c33a04369a9c90da64898.
+No SEAL, revocation, or publication assertion ran. The source fixture needs correction before retry.
+The failed image m07-engine-05532abc1d6a46f9 remains on SB16.
+Both failed runs have restored helpers and confirmed inactive units, absent cgroups, and unmounted volumes.
+Other fault coverage remains UNRUN. No fault method currently counts as passed in this expanded matrix.
+
+Test-host capacity recovery authorized
+David authorized archiving obsolete data from both test hosts on middle-child's data drive.
+The data drive has about 988 GiB available. No additional storage authorization is needed.
+Read-only inventories found 47.845 GiB of possible candidates on SB16 and 44.332 GiB on SB16-2.
+Inventory base: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/obsolete-build-plan-01.
+SB16 inventory SHA256: 2ddb684b0f73faad7ade6945327478748b776dfd6b611354574d7563556e64c2.
+SB16-2 inventory SHA256: ba9cc72c8a5e371b142bef6e5dbe5984d4178756c7697aaf2c65d62155fb3702.
+These are candidates, not removed bytes. Archive preparation selects inactive generated directories only.
+Preserve source and Git metadata, current M07 packages, and qualified M04 Mesa/M06 XACE runtime trees.
+Verify archive contents and metadata, unchanged source, and current process/mount references before each exact removal.
+M07 remains UNQUALIFIED. No milestone integration, frozen rebuild, or full gate has started.

@@ -1,3 +1,21 @@
+## 2026-10-15: Engine coverage passes; two fault fixtures need correction
+
+All thirteen copy-engine methods have passing Debug and sanitizer evidence on both hosts.
+Some unchanged Debug methods reuse the earlier reviewed fixture checkpoints. This is focused coverage, not a frozen gate.
+The primary rechecked all thirty-four current bf99393f engine results against their raw logs and hashes.
+The deadline fault failed before its absolute deadline. The relay added 4.1 seconds after actual owner processing.
+That made one complete request take 6.846 seconds, exceeding the unchanged five-second RPC budget.
+The timeout came from the broker. The actual owner was later killed by fixture cleanup.
+The revocation fault failed during startup, before exercising revocation.
+Its fixture combined persistent authority with a static admission list. Production correctly rejected that configuration.
+Both failed images and logs remain retained. Fixture corrections are under review on a separate task branch.
+No new production defect or successful fault qualification is claimed from these failures.
+David authorized moving obsolete test-host data to middle-child's data drive.
+Read-only inventories found about 48 GiB and 44 GiB in possible archive candidates.
+Archives must pass content and safety checks before source removal. Current runtimes and source checkouts remain protected.
+M07 remains UNQUALIFIED. Integration, the full combined gate, and remaining fault scenarios are pending.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
 ## 2026-10-15: Copied-workspace restart passes on both hosts and profiles
 
 All twenty focused participant-domain API checks passed across both hosts and both profiles.
