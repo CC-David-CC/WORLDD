@@ -1,3 +1,25 @@
+## 2026-10-15: Combined repair review and focused dispatch preparation
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+Combined task checkpoint ee64407fea3a206ac55834bcb18794a44d3ad53b is verified on box-git.
+It includes reviewed broker EOF, execution-v3 migration, and nested application cgroup fixture repairs.
+Review caught and corrected an unlimited CPU quota accepted by the first fixture implementation.
+Existing exact budgets remain. Later source repairs remain runtime unrun and absent from b152 binaries.
+Milestone integration remains frozen at 706fe47.
+
+The external focused driver v2 passed 38 offline controls and primary review.
+The 25-suite Debug matrix is authorized for dispatch on both qualification hosts.
+Dispatch preparation is not evidence that runtime checks started or passed.
+Sanitizer dispatch waits for actual Debug preflight and output review.
+The previous fourteen-method native suite passed both profiles on both hosts.
+The complete M07 gate remains pending.
+
+Verified archival and exact removal recovered 8,548,597,760 allocated bytes on sb16-2.
+The retained archive passed listing, source comparison, and post-removal hash checks.
+Available space afterward was 18,974,670,848 bytes.
+Read the execution record for pins, review receipts, archive location, and remaining qualification.
+
 ## 2026-10-15: Native observation repair passes both hosts and profiles
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

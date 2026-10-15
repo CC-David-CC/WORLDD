@@ -1,3 +1,45 @@
+Current checkpoint: M07 combined repair review and broader focused dispatch preparation
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The combined task branch now points to ee64407fea3a206ac55834bcb18794a44d3ad53b.
+Its explicit push is BOX-GIT VERIFIED. The checkout is clean.
+This task checkpoint includes broker EOF, execution-v3 migration, and application cgroup fixture repairs.
+Milestone integration remains frozen at 706fe47. The deployed binaries remain b15200e6.
+The later repairs remain runtime UNRUN. They are not silently overlaid onto deployed binaries.
+
+Primary review confirmed the cgroup witness includes nested payload processes.
+Existing exact ancestor resource limits remain unchanged.
+The witness excludes broker, world, and compositor processes across the application hierarchy.
+Review caught an unlimited CPU quota accepted by the first fixture implementation.
+Corrective commit 05576807 rejects max 100000, malformed fields, and zero quota or period.
+Four new validation methods remain runtime UNRUN.
+Static checks and source-data guards passed. These do not prove runtime behavior.
+Review and integration receipts: a5500:/home/dflanag3/spatial-artifacts/m07-session-cgroup-primary-integration-20261015.
+
+The external focused driver v2 passed 38 offline controls with command and wrapper exits zero.
+Primary review checked raw provenance bytes and actual relocated CTest metadata.
+It also checked exact JUnit identity, unittest summaries, source integrity, and failure rejection.
+Approved driver SHA: ba1a9e46413e2c55f108fa71946161835a42547c05bdc4f9df9cecc8a6ef7f32.
+The 25-suite Debug matrix is authorized for staging and dispatch on both hosts.
+Dispatch preparation does not establish a running test or a passing result.
+Sanitizer dispatch waits for actual Debug preflight and output review.
+Driver artifacts: a5500:/home/dflanag3/spatial-artifacts/m07-b152-focused-driver-20261015.
+
+Verified retention removed only the obsolete sb16-2 M06 final qualification directory.
+Removed path: /home/dflanag3/spatial-qualification/m06-4f241-final-20261013.
+Recovered allocation: 8,548,597,760 bytes. Available space afterward: 18,974,670,848 bytes.
+The retained archive passed full listing, source comparison, and a post-removal SHA check.
+Archive SHA: 1ede0d7cc3f381d3d09d79465f0833638a3830598eb580a5bb5c827f58ddf95f.
+Archive: middle-child:/media/dflanag3/New Volume/spatial-artifacts/m07-retention-20261015/qualification-archive-03/sb16-2/m06-4f241-final-20261013.tar.
+Closeout: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/primary-archive-05/retention-closeout.json.
+Removal command and wrapper exits were zero. Protected runtime dependencies remain intact.
+
+Next: review actual focused results, prepare the combined successor, and install its correctly pinned storage helper.
+The complete two-host M07 qualification gate remains pending.
+GitHub remains unchanged pending David's publication cutover.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: M07 final Debug failure inventory and verified native repair
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
