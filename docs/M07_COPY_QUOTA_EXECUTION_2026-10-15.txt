@@ -719,3 +719,59 @@ Eighteen mutation controls rejected changed old fields, enums, oneofs, presence,
 The primary read the actual report, mutation-control results, and exit receipts. Runtime remains unrun for this review.
 Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015.
 These results support a separately reviewed schema-baseline correction. They do not qualify M07 behavior.
+
+Fault retries and reviewed fixture repairs
+Both archival jobs completed. All nine selected obsolete directories per host have verified archive/removal evidence.
+SB16's final batch completed four directories; earlier verified receipts cover its other five.
+SB16-2's complete nine-directory result has no failures and command/wrapper exits 0/0.
+Result: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/primary-archive-03/sb16-2-all-02/result.json.
+SHA256: efa228a7c1f1994ae711ec18975af8bb8cb6199708478c4609cc690984f556be.
+SB16-2 free bytes after its deadline run: 53,888,397,312. Storage is not blocking further qualification.
+Current evidence, failed images, protected native runtime trees, and source remain retained.
+
+SB16 Debug14 failed after 23.458 seconds on the exact typed response:
+UNAUTHORIZED 12, "World session changed during operation".
+Production revocation disconnects the actor session. Its dispatch cancellation fence supplies that message.
+It uses UNAUTHORIZED by default or preserves an existing FORBIDDEN error code.
+The fixture's six-pair whitelist omitted those two valid exact pairs.
+Primary review confirmed the source path and preserved all later abort, no-publication, process, thaw, and peer assertions.
+Checkpoint 60f6ddcc78eb6ac52b71a51246f3796715e3b51e adds the exact pairs and stronger issuer identity receipt evidence.
+Branch: m07/copy-revocation-session-denial-20261015. BOX-GIT VERIFIED. UNQUALIFIED.
+Three pure predicate checks passed, with actual command/wrapper exits 0/0 independently read by the primary.
+Wrong codes, unrelated errors, and changed messages remain rejected. Runtime retry remains unrun.
+Receipt root: a5500:/home/dflanag3/spatial-artifacts/m07-copy-revocation-session-denial-20261015/checkpoint-01.
+
+SB16 Debug13 ran once for 328.845 seconds and failed during cleanup_volume unmount with EBUSY.
+Its deadline body recorded ABORTED/error6 after 303.745653010 seconds, within the retained deadline assertion.
+SB16-2 independently ran Debug13 once for 336.233 seconds and failed the same teardown.
+Both overall command/wrapper exits are 1/1. Neither result counts as PASS.
+SB16-2 case result SHA256: 4c0a998ed5084dee31447841ae3d6755896a94f74e21faedef3e3baa4eca4009.
+SB16 Debug16 hostile Git ran once for 19.217 seconds and also failed EBUSY teardown.
+Its retained summary records PUBLISHED, host_effect=false, and sandbox_effect=false after the body assertions.
+This is body evidence only. Overall hostile-Git qualification remains failed.
+Case result SHA256: 5993ddde6cfffcdb4ab1580a0feb1bf195b9118a68e108eb6019fc734528ac57.
+Post-run exact checks found no remaining mounts, loop associations, fixture processes, or active units.
+The outer recovery completed after the failures. Failed images and logs remain intact.
+No subsequent worker-death case ran. Both host queues are held pending a corrected fixture candidate.
+
+Strong review found five bare sqlite3 connection contexts in the fault fixture.
+Python's SQLite context manager ends the transaction but does not close the connection.
+Three occur in the deadline method, one in revocation, and one in hostile Git.
+Lost-acknowledgment and worker-death use an already-closing helper.
+The reviewed repair uses closing(connection) around the existing transaction context at all five sites.
+It also records bounded passive own-process references if the original unmount error recurs.
+It adds no unmount retries, forced detach, garbage-collection workaround, or deadline increases.
+Expanded patch SHA256: 26a5e91f575bb8048cca381703e7a6835a9c0f62d452ff71ed7d03ff2ee948be.
+Canonical expanded static review exited 0/0. Original method bodies match after normalizing only the five contexts.
+A coding-host mechanism demonstration preserved commit/rollback and showed explicit database descriptor closure.
+This is not test-host qualification. The original EBUSY PID/FD holder remains unproven.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-copy-deadline-cleanup-diagnosis-20261015.
+
+Schema baseline checkpoint 92107bee541c9ce5a089d79c09b299fe7eb660ac is separately reviewed and BOX-GIT VERIFIED.
+Its actual source-pin and guard checks passed with 41 locked hashes and 151 unchanged acceptance IDs.
+Those checks exited 0/0 and do not qualify runtime behavior.
+Prepare one separate combined fixture branch from schema92107, revocation60f6, and the approved SQLite repair.
+Preserve the union of required gate registrations. Keep production-runtime reuse explicit through exact hashes.
+Do not modify the real milestone integration branch before related focused qualification.
+Next: review combined source and target preflight, rerun affected Debug fault methods, then remaining faults and sanitizers.
+M07 remains UNQUALIFIED. Source freeze and the complete two-host milestone gate remain pending.

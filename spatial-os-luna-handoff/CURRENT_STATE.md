@@ -1,3 +1,27 @@
+## 2026-10-15: Fault fixture repairs reviewed; runtime retries pending
+
+M01-M06 remain qualified. M07 remains in focused fault qualification. M08-M16 remain pending.
+Both obsolete-output archival jobs finished. All nine selected directories per host have verified archive/removal receipts.
+Current M07 evidence, failed images, source, and qualified native runtime trees remain protected.
+SB16-2 had 53,888,397,312 bytes free after its deadline run. Storage is not a blocker.
+The revocation retry reached a valid world-session cancellation denial, which the fixture rejected.
+Reviewed checkpoint 60f6ddcc accepts only the two additional exact source-defined code/message pairs.
+It strengthens issuer-receipt identity evidence. All abort, publication, timing, and process assertions remain required.
+Three pure predicate checks passed with command/wrapper exits 0/0. The checkpoint is verified on box-git.
+The deadline tests on both hosts reached the absolute-budget path, then failed volume teardown with EBUSY.
+The hostile-Git test completed its body assertions, then failed the same teardown. These are overall failures.
+Source review found five SQLite contexts that end transactions without closing their connections.
+A reviewed fixture repair closes all five explicitly and retains bounded passive evidence if unmount fails again.
+Static checks preserve all other method bodies. A mechanism demonstration preserves commit/rollback and proves explicit descriptor closure.
+The original EBUSY holder was not captured. This repair is not yet runtime-verified.
+All further fault launches are held until the corrected combined fixture candidate passes review and target preflight.
+Lost-acknowledgment, worker-death, and fault sanitizer qualification remain unrun. No expanded fault method counts as passed.
+Schema correction 92107bee is separately reviewed and verified on box-git.
+Its source-pin and guard checks passed with 41 locked hashes and 151 unchanged acceptance IDs.
+The milestone integration branch remains unchanged. Combine reviewed task fixes in a separate draft branch first.
+Finish focused fault checks before milestone integration, source freeze, and the complete M07 gate on both hosts.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
 ## 2026-10-15: Recovery artifact preflight passes; schema baseline review pending
 
 M01-M06 are qualified. M07 remains in focused copy/fault qualification. M08-M16 remain pending.
