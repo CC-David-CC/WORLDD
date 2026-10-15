@@ -860,6 +860,27 @@ class WorkspaceGitTests(unittest.TestCase):
                 self.assertNotEqual(process.returncode, 0, errors)
                 self.assertEqual(output, b'', 'Truncated root frame received a fabricated reply')
 
+    def test_workspaced_root_drains_complete_prefix_before_truncated_eof(self):
+        for suffix in (b'\x00\x00', b'\x00\x00\x00\x08\x08'):
+            with self.subTest(suffix=suffix.hex()):
+                requests = []
+                for index in range(1, 6):
+                    management = make_request('system.hello', {})
+                    management.request_id = index
+                    requests.append(frame(broker_pb.Request(
+                        protocol_version=1, request_id=index, management=management)))
+                state = self.root / ('prefix-truncated-' + suffix.hex())
+                process = subprocess.run([BROKER, '--state-dir', str(state)],
+                    input=b''.join(requests) + suffix, capture_output=True, timeout=5)
+                self.assertEqual(process.returncode, 2, process.stderr)
+                self.assertIn(b'Truncated workspace frame', process.stderr)
+                stream = io.BytesIO(process.stdout)
+                replies = [read_message(stream, broker_pb.Reply) for _ in requests]
+                self.assertEqual([reply.request_id for reply in replies], list(range(1, 6)))
+                self.assertTrue(all(reply.HasField('management') and reply.management.HasField('hello')
+                                    for reply in replies))
+                self.assertEqual(stream.read(), b'', 'Incomplete suffix received a fabricated reply')
+
     def test_workspaced_root_pipelines_in_order_under_stdout_backpressure(self):
         requests = []
         for index in range(1, 257):

@@ -388,6 +388,15 @@ int main(int argc, char** argv) {
                     (!output.empty() && now-output_started > std::chrono::seconds(10)))
                 throw std::runtime_error("Workspace transport deadline exceeded");
             if (eof && output.empty()) {
+                // EOF can follow several complete frames already buffered by one read.
+                // Drain them before diagnosing an incomplete final frame or stopping.
+                if (input.size() >= 4) {
+                    const auto* header = reinterpret_cast<const unsigned char*>(input.data());
+                    const auto length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) |
+                                        (std::uint32_t(header[2]) << 8) | header[3];
+                    if (length > spatial::max_frame_bytes) throw std::runtime_error("Excessive workspace frame");
+                    if (input.size() >= length+4) continue;
+                }
                 if (!input.empty()) throw std::runtime_error("Truncated workspace frame");
                 store.stop_all();
                 if (authority) {
