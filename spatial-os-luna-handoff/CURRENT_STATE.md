@@ -1,3 +1,23 @@
+## 2026-10-15: Copied-workspace restart passes on both hosts and profiles
+
+All twenty focused participant-domain API checks passed across both hosts and both profiles.
+Issuer-log scans reported no sanitizer findings. Per-client stderr was not retained by that fixture.
+The initial domain-extension fixture repair exposed a registry page-size mistake. Checkpoint 9bb38c92 corrects it.
+The next run extended the service, restarted it, and selected the copied workspace successfully.
+It then exposed a test oracle that expected policy denial for a malformed configured launch.
+Reviewed checkpoint bf99393f keeps that exact rejection and adds a valid request denied by copied policy.
+The permitted launch, stable receipts, reassignment, restart, and recopy assertions remain required.
+Both source-only deployments passed. The complete SB16-2 Debug policy method passed in 89.097 seconds.
+It reached the permitted launch, state-accounting reassignment, owner restarts, stable receipts, and recopy.
+The matching ASan/UBSan method passed in 114.551 seconds.
+SB16 passed the same method in Debug, 82.343 seconds, and ASan/UBSan, 91.046 seconds.
+All four runs have confirmed cleanup and zero exit records. Their PASS images were removed through the existing guard.
+SB16 recovered about 1.1 GiB through verified archive relocation. Independent archive and receipt verification is complete.
+Middle-child already has working passwordless SSH to both test hosts. No key change was required.
+Both hosts continue selected engine checks. Remaining fault scenarios and the combined gate are still unrun.
+M07 remains UNQUALIFIED. No repair branch is integrated and the full combined gate has not started.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
 ## 2026-10-15: Optional copies pass; restart fixture re-registers an occupied domain
 
 Both hosts passed the optional-state and definition-selection method at reviewed fixture checkpoint 76ec0aea.

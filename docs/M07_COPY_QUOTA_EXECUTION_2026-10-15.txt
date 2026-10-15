@@ -357,3 +357,120 @@ AST, whitespace, and repository-data checks passed. Runtime verification remains
 Selected checks are policy/restart on both hosts in Debug and ASan/UBSan, plus five participant-domain API regressions.
 These cover exact receipts, stale revisions, foreign ownership, active or pending generations, and stale authentication.
 Source-only package preparation is active. No milestone integration or full M07 gate has started.
+
+Registry query and launch-oracle follow-up
+Both 619d1720 Debug policy runs failed because registry_read requested 64 records.
+The production validator permits at most 16 records. The implementation and primary review missed that limit.
+SB16 failed in 42.650 seconds. SB16-2 failed in 47.619 seconds. Both cleanups completed.
+SB16 result SHA256: 652f60f58cddcb394cb359c1355180a4f90efbcb378bf90c83e7958f4552389f.
+SB16-2 result SHA256: 69ffc46fab3f9080b10214fa1be7c504d8ca227a6d0961cf57dca12fff881171.
+The failed images remain retained. The registry request now uses 16 and still rejects unexpected pagination.
+Reviewed checkpoint 9bb38c923ba54840a5c0ed73f5f86b27be57e5b2 is verified on box-git.
+
+The 9bb38c92 SB16-2 Debug run passed domain extension, restarted the services, and selected the copied workspace.
+It failed in 48.562 seconds at the next launch assertion. The complete method did not pass.
+The configured editor request contradicted its copied definition and returned exact INVALID_ARGUMENT.
+The old test incorrectly expected FORBIDDEN from that malformed configured request.
+Reviewed checkpoint bf99393f20841e0a15307478344c924451bfcb26 separates the two boundaries.
+It verifies exact configured-definition rejection and a valid raw development launch denied by copied policy.
+Both checks run before and after restart. Each must preserve process rows and application-state directory entries.
+The permitted copy-app launch and all receipt, reassignment, and recopy checks remain required.
+No production source, authority rule, quota, or locked acceptance contract changed.
+The checkpoint is BOX-GIT VERIFIED, UNQUALIFIED on m07/copy-participant-domain-repair-20261015.
+Both bf99393f source-only deployments and profile preflights passed. Runtime source remains eb569742.
+The next SB16-2 Debug policy run is active in tmux m07-bf99393f-sb16-2-debug-12-policy.
+Its evidence root is matrix/sb16-2/focusedbf99393f-debug-12-policy.
+
+Independent participant-domain API controls
+Five selected API methods passed in Debug and ASan/UBSan on both hosts: twenty executed checks.
+They cover exact receipts, stale revisions, foreign ownership, active generations, pending launches, and stale credentials.
+SB16 Debug: 3.472 seconds. SB16 SAN: 4.293 seconds.
+SB16-2 Debug: 4.832 seconds. SB16-2 SAN: 5.506 seconds.
+Each run has five named tests, no failures, no errors, no skips, and command/wrapper exits 0/0.
+The primary reviewed the external selector and all four result records.
+The selector uses unchanged tests and production executables. It does not patch APIs or test behavior.
+Each run scanned six retained issuer logs and runner output with no sanitizer markers.
+Per-client stderr is not retained by this fixture. Do not claim that it was scanned.
+These are API control checks on source 619d1720 and runtime eb569742, not copy-engine or M07 qualification.
+Result paths: matrix/HOST/619d-support-primary-01/runs/participant-domain-PROFILE-HOST-01/result.json.
+Result SHA256 values, ordered SB16 Debug, SB16 SAN, SB16-2 Debug, SB16-2 SAN:
+a85ba0e66f34af1393c18a5146e03193b85018a4f846277d3f6704aeccb21d5c
+794f12542676687d7a3e092f2a2fb4880d3483fca4c19c161f123ed092d1c7c6
+0439c9530eac3241dee7fe9287a77da927dca647a12fe960617cabdf688ae513
+94cd7940de1b0cf12a9e260af230dcd011506d32796377cac5b0b3fb8cb9c74a
+
+Authorized artifact storage on middle-child
+David authorized middle-child's 2 TB data drive for retained project artifacts on 2026-10-15.
+The verified mount is /media/dflanag3/New Volume, device /dev/sdf2, filesystem ntfs3.
+Its observed free capacity was 1,061,809,647,616 bytes. The root SSD is a different device.
+Archive root: /media/dflanag3/New Volume/spatial-artifacts/m07-retention-20261015.
+Convenience symlink: /home/dflanag3/spatial-evidence-data points to the data drive's spatial-artifacts directory.
+No mount configuration changed. Verify the mounted data drive before every archive operation.
+Preserve archive bytes and manifests. NTFS storage does not itself preserve all Linux filesystem semantics.
+Verify each destination copy before removing its exact inactive source duplicate.
+David also authorized permanent SSH access from middle-child to sb16 and sb16-2 for this work.
+Transport setup and archive selection are in progress. No archive deletion or recovered capacity is claimed yet.
+SB16 has about 9.25 GB available, below the one-case driver's 9 GiB reserve requirement.
+Its next engine run waits for space recovery. Existing failed images and all current runtime dependencies remain preserved.
+
+Complete restart and recopy Debug control passes on SB16-2
+The bf99393f policy/restart method passed in 89.097 seconds: one named test, all four exits zero, cleanup confirmed.
+The outer driver also exited 0/0. Its transient unit is inactive and its cgroup is absent.
+The method completed domain extension, destination selection, both distinct launch rejections, and the permitted launch.
+It preserved exact publication receipts across state-accounting reassignment and owner restarts, then copied the destination again.
+This is the first complete pass of that method in this repair series. It does not qualify M07.
+Evidence: matrix/sb16-2/focusedbf99393f-debug-12-policy.
+Its sole PASS image was removed through the approved manifest and retention guard after fresh checks.
+The guard retained every log, proof, owner record, failed image, and unrelated volume.
+Receipt: matrix/sb16-2/retention/bf99393f-debug-policy/receipt.json.
+Reclaimed logical bytes: 536,870,912. Available capacity after cleanup: 17,147,056,128 bytes.
+The matching SAN method is running in tmux m07-bf99393f-sb16-2-san-12-policy.
+Its evidence root is matrix/sb16-2/focusedbf99393f-san-12-policy. Its result remains pending.
+
+Restart and recopy sanitizer pass; matching SB16 run starts
+The matching SB16-2 sanitizer method passed in 114.551 seconds at bf99393f.
+The primary read its actual result and unittest output. All four case exits and both outer exits are zero.
+The result confirms helper restoration, volume cleanup, inactive unit, absent cgroup, and 32 scanned logs.
+This completes both profiles for this method on SB16-2. It does not complete the expanded copy matrix.
+SB16 now runs the matching Debug method in tmux m07-bf99393f-sb16-debug-12-policy.
+Its evidence root is matrix/sb16/focusedbf99393f-debug-12-policy. SAN follows only after reviewed Debug success.
+SB16-2 next selects Debug index 7, Debug indices 10-11, and SAN indices 9-11.
+Index 7 rechecks the complete copy after common diagnostic changes.
+Indices 9-11 check optional state, copied definitions and relaunch, and raw-runtime schema rejection.
+Each batch uses the unchanged verified driver, candidate-specific source, and existing production binaries.
+Stop on a failed case. Retain failures and remove only reviewed PASS images through the existing guard.
+Archive relocation freed 1,177,128,960 bytes on SB16, leaving 10,397,790,208 bytes at completion.
+All 18 destination copies were hash-verified before their exact source archive duplicates were removed.
+The storage script exited 1 during its final receipt transfer. No archive operation needs repetition.
+Independent archive/sidecar verification and receipt transfer repair remain in progress.
+Existing middle-child SSH access to both test hosts works. No SSH keys or host configuration changed.
+
+Both-host restart and recopy repair passes
+SB16 Debug passed in 82.343 seconds. SB16 ASan/UBSan passed in 91.046 seconds.
+Each ran the exact policy/restart method. All case and outer exits were zero.
+Both results confirm helper restoration, volume cleanup, inactive unit, absent cgroup, and 32 scanned logs.
+The sanitizer launch explicitly enabled leak detection and fatal ASan/UBSan diagnostics.
+The primary reviewed actual result records and raw unittest output before accepting these passes.
+SB16 Debug result SHA256: 5467e6d2441f499fb91733725b7627c8a0a2ac21a7ccc9b620872cced4500e1b.
+SB16 SAN result SHA256: 5ec9591a2669bbe02d58f8141a6be064b1ef762b77bbd1e419bbdfaae5ac0220.
+SB16-2 SAN result SHA256: b59c1996fdd930ec6f57f339b9f7fa7492f58a647316e39ef85fbc5cb790df60.
+This method now passes both profiles on both required hosts. The complete expanded matrix remains incomplete.
+The existing retention guard removed each exact PASS image after validation. All proof and log files remain.
+SB16 cleanup receipts: matrix/sb16/retention/bf99393f-debug-policy and bf99393f-san-policy.
+SB16-2 SAN cleanup receipt: matrix/sb16-2/retention/bf99393f-san-12-policy-cleanup/receipt.json.
+Latest observed SB16 free capacity after cleanup: 10,396,729,344 bytes.
+Continue with batches of at most two cases on SB16. Keep the driver's unchanged reserve checks.
+
+Archive relocation independently verified
+The stronger reviewer rehashed all 18 retained HDD archives and verified their sizes.
+All 18 original transport archive paths are absent. All 16 relocation sidecars contain valid JSON.
+Extracted package directories remain present. This final audit did not rehash all extracted file contents.
+The original archive receipt is also verified on SB16 after correction of its transfer command.
+Its SHA256 is f9ca85bf488e8e5c2b1f181c70d0de9d35fd63eb628fd0428bf7dfd027b5e875.
+SB16 receipt: /home/dflanag3/spatial-artifacts/m07-retention-20261015/archive-retention-from-middle-child.json.
+Final review on middle-child: /home/dflanag3/spatial-artifacts/m07-retention-20261015/finalization-02/finalization-complete.json.
+Final review SHA256: 8ab70766a07c726eaf2d2834a58ec5e231ad69dca40dd125c5b81c86d43034b2.
+Its canonical outer command and wrapper exits are 0/0. The primary read the final receipt.
+Earlier quoting, path, and transfer failures remain documented. No cleanup operation was repeated during finalization.
+Use a local source path when sending a local receipt through scp. Create its exact destination directory first.
+M07 remains UNQUALIFIED. The repair branch is not yet integrated into the combined milestone candidate.
