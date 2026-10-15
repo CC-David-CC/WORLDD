@@ -1,0 +1,30 @@
+M07 actor-revocation fault world admission setup repair
+Date: 2026-10-15
+Status: UNQUALIFIED. Actual fault regression remains UNRUN after this repair.
+Base: 8c463d52b539f4acdeff0e28e532ce096890ba9f.
+Production code and reused runtime eb569742f843c59e988e813f3431cf292c516fe7 remain unchanged.
+
+The first SB16 actor-revocation case failed during world startup.
+Evidence: /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16/focusedbf99393f-debug-14-revocation/debug-15-fault-test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication.
+world-1 log SHA256: e858bbe4d37ebeb4110472f1d8ef7dbc7676b960d49c33a04369a9c90da64898.
+Owner and broker exited zero. No held-SEAL or revocation oracle was reached.
+The original failed image and logs remain retained.
+
+The fixture combined persistent authority_directory with static admitted_actor_ids.
+identity_sessions.cpp:132-133 correctly rejects that mixed configuration at startup.
+Persistent EXPLICIT_ACTORS authentication uses authority->allowed(actor, "enter").
+The actual world authority right is WORLD_ENTER. There is no WORLD_ADMIT symbol.
+WorldAuthorityTests.terms already supplies WORLD_ENTER in each existing A/B root.
+Both enrolled actors also retain their independent existing workspace-copy roots.
+
+The fixture removes only the conflicting static admission list.
+Prelaunch assertions require EXPLICIT_ACTORS, the seeded persistent authority directory,
+no static admission or actor grant profiles, and exactly the existing two A/B roots.
+Each root must address this world and include WORLD_ENTER.
+Both actors still authenticate with independent issuer records and signing keys.
+The held real SEAL receipt, real actor revocation, publication denial, source identities,
+barrier release, owner audit, and bounded lifecycle assertions remain unchanged.
+No production startup invariant, grant, resource budget, deadline, or fault oracle is weakened.
+
+Selected focused regression: the exact actor-revocation fault method on both hosts and profiles.
+Runtime is UNRUN pending primary review and helper-lane assignment.

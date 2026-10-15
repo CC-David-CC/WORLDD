@@ -262,8 +262,20 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             '--init-authority',str(seed_path)],capture_output=True,timeout=8)
         self.assertEqual(initialized.returncode,0,initialized.stderr)
         config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(self.config_file()),
-            admission=session.EXPLICIT_ACTORS,authority_directory=str(directory),
-            admitted_actor_ids=[actor_a.actor_id,actor_b.actor_id])
+            admission=session.EXPLICIT_ACTORS,authority_directory=str(directory))
+        # Persistent authority admits these actors through the existing WORLD_ENTER
+        # roots. Static admission lists cannot be mixed with that authority mode.
+        self.assertEqual(config.admission,session.EXPLICIT_ACTORS)
+        self.assertEqual(config.authority_directory,seed.authority_directory)
+        self.assertFalse(config.admitted_actor_ids);self.assertFalse(config.actor_grants)
+        self.assertEqual(len(seed.roots),2)
+        self.assertEqual({term.subject.SerializeToString() for term in seed.roots},
+            {self.principal(actor_a).SerializeToString(),self.principal(actor_b).SerializeToString()})
+        for term in seed.roots:
+            self.assertEqual(term.scope.domain.kind,engine.grants.WORLD)
+            self.assertEqual(term.scope.domain.id,self.world_info['world_id'])
+            self.assertFalse(term.scope.components)
+            self.assertIn(engine.grants.WORLD_ENTER,term.rights)
         self.configure_world_participant(config,state)
         config_path=self.root/'copy-fault-two-actor-world.textproto'
         config_path.write_text(engine.text_format.MessageToString(config));config_path.chmod(0o600)
