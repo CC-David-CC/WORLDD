@@ -1,0 +1,16 @@
+M07 broker control fixture repair - 2026-10-15
+
+The unrelated application_access reply now carries a valid 16-byte incarnation and nonzero epoch.
+Production requires both fields. The positive test checks the exact event, reply, payload, and request identifiers.
+The request-id-zero control_revoked event must arrive before the pending access reply.
+
+Three negative cases retain the production guard.
+Missing incarnation, short incarnation, and zero epoch must close the probe channel.
+Each case requires the exact wrong-outcome diagnostic and no success reply.
+Production validation and revocation rules remain unchanged.
+
+The earlier failure reached EOF before the first externally visible control_revoked result.
+Production may queue that event internally. The probe emits it after the broker call returns.
+The malformed reply stamp caused an exception before that emission point.
+
+Runtime tests and builds remain unrun for this repair.
