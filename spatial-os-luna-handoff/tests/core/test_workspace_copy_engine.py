@@ -705,6 +705,24 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         config.bindings.add(workspace=destination,authority_directory=str(directory))
         self.configure_participant(config,[grants.Domain(kind=grants.WORKSPACE,id=item.workspace) for item in config.bindings])
         self.authority_config.write_text(text_format.MessageToString(config))
+    def assert_destination_launch_guards(self,peer,stage):
+        # Configured identity validation precedes resource-policy selection.
+        # A valid raw development launch separately proves the copied policy denial.
+        mismatch=self.configured_request('editor','configured-profile-mismatch-'+stage)
+        mismatch.profile='copy-source'
+        policy=core.ProcessLaunchRequest(argv=['/usr/bin/true'],profile='development',
+            operation_id='excluded-development-profile-'+stage)
+        for request,code,message in (
+            (mismatch,core.INVALID_ARGUMENT,'Configured launch differs from its registered profile/executable/argv'),
+            (policy,core.FORBIDDEN,'Application resource profile is unavailable')):
+            before=self.process_rows()
+            directories={path.name for path in (self.execution/'applications').iterdir()}
+            result=peer.act(process_launch=request)
+            self.assertTrue(result.HasField('error'),result)
+            self.assertEqual(result.error.code,code,result)
+            self.assertEqual(result.error.message,message,result)
+            self.assertEqual(self.process_rows(),before)
+            self.assertEqual({path.name for path in (self.execution/'applications').iterdir()},directories)
     def test_copied_policy_mapping_and_exact_publication_receipt_survive_reassignment_restart_and_recopy(self):
         self.configure_state_writers(keys=('editor',))
         world=self.workspace(roots=self.collection_roots,registry=True);peer=world.peers[0];self.select(peer)
@@ -732,9 +750,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         world=self.scoped_world(fixtures.session.REGISTERED_ACTORS,broker=self.broker)
         world.management('workspace.available',id=destination,available=True);peer=world.peers[0]
         selected=peer.act(workspace_select=core.WorkspaceIdRequest(id=destination));self.assertTrue(selected.HasField('action'),selected)
-        before=self.process_rows();denied=self.configured_request('editor','wrong-destination-profile');denied.profile='copy-source'
-        result=peer.act(process_launch=denied);self.assertEqual(result.error.code,core.FORBIDDEN,result)
-        self.assertEqual(self.process_rows(),before)
+        self.assert_destination_launch_guards(peer,'first-restart')
         allowed=self.configured_request('editor','destination-configured');allowed.profile='copy-app'
         result=peer.act(process_launch=allowed);self.assertTrue(result.HasField('action'),result);dest_process=result.action.process
         copied=self.configured_paths(destination);self.wait_state_writes(copied)
@@ -769,8 +785,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         world=self.scoped_world(fixtures.session.REGISTERED_ACTORS,broker=self.broker)
         world.management('workspace.available',id=destination,available=True);peer=world.peers[0]
         result=peer.act(workspace_select=core.WorkspaceIdRequest(id=destination));self.assertTrue(result.HasField('action'),result)
-        denied.operation_id='wrong-profile-after-second-restart';before=self.process_rows()
-        result=peer.act(process_launch=denied);self.assertEqual(result.error.code,core.FORBIDDEN,result);self.assertEqual(self.process_rows(),before)
+        self.assert_destination_launch_guards(peer,'second-restart')
         page=peer.call(grants=fixtures.session.WorldGrantList(workspace=destination));self.assertTrue(page.HasField('grants'),page)
         recopy=copy.WorkspaceCopyRequest(protocol_version=1,operation_id=uuid.uuid4().bytes,source_workspace_id=destination,
             expected_source_authority_revision=page.grants.revision,expected_source_policy_revision=1,

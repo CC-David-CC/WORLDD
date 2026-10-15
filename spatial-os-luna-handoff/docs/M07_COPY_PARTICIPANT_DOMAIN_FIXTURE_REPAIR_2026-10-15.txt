@@ -67,3 +67,28 @@ Audit of all new requests against production validators and response paths:
 
 No further validator or response-path contradiction was found in this source audit.
 The corrected path remains UNQUALIFIED and UNRUN. This is not a production protocol change.
+
+Destination launch oracle correction:
+The 9bb38c92 SB16-2 Debug run passed the real stopped-participant domain extension.
+It restarted the broker/world and selected the copied destination.
+It then failed in 48.562 seconds at the first destination launch assertion.
+Evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16-2/focused9bb38c92-debug-12-policy.
+That failed image and logs remain retained. The complete policy scenario has not passed.
+
+The previous negative changed a configured editor request from copy-app to copy-source.
+store.cpp:1249-1262 validates the registered definition before selecting resource policy.
+The actual rejection was INVALID_ARGUMENT: Configured launch differs from its registered profile/executable/argv.
+Expecting FORBIDDEN there incorrectly treated a malformed configured request as policy evidence.
+
+The corrected fixture retains that request as an exact configured-definition rejection.
+It separately sends a valid raw development request with argv ['/usr/bin/true'].
+store.cpp:1210 permits raw development launches without a configured application key.
+Raw copy-source requests require a configured key and cannot provide this valid control.
+resources.cpp:442-454 selects the persisted copied policy, which includes only copy-app.
+It rejects development with exact FORBIDDEN: Application resource profile is unavailable.
+Both negatives run before and after the second restart with distinct operation IDs.
+Each rejection must preserve process rows and application-state directory entries.
+The successful configured copy-app launch remains between these two groups of negatives.
+All publication receipts, quota reassignment, policy bytes, restart, and recopy assertions remain unchanged.
+No configured definition, production path, actor grant, resource budget, or locked contract changes.
+This explicit test-oracle correction is UNQUALIFIED. Its runtime checks remain UNRUN.
