@@ -42,6 +42,33 @@ def is_revoked_copy_status_denial(code,message,*,unauthorized,forbidden):
     }
 
 
+def read_copy_terminal_before_deadline(database_path,operation_id,deadline_ns,busy_audit):
+    """Read one committed journal row within the existing observation deadline."""
+    while True:
+        started=time.monotonic_ns()
+        remaining=(deadline_ns-started)/1e9
+        if remaining<=0:raise TimeoutError('Copy journal observation exceeded its completion deadline')
+        try:
+            with closing(sqlite3.connect('file:'+str(database_path)+'?mode=ro',uri=True,
+                    timeout=min(.1,remaining))) as database:
+                row=database.execute('SELECT phase,error,destination FROM copy_operations WHERE operation_id=?',
+                                     (operation_id,)).fetchone()
+            if time.monotonic_ns()>deadline_ns:
+                raise TimeoutError('Copy journal observation exceeded its completion deadline')
+            return row
+        except sqlite3.OperationalError as error:
+            observed=time.monotonic_ns()
+            record=dict(started_monotonic_ns=started,returned_monotonic_ns=observed,
+                        sqlite_errorcode=getattr(error,'sqlite_errorcode',None),
+                        sqlite_errorname=getattr(error,'sqlite_errorname',None))
+            busy_audit['last_error']=record
+            if record['sqlite_errorcode']!=sqlite3.SQLITE_BUSY:raise
+            busy_audit['count']+=1
+            if busy_audit['first'] is None:busy_audit['first']=record
+            busy_audit['last']=record
+            time.sleep(min(.05,max(0,(deadline_ns-time.monotonic_ns())/1e9)))
+
+
 class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
     def __init__(self,fixture,state,config=None):
         self.fixture=fixture
@@ -406,7 +433,8 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         status_audit={'count':0,'first':None,'last':None,'error_counts':{},
                       'exceptions':[],'published_seen':False,'denial_validated':False,
                       'release_monotonic_ns':None,'completion_deadline_monotonic_ns':None,
-                      'durable_terminal':None}
+                      'durable_terminal':None,
+                      'durable_busy':dict(count=0,first=None,last=None,last_error=None)}
         stop_worker=threading.Event()
         def record_status(result,started):
             record={'started_monotonic_ns':started,'returned_monotonic_ns':time.monotonic_ns()}
@@ -533,10 +561,8 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         status_audit['denial_validated']=True
         # The same release-based deadline covers durable abort observation, not 35+35 seconds.
         while time.monotonic_ns()<completion_deadline:
-            with closing(sqlite3.connect('file:'+str(self.execution/'execution.db')+'?mode=ro',uri=True,
-                    timeout=min(.1,max(0,(completion_deadline-time.monotonic_ns())/1e9)))) as database:
-                terminal=database.execute('SELECT phase,error,destination FROM copy_operations WHERE operation_id=?',
-                                          (request.operation_id,)).fetchone()
+            terminal=read_copy_terminal_before_deadline(self.execution/'execution.db',request.operation_id,
+                completion_deadline,status_audit['durable_busy'])
             self.assertIsNotNone(terminal,'Copy operation disappeared during durable abort observation')
             status_audit['durable_terminal']={'phase':terminal[0],'error':terminal[1],
                 'destination_empty':terminal[2]=='','observed_monotonic_ns':time.monotonic_ns()}

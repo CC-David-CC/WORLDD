@@ -1,0 +1,70 @@
+# M07 revocation journal observer contention - 2026-10-15
+
+Status: UNQUALIFIED observer-only repair. No production change or new runtime pass.
+Base and failed source: 846e07b8736968ce526f6c922fc64d0400a62304.
+
+## Reproduced failure and limits
+
+The sb16 Debug14 revocation case ended with one error after 23.744 seconds.
+Its first direct journal read after typed denial raised sqlite3.OperationalError: database is locked.
+The status audit recorded validated denial, no actor exchange exceptions, and no observed publication.
+The last typed denial returned 15.426 milliseconds after the held SEAL receipt was released.
+The durable-terminal observation remained null. The same-release deadline still had almost 35 seconds remaining.
+Cleanup completed. Command and wrapper exits remained 1/1, so this case did not pass.
+
+The retained journal later recorded ABORTED with COPY_FORBIDDEN.
+It also recorded a completed quiescence-release effect and no publication effect.
+The broker diagnostic named the expected workspace-copy authority denial.
+This retained outcome does not prove that the required abort completed within 35 seconds.
+The later source-process and thaw assertions were unrun in this failing case.
+
+Production ExecutionStore configures journal_mode=DELETE and synchronous=EXTRA.
+The revocation failure path records effect receipts and updates the copy operation through CopyJournal::abort.
+Rollback-mode commits take pending/exclusive locks that exclude a concurrent reader.
+The observer allowed only 100 milliseconds per read attempt and treated contention as a terminal error.
+The supported diagnosis is an observer contention race during production journal writes.
+No contemporaneous lock-owner or SQL timing snapshot identifies the exact statement, PID, or lock duration.
+This evidence does not establish a production deadlock or exempt production from its existing completion bound.
+
+SQLite references:
+https://www.sqlite.org/lockingv3.html
+https://www.sqlite.org/rescode.html#busy
+
+## Corrected observer invariant
+
+Read only committed rows from the existing production journal.
+Retry only sqlite_errorcode SQLITE_BUSY from that read-only connection.
+Close every attempted connection before retrying.
+Keep the existing 100-millisecond cap and 50-millisecond backoff within the same release-plus-35-second deadline.
+A persistent busy database still fails at that original deadline.
+Every other SQLite error propagates immediately.
+No SQL, authority decision, terminal result, source-process assertion, or no-publication assertion changes.
+No production database setting or runtime timeout changes.
+
+The existing retained status audit gains bounded contention evidence.
+It records count, first/last attempt timestamps, and structured SQLite error code/name.
+Its existing cleanup callback retains this evidence when the body fails too.
+The last non-BUSY SQLite error is recorded before propagation.
+
+## Selected verification
+
+Static review compiles both changed Python files without importing the production fixture.
+It compares the complete original revocation method after normalizing only the observer call and audit field.
+It also checks the original query text, all assertions, and all other methods.
+
+Three new behavioral regressions use real SQLite locks and arbitrary standalone database rows.
+They exercise exclusive-writer release followed by a committed read, persistent contention at the original absolute deadline,
+and immediate propagation of a different actual SQLite error.
+They do not create a world or supply production authorization evidence.
+Run on sb16 and sb16-2:
+python3 -B tools/test_workspace_copy_journal_observer.py -v
+
+After those checks, rerun the unchanged real Debug14 revocation case through its dedicated production runner.
+The primary owns runtime scheduling. This worker launches no runtime.
+Behavioral regressions, production Debug14, sanitizer coverage, and full M07 qualification remain pending.
+
+Evidence root on a5500:
+/home/dflanag3/spatial-artifacts/m07-copy-revocation-sqlite-busy-diagnosis-20261015
+The retained-evidence-summary.json contains original paths, hashes, status, relay, and journal summaries.
+Original failure root on sb16:
+/home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16/focused846e07b8-debug-14-primary-01
