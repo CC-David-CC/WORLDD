@@ -143,6 +143,32 @@ class SupervisedHandle:
         arguments=[str(self.config_path) if item=='@AUTHORITY@' else item for item in arguments]
         self.cgroup=Path(os.environ['SPATIAL_TEST_CGROUP_ROOT'])/('lostack-'+role+'-'+os.urandom(8).hex())
         fixture.assertEqual(self.cgroup.parent.stat().st_uid,os.getuid());self.cgroup.mkdir()
+        required_controllers={'cpu','memory','pids','io'}
+        available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())
+        subtree_control=self.cgroup/'cgroup.subtree_control'
+        before_subtree_control=subtree_control.read_text().split()
+        parent_processes=(self.cgroup/'cgroup.procs').read_text().split()
+        self.controller_delegation=dict(role_cgroup=str(self.cgroup),
+            parent_controllers=sorted(available_controllers),
+            parent_subtree_control_before=before_subtree_control,
+            parent_processes_before=parent_processes)
+        durable_write(self.evidence/'controller-delegation.json',
+            (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+        fixture.assertEqual(parent_processes,[],
+                            'Supervisor delegation parent must be empty; observed '+repr(parent_processes))
+        fixture.assertTrue(required_controllers.issubset(available_controllers),
+            'Supervisor delegation parent lacks required controllers: expected '+repr(sorted(required_controllers))+
+            ', observed '+repr(sorted(available_controllers)))
+        fixture.assertEqual(before_subtree_control,[],
+            'Supervisor delegation parent must start unconfigured; observed '+repr(before_subtree_control))
+        subtree_control.write_text('+cpu +memory +pids +io\n')
+        enabled_controllers=set(subtree_control.read_text().split())
+        self.controller_delegation['parent_subtree_control_after']=sorted(enabled_controllers)
+        durable_write(self.evidence/'controller-delegation.json',
+            (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+        fixture.assertEqual(enabled_controllers,required_controllers,
+            'Supervisor delegation parent did not enable every required controller: expected '+
+            repr(sorted(required_controllers))+', observed '+repr(sorted(enabled_controllers)))
         specification=launch.AuthoritySupervisorConfig(protocol_version=1,journal_directory=str(self.journal),
             delegated_cgroup=str(self.cgroup),binding=self.binding,
             participant=launch.AuthorityParticipantAttach(runtime_config=str(attach),
@@ -190,6 +216,18 @@ class SupervisedHandle:
         fixture.assertEqual(select.select([self.pidfd],[],[],0)[0],[])
         fixture.assertEqual(os.readlink('/proc/'+str(self.pid)+'/exe'),str(executable))
         self.scope=self.cgroup/record.process.scope_name
+        child_controllers=set((self.scope/'cgroup.controllers').read_text().split())
+        child_subtree_control=(self.scope/'cgroup.subtree_control').read_text().split()
+        child_processes=(self.scope/'cgroup.procs').read_text().split()
+        self.controller_delegation.update(child_scope=str(self.scope),
+            child_controllers=sorted(child_controllers),
+            child_subtree_control=child_subtree_control,
+            child_processes=child_processes)
+        durable_write(self.evidence/'controller-delegation.json',
+            (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+        fixture.assertTrue(required_controllers.issubset(child_controllers),
+            'Supervisor child scope lacks delegated controllers: expected '+repr(sorted(required_controllers))+
+            ', observed '+repr(sorted(child_controllers)))
         self.identity=dict(pid=self.pid,start_ticks=start,executable=str(executable),owned_scope=str(self.scope),
             supervisor_pid=self.proc.pid,participant_id=self.binding.participant_id.hex(),generation=self.previous_generation+1,
             service_incarnation=self.binding.service_incarnation.hex())
