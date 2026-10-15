@@ -38,13 +38,13 @@ All named passes have zero exits and cleanup confirmed. Retention checks preserv
 One sb16 sanitizer16/17 retention check occurred after the next Debug14 run. The execution record documents this deviation.
 Deadline13 passed ASan/UBSan on both hosts: sb16 334.079 seconds; sb16-2 348.703 seconds.
 Revocation14 also passed ASan/UBSan on both hosts: sb16 27.492 seconds; sb16-2 30.136 seconds.
-Lost-ACK Debug and sanitizer recovery checks remain unrun for the corrected supervisor fixture.
+Lost-ACK Debug attempts reached publication but failed in the crash observer. Lost-ACK sanitizer remains unrun.
 Independent ee2 supervised lost-ACK15 failed on sb16 during startup, before the injected fault, in 6.718 seconds.
 Its unchanged method and helper dependencies were explicitly compared with combined846e07 before runtime reuse.
 The broker reported a missing required cgroup controller. The Python BrokenPipe exceptions were downstream failures.
 Static review found missing controller enablement on the fixture's fresh supervisor delegation parent.
 A reviewed Luna checkpoint 0d248205 fixes delegation and records controller state before related assertions.
-It is verified on box-git. Its actual supervised startup and recovery verification remain unrun.
+It is verified on box-git. Corrected startup now succeeds on both hosts; crash recovery remains unverified.
 Do not disable resource controllers or weaken actual crash, retirement, restart, or reconciliation requirements.
 Combined candidate 0a385d57cc443910cf44249eddb4f834ac797c1a is reviewed and verified on box-git.
 Its separate branch combines observer549799 and supervisor0d248205 without production src/proto changes.
@@ -53,7 +53,12 @@ Source packaging and Debug/SAN target preflight passed on both hosts.
 All three real SQLite contention checks passed on both hosts: sb16 0.523 seconds; sb16-2 0.503 seconds.
 The repaired Debug14 revocation case passed on both hosts, including its original assertions and cleanup.
 Durations: sb16 24.451 seconds; sb16-2 25.462 seconds. Both Debug retention checks passed 0/0.
-The supervised eleven-ELF artifact adaptation remains under review. Its corrected recovery test has not started.
+All four supervised eleven-ELF artifact preflights passed with zero methods executed.
+Both corrected Debug15 runs started and reached the actual held PUBLISHED receipt.
+They failed before SIGKILL because the unprivileged test could not inspect the supervised broker executable.
+Durations: sb16 21.191 seconds; sb16-2 19.671 seconds. Both failures have cleanup confirmed and retained evidence.
+A separate fixture repair must use the existing privileged operator for exact process inspection and pidfd signaling.
+Preserve identity checks, death-before-release ordering, generation retirement, and exact reconciliation. Recovery remains unverified.
 The milestone integration branch remains unchanged.
 Finish focused fault checks before milestone integration, source freeze, and the complete M07 gate on both hosts.
 Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).

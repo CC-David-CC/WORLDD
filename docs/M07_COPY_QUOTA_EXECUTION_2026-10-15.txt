@@ -999,3 +999,37 @@ The adapter must verify and reuse that immutable supplement and create only the 
 No fixture startup, injected broker death, generation retirement, restart, or reconciliation is claimed for candidate0a yet.
 Finish this focused case in Debug and ASan/UBSan on both hosts before milestone integration and full gate.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+
+Corrected supervised startup verified; crash observer permission failure
+All four candidate0a supervised artifact preflights passed 0/0 on the test hosts.
+They verified eleven ELFs, thirty-three bindings, qualified XACE closure, and profile instrumentation.
+Artifact preflight executed zero fixture methods and installed no helpers.
+The retained ee2 supervisor supplement stayed unchanged. Fresh views use supervised-runtime/0a385d57/PROFILE.
+Preparation controller: a5500:/home/dflanag3/spatial-artifacts/m07-supervised-0a385d57-20261015/primary-target-preparation-01.
+Target preflight root: matrix/HOST/supervised0a-PROFILE-artifact-prepare-primary-01-outer.
+New helper SHA256: 594964336766a72b56c4609309e6d37deff263d87215970b4aa5111a6aa0bd63.
+Dedicated driver SHA256: 33940535cd0c7c70fab3eadb9a58c87d58b4fe2158dbbf4af9fb023893091e34.
+Metadata generation failures01/02 remain preserved. Generation03 and final closure checks passed 0/0.
+They corrected assumptions about absent legacy Debug profile metadata and source rows in the full manifest.
+All reused manifests remain bound to their exact existing hashes. Every declared runtime row remains verified.
+
+Selected Debug lost-ACK15 on both hosts after successful preflight and prior sanitizer14 retention.
+Launch record: matrix/HOST/launch-lostack-supervised0a-debug-primary-01.json.
+Tmux: m07-lostack-supervised0a-debug-primary-01.
+Run root: matrix/HOST/lostack-supervised0a-debug-primary-01; outer has suffix -outer.
+Both tests completed initial supervisor/world startup and reached the actual held PUBLISHED receipt.
+The controller-delegation repair therefore passed this actual startup path on both hosts.
+Both then failed before SIGKILL at tests/core/test_workspace_copy_faults.py line728.
+The unprivileged test could not read /proc/PID/exe for the supervised broker.
+The broker uses different credentials. Its pidfd signal also needs the privileged test operator.
+Durations: sb16 21.191 seconds; sb16-2 19.671 seconds.
+Both named reports failed with PermissionError. All recorded command/wrapper exits are 1.
+Cleanup is confirmed, both installed helpers restored, and failing volume images retained.
+Neither test proves crash recovery. No sanitizer retry is selected until this specific defect is fixed.
+
+Next bounded repair: preserve exact PID/start/executable checks through the existing privileged operator.
+Require pidfd-bound SIGKILL and observed death before acknowledgment release.
+Preserve five-second death observation, signed generation retirement, restart, and exact nonduplicate reconciliation.
+Add wrong-identity rejection checks before signaling. Do not weaken production process permissions or confinement.
+Use a separate repair branch/worktree from candidate0a. The milestone integration branch remains unchanged.
+Current free bytes: sb16 41,561,759,744; sb16-2 48,498,167,808. Storage is not the present blocker.
