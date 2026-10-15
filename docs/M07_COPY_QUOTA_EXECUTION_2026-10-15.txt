@@ -1,3 +1,80 @@
+Current checkpoint: M07 final Debug failure inventory and verified native repair
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The original 706fe47 Debug gate finished on sb16-2.
+JUnit records 196 suites: 167 passed, 29 failed, and zero skipped.
+Production startup and all 51 harness checks passed.
+The core CTest command exited 8. The outer command and wrapper exited 1.
+Later P10, bounded-storage, and sanitizer stages stopped. They remain UNRUN.
+Final logs, JUnit, report, and hash manifest are retained on a5500:
+/home/dflanag3/spatial-artifacts/m07-gate-failure-diagnosis-20261015/evidence-sb16-2-debug-final-01.
+Ten failed suites share the diagnostic observation-policy regression.
+The final failure inventory includes broker EOF, migration fixtures, and resource witnesses.
+
+The b15200e6 observation candidate built and packaged with zero command and wrapper exits.
+Both profiles retain 198 registrations. Two registrations require dedicated cross-host execution.
+All four worldd binaries changed from 706fe47, including both production-off configurations.
+Bundle SHA: 8a4e6df5dacb41705846db6ef6b800828828a42f93d0676c8777154474e718f8.
+The archive is 1,537,657,157 bytes. The runtime payload is 8,619,584,284 bytes.
+Both hosts passed deployment verification with zero command and wrapper exits.
+Common path: /home/dflanag3/spatial-artifacts/deployments/m07-b15200e6/runtime.
+Source file sets and hashes matched. Source directories are read-only to prevent Python cache writes.
+Source file modes remain unchanged.
+
+The unchanged native handoff suite now passes all fourteen methods in four executions:
+sb16 Debug: 8.555 seconds. sb16 ASan/UBSan: 14.523 seconds.
+sb16-2 Debug: 10.827 seconds. sb16-2 ASan/UBSan: 18.122 seconds.
+All command and wrapper exits are zero. Each execution scanned 61 logs without sanitizer findings.
+The suite covers diagnostic capture and aim, native input cleanup, and independent-application survival.
+Per-run plans preserve frozen commands, working directories, limits, environments, and explicit evidence relocation.
+Evidence on each host: /home/dflanag3/spatial-artifacts/m07-b152-observation-diagnostic-20261015.
+These focused passes do not complete M07.
+The broader focused runner remains under review. Its first implementation was rejected before runtime use.
+
+Resource diagnosis used the original failing assertion without changing it.
+It confirmed three direct application-scope helpers and two payload descendants.
+The Python application and native probe remain inside the budgeted application hierarchy.
+The broker remains in its separate manager group.
+The fixture omitted nested payload members from its process count.
+Its ancestor budget checks passed before the count failure.
+A separate worker is correcting recursive membership and payload-controller assumptions.
+Evidence on sb16: /home/dflanag3/spatial-artifacts/m07-session-cgroup-fixture-diagnosis-20261015/sb16-diagnostic-01.
+
+The operator migration failure is an installed-helper mismatch, not a migration oracle defect.
+The installed root-owned storage helper creates catalog version 1.
+The current candidate storage owner creates version 6.
+Installed helper SHA: e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f.
+Candidate Debug helper SHA: c50921260c768206e6ebee17300abfd855c296b44b2a92474e46d227c55ea960.
+A controlled rehearsal installed the candidate helper under the global test lock.
+Both unchanged operator-storage methods passed on sb16 in 9.137 seconds.
+Installation, test, restoration, command, and wrapper exits were zero.
+The original helper hash and baseline runtime were reverified after restoration.
+The next frozen runtime manifest must pin the correctly deployed helper.
+Do not silently migrate existing catalogs. Preserve explicit stopped migration requirements.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/m07-storage-owner-rehearsal-20261015/sb16-Debug-01.
+The original mismatch witness remains in m07-operator-migration-diagnostic-20261015.
+
+New reviewed source checkpoints are verified on box-git:
+956fd92bdc223a844a01f4c40b916e680c754c56 drains complete buffered broker frames before EOF rejection.
+7b83111074561ae09d032f459368d8aa7394c773 reconstructs the exact synthetic execution v3 schema.
+The v3 fixture preserves legacy rows, checks schema 8, and retains migration idempotence.
+Combined task branch m07/gate-fixture-combined-20261015 currently points to 7b831110.
+Those later repairs remain runtime UNRUN. They are absent from b152 binaries.
+The milestone integration branch remains frozen at 706fe47.
+
+After verifying the retained a5500 archive and both deployments, duplicate test-host archives were removed.
+Each host recovered about 1.54 GB. Exact paths, hashes, and free-space records remain in deployment verification artifacts.
+The retained package stays under a5500:/home/dflanag3/spatial-artifacts/m07-b15200e6-gate-preparation-20261015.
+Obsolete M06 evidence archival to middle-child continues under a separate verified-retention task.
+No old runtime, failing evidence, or protected XACE/EGL source tree was removed.
+GitHub remains unchanged pending David's publication cutover.
+
+Next: finish resource-fixture repair, verify the broader focused checks, and freeze the coherent successor.
+Rebuild the EOF repair, deploy the correct storage helper with new pins, and test both hosts.
+Then complete full Debug, sanitizer, harness, acceptance, cross-host, native, and recovery qualification.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: M07 gate repair, diagnostic policy, and first focused runtime pass
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations in older entries below.

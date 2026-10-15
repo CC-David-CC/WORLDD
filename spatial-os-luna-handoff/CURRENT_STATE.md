@@ -1,3 +1,32 @@
+## 2026-10-15: Native observation repair passes both hosts and profiles
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+The original sb16-2 Debug gate finished: 167 suites passed, 29 failed, and none skipped.
+Its later acceptance, storage, and sanitizer stages stopped and remain unrun.
+The complete failure inventory and source-pinned logs are retained externally.
+
+The b15200e6 candidate passed four builds, packaging, and deployment verification on both hosts.
+Its fourteen-method native handoff suite passed Debug and ASan/UBSan on both hosts.
+All four executions have zero command/wrapper exits and no sanitizer findings.
+These checks confirm diagnostic capture, aim, input cleanup, and independent-application survival.
+The broader focused matrix and full M07 gates remain pending.
+
+A passive process witness found all five application processes inside the application hierarchy.
+The old fixture counted three direct helpers and omitted two payload descendants.
+Its original ancestor budget checks already passed. A worker is correcting the witness.
+
+The operator-storage failure came from the installed schema-1 helper.
+Both unchanged operator-storage methods passed with the candidate schema-6 helper.
+The controlled rehearsal restored and reverified the original helper afterward.
+The next frozen deployment must install the candidate helper and pin its hash.
+Explicit stopped catalog migrations remain required.
+
+Reviewed task checkpoint 7b83111074561ae09d032f459368d8aa7394c773 is verified on box-git.
+It includes the broker EOF repair and an exact execution-v3 migration fixture.
+Those later changes remain runtime unrun and are absent from b152 binaries.
+Milestone integration remains frozen at 706fe47. No milestone completion is claimed.
+Read the execution record for exact pins, evidence, cleanup, and remaining qualification.
 ## 2026-10-15: M07 focused runtime starts; diagnostic-policy regression confirmed
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
