@@ -1,0 +1,36 @@
+M07 copied-workspace participant provisioning repair
+Date: 2026-10-15
+Status: UNQUALIFIED. Runtime checks are UNRUN.
+Base: 76ec0aea225b122eea97e8d4b41ab4c0f264d3ca.
+Runtime source remains eb569742f843c59e988e813f3431cf292c516fe7.
+
+The policy/restart scenario copied successfully, then failed while assigning destination authority.
+SB16-2 failed in 47.413 seconds with IN_USE: Authority domain already has a registered participant.
+Result SHA256: fa42227dc639ed4e4edd923c3bf5a4b71624df3a85c192c1b617e1752d9a4a26.
+Evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16-2/focused76ec-debug-12-policy.
+Its failed image and logs remain retained. The separate optional-state PASS remains valid.
+
+configure_participant caches registrations by their exact domain set.
+Adding the destination changed that set and attempted a new participant registration.
+The new participant tried to reclaim the existing source domain.
+Production correctly rejected the duplicate claim.
+
+The fixture now requires stopped worlds, a zero broker exit, and removal of its owned scope.
+It reads the real owner-authorized registry and optional supervisor binding.
+It submits only the destination domain through AuthorityParticipantDomainsAdd.
+The request binds the current public key, registration, registry, and supervision revisions.
+Production still rejects active generations, unresolved obligations, and pending launches.
+The fixture validates the exact request digest and returned registration/supervision receipt.
+It preserves the service ID and signing key, then updates its runtime configuration and cache.
+It retains the receipt in external security evidence.
+No actor grant, production code, quota, writer interval, deadline, or copy assertion changes.
+
+Preselected checks, not yet executed:
+- Policy/restart engine method in Debug and ASan-UBSan on both test hosts.
+- ParticipantDomainAdditionTests.test_stopped_addition_preserves_identity_and_returns_exact_supervision_receipt.
+- ParticipantDomainAdditionTests.test_invalid_or_stale_additions_leave_registry_unchanged.
+- ParticipantDomainAdditionTests.test_empty_missing_foreign_and_over_limit_domain_requests_are_atomic.
+- ParticipantDomainAdditionTests.test_active_generation_and_unconsumed_launch_are_busy.
+- ParticipantDomainAdditionTests.test_cached_service_and_pending_old_revision_proof_are_rejected.
+These preserve exact receipts, identity, duplicate-domain rejection, owner authority, and stopped-service fencing.
+No checkpoint, package, integration, or runtime is authorized by this document.

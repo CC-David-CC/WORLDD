@@ -22,6 +22,7 @@ import broker_pb2 as broker
 import core_pb2 as core
 import copy_pb2 as copy
 import grants_pb2 as grants
+import issuer_pb2 as issuer
 import storage_pb2 as storage
 from harness.git_fixture import GitRepo
 from harness.resource_broker import ResourceBroker
@@ -635,6 +636,72 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             capture_output=True,timeout=10)
         self.assertEqual(result.returncode,0,result.stderr)
         config=broker.WorkspaceAuthorityConfig();text_format.Parse(self.authority_config.read_text(),config)
+        # An expanded domain set must extend the stopped service, not register a
+        # second participant that reclaims its existing workspace domains.
+        self.assertTrue(all(world.proc.poll()==0 for world in self.worlds))
+        self.assertEqual(self.broker.proc.returncode,0)
+        self.assertTrue(self.broker.resources.closed)
+        self.assertFalse(self.broker.resources.root.exists())
+        runtime=issuer.AuthorityParticipantRuntimeConfig()
+        text_format.Parse(Path(config.participant_runtime_config).read_text(),runtime)
+        old_identity=tuple(sorted(grants.Domain(kind=grants.WORKSPACE,id=item.workspace).SerializeToString()
+            for item in config.bindings))
+        number,key,participant_id,revision=self.registered_services[old_identity]
+        self.assertEqual(runtime.participant_id,participant_id)
+        self.assertEqual(runtime.registered_revision,revision)
+        self.assertEqual(runtime.private_key_path,str(key))
+        with closing(self.connect()) as peer:
+            op=issuer.IssuerOperation(registry_read=issuer.AuthorityRegistryRead(limit=64))
+            reply=self.execute(peer,self.challenge(peer,op));self.assertTrue(reply.HasField('registry'),reply)
+            page=reply.registry;self.assertFalse(page.next_after)
+            matches=[item for item in page.participants if item.participant.id==participant_id]
+            self.assertEqual(len(matches),1);registration=matches[0]
+            self.assertEqual(registration.registered_revision,revision)
+            self.assertEqual(tuple(sorted(domain.SerializeToString() for domain in registration.participant.domains)),old_identity)
+            op=issuer.IssuerOperation(supervisor_read=issuer.AuthoritySupervisorRead(participant_id=participant_id))
+            reply=self.execute(peer,self.challenge(peer,op))
+            supervision=None
+            if reply.HasField('supervision'):
+                supervision=reply.supervision
+                self.assertEqual(supervision.registration,registration)
+            else:
+                self.assertTrue(reply.HasField('error'),reply);self.assertEqual(reply.error.code,core.NOT_FOUND,reply)
+            addition=issuer.AuthorityParticipantDomainsAdd(operation_id=uuid.uuid4().bytes,
+                participant_id=participant_id,expected_public_key=registration.participant.public_key,
+                expected_registered_revision=revision,expected_registry_revision=page.registry_revision,
+                expected_supervision_revision=supervision.revision if supervision is not None else 0,
+                additions=[grants.Domain(kind=grants.WORKSPACE,id=destination)])
+            op=issuer.IssuerOperation(participant_domains_add=addition)
+            reply=self.execute(peer,self.challenge(peer,op))
+            self.assertTrue(reply.HasField('participant_domains_added'),reply);receipt=reply.participant_domains_added
+        self.assertEqual(receipt.operation_id,addition.operation_id)
+        self.assertEqual(receipt.request_bytes,addition.SerializeToString())
+        self.assertEqual(receipt.request_sha256,hashlib.sha256(receipt.request_bytes).digest())
+        self.assertEqual(receipt.old_registration,registration)
+        self.assertEqual(receipt.registry_revision_before,page.registry_revision)
+        self.assertEqual(receipt.registry_revision_after,page.registry_revision+1)
+        self.assertEqual(receipt.new_registration.registered_revision,receipt.registry_revision_after)
+        self.assertEqual(receipt.new_registration.issuer_id,registration.issuer_id)
+        self.assertEqual(receipt.new_registration.participant.id,participant_id)
+        self.assertEqual(receipt.new_registration.participant.public_key,registration.participant.public_key)
+        new_identity=tuple(sorted((*old_identity,addition.additions[0].SerializeToString())))
+        self.assertEqual(tuple(sorted(domain.SerializeToString()
+            for domain in receipt.new_registration.participant.domains)),new_identity)
+        if supervision is not None:
+            self.assertEqual(receipt.old_supervision,supervision)
+            self.assertEqual(receipt.new_supervision.registration,receipt.new_registration)
+            self.assertEqual(receipt.new_supervision.public_key,supervision.public_key)
+            self.assertEqual(receipt.new_supervision.revision,supervision.revision+1)
+        else:
+            self.assertFalse(receipt.HasField('old_supervision'));self.assertFalse(receipt.HasField('new_supervision'))
+        evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if evidence:
+            target=Path(evidence)/('participant-domains-added-'+destination+'.textproto')
+            target.write_text(text_format.MessageToString(receipt))
+        # Retire the old cache key: its registration revision is now stale.
+        del self.registered_services[old_identity]
+        self.registry_revision=receipt.registry_revision_after
+        self.registered_services[new_identity]=(number,key,participant_id,receipt.new_registration.registered_revision)
         config.bindings.add(workspace=destination,authority_directory=str(directory))
         self.configure_participant(config,[grants.Domain(kind=grants.WORKSPACE,id=item.workspace) for item in config.bindings])
         self.authority_config.write_text(text_format.MessageToString(config))
