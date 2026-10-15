@@ -1,0 +1,73 @@
+M07 copy quota repair: focused evidence, 2026-10-15
+
+M07 remains UNQUALIFIED. Two repair invocations failed. Zero complete focused cases passed.
+Eight MiB is not reliably sufficient for the existing five-millisecond writer workload.
+No additional quota escalation or runtime retry is authorized by this report.
+A new evidence-gathering design requires primary review before execution.
+
+Source and package identity
+Branch: m07/copy-quota-repair-20261015.
+Checkout: a5500:/home/dflanag3/src/spacial-m07-copy-quota-repair-20261015.
+Base: 55a659a849c8bac73d3ceacdc0cb9b4e5b3e1ddd.
+Reviewed fixture checkpoints: ccb8f892c8a1e028a3f56f27b34f94068851e5f2, dd067e6dd9299d9da8d502919126ca5a6bcc47f7, f5560df8842fb6191a008893188667bb9ff886bb.
+Current fixture source: f5560df8842fb6191a008893188667bb9ff886bb, BOX-GIT VERIFIED.
+Production ELFs remain unchanged from eb569742f843c59e988e813f3431cf292c516fe7.
+Each frozen package contains ten ELFs, all 33 bindings, runtime.textproto, and tracked sources.
+Runtime configuration SHA256: d3dcc8abee97528002f7facc562c1c0c68c11984f81a72777461e87a71e4d7a2.
+Explicit old/new runtime hashes are recorded in package receipts and metadata/runtime-reuse.json.
+Only the selected five-class fixture assigns copy-source eight MiB before volume creation.
+Default source and destination ceilings remain four MiB. Actor and workspace ceilings remain 32 and 64 MiB.
+Memory, write cadence, exchange bounds, and the absolute copy deadline remain unchanged.
+No production stop/thaw changes or permanent storage-owner installation occurred.
+
+Both invocations selected exactly test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch on sb16-2 Debug.
+Both used tmux, shared helper flock, and bash with the canonical command runner.
+Preflight verified modes, hashes, dependencies, runtime configuration, and actual discovery of thirteen fixture methods.
+
+Attempt 1
+Source: ccb8f892c8a1e028a3f56f27b34f94068851e5f2.
+Evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-quota-repair-ccb8f892-20261015.
+Outer: 01-engine/outer. Runtime evidence: 01-engine/inner. Audit: attempt1-audit.json.
+Ran 1 test in 55.186 seconds; ERROR. Command and wrapper exits were 1 and 1.
+Operation 0dc23e2b10cf4c508a7a4636216a0b8a reached phase 7/PUBLISHED, error zero, with all 49 effects completed.
+All ten source PID/start identities survived publication. Both jobs remained running with empty stderr.
+Postpublication counters progressed: editor data 5571 to 5574, config 5587 to 5590.
+Terminal data progressed 5386 to 5387, config 5451 to 5455. Stop markers remained absent.
+The existing inode oracle then statted mutable source data/counter.tmp after thaw, after its writer renamed it away.
+The resulting FileNotFoundError failed the case. The full byte/state/relaunch case did not pass.
+The reviewed correction captures the same complete inode inventory alongside frozen bytes before thaw.
+The reviewed relaunch readiness correction preserves the existing ten-second deadline and exact value comparisons.
+
+Attempt 2
+Source: f5560df8842fb6191a008893188667bb9ff886bb.
+Evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-quota-repair-f5560df8-20261015.
+Outer: 01-engine/outer. Runtime evidence: 01-engine/inner. Audit: attempt2-audit.json.
+Ran 1 test in 32.348 seconds; ERROR. Command and wrapper exits were 1 and 1.
+The original PID/start continuity check failed before publication.
+volume.json records source_state_ceiling_bytes=8388608.
+Editor f6899741a90e17eab20b4dcb39648833 durably exited with code 1.
+Both Python traces report errno 122 at os.replace for data/config counter.tmp to counter.
+Peer 98f8dca0bfb270ac1606f35c3bcbf3bb remained running with empty stderr.
+Missing editor PID/start identities: 2588057/35708350 bwrap; 2588058/35708352 namespace bwrap; 2588059/35708354 app-init; 2588060/35708363 Python; 2588061/35708403 fork.
+Operation 9fe859010e074917b1564a33200fe2b9 remained phase 4/DESTINATION_ALLOCATED, error zero, with 24 effects and one unresolved effect.
+Intermediate error zero does not establish success. No recovery or replay ran.
+Audit SHA256: e9125045534d37b4336200242a181dd2b52956cc582072c6e133761a610da9ab.
+Failure diagnostic SHA256: a76e96732485e02dd00617532c60e44084a55008d5e2e70c4d797ee3b5dd9e86.
+Frozen inode witness SHA256: 7ddc70966fc95fa6705bc4ca2d3f49104d43bc8f3d78458f4ab4c559b095cee8.
+
+Cleanup and preserved evidence
+Both runs have confirmed cleanup receipts in 01-engine/cleanup-verification.json.
+Units are inactive/absent. Delegated cgroups and candidate processes are gone.
+Temporary copy helpers were restored to their absent baseline. Both volumes are unmounted and detached.
+No sanitizer diagnostics appeared in the retained logs.
+Fixed storage-owner SHA256 remains e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f.
+Attempt 2 unit: spatial-m03-resources-fbfec6e25f554214a7a76c2fd436b744.service.
+Attempt 2 cleanup SHA256: 05601158d69e1961ff170832cda2ec0b1cdb09cdc194b181ba48c962d4700462.
+Retain sb16-2:/var/lib/spatial/volumes/m07-engine-48f7dfd704054b1c/volume.img.
+Retain sb16-2:/var/lib/spatial/volumes/m07-engine-30ee1435d40e4e70/volume.img.
+Retain all packages and receipts under a5500:/home/dflanag3/spatial-artifacts/m07-copy-quota-repair-20261015.
+The frozen dd067e6d package was never transferred or executed. Earlier four-MiB failure evidence remains preserved.
+
+The small-quota regression is implemented but UNRUN.
+Repeat Debug, sb16 Debug, both sanitizer lanes, and all five fault cases remain UNRUN.
+The full M07 gate remains held. Further work must establish quota causality without weakening boundaries.
