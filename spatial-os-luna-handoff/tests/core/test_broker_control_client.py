@@ -104,11 +104,13 @@ class BrokerControlClientTests(unittest.TestCase):
         self.assertEqual(self.result('control_revoked'),self.lease);self.assertEqual(self.result('control_lease'),self.lease)
 
     def test_revocation_during_unrelated_request_preserves_reply(self):
-        self.acquire();request=self.send(application_access=pb.ApplicationAccessRequest(principal=self.principal,applications=[self.app]))
+        self.acquire();client_request_id=self.sequence+1
+        request=self.send(application_access=pb.ApplicationAccessRequest(principal=self.principal,applications=[self.app]))
+        self.assertEqual((client_request_id,request.request_id),(2,3))
         access=pb.ApplicationAccessReply(incarnation=b'i'*16,epoch=1,applications=[pb.ApplicationAccess(application=self.app,observe=True,control=False)])
         self.peer.sendall(self.event());self.respond(request,application_access=access)
         self.assertEqual(self.result('control_revoked'),self.lease)
-        self.assertEqual(self.result('application_access',request_id=request.request_id),access)
+        self.assertEqual(self.result('application_access',request_id=client_request_id),access)
 
     def assert_invalid_application_access_stamp(self,incarnation,epoch):
         self.acquire();request=self.send(application_access=pb.ApplicationAccessRequest(principal=self.principal,applications=[self.app]))
