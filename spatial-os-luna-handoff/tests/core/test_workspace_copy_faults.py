@@ -151,7 +151,57 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             record=json.loads(inventory.read_text())
             record['definition_hex']=definition.SerializeToString(deterministic=True).hex()
             inventory.write_text(json.dumps(record,indent=2)+'\n')
-        return super().provision(operation)
+        try:
+            return super().provision(operation)
+        except BaseException as error:
+            if operation=='unmount' and 'target is busy' in str(error):
+                try:self.retain_busy_volume_refs()
+                except BaseException as diagnostic_error:
+                    print('Busy volume snapshot failed: '+type(diagnostic_error).__name__,file=sys.stderr)
+            raise
+
+    def retain_busy_volume_refs(self):
+        # Passive fixture-only evidence. Preserve the unmount error and existing recovery.
+        until=time.monotonic()+1
+        volume=self.execution_override
+        record=dict(stage='after-EBUSY-before-outer-recovery',monotonic_ns=time.monotonic_ns(),
+                    fixture_pid=os.getpid(),volume=str(volume),references=[],known_processes=[],scopes=[],errors=[])
+        own=Path('/proc/self')
+        try:
+            links=[own/'cwd',own/'root']
+            for index,path in enumerate((own/'fd').iterdir()):
+                if index>=1024 or time.monotonic()>=until:break
+                links.append(path)
+            for path in links:
+                if time.monotonic()>=until:break
+                try:
+                    target=os.readlink(path)
+                    relative=Path(target.removesuffix(' (deleted)')).relative_to(volume)
+                    record['references'].append(dict(kind=path.parent.name if path.parent.name=='fd' else path.name,
+                        fd=int(path.name) if path.parent.name=='fd' else None,target_relative=str(relative),
+                        deleted=target.endswith(' (deleted)')))
+                except ValueError:pass  # Never record unrelated paths.
+                except OSError as error:record['errors'].append(type(error).__name__)
+        except OSError as error:record['errors'].append(type(error).__name__)
+        known={os.getpid()}
+        for item in [*self.worlds,*self.brokers][:16]:
+            resources=getattr(item,'resources',None)
+            for process in (getattr(item,'proc',None),getattr(item,'owner',None),getattr(resources,'owner',None)):
+                pid=getattr(process,'pid',None)
+                if isinstance(pid,int) and pid>0:known.add(pid)
+            scope=getattr(resources,'root',None)
+            if isinstance(scope,Path) and scope.is_relative_to('/sys/fs/cgroup'):
+                record['scopes'].append(dict(path=str(scope),exists=scope.exists()))
+        for pid in sorted(known):
+            if time.monotonic()>=until:break
+            process=Path('/proc')/str(pid);row=dict(pid=pid)
+            try:
+                stat=process.joinpath('stat').read_text().rsplit(')',1)[1].split()
+                row.update(state=stat[0],start_ticks=int(stat[19]))
+            except OSError as error:row['unavailable']=type(error).__name__
+            record['known_processes'].append(row)
+        record['budget_exhausted']=time.monotonic()>=until
+        (self.copy_evidence/'busy-volume-refs.json').write_text(json.dumps(record,sort_keys=True,indent=2)+'\n')
 
     def after_workspace_storage_setup(self):
         super().after_workspace_storage_setup()
@@ -189,7 +239,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             (self.project/('stop-'+key)).unlink()
         paths=self.configured_paths()
         self.assertEqual(set(paths),set(keys))
-        with sqlite3.connect(self.execution/'execution.db') as database:
+        with closing(sqlite3.connect(self.execution/'execution.db')) as database, database:
             process_states=database.execute('SELECT state,count(*) FROM processes GROUP BY state').fetchall()
         self.assertEqual(dict(process_states),{'exited':14},
             'All fourteen source applications must leave only inactive process rows before copy admission')
@@ -200,7 +250,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         accepted=peer.act(workspace_copy=request)
         self.assertTrue(accepted.HasField('action'),accepted)
         self.assertEqual(accepted.action.copy_status.phase,copy.REQUESTED,accepted)
-        with sqlite3.connect(self.execution/'execution.db') as database:
+        with closing(sqlite3.connect(self.execution/'execution.db')) as database, database:
             raw=database.execute('SELECT authorization_binding FROM copy_operations WHERE operation_id=?',
                                  (request.operation_id,)).fetchone()[0]
         binding=storage.WorkspaceCopyAuthorizationBinding.FromString(raw)
@@ -234,7 +284,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         if final.phase==copy.ABORTED:self.assertEqual(final.error_code,copy.COPY_UNAVAILABLE,final)
         else:self.assertEqual(final.error_code,copy.COPY_UNCERTAIN,final)
         self.assertFalse(final.HasField('authorized_destination_workspace_id'),final)
-        with sqlite3.connect(self.execution/'execution.db') as database:
+        with closing(sqlite3.connect(self.execution/'execution.db')) as database, database:
             phase,error=database.execute('SELECT phase,error FROM copy_operations WHERE operation_id=?',
                                          (request.operation_id,)).fetchone()
             workspace_count=database.execute('SELECT count(*) FROM workspaces').fetchone()[0]
@@ -505,7 +555,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         for pid in payloads:
             group=Path('/sys/fs/cgroup')/Path(f'/proc/{pid}/cgroup').read_text().strip().split('::',1)[1].lstrip('/')
             self.assertIn('frozen 0',(group/'cgroup.events').read_text())
-        with sqlite3.connect(self.execution/'execution.db') as database:
+        with closing(sqlite3.connect(self.execution/'execution.db')) as database, database:
             phase,error,destination=database.execute(
                 'SELECT phase,error,destination FROM copy_operations WHERE operation_id=?',(request.operation_id,)).fetchone()
             count=database.execute('SELECT count(*) FROM workspaces').fetchone()[0]
@@ -737,7 +787,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             self.assertLess(time.monotonic(),deadline,'Hostile Git control exceeded absolute operation budget')
             time.sleep(.01)
         self.assertEqual(status.phase,copy.PUBLISHED)
-        with sqlite3.connect(self.execution/'execution.db') as database:
+        with closing(sqlite3.connect(self.execution/'execution.db')) as database, database:
             repo,target=database.execute('SELECT r.path,t.path FROM workspaces w JOIN repositories r ON r.id=w.repo JOIN worktrees t ON t.id=w.worktree WHERE w.id=?',
                 (status.authorized_destination_workspace_id,)).fetchone()
         target=Path(target);repo=Path(repo)
