@@ -1,0 +1,14 @@
+M07 scene authority fixture correction
+2026-10-15
+
+The native handoff witnesses render real application pixels and aim at a real application surface.
+Those operations consume the filtered scene and require world observation authority.
+The positive fixture actor now receives only observe and interact for that scenario.
+This keeps observation and application interaction as separate grants.
+
+A negative witness gives the same fixture actor interact alone.
+It checks that render.capture and actor aim return exactly FORBIDDEN with no success outcome.
+It also checks that rejection leaves worldd and the independent application alive.
+The three existing positive pixel and held-input cleanup witnesses retain their assertions.
+
+This is a fixture-context correction. It changes no production authorization, contract, schema, or acceptance lock.
