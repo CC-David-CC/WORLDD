@@ -674,3 +674,48 @@ Observed free bytes: SB16 38,538,108,928; SB16-2 34,265,071,616. These are progr
 Each reviewed revocation launcher is conditionally authorized after its own archive succeeds and the helper lane is idle.
 No retry may start after an archive failure or while its host's archive remains active.
 M07 remains in focused fault qualification. The milestone integration, source freeze, and complete gate remain pending.
+
+Recovery target preflight completed; schema lock mismatch diagnosed
+The first supervised artifact preflight failed on both hosts before preparation because its generated wrapper had invalid newline escaping.
+The correction syntax-checks the actual generated host scripts before transfer and verifies their exact bytes.
+The second attempt prepared and verified Debug successfully, then its wrapper rejected two valid JSON documents as extra data.
+The source extractor prints its own receipt before the final preflight record. SAN was not entered in that attempt.
+The third wrapper accepts only the final preflight record, optionally preceded by that exact verified extraction receipt.
+It checks host, source pin, source-root path, archive/manifest hashes, and expected file count.
+The primary exercised the actual parser against both retained outputs, final-only output, trailing junk, and an extra document.
+The first two attempts remain failures. Neither executed a fixture or installed helpers.
+Attempt three verifies the existing Debug view read-only and prepares the fresh SAN view. It overwrites no prior package.
+Both profiles passed on both hosts. Each target command/wrapper exit is 0/0, with empty stderr.
+The primary read each actual target summary and its exit receipts directly from the test host.
+Each preflight verifies eleven ELFs, thirty-three binding files, the supervisor closure, and qualified XACE dependencies.
+Discovery reports five fault methods and zero executions. These results do not qualify actual crash recovery.
+Target outer: matrix/HOST/ee2af573-supervised-preflight-03; summary: preflight-records/summary.json.
+Final receipt: a5500:/home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/packages-ee2af573/deployment-03/final-receipt.json.
+Receipt SHA256: 33dde2ad355624e6dc0c9154a3ded849ca9af5f3e322ef1f61109a1e298bef37.
+Actual lost-ACK runtime launch preparation remains separate and unrun.
+
+The designated builder branch advanced from eb569 to reviewed d2dd4f1c by fast-forward only.
+Its previous ref remains m07/gate-build-pre-d2dd4f1c-20261015. The milestone integration branch remains unchanged.
+Draft gate preparation stopped before compilation with command/wrapper exits 2/2.
+Failure: locked baseline mismatch: proto/spatial/core/v1/core.proto.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-d2dd4f1c-gate-preparation-20261015/prepare-outer-01.
+Expected schema SHA256: c88d7cf22e7b0ea45509433cdf8c2063fde1c8b376d48101130022e2bcbd68a1.
+Actual schema SHA256: 8241b30befeda1d11215e7faa1145c88b9fdbcbf14711140135233481ddb9873.
+The expected bytes remain reachable at commit f019cf77e5a69cd331526624815ef90024368e32.
+Only core.proto differs among locked files. The 151 locked test IDs remain unchanged.
+The schema gained documented M07 presentation and copy actions, filtered metadata, and a configured-application selector.
+The lock was never updated after those source snapshots. No missing baseline Git object caused this failure.
+The primary read the complete baseline-to-current schema diff and the existing M07 schema decision note.
+The first review reports preserved original declarations. It does not constitute compiled-descriptor compatibility evidence.
+An independent stronger helper now reviews compatibility, the invariant, and the smallest explicit baseline correction.
+This follows the nested AGENTS.md rule for genuine test/contract contradictions.
+Do not remove required M07 fields, bypass locked-file checks, or silently rewrite the lock.
+No lock, acceptance test, oracle, or normative contract has changed during this diagnosis.
+Focused runtime tests may continue. Draft gate builds wait for the separately reviewed correction.
+The stronger helper's compiled-descriptor review then passed with canonical command/wrapper exits 0/0 and empty stderr.
+It preserved all 119 original core messages, six enums, imported security schema, and the exact 151 acceptance IDs.
+The explicit additions are four messages, ten fields on existing messages, and the copy.proto import.
+Eighteen mutation controls rejected changed old fields, enums, oneofs, presence, defaults, reservations, options, and unreviewed additions.
+The primary read the actual report, mutation-control results, and exit receipts. Runtime remains unrun for this review.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015.
+These results support a separately reviewed schema-baseline correction. They do not qualify M07 behavior.

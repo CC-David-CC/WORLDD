@@ -1,4 +1,4 @@
-## 2026-10-15: Fault-fixture preparation; runtime retries pending
+## 2026-10-15: Recovery artifact preflight passes; schema baseline review pending
 
 M01-M06 are qualified. M07 remains in focused copy/fault qualification. M08-M16 remain pending.
 All thirteen engine methods have passing Debug and sanitizer evidence on both hosts, with recorded carry-forward evidence.
@@ -17,7 +17,9 @@ It requires observed broker death before release, both cleanup receipts, signed 
 Seven pure profile checks passed on a5500; test-host runtime remains unrun.
 Checkpoint ee2af573 corrects the evidence-path contract and preserves the earlier a83cff88 checkpoint.
 Its independent filesystem regression passed with an external evidence root and artifact-local TMPDIR.
-The frozen supervisor supplements and source overlay are ready for artifact-only target preflight.
+Recovery artifact preflight passed Debug and sanitizer checks on both hosts, with command/wrapper exits 0/0.
+It verified eleven ELFs, thirty-three binding files, supervisor closure, and qualified XACE dependencies.
+It executed zero fixture methods and installed no helpers. Actual fault runtime remains pending.
 Checkpoint d2dd4f1c also requires the three new regression registrations in M07's explicit gate inventory.
 Its complete synthetic inventory and three omission checks passed. The locked acceptance tests remain unchanged.
 Both checkpoints are verified on box-git. Neither is integrated into the milestone branch.
@@ -29,6 +31,11 @@ The selected obsolete directories contain about 37 GiB per host. Completed remov
 Observed free space is about 36 GiB on SB16 and 32 GiB on SB16-2. Archival is still active.
 Keep timing-sensitive runtime tests clear of each host's active archive work. No additional storage is required.
 Each reviewed revocation retry is queued behind its host's successful archive completion and idle helper lane.
+Draft gate preparation stopped before compiling because core.proto differs from the locked schema hash.
+The difference includes documented M07 additive fields. The lock still references the reachable pre-M07 baseline.
+Independent compiled-descriptor review preserved all 119 original messages and six enums; eighteen mutation controls were rejected.
+It found only the intended additions. A separately reviewed baseline correction remains pending.
+No lock, acceptance test, or oracle has changed. This gate-preparation issue does not block focused runtime tests.
 Finish focused fault checks before integration, source freeze, and the full required M07 gate on both hosts.
 Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
 
