@@ -54,13 +54,17 @@ def main(*,fixture_spec=None):
     if fixture_spec is not None:
         assert set(fixture_spec)=={'fixture','discovery','class','mode','runtime_bound'}
         fixture_name=fixture_spec['fixture'];discovery_name=fixture_spec['discovery']
-        fixture_class=fixture_spec['class'];fixture_count=2;qualification='UNQUALIFIED_DIAGNOSTIC'
+        fixture_class=fixture_spec['class'];fixture_count=3;qualification='UNQUALIFIED_DIAGNOSTIC'
         completed_status='diagnostic-complete';runtime_bound=fixture_spec['runtime_bound']
         assert fixture_name=='diagnose_workspace_copy_quota.py' and discovery_name=='inspect_workspace_copy_quota_diagnostic.py'
         assert fixture_class=='QuotaDiagnosticTests' and selected_case is not None
-        mode=fixture_spec['mode'];assert mode in ('nocopy','copy')
-        expected='test_no_copy_live_writers_sixty_second_diagnostic' if mode=='nocopy' else 'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch'
-        assert selected_case==expected and runtime_bound==(120 if mode=='nocopy' else 360)
+        mode=fixture_spec['mode']
+        selection={
+            'nocopy':('test_no_copy_live_writers_sixty_second_diagnostic',120),
+            'copy':('test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch',360),
+            'smallquota':('test_small_source_quota_rejects_actual_writer_and_preserves_peer_application',120)}
+        assert mode in selection
+        assert (selected_case,runtime_bound)==selection[mode]
         for path in (source/'tests/core'/fixture_name,source/'tools'/discovery_name):
             assert path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(source)
             assert not path.stat().st_mode&0o222,'Diagnostic fixture specification requires frozen source files'

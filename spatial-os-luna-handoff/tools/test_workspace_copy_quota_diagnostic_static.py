@@ -3,6 +3,9 @@ import ast
 import importlib.util
 from pathlib import Path
 import sys
+import runpy
+from types import SimpleNamespace
+from unittest.mock import patch
 import unittest
 
 SOURCE=Path(sys.argv.pop(1)).resolve()
@@ -11,6 +14,7 @@ spec=importlib.util.spec_from_file_location('_quota_engine_runner_static',RUNNER
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 POSITIVE='test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch'
 CONTROL='test_no_copy_live_writers_sixty_second_diagnostic'
+NEGATIVE='test_small_source_quota_rejects_actual_writer_and_preserves_peer_application'
 
 
 def constants(statements):
@@ -32,7 +36,7 @@ class QuotaDiagnosticStaticTests(unittest.TestCase):
         self.assertFalse(runner.selected_method_passed(line.replace(' ... ok',' ... ERROR'),POSITIVE))
 
     def test_diagnostic_class_requires_its_explicit_method_proof(self):
-        for method in (CONTROL,POSITIVE):
+        for method in (CONTROL,POSITIVE,NEGATIVE):
             line=f'{method} (__main__.QuotaDiagnosticTests.{method}) ... ok'
             self.assertFalse(runner.selected_method_passed(line,method))
             self.assertTrue(runner.selected_method_passed(line,method,'QuotaDiagnosticTests'))
@@ -63,10 +67,32 @@ class QuotaDiagnosticStaticTests(unittest.TestCase):
         normal=loader_methods(SOURCE/'tests/core/test_workspace_copy_engine.py')
         separate=loader_methods(SOURCE/'tests/core/diagnose_workspace_copy_quota.py')
         self.assertEqual(len(normal),13);self.assertEqual(len(set(normal)),13);self.assertNotIn(CONTROL,normal)
-        self.assertEqual(set(separate),{CONTROL,POSITIVE});self.assertEqual(len(separate),2)
+        self.assertEqual(set(separate),{CONTROL,POSITIVE,NEGATIVE});self.assertEqual(len(separate),3)
+        self.assertIn(NEGATIVE,normal)
+        self.assertEqual(selected['fixture_count'],3)
         fixture=ast.parse((SOURCE/'tests/core/diagnose_workspace_copy_quota.py').read_text())
         subclass=next(node for node in fixture.body if isinstance(node,ast.ClassDef) and node.name=='QuotaDiagnosticTests')
-        self.assertNotIn(POSITIVE,{node.name for node in subclass.body if isinstance(node,ast.FunctionDef)})
+        self.assertFalse({POSITIVE,NEGATIVE}&{node.name for node in subclass.body if isinstance(node,ast.FunctionDef)})
+
+    def test_private_driver_selects_exact_methods_and_preserves_bounds(self):
+        driver=SOURCE/'tools/run_workspace_copy_quota_diagnostic.py'
+        expected={'nocopy':(CONTROL,120),'copy':(POSITIVE,360),'smallquota':(NEGATIVE,120)}
+        for mode,(method,bound) in expected.items():
+            calls=[]
+            def capture(**kwargs):calls.append((list(sys.argv),kwargs['fixture_spec']))
+            with patch.dict(sys.modules,{'run_workspace_copy_engine':SimpleNamespace(main=capture)}), \
+                 patch.object(sys,'argv',[str(driver),'BUILD','SOURCE','EVIDENCE',mode]):
+                runpy.run_path(str(driver),run_name='__main__')
+            self.assertEqual(len(calls),1)
+            argv,spec=calls[0]
+            self.assertEqual(argv,[str(driver),'BUILD','SOURCE','EVIDENCE',method])
+            self.assertEqual(spec,{'fixture':'diagnose_workspace_copy_quota.py','discovery':'inspect_workspace_copy_quota_diagnostic.py',
+                 'class':'QuotaDiagnosticTests','mode':mode,'runtime_bound':bound})
+        calls=[]
+        with patch.dict(sys.modules,{'run_workspace_copy_engine':SimpleNamespace(main=lambda **kwargs:calls.append(kwargs))}), \
+             patch.object(sys,'argv',[str(driver),'BUILD','SOURCE','EVIDENCE','unknown']):
+            with self.assertRaises(AssertionError):runpy.run_path(str(driver),run_name='__main__')
+        self.assertEqual(calls,[])
 
 
 if __name__=='__main__':unittest.main()

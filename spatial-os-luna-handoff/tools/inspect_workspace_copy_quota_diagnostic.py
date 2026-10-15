@@ -1,4 +1,4 @@
-"""Discover the two opt-in quota diagnostics without starting services."""
+"""Discover the three opt-in quota diagnostics without starting services."""
 import hashlib
 import importlib.util
 import json
@@ -25,7 +25,7 @@ def methods(tests):
         if isinstance(test,unittest.TestSuite):yield from methods(test)
         else:yield test._testMethodName
 selected=list(methods(suite))
-assert len(selected)==2 and len(set(selected))==2
+assert len(selected)==3 and len(set(selected))==3
 assert all(callable(getattr(module.QuotaDiagnosticTests,name)) for name in selected)
 reached={}
 for name,value in tuple(sys.modules.items()):

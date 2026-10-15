@@ -113,7 +113,7 @@ def main():
     req = json.loads(request.read_text(encoding="utf-8"))
     required = {"protocol_version", "case_id", "mode", "filesystem_id", "fixture_pid", "fixture_start_ticks", "boot_id", "volume_name", "mount_path", "volume_image"}
     missing = required - req.keys()
-    if missing or req.get("protocol_version") != 1 or req.get("mode") not in ("nocopy", "copy"):
+    if missing or req.get("protocol_version") != 1 or req.get("mode") not in ("nocopy", "copy", "smallquota"):
         raise SystemExit(f"invalid request; missing={sorted(missing)}")
     case = req["case_id"]
     if not re.fullmatch(r"[A-Za-z0-9._-]{1,120}", case):

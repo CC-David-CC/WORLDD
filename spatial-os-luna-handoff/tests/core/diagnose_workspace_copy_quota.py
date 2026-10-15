@@ -12,6 +12,7 @@ import test_workspace_copy_engine as engine
 
 CONTROL='test_no_copy_live_writers_sixty_second_diagnostic'
 POSITIVE='test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch'
+NEGATIVE='test_small_source_quota_rejects_actual_writer_and_preserves_peer_application'
 
 
 def atomic_json(path,value):
@@ -39,7 +40,7 @@ class QuotaDiagnosticTests(engine.WorkspaceCopyEngineTests):
         self.observer_directory=Path(os.environ['SPATIAL_COPY_QUOTA_DIAGNOSTIC_DIR']).resolve()
         self.assertTrue(self.observer_directory.is_dir() and self.observer_directory.is_relative_to(Path.home()/'spatial-artifacts'))
         self.mode=os.environ['SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE']
-        self.assertEqual(self.mode,'nocopy' if self._testMethodName==CONTROL else 'copy')
+        self.assertEqual(self.mode,{CONTROL:'nocopy',POSITIVE:'copy',NEGATIVE:'smallquota'}[self._testMethodName])
         super().setUp()
         self.addCleanup(self.finish_observer)
         volume=json.loads((self.copy_evidence/'volume.json').read_text())
@@ -169,7 +170,8 @@ class QuotaDiagnosticTests(engine.WorkspaceCopyEngineTests):
 def load_tests(loader,tests,pattern):
     return unittest.TestSuite(QuotaDiagnosticTests(name) for name in (
         'test_no_copy_live_writers_sixty_second_diagnostic',
-        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch'))
+        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch',
+        'test_small_source_quota_rejects_actual_writer_and_preserves_peer_application'))
 
 
 if __name__=='__main__':unittest.main()
