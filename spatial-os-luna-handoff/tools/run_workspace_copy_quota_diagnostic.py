@@ -2,7 +2,8 @@
 import sys
 from run_workspace_copy_engine import main
 
-assert len(sys.argv)==5
+assert len(sys.argv) in (5,6)
+if len(sys.argv)==6:assert sys.argv[5].startswith('--profile=')
 mode=sys.argv[4]
 selection={
     'nocopy':('test_no_copy_live_writers_sixty_second_diagnostic',120),

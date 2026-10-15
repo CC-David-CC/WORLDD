@@ -1083,14 +1083,18 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-probe> $<TARGET_FILE:spatial-authority-migrate>)
     set_tests_properties(authority-bootstrap PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
-    add_custom_target(workspace-copy-engine-fixture DEPENDS workspaced worldd identityd spatial-issuer-client
+    add_custom_target(workspace-copy-engine-fixture DEPENDS workspaced worldd identityd spatial-issuer-client spatial-security-auth
         spatial-process-scope-probe spatial-storage-owner-service spatial-app-init
         spatial-copy-tree-worker spatial-copy-finalize-worker broker-python-protobuf
         copy-worker-python-protobuf storage-python-protobuf issuer-python-protobuf grants-python-protobuf
         world-session-python-protobuf)
+    set(copy_fixture_profile_arguments)
+    if(SPATIAL_SANITIZERS)
+        list(APPEND copy_fixture_profile_arguments --profile=ASan-UBSan)
+    endif()
     add_test(NAME workspace-copy-engine COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_engine.py" "${CMAKE_CURRENT_BINARY_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env)
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env ${copy_fixture_profile_arguments})
     set_tests_properties(workspace-copy-engine PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_custom_target(workspace-copy-fault-fixture
@@ -1102,23 +1106,23 @@ if(BUILD_TESTING)
     add_test(NAME workspace-copy-absolute-deadline COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
-        test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies)
+        test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies ${copy_fixture_profile_arguments})
     add_test(NAME workspace-copy-actor-revocation COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
-        test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication)
+        test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication ${copy_fixture_profile_arguments})
     add_test(NAME workspace-copy-lost-publication-ack COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
-        test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish)
+        test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish ${copy_fixture_profile_arguments})
     add_test(NAME workspace-copy-hostile-git COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
-        test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects)
+        test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects ${copy_fixture_profile_arguments})
     add_test(NAME workspace-copy-worker-death-recovery COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
-        test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch)
+        test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch ${copy_fixture_profile_arguments})
     set_tests_properties(workspace-copy-absolute-deadline workspace-copy-actor-revocation
         workspace-copy-lost-publication-ack workspace-copy-hostile-git workspace-copy-worker-death-recovery
         PROPERTIES TIMEOUT 450 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy

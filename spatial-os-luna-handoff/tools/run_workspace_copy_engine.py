@@ -13,6 +13,9 @@ import subprocess
 import sys
 import time
 import uuid
+# File-based preflight importers need the adjacent, frozen profile helper too.
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from copy_fixture_profiles import consume_profile, instrumentation_preflight
 
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -42,6 +45,7 @@ def helper_state(path):
     return dict(sha256=digest(path),uid=info.st_uid,gid=info.st_gid,mode=stat.S_IMODE(info.st_mode))
 
 def main(*,fixture_spec=None):
+    sys.argv[:], resource_profile = consume_profile(sys.argv)
     assert len(sys.argv) in (4,5)
     assert socket.gethostname().split('.')[0] in ('sb16','sb16-2')
     assert os.getuid()==pwd.getpwnam('dflanag3').pw_uid>0
@@ -100,6 +104,7 @@ def main(*,fixture_spec=None):
     sys.path.insert(0,str(build/'python'))
     try:
         report['runtime_preflight']=runtime_config_preflight(build);save()
+        report['resource_profile'] = instrumentation_preflight(build, resource_profile);save()
     except BaseException as error:
         report['runtime_status']='setup-failed';report['failure']=repr(error);save();raise
     import broker_pb2 as broker
@@ -145,6 +150,10 @@ def main(*,fixture_spec=None):
                 'SPATIAL_COPY_QUOTA_DIAGNOSTIC_DIR='+str(evidence/'observer'),
                 'SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE='+fixture_spec['mode']]
         if selected_case:command.append(fixture_class+'.'+selected_case)
+        if resource_profile == 'ASan-UBSan':
+            adapter_separator=command.index(str(source/'tools/with_adapter_resources.py'))+1
+            assert command[adapter_separator]=='--'
+            command.insert(adapter_separator,'--copy-profile=ASan-UBSan')
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
             SPATIAL_SECURITY_EVIDENCE=str(evidence/'cases'),SPATIAL_SCOPE_EVIDENCE=str(evidence/'scopes'),
