@@ -798,3 +798,76 @@ Preselected order: Debug16 hostile Git first on each host; then Debug14 revocati
 Require overall success and cleanup before advancing each host. Then finish Debug15/17 and fault sanitizers.
 Keep all failed outputs. No corrected-candidate runtime method has run yet.
 The real milestone integration branch remains unchanged at 55a659a849c8bac73d3ceacdc0cb9b4e5b3e1ddd.
+
+Corrected packaging, target preflight, and first combined runtime passes
+The controller froze the reviewed composer and archive validator into primary-inputs.
+The composer permits only the exact reviewed CMake, acceptance lock, and CURRENT_STATE blobs outside its prior scope.
+It still rejects production src/proto differences against retained runtime eb569.
+Initial packaging completed its archive checks, but the controller found a target-path mistake before deployment.
+The source parent used six commit characters. The existing extractor requires the first eight: 846e07b8.
+The earlier artifacts remain retained and superseded. No runtime ran from them.
+Corrected packaging used fresh composed-v2 outputs and canonical outer primary-package-02, with command/wrapper exits 0/0.
+Each archive contains 1,174 frozen source files and is 2,674,257 bytes.
+Artifact root: a5500:/home/dflanag3/spatial-artifacts/m07-fixture-combined-846e07-20261015.
+Final extractor changes only the source pin from ee2af573 to 846e07b8.
+Extractor SHA256: 4312006d8ae67f5dfde6df55b6a32af46dcb60e052751db5074b291740ec44bd.
+
+A delegated launcher attempt ran from stdin instead of being saved. Its worker reported a pre-transfer pin-check failure.
+Its process handle was unavailable later. It provides no canonical deployment evidence and counts as no successful preflight.
+The primary verified both target source paths were absent before the controlled replacement deployment.
+The controller then deployed the frozen scripts and source artifacts through primary-deploy-controller-01.
+Its actual command/wrapper exits were 0/0, with empty stderr and a valid two-host launch receipt.
+No old artifacts were overwritten. Both targets used fresh 846e07b8-support-primary-01 directories.
+Each target canonical outer 846e07b8-artifact-preflight-primary-01-outer exited 0/0 with empty stderr.
+Both actual deployment receipts verify Debug and SAN compositions, retained runtime hashes, XACE closure, and canonical runner.
+These artifact-only checks execute no runtime methods or helper installation.
+The primary independently read both target receipts before authorizing runtime.
+
+Combined Debug16 hostile Git passed on both hosts.
+Run root per host: matrix/HOST/focused846e07b8-debug-16-primary-01.
+Outer: the same path with suffix -outer. Both command/wrapper exits are 0/0.
+Each case also has inner command and launcher exits 0/0, exact named-method PASS, and exactly one test.
+SB16 runtime: 18.809 seconds. SB16-2 runtime: 18.915 seconds.
+The primary read the raw unittest reports and actual result records.
+Both tree-worker and finalize-worker restoration receipts are true.
+Both test volumes are confirmed unmounted, with no remaining loop association.
+This repairs the previously failing hostile-Git teardown in these Debug runs.
+It does not identify the original failure's exact PID/FD or qualify deadline/revocation behavior.
+No failed image or previous evidence was deleted.
+
+The existing read-only retention builder was adapted by changing only its exact source-pin constant.
+Builder SHA256: 23fa9ebb2f4b7378f3c9904fefadac37d27bcbde6dc3da3d95d923e7195efaa8.
+It verifies named results, exact counts, all exits, helper restoration, volume identity, and proof/log/image hashes.
+Canonical retention checks exited 0/0 on both hosts, one passing case and one retained image each.
+SB16 manifest: matrix/sb16/retention846e07b8-debug-16-primary-01.json.
+SHA256: 974d66b5cc152d84f9fac2f385cd159c15ab582610bfab0ab4a7a4455ad0277e.
+SB16-2 manifest: matrix/sb16-2/retention846e07b8-debug-16-primary-01.json.
+SHA256: a6efc65a64ba1672fd6c455f4e7e93be08383a2f9619645f86e21d648b242767.
+Both manifests explicitly deny deletion authorization.
+
+After reviewing Debug16 and retention, the primary launched one Debug14 revocation retry on each host.
+Run root: matrix/HOST/focused846e07b8-debug-14-primary-01; outer has suffix -outer.
+Tmux session on each target: m07-846-revocation14-debug-primary-01.
+These results are pending. Deadline13, supervised lost-ACK15, worker-death17, and fault sanitizers remain pending.
+M07 is still UNQUALIFIED. These focused results do not substitute for the full combined milestone gate.
+
+Combined revocation outcomes and next deadline run
+Debug14 passed on sb16-2: one named test in 25.904 seconds, all four result exits 0, cleanup confirmed.
+Debug14 failed on sb16: one test in 23.744 seconds, all result exits 1, cleanup confirmed.
+The primary read both actual unittest reports and result fields.
+SB16's direct SQLite observer SELECT raised sqlite3.OperationalError: database is locked at faults.py:538.
+Do not infer a production authority failure from this exception. Do not treat that case as passed.
+The original corrected denial assertion was reached without its previous mismatch.
+Later continuity assertions on sb16 remain unproven because the observer query failed first.
+The sb16 runtime lane is held. A bounded stronger review will inspect production transactions and observer lifetime.
+It must establish whether production or test observation needs correction before changing either.
+The existing 35-second completion budget and all authority, no-publication, and source-process assertions remain mandatory.
+No blind timeout increase or unconditional retry is authorized as a substitute for diagnosis.
+
+SB16-2 Debug14's read-only retention builder also exited 0/0 before advancing.
+Its proof, log, result, volume, and image hashes remain retained without deletion authorization.
+The primary then launched Debug13 only on sb16-2.
+Tmux: m07-846-deadline13-debug-primary-01.
+Root: matrix/sb16-2/focused846e07b8-debug-13-primary-01; outer has suffix -outer.
+This exercises the existing absolute 300-second operation budget. Allow roughly five minutes plus setup and cleanup.
+The result remains pending. No new sb16 test is running while its observer-lock failure is under review.
