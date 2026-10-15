@@ -1,22 +1,27 @@
-## 2026-10-15: Focused Debug matrices complete; request-identity fixture repaired
+## 2026-10-15: Broker correction passes all four focused runs
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This entry supersedes conflicting details below.
-Both b152 v4 Debug matrices completed all 25 selected suites.
-Each runner reports 23 passes and two flags. Actual CTest results show 24 passes and one failing broker fixture.
-The journal migration passed. Its flag came from incorrectly requiring unittest output from a plain assertion script.
-Primary review preserved that mechanical rejection and verified the successful source-pinned runtime evidence separately.
-The broker fixture expected internal request ID 3 where the probe correctly preserved external client ID 2.
-Reviewed test-only correction a1ceef3115ed87bedfe5ed70993f6bff5b40d1d5 is verified on box-git, UNQUALIFIED.
-Its runtime checks remain unrun. Production request correlation and malformed-reply rejection remain unchanged.
 
-The nine-method geometry suite passed exact-directory runs on both hosts.
-The previous fourteen-method native suite passed both hosts and both profiles.
-The ee64407 four-profile build/package preparation passed. Independent archive verification is dispatched.
-That package excludes the later test-only a1ceef correction. Builder remains ee64407 during verification.
-No installed helper or catalog has changed. The rebuilt repair suites and full M07 gate remain pending.
-Verified archival recovered another 6,107,836,416 bytes on sb16-2 and 6,337,601,536 bytes on sb16.
-Milestone integration remains 706fe47. Read the execution record for exact results, pins, and remaining work.
+The corrected broker fixture passed all 32 methods in Debug and ASan/UBSan on both hosts.
+All 128 method executions passed. No skips or sanitizer findings were found.
+The primary independently verified JUnit, method counts, zero inner/controller/sequence exits, and terminated controllers.
+Each controller verified source, binary, bindings, and metadata integrity after its run.
+Evidence uses b152 binaries and the explicit a1ceef test-only overlay. It does not qualify later production changes.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for the exact evidence paths and scope.
+
+The ee64407 package is verified, frozen, and staged on both qualification hosts.
+All 1,882 archive files and 1,025 source hashes match.
+The successor driver passed 58 actual-package controls and fourteen exact metadata inventories.
+Primary review accepted these package controls. Actual deployment and runtime checks remain unrun.
+The installed storage-owner helpers remain unchanged. Guarded deployment scripts are in preparation.
+The final package plan will include a1ceef. The ee64407 package still contains the previous test fixture.
+
+Old sb16 native M06 evidence archival recovered 6,108,106,752 allocated bytes.
+The obsolete sb16-2 706 deployment is being archived. Its source remains intact.
+Full-gate capacity requires another check after extraction and cleanup.
+Milestone integration remains 706fe47. Combined task source is a1ceef, verified on box-git and unqualified.
+The complete M07 gate remains pending. GitHub publication remains deferred.
 
 ## 2026-10-15: Exact-directory Debug rerun and successor preparation
 
