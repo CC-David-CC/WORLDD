@@ -1,3 +1,22 @@
+## 2026-10-15: Optional copies pass; restart fixture re-registers an occupied domain
+
+Both hosts passed the optional-state and definition-selection method at reviewed fixture checkpoint 76ec0aea.
+Each method completed both copies with its original assertions. Source capacity was declared before provisioning.
+SB16 took 52.458 seconds. SB16-2 took 57.762 seconds. All exits and cleanup checks passed.
+The policy/restart method then failed on both hosts after the initial copy was published.
+Destination authority setup tried to register a new participant for the source's already registered domain.
+The issuer correctly returned IN_USE. Destination relaunch and recopy remain unrun.
+The existing owner-signed participant_domains_add API supports the required stopped-service extension.
+A reviewed fixture correction is verified on box-git at 619d1720f16e4fdff91f1c13c8a0aea1a3226010.
+It preserves the stopped participant's ID/key and validates the domain-addition receipt before updating runtime configuration.
+Production uniqueness checks remain unchanged. Source-only packages are in preparation; runtime checks remain UNRUN.
+Both failed policy images and their original evidence remain retained.
+SAN package metadata now passes actual runtime and graphics dependency verification on both hosts.
+The corrected SAN record uses the wrapper reference expected by the unchanged driver.
+A changed-wrapper negative probe was rejected on each host. No SAN runtime method ran at this checkpoint.
+M07 remains UNQUALIFIED. Finish the focused repair, remaining engine/fault checks, and full combined gate.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
 ## 2026-10-15: Expanded copy checks expose another undersized writer fixture
 
 Both hosts passed the first nine Debug engine methods at fixture checkpoint 8ea5cb60.

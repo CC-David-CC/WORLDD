@@ -284,3 +284,76 @@ At this checkpoint, expanded coverage totals eighteen passed, one failed, and fi
 That count is the 13-engine plus 5-fault matrix across two hosts and two profiles.
 It excludes the earlier sixteen accepted repair executions and all setup-only attempts.
 No repair branch is integrated. The full combined M07 gate has not started.
+
+Continuous-writer candidate runtime results
+Fixture checkpoint 76ec0aea passed the optional-state/definition method on both hosts.
+SB16: Ran 1 / OK in 52.458 seconds. Result SHA256:
+3c182168d226b7dd21a81b984e43b6817d6a19dacc201c5d6685154b176aa3c7
+SB16-2: Ran 1 / OK in 57.762 seconds. Result SHA256:
+417219cb7e3b2e2e1df99860ba7c7d6552a146223eb962c59bf2594ff30b24b8
+All command, wrapper, inner-command, and launcher exits were zero. Both cleanups were confirmed.
+The methods completed application-state selection and application-definition selection without adding unselected classes.
+SB16-2 retained two distinct copy-start snapshots with the same ten live PID/start identities and no diagnostic errors.
+This establishes those baselines. Do not treat a start snapshot as an independent publication-time process witness.
+
+Both policy/restart methods then failed at the same later authority step.
+SB16: Ran 1 / FAILED in 43.030 seconds, result SHA256:
+35b3378aa81d8dc1d5cd8c6241e0ea0685faef40ee5587f7bdf6fa6b9a42cba1
+SB16-2: Ran 1 / FAILED in 47.413 seconds, result SHA256:
+fa42227dc639ed4e4edd923c3bf5a4b71624df3a85c192c1b617e1752d9a4a26
+All four exits were one on both hosts. Helpers, units, and volume cleanup were confirmed.
+The tests published the initial copy and passed the no-copied-authority/processes assertion.
+They then intentionally stopped the source editor, closed the world/broker, and checked stored owner receipts.
+assign_destination_authority next failed with IN_USE: Authority domain already has a registered participant.
+Destination relaunch, quota reassignment, and recopy did not run.
+The failed images remain retained. SB16 image: m07-engine-02c604a309a04a72.
+Its filesystem ID is 45a8f8f9ccfb41a89ae12763e198e735.
+
+SB16 runtime roots are under 76ec-support-primary-01/runs/debug-index09-r1 and debug-index12-r1.
+SB16-2 runtime roots are focused76ec-debug-09-optional and focused76ec-debug-12-policy.
+Each root is relative to that host's existing matrix evidence directory.
+The primary reviewed all four actual result records and the exact authority caller/server contract.
+configure_participant caches registrations by exact domain set. The expanded set creates a different service identity.
+The issuer correctly refuses its attempt to claim the existing source domain.
+The existing participant_domains_add operation preserves a stopped participant's ID/key and validates exact revisions.
+Use that owner-signed operation for the new destination, then update the existing participant's runtime configuration.
+Do not weaken domain uniqueness, actor grants, revocation, or stopped-generation requirements.
+A narrow fixture repair is being prepared on m07/copy-participant-domain-repair-20261015, based on 76ec0aea.
+No production change or authority repair pass is claimed.
+
+Deployment and SAN metadata corrections
+Both source overlays contain 1,161 verified frozen files. Only source archives were transferred.
+Primary extraction receipts have command/wrapper exits 0/0 on both hosts.
+An initial SB16 Debug composition actually succeeded; its canonical stdout is the expected JSON and exits are 0/0.
+A worker had confused a later SSH observation error with that command's result. Preserve the original receipts.
+SB16-2 initially invoked an older 8ea5 composer. It rejected the new pin before creating a Debug record.
+Fresh candidate-specific support paths now contain scripts checked against approved hashes before invocation.
+Both corrected Debug metadata jobs passed. No old file or failed record was overwritten.
+
+The first combined profile preflight passed Debug, then rejected SAN metadata before runtime.
+The SAN producer stored a full graphics dependency record where the driver requires the wrapper reference.
+Actual SAN executable and graphics dependency verification passed; this was a metadata schema mismatch.
+The corrected composition changes only xace_host_profile_row to the already verified wrapper record.
+Original metadata and full dependency references remain retained. The driver and production artifacts are unchanged.
+Both hosts passed full composition validation and rejected an intentionally changed wrapper reference.
+SB16 corrected SAN composition SHA256:
+f418ff8363c759b2e2e2781ed8436cf774c01479df6fd1b946491e5d60e6a6d3
+SB16-2 corrected SAN composition SHA256:
+1c8eb0938a27a860e7383d02fdfe8fc27e6339c43c55033ab8175d7be47e076d
+Path on each host: matrix/HOST/76ec-support-primary-01/san-composed-run-v2.json.
+Canonical checks: matrix/HOST/deployment-sanmeta-repair-76ec-01, exits 0/0.
+The future producer correction is compose_step4_source_overlay.v2.py in the candidate's external orchestration directory.
+Producer SHA256: 0a04b892e078f4077d63ad79723eeeafd37df1f553de6d0216fcfa85340e2b03.
+The four planned SAN methods remain unrun because the policy/restart Debug failure stopped runtime progression.
+
+Stopped-participant fixture repair checkpoint
+Primary-reviewed checkpoint 619d1720f16e4fdff91f1c13c8a0aea1a3226010 is BOX-GIT VERIFIED, UNQUALIFIED.
+Branch: m07/copy-participant-domain-repair-20261015. Parent: 76ec0aea225b122eea97e8d4b41ab4c0f264d3ca.
+The fixture extends the stopped service through the existing owner-signed participant_domains_add API.
+It preserves the participant ID and key, verifies exact receipts, and refreshes registration revisions.
+The existing duplicate-domain, active-generation, unresolved-obligation, and pending-launch checks remain enforced.
+Only the engine fixture and its explicit repair note changed. Production source and runtime binaries are unchanged.
+AST, whitespace, and repository-data checks passed. Runtime verification remains UNRUN.
+Selected checks are policy/restart on both hosts in Debug and ASan/UBSan, plus five participant-domain API regressions.
+These cover exact receipts, stale revisions, foreign ownership, active or pending generations, and stale authentication.
+Source-only package preparation is active. No milestone integration or full M07 gate has started.
