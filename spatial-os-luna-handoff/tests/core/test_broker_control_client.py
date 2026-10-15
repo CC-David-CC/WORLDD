@@ -65,10 +65,11 @@ class BrokerControlClientTests(unittest.TestCase):
     def respond(self,request,**outcome):
         self.peer.sendall(frame(pb.Reply(protocol_version=1,request_id=request.request_id,**outcome)))
 
-    def result(self,field):
+    def result(self,field,request_id=None):
         reply=receive(self.stream,pb.Reply)
         self.assertTrue(reply.HasField(field),reply)
-        if field!='control_revoked':self.assertEqual(reply.request_id,self.sequence)
+        if field=='control_revoked':self.assertEqual(reply.request_id,0)
+        else:self.assertEqual(reply.request_id,self.sequence if request_id is None else request_id)
         return getattr(reply,field)
 
     def acquire(self):
@@ -81,8 +82,16 @@ class BrokerControlClientTests(unittest.TestCase):
         for key,value in fields.items():setattr(event,key,value)
         return frame(event)
 
-    def rejected(self):
+    def rejected(self,message=None):
         self.assertEqual(self.proc.wait(timeout=3),2)
+        if message is not None:
+            self.log.seek(0)
+            self.assertEqual(self.log.read().decode(errors='replace').strip(),f'broker client probe: {message}')
+
+    def no_result_after_rejection(self):
+        with self.assertRaisesRegex(EOFError,'Protocol peer closed'):
+            receive(self.stream,pb.Reply)
+        self.rejected('Broker reply has the wrong outcome')
 
     def test_acquire_returns_exact_lease(self):self.acquire()
 
@@ -96,8 +105,25 @@ class BrokerControlClientTests(unittest.TestCase):
 
     def test_revocation_during_unrelated_request_preserves_reply(self):
         self.acquire();request=self.send(application_access=pb.ApplicationAccessRequest(principal=self.principal,applications=[self.app]))
-        self.peer.sendall(self.event());self.respond(request,application_access=pb.ApplicationAccessReply(applications=[pb.ApplicationAccess(application=self.app,observe=True,control=False)]))
-        self.result('control_revoked');self.result('application_access')
+        access=pb.ApplicationAccessReply(incarnation=b'i'*16,epoch=1,applications=[pb.ApplicationAccess(application=self.app,observe=True,control=False)])
+        self.peer.sendall(self.event());self.respond(request,application_access=access)
+        self.assertEqual(self.result('control_revoked'),self.lease)
+        self.assertEqual(self.result('application_access',request_id=request.request_id),access)
+
+    def assert_invalid_application_access_stamp(self,incarnation,epoch):
+        self.acquire();request=self.send(application_access=pb.ApplicationAccessRequest(principal=self.principal,applications=[self.app]))
+        access=pb.ApplicationAccessReply(incarnation=incarnation,epoch=epoch,applications=[pb.ApplicationAccess(application=self.app,observe=True,control=False)])
+        self.respond(request,application_access=access)
+        self.no_result_after_rejection()
+
+    def test_application_access_rejects_missing_incarnation(self):
+        self.assert_invalid_application_access_stamp(b'',1)
+
+    def test_application_access_rejects_short_incarnation(self):
+        self.assert_invalid_application_access_stamp(b'i'*15,1)
+
+    def test_application_access_rejects_zero_epoch(self):
+        self.assert_invalid_application_access_stamp(b'i'*16,0)
 
     def test_partial_event_does_not_block_idle_loop(self):
         self.acquire();event=self.event();self.peer.sendall(event[:2])
