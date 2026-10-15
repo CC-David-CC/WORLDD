@@ -1,5 +1,72 @@
 M07 focused copy quota repair -- authorized 2026-10-15
-Status: IMPLEMENTING. M07 remains UNQUALIFIED. The full gate stays paused.
+Status: DIAGNOSTIC PAIR COMPLETE. Quota repair remains unresolved. M07 remains UNQUALIFIED.
+
+Actual-copy observation with corrected instrumentation
+The complete named five-class copy method passed in 61.653 seconds on sb16-2 Debug.
+The fixture and outer command/wrapper exits were all zero.
+All ten source PID/start identities matched at publication. Both source applications remained running.
+The unchanged method also checked frozen bytes, independent destination inodes, and application relaunch.
+The observer captured 843,160 reservation updates. This concurrent count is approximate.
+No userspace EDQUOT syscall was observed. No events were reported lost or suppressed.
+The capture passed its completeness checks. It does not reproduce the earlier application failure.
+The new syscall-error and parent-chain output path remains unexercised by this successful run.
+Each source persistent-state qgroup reached a metadata-per-transaction peak of 8,372,224 bytes.
+Its ceiling was 8,388,608 bytes. That difference is 16 KiB before referenced usage or other reservations.
+Per-type peaks may occur at different times. Do not sum them as a simultaneous total.
+The actor peak for this reservation type was 17,022,976 bytes against its 32 MiB ceiling.
+The source workspace peak was 17,022,976 bytes against its 64 MiB ceiling.
+These measurements show tight source quota headroom. They do not prove the previous rejecting node.
+Both helpers were restored. The volume was unmounted and detached.
+The exact test service and observer stopped. No further runtime check was launched.
+Evidence host: sb16-2.
+Evidence path: /home/dflanag3/spatial-artifacts/m07-copy-quota-evidence-7be3259e-20261015/02-copy.
+Observer log SHA256: 0e3cf28b464ad633a3598ad50491c42f647fa53294f1131580f7da15c8ee43d6.
+The full M07 gate remains paused. Both-host repair qualification remains unrun.
+Do not claim an eight-MiB repair from one passing copy run.
+The next investigation must capture the intermittent userspace rejection with this corrected observer.
+Keep an intentional small-quota rejection separate from any realistic positive-fixture budget adjustment.
+
+Matched no-copy observation
+Diagnostic checkpoint 7be3259e11db4611d76c779c3dbc136cd5250452 is verified on box-git.
+The no-copy method passed in 72.502 seconds on sb16-2 Debug.
+Both application process trees survived the required 60-second observation.
+The source state ceiling stayed 8 MiB. Writer intervals stayed 5 ms.
+The kernel reported internal qgroup EDQUOT events, then recovered without application exit.
+Do not equate an internal reservation rejection with userspace syscall failure.
+The collector dataset is invalid. Its source qgroup lookup failed.
+Its context checker also rejected a valid skipped version of an atomic latest-value file.
+The fixture contract requires increasing versions, not consecutive observed versions.
+Both helpers were restored. The volume was unmounted and detached.
+The test service and observer stopped. The failure evidence remains preserved.
+Evidence host: sb16-2.
+Evidence path: /home/dflanag3/spatial-artifacts/m07-copy-quota-evidence-7be3259e-20261015/01-nocopy.
+The real-copy diagnostic was still unrun when this control finished.
+The corrected actual-copy observation is recorded above.
+Observer review found two concrete instrumentation defects.
+The qgroup tree uses descending identifiers. The observer searched in the opposite direction.
+Attaching to the trace iterator function alone did not enable its tracepoint static key.
+Therefore, the initial observer captured no reservation-update counters.
+The replacement uses the actual tracepoint and distinguishes failed syscalls from recovered reservation attempts.
+These defects concern external diagnostic tooling. They do not establish a production quota defect.
+
+Update after the two bounded repair attempts
+Both complete test invocations failed. Eight MiB is not reliably sufficient.
+Attempt1 reached PUBLISHED with all ten source PID/start identities intact.
+It then exposed a test race: a resumed writer renamed counter.tmp before an inode check.
+The correction captures the same inode inventory while source applications are frozen.
+A reviewed startup readiness correction waits for complete initialization records.
+Attempt2 failed source continuity after 32.348 seconds, before publication.
+Its retained editor stderr reports EDQUOT during both data/config counter-file renames.
+The editor exited1. The terminal remained running with empty stderr.
+Both command and wrapper exits were1. Cleanup is confirmed for both runs.
+The source fixture checkpoint is f5560df8842fb6191a008893188667bb9ff886bb.
+No complete repair case passed. Remaining profile, small-quota, and fault tests are unrun.
+David then requested the evidence needed to fix the problem.
+That request authorizes controlled diagnosis beyond the earlier two-attempt limit.
+Keep the8 MiB scenario, actor/workspace ceilings, and200 Hz writers unchanged during diagnosis.
+Identify the exact rejecting qgroup and live reservations at EDQUOT.
+Compare one matched no-copy control with one actual snapshot-copy execution.
+Use scoped kernel observation and preserve cleanup. Do not perform blind retries or quota increases.
 
 Authorized endpoint
 Repair the focused copy scenario. Verify Debug and sanitizer behavior on both hosts.

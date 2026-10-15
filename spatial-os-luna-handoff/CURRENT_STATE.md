@@ -1,3 +1,41 @@
+## 2026-10-15: Complete copy passes once; intermittent quota failure remains unresolved
+
+The complete named copy method passed in 61.653 seconds on sb16-2 Debug, with all exits zero.
+All ten source PID/start identities matched at publication. Both applications remained running.
+The corrected observer captured 843,160 reservation updates without a userspace EDQUOT syscall.
+The capture passed completeness checks. Helpers, volume, service, and observer have confirmed cleanup.
+Source metadata reservation peaks reached 8,372,224 bytes against each 8,388,608-byte ceiling.
+That shows tight quota headroom. It does not establish the earlier failure's exact rejecting node.
+The no-copy behavior also passed. Its initial quota capture was invalid and remains preserved.
+Eight MiB is not a verified repair. The earlier userspace EDQUOT failure remains unexplained.
+The diagnostic pair is complete. No additional runs or full qualification started.
+Read [the repair record](../docs/M07_COPY_QUOTA_REPAIR_2026-10-15.txt).
+M07 remains UNQUALIFIED. Both-host repair qualification remains unrun.
+
+## 2026-10-15: No-copy control survives; syscall quota evidence pending
+
+The matched no-copy method passed in 72.502 seconds on sb16-2 Debug.
+Both application trees survived 60 seconds at unchanged 8 MiB source ceilings and 5 ms writer intervals.
+Internal kernel qgroup EDQUOT events recovered without application exit.
+Those events do not alone explain the earlier application failures.
+The collector dataset is invalid because its qgroup lookup and context checker failed.
+Helpers, volume mounts, loop devices, test service, and observer have confirmed cleanup.
+The actual-copy diagnostic is UNRUN. Its observer needs corrected syscall-level attribution.
+Read [the repair record](../docs/M07_COPY_QUOTA_REPAIR_2026-10-15.txt).
+M07 remains UNQUALIFIED. The full gate remains paused.
+
+## 2026-10-15: Eight-MiB candidate failed; causal evidence requested
+
+The two bounded complete copy checks failed. No complete repair case passed.
+The first reached publication with both source process trees intact, then exposed a test metadata race.
+That race and a startup readiness race have reviewed fixture corrections.
+The second still lost the editor after EDQUOT at eight MiB. The terminal remained running.
+Both runs have confirmed cleanup and preserved failure images.
+David requested further evidence. The next diagnostic compares no-copy and actual-copy workloads.
+It must identify the rejecting quota group and live reservations without raising limits.
+Read [the repair record](../docs/M07_COPY_QUOTA_REPAIR_2026-10-15.txt).
+M07 remains UNQUALIFIED. The full gate remains paused.
+
 ## 2026-10-15: Focused quota repair authorized; full gate remains paused
 
 Read [the scoped repair record](../docs/M07_COPY_QUOTA_REPAIR_2026-10-15.txt).
