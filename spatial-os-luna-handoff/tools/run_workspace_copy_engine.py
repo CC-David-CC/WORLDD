@@ -61,7 +61,7 @@ def main():
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
     assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
     evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
-    report=dict(qualification='UNQUALIFIED',selected_methods=1 if selected_case else 12,
+    report=dict(qualification='UNQUALIFIED',selected_methods=1 if selected_case else 13,
         selected_case=selected_case,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
     def root_command(arguments,timeout=30):
@@ -96,7 +96,7 @@ def main():
         report['fixture_discovery_exit']=discovery.returncode;save()
         if discovery.returncode:
             raise RuntimeError('Copy fixture import/discovery failed before helper installation: '+discovery.stderr[-16000:])
-        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==12
+        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==13
         if selected_case:assert selected_case in discovered['methods']
         assert not discovered['services_started'] and discovered['methods_executed']==0
         report['fixture_discovery']=discovered;save()

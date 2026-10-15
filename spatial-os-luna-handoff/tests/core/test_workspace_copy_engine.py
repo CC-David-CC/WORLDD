@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import stat
 import sqlite3
 import subprocess
 import sys
@@ -76,6 +77,9 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
             if result!=0:raise AssertionError('Actual storage owner exited '+str(result))
 
 class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthorityTests):
+    # Fixture inputs are selected before the volume and owner policy are created.
+    SOURCE_STATE_BYTES_BY_SCENARIO={
+        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':8*2**20}
     def operator_run(self,command):
         result=subprocess.run(['sudo','-n',*map(str,command)],capture_output=True,timeout=90)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
@@ -96,12 +100,13 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         policy.volume_bytes=512*2**20;policy.control_plane_bytes=64*2**20;policy.filesystem_reserve_bytes=64*2**20
         policy.default_policy.total_bytes=64*2**20;policy.default_policy.actor_state_default_bytes=32*2**20
         for profile in policy.default_policy.profiles:profile.state_bytes=4*2**20
+        source_state_bytes=self.SOURCE_STATE_BYTES_BY_SCENARIO.get(self._testMethodName,4*2**20)
         for name in ('copy-source','copy-app'):
-            profile=policy.default_policy.profiles.add(name=name,state_bytes=4*2**20)
+            policy.default_policy.profiles.add(name=name,state_bytes=source_state_bytes if name=='copy-source' else 4*2**20)
         self.copy_evidence=Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/self._testMethodName
         self.copy_evidence.mkdir(mode=0o700,parents=True,exist_ok=False)
         (self.copy_evidence/'volume.json').write_text(json.dumps(dict(name=self.name,entry=str(self.entry),volume=str(self.execution_override),
-            operator_directory=str(self.operator_directory),definition_hex=definition.SerializeToString(deterministic=True).hex(),qualification='UNQUALIFIED',cleanup='pending'),indent=2)+'\n')
+            operator_directory=str(self.operator_directory),source_state_ceiling_bytes=source_state_bytes,definition_hex=definition.SerializeToString(deterministic=True).hex(),qualification='UNQUALIFIED',cleanup='pending'),indent=2)+'\n')
         self.definition_path=self.root/'volume.textproto'
         self.definition_path.write_text(text_format.MessageToString(definition))
         self.owner_configuration=self.root/'owner.pb'
@@ -158,6 +163,8 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
     def cleanup_volume(self):
         # Attempt every close. Capture durable evidence before the image is unmounted.
         failures=[]
+        if hasattr(self,'lifecycle_processes'):
+            self.retain_process_lifecycle('before-cleanup',self.lifecycle_owned,self.lifecycle_processes)
         try:self.capture_issuer_lifetime('before_copy_fixture_cleanup')
         except BaseException as error:failures.append('issuer lifetime capture: '+repr(error))
         for item in [*reversed(self.worlds),*reversed(self.brokers)]:
@@ -308,6 +315,68 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             if status.phase==copy.PUBLISHED:
                 self.assertTrue(witnessed or not owned,'No coherent whole-payload quiescence witness');return status
             self.assertLess(time.monotonic(),deadline,'Actual copy exceeded its global operation budget');time.sleep(.01)
+    def retain_process_lifecycle(self,label,owned,processes):
+        try:self.write_process_lifecycle(label,owned,processes)
+        except Exception as error:print('Process lifecycle diagnostic failed: '+repr(error),file=sys.stderr)
+    def write_process_lifecycle(self,label,owned,processes):
+        evidence=dict(label=label,monotonic=time.monotonic(),expected_starts=owned,
+            applications={},broker_pid=self.broker.pid,processes=[],cgroups={},durable_processes=[],quiescence=[],
+            state_witnesses=[],diagnostic_errors=[],diagnostic_unavailable=[])
+        def bounded_file(path,maximum):
+            try:
+                descriptor=os.open(path,os.O_RDONLY|os.O_CLOEXEC|os.O_NOFOLLOW)
+                try:
+                    info=os.fstat(descriptor)
+                    if not stat.S_ISREG(info.st_mode):raise ValueError('Diagnostic file is not regular')
+                    raw=os.read(descriptor,maximum+1)
+                finally:os.close(descriptor)
+                return dict(bytes=info.st_size,data_hex=raw[:maximum].hex(),truncated=len(raw)>maximum)
+            except FileNotFoundError as error:
+                evidence['diagnostic_unavailable'].append(str(path));return dict(unavailable=repr(error))
+            except Exception as error:
+                evidence['diagnostic_errors'].append(str(path)+': '+repr(error));return dict(error=repr(error))
+        for key,value in processes.items():
+            try:evidence['applications'][key]=value.SerializeToString(deterministic=True).hex()
+            except Exception as error:evidence['diagnostic_errors'].append('application '+key+': '+repr(error))
+        current=set()
+        try:current=self.descendants()
+        except Exception as error:evidence['diagnostic_errors'].append('descendants: '+repr(error))
+        for pid in sorted(set(owned)|current):
+            item=dict(pid=pid);evidence['processes'].append(item)
+            for name in ('stat','status','cgroup','cmdline','task/'+str(pid)+'/children'):
+                try:item[name]=(Path('/proc')/str(pid)/name).read_bytes().decode(errors='replace')
+                except OSError as error:item[name+'_error']=repr(error)
+            try:item['exe']=os.readlink('/proc/'+str(pid)+'/exe')
+            except OSError as error:item['exe_error']=repr(error)
+            try:
+                relative=item['cgroup'].strip().split('::',1)[1]
+                if not relative.startswith('/') or '..' in Path(relative).parts:raise ValueError('Invalid unified cgroup path')
+                groups=[Path(relative)]
+                if groups[0].name=='payload':groups.append(groups[0].parent)
+                for group in groups:
+                    key=str(group)
+                    if key in evidence['cgroups']:continue
+                    directory=Path('/sys/fs/cgroup')/key.lstrip('/')
+                    evidence['cgroups'][key]={name:bounded_file(directory/name,16384) for name in
+                        ('cgroup.events','cgroup.freeze','memory.events','memory.current','memory.max','memory.swap.max',
+                         'pids.events','pids.current','pids.max','cpu.max','cpu.stat','io.stat')}
+            except Exception as error:evidence['diagnostic_errors'].append('cgroup '+str(pid)+': '+repr(error))
+        target=self.copy_evidence/('process-lifecycle-'+label+'.json')
+        target.write_text(json.dumps(evidence,sort_keys=True,indent=2)+chr(10))
+        try:
+            with closing(sqlite3.connect('file:'+str(self.execution/'execution.db')+'?mode=ro',uri=True,timeout=1)) as db:
+                for identity,state,payload,exit_code in db.execute('SELECT id,state,payload,exit_code FROM processes ORDER BY id'):
+                    runtime=self.execution/'applications'/identity
+                    evidence['durable_processes'].append(dict(id=identity,state=state,exit_code=exit_code,launch_request_hex=payload.hex(),
+                        logs={name:bounded_file(runtime/name,65536) for name in ('stderr','stdout','setup.log')}))
+                for identity,state,receipt in db.execute("SELECT operation_id,state,receipt FROM copy_effects WHERE kind='quiescence' ORDER BY operation_id,effect_id"):
+                    evidence['quiescence'].append(dict(operation_id=identity.hex(),state=state,receipt_hex=receipt.hex()))
+                for key,identity in db.execute("SELECT key,state_id FROM configured_application_states WHERE workspace='one' ORDER BY key"):
+                    stop=self.project/('stop-'+key)
+                    evidence['state_witnesses'].append(dict(key=key,state_id=identity,stop_exists=stop.exists(),
+                        counters={name:bounded_file(self.execution/'applications'/identity/name/'counter',4096) for name in ('data','config')}))
+        except Exception as error:evidence['diagnostic_errors'].append('database: '+repr(error))
+        target.write_text(json.dumps(evidence,sort_keys=True,indent=2)+chr(10))
     def process_rows(self):
         with closing(sqlite3.connect(self.execution/'execution.db')) as db:
             return db.execute('SELECT id,state FROM processes ORDER BY id').fetchall()
@@ -343,7 +412,14 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             frozen.update({key:self.application_tree(root) for key,(root,contract) in paths.items()})
             self.assertTrue(all(frozen.values()))
         request=self.request_copy(peer)
-        status=self.copy_to_completion(peer,request,owned,capture)
+        self.lifecycle_processes=processes;self.lifecycle_owned=owned
+        self.retain_process_lifecycle('before-copy',owned,processes)
+        try:status=self.copy_to_completion(peer,request,owned,capture)
+        except BaseException:
+            self.retain_process_lifecycle('copy-failure',owned,processes)
+            raise
+        self.retain_process_lifecycle('copy-published',owned,processes)
+        for pid,start in owned.items():self.assertEqual(self.start_time(pid),start,'Source PID/start changed at publication')
         destination=status.authorized_destination_workspace_id;self.assert_copy_has_no_authority_or_processes(destination)
         copied=self.configured_paths(destination);self.assertEqual(set(copied),set(paths))
         for key,(target,contract) in copied.items():
@@ -360,6 +436,9 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.assertGreater(binding.source_state_mapping_revision,0);self.assertEqual(len(binding.state_companions),2)
         self.assertEqual(recipe.owner_state_mapping_revision,1)
         self.assertEqual({item.key for item in recipe.states},set(paths))
+        minimum=max(int(frozen[key][domain+'/counter']) for key in paths for domain in ('data','config'))+1
+        self.wait_state_writes(paths,minimum=minimum)
+        self.retain_process_lifecycle('source-progress-after-thaw',owned,processes)
         for key,process in processes.items():
             (self.project/('stop-'+key)).touch();self.wait_job(world,process)
         final_values={key:{domain:(root/domain/'counter').read_text() for domain in ('data','config')}
@@ -378,6 +457,74 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
                 self.assertEqual((runtime/'home'/('initial-'+domain)).read_text(),final_values[key][domain])
             self.assert_overlap_denied_without_effects(peer,key)
             (self.project/('stop-'+key)).touch();self.wait_job(world,relaunched)
+    def test_small_source_quota_rejects_actual_writer_and_preserves_peer_application(self):
+        self.configure_state_writers()
+        probe=next(item for item in self.configured_definitions.applications if item.key=='editor')
+        probe.definition.arguments[:]=['-c',
+            'import errno,json,os\nfrom pathlib import Path\n'
+            'path=Path(os.environ["XDG_DATA_HOME"])/"quota-probe";block=os.urandom(65536);written=0\n'
+            'try:\n'
+            ' with path.open("wb",buffering=0) as stream:\n'
+            '  for index in range(128):\n'
+            '   count=stream.write(block)\n'
+            '   if count!=len(block):raise RuntimeError("Unexpected short quota probe write")\n'
+            '   os.fsync(stream.fileno());written+=count\n'
+            'except OSError as error:\n'
+            ' if error.errno!=errno.EDQUOT:raise\n'
+            ' print(json.dumps(dict(errno=error.errno,written_bytes=written,chunk_bytes=65536,attempt_bound_bytes=8388608)),flush=True)\n'
+            ' raise SystemExit(73)\n'
+            'raise RuntimeError("Quota probe completed 8MiB without EDQUOT")\n']
+        world=self.workspace(roots=self.collection_roots,registry=True);peer=world.peers[0];self.select(peer)
+        terminal=self.launch_configured(peer,'terminal','small-quota-peer')
+        self.wait_state_writes(self.configured_paths())
+        owned={pid:self.start_time(pid) for pid in self.descendants()}
+        terminal_root=self.configured_paths()['terminal'][0]
+        before={name:int((terminal_root/name/'counter').read_text()) for name in ('data','config')}
+        editor=self.launch_configured(peer,'editor','small-quota-probe')
+        self.lifecycle_processes=dict(editor=editor,terminal=terminal);self.lifecycle_owned=owned
+        self.retain_process_lifecycle('quota-probe-started',owned,self.lifecycle_processes)
+        deadline=time.monotonic()+20
+        while True:
+            with closing(sqlite3.connect('file:'+str(self.execution/'execution.db')+'?mode=ro',uri=True,timeout=1)) as db:
+                result=db.execute('SELECT state,exit_code FROM processes WHERE id=?',(editor.process_id,)).fetchone()
+            if result[0]=='exited':break
+            self.assertEqual(result[0],'running',result)
+            self.assertLess(time.monotonic(),deadline,'Bounded actual quota probe did not exit')
+            self.select(peer);time.sleep(.01)
+        self.assertEqual(result,('exited',73))
+        self.assertEqual(world.management('process.wait',id=editor.process_id,timeout_seconds=0),{'exit_code':73})
+        runtime=self.execution/'applications'/editor.process_id
+        with (runtime/'stdout').open('rb') as stream:raw=stream.read(4097)
+        self.assertLessEqual(len(raw),4096);rejection=json.loads(raw)
+        self.assertEqual(rejection['errno'],122);self.assertEqual(rejection['chunk_bytes'],65536)
+        self.assertEqual(rejection['attempt_bound_bytes'],8*2**20)
+        self.assertGreater(rejection['written_bytes'],0);self.assertLess(rejection['written_bytes'],4*2**20)
+        self.assertEqual((runtime/'stderr').read_bytes(),b'')
+        paths=self.configured_paths();self.assertEqual(set(paths),{'editor','terminal'})
+        self.assertLessEqual((paths['editor'][0]/'data/quota-probe').stat().st_size,4*2**20)
+        self.wait_state_writes({'terminal':paths['terminal']},minimum=max(before.values())+1)
+        for pid,start in owned.items():self.assertEqual(self.start_time(pid),start,'Peer PID/start changed after quota rejection')
+        self.assertGreaterEqual(sum(Path(f'/proc/{pid}/cgroup').read_text().strip().endswith('/payload') for pid in owned),2)
+        self.select(peer)
+        self.retain_process_lifecycle('quota-probe-exited-peer-live',owned,self.lifecycle_processes)
+        (self.project/'stop-terminal').touch();self.wait_job(world,terminal)
+        world.close();self.broker.close()
+        replies=self.stopped_owner_exchange([
+            dict(configured_application_query=storage.StorageConfiguredApplicationQuery(workspace_id='one',key=key))
+            for key in ('editor','terminal')]+[
+            dict(inspect=storage.StorageInspect(object=storage.StorageObject(kind=storage.StorageObject.APPLICATION_STATE,id=process.process_id)))
+            for process in (editor,terminal)],'small-quota-real-owner-inspection')
+        states=[reply.configured_application.state for reply in replies[:2]]+[reply.state for reply in replies[2:]]
+        self.assertEqual({item.maximum_bytes for item in states},{4*2**20})
+        self.assertEqual(len({item.subvolume_id for item in states}),4)
+        self.assertEqual(len({item.quota_group for item in states}),1);self.assertGreater(states[0].quota_group,0)
+        for key,reply in zip(('editor','terminal'),replies):
+            self.assertEqual(reply.configured_application.state.object.id,paths[key][0].name)
+            self.assertEqual(reply.configured_application.storage_policy.actor_state_default_bytes,32*2**20)
+            self.assertEqual(reply.configured_application.storage_policy.total_bytes,64*2**20)
+        (self.copy_evidence/'small-quota-proof.json').write_text(json.dumps(dict(rejection=rejection,
+            durable_probe_exit_code=73,peer_pid_starts=owned,peer_progress_after_probe_exit=True,
+            owner_replies_hex=[reply.SerializeToString(deterministic=True).hex() for reply in replies]),sort_keys=True,indent=2)+chr(10))
     def test_optional_state_and_definition_copy_do_not_add_unselected_classes(self):
         self.configure_state_writers()
         world=self.workspace(roots=self.collection_roots,registry=True);peer=world.peers[0];self.select(peer)
@@ -815,6 +962,7 @@ def load_tests(loader,tests,pattern):
         'test_actor_copy_preserves_confined_checkout_and_commit',
         'test_actor_copy_preserves_confined_detached_commit',
         'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch',
+        'test_small_source_quota_rejects_actual_writer_and_preserves_peer_application',
         'test_optional_state_and_definition_copy_do_not_add_unselected_classes',
         'test_data_only_contract_keeps_config_fresh_across_instance_relaunch',
         'test_owner_rejects_raw_runtime_state_schema1_before_effects',
