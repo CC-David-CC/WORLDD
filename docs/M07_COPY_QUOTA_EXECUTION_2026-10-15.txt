@@ -1,0 +1,84 @@
+M07 workspace-copy repair execution -- 2026-10-15
+Status: IN PROGRESS. Known quota failure recording is validated. M07 remains UNQUALIFIED.
+
+Current source boundary
+Task branch: m07/copy-quota-diagnostic-validation-20261015.
+Reviewed checkpoint: f15ed797850d253a84137269eeeb923fe7328346, verified on box-git.
+Runtime binaries remain unchanged from eb569742f843c59e988e813f3431cf292c516fe7.
+The task checkout is on a5500. Runtime tests run on sb16-2.
+No production quota accounting, process cleanup, or copy lifecycle code changed.
+No task commits have been integrated into the M07 milestone branch yet.
+
+Completed increment: validate the deliberate quota-failure case
+The original probe incorrectly rejected a legal partial write.
+Its first invocation failed before it could reach the expected EDQUOT result.
+Reviewed correction 093f65f2dc142aaffd7d1774b27d68842b0e699d accounts for each accepted byte.
+All original byte bounds, quota limits, expected exit code, and peer-survival assertions remain unchanged.
+The corrected method passed, but exposed a missing quota pointer in the diagnostic recorder.
+Reviewed recorder correction f15ed797 uses a bounded direct lookup for the failed quota group.
+The corrected recorder compiled and passed its zero-FSID attach/shutdown smoke check.
+
+The final known-negative method passed in 14.399 seconds on sb16-2 Debug.
+It observed actual write syscall EDQUOT, recorded exit 73, and preserved peer process identities and progress.
+Real owner replies verified all four state objects retain their 4 MiB limits.
+The recorder captured the failing root and its complete actor, workspace, and volume quota hierarchy.
+The capture passed completeness checks, with no reported lost events, parse errors, or context errors.
+The fixture, canonical command, outer launch, and root observer all exited successfully.
+Both temporary helpers were restored. The volume was unmounted and detached.
+The exact service and observer processes stopped. The test image remains retained.
+Evidence root on sb16-2:
+/home/dflanag3/spatial-artifacts/m07-copy-quota-diagnostic-validation-f15ed797-20261015/03-smallquota.
+Actual method: test_small_source_quota_rejects_actual_writer_and_preserves_peer_application.
+Raw observer SHA256: 8e88dff979caebd05532bfc5f3350bc83d179c9859f0efe04976763b5a7118d0.
+Owner proof SHA256: 88a0ea00191de76f345de40ef504f162081f74a39f2098ec38f0bbc6b6570946.
+Result SHA256: c6a3d53c4aedd2ffca8e5199cc4c781fa213f8716a765a3009fdfb5047c79cc9.
+A parent-chain sample after syscall return is not an atomic record of the earlier kernel decision.
+
+Unchanged positive control
+One unchanged 8 MiB positive diagnostic passed on the same frozen package in 62.796 seconds.
+All ten source PID/start identities matched at publication. Both durable jobs remained running.
+The complete frozen-byte, independence, source-progress, and relaunch assertions passed.
+The capture passed completeness checks. No userspace EDQUOT was observed in this run.
+Each persistent source state again reached 8,372,224 metadata-reservation bytes against its 8 MiB limit.
+Separate reservation peaks are not simultaneous totals. This passing run does not establish reliable sizing.
+All command, wrapper, and observer exits were zero. Helper, volume, service, and observer cleanup are confirmed.
+Case directory: 04-positive8m under the same evidence root's parent.
+Source actor 32 MiB, workspace 64 MiB, destination limits, and five-millisecond writers remained unchanged.
+Raw observer SHA256: 8b229b237ce968c076ddb8645eba8d9f94a2b7f3faf676f11ff5388a2464d63d.
+Publication lifecycle SHA256: bd418421576b1cb8c93fe1ac3b78d775f25bbb74da96b455144f71f28785fce2.
+Result SHA256: 966e355ff7c573f7caa5db2432c1f8066dfa65550a5801d4f27439aba32e2dcb.
+
+Matched no-copy control
+The matched no-copy method passed in 72.841 seconds with a valid capture.
+All ten source PID/start identities survived. Both jobs remained running and continued writing.
+No userspace EDQUOT was observed. All command, wrapper, and observer exits were zero.
+Both helpers were restored. The volume, service, and observer have confirmed cleanup.
+Its two persistent-state metadata reservation peaks were also 8,372,224 bytes each.
+This pressure also occurs without copying. The constrained peaks do not measure an unconstrained working set.
+Case directory: 05-nocopy8m under the same evidence root's parent.
+Raw observer SHA256: e94cde316aff3f83c951d594092f9ab866125ce75c7fb81983e3462e9964c66c.
+Result SHA256: 8de465baccc381f702ae45992ef29388c2459fbb61d71255f5081ca20908a4fe.
+
+Current next check
+One positive-only calibration is approved: source state 64 MiB, actor 256 MiB, workspace 256 MiB.
+Keep the 512 MiB volume, both 64 MiB reserves, and all independent destination limits unchanged.
+Keep the negative and fourteen-application deadline budgets unchanged.
+The earlier intermittent positive-case failure remains unresolved.
+The calibration is not a final qualification budget or a production accounting fix. It remains unrun.
+Both-host positive repair qualification, sanitizer checks, and five copy-fault scenarios remain unrun in this round.
+The full combined M07 gate has not started.
+
+Permanent project artifact transport
+Direct SSH and scp now work from a5500 to sb16 and sb16-2.
+The dedicated key is /home/dflanag3/.ssh/id_ed25519_spatial_tests on a5500.
+Fingerprint: SHA256:nYYEBF9HKiiDgOmqEWc7ruANQLwGL6iVNEpdKd3nVd4.
+Only its public key was added to each test host, with the restrict option.
+Existing keys and sshd configuration were preserved. The private key remains outside Git and tool output.
+Use explicit -i KEY_PATH and -o IdentitiesOnly=yes for project SSH and scp commands.
+The primary independently verified both direct SSH routes. Small direct transfers passed SHA256 checks on both hosts.
+System-change receipts and recovery are on a5500 under spatial-artifacts/m07-direct-test-ssh-20261015.
+Recovery command on a5500:
+bash /home/dflanag3/spatial-artifacts/m07-direct-test-ssh-20261015/remove-m07-spatial-test-key-v2.sh
+Recovery remains UNRUN. Its exact removal code passed four temporary-file checks, including refusal cases.
+Use revision v2. Primary review found and corrected a token-index error in the earlier recovery script.
+Revision v2 SHA256: 5a6adea8a7aaefbbae2d858f948716ab1faf5ddccfa76529dfde5da1f142b465.

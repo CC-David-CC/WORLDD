@@ -1,3 +1,18 @@
+## 2026-10-15: Known quota-failure case and diagnostic recorder pass
+
+The deliberate small-quota case passed on sb16-2 Debug in 14.399 seconds.
+It verified actual EDQUOT, exit 73, continuing peer execution, and real owner quota limits.
+The recorder captured the failed syscall and complete quota hierarchy without reported event loss.
+Reviewed task checkpoint f15ed797850d253a84137269eeeb923fe7328346 is verified on box-git.
+It includes a partial-write probe correction and a diagnostic lookup correction. Production binaries remain unchanged.
+Helpers, volume, service, and observer cleanup are confirmed.
+The unchanged 8 MiB positive diagnostic also passed in 62.796 seconds with all ten source identities intact.
+Its source reservations again approached the limit. The earlier intermittent positive failure remains unresolved.
+The matched no-copy control passed in 72.841 seconds with a valid capture and the same constrained reservation peaks.
+A positive-only 64 MiB calibration with coherent parent limits is approved but remains unrun.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+M07 remains UNQUALIFIED. The full combined gate has not started.
+
 ## 2026-10-15: Complete copy passes once; intermittent quota failure remains unresolved
 
 The complete named copy method passed in 61.653 seconds on sb16-2 Debug, with all exits zero.
