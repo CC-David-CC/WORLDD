@@ -1,3 +1,12 @@
+## 2026-10-15: Focused quota repair authorized; full gate remains paused
+
+Read [the scoped repair record](../docs/M07_COPY_QUOTA_REPAIR_2026-10-15.txt).
+Read-only recovery found EDQUOT in both editor writers' retained stderr.
+The broker then recorded application exit and cleaned up its namespace normally.
+The configured source storage ceiling was 4 MiB. Host disks were not exhausted.
+David authorized a scoped fixture quota repair and focused verification on both hosts.
+The endpoint is a reviewed repair checkpoint followed by a pause. M07 remains UNQUALIFIED.
+
 ## 2026-10-15: User-paused after the focused copy control failed
 
 M07 remains UNQUALIFIED. David requested a pause and a written planning handoff.

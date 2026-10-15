@@ -1,0 +1,71 @@
+M07 focused copy quota repair -- authorized 2026-10-15
+Status: IMPLEMENTING. M07 remains UNQUALIFIED. The full gate stays paused.
+
+Authorized endpoint
+Repair the focused copy scenario. Verify Debug and sanitizer behavior on both hosts.
+Then save a reviewed checkpoint and pause for David's review.
+Allow at most two diagnostic runs before another planning checkpoint.
+A second diagnostic run must answer a specific missing measurement.
+
+Confirmed cause from retained evidence
+Both editor writers raised OSError errno 122, Disk quota exceeded.
+The failing paths were /state/data/counter.tmp and /state/config/counter.tmp.
+The broker recorded exited after receiving an application exit event.
+Normal namespace cleanup then removed the editor's remaining process tree.
+The terminal remained running. Freeze/thaw code contains no process-kill operation.
+The source profile had a 4 MiB per-object storage ceiling.
+Snapshot membership and the stored source ceilings match that configured policy.
+Post-cleanup usage does not prove transient quota reservations at failure.
+
+Read-only recovery provenance
+Host: sb16-2.
+Image: /var/lib/spatial/volumes/m07-engine-dec1da3288714b0e/volume.img
+Runtime source: eb569742f843c59e988e813f3431cf292c516fe7.
+Diagnostic source: fb8258cec44cb7c99429bf16b9f4c272f250d128.
+Original evidence root:
+/home/dflanag3/spatial-artifacts/m07-focused-debug-fb8258ce-20261015/01-engine
+Btrfs root metadata maps editor runtime a8a95e05e58b304d7476f5efc0e7e841 to root262.
+Its stderr inode264 contains 1148 uncompressed inline bytes.
+Leaf logical address36864000, item offset12629, extent header21, leaf header101.
+Metadata chunk logical30408704 maps to physical38797312 and duplicate72351744.
+Exact stderr bytes were read at physical45265359 and duplicate78819791.
+Both copies contain the same two EDQUOT tracebacks.
+These reads did not mount or modify the image.
+
+Scoped candidate repair
+Provide an explicit fixture setting before volume creation.
+Use 8 MiB for copy-source only in the failing two-application scenario.
+Keep other scenarios at 4 MiB, including the fourteen-application deadline case.
+Keep actor32 MiB, workspace64 MiB, destination quotas, memory, and deadlines unchanged.
+Keep both applications' 5 ms writes and all PID/start, freeze, byte, and relaunch assertions.
+Do not ignore EDQUOT or rewrite production process cleanup.
+Eight MiB is an unverified candidate. Do not repeatedly raise it after failure.
+
+Evidence improvements
+Retain exit codes and bounded application stdout, stderr, and setup logs.
+Capture stop markers, counters, process identities, real quiescence receipts, and available cgroup events.
+Capture evidence before application cleanup or volume unmount.
+Retain partial diagnostics without replacing the original test failure.
+Preserve an independent small-quota rejection regression and peer application survival.
+
+Selected verification
+First run only the failing five-class copy case on sb16-2 Debug.
+Require the exact named result, command exit0, wrapper exit0, and confirmed cleanup.
+If it passes, repeat once on sb16-2 Debug.
+Then run the same case on sb16 Debug and ASan/UBSan on both hosts.
+Verify quota enforcement separately. Keep full M07 suites and other fault cases pending.
+Reuse unchanged verified binaries through explicit, hashed fixture overlays.
+
+Capacity and ownership
+sb16 had8.6 GiB free. sb16-2 had35 GiB free during planning.
+Neither exhausted its disk or inodes. The application quota caused the failure.
+Revalidate and remove only the five previously documented passing-test images on sb16.
+Retain image hashes, volume records, logs, failed images, and David's volumes.
+Check mounts, loops, open holders, units, and cgroups before deletion.
+Source and diagnostics: separate a5500 repair worktree.
+Runtime verification: sb16 and sb16-2 under the shared copy-helper lock.
+Forensic recovery: offline reads and external analysis exports only.
+Do not install the planned M07 permanent storage-owner helper in this repair.
+
+The final focused report must state actual results and remaining uncertainty.
+Passing this repair does not qualify M07.
