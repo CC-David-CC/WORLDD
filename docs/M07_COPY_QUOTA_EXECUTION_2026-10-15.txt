@@ -1,3 +1,29 @@
+Current gate preparation checkpoint: frozen package complete
+Candidate: 706fe47aae50000fa78ee1549b76356d3cf66eff. M07 remains UNQUALIFIED.
+All four build configurations passed. Each testing profile has 198 registrations.
+Preparation command.exit and wrapper.exit are zero. The inventory preflight status is ready.
+Archive bytes: 1537654986.
+Archive SHA256: 8ded6d13513c3b50740139239e28d75418c0609a9cffe21b8d701fdb56101648.
+The archive and final metadata are read-only. A reviewed external package pin records their hashes.
+Preparation root on a5500:
+/home/dflanag3/spatial-artifacts/m07-706fe47a-gate-preparation-20261015.
+Both hosts passed capacity and installed-helper preflight. Transfers finished successfully.
+Initial verify-deploy jobs are running under persistent tmux with canonical receipts.
+Controller receipts: /home/dflanag3/spatial-artifacts/m07-706fe47a-deploy-controller-20261015.
+Cross-host review found that both deployments must use the same final absolute path.
+The first deployment used host-specific paths. Do not start local tests at those paths.
+Correct the layout with the supported verifier, using the existing immutable staged archive.
+Use /home/dflanag3/spatial-artifacts/deployments/m07-706fe47a/runtime on both hosts.
+Preserve initial receipts. Remove superseded copies only after replacement verification.
+No source, binary, acceptance contract, or gate assertion changes are required for this correction.
+The full M07 runtime gate remains unrun. Focused engine and fault passes remain valid as recorded below.
+David authorized removing or archiving unnecessary test-host data on 2026-10-15.
+Archive three obsolete M06 qualification directories per host to middle-child before local deletion.
+Preserve current M07 evidence, mounted volumes, native runtime dependencies, and recovery access.
+Selected allocated bytes: sb16 21000392704; sb16-2 20978270208.
+Free-space baseline: sb16 40456851456; sb16-2 47406927872 bytes.
+M01-M06 remain qualified. M08-M16 remain pending. Spatial-M1 is not qualified.
+
 M07 workspace-copy repair execution -- 2026-10-15
 Status: IN PROGRESS. Both-host focused repair checks pass after the sanitizer-only manager correction.
 M07 remains UNQUALIFIED.

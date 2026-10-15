@@ -18,9 +18,14 @@ The earlier preparation failure remains retained. No runtime behavior, assertion
 Integration branch: m07/qualification-integration-20261014. The isolated integration checkout is clean.
 Integrated source-policy, locked acceptance, thirty-name required inventory, and CMake checks passed 0/0.
 The designated a5500 gate builder is clean at the same frozen candidate.
-Four-profile build/package preparation is active on a5500 at the successor pin.
+Four-profile build/package preparation finished on a5500 at the successor pin.
 All four build configurations passed. Debug and sanitizer each list 198 registrations.
-The verified runtime files total about 8.62 GB. Archive creation and its validation remain active.
+The verified runtime files total about 8.62 GB. Packaging and inventory preflight passed with zero exits.
+The final archive is 1,537,654,986 bytes. Its hash and metadata are frozen outside Git.
+Both hosts passed deployment preflight. Initial deployment verification is active under tmux.
+Cross-host review requires a common final path on both hosts. Correct that layout before running the gate.
+No source, binary, assertion, or contract changes are required for this deployment correction.
+Obsolete M06 qualification data is selected for verified archival and deletion to increase test capacity.
 The full M07 runtime gate on both hosts remains pending.
 Run required Debug, sanitizer, production, harness, acceptance, cross-host, native, and recovery qualification on both hosts.
 M07 remains UNQUALIFIED until the complete gate passes and its evidence is reviewed.
