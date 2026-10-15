@@ -1,3 +1,14 @@
+## 2026-10-15: Broader Debug drivers active on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+Both v2 launch attempts stopped before tests because a parser variable shadowed the runtime runner.
+The failures remain preserved. A stronger worker made a narrow v3 correction after two implementation failures.
+V3 passed 38 offline controls, 16 CLI controls, and primary review.
+The primary launched both Debug drivers and verified live processes and RUNNING receipts during integrity preflight.
+Active drivers do not prove completed suites. The sanitizer matrix and full M07 gate remain pending.
+Read the execution record for exact handles, pins, failure receipts, and result locations.
+
 ## 2026-10-15: Combined repair review and focused dispatch preparation
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

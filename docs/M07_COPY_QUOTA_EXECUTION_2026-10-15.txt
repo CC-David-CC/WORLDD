@@ -1,3 +1,31 @@
+Current checkpoint: M07 broader Debug driver active on both hosts
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The v2 Debug launches stopped before tests on both hosts with command and wrapper exits 2.
+The main function's local ArgumentParser variable shadowed the runtime runner function.
+Exact error: FOCUSED_DRIVER_REFUSAL: 'ArgumentParser' object is not callable.
+Both failures remain preserved under each host's Debug-launcher directory.
+Primary rejection record: a5500:/home/dflanag3/spatial-artifacts/m07-b152-focused-driver-20261015/PRIMARY-V2-RUNTIME-REJECTION.json.
+
+A stronger bounded worker produced v3 after two concrete implementation failures.
+Its only driver change renames the parser variable.
+The correction passed 38 offline controls, 16 CLI dispatch controls, and two syntax checks.
+Command and wrapper exits were zero. The worker stopped before primary review and dispatch.
+Reviewed v3 SHA: 294b3311214a24b813ff09630c0862ee8ce0ebc2f179c80bc985f1c2d679a89b.
+
+The primary dispatched Debug v3 on both hosts through the canonical runner and global gate lock.
+Actual live driver PIDs at observation: sb16 2793222; sb16-2 2806569.
+Both outer receipts reported RUNNING with empty stderr during deployment-integrity preflight.
+This proves active drivers, not completed test suites.
+Per-host roots: /home/dflanag3/spatial-artifacts/m07-b152-focused-driver-20261015/HOST.
+Outer receipts: Debug-v3-launcher-01. Focused results: Debug-v3-results-01.
+Tmux sessions: m07-b152-v3-HOST-debug-01.
+The selected 25 suites and purposes were recorded before dispatch.
+Primary dispatch plan: a5500 artifact directory primary-dispatch-v3-01/selected-check-plan.json.
+No sanitizer matrix or full qualification pass is claimed.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: M07 combined repair review and broader focused dispatch preparation
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
