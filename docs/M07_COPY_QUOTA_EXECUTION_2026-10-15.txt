@@ -633,3 +633,44 @@ Both jobs are processing obsolete XLibre output. The selected M03 output follows
 Observed free bytes: SB16 29,597,917,184; SB16-2 34,265,096,192.
 These are progress snapshots. They are not final reclaimed totals.
 No additional storage is required. Preserve current runtime trees and failed M07 evidence.
+
+Evidence-path repair and gate-inventory strengthening
+Follow-up checkpoint ee2af5733aa50b283191a07df1edeb1101ab2523 preserves a83cff88 and corrects its evidence-path restriction.
+The actual writer uses SPATIAL_SECURITY_EVIDENCE as its boundary and validates the destination before file creation.
+It synchronizes the written file and directory chain through filesystem root before retirement signing.
+The independent regression writes beneath an external configured root and rejects an outside output without creating it.
+Its explicit /tmp directory avoids inheriting an artifact-local TMPDIR.
+The final pure retry deliberately used an artifact-local TMPDIR. It passed its named method in 0.002 seconds.
+Canonical command/wrapper exits: 0/0. This is coding-host evidence, not actual crash-recovery qualification.
+Receipt: a5500:/home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/evidence-root-review-02/outer-01.
+The checked push receipt verifies ee2af573 on m07/copy-supervised-lostack-20261015. Its checkout is clean.
+
+Frozen supervisor supplement packaging also passed with command/wrapper exits 0/0 and empty stderr.
+The existing supervisor ELF hashes match the retained eb569 build receipts in both profiles.
+The supplement adds that supervisor and its verified closure. It reuses the ten prior runtime ELFs and 33 binding files.
+Fresh composed BUILD directories use regular-file hardlinks to immutable retained files. Old packages remain unchanged.
+Package receipt: a5500:/home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/packages-ee2af573/package-receipt.json.
+Receipt SHA256: 4742642e400bed8e4a41d8b45eda6904ba4e271fe50ae1e0b86a7594b20e6df9.
+Debug supplement: 9,069,330 bytes; SHA256 2c97c1a37102d115770d6f523898f3fa44e6f18bab17dffd765d3f9d14f179a9.
+SAN supplement: 22,137,479 bytes; SHA256 006b8203918af34cc103811616309adfea423cc01dc6dd8522b3b4c2b9de3d54.
+The primary read the packaging script, orchestration changes, and complete target preparation/preflight script.
+Artifact-only target preparation and read-only preflight are authorized. Actual lost-ACK runtime remains unrun.
+
+The gate-readiness review found three CTest registrations missing from the explicit M07_REQUIRED set.
+They are workspace-copy-fixture-profiles, workspace-copy-fault-relay-timing, and workspace-copy-fault-evidence-durability.
+Checkpoint d2dd4f1c92457d7f543b235ec973be48eaa46c9d adds those exact names without changing locked acceptance.
+Its sole parent is ee2af573. It is verified on box-git under m07/gate-required-regressions-20261015.
+The complete synthetic inventory passed. Removing each added registration returned exactly that missing name.
+Canonical command/wrapper exits: 0/0. No build, CTest, or project runtime ran for that inventory check.
+The primary reviewed the two-line diff, inventory callers, actual check script, and retained outputs.
+The initial checked-helper attempt rejected missing repository-local identity before committing.
+The worker configured David <david@code.contractors> locally and preserved the rejected attempt before retrying successfully.
+No force-push or milestone integration occurred. These remain UNQUALIFIED task checkpoints.
+
+Archival remains live on middle-child. SB16 has eight verified removals and is processing its final M03 directory.
+SB16-2 has seven verified removals and is comparing its XLibre archive before its final M03 directory.
+The primary confirmed exact live controller identities and measured continued HDD reads and writes over ten seconds.
+Observed free bytes: SB16 38,538,108,928; SB16-2 34,265,071,616. These are progress snapshots.
+Each reviewed revocation launcher is conditionally authorized after its own archive succeeds and the helper lane is idle.
+No retry may start after an archive failure or while its host's archive remains active.
+M07 remains in focused fault qualification. The milestone integration, source freeze, and complete gate remain pending.

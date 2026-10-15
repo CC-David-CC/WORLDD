@@ -15,15 +15,20 @@ The issuer correctly refused to reuse an active participant generation without c
 A separate fixture branch supervises both broker and world through the existing production API.
 It requires observed broker death before release, both cleanup receipts, signed retirement, and exact generation restart.
 Seven pure profile checks passed on a5500; test-host runtime remains unrun.
-Checkpoint a83cff88 preserves the reviewed recovery fixture. A final evidence-path compatibility correction remains in review.
-The runner accepts a configured evidence location. The fixture must preserve that contract.
+Checkpoint ee2af573 corrects the evidence-path contract and preserves the earlier a83cff88 checkpoint.
+Its independent filesystem regression passed with an external evidence root and artifact-local TMPDIR.
+The frozen supervisor supplements and source overlay are ready for artifact-only target preflight.
+Checkpoint d2dd4f1c also requires the three new regression registrations in M07's explicit gate inventory.
+Its complete synthetic inventory and three omission checks passed. The locked acceptance tests remain unchanged.
+Both checkpoints are verified on box-git. Neither is integrated into the milestone branch.
 These coding-host checks do not qualify the recovery scenario. Production binaries remain unchanged.
 Keep the actual crash and same-participant recovery requirements. Do not bypass the generation guard.
 No fault method counts as passed in this expanded matrix. Hostile Git, worker-death, and fault sanitizers remain unrun.
 Verified archival of obsolete outputs is running on both hosts. Current evidence and qualified runtime trees remain protected.
 The selected obsolete directories contain about 37 GiB per host. Completed removals have already increased available capacity.
-Observed free space is about 28 GiB on SB16 and 32 GiB on SB16-2. Archival is still active.
+Observed free space is about 36 GiB on SB16 and 32 GiB on SB16-2. Archival is still active.
 Keep timing-sensitive runtime tests clear of each host's active archive work. No additional storage is required.
+Each reviewed revocation retry is queued behind its host's successful archive completion and idle helper lane.
 Finish focused fault checks before integration, source freeze, and the full required M07 gate on both hosts.
 Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
 
