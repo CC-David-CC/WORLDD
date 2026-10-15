@@ -1,3 +1,23 @@
+## 2026-10-15: Focused Debug matrices complete; request-identity fixture repaired
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+Both b152 v4 Debug matrices completed all 25 selected suites.
+Each runner reports 23 passes and two flags. Actual CTest results show 24 passes and one failing broker fixture.
+The journal migration passed. Its flag came from incorrectly requiring unittest output from a plain assertion script.
+Primary review preserved that mechanical rejection and verified the successful source-pinned runtime evidence separately.
+The broker fixture expected internal request ID 3 where the probe correctly preserved external client ID 2.
+Reviewed test-only correction a1ceef3115ed87bedfe5ed70993f6bff5b40d1d5 is verified on box-git, UNQUALIFIED.
+Its runtime checks remain unrun. Production request correlation and malformed-reply rejection remain unchanged.
+
+The nine-method geometry suite passed exact-directory runs on both hosts.
+The previous fourteen-method native suite passed both hosts and both profiles.
+The ee64407 four-profile build/package preparation passed. Independent archive verification is dispatched.
+That package excludes the later test-only a1ceef correction. Builder remains ee64407 during verification.
+No installed helper or catalog has changed. The rebuilt repair suites and full M07 gate remain pending.
+Verified archival recovered another 6,107,836,416 bytes on sb16-2 and 6,337,601,536 bytes on sb16.
+Milestone integration remains 706fe47. Read the execution record for exact results, pins, and remaining work.
+
 ## 2026-10-15: Exact-directory Debug rerun and successor preparation
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

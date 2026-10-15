@@ -1,3 +1,58 @@
+Current checkpoint: M07 focused Debug matrices complete; request-identity fixture repaired
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Both b152 v4 Debug matrices completed all 25 selected suites.
+Each runner reports 23 passes and two flagged suites.
+The actual CTest results are 24 passing suites and one failing broker-control fixture per host.
+No completed full phase gate is claimed.
+
+workspace-copy-journal-migration passed on both hosts with zero command and wrapper exits.
+It is a plain Python assertion script. It does not emit a unittest summary.
+The runner incorrectly required that summary and flagged an otherwise successful result.
+Primary review verified exact JUnit success, output marker, pinned source, and absent sanitizer findings.
+The original mechanical rejection remains preserved.
+Assessment: a5500:/home/dflanag3/spatial-artifacts/m07-b152-focused-driver-20261015/primary-dispatch-v4-01/journal-script-assessment.json.
+
+broker-control-client failed the same method on both hosts: 31 passed and one failed.
+The fixture compared external reply ID 2 against internal broker request ID 3.
+Production BrokerClient validates its internal ID. The independent probe preserves the external client ID.
+Primary source review confirmed both mappings. No production correction is justified by this failure.
+Test-only correction a1ceef3115ed87bedfe5ed70993f6bff5b40d1d5 checks the identities separately.
+It preserves exact access payload, revocation delivery, malformed-stamp negatives, and wrong-broker-ID rejection.
+The combined task branch fast-forwarded to that commit and is BOX-GIT VERIFIED, UNQUALIFIED.
+Static checks passed. Runtime checks of the correction remain UNRUN.
+Review: a5500:/home/dflanag3/spatial-artifacts/m07-broker-request-identity-20261015/primary-integration-01.
+A bounded controller preparation will test the single-file overlay against pinned b152 binaries on both hosts and profiles.
+It must preserve source hashes, the original test file, exact commands, environment, working directory, and timeouts.
+
+The unchanged nine-method geometry suite passed valid exact-directory runs on both hosts.
+All 45 reviewed files per host lacked sanitizer or failure markers.
+Source file sets and deployed metadata hashes remained unchanged.
+Review: a5500:/home/dflanag3/spatial-artifacts/m07-b152-focused-driver-20261015/READONLY-FIRST-SUITE-v4-REVIEW.txt.
+The earlier fourteen-method native suite also passed both hosts and sanitizer profiles.
+
+The ee64407 build/package preparation finished with command and wrapper exits zero.
+All four build profiles and required artifact targets passed. Each test profile retains 198 registrations.
+The archive is 1,537,662,875 bytes. Independent package verification and freezing are dispatched.
+Package review root: a5500:/home/dflanag3/spatial-artifacts/m07-ee64407f-gate-preparation-20261015.
+Package review outer: verify-package-outer-01. Builder remains ee64407 while that package is verified.
+The package excludes the later test-only a1ceef correction. Do not silently combine their source claims.
+No test-host helper installation or catalog migration has occurred.
+The successor's seven-suite driver passed 44 offline, 15 CLI, and 11 metadata controls.
+Its real package/deployment controls and runtime suites remain UNRUN.
+
+Verified archival also removed sb16-2's obsolete native M06 directory and sb16's obsolete geometry-denial directory.
+Recovered allocations: 6,107,836,416 bytes on sb16-2 and 6,337,601,536 bytes on sb16.
+Closeouts: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/primary-archive-07 and primary-archive-08.
+Their HDD archives passed full comparison, listing, hash, fresh removal guards, and post-removal verification.
+The remaining old sb16 native directory is being archived separately. No partial-removal claim is made.
+
+Next: validate the broker fixture, verify and deploy the rebuilt repair package, and run its focused regressions.
+Freeze the final combined candidate before full two-host Debug, sanitizer, harness, acceptance, cross-host, native, and recovery qualification.
+Milestone integration remains 706fe47. GitHub remains unchanged pending publication cutover.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: M07 exact-directory Debug rerun and successor preparation
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
