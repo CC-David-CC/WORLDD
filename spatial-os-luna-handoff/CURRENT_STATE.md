@@ -1,3 +1,40 @@
+## 2026-10-15: Focused copy repair matrix passes; engine and fault checks next
+
+Both hosts passed the required focused repair checks: sixteen accepted executions in total.
+They include eight complete copies, four deliberate quota rejections, and four responsiveness checks.
+Debug used d200833b. Corrected sanitizer checks used reviewed 8ea5cb60, verified on box-git.
+The default Debug budgets and positive scenario are unchanged by the sanitizer-only profile correction.
+All eight copies preserved ten live source PID/start identities and both running application jobs.
+The corrected sanitizer manager peaks were 421,777,408 bytes on SB16 and 421,130,240 bytes on SB16-2.
+No sanitizer or OOM finding occurred in the accepted corrected runs. All cleanup checks passed.
+The earlier failed runs remain retained. They do not count as process-continuity passes.
+No production quota accounting or copy lifecycle fix is claimed.
+The complete engine and five-fault checks remain unrun on the combined repair source.
+Their driver is under primary review. Both host lanes are preparing bounded batches.
+No task commits have been integrated into the milestone branch. The full gate has not started.
+M07 remains UNQUALIFIED. M01-M06 are qualified. M08-M16 remain pending.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+
+## 2026-10-15: Sanitizer copies expose a confirmed 256 MiB manager-cgroup OOM
+
+Both hosts passed their five Debug repair methods. Both first sanitizer positives then failed.
+Kernel events identify the exact workspaced processes killed at the 256 MiB broker-manager limit.
+The raw kernel records match each failed fixture's unit and PID.
+No sanitizer report preceded the kernel kill. This does not count as a sanitizer pass.
+Durable process rows do not prove live continuity. The failure snapshot contains missing processes and zombies.
+Both runs have restored helpers and confirmed volume/unit cleanup. Both failed images remain retained.
+The initial d200 matrix stopped at ten passed, two failed, and four unrun methods.
+Reviewed sanitizer-only manager-profile checkpoint 8ea5cb6076e85acad7cabba446e404e8a7e415a9 is verified on box-git.
+It uses an explicit 512 MiB sanitizer manager allowance. Debug keeps 256 MiB.
+Both hosts passed six profile and four diagnostic static regressions. CMake registration checks passed.
+The first corrected sanitizer copy passed on sb16-2 in 70.596 seconds.
+All ten source process identities remained live. No sanitizer or OOM finding occurred, and cleanup completed.
+Its measured manager peak was 421,130,240 bytes under the explicit 512 MiB limit.
+The remaining sanitizer methods are in progress. The five fault scenarios remain unrun.
+Keep Debug budgets, application limits, sanitizer detection, and storage quotas unchanged.
+Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
+M07 remains UNQUALIFIED. The complete engine/fault checks and full gate remain stopped.
+
 ## 2026-10-15: Both-host Debug copy repair checks pass; sanitizer checks pending
 
 Reviewed fixture candidate d200833b7e09723dfc1a5900aab4981e388e1e9c is verified on box-git.

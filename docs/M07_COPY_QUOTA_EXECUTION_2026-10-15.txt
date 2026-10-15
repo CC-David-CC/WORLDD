@@ -1,10 +1,12 @@
 M07 workspace-copy repair execution -- 2026-10-15
-Status: IN PROGRESS. Known quota failure recording is validated. M07 remains UNQUALIFIED.
+Status: IN PROGRESS. Both-host focused repair checks pass after the sanitizer-only manager correction.
+M07 remains UNQUALIFIED.
 
 Current source boundary
-Task branch: m07/copy-source-capacity-20261015.
-Reviewed candidate: d200833b7e09723dfc1a5900aab4981e388e1e9c, verified on box-git.
-It includes the earlier diagnostic checkpoint f15ed797850d253a84137269eeeb923fe7328346.
+Active repair branch: m07/copy-san-manager-envelope-20261015.
+Reviewed candidate: 8ea5cb6076e85acad7cabba446e404e8a7e415a9, verified on box-git.
+Capacity baseline: d200833b7e09723dfc1a5900aab4981e388e1e9c on m07/copy-source-capacity-20261015.
+Both include the earlier diagnostic checkpoint f15ed797850d253a84137269eeeb923fe7328346.
 Runtime binaries remain unchanged from eb569742f843c59e988e813f3431cf292c516fe7.
 The task checkout is on a5500. Runtime tests use sb16 and sb16-2.
 No production quota accounting, process cleanup, or copy lifecycle code changed.
@@ -101,8 +103,88 @@ Evidence roots: /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015
 Stop on the first failure. Inspect actual method results, shutdown diagnostics, and exact cleanup.
 The Debug subtotal is ten passed methods: six positive copies, two negatives, and two responsiveness checks.
 No earlier calibration or control is included in that subtotal.
-The sanitizer matrix, complete engine suite, and five fault scenarios remain pending.
+At the initial d200 checkpoint, the first sanitizer positive failed on each host. Four methods remained unrun.
+The complete engine suite and five fault scenarios remain pending.
 The full combined M07 gate has not started. M07 remains UNQUALIFIED.
+
+Confirmed sanitizer failure and corrective scope
+SB16-2 ran the exact positive once in 37.524 seconds. SB16 ran it once in 29.264 seconds.
+Both failed with world-channel EOF and a storage-owner exit assertion. Both have command/wrapper exits 1/1.
+Kernel events identify the immediate cause: the 256 MiB broker-manager cgroup OOM-killed workspaced.
+SB16-2: PID 2616327, unit spatial-m03-resources-9e34f01a29334c8084172561aa0d81eb.service.
+SB16: PID 2677349, unit spatial-m03-resources-2b6b5630c74f4049b788177e943b4c36.service.
+Each event records manager usage and limit of 262144 KiB, with memory.oom.group enabled.
+The Git status-1 line does not establish the cause. Some Git operations legitimately return status 1.
+No ASan/UBSan error report was found before the kernel kill. That absence is not a sanitizer pass.
+Durable process rows still said running. They do not establish live source continuity after broker death.
+SB16-2's failure snapshot includes missing processes and zombies. SAN continuity failed or remains unconfirmed.
+Cleanup restored helpers, removed units, and unmounted/detached both disposable volumes.
+Both failed images and raw evidence remain retained. No identical retry or storage quota increase followed.
+The initial d200 repair matrix stopped at ten passed, two failed, and four unrun methods.
+Those two failed sanitizer executions remain historical evidence. Corrected-profile results are recorded separately below.
+
+Raw matching kernel evidence is retained under each host's san-oom-kernel-evidence-01 directory.
+SB16-2 matching-context.raw SHA256: 8755434584ac22c86b5162fa35754753c60ce659ba88d662117d15f941688af8.
+SB16 matching-context.raw SHA256: 943727e7f540c3d45d070e62a50820981406878eb859df318c7d315632c003d5.
+The isolated repair branch is m07/copy-san-manager-envelope-20261015, based on d200833b.
+Reviewed checkpoint 8ea5cb6076e85acad7cabba446e404e8a7e415a9 is verified on box-git.
+The correction selects an explicit sanitizer test profile with a 512 MiB manager allowance.
+Keep Debug's 256 MiB manager allowance, the 1 GiB broker envelope, and the 1536 MiB outer envelope.
+Keep application, actor, workspace, CPU, process, swap, and storage limits unchanged.
+Keep ASan/UBSan/leak detection and quarantine settings unchanged.
+Both hosts passed six profile regressions and four existing diagnostic static regressions, with exits 0/0.
+The primary reviewed all twenty named results. These are separate from the sixteen-case copy matrix.
+Actual Debug and sanitizer executable profiles, runner imports, and fixture discovery passed preflight.
+Both coding-host CMake configurations and CTest inventories passed. The new profile regression is registered.
+No production C++ or protobuf changed. CMake changes cover test arguments and fixture dependencies only.
+The first corrected runtime check used this source overlay with the existing verified sanitizer binaries.
+It passed on sb16-2 in 70.596 seconds, with zero command/wrapper/fixture exits.
+All ten source PID/start identities matched and had live, non-zombie states. Both application jobs remained running.
+The full positive assertions passed, with no sanitizer diagnostic and confirmed cleanup.
+The optional recorder captured 324 samples and a complete unit exit without read errors.
+The effective manager limit was 536,870,912 bytes. Its largest recorded peak was 421,130,240 bytes.
+Manager max/oom/oom_kill counters stayed zero. An independent kernel query found no lines for the exact unit.
+This is a focused control pass. It does not complete the sanitizer matrix or M07 qualification.
+Result: sb16-2 matrix/san-repair-01-positive/result.json.
+Result SHA256: 5a950ed9809fb9e35f42fa2a3c3f9e63d601ad57e0c829abfa061d071770ffb0.
+Publication lifecycle SHA256: 38002b1d2b215a3aa4ffad17d6b9b64b8fd72c2b9fbd915ce02ead4394883efe.
+Memory summary SHA256: 7adccdec0a9b03941e232c44186e715ea831dac35786ea008c8f5b37111a612c.
+The remaining sanitizer methods are authorized on the same frozen source and resource profile.
+The full gate remains stopped.
+AddressSanitizer documents higher real-memory use: https://clang.llvm.org/docs/AddressSanitizer.html#limitations.
+
+Completed corrected sanitizer repair matrix
+Both hosts passed all three selected methods on fixture checkpoint 8ea5cb6076e85acad7cabba446e404e8a7e415a9.
+SB16: positive 56.249 seconds, negative 13.180 seconds, responsiveness 25.337 seconds.
+SB16-2: positive 70.596 seconds, negative 14.358 seconds, responsiveness 29.293 seconds.
+Each method recorded one named passing test, zero command/wrapper/fixture exits, and confirmed cleanup.
+Both positive copies preserved all ten live source PID/start identities and both running application jobs.
+The SB16 sanitizer manager peak was 421,777,408 bytes, with zero observed OOM counters.
+Both negative cases reached actual EDQUOT after 4,161,536 bytes, with durable exit 73 and continuing peer progress.
+The largest sampled status exchanges were 0.309 seconds on SB16 and 0.318 seconds on SB16-2.
+Sanitizer settings and executable profiles were verified. No sanitizer finding was reported.
+The primary reviewed the completed result records and cleanup evidence.
+SB16 results: matrix/sb16/san-repair-{01-positive,02-negative,03-responsiveness}/result.json.
+Their SHA256 values, in that order:
+0dc2556c0fcc7e3386d80cb43db42f681d20f82400715b16bd5039675f5711d3.
+8e156c331bcb8a3d0b662a49695a4491e7faabe94af1f2556e8766c9308918b6.
+cedea5f65b77544976bea48a9f9217b3d10896e77341f9c98b57eca8c9b1d34a.
+SB16-2 results: matrix/sb16-2/san-repair-{01-positive,02-negative,03-responsiveness}/result.json.
+Their SHA256 values, in that order:
+5a950ed9809fb9e35f42fa2a3c3f9e63d601ad57e0c829abfa061d071770ffb0.
+bf0fc1ee4f2fcd43410b43925abd8bb8d7867c38ec38ed3ef4cfdbe528d967de.
+a1caaab5d3eeff5c2ef6ca7af84cb850ba7c1820c9759868e349e50c296645b6.
+Matrix paths are relative to /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015 on each named host.
+Accepted focused coverage totals sixteen executions: eight positive, four negative, and four responsiveness checks.
+Debug coverage uses d200833b; the later test-profile correction preserves its default budgets and positive scenario.
+Sanitizer coverage uses 8ea5cb60 with unchanged eb569 runtime executables.
+This carry-forward is scoped focused evidence. It is not a combined frozen milestone gate.
+Both historical sanitizer failures remain retained separately. Their process continuity did not pass.
+The earlier eight-MiB failure attribution remains unresolved. No production accounting fix is claimed.
+The next bounded task is the complete engine and five-fault matrix at 8ea5cb60 in all four lanes.
+Primary driver review is active. The new launcher must verify actual XACE server and graphics dependency hashes.
+No step-four runtime method or full M07 gate has started at this checkpoint.
+The user authorized continued review and launches. No new permission is needed between bounded batches.
 
 Bounded PASS-image retention
 SB16 reclaimed only the five reviewed Debug PASS images after fresh identity and inactivity checks.
