@@ -19,6 +19,17 @@ def receive(ch):
 
 def send(ch,payload):ch.sendall(struct.pack('!I',len(payload))+payload)
 
+def wait_for_copy_reply_target(exchange_start,*,clock=time.monotonic,sleep=time.sleep):
+    # The target bounds the COMPLETE exchange, including real owner processing.
+    # Adding 4.1 seconds after a slow real owner violates the existing 5-second RPC.
+    target=exchange_start+4.1
+    while True:
+        now=clock()
+        if now-exchange_start>=5:
+            raise TimeoutError('Real owner exchange exceeded the five-second fault-control budget')
+        if now>=target:return now
+        sleep(min(.02,target-now))
+
 def main():
     p=argparse.ArgumentParser()
     for name,kind in (('--channel-fd',int),('--build',Path),('--config',Path),('--audit',Path)):
@@ -94,8 +105,12 @@ def main():
                     'reply_sha256':hashlib.sha256(wire_reply).hexdigest(),'start_monotonic':exchange_start,
                     'owner_reply_monotonic':owner_reply_at}
                 if a.mode=='delay-copy-replies':
-                    until=time.monotonic()+4.1
-                    while time.monotonic()<until:time.sleep(min(.02,max(0,until-time.monotonic())))
+                    record['owner_elapsed_seconds']=owner_reply_at-exchange_start
+                    record['delay_target_monotonic']=exchange_start+4.1
+                    record['forwarded']=False
+                    audit['copy_responses'].append(record)
+                    delayed_at=wait_for_copy_reply_target(exchange_start)
+                    record['injected_wait_seconds']=delayed_at-owner_reply_at
                 elif a.mode=='hold-copy-seal' and method=='copy_stage_seal':
                     if not reply.HasField('copy_stage') or held.exists():raise RuntimeError('invalid or duplicate SEAL receipt')
                     record['held_receipt_sha256']=hashlib.sha256(wire_reply).hexdigest()
@@ -105,7 +120,18 @@ def main():
                     if not release.exists():raise TimeoutError('SEAL release was not witnessed')
                 record['end_monotonic']=time.monotonic();record['elapsed_seconds']=record['end_monotonic']-record['start_monotonic']
                 record['forwarded_reply_sha256']=hashlib.sha256(wire_reply).hexdigest()
-                audit['copy_responses'].append(record);send(client,wire_reply);continue
+                if a.mode!='delay-copy-replies':audit['copy_responses'].append(record)
+                if a.mode=='delay-copy-replies':
+                    if record['end_monotonic']<record['delay_target_monotonic'] or record['elapsed_seconds']>=5:
+                        raise TimeoutError('Delayed complete owner exchange is outside the fault-control budget')
+                send(client,wire_reply)
+                if a.mode=='delay-copy-replies':
+                    record['forwarded']=True
+                    record['forwarded_monotonic']=time.monotonic()
+                    record['forwarded_elapsed_seconds']=record['forwarded_monotonic']-exchange_start
+                    if record['forwarded_elapsed_seconds']>=5:
+                        raise TimeoutError('Delayed owner reply forwarding exceeded the five-second fault-control budget')
+                continue
             if reply.HasField('identity'):
                 if reply.identity.process_id!=owner.pid:raise RuntimeError('unexpected owner identity')
                 reply.identity.process_id=os.getpid();send(client,reply.SerializeToString(deterministic=True))

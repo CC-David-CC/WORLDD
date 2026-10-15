@@ -1106,6 +1106,9 @@ if(BUILD_TESTING)
             tests/native/storage_owner_copy_fault_relay.py
             tools/inspect_workspace_copy_fault_fixture.py
             tools/run_workspace_copy_faults.py)
+    add_test(NAME workspace-copy-fault-relay-timing COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_owner_copy_fault_relay_timing.py")
+    set_tests_properties(workspace-copy-fault-relay-timing PROPERTIES TIMEOUT 30)
     add_test(NAME workspace-copy-absolute-deadline COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
