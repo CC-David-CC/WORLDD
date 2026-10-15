@@ -1,3 +1,23 @@
+## 2026-10-15: Exact-directory Debug rerun and successor preparation
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+The v3 geometry suite passed all nine methods on both hosts, including controlled count-limit rejection.
+Those results remain diagnostic because copied CTest metadata changed the effective working directory.
+The primary let each suite finish and retired only its scheduler before another suite started.
+V4 corrects the external copy and verifies actual command, environment, timeout, and working directory before execution.
+It passed 38 offline, 16 CLI, and 17 metadata controls plus primary review.
+Both v4 Debug drivers are live. sb16 confirmed its correct directory and passed the first five methods.
+sb16-2 remained in deployment preflight at that observation. No v4 suite completion is claimed yet.
+
+The fixed builder now uses reviewed task source ee64407, verified on box-git as UNQUALIFIED.
+Its helper configure and prebuild passed. The successor manifest pins the measured production helper.
+Four-profile build/package preparation is dispatched. No helper installation or catalog migration has occurred.
+Milestone integration remains 706fe47. Later source changes remain runtime unrun.
+Verified archival recovered another 6,321,836,032 allocated bytes on sb16-2.
+The full gate still requires capacity review, focused repair results, and complete two-host qualification.
+Read the execution record for handles, source and binary pins, retained diagnostic evidence, and archive receipts.
+
 ## 2026-10-15: Broader Debug drivers active on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

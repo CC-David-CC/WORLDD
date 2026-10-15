@@ -1,3 +1,50 @@
+Current checkpoint: M07 exact-directory Debug rerun and successor preparation
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The first v3 geometry suite finished all nine methods on both hosts with command and wrapper exits zero.
+sb16: 259.908 seconds. sb16-2: 213.913 seconds.
+This includes controlled count-limit rejection, snapshot limits, TLS, and queued-output revocation.
+Those results remain DIAGNOSTIC ONLY because the copied CTest metadata changed the effective working directory.
+The primary suspended only each scheduler while its existing suite finished normally.
+After both suite children returned, the primary retired both schedulers. Outer exits 143 are intentional.
+No subsequent v3 suite ran. The original raw evidence remains preserved.
+Closeout: a5500:/home/dflanag3/spatial-artifacts/m07-b152-focused-driver-20261015/primary-dispatch-v3-01/cwd-deviation-closeout.json.
+
+V4 sets the frozen working directory explicitly in the external metadata copy.
+It verifies actual CTest inventory against the planned command and every property before each suite.
+Deployed source and metadata remain unchanged.
+Primary review checked the full diff and all 38 offline, 16 CLI, and 17 metadata controls.
+V4 SHA: 14198b5afe07887b60d6d0f48ef1766ae860ae751bb613aed3c52e84b78b53d5.
+The primary dispatched Debug v4 on both hosts through the canonical runner and global lock.
+Live driver PIDs at observation: sb16 2794862; sb16-2 2808256.
+sb16's actual overlay inventory matched its frozen build directory before the first five methods passed.
+sb16-2 remained in deployment preflight at that observation. No completed v4 suite is claimed yet.
+Per-host roots remain m07-b152-focused-driver-20261015/HOST.
+Outer receipts: Debug-v4-launcher-01. Results: Debug-v4-results-01. Stage: stage-v4-01.
+Tmux sessions: m07-b152-v4-HOST-debug-01.
+
+The fixed builder was fast-forwarded to reviewed source ee64407 and verified on box-git as UNQUALIFIED.
+Milestone integration remains 706fe47. No completed milestone is claimed.
+Final-candidate helper configure and prebuild passed with command and wrapper exits zero.
+Measured production-off Debug helper SHA: 450a294e31604880c37a4e2800ee597a98861d210fcd7cf8127d745510f4c5ed.
+The successor manifest pins that helper for both hosts and profiles. The installed helpers remain unchanged.
+The six new preparation inputs passed primary hash and exact manifest-diff review.
+Four-profile build and package preparation is dispatched under tmux m07-ee64407f-gate-prepare-01.
+Preparation root: a5500:/home/dflanag3/spatial-artifacts/m07-ee64407f-gate-preparation-20261015.
+Outer receipts: prepare-outer-01. A dispatch is not a completed package or runtime qualification.
+All later source fixes still need runtime checks with their rebuilt binaries.
+
+Verified archival removed sb16-2's obsolete m06-geometry-denial-9f8405b-20261013 directory.
+Recovered allocation: 6,321,836,032 bytes. Available space afterward: 25,294,254,080 bytes.
+Archive SHA: 90544b48a413a9570d6c6fdb5d0ea8c00243a01fc9a1fd8bf66a3f7892439381.
+Archive: middle-child:/media/dflanag3/New Volume/spatial-artifacts/m07-retention-20261015/qualification-archive-04/sb16-2/m06-geometry-denial-9f8405b-20261013.tar.
+Closeout: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/primary-archive-06/retention-closeout.json.
+Listing, source comparison, archive hash, fresh removal guards, and post-removal verification passed.
+Further old native evidence archival is active. Full-gate capacity must be rechecked afterward.
+The complete two-host M07 gate remains pending. GitHub remains unchanged.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: M07 broader Debug driver active on both hosts
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
