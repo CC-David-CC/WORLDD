@@ -1,0 +1,37 @@
+M07 quota observer pointer repair -- 2026-10-15
+
+UNQUALIFIED diagnostic correction. No production quota or core fixture changed.
+The corrected small-quota negative method passed in 15.430 seconds on sb16-2 Debug.
+It observed errno 122 after 4,161,536 written bytes and durably exited with code 73.
+Its peer retained all five PID/start identities and progressed after the rejection.
+Four real owner records retained the 4 MiB limit under actor group 1/101.
+Actor and workspace policies remained 32 MiB and 64 MiB.
+Evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-quota-diagnostic-validation-093f65f2-20261015/02-smallquota.
+Proof SHA256: c30c466be501a64a0336ee911f8e4119b5be3465468b1aa9ae095e637ed0e3ed.
+The observer captured write syscall 1, PID/TID 2604060, root 263, and errno 122.
+It then emitted INCOMPLETE with reason source_qgroup_pointer_missing.
+The observer dataset was invalid. The outer command and wrapper retained exit 1.
+Raw observer SHA256: ed40b4ed56cd0c7f2cedb2d4a3ba16ff8e27a3e539c877f00abda3e8e305c3c2.
+Both helpers were restored. The volume was unmounted and detached. The exact service and observer exited.
+
+The actual tracepoint delivered 53,760 approximate concurrent updates, but the typed iterator pointer cache missed root 263.
+Kernel tracepoint dispatch can bypass the typed __traceiter hook. The pointer cache was not reliable.
+The corrected diagnostic removes that hook and resolves each failed root directly in qgroup_reserve fexit.
+It searches the filesystem qgroup RB tree for at most 32 nodes using the descending comparator.
+A candidate ID below the target selects rb_left. A candidate ID above the target selects rb_right.
+The matched pointer is retained only for the failed TID until syscall exit.
+Only a userspace syscall return of errno 122 prints an EDQUOT event and parent-chain sample.
+Recovered internal reservation errors remain excluded. Lookup misses and bounds still emit INCOMPLETE.
+The real reservation tracepoint, exact FSID filter, bounded parent walk, loss checks, and END checks remain active.
+Pointer maps are deleted on syscall entry/exit and cleared at END. Kernel addresses are never printed.
+A later parent-chain sample is not an atomic snapshot of the earlier quota decision.
+
+The reviewed template compiled and completed a zero-FSID smoke on sb16-2 without a fixture.
+Six probes attached. ATTACHED and END appeared, update count was zero, and the owned child exited normally.
+Compile exit 0, smoke exit 0, canonical command/wrapper exits 0/0.
+Preflight root: /home/dflanag3/spatial-artifacts/m07-quota-observer-validation-20261015/outer-02.
+Template SHA256: 722efbae0d504e94cf6ac0f659e86f3bcdc4274148fd1b778b5def4d65292bb5.
+Zero-FSID rendered SHA256: a81bc4396f25c61c1115d147e18b7f132c985f6c211f9b55174f1e813340aefd.
+An earlier launcher used an output beneath CHECKOUT and was refused before execution. No fixture ran there.
+The syscall-error and complete parent-chain paths still require the next reviewed known-negative invocation.
+This correction does not resolve the earlier eight-MiB positive-workload quota failure or qualify M07.

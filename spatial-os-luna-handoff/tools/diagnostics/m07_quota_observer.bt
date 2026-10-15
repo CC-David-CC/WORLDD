@@ -27,15 +27,6 @@ tracepoint:btrfs:btrfs_qgroup_update_reserve
   @peak_reserved[args->qgid, args->type] = max(args->cur_reserved);
 }
 
-/* The tracepoint above enables the kernel static key; this typed hook caches the live qgroup pointer. */
-kfunc:btrfs:__traceiter_btrfs_qgroup_update_reserve
-/ *(uint64 *)args->fs_info->fs_devices->fsid == (uint64)__FSID_LO__ &&
-  ((uint64 *)args->fs_info->fs_devices->fsid)[1] == (uint64)__FSID_HI__ /
-{
-  $q = args->qgroup;
-  @qgroup_ptr[$q->qgroupid] = (uint64)$q;
-}
-
 kretfunc:btrfs:qgroup_reserve
 / retval == -122 &&
   *(uint64 *)args->root->fs_info->fs_devices->fsid == (uint64)__FSID_LO__ &&
@@ -48,6 +39,29 @@ kretfunc:btrfs:qgroup_reserve
   @failed_type[tid] = args->type;
   @failed_meta_pertrans[tid] = args->root->qgroup_meta_rsv_pertrans;
   @failed_meta_prealloc[tid] = args->root->qgroup_meta_rsv_prealloc;
+  /* Resolve this failed root directly. Static-call tracepoint dispatch can bypass
+   * __traceiter, so a typed iterator hook is not a reliable pointer cache.
+   * Btrfs orders this RB tree descending: a smaller candidate selects rb_left. */
+  $rootid = args->root->root_key.objectid;
+  $node = args->root->fs_info->qgroup_tree.rb_node;
+  $found = (uint64)0;
+  $steps = 0;
+  while ($node != 0 && $steps < 32) {
+    $candidate = (struct btrfs_qgroup *)((uint64)$node - offsetof(struct btrfs_qgroup, node));
+    $steps++;
+    if ($candidate->qgroupid == $rootid) {
+      $found = (uint64)$candidate;
+      break;
+    }
+    if ($candidate->qgroupid < $rootid) {
+      $node = $node->rb_left;
+    } else {
+      $node = $node->rb_right;
+    }
+  }
+  @failed_qgroup[tid] = $found;
+  @failed_lookup_steps[tid] = $steps;
+  @failed_lookup_bounded[tid] = $found == 0 && $node != 0 && $steps >= 32;
 }
 
 tracepoint:raw_syscalls:sys_enter
@@ -60,6 +74,9 @@ tracepoint:raw_syscalls:sys_enter
   delete(@failed_type[tid]);
   delete(@failed_meta_pertrans[tid]);
   delete(@failed_meta_prealloc[tid]);
+  delete(@failed_qgroup[tid]);
+  delete(@failed_lookup_steps[tid]);
+  delete(@failed_lookup_bounded[tid]);
 }
 
 tracepoint:raw_syscalls:sys_exit
@@ -73,10 +90,14 @@ tracepoint:raw_syscalls:sys_exit
       printf("EDQUOT ns=%llu pid=%d tid=%d syscall_id=%lld root=%llu bytes=%llu enforce=%llu type=%llu retval=-122 root_meta_pertrans=%llu root_meta_prealloc=%llu\n",
              $stamp, pid, tid, args->id, $rootid, @failed_bytes[tid], @failed_enforce[tid], @failed_type[tid],
              @failed_meta_pertrans[tid], @failed_meta_prealloc[tid]);
-      $addr = @qgroup_ptr[$rootid];
+      $addr = @failed_qgroup[tid];
       $q = (struct btrfs_qgroup *)$addr;
       if ($addr == 0) {
-        printf("INCOMPLETE ns=%llu root=%llu reason=source_qgroup_pointer_missing\n", $stamp, $rootid);
+        if (@failed_lookup_bounded[tid]) {
+          printf("INCOMPLETE ns=%llu root=%llu reason=source_qgroup_lookup_bound steps=%llu\n", $stamp, $rootid, @failed_lookup_steps[tid]);
+        } else {
+          printf("INCOMPLETE ns=%llu root=%llu reason=source_qgroup_lookup_missing steps=%llu\n", $stamp, $rootid, @failed_lookup_steps[tid]);
+        }
       }
       $level = 0;
       while ($addr != 0 && $level < 8) {
@@ -113,10 +134,13 @@ tracepoint:raw_syscalls:sys_exit
   delete(@failed_type[tid]);
   delete(@failed_meta_pertrans[tid]);
   delete(@failed_meta_prealloc[tid]);
+  delete(@failed_qgroup[tid]);
+  delete(@failed_lookup_steps[tid]);
+  delete(@failed_lookup_bounded[tid]);
 }
 
 END
 {
-  clear(@qgroup_ptr);
+  clear(@failed_qgroup);
   printf("QUOTA_OBSERVER_END details=%llu suppressed=%llu updates=%llu\n", @detail_count, @suppressed_events, @update_events);
 }
