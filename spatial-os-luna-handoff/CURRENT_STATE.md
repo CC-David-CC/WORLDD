@@ -15,10 +15,15 @@ All 1,882 archive files and 1,025 source hashes match.
 The successor driver passed 58 actual-package controls and fourteen exact metadata inventories.
 Primary review accepted these package controls. Actual deployment and runtime checks remain unrun.
 The installed storage-owner helpers remain unchanged. Guarded deployment scripts are in preparation.
-The final package plan will include a1ceef. The ee64407 package still contains the previous test fixture.
+The final a1ceef package job is live on a5500. Its four incremental build configurations returned zero exits.
+Packaging continues. Independent final-package verification, freezing, and deployment remain pending.
+The seven-suite final driver passed 44 offline controls. Actual final-candidate runtime remains unrun.
+The ee64407 package still contains the previous test fixture.
 
 Old sb16 native M06 evidence archival recovered 6,108,106,752 allocated bytes.
-The obsolete sb16-2 706 deployment is being archived. Its source remains intact.
+The obsolete sb16-2 706 deployment was archived, verified, and removed with zero command and wrapper exits.
+This recovered 8,987,938,816 allocated bytes. The checked archive remains on a5500.
+The obsolete sb16 deployment has a separate bounded archive assignment.
 Full-gate capacity requires another check after extraction and cleanup.
 Milestone integration remains 706fe47. Combined task source is a1ceef, verified on box-git and unqualified.
 The complete M07 gate remains pending. GitHub publication remains deferred.
