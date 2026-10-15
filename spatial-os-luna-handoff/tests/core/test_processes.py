@@ -1,5 +1,6 @@
 """Independent process, namespace, resource, revocation, and recovery witnesses."""
 import json
+from contextlib import closing
 import os
 from pathlib import Path
 import signal
@@ -174,13 +175,28 @@ Path('/state/home/settings').write_text('own state');Path('/tmp/temporary').writ
         process = self.launch('raise SystemExit(19)'); self.wait_job(process, 19)
         self.client.stop(); self.start(); self.wait_job(process, 19)
         self.client.stop()
-        with self.registry() as db: db.execute('DROP TABLE processes'); db.execute('DROP TABLE copy_effects'); db.execute('DROP TABLE copy_operations'); db.execute('PRAGMA user_version=3')
+        legacy_tables = ('repositories', 'worktrees', 'operations', 'removals', 'workspaces', 'workspace_members')
+        with closing(self.registry()) as db, db:
+            before = {name: db.execute('SELECT * FROM ' + name + ' ORDER BY rowid').fetchall()
+                      for name in legacy_tables}
+            db.executescript('DROP TABLE configured_process_states; DROP TABLE configured_application_states; '
+                             'DROP TABLE workspace_copy_policies; DROP TABLE processes; DROP TABLE copy_effects; '
+                             'DROP TABLE copy_operations; PRAGMA user_version=3')
+            self.assertEqual({row[0] for row in db.execute(
+                "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'")}, set(legacy_tables))
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone(), (3,))
         state = self.state / 'execution'
         denied = subprocess.run([BROKER, '--state-dir', str(state)], input=b'', capture_output=True, timeout=5)
         self.assertNotEqual(denied.returncode, 0); self.assertIn(b'--migrate-v3', denied.stderr)
         for _ in range(2):
             result = subprocess.run([BROKER, '--state-dir', str(state), '--migrate-v3'], input=b'', capture_output=True, timeout=5)
             self.assertEqual(result.returncode, 0, result.stderr)
+            with closing(self.registry()) as db:
+                self.assertEqual(db.execute('PRAGMA user_version').fetchone(), (8,))
+                self.assertEqual({name: db.execute('SELECT * FROM ' + name + ' ORDER BY rowid').fetchall()
+                                  for name in legacy_tables}, before)
+                self.assertTrue({'configured_process_states', 'configured_application_states', 'workspace_copy_policies'} <=
+                    {row[0] for row in db.execute("SELECT name FROM sqlite_schema WHERE type='table'")})
         self.start(); self.assertEqual(self.call('workspace.get', id='one')['worktree'], self.work['id'])
 
 
