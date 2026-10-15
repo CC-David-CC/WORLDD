@@ -133,9 +133,46 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             self.writers.append(self.execution/'applications'/result.process.process_id/'data')
         self.until(lambda: all((path/'writes.json').exists() for path in self.writers),bool)
         group = self.broker_process_group().parent
-        self.measurements['controls'] = {str(path.relative_to(group)): {
-            name:(path/name).read_text().strip() for name in ('memory.max','pids.max','cpu.max','io.max')}
-            for path in [group,*(p for p in group.rglob('*') if p.is_dir())]}
+        control_names = ('memory.max', 'pids.max', 'cpu.max', 'io.max')
+        directories = [group, *(path for path in group.rglob('*') if path.is_dir())]
+        controls = {}
+        payloads = []
+        for path in directories:
+            values = {}
+            missing = []
+            for name in control_names:
+                control = path / name
+                if control.is_file():
+                    values[name] = control.read_text().strip()
+                else:
+                    values[name] = None
+                    missing.append(name)
+            if missing:
+                # ProcessScope deliberately leaves controllers disabled below its
+                # budgeted application scope. Only its populated payload child may
+                # lack these files; all limits must exist on that immediate parent.
+                parent = path.parent
+                self.assertEqual(path.name, 'payload', f'Unexpected missing cgroup controls at {path}: {missing}')
+                self.assertIn(parent, directories, f'Payload has no observed budgeted parent: {path}')
+                self.assertTrue(all((parent / name).is_file() for name in control_names),
+                                f'Payload parent lacks effective controls: {parent}')
+                parent_limits = {name: (parent / name).read_text().strip() for name in control_names}
+                self.assertNotIn(parent_limits['memory.max'], ('', 'max'),
+                                 f'Payload ancestor has no memory ceiling: {parent_limits}')
+                self.assertNotIn(parent_limits['pids.max'], ('', 'max'),
+                                 f'Payload ancestor has no process ceiling: {parent_limits}')
+                self.assertTrue(parent_limits['cpu.max'] and parent_limits['cpu.max'] != 'max',
+                                f'Payload ancestor has no CPU ceiling: {parent_limits}')
+                self.assertTrue(parent_limits['io.max'],
+                                f'Payload ancestor has no I/O ceiling: {parent_limits}')
+                self.assertEqual(set(missing), set(control_names), f'Partial controller exposure at {path}')
+                payload_pids = _read_cgroup_procs(path)
+                self.assertTrue(payload_pids, f'Expected application processes in payload: {path}')
+                payloads.append(str(path.relative_to(group)))
+            controls[str(path.relative_to(group))] = values
+        self.assertTrue(payloads, 'Expected a nested application payload under budgeted scopes')
+        self.measurements['payloads_without_child_controls'] = payloads
+        self.measurements['controls'] = controls
         self.sample_writes()
         return group
 

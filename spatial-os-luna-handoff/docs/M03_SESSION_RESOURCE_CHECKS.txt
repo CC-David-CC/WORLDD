@@ -16,6 +16,13 @@ Test conflicting configuration arguments and wrong cgroup binding.
 Use the production SessionCoordinator, supervisor, broker, world, compositor, and confined X client.
 Preserve the three existing connected-application recovery assertions.
 Inspect real kernel hierarchy, process membership, and application descriptor isolation.
+The application scope carries its resource ceilings. Its payload child may have no
+controller files when child controllers are disabled there. Verify the Python
+application and its probe under that payload, count processes recursively, and
+exclude broker, world, and compositor processes across the full application tree.
+For contention evidence, accept missing child controls only on a populated
+payload directly below a scope with all required limits. Missing controls elsewhere
+remain failures.
 Reject reserved descriptor collisions and policy overrides before creating launch ownership.
 Run related supervisor and resource lifecycle checks in Debug and runtime sanitizers on both hosts.
 Keep locked acceptance files and issuer timeout settings unchanged.
