@@ -16,8 +16,8 @@ import uuid
 
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
-def selected_method_passed(output,method):
-    pattern=r'^'+re.escape(method)+r' \(.+WorkspaceCopyEngineTests(?:\.'+re.escape(method)+r')?\) \.\.\. ok$'
+def selected_method_passed(output,method,fixture_class='WorkspaceCopyEngineTests'):
+    pattern=r'^'+re.escape(method)+r' \(.+'+re.escape(fixture_class)+r'(?:\.'+re.escape(method)+r')?\) \.\.\. ok$'
     return re.search(pattern,output,re.M) is not None
 def runtime_config_preflight(build):
     config=build/'runtime.textproto'
@@ -41,18 +41,34 @@ def helper_state(path):
     assert stat.S_ISREG(info.st_mode) and info.st_uid==0 and not info.st_mode&0o022
     return dict(sha256=digest(path),uid=info.st_uid,gid=info.st_gid,mode=stat.S_IMODE(info.st_mode))
 
-def main():
+def main(*,fixture_spec=None):
     assert len(sys.argv) in (4,5)
     assert socket.gethostname().split('.')[0] in ('sb16','sb16-2')
     assert os.getuid()==pwd.getpwnam('dflanag3').pw_uid>0
     build,source=map(lambda value:Path(value).resolve(),sys.argv[1:3])
     evidence=(Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/('workspace-copy-engine-'+uuid.uuid4().hex)).resolve() if sys.argv[3]=='--evidence-from-env' else Path(sys.argv[3]).resolve()
     selected_case=sys.argv[4] if len(sys.argv)==5 else None
+    fixture_name='test_workspace_copy_engine.py';discovery_name='inspect_workspace_copy_fixture.py'
+    fixture_class='WorkspaceCopyEngineTests';fixture_count=13;qualification='UNQUALIFIED'
+    completed_status='focused-pass';runtime_bound=960
+    if fixture_spec is not None:
+        assert set(fixture_spec)=={'fixture','discovery','class','mode','runtime_bound'}
+        fixture_name=fixture_spec['fixture'];discovery_name=fixture_spec['discovery']
+        fixture_class=fixture_spec['class'];fixture_count=2;qualification='UNQUALIFIED_DIAGNOSTIC'
+        completed_status='diagnostic-complete';runtime_bound=fixture_spec['runtime_bound']
+        assert fixture_name=='diagnose_workspace_copy_quota.py' and discovery_name=='inspect_workspace_copy_quota_diagnostic.py'
+        assert fixture_class=='QuotaDiagnosticTests' and selected_case is not None
+        mode=fixture_spec['mode'];assert mode in ('nocopy','copy')
+        expected='test_no_copy_live_writers_sixty_second_diagnostic' if mode=='nocopy' else 'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch'
+        assert selected_case==expected and runtime_bound==(120 if mode=='nocopy' else 360)
+        for path in (source/'tests/core'/fixture_name,source/'tools'/discovery_name):
+            assert path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(source)
+            assert not path.stat().st_mode&0o222,'Diagnostic fixture specification requires frozen source files'
     if selected_case is not None:
         # Reject unsupported or multiple selectors before creating evidence or
         # installing helpers. Read the existing literal fixture selection only.
         assert re.fullmatch(r'test_[a-z0-9_]+',selected_case),'Invalid exact method selector'
-        tree=ast.parse((source/'tests/core/test_workspace_copy_engine.py').read_bytes())
+        tree=ast.parse((source/'tests/core'/fixture_name).read_bytes())
         load=next(node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name=='load_tests')
         allowed=[node.value for node in ast.walk(load) if isinstance(node,ast.Constant) and
                  isinstance(node.value,str) and node.value.startswith('test_')]
@@ -61,7 +77,7 @@ def main():
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
     assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
     evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
-    report=dict(qualification='UNQUALIFIED',selected_methods=1 if selected_case else 13,
+    report=dict(qualification=qualification,selected_methods=1 if selected_case else fixture_count,
         selected_case=selected_case,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
     def root_command(arguments,timeout=30):
@@ -89,14 +105,14 @@ def main():
     for signum in (signal.SIGTERM,signal.SIGINT):
         previous[signum]=signal.signal(signum,lambda number,_frame:cancellations.append(number))
     try:
-        discovery=subprocess.run([sys.executable,'-B',str(source/'tools/inspect_workspace_copy_fixture.py'),str(build),str(source)],
+        discovery=subprocess.run([sys.executable,'-B',str(source/'tools'/discovery_name),str(build),str(source)],
             capture_output=True,text=True,timeout=15,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
         (evidence/'fixture-discovery.stdout').write_text(discovery.stdout)
         (evidence/'fixture-discovery.stderr').write_text(discovery.stderr)
         report['fixture_discovery_exit']=discovery.returncode;save()
         if discovery.returncode:
             raise RuntimeError('Copy fixture import/discovery failed before helper installation: '+discovery.stderr[-16000:])
-        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==13
+        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==fixture_count
         if selected_case:assert selected_case in discovered['methods']
         assert not discovered['services_started'] and discovered['methods_executed']==0
         report['fixture_discovery']=discovered;save()
@@ -115,18 +131,23 @@ def main():
             report['helpers'][name]['installed']=expected;save()
         command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
-                 str(source/'tests/core/test_workspace_copy_engine.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd'),'-v']
-        if selected_case:command.append('WorkspaceCopyEngineTests.'+selected_case)
+                 str(source/'tests/core'/fixture_name),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd'),'-v']
+        if selected_case:command.append(fixture_class+'.'+selected_case)
         environment=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
             SPATIAL_SECURITY_EVIDENCE=str(evidence/'cases'),SPATIAL_SCOPE_EVIDENCE=str(evidence/'scopes'),
             ASAN_OPTIONS='detect_leaks=1:abort_on_error=1',UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
         environment.pop('LSAN_OPTIONS',None)
+        if fixture_spec is not None:
+            observer=evidence/'observer';observer.mkdir(mode=0o700)
+            environment['SPATIAL_COPY_QUOTA_DIAGNOSTIC_DIR']=str(observer)
+            environment['SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE']=fixture_spec['mode']
+            report['diagnostic']=dict(mode=fixture_spec['mode'],observer_directory=str(observer),runtime_bound_seconds=runtime_bound)
         report['argv']=command;save()
         with (evidence/'stdout.log').open('wb') as stdout,(evidence/'stderr.log').open('wb') as stderr:
             child=subprocess.Popen(command,stdout=stdout,stderr=stderr,env=environment,cwd=source)
             report['launcher_pid']=child.pid;save()
-            deadline=time.monotonic()+960
+            deadline=time.monotonic()+runtime_bound
             while child.poll() is None and time.monotonic()<deadline and not cancellations:
                 try:child.wait(timeout=1)
                 except subprocess.TimeoutExpired:pass
@@ -141,9 +162,12 @@ def main():
                 assert len(set(units))==1,'Cannot prove the owned transient unit for cancellation'
                 root_command(['systemctl','stop',units[0]])
                 child.wait(timeout=15)
-                raise RuntimeError('Owned runtime cancelled: '+repr(cancellations or ['960-second suite bound']))
+                raise RuntimeError('Owned runtime cancelled: '+repr(cancellations or [str(runtime_bound)+'-second suite bound']))
             status=child.returncode
         report['command_exit']=status
+        if fixture_spec is not None:
+            try:report['observer_completion']=json.loads((evidence/'observer/observer-finish-status.json').read_text())
+            except Exception as error:report['observer_completion']=dict(dataset_valid=False,diagnostic_error=repr(error))
         output=(evidence/'stdout.log').read_text(errors='replace')+(evidence/'stderr.log').read_text(errors='replace')
         service_logs=list((evidence/'cases').glob('*.log'))
         report['service_logs']={str(path.relative_to(evidence)):digest(path) for path in service_logs}
@@ -152,14 +176,16 @@ def main():
             report['inner_failure']=dict(exit=status,stdout=str(evidence/'stdout.log'),stderr=str(evidence/'stderr.log'),
                 diagnostic_tail=output[-16000:]);save()
             raise RuntimeError('Copy engine inner fixture exited '+str(status)+'; original stdout/stderr retained: '+output[-16000:])
+        if fixture_spec is not None:
+            assert report['observer_completion'].get('dataset_valid') is True,'Observer completion did not prove a complete diagnostic capture'
         volumes=list((evidence/'cases').glob('*/volume.json'))
         assert len(volumes)==report['selected_methods'] and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
         assert re.search(r'Ran '+str(report['selected_methods'])+r' tests? in ',output) and '\nOK' in output,output[-16000:]
         if selected_case:
-            assert selected_method_passed(output,selected_case), 'Exact selected method did not report PASS: '+selected_case
-        report['runtime_status']='focused-pass'
+            assert selected_method_passed(output,selected_case,fixture_class), 'Exact selected method did not report PASS: '+selected_case
+        report['runtime_status']=completed_status
     except BaseException as error:
         report['runtime_status']='failed-or-incomplete';report['failure']=repr(error);raise
     finally:
