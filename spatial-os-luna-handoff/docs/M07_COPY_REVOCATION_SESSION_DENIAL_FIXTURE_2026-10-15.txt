@@ -1,0 +1,55 @@
+M07 copy revocation session-denial fixture correction, 2026-10-15
+
+Status: UNQUALIFIED. Real runtime retry is UNRUN.
+Base: ee2af5733aa50b283191a07df1edeb1101ab2523.
+No production, authority, schema, or locked acceptance changes.
+
+Reproduced failure
+SB16 Debug14 ran one test and failed in 23.458 seconds.
+Result SHA256: 55ee2c9d2dada84ad74a8322148bc7fb503b94b221d98aa1205c193f2b236623.
+The typed response was UNAUTHORIZED 12, "World session changed during operation".
+The previous fixture whitelist rejected that exact response.
+The failure and image remain retained. Helper and volume cleanup were confirmed.
+Evidence root on a5500: /home/dflanag3/spatial-artifacts/m07-copy-revocation-session-denial-20261015.
+
+Causal source and evidence
+identity_sessions.cpp:162 increments cancellation_generation when disconnect invalidates a channel.
+Matching issuer revocations disconnect affected actors at lines 230-238.
+The dispatch fence at lines 837-846 replaces responses after cancellation.
+It preserves an existing error code. Otherwise it supplies UNAUTHORIZED.
+BrokerClient::exchange at broker.cpp:426 preserves broker error codes.
+Actors::act at actors.cpp:512 forwards the workspace-copy status request.
+store.cpp:1058 throws FORBIDDEN for denied copy-status authority.
+The world dispatch catches that WorldError at identity_sessions.cpp:764-765.
+Therefore FORBIDDEN 13 can also accompany the exact cancellation-fence message.
+Neither branch permits accepting arbitrary errors or messages.
+
+The retained poll audit has 75 replies, no exceptions, and no PUBLISHED phase.
+The last request spans release and returns 15.263388 milliseconds afterward.
+Status audit SHA256: 8fcf9b9e03f9c9b99bf6ae90852ef4fa6245b2ce91387b5451dbe4f6da397d1a.
+The fresh issuer revocation assertions passed before the whitelist assertion failed.
+Broker log SHA256: b7fc38b243c0fcd00b984e33abd6b2975f33df72c97007f8c1d0dbd8cde2a350.
+It reports phase 4 and "Workspace copy status authority is denied".
+Journal SHA256: 3017479aebbd327d0241f9f230d0463534c6f888219bc953e3aaf9d9a5b3f5b9.
+It records ABORTED 8, COPY_FORBIDDEN 3, completed quiescence-release, and no publication effect.
+These facts support the revocation path. They do not reveal the precise callback interleaving.
+The failed run did not reach later source continuity or independent-peer launch assertions.
+
+Correction and retained invariants
+The pure predicate permits only eight exact code/message pairs.
+The two additional pairs are cancellation-fence messages with UNAUTHORIZED or FORBIDDEN.
+Fresh issuer revocation still precedes acceptance. The receipt now persists before denial checks.
+The fixture additionally verifies that the receipt names actor B.
+One unchanged absolute 35-second deadline covers denial and durable forbidden abort.
+All real SEAL, source PID/start, thaw, independent actor A launch, empty destination,
+no-publication, authority, receipt, and relay assertions remain mandatory.
+No time, quota, resource, process, or transport boundary changes.
+
+Preselected checks
+Coding-host pure predicate tests cover both fence codes and all previous typed paths.
+Negative controls reject wrong codes, unrelated errors, and changed messages.
+CTest and M07_REQUIRED register workspace-copy-revocation-denial for future combined coverage.
+The fixture target lists the pure test as a source dependency.
+Integration must preserve all newer required names from the separate d2dd metadata branch.
+The real revocation method remains the required Debug/SAN integration check on both hosts.
+Do not claim it passed from pure predicate results or the historical durable journal alone.

@@ -1107,10 +1107,14 @@ if(BUILD_TESTING)
             tests/native/copy_fault_supervised_world.py
             harness/copy_fault_evidence.py
             tools/test_copy_fault_evidence.py
+            tools/test_workspace_copy_revocation_denial.py
             tools/inspect_workspace_copy_supervisor_closure.py
             tests/native/storage_owner_copy_fault_relay.py
             tools/inspect_workspace_copy_fault_fixture.py
             tools/run_workspace_copy_faults.py)
+    add_test(NAME workspace-copy-revocation-denial COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_workspace_copy_revocation_denial.py")
+    set_tests_properties(workspace-copy-revocation-denial PROPERTIES TIMEOUT 30)
     add_test(NAME workspace-copy-fault-evidence-durability COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fault_evidence.py")
     set_tests_properties(workspace-copy-fault-evidence-durability PROPERTIES TIMEOUT 30)

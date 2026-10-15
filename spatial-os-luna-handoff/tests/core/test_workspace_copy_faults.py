@@ -26,6 +26,22 @@ authority=engine.fixtures.issuer
 FAULT_RELAY=engine.SOURCE/'tests/native/storage_owner_copy_fault_relay.py'
 
 
+def is_revoked_copy_status_denial(code,message,*,unauthorized,forbidden):
+    """Match only source-defined typed denials after independently proven revocation."""
+    return (code,message) in {
+        (forbidden,'Workspace copy status authority is denied'),
+        (unauthorized,'Issuer revocation invalidated the in-flight broker result'),
+        (unauthorized,'Actor credential is revoked'),
+        (unauthorized,'Actor identity is inactive'),
+        (unauthorized,'Channel has no authenticated actor'),
+        (unauthorized,'World session was revoked'),
+        # identity_sessions.cpp841-846 preserves an underlying FORBIDDEN denial,
+        # or uses UNAUTHORIZED when cancellation supersedes a successful result.
+        (unauthorized,'World session changed during operation'),
+        (forbidden,'World session changed during operation'),
+    }
+
+
 class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
     def __init__(self,fixture,state,config=None):
         self.fixture=fixture
@@ -431,6 +447,12 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         self.assertTrue(witness.HasField('identity_status'),witness)
         self.assertTrue(witness.identity_status.actor_revoked,witness)
         self.assertGreater(witness.identity_status.security_revision,0,witness)
+        self.assertEqual(witness.identity_status.actor_id,actor_b.actor_id,witness)
+        revocation_bytes=witness.SerializeToString()
+        (self.copy_evidence/'issuer-revocation-receipt.pb').write_bytes(revocation_bytes)
+        status_audit['revocation_receipt_sha256']=hashlib.sha256(revocation_bytes).hexdigest()
+        status_audit['revoked_actor_id']=actor_b.actor_id.hex()
+        status_audit['revocation_security_revision']=witness.identity_status.security_revision
         self.assertLess(release_sent-revoke_started,5_000_000_000,
             'Issuer revocation and release of the exact SEAL receipt exceeded the owner I/O budget')
         worker.join(timeout=max(0,(completion_deadline-time.monotonic_ns())/1e9))
@@ -438,13 +460,8 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         stop_worker.set()
         self.assertFalse(status_audit['exceptions'],'Actor status exchange raised instead of returning a typed denial')
         self.assertFalse(status_audit['published_seen'],'Revoked actor observed a published copy')
-        # Both layers may win the revocation race. Require their exact source-defined reasons.
-        denied={(core.FORBIDDEN,'Workspace copy status authority is denied'),
-                (core.UNAUTHORIZED,'Issuer revocation invalidated the in-flight broker result'),
-                (core.UNAUTHORIZED,'Actor credential is revoked'),
-                (core.UNAUTHORIZED,'Actor identity is inactive'),
-                (core.UNAUTHORIZED,'Channel has no authenticated actor'),
-                (core.UNAUTHORIZED,'World session was revoked')}
+        # An issuer revocation can also invalidate the in-flight world session.
+        # That fence replaces the message while preserving an underlying error code.
         last=status_audit['last']
         self.assertIsNotNone(last,'No actor status reply was recorded')
         if last['kind']!='error':
@@ -460,7 +477,9 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
                 last=record_status(reply,started)
             finally:peer_b.stream.settimeout(old_timeout)
         self.assertEqual(last['kind'],'error','Revoked B request was not explicitly denied')
-        self.assertIn((last['code'],last['message']),denied,'Unexpected actor denial reason')
+        self.assertTrue(is_revoked_copy_status_denial(last['code'],last['message'],
+            unauthorized=core.UNAUTHORIZED,forbidden=core.FORBIDDEN),
+            'Unexpected actor denial reason: '+repr((last['code'],last['message'])))
         status_audit['denial_validated']=True
         # The same release-based deadline covers durable abort observation, not 35+35 seconds.
         while time.monotonic_ns()<completion_deadline:

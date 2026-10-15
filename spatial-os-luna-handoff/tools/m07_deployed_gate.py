@@ -26,6 +26,7 @@ M07_REQUIRED = frozenset({
     "identity-participant-domain-addition", "workspace-presentation-store",
     "workspace-presentation-projection", "workspace-presentation-actor",
     "workspace-presentation-shared-representation", "workspace-git",
+    "workspace-copy-revocation-denial",
     "workspace-copy-engine", "workspace-copy-absolute-deadline", "workspace-copy-actor-revocation",
     "workspace-copy-lost-publication-ack", "workspace-copy-hostile-git",
     "workspace-copy-worker-death-recovery", "workspace-geometry-native-crosshost",
