@@ -518,3 +518,73 @@ These are candidates, not removed bytes. Archive preparation selects inactive ge
 Preserve source and Git metadata, current M07 packages, and qualified M04 Mesa/M06 XACE runtime trees.
 Verify archive contents and metadata, unchanged source, and current process/mount references before each exact removal.
 M07 remains UNQUALIFIED. No milestone integration, frozen rebuild, or full gate has started.
+
+Fault-fixture repairs and supervised crash recovery
+Reviewed fixture commits are verified on box-git. Production binaries remain eb569742f843c59e988e813f3431cf292c516fe7.
+Commit 8c463d52b539f4acdeff0e28e532ce096890ba9f corrects relay timing within the existing five-second RPC budget.
+Five focused relay regressions passed on each host. The real absolute-deadline retry remains UNRUN.
+Commit 517fc09b80f48b05d4f69ebfff719d2c01438c7b removes the conflicting static admission list from the revocation fixture.
+Both source deployments and their Debug/SAN preflights passed. This does not count as runtime fault qualification.
+
+The SB16-2 revocation retry passed startup and reached a held, real SEAL receipt.
+It revoked the actor, released the receipt, and then failed its polling-thread completion assertion after 59.872 seconds.
+The retained journal records ABORTED with COPY_FORBIDDEN, no publication, and a completed quiescence-release receipt.
+The broker records denied copy-status authority. The old poller ignored typed error replies.
+The old fixture did not retain every status reply. Their exact sequence remains unknown.
+Independent live process-continuity and thaw assertions were not reached. Durable receipts do not replace those assertions.
+Result: matrix/sb16-2/focused517fc09b-debug-14-revocation/debug-15-fault-test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication/result.json.
+Result SHA256: af8e2d1ff1fd45fc7cf4bd65d3ae74e077b0e9d24cdfc9bda819d67282dc746f.
+The failed image m07-engine-43b932174eed4ddf remains retained. Cleanup confirmed its inactive and unmounted state.
+
+Reviewed commit 2e8c16bf8a20a869cfb5c5482d7f4b9e5236fabf corrects that poller and retains bounded reply diagnostics.
+The poller now stops on a terminal action, typed error, or exception. Exceptions still fail the test.
+The test requires the exact authority denial and durable ABORTED/COPY_FORBIDDEN result within one 35-second deadline.
+Existing source continuity, thaw, SEAL, and no-publication assertions remain required. Its runtime retry remains UNRUN.
+
+The SB16-2 lost-acknowledgment method reached a real PUBLISHED owner receipt, then killed the broker as intended.
+Its replacement world failed to activate the same participant. The issuer reported an existing active generation.
+Result: matrix/sb16-2/focused517fc09b-debug-15-lostack/debug-16-fault-test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish/result.json.
+Result SHA256: 04ae9a0e4ec1878c1db026324d522c153d7e9c1fae3d32281af12d991fb8b46a.
+This run failed after 13.862 seconds. Its image and logs remain retained. Cleanup completed.
+The fixture launched an unsupervised world. Broker death made that world exit before orderly participant release.
+A new connection cannot release the old connection's activation. The issuer correctly preserves that boundary.
+The repair must establish production supervision before launch, then prove fencing, process cleanup, and signed retirement.
+It must restart the same participant at its next generation. Do not re-enroll another participant to bypass recovery.
+Keep the actual crash, withheld publication reply, exact retry, and no-duplicate-publication assertions.
+Do not close the world gracefully before killing the broker. That would change the required crash scenario.
+
+Supervised fixture work uses a separate a5500 checkout and branch, based on 2e8c16bf.
+Checkout: /home/dflanag3/src/spacial-m07-copy-supervised-lostack-20261015.
+Branch: m07/copy-supervised-lostack-20261015. Status: UNQUALIFIED, implementation in progress.
+The package needs the production spatial-authority-supervisor and its launch, native-scope, and process-scope bindings.
+Retain the actual participant, generation, process identity, fence, cleanup, retirement, and restart evidence.
+The old ten-ELF copy package is insufficient for this supervised fixture.
+No new production defect is established by these fixture failures.
+No fault method currently counts as passed in the expanded matrix. Hostile Git and worker-death remain UNRUN.
+All fault sanitizer runs remain UNRUN. Integration and the frozen full M07 gate remain pending.
+
+Verified obsolete-output archival in progress
+The selected plan archives nine obsolete generated directories per host to middle-child's HDD.
+Selected allocated bytes: 39,474,774,016 on SB16 and 39,124,697,088 on SB16-2.
+Plan SHA256: 8ad4042c153c82766ecac0c8371b21fdf061601c4476cafd804977d84cc4ca2e.
+Plan: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/obsolete-archive-02/selected-plan.json.
+Archive root: /media/dflanag3/New Volume/spatial-artifacts/m07-retention-20261015/HOST/obsolete-generated.
+Each archive passes creation, member listing, content comparison, SHA256 verification, and unchanged-source checks before removal.
+The guard rechecks mounts, process references, tracked source, and exact path identity before each removal.
+Receipts provide exact restore commands. Run those commands from middle-child.
+Current M07 evidence, failed images, packages, qualified Mesa/XACE trees, and external Git metadata remain protected.
+
+Initial worker preflight attempts failed on mode handling and a missing import. They removed no data.
+The primary replaced that orchestration and preserved its failure records.
+Review then found missing directory synchronization in the initial primary archiver.
+The correction synchronizes archive and proof directories before removing source data.
+A strengthened removal guard stopped the old caller before deleting its next source directory.
+The retained archive was reverified and synchronized. Its exact source removal then completed successfully.
+Earlier completed archives and receipts were explicitly synchronized. No data-loss indication was observed.
+Recovery receipt: middle-child:/home/dflanag3/spatial-artifacts/m07-retention-20261015/primary-archive-03/sb16-durability-finish-01/complete.json.
+Its outer command and wrapper exited 0/0. The primary read the complete receipt.
+The earlier sb16-rest-01 batch remains a failed batch with three completed removals. Do not relabel it PASS.
+The current corrected jobs are sb16-final-02 and sb16-2-all-02 under primary-archive-03.
+Latest observed free bytes: SB16 25,432,395,776; SB16-2 18,453,938,176.
+Archival is still running. These values are progress snapshots, not final reclaimed totals.
+Keep timing-sensitive fault runs off each host until its heavy archive work completes.
