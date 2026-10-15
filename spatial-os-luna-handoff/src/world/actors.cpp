@@ -868,7 +868,7 @@ wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
     if (!fences) validate_authority_fence(actor,local_fences);
     if (actor.entity.room()!=projection_room || actor.entity.pose().SerializeAsString()!=projection_pose)
         throw WorldError(wire::STALE_TARGET,"Actor moved during scene projection");
-    if (!granted(actor,"observe"))
+    if (actor.require_observation_grant && !granted(actor,"observe"))
         throw WorldError(wire::FORBIDDEN,"World observation authority changed during scene projection");
     if (!geometry_only && !actor.observed_applications.empty()) {
         auto* panels=result.mutable_surfaces();
@@ -979,7 +979,7 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     validate_authority_fence(actor,fences);
     if (!observed_applications_current(actor))
         throw WorldError(wire::FORBIDDEN,"Application surface changed during observation");
-    if (!granted(actor,"observe"))
+    if (actor.require_observation_grant && !granted(actor,"observe"))
         throw WorldError(wire::FORBIDDEN,"Application observation authority changed");
     for (const auto& before : rendered_presentations) {
         const std::vector<std::string> scope{before.room,before.id};
@@ -988,7 +988,8 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     }
     if (actor.entity.room()!=rendered_room || actor.entity.pose().SerializeAsString()!=rendered_pose)
         throw WorldError(wire::STALE_TARGET,"Actor moved during observation");
-    if (!granted(actor,"observe")) throw WorldError(wire::FORBIDDEN,"Application observation authority changed");
+    if (actor.require_observation_grant && !granted(actor,"observe"))
+        throw WorldError(wire::FORBIDDEN,"Application observation authority changed");
     result.set_frame_id(visibility.frame_id());
     if (visibility.has_image()) *result.mutable_image() = visibility.image();
     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));

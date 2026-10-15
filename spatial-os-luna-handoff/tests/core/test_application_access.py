@@ -170,6 +170,7 @@ class ApplicationAccessTests(workspace.WorldIdentityFixture):
         result = self.broker.request(revoke=pb.GrantRevokeRequest(workspace='one', principal=principal,
             id=record.id, expected_revision=page.revision))
         self.assertTrue(result.HasField('grant'), result)
+        return result.grant
 
     def finish_application(self, app):
         (self.data(app)/'release').touch()

@@ -1,14 +1,27 @@
 M07 scene authority fixture correction
 2026-10-15
 
-The native handoff witnesses render real application pixels and aim at a real application surface.
-Those operations consume the filtered scene and require world observation authority.
-The positive fixture actor now receives only observe and interact for that scenario.
-This keeps observation and application interaction as separate grants.
+APPLICATION_OBSERVATION.md preserves legacy unlabelled-surface behavior for diagnostic sessions.
+The management actor path opens diagnostic sessions with require_observation_grant=false.
+Authenticated world sessions open with require_observation_grant=true.
+The scene and observe paths must enforce world observe authority only for authenticated sessions.
+Authenticated application surfaces still require broker observation approval and current surface identity.
+Presentation views still require both scoped observe and representation.view grants.
 
-A negative witness gives the same fixture actor interact alone.
-It checks that render.capture and actor aim return exactly FORBIDDEN with no success outcome.
-It also checks that rejection leaves worldd and the independent application alive.
-The three existing positive pixel and held-input cleanup witnesses retain their assertions.
+The prior c650739 fixture correction incorrectly added observe to the diagnostic native actor.
+It also rejected interact-only diagnostic capture and aim, contrary to the documented behavior.
+The corrected native regression uses an interact-only diagnostic actor and checks real capture and aim.
 
-This is a fixture-context correction. It changes no production authorization, contract, schema, or acceptance lock.
+Selected runtime checks are recorded before execution:
+- test_diagnostic_interact_actor_can_capture_and_aim_unlabelled_surface checks the restored diagnostic path.
+- test_world_admission_and_placement_do_not_grant_application_observation checks authenticated denial.
+- test_workspace_access_alone_does_not_reveal_application checks authenticated application filtering.
+- test_observe_revocation_removes_metadata_but_preserves_process checks committed grant revocation.
+- test_revocation_before_post_render_check_returns_no_metadata checks revocation at the render boundary.
+- test_post_render_revocation_returns_fenced_denial_without_observation checks decision 2, exact FORBIDDEN reason, receipt identity, and continued owner observation.
+- test_revocation_while_observation_reply_is_queued_closes_channel checks the queued response at decision 3, receipt identity, EOF, and continued owner observation.
+The prior decision-2 case correctly returned a typed denial because metadata had not queued. Its EOF assertion was misphased. The retained gate failure is at /home/dflanag3/spatial-artifacts/m07-gate-failure-diagnosis-20261015/evidence-sb16-2-debug-partial-05/LastTest.partial.log.
+- test_remote_geometry_omits_authorized_live_application_pixels_and_metadata and test_same_actor_restores_local_application_observation_after_remote_session cover HybridWorldProcess cleanup.
+
+No runtime build or test ran in this worker. The root agent owns sb16 and sb16-2 runtime checks.
+This correction changes no schema, acceptance lock, or normative contract.

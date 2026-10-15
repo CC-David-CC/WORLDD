@@ -22,7 +22,7 @@ class HybridWorldProcess(WorldProcess):
     connect=RemoteWorldProcess.connect
 
     def __init__(self,fixture,config,state,native=False,count=2,runtime_config=None,broker=None):
-        self.sequence=0;self.log=(fixture.root/f'hybrid-{len(fixture.worlds)}.log').open('wb')
+        self.sequence=0;self.broker_channel=None;self.log=(fixture.root/f'hybrid-{len(fixture.worlds)}.log').open('wb')
         self.server_key,self.server_cert=fixture.certificate('hybrid-world','world.test')
         tls=session.WorldActorTlsConfig(protocol_version=1,certificate_path=str(self.server_cert),
             private_key_path=str(self.server_key),client_ca_path=str(fixture.service_cert),
