@@ -18,7 +18,12 @@ All further fault launches are held until the corrected combined fixture candida
 Lost-acknowledgment, worker-death, and fault sanitizer qualification remain unrun. No expanded fault method counts as passed.
 Schema correction 92107bee is separately reviewed and verified on box-git.
 Its source-pin and guard checks passed with 41 locked hashes and 151 unchanged acceptance IDs.
-The milestone integration branch remains unchanged. Combine reviewed task fixes in a separate draft branch first.
+Combined draft 846e07b8736968ce526f6c922fc64d0400a62304 is reviewed and verified on box-git.
+It combines schema92107, revocation60f6, and SQLite1ec without production src/proto changes.
+Source-pin, guard, registration, and three revocation-denial checks passed on the combined source.
+Fresh source-only packaging and matching launch metadata are being prepared. Corrected runtime retries remain unrun.
+Run the short Debug16 hostile-Git case first on both hosts, then revocation14 and deadline13.
+The milestone integration branch remains unchanged.
 Finish focused fault checks before milestone integration, source freeze, and the complete M07 gate on both hosts.
 Read [the execution record](../docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt).
 

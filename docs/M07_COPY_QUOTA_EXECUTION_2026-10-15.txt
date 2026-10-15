@@ -775,3 +775,26 @@ Preserve the union of required gate registrations. Keep production-runtime reuse
 Do not modify the real milestone integration branch before related focused qualification.
 Next: review combined source and target preflight, rerun affected Debug fault methods, then remaining faults and sanitizers.
 M07 remains UNQUALIFIED. Source freeze and the complete two-host milestone gate remain pending.
+
+Combined reviewed fixture checkpoint
+SQLite repair 1ec8536e291b1473af1cc9c3a08e370b0c6f5fd2 is BOX-GIT VERIFIED and clean.
+Its two files contain the reviewed fixture change and the concise lifetime-repair diagnosis.
+Separate combined checkout: a5500:/home/dflanag3/src/spacial-m07-fixture-combined-20261015.
+Branch: m07/copy-fixture-schema-revocation-20261015.
+Candidate: 846e07b8736968ce526f6c922fc64d0400a62304. BOX-GIT VERIFIED. UNQUALIFIED.
+It starts at schema92107 and cherry-picks revocation60f6 followed by SQLite1ec.
+Both picks applied cleanly. The primary reviewed the combined shared-file diff.
+All four required regression names remain in the explicit gate inventory.
+The primary independently verified an empty src/proto diff against runtime eb569 and a clean combined checkout.
+Canonical source-pin/guard verification passed 0/0 with 41 locked hashes and 151 acceptance IDs.
+Canonical registration/static/source-policy checks passed 0/0.
+The first static checker failed on an incorrect helper path before its assertions. That failure remains retained.
+The combined revocation-denial regression ran three named tests, all OK, with command/wrapper exits 0/0.
+Its normal unittest report is in stderr.log; it is not an empty-stderr run.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-fixture-combined-846e07-20261015.
+The retained runtime binaries need no rebuild for these fixture and metadata changes.
+Fresh source-only packaging and matching host launch metadata remain necessary before runtime retries.
+Preselected order: Debug16 hostile Git first on each host; then Debug14 revocation and Debug13 deadline.
+Require overall success and cleanup before advancing each host. Then finish Debug15/17 and fault sanitizers.
+Keep all failed outputs. No corrected-candidate runtime method has run yet.
+The real milestone integration branch remains unchanged at 55a659a849c8bac73d3ceacdc0cb9b4e5b3e1ddd.
