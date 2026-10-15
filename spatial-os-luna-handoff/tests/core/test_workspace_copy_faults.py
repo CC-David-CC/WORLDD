@@ -305,29 +305,72 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         begun=peer_b.act(workspace_copy=request)
         self.assertTrue(begun.HasField('action'),begun)
         self.assertEqual(begun.action.copy_status.phase,copy.REQUESTED,begun)
-        statuses=[]
+        # A typed denial is a completed actor exchange, not another copy-status phase.
+        # Keep bounded summaries rather than retaining every protobuf reply.
+        status_lock=threading.Lock()
+        status_audit={'count':0,'first':None,'last':None,'error_counts':{},
+                      'exceptions':[],'published_seen':False,'denial_validated':False,
+                      'release_monotonic_ns':None,'completion_deadline_monotonic_ns':None,
+                      'durable_terminal':None}
         stop_worker=threading.Event()
+        def record_status(result,started):
+            record={'started_monotonic_ns':started,'returned_monotonic_ns':time.monotonic_ns()}
+            if result.HasField('error'):
+                record.update(kind='error',code=result.error.code,message=result.error.message[:256])
+            elif result.HasField('action'):
+                record.update(kind='action',phase=result.action.copy_status.phase)
+            else:record['kind']='unexpected-reply'
+            with status_lock:
+                status_audit['count']+=1
+                if status_audit['first'] is None:status_audit['first']=record
+                status_audit['last']=record
+                if record['kind']=='error':
+                    code=str(record['code'])
+                    status_audit['error_counts'][code]=status_audit['error_counts'].get(code,0)+1
+                if record.get('phase')==copy.PUBLISHED:status_audit['published_seen']=True
+            return record
         def advance_copy():
             while not stop_worker.is_set():
+                started=time.monotonic_ns()
                 try:
                     result=peer_b.act(workspace_copy_status=copy.WorkspaceCopyStatusRequest(
                         protocol_version=1,operation_id=request.operation_id))
-                    statuses.append(result)
-                    if result.HasField('action') and result.action.copy_status.phase in (copy.ABORTED,copy.UNCERTAIN,copy.PUBLISHED):
+                    record=record_status(result,started)
+                    if record['kind']!='action' or record['phase'] in (copy.ABORTED,copy.UNCERTAIN,copy.PUBLISHED):
                         return
                 except BaseException as error:
-                    statuses.append(error);return
+                    with status_lock:
+                        status_audit['exceptions'].append({'type':type(error).__name__,
+                            'started_monotonic_ns':started,'returned_monotonic_ns':time.monotonic_ns()})
+                    return
         worker=threading.Thread(target=advance_copy,name='copy-fault-status-poll',daemon=False)
-        worker.start()
         held=self.broker.audit_path.with_suffix('.seal-held')
         release=self.broker.audit_path.with_suffix('.seal-release')
+        def persist_status_audit():
+            # unittest records the original assertion before running cleanup callbacks.
+            result=self._outcome.result
+            with status_lock:
+                status_audit['worker_alive']=worker.is_alive()
+                status_audit['test_failure_count']=sum(test is self for test,_ in result.failures)
+                status_audit['test_error_count']=sum(test is self for test,_ in result.errors)
+                text=json.dumps(status_audit,sort_keys=True,indent=2)+'\n'
+            try:(self.copy_evidence/'issuer-revocation-status.json').write_text(text)
+            except Exception as error:
+                print('Revocation status diagnostic write failed: '+type(error).__name__,file=sys.stderr)
         def stop_copy_poll():
             stop_worker.set()
             if subprocess.run(['sudo','-n','test','-e',str(held)],capture_output=True).returncode==0:
                 self.operator_run(['touch',release])
-            worker.join(timeout=35)
-            if worker.is_alive():raise AssertionError('Copy status polling thread did not stop')
+            if worker.is_alive():
+                # Teardown interrupts this owned channel. It grants no second 35-second observation window.
+                try:peer_b.stream.shutdown(socket.SHUT_RDWR)
+                except OSError as error:
+                    status_audit['cleanup_channel_shutdown_error']=type(error).__name__
+                worker.join(timeout=5)
+            if worker.is_alive():raise AssertionError('Copy status polling thread did not stop during cleanup')
+        self.addCleanup(persist_status_audit)
         self.addCleanup(stop_copy_poll)
+        worker.start()
         held_deadline=time.monotonic()+90
         while time.monotonic()<held_deadline:
             found=subprocess.run(['sudo','-n','test','-e',str(held)],capture_output=True)
@@ -352,15 +395,60 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             finally:
                 self.operator_run(['touch',release])
         release_sent=time.monotonic_ns()
+        completion_deadline=release_sent+35_000_000_000
+        status_audit['release_monotonic_ns']=release_sent
+        status_audit['completion_deadline_monotonic_ns']=completion_deadline
         self.assertIsNotNone(witness,'Fresh issuer identity revocation did not complete')
         self.assertTrue(witness.HasField('identity_status'),witness)
         self.assertTrue(witness.identity_status.actor_revoked,witness)
         self.assertGreater(witness.identity_status.security_revision,0,witness)
         self.assertLess(release_sent-revoke_started,5_000_000_000,
             'Issuer revocation and release of the exact SEAL receipt exceeded the owner I/O budget')
-        worker.join(timeout=35)
+        worker.join(timeout=max(0,(completion_deadline-time.monotonic_ns())/1e9))
         self.assertFalse(worker.is_alive(),'Status request did not return after the held receipt was forwarded')
         stop_worker.set()
+        self.assertFalse(status_audit['exceptions'],'Actor status exchange raised instead of returning a typed denial')
+        self.assertFalse(status_audit['published_seen'],'Revoked actor observed a published copy')
+        # Both layers may win the revocation race. Require their exact source-defined reasons.
+        denied={(core.FORBIDDEN,'Workspace copy status authority is denied'),
+                (core.UNAUTHORIZED,'Issuer revocation invalidated the in-flight broker result'),
+                (core.UNAUTHORIZED,'Actor credential is revoked'),
+                (core.UNAUTHORIZED,'Actor identity is inactive'),
+                (core.UNAUTHORIZED,'Channel has no authenticated actor'),
+                (core.UNAUTHORIZED,'World session was revoked')}
+        last=status_audit['last']
+        self.assertIsNotNone(last,'No actor status reply was recorded')
+        if last['kind']!='error':
+            # A redacted terminal journal status is not itself an actor-denial witness.
+            remaining=(completion_deadline-time.monotonic_ns())/1e9
+            self.assertGreater(remaining,0,'Revocation completion exceeded the single 35-second deadline')
+            old_timeout=peer_b.stream.gettimeout()
+            try:
+                peer_b.stream.settimeout(min(5,remaining))
+                started=time.monotonic_ns()
+                reply=peer_b.act(workspace_copy_status=copy.WorkspaceCopyStatusRequest(
+                    protocol_version=1,operation_id=request.operation_id))
+                last=record_status(reply,started)
+            finally:peer_b.stream.settimeout(old_timeout)
+        self.assertEqual(last['kind'],'error','Revoked B request was not explicitly denied')
+        self.assertIn((last['code'],last['message']),denied,'Unexpected actor denial reason')
+        status_audit['denial_validated']=True
+        # The same release-based deadline covers durable abort observation, not 35+35 seconds.
+        while time.monotonic_ns()<completion_deadline:
+            with closing(sqlite3.connect('file:'+str(self.execution/'execution.db')+'?mode=ro',uri=True,
+                    timeout=min(.1,max(0,(completion_deadline-time.monotonic_ns())/1e9)))) as database:
+                terminal=database.execute('SELECT phase,error,destination FROM copy_operations WHERE operation_id=?',
+                                          (request.operation_id,)).fetchone()
+            self.assertIsNotNone(terminal,'Copy operation disappeared during durable abort observation')
+            status_audit['durable_terminal']={'phase':terminal[0],'error':terminal[1],
+                'destination_empty':terminal[2]=='','observed_monotonic_ns':time.monotonic_ns()}
+            self.assertNotEqual(terminal[0],copy.PUBLISHED,'Revoked copy was durably published')
+            if terminal[:2]==(copy.ABORTED,copy.COPY_FORBIDDEN):break
+            time.sleep(min(.05,max(0,(completion_deadline-time.monotonic_ns())/1e9)))
+        self.assertLessEqual(time.monotonic_ns(),completion_deadline,
+                             'Durable forbidden abort exceeded the single 35-second deadline')
+        self.assertEqual(terminal[:2],(copy.ABORTED,copy.COPY_FORBIDDEN))
+        persist_status_audit()
         # Actor A remains authorized. Its successful launch proves the source barrier was removed.
         probe=self.launch_process(peer_a,"from pathlib import Path;Path('post-revoke-launch').write_text('ok')",
                                   operation='post-revocation-barrier-probe')
