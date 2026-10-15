@@ -1,0 +1,122 @@
+/* External-only candidate: emit only user-visible EDQUOT syscall returns. */
+BEGIN
+{
+  printf("QUOTA_OBSERVER_ATTACHED\n");
+}
+
+tracepoint:btrfs:btrfs_qgroup_update_reserve
+/   args->fsid[0] == (((uint64)__FSID_LO__ >> 0) & 255) &&
+  args->fsid[1] == (((uint64)__FSID_LO__ >> 8) & 255) &&
+  args->fsid[2] == (((uint64)__FSID_LO__ >> 16) & 255) &&
+  args->fsid[3] == (((uint64)__FSID_LO__ >> 24) & 255) &&
+  args->fsid[4] == (((uint64)__FSID_LO__ >> 32) & 255) &&
+  args->fsid[5] == (((uint64)__FSID_LO__ >> 40) & 255) &&
+  args->fsid[6] == (((uint64)__FSID_LO__ >> 48) & 255) &&
+  args->fsid[7] == (((uint64)__FSID_LO__ >> 56) & 255) &&
+  args->fsid[8] == (((uint64)__FSID_HI__ >> 0) & 255) &&
+  args->fsid[9] == (((uint64)__FSID_HI__ >> 8) & 255) &&
+  args->fsid[10] == (((uint64)__FSID_HI__ >> 16) & 255) &&
+  args->fsid[11] == (((uint64)__FSID_HI__ >> 24) & 255) &&
+  args->fsid[12] == (((uint64)__FSID_HI__ >> 32) & 255) &&
+  args->fsid[13] == (((uint64)__FSID_HI__ >> 40) & 255) &&
+  args->fsid[14] == (((uint64)__FSID_HI__ >> 48) & 255) &&
+  args->fsid[15] == (((uint64)__FSID_HI__ >> 56) & 255) /
+{
+  @update_events++;
+  @current_reserved[args->qgid, args->type] = args->cur_reserved;
+  @peak_reserved[args->qgid, args->type] = max(args->cur_reserved);
+}
+
+/* The tracepoint above enables the kernel static key; this typed hook caches the live qgroup pointer. */
+kfunc:btrfs:__traceiter_btrfs_qgroup_update_reserve
+/ *(uint64 *)args->fs_info->fs_devices->fsid == (uint64)__FSID_LO__ &&
+  ((uint64 *)args->fs_info->fs_devices->fsid)[1] == (uint64)__FSID_HI__ /
+{
+  $q = args->qgroup;
+  @qgroup_ptr[$q->qgroupid] = (uint64)$q;
+}
+
+kretfunc:btrfs:qgroup_reserve
+/ retval == -122 &&
+  *(uint64 *)args->root->fs_info->fs_devices->fsid == (uint64)__FSID_LO__ &&
+  ((uint64 *)args->root->fs_info->fs_devices->fsid)[1] == (uint64)__FSID_HI__ /
+{
+  @failed_present[tid] = 1;
+  @failed_root[tid] = args->root->root_key.objectid;
+  @failed_bytes[tid] = args->num_bytes;
+  @failed_enforce[tid] = args->enforce;
+  @failed_type[tid] = args->type;
+  @failed_meta_pertrans[tid] = args->root->qgroup_meta_rsv_pertrans;
+  @failed_meta_prealloc[tid] = args->root->qgroup_meta_rsv_prealloc;
+}
+
+tracepoint:raw_syscalls:sys_enter
+/@failed_present[tid]/
+{
+  delete(@failed_present[tid]);
+  delete(@failed_root[tid]);
+  delete(@failed_bytes[tid]);
+  delete(@failed_enforce[tid]);
+  delete(@failed_type[tid]);
+  delete(@failed_meta_pertrans[tid]);
+  delete(@failed_meta_prealloc[tid]);
+}
+
+tracepoint:raw_syscalls:sys_exit
+/@failed_present[tid]/
+{
+  if (@failed_present[tid] == 1 && args->ret == -122) {
+    if (@detail_count < 16) {
+      @detail_count++;
+      $rootid = @failed_root[tid];
+      $stamp = nsecs;
+      printf("EDQUOT ns=%llu pid=%d tid=%d syscall_id=%lld root=%llu bytes=%llu enforce=%llu type=%llu retval=-122 root_meta_pertrans=%llu root_meta_prealloc=%llu\n",
+             $stamp, pid, tid, args->id, $rootid, @failed_bytes[tid], @failed_enforce[tid], @failed_type[tid],
+             @failed_meta_pertrans[tid], @failed_meta_prealloc[tid]);
+      $addr = @qgroup_ptr[$rootid];
+      $q = (struct btrfs_qgroup *)$addr;
+      if ($addr == 0) {
+        printf("INCOMPLETE ns=%llu root=%llu reason=source_qgroup_pointer_missing\n", $stamp, $rootid);
+      }
+      $level = 0;
+      while ($addr != 0 && $level < 8) {
+        printf("CHAIN ns=%llu pid=%d root=%llu level=%d qid=%llu rfer=%llu excl=%llu flags=%llu max_rfer=%llu max_excl=%llu data=%llu meta_pertrans=%llu meta_prealloc=%llu\n",
+               $stamp, pid, $rootid, $level, $q->qgroupid, $q->rfer, $q->excl,
+               $q->lim_flags, $q->max_rfer, $q->max_excl,
+               $q->rsv.values[0], $q->rsv.values[1], $q->rsv.values[2]);
+        $head = (struct list_head *)((uint64)$q + offsetof(struct btrfs_qgroup, groups));
+        $next = $head->next;
+        if ($next == $head) {
+          $addr = 0;
+          break;
+        }
+        if ($next == 0 || $next->next != $head) {
+          printf("INCOMPLETE ns=%llu root=%llu reason=non_single_parent qid=%llu\n", $stamp, $rootid, $q->qgroupid);
+          break;
+        }
+        $relation = (struct btrfs_qgroup_list *)((uint64)$next - offsetof(struct btrfs_qgroup_list, next_group));
+        $q = $relation->group;
+        $addr = (uint64)$q;
+        $level++;
+      }
+      if ($addr != 0 && $level >= 8) {
+        printf("INCOMPLETE ns=%llu root=%llu reason=parent_depth_limit\n", $stamp, $rootid);
+      }
+    } else {
+      @suppressed_events++;
+    }
+  }
+  delete(@failed_present[tid]);
+  delete(@failed_root[tid]);
+  delete(@failed_bytes[tid]);
+  delete(@failed_enforce[tid]);
+  delete(@failed_type[tid]);
+  delete(@failed_meta_pertrans[tid]);
+  delete(@failed_meta_prealloc[tid]);
+}
+
+END
+{
+  clear(@qgroup_ptr);
+  printf("QUOTA_OBSERVER_END details=%llu suppressed=%llu updates=%llu\n", @detail_count, @suppressed_events, @update_events);
+}
