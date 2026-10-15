@@ -1088,6 +1088,9 @@ if(BUILD_TESTING)
         spatial-copy-tree-worker spatial-copy-finalize-worker broker-python-protobuf
         copy-worker-python-protobuf storage-python-protobuf issuer-python-protobuf grants-python-protobuf
         world-session-python-protobuf)
+    add_test(NAME workspace-copy-fixture-profiles COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fixture_profiles.py")
+    set_tests_properties(workspace-copy-fixture-profiles PROPERTIES TIMEOUT 30)
     set(copy_fixture_profile_arguments)
     if(SPATIAL_SANITIZERS)
         list(APPEND copy_fixture_profile_arguments --profile=ASan-UBSan)
