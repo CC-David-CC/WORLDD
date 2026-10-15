@@ -79,7 +79,11 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
 class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthorityTests):
     # Fixture inputs are selected before the volume and owner policy are created.
     SOURCE_STATE_BYTES_BY_SCENARIO={
-        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':8*2**20}
+        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':64*2**20}
+    # One declared calibration profile. Other scenarios keep their existing policy.
+    SOURCE_POLICY_BYTES_BY_SCENARIO={
+        'test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch':dict(
+            actor_state_bytes=256*2**20,workspace_bytes=256*2**20,destination_copy_source_bytes=8*2**20)}
     def operator_run(self,command):
         result=subprocess.run(['sudo','-n',*map(str,command)],capture_output=True,timeout=90)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
@@ -98,7 +102,9 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         definition.name=self.name
         policy=definition.owner_policy;policy.broker_uid=os.getuid()
         policy.volume_bytes=512*2**20;policy.control_plane_bytes=64*2**20;policy.filesystem_reserve_bytes=64*2**20
-        policy.default_policy.total_bytes=64*2**20;policy.default_policy.actor_state_default_bytes=32*2**20
+        source_policy=self.SOURCE_POLICY_BYTES_BY_SCENARIO.get(self._testMethodName,{})
+        policy.default_policy.total_bytes=source_policy.get('workspace_bytes',64*2**20)
+        policy.default_policy.actor_state_default_bytes=source_policy.get('actor_state_bytes',32*2**20)
         for profile in policy.default_policy.profiles:profile.state_bytes=4*2**20
         source_state_bytes=self.SOURCE_STATE_BYTES_BY_SCENARIO.get(self._testMethodName,4*2**20)
         for name in ('copy-source','copy-app'):
@@ -106,7 +112,9 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.copy_evidence=Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/self._testMethodName
         self.copy_evidence.mkdir(mode=0o700,parents=True,exist_ok=False)
         (self.copy_evidence/'volume.json').write_text(json.dumps(dict(name=self.name,entry=str(self.entry),volume=str(self.execution_override),
-            operator_directory=str(self.operator_directory),source_state_ceiling_bytes=source_state_bytes,definition_hex=definition.SerializeToString(deterministic=True).hex(),qualification='UNQUALIFIED',cleanup='pending'),indent=2)+'\n')
+            operator_directory=str(self.operator_directory),source_state_ceiling_bytes=source_state_bytes,
+            source_actor_ceiling_bytes=policy.default_policy.actor_state_default_bytes,
+            source_workspace_ceiling_bytes=policy.default_policy.total_bytes,definition_hex=definition.SerializeToString(deterministic=True).hex(),qualification='UNQUALIFIED',cleanup='pending'),indent=2)+'\n')
         self.definition_path=self.root/'volume.textproto'
         self.definition_path.write_text(text_format.MessageToString(definition))
         self.owner_configuration=self.root/'owner.pb'
@@ -213,6 +221,10 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             execution_resource_profile='copy-limited',application_profile='development',execution_policy=[core.WORKSPACE_SELECT,core.FILES_READ,core.FILES_WRITE,core.PROCESS_LAUNCH])
         profile.storage_policy.CopyFrom(config.default_policy);profile.storage_policy.total_bytes=32*2**20
         profile.storage_policy.actor_state_default_bytes=12*2**20
+        # Preserve the pre-calibration destination policy, including its unused source profile.
+        destination_source_bytes=self.SOURCE_POLICY_BYTES_BY_SCENARIO.get(self._testMethodName,{}).get('destination_copy_source_bytes')
+        if destination_source_bytes is not None:
+            next(item for item in profile.storage_policy.profiles if item.name=='copy-source').state_bytes=destination_source_bytes
         if hasattr(self,'configured_definitions'):
             config.copy_catalog.protocol_version=2
             self.selected_classes=[copy.PROJECT_TREE,copy.GIT_HISTORY,copy.APPLICATION_DEFINITION,copy.APPLICATION_STATE,copy.ENVIRONMENT_CONFIG]

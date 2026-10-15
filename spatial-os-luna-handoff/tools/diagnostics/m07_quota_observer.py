@@ -29,11 +29,11 @@ def mounted_fsid(mount):
     canonical = str(uuid.UUID(match.group(1)))
     return canonical, uuid.UUID(canonical).hex
 
-def capture_qgroups(mount, path, tag):
+def capture_qgroups(mount, path, tag, timeout=2):
     # No --sync, quota rescan, or quota mutation.
     argv = ["btrfs", "--format", "json", "qgroup", "show", "--raw", "-p", "-c", "-r", "-e", mount]
     try:
-        result = checked_run(argv, timeout=2)
+        result = checked_run(argv, timeout=timeout)
         record = {"tag": tag, "argv": argv, "returncode": result.returncode,
             "stdout": result.stdout, "stderr": result.stderr, "sync_requested": False,
             "rescan_requested": False, "captured_unix_ns": time.time_ns()}
@@ -45,7 +45,7 @@ def capture_qgroups(mount, path, tag):
     path.write_text(json.dumps(record, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     return rc
 
-def capture_catalog(mount, path, tag):
+def capture_catalog(mount, path, tag, timeout=2):
     db = str(pathlib.Path(mount) / ".storage-owner/catalog.db")
     code = r'''import json,sqlite3,sys
 p=sys.argv[1];uri="file:"+p.replace("?","%3f")+"?mode=ro"
@@ -60,7 +60,7 @@ try:
 except Exception as e: print(json.dumps({"ok":False,"database":p,"error":repr(e)},sort_keys=True))
 '''
     try:
-        result = checked_run(["python3", "-B", "-c", code, db], timeout=2)
+        result = checked_run(["python3", "-B", "-c", code, db], timeout=timeout)
         try:
             payload = json.loads(result.stdout) if result.returncode == 0 else None
         except json.JSONDecodeError:
@@ -208,6 +208,10 @@ def main():
     tracer_start = None
     start = time.monotonic()
     observer_error = None
+    completion_deadline = None
+    final_snapshots = {"attempted": False, "qgroups_ok": False, "catalog_ok": False, "errors": []}
+    def snapshot_timeout():
+        return 2 if completion_deadline is None else max(0.001, min(2, completion_deadline - time.monotonic()))
     def record_line(line, log):
         nonlocal attached, edquot_seen, chain_seen, incomplete_seen, trace_loss_seen
         nonlocal end_marker_seen, summary_marker_seen, update_count, total_bytes, dropped_bytes, catalog_ok
@@ -259,8 +263,8 @@ def main():
                     incomplete_seen = True
                 chain_seen = chain_seen or any(int(row["root"]) == int(fields["root"]) for row in chain_rows)
                 if not (run_dir / "qgroups.edquot.json").exists():
-                    capture_qgroups(req["mount_path"], run_dir / "qgroups.edquot.json", "first_edquot")
-                    catalog_ok = capture_catalog(req["mount_path"], run_dir / "owner-catalog.edquot.json", "first_edquot")
+                    capture_qgroups(req["mount_path"], run_dir / "qgroups.edquot.json", "first_edquot", timeout=snapshot_timeout())
+                    catalog_ok = capture_catalog(req["mount_path"], run_dir / "owner-catalog.edquot.json", "first_edquot", timeout=snapshot_timeout())
         if "CHAIN " in line:
             fields = dict(re.findall(r"([A-Za-z_]+)=([^\s]+)", line))
             required_chain = ("ns", "root", "level", "qid", "rfer", "excl", "flags", "max_rfer", "max_excl", "data", "meta_pertrans", "meta_prealloc")
@@ -272,7 +276,7 @@ def main():
                 if int(fields["root"]) in edquot_roots:
                     chain_seen = True
                     if not (run_dir / "qgroups.chain.json").exists():
-                        capture_qgroups(req["mount_path"], run_dir / "qgroups.chain.json", "first_chain")
+                        capture_qgroups(req["mount_path"], run_dir / "qgroups.chain.json", "first_chain", timeout=snapshot_timeout())
             else:
                 incomplete_seen = True
                 if len(parse_errors) < MAX_CONTEXT_ERRORS:
@@ -368,13 +372,28 @@ def main():
         observer_error = repr(exc)
         incomplete_seen = True
     finally:
+        # The fixture waits ten seconds for done before unmounting. Reserve one
+        # second for summary/done publication after bounded snapshots and drain.
+        completion_deadline = time.monotonic() + 9
+        if release_seen:
+            final_snapshots["attempted"] = True
+            try:
+                final_snapshots["qgroups_ok"] = capture_qgroups(req["mount_path"], run_dir / "qgroups.final.json", "release_final", timeout=snapshot_timeout()) == 0
+            except Exception as exc:
+                final_snapshots["errors"].append("qgroups: " + repr(exc))
+            try:
+                final_snapshots["catalog_ok"] = capture_catalog(req["mount_path"], run_dir / "owner-catalog.final.json", "release_final", timeout=snapshot_timeout())
+            except Exception as exc:
+                final_snapshots["errors"].append("catalog: " + repr(exc))
+            if not final_snapshots["qgroups_ok"] or not final_snapshots["catalog_ok"] or final_snapshots["errors"]:
+                incomplete_seen = True
         try:
             if proc.poll() is None:
                 if owned_group():
                     os.killpg(proc.pid, signal.SIGINT)
                 else:
                     incomplete_seen = True
-            drain_deadline = time.monotonic() + 5
+            drain_deadline = min(time.monotonic() + 5, completion_deadline)
             with log_path.open("a", encoding="utf-8") as log:
                 while not pipe_eof and time.monotonic() < drain_deadline:
                     for line in read_lines(0.1):
@@ -388,8 +407,8 @@ def main():
                     incomplete_seen = True
                     if owned_group():
                         os.killpg(proc.pid, signal.SIGKILL)
-                    proc.wait(timeout=5)
-                final_drain_deadline = time.monotonic() + 2
+                    proc.wait(timeout=max(0.001, completion_deadline - time.monotonic()))
+                final_drain_deadline = completion_deadline
                 while not pipe_eof and time.monotonic() < final_drain_deadline:
                     for line in read_lines(0.1):
                         try:
@@ -406,11 +425,11 @@ def main():
             try:
                 if proc.poll() is None and owned_group():
                     os.killpg(proc.pid, signal.SIGKILL)
-                proc.wait(timeout=5)
+                proc.wait(timeout=max(0.001, completion_deadline - time.monotonic()))
             except Exception as cleanup_exc:
                 observer_error += "; child cleanup failed: " + repr(cleanup_exc)
         try:
-            proc.wait(timeout=5)
+            proc.wait(timeout=max(0.001, completion_deadline - time.monotonic()))
         except Exception as exc:
             incomplete_seen = True
             observer_error = observer_error or ("child wait failed: " + repr(exc))
@@ -437,7 +456,7 @@ def main():
         "edquot_events": edquot_events, "edquot_roots": sorted(edquot_roots),
         "incomplete_seen": incomplete_seen, "trace_loss_seen": trace_loss_seen, "release_seen": release_seen,
         "end_marker_seen": end_marker_seen, "summary_marker_seen": summary_marker_seen,
-        "update_count": update_count,
+        "update_count": update_count, "final_snapshots": final_snapshots,
         "context_last_sequence": last_context, "context_errors": context_errors,
         "context_valid": context_valid,
         "parse_errors": parse_errors, "observer_error": observer_error,
