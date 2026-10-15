@@ -7,6 +7,7 @@ import hashlib
 from contextlib import closing
 import signal
 import os
+import select
 from pathlib import Path
 import socket
 import sqlite3
@@ -24,6 +25,7 @@ copy=engine.copy
 storage=engine.storage
 authority=engine.fixtures.issuer
 FAULT_RELAY=engine.SOURCE/'tests/native/storage_owner_copy_fault_relay.py'
+SUPERVISED_BROKER_KILL=engine.SOURCE/'tests/native/operator_kill_supervised_broker.py'
 
 
 def is_revoked_copy_status_denial(code,message,*,unauthorized,forbidden):
@@ -693,6 +695,41 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
 
     def test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish(self):
         self.copy_fault_mode='drop-publication-ack'
+        expected_broker_executable=str(engine.fixtures.BROKER)
+        with engine.fixtures.BROKER.open('rb') as executable_file:
+            expected_broker_sha256=hashlib.file_digest(executable_file,'sha256').hexdigest()
+        # Exercise operator rejection outside the held-receipt deadline with a safe test-owned process.
+        probe=subprocess.Popen(['/usr/bin/sleep','60'])
+        try:
+            probe_pid=probe.pid;probe_start=self.start_time(probe_pid)
+            probe_executable=os.readlink(f'/proc/{probe_pid}/exe')
+            probe_sha256=hashlib.sha256(Path(probe_executable).read_bytes()).hexdigest()
+            def reject_operator_identity(expected_pid=probe_pid,target_pid=probe_pid,
+                                         expected_start=probe_start,expected_executable=probe_executable):
+                return subprocess.run(['sudo','-n',sys.executable,'-B',str(SUPERVISED_BROKER_KILL),
+                    '--expected-pid',str(expected_pid),'--target-pid',str(target_pid),
+                    '--expected-start',str(expected_start),'--expected-executable',str(expected_executable),
+                    '--expected-sha256',probe_sha256],capture_output=True,timeout=10)
+            for expected_pid,target_pid,expected_start,expected_executable,reason in (
+                    (probe_pid+1,probe_pid,probe_start,probe_executable,'target PID does not match'),
+                    (probe_pid,probe_pid,str(int(probe_start)+1),probe_executable,'broker identity mismatch before pidfd'),
+                    (probe_pid,probe_pid,probe_start,'/bin/sleep','broker identity mismatch before pidfd')):
+                rejected=reject_operator_identity(expected_pid,target_pid,expected_start,expected_executable)
+                self.assertNotEqual(rejected.returncode,0,rejected.stdout+rejected.stderr)
+                self.assertIn(reason,rejected.stderr.decode(errors='replace'))
+                self.assertIsNone(probe.poll(),'Rejected operator identity check killed the test-owned process')
+                self.assertEqual(self.start_time(probe_pid),probe_start)
+            accepted=reject_operator_identity()
+            self.assertEqual(accepted.returncode,0,accepted.stdout+accepted.stderr)
+            proof=json.loads(accepted.stdout)
+            self.assertEqual(proof['pid'],probe_pid);self.assertEqual(proof['start_ticks'],probe_start)
+            self.assertEqual(proof['executable'],probe_executable);self.assertEqual(proof['executable_sha256'],probe_sha256)
+            self.assertLessEqual(proof['signal_sent_monotonic_ns'],proof['death_observed_monotonic_ns'])
+            self.assertLessEqual(proof['death_observed_monotonic_ns']-proof['signal_sent_monotonic_ns'],5_000_000_000)
+            self.assertEqual(probe.wait(timeout=5),-signal.SIGKILL)
+        finally:
+            if probe.poll() is None:
+                probe.terminate();probe.wait(timeout=5)
         # Crash recovery needs a pre-bound real supervisor, not a fresh identity or a pre-crash close.
         sys.path.insert(0,str(engine.SOURCE/'tests/native'))
         from copy_fault_supervised_world import SupervisedCopyFaultWorld
@@ -721,16 +758,32 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         self.assertEqual(row[0],copy.VALIDATED);self.assertEqual(count,1)
         self.assertEqual([(kind,state) for kind,state,_,_ in effects if kind=='publication'],[('publication',0)])
         binding_bytes=row[3]
-        # pidfd binds the signal to the inspected production broker.
-        pid=old.pid;start=self.start_time(pid);descriptor=os.pidfd_open(pid)
+        # The test actor cannot inspect this protected supervised broker.
+        # The constrained operator helper revalidates its PID/start/ELF around pidfd open.
+        identity=old.resources.handle.identity
+        pid=old.pid;start=identity['start_ticks']
+        executable=expected_broker_executable
+        executable_sha256=expected_broker_sha256
+        self.assertEqual(identity['pid'],pid);self.assertEqual(identity['executable'],executable)
+        descriptor=os.pidfd_open(pid)
         try:
-            self.assertEqual(self.start_time(pid),start)
-            self.assertEqual(os.readlink(f'/proc/{pid}/exe'),str(engine.fixtures.BROKER))
-            signal.pidfd_send_signal(descriptor,signal.SIGKILL)
-            signal_sent=time.monotonic_ns()
-            self.assertTrue(__import__('select').select([descriptor],[],[],5)[0],
-                            'Actual broker pidfd did not confirm death before publication reply release')
+            self.assertEqual(select.select([descriptor],[],[],0)[0],[],'Broker exited before operator signal')
+            killed=subprocess.run(['sudo','-n',sys.executable,'-B',str(SUPERVISED_BROKER_KILL),
+                '--expected-pid',str(pid),'--target-pid',str(pid),'--expected-start',str(start),
+                '--expected-executable',executable,'--expected-sha256',executable_sha256],
+                capture_output=True,timeout=10)
+            self.assertEqual(killed.returncode,0,killed.stdout+killed.stderr)
+            proof=json.loads(killed.stdout)
+            self.assertEqual(proof['pid'],pid);self.assertEqual(proof['start_ticks'],start)
+            self.assertEqual(proof['executable'],executable);self.assertEqual(proof['executable_sha256'],executable_sha256)
+            signal_sent=proof['signal_sent_monotonic_ns'];operator_death=proof['death_observed_monotonic_ns']
+            self.assertLessEqual(signal_sent,operator_death)
+            self.assertLessEqual(operator_death-signal_sent,5_000_000_000)
+            self.assertTrue(select.select([descriptor],[],[],5)[0],
+                            'Unprivileged broker pidfd did not confirm death before receipt release')
             death_observed=time.monotonic_ns()
+            durable=(json.dumps(dict(broker_pid=pid,broker_start_ticks=start,**proof),sort_keys=True,indent=2)+'\n')
+            (self.copy_evidence/'lost-publication-operator-kill-proof.json').write_text(durable)
             self.operator_run(['touch',release])
             receipt_released=time.monotonic_ns()
             (self.copy_evidence/'lost-publication-crash-order.json').write_text(json.dumps(dict(
