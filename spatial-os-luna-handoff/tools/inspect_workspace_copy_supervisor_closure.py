@@ -13,7 +13,7 @@ BINDINGS=('launch_pb2.py','native_scope_pb2.py','process_scope_pb2.py','security
           'issuer_pb2.py','key_pb2.py','grants_pb2.py','broker_pb2.py','storage_pb2.py','core_pb2.py')
 SOURCES=('tests/native/copy_fault_supervised_world.py','tests/native/test_security_identity.py',
          'tests/native/display_ready.py','tests/native/native_display_geometry.py',
-         'tests/core/test_workspace_copy_faults.py','tools/copy_fixture_profiles.py',
+         'tests/core/test_workspace_copy_faults.py','harness/copy_fault_evidence.py','tools/copy_fixture_profiles.py',
          'tools/run_workspace_copy_faults.py','harness/wire.py')
 
 def record(path,executable=False):

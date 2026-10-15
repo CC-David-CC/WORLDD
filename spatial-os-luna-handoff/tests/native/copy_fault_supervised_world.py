@@ -22,23 +22,10 @@ import process_scope_pb2 as process_scope
 import security_pb2 as security
 from test_world_identity import SessionPeer
 from harness.wire import frame
+from harness.copy_fault_evidence import durable_write
 
 BaseWorld=engine.fixtures.WorldProcess
 
-
-def durable_write(path,data):
-    with path.open('wb') as stream:
-        stream.write(data);stream.flush();os.fsync(stream.fileno())
-    anchor=Path.home()/'spatial-artifacts'
-    directory=path.parent
-    if not directory.is_relative_to(anchor):raise ValueError('Retirement evidence must stay in spatial-artifacts')
-    # Persist newly created evidence-directory entries through the established artifact root.
-    while True:
-        descriptor=os.open(directory,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
-        try:os.fsync(descriptor)
-        finally:os.close(descriptor)
-        if directory==anchor:break
-        directory=directory.parent
 
 
 def context(fixture):

@@ -45,8 +45,11 @@ The real root owner must complete EOF cleanup before any retirement signature.
 
 A durable external cleanup manifest hashes both actual supervisor records and the real relay audit.
 Each referenced cleanup.pb, the root-owner audit copy, and the manifest are fsynced.
-Their directory entries are fsynced through the established spatial-artifacts root before signing.
+The configured SPATIAL_SECURITY_EVIDENCE root defines the permitted output boundary.
+The fixture validates each output before writing. Evidence may live outside spatial-artifacts.
+File and ancestor directory entries are fsynced through filesystem root before signing.
 This covers these files and directories, not arbitrary filesystem or storage-owner durability.
+The original a83 checkpoint remains preserved; this follow-up corrects its hardcoded evidence anchor.
 Each pre-bound supervisor key signs issuer retirement over that manifest hash.
 The fixture validates each challenge, exact receipt and read-only issuer activation history.
 Only the respective failed generation becomes inactive. No issuer or copy rows are edited.
@@ -87,3 +90,8 @@ This was an explicitly authorized coding-host check, not test-host qualification
 Receipt: /home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/review-02/pure-profile-outer-01.
 Deployment and actual runtime remain UNRUN pending primary review and host assignment.
 No full M07 gate or runtime PASS is claimed by this source increment.
+
+Follow-up evidence-root pure regression: one named method passed on a5500 in 0.002 seconds.
+It exercises the actual durable writer outside spatial-artifacts and rejects an outside output before creation.
+Canonical command/wrapper exits: 0/0. This is UNQUALIFIED coding-host pure evidence.
+Receipt: /home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/evidence-root-review-01/outer-01.

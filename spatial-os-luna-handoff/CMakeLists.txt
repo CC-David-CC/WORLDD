@@ -1105,10 +1105,15 @@ if(BUILD_TESTING)
             native-scope-python-protobuf scope-python-protobuf
         SOURCES tests/core/test_workspace_copy_faults.py
             tests/native/copy_fault_supervised_world.py
+            harness/copy_fault_evidence.py
+            tools/test_copy_fault_evidence.py
             tools/inspect_workspace_copy_supervisor_closure.py
             tests/native/storage_owner_copy_fault_relay.py
             tools/inspect_workspace_copy_fault_fixture.py
             tools/run_workspace_copy_faults.py)
+    add_test(NAME workspace-copy-fault-evidence-durability COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fault_evidence.py")
+    set_tests_properties(workspace-copy-fault-evidence-durability PROPERTIES TIMEOUT 30)
     add_test(NAME workspace-copy-fault-relay-timing COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_owner_copy_fault_relay_timing.py")
     set_tests_properties(workspace-copy-fault-relay-timing PROPERTIES TIMEOUT 30)
