@@ -1,3 +1,56 @@
+Current checkpoint: M07 gate repair, diagnostic policy, and first focused runtime pass
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations in older entries below.
+
+The sb16-2 original Debug gate remains live at frozen candidate 706fe47.
+The latest retained snapshot records 126 completed suite records and 19 failures.
+These are partial counts. They are not a terminal gate result.
+Snapshot: a5500:/home/dflanag3/spatial-artifacts/m07-gate-failure-diagnosis-20261015/evidence-sb16-2-debug-partial-05.
+Production startup and 51 harness checks passed earlier in that run.
+The full sanitizer profile and cross-host gate remain UNRUN.
+
+Focused Debug testing now runs on sb16 with task overlay aae4e3bd and verified 706fe47 runtime binaries.
+All production and build inputs match that runtime for this test-only overlay.
+The first suite, actor-geometry-world-headless, passed all nine tests in 260.479 seconds.
+Its command and wrapper exits are both zero.
+This includes controlled count-limit rejection, oversized snapshots, TLS, and queued-observation revocation.
+The remote-security suite is running. Later selected suites remain pending.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/m07-gate-fixture-aae4e3bd-20261015/runs/Debug-02.
+The first launcher attempt stopped before tests because outer and inner provenance hashes differ by design.
+The reviewed successor verifies archive membership and exactly two post-archive fields.
+Its 17 provenance controls, 183 dispatch controls, and preparation passed with zero command/wrapper exits.
+Runner SHA: 9ace7a157cb8c856c4954c6375357a95c6ad8179c78e2d396a62c47f380337b5.
+The original refusal remains preserved in Debug-01-outer.
+
+A production observation-policy regression is confirmed from current source and the observation contract.
+Authenticated actor sessions require observation authority. Explicit trusted diagnostic sessions preserve their existing behavior.
+New unconditional scene and observation checks incorrectly reject diagnostic sessions.
+The earlier c650739 fixture change must be reconsidered. Adding grants does not repair this production regression.
+A separate worker is preparing mode-aware checks while preserving authenticated revocation and presentation authority.
+The production repair will require rebuilt binaries and new provenance before runtime qualification.
+
+The application-observation queued-export failure has a separate timing explanation.
+Its second broker decision now precedes the new final authority fence.
+Revocation there returns a typed denial before observation output is queued.
+This does not prove unauthorized metadata escaped.
+Retain that pre-queue denial case and separately test channel closure after output is queued.
+Do not change identity_sessions merely to force an EOF for a pre-queue rejection.
+HybridWorldProcess also needs the same cleanup-field initialization as the other remote fixture.
+
+Reviewed fixture corrections are checked into box-git:
+4488fcf738db9878458cd01a6fe416f45718434f removes future tables from the synthetic schema-1 enrollment fixture.
+70213f94ab8547559fa1e7ba88c695473ca90908 checks exact malformed-request errors for implemented M07 actions.
+Their assertions preserve issuer identity, rollback, authority, workspace selection, and world revision checks.
+Combined task checkpoint: 221a7ea853f7bcc166fd11aab348c556ea4f5f5a.
+Branch: m07/gate-fixture-combined-20261015. Box-git ref verified.
+These two corrections remain runtime UNRUN. The live aae4e3bd overlay remains unchanged.
+The milestone integration branch remains frozen at 706fe47aae50000fa78ee1549b76356d3cf66eff.
+
+Next: review the production correction, rebuild affected binaries, and run focused Debug/sanitizer checks on both hosts.
+Then freeze the combined candidate and complete the required M07 local and cross-host gates.
+Focused passes do not complete M07 or Spatial-M1.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: M07 full-gate failures and focused repair
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 Both common-path deployments passed verification with command and wrapper exits 0/0.

@@ -1,3 +1,27 @@
+## 2026-10-15: M07 focused runtime starts; diagnostic-policy regression confirmed
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details in older entries below.
+The original sb16-2 Debug gate remains live. A retained snapshot has 126 completed suites and 19 failures.
+Those counts are partial. Full sanitizer and cross-host qualification remain unrun.
+
+The reviewed test-only overlay now runs focused Debug checks on sb16.
+All nine headless geometry checks passed, including count-limit rejection, TLS, and queued-observation revocation.
+Remote-security testing is active. The remaining focused suites have no passing claim yet.
+The provenance launcher refusal is repaired and preserved. Its replacement passed offline controls and runtime preflight.
+
+Current source confirms a production regression in diagnostic observation policy.
+Authenticated sessions require observation authority. Explicit trusted diagnostic sessions retain their existing behavior.
+Unconditional M07 scene checks broke that distinction. A separate worker is preparing the narrow production correction.
+The previous native fixture grant change does not establish that the production policy was correct.
+The queued-export test also needs separate pre-queue denial and queued-output revocation cases.
+No identity-session production change is justified by the current timing evidence.
+
+Reviewed fixture task checkpoint 221a7ea853f7bcc166fd11aab348c556ea4f5f5a is verified on box-git.
+It includes synthetic schema-1 cleanup and exact malformed-action validation corrections.
+Those new corrections remain runtime unrun. The running overlay is still pinned at aae4e3bd.
+Milestone integration remains frozen at 706fe47. Production fixes require a new build and provenance.
+Read the execution record for source pins, evidence paths, and pending gates.
 ## 2026-10-15: M07 gate exposes fixture regressions; focused repairs prepared
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
