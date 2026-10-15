@@ -651,7 +651,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.assertEqual(runtime.registered_revision,revision)
         self.assertEqual(runtime.private_key_path,str(key))
         with closing(self.connect()) as peer:
-            op=issuer.IssuerOperation(registry_read=issuer.AuthorityRegistryRead(limit=64))
+            op=issuer.IssuerOperation(registry_read=issuer.AuthorityRegistryRead(limit=16))
             reply=self.execute(peer,self.challenge(peer,op));self.assertTrue(reply.HasField('registry'),reply)
             page=reply.registry;self.assertFalse(page.next_after)
             matches=[item for item in page.participants if item.participant.id==participant_id]

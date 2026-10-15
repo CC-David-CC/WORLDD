@@ -34,3 +34,36 @@ Preselected checks, not yet executed:
 - ParticipantDomainAdditionTests.test_cached_service_and_pending_old_revision_proof_are_rejected.
 These preserve exact receipts, identity, duplicate-domain rejection, owner authority, and stopped-service fencing.
 No checkpoint, package, integration, or runtime is authorized by this document.
+
+Registry page-limit correction, reviewed after the first repair attempt:
+Both Debug policy runs reached registry_read and failed before challenge creation.
+The request used limit 64. participants.hpp:34-38 permits at most 16 records.
+SB16 failed in 42.650 seconds; its result SHA256 is
+652f60f58cddcb394cb359c1355180a4f90efbcb378bf90c83e7958f4552389f.
+SB16-2 failed in 47.619 seconds under focused619d-debug-12-policy.
+Both runs confirmed cleanup. Their failed images remain retained. SAN remains UNRUN.
+The fixture implementation and primary review missed the validator's page bound.
+The corrected request uses limit 16. The no-next-page assertion remains mandatory.
+This fixture registers only a few services and must fail if its registry exceeds one page.
+
+Audit of all new requests against production validators and response paths:
+- registry_read uses an empty cursor and limit 16; participants.hpp:34-38 accepts both.
+  issuer.cpp:806-819 returns at most 16 records and sets next_after when another page exists.
+- supervisor_read uses the existing 32-byte participant ID; issuer.cpp:85-87 validates it.
+  issuer.cpp:729-746 returns the current binding or exact NOT_FOUND for an unbound service.
+- participant_domains_add uses a fresh 16-byte operation ID and the existing 32-byte ID/key.
+  Its positive registration revision comes from the exact current registration.
+  Its registry and supervision revisions are explicitly present, including zero when unbound.
+  The single WORKSPACE addition is nonempty, at most 256 bytes, and contains no NUL.
+  A single addition is unique and canonically ordered.
+  issuer.cpp:107-126 validates these fields before issuing a challenge.
+- issuer.cpp:1281-1294 executes the stored owner-signed operation, not replacement request bytes.
+  protocol.cpp:32-39 forwards registry, supervision, and participant_domains_added outcomes.
+- issuer.cpp:883-965 checks current revisions, stopped-service guards, domain ownership, and capacity.
+  It returns the exact request bytes/digest, unchanged ID/key, incremented registry/registration,
+  and incremented supervision when present. The fixture checks those returned fields.
+- configure_participant reuses the updated cache entry and writes the same service ID/key paths
+  with the new registration revision. No additional participant_register request is needed.
+
+No further validator or response-path contradiction was found in this source audit.
+The corrected path remains UNQUALIFIED and UNRUN. This is not a production protocol change.
