@@ -1,3 +1,15 @@
+## 2026-10-15: User-paused after the focused copy control failed
+
+M07 remains UNQUALIFIED. David requested a pause and a written planning handoff.
+Read [the paused handoff](../docs/M07_PAUSED_HANDOFF_2026-10-15.txt) before resuming work.
+Responsiveness passed focused Debug and sanitizer checks on both qualification hosts.
+The combined five-class copy test failed in 31.641 seconds on sb16-2 Debug.
+Diagnostics show the whole editor process tree disappeared before cleanup. The terminal survived.
+The cause remains unknown. Do not filter process continuity checks to obtain a pass.
+Cleanup is confirmed. All worker lanes are stopped. The full M07 gate has not started.
+The handoff records evidence, source pins, repair ideas, capacity risks, and unrun requirements.
+Do not resume tests, diagnosis, builds, cleanup, or deployment without David's direction.
+
 ## 2026-10-14: Copy responsiveness passes three isolated Debug runs
 
 David authorized the responsiveness fix and subsequent M07 qualification.

@@ -1,0 +1,208 @@
+M07 PAUSED HANDOFF -- 2026-10-15
+Status: USER-PAUSED. M07 remains UNQUALIFIED.
+Do not resume tests, diagnosis, builds, cleanup, or deployment without David's direction.
+This file records facts and investigation ideas. It does not approve a production fix.
+
+CURRENT POSITION
+M01-M06 are qualified. M07 is incomplete. M08-M16 remain pending.
+Workspace-copy responsiveness has focused passing evidence on both required hosts.
+The combined five-class copy control now exposes an application-lifetime failure.
+The full frozen M07 qualification gate has not started.
+No current ETA is reliable until this failure has a known cause.
+
+CONFIRMED WINS
+Production responsiveness checkpoint: 14547ba4b17af35a4e4780812fd9a00c811f4dcc.
+Bounded broker request dispatch continues during storage-owner I/O.
+Effectful requests queue. Authorization checks remain active.
+Six isolated responsiveness executions passed: three sb16 Debug repeats, sb16 sanitizer,
+sb16-2 Debug, and sb16-2 sanitizer. Each real copy published.
+Owner replies were deliberately delayed about 4.1 seconds.
+Status calls completed inside those waits. No timeout increase was used.
+Both-host report checkpoint: b94f4addcb8097f06bc75c4ff773cb5fbe3a0c69.
+Report path in that tree:
+spatial-os-luna-handoff/docs/M07_COPY_RESPONSIVENESS_BOTH_HOSTS_FOCUSED_20261014.txt
+All four combined compilation baselines passed: Debug and ASan/UBSan, testing ON and OFF.
+Those builds use source eb569742f843c59e988e813f3431cf292c516fe7, not the final gate candidate.
+The gate tooling's pure static suite passed 53 tests on sb16.
+This is tooling evidence. It does not prove production runtime qualification.
+Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-gate-pure-static-caa9ed07/summary.json
+Earlier authority, journal, fence, and presentation component evidence remains retained.
+Do not substitute component passes for the combined gate.
+
+LATEST FAILED QUICK TEST
+Host: sb16-2. Profile: Debug.
+Exact method:
+WorkspaceCopyEngineTests.test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch
+Result: one selected test, ERROR, 31.641 seconds. Command exit 1. Wrapper exit 1.
+Runtime binaries: eb569742f843c59e988e813f3431cf292c516fe7.
+Fixture diagnostic checkpoint: fb8258cec44cb7c99429bf16b9f4c272f250d128.
+This was an explicit test-only overlay. Runtime binaries were unchanged.
+Frozen overlay manifest SHA256:
+268e651bd12a5043174e7f74ae56b3055b7b895268171ab4ee36ac4ee7b79b40
+Archive SHA256:
+3ab4f301ce52056048789b15036517d520ec09dc047fdc3f33c2488ea7e2983b
+
+Run root:
+sb16-2:/home/dflanag3/spatial-artifacts/m07-focused-debug-fb8258ce-20261015
+Outer command receipts: 01-engine/outer
+Runtime evidence: 01-engine/inner
+Cleanup receipt: 01-engine/cleanup-verification.json
+Worker handoff: PAUSED_HANDOFF.json and PAUSED_NOTES.txt
+
+CONFIRMED FAILURE
+The continuity check first failed reading /proc/2578337/stat.
+That process was the editor's /spatial-app-init supervisor.
+The entire editor tree also disappeared before fixture teardown:
+- bwrap PID 2578333, start ticks 35412255.
+- namespace bwrap PID 2578334, start ticks 35412256.
+- /spatial-app-init PID 2578337, start ticks 35412264.
+- Python editor payload PID 2578338, start ticks 35412265.
+- editor fork PID 2578386, start ticks 35412285.
+The terminal tree remained alive with unchanged PID/start identities:
+2578408/35412360, 2578409/35412361, 2578410/35412367,
+2578411/35412369, and 2578412/35412409.
+Both lifecycle diagnostics reported diagnostic_errors=[].
+Before-copy diagnostic SHA256:
+82c87f4237ee1a100b95729ba0a75ab405cbd3c33f339852b244cf86aa4826d0
+Failure diagnostic SHA256:
+fc44702a17f702d5cd0a40856035a59ea1f2e2b5cf1b92c4cafecea54dcc0f8c
+The editor's exit signal, exit status, and initiating cause remain UNKNOWN.
+Do not describe this as a harmless transient-helper disappearance.
+Do not remove PID continuity checks to make the test pass.
+It is not yet proven whether production lifecycle code or fixture behavior caused the death.
+
+CLEANUP AND RECOVERY STATE
+Latest cleanup is confirmed complete.
+Exact unit da576fb13d504511a6b1a885e24fda34 is inactive/not-found.
+Its cgroup is absent. No candidate binary PIDs remain.
+Copy helper installs are restored absent.
+The test volume is unmounted and detached. Its failure evidence remains retained.
+Cleanup receipt SHA256:
+6130510f935a17e72b258e5a0d7a4b5b89eb0717904d610e4a7df5f6e292b128
+The fixed installed storage owner remains the prior baseline:
+e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f
+No David volume migration, owner restart, or installed helper activation occurred.
+All three M07 worker lanes acknowledge the pause. No further work is authorized by this handoff.
+
+EARLIER FAILURES AND LESSONS
+The first combined run failed before copy because custom broker fixtures missed shared transport initialization.
+Reviewed fix fff529d5bd0e76f027cab827eeacc9a66d0b2049 initializes existing raw-channel transport explicitly.
+The next run failed on an unidentified descendant PID, 2572589.
+Existing records could not classify it. We kept continuity checks and added lifecycle diagnostics.
+The latest retry proved genuine editor-tree death. It did not prove the earlier PID's identity.
+An earlier SAN package missed runtime.textproto. Runner preflight now checks the adjacent configuration and helpers.
+Preserve setup failures separately from runtime behavior failures.
+Some earlier selector invocations consumed a method as a fixture argument.
+Always verify the exact named method, actual test count, command exit, and wrapper exit.
+COMPLETE does not mean PASS.
+
+INVESTIGATION IDEAS -- NOT CONFIRMED CAUSES
+1. Build one timeline from retained before/failure diagnostics, broker logs, and owner effect journal.
+   Identify the last editor-alive witness and the first recorded disappearance.
+2. Decode retained real PayloadQuiescenceReceipt bytes with the candidate protobuf schema.
+   Compare payload PID/start identities against the source editor and terminal trees.
+   The receipt contract excludes supervisors. Do not confuse supervisor inventory with payload identity.
+3. Inspect the actual copy quiesce, freeze, snapshot, release, thaw, and abort paths.
+   Check whether stopping, cancellation, timeout, or scope cleanup can target the wrong source process group.
+4. Inspect spatial-app-init and supervisor lifetime handling around payload exit and child reaping.
+   Compare the editor's forked tree with the surviving terminal tree.
+5. Check existing application stdout/stderr, supervisor status, cgroup events, and resource receipts.
+   A signal, normal payload exit, resource limit, scope teardown, or fixture lifetime issue remains possible.
+   None is an accepted root cause yet.
+6. If retained evidence cannot establish the cause, propose narrowly targeted exit diagnostics first.
+   Capture actual wait status, signal source where observable, scope identity, and monotonic timestamps.
+   Keep existing budgets and assertions. Avoid broad rewrites or another full gate.
+7. Reproduce only the exact five-class test after reviewing the diagnostic or production change.
+   Add a regression for any reproduced production defect. Run focused sanitizers for lifetime changes.
+Do not run git bisect without a reproducible failure and known good and bad source commits.
+Do not guess that a passing isolated responsiveness test proves whole-copy application preservation.
+
+GIT AND BUILD RECOVERY PINS
+Windows checkout main at pause entry:
+666601f3e686f3181a547376671f612c324aa787
+This local pause documentation is a later docs-only checkpoint.
+Integration checkout:
+a5500:/home/dflanag3/src/spacial-m07-qualification-integration-20261014
+Branch: m07/qualification-integration-20261014
+BOX-GIT VERIFIED HEAD: 55a659a849c8bac73d3ceacdc0cb9b4e5b3e1ddd
+Includes the responsiveness report, reviewed fixture initialization, gate tooling, and runner preflight.
+This branch is UNQUALIFIED. It does not include the latest fb8258 diagnostic change.
+Diagnostic branch: m07/copy-fixture-transport-init-20261014
+BOX-GIT VERIFIED HEAD: fb8258cec44cb7c99429bf16b9f4c272f250d128
+Builder checkout: a5500:/home/dflanag3/src/spacial-m07-gate-build-20261014
+Builder source pin: eb569742f843c59e988e813f3431cf292c516fe7
+External build plan and cache map:
+a5500:/home/dflanag3/spatial-artifacts/m07-combined-build-plan-20261014/build-paths.json
+Do not rebuild from an older source pin after final integration.
+Preserve all four caches. Use one cache lock and -j2.
+Origin remains dflanag3@box-git:/srv/data/git/spacial_desktop-clean.git.
+No force-push. Do not merge unqualified runtime changes into main merely because they compile.
+
+CAPACITY AND RETENTION -- UNIMPLEMENTED
+sb16 had about 8.60 GiB free during the latest audit. sb16-2 had about 35.5 GiB.
+The runner requires more than 8 GiB before starting.
+A full engine profile creates twelve 512 MiB images, about 6 GiB.
+Five fault registrations create about 2.5 GiB per profile.
+Current cleanup unmounts images but retains them.
+The full gate needs a bounded passed-only retention policy before launch.
+No retention implementation was created. No additional image deletion occurred during this pause.
+42 sb16 m07-engine images existed. Five have focused PASS evidence.
+The remaining 37 have failed, incomplete, or missing reviews. Preserve them.
+Suggested policy: after a completely verified passing run, retain logs, volume records, and image hashes.
+Independently verify no mount, loop mapping, open holder, transient unit, or cgroup remains.
+Then remove only the exact run-created image files and record recovered bytes.
+Preserve failure images. Never delete David's image or qualified XACE wrapper/library closure.
+Cleanup of five reviewed PASS images would recover 2,684,354,560 bytes.
+That alone does not make indefinite full-matrix image retention sustainable.
+
+Candidate PASS images on sb16; these are NOT deletion commands:
+/var/lib/spatial/volumes/m07-engine-4bd70f6693b14024/volume.img
+SHA256 4722da41a85ae761e8f41411a1d99adb09481a6825b6533be78c038e9e93356f
+/var/lib/spatial/volumes/m07-engine-7f1e4ca97de74d77/volume.img
+SHA256 4ab9e8d248249a2cdb671b3408c36b32f1df3507f101086cd9890db76cccd2b4
+/var/lib/spatial/volumes/m07-engine-98a16359301f4c6a/volume.img
+SHA256 51093998df1b4224d4a111e66a9eb66850093ade691bcf94d09cf6811f47e44c
+/var/lib/spatial/volumes/m07-engine-ce74dc638bba47cd/volume.img
+SHA256 dccef24560b978958c07cebdda6079eea011795eb590da4a92de7c28973216a1
+Those four share /home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1/review.json.
+/var/lib/spatial/volumes/m07-engine-63d87b77ceec459a/volume.img
+SHA256 ca51598fb0b4732b038596b822dc6a45842294d246b20e0a6d9da6b0f25afbb7
+Review: /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-san-sb16-v4f-r1-evidence/review.json
+Recheck every eligibility condition immediately before any later approved deletion.
+
+INSTALLED HELPER ISSUE -- PLAN ONLY
+Native production launches /usr/local/libexec/spatial-storage-owner, not the adjacent packaged binary.
+Both hosts still have the old M06 baseline helper. M07 qualification must use the frozen M07 owner.
+Prepared activation/recovery plan:
+a5500:/home/dflanag3/spatial-artifacts/m07-combined-build-plan-20261014/M07_ROOT_HELPER_ACTIVATION_PLAN.txt
+Proposed topology uses one final frozen ASan/UBSan root owner in both native gate profiles.
+Debug fixture copies still use their bundled Debug owner. Record this mixed topology explicitly.
+Before activation, verify final hashes, dependencies, ownership, active owner inodes, PIDs, and volume mounts.
+Use a root-owned backup and atomic directory-entry replacement. Never truncate a live executable inode.
+Preserve David's running owner and filesystem. Do not migrate or restart it.
+Require disposable production startup checks on both hosts. Update all duplicate manifest helper pins.
+Restore the exact baseline after the gate unless stable deployment is separately reviewed.
+No activation, production startup check, migration, or recovery operation has run under this plan.
+
+UNRUN WORK AFTER THE COPY CONTROL
+All five focused faults remain UNRUN:
+- Actor revocation after a real seal receipt prevents publication.
+- Lost publication acknowledgement reconciles without duplicate publication.
+- Hostile Git hooks, filters, and configuration stay contained.
+- Actual copy-worker death preserves uncertainty without automatic relaunch.
+- The absolute 300-second copy budget expires across genuine sub-timeout owner replies.
+Then review and freeze one combined source candidate.
+Reconfigure and incrementally rebuild all four caches from that exact candidate.
+Verify final package source, helpers, protobuf bindings, runtime configuration, and target hashes.
+Run required both-host Debug, sanitizer, harness, acceptance, recovery, native, and cross-host gates.
+The inventory has 193 registrations; 191 are local and two need dedicated cross-host execution.
+Inspect actual per-test results, service logs, sanitizer reports, cleanup receipts, and source pins.
+Only then decide M07 qualification. Keep M08-M16 pending until the milestone decision.
+
+PROPOSED DISCUSSION WHEN DAVID RESUMES
+Agree on a narrow diagnostic budget and explicit stop criteria for the editor-lifetime defect.
+Resolve the exact five-class copy control before spending time on the full gate.
+Approve a bounded passed-image retention policy before large qualification runs.
+Keep XACE active. Defer CallbackList and unrelated optimization work.
+Prefer one demonstrated invariant repair over another broad rewrite.
+Do not resume automatically from this file.
