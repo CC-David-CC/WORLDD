@@ -69,6 +69,16 @@ def _read_cgroup_procs(path):
     raise RuntimeError('cgroup identity changed during bounded sample')
 
 
+def _read_process_comm(path):
+    """Return None only when Linux reports that the sampled process retired."""
+    try:
+        return path.read_text().strip()
+    except OSError as error:
+        if error.errno in (errno.ENOENT, errno.ESRCH):
+            return None
+        raise
+
+
 class _CgroupSamplePath:
     """Small filesystem stand-in for deterministic retirement regressions."""
     def __init__(self, stats, reads):
@@ -462,9 +472,8 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
                 pids=_read_cgroup_procs(path)
                 if pids is None:continue # A confirmed retired cgroup is absent from this independent sample.
                 for pid in pids:
-                    try:
-                        if Path('/proc/'+pid+'/comm').read_text().strip()=='git': values.append(int(pid))
-                    except FileNotFoundError:pass
+                    comm = _read_process_comm(Path('/proc/'+pid+'/comm'))
+                    if comm == 'git': values.append(int(pid))
             return values
         def observe_git():
             values=git_running()
@@ -535,6 +544,42 @@ class CgroupCpuQuotaValidationTests(unittest.TestCase):
                 self.assertFalse(_has_finite_cpu_quota(value))
 
 
+class _ProcessCommSamplePath:
+    """A deterministic stand-in for one /proc/<pid>/comm read."""
+    def __init__(self, result):
+        self.result = result
+
+    def read_text(self):
+        if isinstance(self.result, OSError):
+            raise self.result
+        return self.result
+
+
+class ProcessCommReadingTests(unittest.TestCase):
+    def test_normal_comm_is_trimmed(self):
+        self.assertEqual(_read_process_comm(_ProcessCommSamplePath('git\n')), 'git')
+
+    def test_enoent_means_process_retired(self):
+        path = _ProcessCommSamplePath(FileNotFoundError(errno.ENOENT, 'process retired'))
+        self.assertIsNone(_read_process_comm(path))
+
+    def test_esrch_means_process_retired(self):
+        path = _ProcessCommSamplePath(ProcessLookupError(errno.ESRCH, 'process retired'))
+        self.assertIsNone(_read_process_comm(path))
+
+    def test_eacces_propagates(self):
+        path = _ProcessCommSamplePath(PermissionError(errno.EACCES, 'access denied'))
+        with self.assertRaises(OSError) as raised:
+            _read_process_comm(path)
+        self.assertEqual(raised.exception.errno, errno.EACCES)
+
+    def test_eio_propagates(self):
+        path = _ProcessCommSamplePath(OSError(errno.EIO, 'read failure'))
+        with self.assertRaises(OSError) as raised:
+            _read_process_comm(path)
+        self.assertEqual(raised.exception.errno, errno.EIO)
+
+
 class CgroupProcessSamplingTests(unittest.TestCase):
     def test_stable_cgroup_returns_process_ids(self):
         path = _CgroupSamplePath([(1, 10), (1, 10)], ['101\n202\n'])
@@ -598,4 +643,5 @@ if __name__=='__main__':
     tests=['StorageContentionTests.'+name for name in StorageContentionTests.__dict__ if name.startswith('test_')]
     tests += ['CgroupCpuQuotaValidationTests.'+name for name in CgroupCpuQuotaValidationTests.__dict__ if name.startswith('test_')]
     tests += ['CgroupProcessSamplingTests.'+name for name in CgroupProcessSamplingTests.__dict__ if name.startswith('test_')]
+    tests += ['ProcessCommReadingTests.'+name for name in ProcessCommReadingTests.__dict__ if name.startswith('test_')]
     unittest.main(verbosity=2,defaultTest=tests)
