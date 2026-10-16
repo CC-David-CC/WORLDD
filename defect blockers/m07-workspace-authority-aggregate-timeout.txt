@@ -1,0 +1,26 @@
+M07 workspace-authority aggregate sanitizer timeout
+Date:2026-10-16.
+Status: REPRODUCED.240-second focused rerun running. M07 remains UNQUALIFIED.
+
+The sb16-2 broad sanitizer suite stopped at its180-second CTest total budget.
+It recorded33 completed methods, all passing, out of35 expected methods.
+JUnit reports Timeout at180.039 seconds. The last completed case checks the scoped authority policy ceiling.
+No assertion failure was reported before CTest terminated the suite.
+Primary scanned691 retained logs without sanitizer findings.
+All11 source/runtime integrity postchecks passed. The exact runner PID retired with command2/wrapper2/COMPLETE.
+The other host passed all12 suites. Its702 inspected logs contained no sanitizer findings or inner skips.
+Do not classify the timeout as a proven production security defect or a completed test suite.
+
+David requested180->240 for the whole suite and a rerun.
+Source checkpoint1e58e65dec132a0a16f004ca4527034dca081f77 changes only that CMake timeout and adds its maintained note.
+All35 methods, internal request/security deadlines, assertions, other registrations, and acceptance.lock.json remain unchanged.
+Primary verified the complete source diff and exact locked bytes.
+A private metadata amendment matches the source change without modifying the retained failed metadata.
+The new controller passed27 offline controls and both actual sanitizer preflights.
+The authority and following fence suites are running on both hosts. Their outcomes remain pending.
+No native300-second run occurred.
+
+Evidence:
+a5500:/home/dflanag3/spatial-artifacts/m07-cli-repair-validation-20261016/broad-san-authority-failure-01.
+a5500:/home/dflanag3/spatial-artifacts/m07-authority-suite-timeout-repair-20261016.
+a5500:/home/dflanag3/spatial-artifacts/m07-authority-budget-runtime-validation-20261016/primary-launch-240.

@@ -1,3 +1,40 @@
+Current checkpoint: 2026-10-16: Authority suite total budget240; focused sanitizer rerun running
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes earlier broad-sanitizer progress observations.
+The final CLI repair quick pair passed Debug and ASan-UBSan on both hosts:48 inner executions, zero failures or skips.
+The broader sanitizer batch passed all12 suites on sb16, with all11 integrity postchecks.
+Primary scanned702 sb16 logs without sanitizer findings or inner skips.
+On sb16-2,10 suites passed before workspace-authority reached its180-second total CTest limit.
+The log records33 distinct completed methods, all passing. The suite has35 methods.
+CTest reports Timeout at180.039 seconds. No assertion failure was reported before termination.
+Primary scanned691 retained logs without sanitizer findings. All11 integrity postchecks passed.
+The final sb16-2 authorization-fence suite was UNRUN in that failed batch.
+Both broad runner jobs are terminal. Their exact pane PIDs retired.
+This evidence does not prove that extending the budget will finish the suite.
+
+David requested a240-second total suite budget and rerun.
+Reviewed source checkpoint:1e58e65dec132a0a16f004ca4527034dca081f77. BOX-GIT VERIFIED. UNQUALIFIED.
+Only the workspace-authority CTest total timeout changes from180 to240. A maintained note records this test machinery contract change.
+All35 method bodies, individual request/security deadlines, and locked acceptance bytes remain unchanged.
+The source change is reviewed. Qualification-checkout integration remains pending native results.
+
+A separate runtime controller applies exactly that timeout change in fresh private CTest metadata.
+The source kit remains2a57. Production binaries remainfd1. This is an explicit test machinery amendment.
+All199 registration commands, environments, working directories, and other properties remain checked.
+Its27 offline controls passed. Both actual sanitizer preflights passed with all11 integrity postchecks.
+The authority suite and following fence check are now running on both hosts.
+Exact pane PIDs: sb16=3389226; sb16-2=3361797. Native outcomes remain pending.
+The full exam has not restarted. Existing passes and all failure evidence remain retained.
+
+Evidence on a5500, under /home/dflanag3/spatial-artifacts:
+m07-cli-repair-validation-20261016/broad-san-authority-failure-01.
+m07-authority-suite-timeout-repair-20261016/PRIMARY_SOURCE_REVIEW_01.json.
+m07-authority-budget-runtime-validation-20261016/PRIMARY_CONTROLLER_REVIEW_240_01.json.
+m07-authority-budget-runtime-validation-20261016/PRIMARY_PREFLIGHT_ADMISSION_01.json.
+m07-authority-budget-runtime-validation-20261016/primary-launch-240/focused-launch.json.
+The unused300-second draft and its prelaunch namespace failure remain separate. No native300-second run occurred.
+
 Current checkpoint: 2026-10-16: Final CLI repair quick gate passed; broader sanitizer batch launched
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
