@@ -79,3 +79,21 @@ The dedicated shared-deadline timing and independently forced hangup counterexam
 Read external m07-fd1dccf8-gate-preparation-20261016/primary-stage1-all-profiles-raw-audit-01/SUMMARY.json.
 Stage2 preflight stopped on a CTest setter compatibility error before tests. All preservation checks passed.
 A stronger helper owns the bounded launcher repair. No new production failure is established.
+
+2026-10-16: Native Stage2 Debug and sanitizer matrix passes on the frozen candidate
+Primary reviewed the stronger helper's CTest-supported working-directory replay correction.
+All 199 registrations matched in both profiles before actual test execution on both hosts.
+The native storage contention suite passed all 25 methods in all four host/profile combinations.
+The participant race suite passed all five methods in all four combinations.
+Every command and wrapper returned zero. Original wrapper processes retired.
+All deployed-source, package, helper, metadata, and protected-file postchecks passed.
+Primary verified actual unittest summaries and named JUnit cases.
+Primary scanned 288 retained .log/.stderr files without recorded sanitizer markers.
+The prior namespace-exit failure did not recur in this selected matrix.
+This does not establish the original intermittent missing-acknowledgment cause.
+Independent retained native protobuf/lifecycle audit remains pending at this record.
+Combined-copy Debug jobs are launched on both hosts. Their results remain pending.
+Combined-copy sanitizer and the complete replacement M07 gate remain UNRUN.
+The dedicated shared-stop-deadline timing and independently forced hangup counterexamples remain missing.
+Evidence: m07-fd1dccf8-gate-preparation-20261016/PRIMARY_STAGE2_DEBUG_INNER_AUDIT_01.json
+and PRIMARY_STAGE2_SAN_INNER_AUDIT_01.json on a5500.

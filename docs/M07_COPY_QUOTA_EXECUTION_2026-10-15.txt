@@ -1,7 +1,70 @@
-Current checkpoint: queued copy-status EOF reproduced; separate native acknowledgement diagnosis continues
+Current checkpoint: focused process and native matrices pass; combined-copy Debug jobs are launched
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
+
+2026-10-16: Stage2 launcher repaired; actual Debug runtime passes on both hosts
+
+Frozen candidate fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e remains unchanged.
+The stronger helper's external review-06 successor passed primary source and raw metadata review.
+Controller SHA256:fba28c8b90ddbdf9044adb52e2ee6c4e00c55b844e1ae96bd40204e8c76312c8.
+Its explicit working-directory rows use set_tests_properties with a distinct bracket delimiter.
+The frozen storage helper still matches exactly one canonical managed row per storage registration.
+Six actual baseline/generic/storage-relocated CTest queries preserved all 199 complete registrations.
+Those G164 validation queries executed zero test binaries.
+Source review: a5500:/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016/PRIMARY_V6_SOURCE_REVIEW_01.json.
+Both test hosts received matching immutable review-04/focused_controller.storage-v6.py files.
+Existing reviewed per-host data pins remain unchanged.
+Earlier failed scripts and attempts remain preserved. No production or oracle source changed.
+
+Stage2 registration-only preflight passed Debug and ASan/UBSan on both hosts.
+Each command and wrapper returned0/0/COMPLETE. Original wrapper processes retired.
+Each comparison preserved all 199 registrations. Each storage relocation edited exactly two managed rows.
+All deployed-source, package, helper, metadata, and protected-file postchecks passed.
+These four preflights executed zero test binaries.
+
+Stage2 actual Debug runtime passed on both hosts with command0/wrapper0/COMPLETE and retired wrappers.
+session-storage-contention passed all 25 methods: sb16 40.51 seconds; sb16-2 43.55 seconds.
+workspace-participant-races passed all five methods: sb16 11.81 seconds; sb16-2 17.98 seconds.
+Primary checked actual unittest summaries, named JUnit cases, log hashes, and all preservation postchecks.
+Primary scanned 72 retained .log/.stderr files per host without recorded sanitizer markers.
+The participant source defines four race methods and one multi-workspace method. Its expected count is five.
+An initial independent planning count of six was incorrect. No runtime method is missing from that count.
+An initial primary audit parser refused its overescaped regex. The corrected parser read unchanged raw logs.
+Audit parser refusal is preserved separately and does not represent a test failure or rerun.
+Detailed native protobuf, lifecycle, and cleanup review remains pending at this record.
+Primary inner/log audit: PRIMARY_STAGE2_DEBUG_INNER_AUDIT_01.json in the preparation directory above.
+Canonical observations: PRIMARY_V6_stage-2-contention_Debug_runtime_OBSERVATION_04.json.
+
+Stage2 ASan/UBSan runtime passed on both hosts with command0/wrapper0/COMPLETE and retired wrappers.
+Storage durations: sb16 47.79 seconds; sb16-2 50.85 seconds.
+Participant durations: sb16 16.19 seconds; sb16-2 22.26 seconds.
+Both hosts passed all 25 storage methods and all five participant methods, without skips.
+Every preservation postcheck passed. Primary verified actual inner summaries, JUnit names, and recorded hashes.
+Primary scanned 72 retained .log/.stderr files per sanitizer host without recorded sanitizer markers.
+Combined Stage2 totals: eight CTest executions, 120 inner methods, 288 scanned retained logs.
+Native protobuf/lifecycle audit remains pending. Focused results do not establish full M07 qualification.
+Launch record: PRIMARY_V6_stage-2-contention_ASan-UBSan_runtime_LAUNCH_01.json.
+Terminal observation: PRIMARY_V6_stage-2-contention_ASan-UBSan_runtime_OBSERVATION_04.json.
+Primary sanitizer audit: PRIMARY_STAGE2_SAN_INNER_AUDIT_01.json.
+Focused runtime root: /home/dflanag3/spatial-artifacts/m07-owned-stop-focused-runtime-20261016/review-04.
+Canonical run directories: HOST/PROFILE/stage-2-contention/runtime-command-02.
+The primary observer checks the original pane process and canonical terminal receipts before progression.
+Stage3 combined-copy Debug jobs are launched on both hosts. Results remain pending.
+Selected registrations: workspace-copy-engine, workspace-copy-actor-revocation,
+workspace-copy-worker-death-recovery, and workspace-copy-absolute-deadline.
+Selection reasons and fresh capacity appear in PRIMARY_STAGE3_SELECTION_AND_CAPACITY_01.json.
+Launch record: PRIMARY_V6_stage-3-copy_Debug_runtime_LAUNCH_01.json.
+Canonical run directories: HOST/Debug/stage-3-copy/runtime-command-02 under the focused root above.
+Stage3 sanitizer runtime and the complete replacement M07 gate remain UNRUN.
+These initial native Debug passes do not establish the cause of the original intermittent missing acknowledgments.
+
+Fresh capacity before Stage3: sb16 available 50,640,769,024 bytes; sb16-2 available 57,325,158,400 bytes.
+Both fit the 22 GiB focused output allowance and 8 GiB reserve.
+The full gate remains NOT ADMITTED pending sequential retention and fresh measurements.
+No archive or deletion occurred during this launcher repair and focused execution.
+
+Historical evidence follows. Newer entries explicitly supersede conflicting earlier status.
 
 Original frozen candidate: d164fed7a699d7e817977faaa61a48ef3602e68f.
 Both original full-gate attempts finished naturally with command=1, wrapper=1, COMPLETE.

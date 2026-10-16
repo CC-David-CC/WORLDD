@@ -1,3 +1,41 @@
+## 2026-10-16: Native contention and participant races pass both profiles on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Frozen candidate fd1dccf8 remains unchanged.
+Primary reviewed the external launcher repair and all six real registration-only validation records.
+The repair uses CTest-supported property replay with a distinct bracket delimiter.
+It preserves original working directories and the storage helper's unique managed rows.
+Both hosts passed Stage2 Debug registration-only preflight with all preservation checks.
+These preflights executed zero test binaries.
+
+Both Debug runtime jobs then completed command0/wrapper0/COMPLETE. Their original processes retired.
+session-storage-contention passed in 40.51 seconds on sb16 and 43.55 seconds on sb16-2.
+workspace-participant-races passed in 11.81 seconds on sb16 and 17.98 seconds on sb16-2.
+Every package, deployed-source, installed-helper, metadata, and protected-file postcheck passed.
+Primary verified all 25 storage methods and all five participant methods per host/profile.
+Detailed native protobuf and lifecycle review remains pending at this record.
+Do not infer original failure resolution from these initial passes.
+
+Stage2 sanitizer registration-only preflight and actual runtime passed on both hosts.
+Every canonical command and wrapper returned zero. Their original processes retired.
+Sanitizer storage durations were 47.79 seconds on sb16 and 50.85 seconds on sb16-2.
+Sanitizer participant durations were 16.19 seconds on sb16 and 22.26 seconds on sb16-2.
+All preservation postchecks passed. Primary checked real JUnit names, summaries, and file hashes.
+Stage2 totals: eight CTest executions and 120 inner method executions, with no skips.
+Primary scanned 288 retained .log/.stderr files across four combinations without recorded sanitizer markers.
+This remains focused evidence. The complete replacement M07 gate remains UNRUN.
+
+Stage3 combined-copy Debug jobs are launched on both hosts. Results remain pending.
+Their selected registrations cover the complete copy engine, actor revocation, worker death, and absolute deadlines.
+Each job validates all 199 staged registrations before test execution.
+Stage3 sanitizer runtime remains UNRUN.
+Fresh available space before Stage3 is 50,640,769,024 bytes on sb16 and 57,325,158,400 bytes on sb16-2.
+The focused 22 GiB output allowance plus 8 GiB reserve fits on each host.
+This capacity check does not admit the complete gate. No archive or deletion occurred.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact external evidence paths.
+
 ## 2026-10-16: Process repair passes focused Debug and sanitizer checks on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
