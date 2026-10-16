@@ -152,6 +152,14 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
 
 
 class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
+    # Keep the calibrated engine fixture values and override only this fault scenario.
+    SOURCE_STATE_BYTES_BY_SCENARIO={
+        **engine.WorkspaceCopyEngineTests.SOURCE_STATE_BYTES_BY_SCENARIO,
+        'test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication':64*2**20}
+    SOURCE_POLICY_BYTES_BY_SCENARIO={
+        **engine.WorkspaceCopyEngineTests.SOURCE_POLICY_BYTES_BY_SCENARIO,
+        'test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication':dict(
+            actor_state_bytes=256*2**20,workspace_bytes=256*2**20,destination_copy_source_bytes=4*2**20)}
     def setUp(self):
         self.copy_fault_mode=('hold-copy-seal' if self._testMethodName==
                               'test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication'
@@ -172,12 +180,15 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         if operation=='create':
             definition=engine.broker.StorageVolumeDefinition()
             engine.text_format.Parse(self.definition_path.read_text(),definition)
-            # Fourteen independently configured 4 MiB persistent states need
-            # 56 MiB of actor quota. Keep one runtime allocation within 64 MiB.
-            definition.owner_policy.default_policy.actor_state_default_bytes=64*2**20
+            source_policy=self.SOURCE_POLICY_BYTES_BY_SCENARIO.get(self._testMethodName,{})
+            actor_state_bytes=source_policy.get('actor_state_bytes',64*2**20)
+            definition.owner_policy.default_policy.actor_state_default_bytes=actor_state_bytes
             self.definition_path.write_text(engine.text_format.MessageToString(definition))
             inventory=self.copy_evidence/'volume.json'
             record=json.loads(inventory.read_text())
+            record['source_state_ceiling_bytes']=self.SOURCE_STATE_BYTES_BY_SCENARIO.get(self._testMethodName,4*2**20)
+            record['source_actor_ceiling_bytes']=actor_state_bytes
+            record['source_workspace_ceiling_bytes']=definition.owner_policy.default_policy.total_bytes
             record['definition_hex']=definition.SerializeToString(deterministic=True).hex()
             inventory.write_text(json.dumps(record,indent=2)+'\n')
         try:
