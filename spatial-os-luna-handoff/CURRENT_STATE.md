@@ -1,3 +1,23 @@
+## 2026-10-16: Both full exams record a shared fixture cleanup failure
+
+M07 remains UNQUALIFIED. Both unchanged full-exam processes remain live.
+Both Debug core runs failed actor-geometry-world-headless during remote fixture cleanup.
+RemoteWorldProcess bypasses initialization of lifecycle fields required by WorldProcess.close.
+All nine test bodies reported no errors before cleanup raised AttributeError.
+Primary retained both tracebacks and assigned a separate lifecycle fixture repair branch.
+Its constructor audit includes the other custom WorldProcess launch paths.
+The repair and its runtime checks remain pending. No live candidate overlay occurred.
+
+Latest completed core records: sb16=36, with 35 passed and one failed.
+sb16-2=37, with 36 passed and the same fixture failure.
+These are partial log records, not terminal suite totals.
+Startup and harness stages passed on both hosts. Later gate stages remain pending.
+Separate workers prepare current-base M08 compilation and offline cross-host coordination.
+They cannot replace this failed gate or qualify M07.
+
+See defect blockers/m07-remote-world-fixture-lifecycle-initialization.txt.
+Failure evidence on a5500: m07-fd1-full-gate-launch-plan-20261016/debug-geometry-failure-01.
+
 ## 2026-10-16: Full M07 local exam running on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

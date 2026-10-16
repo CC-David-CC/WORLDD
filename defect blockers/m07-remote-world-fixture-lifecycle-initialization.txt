@@ -1,0 +1,40 @@
+M07 remote world fixture lifecycle initialization
+Date: 2026-10-16.
+Status: REPRODUCED on both hosts. Repair is in progress on a separate branch.
+Candidate: fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e. M07 remains UNQUALIFIED.
+
+Observed failure
+Both full Debug core runs failed actor-geometry-world-headless during fixture cleanup.
+All nine test bodies reported no errors before the cleanup traceback.
+WorldProcess.close reads lifecycle_before_close before closing peers or waiting for its process.
+RemoteWorldProcess launches its own process without initializing this inherited lifecycle field.
+The traceback reports AttributeError at tests/core/test_world_identity.py:141.
+RemoteWorldProcess also lacks start_ticks and lifecycle_evidence initialization.
+This is a real suite failure. Successful test bodies do not override failed cleanup.
+
+Scope and proposed repair
+Audit every WorldProcess subclass and custom process constructor.
+Initialize the shared lifecycle state immediately after every successful process launch.
+Preserve meaningful start ticks, native TLS behavior, process reaping, and diagnostic recording.
+Do not hide missing initialization with arbitrary defaults or suppressed exceptions.
+Add deterministic real subprocess regressions for direct and remote constructor paths.
+Exercise other supported custom constructors where practical.
+Rerun affected TLS, geometry, cleanup, and fixture callers in Debug and ASan/UBSan on both hosts.
+Reassess gate evidence after integrating the reviewed fixture correction.
+
+Worker
+Branch: m07/remote-fixture-lifecycle-repair-20261016.
+Checkout on a5500: /home/dflanag3/src/spacial-m07-remote-fixture-lifecycle-repair-20261016.
+Runtime verification of the repair remains UNRUN.
+No correction has been overlaid onto the running full exam.
+
+Evidence on a5500
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/debug-geometry-failure-01/sb16.json
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/debug-geometry-failure-01/sb16-2.json
+Original attempts: fd1dccf8-sb16-local-01 and fd1dccf8-sb16-2-local-01.
+Both jobs continue gathering unchanged candidate results. Their terminal results remain pending.
+
+Limits
+This failure does not identify the original intermittent copy acknowledgment cause.
+It does not establish a production geometry or TLS defect.
+Additional failures may still emerge from the unfinished core runs.

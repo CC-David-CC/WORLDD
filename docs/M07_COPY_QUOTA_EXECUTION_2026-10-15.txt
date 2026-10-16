@@ -1,4 +1,24 @@
-Current checkpoint: full M07 local exam running on sb16 and sb16-2
+Current checkpoint: full exams live; shared remote fixture cleanup failure reproduced on both hosts
+Date: 2026-10-16. Candidate fd1dccf8 remains frozen. M07 remains UNQUALIFIED.
+This section supersedes conflicting observations below.
+
+Both Debug core runs failed actor-geometry-world-headless during cleanup.
+All nine test bodies reported no errors before the cleanup traceback.
+RemoteWorldProcess has a custom process constructor that omits inherited lifecycle initialization.
+WorldProcess.close raises AttributeError for lifecycle_before_close before normal cleanup.
+The remote constructor also omits start_ticks and lifecycle_evidence.
+Primary retained both actual tracebacks and assigned a separate repair branch.
+Other custom WorldProcess constructors are included in the repair audit.
+The repair, its primary review, and affected runtime regressions remain pending.
+No source or test overlay has changed the running exams.
+
+Latest completed core records: sb16=36, with35 passed and one failed; sb16-2=37, with36 passed and one failed.
+These counts are partial log records. Both original gate processes remain alive.
+The full gate cannot qualify this candidate unless the failure is resolved and affected evidence is revalidated.
+The original intermittent copy acknowledgment cause remains unproven.
+See defect blockers/m07-remote-world-fixture-lifecycle-initialization.txt for source scope and evidence.
+
+Previous checkpoint: full M07 local exam running on sb16 and sb16-2
 Date: 2026-10-16. M07 remains UNQUALIFIED. Frozen candidate fd1dccf8 remains unchanged.
 This section supersedes conflicting observations below.
 
