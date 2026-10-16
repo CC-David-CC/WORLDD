@@ -1,39 +1,40 @@
-## 2026-10-16: Package verified; both archives verified; deployment in progress
+## 2026-10-16: Full M07 local gates running on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
-This section supersedes earlier packaging and archive observations.
-The 240-second authority rerun remains passing on both hosts.
+This section supersedes earlier packaging, deployment, and cleanup observations.
 Candidate: 1e58e65dec132a0a16f004ca4527034dca081f77. BOX-GIT VERIFIED. UNQUALIFIED.
-Normal preparation returned command 0, wrapper 0, and COMPLETE. Pane PID 3074864 retired.
-Primary verified every archive member and all 1,040 source files against committed Git blobs.
-The package contains 1,379 files. Its compressed size is 1,550,478,247 bytes.
-Its expanded size is 8,703,794,544 bytes.
-Bundle SHA256: 05ac740d7b234e307c4fc69895b30244bb9d4a525698c6772afe115576682cc7.
-All 24 preparation stages passed. Both profiles register 199 tests with the 240-second authority budget.
-Each test profile includes 75 ELF files and 33 bindings. Each production profile includes 28 bindings.
-Compared with fd1, 72 ELF hashes match per profile. Three differ: identityd, workspaced, and worldd.
-The second primary artifact audit passed. Its exact pane PID 3084535 retired with 0/0/COMPLETE.
-The first artifact audit failed because Git ls-tree used a subdirectory as its working directory.
-The corrected audit uses the repository root. Package bytes and gate source did not change.
+The package, both deployments, and both source freezes passed primary review.
+Each source tree has 1,040 files and 55 directories. All source write bits are removed.
+Both profiles register 199 tests. The authority suite keeps its reviewed 240-second total budget.
+The earlier focused authority and fence rerun passed all 78 inner executions across both hosts.
 
-Both archives passed full source comparison: 35 images on sb16 and 36 on sb16-2.
-Primary also rehashed both actual archives on middle-child. Their combined compressed size is 304,734,973 bytes.
-No source image has been removed. Exact-image retirement remains pending review and execution.
-The archives cover 18,776,322,048 allocated bytes on sb16 and 19,313,197,056 on sb16-2.
-Logs, receipts, and unresolved failure images remain retained.
+Full gates are running through persistent tmux sessions and the canonical runner.
+sb16 pane PID: 3399810. Attempt: 1e58e65d-sb16-local-01.
+sb16-2 pane PID: 3372622. Attempt: 1e58e65d-sb16-2-local-01.
+Primary confirmed both exact processes live and both inner reports running.
+Both Debug lanes passed inventory, all five production-startup checks, and all 51 harness checks.
+The 197-case local Debug core suite is running. No failure appears in the initial observation.
+No terminal Debug result is available. Sanitizer, P10 acceptance, bounded-storage-Git, and cross-host results remain pending.
+Keep this gate pinned to the candidate. A running job is not a qualification pass.
 
-New deployment root: /home/dflanag3/spatial-artifacts/deployments/m07-1e58e65d/runtime.
-sb16 verify-deploy passed. Its source freeze and artifact audit also passed, with 1,040 files and 55 directories.
-Both sb16 jobs returned 0/0/COMPLETE. Pane PIDs 3396482 and 3396757 retired.
-sb16-2 verify-deploy is running at this checkpoint. Its exact pane PID is 3369087.
-The old fd1 runtime remains retained until its verified replacement permits retirement.
-The full exam has not restarted. Both deployments, capacity recovery, and fresh gate admission remain required.
+All 71 selected images were archived, compared, and removed. Their parent directories remain.
+The two retained archives on middle-child total 304,734,973 compressed bytes.
+The obsolete fd1 binary trees and both duplicate deployment bundles were removed after replacement verification.
+Each payload cleanup removed exactly 382 files and 52 directories. Each retained 9,619 protected entries unchanged.
+All changed or unarchived payload files were preserved in compact deltas on a5500.
+Failure logs, receipts, old source, external graphics dependencies, and unresolved failure images remain retained.
+The initial image cleanup refused writable controller receipt copies before any unlink.
+Primary froze those copies without changing their bytes. Both fresh cleanup attempts passed with 0/0/COMPLETE.
+Final source cleanup and exact process retirement also passed on both hosts.
+Launch capacity was 61,876,785,152 bytes on sb16 and 69,102,084,096 bytes on sb16-2.
+Both exceeded the 61,203,283,968-byte admission floor. The gate may consume this reserved space.
 
 Evidence under /home/dflanag3/spatial-artifacts on a5500:
-m07-fixture-repaired-gate-preparation-20261016/primary-package-audit-02/PRIMARY_PACKAGE_REVIEW_01.json.
-m07-fixture-repaired-gate-preparation-20261016/deployment-controller-01.
-m07-next-gate-retention-preparation-20261016/review-04/PRIMARY_ARCHIVE_PAIR_REVIEW_01.json.
-The sb16 freeze receipt is deployments/m07-1e58e65d/freeze-audit-01.json on sb16.
+m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_PRELAUNCH_REVIEW_01.json.
+m07-fixture-repaired-full-gate-plan-20261016/full-gate-launch-01/aggregate-launch.json.
+m07-fixture-repaired-full-gate-plan-20261016/full-gate-observation-01.json.
+m07-next-gate-retirement-preparation-20261016/review-01/primary-retirement-pair-audit-01/PRIMARY_PAIR_REVIEW_01.json.
+m07-superseded-payload-retirement-20261016/review-02/PRIMARY_REVIEW_01.json.
 
 ## 2026-10-16:240-second authority rerun passed; final candidate integrated and packaging
 
