@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 TOOL = Path(__file__).resolve().parents[1] / "tools" / "check_runtime_manifest_pins.py"
+DOC = Path(__file__).resolve().parents[1] / "docs" / "M07_RUNTIME_MANIFEST_PIN_REPAIR_2026-10-15.txt"
 SPEC = importlib.util.spec_from_file_location("check_runtime_manifest_pins", TOOL)
 CHECKER = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
@@ -55,6 +56,16 @@ class RuntimeManifestPinTests(unittest.TestCase):
             "egl_files=" + OTHER_SHA, "installed_helpers=" + GOOD_SHA,
         ):
             self.assertIn(expected, conflicts[0])
+
+    def test_malformed_sha_is_rejected_structurally(self):
+        data = manifest()
+        data["hosts"]["sb16"]["Debug"]["server_receipt"]["sha256"] = "not-a-sha"
+        with self.assertRaisesRegex(CHECKER.ManifestError, "64 lowercase hexadecimal"):
+            CHECKER.validate_manifest(data)
+
+    def test_maintained_repair_note_is_valid_utf8_lf(self):
+        contents = DOC.read_bytes().decode("utf-8")
+        self.assertNotIn("\r", contents)
 
     def test_missing_required_helper_is_rejected_structurally(self):
         data = manifest()

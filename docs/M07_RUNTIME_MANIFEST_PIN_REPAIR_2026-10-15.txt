@@ -1,4 +1,4 @@
-# M07 runtime manifest pin consistency repair"ιέyψ§yΤ 2026-10-15
+# M07 runtime manifest pin consistency repair - 2026-10-15
 
 The M07 deployment preflight found conflicting SHA-256 pins for
 `/usr/local/libexec/spatial-storage-owner`. Each host/profile lists the path
