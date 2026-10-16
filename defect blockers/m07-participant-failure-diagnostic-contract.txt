@@ -1,0 +1,41 @@
+M07 participant failure diagnostic contract mismatch
+Date: 2026-10-16.
+Status: REPRODUCED on both hosts in Debug. Test correction reviewed; runtime verification remains UNRUN.
+Candidate: fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e. M07 remains UNQUALIFIED.
+
+Observed failure
+The identity-participant-runtime suite ran 16 methods. Two diagnostic assertions failed.
+Both assertions require exactly one stderr line.
+ParticipantRuntime::Impl::fail_locked now intentionally emits two separate bounded records.
+The first records process identity, monotonic time, hashed incarnation, stage, and revision counters.
+The second records the failure code, request, stage, and sanitized cause.
+The tracebacks contain both expected records. Neither traceback shows injected extra lines.
+The other 14 runtime methods passed in this observed Debug execution.
+
+Reviewed correction
+Require exactly the structured record and failure record. Do not ignore arbitrary extra output.
+Validate fixed metadata field names and order, matching native PID, positive timestamp, and 16 hexadecimal hash characters.
+Require zero revision counters for these preactivation failures.
+Require printable bounded metadata and failure text.
+Preserve the wire error message, one connection, no activation, and transport cause assertions.
+Require the exact sanitized and truncated hostile peer cause.
+Production logging and locked acceptance contracts remain unchanged.
+
+Source checkpoint
+Branch: m07/participant-diagnostic-contract-20261016.
+Commit: 168dd882bc08c2464cd59d01cb0a803c263d8c3b. BOX-GIT VERIFIED. UNQUALIFIED.
+Only tests/core/test_identity_participant_runtime.py changed under spatial-os-luna-handoff.
+AST and source review passed. Native tests remain UNRUN for this correction.
+Run identity-participant-runtime in Debug and ASan/UBSan on both hosts after current gates release.
+Do not overlay the correction onto live gate source.
+
+Evidence on a5500
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/debug-participant-runtime-failure-01/sb16.json
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/debug-participant-runtime-failure-01/sb16-2.json
+/home/dflanag3/spatial-artifacts/m07-participant-diagnostic-contract-20261016/PRIMARY_SOURCE_REVIEW.txt
+/home/dflanag3/spatial-artifacts/m07-participant-diagnostic-contract-20261016/CHECK-PLAN.txt
+
+Limits
+This corrects a test expectation for an intentional diagnostic addition.
+It does not prove the original intermittent acknowledgment failure is repaired.
+The unfinished full exam may expose additional failures.

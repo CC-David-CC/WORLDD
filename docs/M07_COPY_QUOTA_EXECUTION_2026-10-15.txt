@@ -1,4 +1,35 @@
-Current checkpoint: full exams live; shared remote fixture cleanup failure reproduced on both hosts
+Current checkpoint: reviewed test-only repair candidate and source kit ready; native retests remain UNRUN
+Date: 2026-10-16. M07 remains UNQUALIFIED. Both original fd1 full gates remain live and unchanged.
+This section supersedes conflicting observations below.
+
+Each host completed84 Debug core registrations:77 passed and seven failed.
+Both are executing workspace-copy-engine. These are partial log records, not terminal totals.
+Retained remote caller failures identify missing lifecycle initialization in RemoteWorldProcess or HybridWorldProcess.
+The diagnostic assertion mismatch also reproduced on both hosts.
+
+Reviewed lifecycle task:d1052bbbd18f1b983f371dc6e58040ec92afc7bd.
+Reviewed diagnostic assertion task:168dd882bc08c2464cd59d01cb0a803c263d8c3b.
+Combined isolated validation candidate:1ff5dc623e6a713d229bf2f1d4684c4215d65690.
+Branch:m07/fixture-repair-validation-20261016. BOX-GIT VERIFIED. UNQUALIFIED.
+Exactly six Python test files differ from fd1. Production, schemas, CMake, helpers, and locked acceptance remain unchanged.
+The lifecycle repair initializes all supported custom process constructors and adds four real subprocess cleanup regressions.
+The diagnostic correction requires exactly both bounded records, matching PID and strict metadata, and the exact sanitized hostile cause.
+It preserves error identity, single connection, no activation, and original cause assertions.
+
+A complete1038-file source kit is ready for separate focused test execution with pinned fd1 binaries.
+Manifest SHA256:51677a6889226b9a92b1fed2f04eef7c5e8589e4dbc427e190b7ebf31bb6b902.
+Archive SHA256:0010ff5b9fb2fcb9e15ccc98a6cf155f3c42d483eea4c50cd04703795521acab.
+Source kit size:1,985,427 bytes. No development build or worktree is required on test hosts.
+The separate retest controller must preserve the current deployment and refuse to run while its original gate is alive.
+Selected related TLS, geometry, identity, shared-state, and diagnostic checks remain UNRUN for both profiles and hosts.
+The SSH-backed topology constructor also requires target-host integration coverage.
+
+Repair artifacts on a5500:
+/home/dflanag3/spatial-artifacts/m07-fixture-repair-validation-20261016
+Additional failure evidence: m07-fd1-full-gate-launch-plan-20261016/debug-remote-caller-failures-01.
+The original intermittent copy acknowledgment cause remains unproven.
+
+Previous checkpoint: full exams live; shared remote fixture cleanup failure reproduced on both hosts
 Date: 2026-10-16. Candidate fd1dccf8 remains frozen. M07 remains UNQUALIFIED.
 This section supersedes conflicting observations below.
 

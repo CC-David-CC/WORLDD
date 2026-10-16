@@ -1,3 +1,29 @@
+## 2026-10-16: Test-only repairs reviewed; original full runs continue
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+Both original fd1 full-gate processes remain live. Their source remains unchanged.
+Each host completed 84 Debug core registrations: 77 passed and seven failed.
+Both are executing workspace-copy-engine. These are partial records, not terminal totals.
+The remote caller tracebacks show the same missing lifecycle initialization in RemoteWorldProcess or HybridWorldProcess.
+The participant runtime suite also rejects the intentional second structured diagnostic record.
+
+Primary reviewed lifecycle repair d1052bbbd18f1b983f371dc6e58040ec92afc7bd and diagnostic assertions 168dd882bc08c2464cd59d01cb0a803c263d8c3b.
+The combined isolated validation branch is m07/fixture-repair-validation-20261016 at 1ff5dc623e6a713d229bf2f1d4684c4215d65690.
+Its source differs from fd1 in exactly six Python test files.
+Production C++, schemas, CMake, runtime helpers, and locked acceptance bytes remain equal to fd1.
+The complete pinned source kit is ready. Focused native runtime checks remain UNRUN.
+The retest controller is being prepared separately. It must refuse execution while the original gate remains live.
+No repair is overlaid onto either running exam.
+
+The isolated current-base M08 foundation is BOX-GIT VERIFIED at 8d69150e377852b73d84c55bf915247e8ac96e0c.
+Primary verified its two compile profiles, canonical receipts, binary hashes, and preservation of M07 source.
+M08 runtime, actor integration, copy jobs, and durable mutation recovery remain pending.
+
+Repair source kit on a5500:
+/home/dflanag3/spatial-artifacts/m07-fixture-repair-validation-20261016/source-kit-manifest-01.json
+SHA256:51677a6889226b9a92b1fed2f04eef7c5e8589e4dbc427e190b7ebf31bb6b902.
+Native failure evidence: m07-fd1-full-gate-launch-plan-20261016/debug-remote-caller-failures-01 and debug-participant-runtime-failure-01.
+
 ## 2026-10-16: Both full exams record a shared fixture cleanup failure
 
 M07 remains UNQUALIFIED. Both unchanged full-exam processes remain live.
