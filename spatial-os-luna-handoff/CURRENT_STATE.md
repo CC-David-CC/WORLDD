@@ -1,3 +1,45 @@
+## 2026-10-16: Sanitizer testing started on sb16-2; sb16 cleanup requires reconciliation
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+The frozen M07 candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+Both retained Debug audits passed. Dedicated cross-host execution remains UNRUN.
+
+sb16-2's ASan-UBSan continuation is running in tmux through the canonical runner.
+Actual pane PID: 3488189. Batch: 1e58e65d-sb16-2-san-collector-01.
+It passed inventory, all five startup checks, and all 51 harness checks.
+Its 197-suite core stage is running. No failure has been reported in completed stages.
+This is the unchanged full sanitizer profile on the same source and accepted Debug evidence.
+The host started independently after its cleanup and space checks passed.
+No source, test, timeout, or space threshold changed.
+
+All five approved old sb16-2 snapshots were removed after independent archive verification.
+Its cleanup ended 0/0/COMPLETE. Exact middle-child pane PID 836442 retired.
+Primary checked removed path absence and unchanged original failed and accepted Debug reports.
+Prelaunch free bytes were 58,062,684,160. The required floor remains 57,924,145,152.
+Primary cleanup review SHA-256: f16e127eb0814f2d5bc3aafc433d0bc72ec944ab7c9d2de2630cce095273dc63.
+Target launch receipt SHA-256: d055d3c061dfbf1e5ef8f960b1e6600f142e767ff451c095932b8a88e2415b49.
+The context and exact reviewed launch body remain unchanged.
+The original failed full-gate report remains unchanged.
+
+sb16's cleanup stopped after six approved removals.
+It ended 1/1/COMPLETE. Exact middle-child pane PID 836427 retired.
+Step 07, m06-issuer-timing-20261012-02, failed its source-manifest stability guard.
+No removal of that snapshot or the two later snapshots occurred.
+The actual refusal is preserved under the cleanup preparation root:
+removal-runs/sb16-removal-01/07-m06-issuer-timing-20261012-02-removal.json.
+Read-only diagnosis will compare current and archived manifests before any further deletion.
+Do not bypass the guard or change the original archive receipts.
+The sb16 space floor remains 57,923,670,016 bytes. Its sanitizer lane remains UNRUN.
+An additional old recovery snapshot has an archive-only draft if later measured capacity needs it.
+That snapshot contains unresolved failure evidence. Preserve the full data before any deletion.
+
+The separate M08 schema draft is box-git verified at 72ca37ce25f3f9b343cb5be19622c103aafb4025.
+Branch: m08/cabinet-schema-boundary-20261016. It remains UNQUALIFIED and is not integrated into M07.
+Both generated-binding configurations compiled. Primary verified the corrected static Python import closure.
+The strict descriptor controls passed 13 checks on each qualification host.
+Actor cabinet runtime actions remain UNIMPLEMENTED. Broker and actor integration remain pending.
+No M09 work is assigned.
+
 ## 2026-10-16: Archives verified; capacity cleanup is running
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
