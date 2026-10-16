@@ -14,6 +14,7 @@ import test_world_authority as authority
 from test_actor_pixels import ActorPixelTests,grant
 from test_world_identity import WorldProcess,SessionPeer,WORLD
 from test_world_remote import RemoteWorldProcess
+from world_process_lifecycle_fixture import WorldProcessLifecycleMixin
 from harness.oracles import pose
 from harness.wire import frame
 
@@ -97,6 +98,18 @@ class RemoteNativeTests(ActorPixelTests):
         self.assertTrue(self.world_process.management('surface.get',id=surface['id'])['mapped'])
 
 
+class HybridWorldProcessLifecycleRegression(WorldProcessLifecycleMixin, unittest.TestCase):
+    def test_hybrid_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        fixture = self.Fixture(self.root)
+        with patch.dict(HybridWorldProcess.__init__.__globals__, {"WORLD": self.helper}):
+            world = HybridWorldProcess(
+                fixture, self.root / "identity.textproto", self.root / "state", count=1
+            )
+        self.assert_lifecycle_close(world)
+
+
 if __name__=='__main__':
     tests=unittest.TestSuite(RemoteNativeTests(name) for name in RemoteNativeTests.__dict__ if name.startswith('test_'))
+    tests.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(HybridWorldProcessLifecycleRegression))
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(tests).wasSuccessful())
