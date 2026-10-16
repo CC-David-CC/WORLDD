@@ -1,4 +1,4 @@
-Current checkpoint: verified capacity recovery; old899 delta preservation running; full gate remains UNRUN
+Current checkpoint: verified capacity recovery; optimized old899 removal resumed; full gate remains UNRUN
 Date: 2026-10-16. M07 remains UNQUALIFIED. Frozen candidate fd1dccf8 remains unchanged.
 This section supersedes conflicting observations below.
 
@@ -15,11 +15,24 @@ Each host also retired one duplicate deployment package and nine archived obsole
 All removal jobs returned command0/wrapper0/COMPLETE. Their original processes retired.
 Protected source and metadata remained unchanged. Exact removed paths remain in external retirement journals.
 Verified total allocation recovered:38,697,672,704 bytes across both hosts.
-Latest available bytes:sb16=52,790,185,984;sb16-2=59,491,528,704.
+Available bytes before old899 removal:sb16=52,790,185,984;sb16-2=59,491,528,704.
 Full local gate admission requires at least61,203,283,968 available bytes per host.
 The old899 build/production-off payloads still need preservation and guarded retirement.
 Their first cleanup draft failed source review. The stronger review-02 successor passed native preflight and five controls per host.
-The old899 delta preservation jobs are running. No old899 payload removal has started.
+Both old899 delta archives passed verification. All 45 changed or unarchived files per host are retained.
+The first removal repeated root-regex parsing throughout every process scan for every file.
+Actual throughput would exceed the retained-proof expiry. Primary sent one identity-checked pidfd SIGINT per worker.
+Both jobs terminated130/130/COMPLETE with durable FAILED_PARTIAL journals and no unmatched intent.
+Removed prefixes:sb16=277 files;sb16-2=242 files. No directory removal had occurred.
+Immutable prior journals are under the evidence root's old899-retirement-interruption-01/HOST/retirement.jsonl.
+Their SHA256 values are4c7ab877645059186d536debc66ba99d5c76a0ddc45f6261eb01a340f993caf7 and0266997a35800ba8f3e665b2c068de57b9b1a50621850a67ebc368722c61581c.
+The optimized scanner preserved all inode, process, map, mount, loop, and lock checks.
+Actual scan timing improved0.7824->0.1484 seconds on sb16 and0.8381->0.1585 seconds on sb16-2.
+Actual held-descriptor and kernel-lock refusal controls passed in both implementations.
+The successor validates the exact prior journal, remaining622/657 files, all68 directories, and both archive proofs.
+Its read-only preflight and five native controls passed on both hosts. Journal-bound resume jobs are running.
+Read PRIMARY_OLD899_RESUME_LAUNCH_01.json and old899-reference-scan-performance-01/PRIMARY_BENCHMARK_OBSERVATION_01.json under the evidence root.
+Coordination skill corrections passed validation. Windows, G164, and middle-child copies match SHA25674e6830f4872de7d0eb66bd47de84b6faa680af8a42ffe8873cdc07310e3ac0d.
 The full local gate and cross-host qualification remain UNRUN.
 
 Recovery summary on a5500:

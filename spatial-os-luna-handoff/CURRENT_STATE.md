@@ -9,12 +9,20 @@ Their immutable archives remain on middle-child. All canonical commands and wrap
 Primary also retired each duplicate deployment package and nine archived obsolete incoming executables per host.
 Original processes retired. Protected source and metadata remained unchanged.
 Total verified allocation recovered: 38,697,672,704 bytes across both hosts.
-Latest available bytes: sb16 52,790,185,984; sb16-2 59,491,528,704.
+Available bytes before old payload removal: sb16 52,790,185,984; sb16-2 59,491,528,704.
 Each host needs at least 61,203,283,968 available bytes before the full local gate.
 The old899 build and production-off payloads remain. Their native preflight and five guard controls passed on both hosts.
 Their 45 changed or unarchived files must be preserved before payload removal.
 The first payload cleanup draft failed primary review. Its stronger successor passed source and native review.
-Delta preservation is running. No old899 payload removal has started.
+Delta preservation passed on both hosts. Each host's 45 files matched their retained archive.
+The first removal run repeated expensive reference parsing for every file.
+Primary stopped its exact worker identities once before archive-proof expiry.
+Both commands returned130 with durable FAILED_PARTIAL journals and no unmatched intent.
+Completed removal prefixes are 277 files on sb16 and 242 files on sb16-2. All 68 directories remain.
+The optimized scanner preserved real descriptor and lock refusals and ran about 5.3 times faster.
+The successor passed exact remaining-tree preflight and five native controls on each host.
+Journal-bound resume jobs are running. Full-gate admission still requires terminal cleanup and fresh capacity.
+Coordination skill corrections passed validation and matching installation checks on all three controller hosts.
 The replacement full local gate and cross-host qualification remain UNRUN.
 
 Evidence root on a5500:

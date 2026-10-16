@@ -48,6 +48,7 @@ Freeze packages by removing write permission. Preserve execute permission on bin
 Target preflight must check executable permission and expected modes. A successful ldd check does not prove executability.
 
 Use a persistent tmux session and a unique run directory for each attempt.
+Launch terminating jobs directly through tmux with exec. An idle interactive shell prevents pane-process retirement after command completion.
 For builds and test commands, use `bash scripts/run-command.sh CHECKOUT NEW_RUN_DIR COMMAND ARG...` inside tmux.
 Resolve that script from the installed skill. Pass arguments directly; do not construct shell code around exit-status variables.
 Invoke the runner through bash, including when flock launches it. Do not rely on executable permission.
@@ -80,6 +81,7 @@ Inspect tmux and the specific child process before restarting work.
 An observation timeout is not process failure. Recheck the same handle.
 If exec_command returns session_id without exit_code, poll that session before dependent operations.
 Wait for scp to finish before hashing its destination. A partial-file hash does not prove transfer corruption.
+Verify an existing immutable transfer destination before skipping it. Do not overwrite a matching read-only file on a shared receiver.
 An empty or malformed exit record is not exit zero. Preserve the launcher and report unknown exit status.
 Use terminal worker events and process state to establish completion when the launcher record is defective.
 A queued correction must wait for the prior writer to exit and its terminal record to exist.
@@ -167,6 +169,8 @@ Use `git ls-tree` or `git show COMMIT:PATH`. A merge commit's displayed diff can
 Apply needed fixes only after the worker stops. Record the resulting source and rebuild affected artifacts.
 Do not silently combine new fixture source with old binaries. Record and review any test-only overlay explicitly.
 Verify artifact hashes after transfer to each test host.
+Read root-created inputs with the actual caller's permissions before launch. Use sudo reads or pinned readable copies when required.
+Verify artifact-only deployment identity through provenance, receipts, and source hashes. Test-host packages do not require a Git checkout.
 Match reused XLibre receipt extension_sources to the candidate's patch, overlay, and protocol hashes.
 Verify the actual server binaries and wrapper targets. An older passing server may lack a newly required capability.
 Launch the qualified server wrapper when its receipt supplies patched graphics libraries or environment variables.
@@ -221,6 +225,8 @@ Transfer an LF script for commands containing quoted spaces, pipelines, Python c
 If a search waits on stdin, inspect and stop its exact owned process before retrying through a script.
 When two branches change the same API, merge once and test the combined API before adding more dependent work.
 Keep improvements specific to observed failures. Do not create unrelated approval or compliance procedures.
+Before batch cleanup, measure repeated whole-host scans and estimate total runtime against evidence expiry.
+Optimize repeated parsing without removing reference checks. Resume interrupted removal only from reconciled journals and retained archive proofs.
 
 ## Source and artifact separation
 
