@@ -20,6 +20,6 @@ This is a test-only source overlay on the frozen focused binaries. It requires n
 Focused selections for the runtime owner:
 
 - Run `test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication` through `tools/run_workspace_copy_faults.py` using its existing exact single-case selector. Run three Debug attempts and one ASan/UBSan attempt on each qualification host.
-- Preserve the actual small-quota rejection control through `tools/run_workspace_copy_quota_diagnostic.py` with its existing `smallquota` mode. That mode selects `test_small_source_quota_rejects_actual_writer_and_preserves_peer_application` and declares a 120-second bound.
+- Preserve the actual small-quota rejection control through `tools/run_workspace_copy_engine.py` using its exact single-case selector `test_small_source_quota_rejects_actual_writer_and_preserves_peer_application`. The method is present in the runner's existing 13-case `load_tests` selection. The regular runner retains its ordinary wrapper and security checks without a BPF observer handshake.
 
 No runtime command, test-host operation, build, or production code change was performed for this correction. Static fixture inspection and Python bytecode compilation passed. Runtime checks remain UNRUN.
