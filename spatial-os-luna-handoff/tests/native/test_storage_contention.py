@@ -132,6 +132,9 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
                 witness['exit_observed'] = True
                 witness['witness'] = 'pidfd_esrch'
                 return witness
+            except OSError as error:
+                witness['witness_error'] = errno.errorcode.get(error.errno, 'os_error')
+                return witness
             try:
                 stat = Path('/proc/' + str(pid) + '/stat').read_text()
                 fields = stat[stat.rfind(')') + 2:].split()
@@ -167,7 +170,21 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
 
     def capture_revocation_start(self):
         # Capture stable PID plus /proc start ticks before any writer or Git load.
-        self._revocation_services_at_workload_start = self._revocation_service_witnesses()
+        try:
+            self._revocation_services_at_workload_start = self._revocation_service_witnesses()
+        except Exception as error:
+            self._revocation_services_at_workload_start = {}
+            record = dict(error=type(error).__name__)
+            if isinstance(error, OSError):
+                record['errno'] = errno.errorcode.get(error.errno, 'os_error')
+            self.measurements['revocation_start_capture_error'] = record
+            try:
+                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+                target.mkdir(mode=0o700, parents=True, exist_ok=True)
+                (target/'revocation-start-capture-error.json').write_text(
+                    json.dumps(record, indent=2)+'\n')
+            except Exception:
+                pass
 
     def capture_revocation_lifecycle(self):
         try:
