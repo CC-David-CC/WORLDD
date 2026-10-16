@@ -1,7 +1,7 @@
 {
   "edition": "spatial-protobuf/1",
-  "handoff_version": "0.16.0",
-  "notice": "Explicit additive actor pixel, M05 actor representation, and M07 presentation/copy schema migrations. Preserve all 151 acceptance assertions, oracles, witnesses, and existing fields. See docs/ACTOR_PIXELS_MIGRATION.md, docs/M05_ACTOR_REPRESENTATION.txt, and docs/M07_SCHEMA_BASELINE_MIGRATION_2026-10-15.md. The M07 descriptor comparison and negative controls are recorded externally in /home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015/.",
+  "handoff_version": "0.17.0",
+  "notice": "Explicit additive actor pixel, M05 actor representation, and M07 presentation/copy schema migrations. Preserve all 151 acceptance assertions, oracles, witnesses, and existing fields. See docs/ACTOR_PIXELS_MIGRATION.md, docs/M05_ACTOR_REPRESENTATION.txt, and docs/M07_SCHEMA_BASELINE_MIGRATION_2026-10-15.md. The M07 descriptor comparison and negative controls are recorded externally in /home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015/. Additive M08 actor cabinet schema boundary is documented in docs/M08_SCHEMA_BOUNDARY_MIGRATION_2026-10-16.md; runtime support remains unimplemented.",
   "files": {
     "docs/CONTRACT.md": "784506e661aa36de6683a5dc493a952306216ef9206b5b51e20d265960e40b84",
     "harness/__init__.py": "e4a165ed823ff7b3bafb35fa5fc0cd9b8045a0687c64851dbc94fa84cbed0234",
@@ -30,7 +30,7 @@
     "tools/gate.py": "edcf0194c7faa9c51a603efd6e6513aaf214cfe9a195b6fed7e1d6823b4d70e8",
     "tools/guard.py": "40d14c9095f0af829fe0676bbf6d1e7a19a7349a3a9cfb3049c257abf4f16c31",
     "tools/probe_smoke.py": "cb366d78a7822f13cf07db389f2fa98579d0d26c2a2af33fa9c4db93b619ea38",
-    "proto/spatial/core/v1/core.proto": "8241b30befeda1d11215e7faa1145c88b9fdbcbf14711140135233481ddb9873",
+    "proto/spatial/core/v1/core.proto": "ad7ab93ff1666259273e3c6a7f2bc3658e84e60c0748a94f67f72717566d50c4",
     "harness/wire.py": "e85696fcfd98baecdc50b63eafbdb22eafa596da68f5dd5e05f43cf13acff15b",
     "tests/core/test_protocol.py": "df6d7d54035db5968d1ca366e0a7bda8a1bb6c739f18de7708f6825fd06840ee",
     "tests/harness/test_transport.py": "a3277b52b0622d2ed46f10dcd3fed89989217b87c57c2af5321dce015a817523",
@@ -43,7 +43,8 @@
     "config/conformance.textproto": "d3dcc8abee97528002f7facc562c1c0c68c11984f81a72777461e87a71e4d7a2",
     "tests/harness/test_workspace_wire.py": "87b8db839ce2bcb1b5be778f5564b438d883be7787524763d07c2b714c717378",
     "tests/harness/test_recovery_wire.py": "304766ca72133b68f0b28b4c4ee80e03c8580c05abdbb750efcb30738d4eff40",
-    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48"
+    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48",
+    "proto/spatial/workspace/v1/file_actions.proto": "2cbb6454fc90ff23eb459b132c63de19f7bd3d10d6083ab452e2c1fb0145ce66"
   },
   "test_ids": [
     "tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit",

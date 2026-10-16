@@ -47,6 +47,7 @@ public:
     broker_wire::AuthorizationFence authorization_fence(const broker_wire::AuthorizationFenceRequest&);
     workspace::copy::v1::WorkspaceCopyStatus workspace_copy_begin(const workspace::copy::v1::WorkspaceCopyRequest&, const authority::v1::ActorRef&);
     workspace::copy::v1::WorkspaceCopyStatus workspace_copy_status(const workspace::copy::v1::WorkspaceCopyStatusRequest&, const authority::v1::ActorRef&);
+    workspace::v1::FileActionReply file_action(const workspace::v1::FileActionRequest&);
     broker_wire::ApplicationAccessReply application_access(const broker_wire::ApplicationAccessRequest&);
     broker_wire::ApplicationControlLease control_acquire(const broker_wire::ApplicationControlRequest&);
     broker_wire::ApplicationControlReleased control_release(const broker_wire::ApplicationControlRelease&);
@@ -68,7 +69,7 @@ public:
     pid_t pid() const { return pid_; }
 private:
     BrokerClient(int inherited_channel, pid_t pid, int borrowed_pidfd, bool retained);
-    broker_wire::Reply exchange(broker_wire::Request request);
+    broker_wire::Reply exchange(broker_wire::Request request, bool* possibly_delivered = nullptr);
     void wait(short events);
     void pump();
     void revoked(const broker_wire::ApplicationControlLease&);

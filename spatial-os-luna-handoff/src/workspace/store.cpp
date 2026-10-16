@@ -2,6 +2,8 @@
 #include "workspace/copy_collections.hpp"
 #include "workspace/copy_journal.hpp"
 #include "workspace/copy_worker.hpp"
+#include "workspace/file_engine.hpp"
+#include "workspace/file_operation_journal.hpp"
 #include "copy_worker.pb.h"
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
@@ -17,7 +19,12 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <linux/fs.h>
+#include <linux/openat2.h>
+#include <openssl/evp.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <unistd.h>
+#include <sys/random.h>
 #include <algorithm>
 #include <cerrno>
 #include <optional>
@@ -148,6 +155,107 @@ unsigned rights_mask(const google::protobuf::RepeatedField<int>& rights) {
 }
 }
 
+namespace {
+using FileActionRequest = workspace::v1::FileActionRequest;
+using FileActionReply = workspace::v1::FileActionReply;
+using FileRight = authority::v1::Right;
+class StoreFileAuthority final : public FileAuthority {
+ public:
+  explicit StoreFileAuthority(ExecutionStore& store):store_(store){}
+  workspace::v1::ScopedAuthorityCheckReply check_fresh(
+      const workspace::v1::ScopedAuthorityCheckRequest& request) override {
+    return store_.scoped_authority_check(request);
+  }
+ private: ExecutionStore& store_;
+};
+FileIoResult file_io_failure(int error) { FileIoResult result; result.value=-1; result.error=error; return result; }
+class StoreFileEffectExecutor final : public FileEffectExecutor {
+ public:
+  StoreFileEffectExecutor(ExecutionStore& store, FileOperationJournal& journal,
+      std::function<void()> observer)
+      :store_(store),journal_(journal),observer_(std::move(observer)){}
+  void set_operation(const FileActionRequest& request, FileOperationBinding binding) {
+    request_=&request; binding_=std::move(binding); intent_started_=false; effect_started_=false; journal_exhausted_=false;
+  }
+  FileIoResult run_step(const FileActionRequest& request, FileRight right,
+      bool effectful, Step step) override {
+    if(request_!=&request || !request_)return file_io_failure(EINVAL);
+    workspace::v1::ScopedAuthorityCheckRequest check;
+    check.set_workspace(request.workspace_id()); *check.mutable_principal()=request.principal(); check.set_right(right);
+    for(const auto& component:request.authority_components())check.add_components(component);
+    try {
+      const auto decision=store_.scoped_authority_check(check);
+      if(!decision.allowed())return file_io_failure(EACCES);
+    } catch (...) { return file_io_failure(EIO); }
+    if(effectful && !intent_started_) {
+      try { journal_.begin(binding_,observer_); intent_started_=true; }
+      catch(const std::length_error&) { journal_exhausted_=true; return file_io_failure(ENOSPC); }
+      catch(...) { return file_io_failure(EIO); }
+      // Journal I/O pumps issuer events. Recheck after durability and before dispatch.
+      try {
+        const auto after_intent=store_.scoped_authority_check(check);
+        if(!after_intent.allowed()) return file_io_failure(EACCES);
+      } catch(...) { return file_io_failure(EIO); }
+    }
+    std::future<FileIoResult> future;
+    try { future=std::async(std::launch::async,std::move(step)); }
+    catch(...) { return file_io_failure(EIO); }
+    auto result=wait_file_io_task(future,observer_,effectful);
+    if(result.effect_may_have_occurred)effect_started_=true;
+    return result;
+  }
+  bool intent_started() const { return intent_started_; }
+  bool effect_started() const { return effect_started_; }
+  bool exhausted() const { return journal_exhausted_; }
+  const FileOperationBinding& binding() const { return binding_; }
+ private:
+  ExecutionStore& store_; FileOperationJournal& journal_; FileOperationBinding binding_;
+  const FileActionRequest* request_=nullptr;
+  std::function<void()> observer_; bool intent_started_=false,effect_started_=false,journal_exhausted_=false;
+};
+std::string deterministic_message(const google::protobuf::Message& message) {
+  std::string bytes; bytes.reserve(message.ByteSizeLong());
+  {
+    google::protobuf::io::StringOutputStream stream(&bytes);
+    google::protobuf::io::CodedOutputStream coded(&stream); coded.SetSerializationDeterministic(true);
+    if(!message.SerializeToCodedStream(&coded) || coded.HadError())
+      throw std::runtime_error("Cannot serialize trusted file operation");
+    coded.Trim();
+  }
+  return bytes;
+}
+std::string sha256_bytes(const std::string& bytes) {
+  std::array<unsigned char,32> digest{}; unsigned length=0;
+  if(EVP_Digest(bytes.data(),bytes.size(),digest.data(),&length,EVP_sha256(),nullptr)!=1 || length!=32)
+    throw std::runtime_error("Cannot digest trusted file operation");
+  return {reinterpret_cast<const char*>(digest.data()),digest.size()};
+}
+authority::v1::Right file_right(const FileActionRequest& request) {
+  using A=FileActionRequest::ActionCase;
+  switch(request.action_case()) {
+  case A::kBrowse: return authority::v1::FILE_BROWSE;
+  case A::kRead: return authority::v1::FILE_READ;
+  case A::kCreate: return authority::v1::FILE_CREATE;
+  case A::kEdit: return authority::v1::FILE_EDIT;
+  case A::kRename: return authority::v1::FILE_RENAME;
+  case A::kMove: return authority::v1::FILE_MOVE;
+  case A::kTrash: return authority::v1::FILE_TRASH;
+  case A::kRestore: return authority::v1::FILE_RESTORE;
+  case A::kPermanentDelete: return authority::v1::FILE_PERMANENT_DELETE;
+  case A::kCopyJob: return authority::v1::FILE_COPY;
+  case A::kTrashInspect: return authority::v1::FILE_BROWSE;
+  default: return authority::v1::RIGHT_UNSPECIFIED;
+  }
+}
+class FileRootStale final : public std::runtime_error { public: FileRootStale():std::runtime_error("Registered project root binding is stale"){} };
+FileActionReply file_action_error(const std::string& id,
+    workspace::v1::FileActionError::Code code,const char* detail,bool recovery=false) {
+  FileActionReply reply;reply.set_protocol_version(1);reply.set_operation_id(id);
+  auto* error=reply.mutable_error();error->set_code(code);error->set_detail(detail);
+  if(recovery && id.size()==16)error->set_recovery_operation_id(id);
+  return reply;
+}
+} // namespace
 struct ExecutionStore::Impl {
     std::filesystem::path state;
     const bool fixture_faults;
@@ -172,10 +280,76 @@ struct ExecutionStore::Impl {
     bool advancing_copy=false;
     bool scanned_copy_recovery=false;
     WorkspaceAuthority* authority = nullptr;
+    ExecutionStore* owner = nullptr;
     NativeLaunch* native = nullptr;
     WorkspaceResources* resources = nullptr;
     StorageClient* storage = nullptr;
     std::function<void()> observer;
+    std::unique_ptr<FileOperationJournal> file_journal;
+    std::string file_engine_incarnation;
+    struct FileEngineEntry {
+        int root_fd = -1;
+        dev_t device = 0; ino_t inode = 0;
+        std::string workspace, worktree, path;
+        std::unique_ptr<FileAuthority> authority;
+        std::unique_ptr<FileEffectExecutor> effects;
+        std::unique_ptr<FileEngine> engine;
+        ~FileEngineEntry() { if(root_fd>=0) close(root_fd); }
+    };
+    std::map<std::string,std::unique_ptr<FileEngineEntry>> file_engines;
+    FileEngineEntry& file_engine(const wire::WorkspaceReply& workspace,
+                                 const wire::WorktreeReply& registered) {
+        const auto id=registered.id();
+        if(invalid_file_worktrees.contains(id))
+            throw FileRootStale();
+        const auto path=(state/"worktrees"/id).string();
+        if(registered.path()!=path)
+            throw WorldError(wire::STORAGE_ERROR,"Registered project path differs from its pinned identity");
+        const auto found=file_engines.find(id);
+        struct stat current{};
+        if(found!=file_engines.end()) {
+            auto& cached=*found->second;
+            if(cached.workspace!=workspace.id() || cached.worktree!=id || cached.path!=path ||
+               fstat(cached.root_fd,&current)!=0 ||
+               static_cast<std::uint64_t>(current.st_dev)!=static_cast<std::uint64_t>(cached.device) ||
+               static_cast<std::uint64_t>(current.st_ino)!=static_cast<std::uint64_t>(cached.inode)) {
+                invalid_file_worktrees.insert(id);
+                throw FileRootStale();
+            }
+            struct stat named{};
+            if(lstat(path.c_str(),&named)!=0 || !S_ISDIR(named.st_mode) || S_ISLNK(named.st_mode) ||
+               named.st_dev!=cached.device || named.st_ino!=cached.inode) {
+                invalid_file_worktrees.insert(id);
+                throw FileRootStale();
+            }
+            return cached;
+        }
+        if(file_engines.size()>=64)
+            throw WorldError(wire::RESOURCE_EXHAUSTED,"Workspace file-engine cache reached its 64-root bound");
+        File root_parent; root_parent.fd=open((state/"worktrees").c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
+        if(root_parent.fd<0)throw FileRootStale();
+        open_how how{}; how.flags=O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW;
+        how.resolve=RESOLVE_BENEATH|RESOLVE_NO_SYMLINKS|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_XDEV;
+        File root; root.fd=static_cast<int>(syscall(SYS_openat2,root_parent.fd,id.c_str(),&how,sizeof(how)));
+        if(root.fd<0 || fstat(root.fd,&current)!=0 || !S_ISDIR(current.st_mode))
+            throw FileRootStale();
+        if(storage) {
+            workspace::v1::StorageOwnerRequest inspection;
+            *inspection.mutable_inspect()->mutable_object()=storage_object(workspace::v1::StorageObject::PROJECT,path);
+            storage->call(std::move(inspection));
+        }
+        if(!file_journal->bind_root(id,static_cast<std::uint64_t>(current.st_dev),static_cast<std::uint64_t>(current.st_ino),observer)) throw FileRootStale();
+        auto entry=std::make_unique<FileEngineEntry>();
+        entry->root_fd=root.fd; root.fd=-1;
+        entry->device=current.st_dev; entry->inode=current.st_ino;
+        entry->workspace=workspace.id(); entry->worktree=id; entry->path=path;
+        entry->authority=std::make_unique<StoreFileAuthority>(*owner);
+        entry->effects=std::make_unique<StoreFileEffectExecutor>(*owner,*file_journal,observer);
+        entry->engine=std::make_unique<FileEngine>(entry->root_fd,workspace.id(),std::vector<std::string>{id},
+            *entry->authority,[] { return std::chrono::steady_clock::now(); },entry->effects.get());
+        return *file_engines.emplace(id,std::move(entry)).first->second;
+    }
+    std::set<std::string> invalid_file_worktrees;
     void validate_state_mapping(const workspace::v1::ConfiguredStateMapping& mapping) {
         copy_collections::mapping(mapping);
         std::map<std::string,std::pair<std::string,std::string>> expected;
@@ -232,6 +406,16 @@ struct ExecutionStore::Impl {
         std::filesystem::create_directories(state / "repositories");
         std::filesystem::create_directories(state / "worktrees");
         std::filesystem::create_directories(state / "effects");
+        file_journal = std::make_unique<FileOperationJournal>(state);
+        file_engine_incarnation.resize(16);
+        std::size_t incarnation_at=0;
+        while(incarnation_at<file_engine_incarnation.size()) {
+            const auto got=getrandom(file_engine_incarnation.data()+incarnation_at,
+                file_engine_incarnation.size()-incarnation_at,0);
+            if(got<0 && errno==EINTR) continue;
+            if(got<=0) throw WorldError(wire::UNAVAILABLE,"Cannot initialize file-engine incarnation");
+            incarnation_at+=static_cast<std::size_t>(got);
+        }
         sqlite3* connection = nullptr;
         const auto result = sqlite3_open_v2((state / "execution.db").c_str(), &connection,
             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
@@ -525,7 +709,7 @@ struct ExecutionStore::Impl {
 
 ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migrate_from, bool fixture_faults,
                                StorageClient* storage, WorkspaceResources* resources)
-    : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults, storage, resources)) {}
+    : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults, storage, resources)) { impl_->owner=this; }
 ExecutionStore::~ExecutionStore() = default;
 CopyJournal& ExecutionStore::copy_journal() { return *impl_->copy_journal; }
 const CopyJournal& ExecutionStore::copy_journal() const { return *impl_->copy_journal; }
@@ -863,6 +1047,122 @@ workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(
         if (required && !(policy & (1u << *required))) decision.set_allowed(false);
     }
     return decision;
+}
+workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::FileActionRequest& request) {
+    using namespace workspace::v1;
+    const auto operation=request.operation_id();
+    if(request.protocol_version()!=1 || operation.size()!=16 || request.ByteSizeLong()>1100000 ||
+       request.workspace_id().empty() || request.workspace_id().size()>256 || !request.has_principal() ||
+       request.principal().issuer_id().size()!=32 || request.principal().actor_id().size()!=32 ||
+       request.authority_components_size()!=0 || file_right(request)==authority::v1::RIGHT_UNSPECIFIED)
+        return file_action_error(operation,FileActionError::INVALID_ARGUMENT,"invalid private file action envelope or caller-supplied scope");
+    auto uncertainty_fallback=file_action_error(operation,FileActionError::UNCERTAIN,"filesystem outcome requires recovery",true);
+    auto uncertainty_reply=file_action_error(operation,FileActionError::UNCERTAIN,"filesystem outcome requires recovery",true);
+    StoreFileEffectExecutor* active_executor=nullptr;
+    try {
+        const auto workspace=workspace_get(request.workspace_id());
+        const auto worktree_id=workspace.worktree();
+        if(worktree_id.empty() || worktree_id.size()>128)
+            return file_action_error(operation,FileActionError::UNAVAILABLE,"workspace has no registered project binding");
+        ScopedAuthorityCheckRequest admission;
+        admission.set_workspace(workspace.id()); *admission.mutable_principal()=request.principal();
+        admission.set_right(file_right(request)); admission.add_components(worktree_id);
+        const auto allowed=scoped_authority_check(admission);
+        if(!allowed.allowed())
+            return file_action_error(operation,FileActionError::UNAUTHORIZED,"exact file right or workspace file policy denied the action");
+        Query registered(impl_->db.get(),"SELECT path,state FROM worktrees WHERE id=?");
+        registered.text(1,worktree_id);
+        if(registered.step()!=SQLITE_ROW || registered.text(1)!="ready")
+            return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project is unavailable or not ready");
+        const auto expected_path=(impl_->state/"worktrees"/worktree_id).string();
+        struct stat project_path{};
+        if(lstat(expected_path.c_str(),&project_path)!=0 || !S_ISDIR(project_path.st_mode) || S_ISLNK(project_path.st_mode))
+            return file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root is missing or unsafe",true);
+        if(registered.text(0)!=expected_path)
+            return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project path differs from workspace binding");
+        auto found=impl_->file_engines.find(worktree_id);
+        wire::WorktreeReply verified;
+        if(found==impl_->file_engines.end()) verified=impl_->worktree(worktree_id);
+        else { verified.set_id(worktree_id); verified.set_path(expected_path); }
+        auto& entry=impl_->file_engine(workspace,verified);
+        auto trusted=request; trusted.clear_authority_components(); trusted.add_authority_components(worktree_id);
+        const auto digest=sha256_bytes(deterministic_message(trusted));
+        std::string principal_identity=request.principal().issuer_id()+request.principal().actor_id();
+        FileOperationBinding binding{workspace.id(),operation,std::move(principal_identity),
+            worktree_id,static_cast<std::uint64_t>(entry.device),static_cast<std::uint64_t>(entry.inode),
+            static_cast<int>(file_right(request)),digest,impl_->file_engine_incarnation};
+        const auto prior=impl_->file_journal->find(binding,impl_->observer);
+        const auto retry_admission=scoped_authority_check(admission);
+        if(!retry_admission.allowed())
+            return file_action_error(operation,FileActionError::UNAUTHORIZED,"authority was revoked before a cached file outcome could be returned");
+        if(prior.state==FileOperationRecord::State::conflict)
+            return file_action_error(operation,FileActionError::CONFLICT,"operation identity is already bound to a different trusted request");
+        if(prior.state==FileOperationRecord::State::intent || prior.state==FileOperationRecord::State::uncertain)
+            return file_action_error(operation,FileActionError::UNCERTAIN,"operation has unresolved durable intent",true);
+        if(prior.state==FileOperationRecord::State::complete) {
+            if(prior.engine_incarnation==impl_->file_engine_incarnation) return prior.reply;
+            if(prior.reply.has_error() || prior.reply.has_trash() || request.has_permanent_delete()) return prior.reply;
+            return file_action_error(operation,FileActionError::STALE_HANDLE,"completed result contains process-local handles; inspect or browse to refresh",true);
+        }
+        auto* executor=dynamic_cast<StoreFileEffectExecutor*>(entry.effects.get());
+        if(!executor) throw std::logic_error("file effect executor type mismatch");
+        active_executor=executor;
+        executor->set_operation(trusted,binding);
+        auto reply=entry.engine->handle(trusted);
+        if(executor->exhausted()) return file_action_error(operation,FileActionError::EXHAUSTED,"file-operation journal capacity is exhausted before filesystem effects");
+        ScopedAuthorityCheckReply still_allowed;
+        try { still_allowed=scoped_authority_check(admission); }
+        catch(...) {
+            if(executor->effect_started()) { try { impl_->file_journal->mark_uncertain(binding,uncertainty_reply,impl_->observer); } catch(...) {} return uncertainty_fallback; }
+            return file_action_error(operation,FileActionError::UNAVAILABLE,"authority could not be refreshed after file I/O");
+        }
+        if(!still_allowed.allowed()) {
+            if(executor->effect_started()) {
+                try { impl_->file_journal->mark_uncertain(binding,uncertainty_reply,impl_->observer); } catch(...) {}
+                return uncertainty_fallback;
+            }
+            return file_action_error(operation,FileActionError::UNAUTHORIZED,"authority was revoked before a filesystem effect");
+        }
+        if(executor->intent_started()) {
+            if(executor->effect_started() && reply.has_error() && reply.error().code()!=FileActionError::UNCERTAIN) reply=std::move(uncertainty_reply);
+            const auto uncertain=reply.has_error() && reply.error().code()==FileActionError::UNCERTAIN;
+            const auto state=uncertain ? FileOperationRecord::State::uncertain : FileOperationRecord::State::complete;
+            try { impl_->file_journal->finish(binding,state,reply,impl_->observer); }
+            catch(...) { return uncertainty_fallback; }
+            ScopedAuthorityCheckReply terminal_authority;
+            try { terminal_authority=scoped_authority_check(admission); }
+            catch(...) {
+                if(executor->effect_started()) { try { impl_->file_journal->mark_uncertain(binding,uncertainty_reply,impl_->observer); } catch(...) {} return uncertainty_fallback; }
+                return file_action_error(operation,FileActionError::UNAVAILABLE,"authority could not be refreshed after journal completion");
+            }
+            if(!terminal_authority.allowed()) {
+                if(executor->effect_started()) { try { impl_->file_journal->mark_uncertain(binding,uncertainty_reply,impl_->observer); } catch(...) {} return uncertainty_fallback; }
+                return file_action_error(operation,FileActionError::UNAUTHORIZED,"authority was revoked before file outcome delivery");
+            }
+        }
+        return reply;
+    } catch(const WorldError& e) {
+        if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
+        const auto code=e.code==wire::FORBIDDEN || e.code==wire::UNAUTHORIZED ? FileActionError::UNAUTHORIZED :
+            e.code==wire::NOT_FOUND ? FileActionError::NOT_FOUND :
+            e.code==wire::RESOURCE_EXHAUSTED ? FileActionError::EXHAUSTED : FileActionError::UNAVAILABLE;
+        return file_action_error(operation,code,"workspace file action admission or registry lookup failed");
+    } catch(const FileRootStale&) {
+        if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
+        return file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root changed; existing file handles are stale",true);
+    } catch(const std::length_error&) {
+        if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
+        return file_action_error(operation,FileActionError::EXHAUSTED,"file-operation journal capacity is exhausted");
+    } catch(const std::bad_alloc&) {
+        if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
+        return file_action_error(operation,FileActionError::EXHAUSTED,"workspace file action resources exhausted");
+    } catch(const std::exception&) {
+        if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
+        return file_action_error(operation,FileActionError::UNAVAILABLE,"workspace file action failed closed");
+    } catch(...) {
+        if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
+        return file_action_error(operation,FileActionError::UNAVAILABLE,"workspace file action failed closed");
+    }
 }
 namespace {
 using CopyStatus = workspace::copy::v1::WorkspaceCopyStatus;

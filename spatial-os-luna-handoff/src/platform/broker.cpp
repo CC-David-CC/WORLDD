@@ -291,7 +291,7 @@ void BrokerClient::pump() {
         incoming_.append(bytes.data(),static_cast<std::size_t>(n)); received += static_cast<std::size_t>(n);
     }
 }
-broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
+broker_wire::Reply BrokerClient::exchange(broker_wire::Request request, bool* possibly_delivered) {
     if (pending_) throw std::logic_error("Recursive broker exchange is not allowed");
     request.set_protocol_version(1); request.set_request_id(++sequence_);
     if (request.has_management()) {
@@ -326,6 +326,7 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             if (n < 0 && (errno == EAGAIN || errno == EINTR)) continue;
             if (n <= 0) throw std::runtime_error("Cannot send broker request");
             sent += static_cast<std::size_t>(n);
+            if (possibly_delivered && sent != 0) *possibly_delivered = true;
         }
         while (!response_) { pump(); if (!response_) wait(POLLIN); }
         reply = std::move(*response_); response_.reset();
@@ -406,6 +407,31 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
                 valid = valid_copy_status(reply.workspace_copy_status(), request.workspace_copy_begin().request().operation_id());
             if (request.has_workspace_copy_status() && reply.has_workspace_copy_status())
                 valid = valid_copy_status(reply.workspace_copy_status(), request.workspace_copy_status().request().operation_id());
+            if (request.has_file_action() && reply.has_file_action()) {
+                using Action=workspace::v1::FileActionRequest::ActionCase;
+                const auto& expected=request.file_action();
+                const auto& received=reply.file_action();
+                valid=received.protocol_version()==1 && received.operation_id()==expected.operation_id();
+                if(received.has_error()) {
+                    const auto& error=received.error();
+                    valid=valid && workspace::v1::FileActionError::Code_IsValid(error.code()) &&
+                        error.code()!=workspace::v1::FileActionError::CODE_UNSPECIFIED &&
+                        (error.recovery_operation_id().empty() || error.recovery_operation_id()==expected.operation_id()) &&
+                        (error.code()!=workspace::v1::FileActionError::UNCERTAIN || error.recovery_operation_id()==expected.operation_id());
+                } else {
+                    switch(expected.action_case()) {
+                    case Action::kBrowse: valid=valid && received.has_directory(); break;
+                    case Action::kRead: valid=valid && received.has_content(); break;
+                    case Action::kCreate: case Action::kEdit: case Action::kRename:
+                    case Action::kMove: case Action::kRestore: case Action::kPermanentDelete:
+                        valid=valid && received.has_object(); break;
+                    case Action::kTrash: valid=valid && received.has_trash(); break;
+                    case Action::kTrashInspect: valid=valid && received.has_trash_entry(); break;
+                    case Action::kCopyJob: valid=valid && received.has_copy_job(); break;
+                    default: valid=false; break;
+                    }
+                }
+            }
             if (request.has_application_access() && reply.has_application_access())
                 valid = reply.application_access().incarnation().size() == 16 && reply.application_access().epoch() > 0 && valid;
             if (request.has_management() && reply.has_management()) {
@@ -452,6 +478,58 @@ workspace::copy::v1::WorkspaceCopyStatus BrokerClient::workspace_copy_begin(cons
 workspace::copy::v1::WorkspaceCopyStatus BrokerClient::workspace_copy_status(const workspace::copy::v1::WorkspaceCopyStatusRequest& command, const authority::v1::ActorRef& principal) {
     broker_wire::Request request; auto* status = request.mutable_workspace_copy_status(); *status->mutable_request() = command; *status->mutable_principal() = principal;
     return exchange(request).workspace_copy_status();
+}
+workspace::v1::FileActionReply BrokerClient::file_action(const workspace::v1::FileActionRequest& command) {
+    if (command.protocol_version() != 1 || command.operation_id().size() != 16 ||
+        command.workspace_id().empty() || command.workspace_id().size() > 256 ||
+        !command.has_principal() || command.principal().issuer_id().size() != 32 ||
+        command.principal().actor_id().size() != 32 || command.authority_components_size() != 0 ||
+        command.ByteSizeLong() > 1100000 || command.action_case() == workspace::v1::FileActionRequest::ACTION_NOT_SET)
+        throw std::invalid_argument("Invalid private file action envelope");
+    broker_wire::Request request; *request.mutable_file_action() = command;
+    bool possibly_delivered = false;
+    workspace::v1::FileActionReply uncertainty;
+    uncertainty.set_protocol_version(1);
+    uncertainty.set_operation_id(command.operation_id());
+    auto* uncertainty_error=uncertainty.mutable_error();
+    uncertainty_error->set_code(workspace::v1::FileActionError::UNCERTAIN);
+    uncertainty_error->set_recovery_operation_id(command.operation_id());
+    broker_wire::Reply outer;
+    try {
+        outer = exchange(std::move(request), &possibly_delivered);
+    } catch (...) {
+        if (possibly_delivered) return uncertainty;
+        throw;
+    }
+    if (outer.has_file_action()) {
+        auto* received = outer.mutable_file_action();
+        if (received->protocol_version() == 1 && received->operation_id() == command.operation_id()) {
+            workspace::v1::FileActionReply result;
+            result.Swap(received);
+            return result;
+        }
+    }
+    if (outer.has_error() && possibly_delivered) {
+        using BrokerCode = wire::ErrorCode;
+        using FileCode = workspace::v1::FileActionError::Code;
+        FileCode code = workspace::v1::FileActionError::UNCERTAIN;
+        switch (outer.error().code()) {
+        case BrokerCode::INVALID_ARGUMENT: code = workspace::v1::FileActionError::INVALID_ARGUMENT; break;
+        case BrokerCode::UNAUTHORIZED: case BrokerCode::FORBIDDEN: code = workspace::v1::FileActionError::UNAUTHORIZED; break;
+        case BrokerCode::NOT_FOUND: code = workspace::v1::FileActionError::NOT_FOUND; break;
+        case BrokerCode::RESOURCE_EXHAUSTED: code = workspace::v1::FileActionError::EXHAUSTED; break;
+        case BrokerCode::UNIMPLEMENTED: code = workspace::v1::FileActionError::UNIMPLEMENTED; break;
+        case BrokerCode::BUSY: case BrokerCode::UNAVAILABLE: code = workspace::v1::FileActionError::UNAVAILABLE; break;
+        default: break;
+        }
+        if (code != workspace::v1::FileActionError::UNCERTAIN) {
+            uncertainty_error->set_code(code);
+            uncertainty_error->clear_recovery_operation_id();
+            return uncertainty;
+        }
+    }
+    if (possibly_delivered) return uncertainty;
+    throw std::runtime_error("Broker file action reply identity mismatch");
 }
 broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
     broker_wire::Request request; *request.mutable_application_access() = command;

@@ -2,6 +2,7 @@ syntax = "proto3";
 package spatial.core.v1;
 import "security.proto";
 import "copy.proto";
+import "file_actions.proto";
 
 // Units: meters, seconds, radians. Right-handed; forward is -Z.
 // Unspecified vector components are zero. Message presence is checked separately.
@@ -248,6 +249,7 @@ message ActorActionRequest {
     PresentationRemoveRequest presentation_remove = 27;
     spatial.workspace.copy.v1.WorkspaceCopyRequest workspace_copy = 28;
     spatial.workspace.copy.v1.WorkspaceCopyStatusRequest workspace_copy_status = 29;
+    spatial.workspace.v1.ActorCabinetRequest cabinet = 30;
   }
 }
 message WorldCheckpointRequest {}
@@ -428,6 +430,7 @@ message ActorActionReply {
   ProcessLaunchReply process = 5;
   PresentationView presentation = 6;
   spatial.workspace.copy.v1.WorkspaceCopyStatus copy_status = 7;
+  spatial.workspace.v1.ActorCabinetReply cabinet = 8;
 }
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }

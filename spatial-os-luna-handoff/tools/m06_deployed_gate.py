@@ -29,6 +29,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 CODING_HOSTS = {"G164": "a5500", "a5500": "a5500", "middle-child": "middle-child"}
 TEST_HOSTS = {"sb16", "sb16-2"}
+M07_FROZEN_CONTINUATION_CANDIDATE = '1e58e65dec132a0a16f004ca4527034dca081f77'
 EVIDENCE_KEYS = ("SPATIAL_SECURITY_EVIDENCE", "SPATIAL_SCOPE_EVIDENCE", "SPATIAL_RENDER_EVIDENCE")
 PROFILES = ("Debug", "ASan-UBSan")
 REQUIRED = {
@@ -58,6 +59,65 @@ def sha(path: Path) -> str:
         for block in iter(lambda: f.read(1024 * 1024), b""):
             h.update(block)
     return h.hexdigest()
+
+def _pinned_regular_file(path, expected_sha256, label):
+    path = Path(path)
+    if not path.is_absolute() or path.is_symlink():
+        raise RuntimeError(label + ' must be an absolute non-symlink file')
+    try:
+        before = path.lstat()
+    except OSError as error:
+        raise RuntimeError(label + ' is unavailable: ' + str(path)) from error
+    if not stat.S_ISREG(before.st_mode):
+        raise RuntimeError(label + ' must be a regular file: ' + str(path))
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
+    digest = hashlib.sha256()
+    try:
+        opened = os.fstat(descriptor)
+        identity = lambda item: (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns, item.st_ctime_ns)
+        if not stat.S_ISREG(opened.st_mode) or identity(before) != identity(opened):
+            raise RuntimeError(label + ' changed before it was pinned')
+        with os.fdopen(descriptor, 'rb', closefd=False) as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                digest.update(block)
+        after = path.lstat()
+        if identity(after) != identity(opened):
+            raise RuntimeError(label + ' changed while it was pinned')
+    finally:
+        os.close(descriptor)
+    actual = digest.hexdigest()
+    if actual != expected_sha256:
+        raise RuntimeError(label + ' SHA256 differs from the explicit pin')
+    return dict(path=str(path.resolve(strict=True)), sha256=actual)
+
+
+def _fixture_continuation(path, expected_sha256, candidate, deployment):
+    if not re.fullmatch(r'[0-9a-f]{64}', str(expected_sha256)):
+        raise RuntimeError('fixture continuation manifest SHA256 must be lowercase')
+    manifest_pin = _pinned_regular_file(path, expected_sha256, 'fixture continuation manifest')
+    source = (Path(deployment) / 'source').resolve()
+    if Path(manifest_pin['path']).is_relative_to(source):
+        raise RuntimeError('fixture continuation manifest must remain outside frozen deployment source')
+    if candidate != M07_FROZEN_CONTINUATION_CANDIDATE:
+        raise RuntimeError('fixture continuation candidate differs from frozen deployment')
+    manifest = _read_json(Path(manifest_pin['path']), 'fixture continuation manifest')
+    if set(manifest) != {'schema', 'candidate', 'semantic_fixture', 'host_helper'} or manifest.get('schema') != 1:
+        raise RuntimeError('fixture continuation manifest schema/keys differ')
+    if manifest.get('candidate') != candidate:
+        raise RuntimeError('fixture continuation candidate differs from frozen deployment')
+    selected = {}
+    for key in ('semantic_fixture', 'host_helper'):
+        row = manifest.get(key)
+        if not isinstance(row, dict) or set(row) != {'path', 'sha256'}:
+            raise RuntimeError('fixture continuation ' + key + ' pin is malformed')
+        if not re.fullmatch(r'[0-9a-f]{64}', str(row.get('sha256', ''))):
+            raise RuntimeError('fixture continuation ' + key + ' SHA256 must be lowercase')
+        pin = _pinned_regular_file(row['path'], row['sha256'], 'fixture continuation ' + key)
+        if Path(pin['path']).is_relative_to(source):
+            raise RuntimeError('fixture continuation inputs must remain outside the frozen deployment source')
+        selected[key] = pin
+    return dict(schema=1, candidate=candidate, manifest=manifest_pin, **selected)
+
 
 def run(command, *, cwd=None, env=None, log=None, timeout=None):
     start = time.monotonic()
@@ -659,14 +719,99 @@ def _bounded_storage_artifact_exclusions(target):
     ]
 
 
+def _retirement_marker_entry(target, relative, entry_kind='file'):
+    """Validate and record only the completed ExecutionStore retirement marker."""
+    parts = Path(relative).parts
+    if (entry_kind != 'file' or len(parts) < 5
+            or parts[-5:-2] != ('state', 'execution', 'retired')
+            or not re.fullmatch(r'[0-9a-f]{32}', parts[-2]) or parts[-1] != 'staging'):
+        raise RuntimeError('gate artifact tree contains an unapproved ' + entry_kind + ' symlink: ' + relative)
+    parent = target.joinpath(*parts[:-1])
+    marker = target / relative
+    expected = os.fsencode(str(parent / 'never-created'))
+    try:
+        marker_before = marker.lstat()
+        target_bytes = os.fsencode(os.readlink(marker))
+        marker_after = marker.lstat()
+        siblings = {name: (parent / name).lstat() for name in ('data', 'git', 'complete')}
+        missing_target = False
+        try:
+            (parent / 'never-created').lstat()
+        except FileNotFoundError:
+            missing_target = True
+    except OSError as error:
+        raise RuntimeError('cannot validate retirement marker: ' + relative) from error
+    identity = lambda info: (info.st_dev, info.st_ino, info.st_mode, info.st_size,
+                             info.st_mtime_ns, info.st_ctime_ns)
+    if (not stat.S_ISLNK(marker_before.st_mode) or identity(marker_before) != identity(marker_after)
+            or target_bytes != expected or not missing_target):
+        raise RuntimeError('retirement marker target or identity is invalid: ' + relative)
+    if (not stat.S_ISDIR(siblings['data'].st_mode) or stat.S_ISLNK(siblings['data'].st_mode)
+            or not stat.S_ISDIR(siblings['git'].st_mode) or stat.S_ISLNK(siblings['git'].st_mode)
+            or not stat.S_ISREG(siblings['complete'].st_mode) or stat.S_ISLNK(siblings['complete'].st_mode)
+            or siblings['complete'].st_size == 0):
+        raise RuntimeError('retirement marker companions are incomplete: ' + relative)
+    try:
+        project_info = (parent / 'data' / 'project').lstat()
+    except OSError as error:
+        raise RuntimeError('retirement marker companions are incomplete: ' + relative) from error
+    if not stat.S_ISDIR(project_info.st_mode) or stat.S_ISLNK(project_info.st_mode):
+        raise RuntimeError('retirement marker companions are incomplete: ' + relative)
+    return dict(path=relative, kind='completed-execution-retirement-marker',
+                target_bytes_hex=target_bytes.hex(), target_sha256=hashlib.sha256(target_bytes).hexdigest())
+
+
+def validate_artifact_links(target, expected_links):
+    """Re-scan links without following them and bind the exact reported link inventory."""
+    target = Path(target)
+    if target.is_symlink() or not target.is_dir():
+        raise RuntimeError('gate artifact root is not a real directory')
+    exclusions = _bounded_storage_artifact_exclusions(target)
+    excluded = {row['path'] for row in exclusions}
+    actual = []
+    def walk_error(error):
+        raise RuntimeError('cannot inspect artifact links: ' + str(error)) from error
+    for current, directories, filenames in os.walk(target, followlinks=False, onerror=walk_error):
+        here = Path(current)
+        for name in list(directories):
+            path = here / name
+            relative = str(path.relative_to(target))
+            if relative in excluded:
+                directories.remove(name)
+                continue
+            try:
+                info = path.lstat()
+            except OSError as error:
+                raise RuntimeError('cannot inspect artifact link candidate: ' + str(path)) from error
+            if stat.S_ISLNK(info.st_mode):
+                actual.append(_retirement_marker_entry(target, relative, 'directory'))
+                directories.remove(name)
+        for name in filenames:
+            path = here / name
+            relative = str(path.relative_to(target))
+            if relative in excluded:
+                continue
+            try:
+                info = path.lstat()
+            except OSError as error:
+                raise RuntimeError('cannot inspect artifact link candidate: ' + str(path)) from error
+            if stat.S_ISLNK(info.st_mode):
+                actual.append(_retirement_marker_entry(target, relative, 'file'))
+    actual.sort(key=lambda row: row['path'])
+    if not isinstance(expected_links, list) or actual != expected_links:
+        raise RuntimeError('artifact link manifest is missing, changed, or contains extra entries')
+    return actual
+
+
 def artifact_evidence_manifest(target):
-    """Hash gate output strictly, with two validated bounded-storage exclusions."""
+    """Hash gate output strictly, with two validated storage exclusions and one typed marker."""
     target = Path(target)
     if target.is_symlink() or not target.is_dir():
         raise RuntimeError('gate artifact root is not a real directory')
     exclusions = _bounded_storage_artifact_exclusions(target)
     excluded = {row['path'] for row in exclusions}
     hashes = {}
+    artifact_links = []
     def walk_error(error):
         raise RuntimeError('cannot inspect gate artifact tree: ' + str(error)) from error
     for current, directories, filenames in os.walk(target, followlinks=False, onerror=walk_error):
@@ -675,14 +820,17 @@ def artifact_evidence_manifest(target):
             path = here / name
             relative = str(path.relative_to(target))
             if path.is_symlink():
-                raise RuntimeError('gate artifact tree contains a directory symlink: ' + relative)
+                artifact_links.append(_retirement_marker_entry(target, relative, 'directory'))
+                directories.remove(name)
+                continue
             if relative in excluded:
                 directories.remove(name)
         for name in filenames:
             path = here / name
             relative = str(path.relative_to(target))
             if path.is_symlink():
-                raise RuntimeError('gate artifact tree contains a file symlink: ' + relative)
+                artifact_links.append(_retirement_marker_entry(target, relative, 'file'))
+                continue
             if relative in excluded:
                 continue
             if not stat.S_ISREG(path.lstat().st_mode):
@@ -693,10 +841,11 @@ def artifact_evidence_manifest(target):
                 raise RuntimeError('cannot hash gate artifact: ' + relative) from error
     if 'bounded-storage-git/review.json' not in hashes:
         raise RuntimeError('bounded storage review receipt is missing from artifact hashes')
-    return dict(sha256=hashes, exclusions=exclusions)
+    artifact_links.sort(key=lambda row: row['path'])
+    return dict(sha256=hashes, exclusions=exclusions, artifact_links=artifact_links)
 
 
-def finalize_postrun_audit(report):
+def finalize_postrun_audit(report, expected_profiles=PROFILES):
     """Keep execution failures primary and retain every failed or unrun postcheck."""
     failures = []
     if report.get('source_sha256_rechecked') is not True:
@@ -704,7 +853,7 @@ def finalize_postrun_audit(report):
     for check in ('profile_artifacts_rechecked', 'production_off_rechecked', 'runtime_rechecked',
                   'metadata_rechecked', 'storage_evidence_rechecked'):
         values = report.get(check, {})
-        for profile in PROFILES:
+        for profile in expected_profiles:
             if values.get(profile) is not True:
                 profile_row = report.get('profiles', {}).get(profile)
                 failures.append(dict(check=check, profile=profile, value=values.get(profile),
@@ -1250,6 +1399,27 @@ def rec_executables(build):
             except OSError:
                 pass
 
+def profile_environment(environment, source, build, target):
+    env = environment.copy()
+    env.update(PYTHONPATH=str(build / "python") + ":" + str(source), SPATIAL_XPROBE=str(build / "spatial-xprobe"),
+        SPATIAL_SECURITY_EVIDENCE=str(target / "native"), SPATIAL_SCOPE_EVIDENCE=str(target / "scopes"),
+        SPATIAL_RENDER_EVIDENCE=str(target / "graphics"), ASAN_OPTIONS="detect_leaks=1:abort_on_error=1",
+        UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
+    for key in ("DISPLAY", "SPATIAL_TEST_DISPLAY", "SPATIAL_SECURITY_TEST_CORE_ONLY", "LD_LIBRARY_PATH", "__EGL_VENDOR_LIBRARY_FILENAMES"):
+        env.pop(key, None)
+    return env
+
+
+def profile_stage_commands(source, build, production, target, dedicated_crosshost):
+    return [
+        ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
+        ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
+        ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")], 14400),
+        ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
+        ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
+    ]
+
+
 def gate(a):
     import fcntl
     host = socket.gethostname().split(".")[0]
@@ -1277,17 +1447,49 @@ def gate(a):
     dedicated_crosshost = set(getattr(a, "dedicated_crosshost", DEDICATED_CROSSHOST))
     if not DEDICATED_CROSSHOST.issubset(dedicated_crosshost) or dedicated_crosshost - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
         raise RuntimeError("invalid dedicated cross-host registration set")
+    selection = getattr(a, 'selected_profiles', None)
+    selected = PROFILES if selection is None else tuple(selection)
+    continuation = None
+    if selected != PROFILES and selected != ('ASan-UBSan',):
+        raise RuntimeError('only the full ordered profiles or guarded sanitizer singleton are allowed')
+    if selected == ('ASan-UBSan',):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('m07_continuation', Path(__file__).with_name('m07_collector_continuation.py'))
+        amendment = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(amendment)
+        import types
+        continuation = amendment.prepare_batch(types.SimpleNamespace(**globals()), root,
+            getattr(a, 'collector_continuation', None), getattr(a, 'collector_continuation_sha256', None))
+        if a.attempt != continuation['out'].name:
+            raise RuntimeError('continuation must retain the exact original attempt parent')
+    elif getattr(a, 'collector_continuation', None) or getattr(a, 'collector_continuation_sha256', None):
+        raise RuntimeError('continuation proof is only valid for sanitizer singleton')
     out = root / "evidence" / (a.attempt or f"{host}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{uuid.uuid4().hex[:8]}")
-    out.mkdir(parents=True, exist_ok=False)
+    if continuation:
+        if out != continuation['out']:
+            raise RuntimeError('continuation output parent mismatch')
+    else:
+        out.mkdir(parents=True, exist_ok=False)
+    report_path = continuation['report_path'] if continuation else out / 'run.json'
+    storage_attempt_name = continuation['storage_attempt'] if continuation else out.name
     report = dict(status="running", phase_complete=False, host=host, candidate=rec["candidate"], attempt=out.name,
                   bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={},
                   required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost))
-    write_json(out / "run.json", report)
+    report['selected_profiles'] = list(selected)
+    report['report_kind'] = 'profile_batch' if continuation else 'full_local_attempt'
+    if continuation:
+        report['batch_id'] = storage_attempt_name
+        report['continuation'] = dict(context_path=str(continuation['context_path']),
+            context_sha256=continuation['context_sha256'], original_sha256=continuation['original_sha256'],
+            debug_audit_sha256=continuation['debug_audit_sha256'])
+        amendment.write_exclusive(None, report_path, report)
+    else:
+        write_json(report_path, report)
     source = root / "source"
     builds = root / "build"
     try:
-        storage_attempt = create_storage_evidence_attempt(source, host, out.name)
-        for profile in PROFILES:
+        storage_attempt = create_storage_evidence_attempt(source, host, storage_attempt_name)
+        for profile in selected:
             build = builds / profile
             production = root / 'production-off' / profile
             for rel, expected in rec['production_off'][profile]['runtime_files'].items():
@@ -1297,13 +1499,7 @@ def gate(a):
             storage_profile = create_storage_evidence_profile(storage_attempt["root"], source, profile)
             storage_evidence = {name: Path(row["path"])
                                 for name, row in storage_profile["registrations"].items()}
-            env = os.environ.copy()
-            env.update(PYTHONPATH=str(build / "python") + ":" + str(source), SPATIAL_XPROBE=str(build / "spatial-xprobe"),
-                SPATIAL_SECURITY_EVIDENCE=str(target / "native"), SPATIAL_SCOPE_EVIDENCE=str(target / "scopes"),
-                SPATIAL_RENDER_EVIDENCE=str(target / "graphics"), ASAN_OPTIONS="detect_leaks=1:abort_on_error=1",
-                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-            for key in ("DISPLAY", "SPATIAL_TEST_DISPLAY", "SPATIAL_SECURITY_TEST_CORE_ONLY", "LD_LIBRARY_PATH", "__EGL_VENDOR_LIBRARY_FILENAMES"):
-                env.pop(key, None)
+            env = profile_environment(os.environ, source, build, target)
             profile_runtime = verify_runtime(manifest, host, profile, source)
             wrapper_path = Path(profile_runtime["xace_wrapper"]["path"])
             env["SPATIAL_TEST_XSERVER"] = str(wrapper_path)
@@ -1366,20 +1562,14 @@ def gate(a):
                                          paths={name: str(path) for name, path in storage_evidence.items()})))
             row = report["profiles"][profile] = dict(status="running", inventory_count=len(names), commands=[
                 dict(name="inventory", command=["ctest", "--test-dir", str(build), "--show-only=json-v1"], exit_code=0, seconds=sec, assertions_passed=True)])
-            commands = [
-                ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
-                ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
-                ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")], 14400),
-                ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
-                ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
-            ]
+            commands = profile_stage_commands(source, build, production, target, dedicated_crosshost)
             for label, command, timeout in commands:
                 command_env = stage_environment(env, label, production, source, target)
                 result, seconds = run(command, cwd=source, env=command_env, log=target / (label + ".log"), timeout=timeout)
                 item = dict(name=label, command=command, exit_code=result.returncode, seconds=seconds)
                 if label == 'P10':
                     item['acceptance_evidence_dir'] = command_env['SPATIAL_EVIDENCE_DIR']
-                row["commands"].append(item); write_json(out / "run.json", report)
+                row["commands"].append(item); write_json(report_path, report)
                 output = (target / (label + '.log')).read_text(errors='replace')
                 reject_inner_skips(output)
                 if label == 'production-off-startup' and not re.search(r'Ran 5 tests in .*\n\nOK(?:\n|$)', output):
@@ -1404,7 +1594,7 @@ def gate(a):
                         {c.get('test') for c in cases} == set(json.loads((source / 'acceptance.lock.json').read_text())['test_ids']) and
                         all(c.get("status") == "passed" and c.get("phase") <= "P10" for c in cases))
                 if result.returncode:
-                    row["status"] = "failed"; write_json(out / "run.json", report)
+                    row["status"] = "failed"; write_json(report_path, report)
                     raise RuntimeError(f"{profile} {label} failed with status {result.returncode}; subsequent stages stopped")
                 if label == "harness" and not item["expected_51"]: raise RuntimeError("harness inventory is not exactly 51 passing tests")
                 if label == "core" and (item.get("junit_cases") != len(local_names) or not item.get("all_registered_present") or item.get("failed_or_skipped")): raise RuntimeError("CTest full-suite JUnit assertion failed")
@@ -1427,7 +1617,7 @@ def gate(a):
                     if not scope or Path(scope).exists() or os.path.ismount(target / "bounded-storage-git/volume"):
                         raise RuntimeError("storage owner scope or mount remains")
                 row["commands"][-1]["assertions_passed"] = True
-                write_json(out / "run.json", report)
+                write_json(report_path, report)
             storage_receipt = scan_storage_evidence(storage_evidence)
             target_logs = list(target.rglob("*.log"))
             findings = [str(p.relative_to(target)) for p in target_logs if SAN_RE.search(p.read_text(errors="replace"))]
@@ -1440,9 +1630,10 @@ def gate(a):
             artifact_manifest = artifact_evidence_manifest(target)
             row["artifact_sha256"] = artifact_manifest['sha256']
             row["artifact_exclusions"] = artifact_manifest['exclusions']
+            row["artifact_links"] = artifact_manifest['artifact_links']
             row["status"] = "passed_needs_crosshost_and_review"
-            write_json(out / "run.json", report)
-        report["status"] = "local_passed_crosshost_pending"
+            write_json(report_path, report)
+        report["status"] = "profile_batch_passed" if continuation else "local_passed_crosshost_pending"
     except BaseException as e:
         report["status"] = "failed"; report["error"] = repr(e)
         report['execution_error'] = dict(type=type(e).__name__, message=str(e), traceback=traceback.format_exc())
@@ -1461,7 +1652,7 @@ def gate(a):
                 for name, expected in row["runtime_files"].items() if name not in row["ctest_metadata"])
         report["metadata_rechecked"] = {}
         report["storage_evidence_rechecked"] = {}
-        for profile in PROFILES:
+        for profile in selected:
             build = builds / profile
             metadata_record = out / profile / "metadata-relocation.json"
             if metadata_record.is_file():
@@ -1491,15 +1682,15 @@ def gate(a):
                 report["metadata_rechecked"][profile] = False
                 report["storage_evidence_rechecked"][profile] = False
         report["runtime_rechecked"] = {}
-        for profile in PROFILES:
+        for profile in selected:
             try:
                 verify_runtime(manifest, host, profile, source)
                 report["runtime_rechecked"][profile] = True
             except (OSError, KeyError, ValueError, RuntimeError):
                 report["runtime_rechecked"][profile] = False
-        finalize_postrun_audit(report)
+        finalize_postrun_audit(report, selected)
         report["phase_complete"] = False
-        write_json(out / "run.json", report)
+        write_json(report_path, report)
     return 1 if report["status"] == "failed" else 0
 
 def _read_json(path, label):
@@ -1574,6 +1765,9 @@ def _validate_local_run(path, expected_host, candidate):
         if (core.get("exit_code") != 0 or core.get("junit_cases") != len(names) - len(dedicated)
                 or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
             raise RuntimeError(expected_host + " " + profile + " local CTest receipt is incomplete")
+        if 'artifact_links' not in row:
+            raise RuntimeError(expected_host + " " + profile + " local gate omits artifact link manifest")
+        validate_artifact_links(profile_dir, row.get('artifact_links'))
         inventories[profile] = dict(path=str(profile_dir / "inventory.json"), sha256=sha(profile_dir / "inventory.json"), names=names)
     return dict(path=str(path), sha256=sha(path), inventories=inventories)
 
@@ -1634,7 +1828,25 @@ def _validate_plan(plan, plan_path):
                 raise RuntimeError("native geometry needs reachable host addresses")
     return candidate, output
 
-def _validate_semantic_receipt(output):
+def _verify_remote_fixture_helper(host, helper):
+    script = (
+        "import hashlib,pathlib,stat,sys; "
+        "p=pathlib.Path(sys.argv[1]); expected=sys.argv[2]; "
+        "before=p.lstat(); "
+        "assert stat.S_ISREG(before.st_mode) and not p.is_symlink(), 'helper is not regular'; "
+        "raw=p.read_bytes(); after=p.lstat(); "
+        "assert (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)=="
+        "(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns), 'helper changed'; "
+        "actual=hashlib.sha256(raw).hexdigest(); "
+        "assert actual==expected, 'helper SHA256 differs'; print(actual)"
+    )
+    observed = _run_on_host(host, ['python3', '-B', '-c', script,
+                                   helper['path'], helper['sha256']], timeout=20).decode().strip()
+    if observed != helper['sha256']:
+        raise RuntimeError(host + ' fixture helper verification differs')
+
+
+def _validate_semantic_receipt(output, continuation=None):
     status = (output / "runtime-status.txt").read_text().splitlines()[0]
     cleanup = _read_json(output / "cleanup.json", "semantic cleanup")
     summary = _read_json(output / "plan-summary.json", "semantic plan")
@@ -1644,6 +1856,10 @@ def _validate_semantic_receipt(output):
         raise RuntimeError("semantic fixture lacks a successful terminal harness receipt")
     if cleanup.get("complete") is not True or cleanup.get("errors") != []:
         raise RuntimeError("semantic fixture cleanup is incomplete")
+    if continuation is not None:
+        selected = _read_json(output / 'fixture-selection.json', 'semantic fixture selection')
+        if selected.get('schema') != 1 or selected.get('host_helper_override') != continuation['host_helper']:
+            raise RuntimeError('semantic fixture helper selection differs from its pinned continuation')
     expected = [f"{case}:{direction}" for direction in ("sb16-to-sb16-2", "sb16-2-to-sb16")
                 for case in ("round-trip", "private-denial", "unavailable-destination")]
     if summary.get("cases") != 6 or summary.get("semantic_cases") != expected or set(summary.get("worlds", {})) != TEST_HOSTS:
@@ -1663,15 +1879,27 @@ def _validate_native_terminal(terminal, command_exit, wrapper_exit, stdout, stde
     if SAN_RE.search(stdout + stderr) or INNER_SKIP_RE.search(stdout):
         raise RuntimeError("native geometry output contains sanitizer diagnostics or skips")
 
-def _validate_semantic_fixture(deployment, profile, output):
+def _validate_semantic_fixture(deployment, profile, output, continuation=None):
     short = "debug" if profile == "Debug" else "asan"
     source = deployment / "source"
     account = pwd.getpwuid(os.getuid())
     environment = {"PATH": "/usr/bin:/bin", "HOME": account.pw_dir, "USER": account.pw_name, "LOGNAME": account.pw_name,
                    "PYTHONPATH": str(deployment / "build" / profile / "python") + ":" + str(source / "tests" / "core") + ":" + str(source),
                    "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"}
-    command = [sys.executable, str(source / "tests/core/actor_transition_crosshost_fixture.py"),
-               "--bundle", str(deployment), "--profile", short, "--output", str(output)]
+    fixture = (Path(continuation['semantic_fixture']['path']) if continuation
+               else source / 'tests/core/actor_transition_crosshost_fixture.py')
+    if continuation is not None:
+        for key in ('manifest', 'semantic_fixture', 'host_helper'):
+            expected = continuation[key]
+            current = _pinned_regular_file(expected['path'], expected['sha256'],
+                                            'fixture continuation ' + key + ' pre-execution')
+            if current != expected:
+                raise RuntimeError('fixture continuation ' + key + ' changed after manifest validation')
+    command = [sys.executable, str(fixture), "--bundle", str(deployment),
+               "--profile", short, "--output", str(output)]
+    if continuation:
+        command += ['--host-helper-path', continuation['host_helper']['path'],
+                    '--host-helper-sha256', continuation['host_helper']['sha256']]
     if output.exists():
         raise RuntimeError("semantic fixture output path must be new")
     launch_evidence = output.with_name(output.name + ".launch")
@@ -1693,11 +1921,11 @@ def _validate_semantic_fixture(deployment, profile, output):
     (launch_evidence / "command.exit").write_text(("TIMEOUT" if timed_out else str(process.returncode)) + "\n")
     if timed_out or process.returncode != 0:
         raise RuntimeError(profile + " semantic cross-host fixture failed or timed out; inspect its retained evidence")
-    receipt = _validate_semantic_receipt(output)
+    receipt = _validate_semantic_receipt(output, continuation)
     return dict(status="passed", output=str(output), launch_evidence=str(launch_evidence), **receipt)
 
-def _run_semantic_fixture(deployment, profile, output):
-    return _validate_semantic_fixture(deployment, profile, output)
+def _run_semantic_fixture(deployment, profile, output, continuation=None):
+    return _validate_semantic_fixture(deployment, profile, output, continuation)
 
 def _receipt_text(host, path):
     if host == "sb16":
@@ -2080,6 +2308,13 @@ def crosshost(a):
     plan_path = a.plan.resolve()
     plan = _read_json(plan_path, "cross-host plan")
     candidate, output = _validate_plan(plan, plan_path)
+    manifest_path = getattr(a, 'fixture_continuation_manifest', None)
+    manifest_sha = getattr(a, 'fixture_continuation_manifest_sha256', None)
+    if (manifest_path is None) != (manifest_sha is None):
+        raise RuntimeError('fixture continuation requires both manifest path and SHA256')
+    continuation = (_fixture_continuation(manifest_path, manifest_sha, candidate,
+                                          plan['deployments']['sb16']['path'])
+                    if manifest_path is not None else None)
     deployment = Path(plan["deployments"]["sb16"]["path"]).resolve()
     provenance_path = deployment / "provenance.json"
     deployment_receipt = deployment / "deployment-receipt.json"
@@ -2097,6 +2332,8 @@ def crosshost(a):
             raise RuntimeError("sb16-2 deployment receipt hashes do not match the reviewed plan")
     for host in sorted(TEST_HOSTS):
         _assert_runtime_gate_idle(host)
+        if continuation is not None:
+            _verify_remote_fixture_helper(host, continuation['host_helper'])
     for profile in PROFILES:
         for host, row in plan["native_geometry"][profile]["hosts"].items():
             if host == "sb16":
@@ -2149,6 +2386,12 @@ def crosshost(a):
     write_json(output / "plan.json", {key: value for key, value in plan.items() if key not in ("credentials", "private_roots")})
     report = dict(status="running", phase_complete=False, primary_review_required=True, candidate=candidate,
                   deployments=deployments, local_runs=local_runs, semantic={}, native_geometry={})
+    if continuation is not None:
+        report['fixture_continuation'] = dict(
+            manifest=continuation['manifest'],
+            semantic_fixture=continuation['semantic_fixture'],
+            host_helper=continuation['host_helper'],
+            m06_tool=dict(path=str(Path(__file__).resolve()), sha256=sha(Path(__file__).resolve())))
     write_json(output / "reconciliation.json", report)
     try:
         prechecks = [_crossstage_artifact_check(host, plan["deployments"][host], provenance,
@@ -2158,7 +2401,7 @@ def crosshost(a):
             raise RuntimeError("pre-crossstage artifact recheck failed")
         for profile in PROFILES:
             semantic_output = output / "semantic" / profile
-            report["semantic"][profile] = _run_semantic_fixture(deployment, profile, semantic_output)
+            report["semantic"][profile] = _run_semantic_fixture(deployment, profile, semantic_output, continuation)
             write_json(output / "reconciliation.json", report)
         runner = deployment / "source" / "tools/run_geometry_native_crosshost.py"
         if not runner.is_file() or sha(runner) != provenance.get("source_sha256", {}).get("tools/run_geometry_native_crosshost.py"):
@@ -2229,7 +2472,11 @@ def main():
     g.add_argument("--native-controller", required=True); g.add_argument("--real-world", required=True)
     g.add_argument("--recovery", required=True); g.add_argument("--host-session", required=True); g.add_argument("--held-input", required=True)
     g.set_defaults(fn=gate)
-    c = sub.add_parser("crosshost-handoff"); c.add_argument("--plan", type=Path, required=True); c.set_defaults(fn=crosshost)
+    c = sub.add_parser("crosshost-handoff")
+    c.add_argument("--plan", type=Path, required=True)
+    c.add_argument("--fixture-continuation-manifest", type=Path)
+    c.add_argument("--fixture-continuation-manifest-sha256")
+    c.set_defaults(fn=crosshost)
     a = p.parse_args()
     try: return a.fn(a)
     except BaseException as e: print(f"BLOCKED/FAILED: {e}", file=sys.stderr); return 2

@@ -98,6 +98,98 @@ class PidfdGuardTests(unittest.TestCase):
         with self.assertRaises(OSError):
             os.fstat(opened[0])
 
+    def fixture_root(self, owner_record, world_record):
+        import tempfile
+        root = Path(tempfile.mkdtemp(prefix="spatial-m06-run03-owner-cleanup-", dir="/tmp"))
+        root.chmod(0o700)
+        marker = root.stat()
+        token = "owner-cleanup-regression"
+        host.atomic_json(root / "owner.json", dict(token=token, device=marker.st_dev,
+                          inode=marker.st_ino, uid=os.getuid()))
+        host.atomic_json(root / "launch.json", dict(session="retained-dead-pane",
+                          pane_pid=owner_record["pid"], owner=owner_record))
+        host.atomic_json(root / "process.json", dict(owner=owner_record, worldd=world_record))
+        return root, token
+
+    def zombie(self):
+        pid, writer = self.child()
+        record = host.identity(pid)
+        os.write(writer, b"x")
+        self.wait_zombie(pid)
+        return record
+
+    def test_exited_owner_with_retained_dead_tmux_pane_finishes_from_pidfd(self):
+        owner, worldd = self.zombie(), self.zombie()
+        root, token = self.fixture_root(owner, worldd)
+        try:
+            with mock.patch.object(host.subprocess, "run") as tmux, mock.patch.object(host, "request_stop_once") as stop_request:
+                host.stop_owner(root, token)
+            tmux.assert_not_called()
+            stop_request.assert_not_called()
+            self.assertFalse((root / "cancel").exists())
+        finally:
+            import shutil
+            shutil.rmtree(root)
+
+    def test_teardown_acquires_owner_identity_before_cancel_and_observes_exit(self):
+        pid, writer = self.child()
+        owner = host.identity(pid)
+        worldd = self.zombie()
+        root, token = self.fixture_root(owner, worldd)
+        original_guard = host.guarded_pidfd
+        order = []
+
+        def guarded(record):
+            if record["pid"] == owner["pid"]:
+                self.assertFalse((root / "cancel").exists())
+                order.append("identity-pinned")
+            return original_guard(record)
+
+        def stop_once(*_):
+            order.append("stop-request")
+            os.write(writer, b"x")
+            return True
+
+        try:
+            with mock.patch.object(host, "guarded_pidfd", side_effect=guarded), mock.patch.object(host, "request_stop_once", side_effect=stop_once):
+                host.stop_owner(root, token)
+            self.assertEqual(order[0], "identity-pinned")
+            self.assertIn("stop-request", order)
+        finally:
+            import shutil
+            shutil.rmtree(root)
+
+    def test_actual_live_owner_timeout_retains_root(self):
+        pid, writer = self.child()
+        owner = host.identity(pid)
+        worldd = self.zombie()
+        root, token = self.fixture_root(owner, worldd)
+        ticks = iter((0.0, 21.0, 22.0, 23.0))
+        try:
+            with mock.patch.object(host, "request_stop_once", return_value=False), mock.patch.object(host.time, "monotonic", side_effect=lambda: next(ticks, 24.0)), mock.patch.object(host.time, "sleep"):
+                with self.assertRaisesRegex(RuntimeError, "Owner still running"):
+                    host.stop_owner(root, token)
+            self.assertTrue(root.exists())
+        finally:
+            import shutil
+            shutil.rmtree(root)
+            os.write(writer, b"x")
+
+    def test_wrong_live_pid_identity_refuses_cancellation(self):
+        pid, writer = self.child()
+        owner = host.identity(pid)
+        worldd = self.zombie()
+        root, token = self.fixture_root(owner, worldd)
+        try:
+            with mock.patch.object(host, "guarded_pidfd", side_effect=RuntimeError("PID/start/executable/command ownership mismatch")):
+                with self.assertRaisesRegex(RuntimeError, "ownership mismatch"):
+                    host.stop_owner(root, token)
+            self.assertFalse((root / "cancel").exists())
+        finally:
+            import shutil
+            shutil.rmtree(root)
+            os.write(writer, b"x")
+
     def test_matching_live_process_keeps_guarded_pidfd_open(self):
         pid, writer = self.child()
         record = host.identity(pid)

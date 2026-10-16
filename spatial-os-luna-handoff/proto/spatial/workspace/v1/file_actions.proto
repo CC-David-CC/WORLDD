@@ -1,0 +1,93 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+
+message FileBrowse { bytes directory_handle = 1; bytes cursor = 2; uint32 page_size = 3; }
+message FileRead { bytes file_handle = 1; uint64 offset = 2; uint32 maximum_bytes = 3; }
+message FileCreate { bytes directory_handle = 1; bytes basename = 2; bytes content = 3; }
+message FileEdit { bytes file_handle = 1; uint64 expected_generation = 2; bytes content = 3; }
+message FileRename { bytes file_handle = 1; uint64 expected_generation = 2; bytes new_basename = 3; }
+message FileMove { bytes file_handle = 1; uint64 expected_generation = 2; bytes destination_directory_handle = 3; bytes new_basename = 4; }
+message FileTrash { bytes file_handle = 1; uint64 expected_generation = 2; }
+message FileRestore { bytes trash_handle = 1; bytes destination_directory_handle = 2; bytes destination_basename = 3; uint64 expected_generation = 4; }
+message FilePermanentDelete { bytes trash_handle = 1; uint64 expected_generation = 2; }
+message FileTrashInspect { bytes trash_handle = 1; }
+message FileCopyJob {
+  enum Command { COMMAND_UNSPECIFIED = 0; START = 1; POLL = 2; CANCEL = 3; }
+  Command command = 1;
+  bytes job_id = 2;
+  bytes source_handle = 3;
+  bytes destination_directory_handle = 4;
+  bytes destination_basename = 5;
+  uint64 maximum_bytes = 6;
+  uint32 maximum_entries = 7;
+}
+message FileEntry {
+  bytes name = 1;
+  bytes handle = 2;
+  bool is_directory = 3;
+  uint64 size = 4;
+  uint64 generation = 5;
+}
+message FileTrashEntry { bytes handle = 1; reserved 2; uint64 generation = 3; uint64 size = 4; }
+message FileActionReply {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  oneof outcome {
+    FileDirectory directory = 10;
+    FileContent content = 11;
+    FileObject object = 12;
+    FileTrashReceipt trash = 13;
+    FileCopyJobReceipt copy_job = 14;
+    FileActionError error = 15;
+    FileTrashEntry trash_entry = 16;
+  }
+}
+message FileDirectory { bytes handle = 1; repeated FileEntry entries = 2; bytes next_cursor = 3; }
+message FileContent { bytes data = 1; uint64 total_size = 2; uint64 generation = 3; }
+message FileObject { bytes handle = 1; uint64 generation = 2; uint64 size = 3; }
+message FileTrashReceipt { bytes handle = 1; uint64 generation = 2; }
+message FileCopyJobReceipt {
+  enum State { STATE_UNSPECIFIED = 0; QUEUED = 1; RUNNING = 2; COMPLETE = 3; CANCELLED = 4; CONFLICT = 5; UNCERTAIN = 6; }
+  bytes job_id = 1; State state = 2; uint64 bytes_copied = 3; uint32 entries_copied = 4;
+  bytes content_digest = 5; string detail = 6;
+}
+message FileActionError {
+  enum Code { CODE_UNSPECIFIED = 0; INVALID_ARGUMENT = 1; UNAUTHORIZED = 2; NOT_FOUND = 3; CONFLICT = 4; EXHAUSTED = 5; UNAVAILABLE = 6; UNCERTAIN = 7; STALE_HANDLE = 8; UNIMPLEMENTED = 9; }
+  Code code = 1; string detail = 2; bytes recovery_operation_id = 3;
+}
+
+message ActorCabinetRequest {
+  bytes representation_id = 1;
+  uint64 expected_generation = 2;
+  bytes operation_id = 3;
+  oneof action {
+    FileBrowse browse = 20;
+    FileRead read = 21;
+    FileCreate create = 22;
+    FileEdit edit = 23;
+    FileRename rename = 24;
+    FileMove move = 25;
+    FileTrash trash = 26;
+    FileRestore restore = 27;
+    FilePermanentDelete permanent_delete = 28;
+    FileCopyJob copy_job = 29;
+    FileTrashInspect trash_inspect = 30;
+  }
+}
+message ActorCabinetReply {
+  bytes operation_id = 1;
+  bytes representation_id = 2;
+  uint64 expected_generation = 3;
+  oneof outcome {
+    FileDirectory directory = 10;
+    FileContent content = 11;
+    FileObject object = 12;
+    FileTrashReceipt trash = 13;
+    FileCopyJobReceipt copy_job = 14;
+    ActorCabinetFailure error = 15;
+    FileTrashEntry trash_entry = 16;
+  }
+}
+message ActorCabinetFailure {
+  FileActionError.Code code = 1;
+}

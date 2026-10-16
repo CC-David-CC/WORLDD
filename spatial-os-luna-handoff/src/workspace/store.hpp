@@ -33,6 +33,7 @@ public:
     wire::WorkspaceAck workspace_member(const wire::WorkspaceMemberRequest& request);
     workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request, bool fresh = true);
     workspace::v1::ScopedAuthorityCheckReply scoped_authority_check(const workspace::v1::ScopedAuthorityCheckRequest& request);
+    workspace::v1::FileActionReply file_action(const workspace::v1::FileActionRequest& request);
     workspace::copy::v1::WorkspaceCopyStatus workspace_copy_begin(
         const workspace::copy::v1::WorkspaceCopyRequest&, const authority::v1::ActorRef&);
     workspace::copy::v1::WorkspaceCopyStatus workspace_copy_status(

@@ -1,0 +1,106 @@
+M07 append-only collector continuation. Candidate remains UNQUALIFIED.
+
+This amendment runs outside the frozen 1e58 deployment source.
+The original failed run.json, Debug directory, and original runner remain unchanged.
+PROFILES remains (Debug, ASan-UBSan). Default execution still runs both profiles.
+Only an explicit ASan-UBSan singleton uses the closed continuation guard.
+No generic profile map, report filename, or output directory override exists.
+
+Run every CLI as dflanag3, not sudo. Existing collectors use declared sudo probes.
+The canonical source gate lock must be available. Each CLI takes it nonblocking.
+The primary must review source before running controls or target commands.
+
+External INPUT JSON uses schema m07-collector-continuation-v1:
+  host: sb16 or sb16-2
+  candidate: 1e58e65dec132a0a16f004ca4527034dca081f77
+  deployment: /home/dflanag3/spatial-artifacts/deployments/m07-1e58e65d/runtime
+  batch_id: 1e58e65d-HOST-san-collector-UNIQUE
+  capacity_floor_bytes: primary reviewed positive incremental capacity floor
+  provenance_sha256: actual frozen provenance.json SHA256
+  deployment_receipt_sha256: actual frozen deployment-receipt.json SHA256
+  tools: exact filename-to-SHA256 map for these three adjacent amended files:
+    m06_deployed_gate.py, m07_deployed_gate.py, m07_collector_continuation.py
+  retention: {path: actual per-host original-failed-debug.json, sha256: SHA256}
+  origin_runner: {path: exact original runner directory, pid: actual original PID,
+    files: exact filename-to-SHA256 map for argv.nul, command.exit, wrapper.exit,
+    terminal-status.txt, command-receipt.txt, stdout.log, stderr.log}
+
+First pin INPUT without debug_audit. Run this read-only audit through the canonical
+runner, recording actual numeric PID, retirement, and 0/0/COMPLETE:
+  python3 -B TOOLS/m07_collector_continuation.py audit-debug --deployment ROOT \
+    --inputs INPUT --inputs-sha256 INPUT_SHA
+It writes only original-parent/debug-collector-audit.json using exclusive creation.
+It rehashes the full immutable 1040-file source, runtime, actual stage outputs,
+current CTest inventory, typed links, sparse exclusions, and external storage.
+It anchors Debug to eleven original command pins and the retained marker target.
+It does not claim a prechange hash baseline for every Debug file.
+
+Then create a second immutable INPUT with debug_audit:
+  {path: exact original-parent/debug-collector-audit.json, sha256: actual SHA256}
+All other context fields must remain unchanged. The audit binds that exact context
+while excluding only debug_audit from its binding, avoiding a circular hash.
+
+Use the original run-local command and original --attempt unchanged.
+Replace its relative tools/m07_deployed_gate.py with the pinned external absolute
+TOOLS/m07_deployed_gate.py. Append exactly:
+  --selected-profile ASan-UBSan --collector-continuation INPUT \
+  --collector-continuation-sha256 INPUT_SHA
+The canonical runner argv must start:
+  env PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 python3 -B
+The guarded singleton requires absent ASan-UBSan, sanitizer-batch.json,
+combined-local.json, and the distinct storage batch root, including dangling links.
+An interrupted batch stays preserved and cannot silently retry.
+The original stage body, commands, environments, deadlines, and assertions remain.
+Its successful status is profile_batch_passed, never local_passed.
+
+Fixed runner_directory(host, attempt) derives:
+  /home/dflanag3/spatial-artifacts/m07-fixture-repaired-full-gate-plan-20261016/
+    full-gate-runtime-runs/HOST/ATTEMPT
+The new runner uses context.batch_id. The original uses 1e58e65d-HOST-local-01.
+
+After launch, preserve an immutable actual primary launch JSON:
+  schema: m07-collector-batch-launch-v1
+  host, candidate, batch_id, context_sha256
+  runner_path: exact derived new directory
+  pane_pid: actual numeric tmux pane PID
+  argv: exact argv list above, including every original suite argument
+After completion, preserve terminal RUNNER JSON:
+  {path: derived new directory, pid: same numeric PID,
+   files: exact seven-file SHA256 map listed above,
+   launch: {path: actual immutable primary launch JSON, sha256: actual SHA256}}
+The composer rereads both receipts and actual runner files. It requires exact
+argv, matching path/PID/context, actual PID absence, and numeric 0/0/COMPLETE.
+
+  python3 -B TOOLS/m07_collector_continuation.py compose --deployment ROOT \
+    --inputs INPUT --inputs-sha256 INPUT_SHA --batch-runner RUNNER \
+    --batch-runner-sha256 RUNNER_SHA
+Only a complete real batch plus fresh two-profile audits can create combined-local.json.
+Its origin chain retains the original FAILED report SHA256 and the actual failed
+1/1/COMPLETE runner. The new combined report cannot change that original result.
+
+Before and after crosshost, use the fixed external primary auditor:
+  python3 -B TOOLS/m07_collector_continuation.py audit-artifacts --deployment ROOT \
+    --inputs INPUT --inputs-sha256 INPUT_SHA --combined-sha256 COMBINED_SHA \
+    --phase before-crosshost
+Repeat with after-crosshost. Sidecars use exclusive fixed filenames.
+The frozen checker alone does not enforce new artifact_links. These audits must
+verify the complete regular-file set, typed-link inventory, exclusions, original
+source/runtime closure, both current inventories, and external storage.
+Primary must repin the crosshost plan to combined-local.json and actual new runner.
+This task does not alter the coordinator or import arbitrary plan-provided code.
+
+Artifact links retain the reviewed path/kind/target_bytes_hex/target_sha256 schema.
+Collectors enforce lstat stability during each read, without invented persisted UID
+or inode fields. Ordinary Git hardlinks remain valid. Sparse image rules stay strict.
+
+Planned controls, all UNRUN until primary source review:
+  python3 -B tools/test_m07_collector_continuation.py -v
+  python3 -B tools/test_m06_deployed_gate_static.py TOOLS/m06_deployed_gate.py RECEIPT SOURCE -v
+RECEIPT is the pinned prepared receipt JSON. SOURCE is its frozen source directory.
+Integrate the separate test-only fixture correction 242fed9 before those controls.
+New tests cover closed selection; verbatim stage argv/deadlines/environments; actual
+ordinary-file terminal pins; PID/path/launch drift; exclusive output and symlinks;
+hardlink compatibility; guard refusals; composition; complete/reduced profile output;
+exact artifact manifests; and actual singleton gate routing with an intentional
+inventory refusal before native execution. Mocked audit boundaries are identified.
+No mocked control result constitutes target, native, SAN, or qualification evidence.

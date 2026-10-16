@@ -1,0 +1,29 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+import "grants.proto";
+import "file_actions.proto";
+
+// Internal worldd-to-file-engine action. The principal comes only from the
+// authenticated actor session. Scope components remain opaque authority IDs.
+// Paths are sequences of POSIX basename bytes and are never host paths.
+message FileActionRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2; // Exact 16-byte actor operation identity.
+  string workspace_id = 3;
+  spatial.authority.v1.ActorRef principal = 4;
+  repeated bytes authority_components = 5;
+  reserved 6 to 14;
+  oneof action {
+    FileBrowse browse = 20;
+    FileRead read = 21;
+    FileCreate create = 22;
+    FileEdit edit = 23;
+    FileRename rename = 24;
+    FileMove move = 25;
+    FileTrash trash = 26;
+    FileRestore restore = 27;
+    FilePermanentDelete permanent_delete = 28;
+    FileCopyJob copy_job = 29;
+    FileTrashInspect trash_inspect = 30;
+  }
+}

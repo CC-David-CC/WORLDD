@@ -93,6 +93,11 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
                 throw spatial::WorldError(wire::FORBIDDEN,"Workspace copy requires authenticated actor identity and request");
             *reply.mutable_workspace_copy_status()=store.workspace_copy_begin(operation.request(),operation.principal());
         }
+        else if (request.has_file_action()) {
+            auto* file_reply = reply.mutable_file_action();
+            auto result = store.file_action(request.file_action());
+            file_reply->Swap(&result);
+        }
         else if (request.has_workspace_copy_status()) {
             const auto& operation=request.workspace_copy_status();
             if(!operation.has_principal() || !operation.has_request())
@@ -289,7 +294,7 @@ int main(int argc, char** argv) {
                 auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server, true);
                 enforce();
                 if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
-                        !request.has_control_release()) {
+                        !request.has_control_release() && !request.has_file_action()) {
                     reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
                     reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
                     reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
@@ -340,12 +345,12 @@ int main(int argc, char** argv) {
                         if (during_copy && !request.has_workspace_copy_status() &&
                                 !request.has_access() && !request.has_scoped_authority_check() &&
                                 !request.has_authorization_fence() && !request.has_application_access() &&
-                                !request.has_control_release()) return;
+                                !request.has_control_release() && !request.has_file_action()) return;
                         reply = dispatch_broker(request, store, authority.get(), controls, {}, {}, during_copy);
                     }
                     enforce();
                     if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
-                            !request.has_management() && !request.has_control_release()) {
+                            !request.has_management() && !request.has_control_release() && !request.has_file_action()) {
                         reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
                         reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
                         reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
@@ -375,7 +380,7 @@ int main(int argc, char** argv) {
                 auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
                 enforce();
                 if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
-                        !request.has_management() && !request.has_control_release()) {
+                        !request.has_management() && !request.has_control_release() && !request.has_file_action()) {
                     reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
                     reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
                     reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");

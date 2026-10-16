@@ -1,3 +1,9 @@
+## 2026-10-16: M08 foundation imported on frozen M07 base
+
+M08 file-engine foundation is UNQUALIFIED. M07 full qualification remains RUNNING.
+The compile-only candidate is based on `1e58e65dec132a0a16f004ca4527034dca081f77`.
+Broker and actor integration, copy execution, cabinet geometry, and native runtime remain UNIMPLEMENTED or UNRUN.
+
 ## 2026-10-16: Related regressions pass; native namespace-exit failure retained
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
@@ -8990,3 +8996,5 @@ shared worlds, model actors, application restoration, native devices, performanc
 None is implied by the current rendering result.
 No Spatial-M1 or LOCAL_READY qualification is claimed.
 
+
+M08 file engine follow-up: bounded POSIX file-engine repair and regression source is on the isolated M08 worker branch. It remains COMPILE_ONLY; focused runtime tests are UNRUN. Async copy execution and actor/cabinet integration remain pending. The engine does not provide a durable operation journal.

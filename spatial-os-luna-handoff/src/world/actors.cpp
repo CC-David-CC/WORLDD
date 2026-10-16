@@ -512,6 +512,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         const auto status = broker_->workspace_copy_status(request.workspace_copy_status(), *actor.principal);
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_copy_status() = status; return reply;
     }
+    case wire::ActorActionRequest::kCabinet:
+        throw WorldError(wire::UNIMPLEMENTED, "Cabinet file actions are not integrated");
     case wire::ActorActionRequest::ACTION_NOT_SET:
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }

@@ -19,6 +19,8 @@ import uuid
 from unittest.mock import patch
 from google.protobuf import text_format
 import broker_pb2 as broker
+import cabinet_pb2 as cabinet
+import file_actions_pb2 as file_actions
 import core_pb2 as core
 import copy_pb2 as copy
 import grants_pb2 as grants
@@ -337,6 +339,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
             if payloads and all(frozen for pid,frozen in payloads) and not witnessed:
                 self.assertGreaterEqual(len(payloads),2);witnessed=True
                 if on_frozen:on_frozen()
+                self.assert_file_action_busy_without_effect(peer,'active')
                 before=time.monotonic();self.select(peer);self.assertLess(time.monotonic()-before,5)
             reply=peer.act(workspace_copy_status=copy.WorkspaceCopyStatusRequest(protocol_version=1,operation_id=request.operation_id))
             self.assertTrue(reply.HasField('action'),reply);status=reply.action.copy_status
@@ -413,12 +416,29 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         application=next(item for item in self.configured_definitions.applications if item.key==key)
         return core.ProcessLaunchRequest(configured_application_key=key,profile=application.profile,operation_id=operation,
             argv=[application.definition.executable,*application.definition.arguments])
+    def assert_file_action_busy_without_effect(self,peer,label):
+        name=('during-copy-'+label+'.txt').encode()
+        request=cabinet.FileActionRequest(protocol_version=1,operation_id=uuid.uuid4().bytes,
+            workspace_id='one',principal=self.principal(),
+            create=file_actions.FileCreate(basename=name,content=b'forbidden'))
+        reply=self.broker.request(file_action=request)
+        self.assertTrue(reply.HasField('error'),reply)
+        self.assertEqual(reply.error.code,core.BUSY,reply)
+        self.assertFalse((self.project/name.decode()).exists())
     def assert_overlap_denied_without_effects(self,peer,key):
         before=self.process_rows();objects={path.name for path in (self.execution/'applications').iterdir()}
         reply=peer.act(process_launch=self.configured_request(key,'overlap-'+key))
         self.assertEqual(reply.error.code,core.BUSY,reply)
         self.assertEqual(self.process_rows(),before)
         self.assertEqual({path.name for path in (self.execution/'applications').iterdir()},objects)
+        file_path=self.project/'during-copy-must-not-exist.txt'
+        request=cabinet.FileActionRequest(protocol_version=1,operation_id=uuid.uuid4().bytes,
+            workspace_id='one',principal=self.principal(),
+            create=file_actions.FileCreate(basename=file_path.name.encode(),content=b'forbidden'))
+        file_reply=self.broker.request(file_action=request)
+        self.assertTrue(file_reply.HasField('error'),file_reply)
+        self.assertEqual(file_reply.error.code,core.BUSY,file_reply)
+        self.assertFalse(file_path.exists(),'File action escaped the active workspace-copy BUSY fence')
     def assert_copy_has_no_authority_or_processes(self,destination):
         with closing(sqlite3.connect(self.execution/'execution.db')) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM processes WHERE workspace=?',(destination,)).fetchone()[0],0)
@@ -505,6 +525,48 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
                 self.assertEqual((runtime/'home'/('initial-'+domain)).read_text(),final_values[key][domain])
             self.assert_overlap_denied_without_effects(peer,key)
             (self.project/('stop-'+key)).touch();self.wait_job(world,relaunched)
+    def test_file_action_create_hits_real_workspace_qgroup_quota(self):
+        self.workspace(attach_world=False)
+        self.assertTrue((self.execution/'worktrees'/'tree-one').is_dir())
+        maximum=64*2**20
+        rejected=None
+        for number in range(96):
+            name=('quota-file-%03d.bin'%number).encode()
+            request=cabinet.FileActionRequest(protocol_version=1,operation_id=uuid.uuid4().bytes,
+                workspace_id='one',principal=self.principal(),
+                create=file_actions.FileCreate(basename=name,content=os.urandom(1024*1024)))
+            reply=self.broker.request(file_action=request)
+            if reply.HasField('error'):
+                self.fail('unexpected generic broker error during project qgroup test: %r'%reply.error)
+            if reply.HasField('file_action') and reply.file_action.HasField('error'):
+                rejected=reply
+                action_error=reply.file_action.error
+                self.assertIn(action_error.code,(file_actions.FileActionError.UNAVAILABLE,file_actions.FileActionError.UNCERTAIN),reply)
+                residual=self.project/name.decode()
+                if action_error.code==file_actions.FileActionError.UNCERTAIN:
+                    self.assertEqual(action_error.recovery_operation_id,request.operation_id)
+                    self.assertTrue(residual.exists())
+                    self.assertTrue(residual.is_file())
+                    self.assertGreaterEqual(residual.stat().st_size,0)
+                    self.assertLessEqual(residual.stat().st_size,len(request.create.content))
+                    with closing(sqlite3.connect(self.execution/'file-operations'/'file-operations.db')) as db:
+                        row=db.execute('SELECT state FROM file_operations WHERE workspace=? AND operation=?',
+                            ('one',request.operation_id)).fetchone()
+                    self.assertEqual(row,(3,),'Possible filesystem effect lacks durable UNCERTAIN outcome')
+                else:
+                    self.assertFalse(residual.exists(),'Pre-effect qgroup denial created a file')
+                break
+            self.assertTrue(reply.HasField('file_action') and reply.file_action.HasField('object'),reply)
+        self.assertIsNotNone(rejected,'The real workspace qgroup did not reject bounded 1 MiB file creates')
+        subvolume=self.operator_run(['btrfs','subvolume','show',self.project]).decode()
+        identity=next(int(line.split(':',1)[1].strip()) for line in subvolume.splitlines()
+                      if line.strip().startswith('Subvolume ID:'))
+        report=self.operator_run(['btrfs','qgroup','show','--raw',self.project]).decode()
+        quota=next(line.split() for line in report.splitlines() if line.split() and line.split()[0]==f'0/{identity}')
+        self.assertEqual(int(quota[3]),maximum,'Registered project qgroup limit differs from workspace policy')
+        self.assertGreaterEqual(int(quota[1]),maximum-2*2**20,'Create rejection did not reach the actual project qgroup limit')
+        self.broker.close()
+
     def test_small_source_quota_rejects_actual_writer_and_preserves_peer_application(self):
         self.configure_state_writers()
         probe=next(item for item in self.configured_definitions.applications if item.key=='editor')

@@ -7,6 +7,8 @@ import "native_scope.proto";
 import "process_scope.proto";
 import "storage.proto";
 import "copy.proto";
+import "cabinet.proto";
+import "file_actions.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -253,6 +255,7 @@ message Request {
     AuthorizationFenceRequest authorization_fence = 114;
     WorkspaceCopyBeginRequest workspace_copy_begin = 115;
     WorkspaceCopyStatusQuery workspace_copy_status = 116;
+    FileActionRequest file_action = 117;
   }
 }
 message Reply {
@@ -275,5 +278,6 @@ message Reply {
     ScopedAuthorityCheckReply scoped_authority_check = 112;
     AuthorizationFence authorization_fence = 113;
     spatial.workspace.copy.v1.WorkspaceCopyStatus workspace_copy_status = 115;
+    FileActionReply file_action = 116;
   }
 }
