@@ -1,4 +1,49 @@
-Current checkpoint: all focused checks pass; full gate stops during evidence setup
+Current checkpoint: full M07 local exam started on both hosts at 22:29 EDT, 2026-10-15
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Candidate: 076ba423c2864bdd0d93a07d89d49032808d2cae.
+Milestone branch: m07/qualification-integration-20261014, BOX-GIT VERIFIED and clean.
+The reviewed evidence-path repair changes gate tooling and regressions only.
+Application binaries, runtime dependencies, CTest registration contracts, and 41 locked acceptance files remain unchanged.
+The old 84efe3 failures and their immutable evidence remain preserved.
+
+Both hosts passed 53 static tests and 12 metadata regressions.
+Both also passed actual frozen-source setup and repeated installed-package setup checks.
+The 84efe3 focused matrix retains its original pin: 28 suite executions and 556 individual tests.
+Only affected gate-tool checks required repetition for 076ba423. The full gate still runs the complete required runtime matrix.
+
+Preparation root P: /home/dflanag3/spatial-artifacts/m07-gate-evidence-successor-preparation-20261015.
+Package pin SHA256: 046c523d1011b14c13606cd4b4dd1777910d9a10c5f3329aae131da6b867c3b4.
+Archive SHA256: 30432047e7b865a019ac780015a4cb18c3e6335c70b27be155eccc45f28ebde9.
+Inner provenance SHA256: fbdf298eca6ffbf865af44700c3991305432acc17456da826a987efdf2091b85.
+sb16 deployment receipt SHA256: d9fc28e7f2559111c6df9b26750fac66fab7c1430a7e25391a3efa97b7d3ba7d.
+sb16-2 deployment receipt SHA256: ff37491318fa0e00b84e10581b42e2d91c794455d34edf3ca2884d5f052be50a.
+Actual deployment D on both hosts: /home/dflanag3/spatial-artifacts/deployments/m07-a1ceef3115ed/runtime.
+Its historical directory name does not define the deployed candidate.
+
+Primary accepted installed setup: a5500:P/primary-deployment-review-01.json.
+Checkpoint receipt: a5500:P/primary-milestone-push-01.json.
+Launch plan: a5500:P/primary-dispatch-plan-01/full-exam-launch-plan.txt.
+Dispatch receipt: a5500:P/primary-full-exam-dispatch-01.json.
+Actual process and gate observations: a5500:P/primary-full-exam-observation-01.json.
+Canonical runners: HOST:P/full-gate-runtime-runs/HOST/076ba423-HOST-local-01.
+Gate evidence: HOST:D/evidence/076ba423-HOST-local-01/run.json.
+Tmux sessions: m07-076ba423-HOST-local-01.
+
+Both local gates started at 2026-10-16T02:29:15Z, or 22:29 EDT on October 15.
+Primary observation confirmed Python gate PIDs 2869908 on sb16 and a live gate on sb16-2.
+Both gate records report running. Both runners report RUNNING without exit receipts or stderr.
+Both hosts passed five production startup checks and 51 harness tests.
+Both entered the 196-test Debug core suite. These are actual full-gate tests.
+Each host then runs locked P10, bounded-storage scenarios, and the ASan/UBSan profile.
+The two hosts run in parallel. No outer lock duplicates the gate's internal host lock.
+Fresh free space exceeded the 26 GiB planned budget on both hosts before dispatch.
+
+Cross-host geometry, workspace cross-host cells, reconciliation, and primary qualification review remain UNRUN.
+M07 remains unqualified until all required gates and reviews pass. No action is required from David.
+
+Previous checkpoint: all focused checks pass; full gate stops during evidence setup
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
 

@@ -1,3 +1,21 @@
+## 2026-10-15 22:29 EDT: Full M07 local exam running on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Reviewed candidate 076ba423c2864bdd0d93a07d89d49032808d2cae is integrated and BOX-GIT VERIFIED.
+The gate repair stores private evidence outside frozen source. Application binaries and locked acceptance files remain unchanged.
+Both hosts passed 53 static tests, 12 metadata tests, frozen-source checks, and installed-package checks.
+The earlier 28 focused suite executions and 556 tests retain their original 84efe3 source pin.
+
+Both full local gates started at 22:29 EDT in persistent tmux sessions.
+Primary observation confirmed live Python gate processes and running gate records on both hosts.
+Both passed five production startup checks and 51 harness tests. Both entered the 196-test Debug core suite.
+Each host runs Debug followed by ASan/UBSan. Cross-host checks and final reconciliation remain UNRUN.
+No completed full-gate result is claimed.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact source, package, receipt, and run pins.
+
 ## 2026-10-15: Focused checks pass; full-gate startup needs an evidence-path repair
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
