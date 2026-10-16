@@ -364,7 +364,7 @@ def reconcile(a):
     for host, row in local_receipts.items():
         if host == "sb16":
             local_report = _read(row.get("path", ""), "sb16 local gate receipt")
-            if m06.sha(row["path"]) != row.get("sha256"):
+            if m06.sha(Path(row["path"])) != row.get("sha256"):
                 raise RuntimeError("sb16 local gate receipt hash mismatch")
         else:
             local_report = row.get("remote_receipt", {})
