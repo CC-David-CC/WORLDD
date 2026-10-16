@@ -1,4 +1,4 @@
-Current checkpoint: 2026-10-16: M07 Debug execution passed; evidence collection repair pending
+Current checkpoint: 2026-10-16: M07 Debug execution passed; collector controls passed on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 Both hosts passed all 197 local Debug core suites, 151 locked P10 tests, and five bounded-storage-Git scenarios.
@@ -12,13 +12,23 @@ The collector currently rejects all symlinks. The correction must record the lin
 Both original command 1/wrapper 1/COMPLETE receipts remain authoritative and preserved.
 Primary confirmed both exact pane PIDs retired at 16:52:13 UTC.
 Sanitizer and cross-host execution remain UNRUN. The full local gate has not passed.
-Review the collector correction and evidence-retention procedure before resuming qualification.
+Collector repair: 242fed9b998f2507945a16a54c699c9deffe5778. BOX-GIT VERIFIED. M07 remains UNQUALIFIED.
+Both hosts passed all 58 focused gate-tool checks: 116 executions, zero failures or skips.
+Both canonical jobs ended 0/0/COMPLETE. Primary verified both exact pane PIDs retired.
+All 1,040 frozen source files still match on each host. Both original failed reports remain byte-identical.
+The first focused attempts had two errors each from frozen permission bits copied into temporary fixtures.
+The reviewed correction creates writable private copies and tests unchanged original source bytes and modes.
+Append-only sanitizer continuation is being implemented separately. Its controls and actual runtime remain UNRUN.
+It must preserve original Debug evidence and publish new reports beside the failed original report.
+Corrected Debug collection, sanitizer execution, combined audits, and cross-host qualification remain pending.
 
 The displayed PermissionError was a separate monitoring failure.
 The observer now reads the root-owned storage report with sudo -n cat.
 That corrected read succeeded. It did not stop or restart any test.
 Evidence on a5500, under /home/dflanag3/spatial-artifacts:
 m07-fixture-repaired-full-gate-plan-20261016/primary-full-exam-live-20261016T165213Z.json.
+m07-artifact-link-manifest-repair-20261016/primary-controls-02/PRIMARY_CONTROLS_PAIR_AUDIT_01.json.
+Focused audit SHA-256: 9e2913aa3b8c2a3c36473a3cfadefb6986d387b8751705de9425078a98d62ed9.
 
 Current checkpoint: 2026-10-16: Full M07 local gates running on both hosts
 

@@ -1,4 +1,4 @@
-## 2026-10-16: M07 Debug execution passed; evidence collection repair pending
+## 2026-10-16: M07 Debug execution passed; collector controls passed on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes earlier live observations.
@@ -15,12 +15,23 @@ Both runners ended command 1, wrapper 1, COMPLETE after the same collector failu
 Primary confirmed both exact pane PIDs retired at 16:52:13 UTC.
 Neither sanitizer lane had started. Cross-host execution remains UNRUN.
 Preserve the failed receipt. Do not edit it into a pass or remove the marker to bypass collection.
-Review a collector-only correction and explicit evidence-retention procedure before resuming qualification.
+Collector repair: 242fed9b998f2507945a16a54c699c9deffe5778. BOX-GIT VERIFIED. M07 remains UNQUALIFIED.
+Both hosts passed all 58 focused gate-tool checks: 116 executions, zero failures or skips.
+Primary verified exact commands, 0/0/COMPLETE receipts, and both retired pane PIDs.
+Primary rechecked all 1,040 source files and their read-only modes on each host.
+Both original failed gate reports remain byte-identical.
+The first focused attempts retained two errors each from copying frozen modes into mutable temporary fixtures.
+The correction creates writable private copies and tests unchanged original source bytes and modes.
+Append-only sanitizer continuation is being implemented on a separate branch. Its controls remain UNRUN.
+It must preserve original Debug evidence and publish new reports beside the failed original report.
+Corrected Debug collection, actual sanitizer execution, combined audits, and cross-host qualification remain pending.
 
 A separate status-reader PermissionError came from reading a root-owned storage report without sudo.
 The corrected observer uses sudo -n cat for that report. Its read succeeded without restarting tests.
 Read-only observations are retained on a5500 under /home/dflanag3/spatial-artifacts:
 m07-fixture-repaired-full-gate-plan-20261016/primary-full-exam-live-20261016T165213Z.json.
+m07-artifact-link-manifest-repair-20261016/primary-controls-02/PRIMARY_CONTROLS_PAIR_AUDIT_01.json.
+Focused audit SHA-256: 9e2913aa3b8c2a3c36473a3cfadefb6986d387b8751705de9425078a98d62ed9.
 The collector diagnosis is separate from that monitoring error.
 
 ## 2026-10-16: Full M07 local gates running on both hosts
