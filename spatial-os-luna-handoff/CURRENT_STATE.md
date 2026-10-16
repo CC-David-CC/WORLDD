@@ -1,3 +1,25 @@
+## 2026-10-16: Acceptance repair passes Debug and sanitizers on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Both hosts passed 151/151 real acceptance cases in Debug and ASan/UBSan.
+Both passed the protocol smoke, 53 static checks, and six forwarding regressions.
+Primary verified actual rows, hashes, private evidence paths, cleanup, and unchanged frozen baseline source.
+These focused checks do not replace the complete M07 gate.
+
+Reviewed tooling repairs are combined as d164fed7 on the milestone branch and BOX-GIT VERIFIED.
+The combined source passed three reconciliation regressions and package-input preflight.
+No application input, schema, binary, CTest registration, or locked acceptance case changed.
+Package preparation and source-only deployment remain pending. Both deployed baselines remain 076ba423.
+
+Both hosts also passed all five focused storage scenarios in Debug and ASan/UBSan.
+Primary verified raw results, evidence hashes, runtime hashes, unchanged source, and resource cleanup.
+Both storage drivers returned 0/0/COMPLETE and have exited.
+The complete 196-registration sanitizer core, updated-candidate gates, cross-host checks, and final review remain pending.
+No user action is currently needed.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for source pins, durations, and retained evidence.
+
 ## 2026-10-15: Both Debug core suites pass; acceptance launcher correction awaits runtime verification
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
