@@ -1,3 +1,30 @@
+## 2026-10-16: All selected repair stages pass on both hosts; full M07 gate remains unrun
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Frozen candidate fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e remains unchanged.
+Stage3 copy-engine, revocation, worker-death recovery, and absolute-deadline checks passed in both profiles on both hosts.
+Each combination passed four CTest registrations and 16 inner Python methods.
+Every canonical command and wrapper returned zero. All original pane processes retired.
+Primary verified the inner summaries, named JUnit cases, helper restoration, and 64 unmounted test volumes.
+Primary scanned 868 retained Stage3 log files without recorded sanitizer findings. No selected test was skipped.
+All five preservation postchecks passed in each combination.
+The deadline tests exercised the real five-minute copy budget.
+
+The combined selected repair matrix passed 48 CTest executions, 408 Python methods, and four C++ unit executions.
+These focused results do not qualify M07 or establish the original intermittent failure's root cause.
+The replacement full local gate and cross-host qualification remain UNRUN.
+Before launch, finish reviewed evidence retention and verify fresh capacity on both test hosts.
+Both read-only old-payload inventories passed with protected source and metadata unchanged.
+Each host also passed 15 native cleanup guard controls and exact 32-image manifest validation.
+The 64 declared Stage3 images are being archived to middle-child. Comparison and retirement remain pending.
+No image deletion has occurred. Old payload deltas still require preservation before payload retirement.
+
+Evidence root on a5500:
+/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016
+Read PRIMARY_STAGE3_DEBUG_RAW_AUDIT_01.json and PRIMARY_STAGE3_SAN_RAW_AUDIT_01.json.
+
 ## 2026-10-16: Native matrix and combined-copy Debug pass; copy sanitizer jobs are launched
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

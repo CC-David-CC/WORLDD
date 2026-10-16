@@ -1,4 +1,28 @@
-Current checkpoint: process/native matrices and combined-copy Debug pass; copy sanitizer jobs are launched
+Current checkpoint: all selected repair stages pass; replacement full M07 gate remains UNRUN
+Date: 2026-10-16.
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Stage3 Debug and ASan/UBSan passed on sb16 and sb16-2 with unchanged frozen candidate fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e.
+Each combination passed four CTest registrations and 16 Python methods: engine13, revocation1, worker-death1, deadline1.
+Every command and wrapper returned zero. Original pane processes retired.
+Primary checked inner summaries, named JUnit cases, restored helpers, and all 64 unmounted volumes.
+All five preservation postchecks passed. No selected test was skipped.
+The 868 retained Stage3 log files contain no recorded sanitizer findings.
+Stage3 audit files on a5500:
+/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016/PRIMARY_STAGE3_DEBUG_RAW_AUDIT_01.json
+/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016/PRIMARY_STAGE3_SAN_RAW_AUDIT_01.json
+
+Combined selected repair matrix: 48 CTest executions, 408 Python methods, and four C++ unit executions passed.
+This is focused evidence. The replacement full gate and cross-host qualification remain UNRUN.
+The original intermittent missing-acknowledgment root cause remains unproven.
+Both old-payload inventories passed with all 1,033 protected files unchanged on each host.
+Each host passed 15 native cleanup guard controls and exact 32-image manifest validation.
+Archives of these 64 declared Stage3 images are running on middle-child. Comparison and retirement remain pending.
+No image deletion has occurred. Old-payload deltas still require preservation before payload retirement.
+Read PRIMARY_OLD_PAYLOAD_INVENTORY_LAUNCH_01.json and PRIMARY_RETENTION_ARCHIVE_LAUNCH_01.json under the evidence root.
+
+Previous checkpoint: process/native matrices and combined-copy Debug pass; copy sanitizer jobs are launched
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.

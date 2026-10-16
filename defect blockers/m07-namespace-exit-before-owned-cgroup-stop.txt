@@ -1,5 +1,14 @@
 M07: namespace-exit wait can prevent owned cgroup termination
 
+2026-10-16 current status: correction passed all selected repair stages on both hosts in Debug and ASan/UBSan.
+The kill-before-wait counterexample, native import/revocation, participant races, and combined copy/fault checks passed.
+Frozen candidate: fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e.
+The replacement full M07 gate remains UNRUN. The original intermittent missing-acknowledgment root cause remains unproven.
+Dedicated shared-deadline timing and forced-hangup counterexamples remain coverage gaps.
+Read the current CURRENT_STATE.md entry and PRIMARY_STAGE3_SAN_RAW_AUDIT_01.json under the external gate-preparation root.
+The historical failure evidence and failure image remain retained.
+This update supersedes historical pending runtime statements below.
+
 Status: runtime failure retained; cleanup ordering gap confirmed from source.
 The reason namespace exit was not confirmed remains unknown.
 Do not claim this explains the earlier two-pending-acknowledgment failure.
