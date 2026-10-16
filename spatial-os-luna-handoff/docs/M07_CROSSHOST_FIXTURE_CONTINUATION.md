@@ -82,3 +82,50 @@ Primary added the unchanged frozen-candidate companion, SHA256 1faf5f776ef53126a
 The corrected combined selection then passed. The original setup failure remains preserved.
 This packaging addition changed no production source or four reviewed Python source pins.
 M07 remains UNQUALIFIED until its complete remaining cross-host gate and final audits pass.
+
+
+## M07 workspace collector continuation, review03
+
+M07 remains UNQUALIFIED. Its production candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+The first workspace test passed. Its outer collector then required boundary logs that this fixture never produces.
+The failed attempt remains preserved.
+
+The separate collector validates the actual peer and native-observer files.
+It requires resource launch, terminal, readiness, cleanup, service, and process-identity evidence.
+Process-identity witness contents remain opaque. The test asserts process identity through Protobuf exchanges.
+The collector scans each retained log once. It rejects unsafe files, missing evidence, and sanitizer diagnostics.
+Existing cleanup and test-result checks remain mandatory.
+It hashes M06 source bytes once. It compiles those same bytes without using cached bytecode.
+
+The executor checks the selected collector path and hash on both hosts before dispatch.
+It also verifies the approved M06 dependency on both hosts.
+Workflow identity, commands, receipts, and reconciliation bind the selected tool.
+All four workspace cells remain serialized. Existing receipts prevent duplicate dispatch.
+Use the exact workspace-<attempt> evidence scope for each direction and build profile.
+Use collector-workspace-fixed-03 and its prepared roles for the next matrix.
+The accepted M06 prerequisite remains unchanged. Its twelve semantic and thirty-six native tests remain accepted.
+
+Primary validation passed 28 focused controls on each host.
+The corrected collector also accepted the actual retained evidence on sb16.
+The historical collector rejected that same evidence for the recorded filename mismatch.
+The first primary batch stopped during related-test setup because its launcher omitted the frozen protobuf binding path.
+That failed batch remains preserved. The corrected launcher passed with 0/0/COMPLETE and retired pane processes.
+
+Each host retains primary-workspace-controls-04/PRIMARY_FOCUSED_AUDIT_01.json under the external artifact root.
+sb16 audit SHA256: 3a968ac425066c41dc50185d5dcd8d7336aeec72730ac83aac80999a48deaf00.
+sb16-2 audit SHA256: 5ae70a9c4bc8e5a199ceaaaeba67b1683b55bf8ac8a3f794b4be6778a8e66b79.
+
+Source lineage:
+- Deployed M07 tool: 1faf5f776ef53126ae3cc675393038757f5d02d09c5809aef64a67dc8f43a501.
+- Maintained typed-retirement amendment: 15c6eb522bcbc5406b93c8d3d472c6c85a0c34f170ac6de4553fc70bf993580d.
+- Approved M06 dependency: f765b2bec2d0faeb6bec43acddf806124daf2b8f7acc7ac4437040f575f69735.
+- New collector: c4dccc708c9cb6c31159e6e26ad40bfc164396cb6be62ce0b4cd61a2253bcb67.
+- New executor: 563ccbabb833f34e5a897fef39348245bd92bde97d6e02e195d803a595dfc873.
+- New focused controls: 46ffe032d31997daa92bf96a9bce74e825593f9596f628db5ec619ef88b2c7c6.
+
+An accidental unittest command ran on a5500 during source preparation. It failed during module loading.
+The returned output was truncated. The exact exit record and complete traceback were not captured.
+No production service or test host was contacted by that command.
+
+The four-cell workspace matrix, final reconciliation, and both final artifact audits remain pending.
+Focused controls do not qualify M07.

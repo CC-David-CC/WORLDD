@@ -6,6 +6,8 @@
 BASELINE_PATH = '/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/candidate/execute_workspace_crosshost_serial.py'
 BASELINE_SHA256 = '3a1e43610fd6dd1d2b6c2571a88c6ef74faa6c02a8d8d496e3d48d1321ddbe3d'
 M06_REMOTE_TOOL = '/home/dflanag3/spatial-artifacts/m07-crosshost-fixture-continuation-20261016/review02/tools/m06_deployed_gate.py'
+M07_TOOL_NAME = 'm07_workspace_collector_continuation.py'
+M06_SIBLING_SHA256 = 'f765b2bec2d0faeb6bec43acddf806124daf2b8f7acc7ac4437040f575f69735'
 import argparse
 import base64
 import fcntl
@@ -138,13 +140,15 @@ def foreign_jobs(processes, owned):
    if tool=='m06_deployed_gate.py' and verb in ('run-local','crosshost-handoff'): kind='exclusive'
    if tool=='m07_deployed_gate.py' and verb in ('run-local','workspace-crosshost','reconcile'):
     kind='exclusive' if verb=='run-local' else 'resumable'
+   if tool=='m07_workspace_collector_continuation.py' and verb in ('workspace-crosshost','reconcile'):
+    kind='resumable'
   if kind and (kind=='exclusive' or normalized(argv) not in allowed): bad.append(row)
  return bad
 '''
 
 # Tests inject this filesystem/process boundary. They run the actual main below.
 REMOTE_FS = PROCESS_POLICY + r'''
-import base64,hashlib,json,os,pathlib,shutil,sys,uuid
+import base64,hashlib,json,os,pathlib,shutil,stat,sys,uuid
 request=json.loads(base64.b64decode(sys.argv[1])); op=request['op']; a=request['args']
 def path(s):
  p=pathlib.Path(s)
@@ -181,6 +185,10 @@ if op=='exists': result=path(a[0]).exists()
 elif op=='mkdir': path(a[0]).mkdir(parents=True,exist_ok=True);result=True
 elif op=='put': immutable(a[0],base64.b64decode(a[1]));result=True
 elif op=='sha': result=hashlib.sha256(path(a[0]).read_bytes()).hexdigest()
+elif op=='verify_file':
+ p=path(a[0]); s=p.lstat()
+ if not stat.S_ISREG(s.st_mode): raise RuntimeError('pinned input is not a regular file')
+ result=hashlib.sha256(p.read_bytes()).hexdigest()
 elif op=='manifest': result=manifest(a[0])
 elif op=='owned':
  p=path(a[0]); owner=base64.b64decode(a[1]); marker=p/'.workflow-owner.json'
@@ -349,7 +357,7 @@ def dispatch_and_observe(transport, identity, journal, fresh_paths, timeout=2100
     raise RuntimeError('observation deadline; exact dispatch remains resumable; refusing relaunch: ' + repr(last_error))
 
 
-def validate_final_reconciliation(m06_raw, m06_sha, plan_raw, final_raw, m06_path, candidate, cells):
+def validate_final_reconciliation(m06_raw, m06_sha, plan_raw, final_raw, m06_path, candidate, cells, m07_tool_path, m07_tool_sha256):
     m06, plan, final = map(json.loads, (m06_raw, plan_raw, final_raw))
     if raw_sha256(m06_raw) != m06_sha:
         raise RuntimeError('M06 raw hash differs')
@@ -369,6 +377,9 @@ def validate_final_reconciliation(m06_raw, m06_sha, plan_raw, final_raw, m06_pat
             or final.get('phase_complete') is not False or final.get('m06_reconciliation') != str(m06_path)
             or final.get('m06_reconciliation_sha256') != m06_sha):
         raise RuntimeError('M07 reconciliation identity/status differs')
+    continuation = final.get('m07_tool_continuation', {})
+    if continuation.get('path') != m07_tool_path or continuation.get('sha256') != m07_tool_sha256:
+        raise RuntimeError('M07 reconciliation continuation tool pin differs')
     expected = [{'matrix': row['matrix'], 'receipt': row['receipt'], 'receipt_sha256': row['receipt_sha256'],
                  'log_sha256': row['log_sha256']} for row in cells]
     rows = final.get('workspace_crosshost')
@@ -425,6 +436,50 @@ def _validate_continuation_inputs(args, transport):
         if str(row['path']).startswith(DEPLOY + '/source/'):
             raise RuntimeError('fixture continuation proof points inside frozen deployment source')
     return raw, manifest
+
+
+def _validate_role_output_paths(root, attempt, profile, direction, host, output, remote_output):
+    scope = root / 'evidence' / ('workspace-' + attempt) / profile / direction
+    local = scope / ('authority-' + host)
+    remote = scope / ('observer-' + direction.split('-to-')[1])
+    if output != local or remote_output != remote:
+        raise RuntimeError('role output paths differ from the exact attempt authority/observer scope')
+
+
+def _workspace_command(args, host, profile, direction, stage_dir, run_dir, role_path, plan_path, output):
+    return ['bash', RUNNER_BASE + '/run-command.sh', stage_dir, run_dir,
+            'python3', '-B', args.m07_tool_path, 'workspace-crosshost',
+            '--deployment', DEPLOY, '--candidate', CANDIDATE, '--profile', profile,
+            '--direction', direction, '--roles', role_path, '--m06-plan', plan_path,
+            '--output', output, '--continuation-sha256', args.m07_tool_sha256]
+
+
+def _reconcile_command(args, run_dir, output, index):
+    return ['bash', RUNNER_BASE + '/run-command.sh', str(ROOT / 'staging-sb16'), run_dir,
+            'python3', '-B', args.m07_tool_path, 'reconcile', '--candidate', CANDIDATE,
+            '--m06-reconciliation', str(args.m06_reconciliation), '--workspace-results', str(index),
+            '--output', output, '--continuation-sha256', args.m07_tool_sha256]
+
+
+def _validate_m07_tool(args, transport):
+    path = Path(args.m07_tool_path)
+    if (not path.is_absolute() or '..' in path.parts or str(path) != args.m07_tool_path
+            or path.name != M07_TOOL_NAME
+            or not re.fullmatch(r'[0-9a-f]{64}', args.m07_tool_sha256)):
+        raise RuntimeError('M07 continuation path/SHA256 is malformed')
+    if str(path).startswith(DEPLOY + '/source/'):
+        raise RuntimeError('M07 continuation must remain an external pinned tool')
+    verified = {}
+    for host in HOSTS:
+        actual = transport.fs(host, 'verify_file', str(path))
+        if actual != args.m07_tool_sha256:
+            raise RuntimeError('M07 continuation tool pin differs on ' + host)
+        sibling = transport.fs(host, 'verify_file', M06_REMOTE_TOOL)
+        if sibling != M06_SIBLING_SHA256:
+            raise RuntimeError('approved M06 sibling pin differs on ' + host)
+        verified[host] = {'path': str(path), 'sha256': actual,
+                          'm06_sibling_path': M06_REMOTE_TOOL, 'm06_sibling_sha256': sibling}
+    return verified
 
 
 def _m06_command(args):
@@ -501,13 +556,15 @@ def staged(transport, host, directory, owner, files):
         raise RuntimeError('staged input verification differs: ' + host)
 
 
-def observe_cell(transport, host, profile, direction, output, role, plan):
+def observe_cell(transport, host, profile, direction, output, role, plan, m07_tool_path, m07_tool_sha256):
     receipt_path = output / 'workspace-crosshost-receipt.json'
     raw = transport.read(host, receipt_path)
     receipt = json.loads(raw)
     expected = {'schema': 1, 'candidate': CANDIDATE, 'host': host, 'profile': profile, 'direction': direction,
                 'status': 'passed', 'exit_code': 0, 'qualification': 'UNQUALIFIED', 'phase_complete': False}
-    if any(receipt.get(key) != value for key, value in expected.items()) or receipt.get('roles') != role:
+    if (any(receipt.get(key) != value for key, value in expected.items()) or receipt.get('roles') != role
+            or receipt.get('m07_tool_continuation', {}).get('path') != m07_tool_path
+            or receipt.get('m07_tool_continuation', {}).get('sha256') != m07_tool_sha256):
         raise RuntimeError('workspace receipt identity/status/roles differ')
     pins = plan['deployments']
     observer = direction.split('-to-')[1]
@@ -567,9 +624,12 @@ def main(argv=None, transport=None):
     parser.add_argument('--m06-tool-sha256', required=True)
     parser.add_argument('--fixture-continuation-manifest', required=True)
     parser.add_argument('--fixture-continuation-manifest-sha256', required=True)
+    parser.add_argument('--m07-tool-path', required=True)
+    parser.add_argument('--m07-tool-sha256', required=True)
     args = parser.parse_args(argv)
-    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,80}', args.attempt):
-        raise RuntimeError('unsafe attempt label')
+    if (not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,80}', args.attempt)
+            or args.attempt == 'collector-owner-fixed-02'):
+        raise RuntimeError('unsafe or retired attempt label')
     if not os.environ.get('TMUX'):
         raise RuntimeError('run coordinator through canonical runner in persistent G164 tmux')
     for path in (args.plan, args.roles, args.m06_reconciliation, args.m06_runner_dir):
@@ -607,6 +667,7 @@ def execute(args, transport, workflow):
         raise RuntimeError('M06 plan candidate/schema/deployments differ')
     if plan['deployments']!=DEPLOYMENT_PINS:
         raise RuntimeError('M06 plan differs from frozen candidate deployment pins')
+    m07_tool_pins = _validate_m07_tool(args, transport)
     role_files = {profile + '-' + direction + '.json': input_file(args.roles / (profile + '-' + direction + '.json'))
                   for profile in PROFILES for direction in DIRECTIONS}
     m06_raw = transport.read('sb16', args.m06_reconciliation)
@@ -639,16 +700,20 @@ def execute(args, transport, workflow):
         raise RuntimeError('M06 used different raw plan bytes')
     files = {'m06-crosshost-plan.json': plan_raw,
              'm06-fixture-continuation-manifest.json': manifest_raw, **role_files}
-    identity = {'schema': 2, 'candidate': CANDIDATE, 'attempt': args.attempt,
+    identity = {'schema': 3, 'candidate': CANDIDATE, 'attempt': args.attempt,
                 'coordinator_argv': ['--plan', str(args.plan), '--roles', str(args.roles),
                                      '--m06-reconciliation', str(args.m06_reconciliation),
                                      '--m06-runner-dir', str(args.m06_runner_dir), '--attempt', args.attempt,
                                      '--m06-tool-sha256', args.m06_tool_sha256,
                                      '--fixture-continuation-manifest', args.fixture_continuation_manifest,
-                                     '--fixture-continuation-manifest-sha256', args.fixture_continuation_manifest_sha256],
+                                     '--fixture-continuation-manifest-sha256', args.fixture_continuation_manifest_sha256,
+                                     '--m07-tool-path', args.m07_tool_path,
+                                     '--m07-tool-sha256', args.m07_tool_sha256],
                 'input_sha256': {name: raw_sha256(raw) for name, raw in files.items()},
                 'm06_sha256': m06_sha, 'm06_terminal_sha256': m06_terminal, 'tools_and_schemas': tool_pins(),
                 'runner_sha256': RUNNER_SHA, 'deployment': DEPLOY, 'controller_global_lock': str(GLOBAL_LOCK),
+                'm07_tool_continuation': {'path': args.m07_tool_path, 'sha256': args.m07_tool_sha256,
+                                         'host_pins': m07_tool_pins},
                 'fixture_continuation': {'manifest_path': args.fixture_continuation_manifest,
                                          'manifest_sha256': args.fixture_continuation_manifest_sha256,
                                          'm06_tool_path': M06_REMOTE_TOOL,
@@ -679,20 +744,20 @@ def execute(args, transport, workflow):
             if role.get('SPATIAL_GEOMETRY_OBSERVER_HOST') != direction.split('-to-')[1]:
                 raise RuntimeError('role direction differs')
             output = safe_path(role['SPATIAL_GEOMETRY_EVIDENCE'], ROOT)
-            safe_path(role['SPATIAL_GEOMETRY_REMOTE_EVIDENCE'], ROOT)
+            remote_output = safe_path(role['SPATIAL_GEOMETRY_REMOTE_EVIDENCE'], ROOT)
+            _validate_role_output_paths(ROOT, args.attempt, profile, direction, host, output, remote_output)
             if any(output == Path(cell['receipt']).parent or output in Path(cell['receipt']).parents
                    or Path(cell['receipt']).parent in output.parents for cell in cells):
                 raise RuntimeError('overlapping cell evidence')
             run_dir = ROOT / 'runner-runs/workspace' / profile / (direction + '-' + args.attempt)
-            command = ['bash', RUNNER_BASE + '/run-command.sh', str(ROOT / ('staging-' + host)), str(run_dir),
-                       'python3', '-B', DEPLOY + '/source/tools/m07_deployed_gate.py', 'workspace-crosshost',
-                       '--deployment', DEPLOY, '--candidate', CANDIDATE, '--profile', profile, '--direction', direction,
-                       '--roles', str(staging[host] / (key + '.json')), '--m06-plan', str(staging[host] / 'm06-crosshost-plan.json'),
-                       '--output', str(output)]
+            command = _workspace_command(
+                args, host, profile, direction, str(ROOT / ('staging-' + host)), str(run_dir),
+                str(staging[host] / (key + '.json')), str(staging[host] / 'm06-crosshost-plan.json'),
+                str(output))
             dispatch_identity = {'host': host, 'session': 'm07-' + raw_sha256((str(ROOT) + '|' + args.attempt + '|' + key).encode())[:20],
                                  'command': command, 'run_dir': str(run_dir), 'workflow_sha256': raw_sha256(encoded(identity))}
             dispatch_and_observe(transport, dispatch_identity, workflow / (key + '-dispatch.json'), [run_dir, output])
-            row = observe_cell(transport, host, profile, direction, output, role, plan)
+            row = observe_cell(transport, host, profile, direction, output, role, plan, args.m07_tool_path, args.m07_tool_sha256)
             stable(workflow / (key + '-result.json'), row)
             if host == 'sb16-2':
                 mirror(transport, output, workflow / (key + '-mirror.json'), row)
@@ -710,22 +775,21 @@ def execute(args, transport, workflow):
         raise RuntimeError('remote index bytes differ')
     recon_out = ROOT / 'evidence' / ('m07-reconcile-' + args.attempt)
     recon_run = ROOT / 'runner-runs/reconcile' / args.attempt
-    command = ['bash', RUNNER_BASE + '/run-command.sh', str(ROOT / 'staging-sb16'), str(recon_run), 'python3', '-B',
-               DEPLOY + '/source/tools/m07_deployed_gate.py', 'reconcile', '--candidate', CANDIDATE,
-               '--m06-reconciliation', str(args.m06_reconciliation), '--workspace-results', str(index), '--output', str(recon_out)]
+    command = _reconcile_command(args, str(recon_run), str(recon_out), str(index))
     dispatch_identity = {'host': 'sb16', 'session': 'm07-reconcile-' + raw_sha256((str(ROOT) + '|' + args.attempt).encode())[:16],
                          'command': command, 'run_dir': str(recon_run), 'workflow_sha256': raw_sha256(encoded(identity))}
     dispatch_and_observe(transport, dispatch_identity, workflow / 'reconcile-dispatch.json', [recon_run, recon_out], timeout=900)
     recon_path = recon_out / 'm07-reconciliation.json'
     recon_raw = transport.read('sb16', recon_path)
     recon_sha = transport.fs('sb16', 'sha', str(recon_path))
-    proof = validate_final_reconciliation(m06_raw, m06_sha, plan_raw, recon_raw, args.m06_reconciliation, CANDIDATE, cells)
+    proof = validate_final_reconciliation(m06_raw, m06_sha, plan_raw, recon_raw, args.m06_reconciliation, CANDIDATE, cells, args.m07_tool_path, args.m07_tool_sha256)
     if proof['m07_reconciliation_sha256'] != recon_sha:
         raise RuntimeError('M07 raw-byte hash differs')
     summary = {'candidate': CANDIDATE, 'qualification': 'UNQUALIFIED', 'phase_complete': False,
                'm06_reconciliation': str(args.m06_reconciliation), 'm06_reconciliation_sha256': m06_sha,
                'workspace_results_index': str(index), 'm07_reconciliation': str(recon_path),
-               'm07_reconciliation_sha256': recon_sha, 'cells': cells, 'strict_reconciliation_validation': proof}
+               'm07_reconciliation_sha256': recon_sha, 'm07_tool_continuation': {'path': args.m07_tool_path, 'sha256': args.m07_tool_sha256},
+               'cells': cells, 'strict_reconciliation_validation': proof}
     stable(workflow / 'complete.json', summary)
     record['observations']['status'] = 'COMPLETE'
     atomic_json(workflow / 'workflow.json', record)
