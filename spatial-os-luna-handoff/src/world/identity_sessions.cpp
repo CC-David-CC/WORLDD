@@ -3,6 +3,7 @@
 #include "world/diagnostic_timing.hpp"
 #include "world/authority.hpp"
 #include "world/actor_tls.hpp"
+#include "world/queued_copy_status.hpp"
 #include "platform/broker.hpp"
 #include "identity/issuer_client.hpp"
 #include "identity/participant_runtime.hpp"
@@ -65,7 +66,9 @@ struct Channel {
     bool needs_geometry_observation = false;
     std::uint64_t cancellation_generation = 0;
     std::uint64_t active_request_id = 0, output_request_id = 0;
-    bool in_dispatch = false;
+    bool in_dispatch = false, output_copy_status_request = false;
+    bool output_revocation_denial = false;
+    bool output_transport_write_attempted = false;
     Clock::time_point input_started = Clock::now(), output_started = Clock::now();
     std::optional<Pending> pending, prepared;
     std::optional<pb::ActorCredential> completing;
@@ -100,6 +103,9 @@ void lifecycle_diagnostic(const Channel& channel, const char* reason) {
               << " cancellation_generation=" << channel.cancellation_generation
               << " active_request_id=" << channel.active_request_id
               << " output_request_id=" << channel.output_request_id
+              << " copy_status_request=" << channel.output_copy_status_request
+              << " revocation_denial=" << channel.output_revocation_denial
+              << " transport_write_attempted=" << channel.output_transport_write_attempted
               << " authenticated=" << !channel.token.empty()
               << " in_dispatch=" << channel.in_dispatch
               << " tls=" << static_cast<bool>(channel.tls)
@@ -194,15 +200,80 @@ struct IdentitySessions::Impl {
         const auto token = std::move(channel.token); channel.token.clear();
         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset();
         channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
-        if (!channel.output.empty()) {
-            lifecycle_diagnostic(channel, "disconnect_drop_output");
-            channel.output.clear(); channel.output_request_id = 0; channel.close_transport();
-        }
+        // Swap queued bytes out before cancellation callbacks can re-enter.
+        // The pump sees empty output until Actors::close returns; deferred cancellation settles later.
+        std::string pending_output;
+        pending_output.swap(channel.output);
+        const bool had_output = !pending_output.empty();
+        const bool queued_copy_status = channel.output_copy_status_request;
+        const bool queued_denial = channel.output_revocation_denial;
+        const bool write_attempted = channel.output_transport_write_attempted;
+        const auto queued_sent = channel.sent;
+        const auto queued_request_id = channel.output_request_id;
+        if (had_output) channel.sent = 0;
+
         if (!token.empty()) {
             try { actors.close(token); }
-            catch (const std::exception&) {
+            catch (...) {
                 lifecycle_diagnostic(channel, "cancellation_failure");
+                channel.output_request_id = 0;
+                channel.output_copy_status_request = false;
+                channel.output_revocation_denial = false;
+                channel.output_transport_write_attempted = false;
+                channel.close_transport();
                 throw CancellationFailure("Cannot confirm native actor cancellation");
+            }
+        }
+
+        if (channel.fd.value < 0 || channel.departure || !channel.output.empty()) {
+            // A nested cancellation may have closed the transport or queued newer output.
+            // Never restore this stale frame over that state.
+            return;
+        }
+
+        if (had_output) {
+            const bool authority_invalidation =
+                std::strcmp(reason, "credential_revocation") == 0 ||
+                std::strcmp(reason, "authority_denied") == 0;
+            try {
+                const auto disposition = authority_invalidation
+                    ? world_detail::replace_queued_copy_status_frame(pending_output,
+                        queued_copy_status, queued_request_id, queued_sent,
+                        write_attempted, queued_denial, channel.output_started)
+                    : world_detail::QueuedReplyRevocationAction::CloseTransport;
+                if (disposition == world_detail::QueuedReplyRevocationAction::ReplaceWithDenial) {
+                    channel.output = std::move(pending_output);
+                    channel.output_request_id = queued_request_id;
+                    channel.output_copy_status_request = false;
+                    channel.output_revocation_denial = true;
+                    channel.output_transport_write_attempted = false;
+                    channel.sent = 0;
+                    lifecycle_diagnostic(channel, "disconnect_replace_copy_status");
+                } else if (disposition == world_detail::QueuedReplyRevocationAction::PreserveDenial) {
+                    channel.output = std::move(pending_output);
+                    channel.output_request_id = queued_request_id;
+                    channel.output_copy_status_request = false;
+                    channel.output_revocation_denial = true;
+                    channel.output_transport_write_attempted = write_attempted;
+                    channel.sent = queued_sent;
+                    lifecycle_diagnostic(channel, "disconnect_preserve_copy_status_denial");
+                } else {
+                    lifecycle_diagnostic(channel, "disconnect_drop_output");
+                    channel.output_request_id = 0;
+                    channel.output_copy_status_request = false;
+                    channel.output_revocation_denial = false;
+                    channel.output_transport_write_attempted = false;
+                    channel.close_transport();
+                }
+            } catch (...) {
+                // Optional denial construction must never undo cancellation or leak old bytes.
+                channel.output.clear();
+                lifecycle_diagnostic(channel, "disconnect_copy_status_replacement_failed");
+                channel.output_request_id = 0;
+                channel.output_copy_status_request = false;
+                channel.output_revocation_denial = false;
+                channel.output_transport_write_attempted = false;
+                channel.close_transport();
             }
         }
     }
@@ -309,6 +380,9 @@ struct IdentitySessions::Impl {
             }
             if(channel.fd.value<0)continue;
             std::ostringstream output;write_frame(output,reply);channel.output=output.str();channel.sent=0;
+            channel.output_copy_status_request = false;
+            channel.output_revocation_denial = false;
+            channel.output_transport_write_attempted = false;
             channel.output_started=Clock::now();
         }
         // Never called by an issuer, renderer, or broker wait callback.
@@ -544,7 +618,9 @@ struct IdentitySessions::Impl {
         result.set_authority_generation(generation);
         return result;
     }
-    pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes, bool& self_revocation_receipt) {
+    pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes,
+            bool& self_revocation_receipt, bool& copy_status_request) {
+        copy_status_request = false;
         pb::WorldSessionReply reply; reply.set_protocol_version(1);
         try {
             pb::WorldSessionRequest request;
@@ -552,10 +628,20 @@ struct IdentitySessions::Impl {
             channel.active_request_id = request.request_id(); channel.in_dispatch = true;
             struct DispatchTraceReset {
                 Channel& channel;
-                ~DispatchTraceReset() { channel.in_dispatch = false; channel.active_request_id = 0; }
-            } trace_reset{channel};
+                bool& copy_status_request;
+                const pb::WorldSessionRequest& request;
+                bool authenticated;
+                bool valid_protocol_request = false;
+                ~DispatchTraceReset() {
+                    copy_status_request = valid_protocol_request &&
+                        world_detail::authenticated_workspace_copy_status_request(request, authenticated);
+                    channel.in_dispatch = false;
+                    channel.active_request_id = 0;
+                }
+            } trace_reset{channel, copy_status_request, request, !channel.token.empty()};
             validate_message(request);
             if (request.protocol_version() != 1) throw WorldError(wire::UNSUPPORTED_VERSION, "Unsupported world session protocol");
+            trace_reset.valid_protocol_request = true;
             if (request.has_close()) { disconnect(channel, "client_close"); reply.mutable_closed()->set_closed(true); return reply; }
             if (broken || !ready || closing) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
             if(request.has_depart()) {
@@ -853,8 +939,10 @@ struct IdentitySessions::Impl {
                     catch (const WorldError&) { drop("application_observation_error"); continue; }
                 }
                 if (channel.tls) {
+                    channel.output_transport_write_attempted = true;
                     if (channel.tls->write(channel.output, channel.sent) < 0) { drop("tls_write_failed"); continue; }
                 } else {
+                    channel.output_transport_write_attempted = true;
                     const auto written = write(channel.fd.value, channel.output.data()+channel.sent, channel.output.size()-channel.sent);
                     if (written < 0 && errno != EAGAIN && errno != EINTR) { drop("socket_write_failed"); continue; }
                     if (written > 0) channel.sent += static_cast<std::size_t>(written);
@@ -862,6 +950,9 @@ struct IdentitySessions::Impl {
                 if (channel.sent == channel.output.size()) {
                     channel.output.clear(); channel.output_request_id = 0;
                     channel.needs_observation = false; channel.needs_geometry_observation = false;
+                    channel.output_copy_status_request = false;
+                    channel.output_revocation_denial = false;
+                    channel.output_transport_write_attempted = false;
                 }
             }
             if (channel.tls && channel.output.empty()) {
@@ -886,19 +977,22 @@ struct IdentitySessions::Impl {
             const auto bytes = channel.input.substr(4, length); channel.input.erase(0, length+4); channel.input_started = now;
             const auto cancellation = channel.cancellation_generation;
             bool self_revocation_receipt = false;
+            bool copy_status_request = false;
             pb::WorldSessionReply reply;
-            try { reply = dispatch(channel, bytes, self_revocation_receipt); }
+            try { reply = dispatch(channel, bytes, self_revocation_receipt, copy_status_request); }
             catch (const CancellationFailure&) {
                 lifecycle_diagnostic(channel, "cancellation_failure_leaving_dispatch");
                 throw;
             }
             if (channel.fd.value < 0 || channel.departure) continue;
+            bool copy_status_denial = false;
             if (cancellation != channel.cancellation_generation && !reply.has_closed() &&
                     !(self_revocation_receipt && reply.has_grant())) {
                 const auto id = reply.request_id();
                 const auto code = reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED;
                 reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
                 reply.mutable_error()->set_code(code); reply.mutable_error()->set_message("World session changed during operation");
+                copy_status_denial = copy_status_request;
             }
             if (reply.ByteSizeLong() > max_frame_bytes) {
                 const auto id = reply.request_id();
@@ -909,6 +1003,9 @@ struct IdentitySessions::Impl {
             }
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_request_id = reply.request_id();
+            channel.output_copy_status_request = copy_status_request && !copy_status_denial;
+            channel.output_revocation_denial = copy_status_denial;
+            channel.output_transport_write_attempted = false;
             lifecycle_diagnostic(channel, "reply_queued");
             channel.output_started = Clock::now();
         }
