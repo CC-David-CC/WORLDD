@@ -69,6 +69,8 @@ Write the exit code even when the worker fails. Avoid set -e around the worker c
 Transfer multiline scripts as files. Do not embed nested Python and shell scripts in PowerShell command strings.
 Use LF line endings for remote scripts.
 When editing Linux source from Windows, preserve existing line endings or write new lines explicitly as LF.
+Fail scripted replacements unless their required match counts agree with the inspected source.
+Verify the resulting code before building or formatting.
 Python write_text uses platform newlines unless configured. PowerShell Set-Content can add a BOM or CRLF.
 Use explicit encoding and newline handling for hash manifests and transferred files.
 
@@ -88,6 +90,9 @@ A zero worker exit code does not mean its task is complete.
 Before reporting completion, compare the result with every requested deliverable.
 Implement requested tests; a test plan is not a substitute.
 If work remains missing, label the handoff INCOMPLETE and list it explicitly.
+Inspect the committed code for each behavior claimed in the handoff.
+Use `git show COMMIT:PATH` to verify the relevant code path.
+A successful edit script or build does not prove that an intended change exists.
 
 The final handoff must contain:
 

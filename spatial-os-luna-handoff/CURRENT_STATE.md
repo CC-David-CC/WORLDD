@@ -23,7 +23,10 @@ Revised admission includes remaining image bytes, a monitored 6 GiB other-output
 The deferred d164 cross-host coordinator passed 61 offline controls. Its native runtime remains UNRUN.
 No real cross-host plan may be generated before both complete local gates pass primary review.
 The isolated M08 foundation is compile-only and BOX-GIT VERIFIED; primary requested several bounded corrections.
-Successor efe3ed57 is pushed and compile-only. Primary review and every runtime check remain pending.
+Successor efe3ed57 is pushed and compile-only. Primary source review rejected it as incomplete.
+Its claimed safe file-open change was absent after a scripted replacement silently matched nothing.
+A stronger worker repairs the isolated foundation branch. Every M08 runtime check remains UNRUN.
+The coordination skill now requires replacement match checks and committed-source proof for handoff claims.
 It remains separate from M07. No M08 runtime or integration pass is claimed.
 
 Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact source, archive, diagnosis, and evidence pins.

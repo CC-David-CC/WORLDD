@@ -71,7 +71,19 @@ Do not generate a real cross-host plan before both terminal local gates pass pri
 Isolated M08 foundation checkpoint f2f607b is BOX-GIT VERIFIED and compile-only, not integrated.
 Primary reviewed all seven files and requested directory, nonregular-file, durability, handle-exhaustion, and build-dependency repairs.
 That bounded successor remains separate from the frozen M07 source. All M08 runtime checks remain UNRUN.
-Successor efe3ed57 is BOX-GIT VERIFIED and compile-only. Its primary source review remains pending.
+Successor efe3ed57 is BOX-GIT VERIFIED and compile-only. Primary source review rejected it as incomplete.
+Its claimed O_PATH read fix is absent. The committed code still opens before checking the file type.
+A retained replacement script matched no source because it expected Fd d instead of auto d.
+The script exited successfully without changing that path. The handoff incorrectly described intended code as implemented.
+Primary also found root-handle lifetime, root-rename, and reserved-handle cleanup defects.
+The stronger worker owns m08/file-engine-review-repair-20261016 in a separate a5500 worktree.
+Read-only process audit and preserved edit script:
+middle-child:/home/dflanag3/spatial-artifacts/m08-file-engine-foundation-20261016/PROCESS_AUDIT.txt
+and process-audit-m08-fix.py, SHA256 50c69ee94d405b847feba232bc18482c4ac168b8eb526d00b7e1a9949b86b49a.
+The coordination skill now requires replacement match counts and verification against the committed code.
+Validation passed. Installed copies on Windows, a5500, and middle-child match SHA256:
+a3a08ad885f346d42050cd05e9a406b76a9d9de381b9eed98d77a8f7cccc042f.
+Runner scripts and the frozen M07 candidate remain unchanged.
 
 Earlier checkpoint: corrected d164fed7 full local gates started cleanly on both hosts
 Date: 2026-10-16.
