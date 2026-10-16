@@ -17,6 +17,21 @@ The 197-case local Debug core suite is running. No failure appears in the initia
 No terminal Debug result is available. Sanitizer, P10 acceptance, bounded-storage-Git, and cross-host results remain pending.
 Keep this gate pinned to the candidate. A running job is not a qualification pass.
 
+David requested longer diagnostic observation if a suite reaches 240 seconds.
+CTest and the native resource service both enforce that limit for workspace-authority.
+Keep the current frozen attempts unchanged. Preserve any original timeout result.
+After exact job retirement, rerun only the affected suite with a 240-second warning and a bounded diagnostic deadline.
+Keep request deadlines, security checks, resource limits, and assertions unchanged.
+A diagnostic completion does not retroactively qualify the original attempt.
+
+Separate M08 preparation does not advance the milestone count.
+Branch: m08/foundation-1e58-base-20261016. Commit: 7b584e0251fe18abf523ca47d92cb4d6e7e18013. BOX-GIT VERIFIED. UNQUALIFIED.
+The seven-file foundation preserves the frozen M07 base and its fixture repairs.
+Primary reviewed the replay, Debug compilation, sanitizer compilation, actual ELF linkage, and retired compile processes.
+The file-engine regression target has not run. Package staging and focused runtime checks remain pending.
+Actor/broker integration, file-copy execution, cabinet geometry, and full M08 qualification remain incomplete.
+Do not merge this preparation into the running M07 candidate.
+
 All 71 selected images were archived, compared, and removed. Their parent directories remain.
 The two retained archives on middle-child total 304,734,973 compressed bytes.
 The obsolete fd1 binary trees and both duplicate deployment bundles were removed after replacement verification.
@@ -33,6 +48,8 @@ Evidence under /home/dflanag3/spatial-artifacts on a5500:
 m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_PRELAUNCH_REVIEW_01.json.
 m07-fixture-repaired-full-gate-plan-20261016/full-gate-launch-01/aggregate-launch.json.
 m07-fixture-repaired-full-gate-plan-20261016/full-gate-observation-01.json.
+m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_240_SOFT_WARNING_DIAGNOSTIC_POLICY_01.json.
+m08-foundation-1e58-base-primary-review-20261016/PRIMARY_FINAL_REPLAY_REVIEW_01.json.
 m07-next-gate-retirement-preparation-20261016/review-01/primary-retirement-pair-audit-01/PRIMARY_PAIR_REVIEW_01.json.
 m07-superseded-payload-retirement-20261016/review-02/PRIMARY_REVIEW_01.json.
 
