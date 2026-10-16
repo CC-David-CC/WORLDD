@@ -1,6 +1,6 @@
 M07 shared-world startup EOF
 Date: 2026-10-16.
-Status: OBSERVED on sb16 Debug. Root cause and repair remain pending.
+Status: OBSERVED on both hosts' Debug runs after earlier cleanup failures. Focused retest remains pending.
 Candidate: fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e. M07 remains UNQUALIFIED.
 
 Observed failure
@@ -11,13 +11,19 @@ Test: test_two_tls_actors_share_committed_object_and_recover_same_world.
 Call path: new_world, start_remote, management('system.hello'), receive.
 The traceback reports: EOFError: worldd closed the channel.
 The cleanup repair alone does not establish a repair for this startup failure.
-The raw world stderr and process outcome need inspection before identifying the cause.
+Both retained native logs show spatialwm reporting X error10, followed by compositor-channel closure.
+The first test, test_actor_population_is_visible_in_shared_room, fails its explicit world.close() before process reaping.
+Its registered cleanup also fails before closing the process and its X connection.
+The later TLS test then encounters BadAccess and EOF on the same suite display.
+This supports a cleanup cascade from the known lifecycle defect.
+The exact failing X request and resource owner remain unproven.
+Do not classify this as an independent production defect without further evidence.
 
 Required diagnosis
-Preserve the complete CTest case and matching native logs.
-Check the world's actual startup error and process identity.
-Separate the initial startup failure from later cleanup exceptions.
-Add a targeted regression for any reproduced defect.
+Both complete CTest cases and matching native logs are retained with checksums.
+Run the shared-state suite after the reviewed lifecycle correction.
+Confirm the earlier compositor exits before native restart or the next native test.
+Add request-level X error instrumentation only if startup still fails after proper cleanup.
 Keep the original gate and reviewed source kit unchanged during diagnosis.
 
 Evidence
@@ -25,3 +31,6 @@ sb16 deployed core log:
 /home/dflanag3/spatial-artifacts/deployments/m07-fd1dccf8/runtime/evidence/fd1dccf8-sb16-local-01/Debug/core.log
 CTest registration: world-shared-state, number156.
 Worker: m07_remote_fixture_lifecycle_repair, read-only diagnosis assignment.
+Retained evidence on a5500:
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/eof-diagnosis-01/evidence-checksums.json
+The archive contains 14 evidence files, including both CTest blocks and native logs.

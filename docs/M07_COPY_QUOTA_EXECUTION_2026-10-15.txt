@@ -1,35 +1,62 @@
-Current checkpoint: reviewed focused controller staged; original full gates remain live
+Current checkpoint: combined repair Debug batch running on both hosts
 Date: 2026-10-16. M07 remains UNQUALIFIED. This section supersedes earlier observations.
 
-Snapshot at 12:59 UTC: sb16 completed181 Debug registrations,173 passed and eight failed.
-sb16-2 completed135,127 passed and eight failed. These are partial counts.
+Terminal JUnit: sb16 completed197 registrations,189 passed and eight failed.
+sb16-2 completed197,188 passed and nine failed. Neither host skipped a registration.
+Core elapsed seconds: sb16=3411.818; sb16-2=4070.216.
+Both original gates returned command1/wrapper1/COMPLETE and their exact pane PIDs retired.
+Both gates stopped subsequent stages after Debug core failure.
+Full sanitizer, acceptance, bounded-storage, and cross-host stages remain UNRUN for these gates.
+Source, binary, production-off, and runtime postchecks passed on both hosts.
 Both workspace-copy-engine suites passed all13 methods.
 All five registered copy-fault suites passed in Debug on both hosts.
 Primary audited both engine reports, raw inner logs,136 service logs per host, and unmounted volumes.
 No sanitizer diagnostic was found in those inspected logs. Full sanitizer qualification remains UNRUN.
 The original intermittent copy acknowledgment cause remains unproven.
 
-Primary reviewed the repaired focused controller and its20 offline passing controls.
-Four listing-only comparisons verified all199 registrations, commands, properties, and working directories.
-The controller and exact command manifest are staged read-only on both test hosts.
-Controller SHA256:3d0becc1b7ad98d0e3913ed4bc8b417bb08fc584292d6711652049336da76dec.
-The six-file test repair kit remains pinned to1ff5dc623e6a713d229bf2f1d4684c4215d65690.
-Its production binaries remain explicitly pinned tofd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e.
-No source, metadata, or binary in either running exam was changed.
-Both target profile preflights and all focused native tests remain UNRUN.
-Wait for each original host job's terminal receipts and exact PID absence before using its canonical lock.
-Review both profile preflights before running the ten selected related suites.
+Primary reviewed the stronger credential-fence repair and its23 passing offline controls.
+The combined candidate is2ec238590ca90340cbeef9345380c006f47f553a. BOX-GIT VERIFIED. UNQUALIFIED.
+Only seven Python test files differ fromfd1. Production code, schemas, CMake, and helpers remain equal.
+Primary compared all1038 committed Git blobs with the combined kit and every archive member.
+Its separate source kit is staged read-only on both hosts, including all54 source directories.
+Manifest SHA256:11af77972a47acc761449a2471bfeb82cfc9c81f0ca76a7250f663d74cb26d1f.
+Archive SHA256:8a2e228d3ee73390185a1f1912e7ea2fbbca92490d68cd46c7030cfb5ae2ce20.
+The combined controller passed22 offline controls, including796 listing-only registration comparisons.
+Controller SHA256:73f59a6310989f0480e99a55f7b6dcc6b18d982baaebce1bd6a7449b15109f56.
+Primary reviewed its full source delta and preserved VERIFIED target receipts and all immutable postchecks.
+The controller, exact plan, and external canonical runner are staged with matching hashes on both hosts.
+All four preflights passed:199 registrations,11 immutable postchecks, zero native tests per run.
+Their exact pane PIDs retired after command0/wrapper0/COMPLETE.
+Primary accepted all four reports and launched the12-suite Debug batch on both hosts.
+Native pane PIDs: sb16=3360731; sb16-2=3336175. Results remain pending.
+Native sanitizer checks remain UNRUN for this combined source.
+Review Debug results before its sanitizer batch. Keep one active profile per host.
 
-The sb16-2 credential-fence failure needs typed reply checks and a deterministic race reproduction.
+The credential-fence correction checks reply variants and deterministically gates a real TLS status request across revocation.
 The missing reply variant does not prove application termination or an incarnation change.
-The sb16 shared-state suite also reported a startup EOF beyond its known cleanup initialization failure.
-Separate workers investigate these issues without changing the staged kit or live exam.
-The cross-host controller's missing pane-PID recording is being repaired offline.
+The shared-state startup EOF on both hosts followed the first native test's failed process cleanup.
+An earlier compositor may still own the root redirect. The exact X request and owner remain unproven.
+Retest after the lifecycle repair before adding production instrumentation.
+The first two sb16 setup preflights ran no native tests and retained their failures.
+Primary corrected the nonexistent manifest path to read the embedded pinned provenance manifest.
+Exact source-closure checks then found58 generated Python caches per host.
+Primary archived and verified every cache member before deleting only those caches and four empty directories per host.
+Both original1038-file source closures and hashes now pass again. No source bytes or runtime binary changed.
+The first combined Debug preflight also rejected writable original source files on each host.
+Primary recorded and froze1038 files and55 directories per host before fresh preflight attempts.
+Execute bits and all source bytes were preserved. The four replacement preflights then passed.
+The cross-host PID-status parser is receiving a separate offline correction and broader resume regressions.
 
 Primary evidence on a5500:
-/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/PRIMARY_REVIEW_02.json
-/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/PRIMARY_CONTROLLER_PAIR_STAGING_02.json
-/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/primary-live-snapshot-20261016T125906Z.json
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/PRIMARY_ORIGINAL_DEBUG_TERMINAL_AUDIT_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_KIT_REVIEW_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_PAIR_KIT_DEPLOYMENT_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_CONTROLLER_REVIEW_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_PREFLIGHT_ADMISSION_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_ORIGINAL_SOURCE_FREEZE_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/primary-launch-02
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-runtime-20261016/focused/{sb16,sb16-2}/Debug-02
+/home/dflanag3/spatial-artifacts/m07-source-bytecode-retirement-20261016
 Copy audit: m07-fd1-full-gate-launch-plan-20261016/primary-full-debug-copy-engine-audit-01/PRIMARY_INNER_LOG_AUDIT_02.json.
 
 Previous checkpoint: reviewed test-only repair candidate and source kit ready; native retests remain UNRUN

@@ -1,0 +1,41 @@
+M07 focused retest preflight failures
+Date: 2026-10-16.
+Status: SETUP FAILURES corrected and retained. All four replacement preflights passed.
+The combined12-suite Debug runtime batch has started on both hosts. Its results remain pending.
+
+Manifest path
+The first sb16 Debug preflight expected runtime/runtime-manifest.json.
+That file is not part of this deployment.
+The production gate reads runtime_manifest from hash-pinned provenance.json.
+Primary corrected the controller to use the same deployed contract.
+An added offline control checks both real host metadata pairs without a standalone manifest.
+It also verifies rejection of modified provenance.
+All 21 offline controls passed after correcting the temporary fixture's file mode.
+
+Generated source caches
+The next preflight correctly rejected extra files in the original source closure.
+The completed Debug run left 58 Python bytecode files in four cache directories per host.
+All 1,038 tracked source files retained their expected hashes.
+Primary retained each cache archive on a5500 and checked every member hash before removal.
+Primary removed only the declared caches after both original jobs retired.
+Each host recovered 1,732,608 allocated bytes from cache files.
+Both exact source closures and hashes passed after removal.
+The new combined kit has read-only source files and directories.
+Do not weaken the source-closure guard to ignore generated caches.
+
+Original source permissions
+The first combined Debug preflight on each host rejected writable original source files.
+Primary recorded the previous modes before freezing1,038 source files and55 directories per host.
+The correction preserved execute bits and every source hash.
+Both hosts then passed Debug and sanitizer registration preflights.
+Each replacement run checked199 registrations and passed all11 integrity postchecks.
+All four returned command0/wrapper0/COMPLETE and retired their exact pane PIDs.
+Primary accepted these results before launching native Debug tests.
+
+Evidence on a5500
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/primary-launch-tools-01/sb16-debug-preflight-observation-01.json
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/primary-launch-tools-02/sb16-debug-preflight-observation-01.json
+/home/dflanag3/spatial-artifacts/m07-source-bytecode-retirement-20261016/sb16/PRIMARY_RETIREMENT_RESULT.json
+/home/dflanag3/spatial-artifacts/m07-source-bytecode-retirement-20261016/sb16-2/PRIMARY_RETIREMENT_RESULT.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_ORIGINAL_SOURCE_FREEZE_01.json
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_PREFLIGHT_ADMISSION_01.json
