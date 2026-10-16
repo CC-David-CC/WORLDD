@@ -1,3 +1,41 @@
+## 2026-10-16: Both d164 local gates finished; two distinct failures remain
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Each required host completed all 196 Debug core registrations: 195 passed, one failed, no skips.
+Both also passed five production-startup checks and 51 harness checks.
+sb16 failed workspace-copy-actor-revocation: EOF replaced the required typed denial.
+sb16-2 failed session-storage-contention: two participant acknowledgements remained pending after six seconds.
+All nine application pidfds exited within 0.771 seconds in the latter test.
+Process termination passed there. Revocation-barrier completion did not pass.
+Both canonical gate commands and wrappers returned one. Later stages stopped as required.
+Full-gate acceptance, bounded storage, sanitizer profiles, and cross-host qualification remain UNRUN for d164.
+
+The separate f3c2f348 diagnostic candidate preserves production behavior and all test oracles.
+Three focused Debug revocation executions passed on each host.
+The focused ASan/UBSan execution passed on sb16.
+On sb16-2, that execution delivered the denial and durably aborted the copy.
+It later failed because the original source application PID disappeared.
+No sanitizer findings occurred in the eight focused executions.
+The original EOF remains unresolved. Passing retries do not prove a repair.
+Read-only recovery of the failed source application's exit evidence is underway.
+A separate isolated worker instruments participant delivery, settlement, and acknowledgement.
+No timeout increase or production repair is claimed.
+
+The adfb2578 fixture-only overlay preserves pre-close and final worldd lifetime evidence.
+Both sanitizer executions show worldd alive before cleanup and exit zero after cleanup.
+Both hosts restored temporary helpers and unmounted their owned test volumes.
+Primary verified all 1252 diagnostic bundle files and all 1031 overlay source files.
+The original d164 source and deployment pins remain unchanged.
+
+The isolated M08 repair is BOX-GIT VERIFIED at 7bf4f97d.
+Primary reviewed its five-file correction. Debug and sanitizer compilation passed.
+Its runtime regressions, async copy, durable journal, and actor/cabinet integration remain UNRUN or pending.
+It is not integrated into M07. M08 planning is also a separate checkpoint.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact pins and external evidence paths.
+
 ## 2026-10-16: Live M07 gate exposes a revocation-status EOF; disk capacity recovered
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

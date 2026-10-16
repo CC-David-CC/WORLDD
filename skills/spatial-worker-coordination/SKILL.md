@@ -71,6 +71,8 @@ Use LF line endings for remote scripts.
 When editing Linux source from Windows, preserve existing line endings or write new lines explicitly as LF.
 Fail scripted replacements unless their required match counts agree with the inspected source.
 Verify the resulting code before building or formatting.
+Check authored notes for unintended control bytes before handoff.
+Allow tabs, LF, and CRLF. Preserve raw evidence bytes separately.
 Python write_text uses platform newlines unless configured. PowerShell Set-Content can add a BOM or CRLF.
 Use explicit encoding and newline handling for hash manifests and transferred files.
 

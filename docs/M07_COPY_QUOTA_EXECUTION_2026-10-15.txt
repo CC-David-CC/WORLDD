@@ -1,3 +1,88 @@
+Current checkpoint: d164 local gates failed; focused diagnostics narrow three unresolved symptoms
+Date: 2026-10-16.
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Original frozen candidate: d164fed7a699d7e817977faaa61a48ef3602e68f.
+Both original full-gate attempts finished naturally with command=1, wrapper=1, COMPLETE.
+Each executed 196 Debug core registrations: 195 passed, 1 failed, 0 skipped.
+Both passed 5 production-startup checks and 51 harness checks.
+sb16 core duration:3446.55 seconds. Its failed registration is workspace-copy-actor-revocation.
+sb16-2 core duration:4054.35 seconds. Its failed registration is session-storage-contention.
+Full-gate Debug acceptance/storage and the complete sanitizer profile stopped before execution.
+Cross-host qualification remains UNRUN. Do not generate a passing-gate cross-host plan.
+Primary independently checked JUnit, actual logs, canonical receipts, and 1031 source hashes on each host.
+Terminal reviews: a5500:/home/dflanag3/spatial-artifacts/m07-d164-terminal-gate-review-20261016.
+sb16 run.json SHA256:196c4d66a90ae0ccfba89265cb5a97a88dfbb2376694263a6e6f2eaf36d6c44f.
+sb16-2 run.json SHA256:05d3b9698c630f64d02e896e9f8a01a8715e795da87a3b1086d72c5ae9f298c2.
+
+Revocation diagnostics
+Diagnostic branch:m07/revocation-status-channel-20261016.
+Diagnostic binary source:f3c2f34857e06adbf60653000d8bcdd340fb58b1, BOX-GIT VERIFIED.
+Primary reviewed all three changed files. Production reply and authority behavior remain unchanged.
+Final Debug and ASan/UBSan fixture builds returned 0/0/COMPLETE on a5500.
+The isolated frozen bundle contains 1252 files, including required binary and generated-binding closure.
+Archive SHA256:f75eda0d05a6bc5e27fb5e21caf4060a3006c36b0429a5146f77f20f6bf84c63.
+Manifest SHA256:896b4c1c288bcff49bf8eb9194413c2e3da8b1510c46e2f6cb2de14bad244427.
+Deployment01 refused before testing because tarfile's data filter restored owner-write permission.
+Recovery verified content first, restored frozen modes, and repeated every hash/mode/dependency check.
+Original refusal receipts remain. No test ran under the refused deployment.
+
+Focused method:test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication.
+Three Debug executions passed on each host. Each took about 25-28 seconds.
+ASan/UBSan passed on sb16 in 27.58 seconds.
+ASan/UBSan failed on sb16-2 in 29.73 seconds after the source payload PID disappeared.
+The latter still returned the expected denial and durably recorded ABORTED/COPY_FORBIDDEN without publication.
+Its failed check read /proc/3107500/stat. The actual exit cause is not yet established.
+Across all eight executions, primary found no sanitizer diagnostics.
+Every temporary helper was restored. Every owned volume was unmounted.
+These are seven complete focused passes and one failed execution.
+The original EOF was not reproduced. Its cause remains unresolved.
+Logs show revocation consumed during dispatch with output_size0 in these executions.
+This does not prove what happened in the original failed full gate.
+Do not drain protected replies after revocation or relax the typed-denial oracle without a reviewed correction.
+
+The fixture-only successor adfb2578db0319c0fde31649406a325cbcfb0c58 is BOX-GIT VERIFIED.
+It fixes later cleanup overwriting final lifecycle evidence. It changes only two Python fixture files.
+The sanitizer runs explicitly overlay those files over the f3 binaries. No binary rebuild is claimed.
+Overlay manifest SHA256:1131deaf1faeae4a5ea3340ecbb2716d9c7fb396c3a87585fc26f6ec9a282966.
+Both sanitizer audits retain stable worldd PID/start identity, alive before close, and exit 0 afterward.
+Primary verified all 1031 overlay source files after execution, plus the full unchanged base bundle.
+The first six Debug audits have an identified lifecycle-label/persistence limitation; their raw world logs remain intact.
+Evidence and primary audits on a5500 and each test host:
+/home/dflanag3/spatial-artifacts/m07-revocation-primary-runtime-20261016.
+Read-only failed-image recovery is assigned to a separate san-source-exit-recovery-01 output directory.
+Keep the failed image and original logs. No additional full gate has started.
+Fresh free bytes after focused tests:sb16 50,620,493,824;sb16-2 48,329,170,944.
+
+Storage-contention diagnosis
+Evidence:a5500:/home/dflanag3/spatial-artifacts/m07-d164-storage-contention-diagnosis-20261016.
+The failing native method is test_native_storage_actor_revocation_during_bounded_git_import.
+All 9 retained application pidfds exited within 0.7713 seconds while Git was still active.
+The final barrier had target revision 1, participant_count=2, pending_count=2, applied_revision=0 for both participants.
+The six-second wait starts after the successful Git import reply.
+The final status returned about 52.8 milliseconds beyond that observation deadline.
+That overshoot does not mean the entire delay was 52.8 milliseconds.
+The broker was observed in fdatasync/Btrfs writeback. Its return time was not recorded.
+Workspace and world acknowledgements have independent settlement paths.
+Storage delay alone does not explain both missing acknowledgements.
+A separate f3-based diagnostic branch owns bounded participant-stage logs and failure evidence capture.
+Branch:m07/storage-ack-diagnostics-20261016. No behavior fix or deadline increase is approved.
+
+Separate M08 preparation
+Repair 7bf4f97d050e72488426b7342f3b623d33364d13 is BOX-GIT VERIFIED and unintegrated.
+Primary reviewed all five changed files. Actual source now pins a leaf with O_PATH before opening data.
+It also repairs root lifetime, stale directory checks, handle rollback, and post-effect allocation reporting.
+Debug and ASan/UBSan compilation passed. All M08 runtime regressions remain UNRUN.
+Async file copy, durable operation journal, and actor/broker/cabinet integration remain pending.
+Planning checkpoint b92cc290afa6540627980b6538c11fb96722f705 is separate and unqualified.
+
+Recurring process correction
+Two workers wrote unintended control bytes in authored handoff prose. Raw logs were preserved separately.
+The shared coordination skill now requires control-byte checks before authored-note handoff.
+Skill validation passed. Windows, a5500, and middle-child installed bytes match.
+Installed SKILL.md SHA256:7ecaa0f828cd5c32d32dc6bfe0e2fbb8764b77e1bbc4eb79f1861a7c55c0c763.
+
 Current checkpoint: d164 gates continue; revocation status EOF needs diagnosis; capacity recovered
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
