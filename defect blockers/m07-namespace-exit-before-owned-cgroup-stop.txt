@@ -42,3 +42,10 @@ Implementation and these new checks remain UNRUN at this record's creation.
 Failure evidence on a5500:
 /home/dflanag3/spatial-artifacts/m07-storage-ack-phase-timeline-primary-review-20261016/failure-sb16-SAN-01
 Read RAW_MANIFEST.json and PRIMARY_FAILURE_REVIEW.json.
+
+First correction draft: e133fb2cde6b2457ee2e42b1c209be2acb6cf4db, BOX-GIT VERIFIED, PRIMARY REJECTED.
+Primary found a probe query requiring a child before launch and a poll filter checking the wrong syscall argument.
+The production draft also rejects legal reaped-process events and can misrecord or replace a cleanup error.
+No builds or runtime used that draft. A successor remains required.
+The new ordering regression and the proposed shared-deadline timing check are not qualified.
+External review: m07-owned-stop-before-namespace-wait-20261016/PRIMARY_REVIEW_e133_01.json on a5500.

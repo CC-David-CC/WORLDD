@@ -2655,3 +2655,21 @@ Complete canonical receipts, member inventories, source comparisons, approvals, 
 The redundant prelaunch transfer of an already-frozen script was refused before retirement started.
 Primary preserved that refusal and reused the existing script only after checking its exact SHA.
 No deletion failure or user recovery script was needed.
+
+2026-10-16 cleanup correction review: first draft rejected before build
+
+Draft e133fb2cde6b2457ee2e42b1c209be2acb6cf4db is BOX-GIT VERIFIED but PRIMARY REJECTED.
+It separates ProcessScope termination requests from completion and introduces a shared ApplicationProcess deadline.
+Primary read all six changed files. Static compilation alone did not establish runtime correctness.
+The probe queries direct_child_pid before its prepared scope starts; that violates the method's explicit precondition.
+The poll fault filter checks args[0], the descriptor pointer, instead of args[1], the descriptor count.
+The production poll check also rejects legal exited/reaped event combinations.
+The EINTR deadline path can report errno0. Allocating diagnostic reasons can skip mandatory completion.
+The worker received these concrete findings for a bounded successor on the same task branch.
+No build or runtime test used e133. The real M07 failure remains unresolved.
+No dedicated shared-stop-deadline timing regression was implemented. Keep that limitation explicit.
+External primary review:
+/home/dflanag3/spatial-artifacts/m07-owned-stop-before-namespace-wait-20261016/PRIMARY_REVIEW_e133_01.json
+Primary consulted the Linux pidfd manual for exit/reap readiness:
+https://www.man7.org/linux/man-pages/man2/pidfd_open.2.html
+Full Debug/sanitizer build preparation remains separate and source-pin locked until a successor passes review.

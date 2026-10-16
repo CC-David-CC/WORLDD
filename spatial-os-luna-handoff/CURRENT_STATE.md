@@ -44,6 +44,12 @@ The overwritten capacity-plan draft is preserved as an incident; its superseded 
 Current immutable input is primary-preserved-input-01 under the external next-gate capacity plan.
 A separate Luna worker implements kill-before-wait ordering on m07/owned-stop-before-namespace-wait-20261016.
 Its source base is b2464b3c. Primary review, compilation, and all new runtime checks remain pending.
+Its first draft e133fb2c is BOX-GIT VERIFIED but PRIMARY REJECTED.
+Primary found an invalid pre-start child query and a syscall filter using the wrong argument.
+The draft also rejects legal reaped-process readiness and can misreport or mask cleanup errors.
+No build or runtime used that draft. A bounded successor must fix these findings before compilation.
+The dedicated shared-stop-deadline timing regression remains missing. Do not claim coverage for it.
+Review receipt: external m07-owned-stop-before-namespace-wait-20261016/PRIMARY_REVIEW_e133_01.json.
 
 ## 2026-10-16: Queued copy-status EOF reproduced; production repair is separate
 
