@@ -1,3 +1,42 @@
+## 2026-10-16: Both local M07 gates accepted; cross-host preparation launched
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED.
+The frozen runtime candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+It remains separate from local main. No M08 source entered this deployment.
+
+Both hosts now have accepted full Debug and ASan-UBSan local evidence.
+Each profile passed startup five, harness 51, core 197, locked P10 151, and storage scenarios five.
+Each final profile scan checked 5,965 logs and found no sanitizer diagnostics.
+No mandatory test was skipped.
+sb16 sanitizer pane 3521819 retired after 0/0/COMPLETE.
+sb16 compose pane 3640321 and before-crosshost audit pane 3640671 also retired after 0/0/COMPLETE.
+Primary verified the actual runner arguments, results, source pins, and saved artifact manifests.
+The original failed collector reports remain unchanged. Reviewed amendments remain separate.
+
+Primary accepted local evidence SHA-256:
+sb16: 2ff75060ab187530dcbb1d7ef3a9415c8eecad82737270cde307360964e14a96.
+sb16-2: b2c88c996d931357afc603b1d364131de2ea7d7c04a9068d97982330ccd3e3de.
+Each host retains its receipt under /home/dflanag3/spatial-artifacts/m07-collector-continuation-inputs-20261016/attempt-01/primary-local-full-gate-evidence-accepted-01.json.
+
+The reviewed cross-host planner launched on G164 as pane 3204849.
+Its source checkpoint is def2946914e2126c156178e7cea4adf0b18c0114.
+Its attempt is collector-local-accepted-01.
+Its launch receipt SHA-256 is d657fce38a45b1d53edf4ba7ef4990ceb0f0c357a7e7e8c8abfd0069bd73efbb.
+It rechecks both accepted local proofs and generates the cross-host execution plan.
+Cross-host runtime checks and both after-crosshost artifact audits remain UNRUN at this checkpoint.
+M07 requires those checks and final primary review before qualification.
+
+M08 FileEngine fixture checkpoint 76614f90219186f2c7a500d479efaca29188b5a9 is verified on box-git.
+The foreign-engine request now selects browse and requires a directory reply.
+The focused FileEngine test passed Debug and ASan-UBSan on sb16-2.
+Primary independently verified build receipts, deployed binary hashes, actual test output, and retired runners.
+The allocator calibration triggered. Trash and delete reported no late allocation and safe success.
+These runs did not exercise an injected post-effect allocation failure.
+sb16 focused M08 execution remains UNRUN. Full M08 remains UNQUALIFIED.
+Detailed evidence is external under m08-file-engine-oracle-runtime-20261016 and m08-file-engine-oracle-runtime-repair-20261016.
+The separate broker increment is still under repair and compile checks on middle-child.
+Its combined runtime checks remain UNRUN. M09-M16 remain pending.
+
 ## 2026-10-16: sb16-2 local M07 gate accepted; sb16 sanitizer still running
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED.
