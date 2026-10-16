@@ -1,3 +1,40 @@
+## 2026-10-16: Package verified; both archives verified; deployment in progress
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes earlier packaging and archive observations.
+The 240-second authority rerun remains passing on both hosts.
+Candidate: 1e58e65dec132a0a16f004ca4527034dca081f77. BOX-GIT VERIFIED. UNQUALIFIED.
+Normal preparation returned command 0, wrapper 0, and COMPLETE. Pane PID 3074864 retired.
+Primary verified every archive member and all 1,040 source files against committed Git blobs.
+The package contains 1,379 files. Its compressed size is 1,550,478,247 bytes.
+Its expanded size is 8,703,794,544 bytes.
+Bundle SHA256: 05ac740d7b234e307c4fc69895b30244bb9d4a525698c6772afe115576682cc7.
+All 24 preparation stages passed. Both profiles register 199 tests with the 240-second authority budget.
+Each test profile includes 75 ELF files and 33 bindings. Each production profile includes 28 bindings.
+Compared with fd1, 72 ELF hashes match per profile. Three differ: identityd, workspaced, and worldd.
+The second primary artifact audit passed. Its exact pane PID 3084535 retired with 0/0/COMPLETE.
+The first artifact audit failed because Git ls-tree used a subdirectory as its working directory.
+The corrected audit uses the repository root. Package bytes and gate source did not change.
+
+Both archives passed full source comparison: 35 images on sb16 and 36 on sb16-2.
+Primary also rehashed both actual archives on middle-child. Their combined compressed size is 304,734,973 bytes.
+No source image has been removed. Exact-image retirement remains pending review and execution.
+The archives cover 18,776,322,048 allocated bytes on sb16 and 19,313,197,056 on sb16-2.
+Logs, receipts, and unresolved failure images remain retained.
+
+New deployment root: /home/dflanag3/spatial-artifacts/deployments/m07-1e58e65d/runtime.
+sb16 verify-deploy passed. Its source freeze and artifact audit also passed, with 1,040 files and 55 directories.
+Both sb16 jobs returned 0/0/COMPLETE. Pane PIDs 3396482 and 3396757 retired.
+sb16-2 verify-deploy is running at this checkpoint. Its exact pane PID is 3369087.
+The old fd1 runtime remains retained until its verified replacement permits retirement.
+The full exam has not restarted. Both deployments, capacity recovery, and fresh gate admission remain required.
+
+Evidence under /home/dflanag3/spatial-artifacts on a5500:
+m07-fixture-repaired-gate-preparation-20261016/primary-package-audit-02/PRIMARY_PACKAGE_REVIEW_01.json.
+m07-fixture-repaired-gate-preparation-20261016/deployment-controller-01.
+m07-next-gate-retention-preparation-20261016/review-04/PRIMARY_ARCHIVE_PAIR_REVIEW_01.json.
+The sb16 freeze receipt is deployments/m07-1e58e65d/freeze-audit-01.json on sb16.
+
 ## 2026-10-16:240-second authority rerun passed; final candidate integrated and packaging
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
