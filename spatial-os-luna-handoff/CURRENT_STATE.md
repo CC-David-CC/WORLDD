@@ -19,7 +19,13 @@ The helper currently writes cancellation before pinning the owner lifetime.
 The repair uses the recorded owner pidfd and pins identity before cancellation.
 A separate fixture branch and a pinned test-tool continuation are under primary review.
 Neither changes the frozen production binaries or rewrites accepted local evidence.
-Focused repair tests, recovery checks, and the full cross-host retry remain UNRUN.
+The repaired stop command passed against the exact retained failed roots on both hosts.
+Actual recovery panes 3646400 and 3615329 retired after 0/0/COMPLETE.
+Primary verified exact arguments, source hashes, exit records, and preserved roots.
+Repaired helper SHA-256: cea2a97df65729884b0d7fc4bc19fead3e48ddc93660d9bb12ed94c2c7089a8c.
+Broader lifetime regressions and the full cross-host retry remain UNRUN.
+Each host retains PRIMARY_RECOVERY_AUDIT_01.json under /home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/primary-recovery-01.
+Recovery audit SHA-256: sb16 f0cdaa02e247b9089f4dd55920a01315a2f2b2e7aedd008d7cdb7ab394523651; sb16-2 13d85a00d588ca2396f3b8a3c20d00bd81fd79558ca9c4ef14bcddc5a6d81258.
 Native cross-host jobs, sanitizer semantic cases, workspace cells, and final artifact audits remain UNRUN.
 
 Failed evidence: /home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-local-accepted-01.
@@ -27,7 +33,7 @@ Each host retains the independent lifetime observation under /home/dflanag3/spat
 Observation SHA-256: sb16 ff7c24b749dc3c4a6b8e8dd53765a271fe42c44270c158f09d41d28ad249bb84; sb16-2 5cf05d6b6a4881f7e34ae6f8c2ecce3c048d210bc44835a987d50c0c23482be4.
 
 M08 focused FileEngine checks passed Debug and sanitizer on sb16-2.
-Its broker integration remains isolated and UNQUALIFIED. Reviewed repairs are rebuilding on middle-child.
+Its broker integration remains isolated and UNQUALIFIED. The repaired source is frozen for primary review.
 M09-M16 remain pending.
 
 ## 2026-10-16: Both local M07 gates accepted; cross-host preparation launched

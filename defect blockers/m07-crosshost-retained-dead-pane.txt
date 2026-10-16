@@ -1,6 +1,6 @@
 M07 cross-host owner cleanup confuses retained tmux windows with process lifetime
 
-Status: confirmed fixture defect. Repair and qualification remain pending.
+Status: retained-root stop recovery passed on both hosts. Broader qualification remains pending.
 
 The first frozen-candidate cross-host Debug harness passed all six semantic cases.
 Its cleanup failed after the behavior checks completed.
@@ -29,3 +29,8 @@ Evidence root on sb16:
 /home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-local-accepted-01/semantic/Debug
 Failure files: 0054.stderr, 0056.stderr, cleanup.json, and Debug.launch/stderr.log.
 Related earlier exit-race investigation: m06-crosshost-owner-cleanup-race.txt.
+
+The repaired helper cea2a97d passed the exact retained-root stop on both hosts.
+Recovery panes 3646400 and 3615329 retired after 0/0/COMPLETE.
+The original failed gate reports and roots remain unchanged.
+This focused recovery does not qualify the full cross-host matrix.
