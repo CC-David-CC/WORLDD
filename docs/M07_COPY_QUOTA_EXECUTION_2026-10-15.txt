@@ -2673,3 +2673,45 @@ External primary review:
 Primary consulted the Linux pidfd manual for exit/reap readiness:
 https://www.man7.org/linux/man-pages/man2/pidfd_open.2.html
 Full Debug/sanitizer build preparation remains separate and source-pin locked until a successor passes review.
+
+2026-10-16 accepted cleanup source and standard qualification preparation
+
+Corrected source 4ddf6fc02261422ac0a03f41daaa0d17752e79ad is BOX-GIT VERIFIED and PRIMARY ACCEPTED FOR BUILD.
+Primary read all six files and verified the corrected syscall filter, error handling, and exit/reap event masks.
+The filter checks the x86-64 architecture and both halves of poll/ppoll argument1, the descriptor count.
+It denies only the single-descriptor calls used by namespace waiting; ProcessScope's zero-descriptor tick remains allowed.
+This isolation is source-reviewed. Actual kernel injection remains UNRUN.
+The probe no longer queries an unstarted child. Error formatting occurs after mandatory scope completion.
+The six prior process-termination methods remain unchanged. Two new methods bring the registration to eight methods.
+The new normal wait/exit control does not independently force namespace-leader POLLHUP readiness.
+A dedicated shared-stop-deadline timing counterexample remains missing. Do not claim it passed.
+Primary source review:
+/home/dflanag3/spatial-artifacts/m07-owned-stop-before-namespace-wait-20261016/PRIMARY_REVIEW_4ddf_01.json
+
+Frozen candidate fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e merges accepted 4ddf with reviewed main8f65 documentation.
+All production and test blobs match accepted4dd. Only three maintained status files differ.
+Branch: m07/owned-stop-qualification-candidate-20261016, BOX-GIT VERIFIED.
+Checkout: /home/dflanag3/src/spacial-m07-owned-stop-qualification-candidate-20261016.
+Freeze and push receipts: /home/dflanag3/spatial-artifacts/m07-owned-stop-qualification-candidate-20261016.
+
+Primary first launched a preliminary full-build controller using CMake's default Unix Makefiles generator.
+The normal M07 packaging tool explicitly requires Ninja and also verifies BUILD_TESTING=OFF closure.
+Primary caught that mismatch, recorded the exact process group, and interrupted its Debug compilation before SAN began.
+No source or runtime test failed in that setup correction. No source changed.
+The interrupted outer wrapper has no command.exit, wrapper.exit0, and a stale RUNNING marker.
+Primary confirmed the original process group had no live members. Those receipts are NOT PASS and remain untouched.
+Interrupted attempt and explanation:
+/home/dflanag3/spatial-artifacts/m07-owned-stop-combined-build-20261016/PRIMARY_GENERATOR_CORRECTION_01.json
+Read PRIMARY_INTERRUPTED_RECEIPTS_01.json there too. Keep logs; remove the partial build only after replacement verification.
+
+Current normal preparation:
+/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016
+Tmux session: m07-fd1dccf8-standard-prepare-01. Initial pane PID2837095.
+Canonical run: prepare-command-01. Package attempt: packages/fd1dccf8-prepare-01.
+It invokes the existing m07_deployed_gate.py prepare path with explicit runtime, configure-environment, and build maps.
+The runtime manifest changes only the candidate field from the retained d164 manifest; XACE/EGL/helper pins remain unchanged.
+Ninja Debug configuration passed. Primary observed active Debug compilation at111/350 steps, without compiler errors.
+ASan/UBSan, production-off profiles, binding validation, archive verification, and M07 inventory preflight remain pending.
+Before launch, a5500 had 86,461,534,208 bytes available. The four build directories remain external and separate.
+No new package has been transferred to either test host. No new runtime or full gate has started.
+Focused process, native, and copy selection preparation is a separate bounded worker task.

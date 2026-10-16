@@ -49,3 +49,11 @@ The production draft also rejects legal reaped-process events and can misrecord 
 No builds or runtime used that draft. A successor remains required.
 The new ordering regression and the proposed shared-deadline timing check are not qualified.
 External review: m07-owned-stop-before-namespace-wait-20261016/PRIMARY_REVIEW_e133_01.json on a5500.
+
+Corrected successor 4ddf6fc02261422ac0a03f41daaa0d17752e79ad passed primary source review.
+Frozen qualification candidate fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e includes it without production-code changes.
+Both are BOX-GIT VERIFIED. The original failure remains unresolved until runtime verification.
+The two new core methods cover an independent owned cgroup member and the real application wait/exit path.
+The wait/exit control does not independently force namespace-leader POLLHUP.
+No dedicated shared-stop-deadline timing counterexample exists yet. Do not claim that coverage.
+Standard Ninja preparation is compiling the candidate. All new runtime checks remain UNRUN.

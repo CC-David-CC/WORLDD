@@ -42,14 +42,23 @@ Recheck capacity before transfers or a new gate. Do not infer a permanent storag
 Primary verified all 1031 frozen source files per host and preserved the new failure image.
 The overwritten capacity-plan draft is preserved as an incident; its superseded hashes are invalid.
 Current immutable input is primary-preserved-input-01 under the external next-gate capacity plan.
-A separate Luna worker implements kill-before-wait ordering on m07/owned-stop-before-namespace-wait-20261016.
-Its source base is b2464b3c. Primary review, compilation, and all new runtime checks remain pending.
+A separate Luna worker implemented kill-before-wait ordering on m07/owned-stop-before-namespace-wait-20261016.
+Its source base is b2464b3c. Corrected successor 4ddf6fc0 passed primary source review.
+Frozen candidate fd1dccf8 includes that correction and reviewed status notes on a separate qualification branch.
+It is BOX-GIT VERIFIED. Standard M07 preparation is compiling it on a5500 with Ninja and two compiler jobs.
+The preparation includes Debug, ASan/UBSan, and both production builds with tests disabled.
+All new runtime checks and the replacement full gate remain UNRUN.
 Its first draft e133fb2c is BOX-GIT VERIFIED but PRIMARY REJECTED.
 Primary found an invalid pre-start child query and a syscall filter using the wrong argument.
 The draft also rejects legal reaped-process readiness and can misreport or mask cleanup errors.
 No build or runtime used that draft. A bounded successor must fix these findings before compilation.
 The dedicated shared-stop-deadline timing regression remains missing. Do not claim coverage for it.
 Review receipt: external m07-owned-stop-before-namespace-wait-20261016/PRIMARY_REVIEW_e133_01.json.
+The corrected source review is PRIMARY_REVIEW_4ddf_01.json in the same external directory.
+The normal wait/exit control does not independently force namespace-leader hangup readiness.
+An earlier default-generator build was interrupted for setup correction before sanitizer compilation.
+Its incomplete command receipt is not PASS. Source remained unchanged.
+Current build root: external m07-fd1dccf8-gate-preparation-20261016.
 
 ## 2026-10-16: Queued copy-status EOF reproduced; production repair is separate
 
