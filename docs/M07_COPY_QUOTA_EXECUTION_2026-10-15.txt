@@ -1,3 +1,59 @@
+Current checkpoint: both Debug core suites pass; launcher repair checked into box-git
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Both 076ba423 local exams are terminal. Both passed all 196 Debug core registrations.
+Both passed five production startup checks and 51 harness tests.
+Both then failed P10 setup: 151 ERROR rows attempt to write source/evidence/target-runs.
+Neither full gate reached sanitizer or bounded-storage stages.
+The complete workspace-copy engine and all five fault registrations passed on both hosts.
+
+The P10 evidence-path repair is BOX-GIT VERIFIED:
+8a93f22743f4412715eaf29dbaac1875a03655c6 on m07/p10-external-evidence-repair-20261015.
+It creates fresh private external acceptance directories and forwards SPATIAL_EVIDENCE_DIR through systemd.
+Only P10 receives that variable. Other stages discard inherited acceptance output paths.
+Six new tooling checks and 52 portable existing static checks passed on a5500.
+The full 53-test static suite's remaining case requires a qualification-host name.
+No locked acceptance cases, oracle, schema, or application binary changed.
+Primary reviewed all four changed files. Integration and real acceptance verification remain pending.
+
+Diagnostic preparation root:
+a5500:/home/dflanag3/spatial-artifacts/m07-p10-primary-runtime-verification-20261015.
+The first two diagnostic attempts stopped during pure static fixture setup on both test hosts.
+Attempt01 inherited read-only source file modes into mutable fixtures.
+Attempt02 copied an incomplete subset of fixture inputs and omitted server/base.lock.json.
+These errors came from the primary diagnostic driver. They do not prove a product or repair failure.
+Both attempts returned command 1, wrapper 1, COMPLETE before native P00 or P10 ran.
+Their logs remain at HOST:ROOT/runtime-runs/HOST/attempt-01 and attempt-02.
+A stronger helper owns a bounded successor after these two setup failures.
+It must verify complete fixture inputs and leave deployed source read-only.
+Real P00 and P10 runtime checks remain UNRUN for the correction.
+
+The separate reconciliation Path correction passed three production-validator regressions.
+Commit 20432f79e6e2d5a83a9bd3f7c9b6275c252fbc03 is reviewed and integrated into m07/qualification-integration-20261014.
+That branch is BOX-GIT VERIFIED. Deployed source remains 076ba423; no silent source-pin update occurred.
+The deferred cross-host coordinator passed 44 actual-main controls and five process-overlap controls.
+Primary final review and future-candidate repinning remain pending. Cross-host runtime remains UNRUN.
+
+Historical archive cleanup finished with canonical 0/0/COMPLETE and empty stderr on both hosts.
+Six historical roots and seven fence roots were retired on sb16 after complete archives and fresh guards passed.
+Ten historical roots and seven fence roots were retired on sb16-2 under the same checks.
+The latest two cleanup groups increased free space by about 9.55 GB on sb16 and 14.92 GB on sb16-2.
+Measured free space after cleanup was about 31.71 GB and 28.90 GB respectively.
+Allocated-path totals differ from filesystem recovery where hardlinks retain other references.
+Current deployment receipt, provenance, and all 1029 frozen source-file hashes remained unchanged.
+Current exam logs, failed acceptance evidence, and protected graphics dependencies remain intact.
+Base artifact root B:
+a5500:/home/dflanag3/spatial-artifacts/m07-live-gate-capacity-20261015.
+Archive manifests and full comparisons: B/sb16-historical-archive-01, B/sb16-2-historical-archive-02.
+Their verified removal receipts: B/historical-retirement-02/retire-HOST-outer-01.
+Additional fence archives: B/fence-historical-archive-02/HOST.
+Their verified removal receipts: B/fence-historical-retirement-01/retire-HOST-outer-01.
+The primary corrected an undefined remote refs() call before execution.
+The primary also corrected a host-specific archive-summary assertion before archive execution.
+Original proposals and failure/control evidence remain preserved.
+A read-only capacity audit is locating retained copy fixtures before admitting another full gate.
+
 Current checkpoint: sb16 Debug core passes; P10 setup fails before behavior checks
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.

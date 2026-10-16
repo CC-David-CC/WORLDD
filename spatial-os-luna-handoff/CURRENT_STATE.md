@@ -1,3 +1,26 @@
+## 2026-10-15: Both Debug core suites pass; acceptance launcher correction awaits runtime verification
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Both test hosts passed all 196 Debug core registrations, including the copy engine and all five fault registrations.
+Both then stopped at P10 setup because its output path points inside frozen source.
+Sanitizer and bounded-storage stages remain UNRUN in these full exams.
+
+Repair 8a93f227 is BOX-GIT VERIFIED on its separate task branch.
+Six new checks and 52 portable static checks passed. Locked acceptance tests remain unchanged.
+Two primary diagnostic setups failed before native acceptance ran.
+The first copied read-only modes into mutable fixtures. The second omitted a required fixture input.
+A stronger helper is correcting the complete diagnostic fixture setup.
+Real acceptance verification and repair integration remain pending.
+
+The separate reconciliation Path fix 20432f79 is reviewed, integrated, and BOX-GIT VERIFIED on the milestone branch.
+Both deployed candidates remain frozen at 076ba423.
+Historical archive cleanup recovered about 9.55 GB on sb16 and 14.92 GB on sb16-2 in the latest groups.
+Current deployment pins, failure evidence, and protected graphics dependencies remain intact.
+Cross-host runtime and M07 qualification remain pending.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact evidence and checkpoint locations.
+
 ## 2026-10-15: sb16 Debug core passes; acceptance setup needs external evidence routing
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
