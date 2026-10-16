@@ -1,3 +1,25 @@
+## 2026-10-15: Deployment repaired; focused runtime starts on sb16
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+
+The corrected metadata-only archive passed independent verification and freezing.
+Its 1,882 files include the unchanged 1,025 source files and 41 locked files.
+Only archive provenance changed. The repack reused binaries without rebuilding or duplicating runtime trees.
+Both deployment repairs passed with zero command and wrapper exits.
+Both hosts now have verified Debug/sanitizer runtime closure and 198 registrations per profile.
+The primary reviewed source, payload, metadata, ownership, receipt, and recovery evidence.
+
+The seven-suite focused sequence is live on sb16. Its first workspace-git suite passed.
+Six Debug suites and the sanitizer profile remain pending at this observation.
+sb16-2 focused runtime remains UNRUN while its obsolete deployment retirement controller is corrected.
+The first retirement controller was rejected before deletion. The verified archive and old source remain intact.
+The complete M07 gate remains UNRUN for this candidate.
+
+Source candidate remains a1ceef. Milestone integration remains 706fe47.
+The new pin-consistency validator is separately integrated on maintained main and verified on box-git.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact pins, live handles, and retained evidence.
+
 ## 2026-10-15: Deployment stopped on contradictory helper pins
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

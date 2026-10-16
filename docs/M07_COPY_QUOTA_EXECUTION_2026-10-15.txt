@@ -1,3 +1,65 @@
+Current checkpoint: corrected deployment verified; focused runtime started on sb16
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The metadata-only repack passed independent verification and freezing with command/wrapper exits 0/0.
+The source candidate remains a1ceef3115ed87bedfe5ed70993f6bff5b40d1d5.
+The archive contains 1,882 files, including 1,025 source files and 41 locked files.
+Only provenance.json changed within the archive. Source, binaries, bindings, build IDs, and CTest metadata are unchanged.
+The repack reuses immutable runtime files through hardlinks. It did not run a new build.
+The original failed package and all failed deployment evidence remain preserved.
+
+Corrected package root: a5500:/home/dflanag3/spatial-artifacts/m07-a1ceef31-runtime-pin-repack-20261015.
+Archive bytes: 1,771,602,592.
+Archive SHA: 7c0b30d9e37e9eeb3e5335468e3672def76aa3f246ee694747f3def99c499f82.
+New package pin SHA: 794c5d990468672777d076df7ddc2b0d07edd041ec3aa187dec583033f6bdb7b.
+Inner provenance SHA: a2df3ea945a9b096f6daac8b9584ccff3aab76311ebeda854df8f3305735b9c8.
+Outer provenance SHA: b16c8714b608eaf7e696e848042f270755c35a222e706ff71dd576d603d4e999.
+Canonical receipts: repack-outer-01, verify-outer-01, and freeze-outer-01.
+Primary package acceptance: primary-frozen-package-review-01.json.
+
+Both metadata-only deployment repairs passed with zero command and wrapper exits.
+Both receipts now report verified for Debug and ASan/UBSan with the corrected archive pin.
+Both repairs checked complete payload/source hashes, actual runtime files, metadata normalization, and 198 registrations per profile.
+Both source directories are frozen. Metadata and source ownership remain UID/GID 1000.
+The repair preserves a journal of old metadata and source modes. No helper reinstall or payload transfer occurred.
+Primary review caught root replacement changing metadata ownership before execution.
+The corrected atomic writer preserves UID/GID and mode and rejects symlink targets.
+Those controls and all twenty prior metadata/recovery controls passed with zero exits.
+C02 repair SHA: 2811ec83fa51e73f5d50c0228a0b2b3080e9ef95cb9dd8c492708b32427e1fe1.
+Per-host repair receipts: hosts/HOST/repair-outer-01.
+Journals: hosts/HOST/journal-01.
+Primary replacement acceptance: primary-deployment-review-01.json and primary-deployment-review-HOST-01.json.
+
+The pin-consistency validator is integrated on maintained main at b41cdcb and verified on box-git.
+Seven metadata regression checks passed. The real old manifest rejects exactly four conflicts.
+The corrected manifest passes. Both inputs remain unchanged.
+Actual guard evidence: m07-runtime-manifest-pin-repair-20261015/primary-guard-controls-01/run-01.
+This root-level tool integration does not change the a1 gate source.
+
+The focused Debug sequence is live on sb16. Its workspace-git suite passed with zero exits.
+The remaining six Debug suites and sanitizer profile are pending at this observation.
+Focused runtime root: HOST:/home/dflanag3/spatial-artifacts/m07-a1ceef31-focused-driver-20261015/primary-runtime-dispatch-01.
+Tmux: m07-a1-focused-sb16-01. Controller PID: 2822427. Debug driver PID: 2822459.
+The reviewed driver preserves exact commands, environment, timeouts, and working directories.
+Sequence SHA: eb38984a28de7fdb510cabdaebf5c11882aa0292e53e9342c479cb10fff41ed4.
+sb16-2 focused runtime remains UNRUN while guarded capacity cleanup is prepared.
+Both original helpers remain backed up. No inference service or GitHub publication was used.
+
+The primary independently verified the complete retained b152 archive and all 2,041 member hashes.
+Evidence: m07-retention-20261015/b152-archive-01/primary-archive-audit-02.
+Audit01 preserved an expected tar-root naming mismatch. Audit02 passed with zero exits.
+The b152 deployment remains intact on sb16-2 pending corrected retirement-controller review.
+The first retirement proposal was rejected before execution for a missing variable and incomplete process-reference parsing.
+A bounded correction is in preparation. No deletion ran from that proposal.
+Full-gate capacity will be checked after retirement.
+
+Next: finish the seven focused suites in both profiles on both hosts.
+Then run full Debug, sanitizer, harness, acceptance, storage, cross-host, native, and recovery qualification.
+The complete M07 gate for this candidate remains UNRUN. Focused passes do not qualify M07.
+Milestone integration remains 706fe47. GitHub publication remains deferred.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: deployment stopped on conflicting runtime helper pins
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
