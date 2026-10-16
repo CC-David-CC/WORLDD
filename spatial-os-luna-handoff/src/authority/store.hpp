@@ -16,6 +16,8 @@ class Store {
 public:
     Store(const std::filesystem::path& directory, const v1::Domain& domain, bool initialize, bool migrate = false);
     ~Store();
+    // Trusted adapter accessor; does not authorize a caller or expose records.
+    std::uint64_t revision() const;
     Store(const Store&) = delete;
     Store& operator=(const Store&) = delete;
     // Only explicit trusted domain provisioning may call install_root.

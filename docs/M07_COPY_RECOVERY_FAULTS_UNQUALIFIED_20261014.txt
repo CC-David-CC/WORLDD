@@ -1,0 +1,79 @@
+M07 copy recovery fault source checkpoint. UNQUALIFIED. 2026-10-14.
+
+Host: a5500.
+Checkout: /home/dflanag3/src/spatial-m07-copy-recovery-faults-20261014.
+Branch: m07/copy-recovery-faults-20261014.
+Base: ca2f1900f18445834aefd8d4a028dc9a2393ad1b.
+Owned files: dedicated fault fixture, fault relay, discovery, runner, and CMake registration.
+Production source and acceptance contracts remain unchanged.
+
+Implemented new selectors:
+workspace-copy-lost-publication-ack:
+test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish.
+The relay holds a genuine successful PUBLISHED owner reply.
+The test preserves its exact request and reply bytes externally.
+It kills the verified production broker with a pidfd before releasing the dropped acknowledgment.
+The unresolved VALIDATED publication intent exercises startup reconciliation.
+Fresh actor authentication retries the exact original request.
+Uncertainty remains explicit. Registry publication never follows automatically.
+The test checks exact recovered owner receipts and the unchanged boot/deadline binding.
+It checks one original owner publication and no repeated allocation or worker calls.
+An independent stopped-owner inspection checks the unchanged publication receipt.
+
+workspace-copy-worker-death-recovery:
+test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch.
+A bounded real project supplies 3000 regular files and 12 MiB.
+The monitor requires copied staging bytes before interrupting the actual production helper.
+It matches the durable 32-byte launch ID and cgroup identity to /proc.
+It verifies executable, PID/start identity, boot ID, and cgroup device/inode.
+It signals through the verified pidfd.
+Unresolved worker output must become COPY_UNCERTAIN.
+Restart and byte-identical actor retry must preserve all uncertain effects.
+Stopped-owner inspection must return the same stage identity with UNCERTAIN state.
+The monitor fails if the worker exits before capture. It never substitutes a wrapper.
+
+workspace-copy-hostile-git:
+test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects.
+The test prepares the real Git index before introducing executable configuration.
+It injects hooks, fsmonitor, clean/smudge filters, textconv, and a credential helper.
+The required outcome is PUBLISHED with fresh sanitized independent administration.
+Direct byte witnesses check project preservation and absent host/sandbox effects.
+No test Git oracle runs after malicious configuration is installed.
+
+Existing absolute-deadline and actor-revocation selectors remain selected.
+Discovery and runner expect five unique implemented methods.
+The launcher uses unittest verbose output.
+It requires the actual selected method's named PASS and the single-test terminal count.
+Each new actor exchange retains the five-second bound.
+The copy operation retains its absolute 300-second production budget.
+Fault gates do not rewrite clocks, databases, receipts, or owner authority.
+All relay audits and service logs are copied before fixture cleanup.
+The forwarder half-closes upstream writes before waiting for owner EOF.
+It stays alive while the owner consumes EOF through its pinned peer identity.
+This removes the previous dead-peer race during normal relay shutdown.
+Worker inspection reads the configured owner volume_root and checks its execution-root match.
+Executable device/inode matching avoids assumptions about procfs mount-namespace link spelling.
+
+Selected static checks:
+Python AST syntax and compile without imports or service execution.
+Five literal selectors match implemented fixture methods and CMake entries.
+Git diff whitespace check.
+External evidence:
+a5500:/home/dflanag3/spatial-artifacts/m07-copy-recovery-faults-20261014/static-review.json.
+
+Passed: static syntax and selector inspection only.
+Failed: none observed from static inspection.
+Runtime tests: UNRUN.
+Builds: UNRUN.
+Debug and sanitizer qualification on sb16 and sb16-2: UNRUN.
+Fixture import/protobuf closure discovery on test hosts: UNRUN.
+Full M07 and Spatial-M1 gates: pending.
+This checkpoint does not establish any runtime pass.
+
+Next safe task:
+Review the complete source diff against the current integrated production candidate.
+Build workspace-copy-fault-fixture in an external a5500 build directory after primary assignment.
+Inspect CTest registration with ctest -N.
+Freeze and deploy through the reviewed qualification lane.
+Run all three new selectors on sb16 and sb16-2 in Debug and sanitizer profiles.
+Preserve runtime failures and exact source pins before any correction.

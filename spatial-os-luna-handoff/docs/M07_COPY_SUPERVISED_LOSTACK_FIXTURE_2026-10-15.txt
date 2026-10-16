@@ -1,0 +1,97 @@
+M07 lost-publication-ACK supervised fixture recovery
+Date: 2026-10-15
+Status: UNQUALIFIED. Coding-host pure profile checks passed; real fault runtime remains UNRUN.
+Base: 2e8c16bf8a20a869cfb5c5482d7f4b9e5236fabf.
+Production and protobuf source remain identical to runtime source eb569742f843c59e988e813f3431cf292c516fe7.
+
+The 517fc09b SB16-2 lost-ACK case reached a genuine PUBLISHED storage-owner receipt.
+It sent pidfd SIGKILL, released the receipt, and then waited for broker exit.
+That failed run did not record observed death before release. Replacement startup then failed.
+The issuer correctly returned BUSY: Service already has an active generation; cleanup is required.
+Result SHA256: 04ae9a0e4ec1878c1db026324d522c153d7e9c1fae3d32281af12d991fb8b46a.
+Failed evidence remains under the SB16-2 matrix focused517fc09b-debug-15-lostack directory.
+The original image and logs remain retained. This was not a recovery PASS.
+
+The killed broker and its dependent world both have durable authority generations.
+World server.cpp checks broker liveness before its normal EOF shutdown path.
+Exact broker death can terminate worldd without a clean participant release.
+A fresh connection cannot release another connection's generation.
+Supervisor binding cannot adopt an active generation. Both guards remain unchanged.
+Closing the world before killing the broker would change this crash oracle and is rejected.
+
+Only this lost-ACK fixture now provisions production supervisors before either service activates.
+It uses spatial-authority-supervisor, one real qualified XACE server, sealed native scopes,
+delegated process scopes, and inherited participant channels for both real authority processes.
+The world stays nonnative. Its generic native grant supplies checked scope ownership;
+it does not replace world state or introduce a compositor application into this copy test.
+The actual workspaced PID/pidfd stays distinct from the real supervisor Popen and exit status.
+No broker exit code is inferred or synthesized from a wrapper's exit.
+
+The supervisor receives the exact existing aggregate broker resource template.
+Only production seal_resource_config supplies the required owned delegated_cgroup path.
+The fixture checks the whole input template, normalizes only that path in the expected bound
+configuration, and independently checks actual kernel broker/manager limits and live cgroup identity.
+The broker consumes its sealed FD. The fixture does not claim it rereads those consumed bytes.
+Broker, manager, actor, application, copy, and storage budgets remain unchanged.
+The real root storage owner and deterministic socket relay remain separate and unchanged.
+
+The real PUBLISHED reply stays held while the copy journal has an unresolved VALIDATED intent.
+The fixture still sends SIGKILL through a pidfd bound to the inspected actual broker.
+It requires observed actual broker death before normal-path receipt release and records the ordering.
+An exceptional cleanup release cannot satisfy that normal-path oracle.
+Afterward, both real supervisors must supply their exact generation fences and checked scope cleanup.
+Both process pidfds must witness death. Both process scopes must be absent.
+The real root owner must complete EOF cleanup before any retirement signature.
+
+A durable external cleanup manifest hashes both actual supervisor records and the real relay audit.
+Each referenced cleanup.pb, the root-owner audit copy, and the manifest are fsynced.
+The configured SPATIAL_SECURITY_EVIDENCE root defines the permitted output boundary.
+The fixture validates each output before writing. Evidence may live outside spatial-artifacts.
+File and ancestor directory entries are fsynced through filesystem root before signing.
+This covers these files and directories, not arbitrary filesystem or storage-owner durability.
+The original a83 checkpoint remains preserved; this follow-up corrects its hardcoded evidence anchor.
+Each pre-bound supervisor key signs issuer retirement over that manifest hash.
+The fixture validates each challenge, exact receipt and read-only issuer activation history.
+Only the respective failed generation becomes inactive. No issuer or copy rows are edited.
+The original registered participants, public keys, domains, actor, and world identity remain unchanged.
+Both replacements activate at their own prior generation + 1.
+The clean world initializer can create prior generations; the fixture reads real history instead of assuming 1.
+
+All existing byte-exact retry, UNCERTAIN, unchanged binding, exact owner receipt,
+no repeated effect, one publication, and no registry destination assertions remain intact.
+Five fault method names and all copy, owner, and external deadlines remain unchanged.
+The helper applies to no other fault scenario.
+
+Evidence lives directly in copy_evidence/lostack-{broker,world}-N directories.
+The actual journal/launch.db and WAL remain external from creation.
+Consistent SQLite backup snapshots, private configuration references, process identities,
+initial/cleanup records, retirement receipts, real exits, logs and diagnostic errors are retained there.
+The cleanup callback is registered before native setUp or any owned launch.
+Partial construction closes owned sockets and FDs and requests checked production scope cleanup.
+Snapshot errors stay separate from original behavior failures. No private keys or cookies are copied.
+lost-publication-crash-order.json records the kill/death/release sequence.
+lost-publication-dependent-cleanup.json binds the two real cleanup records and root-owner audit.
+
+Artifact closure adds spatial-authority-supervisor plus explicit launch/native/process bindings.
+The runner checks its actual ELF against the explicit Debug or ASan-UBSan profile before helper changes.
+The closure inventory records dynamic dependencies, transitive generated bindings and source/config files.
+Retain the full existing binding closure and runtime.textproto adjacent to worldd.
+The selected qualified XACE wrapper, server receipt, server ELF and graphics dependencies remain mandatory.
+The old ten-ELF focused bundle alone cannot execute this supervised case.
+No permanent helper installation is introduced.
+
+Preselected checks: the existing strict profile tests and added-supervisor profile regression;
+the exact lost-publication-ACK method on each assigned host/profile after review;
+existing supervisor crash-fencing and issuer retirement controls as required by the closure.
+Build-only Debug and ASan-UBSan checks completed on a5500 with command/wrapper exits 0/0.
+Both incremental target builds reported no work. Supervisor ELF hashes did not change.
+Seven named pure profile tests passed on a5500 in 0.019 seconds; command/wrapper exits were 0/0.
+This was an explicitly authorized coding-host check, not test-host qualification.
+Receipt: /home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/review-02/pure-profile-outer-01.
+Deployment and actual runtime remain UNRUN pending primary review and host assignment.
+No full M07 gate or runtime PASS is claimed by this source increment.
+
+Follow-up evidence-root pure regression: one named method passed on a5500 in 0.002 seconds.
+It exercises the actual durable writer outside spatial-artifacts and rejects an outside output before creation.
+Canonical command/wrapper exits: 0/0. This is UNQUALIFIED coding-host pure evidence.
+Receipt: /home/dflanag3/spatial-artifacts/m07-copy-supervised-lostack-20261015/evidence-root-review-01/outer-01.

@@ -42,6 +42,9 @@ public:
     std::unique_ptr<ApplicationResources> prepare(const workspace::v1::LaunchRequest& request,
         const std::array<std::filesystem::path, 3>& writable_paths);
     std::unique_ptr<GitJobResources> prepare_git_job(std::span<const int> directory_handles);
+    workspace::v1::WorkspaceCopyResourceProfile resolve_copy_profile(const std::string& name,const std::string& application_profile) const;
+    void register_copy_workspace(const std::string& workspace,const workspace::v1::WorkspaceCopyResourceProfile&);
+    bool has_profile(const std::string& name, const std::string& workspace = {}) const;
 private:
     friend class ApplicationResources;
     friend class GitJobResources;

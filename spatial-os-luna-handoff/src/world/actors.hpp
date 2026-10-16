@@ -10,6 +10,7 @@
 #include <functional>
 
 namespace spatial {
+namespace broker_wire = workspace::v1;
 class Surfaces;
 class RenderWorker;
 class BrokerClient;
@@ -28,11 +29,11 @@ public:
     wire::ActorCloseReply close(const std::string& token);
     std::string depart(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
-    wire::RenderScene scene(const std::string& token, bool geometry_only = false);
+    wire::RenderScene scene(const std::string& token, bool geometry_only = false, std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
     identity::v1::ActorGeometryView geometry_view(const std::string& token, const std::string& world_id,
         const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
         std::uint64_t sequence);
-    bool application_observation_valid(const std::string& token);
+    bool application_observation_valid(const std::string& token, std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
     wire::WorldCheckpointReply checkpoint();
     wire::WorldCheckpointReply checkpoint_closed(const std::string& actor_id);
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
@@ -79,7 +80,18 @@ private:
     };
     Actor& authenticated(const std::string& token);
     bool granted(const Actor&, const std::string& right, const std::vector<std::string>& components = {}) const;
-    std::set<std::string> observable_applications(const Actor&, const std::vector<ObservedApplication>&);
+    std::optional<broker_wire::ScopedAuthorityCheckReply> workspace_check(
+        const Actor&, const std::string& workspace, authority::v1::Right right,
+        const std::vector<std::string>& components = {},
+        std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
+    bool workspace_right(const Actor&, const std::string& workspace, authority::v1::Right right,
+                         const std::vector<std::string>& components = {});
+    void validate_presentation_placement(const std::string& room, const wire::Pose& pose, const std::string& exclude_id = {});
+    std::set<std::string> observable_applications(const Actor&, const std::vector<ObservedApplication>&,
+                                                  std::vector<broker_wire::AuthorizationFence>* fences);
+    void validate_authority_fence(const Actor&, const std::vector<broker_wire::AuthorizationFence>&);
+    bool observed_application_current(const Actor&, const ObservedApplication&) const;
+    bool observed_applications_current(const Actor&) const;
     std::string selected_workspace(const Actor& actor);
     void step(double target);
     void refresh_native();

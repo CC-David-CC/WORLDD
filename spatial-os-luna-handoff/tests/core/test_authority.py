@@ -309,6 +309,47 @@ class AuthorityTests(AuthorityFixture):
             db.execute('UPDATE grant_record SET record=? WHERE id=?', (altered.SerializeToString(), child.id))
         self.denied(self.call('check', probe.Check(caller=B, scope=self.scope(), right=pb.WORLD_NAVIGATE)), core.STORAGE_ERROR)
 
+    def test_m07_right_values_are_domain_scoped_and_not_implicit(self):
+        world_rights = tuple(range(pb.WORLD_ENTER, pb.REPRESENTATION_USE + 1))
+        workspace_rights = tuple(range(pb.WORKSPACE_ACCESS, pb.WORKSPACE_COPY_ENVIRONMENT + 1))
+        for right in world_rights:
+            with self.subTest(domain='world', right=right):
+                self.assertFalse(self.allowed(A, right=right))
+        root = self.root(self.terms(rights=world_rights, delegable=(), depth=0))
+        for right in world_rights:
+            self.assertTrue(self.allowed(A, right=right))
+
+        self.stop(); self.state = self.directory/'workspace-rights'; self.state.mkdir(mode=0o700)
+        self.domain = pb.Domain(kind=pb.WORKSPACE, id='workspace-one'); self.revision = 0; self.start(True)
+        fresh = self.call('check', probe.Check(caller=A, scope=self.scope(), right=workspace_rights[0]))
+        self.assertEqual(fresh.WhichOneof('outcome'), 'decision', fresh)
+        self.assertEqual(fresh.decision.revision, 0)
+        self.assertFalse(fresh.decision.allowed)
+        for right in workspace_rights:
+            with self.subTest(domain='workspace', right=right):
+                self.assertFalse(self.allowed(A, right=right))
+        self.root(self.terms(rights=workspace_rights, delegable=(), depth=0))
+        self.assertEqual(self.revision, 1)
+        for right in workspace_rights:
+            self.assertTrue(self.allowed(A, right=right))
+
+    def test_workspace_create_is_reserved_to_registry_and_unknown_rights_fail(self):
+        self.stop(); self.state = self.directory/'ordinary-workspace'; self.state.mkdir(mode=0o700)
+        self.domain = pb.Domain(kind=pb.WORKSPACE, id='workspace-one'); self.start(True)
+        ordinary = self.terms(rights=(pb.WORKSPACE_CREATE,), delegable=(), depth=0)
+        self.denied(self.call('install', probe.Install(terms=ordinary, expected_revision=self.revision)), core.INVALID_ARGUMENT)
+        self.denied(self.call('install', probe.Install(terms=self.terms(rights=(99,), delegable=(), depth=0),
+                                                       expected_revision=self.revision)), core.INVALID_ARGUMENT)
+        self.stop(); self.state = self.directory/'workspace-registry'; self.state.mkdir(mode=0o700)
+        self.domain = pb.Domain(kind=pb.WORKSPACE, id='workspace-registry'); self.start(True)
+        root = self.root(self.terms(rights=(pb.WORKSPACE_CREATE,), delegable=(), depth=0))
+        self.assertTrue(self.allowed(A, right=pb.WORKSPACE_CREATE))
+        self.denied(self.call('install', probe.Install(terms=self.terms(scope=self.scope(b'child'),
+                                                       rights=(pb.WORKSPACE_CREATE,), delegable=(), depth=0),
+                                                       expected_revision=self.revision)), core.INVALID_ARGUMENT)
+        self.denied(self.call('install', probe.Install(terms=self.terms(rights=(pb.WORKSPACE_ACCESS,), delegable=(), depth=0),
+                                                       expected_revision=self.revision)), core.INVALID_ARGUMENT)
+
     def test_workspace_rights_remain_independent(self):
         self.stop(); self.state = self.directory/'workspace'; self.state.mkdir(mode=0o700)
         self.domain = pb.Domain(kind=pb.WORKSPACE, id='workspace-one'); self.start(True)

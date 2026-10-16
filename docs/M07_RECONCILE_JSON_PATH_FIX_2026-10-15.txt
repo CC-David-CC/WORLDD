@@ -1,0 +1,31 @@
+M07 reconciliation JSON path correction
+Date: 2026-10-15
+Status: UNQUALIFIED. Runtime and test-host execution remain UNRUN.
+
+The M06 report stores local-run paths as JSON strings.
+M07 reconciliation passed the sb16 string directly to m06.sha.
+That helper requires pathlib.Path and calls path.open.
+Every otherwise valid reconciliation therefore raised AttributeError before checking workspace rows.
+
+The correction constructs Path at that call site.
+It preserves the raw file hash, expected hash comparison, and every acceptance condition.
+It changes no acceptance contract, locked test, schema, or runtime component.
+
+Selected receipt-only checks were recorded before execution in the external CHECK-PLAN.md.
+The new test_m07_reconcile_paths.py exercises three actual production-validator paths:
+- A JSON string local-run path reconciles four valid synthetic workspace rows.
+- Changed local receipt bytes fail the existing sb16 hash check.
+- Changed workspace log bytes fail the existing workspace receipt/log check.
+
+The unchanged baseline failed all three with the reproduced AttributeError.
+The corrected source passed all three. No runtime process or host transport was invoked.
+Original and corrected canonical runner receipts are retained externally:
+/home/dflanag3/spatial-artifacts/m07-crosshost-resume-primary-repair-20261015/path-runs/original-01
+/home/dflanag3/spatial-artifacts/m07-crosshost-resume-primary-repair-20261015/path-runs/fixed-01
+
+Original stderr SHA-256: ae77aa36f91a36b2337d0e588ebb3b4005bcf65e9bc3a744898445e0cb0b3498
+Corrected stderr SHA-256: 85100f84ff02bd1ad77cb2dbce508e823cf49d20d211ac467c3e762119148630
+
+Primary review must assess this separate tooling correction before integration or deployment.
+Existing deployed source pins cannot silently include it.
+The frozen coordinator source worktree remains unchanged at 076ba423c2864bdd0d93a07d89d49032808d2cae.

@@ -1,0 +1,74 @@
+M07 execution schema v7 to v8 migration regressions
+Date: 2026-10-14
+
+Scope
+
+This focused test set exercises stopped execution-registry v7 to v8 migration through the production `workspaced` executable. It does not change production code, schemas, migration contracts, or locked acceptance tests. The reviewed review03 behavior remains, with the diagnostic-oracle strengthening described below.
+
+Source contract
+
+- `src/workspace/store.cpp:258-309` contains startup refusal, integrity checks, the explicit v7-to-v8 transaction, creation of the two configured-state tables, and marking old active copy operations UNCERTAIN.
+- `src/workspace/copy_journal.cpp:412-425` defines copy-journal schema v6, including `authorization_binding`, `copy_effects`, and its pending index.
+- `src/workspace/main.cpp:167-193` parses `--migrate-v7`, requires stopped operation, and exits after migration.
+- `proto/spatial/workspace/copy/v1/copy.proto:40-49` defines the request used by retained journal rows.
+
+The fixture creates the historical v7 schema directly. It does not relabel a v8 database. It retains repositories, worktrees, operations, removals, workspaces, members, processes, copy policies, journal records, and external-effect records. It includes active phases 1 through 6 and terminal phases 7 through 9. Request bytes use generated `copy_pb2` serialization.
+
+Named regressions
+
+- `test_v7_fixture_matches_historical_shape_and_retains_all_rows`: verifies the historical tables and journal columns, without v8 tables.
+- `test_ordinary_startup_and_wrong_version_flags_refuse_without_mutation`: default startup and mismatched v5/v6 flags preserve schema, rows, and version.
+- `test_exact_v7_migration_adds_only_schema8_tables_and_preserves_journal`: adds only the two v8 tables, preserves legacy rows and effects, marks phases 1–6 UNCERTAIN/COPY_UNAVAILABLE, and preserves terminal rows.
+- `test_repeated_migration_is_idempotent_and_normal_startup_reopens`: repeats migration and verifies normal startup exits zero at EOF without logical database changes.
+- `test_foreign_key_corruption_refuses_without_partial_migration`: rejects invalid foreign keys before mutation.
+- `test_migration_ddl_conflict_rolls_back_first_schema8_table`: verifies transaction rollback when the second v8 table conflicts.
+
+Focused Debug result
+
+The reviewed review03 source ran on sb16-2 against the BUILD_TESTING=OFF Debug `workspaced` artifact built from engine checkpoint `02bb2921ec371a22eaf998b764cc578458fac7a2`. The test source base is `325e6e8f9842232cb3752fa4e0dd8e1487c65cb2`.
+
+Result: 6 tests passed in 1.784 seconds. Five methods exercised the production executable. One method validated only the fixture shape. The five executable scenarios made nine subprocess invocations. The raw unittest output ended with `Ran 6 tests in 1.784s` and `OK`. Canonical command and wrapper exits were both zero. No matching processes remained after the run.
+
+`ASAN_OPTIONS=detect_leaks=1` and `UBSAN_OPTIONS=halt_on_error=1` remained set for this Debug run. This is not sanitizer coverage. The binary was a normal Debug build.
+
+Immutable artifacts
+
+The review03 test source SHA-256 is `27fdde2446d192d4b00b58ab673e0efcf99b6db67c562cfb35622f5b74b5a806`. The documentation SHA-256 before this result update was `662cb936f8ca3944e19f304b81b52c74c6cd1ed010960232c8b1dc20129e7d1a`.
+
+The immutable v2 bundle is at `/home/dflanag3/spatial-artifacts/m07-execution-v7-migration-20261014/review03-static-v2` on a5500 and sb16-2. Its metadata SHA-256 is `9bf57c06824960fe66298430342db578c576b2bbb9a72ab05fd429c4cd3e2eb8`. Its files are read-only; `bin/workspaced` is mode 0555. The binary SHA-256 is `7c4e73e780ed2187b28551a936a4c75e66a26e0eccc49fa2f2d06d598dd3c923`. The paired generated `python/copy_pb2.py` SHA-256 is `c9c65c8638755601aa1845bb2cc4bac6013cab3c5f819d179b8f59b042914086`.
+
+The target static preflight checked exact payload hashes, file and directory modes, `os.access(workspaced, X_OK)`, the test module's executable path mapping, generated-binding import, and six-name discovery. Target `ldd` resolved SQLite, OpenSSL, protobuf, C++ runtime, libc, math, and zlib dependencies. Fixture execution was not part of the preflight. Its canonical run directory is `/home/dflanag3/spatial-artifacts/runs/m07-execution-v7-static-preflight-review03-v2`; command and wrapper exits were zero. Preflight stdout SHA-256 is `7eba7d0f0d460dd915dda15109d36075fe9bcdcde6ad216917c08cc8e4256b2f`.
+
+The focused runtime tmux session was `m07-execution-v7-migration-review03-debug-sb16-2-v2`. Its canonical run directory is `/home/dflanag3/spatial-artifacts/runs/m07-execution-v7-migration-review03-debug-sb16-2-v2`. The command receipt SHA-256 is `f8721ef94619fd84788e2b460cbad51409c1c82b208b6437412dc473c693ea72`. The argv receipt SHA-256 is `5a10f1cb829c6d82c714ac0b4f176be625ae5b40793f7579b1cc77b7e6695851`. Both exit receipt files contain zero and hash to `9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa`. Stderr SHA-256 is `9ffddaced740eb67e7ff0bccef7d432ad7414c250dfd78eb3b923fc519b9f5d1`; stdout is empty.
+
+Setup failure retained
+
+The first v1 bundle preserved the same executable bytes with mode 0444. Its six-test attempt had one fixture-only pass and five `PermissionError` errors before any executable process launched. The command and wrapper exited one. That packaging setup failure did not exercise migration behavior. The original run remains at `/home/dflanag3/spatial-artifacts/runs/m07-execution-v7-migration-review03-debug-sb16-2`; its five failed fixture databases and logical snapshots remain mode 0600 under `/home/dflanag3/spatial-artifacts/evidence/m07-execution-v7-migration-review03-debug-sb16-2/failures/`. Bundle v1 remains unchanged. Bundle v2 corrected only the executable permission and passed static mode preflight before the successful retry.
+
+CMake registration proposal
+
+`workspace-execution-v7-migration` is registered inside the existing `BUILD_TESTING` block beside `workspace-copy-journal-migration`. It invokes the reviewed six-case script with `${Python3_EXECUTABLE} -B` and passes `$<TARGET_FILE:workspaced>`. The test environment adds the build Python directory and source root to `PYTHONPATH`, disables bytecode writes, and points failure snapshots at `${CMAKE_CURRENT_BINARY_DIR}/execution-v7-migration-evidence`. Its timeout is 60 seconds, matching the existing migration registration.
+
+`workspace-execution-v7-migration-artifacts` is an explicit build target for `workspaced` and `workspace-copy-python-protobuf`. The latter owns generated `python/copy_pb2.py`. Build that target before running `ctest -R '^workspace-execution-v7-migration$'`. The CTest registration does not build prerequisites itself. Its environment also enables ASan leak detection with abort-on-error and UBSan halt-on-error with stack traces. Every captured `workspaced` invocation checks stdout and stderr for AddressSanitizer, LeakSanitizer, UndefinedBehaviorSanitizer, and `runtime error:` diagnostics after recording its output, including expected-rejection and timeout cases.
+
+The sanitizer-diagnostic oracle and strict sanitizer environment were configured and built in fresh external Debug and ASan/UBSan directories. Only `workspace-execution-v7-migration-artifacts` was built. Both builds completed 103 Ninja steps with command and wrapper exits zero. `ctest -N -R '^workspace-execution-v7-migration$'` listed one test in each build. No test ran on a5500.
+
+Build preparation evidence
+
+The source overlay is based on branch `m07/execution-v7-migration-tests-20261014`, HEAD `709586698d95092979ed86410fd7bb905a22064a`. It changes only `CMakeLists.txt`, this document, and `tests/core/test_m07_execution_migrations.py`. The original review03 test SHA-256 was `27fdde2446d192d4b00b58ab673e0efcf99b6db67c562cfb35622f5b74b5a806`; the current source adds only the sanitizer-output oracle.
+
+External build directories are `/home/dflanag3/spatial-artifacts/m07-execution-v7-migration-20261014/builds/debug` and `.../builds/sanitizer`. Both used Ninja, `BUILD_TESTING=ON`, and `SPATIAL_INPUT_TESTS=ON`, with `CMAKE_BUILD_TYPE=Debug`; `SPATIAL_SANITIZERS` was OFF and ON respectively. The build command was `cmake --build <profile-dir> --target workspace-execution-v7-migration-artifacts -j2`. Canonical run receipts are under `.../runs/configure-debug-v3`, `.../runs/configure-sanitizer`, `.../runs/build-debug`, and `.../runs/build-sanitizer`. All four commands completed with command/wrapper exits zero. Each artifact target built 103 steps.
+
+Debug `workspaced` SHA-256 is `9c7930e8c151de60f601f0c5f62a70bf6d52b7b93c6c9cab34c6d78f1ba8067f`; sanitizer `workspaced` is `84675a70b1760198518b4a1cea68d3ed27680d83593a1e596c62f1875aca81ca`. Both generated `python/copy_pb2.py` files hash to `c9c65c8638755601aa1845bb2cc4bac6013cab3c5f819d179b8f59b042914086`. The generated binding directly imports protobuf builder, descriptor, descriptor-pool, and symbol-database modules. No binding import or test was executed on a5500.
+
+The sanitizer link command contains `-fsanitize=address,undefined`; `ldd` resolves `libasan.so.8` and `libubsan.so.1`. CTest's generated test command passes `-B`, the built `workspaced`, and `PYTHONPATH=<build>/python:<source>`. The environment includes `PYTHONDONTWRITEBYTECODE=1`, the external failure-evidence directory, `ASAN_OPTIONS=detect_leaks=1:abort_on_error=1`, and `UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`. Timeout is 60 seconds. CTest `-N` inventory receipts under `.../runs/ctest-n-debug` and `.../runs/ctest-n-sanitizer` each list test #17 only; neither command executed it.
+
+Runtime package proposal
+
+For later primary review, package each profile's `workspaced`, the matching generated `copy_pb2.py`, the current test script, and a manifest containing the source-overlay hashes and the CTest argv/environment above. Retain host Python 3.12, protobuf runtime, and the ELF `ldd` dependency closure on the test host. Keep each profile's evidence directory separate. This is a proposal only. Nothing was transferred or deployed after the CMake and diagnostic-oracle changes. The prior sb16-2 6/6 result applies only to the original review03 test hash, not the strengthened source.
+
+Configure, artifact-target build, and CTest inventory are preparation evidence. No test ran in either build profile. The CMake registration and updated oracle still need runtime validation on sb16 and sb16-2; sanitizer coverage and the combined M07 gate remain pending.
+
+Pending qualification
+
+The earlier result is FOCUSED-PASS for six Debug cases on sb16-2 using the original review03 test source only. The current CMake registration and strengthened test source still require runtime validation on both hosts. Sanitizer runtime and the combined Debug, sanitizer, and cross-host M07 phase gate remain pending. This focused result does not qualify the milestone.

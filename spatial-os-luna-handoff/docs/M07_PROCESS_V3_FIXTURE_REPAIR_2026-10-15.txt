@@ -1,0 +1,10 @@
+M07 process v3 migration fixture (UNQUALIFIED)
+
+The fixture labeled a schema-8 database as v3 but retained schema-7 and schema-8 tables.
+Production migration correctly attempted to create those future tables.
+Reconstruct the exact six-table v3 shape before requesting migration.
+Preserve all legacy rows, the completed-process restart check, and workspace lookup after migration.
+Check final schema 8 and preserved rows after both explicit migration calls.
+Close fixture SQLite descriptors after each inspection.
+Selected runtime checks: workspace-processes and related journal migration, Debug and ASan/UBSan, on both hosts.
+Runtime remains unrun at this checkpoint. No production or locked acceptance changes.

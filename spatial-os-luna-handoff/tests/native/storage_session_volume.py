@@ -9,20 +9,22 @@ import subprocess
 import sys
 import uuid
 from google.protobuf import text_format
+from storage_session_paths import validate_fixture_root
 
 assert os.getuid() == 0 and socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
-operation, build, root = sys.argv[1:4]
-build, root = Path(build).resolve(strict=True), Path(root).resolve(strict=True)
-assert root.name.startswith('test_native_storage_')
-fixture_local = (Path(__file__).resolve().parents[2] / 'local').resolve(strict=True)
-assert root.is_relative_to(fixture_local)
-assert not root.is_symlink()
+operation, build, requested_root, requested_evidence_root = sys.argv[1:5]
+build = Path(build).resolve(strict=True)
+operator = pwd.getpwnam('dflanag3')
+root = validate_fixture_root(
+    socket.gethostname().split('.')[0], requested_evidence_root,
+    requested_root, operator.pw_uid
+)
 sys.path.insert(0, str(build/'python'))
 import broker_pb2 as broker
 import storage_pb2 as storage
 import process_scope_pb2 as process
 
-operator = pwd.getpwnam('dflanag3'); mib = 2**20
+mib = 2**20
 image, volume, receipt = root/'volume.img', root/'volume', root/'volume-setup.json'
 os.umask(0o077)
 
@@ -41,15 +43,15 @@ def save():
 
 
 if operation == 'prepare':
-    assert len(sys.argv) in (5,7) and not receipt.exists() and not image.exists() and not volume.exists()
+    assert len(sys.argv) in (6,8) and not receipt.exists() and not image.exists() and not volume.exists()
     volume_bytes = 512*mib
-    if len(sys.argv)==7:
-        assert sys.argv[5]=='--volume-bytes' and sys.argv[6].isdecimal()
-        volume_bytes=int(sys.argv[6])
+    if len(sys.argv)==8:
+        assert sys.argv[6]=='--volume-bytes' and sys.argv[7].isdecimal()
+        volume_bytes=int(sys.argv[7])
         assert 512*mib<=volume_bytes<=4*1024*mib and volume_bytes%mib==0
     record = dict(status='preparing', mounted=False, loop=None, policy_directory=None, commands=[])
     save()
-    original = Path(sys.argv[4]).resolve(strict=True)
+    original = Path(sys.argv[5]).resolve(strict=True)
     assert original.stat().st_uid == operator.pw_uid and original.stat().st_size <= 65536
     config = broker.BrokerProcessConfig()
     text_format.Parse(original.read_text(), config)
@@ -103,8 +105,8 @@ if operation == 'prepare':
     except BaseException as error:
         record.update(status='failed', failure=repr(error)); save(); raise
 elif operation == 'inspect':
-    assert len(sys.argv) == 6 and receipt.stat().st_uid == 0 and receipt.stat().st_size <= 65536
-    record = json.loads(receipt.read_text()); unit, broker_pid = sys.argv[4:6]
+    assert len(sys.argv) == 7 and receipt.stat().st_uid == 0 and receipt.stat().st_size <= 65536
+    record = json.loads(receipt.read_text()); unit, broker_pid = sys.argv[5:7]
     assert re.fullmatch(r'spatial-storage-owner-[a-f0-9]{32}\.service', unit)
     assert broker_pid.isdecimal() and int(broker_pid) > 1
     state = run(['systemctl', 'show', unit, '-p', 'MainPID', '-p', 'ActiveState', '-p', 'ExecStart'])
@@ -115,7 +117,7 @@ elif operation == 'inspect':
     record['owner_witness'] = dict(unit=unit, owner_pid=pid, broker_pid=int(broker_pid), broker_pidfd=handles)
     save()
 elif operation == 'cleanup':
-    assert len(sys.argv) == 4 and receipt.stat().st_uid == 0 and receipt.stat().st_size <= 65536
+    assert len(sys.argv) == 5 and receipt.stat().st_uid == 0 and receipt.stat().st_size <= 65536
     record = json.loads(receipt.read_text())
     source = subprocess.run(['findmnt', '--mountpoint', str(volume), '-n', '-o', 'SOURCE'], capture_output=True, text=True)
     if source.returncode == 0:

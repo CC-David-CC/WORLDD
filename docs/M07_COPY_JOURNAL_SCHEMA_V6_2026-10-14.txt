@@ -1,0 +1,9 @@
+# M07 copy journal schema v6
+
+Schema v6 adds a private authorization_binding blob to every copy operation. Production admission stores the exact authenticated requester, exact serialized request digest, source authority incarnation and epoch, source policy revision, and validated owner catalog/profile reply in this column. Phase transitions cannot overwrite it. The existing phase_payload remains mutable transition evidence.
+
+Fresh databases and explicit migrations from v1 through v4 create schema v6. Schema v5 requires a stopped migration: workspaced --state-dir PATH --migrate-v5. The migration adds the binding column as empty for existing records. It preserves PUBLISHED and ABORTED records. It converts unfinished v5 records to UNCERTAIN with COPY_UNAVAILABLE because v5 has no trusted admission binding. It does not synthesize one. Rerunning --migrate-v5 against schema v6 is an idempotent no-op.
+
+An empty binding marks a legacy record for explicit inspection. It cannot be resumed or used to publish. New production operations require a validated binding before REQUESTED is durable. The binding is immutable across phase transitions and process restarts. SQLite does not make storage, filesystem, Git, or process effects atomic.
+
+Manifest classes bind to their registered object kind and version-1 schema: spatial.workspace.project-tree, spatial.workspace.git-history, spatial.workspace.application-definition, spatial.workspace.application-state, and spatial.workspace.environment-config. Project and Git history remain mandatory. Other classes are optional and require their own source authority.

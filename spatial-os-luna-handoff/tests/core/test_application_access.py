@@ -56,6 +56,7 @@ class Broker(workspace.BrokerProcess):
         finally:
             child.close()
             if fd is not None: os.close(fd)
+        self.initialize_transport(world_channel_opt_in=False)
         fixture.brokers.append(self)
         self.call('system.hello')
 
@@ -169,6 +170,7 @@ class ApplicationAccessTests(workspace.WorldIdentityFixture):
         result = self.broker.request(revoke=pb.GrantRevokeRequest(workspace='one', principal=principal,
             id=record.id, expected_revision=page.revision))
         self.assertTrue(result.HasField('grant'), result)
+        return result.grant
 
     def finish_application(self, app):
         (self.data(app)/'release').touch()

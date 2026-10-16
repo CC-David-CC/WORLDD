@@ -45,7 +45,113 @@ def exact(fd,count,timeout=90,deadline=None):
     return bytes(result)
 
 
+class BrokerPersistentTlsWorld(baseline.PersistentTlsWorld):
+    def __init__(self, fixture, local, broker, native=False, address='127.0.0.1'):
+        self.sequence = 0
+        self.peers = []
+        self.state_path = local.state_path
+        self.config_path = local.config_path
+        self.runtime_path = local.runtime_path
+        self.native = native
+        self.proc = None
+        self.log = None
+        self.server_key = None
+        self.server_cert = None
+        self.address = None
+        self.port = None
+        self.broker_channel = None
+        self.close_started = False
+        self.listener = None
+        fixture.addCleanup(self.close)
+        try:
+            number = len(fixture.worlds)
+            self.log = (fixture.root / f'workspace-shared-world-{number}.log').open('wb')
+            self.server_key, self.server_cert = fixture.certificate(
+                f'workspace-shared-server-{number}', 'world.test')
+            tls = session.WorldActorTlsConfig(protocol_version=1,
+                certificate_path=str(self.server_cert), private_key_path=str(self.server_key),
+                client_ca_path=str(fixture.service_cert), io_timeout_ms=5000,
+                idle_timeout_ms=3000, connection_limit=16)
+            path = fixture.root / f'workspace-shared-tls-{number}.textproto'
+            path.write_text(text_format.MessageToString(tls))
+            path.chmod(0o600)
+            self.listener = socket.socket()
+            self.listener.bind((address, 0))
+            self.listener.listen(16)
+            self.address, self.port = self.listener.getsockname()
+            channel, self.broker_channel, owned = baseline.WorldProcess.workspace_channel(broker)
+            try:
+                broker_pid = getattr(broker, 'pid', None)
+                if broker_pid is None:
+                    broker_pid = broker.proc.pid
+                command = [str(baseline.WORLD), '--state-dir', str(self.state_path),
+                    '--identity-config', str(self.config_path), '--config', str(self.runtime_path),
+                    '--actor-listen-fd', str(self.listener.fileno()), '--actor-tls-config', str(path),
+                    '--workspace-fd', str(channel.fileno()), '--workspace-pid', str(broker_pid)]
+                if native:
+                    command += ['--display', os.environ['SPATIAL_TEST_DISPLAY']]
+                self.proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                    stderr=self.log, pass_fds=(self.listener.fileno(), channel.fileno()))
+            finally:
+                if owned:
+                    channel.close()
+                self.listener.close()
+                self.listener = None
+        except BaseException as setup_error:
+            try:
+                self.close()
+            except BaseException as cleanup_error:
+                raise RuntimeError('World setup and cleanup failed: ' + repr(cleanup_error)) from setup_error
+            raise
+
+    def close(self):
+        if self.close_started:
+            return
+        self.close_started = True
+        failures = []
+        def attempt(label, operation):
+            try:
+                operation()
+            except BaseException as error:
+                failures.append((label, repr(error)))
+        for peer in reversed(self.peers):
+            attempt('peer close', peer.close)
+        self.peers.clear()
+        if self.listener is not None:
+            attempt('listener close', self.listener.close)
+            self.listener = None
+        process = self.proc
+        if process is not None:
+            if process.poll() is None and process.stdin is not None:
+                attempt('stdin close', process.stdin.close)
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                attempt('process kill', process.kill)
+                try:
+                    process.wait(timeout=3)
+                except BaseException as error:
+                    failures.append(('process reap', repr(error)))
+            except BaseException as error:
+                failures.append(('process wait', repr(error)))
+            if process.returncode != 0:
+                failures.append(('world exit status', repr(process.returncode)))
+            for name in ('stdin', 'stdout', 'stderr'):
+                stream = getattr(process, name, None)
+                if stream is not None and not stream.closed:
+                    attempt(name + ' close', stream.close)
+        if self.broker_channel is not None:
+            attempt('broker channel close', self.broker_channel.close)
+            self.broker_channel = None
+        if self.log is not None and not self.log.closed:
+            attempt('log close', self.log.close)
+        if failures:
+            raise AssertionError('Persistent TLS world cleanup failures: ' + repr(failures))
+
+
 class NativeCrossHostTests(baseline.SharedWorldStateTests):
+    workspace_witness = False
+
     def setUp(self):
         self.authority_host=socket.gethostname().split('.')[0]
         self.observer_host=os.environ['SPATIAL_GEOMETRY_OBSERVER_HOST']
@@ -58,10 +164,27 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.remote_python=Path(os.environ['SPATIAL_GEOMETRY_REMOTE_PYTHON'])
         self.assertTrue(self.remote_source.is_absolute() and self.remote_bin.is_absolute() and self.remote_python.is_absolute())
         super().setUp();self.enroll_second()
+        if self.workspace_witness:
+            self.witness_actors=[]
+            for name in ('third','fourth'):
+                key,public=self.key(name)
+                record=self.decide(self.owner_peer,self.enroll(self.owner_peer,
+                    self.intent(public=public),key,public)).enrollment
+                claims=self.claims(record,self.info)
+                setattr(self,name+'_key',key);setattr(self,name+'_public',public)
+                setattr(self,name+'_record',record);setattr(self,name,claims)
+                self.witness_actors.append((key,public,record,claims))
         self.active_worlds={};self.owners={};self.observation_grants={}
+        if self.workspace_witness:
+            self.brokers=[]
+            self.addCleanup(self.close_workspace_witness_brokers)
         for name,native in (('a',False),('b',True),('denied',False)):
-            local=self.scoped_world(authenticate=False);local.close()
-            world=baseline.PersistentTlsWorld(self,local,native=native,address=self.address)
+            if self.workspace_witness and name == 'b':
+                local=self.workspace();local.close();self.worlds.remove(local)
+                world=BrokerPersistentTlsWorld(self,local,self.broker,native=native,address=self.address)
+            else:
+                local=self.scoped_world(authenticate=False);local.close()
+                world=baseline.PersistentTlsWorld(self,local,native=native,address=self.address)
             self.worlds.append(world);world.management('system.hello')
             self.active_worlds[name]=world
             peer=world.connect(self)
@@ -76,6 +199,19 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
                 observe=self.delegate(peer,parent,self.terms(self.second,rights=(grants.WORLD_OBSERVE,),depth=0))
                 self.assertTrue(entry.HasField('grant'),entry);self.assertTrue(observe.HasField('grant'),observe)
                 self.observation_grants[name]=observe.grant
+                if self.workspace_witness and name == 'b':
+                    view=self.delegate(peer,parent,self.terms(self.second,rights=(grants.REPRESENTATION_VIEW,),depth=0))
+                    self.assertTrue(view.HasField('grant'),view)
+                if self.workspace_witness and name in ('a', 'b'):
+                    for _, _, _, actor_claims in self.witness_actors:
+                        for rights in ((grants.WORLD_ENTER,grants.WORLD_NAVIGATE),
+                                       (grants.WORLD_OBSERVE,), (grants.REPRESENTATION_VIEW,)):
+                            delegated=self.delegate(peer,parent,self.terms(actor_claims,rights=rights,depth=0))
+                            self.assertTrue(delegated.HasField('grant'),delegated)
+                if self.workspace_witness and name == 'b':
+                    for actor_claims in (self.second, self.third):
+                        workspace_grant = self.grant_workspace_access(peer, actor_claims)
+                        self.assertTrue(workspace_grant.HasField('grant'), workspace_grant)
         self.host_sequence=0;self.witness_sequence=0;self.generation=0
         self.capture_count=0;self.reply_count=0
         self.evidence=Path(os.environ['SPATIAL_GEOMETRY_EVIDENCE'])/self._testMethodName
@@ -83,6 +219,23 @@ class NativeCrossHostTests(baseline.SharedWorldStateTests):
         self.addCleanup(self.save_evidence)
         self.start_observer()
         self.initial_processes=self.exchange(identity=True).processes
+
+    def close_workspace_witness_brokers(self):
+        failures = []
+        worlds, self.worlds = self.worlds, []
+        brokers, self.brokers = self.brokers, []
+        for world in reversed(worlds):
+            try:
+                world.close()
+            except BaseException as error:
+                failures.append(('world', repr(error)))
+        for broker in reversed(brokers):
+            try:
+                broker.close()
+            except BaseException as error:
+                failures.append(('broker', repr(error)))
+        if failures:
+            raise AssertionError('Workspace witness cleanup failures: ' + repr(failures))
 
     def save_evidence(self):
         for name in ('peer-native.stderr','peer-resource-launch.json','boundary.stdout','boundary.stderr'):

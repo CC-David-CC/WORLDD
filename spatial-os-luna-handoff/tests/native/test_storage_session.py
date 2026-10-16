@@ -34,8 +34,8 @@ class NativeStorageSessionTests(existing.SessionApplicationTests):
         os.environ['SPATIAL_TEST_BROKER_CONFIG'] = str(self.volume_root/'broker.textproto')
 
     def volume_command(self, operation, *arguments):
-        command = ['sudo', '-n', sys.executable, str(self.volume_helper), operation,
-                   str(self.build), str(self.volume_root), *arguments]
+        command = ['sudo', '-n', sys.executable, '-B', str(self.volume_helper), operation,
+                   str(self.build), str(self.volume_root), str(self.volume_root.parent), *arguments]
         result = subprocess.run(command, capture_output=True, text=True, timeout=45)
         (self.volume_root/(operation+'.log')).write_text(result.stdout+result.stderr)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)

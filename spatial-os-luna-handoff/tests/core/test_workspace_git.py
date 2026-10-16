@@ -1,6 +1,7 @@
 """Independent Git, process, and storage witnesses for the production broker."""
 import os
 import io
+import fcntl
 import broker_pb2 as broker_pb
 from pathlib import Path
 import select
@@ -9,6 +10,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
 import unittest
@@ -389,8 +391,8 @@ class WorkspaceGitTests(unittest.TestCase):
     def test_execution_v1_migration_is_explicit_and_preserves_git_state(self):
         self.imported(); work = self.create(); self.client.stop()
         with self.registry() as db:
-            db.execute('DROP TABLE processes'); db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces')
-            db.execute('DROP TABLE removals'); db.execute('PRAGMA user_version=1')
+            db.execute('DROP TABLE configured_process_states'); db.execute('DROP TABLE configured_application_states'); db.execute('DROP TABLE workspace_copy_policies'); db.execute('DROP TABLE processes'); db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces')
+            db.execute('DROP TABLE removals'); db.execute('DROP TABLE copy_effects'); db.execute('DROP TABLE copy_operations'); db.execute('PRAGMA user_version=1')
             before = {name: db.execute('SELECT * FROM ' + name).fetchall() for name in ['repositories', 'worktrees', 'operations']}
         refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')], input=b'', capture_output=True, timeout=5)
         self.assertNotEqual(refused.returncode, 0); self.assertIn(b'--migrate-v1', refused.stderr)
@@ -399,9 +401,68 @@ class WorkspaceGitTests(unittest.TestCase):
             migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with self.registry() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 8)
             for name, rows in before.items(): self.assertEqual(db.execute('SELECT * FROM ' + name).fetchall(), rows)
         self.start(); self.assertEqual(self.create(), work); self.remove()
+
+    def test_execution_v5_migration_is_explicit_and_idempotent(self):
+        self.imported(); self.client.stop()
+        with self.registry() as db:
+            db.execute('DROP TABLE configured_process_states'); db.execute('DROP TABLE configured_application_states'); db.execute('DROP TABLE workspace_copy_policies')
+            db.execute('ALTER TABLE copy_operations DROP COLUMN authorization_binding')
+            db.execute('PRAGMA user_version=5')
+        refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')],
+            input=b'', capture_output=True, timeout=5)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn(b'--migrate-v5', refused.stderr)
+        command = [BROKER, '--state-dir', str(self.state / 'execution'), '--migrate-v5']
+        for _ in range(2):
+            migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
+            self.assertEqual(migrated.returncode, 0, migrated.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 8)
+            columns = {row[1] for row in db.execute('PRAGMA table_info(copy_operations)')}
+            self.assertIn('authorization_binding', columns)
+        self.start()
+
+    def test_execution_v6_copy_policy_migration_requires_stopped_explicit_update(self):
+        self.imported(); self.client.stop()
+        with self.registry() as db:
+            db.execute('DROP TABLE configured_process_states'); db.execute('DROP TABLE configured_application_states'); db.execute('DROP TABLE workspace_copy_policies');db.execute('PRAGMA user_version=6')
+        refused=subprocess.run([BROKER,'--state-dir',str(self.state/'execution')],input=b'',capture_output=True,timeout=5)
+        self.assertNotEqual(refused.returncode,0);self.assertIn(b'--migrate-v6',refused.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='workspace_copy_policies'").fetchone()[0],0)
+        for _ in range(2):
+            migrated=subprocess.run([BROKER,'--state-dir',str(self.state/'execution'),'--migrate-v6'],input=b'',capture_output=True,timeout=5)
+            self.assertEqual(migrated.returncode,0,migrated.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('SELECT count(*) FROM workspace_copy_policies').fetchone()[0],0)
+        self.start()
+
+    def test_execution_v7_configured_state_migration_preserves_actual_rows(self):
+        self.imported(); self.create(); self.client.stop()
+        with self.registry() as db:
+            db.execute('DROP TABLE configured_process_states');db.execute('DROP TABLE configured_application_states')
+            db.execute('PRAGMA user_version=7')
+            before={name:db.execute('SELECT * FROM '+name+' ORDER BY rowid').fetchall()
+                    for name in ('repositories','worktrees','operations','workspace_copy_policies','processes')}
+            schema=db.execute("SELECT name,sql FROM sqlite_schema WHERE type='table' ORDER BY name").fetchall()
+        refused=subprocess.run([BROKER,'--state-dir',str(self.state/'execution')],input=b'',capture_output=True,timeout=5)
+        self.assertNotEqual(refused.returncode,0);self.assertIn(b'--migrate-v7',refused.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
+            self.assertEqual(db.execute("SELECT name,sql FROM sqlite_schema WHERE type='table' ORDER BY name").fetchall(),schema)
+            for name,rows in before.items():self.assertEqual(db.execute('SELECT * FROM '+name+' ORDER BY rowid').fetchall(),rows)
+        migrated=subprocess.run([BROKER,'--state-dir',str(self.state/'execution'),'--migrate-v7'],input=b'',capture_output=True,timeout=5)
+        self.assertEqual(migrated.returncode,0,migrated.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            for name,rows in before.items():self.assertEqual(db.execute('SELECT * FROM '+name+' ORDER BY rowid').fetchall(),rows)
+            for table in ('configured_application_states','configured_process_states'):
+                self.assertEqual(db.execute('SELECT count(*) FROM '+table).fetchone()[0],0)
+        self.start()
 
     def test_submodule_index_entries_require_explicit_retirement(self):
         self.imported(); work = self.create(); path = Path(work['path'])
@@ -615,7 +676,7 @@ class WorkspaceGitTests(unittest.TestCase):
                 with sqlite3.connect(state/'execution.db') as database:
                     self.assertEqual(database.execute('SELECT state FROM operations').fetchone(), ('pending' if enabled else 'ready',))
                 self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=replies[5].repository.path).count('branch refs/heads/direct'), 1)
-        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--fixture-clock'):
+        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--migrate-v4', '--migrate-v5', '--migrate-v6', '--migrate-v7', '--fixture-clock'):
             rejected = self.root/('rejected'+flag)
             process = subprocess.run([BROKER, '--state-dir', str(rejected), flag, '--fixture-faults'], capture_output=True, timeout=5)
             self.assertEqual(process.returncode, 2)
@@ -778,6 +839,118 @@ class WorkspaceGitTests(unittest.TestCase):
         self.assertEqual(replies[3].error.code, pb.UNSUPPORTED_VERSION)
         self.assertEqual(replies[4].error.code, pb.INVALID_ARGUMENT)
         self.assertEqual(stream.read(), b'')
+
+
+    def test_workspaced_root_rejects_truncated_frames_at_eof(self):
+        cases = (
+            ('short-header', b'\x00\x00'),
+            ('short-body', b'\x00\x00\x00\x08\x08'),
+        )
+        for name, payload in cases:
+            with self.subTest(frame=name):
+                process = subprocess.Popen(
+                    [BROKER, '--state-dir', str(self.root / ('truncated-' + name))],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    output, errors = process.communicate(payload, timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.communicate()
+                    raise
+                self.assertNotEqual(process.returncode, 0, errors)
+                self.assertEqual(output, b'', 'Truncated root frame received a fabricated reply')
+
+    def test_workspaced_root_drains_complete_prefix_before_truncated_eof(self):
+        for suffix in (b'\x00\x00', b'\x00\x00\x00\x08\x08'):
+            with self.subTest(suffix=suffix.hex()):
+                requests = []
+                for index in range(1, 6):
+                    management = make_request('system.hello', {})
+                    management.request_id = index
+                    requests.append(frame(broker_pb.Request(
+                        protocol_version=1, request_id=index, management=management)))
+                state = self.root / ('prefix-truncated-' + suffix.hex())
+                process = subprocess.run([BROKER, '--state-dir', str(state)],
+                    input=b''.join(requests) + suffix, capture_output=True, timeout=5)
+                self.assertEqual(process.returncode, 2, process.stderr)
+                self.assertIn(b'Truncated workspace frame', process.stderr)
+                stream = io.BytesIO(process.stdout)
+                replies = [read_message(stream, broker_pb.Reply) for _ in requests]
+                self.assertEqual([reply.request_id for reply in replies], list(range(1, 6)))
+                self.assertTrue(all(reply.HasField('management') and reply.management.HasField('hello')
+                                    for reply in replies))
+                self.assertEqual(stream.read(), b'', 'Incomplete suffix received a fabricated reply')
+
+    def test_workspaced_root_pipelines_in_order_under_stdout_backpressure(self):
+        requests = []
+        for index in range(1, 257):
+            management = make_request('system.hello', {})
+            management.request_id = index
+            requests.append(frame(broker_pb.Request(
+                protocol_version=1, request_id=index, management=management)))
+        payload = b''.join(requests)
+        process = subprocess.Popen(
+            [BROKER, '--state-dir', str(self.root / 'backpressure-execution')],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        writer_errors = []
+        writer_done = threading.Event()
+
+        def write_all():
+            try:
+                process.stdin.write(payload)
+                process.stdin.flush()
+            except BaseException as error:
+                writer_errors.append(error)
+            finally:
+                try:
+                    process.stdin.close()
+                except BaseException as error:
+                    writer_errors.append(error)
+                writer_done.set()
+
+        writer = threading.Thread(target=write_all, name='workspaced-root-pipeline-writer')
+        try:
+            fcntl.fcntl(process.stdout.fileno(), fcntl.F_SETPIPE_SZ, 4096)
+            capacity = fcntl.fcntl(process.stdout.fileno(), fcntl.F_GETPIPE_SZ)
+            self.assertLessEqual(capacity, 4096)
+            writer.start()
+            time.sleep(0.1)
+            self.assertIsNone(process.poll(), 'Broker did not remain alive under undrained stdout')
+            output = bytearray()
+            poller = select.poll()
+            poller.register(process.stdout.fileno(), select.POLLIN | select.POLLHUP | select.POLLERR)
+            deadline = time.monotonic() + 10
+            while True:
+                remaining = deadline - time.monotonic()
+                self.assertGreater(remaining, 0, 'Broker stdout did not close after the pipelined EOF')
+                events = poller.poll(max(1, int(remaining * 1000)))
+                self.assertTrue(events, 'Broker stdout made no progress after the drain began')
+                chunk = os.read(process.stdout.fileno(), 65536)
+                if not chunk:
+                    break
+                output.extend(chunk)
+            writer.join(timeout=5)
+            self.assertFalse(writer.is_alive(), 'Request writer remained blocked after stdout drain')
+            self.assertTrue(writer_done.is_set())
+            self.assertEqual(writer_errors, [])
+            self.assertEqual(process.wait(timeout=5), 0, process.stderr.read())
+            self.assertGreater(len(output), capacity, 'Replies did not exceed the test pipe capacity')
+            stream = io.BytesIO(output)
+            replies = [read_message(stream, broker_pb.Reply) for _ in requests]
+            self.assertEqual([reply.request_id for reply in replies], list(range(1, 257)))
+            self.assertTrue(all(reply.HasField('management') and reply.management.HasField('hello')
+                                for reply in replies))
+            self.assertEqual(stream.read(), b'')
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
+            if writer.ident is not None:
+                writer.join(timeout=5)
+            self.assertFalse(writer.is_alive(), 'Pipeline writer survived subprocess cleanup')
+            for pipe in (process.stdin, process.stdout, process.stderr):
+                if pipe is not None:
+                    pipe.close()
 
 
 if __name__ == '__main__':

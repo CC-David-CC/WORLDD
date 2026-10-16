@@ -1,0 +1,23 @@
+M07 negative quota fixture repair -- 2026-10-15
+
+UNQUALIFIED. This corrects the probe producer, not production quota accounting.
+The first actual negative invocation failed: Ran1 in14.070seconds, FAIL, command/wrapper1/1.
+Its editor durably exited1 with RuntimeError: Unexpected short quota probe write.
+The peer remained running with empty stderr. No user-visible EDQUOT or quota parent chain was captured.
+A POSIX write can accept a positive prefix before a later operation returnsEDQUOT.
+The corrected producer loops over the memoryview remainder and accounts every actual accepted byte.
+None, nonpositive counts, and counts exceeding the remaining buffer still fail.
+Each completed64KiB chunk is fsynced. The attempt remains bounded to128chunks and8MiB.
+Only errnoEDQUOT122 is accepted. Expected durable exit73 and all original assertions remain unchanged.
+The actual write must stop below4MiB. Peer PID/start continuity, peer progress, and real owner quota inspection remain mandatory.
+The four-MiB source policy, actor32MiB, workspace64MiB, ordinarypositivewriters, and deadlines remain unchanged.
+Existing cleanup lifecycle capture retained the failure. No extra lifecycle hooks were added.
+
+Source before correction: f89e32f5413a6f32913d9fb340613e960d7afab8.
+Evidence: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-quota-diagnostic-validation-f89e32f5-20261015/01-smallquota.
+Lifecycle SHA256:9747f372cae1de9973269d35c1483e3d6bf6f0452dbb3a58f1567da86ca8a2ab.
+Pair-result SHA256:e61b78219af790f974976ee50be9d9cbf765b9a2b9bd88bd6258dd59b2ba5f28.
+Both helpers restored. The exact service is inactive. The observer exited. The failed image remains unmounted and detached.
+The first invocation did not validate the recorder error/CHAIN path or complete the negative case.
+The reviewed next attempt must prove actualEDQUOT122, durableexit73, complete observer capture, and every existing assertion.
+The earlier positive eight-MiB application quota failure remains unexplained. M07 qualification remains pending.

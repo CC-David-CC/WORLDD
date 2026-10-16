@@ -1,0 +1,72 @@
+M07 copy quota evidence: matched diagnostic measurements, 2026-10-15
+
+M07 remains UNQUALIFIED. The earlier eight-MiB user-visible quota failure remains unexplained.
+The no-copy workload passed, but its collector was invalid. The actual-copy workload and collector passed.
+These measurements do not establish reliable quota sizing or complete the M07 gate.
+The earlier focused failure report remains historical evidence; this report records the later authorized measurements.
+
+Frozen inputs
+Diagnostic source: m07/copy-quota-evidence-20261015 at 7be3259e11db4611d76c779c3dbc136cd5250452, BOX-GIT VERIFIED.
+Production source: eb569742f843c59e988e813f3431cf292c516fe7. All ten Debug ELFs, 33 bindings, and runtime configuration were reused unchanged.
+The positive engine fixture is identical in bytes to f5560df8842fb6191a008893188667bb9ff886bb.
+Engine fixture SHA256: 48a88e61acac286c7a57b6ab7de5e2ae4ca09168ae9271d25a1887590ffb6888.
+Both workloads retained the same eight-MiB source scenario, actor32MiB, workspace64MiB, destination4MiB, and five-millisecond writers.
+The diagnostic subclass inherits the positive method without replacement. All PID/start, freeze, byte, independence, progress, and relaunch assertions remain intact.
+Preflight passed. Three actual named static tests passed. Discovery found exactly two diagnostic methods without starting services.
+A preceding setup-only invocation lost diagnostic environment variables at the resource wrapper. No volume or application was created.
+The reviewed correction passes fixed diagnostic inputs below both wrappers. That failed invocation remains preserved.
+
+Runtime receipts
+Host: sb16-2, Debug. Both jobs used tmux, the canonical bash runner, and the shared helper-install lock.
+Evidence root: /home/dflanag3/spatial-artifacts/m07-copy-quota-evidence-7be3259e-20261015.
+Frozen package: m07-quota-diagnostic-debug-7be3259e-v2.
+Manifest SHA256: 420aa5af3d30aab5f650aa11dd38124a6f83b7cda59db17d60971a0b5099e573.
+Archive SHA256: b026e3cdf1905ba62c4c5e1e0ae9c5adb0185072975642e7cbe070ac7385091c.
+Each case has outer/command.exit, outer/wrapper.exit, inner/review.json, and pair-case-result.json.
+The root observer attached before application launch. Its summary records FSID, attachment, process exit, END, loss, and validity.
+
+01-nocopy
+Method: test_no_copy_live_writers_sixty_second_diagnostic. Actual Ran1, 72.502 seconds, OK; inner command0.
+Both source application trees survived the actual sixty-second observation. This was a control, not a copy acceptance case.
+Collectorv6 was INVALID: qgroup lookup was incomplete, and its context reader rejected a skipped publication sequence.
+Kernel reserve EDQUOT events were recorded. They do not establish user-visible syscall EDQUOT or application death.
+Fixture command/wrapper and outer launch exits were1/1 because collection was incomplete. No repeat control ran.
+Result SHA256: d6fdb0c915aaf399d37f6ebfaae590d9358cba60facc714405ac3ecf2fadce12.
+Observer summary SHA256: 1eefc0c4191036bfa5205036ea15ada9999049d294fd76dec3240a067d7531f6.
+
+02-copy
+Method: test_two_live_apps_all_five_classes_copy_latest_declared_state_and_relaunch.
+Actual Ran1, 61.653 seconds, OK. Inner command0, fixture command/wrapper0/0, outer launch0/0, root observer exit0.
+Runtime status is diagnostic-complete, never focused-pass. Collectorv7 is VALID: approximately843160 reservation updates, END present, no loss, truncation, or context errors.
+The update count uses a concurrent counter and is approximate. The syscall-error and CHAIN paths remain unexercised in this pass.
+No user-visible syscall EDQUOT occurred. No failure-root parent-chain sample exists because no such failure occurred.
+Publication evidence records ten source processes with exact expected start ticks, both durable jobs running, and zero diagnostic errors.
+The genuine positive case also completed frozen-byte comparisons, destination independence, source progress after thaw, and destination relaunch.
+Result SHA256: ce54278a85444d1bfa0ec47e63876cbdb216777750ef77ac57d0048dee87d2ff.
+Observer summary SHA256: c55de7d2f250cd6dcd17b5c23b47d74756dd123c329a9bdd0a76f25f6cd35050.
+Root observer raw log SHA256: 0e3cf28b464ad633a3598ad50491c42f647fa53294f1131580f7da15c8ee43d6.
+Publication lifecycle SHA256: d49504f5bb72d257965a6568ca76cd2469eafb5fdd95087944933a46e63f5556.
+Volume receipt SHA256: 5a48722faac87824b44407559069d9c77ccae3b3ca8f1f6f99951e11864cb5d3.
+
+Reservation interpretation
+Source qgroups261 and263 each reached type1 peak8,372,224 bytes. Eight MiB minus this peak is16KiB.
+That difference excludes referenced usage and other reservation types. It is not guaranteed free headroom.
+Per-type peaks can occur at different times. Do not add separate peak-map entries as simultaneous totals.
+Actor1/101 and workspace2/100 type1 peaks were17,022,976 bytes. Volume3/1 type1 peak was19,529,728 bytes.
+A successful near-limit run does not contradict the retained earlier application EDQUOT and exit1 evidence.
+
+Observer source and cleanup
+Reviewed externalv7 files are preserved byte-for-byte as tools/diagnostics/m07_quota_observer.py and m07_quota_observer.bt.
+Python SHA256: c7961dabef9c3b14acab48f9d8b35e4031edd11e6caa7a97d0eff22a1db02198.
+BPF SHA256: ee6adf7a6a23be5ca808ec9ffe89fdea8f95f76efcef59848e0fd92f089d7f7f.
+The reviewed root launcher used BPFTRACE_MAX_MAP_KEYS256 and explicit --request, --run-dir, and --bpf-template paths.
+Both temporary copy helpers were restored. Both exact services are inactive/not-found. Both observer processes exited.
+Control volume m07-engine-4aa9e358f5db4f27 and copy volume m07-engine-37a0ba3f2f7f4dfd are unmounted and detached.
+No permanent storage-owner replacement occurred. David's existing volume and all earlier failed images/packages remain preserved.
+
+Next bounded repair options require review before execution.
+First, reproduce the intermittent failure under the updated syscall observer before changing production quota or lifecycle behavior.
+Capture the failing root, parent limits, referenced usage, reservation types, syscall result, and application exit together.
+Alternatively, separately review a realistic positive-workload fixture quota and retain the actual small-quota negative regression.
+That fixture choice would not prove the production failure fixed or justify removing enforcement.
+No new quota was selected. No further workload, negative case, sanitizer matrix, or full gate ran.

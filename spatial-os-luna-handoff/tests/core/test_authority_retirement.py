@@ -2,6 +2,7 @@
 import concurrent.futures
 import sqlite3
 import subprocess
+from issuer_migration_runner import run_issuer_migration
 import time
 import unittest
 import core_pb2 as core
@@ -216,27 +217,27 @@ class RetirementTests(fencing.AuthorityFencingTests):
         self.retire_request(); self.peer.close(); self.supervisor.close(); self.stop_daemons()
         secret = (self.state / 'issuer.pem').read_bytes()
         with sqlite3.connect(self.state / 'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; PRAGMA user_version=9;')
+            db.executescript('DROP TABLE authority_retirement; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=9;')
         before = self.snapshot_all(); command = [str(fencing.launch.registry.sessions.BINARY), '--state-dir', str(self.state)]
-        result = subprocess.run(command, input=b'', capture_output=True, timeout=4)
+        result = run_issuer_migration(command, input=b'', capture_output=True, timeout=4)
         self.assertNotEqual(result.returncode, 0); self.assertIn(b'migration', result.stderr.lower())
         self.assertEqual(self.snapshot_all(), before)
         for _ in range(2):
-            result = subprocess.run(command + ['--migrate'], input=b'', capture_output=True, timeout=4)
+            result = run_issuer_migration(command + ['--migrate'], input=b'', capture_output=True, timeout=4)
             self.assertEqual(result.returncode, 0, result.stderr)
         after = self.snapshot_all(); self.assertEqual({name: after[name] for name in before}, before)
         self.assertEqual(after['authority_retirement'], [])
         self.assertEqual((self.state / 'issuer.pem').read_bytes(), secret)
-        with sqlite3.connect(self.state / 'identity.db') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 10)
+        with sqlite3.connect(self.state / 'identity.db') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 11)
         self.peer = self.ready(); self.supervisor = self.client(); self.retired()
 
     def test_failed_v9_migration_preserves_original_schema(self):
         self.retire_request(); self.peer.close(); self.supervisor.close(); self.stop_daemons()
         with sqlite3.connect(self.state / 'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; PRAGMA user_version=9; CREATE TABLE authority_retirement(marker INTEGER);')
+            db.executescript('DROP TABLE authority_retirement; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=9; CREATE TABLE authority_retirement(marker INTEGER);')
         before = self.snapshot_all()
         command = [str(fencing.launch.registry.sessions.BINARY), '--state-dir', str(self.state), '--migrate']
-        result = subprocess.run(command, input=b'', capture_output=True, timeout=4)
+        result = run_issuer_migration(command, input=b'', capture_output=True, timeout=4)
         self.assertNotEqual(result.returncode, 0); self.assertEqual(self.snapshot_all(), before)
         with sqlite3.connect(self.state / 'identity.db') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 9)
 

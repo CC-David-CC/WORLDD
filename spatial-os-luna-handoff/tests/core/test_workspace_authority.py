@@ -5,15 +5,18 @@ import socket
 import sqlite3
 import subprocess
 import time
+import threading
 import unittest
 from google.protobuf import text_format
+from google.protobuf import descriptor_pb2
 import broker_pb2 as broker
 import core_pb2 as core
+import copy_pb2 as workspace_copy
 import grants_pb2 as grant
 import issuer_pb2 as issuer
 import world_session_pb2 as session
 from harness.git_fixture import GitRepo
-from harness.wire import frame, make_request, result_value
+from harness.wire import frame, make_request, result_value, read_message
 from harness.resource_broker import ResourceBroker
 from test_world_identity import WorldIdentityFixture, WorldProcess, WORLD, receive
 import test_world_authority as world_authority
@@ -24,6 +27,41 @@ WRITE = [grant.FILE_CREATE, grant.FILE_EDIT, grant.FILE_RENAME, grant.FILE_MOVE,
 PROJECT = [grant.FILE_BROWSE, grant.FILE_READ, *WRITE, grant.PROCESS_EXECUTE]
 RIGHTS = [grant.WORKSPACE_ACCESS, *PROJECT, grant.POLICY_ADMINISTER]
 POLICY = ['workspace.select', 'files.read', 'files.write', 'process.launch']
+
+
+class BrokerChannel:
+    """Give each worldd a private endpoint and serialize it with direct fixture requests."""
+    def __init__(self, broker_process, stream):
+        self.broker = broker_process; self.stream = stream
+        self.reader = stream.makefile('rb'); self.send_lock = threading.Lock(); self.errors = []
+        self.thread = threading.Thread(target=self.run, daemon=True); self.thread.start()
+
+    def send(self, reply):
+        with self.send_lock: self.stream.sendall(frame(reply))
+
+    def run(self):
+        try:
+            while True:
+                request = read_message(self.reader, broker.Request)
+                if request.protocol_version != 1 or request.request_id <= 0:
+                    raise AssertionError('Invalid world broker request identity')
+                self.broker.world_request_count += 1
+                self.send(self.broker.exchange(request))
+        except (EOFError, OSError):
+            pass
+        except BaseException as error:
+            self.errors.append(error)
+
+    def close(self):
+        if not getattr(self, 'closed', False):
+            try: self.stream.shutdown(socket.SHUT_RDWR)
+            except OSError: pass
+            self.stream.close(); self.thread.join(5)
+            if self.thread.is_alive(): raise AssertionError('Serialized broker channel did not stop')
+            if not self.reader.closed: self.reader.close()
+            self.closed = True
+            if self in self.broker.channels: self.broker.channels.remove(self)
+        if self.errors: raise self.errors[0]
 
 
 class BrokerProcess:
@@ -43,25 +81,58 @@ class BrokerProcess:
         else:
             self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
             self.pid = self.proc.pid
-        child.close(); fixture.brokers.append(self)
+        child.close()
+        self.initialize_transport(world_channel_opt_in=True)
+        fixture.brokers.append(self)
+
+    def initialize_transport(self, *, world_channel_opt_in):
+        self.io_lock = threading.RLock()
+        self.channels = []
+        self.world_request_count = 0
+        self.world_channel_opt_in = bool(world_channel_opt_in)
+        self.world_channel_factory = self.open_world_channel if self.world_channel_opt_in else None
+
+    def dispatch_control(self, reply):
+        if not reply.HasField('control_revoked') or reply.request_id != 0:
+            raise AssertionError('Invalid unsolicited broker control reply')
+        if len(self.channels) != 1:
+            raise AssertionError('Selected fixture relay supports one active world for control delivery')
+        self.channels[0].send(reply)
+
+    def exchange(self, request):
+        with self.io_lock:
+            self.stream.sendall(frame(request))
+            while True:
+                reply = receive(self.stream.recv, self.stream, broker.Reply)
+                if reply.protocol_version != 1: raise AssertionError('Invalid broker reply protocol')
+                if reply.HasField('control_revoked'):
+                    self.dispatch_control(reply)
+                    continue
+                if reply.request_id != request.request_id:
+                    raise AssertionError(f'Broker reply {reply.request_id} did not match request {request.request_id}')
+                return reply
+
+    def open_world_channel(self):
+        world, relay = socket.socketpair()
+        channel = BrokerChannel(self, relay); self.channels.append(channel)
+        return world, channel
 
     def call(self, method, **args):
-        self.sequence += 1; request = make_request(method, args); request.request_id = self.sequence
-        self.stream.sendall(frame(broker.Request(protocol_version=1, request_id=self.sequence, management=request)))
-        reply = receive(self.stream.recv, self.stream, broker.Reply)
-        if reply.request_id != self.sequence or reply.HasField('error') or reply.management.HasField('error'):
-            raise AssertionError(reply)
-        return result_value(reply.management)
+        with self.io_lock:
+            self.sequence += 1; request = make_request(method, args); request.request_id = self.sequence
+            reply = self.exchange(broker.Request(protocol_version=1, request_id=self.sequence, management=request))
+            if reply.HasField('error') or reply.management.HasField('error'): raise AssertionError(reply)
+            return result_value(reply.management)
 
     def request(self, **operation):
-        self.sequence += 1
-        self.stream.sendall(frame(broker.Request(protocol_version=1, request_id=self.sequence, **operation)))
-        reply = receive(self.stream.recv, self.stream, broker.Reply)
-        if reply.protocol_version != 1 or reply.request_id != self.sequence: raise AssertionError(reply)
-        return reply
+        with self.io_lock:
+            self.sequence += 1
+            request = broker.Request(protocol_version=1, request_id=self.sequence, **operation)
+            return self.exchange(request)
 
     def close(self):
         if self.stream.fileno()<0:return
+        for channel in tuple(self.channels): channel.close()
         if self.resources:
             try:
                 self.stream.shutdown(socket.SHUT_WR)
@@ -75,6 +146,51 @@ class BrokerProcess:
             try: self.proc.wait(timeout=5)
             except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3); raise
         self.stream.close();self.log.close()
+
+
+class BrokerTransportCompatibilityTests(unittest.TestCase):
+    def test_authorization_fence_custom_broker_transport_opt_out_preserves_callbacks(self):
+        class CustomBroker(BrokerProcess):
+            def exchange(self, request):
+                self.exchanges.append(request)
+                return broker.Reply(protocol_version=1, request_id=request.request_id,
+                    management=core.Reply(hello=core.HelloReply(protocol='fixture', implementation='test')))
+
+            def request(self, **operation):
+                self.sequence += 1
+                self.events.append(operation)
+                return 'custom-response'
+
+        stream, peer = socket.socketpair()
+        self.addCleanup(stream.close)
+        self.addCleanup(peer.close)
+        custom = CustomBroker.__new__(CustomBroker)
+        custom.stream = stream
+        custom.sequence = 0
+        custom.events = []
+        custom.exchanges = []
+        custom.initialize_transport(world_channel_opt_in=False)
+
+        endpoint, channel, owned = WorldProcess.workspace_channel(custom)
+        self.assertIs(endpoint, stream)
+        self.assertIsNone(channel)
+        self.assertFalse(owned)
+        self.assertIsNone(custom.world_channel_factory)
+        self.assertFalse(stream._closed)
+        self.assertEqual(custom.request(control_acquire='fixture-event'), 'custom-response')
+        self.assertEqual(custom.events, [{'control_acquire': 'fixture-event'}])
+        self.assertEqual(custom.sequence, 1)
+        self.assertEqual(BrokerProcess.call(custom, 'system.hello'),
+            {'protocol': 'fixture', 'implementation': 'test', 'build_id': '', 'capabilities': []})
+        self.assertEqual(len(custom.exchanges), 1)
+        sent = custom.exchanges[0]
+        self.assertTrue(sent.management.HasField('hello'), sent)
+        self.assertEqual(sent.request_id, 2)
+        self.assertEqual(sent.management.request_id, sent.request_id)
+        self.assertEqual(sent.protocol_version, 1)
+        self.assertEqual(custom.sequence, sent.request_id)
+        self.assertGreater(custom.sequence, 0)
+        self.assertFalse(stream._closed)
 
 
 class WorkspaceAuthorityTests(WorldIdentityFixture):
@@ -94,26 +210,64 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='one'), components=components),
             rights=rights, delegable_rights=rights if delegable is None and depth else delegable or (), delegation_depth=depth)
 
-    def workspace(self, policy=POLICY, roots=None, issuer_port=None):
-        self.execution = self.root/'execution'; first = BrokerProcess(self, self.execution)
+    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False, attach_world=True):
+        self.execution = getattr(self,'execution_override',self.root/'execution'); first = BrokerProcess(self, self.execution)
         repository = GitRepo(self.root)
         first.call('git.repo.import', id='repo-one', path=str(repository.path))
         work = first.call('git.worktree.create', repo='repo-one', id='tree-one', branch='branch-one', start='main', operation_id='tree')
         self.project = Path(work['path'])
-        first.call('workspace.create', id='one', worktree='tree-one', policy=policy); first.close()
+        first.call('workspace.create', id='one', worktree='tree-one', policy=policy)
+        if pair:
+            second_repository = GitRepo(self.root/'second-repository')
+            first.call('git.repo.import', id='repo-two', path=str(second_repository.path))
+            first.call('git.worktree.create', repo='repo-two', id='tree-two', branch='branch-two',
+                       start='main', operation_id='tree-two')
+            first.call('workspace.create', id='two', worktree='tree-two', policy=policy)
+        if legacy: first.call('workspace.member.set', id='one', actor='legacy-member', rights=POLICY)
+        first.close()
+        if hasattr(self,'after_workspace_storage_setup'): self.after_workspace_storage_setup()
         directory = self.root/'workspace-authority'; directory.mkdir(mode=0o700)
         seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='one', authority_directory=str(directory),
             roots=roots() if roots else [self.workspace_terms()])
         seed_path = self.root/'workspace-seed.textproto'; seed_path.write_text(text_format.MessageToString(seed)); seed_path.chmod(0o600)
         result = subprocess.run([str(BROKER), '--state-dir', str(self.execution), '--init-authority', str(seed_path)], capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
+        bindings = [broker.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))]
+        if pair:
+            second_dir = self.root/'workspace-two-authority'; second_dir.mkdir(mode=0o700)
+            second_terms = self.workspace_terms()
+            second_terms.scope.domain.id = 'two'
+            second_seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='two',
+                authority_directory=str(second_dir), roots=[second_terms])
+            second_seed_path = self.root/'workspace-two-seed.textproto'
+            second_seed_path.write_text(text_format.MessageToString(second_seed)); second_seed_path.chmod(0o600)
+            second_result = subprocess.run([str(BROKER), '--state-dir', str(self.execution),
+                '--init-authority', str(second_seed_path)], capture_output=True, timeout=8)
+            self.assertEqual(second_result.returncode, 0, second_result.stderr)
+            bindings.append(broker.WorkspaceAuthorityBinding(workspace='two', authority_directory=str(second_dir)))
+        if registry:
+            registry_dir = self.root/'workspace-registry-authority'; registry_dir.mkdir(mode=0o700)
+            create_root = grant.GrantTerms(subject=self.principal(),
+                scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='workspace-registry')),
+                rights=[grant.WORKSPACE_CREATE], delegation_depth=0)
+            registry_seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace='workspace-registry',
+                authority_directory=str(registry_dir), roots=[create_root])
+            registry_seed_path = self.root/'registry-seed.textproto'
+            registry_seed_path.write_text(text_format.MessageToString(registry_seed)); registry_seed_path.chmod(0o600)
+            registry_result = subprocess.run([str(BROKER), '--state-dir', str(self.execution),
+                '--init-authority', str(registry_seed_path)], capture_output=True, timeout=8)
+            self.assertEqual(registry_result.returncode, 0, registry_result.stderr)
+            bindings.append(broker.WorkspaceAuthorityBinding(workspace='workspace-registry',
+                authority_directory=str(registry_dir)))
         client_path = self.root/'workspace-issuer.textproto'
         client_path.write_bytes(self.config_file(endpoint_port=issuer_port).read_bytes()); client_path.chmod(0o600)
         config = broker.WorkspaceAuthorityConfig(protocol_version=1, issuer_client_config=str(client_path),
-            bindings=[broker.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))])
+            bindings=bindings)
         self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
-        self.broker = BrokerProcess(self, self.execution, path)
+        self.authority_config = path
+        self.broker = BrokerProcess(self, self.execution) if legacy else BrokerProcess(self, self.execution, path)
+        if not attach_world:return None
         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
         world.management('workspace.available', id='one', available=True)
         return world
@@ -173,6 +327,293 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         process = self.launch_process(peer, "from pathlib import Path\nimport time\nPath('ready').touch()\nwhile not Path('release').exists():time.sleep(.01)\nPath('done').touch()")
         self.until(lambda:(self.project/'ready').exists(), bool)
         return process
+
+    def test_m07_actor_schema_tags_and_copy_status_privacy(self):
+        action_fields = core.ActorActionRequest.DESCRIPTOR.oneofs_by_name['action'].fields
+        self.assertEqual({field.name: field.number for field in action_fields if 25 <= field.number <= 29}, {
+            'presentation_create': 25, 'presentation_move': 26, 'presentation_remove': 27,
+            'workspace_copy': 28, 'workspace_copy_status': 29,
+        })
+        create = core.PresentationCreateRequest.DESCRIPTOR
+        self.assertEqual(create.fields_by_name['transform'].message_type.full_name, 'spatial.core.v1.Pose')
+        self.assertTrue(create.fields_by_name['room_id'].has_presence)
+
+        file_descriptor = descriptor_pb2.FileDescriptorProto()
+        file_descriptor.ParseFromString(workspace_copy.DESCRIPTOR.serialized_pb)
+        status = next(message for message in file_descriptor.message_type if message.name == 'WorkspaceCopyStatus')
+        self.assertEqual([(entry.start, entry.end) for entry in status.reserved_range], [(5, 6)])
+        self.assertEqual({field.number for field in status.field}, {1, 2, 3, 4, 6})
+        self.assertFalse(any(any(term in field.name for term in ('snapshot', 'storage', 'path', 'receipt'))
+                             for field in status.field))
+        public_actor_fields = {field.message_type.full_name for field in action_fields if field.message_type}
+        self.assertNotIn('spatial.workspace.copy.v1.SnapshotReceipt', public_actor_fields)
+        reply_fields = core.ActorActionReply.DESCRIPTOR.fields_by_name
+        self.assertEqual(reply_fields['presentation'].number, 6)
+        self.assertEqual(reply_fields['copy_status'].number, 7)
+        self.assertEqual(reply_fields['presentation'].message_type.full_name, 'spatial.core.v1.PresentationView')
+        self.assertEqual(reply_fields['copy_status'].message_type.full_name, 'spatial.workspace.copy.v1.WorkspaceCopyStatus')
+        self.assertEqual(set(broker.ScopedAuthorityCheckReply.DESCRIPTOR.fields_by_name), {'allowed','revision','incarnation','epoch'})
+        self.assertEqual(broker.ScopedAuthorityCheckReply.DESCRIPTOR.fields_by_name['incarnation'].number, 3)
+        self.assertEqual(broker.ScopedAuthorityCheckReply.DESCRIPTOR.fields_by_name['epoch'].number, 4)
+        self.assertEqual(broker.ApplicationAccessReply.DESCRIPTOR.fields_by_name['incarnation'].number, 2)
+        self.assertEqual(broker.ApplicationAccessReply.DESCRIPTOR.fields_by_name['epoch'].number, 3)
+        self.assertEqual(broker.Request.DESCRIPTOR.fields_by_name['authorization_fence'].number, 114)
+        self.assertEqual(broker.Reply.DESCRIPTOR.fields_by_name['authorization_fence'].number, 113)
+        self.assertEqual(broker.ScopedAuthorityCheckRequest.DESCRIPTOR.fields_by_name['components'].number, 4)
+        self.assertEqual(broker.ScopedAuthorityCheckRequest.DESCRIPTOR.fields_by_name['components'].type,
+                         descriptor_pb2.FieldDescriptorProto.TYPE_BYTES)
+        self.assertEqual(broker.Request.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 113)
+        self.assertEqual(broker.Reply.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 112)
+        public_view = core.PresentationView.DESCRIPTOR
+        self.assertEqual({field.name for field in public_view.fields},
+                         {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
+        self.assertEqual(public_view.fields_by_name['transform'].message_type.full_name, 'spatial.core.v1.Pose')
+
+    def test_private_scoped_authority_check_uses_exact_scope_and_fresh_revocation(self):
+        self.enroll_second()
+        world = self.workspace(roots=lambda: [self.workspace_terms(
+            rights=[*RIGHTS, grant.WORKSPACE_PRESENTATION_ATTACH])])
+        components = (b'presentations\x00', b'\xffrep-1')
+        record = self.grant_second(world, [grant.WORKSPACE_PRESENTATION_ATTACH], components)
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(self.second),
+            right=grant.WORKSPACE_PRESENTATION_ATTACH, components=list(components))
+        reply = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(reply.HasField('scoped_authority_check'), reply)
+        self.assertTrue(reply.scoped_authority_check.allowed)
+        self.assertGreater(reply.scoped_authority_check.revision, 0)
+        self.assertEqual(len(reply.scoped_authority_check.incarnation), 16)
+        self.assertGreater(reply.scoped_authority_check.epoch, 0)
+        query.components[-1] = b'\xffother-representation'
+        denied = self.broker.request(scoped_authority_check=query)
+        self.assertFalse(denied.scoped_authority_check.allowed)
+        for right in (grant.WORLD_PLACEMENT_CREATE, 99, grant.WORKSPACE_CREATE):
+            invalid = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(self.second), right=right)
+            self.denied(self.broker.request(scoped_authority_check=invalid), core.INVALID_ARGUMENT)
+        query.components[:] = components
+        before = self.broker.request(scoped_authority_check=query).scoped_authority_check.revision
+        self.revoke_grant(world.peers[0], record)
+        after = self.broker.request(scoped_authority_check=query)
+        self.assertFalse(after.scoped_authority_check.allowed)
+        self.assertGreater(after.scoped_authority_check.revision, before)
+        self.assertGreater(after.scoped_authority_check.epoch, reply.scoped_authority_check.epoch)
+
+    def test_application_access_fails_closed_without_authority_fence(self):
+        self.workspace(legacy=True)
+        request = broker.ApplicationAccessRequest(principal=self.principal(),
+            applications=[broker.ApplicationRef(workspace=b'one', application=b'missing-app', server_id=b's' * 32)])
+        self.denied(self.broker.request(application_access=request), core.UNIMPLEMENTED)
+
+    def test_authorization_fence_rejects_later_workspace_revocation_in_application_batch(self):
+        relay = world_authority.RelayingIssuer(self, lambda: self.revoke(kind=issuer.ACTOR_TARGET))
+        self.workspace(issuer_port=relay.port, pair=True)
+        principal = self.principal()
+        self.owner_peer = self.connect()
+        relay.trigger_after_status = 2
+        relay.armed.set()
+        request = broker.ApplicationAccessRequest(principal=principal, applications=[
+            broker.ApplicationRef(workspace=b'one', application=b'missing-one', server_id=b's' * 32),
+            broker.ApplicationRef(workspace=b'two', application=b'missing-two', server_id=b's' * 32)])
+        self.denied(self.broker.request(application_access=request), core.UNAUTHORIZED)
+        self.assertEqual(relay.status_seen, 2)
+        self.assertTrue(relay.delivered.is_set())
+        self.assertFalse(relay.errors)
+
+    def test_authorization_fence_tracks_delegation_revision(self):
+        self.enroll_second(); world = self.workspace()
+        principal = self.principal()
+        request = broker.AuthorizationFenceRequest(principal=principal)
+        before = self.broker.request(authorization_fence=request).authorization_fence
+        self.grant_second(world, [grant.WORKSPACE_ACCESS])
+        after = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual(after.incarnation, before.incarnation)
+        self.assertGreater(after.epoch, before.epoch)
+        repeated = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual((repeated.incarnation, repeated.epoch), (after.incarnation, after.epoch))
+
+    def test_authorization_fence_is_stable_and_changes_incarnation_on_restart(self):
+        world = self.workspace()
+        principal = self.principal()
+        request = broker.AuthorizationFenceRequest(principal=principal)
+        first_reply = self.broker.request(authorization_fence=request)
+        self.assertTrue(first_reply.HasField('authorization_fence'), first_reply)
+        first = first_reply.authorization_fence
+        self.assertEqual(len(first.incarnation), 16); self.assertGreater(first.epoch, 0)
+        second = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual((second.incarnation, second.epoch), (first.incarnation, first.epoch))
+        baseline_world_requests = self.broker.world_request_count
+        direct_results = []; direct_errors = []; start = threading.Barrier(2)
+        def query_fence_repeatedly():
+            try:
+                start.wait()
+                for _ in range(6):
+                    direct_results.append(self.broker.request(authorization_fence=request).authorization_fence)
+            except BaseException as error:
+                direct_errors.append(error)
+        query_thread = threading.Thread(target=query_fence_repeatedly, daemon=True)
+        query_thread.start(); start.wait()
+        for _ in range(3):
+            selected = world.peers[0].act(workspace_select=core.WorkspaceIdRequest(id='one'))
+            self.assertTrue(selected.HasField('action'), selected)
+            cleared = world.peers[0].act(workspace_clear=core.ActorStopRequest())
+            self.assertTrue(cleared.HasField('action'), cleared)
+        query_thread.join(5)
+        self.assertFalse(query_thread.is_alive(), 'direct broker requests exceeded the existing 5-second bound')
+        self.assertFalse(direct_errors, direct_errors)
+        self.assertEqual(len(direct_results), 6)
+        self.assertGreater(self.broker.world_request_count, baseline_world_requests)
+        self.assertIsNone(world.proc.poll(), 'worldd must remain live through serialized broker traffic')
+        scoped = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=principal, right=grant.WORKSPACE_ACCESS)).scoped_authority_check
+        app_batch = self.broker.request(application_access=broker.ApplicationAccessRequest(principal=principal,
+            applications=[broker.ApplicationRef(workspace=b'one', application=b'missing-app', server_id=b's' * 32)]))
+        self.assertTrue(app_batch.HasField('application_access'), app_batch)
+        self.assertEqual(len(app_batch.application_access.incarnation), 16)
+        fence = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual((scoped.incarnation, scoped.epoch), (fence.incarnation, fence.epoch))
+        self.assertEqual((app_batch.application_access.incarnation, app_batch.application_access.epoch),
+                         (fence.incarnation, fence.epoch))
+        initial_epoch = fence.epoch
+        second_repo = GitRepo(self.root/'second-repository')
+        self.broker.call('git.repo.import', id='repo-two', path=str(second_repo.path))
+        self.broker.call('git.worktree.create', repo='repo-two', id='tree-two', branch='branch-two',
+                         start='main', operation_id='tree-two')
+        self.broker.call('workspace.create', id='two', worktree='tree-two', policy=['workspace.select'])
+        created = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertGreater(created.epoch, initial_epoch)
+        self.broker.call('workspace.member.set', id='two', actor='test-member', rights=['workspace.select'])
+        changed = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertGreater(changed.epoch, created.epoch)
+        self.broker.call('workspace.member.set', id='two', actor='test-member', rights=['workspace.select'])
+        unchanged = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertEqual(unchanged.epoch, changed.epoch)
+        self.assertLess(scoped.epoch, changed.epoch)
+        self.assertLess(app_batch.application_access.epoch, changed.epoch)
+        world.close()
+        self.assertEqual(world.proc.returncode, 0, 'worldd must close before its broker restarts')
+        self.broker.close()
+        self.broker = BrokerProcess(self, self.execution, self.authority_config)
+        restarted = self.broker.request(authorization_fence=request).authorization_fence
+        self.assertNotEqual(restarted.incarnation, first.incarnation)
+        self.assertGreater(restarted.epoch, 0)
+
+    def test_registry_authority_binding_needs_no_execution_workspace(self):
+        self.workspace(registry=True)
+        query = broker.ScopedAuthorityCheckRequest(workspace='workspace-registry', principal=self.principal(),
+            right=grant.WORKSPACE_CREATE)
+        reply = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(reply.HasField('scoped_authority_check'), reply)
+        self.assertTrue(reply.scoped_authority_check.allowed)
+        with self.assertRaisesRegex(AssertionError, 'INVALID_ARGUMENT'):
+            self.broker.call('workspace.create', id='workspace-registry', worktree='tree-one', policy=POLICY)
+        ordinary = broker.ScopedAuthorityCheckRequest(workspace='workspace-registry', principal=self.principal(),
+            right=grant.FILE_READ)
+        self.denied(self.broker.request(scoped_authority_check=ordinary), core.INVALID_ARGUMENT)
+        self.denied(self.broker.request(access=broker.AccessRequest(workspace='workspace-registry', actor='x')),
+                    core.INVALID_ARGUMENT)
+
+    def test_scoped_authority_obeys_workspace_policy_ceiling(self):
+        self.workspace(policy=['workspace.select'])
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(), right=grant.FILE_READ)
+        reply = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(reply.HasField('scoped_authority_check'), reply)
+        self.assertFalse(reply.scoped_authority_check.allowed)
+
+    def test_project_copy_requires_project_root_read_not_object_id_filename(self):
+        self.enroll_second()
+        object_id = 'a' * 32
+        root = self.workspace_terms(self.second,
+            rights=[grant.WORKSPACE_COPY_PROJECT, grant.FILE_BROWSE], depth=0)
+        forged_path = self.workspace_terms(self.second, rights=[grant.FILE_READ], depth=0,
+            components=(object_id.encode(),))
+        self.workspace(roots=lambda: [root, forged_path])
+        scoped_file = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=self.principal(self.second), right=grant.FILE_READ,
+            components=[object_id.encode()]))
+        self.assertTrue(scoped_file.scoped_authority_check.allowed)
+        root_read = self.broker.request(scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+            workspace='one', principal=self.principal(self.second), right=grant.FILE_READ))
+        self.assertFalse(root_read.scoped_authority_check.allowed)
+        # Copy admission checks empty root components, so the filename-shaped grant cannot admit it.
+        self.assertGreater(root_read.scoped_authority_check.revision, 0)
+
+    def test_scoped_authority_does_not_fall_back_to_legacy_membership(self):
+        self.workspace(legacy=True)
+        request = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(), right=grant.WORKSPACE_ACCESS)
+        self.denied(self.broker.request(scoped_authority_check=request), core.UNIMPLEMENTED)
+
+    def test_scoped_authority_fails_closed_after_participant_transport_loss(self):
+        relay = world_authority.RelayingIssuer(self, lambda: None)
+        self.workspace(issuer_port=relay.port)
+        relay.close()
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(),
+            right=grant.WORKSPACE_ACCESS)
+        self.denied(self.broker.request(scoped_authority_check=query), core.UNAVAILABLE)
+
+    def test_scoped_authority_denies_after_issuer_actor_revocation(self):
+        def revoke_actor():
+            self.owner_peer = self.connect()
+            self.revoke(kind=issuer.ACTOR_TARGET)
+
+        relay = world_authority.RelayingIssuer(self, revoke_actor)
+        world = self.workspace(issuer_port=relay.port)
+        query = broker.ScopedAuthorityCheckRequest(workspace='one', principal=self.principal(),
+            right=grant.WORKSPACE_ACCESS)
+        before = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(before.HasField('scoped_authority_check'), before)
+        self.assertTrue(before.scoped_authority_check.allowed)
+        self.assertEqual(len(before.scoped_authority_check.incarnation), 16)
+
+        # Revoke during the next issuer status refresh. The cancellation guard may
+        # replace this in-flight result with its typed fail-closed error.
+        relay.armed.set()
+        in_flight = self.broker.request(scoped_authority_check=query)
+        self.assertTrue(relay.delivered.is_set(), 'issuer revocation was not consumed during dispatch')
+        if in_flight.HasField('error'):
+            self.assertEqual(in_flight.error.code, core.UNAUTHORIZED)
+            self.assertEqual(in_flight.error.message,
+                'Issuer revocation invalidated the in-flight broker result')
+            self.assertFalse(in_flight.HasField('scoped_authority_check'))
+        else:
+            self.assertTrue(in_flight.HasField('scoped_authority_check'), in_flight)
+            self.assertFalse(in_flight.scoped_authority_check.allowed)
+            self.assertEqual(in_flight.scoped_authority_check.incarnation,
+                before.scoped_authority_check.incarnation)
+            self.assertGreater(in_flight.scoped_authority_check.epoch,
+                before.scoped_authority_check.epoch)
+
+        settled = self.broker.request(scoped_authority_check=query)
+        self.assertFalse(settled.HasField('error'), settled)
+        self.assertTrue(settled.HasField('scoped_authority_check'), settled)
+        self.assertFalse(settled.scoped_authority_check.allowed)
+        self.assertEqual(settled.scoped_authority_check.incarnation,
+            before.scoped_authority_check.incarnation)
+        self.assertGreater(settled.scoped_authority_check.epoch,
+            before.scoped_authority_check.epoch)
+
+    def test_m07_actor_actions_reject_malformed_requests(self):
+        world = self.workspace(); peer = world.peers[0]
+        actions = (
+            ({'presentation_create': core.PresentationCreateRequest(protocol_version=1, operation_id=b'a' * 16)},
+             'Invalid presentation create request'),
+            ({'presentation_move': core.PresentationMoveRequest(protocol_version=1, operation_id=b'b' * 16)},
+             'Invalid presentation action request'),
+            ({'presentation_remove': core.PresentationRemoveRequest(protocol_version=1, operation_id=b'c' * 16)},
+             'Invalid presentation action request'),
+            ({'workspace_copy': workspace_copy.WorkspaceCopyRequest(protocol_version=1, operation_id=b'd' * 16, source_workspace_id='one')},
+             'Invalid workspace copy request'),
+            ({'workspace_copy_status': workspace_copy.WorkspaceCopyStatusRequest(protocol_version=0, operation_id=b'd' * 16)},
+             'Invalid workspace copy status identity'),
+        )
+        initial_revision = world.management('world.info')['world_revision']
+        for action, expected_message in actions:
+            with self.subTest(action=next(iter(action))):
+                reply = peer.act(**action)
+                self.assertEqual(reply.WhichOneof('outcome'), 'error', reply)
+                self.assertEqual(reply.error.code, core.INVALID_ARGUMENT, reply)
+                self.assertEqual(reply.error.message, expected_message, reply)
+        state = peer.call(inspect=session.WorldSessionInspect()).state
+        self.assertFalse(state.HasField('workspace'))
+        self.assertEqual(world.management('world.info')['world_revision'], initial_revision)
 
     def test_authenticated_workspace_selection_and_confined_process(self):
         world = self.workspace(); peer = world.peers[0]; self.select(peer)
@@ -237,7 +678,12 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
 
     def test_credential_revocation_preserves_valid_workspace_process(self):
         world = self.workspace(); process = self.running(world, world.peers[0])
+        principal = self.principal()
+        before = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal)).authorization_fence
         self.owner_peer = self.connect(); self.revoke(kind=issuer.CREDENTIAL_TARGET)
+        after = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal)).authorization_fence
+        self.assertEqual(after.incarnation, before.incarnation)
+        self.assertGreater(after.epoch, before.epoch)
         time.sleep(.1); (self.project/'release').touch(); self.wait_job(world, process)
         self.assertTrue((self.project/'done').exists())
 

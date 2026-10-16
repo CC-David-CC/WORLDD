@@ -1,0 +1,66 @@
+M07 actor-revocation fault world admission setup repair
+Date: 2026-10-15
+Status: UNQUALIFIED. Actual fault regression remains UNRUN after this repair.
+Base: 8c463d52b539f4acdeff0e28e532ce096890ba9f.
+Production code and reused runtime eb569742f843c59e988e813f3431cf292c516fe7 remain unchanged.
+
+The first SB16 actor-revocation case failed during world startup.
+Evidence: /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16/focusedbf99393f-debug-14-revocation/debug-15-fault-test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication.
+world-1 log SHA256: e858bbe4d37ebeb4110472f1d8ef7dbc7676b960d49c33a04369a9c90da64898.
+Owner and broker exited zero. No held-SEAL or revocation oracle was reached.
+The original failed image and logs remain retained.
+
+The fixture combined persistent authority_directory with static admitted_actor_ids.
+identity_sessions.cpp:132-133 correctly rejects that mixed configuration at startup.
+Persistent EXPLICIT_ACTORS authentication uses authority->allowed(actor, "enter").
+The actual world authority right is WORLD_ENTER. There is no WORLD_ADMIT symbol.
+WorldAuthorityTests.terms already supplies WORLD_ENTER in each existing A/B root.
+Both enrolled actors also retain their independent existing workspace-copy roots.
+
+The fixture removes only the conflicting static admission list.
+Prelaunch assertions require EXPLICIT_ACTORS, the seeded persistent authority directory,
+no static admission or actor grant profiles, and exactly the existing two A/B roots.
+Each root must address this world and include WORLD_ENTER.
+Both actors still authenticate with independent issuer records and signing keys.
+The held real SEAL receipt, real actor revocation, publication denial, source identities,
+barrier release, owner audit, and bounded lifecycle assertions remain unchanged.
+No production startup invariant, grant, resource budget, deadline, or fault oracle is weakened.
+
+Selected focused regression: the exact actor-revocation fault method on both hosts and profiles.
+Runtime is UNRUN pending primary review and helper-lane assignment.
+
+Revocation status observer correction (pending review; runtime UNRUN)
+
+The 517fc09b SB16-2 run passed startup and reached the real held SEAL receipt.
+The fresh issuer revoked B. The fixture then failed its polling-thread join.
+Ran 1 test: FAIL in 59.872 seconds. The failed image remains retained.
+Result SHA256: af8e2d1ff1fd45fc7cf4bd65d3ae74e077b0e9d24cdfc9bda819d67282dc746f.
+Journal SHA256: 76970b19b97cf71583345bcb14facb2c37d95a0ca20560bbf60f56a88ae6f671.
+The retained journal records ABORTED / COPY_FORBIDDEN, no destination publication,
+and a quiescence-release receipt. The source continuity assertions were not reached.
+The original loop ignored typed error replies. Its in-memory replies were not retained.
+Therefore the exact first reply and a repeated-error loop are not proven by that run.
+
+The corrected observer stops on a typed error, terminal status, or exchange exception.
+An exception still fails. Only exact source-backed revocation denial code/message pairs pass.
+World identity checks can reject a revoked credential, inactive actor, cleared channel,
+or revoked session. Broker cancellation can invalidate an in-flight result.
+A broker authority denial can also identify the revoked copy request.
+A terminal action alone is insufficient: B must receive an explicit typed denial.
+The actor request remains the same valid operation ID and authenticated channel.
+No malformed-principal denial or arbitrary error counts as a revocation witness.
+
+One absolute 35-second deadline starts at release of the held receipt.
+It covers polling-thread completion, explicit B denial, and durable forbidden abort.
+The fixture never gives the journal a second 35-second observation window.
+Owned-channel shutdown on failure is teardown only. Its join is bounded to five seconds.
+Independent A launch, source PID/start identity, thaw, and publication assertions remain intact.
+Bounded first/last replies, counts, times, error codes, exceptions, and test failure counts
+are retained externally in issuer-revocation-status.json, including assertion failures.
+No credentials or protobuf payloads enter that diagnostic.
+
+Selected regression: the exact actor-revocation fault method, after primary review.
+Expected proof: real SEAL, fresh issuer revocation, explicit revoked-B denial,
+durable ABORTED / COPY_FORBIDDEN within the single deadline, zero publication,
+independent A launch, original source identities, and released barriers.
+No production source, resource budget, test selector, or deadline is changed.

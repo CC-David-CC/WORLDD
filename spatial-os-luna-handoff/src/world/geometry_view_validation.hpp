@@ -1,5 +1,6 @@
 #pragma once
 #include "core/protocol.hpp"
+#include "core/presentation_identity.hpp"
 #include "core/scene.hpp"
 #include "geometry_view.pb.h"
 #include <set>
@@ -25,6 +26,9 @@ inline void validate_geometry_view(const identity::v1::ActorGeometryView& view) 
     std::set<std::string> ids;
     const auto category = [&](const auto& collection, core::v1::EntityKind kind) {
         for (const auto& item : collection) {
+            if (kind != core::v1::OBJECT)
+                check(!is_reserved_presentation_geometry_id(item.id()),
+                      "Reserved presentation identity used outside object geometry");
             check(!item.id().empty() && item.id().size() <= 256 && item.id().find('\0') == std::string::npos &&
                   ids.insert(item.id()).second && item.kind() == kind && item.has_pose(),
                   "Invalid geometry identity or category");
@@ -47,6 +51,15 @@ inline void validate_geometry_view(const identity::v1::ActorGeometryView& view) 
     category(view.portals(), core::v1::PORTAL);
     category(view.objects(), core::v1::OBJECT);
     category(view.actors(), core::v1::ACTOR);
+    core::v1::RenderScene projected;
+    for (const auto& item : view.objects()) {
+        auto* object = projected.add_objects();
+        object->set_id(item.id()); object->set_kind(item.kind());
+        *object->mutable_pose() = item.pose();
+    }
+    for (const auto& metadata : view.presentation_views())
+        *projected.add_presentation_views() = metadata;
+    validate_presentation_views(projected, view.room());
     check(view.ByteSizeLong() < max_frame_bytes, "Geometry view exceeds frame limit");
 }
 }

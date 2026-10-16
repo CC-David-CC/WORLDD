@@ -37,7 +37,7 @@ class TlsActorPeer(SessionPeer):
 
 class RemoteWorldProcess(WorldProcess):
     def __init__(self,fixture,local):
-        self.sequence=0;self.peers=[]
+        self.sequence=0;self.peers=[];self.broker_channel=None
         self.log_path=fixture.root/f'remote-world-{len(fixture.worlds)}.log'
         self.log=self.log_path.open('wb')
         self.server_key,self.server_cert=fixture.certificate('world-server','world.test')

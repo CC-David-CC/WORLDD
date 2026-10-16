@@ -156,7 +156,7 @@ class LaunchAuthorizationTests(registry.SupervisorRegistryTests):
 
     def test_explicit_v7_migration_preserves_binding_without_granting_launch(self):
         self.peer.close();self.supervisor.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
-        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; PRAGMA user_version=7;')
+        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=7;')
         before=self.snapshot_all();command=[str(registry.sessions.BINARY),'--state-dir',str(self.state)]
         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
@@ -164,13 +164,16 @@ class LaunchAuthorizationTests(registry.SupervisorRegistryTests):
             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
         after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_launch_authorization'],[])
         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],10)
+        with sqlite3.connect(self.state/'identity.db') as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],11)
+            tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            self.assertTrue({'authority_domains_add_operation','authority_participant_history'} <= tables)
         self.peer=self.ready();self.authenticate(self.peer);self.denied(self.activate(),core.FORBIDDEN)
 
     def test_failed_v7_migration_rolls_back(self):
         self.peer.close();self.supervisor.close();self.stop_daemons()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; PRAGMA user_version=7; CREATE TABLE authority_launch_authorization(marker INTEGER);')
+            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=7; CREATE TABLE authority_launch_authorization(marker INTEGER);')
         before=self.snapshot_all()
         result=subprocess.run([str(registry.sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)

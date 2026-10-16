@@ -171,6 +171,15 @@ void validate_resource_config(const workspace::v1::BrokerResourceConfig& config)
         (void)intersect(config.broker_budget(), policy.total());
         require(workspaces.insert(policy.workspace()).second, "Duplicate workspace resource policy");
     }
+    std::set<std::string> copy_names;
+    require(config.copy_profiles_size()<=32,"Too many copy resource profiles");
+    for(const auto& profile:config.copy_profiles()) {
+        require(identifier(profile.name()) && profile.revision()>0 && copy_names.insert(profile.name()).second &&
+                profile.has_policy() && profile.policy().actors_size()==0,"Invalid independent copy resource profile");
+        validate_policy(profile.policy(),true);
+        (void)intersect(config.broker_budget(),profile.policy().total());
+    }
+
 }
 int seal_resource_config(const workspace::v1::BrokerResourceConfig& configuration,
                          const std::filesystem::path& owned_scope) {
@@ -196,6 +205,7 @@ int seal_resource_config(const workspace::v1::BrokerResourceConfig& configuratio
 }
 struct WorkspaceResources::Impl {
     workspace::v1::BrokerResourceConfig config;
+    std::map<std::string,workspace::v1::WorkspaceResourcePolicy> copied_policies;
     std::filesystem::path root;
     int directory = -1;
     identity::tls_detail::Fd manager_directory;
@@ -370,6 +380,32 @@ supervisor::ProcessScope& GitJobResources::scope() { return *impl_->scope; }
 ApplicationResources::ApplicationResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 ApplicationResources::~ApplicationResources() = default;
 supervisor::ProcessScope& ApplicationResources::scope() { return *impl_->scope; }
+workspace::v1::WorkspaceCopyResourceProfile WorkspaceResources::resolve_copy_profile(const std::string& name,const std::string& application_profile) const {
+    for(const auto& configured:impl_->config.copy_profiles())if(configured.name()==name) {
+        auto selected=configured;selected.mutable_policy()->clear_profiles();
+        for(const auto& application:configured.policy().profiles())if(application.name()==application_profile)*selected.mutable_policy()->add_profiles()=application;
+        require(selected.policy().profiles_size()==1,"Copy application profile is absent from the independent resource policy");return selected;
+    }
+    throw WorldError(wire::FORBIDDEN,"Independent copy resource profile is unavailable");
+}
+void WorkspaceResources::register_copy_workspace(const std::string& workspace,const workspace::v1::WorkspaceCopyResourceProfile& pinned) {
+    require(!workspace.empty() && workspace.size()<=128 && pinned.has_policy() && pinned.policy().profiles_size()==1,"Malformed persisted copy resource binding");
+    const auto current=resolve_copy_profile(pinned.name(),pinned.policy().profiles(0).name());
+    require(current.SerializeAsString()==pinned.SerializeAsString(),"Persisted destination resource policy changed");
+    auto policy=pinned.policy();policy.set_workspace(workspace);
+    const auto found=impl_->copied_policies.find(workspace);
+    if(found!=impl_->copied_policies.end())require(found->second.SerializeAsString()==policy.SerializeAsString(),"Copy resource policy is already bound differently");
+    else impl_->copied_policies.emplace(workspace,std::move(policy));
+}
+bool WorkspaceResources::has_profile(const std::string& name, const std::string& workspace) const {
+    if (name.empty() || name.size()>128 ||
+        std::any_of(name.begin(),name.end(),[](unsigned char c){return c<0x20 || c==0x7f;})) return false;
+    const auto* policy=&impl_->config.default_policy();
+    for (const auto& selected:impl_->config.workspaces())
+        if (!workspace.empty() && selected.workspace()==workspace) policy=&selected;
+    for (const auto& selected:policy->profiles()) if (selected.name()==name) return true;
+    return false;
+}
 std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job(std::span<const int> directory_handles) {
     require(!directory_handles.empty() && directory_handles.size() <= 12, "Git worker requires bounded directory handles");
     validate_storage_device_handles(impl_->config.broker_budget(), directory_handles);
@@ -406,6 +442,7 @@ std::unique_ptr<ApplicationResources> WorkspaceResources::prepare(const workspac
     const std::array<std::filesystem::path, 3>& paths) {
     const auto* policy = &impl_->config.default_policy();
     for (const auto& selected : impl_->config.workspaces()) if (selected.workspace() == request.workspace()) policy = &selected;
+    if(const auto copied=impl_->copied_policies.find(request.workspace());copied!=impl_->copied_policies.end())policy=&copied->second;
     workspace::v1::ActorResourceLimit actor;
     if (request.has_principal()) *actor.mutable_principal() = request.principal(); else actor.set_fixture_actor(request.actor());
     const auto key = actor_key(actor);

@@ -1,0 +1,25 @@
+# M07 revocation source quota fixture correction
+
+This fixture-only overlay changes the source and actor quotas for one fault scenario. It does not change production storage policy or copy authorization. The 512 MiB volume limit and all copy-denial, durable-abort, no-publication, process-continuity, peer-survival, resource-budget, and deadline assertions remain in place.
+
+The recovered sb16-2 source-process stderr contained `EDQUOT` (errno 122) during writes to both `/state/config/counter.tmp` and `/state/data/counter.tmp`. The source application qgroup ID was 0/262, with a 4,194,304-byte maximum; its transient reservation peak was not recorded. This evidence motivates a larger source fixture budget for the continuous-writer revocation case. It does not establish that all quota accounting is correct.
+
+For `test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication`, the fixture now declares 64 MiB source-state capacity, 256 MiB actor-state capacity, 256 MiB workspace capacity, and the calibrated 4 MiB destination `copy-source` profile. The total storage volume remains 512 MiB. The fault fixture merges its scenario dictionaries with the engine fixture dictionaries. The provision override uses a scenario-declared actor cap and keeps its existing 64 MiB default for other fault methods. Saved `volume.json` policy fields are refreshed from the final definition before provisioning. The small-source-quota rejection case remains unchanged.
+
+Source pins:
+
+- Base source commit: `adfb2578db0319c0fde31649406a325cbcfb0c58`.
+- Frozen focused binary package commit: `f3c2f34857e06adbf60653000d8bcdd340fb58b1`.
+- Frozen package manifest SHA-256: `896b4c1c288bcff49bf8eb9194413c2e3da8b1510c46e2f6cb2de14bad244427`.
+- Base fixture `test_workspace_copy_faults.py` SHA-256 at `adfb2578db0319c0fde31649406a325cbcfb0c58`: `2d19f4d28f4257da33b9b59ffb1ce0fdc26e3aa1bb15f6a739e2666b8600083f`.
+- Frozen focused package fixture SHA-256 at `f3c2f34857e06adbf60653000d8bcdd340fb58b1`: `81ade82db969e1f89c26e585cca2a315f84d56f0e0228be9bdabb851136b732c`.
+- Corrected fixture SHA-256 at `614d0d410cdfa26a8482d790ea1f3969757e8f1c`: `1ea1d1de39c9f6f201dbae7df11ba82e9b60fa50f4fcb7d3a9b03bd46c41010d`.
+
+This is a test-only source overlay on the frozen focused binaries. It requires no C++ rebuild. It is UNQUALIFIED until runtime checks complete.
+
+Focused selections for the runtime owner:
+
+- Run `test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication` through `tools/run_workspace_copy_faults.py` using its existing exact single-case selector. Run three Debug attempts and one ASan/UBSan attempt on each qualification host.
+- Preserve the actual small-quota rejection control through `tools/run_workspace_copy_engine.py` using its exact single-case selector `test_small_source_quota_rejects_actual_writer_and_preserves_peer_application`. The method is present in the runner's existing 13-case `load_tests` selection. The regular runner retains its ordinary wrapper and security checks without a BPF observer handshake.
+
+No runtime command, test-host operation, build, or production code change was performed for this correction. Static fixture inspection and Python bytecode compilation passed. Runtime checks remain UNRUN.

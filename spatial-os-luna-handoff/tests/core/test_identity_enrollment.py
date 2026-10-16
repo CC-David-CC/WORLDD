@@ -247,7 +247,7 @@ class EnrollmentTests(EnrollmentFixture):
         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
             db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
-                             'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
+                             'DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
             self.assertEqual(db.execute("SELECT name FROM sqlite_schema WHERE type='table'").fetchall(), [('issuer',)])
             self.assertEqual(db.execute('PRAGMA user_version').fetchone(), (1,))
         command=[str(BINARY),'--state-dir',str(self.state)]

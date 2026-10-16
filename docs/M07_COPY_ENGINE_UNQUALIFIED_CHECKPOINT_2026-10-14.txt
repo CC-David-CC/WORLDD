@@ -1,0 +1,159 @@
+M07 asynchronous copy engine checkpoint. UNQUALIFIED. 2026-10-14.
+
+Branch: m07/copy-engine-completion-20261014.
+Development host: middle-child.
+Base: f7e8bbd47a5db72124f252522090a3156862b8f8.
+Reviewed binding source merged: f2cf41d2e69db6347dd6004368aa6ea053eaae30.
+Readonly production corrections: 4a15d8544111b38a00956cd70f7ba2c4bdaea59f.
+Narrow test overlay: f4fb6e974dc52b1275f6ad65b20a965bc89d6189.
+Sealed-job transport correction independently matches narrow 44c950b109d76996a64f55724125815bde112f59.
+Typed owner BEGIN-conflict correction imported from 7ee84fd3001d963e99b8e241bc015eac34812edd.
+
+The broker advances durable copy phases on its SQLite owner thread.
+Admission pins the exact request, requester, grant revision, source policy, fence, operator catalog, and destination profiles.
+Payload-only cgroups provide owned quiescence. Existing application authority queries remain available.
+Workers receive pinned descriptors and sealed protobuf requests. Workers never access SQLite.
+Every copy stage validates exact owner receipts before starting the worker.
+A confined finalizer builds fresh Git administration and validates final destination bytes.
+Source-copy digests remain separate from the rewritten destination validation receipt.
+Publication stores the independent destination resource profile with registry rows.
+Execution schema v7 requires explicit stopped migration from existing v6.
+The actor WorkspaceCopyRequest remains unchanged.
+
+Compile evidence is external:
+middle-child:/home/dflanag3/spatial-artifacts/m07-engine-completion-20261014.
+Each preflight retains immutable source, file manifest, diff, and canonical command/wrapper receipts.
+01 failed: inherited protobuf enum integer conversion.
+02 failed: copy-worker Python protoc include path.
+03 failed: finalizer misleading indentation.
+04 failed: diagnostic emission misleading indentation.
+05 failed: owner service missing OpenSSL EVP linkage.
+06 passed: Debug production and generated Python closure. Runtime withheld after primary review.
+07 passed: affected broker/journal Debug targets. Runtime withheld after shared job-memfd launch failure.
+08 passed: affected broker, journal, and finalizer Debug targets.
+08 manifest SHA256: 7746df2cbacbe6a27598326a056951f7cd1ab312667eebee105613aec0994cf9.
+08 explicitly reuses unchanged helper/world/identity/Python closure from frozen06.
+06 source/archive and all failing build logs remain retained.
+No runtime tests, probes, ctest, or world sessions ran on coding hosts.
+
+Selected implemented checks:
+- Actual begin rejects filename-shaped storage-ID READ before REQUESTED or storage effects.
+- Root READ reaches durable REQUESTED within five seconds and preserves exact retry binding.
+- Actor-route project/history copy preserves staged, dirty, untracked, and arbitrary project bytes.
+- Source PID/start identities persist through real payload freeze. Access remains available.
+- Fresh Git administration excludes source credential sidecars, remotes, and reflogs.
+- Destination has no processes or members. Revoked status redacts destination and digest.
+- Authenticated malformed BEGIN receipt fences before START, worker launch, or publication.
+- Journal accepts all five class kinds and rejects missing, extra, and substituted kinds.
+- Explicit execution schema migrations preserve terminal rows and mark uncertain legacy work.
+
+Runtime evidence:
+- Journal08 failed134/134 because the fixture omitted the pinned binding on an exact retry.
+- Audited journal09 passed0/0 on sb16-2. Five-class publication and migration assertions passed.
+- Engine08 four-case run failed1/1 on sb16: one error and six failures including cleanup duplicates.
+- Negative scope component used str instead of bytes. Direct fixture and world shared one broker stream.
+- Payload lookup selected initializer PID2 instead of the held payload PID3.
+- SQLite fixture contexts retained open connections. In-unit unmount reported EBUSY.
+- Outer recovery independently verified all four volumes unmounted and detached; both helpers restored absent.
+- Engine evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine08-debug-v1.
+- Journal evidence: sb16-2:/home/dflanag3/spatial-artifacts/runs/m07-engine09-journal-v1.
+- Engine10 passed three cases but the actor copy became UNCERTAIN during finalization.
+- Its finalization job memfd remained at EOF before Bubblewrap read the sealed data.
+- Read-only image inspection proved two completed SEALED copies and a valid387-byte finalization intent.
+- Image SHA256 remained 670d4f354e3bd17c541e9432d847c643cd98dde991a29218ce910623db70ab6e.
+- The inspection mount was read-only with rescue=nologreplay. Its loop and mount were removed.
+- Engine11a passed all four cases on sb16 Debug. Child and canonical wrapper exited0/0.
+- Actor copy reached PUBLISHED7 with19 completed durable effects and no unresolved effects.
+- Actual dirty/staged/untracked/history bytes and independent Git administration passed.
+- Source PID/start identities and frozen payload access passed. Destination jobs/members remained zero.
+- Exact filename-root denial, root-read retry, malformed BEGIN fencing, and revoked status redaction passed.
+- All four images were independently unmounted/detached. Both root helper paths were restored absent.
+- Evidence: sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine11a-debug-v1.
+- Independent terminal review SHA256: a61c6a813c4741fd89d09c578292ab9525158d7c60770fc9dad7ac01beab5e90.
+- Package SHA256: c527f283df3698506a713a31ac8a017815ad7f3e7c105fae82d5bf3000750dfe.
+- Effective source manifest SHA256: 445d63dd87f3f4337326a78821418783f2ee9ddabdd13e0cbaec3e0558c6c613.
+- Production11 compiled with an explicit test-only11a JSON-newline overlay.
+- This summary and status wording are documentation-only changes after that freeze.
+- First copy success is focused component evidence. It does not qualify the full engine or M07.
+
+The focused launcher verifies the installed Bubblewrap bootstrap.
+It records and temporarily installs both copy helpers.
+Restoration verifies the current installed candidate before replacing or removing it.
+Volume recovery runs outside the delegated unit.
+Recovery compares the root-owned provisioning record with the declared fixture definition.
+It then unmounts the exact image and detaches its loop through the production provisioner.
+Unconfirmed cleanup fails and retains exact recovery commands.
+
+Still required before qualification:
+- Actor-route copy and exact denial on sb16-2. sb16 Debug first four cases passed.
+- Bounded multi-application collection schemas, real export/registration, and all-class copies.
+- Restricted destination profile rejection after restart.
+- Finalizer depth128 positive and depth129 negative.
+- Worker malformed finalization class/outcome checks.
+- Crash/revocation/retry/deadline/bounds/malicious Git coverage.
+- Actual ordinary Git checkout/commit after initial registry creation.
+- Explicit stopped owner catalog schema4-to5 migration.
+- Focused sanitizer and BUILD_TESTING=OFF artifacts and checks.
+- Primary review of every changed file and combined milestone qualification.
+
+The native focused wrapper has a 240-second service bound.
+It does not qualify the full 300-second operation deadline.
+SHA256 Git administration is unsupported in this draft.
+This checkpoint does not establish M07 completion or Spatial-M1 acceptance.
+
+
+Configured-state V2 checkpoint (UNQUALIFIED)
+==========================================
+Base: 0a32fade70545d415d3d925c2ddb5e8d346210b7.
+Reviewed source snapshots: schema-review-v2-01 and source-review-v2-02 through v2-05.
+Final production freeze: preflight14-v2.
+Frozen source manifest SHA256:
+4b475ead8b4246a4e6e64333d8c191db5a2cfdb3921692a73913e6422d04994e.
+
+The source implements bounded configured definitions, actual persistent data/config companions,
+fresh runtime identities, exclusive configured-key writers, and explicit owner/execution migrations.
+It pins source mapping revisions and independent destination policy/quota bindings.
+It exports selected mutable domains under one whole-payload quiescence lease.
+It preserves actual symbolic or detached Git HEAD from the snapshot.
+It stores immutable publication receipts and resolves copied workspaces as later copy sources.
+The full engine CTest registration now owns candidate helper installation and restoration.
+
+Build evidence:
+middle-child:/home/dflanag3/spatial-artifacts/m07-engine-completion-20261014/preflight12-v2
+Configure 0/0. Build 2/2. Journal link lacked the shared protobuf validator dependency.
+That failure remains preserved.
+preflight13-v2 and preflight14-v2 configure/build each completed 0/0.
+preflight14-v2 CTest -N inventory completed 0/0.
+It lists copy-finalize-worker, workspace-copy-journal, workspace-copy-journal-migration,
+and the actual workspace-copy-engine registration.
+No runtime ran on a coding host.
+
+Focused runtime evidence:
+sb16:/home/dflanag3/spatial-artifacts/runs/m07-engine13-finalizer-debug-v3
+Debug finalizer: four methods passed in 0.509 seconds. Canonical exits 0/0.
+The control compares staged index, cached and uncached diffs, dirty/untracked bytes, and reachable history.
+Mixed finalization/state-export mode is rejected before Git/tree effects.
+Depth 128 succeeds. Depth 129 is rejected.
+The exact constructor mixed-mode path remains separately unrun.
+The initial transfer preflight found a nonexistent protobuf namespace.
+The next preflight found the runner absent at the coding-host path on sb16.
+The first runtime completed 2 PASS / 2 FAIL because a local Git clone hardlinked object files.
+Those failures remain preserved.
+The corrected fixture imports flat copy_pb2 and clones with --no-hardlinks.
+It asserts nlink1 before invoking the unchanged production helper.
+Fixture overlay14a source SHA256:
+2b73ff3fecf2a024f13e29350f34ce7168f0cf97ad3e3a1c7288e59fcafa5ba4.
+Its archive SHA256:
+237294f99eb2c7cf01aeaf370387a38d69a75fff15e38e4474b908df4a3ed993.
+
+The eleven actor/owner integration methods are implemented but UNRUN.
+They include two live application writers, all five classes, overlap denial, validated-exit relaunch,
+data-only fresh config, optional selections, actual checkout/detached HEAD, raw state1 admission denial,
+restricted policy restart, exact publication replay after mapping reassignment, and recopy.
+New owner/execution migration regressions remain UNRUN.
+V2 journal and broader authority/control callers remain UNRUN.
+SAN, BUILD_TESTING=OFF, and second-host V2 evidence remain UNRUN.
+Fault/revocation/crash/deadline/bounds/malicious-Git families and full combined gates remain pending.
+A longer suite wrapper does not establish the absolute 300-second operation deadline.
+The earlier 11a pair-engine Debug evidence remains valid only for its exact source.
+This checkpoint is not integrated and does not complete M07.

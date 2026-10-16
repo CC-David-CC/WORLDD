@@ -1,0 +1,8 @@
+The authority store revision belongs to one database.
+This test switches from a world database to a fresh workspace database.
+The fixture resets its expected revision to zero during that switch.
+The workspace store returns revision zero before root installation.
+Root installation advances the workspace revision to one.
+The allowed-right checks verify the current revision through the fixture helper.
+All world and workspace right-domain denial and grant assertions remain intact.
+No production authority or revision behavior changed.

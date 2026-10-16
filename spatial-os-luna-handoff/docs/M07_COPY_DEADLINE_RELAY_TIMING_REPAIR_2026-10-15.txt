@@ -1,0 +1,40 @@
+M07 deadline fault relay complete-exchange timing repair
+Date: 2026-10-15
+Status: UNQUALIFIED. Five pure methods passed on each host. Real deadline checks are UNRUN.
+Base: bf99393f20841e0a15307478344c924451bfcb26.
+Production code and runtime source eb569742f843c59e988e813f3431cf292c516fe7 remain unchanged.
+
+The first real deadline case failed before reaching the 300-second absolute bound.
+Its unittest duration was 142.746 seconds, including setup and cleanup.
+Result SHA256: fb6114768347739ad0f0dbf1ff03f36b054a53f5440e4b11e45ebd001c0a50ce.
+The failed image m07-engine-627661f7079343d4 remains retained on SB16-2.
+Evidence: /home/dflanag3/spatial-artifacts/m07-copy-repair-matrix-20261015/sb16-2/focusedbf99393f-debug-13-deadline.
+Read-only diagnosis: a5500:/home/dflanag3/spatial-artifacts/m07-deadline-fault13-diagnosis-20261015.
+Causal timing summary SHA256: e908df126e48d3d5049ca317b0bdffb8f74075c8528e6e24cb2a65094d000323.
+
+The last real destination-prepare request started at monotonic 375901.351662483.
+The actual owner replied at 375904.096548197, after 2.744885714 seconds.
+The relay then added 4.100768684 seconds and attempted forwarding at 375908.197316881.
+The complete relay exchange took 6.845654398 seconds.
+The nineteen earlier delayed exchanges took 4.240410848 to 4.453003749 seconds.
+StorageClient uses one five-second deadline for send and receive.
+The broker correctly rejected the late reply with Storage prefix deadline expired.
+The relay's BrokenPipe followed that rejection.
+The actual owner had empty stderr and was killed by fixture cleanup.
+The fixture wrapper's exit 1 must not be misreported as an actual owner failure.
+
+The relay now waits until exchange_start plus 4.1 seconds, including actual owner processing.
+It records real owner duration, injected wait, complete duration, and forwarding status/time.
+An owner or scheduler consuming five seconds cannot qualify as the intended subtimeout control.
+No RPC, actor-status, absolute-copy, or external watchdog deadline increases.
+The actual fourteen-companion case retains its 300-306 second assertion and all other oracles.
+
+Five pure regression methods use a local helper clock argument, not a runtime clock rewrite.
+They cover a fast owner, a 2.7-second owner, a valid owner after the target,
+an owner at or above five seconds, and scheduler overshoot.
+CTest registers workspace-copy-fault-relay-timing for future gate coverage.
+Selected checks: these five methods, then the real absolute deadline case on both hosts and profiles.
+Both pure runs reported all five named methods, Ran 5 tests / OK, and command/wrapper exits 0/0.
+Evidence: /home/dflanag3/spatial-artifacts/m07-deadline-relay-pure-20261015/HOST/outer-01.
+Combined results SHA256: 9c1903a0c180d5b5106751e8a04ed5dabaafcceef9d3188463de70d8a6112cde.
+The real deadline regression remains UNRUN. No package or full gate result is claimed.

@@ -1,0 +1,71 @@
+# M07 copy fault SQLite lifetime repair - 2026-10-15
+
+Status: UNQUALIFIED fixture repair. No production change or new runtime pass.
+Base: ee2af5733aa50b283191a07df1edeb1101ab2523.
+Failed runtime source: 517fc09b80f48b05d4f69ebfff719d2c01438c7b.
+
+## Retained failures
+
+Debug13 failed fixture volume teardown on both hosts.
+The sb16 run took 328.845 seconds. Its volume was m07-engine-ac3087460df84277.
+The sb16-2 run took 336.233 seconds. Its volume was m07-engine-4f9d2b7672e04837.
+Each case recorded one failure and command/wrapper exits 1/1.
+Each initial umount returned 32 because the target was busy.
+Later outer recovery unmounted and detached each volume. It did not make either case pass.
+
+Both deadline bodies completed their assertions before cleanup failed.
+Detection occurred 303.745653010 seconds after acceptance on sb16.
+Detection occurred 300.345237896 seconds after acceptance on sb16-2.
+Both returned durable ABORTED with COPY_UNAVAILABLE and no destination publication.
+The existing 300-to-306-second detection and status-request limits remain unchanged.
+
+Debug16 also failed teardown on sb16 after 19.217 seconds.
+Its volume was m07-engine-9c49e3660d314add.
+Its hostile-Git summary exists after all body assertions and explicit service closes.
+It records PUBLISHED, preserved source configuration, and no host or sandbox marker effect.
+The retained journal contains one publication and one registry-publication effect.
+Its overall result remains one failure with exits 1/1.
+
+The sb16 relay audits report owner and forwarder exits zero, EOF, and no cleanup errors.
+The broker-close path checks broker exit and owned-scope removal before returning.
+No contemporaneous holder snapshot identifies the original busy PID, descriptor, cwd, or mount namespace.
+Later process absence does not establish the original holder.
+
+## Concrete defect and repair
+
+A SQLite connection context commits or rolls back its transaction. It does not close the connection.
+Five fault-fixture contexts lacked deterministic closure: three deadline, one revocation, and one hostile-Git query.
+Wrap each connection with contextlib.closing while retaining the original transaction context.
+Transaction exit occurs before connection closure.
+The two existing closing contexts remain unchanged.
+Lost-ACK and worker-death checks use the already-closing copy_row helper.
+
+All SQL, timing bounds, action requests, assertions, and production paths remain unchanged.
+A passive snapshot runs only after an EBUSY unmount failure and before existing outer recovery.
+It scans at most 1,024 fixture descriptors with a one-second observation budget.
+It retains only own descriptor/cwd/root targets below the exact execution_override mount root.
+It also records accessible known process identities and resource-scope existence.
+It reads no environment or file contents and adds no privileged helper.
+It preserves the original unmount error and performs no recovery action.
+Inaccessible root-owned descriptors and unrelated process holders remain outside this observation.
+
+## Selected checks and evidence
+
+The coding-host SQLite demonstration confirmed retained descriptors after transaction-only context exit.
+Explicit closure released them after both commit and rollback.
+This is mechanism evidence, not runtime qualification.
+Syntax, whitespace, staged source policy, and complete normalized method comparison passed.
+The method comparison permits only the five connection-context changes.
+All other original method bodies, except the diagnostic provision wrapper, remain unchanged.
+
+Next runtime checks are Debug13 deadline, Debug14 revocation, and Debug16 hostile Git.
+Retain Debug15 lost-publication-ACK and Debug17 worker-death coverage without changing their behavior.
+Run the selected checks on both required hosts in the applicable profiles.
+These draft runtime checks, packaging, full qualification, and milestone integration remain pending.
+
+Evidence root on a5500:
+/home/dflanag3/spatial-artifacts/m07-copy-deadline-cleanup-diagnosis-20261015
+Read retained-evidence-summary.json, sb16-2-deadline-evidence-summary.json,
+hostile-evidence-summary.json, sqlite-demo-and-draft-review.json, and expanded-draft-review.json.
+Original failures remain under each test host's m07-copy-repair-matrix-20261015 artifact tree.
+No original evidence, volume image, frozen source, or milestone branch was changed.
