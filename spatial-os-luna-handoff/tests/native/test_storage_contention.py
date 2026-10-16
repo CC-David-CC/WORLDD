@@ -332,15 +332,15 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
 
     def record_git_process_sample(self, pids):
         self._ack_git_sample_count += 1
-        if self._ack_git_sample_count > _ACK_TIMELINE_GIT_SAMPLE_LIMIT:
+        discovered = bool(pids) and not self._ack_git_discovered
+        if discovered:
+            self._ack_git_discovered = True
+        elif self._ack_git_sample_count > _ACK_TIMELINE_GIT_SAMPLE_LIMIT:
             self.measurements['ack_timeline_truncated'] = True
             self.measurements['ack_timeline_dropped_count'] = (
                 self.measurements.get('ack_timeline_dropped_count', 0) + 1
             )
             return
-        discovered = bool(pids) and not self._ack_git_discovered
-        if discovered:
-            self._ack_git_discovered = True
         self.record_ack_timeline(
             'git_discovered' if discovered else 'git_presence_sample',
             essential=discovered,
@@ -609,15 +609,16 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         # Select may report the first exit. Check each retained handle within the same bound.
         while len(exited)<len(pins) and time.monotonic()-started<2:
             time.sleep(.01);exited=select.select(pins,[],[],0)[0]
+        elapsed_seconds=time.monotonic()-started
         git_still_running=git_running()
         pending_reply=not bool(select.select([self.coordinator.stdout],[],[],0)[0])
-        self.measurements['exit_during_git']=dict(seconds=time.monotonic()-started,exited=len(exited),expected=len(pins),
+        self.measurements['exit_during_git']=dict(seconds=elapsed_seconds,exited=len(exited),expected=len(pins),
             git_still_running=git_still_running,pending_reply=pending_reply)
         self.record_ack_timeline(
             'application_exit_sample',
             essential=True,
             sample_started_ns=started_ns,
-            sample_seconds=self.measurements['exit_during_git']['seconds'],
+            sample_seconds=elapsed_seconds,
             exited=len(exited),
             expected=len(pins),
             git_process_count=len(git_still_running),
@@ -757,6 +758,20 @@ class AckTimelineRecorderTests(unittest.TestCase):
         self.assertEqual(len(measurements['ack_timeline']),_ACK_TIMELINE_LIMIT)
         self.assertEqual(measurements['ack_timeline'][-1]['stage'],'git_import_reply_received')
         self.assertTrue(measurements['ack_timeline_truncated'])
+
+    def test_late_first_git_discovery_survives_sample_truncation(self):
+        case=object.__new__(StorageContentionTests)
+        case.measurements={}
+        case._ack_git_sample_count=0
+        case._ack_git_discovered=False
+        for _ in range(_ACK_TIMELINE_GIT_SAMPLE_LIMIT+1):
+            case.record_git_process_sample([])
+        case.record_git_process_sample([123])
+        timeline=case.measurements['ack_timeline']
+        self.assertTrue(case.measurements['ack_timeline_truncated'])
+        self.assertEqual(timeline[-1]['stage'],'git_discovered')
+        self.assertTrue(timeline[-1]['present'])
+        self.assertEqual(timeline[-1]['process_count'],1)
 
 
 class CgroupProcessSamplingTests(unittest.TestCase):
