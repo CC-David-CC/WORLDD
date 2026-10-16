@@ -39,8 +39,33 @@ a5500:/home/dflanag3/spatial-artifacts/m07-tooling-successor-preparation-2026101
 Allowlist SHA256: bc14486fc2b2d84cc62e6f32ed234b04db6d4637ee27be16561fb12d0bf23145.
 Corrected combined-candidate preflight passed through canonical 0/0/COMPLETE.
 It verified 856 frozen parent runtime files, unchanged build-input maps, and all 41 locked acceptance files.
-The successor package, independent verification/freeze, source-only deployment, and complete gate remain pending.
+The successor package was created, independently verified, and frozen through canonical 0/0/COMPLETE runs.
+Primary confirmed all native archive payload hashes, profiles, compiled source root, and 24 historical stages remain unchanged.
+Package root Q:
+a5500:/home/dflanag3/spatial-artifacts/m07-tooling-successor-preparation-20261015.
+Frozen package: Q/Q/package-controller-repair-01/packages/d164fed7-gate-evidence-01.
+Package pin SHA256: 4928e47386269372fa4af0e5dc6b3fb777f6b7b573e00f8c51a6abdde1b1c13c.
+Freeze receipt SHA256: 83a3d606a507036f25e15b59551655a4ad6380bc4674522efebe0b87de9fe16a.
+Archive SHA256: 759e46aa5deb70ba8350372dae92fd126920787bfec7369baa020f4264c1728b.
+Inner provenance SHA256: 64946f2558cc3c010a00fc0dc24956d8db4ea43d2eef85e537f6e04469f27fcc.
+Outer provenance SHA256: 695cf5d1047fad4f0c1f3d54570ee7c77825197404f27b3862a4dfa5619b4c64.
+Each host received only a 13-file source-update kit, about 2.67 MB. All transferred bytes passed hash checks.
+Kit path: HOST:Q/host-source-kits-01/HOST. The large archive remains on a5500.
+Source-only deployment and the complete gate remain pending.
 No deployment has silently substituted d164 for the 076 baseline.
+
+Review rejected the first source updater before execution.
+It compared translated CTest metadata with archive hashes and could not inspect privileged process references.
+A stronger worker is completing controller02 with actual both-host inputs and explicit rollback controls.
+Actual inputs also exposed retained gate augmentations in each live Debug CTestTestfile.cmake.
+Primary restored the saved receipt baseline on both hosts under maintenance locks.
+Each restoration returned 0/0/COMPLETE and exact 198-registration raw inventory hashes.
+Saved baseline SHA256: 2986d61fa5051e0b1fb15d88d3bf656f7c25998377821b98f00fb5baa5e765bf.
+Original augmented bytes, relocation records, intent, and restoration results remain at:
+HOST:/home/dflanag3/spatial-artifacts/m07-metadata-baseline-restoration-20261016.
+No source, binary, helper, or deployment receipt changed during metadata restoration.
+Source freeze preserves execute bits. Two tracked cross-host Python files are 0555, not 0444.
+Thirteen source directories are 0555. Other source directories are 0500.
 
 The previously unrun bounded-storage stage is now checked separately before the next long gate.
 Both hosts passed all five Debug scenarios:
@@ -65,9 +90,35 @@ The 076 passed copy/fault images map to 18 exact volume.img leaves per host, abo
 Current run logs and failure evidence must remain preserved.
 Cleanup controller02 was rejected before execution because it requires a nonexistent CTest XML errors attribute.
 Both actual core XML files have 196 case elements and root tests=196, failures=0, disabled=0, skipped=0.
-A stronger worker owns bounded controller03 with actual raw-evidence positive controls.
-No passed-fixture image was deleted by controller01 or02.
+A stronger worker completed bounded controller03 using actual raw evidence from both hosts.
+It passed 40 actual-main controls, two journal controls, and 14 exact-leaf guard checks.
+Primary reviewed its complete controller and accepted fresh native verification on both hosts.
+Both verify-only runs returned 0/0/COMPLETE with empty stderr and the exact 18-image scope.
+Primary then authorized exact-leaf retirement. Both retirement runs also returned 0/0/COMPLETE.
+Each host removed only its 18 pinned volume.img leaves. Their parent directories remain.
+Recovered allocation: sb16 9656815616 bytes; sb16-2 9656819712 bytes.
+Free space after retirement: sb16 35757150208 bytes; sb16-2 32939937792 bytes.
+Primary rechecked all 23 original raw evidence files per host. Their hashes and sizes remain unchanged.
+The 1029-file deployed source, provenance, and both deployment receipts remain unchanged.
+Controller03 SHA256: 19408edcfe8350eb96071d5c2fbb0c04433c4b28026c5263a4db980baebfc97d.
+Manifest03 SHA256: ae22c997392ed62ac25c520f640fbdd5a530c2a93097a23a5c0b3ae36ab78285.
+Retained journals, exact removed paths, verification, retirement, and evidence audit:
+a5500:/home/dflanag3/spatial-artifacts/m07-live-gate-capacity-20261015/primary-retirement03-02.
+No passed-fixture image was deleted by rejected controller01 or02.
+Primary staging initially failed before launch: a parent directory was root-owned, then a runner placeholder was unexpanded.
+The exact new child directories received operator ownership. The parent ownership and mode remain unchanged.
+The runner path now explicitly names each host. Both prelaunch refusals remain in the artifact records.
 Historical archive cleanup recorded earlier remains complete.
+Measured bounded-storage output was about 2.75 GB per profile, exceeding the initial 2 GiB image-only estimate.
+Primary retired only the two completed focused-storage image leaves per host after fresh reference checks.
+Each host recovered another 4294975488 allocated bytes. Native reviews, logs, and directories remain intact.
+Both jobs returned 0/0/COMPLETE with empty stderr.
+Exact paths and durable journals:
+HOST:/home/dflanag3/spatial-artifacts/m07-passed-storage-image-retirement-20261016.
+Fresh capacity admission at Q/primary-package-runs/capacity-admission-01.json records:
+sb16 free 40052871168 bytes; sb16-2 free 37235720192 bytes.
+The gate budget is 25 GiB output plus 8 GiB reserve. Both hosts meet that 33 GiB minimum.
+Recheck capacity immediately before launch.
 No user input or extra storage authorization is currently required.
 
 Current checkpoint: both Debug core suites pass; launcher repair checked into box-git

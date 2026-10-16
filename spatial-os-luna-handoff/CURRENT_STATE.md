@@ -11,11 +11,18 @@ These focused checks do not replace the complete M07 gate.
 Reviewed tooling repairs are combined as d164fed7 on the milestone branch and BOX-GIT VERIFIED.
 The combined source passed three reconciliation regressions and package-input preflight.
 No application input, schema, binary, CTest registration, or locked acceptance case changed.
-Package preparation and source-only deployment remain pending. Both deployed baselines remain 076ba423.
+The source-only package is independently verified and frozen. Both hosts verified 2.67 MB update kits.
+The reversible deployment controller remains under review. Both deployed baselines remain 076ba423.
 
 Both hosts also passed all five focused storage scenarios in Debug and ASan/UBSan.
 Primary verified raw results, evidence hashes, runtime hashes, unchanged source, and resource cleanup.
 Both storage drivers returned 0/0/COMPLETE and have exited.
+Reviewed cleanup03 removed exactly 18 completed-test disk images per host, recovering about 9.66 GB each.
+Original raw evidence, source hashes, and deployed candidate pins remain intact.
+Two completed focused-storage image leaves were also retired per host. Their reviews and logs remain intact.
+Fresh free space is about 40.05 GB on sb16 and 37.24 GB on sb16-2.
+Both hosts meet the revised 25 GiB output budget plus 8 GiB reserve.
+The saved Debug CTest baseline is restored on both hosts, with exact original 198-registration inventory hashes.
 The complete 196-registration sanitizer core, updated-candidate gates, cross-host checks, and final review remain pending.
 No user action is currently needed.
 Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for source pins, durations, and retained evidence.
