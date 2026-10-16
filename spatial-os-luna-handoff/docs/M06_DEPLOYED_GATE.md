@@ -1,6 +1,13 @@
 # M06 deployed gate workflow
 
-Status: unqualified gate-wiring implementation. No tests, deployment, or M06 gate have run from this branch.
+P10 evidence path repair (2026-10-15)
+-------------------------------------
+
+The gate creates a fresh mode-0700 acceptance directory under each profile's external artifact directory. It sets SPATIAL_EVIDENCE_DIR for P10. The resource delegate forwards it through its explicit systemd environment allowlist. Adapter-resource and test-display wrappers inherit it. Acceptance tests therefore keep per-test state outside frozen source. Locked cases and the acceptance oracle remain unchanged.
+
+The primary must review this path flow and run the frozen-source P10 smoke on each qualification host before treating the repair as qualified.
+
+Status: unqualified gate-wiring implementation. Offline tooling regressions have run. No deployment or M06 runtime gate has run from this branch.
 The root AGENTS.md controls host allocation. The legacy qualify_m04_gate.py remains unchanged.
 
 ## Selected wiring checks recorded before implementation

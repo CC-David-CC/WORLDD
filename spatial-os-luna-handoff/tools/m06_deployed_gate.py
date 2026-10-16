@@ -729,10 +729,39 @@ def startup_packaging_command(source, executable, bindings):
             str(executable), str(bindings)]
 
 
-def stage_environment(environment, label, production, source):
+def create_p10_evidence_directory(target, source):
+    '''Create a fresh private acceptance-evidence root under profile artifacts.'''
+    source = Path(source).resolve(strict=True)
+    target = Path(target)
+    if target.is_symlink() or not target.is_dir():
+        raise RuntimeError('P10 profile artifact root is not a real directory')
+    target_real = target.resolve(strict=True)
+    if target_real != target.absolute():
+        raise RuntimeError('P10 profile artifact root resolves through a symlink')
+    if source == target_real or source in target_real.parents:
+        raise RuntimeError('P10 evidence root must remain outside frozen source')
+    evidence = target_real / 'acceptance'
+    if evidence.exists() or evidence.is_symlink():
+        raise RuntimeError('P10 acceptance evidence root must be fresh')
+    evidence.mkdir(mode=0o700)
+    info = evidence.lstat()
+    if (not stat.S_ISDIR(info.st_mode) or evidence.is_symlink()
+            or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700
+            or evidence.resolve(strict=True).parent != target_real):
+        raise RuntimeError('P10 acceptance evidence root is not private and contained')
+    return evidence
+
+
+def stage_environment(environment, label, production, source, target=None):
     selected = environment.copy()
+    # Never inherit a caller-selected path for an acceptance run.
+    selected.pop('SPATIAL_EVIDENCE_DIR', None)
     if label == 'production-off-startup':
         selected['PYTHONPATH'] = str(production / 'python') + ':' + str(source)
+    if label == 'P10':
+        if target is None:
+            raise RuntimeError('P10 profile artifact root is required')
+        selected['SPATIAL_EVIDENCE_DIR'] = str(create_p10_evidence_directory(target, source))
     return selected
 
 
@@ -1345,9 +1374,11 @@ def gate(a):
                 ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
             ]
             for label, command, timeout in commands:
-                command_env = stage_environment(env, label, production, source)
+                command_env = stage_environment(env, label, production, source, target)
                 result, seconds = run(command, cwd=source, env=command_env, log=target / (label + ".log"), timeout=timeout)
                 item = dict(name=label, command=command, exit_code=result.returncode, seconds=seconds)
+                if label == 'P10':
+                    item['acceptance_evidence_dir'] = command_env['SPATIAL_EVIDENCE_DIR']
                 row["commands"].append(item); write_json(out / "run.json", report)
                 output = (target / (label + '.log')).read_text(errors='replace')
                 reject_inner_skips(output)
