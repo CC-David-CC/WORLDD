@@ -1,3 +1,63 @@
+Current checkpoint: 2026-10-16: Cleanup verified; both full sanitizer lanes are running
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+The frozen M07 runtime candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+Both retained Debug audits passed. Dedicated cross-host execution remains UNRUN.
+
+sb16 cleanup is complete for the approved capacity plan.
+All nine original snapshots and three additional recovery snapshots are absent.
+sb16-2's five approved snapshots were already removed.
+All 17 selected snapshots have independently verified archives on middle-child's data drive.
+Current runtime, accepted Debug evidence, and required graphics dependencies remain outside cleanup.
+
+The original sb16 removal attempt remains 1/1/COMPLETE.
+The stability refusal was correct. Earlier removal changed shared hardlink metadata.
+Primary proved that 590 files changed only ctime_ns and nlink, from three links to two.
+Their bytes, paths, identity, modes, ownership, modification times, sizes, and allocation remained unchanged.
+Primary reconciliation SHA-256: 67ee98ca49919a30b3387d54ddb9214a25696e075c049e5443fe7bcac660d9b2.
+The strict removal helper was not weakened.
+Recovery step 07 and steps 08-09 each finished 0/0/COMPLETE with retired panes.
+
+The additional recovery snapshots ended in -01, -02, and -03.
+Each was archived, independently verified, and removed before archiving its successor.
+This sequence preserved stable hardlink metadata for each strict removal check.
+Independent verification checked every member, regular-file hash, mode, owner, timestamp, and link target.
+The three removals recovered 4,313,542,656 bytes according to actual before/after observations.
+Archive root: /media/dflanag3/New Volume/spatial-artifacts/m07-san-capacity-retention-extra-20261016.
+Archive SHA-256 values, in source order:
+9be0925b00e208b69ee3ad648a18c5eee2e562c92c5b6f0e1fdd3cd57ac44894
+4b76255123556da8c0f5fc2d0b684d6eeaeadd1a4210b890c9ac621a4fd30191
+a2239a4f5c78448cfb8febe13f005524e805c34cfe3f6df72da0a74892cb183e
+
+The final primary cleanup audit ended 0/0/COMPLETE. Exact middle-child pane 851230 retired.
+It checked the failed original attempt, accepted recoveries, additional archives, removals, and target state.
+It confirmed all 12 sb16 source paths absent and retained Debug inputs unchanged.
+Fresh free bytes were 59,320,868,864. The unchanged required floor is 57,923,670,016.
+Primary cleanup review SHA-256: 39e0b8adb7b1935ebb226e8213d6848904d9cde967f3a4fea370768e8f8c9f7d.
+Review path: /home/dflanag3/spatial-artifacts/m07-san-capacity-retention-20261016/preparation-01/primary-removal-review/sb16.json.
+Literal LF launch scripts replaced the failed nested SSH quoting setup.
+Only the verified empty, unintended /home/dflanag3/Volume directory chain was removed with rmdir.
+
+sb16's unchanged full ASan-UBSan continuation has started.
+Actual pane PID: 3521819. Batch: 1e58e65d-sb16-san-collector-01.
+Launch receipt SHA-256: 41bbce5c127a240a47750ee72282d7a7b2587aba027f781cfaee8a12eb177de0.
+sb16-2's original sanitizer continuation remains active at pane PID 3488189.
+At 19:36:03 UTC, sb16 had completed eight of 197 core suites.
+At that observation, sb16-2 had completed 117 of 197 core suites.
+All completed core suites passed. Each host also passed startup five and harness 51.
+These are partial observations. Final sanitizer scans and complete profile results remain pending.
+No source, test, timeout, space floor, original failed report, or archive receipt changed.
+
+Next observe these exact runners. Do not redispatch either live attempt.
+After successful terminal results, compose the continuation sidecars.
+Run the fixed before-crosshost artifact audits and review the complete local receipts.
+Then execute the prepared cross-host matrix and both after-crosshost artifact audits.
+M07 qualification requires the complete local and cross-host evidence.
+
+The separate M08 schema draft remains box-git verified at 72ca37ce25f3f9b343cb5be19622c103aafb4025.
+It remains UNQUALIFIED and separate from M07. Actor cabinet runtime integration remains unimplemented.
+No M09 work is assigned.
+
 Current checkpoint: 2026-10-16: Sanitizer testing started on sb16-2; sb16 cleanup requires reconciliation
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
