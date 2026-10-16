@@ -1,3 +1,28 @@
+## 2026-10-16: M07 Debug execution passed; evidence collection repair pending
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes earlier live observations.
+Candidate: 1e58e65dec132a0a16f004ca4527034dca081f77. Both deployed source trees remain frozen.
+Both hosts passed all 197 local Debug core suites and all 151 locked P10 acceptance tests.
+Both hosts also passed startup five, harness 51, and all five bounded-storage-Git scenarios.
+These execution passes do not establish a complete local gate pass.
+
+On sb16, final artifact collection rejected a deliberate dangling symlink from Git worktree retirement.
+The marker is retired/<id>/staging and points to that directory's never-created child.
+ExecutionStore::remove creates the marker and exchanges it with the retained data directory.
+The artifact collector rejects every symlink, including this expected output.
+Both runners ended command 1, wrapper 1, COMPLETE after the same collector failure.
+Primary confirmed both exact pane PIDs retired at 16:52:13 UTC.
+Neither sanitizer lane had started. Cross-host execution remains UNRUN.
+Preserve the failed receipt. Do not edit it into a pass or remove the marker to bypass collection.
+Review a collector-only correction and explicit evidence-retention procedure before resuming qualification.
+
+A separate status-reader PermissionError came from reading a root-owned storage report without sudo.
+The corrected observer uses sudo -n cat for that report. Its read succeeded without restarting tests.
+Read-only observations are retained on a5500 under /home/dflanag3/spatial-artifacts:
+m07-fixture-repaired-full-gate-plan-20261016/primary-full-exam-live-20261016T165213Z.json.
+The collector diagnosis is separate from that monitoring error.
+
 ## 2026-10-16: Full M07 local gates running on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
