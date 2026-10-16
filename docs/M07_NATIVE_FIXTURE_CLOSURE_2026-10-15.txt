@@ -10,7 +10,11 @@ The storage volume helper receives both the method directory and its explicit
 SPATIAL_SECURITY_EVIDENCE parent from the fixture caller. It accepts only a
 canonical method directory directly below spatial_security_evidence under
 the external spatial-artifacts tree. The evidence parent and method directory
-must belong to the operator. The evidence parent may retain its observed 0755
+must belong to the operator. Each sudo Python helper invocation passes -B
+after the interpreter path. sudo resets PYTHONDONTWRITEBYTECODE, so that
+environment setting cannot prevent root-owned __pycache__ writes inside the
+frozen fixture tree when the helper imports its validation module. The -B
+flag keeps prepare, inspect, and cleanup calls from writing bytecode. The evidence parent may retain its observed 0755
 mode; the method directory must remain private. The helper rejects other
 hosts, escaped paths, symlinks, and wrong owners.
 
