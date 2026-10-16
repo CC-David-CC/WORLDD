@@ -15,11 +15,16 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <string_view>
 #include <thread>
 #include <tuple>
 #include <sys/random.h>
 
 namespace spatial {
+namespace identity {
+void participant_diagnostic(std::string_view, std::string_view, std::string_view,
+                            std::uint64_t, std::uint64_t, std::uint64_t, bool);
+}
 namespace {
 namespace a = authority::v1;
 namespace id = identity::v1;
@@ -62,6 +67,9 @@ struct WorkspaceAuthority::Impl {
     id::ParticipantCommand::OperationCase pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
     bool ready = false, broken = false, changed = true, closing = false, released = false;
     bool polling = false, issuer_exchange_in_progress = false;
+    bool diagnostic_service_failure_logged = false;
+    std::string diagnostic_gate_stage;
+    std::uint64_t diagnostic_gate_revision = 0;
     Clock::time_point last_exchange = Clock::now();
     std::function<void()> observer = [] {};
 
@@ -117,7 +125,14 @@ struct WorkspaceAuthority::Impl {
         polling = true;
         struct ResetPoll { bool& active; ~ResetPoll() { active = false; } } reset{polling};
         if (broken || !participant) { observer(); return; }
-        if (participant->failed()) { fail(); observer(); return; }
+        if (participant->failed()) {
+            if (!diagnostic_service_failure_logged) {
+                identity::participant_diagnostic("workspace", "participant_failed", participant->service_incarnation(),
+                    observed_revision, consumed_revision.value_or(0), acknowledged_revision, true);
+                diagnostic_service_failure_logged = true;
+            }
+            fail(); observer(); return;
+        }
         while (auto update = participant->poll()) {
             if (update->has_authenticated()) {
                 if (update->authenticated().issuer_id() != issuer) { fail(); observer(); return; }
@@ -136,6 +151,8 @@ struct WorkspaceAuthority::Impl {
                     generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
                 } else if (expected == id::ParticipantCommand::kApplied && update->has_applied()) {
                     acknowledged_revision = update->applied().applied_revision();
+                    identity::participant_diagnostic("workspace", "ack_result_consumed", participant->service_incarnation(),
+                        acknowledged_revision, consumed_revision.value_or(0), acknowledged_revision, false);
                 } else if (expected == id::ParticipantCommand::kRelease && update->has_released()) released = true;
                 else { fail(); observer(); return; }
                 continue;
@@ -146,6 +163,11 @@ struct WorkspaceAuthority::Impl {
             observed_revision = std::max(observed_revision, batch.head_revision());
             observed_revision_initialized = true;
             consumed_revision = batch.through_revision();
+            if (batch.events_size()) {
+                identity::participant_diagnostic("workspace", "revocation_received", participant->service_incarnation(),
+                    batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
+                    acknowledged_revision, false);
+            }
             for (const auto& event : batch.events()) {
                 ++cancellation_sequence;
                 if (bootstrap_credential && event.target().kind() == id::CREDENTIAL_TARGET &&
@@ -183,7 +205,22 @@ struct WorkspaceAuthority::Impl {
         // Called only after dispatch, process reconciliation, and control cancellation.
         // A wait callback can consume another revision after reconciliation. changed blocks that acknowledgement.
         if (!effects_settled || changed || broken || released || !consumed_revision ||
-                pending_operation != id::ParticipantCommand::OPERATION_NOT_SET) return;
+                pending_operation != id::ParticipantCommand::OPERATION_NOT_SET) {
+            if (consumed_revision) {
+                const char* stage = !effects_settled ? "settle_wait_effects" :
+                    changed ? "settle_wait_authority_change" :
+                    broken ? "settle_wait_broken" : released ? "settle_wait_released" :
+                    pending_operation != id::ParticipantCommand::OPERATION_NOT_SET ? "settle_wait_command" :
+                    "settle_wait";
+                if (diagnostic_gate_revision != *consumed_revision || diagnostic_gate_stage != stage) {
+                    identity::participant_diagnostic("workspace", stage, participant->service_incarnation(),
+                        *consumed_revision, *consumed_revision, acknowledged_revision, false);
+                    diagnostic_gate_revision = *consumed_revision;
+                    diagnostic_gate_stage = stage;
+                }
+            }
+            return;
+        }
         id::ParticipantCommand command;
         if (!ready) {
             if (*consumed_revision < observed_revision) return;
@@ -197,7 +234,15 @@ struct WorkspaceAuthority::Impl {
         } else return;
         require(command_sequence < UINT64_MAX, "Workspace participant sequence exhausted");
         command.set_request_id(++command_sequence); pending_operation = command.operation_case();
+        const bool acknowledgement = command.has_applied();
+        const auto target = acknowledgement ? command.applied().through_revision() : *consumed_revision;
         participant->submit(std::move(command));
+        if (acknowledgement) {
+            identity::participant_diagnostic("workspace", "ack_queued", participant->service_incarnation(),
+                target, *consumed_revision, acknowledged_revision, false);
+            diagnostic_gate_stage = "ack_queued";
+            diagnostic_gate_revision = target;
+        }
     }
     void shutdown(const std::function<void()>& reconcile) {
         closing = true;
