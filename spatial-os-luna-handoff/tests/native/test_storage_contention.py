@@ -22,6 +22,34 @@ import test_storage_session as existing
 from test_issuer_client import ClientProcess
 
 
+_ACK_TIMELINE_LIMIT = 256
+_ACK_TIMELINE_ESSENTIAL_RESERVE = 16
+_ACK_TIMELINE_GIT_SAMPLE_LIMIT = 64
+_ACK_TIMELINE_NOISY_STAGES = frozenset(('git_presence_sample', 'final_barrier'))
+
+
+def _record_bounded_ack_timeline(measurements, stage, monotonic_ns, *, essential=False, **fields):
+    events = measurements.setdefault('ack_timeline', [])
+    event = dict(monotonic_ns=monotonic_ns, stage=stage, **fields)
+    if not essential and len(events) >= _ACK_TIMELINE_LIMIT-_ACK_TIMELINE_ESSENTIAL_RESERVE:
+        measurements['ack_timeline_truncated'] = True
+        measurements['ack_timeline_dropped_count'] = measurements.get('ack_timeline_dropped_count', 0) + 1
+        return False
+    if len(events) >= _ACK_TIMELINE_LIMIT:
+        measurements['ack_timeline_truncated'] = True
+        measurements['ack_timeline_dropped_count'] = measurements.get('ack_timeline_dropped_count', 0) + 1
+        if essential:
+            replacement = next((index for index, existing in enumerate(events)
+                                if existing['stage'] in _ACK_TIMELINE_NOISY_STAGES), None)
+            if replacement is None:
+                return False
+            events.pop(replacement)
+        else:
+            return False
+    events.append(event)
+    return True
+
+
 def _cgroup_identity(path):
     info = path.stat()
     return info.st_dev, info.st_ino
@@ -275,6 +303,10 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
 
     def setUp(self):
         super().setUp()
+        self._ack_timeline_enabled = False
+        self._ack_final_barrier_phase = False
+        self._ack_git_sample_count = 0
+        self._ack_git_discovered = False
         original=self.issuer.config_file
         def production_configuration(*arguments,**overrides):
             path=original(*arguments,**overrides)
@@ -288,6 +320,34 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self.issuer.config_file=production_configuration
         self.measurements = dict(samples=[], phase_complete=False)
         self.addCleanup(self.save_measurements)
+
+    def record_ack_timeline(self, stage, *, essential=False, **fields):
+        return _record_bounded_ack_timeline(
+            self.measurements,
+            stage,
+            time.monotonic_ns(),
+            essential=essential,
+            **fields,
+        )
+
+    def record_git_process_sample(self, pids):
+        self._ack_git_sample_count += 1
+        if self._ack_git_sample_count > _ACK_TIMELINE_GIT_SAMPLE_LIMIT:
+            self.measurements['ack_timeline_truncated'] = True
+            self.measurements['ack_timeline_dropped_count'] = (
+                self.measurements.get('ack_timeline_dropped_count', 0) + 1
+            )
+            return
+        discovered = bool(pids) and not self._ack_git_discovered
+        if discovered:
+            self._ack_git_discovered = True
+        self.record_ack_timeline(
+            'git_discovered' if discovered else 'git_presence_sample',
+            essential=discovered,
+            sample_index=self._ack_git_sample_count,
+            present=bool(pids),
+            process_count=len(pids),
+        )
 
     def save_measurements(self):
         (self.volume_root/'contention.json').write_text(json.dumps(self.measurements,indent=2)+'\n')
@@ -360,7 +420,52 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
 
     def issuer_operation(self, client, operation):
         started=time.monotonic()
-        reply=self.issuer.execute(client,self.issuer.challenge(client,operation))
+        if not self._ack_timeline_enabled:
+            reply=self.issuer.execute(client,self.issuer.challenge(client,operation))
+        else:
+            challenge=self.issuer.challenge(client,operation)
+            request_started_ns=time.monotonic_ns()
+            reply=None
+            try:
+                reply=self.issuer.execute(client,challenge)
+            finally:
+                reply_received_ns=time.monotonic_ns()
+                action=operation.WhichOneof('action')
+                if action=='identity_revoke':
+                    security_revision=None
+                    if reply is not None and reply.HasField('identity_status'):
+                        security_revision=reply.identity_status.security_revision
+                    self.record_ack_timeline(
+                        'revocation_request',
+                        essential=True,
+                        request_started_ns=request_started_ns,
+                        reply_received_ns=reply_received_ns,
+                        reply_received=reply is not None,
+                        reply_has_error=bool(reply is not None and reply.HasField('error')),
+                        security_revision=security_revision,
+                    )
+                elif self._ack_final_barrier_phase and action=='barrier_read':
+                    status=None
+                    if reply is not None and reply.HasField('authority_barrier'):
+                        status=reply.authority_barrier
+                    applied_revisions=[] if status is None else [
+                        item.applied_revision for item in status.obligations
+                    ]
+                    self.record_ack_timeline(
+                        'final_barrier',
+                        request_started_ns=request_started_ns,
+                        reply_received_ns=reply_received_ns,
+                        request_revision=operation.barrier_read.revision,
+                        reply_received=reply is not None,
+                        revision=None if status is None else status.revision,
+                        participant_count=None if status is None else status.participant_count,
+                        pending_count=None if status is None else status.pending_count,
+                        complete=None if status is None else status.complete,
+                        applied_revisions=applied_revisions,
+                        applied_obligation_count=sum(
+                            value >= operation.barrier_read.revision for value in applied_revisions
+                        ),
+                    )
         elapsed=time.monotonic()-started
         self.assertFalse(reply.HasField('error'),reply)
         self.measurements.setdefault('issuer_operations',[]).append(dict(
@@ -453,6 +558,7 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self.finish_checked()
 
     def test_native_storage_actor_revocation_during_bounded_git_import(self):
+        self._ack_timeline_enabled=True
         repository=GitRepo(self.volume_root)
         with (repository.path/'large.bin').open('wb') as file:
             for number in range(80):file.write(os.urandom(2**20))
@@ -466,6 +572,7 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         request=probe.SessionProbeRequest(protocol_version=1,request_id=self.coordinator_sequence,
             broker=make_request('git.repo.import',dict(id='pressure-import',path=str(repository.path))))
         self.coordinator.stdin.write(frame(request));self.coordinator.stdin.flush()
+        self.record_ack_timeline('git_import_request_sent',essential=True,request_id=request.request_id)
         def git_running():
             values=[]
             for path in group.rglob('authority-*'):
@@ -474,6 +581,7 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
                 for pid in pids:
                     comm = _read_process_comm(Path('/proc/'+pid+'/comm'))
                     if comm == 'git': values.append(int(pid))
+            self.record_git_process_sample(values)
             return values
         def observe_git():
             values=git_running()
@@ -495,13 +603,26 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             self.assertEqual(db.execute('SELECT count(*) FROM processes WHERE operation=?',('during-import',)).fetchone()[0],0)
         self.measurements['nested_execution_rejected_without_effect']=True
         revision=self.revoke_actor(client,issuer.ACTOR_TARGET)
+        started_ns=time.monotonic_ns()
         started=time.monotonic()
         exited=select.select(pins,[],[],2)[0]
         # Select may report the first exit. Check each retained handle within the same bound.
         while len(exited)<len(pins) and time.monotonic()-started<2:
             time.sleep(.01);exited=select.select(pins,[],[],0)[0]
+        git_still_running=git_running()
+        pending_reply=not bool(select.select([self.coordinator.stdout],[],[],0)[0])
         self.measurements['exit_during_git']=dict(seconds=time.monotonic()-started,exited=len(exited),expected=len(pins),
-            git_still_running=git_running(),pending_reply=not bool(select.select([self.coordinator.stdout],[],[],0)[0]))
+            git_still_running=git_still_running,pending_reply=pending_reply)
+        self.record_ack_timeline(
+            'application_exit_sample',
+            essential=True,
+            sample_started_ns=started_ns,
+            sample_seconds=self.measurements['exit_during_git']['seconds'],
+            exited=len(exited),
+            expected=len(pins),
+            git_process_count=len(git_still_running),
+            pending_reply=pending_reply,
+        )
         self.measurements['broker_wait_channel']=Path('/proc/'+str(self.world_ids.workspaced_pid)+'/wchan').read_text()
         inspect=("import json,os,sys;from pathlib import Path;"
             "p=Path('/proc')/sys.argv[1];assert (p/'exe').resolve()==Path(sys.argv[2]).resolve();"
@@ -516,11 +637,39 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             self.assertLess(time.monotonic(),deadline,'Bounded import reply deadline')
             self.barrier(client,revision)
         reply=self.message(self.coordinator.stdout,probe.SessionProbeReply)
+        reply_received_ns=time.monotonic_ns()
+        self.record_ack_timeline(
+            'git_import_reply_received',
+            essential=True,
+            reply_received_ns=reply_received_ns,
+            request_id=reply.request_id,
+            request_id_matches=reply.request_id==request.request_id,
+            has_error=reply.HasField('error'),
+            result_has_error=reply.HasField('result') and reply.result.HasField('error'),
+        )
         self.assertEqual(reply.request_id,request.request_id)
         (self.volume_root/'git-import-reply.pb').write_bytes(reply.SerializeToString())
         self.assertFalse(reply.HasField('error'),reply)
         self.assertFalse(reply.result.HasField('error'),reply)
-        self.until(lambda:self.barrier(client,revision),lambda value:value.complete)
+        self._ack_final_barrier_phase=True
+        self.record_ack_timeline('final_barrier_wait_started',essential=True)
+        try:
+            completed=self.until(lambda:self.barrier(client,revision),lambda value:value.complete)
+        except Exception as error:
+            self.record_ack_timeline('final_barrier_failed',essential=True,error_type=type(error).__name__)
+            raise
+        self.record_ack_timeline(
+            'final_barrier_complete',
+            essential=True,
+            revision=completed.revision,
+            participant_count=completed.participant_count,
+            pending_count=completed.pending_count,
+            complete=completed.complete,
+            applied_revisions=[item.applied_revision for item in completed.obligations],
+            applied_obligation_count=sum(
+                item.applied_revision >= revision for item in completed.obligations
+            ),
+        )
         self.finish_checked()
         self.assertTrue(self.measurements['exit_during_git']['pending_reply'],'Import finished before the concurrent lifetime witness')
         self.assertEqual(len(exited),len(pins),'Busy administrative Git delayed actor revocation')
@@ -578,6 +727,36 @@ class ProcessCommReadingTests(unittest.TestCase):
         with self.assertRaises(OSError) as raised:
             _read_process_comm(path)
         self.assertEqual(raised.exception.errno, errno.EIO)
+
+
+class AckTimelineRecorderTests(unittest.TestCase):
+    def test_ack_timeline_stays_bounded_and_marks_truncation(self):
+        measurements={}
+        for index in range(_ACK_TIMELINE_LIMIT):
+            _record_bounded_ack_timeline(
+                measurements,'critical_context',index,essential=True,request_index=index
+            )
+        for index in range(2):
+            _record_bounded_ack_timeline(measurements,'final_barrier',index)
+        self.assertEqual(len(measurements['ack_timeline']),_ACK_TIMELINE_LIMIT)
+        self.assertTrue(measurements['ack_timeline_truncated'])
+        self.assertEqual(measurements['ack_timeline_dropped_count'],2)
+
+    def test_essential_ack_event_survives_a_full_sample_buffer(self):
+        measurements={}
+        for index in range(_ACK_TIMELINE_LIMIT-_ACK_TIMELINE_ESSENTIAL_RESERVE):
+            _record_bounded_ack_timeline(measurements,'final_barrier',index,request_index=index)
+        for index in range(_ACK_TIMELINE_ESSENTIAL_RESERVE):
+            _record_bounded_ack_timeline(
+                measurements,'critical_context',index,essential=True,request_index=index
+            )
+        accepted=_record_bounded_ack_timeline(
+            measurements,'git_import_reply_received',_ACK_TIMELINE_LIMIT,essential=True,request_id=7
+        )
+        self.assertTrue(accepted)
+        self.assertEqual(len(measurements['ack_timeline']),_ACK_TIMELINE_LIMIT)
+        self.assertEqual(measurements['ack_timeline'][-1]['stage'],'git_import_reply_received')
+        self.assertTrue(measurements['ack_timeline_truncated'])
 
 
 class CgroupProcessSamplingTests(unittest.TestCase):
@@ -644,4 +823,5 @@ if __name__=='__main__':
     tests += ['CgroupCpuQuotaValidationTests.'+name for name in CgroupCpuQuotaValidationTests.__dict__ if name.startswith('test_')]
     tests += ['CgroupProcessSamplingTests.'+name for name in CgroupProcessSamplingTests.__dict__ if name.startswith('test_')]
     tests += ['ProcessCommReadingTests.'+name for name in ProcessCommReadingTests.__dict__ if name.startswith('test_')]
+    tests += ['AckTimelineRecorderTests.'+name for name in AckTimelineRecorderTests.__dict__ if name.startswith('test_')]
     unittest.main(verbosity=2,defaultTest=tests)
