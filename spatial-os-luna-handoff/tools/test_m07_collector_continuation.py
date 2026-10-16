@@ -120,7 +120,8 @@ class Controls(unittest.TestCase):
         (out/'Debug'/'kept').write_bytes(b'original Debug bytes')
         context={'host':'sb16','batch_id':'unique-batch','capacity_floor_bytes':1}
         retained={'original_run_sha256':c.digest((out/'run.json').read_bytes())}
-        original={'profiles':{'Debug':{}}}
+        original=dict(candidate=c.CANDIDATE, host='sb16', attempt=out.name, status='failed',
+                      phase_complete=False, profiles={'Debug':{}})
         audit={'status':'retained_debug_collector_passed','original_run_sha256':retained['original_run_sha256'],'manifest':{'all':'pins'}}
         context['debug_audit']={'path':str(out/'debug-collector-audit.json')}
         audit['context_binding']=c._binding(context)
@@ -158,7 +159,7 @@ class Controls(unittest.TestCase):
                     path=out/leaf
                     if kind=='file': path.write_bytes(b'old')
                     else: path.symlink_to(out/'never-created')
-                    with self.prepare_patches(fixture), self.assertRaises(RuntimeError):
+                    with self.prepare_patches(fixture), self.assertRaisesRegex(RuntimeError,'continuation output already exists'):
                         c.prepare_batch(g,self.root,self.root/'inputs','f'*64)
                     path.unlink()
 
@@ -167,11 +168,11 @@ class Controls(unittest.TestCase):
         for key,value in (('status','failed'),('context_binding','stale'),('original_run_sha256','0'*64)):
             changed=copy.deepcopy(audit);changed[key]=value
             path=Path(context['debug_audit']['path']);path.write_text(json.dumps(changed));context['debug_audit']['sha256']=c.digest(path.read_bytes())
-            with self.prepare_patches(fixture), self.assertRaises(RuntimeError):
+            with self.prepare_patches(fixture), self.assertRaisesRegex(RuntimeError,'accepted Debug audit is stale or unrelated'):
                 c.prepare_batch(g,self.root,self.root/'inputs','f'*64)
         path.write_text(json.dumps(audit));context['debug_audit']['sha256']=c.digest(path.read_bytes())
         for boundary in ('_source_closure','_origin','audit_profile'):
-            with self.prepare_patches(fixture), patch.object(c,boundary,side_effect=RuntimeError('drift')), self.assertRaises(RuntimeError):
+            with self.prepare_patches(fixture), patch.object(c,boundary,side_effect=RuntimeError('drift')), self.assertRaisesRegex(RuntimeError,'drift'):
                 c.prepare_batch(g,self.root,self.root/'inputs','f'*64)
 
     def test_postchecks_singleton_cannot_be_local_pass(self):
@@ -229,12 +230,13 @@ class ComposeControls(unittest.TestCase):
         for key,value in changes:
             changed=copy.deepcopy(batch);changed[key]=value
             (out/'sanitizer-batch.json').write_text(json.dumps(changed))
-            with self.subTest(key=key),self.compose_patches(fixture,row,manifest),self.assertRaises(RuntimeError):
+            expected = ('sanitizer batch integrity failed' if key == 'source_sha256_rechecked' else 'batch requirement/bundle closure changed' if key in ('requirement_suites','required_tests','bundle_sha256') else 'sanitizer batch incomplete or unrelated')
+            with self.subTest(key=key),self.compose_patches(fixture,row,manifest),self.assertRaisesRegex(RuntimeError,expected):
                 c.compose(g,self.root,self.root/'inputs','f'*64,{'pid':123})
             self.assertFalse((out/'combined-local.json').exists())
         (out/'sanitizer-batch.json').write_text(json.dumps(batch))
         for boundary in ('_source_closure','_origin','_batch_runner','audit_profile'):
-            with self.subTest(boundary=boundary),self.compose_patches(fixture,row,manifest),patch.object(c,boundary,side_effect=RuntimeError('drift')),self.assertRaises(RuntimeError):
+            with self.subTest(boundary=boundary),self.compose_patches(fixture,row,manifest),patch.object(c,boundary,side_effect=RuntimeError('drift')),self.assertRaisesRegex(RuntimeError,'drift'):
                 c.compose(g,self.root,self.root/'inputs','f'*64,{'pid':123})
             self.assertFalse((out/'combined-local.json').exists())
 
@@ -289,23 +291,24 @@ class ProfileAuditControls(unittest.TestCase):
         self.assertEqual(actual,manifest)
         for key,value in (('sha256',{}),('artifact_links',[{'path':'extra'}]),('exclusions',[{'path':'extra'}])):
             expected=copy.deepcopy(manifest);expected[key]=value
-            with self.subTest(key=key),self.boundaries(manifest),self.assertRaises(RuntimeError):
+            with self.subTest(key=key),self.boundaries(manifest),self.assertRaisesRegex(RuntimeError,'full regular/link/exclusion artifact manifest changed'):
                 c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',expected)
 
     def test_actual_reduced_failed_and_drifted_profile_refusals(self):
         target,report,manifest=self.profile_fixture()
         for index in range(6):
             changed=copy.deepcopy(report);changed['profiles']['Debug']['commands'][index]['exit_code']=1
-            with self.subTest(command=index),self.boundaries(manifest),self.assertRaises(RuntimeError):c.audit_profile(g,self.root,{'runtime_manifest':{}},changed,'Debug',manifest)
+            with self.subTest(command=index),self.boundaries(manifest),self.assertRaisesRegex(RuntimeError,'profile command failed or lacks assertions'):c.audit_profile(g,self.root,{'runtime_manifest':{}},changed,'Debug',manifest)
         changed=copy.deepcopy(report);changed['profiles']['Debug']['commands'].pop()
-        with self.boundaries(manifest),self.assertRaises(RuntimeError):c.audit_profile(g,self.root,{'runtime_manifest':{}},changed,'Debug',manifest)
+        with self.boundaries(manifest),self.assertRaisesRegex(RuntimeError,'complete ordered profile commands required'):c.audit_profile(g,self.root,{'runtime_manifest':{}},changed,'Debug',manifest)
         for name,value in (('core.xml',b'<testsuite/>'),('P10.json',b'{"status":"failed"}'),('harness.log',b'Ran 50 tests in 0.1s\n\nOK\n'),('inventory.log',b'{"tests":[]}')):
             path=target/name;old=path.read_bytes();path.write_bytes(value)
-            with self.subTest(path=name),self.boundaries(manifest),self.assertRaises(RuntimeError):c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',manifest)
+            expected = {'core.xml':'actual core JUnit is incomplete or failed', 'P10.json':'actual locked P10 is reduced or failed', 'harness.log':'startup/harness output incomplete', 'inventory.log':'inventory output pin changed'}[name]
+            with self.subTest(path=name),self.boundaries(manifest),self.assertRaisesRegex(RuntimeError,expected):c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',manifest)
             path.write_bytes(old)
-        with self.boundaries(manifest),patch.object(c,'_runtime_profile',side_effect=RuntimeError('runtime drift')),self.assertRaises(RuntimeError):c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',manifest)
+        with self.boundaries(manifest),patch.object(c,'_runtime_profile',side_effect=RuntimeError('runtime drift')),self.assertRaisesRegex(RuntimeError,'runtime drift'):c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',manifest)
         for result in (types.SimpleNamespace(returncode=1,stdout=(target/'inventory.log').read_bytes()),types.SimpleNamespace(returncode=0,stdout=b'changed current registrations')):
-            with self.boundaries(manifest),patch.object(g,'run',return_value=(result,0.01)),self.assertRaises(RuntimeError):c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',manifest)
+            with self.boundaries(manifest),patch.object(g,'run',return_value=(result,0.01)),self.assertRaisesRegex(RuntimeError,'current CTest registrations differ from retained inventory'):c.audit_profile(g,self.root,{'runtime_manifest':{}},report,'Debug',manifest)
 
 class LaunchControls(unittest.TestCase):
     setUp = Controls.setUp
@@ -325,9 +328,9 @@ class LaunchControls(unittest.TestCase):
                 for key,value in (('pane_pid',124),('runner_path',str(self.root/'wrong')),('argv',['wrong']),('batch_id','old'),('context_sha256','0'*64),('candidate','wrong'),('host','sb16-2'),('schema','wrong')):
                     changed=copy.deepcopy(launch);changed[key]=value
                     path.write_text(json.dumps(changed));row['launch']['sha256']=c.digest(path.read_bytes())
-                    with self.subTest(key=key),self.assertRaises(RuntimeError):c._batch_runner(g,row,self.root,context,inputs,pin)
+                    with self.subTest(key=key),self.assertRaisesRegex(RuntimeError,'actual primary sanitizer launch receipt mismatch'):c._batch_runner(g,row,self.root,context,inputs,pin)
                 row['path']=str(self.root/'copied-runner')
-                with self.assertRaises(RuntimeError):c._batch_runner(g,row,self.root,context,inputs,pin)
+                with self.assertRaisesRegex(RuntimeError,'sanitizer canonical runner path mismatch'):c._batch_runner(g,row,self.root,context,inputs,pin)
 
 class GateRoutingControls(unittest.TestCase):
     setUp = Controls.setUp
@@ -340,11 +343,12 @@ class GateRoutingControls(unittest.TestCase):
         (root/'source').mkdir()
         build=root/'build'/'ASan-UBSan';build.mkdir(parents=True)
         old=root/'ctest-original'/'ASan-UBSan';old.mkdir(parents=True)
-        (old/'metadata').write_bytes(b'metadata');pin=c.digest(b'metadata')
+        metadata_name='CTestTestfile.cmake'
+        (old/metadata_name).write_bytes(b'metadata');pin=c.digest(b'metadata')
         profiles={p:dict(runtime_files={},executables={},ctest_metadata={}) for p in g.PROFILES}
-        profiles['ASan-UBSan'].update(ctest_metadata={'metadata':pin},build='/prepared',xserver_placeholder='/xserver',evidence_root='/old-evidence',inventory=[])
+        profiles['ASan-UBSan'].update(ctest_metadata={metadata_name:pin},build='/prepared',xserver_placeholder='/xserver',evidence_root='/old-evidence',inventory=[])
         rec=dict(candidate=c.CANDIDATE,source_sha256={},runtime_manifest={},profiles=profiles,production_off={p:{'runtime_files':{}} for p in g.PROFILES},source_root='/prepared-source')
-        receipt=dict(host='sb16',status='verified',bundle_sha256='bundle',metadata_baseline={'ASan-UBSan':{'metadata':pin}})
+        receipt=dict(host='sb16',status='verified',bundle_sha256='bundle',metadata_baseline={'ASan-UBSan':{metadata_name:pin}})
         (root/'provenance.json').write_text(json.dumps(rec));(root/'deployment-receipt.json').write_text(json.dumps(receipt))
         info=dict(out=out,report_path=out/'sanitizer-batch.json',storage_attempt='new-storage-id',context_path=str(root/'inputs'),context_sha256='f'*64,original_sha256=c.digest(b'FAILED original'),debug_audit_sha256='a'*64)
         amended=types.SimpleNamespace(prepare_batch=lambda *a:info,write_exclusive=c.write_exclusive)
@@ -359,7 +363,8 @@ class GateRoutingControls(unittest.TestCase):
             stack.enter_context(patch.object(fcntl,'flock'))
             real_open=Path.open
             def routed_open(path,*a,**kw):
-                if str(path).endswith('/spatial-m06-gate.lock'):return real_open(root/'lock',*a,**kw)
+                if str(path).endswith('/spatial-m06-gate.lock'):
+                    return stack.enter_context(real_open(root/'lock',*a,**kw))
                 return real_open(path,*a,**kw)
             stack.enter_context(patch.object(Path,'open',routed_open))
             stack.enter_context(patch.object(importlib.util,'spec_from_file_location',return_value=types.SimpleNamespace(loader=loader)))
@@ -375,6 +380,12 @@ class GateRoutingControls(unittest.TestCase):
             stack.enter_context(patch.object(g,'verify_storage_evidence_path'))
             query=stack.enter_context(patch.object(g,'run',side_effect=RuntimeError('intentional inventory refusal before native commands')))
             self.assertEqual(g.gate(args),1)
+        report=json.loads((out/'sanitizer-batch.json').read_text())
+        self.assertEqual(report['execution_error']['message'],
+                         'intentional inventory refusal before native commands')
+        self.assertEqual(report['execution_error']['type'], 'RuntimeError')
+        self.assertEqual(g.ctest_metadata(build), [build/metadata_name])
+        self.assertEqual((build/metadata_name).read_bytes(), b'metadata')
         reserve.assert_called_once_with(root/'source','sb16','new-storage-id')
         self.assertEqual(query.call_count,1)
         self.assertEqual(query.call_args.args[0],['ctest','--test-dir',str(build),'--show-only=json-v1'])
@@ -397,13 +408,22 @@ class GateSelectionControls(unittest.TestCase):
         (root/'provenance.json').write_text(json.dumps(dict(source_sha256={},runtime_manifest={})))
         args=types.SimpleNamespace(deployment=root,attempt='original',native_controller='host-actor-controller-native',real_world='actor-transition-real-world',recovery='actor-transition-recovery',host_session='host-session-production-native',held_input='host-actor-controller-native')
         real_open=Path.open
+        lock_handles=[]
         def routed_open(path,*a,**kw):
-            return real_open(root/'lock' if str(path).endswith('/spatial-m06-gate.lock') else path,*a,**kw)
+            if str(path).endswith('/spatial-m06-gate.lock'):
+                handle=real_open(root/'lock',*a,**kw)
+                lock_handles.append(handle)
+                self.addCleanup(handle.close)
+                return handle
+            return real_open(path,*a,**kw)
         for selected in ([],['Debug'],['unknown'],['ASan-UBSan','Debug'],['Debug','Debug'],['Debug','ASan-UBSan','ASan-UBSan']):
             args.selected_profiles=selected
-            with self.subTest(selected=selected),patch.object(g.socket,'gethostname',return_value='sb16'),patch.object(fcntl,'flock'),patch.object(Path,'open',routed_open),patch.object(g,'run') as run,self.assertRaises(RuntimeError):g.gate(args)
+            with self.subTest(selected=selected),patch.object(g.socket,'gethostname',return_value='sb16'),patch.object(fcntl,'flock'),patch.object(Path,'open',routed_open),patch.object(g,'run') as run,self.assertRaisesRegex(RuntimeError,'only the full ordered profiles or guarded sanitizer singleton are allowed'):g.gate(args)
             run.assert_not_called()
             self.assertFalse((root/'evidence').exists())
+        for handle in lock_handles:
+            handle.close()
+        self.assertTrue(all(handle.closed for handle in lock_handles))
 
 class OriginControls(unittest.TestCase):
     setUp=Controls.setUp
@@ -426,17 +446,19 @@ class OriginControls(unittest.TestCase):
             self.assertEqual(c._origin(g,self.root,context)[0],out)
         for key,value in (('status','passed'),('candidate','wrong'),('host','sb16-2'),('phase_complete',True),('source_sha256_rechecked',False),('profiles',{}),('execution_error',{'type':'RuntimeError','message':'other failure'}),('postrun_invariant_failures',[dict(profile='Debug',reason='profile-incomplete',check='metadata_rechecked')])):
             changed=copy.deepcopy(report);changed[key]=value;context=seal(changed,copy.deepcopy(retained))
-            with self.subTest(key=key),patch.object(c,'_runner'),self.assertRaises(RuntimeError):c._origin(g,self.root,context)
+            expected = ('original failure is not the pinned postexecution collector failure' if key == 'execution_error' else 'original Debug execution/source was incomplete' if key in ('source_sha256_rechecked','profiles') else 'original failure includes an executed-profile invariant' if key == 'postrun_invariant_failures' else 'original failed report changed')
+            with self.subTest(key=key),patch.object(c,'_runner'),self.assertRaisesRegex(RuntimeError,expected):c._origin(g,self.root,context)
         for key in c.CHECKS:
             changed=copy.deepcopy(report);changed[key]['Debug']=False;context=seal(changed,copy.deepcopy(retained))
-            with self.subTest(check=key),patch.object(c,'_runner'),self.assertRaises(RuntimeError):c._origin(g,self.root,context)
+            with self.subTest(check=key),patch.object(c,'_runner'),self.assertRaisesRegex(RuntimeError,'original Debug postcheck failed'):c._origin(g,self.root,context)
         for key,value in (('pane_retired',False),('host','sb16-2'),('original_run_path',str(out/'other.json')),('symlinks',[]),('command_evidence_pins',{})):
             changed=copy.deepcopy(retained);changed[key]=value;context=seal(copy.deepcopy(report),changed)
-            with self.subTest(retention=key),patch.object(c,'_runner'),self.assertRaises(RuntimeError):c._origin(g,self.root,context)
+            expected = ('retained collector failure must have one known marker' if key == 'symlinks' else 'all eleven original command anchors required' if key == 'command_evidence_pins' else 'wrong retained Debug origin')
+            with self.subTest(retention=key),patch.object(c,'_runner'),self.assertRaisesRegex(RuntimeError,expected):c._origin(g,self.root,context)
         context=seal(report,copy.deepcopy(retained));context['origin_runner']['path']=str(self.root/'copied-runner')
-        with patch.object(c,'_runner'),self.assertRaises(RuntimeError):c._origin(g,self.root,context)
+        with patch.object(c,'_runner'),self.assertRaisesRegex(RuntimeError,'original canonical runner path mismatch'):c._origin(g,self.root,context)
         context=seal(report,copy.deepcopy(retained));(out/'Debug'/'core.log').write_bytes(b'drift')
-        with patch.object(c,'_runner'),self.assertRaises(RuntimeError):c._origin(g,self.root,context)
+        with patch.object(c,'_runner'),self.assertRaisesRegex(RuntimeError,'original command artifact changed'):c._origin(g,self.root,context)
 
 class ContextAndSourceControls(unittest.TestCase):
     setUp = Controls.setUp
@@ -453,19 +475,20 @@ class ContextAndSourceControls(unittest.TestCase):
             self.assertEqual(c.load_context(g,self.root,path,pin),context)
             for key,value in (('host','sb16-2'),('candidate','wrong'),('deployment',str(self.root/'wrong')),('schema','wrong'),('batch_id','1e58e65d-sb16-local-01'),('capacity_floor_bytes',0)):
                 changed=copy.deepcopy(context);changed[key]=value;path,pin=self.put('context.json',changed)
-                with self.subTest(key=key),self.assertRaises(RuntimeError):c.load_context(g,self.root,path,pin)
+                expected = {'host':'continuation host/candidate/schema mismatch','candidate':'continuation host/candidate/schema mismatch','deployment':'continuation deployment mismatch','schema':'continuation host/candidate/schema mismatch','batch_id':'invalid unique sanitizer batch identity','capacity_floor_bytes':'reviewed incremental capacity floor required'}[key]
+                with self.subTest(key=key),self.assertRaisesRegex(RuntimeError,expected):c.load_context(g,self.root,path,pin)
             for name in c.TOOLS:
                 changed=copy.deepcopy(context);changed['tools'][name]='0'*64;path,pin=self.put('context.json',changed)
-                with self.subTest(tool=name),self.assertRaises(RuntimeError):c.load_context(g,self.root,path,pin)
+                with self.subTest(tool=name),self.assertRaisesRegex(RuntimeError,'amended tool changed'):c.load_context(g,self.root,path,pin)
             changed=copy.deepcopy(context);changed['tools'].pop(c.TOOLS[0]);path,pin=self.put('context.json',changed)
-            with self.assertRaises(RuntimeError):c.load_context(g,self.root,path,pin)
+            with self.assertRaisesRegex(RuntimeError,'exact amended tool closure required'):c.load_context(g,self.root,path,pin)
             changed=copy.deepcopy(context);changed['tools']['extra.py']='a'*64;path,pin=self.put('context.json',changed)
-            with self.assertRaises(RuntimeError):c.load_context(g,self.root,path,pin)
+            with self.assertRaisesRegex(RuntimeError,'exact amended tool closure required'):c.load_context(g,self.root,path,pin)
             path,pin=self.put('context.json',context)
-            with self.assertRaises(RuntimeError):c.load_context(g,self.root,path,'0'*64)
-            with patch.object(c.socket,'gethostname',return_value='a5500'),self.assertRaises(RuntimeError):c.load_context(g,self.root,path,pin)
+            with self.assertRaisesRegex(RuntimeError,'pinned input changed'):c.load_context(g,self.root,path,'0'*64)
+            with patch.object(c.socket,'gethostname',return_value='a5500'),self.assertRaisesRegex(RuntimeError,'continuation host/candidate/schema mismatch'):c.load_context(g,self.root,path,pin)
             other,pin_other=self.put('other.py',b'not the loaded gate')
-            with self.assertRaises(RuntimeError):c._tools(types.SimpleNamespace(__file__=str(other)),context)
+            with self.assertRaisesRegex(RuntimeError,'loaded gate differs from amended tool closure'):c._tools(types.SimpleNamespace(__file__=str(other)),context)
 
     def test_real_1040_readonly_source_positive_and_drift_refusals(self):
         source=self.root/'source';source.mkdir()
@@ -481,15 +504,15 @@ class ContextAndSourceControls(unittest.TestCase):
         self.assertEqual(c._source_closure(g,self.root,context),(provenance,receipt))
         first=source/'file-0000';old=first.read_bytes()
         first.chmod(0o644);first.write_bytes(b'changed');first.chmod(0o444)
-        with self.assertRaises(RuntimeError):c._source_closure(g,self.root,context)
+        with self.assertRaisesRegex(RuntimeError,'frozen source closure changed'):c._source_closure(g,self.root,context)
         first.chmod(0o644);first.write_bytes(old);first.chmod(0o444)
         first.chmod(0o644)
-        with self.assertRaises(RuntimeError):c._source_closure(g,self.root,context)
+        with self.assertRaisesRegex(RuntimeError,'deployed source linked or writable'):c._source_closure(g,self.root,context)
         first.chmod(0o444)
         source.chmod(0o755);first.unlink();source.chmod(0o555)
-        with self.assertRaises(RuntimeError):c._source_closure(g,self.root,context)
+        with self.assertRaisesRegex(RuntimeError,'frozen source closure changed'):c._source_closure(g,self.root,context)
         source.chmod(0o755);first.symlink_to(source/'file-0001');source.chmod(0o555)
-        with self.assertRaises(RuntimeError):c._source_closure(g,self.root,context)
+        with self.assertRaisesRegex(RuntimeError,'deployed source linked or writable'):c._source_closure(g,self.root,context)
         source.chmod(0o755);first.unlink();first.write_bytes(old);first.chmod(0o444);source.chmod(0o555)
         self.assertEqual(c._source_closure(g,self.root,context),(provenance,receipt))
         provpath.write_bytes(b'drift')
@@ -508,6 +531,10 @@ class ExternalAuditorControls(unittest.TestCase):
         row['status']='passed_needs_crosshost_and_review'
         with self.compose_patches(fixture,row,manifest):
             combined=c.compose(g,self.root,self.root/'inputs','f'*64,{'pid':123})
+        self.assertEqual(combined['host'], fixture[1]['host'])
+        self.assertEqual(combined['candidate'], c.CANDIDATE)
+        self.assertEqual(combined['profiles']['Debug']['status'], 'passed_needs_crosshost_and_review')
+        self.assertEqual(combined['profiles']['ASan-UBSan']['status'], 'passed_needs_crosshost_and_review')
         return fixture,batch,row,manifest,combined
 
     def seal_combined(self,out,combined):
@@ -530,21 +557,22 @@ class ExternalAuditorControls(unittest.TestCase):
         fixture,batch,row,manifest,combined=self.audit_fixture();out=fixture[0]
         for key,value in (('status','failed'),('source_sha256_rechecked',False),('postrun_invariant_failures',[{'check':'failed'}]),('selected_profiles',['Debug']),('profiles',{})):
             changed=copy.deepcopy(combined);changed[key]=value;pin=self.seal_combined(out,changed)
-            with self.subTest(key=key),self.compose_patches(fixture,row,manifest),self.assertRaises(RuntimeError):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
+            with self.subTest(key=key),self.compose_patches(fixture,row,manifest),self.assertRaisesRegex(RuntimeError, 'combined local proof mismatch' if key == 'status' else 'combined local integrity contradicts success'):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
         for check in c.CHECKS:
             changed=copy.deepcopy(combined);changed[check]['Debug']=False;pin=self.seal_combined(out,changed)
-            with self.subTest(check=check),self.compose_patches(fixture,row,manifest),self.assertRaises(RuntimeError):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
+            with self.subTest(check=check),self.compose_patches(fixture,row,manifest),self.assertRaisesRegex(RuntimeError, 'combined local integrity contradicts success'):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
         for key,value in (('original_failed_run_sha256','0'*64),('original_failed_run',str(out/'wrong')),('debug_audit_sha256','0'*64),('sanitizer_batch_sha256','0'*64),('batch_id','old'),('tools',{})):
             changed=copy.deepcopy(combined);changed['collector_amendment'][key]=value;pin=self.seal_combined(out,changed)
-            with self.subTest(amendment=key),self.compose_patches(fixture,row,manifest),self.assertRaises(RuntimeError):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
+            expected = {'original_failed_run_sha256':'combined local proof mismatch', 'original_failed_run':'combined local integrity contradicts success', 'debug_audit_sha256':'combined Debug audit pin mismatch', 'sanitizer_batch_sha256':'pinned input changed', 'batch_id':'combined local integrity contradicts success', 'tools':'combined local proof mismatch'}[key]
+            with self.subTest(amendment=key),self.compose_patches(fixture,row,manifest),self.assertRaisesRegex(RuntimeError,expected):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
         pin=self.seal_combined(out,combined)
-        with self.compose_patches(fixture,row,manifest),self.assertRaises(RuntimeError):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,'0'*64,'before-crosshost')
+        with self.compose_patches(fixture,row,manifest),self.assertRaisesRegex(RuntimeError,'pinned input changed'):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,'0'*64,'before-crosshost')
         for boundary in ('_source_closure','_origin','_batch_runner','audit_profile'):
-            with self.subTest(boundary=boundary),self.compose_patches(fixture,row,manifest),patch.object(c,boundary,side_effect=RuntimeError('source/origin/link/manifest drift')),self.assertRaises(RuntimeError):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
+            with self.subTest(boundary=boundary),self.compose_patches(fixture,row,manifest),patch.object(c,boundary,side_effect=RuntimeError('source/origin/link/manifest drift')),self.assertRaisesRegex(RuntimeError,'source/origin/link/manifest drift'):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
         # Re-pin a changed batch inside an otherwise valid combined proof: status must still refuse.
         changed_batch=copy.deepcopy(batch);changed_batch['status']='failed';(out/'sanitizer-batch.json').write_text(json.dumps(changed_batch))
         changed=copy.deepcopy(combined);changed['collector_amendment']['sanitizer_batch_sha256']=c.digest((out/'sanitizer-batch.json').read_bytes());pin=self.seal_combined(out,changed)
-        with self.compose_patches(fixture,row,manifest),self.assertRaises(RuntimeError):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
+        with self.compose_patches(fixture,row,manifest),self.assertRaisesRegex(RuntimeError,'sanitizer batch integrity changed'):c.audit_artifacts(g,self.root,self.root/'inputs','f'*64,pin,'before-crosshost')
         self.assertFalse((out/'before-crosshost-artifact-audit.json').exists())
 
 if __name__=='__main__': unittest.main()
