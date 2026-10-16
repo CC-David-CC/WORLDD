@@ -40,3 +40,8 @@ Primary accepted panes 3647005 and 3615934 after 0/0/COMPLETE and process retire
 The reviewed repair is BOX-GIT VERIFIED as beaec482568989a918d10e7d870009d31f5fef36.
 Branch: m07/crosshost-owner-cleanup-20261016. Status: FOCUSED-PASS, not integrated.
 The complete cross-host retry still requires the separate continuation runner review.
+
+The actual cross-host retry passed all six semantic cases in Debug and ASan-UBSan.
+Both cleanup receipts are complete with no errors. Primary verified process retirement and root removal.
+Semantic primary audit SHA256: 32de4bf59a0fbb59f90d62f056580339e0b644579408231adc20011683f54208.
+Native and workspace cross-host qualification remains pending.

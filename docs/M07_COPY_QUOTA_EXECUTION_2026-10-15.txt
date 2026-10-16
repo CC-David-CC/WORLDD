@@ -1,3 +1,48 @@
+## 2026-10-16: Corrected M07 cross-host retry passed both semantic sections
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED.
+Both full local gates remain accepted on both hosts.
+The frozen production candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+The production deployment remains unchanged. No M08 source entered this gate.
+
+The corrected cross-host controller launched at 21:48 UTC as pane 3651311.
+Its attempt is collector-owner-fixed-02. It remains active at this checkpoint.
+The Debug and ASan-UBSan semantic sections passed all six cases each.
+Primary accepted all twelve result records and verified exact scenario phases and host directions.
+Both sections completed cleanup. Their recorded worldd PIDs retired and temporary roots were removed.
+This clears the previous cleanup failure in the actual combined cross-host fixture.
+The gate reports the first native geometry job passed all nine tests in 168.770 seconds.
+The reverse-direction Debug native job is now active.
+Three native jobs, four workspace cells, and final artifact audits remain pending.
+
+Semantic primary audit:
+/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-owner-fixed-02/PRIMARY_SEMANTIC_SECTIONS_AUDIT_01.json
+SHA256 32de4bf59a0fbb59f90d62f056580339e0b644579408231adc20011683f54208
+Launch receipt SHA256 d3c69b26660fffa38a93d2afca9f671cdf70ea2fc8ffba893fe1338e41a5fcea
+Plan SHA256 6105d677bfecf8026a652b32d53476b807e9074f7c81a6355f8275d5b6d3f23d
+
+The owner repair is BOX-GIT VERIFIED as beaec482568989a918d10e7d870009d31f5fef36.
+The continuation tooling is BOX-GIT VERIFIED as 00bf27c836e6f526896c1fff198b90fb5e14a5ba.
+Both remain separate task branches with FOCUSED-PASS status.
+Eleven continuation controls, seven related gate controls, and one pinned-helper CLI check passed on each host.
+Primary accepted panes 3650985 and 3619470 after 0/0/COMPLETE and process retirement.
+Each host retains primary-focused-controls-02/PRIMARY_FOCUSED_AUDIT_01.json under its m07-crosshost-fixture-continuation-20261016 artifact root.
+Audit SHA256: sb16 0e1e61a23188292af0d34c281f90bf25354a500e294f6a26a4223a8f0bc33f29.
+Audit SHA256: sb16-2 6edf2341716e3039fc756e3a3534d98c7448f64d54733b81728a6ea994bd090a.
+The first focused attempt's missing companion-module setup failure remains preserved.
+The corrected package includes the unchanged candidate m07_deployed_gate.py, SHA256 1faf5f776ef53126ae3cc675393038757f5d02d09c5809aef64a67dc8f43a501.
+
+M08 broker source a4f9af5ddeaaac8d35fa12fb6c36e2bfb8fe6942 is BOX-GIT VERIFIED and UNQUALIFIED.
+Primary reviewed its source and verified twelve compile receipts and fourteen ELF hashes.
+Its runtime tests remain UNRUN.
+A separate middle-child worker prepares the combined M08 candidate and focused package.
+Branch: m08/file-engine-broker-combined-runtime-candidate-20261016.
+That preparation does not use either test host while M07 owns them.
+M09-M16 remain pending.
+
+Storage check: sb16 has 35.4 GiB free; sb16-2 has 34.1 GiB free.
+Both exceed the current 26 GiB gate floor. No storage blocker remains.
+
 Current checkpoint: 2026-10-16: Cross-host Debug behavior passed; cleanup failed and repair is isolated
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED.
