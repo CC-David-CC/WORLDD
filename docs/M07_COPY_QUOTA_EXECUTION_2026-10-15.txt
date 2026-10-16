@@ -1,3 +1,46 @@
+Current checkpoint: frozen successor deployed; final seven-suite preflight running on both hosts
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Candidate: 84efe3c044066a43d08e48f5b87b8ca31d3a53b9.
+The source-only successor repack, independent verification, and freeze all returned 0/0 COMPLETE.
+Archive: 1,885 files. Maintained source: 1,028 files. Locked acceptance files: 41 unchanged.
+Production compile inputs, binaries, generated bindings, dependency pins, build IDs, and CTest metadata remain unchanged.
+Binary reuse and the original 24 historical stages remain explicit. No application rebuild ran.
+The archive delta contains three modified fixtures, three added modules, and provenance.
+The maintained root document is pinned separately in the full seven-file Git delta.
+
+Artifact root: a5500:/home/dflanag3/spatial-artifacts/m07-native-fixture-finalization-20261015.
+Package: packages/84efe3c0-native-fixture-01.
+Package-pin SHA: 4ce7cae86c60eee1028075a7631034b7b8748c3e352e8891e12b35b471bb7cf6.
+Archive SHA: b84847165ad4eb9da112b307aba9b43384a9d86e4a9c31ecd39e665cc8bc9fec.
+Inner SHA: cafb32f244a451f5f7186f35d25157b0e20950185f2fc6c0e095c58a572cb9ec.
+Outer SHA: a58fe23ac56f6f9eaac4ecd5a3baa16d27d34c6891831c0847530984b4b344b0.
+Primary frozen-package review: primary-frozen-package-review-01.json.
+
+Both source-and-metadata updates returned 0/0 COMPLETE without diagnostics.
+Deployment path remains /home/dflanag3/spatial-artifacts/deployments/m07-a1ceef3115ed/runtime.
+Its directory name does not define candidate identity. Both verified receipts now identify 84efe3.
+Each journal preserves original bytes, modes, owners, new-path absences, and metadata.
+No runtime tree was duplicated. New source files retain user1000 ownership and read-only modes.
+Primary acceptance: primary-deployment-review-01.json.
+sb16 receipt SHA: 0c30a9b3126b9333b9328e8d44371c35edd09f2ee2e80a87ff96a13368ab2fe6.
+sb16-2 receipt SHA: d72edcbd57fa1500ff6754645bbea93acbb70bbe0aa3b3d4309fce0b778e213f.
+
+The final driver differs from its reviewed parent only in the candidate declaration.
+Its 44 offline controls passed with the self-test expected candidate updated in a separate test module.
+Runtime driver SHA: ef75c6f64ec4ad0e261d0392bf53ca5cc0760f1680d6258d610a0baff558b2f1.
+Both final-candidate seven-suite sequences started at approximately 21:30 EDT on 2026-10-15.
+Actual sequence and driver processes were confirmed live on both hosts.
+Each host runs Debug, then ASan/UBSan only after Debug passes.
+Tmux: m07-successor-seven-HOST-01.
+Outer: sequence-outers/HOST-01.
+Results: focused-runs-01/HOST/PROFILE-results-01.
+At this observation, profiles remain RUNNING. No final-candidate suite pass is claimed.
+The full M07 exam remains UNRUN until all 28 selected suite executions pass and primary review accepts them.
+A bounded worker is preparing the full-gate launcher separately. Milestone integration remains 706fe47.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: native repair checks pass; final package preparation started
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.

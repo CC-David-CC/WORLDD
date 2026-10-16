@@ -1,3 +1,20 @@
+## 2026-10-15: Frozen successor deployed; final preflight starts on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+The reviewed 84efe3 package passed independent verification and freeze.
+Both test-host updates passed. Their verified receipts identify the same successor candidate.
+The update reused existing binaries and changed only reviewed fixture source and deployment metadata.
+All 41 locked acceptance files remain unchanged. Rollback journals preserve the prior deployment state.
+
+Both final seven-suite sequences started at approximately 21:30 EDT.
+Each runs Debug followed by ASan/UBSan. Actual controller and driver processes were confirmed live.
+The full M07 exam remains UNRUN until all 28 preflight suite executions pass and primary review accepts them.
+Earlier 128 successful diagnostic repair executions remain supporting evidence, not final qualification.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact source, package, deployment, and run pins.
+
 ## 2026-10-15: Native repair checks pass; final package repack started
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
