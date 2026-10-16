@@ -1,3 +1,28 @@
+## 2026-10-16: Full M07 local exam running on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below. Frozen candidate fd1dccf8 remains unchanged.
+All selected repair stages passed in Debug and ASan/UBSan on both hosts.
+
+Old deployment payload retirement completed command0/wrapper0/COMPLETE on both hosts. Original processes retired.
+Primary reconciled all 899 removed files and 68 directories per host against pinned inventories and journals.
+All 1,033 protected source and metadata files per host remained unchanged.
+Fresh capacity passed the 61,203,283,968-byte floor: sb16=61,412,425,728; sb16-2=68,113,870,848.
+Retained archives, unresolved failure evidence, graphics checkouts, and installed helpers remain preserved.
+
+Both full local gate jobs started through persistent tmux and canonical runners.
+Both passed the 199-registration inventory, five production startup tests, and 51 harness tests.
+Both are running the Debug core suite. No terminal core result exists yet.
+Sanitizer profiles, acceptance, bounded storage, cross-host qualification, and final review remain pending.
+M07 completion is not established by successful launch or focused tests.
+
+Launch evidence on a5500:
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/full-gate-launch-01/aggregate-launch.json
+Latest primary observation: full-gate-observation-02.json under that launch-plan root.
+The read-only observer needed a host-loop indentation correction. Its two-host regression passed.
+Use review-05/observe_full_gate.py for later observations. Running gate source was unchanged.
+Retirement audit: m07-fd1dccf8-gate-preparation-20261016/old899-final-adjudication-01/PRIMARY_ADJUDICATION.json.
+
 ## 2026-10-16: Capacity recovery verified; old deployment retirement remains pending
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

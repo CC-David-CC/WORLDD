@@ -1,4 +1,38 @@
-Current checkpoint: verified capacity recovery; optimized old899 removal resumed; full gate remains UNRUN
+Current checkpoint: full M07 local exam running on sb16 and sb16-2
+Date: 2026-10-16. M07 remains UNQUALIFIED. Frozen candidate fd1dccf8 remains unchanged.
+This section supersedes conflicting observations below.
+
+Both old899 resume jobs completed command0/wrapper0/COMPLETE. Original pane processes retired.
+Primary reconciled exact file paths and SHA256 values across the interrupted and successor journals.
+Each host removed all 899 declared payload files and 68 directories.
+Each host retained all 1,033 protected source and metadata files unchanged.
+Fresh available bytes: sb16=61,412,425,728; sb16-2=68,113,870,848.
+Both exceeded the reviewed 61,203,283,968-byte local gate admission floor.
+The old build and production-off roots are absent. Installed helper hashes and modes remain correct.
+Required graphics checkouts and the unresolved failure image remain retained.
+
+Primary verified the frozen launcher and launched both full local gates in persistent tmux.
+The launch controller returned command0/wrapper0/COMPLETE and retired.
+Both test-host gate processes are alive and report running.
+Both passed the 199-registration inventory, all five production startup tests, and all 51 harness tests.
+Both are running Debug core. Its result remains pending.
+Sanitizer, acceptance, bounded storage, cross-host qualification, and final audit remain pending.
+All previously selected repair tests passed. They do not replace the full gate.
+
+Evidence root on a5500:
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016
+Launch: full-gate-launch-01/aggregate-launch.json.
+Observation: full-gate-observation-02.json.
+Admission manifest SHA256:a93ec84b04761c419945ca876296d8507169026fc6f12467a3aa63d49a6cbcba.
+Canonical pane identities: sb16=3254959; sb16-2=3233808.
+The read-only observer initially omitted sb16 because result assembly was outside its host loop.
+Primary preserved that incomplete report and corrected only the external observer in review-05.
+Its regression retains both running hosts and does not claim terminal PASS.
+Observer SHA256:a90b314bec24ad176646a4ccd2686c491f487ea4c0a86238009661ba4177c7f4.
+The deployed candidate, tests, package, and active gate jobs were unchanged.
+Retirement audit lives under m07-fd1dccf8-gate-preparation-20261016/old899-final-adjudication-01.
+
+Previous checkpoint: verified capacity recovery; optimized old899 removal resumed; full gate remains UNRUN
 Date: 2026-10-16. M07 remains UNQUALIFIED. Frozen candidate fd1dccf8 remains unchanged.
 This section supersedes conflicting observations below.
 
