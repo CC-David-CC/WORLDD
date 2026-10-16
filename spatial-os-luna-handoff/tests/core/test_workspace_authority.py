@@ -27,6 +27,7 @@ WRITE = [grant.FILE_CREATE, grant.FILE_EDIT, grant.FILE_RENAME, grant.FILE_MOVE,
 PROJECT = [grant.FILE_BROWSE, grant.FILE_READ, *WRITE, grant.PROCESS_EXECUTE]
 RIGHTS = [grant.WORKSPACE_ACCESS, *PROJECT, grant.POLICY_ADMINISTER]
 POLICY = ['workspace.select', 'files.read', 'files.write', 'process.launch']
+FENCE_REVOCATION_MESSAGE = 'Issuer revocation invalidated the in-flight broker result'
 
 
 class BrokerChannel:
@@ -327,6 +328,36 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         process = self.launch_process(peer, "from pathlib import Path\nimport time\nPath('ready').touch()\nwhile not Path('release').exists():time.sleep(.01)\nPath('done').touch()")
         self.until(lambda:(self.project/'ready').exists(), bool)
         return process
+
+    def fence_with_checked_credential_retry(self, principal):
+        request = broker.AuthorizationFenceRequest(principal=principal)
+        first = self.broker.request(authorization_fence=request)
+        if first.HasField('authorization_fence'):
+            self.assertFalse(first.HasField('error'), first)
+            return first, None
+        self.assertTrue(first.HasField('error'), f'Authorization fence reply has no typed outcome: {first!r}')
+        self.assertEqual(first.error.code, core.UNAUTHORIZED, first)
+        self.assertEqual(first.error.message, FENCE_REVOCATION_MESSAGE, first)
+        retry = self.broker.request(authorization_fence=request)
+        self.assertGreater(retry.request_id, first.request_id, f'Fence retry reused its request ID: {first!r}; {retry!r}')
+        self.assertTrue(retry.HasField('authorization_fence'), f'Fresh authorized fence failed: {retry!r}; original: {first!r}')
+        self.assertFalse(retry.HasField('error'), f'Fresh authorized fence returned an error: {retry!r}; original: {first!r}')
+        return first, retry
+
+    def process_pid_for_code(self, code):
+        marker = code.encode()
+        matches = []
+        for pid in self.descendants():
+            try:
+                command_line = Path(f'/proc/{pid}/cmdline').read_bytes()
+            except (FileNotFoundError, ProcessLookupError, PermissionError):
+                continue
+            if marker in command_line:
+                ticks = self.process_start_ticks(pid)
+                if ticks is not None:
+                    matches.append((pid, ticks))
+        self.assertEqual(len(matches), 1, f'Expected one live process for the exact launch argv, found {matches}')
+        return matches[0]
 
     def test_m07_actor_schema_tags_and_copy_status_privacy(self):
         action_fields = core.ActorActionRequest.DESCRIPTOR.oneofs_by_name['action'].fields
@@ -679,13 +710,70 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
     def test_credential_revocation_preserves_valid_workspace_process(self):
         world = self.workspace(); process = self.running(world, world.peers[0])
         principal = self.principal()
-        before = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal)).authorization_fence
+        before_reply = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal))
+        self.assertTrue(before_reply.HasField('authorization_fence'), before_reply)
+        self.assertFalse(before_reply.HasField('error'), before_reply)
+        before = before_reply.authorization_fence
         self.owner_peer = self.connect(); self.revoke(kind=issuer.CREDENTIAL_TARGET)
-        after = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal)).authorization_fence
+        first_reply, retry_reply = self.fence_with_checked_credential_retry(principal)
+        after_reply = retry_reply or first_reply
+        self.assertTrue(after_reply.HasField('authorization_fence'), after_reply)
+        self.assertFalse(after_reply.HasField('error'), after_reply)
+        after = after_reply.authorization_fence
         self.assertEqual(after.incarnation, before.incarnation)
         self.assertGreater(after.epoch, before.epoch)
-        time.sleep(.1); (self.project/'release').touch(); self.wait_job(world, process)
+        (self.project/'release').touch(); self.wait_job(world, process)
         self.assertTrue((self.project/'done').exists())
+
+    def test_credential_revocation_during_fence_returns_checked_refusal_and_preserves_process(self):
+        relay = world_authority.RelayingIssuer(self, lambda: self.revoke(kind=issuer.CREDENTIAL_TARGET))
+        world = self.workspace(issuer_port=relay.port)
+        peer = world.peers[0]
+        code = ("from pathlib import Path\nimport time\n"
+                "Path('credential-race-ready').touch()\n"
+                "while not Path('credential-race-release').exists():time.sleep(.01)\n"
+                "Path('credential-race-done').touch()")
+        self.select(peer)
+        process = self.launch_process(peer, code, operation='credential-race-process')
+        ready = self.project/'credential-race-ready'
+        self.until(lambda: ready.exists(), bool)
+        process_id = process.process_id
+        process_pid, process_start_ticks = self.process_pid_for_code(code)
+
+        principal = self.principal()
+        before_reply = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal))
+        self.assertTrue(before_reply.HasField('authorization_fence'), before_reply)
+        self.assertFalse(before_reply.HasField('error'), before_reply)
+        before = before_reply.authorization_fence
+
+        self.owner_peer = self.connect()
+        relay.trigger_after_status = 1
+        relay.armed.set()
+        first_reply, retry_reply = self.fence_with_checked_credential_retry(principal)
+        self.assertIsNotNone(retry_reply, f'Expected the deterministic in-flight refusal; got {first_reply!r}')
+        self.assertFalse(first_reply.HasField('authorization_fence'), first_reply)
+        self.assertTrue(first_reply.HasField('error'), first_reply)
+        self.assertEqual(first_reply.error.code, core.UNAUTHORIZED, first_reply)
+        self.assertEqual(first_reply.error.message, FENCE_REVOCATION_MESSAGE, first_reply)
+        self.assertTrue(retry_reply.HasField('authorization_fence'), retry_reply)
+        self.assertFalse(retry_reply.HasField('error'), retry_reply)
+        self.assertGreater(retry_reply.request_id, first_reply.request_id)
+        self.assertTrue(relay.triggered.is_set())
+        self.assertEqual(relay.status_seen, 1)
+        self.assertTrue(relay.delivered.is_set())
+        self.assertFalse(relay.errors, relay.errors)
+
+        after = retry_reply.authorization_fence
+        self.assertEqual(after.incarnation, before.incarnation)
+        self.assertGreater(after.epoch, before.epoch)
+        self.assertEqual(process.process_id, process_id)
+        self.assertEqual(self.process_start_ticks(process_pid), process_start_ticks,
+                         f'Credential revocation replaced or stopped the live process: {first_reply!r}; {retry_reply!r}')
+        command_line = Path(f'/proc/{process_pid}/cmdline').read_bytes()
+        self.assertIn(code.encode(), command_line, f'Live process argv changed: {first_reply!r}; {retry_reply!r}')
+        (self.project/'credential-race-release').touch()
+        self.wait_job(world, process)
+        self.assertTrue((self.project/'credential-race-done').exists())
 
     def test_revoked_ancestor_without_world_session_stops_process(self):
         self.enroll_second(); world = self.workspace(); peer = world.peers[1]
