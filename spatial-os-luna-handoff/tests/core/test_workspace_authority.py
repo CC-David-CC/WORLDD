@@ -345,19 +345,38 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         return first, retry
 
     def process_pid_for_code(self, code):
-        marker = code.encode()
+        expected = [b'/usr/bin/python3', b'-c', code.encode()]
         matches = []
         for pid in self.descendants():
             try:
                 command_line = Path(f'/proc/{pid}/cmdline').read_bytes()
             except (FileNotFoundError, ProcessLookupError, PermissionError):
                 continue
-            if marker in command_line:
-                ticks = self.process_start_ticks(pid)
+            if command_line.split(bytes([0])) == [*expected, b'']:
+                ticks = WorldProcess.process_start_ticks(pid)
                 if ticks is not None:
-                    matches.append((pid, ticks))
+                    matches.append((pid, ticks, command_line))
         self.assertEqual(len(matches), 1, f'Expected one live process for the exact launch argv, found {matches}')
         return matches[0]
+
+    def wait_for_broker_revocation_consumed(self, revision, offset, deadline, relay):
+        # Forwarding alone is not consumption. Require this broker's checked watcher revision.
+        while True:
+            text = Path(self.broker.log.name).read_bytes()[offset:].decode(errors='replace')
+            for line in text.splitlines():
+                if not line.startswith('authority_diag '):
+                    continue
+                fields = dict(item.split('=', 1) for item in line.split()[1:] if '=' in item)
+                if (fields.get('pid') == str(self.broker.pid) and fields.get('role') == 'workspace'
+                        and fields.get('stage') == 'revocation_received'
+                        and fields.get('target_revision') == str(revision)
+                        and fields.get('consumed_revision') == str(revision)
+                        and relay.delivered.is_set()):
+                    self.assertLess(time.monotonic(), deadline, f'Broker consumption barrier exceeded its deadline: {line}')
+                    return line
+            remaining = deadline-time.monotonic()
+            self.assertGreater(remaining, 0, f'Broker did not consume revision {revision} while status was pending: {text}')
+            self.assertFalse(relay.stop.wait(min(.005, remaining)), 'Issuer relay stopped during consumption barrier')
 
     def test_m07_actor_schema_tags_and_copy_status_privacy(self):
         action_fields = core.ActorActionRequest.DESCRIPTOR.oneofs_by_name['action'].fields
@@ -726,7 +745,26 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertTrue((self.project/'done').exists())
 
     def test_credential_revocation_during_fence_returns_checked_refusal_and_preserves_process(self):
-        relay = world_authority.RelayingIssuer(self, lambda: self.revoke(kind=issuer.CREDENTIAL_TARGET))
+        # Only the broker uses this relay. The world uses its ordinary direct issuer connection.
+        barrier = {}
+        def revoke_pending_status():
+            started = time.monotonic()
+            deadline = started + 2
+            operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
+                target=issuer.IdentityReference(kind=issuer.CREDENTIAL_TARGET, id=self.identity.credential_id),
+                expected_security_revision=0, reason='credential fence dispatch regression'))
+            result = self.execute(self.owner_peer, self.challenge(self.owner_peer, operation))
+            self.assertTrue(result.HasField('identity_status'), result)
+            self.assertFalse(result.identity_status.actor_revoked, result)
+            self.assertTrue(result.identity_status.credential_revoked, result)
+            revision = result.identity_status.security_revision
+            self.assertGreater(revision, 0, result)
+            # The production tick logs consumption before incrementing cancellation_sequence.
+            # That same tick must finish before the pending actor-status call can read its reply.
+            diagnostic = self.wait_for_broker_revocation_consumed(revision, log_offset, deadline, relay)
+            barrier.update(revision=revision, diagnostic=diagnostic,
+                           elapsed_seconds=time.monotonic()-started)
+        relay = world_authority.RelayingIssuer(self, revoke_pending_status, wait_for_revocation_event=False)
         world = self.workspace(issuer_port=relay.port)
         peer = world.peers[0]
         code = ("from pathlib import Path\nimport time\n"
@@ -735,19 +773,21 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
                 "Path('credential-race-done').touch()")
         self.select(peer)
         process = self.launch_process(peer, code, operation='credential-race-process')
-        ready = self.project/'credential-race-ready'
-        self.until(lambda: ready.exists(), bool)
+        self.until(lambda: (self.project/'credential-race-ready').exists(), bool)
         process_id = process.process_id
-        process_pid, process_start_ticks = self.process_pid_for_code(code)
+        process_pid, process_start_ticks, command_line = self.process_pid_for_code(code)
 
         principal = self.principal()
         before_reply = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal))
         self.assertTrue(before_reply.HasField('authorization_fence'), before_reply)
         self.assertFalse(before_reply.HasField('error'), before_reply)
         before = before_reply.authorization_fence
-
+        # Verify the existing five-second policy. Do not extend deadlines for this interleaving.
+        authority = text_format.Parse(self.authority_config.read_text(), broker.WorkspaceAuthorityConfig())
+        client = text_format.Parse(Path(authority.issuer_client_config).read_text(), issuer.IssuerTlsClientConfig())
+        self.assertEqual(client.io_timeout_ms, 5000, client)
         self.owner_peer = self.connect()
-        relay.trigger_after_status = 1
+        log_offset = Path(self.broker.log.name).stat().st_size
         relay.armed.set()
         first_reply, retry_reply = self.fence_with_checked_credential_retry(principal)
         self.assertIsNotNone(retry_reply, f'Expected the deterministic in-flight refusal; got {first_reply!r}')
@@ -762,17 +802,21 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(relay.status_seen, 1)
         self.assertTrue(relay.delivered.is_set())
         self.assertFalse(relay.errors, relay.errors)
+        self.assertIn('diagnostic', barrier, f'No broker consumption barrier: {first_reply!r}; {retry_reply!r}')
+        self.assertLess(barrier['elapsed_seconds'], 2, barrier)
+        print(f'Credential fence broker-consumption barrier: {barrier}', flush=True)
+        print(f'Credential fence replies: in_flight={first_reply!r}; fresh={retry_reply!r}', flush=True)
 
         after = retry_reply.authorization_fence
         self.assertEqual(after.incarnation, before.incarnation)
         self.assertGreater(after.epoch, before.epoch)
-        self.assertEqual(process.process_id, process_id)
-        self.assertEqual(self.process_start_ticks(process_pid), process_start_ticks,
+        self.assertIn(process_pid, self.descendants(), 'Existing payload left the broker process tree')
+        self.assertEqual(WorldProcess.process_start_ticks(process_pid), process_start_ticks,
                          f'Credential revocation replaced or stopped the live process: {first_reply!r}; {retry_reply!r}')
-        command_line = Path(f'/proc/{process_pid}/cmdline').read_bytes()
-        self.assertIn(code.encode(), command_line, f'Live process argv changed: {first_reply!r}; {retry_reply!r}')
+        self.assertEqual(Path(f'/proc/{process_pid}/cmdline').read_bytes(), command_line,
+                         f'Live process argv changed: {first_reply!r}; {retry_reply!r}')
         (self.project/'credential-race-release').touch()
-        self.wait_job(world, process)
+        self.assertEqual(world.management('process.wait', id=process_id, timeout_seconds=5), {'exit_code':0})
         self.assertTrue((self.project/'credential-race-done').exists())
 
     def test_revoked_ancestor_without_world_session_stops_process(self):
