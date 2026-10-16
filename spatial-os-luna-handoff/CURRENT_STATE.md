@@ -1,3 +1,20 @@
+## 2026-10-15: Native repair checks pass; final package repack started
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Both test hosts passed three affected native suites in Debug and ASan/UBSan.
+The primary audit confirms 12 successful suite executions and 128 successful test-method executions.
+Sanitizer output, receipts, source integrity, cleanup, and complete deployment postchecks passed.
+These source-only overlay results remain diagnostic.
+
+The fixed builder is clean at reviewed 84efe3 and its branch is verified on box-git.
+Production compile inputs are unchanged. No new application build ran.
+After primary script review and eleven successful recovery/metadata controls, successor repack started.
+The full M07 exam has not started.
+Independent package verification, freeze, both deployment updates, and all seven focused suites remain pending.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact source and evidence pins.
 ## 2026-10-15: Corrected helper retry live on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

@@ -1,3 +1,32 @@
+Current checkpoint: native repair checks pass; final package preparation started
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Both hosts passed session-resources, session-storage-contention, and session-storage-owner.
+Each host passed Debug and ASan/UBSan: 12 suite executions and 128 test-method executions.
+The primary audited unittest and JUnit counts, sanitizer output, receipts, and immutable source checks.
+The complete production deployment also passed post-run verification on both hosts.
+Controllers stopped. No overlay bytecode or source mutation remained.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-native-fixture-focused-20261015/primary-combined-audit-02.
+Audit status: PRIMARY_BOTH_3SUITE_DEBUG_SAN_PASS. Phase completion remains false.
+These are diagnostic overlay results. They do not qualify the final combined candidate.
+
+The clean fixed builder now points to reviewed 84efe3c044066a43d08e48f5b87b8ca31d3a53b9.
+Branch m07/gate-build-20261014 is BOX-GIT VERIFIED. No application rebuild ran.
+The source change contains three modified fixtures, three added fixture modules, and one maintained document.
+Production CMake input hashes remain unchanged. Existing binary reuse is explicit.
+Milestone integration remains 706fe47aae50000fa78ee1549b76356d3cf66eff.
+
+The primary reviewed the successor packaging and reversible deployment scripts.
+Review found an invalid legacy.NEW directory reference. Plan02 uses the actual legacy.OLDROOT.
+Plan01 remains preserved. Eleven metadata and recovery controls passed with zero command and wrapper exits.
+The corrected repack started in tmux on a5500.
+Evidence root: /home/dflanag3/spatial-artifacts/m07-native-fixture-finalization-20261015.
+Repack outer: repack-outer-01. Script plan: plan-02.
+Independent package verification, freezing, deployment updates, and the final seven-suite matrix remain pending.
+The full M07 exam has NOT started. Its start depends on passing those preparation checks.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: corrected fixture retry launched on both hosts
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
