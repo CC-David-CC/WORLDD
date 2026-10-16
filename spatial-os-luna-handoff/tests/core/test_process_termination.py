@@ -114,7 +114,11 @@ class ProcessTerminationTests(unittest.TestCase):
                 if candidates: authority=candidates[0]
             if authority is None: time.sleep(.005)
         self.assertIsNotNone(authority,'Could not identify the real authority cgroup')
+        status=Path(f'/proc/{sidecar.pid}/status').read_text()
+        self.assertIn(f'PPid:\t{os.getpid()}',status,'Sidecar must remain outside the probe process tree')
         (authority/'cgroup.procs').write_text(f'{sidecar.pid}\n')
+        self.assertIn(str(sidecar.pid),(authority/'cgroup.procs').read_text().split(),
+                      'Sidecar did not enter the owned cgroup before stop fault injection')
         self.assertEqual(self.stop(proc),2)
         self.assertTrue(select.select([sidecar_pidfd],[],[],0)[0],
                         'cgroup.kill did not terminate the independent cgroup member before wait failure')
@@ -128,6 +132,10 @@ class ProcessTerminationTests(unittest.TestCase):
     def test_already_exited_process_can_be_stopped_twice(self):
         proc=self.run_boundary('normal',"import pathlib;pathlib.Path('ready').touch()")
         time.sleep(.05);self.assertEqual(self.stop(proc),0)
+    def test_reaped_application_exit_is_a_confirmed_stop(self):
+        proc=self.run_boundary('wait-exit',"import pathlib;pathlib.Path('ready').touch()")
+        self.assertEqual(self.stop(proc),0)
+
     def test_destructor_wait_error_cannot_return_broker_success(self):
         proc=self.run_boundary('destructor-deny-wait',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
         self.assertEqual(self.stop(proc),2)

@@ -20,6 +20,7 @@
 #include <poll.h>
 #include <sched.h>
 #include <sstream>
+#include <system_error>
 #include <sys/prctl.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -313,20 +314,12 @@ void ApplicationProcess::stop() {
     const auto started = Clock::now();
     const auto deadline = started + std::chrono::seconds(2);
     std::exception_ptr failure;
-    std::string failure_message;
-    const auto attempt = [&failure, &failure_message](const char* label, auto&& action) {
+    const char* failure_operation = nullptr;
+    std::exception_ptr completion_failure;
+    const auto attempt = [&failure, &failure_operation](const char* label, auto&& action) {
         try { action(); }
-        catch (const std::exception& error) {
-            if (!failure) {
-                failure = std::current_exception();
-                try { failure_message = std::string(label) + ": " + error.what(); } catch (...) {}
-            }
-        }
         catch (...) {
-            if (!failure) {
-                failure = std::current_exception();
-                try { failure_message = std::string(label) + ": unknown failure"; } catch (...) {}
-            }
+            if (!failure) { failure = std::current_exception(); failure_operation = label; }
         }
     };
     // Issue every owned termination request before entering any process wait.
@@ -342,38 +335,42 @@ void ApplicationProcess::stop() {
     });
 
     int poll_result = 0, poll_revents = 0, poll_error = 0;
-    bool namespace_exited = namespace_pidfd_ < 0, namespace_wait_failed = false;
+    bool namespace_exited = namespace_pidfd_ < 0, namespace_wait_failed = false, namespace_deadline_expired = false;
     if (namespace_pidfd_ >= 0) {
         while (!namespace_exited && !failure) {
             pollfd state{namespace_pidfd_, POLLIN, 0};
             poll_result = poll(&state, 1, 10);
+            if (poll_result < 0) poll_error = errno;
             poll_revents = state.revents;
-            if (poll_result > 0 && poll_revents == POLLIN) { namespace_exited = true; break; }
-            if (poll_result < 0 && errno == EINTR) {
+            if (poll_result > 0 &&
+                (poll_revents == POLLIN || poll_revents == POLLHUP || poll_revents == (POLLIN | POLLHUP))) {
+                namespace_exited = true; break;
+            }
+            if (poll_result < 0 && poll_error == EINTR) {
                 if (Clock::now() < deadline) continue;
-                if (failure_message.empty()) failure_message = "namespace exit poll deadline exceeded";
                 namespace_wait_failed = true;
+                namespace_deadline_expired = true;
                 break;
             }
-            if (poll_result < 0) poll_error = errno;
             if (poll_result < 0 || poll_result > 0 || Clock::now() >= deadline) {
-                if (failure_message.empty()) failure_message = "namespace exit poll failed";
                 namespace_wait_failed = true;
+                if (poll_result == 0 && Clock::now() >= deadline) namespace_deadline_expired = true;
                 break;
             }
         }
     }
     // Scope emptiness and direct-child reap remain mandatory after namespace-wait errors.
-    attempt("owned scope completion", [this, deadline] { resources_->scope().complete_stop(deadline); });
-    if (namespace_wait_failed && !failure) {
-        try { failure = std::make_exception_ptr(std::runtime_error(failure_message)); }
-        catch (...) { failure = std::current_exception(); }
+    try { resources_->scope().complete_stop(deadline); }
+    catch (...) {
+        completion_failure = std::current_exception();
+        if (!failure && !namespace_wait_failed) {
+            failure = completion_failure;
+            failure_operation = "owned scope completion";
+        }
     }
-    if (!namespace_exited && !failure) {
-        try { failure = std::make_exception_ptr(std::runtime_error("namespace exit was not confirmed")); }
-        catch (...) { failure = std::current_exception(); }
-    }
-    if (failure) {
+    const bool stop_failed = static_cast<bool>(failure) || static_cast<bool>(completion_failure) ||
+                             namespace_wait_failed || !namespace_exited;
+    if (stop_failed) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - started).count();
         try {
             const auto& owned = resources_->scope().identity();
@@ -385,10 +382,31 @@ void ApplicationProcess::stop() {
             try {
                 std::cerr << " scope_populated=" << resources_->scope().diagnostic_populated()
                           << " child_reaped=" << resources_->scope().diagnostic_child_reaped();
-            } catch (...) { /* Keep the primary bounded diagnostic if cgroup inspection fails. */ }
-            std::cerr << " reason=" << failure_message << '\n';
+            } catch (...) { /* Keep the primary diagnostic if cgroup inspection fails. */ }
+            if (failure) {
+                std::cerr << " first_failure=" << (failure_operation ? failure_operation : "owned stop") << ':';
+                try { std::rethrow_exception(failure); }
+                catch (const std::exception& error) { std::cerr << error.what(); }
+                catch (...) { std::cerr << "unknown"; }
+            } else if (namespace_wait_failed) std::cerr << " first_failure=namespace leader poll";
+            if (completion_failure && completion_failure != failure) {
+                std::cerr << " completion_failure=";
+                try { std::rethrow_exception(completion_failure); }
+                catch (const std::exception& error) { std::cerr << error.what(); }
+                catch (...) { std::cerr << "unknown"; }
+            }
+            std::cerr << '\n';
         } catch (...) { /* Diagnostic failure must not replace the cleanup result. */ }
-        std::rethrow_exception(failure);
+        if (failure) std::rethrow_exception(failure);
+        if (namespace_wait_failed) {
+            if (namespace_deadline_expired) throw std::runtime_error("Application namespace exit deadline exceeded");
+            if (poll_result < 0)
+                throw std::system_error(poll_error, std::generic_category(), "Cannot poll application namespace leader");
+            if (poll_result > 0) throw std::runtime_error("Unexpected application namespace poll events");
+            throw std::runtime_error("Application namespace exit was not confirmed");
+        }
+        if (completion_failure) std::rethrow_exception(completion_failure);
+        throw std::runtime_error("Cannot confirm application namespace exit");
     }
     if (namespace_pidfd_ >= 0) close(namespace_pidfd_);
     namespace_pidfd_ = -1; namespace_pid_ = -1;
