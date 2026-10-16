@@ -29,7 +29,10 @@ The actor still lacked the required typed denial. The matrix stopped; later repe
 A separate production repair checkpoint is BOX-GIT VERIFIED at 4666b8aa.
 Primary and independent source reviews found no remaining confirmed defect. Both build profiles passed.
 Protected observation and attempted frames still close. Actor cancellation precedes optional denial allocation.
-The new frame unit and all live regressions remain UNRUN on this source. It is not integrated.
+The new frame unit passed in Debug and ASan/UBSan on both hosts. The repair remains unintegrated.
+The Debug unit receipts are explicitly NONCANONICAL; primary preserved the worker wrapper and corrected subsequent launches.
+The first real Debug copy-revocation execution passed on each host with typed denial and durable forbidden abort.
+Neither first execution exercised asynchronous queued-reply replacement. Later repetitions and related regressions remain UNRUN.
 A separate isolated worker instruments participant delivery, settlement, and acknowledgement.
 Both native helper profiles built on a5500. Both hosts passed their deployment checks.
 The first standalone native launch failed on an evidence-path setup guard before workload.
@@ -43,12 +46,16 @@ No Git process remained at the application-exit sample, so stronger overlap evid
 These focused passes do not explain the original missing acknowledgements.
 The sb16 Debug reproduction ran the original full 17-case registration, including preceding pressure methods.
 Sixteen cases passed. The revocation case errored before revocation when a sampled Git process disappeared during a procfs read.
-The full-registration reproduction on sb16-2 and both sanitizer profiles remain UNRUN.
 Primary reviewed fixture repair dd4e5b9b, BOX-GIT VERIFIED, which handles only ENOENT and ESRCH as retirement.
-Five deterministic cases preserve permission and I/O failures. They remain UNRUN pending a fixture-only deployment.
+Five deterministic cases preserve permission and I/O failures. They passed in both configured profiles on both hosts.
+These Python helper checks do not exercise C++ sanitizer behavior.
+The explicit fixture-only overlay preserves binary source0ca9f93 and source base0e6a044.
+Its corrected full registration passed 22 cases in Debug and under sanitizer on both hosts.
+Those four registrations completed 88 case executions, without skips or sanitizer findings.
+No complete M07 gate has restarted.
 The original missing acknowledgements remain unresolved.
 The separate queued-status repair bundle completed deployment verification on both hosts.
-Its focused runtime checks remain UNRUN at this checkpoint.
+Its remaining copy repetitions, quota controls, identity, observation, pixel, and lease regressions remain UNRUN.
 No timeout increase or qualified production repair is claimed.
 
 The adfb2578 fixture-only overlay preserves pre-close and final worldd lifetime evidence.

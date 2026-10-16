@@ -77,7 +77,15 @@ The queued frame is detached before callbacks. Construction failure closes the t
 The original output deadline remains unchanged. Repeated invalidation preserves only the new denial.
 The deterministic unit covers the production frame transform, not Actors::close or nested callback execution.
 Allocation-failure cancellation remains source-reviewed only. Live TLS WANT_WRITE is not covered by that unit.
-New unit, copy-revocation repetitions, identity, observation, pixels, leases, and quota controls remain UNRUN on this repair.
+The new unit passed in Debug and ASan/UBSan on both hosts.
+Primary independently verified named output, empty sanitizer stderr, helper restoration, and unchanged deployment pins.
+The Debug unit used a worker-authored wrapper. Its receipts are explicitly NONCANONICAL diagnostics.
+Primary preserved those receipts and used the literal approved canonical runner for subsequent checks.
+The first real Debug copy-revocation execution passed on each host.
+Each returned typed denial 12, recorded durable phase8/error3, and observed no publication.
+Primary checked actual status evidence, driver output, stable worldd lifetime, helper restoration, and unmounted volume records.
+Neither first execution hit the asynchronous queued-reply replacement branch. This is a live coverage limit.
+Two further Debug repetitions, one sanitizer repetition, and related authority/quota controls remain UNRUN per host.
 Frozen package archive SHA256:c2b5a3f1cc6698d9ef1261dcc60885061a85f34f4859af163725af03de893056.
 Package manifest SHA256:4fea6f4785092a6fa05ca8f4a1ffc8b6e4305aceb4bab871e27cf9572a8d788b.
 Package root:a5500:/home/dflanag3/spatial-artifacts/m07-queued-copy-status-primary-runtime-20261016.
@@ -87,7 +95,7 @@ The focused runner requires the exact configured identity, lease, observation, a
 Primary enabled SPATIAL_INPUT_TESTS through normal CMake configuration before extracting those registrations.
 All 16 binaries, 14 protobuf bindings, build identifiers, runtime configuration, and compiler flags remained unchanged per profile.
 Reconfigure receipt SHA256:28ab7bcc7011186cf4453a86d7d4464f8909911512933f63d3291fa928aacce0.
-Focused runtime remains UNRUN at this checkpoint. M07 remains UNQUALIFIED.
+Focused runtime evidence and primary audits remain external under that package root. M07 remains UNQUALIFIED.
 Across the original eight diagnostic executions, primary found no sanitizer diagnostics.
 Every temporary helper was restored. Every owned volume was unmounted.
 These are seven complete focused passes and one failed execution.
@@ -155,7 +163,7 @@ Successful focused retries do not explain or repair the original missing acknowl
 The original CTest registration runs 17 internal cases, including two native pressure methods before this method.
 The isolated selected-method runs omit that preceding workload. This is an evidence limit.
 A reviewed external CTest registration now preserves all 17 cases, their order, and the 180-second timeout.
-Launcher:suite-registration03/run_suite.py under the native diagnostic artifact root.
+Launcher:suite-registration-03/run_suite.py under the native diagnostic artifact root on a5500.
 Launcher SHA256:fd1546dbdcb1c455c80845bf767365f061fd2d77b9bc027370e863722bb87dab.
 The sb16 Debug reproduction completed 17 cases:16 passed and one errored before revocation.
 The Git witness observed ProcessLookupError(ESRCH) while reading a sampled process's /proc/PID/comm.
@@ -166,7 +174,17 @@ sb16-2 and both sanitizer full-registration reproductions remain UNRUN. No blind
 Primary reviewed the two-file fixture repair dd4e5b9ba290a444407c091b94f23e46fd5a6c68, BOX-GIT VERIFIED.
 It treats only ENOENT and ESRCH as process retirement. Permission and I/O errors still propagate.
 Five deterministic cases cover the helper. Existing Git, timing, and revocation assertions remain unchanged.
-Those cases remain UNRUN. An explicit fixture-only overlay will retain the existing diagnostic binaries.
+The five deterministic cases passed on both hosts in both configured profiles:20 case executions.
+These Python cases do not exercise native C++ sanitizer behavior.
+The explicit overlay uses fixture dd4e5b9, source base0e6a044, and unchanged binary source0ca9f93.
+Overlay root:/home/dflanag3/spatial-artifacts/m07-storage-ack-process-retirement-runtime-20261016.
+The initial focus launcher refused before tests because transfer omitted its empty runner-checkout directory.
+Primary preserved both refusals, created only the required directory, and used the canonical runner for the corrected attempts.
+The complete corrected registration passed all 22 cases in Debug on both hosts.
+The same 22-case registration passed under ASan/UBSan on both hosts.
+All four full registrations passed:88 individual case executions, without skips or sanitizer findings.
+Primary checked named cases, zero canonical exits, no sanitizer markers, unchanged helpers/deployment, and detached test loops.
+Exact raw logs, JUnit, lifecycle records, and hashes are retained under primary-full-audits in the overlay root.
 This fixture repair does not explain the original missing acknowledgements or qualify M07.
 Native diagnostic artifacts:/home/dflanag3/spatial-artifacts/m07-storage-ack-primary-runtime-20261016.
 
