@@ -52,7 +52,8 @@ class GateStaticTests(unittest.TestCase):
         for name in [*receipt['extension_sources'], 'server/base.lock.json']:
             target = source / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_input / name, target)
+            # Fixture sources may be frozen read-only. Copy bytes into fresh writable temp files.
+            shutil.copyfile(source_input / name, target)
         server = self.put('runtime/Xvfb', 'fixture binary, never executed')
         receipt['binaries']['Xvfb'] = dict(path=str(server), sha256=gate.sha(server))
         library = self.put('runtime/libEGL.so', 'fixture EGL, never loaded')
@@ -72,6 +73,30 @@ class GateStaticTests(unittest.TestCase):
                        required_helper_names=[path.name for path in helpers],
                        hosts={expected_host: {'Debug': row}})
         return source, runtime, row, expected_host
+
+    def test_runtime_fixture_copies_are_writable_and_leave_frozen_sources_unchanged(self):
+        receipt = json.loads(receipt_input.read_text())
+        names = [*receipt['extension_sources'], 'server/base.lock.json']
+        before = {name: ((source_input / name).read_bytes(), (source_input / name).stat().st_mode)
+                  for name in names}
+        first_source, _, _, _ = self.runtime_fixture()
+        for name in names:
+            fixture_copy = first_source / name
+            self.assertEqual(fixture_copy.read_bytes(), before[name][0])
+            self.assertTrue(fixture_copy.stat().st_mode & 0o200, name)
+            self.assertEqual((source_input / name).read_bytes(), before[name][0])
+            self.assertEqual((source_input / name).stat().st_mode, before[name][1])
+        patch_name = next(name for name in receipt['extension_sources']
+                          if name.endswith('0001-spatial-input.patch'))
+        fixture_patch = first_source / patch_name
+        fixture_patch.write_bytes(before[patch_name][0] + b'fixture mutation')
+        self.assertEqual((source_input / patch_name).read_bytes(), before[patch_name][0])
+        second_source, _, _, _ = self.runtime_fixture()
+        self.assertEqual((second_source / patch_name).read_bytes(), before[patch_name][0])
+        self.assertTrue((second_source / patch_name).stat().st_mode & 0o200)
+        for name in names:
+            self.assertEqual((source_input / name).read_bytes(), before[name][0])
+            self.assertEqual((source_input / name).stat().st_mode, before[name][1])
 
     def make_tar(self, path, members):
         with tarfile.open(path, 'w:gz') as archive:
