@@ -1,3 +1,35 @@
+## 2026-10-16: Cross-host Debug behavior passed; cleanup failed and repair is isolated
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED.
+Both hosts retain accepted full Debug and ASan-UBSan local gates.
+The frozen production candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+
+The reviewed cross-host plan passed preparation and primary review.
+Its plan SHA-256 is 83c625d90337169c730d08399ae675263f630731e574973db3d9432d1792a193.
+Actual cross-host runner pane 3641606 retired after command/wrapper exits 2/2 and COMPLETE.
+The Debug semantic harness returned zero and produced all six expected case-result records.
+Round-trip, private denial, and unavailable-destination cases completed in both host directions.
+The outer fixture then failed during cleanup. The gate correctly refused to continue.
+
+sb16 cleanup treated a retained dead tmux session as a running owner and timed out.
+sb16-2 cleanup reported an owner-identity mismatch during teardown.
+Both recorded worldd.exit files contain zero. All four recorded owner/worldd PIDs are absent.
+Both tmux windows remain as dead panes. The original roots and failure reports remain preserved.
+The helper currently writes cancellation before pinning the owner lifetime.
+The repair uses the recorded owner pidfd and pins identity before cancellation.
+A separate fixture branch and a pinned test-tool continuation are under primary review.
+Neither changes the frozen production binaries or rewrites accepted local evidence.
+Focused repair tests, recovery checks, and the full cross-host retry remain UNRUN.
+Native cross-host jobs, sanitizer semantic cases, workspace cells, and final artifact audits remain UNRUN.
+
+Failed evidence: /home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-local-accepted-01.
+Each host retains the independent lifetime observation under /home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/primary-retained-lifetime-01/observation.json.
+Observation SHA-256: sb16 ff7c24b749dc3c4a6b8e8dd53765a271fe42c44270c158f09d41d28ad249bb84; sb16-2 5cf05d6b6a4881f7e34ae6f8c2ecce3c048d210bc44835a987d50c0c23482be4.
+
+M08 focused FileEngine checks passed Debug and sanitizer on sb16-2.
+Its broker integration remains isolated and UNQUALIFIED. Reviewed repairs are rebuilding on middle-child.
+M09-M16 remain pending.
+
 ## 2026-10-16: Both local M07 gates accepted; cross-host preparation launched
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED.

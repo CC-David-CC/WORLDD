@@ -1,0 +1,31 @@
+M07 cross-host owner cleanup confuses retained tmux windows with process lifetime
+
+Status: confirmed fixture defect. Repair and qualification remain pending.
+
+The first frozen-candidate cross-host Debug harness passed all six semantic cases.
+Its cleanup failed after the behavior checks completed.
+The sb16 stop helper kept polling tmux has-session after the owner had exited.
+A retained dead pane keeps the tmux session present.
+The helper therefore reported Owner still running after its bounded wait.
+
+sb16-2 reported an identity mismatch during teardown. The current helper creates
+its cancel marker before acquiring the owner pidfd. This ordering permits an exit race.
+That observation is distinct from proof of the exact sb16-2 race timing.
+
+Primary verified both worldd exit records are zero and all recorded PIDs are absent.
+Both tmux windows remain as dead panes. Failed roots and reports are preserved.
+
+Proposed repair: use the retained owner process lifetime and kernel pidfd readiness.
+Verify identity before cancellation. Preserve strict live-identity and PID-reuse refusal.
+Capture numeric pane PID at exec launch. Do not infer execution from session existence.
+Keep the single stop request, bounded deadline, and fail-closed root ownership checks.
+
+Required checks: retained dead pane, teardown race, live timeout, identity mismatch,
+slow listener, descriptor closure, and exact retained-root recovery on both test hosts.
+Then rerun the complete required cross-host matrix and final artifact audits.
+The existing local gate evidence stays separate and unchanged.
+
+Evidence root on sb16:
+/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-local-accepted-01/semantic/Debug
+Failure files: 0054.stderr, 0056.stderr, cleanup.json, and Debug.launch/stderr.log.
+Related earlier exit-race investigation: m06-crosshost-owner-cleanup-race.txt.
