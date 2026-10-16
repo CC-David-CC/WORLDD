@@ -9,6 +9,8 @@
 #include <google/protobuf/text_format.h>
 #include <openssl/rand.h>
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <deque>
 #include <iostream>
 #include <mutex>
@@ -16,6 +18,8 @@
 #include <string_view>
 #include <syncstream>
 #include <thread>
+#include <openssl/sha.h>
+#include <unistd.h>
 
 namespace spatial::identity {
 namespace {
@@ -33,6 +37,36 @@ std::string diagnostic_cause(std::string_view text) {
         result.push_back(byte >= 32 && byte <= 126 ? static_cast<char>(byte) : '?');
     return result;
 }
+std::atomic<unsigned> diagnostic_normal_count{0};
+std::atomic<unsigned> diagnostic_reserved_count{0};
+}
+void participant_diagnostic(std::string_view role, std::string_view stage,
+                            std::string_view incarnation, std::uint64_t target_revision,
+                            std::uint64_t consumed_revision, std::uint64_t applied_revision,
+                            bool reserved) {
+    auto& count = reserved ? diagnostic_reserved_count : diagnostic_normal_count;
+    const unsigned limit = reserved ? 8 : 120;
+    unsigned observed = count.load(std::memory_order_relaxed);
+    while (observed < limit &&
+           !count.compare_exchange_weak(observed, observed + 1,
+               std::memory_order_relaxed, std::memory_order_relaxed)) {}
+    if (observed >= limit) return;
+    using Clock = std::chrono::steady_clock;
+    const auto monotonic_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        Clock::now().time_since_epoch()).count();
+    unsigned char digest[SHA256_DIGEST_LENGTH]{};
+    if (!incarnation.empty()) SHA256(reinterpret_cast<const unsigned char*>(incarnation.data()), incarnation.size(), digest);
+    constexpr char hex[] = "0123456789abcdef";
+    char incarnation_hash[17]{};
+    if (!incarnation.empty()) for (unsigned i = 0; i < 8; ++i) {
+        incarnation_hash[i * 2] = hex[digest[i] >> 4];
+        incarnation_hash[i * 2 + 1] = hex[digest[i] & 15];
+    }
+    std::osyncstream(std::cerr) << "authority_diag mono_ns=" << monotonic_ns
+        << " pid=" << ::getpid() << " role=" << role << " stage=" << stage << " incarnation_hash="
+        << (incarnation.empty() ? "none" : incarnation_hash)
+        << " target_revision=" << target_revision << " consumed_revision=" << consumed_revision
+        << " applied_revision=" << applied_revision << '\n';
 }
 struct ParticipantRuntime::Impl {
     std::string service_incarnation;
@@ -49,6 +83,8 @@ struct ParticipantRuntime::Impl {
     void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0,
                      const char* stage = "consumer", std::string_view cause = {}) {
         if (broken) return;
+        participant_diagnostic("participant", "participant_transport_failure", service_incarnation,
+            delivered_revision.value_or(0), delivered_revision.value_or(0), 0, true);
         std::osyncstream(std::cerr) << "authority participant failed: code=" << static_cast<int>(code)
             << " request=" << request << " stage=" << stage << " cause="
             << diagnostic_cause(cause.empty() ? std::string_view(message) : cause) << '\n';
@@ -143,6 +179,12 @@ struct ParticipantRuntime::Impl {
                                 "Release requires the active acknowledged generation");
                         *request.mutable_authority_release() = release;
                     }
+                    if (command->has_applied()) {
+                        const auto& applied = command->applied();
+                        participant_diagnostic("participant", "ack_request_begin", service_incarnation,
+                            applied.through_revision(), delivered.value_or(0),
+                            active ? active->applied_revision() : 0, false);
+                    }
                     reply = client.call(std::move(request));
                     update.Clear(); update.set_request_id(command->request_id());
                     if (reply.has_error() && command->has_activate() && reply.error().code() == core::REVISION_CONFLICT) {
@@ -152,7 +194,11 @@ struct ParticipantRuntime::Impl {
                         if (reply_error(reply, stage, command->request_id())) return;
                         active = reply.authority_activation();
                         if (command->has_activate()) *update.mutable_activated() = *active;
-                        else if (command->has_applied()) *update.mutable_applied() = *active;
+                        else if (command->has_applied()) {
+                            *update.mutable_applied() = *active;
+                            participant_diagnostic("participant", "ack_reply_applied", service_incarnation,
+                                active->applied_revision(), delivered.value_or(0), active->applied_revision(), false);
+                        }
                         else {
                             *update.mutable_released() = *active;
                             { std::lock_guard lock(mutex); closed = true; }
@@ -170,6 +216,11 @@ struct ParticipantRuntime::Impl {
                 reply = client.call(std::move(request)); if (reply_error(reply, stage)) return;
                 auto batch = std::move(*reply.mutable_revocations());
                 const bool initial = !cursor; cursor = batch.through_revision(); backlog = *cursor < batch.head_revision();
+                if (batch.events_size()) {
+                    participant_diagnostic("participant", "revocation_batch_received", service_incarnation,
+                        batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
+                        active ? active->applied_revision() : 0, false);
+                }
                 if (initial || batch.events_size()) {
                     update.Clear(); *update.mutable_revocations() = std::move(batch);
                     if (!publish(std::move(update))) return;
@@ -225,6 +276,11 @@ struct ParticipantRuntime::Impl {
                                 release.has_applied_revision() && release.applied_revision() == active->applied_revision(),
                                 "Release requires the active acknowledged generation");
                         }
+                        if (waiting->has_applied()) {
+                            participant_diagnostic("participant", "ack_request_begin", service_incarnation,
+                                waiting->applied().through_revision(), delivered.value_or(0),
+                                active ? active->applied_revision() : 0, false);
+                        }
                         stream.send(waiting->SerializeAsString()); deadline = Clock::now()+std::chrono::seconds(5);
                     }
                 }
@@ -279,6 +335,12 @@ struct ParticipantRuntime::Impl {
                             "Invalid private revocation event");
                     }
                     cursor = through; head = latest;
+                    if (update.has_revocations() && update.revocations().events_size()) {
+                        const auto& batch = update.revocations();
+                        participant_diagnostic("participant", "revocation_batch_received", service_incarnation,
+                            batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
+                            active ? active->applied_revision() : 0, false);
+                    }
                 } else {
                     require(cursor && waiting && update.request_id() == waiting->request_id(), "Unsolicited private participant result");
                     require((waiting->has_activate() && update.has_activated()) || (waiting->has_applied() && update.has_applied()) ||
@@ -301,7 +363,12 @@ struct ParticipantRuntime::Impl {
                         else require(!state.active() && state.applied_revision() == active->applied_revision() &&
                             state.applied_revision() == state.head_revision(), "Invalid private release success");
                     }
-                    active = state; head = state.head_revision(); waiting.reset(); current_request = 0;
+                    active = state; head = state.head_revision();
+                    if (waiting->has_applied()) {
+                        participant_diagnostic("participant", "ack_reply_applied", service_incarnation,
+                            state.applied_revision(), cursor.value_or(0), state.applied_revision(), false);
+                    }
+                    waiting.reset(); current_request = 0;
                     if (update.has_released()) {
                         { std::lock_guard lock(mutex); closed = true; }
                         publish(std::move(update)); return;

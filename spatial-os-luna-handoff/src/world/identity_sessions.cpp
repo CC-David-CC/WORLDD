@@ -22,11 +22,16 @@
 #include <unistd.h>
 #include <source_location>
 #include <sstream>
+#include <string_view>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <thread>
 
 namespace spatial {
+namespace identity {
+void participant_diagnostic(std::string_view, std::string_view, std::string_view,
+                            std::uint64_t, std::uint64_t, std::uint64_t, bool);
+}
 namespace {
 namespace pb = identity::v1;
 using Clock = std::chrono::steady_clock;
@@ -146,6 +151,8 @@ struct IdentitySessions::Impl {
     world_diagnostic::LastSuccessfulExchange last_successful_exchange;
     bool ready = false, broken = false, ticking = false;
     bool issuer_exchange_in_progress = false;
+    bool diagnostic_service_failure_logged = false;
+    std::optional<std::pair<std::uint64_t, bool>> diagnostic_cancellation_state;
 
     Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution, int listener_fd, const std::filesystem::path& tls_config)
         : world(store), actors(engine), broker(execution) {
@@ -239,7 +246,14 @@ struct IdentitySessions::Impl {
                 disconnect(*channel, "poll_transport_lost"); channel->close_transport(); channel->input.clear(); channel->output.clear();
             }
         }
-        if (participant->failed()) { fail(); return; }
+        if (participant->failed()) {
+            if (!diagnostic_service_failure_logged) {
+                identity::participant_diagnostic("world", "participant_failed", participant->service_incarnation(),
+                    observed_revision, consumed_revision.value_or(0), acknowledged_revision, true);
+                diagnostic_service_failure_logged = true;
+            }
+            fail(); return;
+        }
         while (auto update = participant->poll()) {
             if (update->has_authenticated()) {
                 if (update->authenticated().issuer_id() != issuer.issuer_id() ||
@@ -258,6 +272,8 @@ struct IdentitySessions::Impl {
                     generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
                 } else if (expected == pb::ParticipantCommand::kApplied && update->has_applied()) {
                     acknowledged_revision = update->applied().applied_revision();
+                    identity::participant_diagnostic("world", "ack_result_consumed", participant->service_incarnation(),
+                        acknowledged_revision, consumed_revision.value_or(0), acknowledged_revision, false);
                 } else if (expected == pb::ParticipantCommand::kRelease && update->has_released()) released = true;
                 else { fail(); return; }
                 continue;
@@ -267,6 +283,11 @@ struct IdentitySessions::Impl {
             observed_revision = std::max(observed_revision, batch.head_revision());
             consumed_revision = batch.through_revision();
             if (batch.initial()) continue;
+            if (batch.events_size()) {
+                identity::participant_diagnostic("world", "revocation_received", participant->service_incarnation(),
+                    batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
+                    acknowledged_revision, false);
+            }
             for (const auto& event : batch.events()) {
                 if (authority && event.target().kind() == pb::ACTOR_TARGET) authority->revoked(event.target().id());
                 const auto affected = [&](const pb::ActorCredential& claims) {
@@ -312,8 +333,18 @@ struct IdentitySessions::Impl {
             channel.output_started=Clock::now();
         }
         // Never called by an issuer, renderer, or broker wait callback.
+        const bool cancellation_settled = actors.cancellation_settled();
+        const auto target_revision = consumed_revision.value_or(0);
+        const auto cancellation_state = std::make_pair(target_revision, cancellation_settled);
+        if (!diagnostic_cancellation_state || *diagnostic_cancellation_state != cancellation_state) {
+            const std::string diagnostic_incarnation = participant ? participant->service_incarnation() : std::string{};
+            identity::participant_diagnostic("world",
+                cancellation_settled ? "cancellation_settled" : "cancellation_pending",
+                diagnostic_incarnation, target_revision, target_revision, acknowledged_revision, false);
+            diagnostic_cancellation_state = cancellation_state;
+        }
         if (broken || released || !consumed_revision || pending_operation != pb::ParticipantCommand::OPERATION_NOT_SET ||
-                !actors.cancellation_settled()) return;
+                !cancellation_settled) return;
         pb::ParticipantCommand command;
         if (!ready) {
             if (*consumed_revision < observed_revision) return;
@@ -327,7 +358,11 @@ struct IdentitySessions::Impl {
         } else return;
         require(command_sequence < UINT64_MAX, "World participant sequence exhausted");
         command.set_request_id(++command_sequence); pending_operation = command.operation_case();
+        const bool acknowledgement = command.has_applied();
+        const auto target = acknowledgement ? command.applied().through_revision() : *consumed_revision;
         participant->submit(std::move(command));
+        if (acknowledgement) identity::participant_diagnostic("world", "ack_queued",
+            participant->service_incarnation(), target, *consumed_revision, acknowledged_revision, false);
     }
     void shutdown() {
         closing = true;

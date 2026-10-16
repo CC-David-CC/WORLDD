@@ -1,5 +1,6 @@
 """Real retained actors, bounded writers, issuer commits, and revocation during Git."""
 import errno
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -111,6 +112,136 @@ while time.monotonic()<deadline and not Path('/state/data/stop').exists():
 
 
 class StorageContentionTests(existing.NativeStorageSessionTests):
+    def start_coordinator(self, *args, **kwargs):
+        result = super().start_coordinator(*args, **kwargs)
+        if self._testMethodName == 'test_native_storage_actor_revocation_during_bounded_git_import':
+            self._lifecycle_coordinator = result
+            # Cleanup callbacks run last-in, first-out. This capture runs before
+            # the inherited coordinator cleanup closes and persists its log.
+            self.addCleanup(self.capture_revocation_lifecycle)
+        return result
+
+    @staticmethod
+    def _process_witness(pid):
+        witness = dict(pid=pid, start_ticks=None, exit_observed=None, exit_code=None)
+        descriptor = None
+        try:
+            try:
+                descriptor = os.pidfd_open(pid)
+            except ProcessLookupError:
+                witness['exit_observed'] = True
+                witness['witness'] = 'pidfd_esrch'
+                return witness
+            try:
+                stat = Path('/proc/' + str(pid) + '/stat').read_text()
+                fields = stat[stat.rfind(')') + 2:].split()
+                witness['start_ticks'] = int(fields[19])
+                witness['exit_observed'] = bool(select.select([descriptor], [], [], 0)[0])
+            except FileNotFoundError:
+                witness['exit_observed'] = bool(select.select([descriptor], [], [], 0)[0])
+                if not witness['exit_observed']:
+                    witness['witness_error'] = 'proc_unavailable'
+            except PermissionError:
+                witness['witness_error'] = 'permission'
+            except (IndexError, ValueError):
+                witness['witness_error'] = 'stat_unavailable'
+            except OSError as error:
+                witness['witness_error'] = errno.errorcode.get(error.errno, 'os_error')
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+        return witness
+
+    def _revocation_service_witnesses(self):
+        services = {}
+        world_ids = getattr(self, 'world_ids', None)
+        if world_ids is not None:
+            for name in ('worldd_pid', 'workspaced_pid'):
+                services[name.removesuffix('_pid')] = self._process_witness(getattr(world_ids, name))
+        coordinator = getattr(self, '_lifecycle_coordinator', None)
+        if coordinator is not None:
+            witness = self._process_witness(coordinator.pid)
+            witness['exit_code'] = coordinator.poll()
+            services['coordinator'] = witness
+        return services
+
+    def capture_revocation_start(self):
+        # Capture stable PID plus /proc start ticks before any writer or Git load.
+        self._revocation_services_at_workload_start = self._revocation_service_witnesses()
+
+    def capture_revocation_lifecycle(self):
+        try:
+            self._capture_revocation_lifecycle()
+        except Exception as error:
+            # Cleanup diagnostics must not replace the original test assertion.
+            self.measurements['revocation_lifecycle_capture_error'] = type(error).__name__
+            try:
+                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+                target.mkdir(mode=0o700, parents=True, exist_ok=True)
+                error_record = dict(error=type(error).__name__)
+                if isinstance(error, OSError):
+                    error_record['errno'] = errno.errorcode.get(error.errno, 'os_error')
+                (target/'revocation-lifecycle-capture-error.json').write_text(
+                    json.dumps(error_record, indent=2)+'\n')
+            except Exception:
+                pass
+
+    def _capture_revocation_lifecycle(self):
+        target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+        target.mkdir(mode=0o700, parents=True, exist_ok=True)
+        before_cleanup = self._revocation_service_witnesses()
+        at_start = getattr(self, '_revocation_services_at_workload_start', {})
+        identity_matches = {}
+        for name, current in before_cleanup.items():
+            initial = at_start.get(name)
+            if initial is None or initial['start_ticks'] is None or current['start_ticks'] is None:
+                identity_matches[name] = None
+            else:
+                identity_matches[name] = (
+                    current['pid'] == initial['pid'] and
+                    current['start_ticks'] == initial['start_ticks'])
+        log_path = getattr(self, 'logpath', None)
+        digest = hashlib.sha256()
+        relevant = bytearray()
+        total = 0
+        truncated_line = False
+        stderr_error = None
+        if log_path is not None:
+            try:
+                with log_path.open('rb') as source:
+                    while True:
+                        chunk = source.readline(4096)
+                        if not chunk:
+                            break
+                        digest.update(chunk)
+                        total += len(chunk)
+                        if truncated_line:
+                            if chunk.endswith(b'\n'):
+                                truncated_line = False
+                            continue
+                        if b'authority_diag ' in chunk and len(relevant) + len(chunk) <= 262144:
+                            relevant.extend(chunk)
+                        if not chunk.endswith(b'\n'):
+                            truncated_line = True
+            except OSError as error:
+                stderr_error = errno.errorcode.get(error.errno, 'os_error')
+        else:
+            stderr_error = 'not_available'
+        evidence = dict(
+            phase='before_fixture_cleanup',
+            services_at_workload_start=at_start,
+            services_before_cleanup=before_cleanup,
+            identity_matches_workload_start=identity_matches,
+            stderr=dict(bytes=total, sha256=digest.hexdigest() if total else None,
+                        retained_relevant_bytes=len(relevant),
+                        relevant_file='revocation-authority-diags.log',
+                        read_error=stderr_error))
+        try:
+            (target/'revocation-authority-diags.log').write_bytes(relevant)
+            (target/'revocation-lifecycle.json').write_text(json.dumps(evidence, indent=2)+'\n')
+        except OSError as error:
+            self.measurements['revocation_lifecycle_capture_error'] = errno.errorcode.get(error.errno, 'os_error')
+
     def volume_command(self, operation, *arguments):
         if operation=='prepare':arguments+=('--volume-bytes',str(1024*2**20))
         return super().volume_command(operation,*arguments)
@@ -302,7 +433,7 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         repository.run('config','core.fsync','all')
         repository.run('add','large.bin');repository.run('commit','-m','bounded import witness')
         self.issuer.peer.close();self.issuer.peer=self.issuer.connect()
-        self.held_application();group=self.start_writers();pins=self.pins(group)
+        self.held_application();self.capture_revocation_start();group=self.start_writers();pins=self.pins(group)
         client=self.default_client()
         self.coordinator_sequence+=1
         request=probe.SessionProbeRequest(protocol_version=1,request_id=self.coordinator_sequence,
