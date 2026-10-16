@@ -7,6 +7,7 @@ import sys
 import time
 import unittest
 import test_session_application as existing
+from native_process_argv import argv0_matches, parse_proc_cmdline
 import broker_pb2 as broker
 import launch_pb2 as launch
 import process_scope_pb2 as process
@@ -170,15 +171,17 @@ class SessionResourceTests(existing.SessionApplicationTests):
         app_commands = {}
         scope_cgroup = str(leaf.resolve()).replace('/sys/fs/cgroup', '')
         for pid in sorted(members):
-            cmdline = Path(f'/proc/{pid}/cmdline').read_bytes().replace(b'\0', b' ').decode(errors='replace').strip()
+            argv = parse_proc_cmdline(Path(f'/proc/{pid}/cmdline').read_bytes())
             cgroup_lines = Path(f'/proc/{pid}/cgroup').read_text().splitlines()
             unified = next((line.split('::', 1)[1] for line in cgroup_lines if '::' in line), None)
-            app_commands[pid] = {'cmdline': cmdline, 'cgroup': unified}
+            app_commands[pid] = {'argv': argv, 'cmdline': ' '.join(argv), 'cgroup': unified}
             self.assertIsNotNone(unified, f'PID {pid} has no unified cgroup membership')
             self.assertTrue(unified == scope_cgroup or unified.startswith(scope_cgroup + '/'),
                             f'PID {pid} escaped its application scope: {unified}')
-        python_pids = {pid for pid in payload_members if 'python3' in app_commands[pid]['cmdline']}
-        probe_pids = {pid for pid in payload_members if '/project/probe' in app_commands[pid]['cmdline']}
+        python_pids = {pid for pid in payload_members
+                       if argv0_matches(app_commands[pid]['argv'], sys.executable)}
+        probe_pids = {pid for pid in payload_members
+                       if argv0_matches(app_commands[pid]['argv'], '/project/probe')}
         self.assertTrue(python_pids, app_commands)
         self.assertTrue(probe_pids, app_commands)
         for probe_pid in probe_pids:
