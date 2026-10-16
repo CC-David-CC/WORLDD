@@ -659,14 +659,99 @@ def _bounded_storage_artifact_exclusions(target):
     ]
 
 
+def _retirement_marker_entry(target, relative, entry_kind='file'):
+    """Validate and record only the completed ExecutionStore retirement marker."""
+    parts = Path(relative).parts
+    if (entry_kind != 'file' or len(parts) < 5
+            or parts[-5:-2] != ('state', 'execution', 'retired')
+            or not re.fullmatch(r'[0-9a-f]{32}', parts[-2]) or parts[-1] != 'staging'):
+        raise RuntimeError('gate artifact tree contains an unapproved ' + entry_kind + ' symlink: ' + relative)
+    parent = target.joinpath(*parts[:-1])
+    marker = target / relative
+    expected = os.fsencode(str(parent / 'never-created'))
+    try:
+        marker_before = marker.lstat()
+        target_bytes = os.fsencode(os.readlink(marker))
+        marker_after = marker.lstat()
+        siblings = {name: (parent / name).lstat() for name in ('data', 'git', 'complete')}
+        missing_target = False
+        try:
+            (parent / 'never-created').lstat()
+        except FileNotFoundError:
+            missing_target = True
+    except OSError as error:
+        raise RuntimeError('cannot validate retirement marker: ' + relative) from error
+    identity = lambda info: (info.st_dev, info.st_ino, info.st_mode, info.st_size,
+                             info.st_mtime_ns, info.st_ctime_ns)
+    if (not stat.S_ISLNK(marker_before.st_mode) or identity(marker_before) != identity(marker_after)
+            or target_bytes != expected or not missing_target):
+        raise RuntimeError('retirement marker target or identity is invalid: ' + relative)
+    if (not stat.S_ISDIR(siblings['data'].st_mode) or stat.S_ISLNK(siblings['data'].st_mode)
+            or not stat.S_ISDIR(siblings['git'].st_mode) or stat.S_ISLNK(siblings['git'].st_mode)
+            or not stat.S_ISREG(siblings['complete'].st_mode) or stat.S_ISLNK(siblings['complete'].st_mode)
+            or siblings['complete'].st_size == 0):
+        raise RuntimeError('retirement marker companions are incomplete: ' + relative)
+    try:
+        project_info = (parent / 'data' / 'project').lstat()
+    except OSError as error:
+        raise RuntimeError('retirement marker companions are incomplete: ' + relative) from error
+    if not stat.S_ISDIR(project_info.st_mode) or stat.S_ISLNK(project_info.st_mode):
+        raise RuntimeError('retirement marker companions are incomplete: ' + relative)
+    return dict(path=relative, kind='completed-execution-retirement-marker',
+                target_bytes_hex=target_bytes.hex(), target_sha256=hashlib.sha256(target_bytes).hexdigest())
+
+
+def validate_artifact_links(target, expected_links):
+    """Re-scan links without following them and bind the exact reported link inventory."""
+    target = Path(target)
+    if target.is_symlink() or not target.is_dir():
+        raise RuntimeError('gate artifact root is not a real directory')
+    exclusions = _bounded_storage_artifact_exclusions(target)
+    excluded = {row['path'] for row in exclusions}
+    actual = []
+    def walk_error(error):
+        raise RuntimeError('cannot inspect artifact links: ' + str(error)) from error
+    for current, directories, filenames in os.walk(target, followlinks=False, onerror=walk_error):
+        here = Path(current)
+        for name in list(directories):
+            path = here / name
+            relative = str(path.relative_to(target))
+            if relative in excluded:
+                directories.remove(name)
+                continue
+            try:
+                info = path.lstat()
+            except OSError as error:
+                raise RuntimeError('cannot inspect artifact link candidate: ' + str(path)) from error
+            if stat.S_ISLNK(info.st_mode):
+                actual.append(_retirement_marker_entry(target, relative, 'directory'))
+                directories.remove(name)
+        for name in filenames:
+            path = here / name
+            relative = str(path.relative_to(target))
+            if relative in excluded:
+                continue
+            try:
+                info = path.lstat()
+            except OSError as error:
+                raise RuntimeError('cannot inspect artifact link candidate: ' + str(path)) from error
+            if stat.S_ISLNK(info.st_mode):
+                actual.append(_retirement_marker_entry(target, relative, 'file'))
+    actual.sort(key=lambda row: row['path'])
+    if not isinstance(expected_links, list) or actual != expected_links:
+        raise RuntimeError('artifact link manifest is missing, changed, or contains extra entries')
+    return actual
+
+
 def artifact_evidence_manifest(target):
-    """Hash gate output strictly, with two validated bounded-storage exclusions."""
+    """Hash gate output strictly, with two validated storage exclusions and one typed marker."""
     target = Path(target)
     if target.is_symlink() or not target.is_dir():
         raise RuntimeError('gate artifact root is not a real directory')
     exclusions = _bounded_storage_artifact_exclusions(target)
     excluded = {row['path'] for row in exclusions}
     hashes = {}
+    artifact_links = []
     def walk_error(error):
         raise RuntimeError('cannot inspect gate artifact tree: ' + str(error)) from error
     for current, directories, filenames in os.walk(target, followlinks=False, onerror=walk_error):
@@ -675,14 +760,17 @@ def artifact_evidence_manifest(target):
             path = here / name
             relative = str(path.relative_to(target))
             if path.is_symlink():
-                raise RuntimeError('gate artifact tree contains a directory symlink: ' + relative)
+                artifact_links.append(_retirement_marker_entry(target, relative, 'directory'))
+                directories.remove(name)
+                continue
             if relative in excluded:
                 directories.remove(name)
         for name in filenames:
             path = here / name
             relative = str(path.relative_to(target))
             if path.is_symlink():
-                raise RuntimeError('gate artifact tree contains a file symlink: ' + relative)
+                artifact_links.append(_retirement_marker_entry(target, relative, 'file'))
+                continue
             if relative in excluded:
                 continue
             if not stat.S_ISREG(path.lstat().st_mode):
@@ -693,7 +781,8 @@ def artifact_evidence_manifest(target):
                 raise RuntimeError('cannot hash gate artifact: ' + relative) from error
     if 'bounded-storage-git/review.json' not in hashes:
         raise RuntimeError('bounded storage review receipt is missing from artifact hashes')
-    return dict(sha256=hashes, exclusions=exclusions)
+    artifact_links.sort(key=lambda row: row['path'])
+    return dict(sha256=hashes, exclusions=exclusions, artifact_links=artifact_links)
 
 
 def finalize_postrun_audit(report):
@@ -1440,6 +1529,7 @@ def gate(a):
             artifact_manifest = artifact_evidence_manifest(target)
             row["artifact_sha256"] = artifact_manifest['sha256']
             row["artifact_exclusions"] = artifact_manifest['exclusions']
+            row["artifact_links"] = artifact_manifest['artifact_links']
             row["status"] = "passed_needs_crosshost_and_review"
             write_json(out / "run.json", report)
         report["status"] = "local_passed_crosshost_pending"
@@ -1574,6 +1664,9 @@ def _validate_local_run(path, expected_host, candidate):
         if (core.get("exit_code") != 0 or core.get("junit_cases") != len(names) - len(dedicated)
                 or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
             raise RuntimeError(expected_host + " " + profile + " local CTest receipt is incomplete")
+        if 'artifact_links' not in row:
+            raise RuntimeError(expected_host + " " + profile + " local gate omits artifact link manifest")
+        validate_artifact_links(profile_dir, row.get('artifact_links'))
         inventories[profile] = dict(path=str(profile_dir / "inventory.json"), sha256=sha(profile_dir / "inventory.json"), names=names)
     return dict(path=str(path), sha256=sha(path), inventories=inventories)
 

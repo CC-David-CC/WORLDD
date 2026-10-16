@@ -459,6 +459,14 @@ class GateStaticTests(unittest.TestCase):
         (root / 'review.json').write_text(json.dumps(review))
         return target, root, volume, image, ordinary, review
 
+    def _retirement_marker_fixture(self, target, *, identifier='a' * 32, link_target='never-created'):
+        parent = target / 'acceptance' / 'state' / 'execution' / 'retired' / identifier
+        (parent / 'data' / 'project').mkdir(parents=True)
+        (parent / 'git').mkdir()
+        (parent / 'complete').write_text('complete\n')
+        (parent / 'staging').symlink_to(parent / link_target)
+        return parent / 'staging'
+
     def _allow_root_owned_fixture_probes(self, *, loop_output='', find_output='', mounted=False):
         patcher = patch.object(gate, 'STORAGE_FIXTURE_UID', os.getuid())
         patcher.start()
@@ -534,6 +542,95 @@ class GateStaticTests(unittest.TestCase):
         (root / 'review.json').write_text(json.dumps(bad_review))
         with self.assertRaisesRegex(RuntimeError, 'review or cleanup receipt'):
             gate.artifact_evidence_manifest(target)
+
+    def test_artifact_manifest_records_only_completed_retirement_marker_without_following(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        marker = self._retirement_marker_fixture(target)
+        self._allow_root_owned_fixture_probes()
+        manifest = gate.artifact_evidence_manifest(target)
+        expected = dict(path=str(marker.relative_to(target)),
+                        kind='completed-execution-retirement-marker',
+                        target_bytes_hex=os.fsencode(str(marker.parent / 'never-created')).hex(),
+                        target_sha256=gate.hashlib.sha256(os.fsencode(str(marker.parent / 'never-created'))).hexdigest())
+        self.assertEqual(manifest['artifact_links'], [expected])
+        self.assertFalse((marker.parent / 'never-created').exists())
+        self.assertEqual(gate.validate_artifact_links(target, [expected]), [expected])
+        for invalid in ([], [dict(expected, target_sha256='0' * 64)], [expected, dict(expected, path='extra')]):
+            with self.assertRaisesRegex(RuntimeError, 'link manifest'):
+                gate.validate_artifact_links(target, invalid)
+
+    def test_retirement_marker_rejects_malformed_identity_target_and_companions(self):
+        cases = ('bad-id', 'bad-target', 'missing-project', 'missing-complete', 'existing-target',
+                 'project-link', 'data-link', 'git-link', 'complete-link')
+        for case in cases:
+            target, root, volume, image, ordinary, review = self._bounded_artifact_fixture(case)
+            marker = self._retirement_marker_fixture(
+                target, identifier='z' * 32 if case == 'bad-id' else 'b' * 32,
+                link_target='elsewhere' if case == 'bad-target' else 'never-created')
+            if case == 'missing-project':
+                (marker.parent / 'data' / 'project').rmdir()
+            elif case == 'missing-complete':
+                (marker.parent / 'complete').unlink()
+            elif case == 'existing-target':
+                (marker.parent / 'never-created').write_text('unexpected')
+            elif case == 'project-link':
+                project = marker.parent / 'data' / 'project'
+                project.rmdir()
+                project.symlink_to(marker.parent / 'git', target_is_directory=True)
+            elif case == 'data-link':
+                data = marker.parent / 'data'
+                data.rename(marker.parent / 'data-real')
+                data.symlink_to(marker.parent / 'data-real', target_is_directory=True)
+            elif case == 'git-link':
+                git = marker.parent / 'git'
+                git.rename(marker.parent / 'git-real')
+                git.symlink_to(marker.parent / 'git-real', target_is_directory=True)
+            elif case == 'complete-link':
+                complete = marker.parent / 'complete'
+                complete.unlink()
+                complete.symlink_to(marker.parent / 'never-created')
+            self._allow_root_owned_fixture_probes()
+            with self.subTest(case=case), self.assertRaises(RuntimeError):
+                gate.artifact_evidence_manifest(target)
+
+    def test_artifact_manifest_rejects_arbitrary_directory_links_special_nodes_and_link_churn(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        arbitrary = target / 'unrelated-directory'
+        arbitrary.mkdir()
+        link = target / 'unrelated-link'
+        link.symlink_to(arbitrary, target_is_directory=True)
+        self._allow_root_owned_fixture_probes()
+        with self.assertRaisesRegex(RuntimeError, 'unapproved directory symlink'):
+            gate.artifact_evidence_manifest(target)
+        link.unlink()
+        fifo = target / 'special-node'
+        os.mkfifo(fifo)
+        with self.assertRaisesRegex(RuntimeError, 'not a regular file'):
+            gate.artifact_evidence_manifest(target)
+        fifo.unlink()
+        marker = self._retirement_marker_fixture(target)
+        original_readlink = gate.os.readlink
+        def replace_during_read(path):
+            marker.unlink()
+            marker.symlink_to(marker.parent / 'never-created')
+            return original_readlink(path)
+        with patch.object(gate.os, 'readlink', side_effect=replace_during_read):
+            with self.assertRaisesRegex(RuntimeError, 'identity is invalid'):
+                gate._retirement_marker_entry(target, str(marker.relative_to(target)))
+
+    def test_artifact_link_validator_rejects_linked_root_and_unreadable_walk(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        self._allow_root_owned_fixture_probes()
+        linked_root = self.root / 'linked-artifact-root'
+        linked_root.symlink_to(target, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'root is not a real directory'):
+            gate.validate_artifact_links(linked_root, [])
+        def unreadable_walk(*args, **kwargs):
+            kwargs['onerror'](PermissionError('fixture subtree denied'))
+            return iter(())
+        with patch.object(gate.os, 'walk', side_effect=unreadable_walk):
+            with self.assertRaisesRegex(RuntimeError, 'cannot inspect artifact links'):
+                gate.validate_artifact_links(target, [])
 
     def test_bounded_storage_exclusions_reject_active_mount_and_loop_resources(self):
         target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('active-loop')
@@ -1019,6 +1116,14 @@ class GateStaticTests(unittest.TestCase):
     def test_local_gate_positive_receipt_requires_mandatory_geometry_inventory(self):
         receipt = self.root / 'local/run.json'
         receipt.parent.mkdir(parents=True)
+        report_profiles = {profile: dict(status='passed_needs_crosshost_and_review', artifact_links=[], commands=[dict(
+            name='core', exit_code=0, junit_cases=len(gate.REQUIRED)-1,
+            all_registered_present=True, failed_or_skipped=False)]) for profile in gate.PROFILES}
+        for profile in gate.PROFILES:
+            directory, *_ = self._bounded_artifact_fixture('local/' + profile)
+            (directory / 'inventory.json').write_text(json.dumps(dict(
+                names=sorted(gate.REQUIRED), dedicated_crosshost=['geometry-native-crosshost'],
+                local_names=sorted(set(gate.REQUIRED)-gate.DEDICATED_CROSSHOST))))
         receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
             status='local_passed_crosshost_pending', phase_complete=False,
             requirement_suites=dict(native_controller='host-actor-controller-native',
@@ -1026,17 +1131,43 @@ class GateStaticTests(unittest.TestCase):
                 recovery='actor-transition-recovery', host_session='host-session-production-native',
                 native_geometry_presentation='geometry-presentation-native',
                 native_geometry_crosshost='geometry-native-crosshost'),
-            profiles={profile: dict(status='passed_needs_crosshost_and_review', commands=[dict(
-                name='core', exit_code=0, junit_cases=len(gate.REQUIRED)-1,
-                all_registered_present=True, failed_or_skipped=False)]) for profile in gate.PROFILES})))
-        for profile in gate.PROFILES:
-            directory = receipt.parent / profile
-            directory.mkdir()
-            (directory / 'inventory.json').write_text(json.dumps(dict(
-                names=sorted(gate.REQUIRED), dedicated_crosshost=['geometry-native-crosshost'],
-                local_names=sorted(set(gate.REQUIRED)-gate.DEDICATED_CROSSHOST))))
+            profiles=report_profiles)))
+        self._allow_root_owned_fixture_probes()
         result = gate._validate_local_run(receipt, 'sb16', 'a' * 40)
         self.assertEqual(set(result['inventories']), set(gate.PROFILES))
+        debug_row = report_profiles['Debug']
+        del debug_row['artifact_links']
+        receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False,
+            requirement_suites=dict(native_controller='host-actor-controller-native',
+                held_input='host-actor-controller-native', real_world='actor-transition-real-world',
+                recovery='actor-transition-recovery', host_session='host-session-production-native',
+                native_geometry_presentation='geometry-presentation-native',
+                native_geometry_crosshost='geometry-native-crosshost'),
+            profiles=report_profiles)))
+        with self.assertRaisesRegex(RuntimeError, 'omits artifact link manifest'):
+            gate._validate_local_run(receipt, 'sb16', 'a' * 40)
+        debug_row['artifact_links'] = [dict(path='extra', kind='completed-execution-retirement-marker',
+            target_bytes_hex='', target_sha256='')]
+        receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False,
+            requirement_suites=dict(native_controller='host-actor-controller-native',
+                held_input='host-actor-controller-native', real_world='actor-transition-real-world',
+                recovery='actor-transition-recovery', host_session='host-session-production-native',
+                native_geometry_presentation='geometry-presentation-native',
+                native_geometry_crosshost='geometry-native-crosshost'),
+            profiles=report_profiles)))
+        with self.assertRaisesRegex(RuntimeError, 'link manifest'):
+            gate._validate_local_run(receipt, 'sb16', 'a' * 40)
+        debug_row['artifact_links'] = []
+        receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False,
+            requirement_suites=dict(native_controller='host-actor-controller-native',
+                held_input='host-actor-controller-native', real_world='actor-transition-real-world',
+                recovery='actor-transition-recovery', host_session='host-session-production-native',
+                native_geometry_presentation='geometry-presentation-native',
+                native_geometry_crosshost='geometry-native-crosshost'),
+            profiles=report_profiles)))
         for missing in ('geometry-presentation-native',
                         'geometry-process-identity-witness',
                         'geometry-native-fixture-regressions'):

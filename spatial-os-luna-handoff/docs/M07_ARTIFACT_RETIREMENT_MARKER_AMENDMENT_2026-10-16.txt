@@ -1,0 +1,24 @@
+M07 artifact retirement-marker amendment — 2026-10-16
+
+The artifact collector may record one typed symlink produced by the completed
+workspace retirement protocol. Its artifact-relative path must end with
+`state/execution/retired/<32 lowercase hex>/staging`; parent prefixes remain
+unspecified.
+The link target must be the exact absolute sibling `never-created` path. The
+target must remain absent. The same retirement directory must contain real
+`data/project` and `git` directories and a nonempty regular `complete` receipt.
+
+The collector reads the link text without following it. It checks the link's
+lstat identity before and after readlink, then records the relative path, raw
+target bytes as hex, and SHA-256 of those bytes in `artifact_links`. It does not
+open or traverse the target. The report validator rescans links without
+following them and requires an exact match, including an explicit empty list
+when no marker exists. Other links, special files, unreadable nodes, and
+existing sparse-storage exclusions retain their prior fail-closed rules.
+Source and package symlinks remain rejected.
+
+This collector-only amendment does not change runtime behavior or acceptance
+contracts. It does not convert the preserved failed local reports into passing
+reports. Primary review must decide how to retain completed Debug evidence and
+run the remaining required profiles. The production operation is
+`ExecutionStore::remove` in `src/workspace/store.cpp`.
