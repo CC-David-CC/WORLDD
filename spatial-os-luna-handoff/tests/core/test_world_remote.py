@@ -192,7 +192,7 @@ class WorldProcessLifecycleRegression(unittest.TestCase):
     def test_base_world_process_initializes_and_records_lifecycle(self):
         from unittest.mock import patch
         fixture = self.Fixture(self.root)
-        with patch("test_world_identity.WORLD", self.helper):
+        with patch.dict(WorldProcess.__init__.__globals__, {"WORLD": self.helper}):
             world = WorldProcess(fixture, self.root / "identity.textproto", self.root / "state", count=1)
         self.assert_lifecycle_close(world)
 
@@ -204,7 +204,7 @@ class WorldProcessLifecycleRegression(unittest.TestCase):
             config_path=self.root / "identity.textproto",
             runtime_path=self.root / "runtime.textproto",
         )
-        with patch("test_world_remote.WORLD", self.helper):
+        with patch.dict(RemoteWorldProcess.__init__.__globals__, {"WORLD": self.helper}):
             world = RemoteWorldProcess(fixture, local)
         self.assert_lifecycle_close(world)
 
@@ -217,7 +217,7 @@ class WorldProcessLifecycleRegression(unittest.TestCase):
             config_path=self.root / "identity.textproto",
             runtime_path=self.root / "runtime.textproto",
         )
-        with patch("test_world_shared_state.WORLD", self.helper):
+        with patch.dict(PersistentTlsWorld.__init__.__globals__, {"WORLD": self.helper}):
             world = PersistentTlsWorld(fixture, local)
         self.assert_lifecycle_close(world)
 
@@ -225,7 +225,7 @@ class WorldProcessLifecycleRegression(unittest.TestCase):
         from unittest.mock import patch
         from test_world_remote_native import HybridWorldProcess
         fixture = self.Fixture(self.root)
-        with patch("test_world_remote_native.WORLD", self.helper):
+        with patch.dict(HybridWorldProcess.__init__.__globals__, {"WORLD": self.helper}):
             world = HybridWorldProcess(
                 fixture, self.root / "identity.textproto", self.root / "state", count=1
             )
