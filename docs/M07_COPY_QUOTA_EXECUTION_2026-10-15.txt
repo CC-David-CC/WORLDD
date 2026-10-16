@@ -1,4 +1,4 @@
-Current checkpoint: focused process and native matrices pass; combined-copy Debug jobs are launched
+Current checkpoint: process/native matrices and combined-copy Debug pass; copy sanitizer jobs are launched
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
@@ -32,7 +32,20 @@ The participant source defines four race methods and one multi-workspace method.
 An initial independent planning count of six was incorrect. No runtime method is missing from that count.
 An initial primary audit parser refused its overescaped regex. The corrected parser read unchanged raw logs.
 Audit parser refusal is preserved separately and does not represent a test failure or rerun.
-Detailed native protobuf, lifecycle, and cleanup review remains pending at this record.
+Primary subsequently completed native protobuf, lifecycle, and cleanup review in all four combinations.
+The authoritative read-only reinspection is PRIMARY_STAGE2_PROTOBUF_ADJUDICATION_01.json.
+Its SHA256 is fb47805ce91f9f2c0fab228bbca215496a69123eca7161ab5930633800162714.
+Both retained cleanup records in every native case use schema v2 and OWNED_SCOPES_STOPPED.
+Their stopped process/native identities match their recorded launched identities.
+All import replies contain a successful result without errors and match request 6 in the timeline.
+Nine of nine native application pidfds exited in 0.319/0.376 seconds Debug and 0.445/0.574 seconds sanitizer.
+Import replies remained pending at that sample. Git had been observed before revocation.
+Continued Git-process liveness at the later sample is neither asserted nor established.
+Lifecycle identity matches are null after observed process exit. They do not prove a surviving PID identity.
+The sb16 sanitizer timeline records 50 dropped diagnostic events; matching request/reply records remain available.
+Primary corrected a handwritten independent-handoff source pin and its incorrect parser exit claims from actual files.
+All six referenced decoder/scanner receipts were actually 0/0/COMPLETE. Four fresh read-only decodes also returned zero.
+The original independent handoff remains preserved. No runtime test was repeated for that audit correction.
 Primary inner/log audit: PRIMARY_STAGE2_DEBUG_INNER_AUDIT_01.json in the preparation directory above.
 Canonical observations: PRIMARY_V6_stage-2-contention_Debug_runtime_OBSERVATION_04.json.
 
@@ -43,26 +56,64 @@ Both hosts passed all 25 storage methods and all five participant methods, witho
 Every preservation postcheck passed. Primary verified actual inner summaries, JUnit names, and recorded hashes.
 Primary scanned 72 retained .log/.stderr files per sanitizer host without recorded sanitizer markers.
 Combined Stage2 totals: eight CTest executions, 120 inner methods, 288 scanned retained logs.
-Native protobuf/lifecycle audit remains pending. Focused results do not establish full M07 qualification.
+Native protobuf/lifecycle audit passed as described above. Focused results do not establish full M07 qualification.
 Launch record: PRIMARY_V6_stage-2-contention_ASan-UBSan_runtime_LAUNCH_01.json.
 Terminal observation: PRIMARY_V6_stage-2-contention_ASan-UBSan_runtime_OBSERVATION_04.json.
 Primary sanitizer audit: PRIMARY_STAGE2_SAN_INNER_AUDIT_01.json.
 Focused runtime root: /home/dflanag3/spatial-artifacts/m07-owned-stop-focused-runtime-20261016/review-04.
 Canonical run directories: HOST/PROFILE/stage-2-contention/runtime-command-02.
 The primary observer checks the original pane process and canonical terminal receipts before progression.
-Stage3 combined-copy Debug jobs are launched on both hosts. Results remain pending.
+Stage3 combined-copy Debug jobs passed on both hosts with command0/wrapper0/COMPLETE and retired wrappers.
 Selected registrations: workspace-copy-engine, workspace-copy-actor-revocation,
 workspace-copy-worker-death-recovery, and workspace-copy-absolute-deadline.
 Selection reasons and fresh capacity appear in PRIMARY_STAGE3_SELECTION_AND_CAPACITY_01.json.
 Launch record: PRIMARY_V6_stage-3-copy_Debug_runtime_LAUNCH_01.json.
 Canonical run directories: HOST/Debug/stage-3-copy/runtime-command-02 under the focused root above.
-Stage3 sanitizer runtime and the complete replacement M07 gate remain UNRUN.
+Actual Stage3 Debug results per host: 13 engine methods and one method for each selected fault registration.
+Engine durations: sb16 326.21 seconds; sb16-2 342.39 seconds.
+Actor-revocation durations: 25.47 and 26.52 seconds. Worker-death durations: 16.50 and 17.42 seconds.
+Deadline durations: 331.73 and 336.61 seconds, including setup and the intentional 300-second copy budget.
+Primary verified actual inner summaries, exact named fault results, and JUnit names/hashes.
+All 32 declared test volumes are unmounted. Every temporary copy helper was restored after each driver.
+All preservation postchecks passed. Primary scanned 434 retained .log/.stderr files without sanitizer markers.
+Authoritative observation: PRIMARY_V6_stage-3-copy_Debug_runtime_OBSERVATION_08.json.
+Primary raw audit: PRIMARY_STAGE3_DEBUG_RAW_AUDIT_01.json, including complete retained log SHA manifests.
+The reviewed reusable audit parser is primary_stage3_raw_audit_remote.py in the preparation directory.
+
+Stage3 ASan/UBSan jobs are launched on both hosts. Their results remain pending.
+Launch record: PRIMARY_V6_stage-3-copy_ASan-UBSan_runtime_LAUNCH_01.json.
+Canonical run directories: HOST/ASan-UBSan/stage-3-copy/runtime-command-02.
+The complete replacement M07 gate and dedicated cross-host qualification remain UNRUN.
 These initial native Debug passes do not establish the cause of the original intermittent missing acknowledgments.
 
-Fresh capacity before Stage3: sb16 available 50,640,769,024 bytes; sb16-2 available 57,325,158,400 bytes.
+Fresh capacity before Stage3 sanitizer: sb16 available 42,044,645,376 bytes; sb16-2 available 48,737,472,512 bytes.
 Both fit the 22 GiB focused output allowance and 8 GiB reserve.
 The full gate remains NOT ADMITTED pending sequential retention and fresh measurements.
 No archive or deletion occurred during this launcher repair and focused execution.
+
+Full-gate preparation and retention
+Primary rejected the first preparation-only launch plan for stale d164 counts and overlapping run-directory ownership.
+Reviewed successor: a5500:/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/review-02.
+Primary independently derived 199 registrations, 197 local core cases, and 55 required run-local names per profile.
+The package preflight union has 54 names. The explicit host-session argument adds one runtime-required name.
+Use the existing verified external test-host runner. Keep its outer run directory outside helper-owned gate evidence.
+PRIMARY_REVIEW_01.json accepts counts and command shape only. It does not admit or launch the full gate.
+
+Retention preparation: a5500:/home/dflanag3/spatial-artifacts/m07-fd1-retention-preflight-20261016.
+PRIMARY_REVIEW_01.json rejects unadapted example commands for new fd1 images.
+The old reviewed drivers hardcode prior manifests, approvals, pins, and already-used output directories.
+New exact PASS allowlists and fresh attempt paths remain required before image retirement.
+No cleanup controller for old deployment directories or duplicate packages was executed.
+Primary started read-only retained d164 archive verification on G164, without test-host contact.
+Script: primary_verify_retained_d164_archive.py, SHA256 ab1384221693aef9b9dc7bbb8a77e610c2258be1859c4cd01348169db1cb0403.
+Canonical job: retained-archive-verification-command-01; tmux:m07-d164-retained-archive-verification-01.
+It completed command0/wrapper0/COMPLETE. The original wrapper process retired.
+Archive SHA256 matched 759e46aa5deb70ba8350372dae92fd126920787bfec7369baa020f4264c1728b.
+All 1,888 regular archived members matched their expected hashes and sizes.
+Expanded bytes: 8,628,981,102. Compressed bytes: 1,771,603,781. Verification took about 29 seconds.
+The report retains each archived member's mode for the later exact host comparison.
+Report: PRIMARY_RETAINED_D164_ARCHIVE_VERIFICATION_01.json in the retention preparation directory.
+Archive verification alone will not establish equality with either test host's old deployment payload.
 
 Historical evidence follows. Newer entries explicitly supersede conflicting earlier status.
 

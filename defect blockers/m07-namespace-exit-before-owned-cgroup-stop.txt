@@ -97,3 +97,18 @@ Combined-copy sanitizer and the complete replacement M07 gate remain UNRUN.
 The dedicated shared-stop-deadline timing and independently forced hangup counterexamples remain missing.
 Evidence: m07-fd1dccf8-gate-preparation-20261016/PRIMARY_STAGE2_DEBUG_INNER_AUDIT_01.json
 and PRIMARY_STAGE2_SAN_INNER_AUDIT_01.json on a5500.
+
+2026-10-16: Combined-copy Debug passes; native protobuf audit confirms cleanup
+The complete 13-method engine and three selected fault methods passed on both hosts in Debug.
+Both canonical commands and wrappers returned zero. Original wrapper processes retired.
+All 32 declared volumes are unmounted. Copy helpers were restored after every driver.
+Primary scanned 434 retained logs without sanitizer markers. Every preservation postcheck passed.
+Combined-copy ASan/UBSan jobs are launched on both hosts. Their results remain pending.
+Native Stage2 cleanup records decode as schema v2, OWNED_SCOPES_STOPPED, with matching stopped identities.
+Import replies match timeline request IDs and contain successful results without errors.
+All nine native application pidfds exited within 0.32-0.58 seconds across the four combinations.
+The import reply remained pending. Continued Git-process liveness at that sample is unproven.
+Primary retained that coverage limit. The original intermittent missing-acknowledgment cause remains unproven.
+The complete replacement M07 gate remains UNRUN.
+Evidence: PRIMARY_STAGE3_DEBUG_RAW_AUDIT_01.json and PRIMARY_STAGE2_PROTOBUF_ADJUDICATION_01.json
+under the preparation directory on a5500.
