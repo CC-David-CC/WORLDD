@@ -63,3 +63,19 @@ Primary rejected two focused launcher drafts before execution. Review-03 awaits 
 Package compression is still active. No replacement full gate has started.
 Independent review found no source-level blocker in review-03. Primary accepted stage1 pinning.
 All runtime and the missing shared-deadline timing regression remain unverified.
+
+2026-10-16: Focused process matrix passes; native reproduction remains pending
+Frozen fd1 candidate passed normal package and deployment verification on both hosts.
+All six process/authority/resource/reply registrations passed in Debug and ASan/UBSan on both hosts.
+That is 24 CTest executions, 224 Python methods, and four queued-reply C++ executions.
+The independent cgroup-member kill-before-wait regression passed in all four host/profile combinations.
+Primary checked 360 retained logs without recorded sanitizer findings or skips.
+Every source, package, helper, and protected-file postcheck passed.
+An initial metadata-copy launcher failure executed no tests; its implicit working directories are now restored.
+The false helper-change warning compared an absent baseline. Actual protected helper hashes remained unchanged.
+Stage2 storage preflight stopped before tests. Native import/revocation and copy regressions remain UNRUN.
+M07 remains UNQUALIFIED. The original missing acknowledgments remain unexplained.
+The dedicated shared-deadline timing and independently forced hangup counterexamples remain missing.
+Read external m07-fd1dccf8-gate-preparation-20261016/primary-stage1-all-profiles-raw-audit-01/SUMMARY.json.
+Stage2 preflight stopped on a CTest setter compatibility error before tests. All preservation checks passed.
+A stronger helper owns the bounded launcher repair. No new production failure is established.

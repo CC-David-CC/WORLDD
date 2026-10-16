@@ -1,3 +1,38 @@
+## 2026-10-16: Process repair passes focused Debug and sanitizer checks on both hosts
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Frozen candidate fd1dccf8 completed normal preparation with command0/wrapper0/COMPLETE.
+Primary audited all 1377 archive members, hashes, modes, source pins, and both 199-registration inventories.
+Both hosts passed normal deployment verification for Debug and ASan/UBSan.
+The six process, authority, resource, and queued-reply registrations passed in both profiles on both hosts.
+This covers 24 CTest executions, 224 inner Python test executions, and four queued-reply C++ executions.
+Primary checked real JUnit results, inner counts, and 360 retained logs, including captured probe stderr.
+No skips or recorded sanitizer findings occurred. All source, package, helper, and protected-file postchecks passed.
+The new owned-cgroup kill-before-namespace-wait regression passed in all four host/profile combinations.
+The dedicated shared-deadline timing regression remains missing. Independent forced hangup coverage remains missing.
+These focused results do not explain the original missing acknowledgments or qualify the native import path.
+
+An earlier launcher stopped before tests because metadata copying changed 199 implicit working directories.
+Primary restored the original directories explicitly and added registration-only preflight.
+Both hosts passed that preflight. It executed zero test binaries and is separate from runtime results.
+The old helper-change warning compared against a missing baseline; protected helper hashes remained unchanged.
+A storage-specific compatibility correction preserves the gate helper's unique managed property rows.
+Stage2 metadata-only preflight stopped before tests because CTest rejects set_property(TEST ...) in generated files.
+All postchecks passed. A stronger helper owns the bounded registration repair and real metadata-only validation.
+Native import/revocation, participant races, combined-copy regressions, and the full replacement M07 gate remain UNRUN.
+
+The deployed package uses about 8.1 GiB unpacked plus compressed staging.
+The full gate is not admitted under the stale capacity estimate. Focused stage1 capacity passed separately.
+Plan sequential cleanup before the full gate; do not require focused and full-gate images to coexist unnecessarily.
+Preserve failure evidence, protected graphics dependencies, source, receipts, and retained package hashes.
+No new archive or deletion occurred during this work.
+
+The coordination skill now covers implicit CTest working directories and registration-only validation.
+Its validator passed. Installed hashes match on Windows, a5500, and middle-child.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact pins and external evidence.
+
 ## 2026-10-16: Four builds pass; focused runtime launcher remains under review
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

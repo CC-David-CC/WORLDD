@@ -173,6 +173,10 @@ Launch the qualified server wrapper when its receipt supplies patched graphics l
 Matching the raw Xvfb hash does not verify that graphics dependency closure. Check the wrapper and library hashes too.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
+When copying CTest metadata, preserve each registration's original working directory explicitly.
+CTest derives implicit WORKING_DIRECTORY from the metadata location, so copying can change execution behavior.
+Compare the full relocated inventory, including working directories, before executing tests.
+Validate a new metadata-copy launcher without test execution before using it for runtime evidence.
 Compare translated launcher variables with the selected qualified lane before launch, including sanitizer options and graphics extensions.
 Before transferring a package to another authorized host, inspect host restrictions in its driver, preflight, installer, and verifier.
 Check the selected host and its qualified runtime wrapper through that complete launch path.

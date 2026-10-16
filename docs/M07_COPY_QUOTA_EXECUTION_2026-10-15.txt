@@ -2783,3 +2783,88 @@ Acceptance receipt SHA256 4b8b7f299ad541551972ffaeb2a0a2d070b2d1982c6ac4dd991aff
 The corrected capacity review estimates 22 GiB of focused image reservations per host across both profiles.
 Do not reserve that simultaneously with the full gate without additional capacity or verified retirement.
 Read m07-fd1dccf8-capacity-ledger-20261016/review-02; it is a read-only plan, not cleanup approval.
+
+2026-10-16 normal package and first combined process matrix verified
+
+The original preparation completed command0/wrapper0/COMPLETE. Its original processes retired.
+Candidate remains fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e; no production or test source changed.
+Primary package audit also completed command0/wrapper0/COMPLETE.
+Archive SHA256 4ad126e4be5f466d2e4559f2fb8762e52cccd49f12abd94390ee2239f8813317.
+Archive size 1,550,422,380 bytes. Expanded member bytes 8,703,774,101. Regular members 1377.
+Every member hash matches the out-of-band manifest and provenance. Every mode matches its prepared input.
+Primary reviewed both 199-registration inventories and the required production-OFF artifacts.
+Read m07-fd1dccf8-gate-preparation-20261016/PRIMARY_PACKAGE_REVIEW_01.json and PRIMARY_ARCHIVE_INVENTORY_01.json.
+
+Normal verify-deploy completed command0/wrapper0/COMPLETE on both hosts.
+New deployment: /home/dflanag3/spatial-artifacts/deployments/m07-fd1dccf8/runtime.
+Both profiles report verified runtime dependencies. Canonical gate locks prevented conflicting jobs.
+Deployment receipt SHA256 sb16 5b6e862310d951ca22ce60b827d1acf8407c9fd85abd7bb083ddd7b27faac815.
+Deployment receipt SHA256 sb16-2 de47b33b4a6222467b9a4db42bdb0ba49b7cf3fac1c74a224aa5577cec3414e6.
+Deployed provenance SHA256 c4cefbf18aacac9af8ff92c39e4a477005be569603c9b1a8f4922e622efefb54.
+Primary verified both production helpers and all 1031 old deployment source files per host before focused execution.
+Stage1-only capacity admission included archive, expanded payload, 1 GiB outputs, and 8 GiB reserve.
+Required bytes: 19,917,872,897. This does not admit the complete gate.
+
+The first review-03 launchers returned command2/wrapper2/COMPLETE before any CTest ran.
+All 199 copied registrations changed implicit WORKING_DIRECTORY to the metadata copy directory.
+Primary preserved the exact expected/observed diff. It is a launcher defect, not a runtime test failure.
+The helper postcheck warning was also a launcher defect: the baseline was captured after the failing comparison.
+Protected helper hashes and old source files remained unchanged.
+Failure observations: PRIMARY_STAGE1_DEBUG_OBSERVATION_01.json and PRIMARY_STAGE1_METADATA_DIAGNOSIS_01.json.
+Primary corrected working-directory replay and earlier helper snapshots in review-04.
+Controller SHA256 a788b2506eab714d94ba3c11e93c23d83f929f53939d7f33634196a92888ecbe.
+Both Debug metadata-only preflights then passed all 199 registration comparisons and postchecks.
+These checks executed zero test binaries. Keep them separate from runtime counts.
+The historical JUnit parser check also read actual retained XML successfully. It is not new runtime coverage.
+
+The actual Stage1 runtime matrix passed Debug and ASan/UBSan on sb16 and sb16-2.
+Exact registrations: authority-prepared-launch, authority-process-scope, process-scope-resources,
+process-termination, broker-resources, and queued-copy-status-replacement.
+Totals: 24 CTest executions, 224 inner unittest executions, four C++ unit executions.
+Each host/profile passed 56 Python methods across five registrations and the queued-reply C++ registration.
+Each process-termination registration passed all eight methods, including the new independent cgroup-member regression.
+Primary audited JUnit names/counts, actual inner counts, and 360 retained logs, including captured probe stderr.
+No skips or recorded sanitizer findings occurred. Every package/source/helper/metadata/protected-file postcheck passed.
+Canonical commands and wrappers returned zero; original processes retired in all four combinations.
+Audit: m07-fd1dccf8-gate-preparation-20261016/primary-stage1-all-profiles-raw-audit-01.
+Read SUMMARY.json and the four host/profile raw-log records there.
+The shared-stop-deadline timing counterexample and independently forced namespace hangup remain uncovered.
+This pass does not prove that the historical native import or missing-acknowledgment failures are resolved.
+
+Before storage preflight, primary found a compatibility issue in the auxiliary working-directory property replay.
+The gate storage helper expects one generated set_tests_properties row per declared storage test.
+Primary changed auxiliary replay to set_property(TEST...) without changing commands, cwd values, or other properties.
+Earlier Stage1 evidence remains valid. No storage stage ran with the incompatible replay.
+Storage launcher: review-04/focused_controller.storage-v5.py.
+SHA256 470f2dcf4f4a3a528ad577e43320a6016cfdeaca2b18492d61cae40550024754.
+Both hosts received matching immutable script bytes. Their existing reviewed data pins remain valid.
+Stage2 Debug registration-only preflight is launched; its results are pending at this record.
+Next: verify its terminal inventory/postchecks, then run full25-method session-storage-contention and workspace-participant-races.
+Both profiles on both hosts remain required. Copy regressions and the complete replacement M07 gate remain UNRUN.
+
+The coordination skill adds four instructions about copied CTest working directories and metadata-only validation.
+The skill validator passed. Windows, a5500, and middle-child installed SHA256 matches:
+1ef74190392ac22dc939b961b6745ad816d77bdd24e2bf53c48ff8e4697a0cd4.
+The canonical run-command script is unchanged. The frozen candidate source is unchanged.
+
+No new archive or deletion occurred. The full-gate capacity budget remains unapproved.
+Current read-only recovery plan proposes verified duplicate-package retirement and old generated-payload archival.
+Its 79 GiB coexistence estimate includes focused images; sequential retirement can reduce simultaneous demand.
+Do not treat that coexistence estimate as a required permanent disk size or claim sufficiency without fresh measurements.
+Preserve source, receipts, failure evidence, graphics dependencies, and verified restoration data before any retirement.
+
+Stage2 metadata-only preflight outcome
+
+Both commands and wrappers returned2/2/COMPLETE before any test execution.
+CTest rejected set_property(TEST ...) because its generated-file interpreter does not expose those CMake TEST objects.
+The metadata-only diagnostic command returned8 and retained the actual parser errors.
+Every source, package, installed-helper, metadata, and protected-file postcheck passed.
+Read PRIMARY_V5_stage-2-contention_Debug_metadata_OBSERVATION_01.json and PRIMARY_STAGE2_METADATA_PARSER_DIAGNOSIS_01.json.
+This is another launcher compatibility failure. It does not invalidate the passed Stage1 matrix.
+Native import/revocation and participant-race runtime remain UNRUN for fd1.
+After repeated launcher failures, primary assigned stronger helper m07_focused_metadata_repair.
+It owns a bounded external successor under review-06 and must validate actual CTest metadata before handoff.
+The assignment requires separate branch/worktree from fd1, preserved earlier artifacts, and unchanged full inventory equality.
+It forbids production edits, actual tests, probes, builds, root-helper changes, and cleanup.
+It may run registration-only CTest commands. A new runtime launch still requires primary review.
+The active milestone remains M07. This turn made execution progress; the main goal remains active.
