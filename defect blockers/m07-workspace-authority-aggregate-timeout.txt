@@ -1,3 +1,15 @@
+Focused verification:2026-10-16
+Status: FOCUSED-PASS. Full M07 qualification remains pending.
+The240-second authority rerun passed all35 methods on both hosts.
+Elapsed:144.50 seconds on sb16 and189.52 seconds on sb16-2.
+Both following fence suites also passed all four methods.
+All78 inner executions passed without skips. All11 integrity postchecks passed per host.
+Primary scanned558 raw logs without sanitizer findings or inner skips.
+Both runners returned command0/wrapper0/COMPLETE and exact pane PIDs retired.
+Reviewed CMake240 source1e58e65dec132a0a16f004ca4527034dca081f77 is integrated into the qualification branch.
+Package preparation is running. No full exam restart or milestone qualification is claimed.
+Evidence:a5500:/home/dflanag3/spatial-artifacts/m07-authority-budget-runtime-validation-20261016/PRIMARY_SAN_PAIR_AUDIT_240_01.json.
+
 M07 workspace-authority aggregate sanitizer timeout
 Date:2026-10-16.
 Status: REPRODUCED.240-second focused rerun running. M07 remains UNQUALIFIED.

@@ -1,3 +1,35 @@
+## 2026-10-16:240-second authority rerun passed; final candidate integrated and packaging
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes earlier rerun observations.
+Both hosts passed all35 authority methods and all four following fence methods under the240-second suite budget.
+Authority CTest time: sb16=144.50 seconds; sb16-2=189.52 seconds.
+The original180-second total budget was insufficient for this successful sb16-2 run.
+All78 inner executions passed. No failures or skips occurred.
+Primary hashed and scanned279 raw logs per host without sanitizer findings or inner skips.
+Both runner jobs returned command0/wrapper0/COMPLETE. Both exact pane PIDs retired.
+All11 source/runtime integrity postchecks passed per host.
+No individual security deadline, request timeout, assertion, test method, or acceptance lock changed.
+Existing unrelated focused passes remain retained. Do not repeat geometry merely for this registration-budget correction.
+
+Reviewed candidate1e58e65dec132a0a16f004ca4527034dca081f77 is integrated into the isolated qualification checkout.
+Branch:m07/fixture-repaired-qualification-candidate-20261016. BOX-GIT VERIFIED. UNQUALIFIED.
+The previousfd1 candidate branch remains unchanged and available.
+The checkout keeps its existing path so all four verified Ninja caches can be reused.
+The source subtree contains1040 tracked files. The new maintained budget note accounts for the last addition.
+Normal preparation is running on a5500 with configure/build, artifact, production-off, inventory, binding, and package checks.
+Exact preparation pane PID:3074864. Its result remains pending.
+Do not claim a recompilation where Ninja reports no work. Compare actual ELF hashes after preparation.
+The full exam has not restarted. Package verification, reviewed capacity recovery, target deployment, and full qualification remain required.
+
+Evidence on a5500, under /home/dflanag3/spatial-artifacts:
+m07-authority-budget-runtime-validation-20261016/PRIMARY_SAN_PAIR_AUDIT_240_01.json.
+m07-authority-suite-timeout-repair-20261016/PRIMARY_SOURCE_REVIEW_01.json.
+m07-fixture-repaired-gate-preparation-20261016/PRIMARY_INTEGRATION_REVIEW_01.json.
+m07-fixture-repaired-gate-preparation-20261016/candidate-push-receipt.json.
+m07-fixture-repaired-gate-preparation-20261016/prepare-launch.json and prepare-command-01.
+The initial180-second failure remains under m07-cli-repair-validation-20261016/broad-san-authority-failure-01.
+
 ## 2026-10-16: Authority suite total budget240; focused sanitizer rerun running
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
