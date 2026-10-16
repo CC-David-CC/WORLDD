@@ -22,13 +22,23 @@ Primary rechecked all 1,040 source files and their read-only modes on each host.
 Both original failed gate reports remain byte-identical.
 The first focused attempts retained two errors each from copying frozen modes into mutable temporary fixtures.
 The correction creates writable private copies and tests unchanged original source bytes and modes.
-Append-only sanitizer continuation is written on a separate branch. Review corrections and its controls remain pending.
+Append-only continuation is checked into box-git on m07/collector-continuation-20261016.
+Commit: b9191ef1eb24ddbe1b42339260726f432ed224f5. It remains UNQUALIFIED for milestone integration.
+Its 22 focused controls passed on each host: 44 executions, zero failures or skips.
+The first control attempts preserved two incomplete-fixture failures per host.
+The corrected fixtures supply the required host/candidate identity and CTestTestfile.cmake filename.
+They check the intended refusal messages and close temporary lock handles. Production guards remain unchanged.
 It must preserve original Debug evidence and publish new reports beside the failed original report.
 The corrected collector processed both actual retained Debug trees successfully.
 Each fresh manifest contains 9,666 regular-file hashes, one typed marker, and two validated storage exclusions.
 Both collections matched all eleven retained command pins and preserved the original failed reports.
 These are fresh collections after the interrupted audit, not prechange hashes for every file.
-Full Debug revalidation, actual sanitizer execution, combined audits, and cross-host qualification remain pending.
+Full retained Debug revalidation passed on both hosts through the canonical runner.
+Primary verified both retired audit processes, exact commands, and 0/0/COMPLETE receipts.
+Each audit matched the earlier corrected 9,666-file manifest and all 1,040 frozen source pins.
+Both audits checked actual stage results, current inventories, runtime closure, and external storage evidence.
+Original failed reports remain unchanged. Combined local reports do not yet exist.
+Actual sanitizer execution, combined audits, and cross-host qualification remain pending.
 
 The conservative remaining-space check is not admitted. Current free bytes: sb16=40,783,249,408; sb16-2=48,017,534,976.
 The original reservation, minus measured retained Debug output, requires 57,923,670,016 and 57,924,145,152 bytes respectively.
@@ -45,6 +55,12 @@ m07-artifact-link-manifest-repair-20261016/real-debug-collection-02/PRIMARY_COLL
 Collection pair SHA-256: f149b6551ed4b01c244475b5cba541dd66571f020ad932675c747d9024560e6d.
 m07-artifact-link-manifest-repair-20261016/primary-capacity-01.json.
 m07-artifact-link-manifest-repair-20261016/primary-capacity-roots-01.json.
+m07-collector-continuation-20261016/primary-controls-02/PRIMARY_CONTROLS_PAIR_AUDIT_01.json.
+Continuation controls SHA-256: d939bcef48702dd4e7b1b14db2ceaec5d094f9a420fc1479aaad7fd6253b8654.
+m07-collector-continuation-20261016/primary-controls-01/PRIMARY_FAILURE_PAIR_01.json.
+Retained controls failure SHA-256: bf3d6520315e232a0adf3aa59c58fecb27c774676479200866333a34fc09552a.
+m07-collector-continuation-20261016/primary-debug-audit-01/PRIMARY_DEBUG_AUDIT_PAIR_01.json.
+Retained Debug audits SHA-256: c932be6b02681ae62a5175e4e42a18fbe2fa17d505c01140b3238efdb0593b74.
 The collector diagnosis is separate from that monitoring error.
 
 ## 2026-10-16: Full M07 local gates running on both hosts
