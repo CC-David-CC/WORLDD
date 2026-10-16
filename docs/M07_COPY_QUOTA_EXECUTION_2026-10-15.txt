@@ -1,3 +1,42 @@
+Current checkpoint: 2026-10-16: Archives verified; capacity cleanup is running
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+The frozen M07 candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+Both retained Debug audits passed. Sanitizer and cross-host execution remain UNRUN.
+
+All 14 selected old snapshots have durable archives on middle-child's data drive.
+Independent verification checked every archive member and regular-file hash.
+It also checked names, modes, owners, timestamps, link targets, and whole-archive hashes.
+The primary checker ended 0/0/COMPLETE. Exact pane PID 826604 retired.
+Archive review pair SHA-256: 7f4c90f9e31bc393e4a36aacfbf52d90967e205d5c09d8f19d9500164de5d89c.
+Archive root: /media/dflanag3/New Volume/spatial-artifacts/m07-san-capacity-retention-20261016.
+Review root: /home/dflanag3/spatial-artifacts/m07-san-capacity-retention-20261016/preparation-01/primary-review.
+
+Separate removal jobs started after primary review.
+Their middle-child pane PIDs are 836427 for sb16 and 836442 for sb16-2.
+They recheck exact archived source identities and contents before removal.
+The approved plan contains nine sb16 snapshots and five sb16-2 snapshots.
+Current runtime, frozen source, Debug evidence, and required graphics dependencies are outside that plan.
+Removal completion and recovered capacity remain unverified.
+Require fresh free bytes of 57,923,670,016 and 57,924,145,152 before the sanitizer launch.
+Keep the original failed reports unchanged. Publish continuation evidence beside them.
+
+The cross-host continuation planner is box-git verified at def2946914e2126c156178e7cea4adf0b18c0114.
+Branch: m07/collector-crosshost-continuation-20261016. Milestone integration remains UNQUALIFIED.
+Its 15 focused controls passed on each host: 30 executions, zero failures or skips.
+Primary verified exact commands, retired processes, source pins, and original failed report hashes.
+Pair audit SHA-256: 8a171582b0c136cfedcf7ee0ef97f0acfd406fd32df8042956d1cbf22d998ed3.
+Evidence root: /home/dflanag3/spatial-artifacts/m07-collector-crosshost-continuation-20261016/primary-controls-01.
+
+Separate M08 schema work remains a draft.
+The strict descriptor comparison preserved 170 existing messages and 16 enums.
+Each host passed one valid descriptor and 12 intended rejection controls.
+Pair audit SHA-256: b03836ed28fac75a297da92cf385ccf6072d6b4cd82b43a23bf4db1fe20c1001.
+A targeted binding audit found a missing compositor_native_pb2 dependency.
+Its CMake correction and replacement binding builds are in progress on middle-child.
+Actor cabinet runtime actions still return UNIMPLEMENTED.
+This draft does not change M07 source or establish M08 qualification.
+
 Current checkpoint: 2026-10-16: M07 Debug execution passed; collector controls passed on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
