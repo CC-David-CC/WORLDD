@@ -10,14 +10,21 @@
 #include "world/store.hpp"
 #include <google/protobuf/text_format.h>
 #include <algorithm>
+#include <cerrno>
 #include <array>
 #include <map>
 #include <optional>
 #include <set>
+#include <string_view>
 #include <thread>
 #include <tuple>
+#include <sys/random.h>
 
 namespace spatial {
+namespace identity {
+void participant_diagnostic(std::string_view, std::string_view, std::string_view,
+                            std::uint64_t, std::uint64_t, std::uint64_t, bool);
+}
 namespace {
 namespace a = authority::v1;
 namespace id = identity::v1;
@@ -52,14 +59,28 @@ struct WorkspaceAuthority::Impl {
     std::set<std::string> revoked;
     std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
     std::uint64_t observed_revision = 0;
+    bool observed_revision_initialized = false;
+    std::string incarnation = std::string(16, '\0');
+    std::uint64_t epoch = 1;
     std::optional<std::uint64_t> consumed_revision;
     std::uint64_t acknowledged_revision = 0, generation = 0, command_sequence = 0, cancellation_sequence = 0;
     id::ParticipantCommand::OperationCase pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
     bool ready = false, broken = false, changed = true, closing = false, released = false;
+    bool polling = false, issuer_exchange_in_progress = false;
+    bool diagnostic_service_failure_logged = false;
+    std::string diagnostic_gate_stage;
+    std::uint64_t diagnostic_gate_revision = 0;
     Clock::time_point last_exchange = Clock::now();
     std::function<void()> observer = [] {};
 
     Impl(const std::filesystem::path& path, ExecutionStore& execution) {
+        std::size_t random_used = 0;
+        while (random_used < incarnation.size()) {
+            const auto count = getrandom(incarnation.data() + random_used, incarnation.size() - random_used, 0);
+            if (count < 0 && errno == EINTR) continue;
+            if (count <= 0) throw std::runtime_error("Unable to create authorization incarnation");
+            random_used += static_cast<std::size_t>(count);
+        }
         pb::WorkspaceAuthorityConfig config;
         require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &config), "Invalid workspace authority configuration");
         validate_message(config);
@@ -69,7 +90,14 @@ struct WorkspaceAuthority::Impl {
         for (const auto& binding : config.bindings()) {
             domains.push_back(domain(binding.workspace()));
             require(!stores.contains(binding.workspace()), "Duplicate workspace authority binding");
-            execution.workspace_get(binding.workspace());
+            if (binding.workspace() == "workspace-registry") {
+                try {
+                    execution.workspace_get(binding.workspace());
+                    throw std::invalid_argument("Reserved workspace registry cannot have execution state");
+                } catch (const WorldError& error) {
+                    if (error.code != wire::NOT_FOUND) throw;
+                }
+            } else execution.workspace_get(binding.workspace());
             stores.emplace(binding.workspace(), std::make_unique<authority::Store>(binding.authority_directory(), domain(binding.workspace()), false));
         }
         client = std::make_unique<identity::IssuerClient>(config.issuer_client_config());
@@ -87,10 +115,24 @@ struct WorkspaceAuthority::Impl {
         require(ready && !broken, "Workspace participation is unavailable");
     }
     void invalidate() { decisions.clear(); changed = true; }
-    void fail() { broken = true; ++cancellation_sequence; active.clear(); invalidate(); }
-    void tick() {
+    void bump_epoch() {
+        if (epoch == UINT64_MAX) { broken = true; active.clear(); invalidate(); throw WorldError(wire::RESOURCE_EXHAUSTED, "Authorization epoch exhausted"); }
+        ++epoch; invalidate();
+    }
+    void fail() { if (!broken) { broken = true; if (epoch != UINT64_MAX) ++epoch; ++cancellation_sequence; active.clear(); invalidate(); } }
+    void poll_authority() {
+        if (polling) return;
+        polling = true;
+        struct ResetPoll { bool& active; ~ResetPoll() { active = false; } } reset{polling};
         if (broken || !participant) { observer(); return; }
-        if (participant->failed()) { fail(); observer(); return; }
+        if (participant->failed()) {
+            if (!diagnostic_service_failure_logged) {
+                identity::participant_diagnostic("workspace", "participant_failed", participant->service_incarnation(),
+                    observed_revision, consumed_revision.value_or(0), acknowledged_revision, true);
+                diagnostic_service_failure_logged = true;
+            }
+            fail(); observer(); return;
+        }
         while (auto update = participant->poll()) {
             if (update->has_authenticated()) {
                 if (update->authenticated().issuer_id() != issuer) { fail(); observer(); return; }
@@ -109,30 +151,76 @@ struct WorkspaceAuthority::Impl {
                     generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
                 } else if (expected == id::ParticipantCommand::kApplied && update->has_applied()) {
                     acknowledged_revision = update->applied().applied_revision();
+                    identity::participant_diagnostic("workspace", "ack_result_consumed", participant->service_incarnation(),
+                        acknowledged_revision, consumed_revision.value_or(0), acknowledged_revision, false);
                 } else if (expected == id::ParticipantCommand::kRelease && update->has_released()) released = true;
                 else { fail(); observer(); return; }
                 continue;
             }
             const auto& batch = update->revocations();
             if (batch.issuer_id() != issuer) { fail(); observer(); return; }
+            if (observed_revision_initialized && batch.head_revision() > observed_revision) bump_epoch();
             observed_revision = std::max(observed_revision, batch.head_revision());
+            observed_revision_initialized = true;
             consumed_revision = batch.through_revision();
+            if (batch.events_size()) {
+                identity::participant_diagnostic("workspace", "revocation_received", participant->service_incarnation(),
+                    batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
+                    acknowledged_revision, false);
+            }
             for (const auto& event : batch.events()) {
                 ++cancellation_sequence;
                 if (bootstrap_credential && event.target().kind() == id::CREDENTIAL_TARGET &&
-                        event.target().id() == *bootstrap_credential) bootstrap_revoked = true;
+                        event.target().id() == *bootstrap_credential && !bootstrap_revoked) { bootstrap_revoked = true; bump_epoch(); }
                 if (event.target().kind() == id::ACTOR_TARGET) {
-                    revoked.insert(event.target().id()); active[event.target().id()] = false; invalidate();
+                    const auto id = event.target().id();
+                    const bool was_active = active.contains(id) && active.at(id);
+                    const bool was_revoked = revoked.contains(id);
+                    revoked.insert(id); active[id] = false;
+                    if (was_active || !was_revoked) bump_epoch();
                 }
             }
         }
         observer();
     }
+    void keepalive() {
+        if (!polling && !broken && participant && !issuer_exchange_in_progress &&
+                Clock::now()-last_exchange >= std::chrono::seconds(1)) {
+            id::IssuerRequest request; request.mutable_info();
+            try { exchange(std::move(request)); }
+            catch (const WorldError&) {
+                std::cerr << "Workspace issuer keepalive failed; authority is unavailable\n";
+                fail();
+            }
+        }
+    }
+    void tick() {
+        if (polling) return;
+        poll_authority();
+        // The polling scope has ended. INFO progress must still consume revocations
+        // and run cached control cancellation without recursively starting INFO.
+        keepalive();
+    }
     void settle(bool effects_settled) {
         // Called only after dispatch, process reconciliation, and control cancellation.
         // A wait callback can consume another revision after reconciliation. changed blocks that acknowledgement.
         if (!effects_settled || changed || broken || released || !consumed_revision ||
-                pending_operation != id::ParticipantCommand::OPERATION_NOT_SET) return;
+                pending_operation != id::ParticipantCommand::OPERATION_NOT_SET) {
+            if (consumed_revision) {
+                const char* stage = !effects_settled ? "settle_wait_effects" :
+                    changed ? "settle_wait_authority_change" :
+                    broken ? "settle_wait_broken" : released ? "settle_wait_released" :
+                    pending_operation != id::ParticipantCommand::OPERATION_NOT_SET ? "settle_wait_command" :
+                    "settle_wait";
+                if (diagnostic_gate_revision != *consumed_revision || diagnostic_gate_stage != stage) {
+                    identity::participant_diagnostic("workspace", stage, participant->service_incarnation(),
+                        *consumed_revision, *consumed_revision, acknowledged_revision, false);
+                    diagnostic_gate_revision = *consumed_revision;
+                    diagnostic_gate_stage = stage;
+                }
+            }
+            return;
+        }
         id::ParticipantCommand command;
         if (!ready) {
             if (*consumed_revision < observed_revision) return;
@@ -146,7 +234,15 @@ struct WorkspaceAuthority::Impl {
         } else return;
         require(command_sequence < UINT64_MAX, "Workspace participant sequence exhausted");
         command.set_request_id(++command_sequence); pending_operation = command.operation_case();
+        const bool acknowledgement = command.has_applied();
+        const auto target = acknowledgement ? command.applied().through_revision() : *consumed_revision;
         participant->submit(std::move(command));
+        if (acknowledgement) {
+            identity::participant_diagnostic("workspace", "ack_queued", participant->service_incarnation(),
+                target, *consumed_revision, acknowledged_revision, false);
+            diagnostic_gate_stage = "ack_queued";
+            diagnostic_gate_revision = target;
+        }
     }
     void shutdown(const std::function<void()>& reconcile) {
         closing = true;
@@ -158,6 +254,9 @@ struct WorkspaceAuthority::Impl {
     }
     id::IssuerReply exchange(id::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
+        if (issuer_exchange_in_progress) throw std::logic_error("Recursive workspace issuer exchange is not allowed");
+        issuer_exchange_in_progress = true;
+        struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{issuer_exchange_in_progress};
         request.set_protocol_version(1); id::IssuerReply reply;
         try { reply = client->call(std::move(request)); }
         catch (const std::exception&) { fail(); throw WorldError(wire::UNAVAILABLE, "Workspace issuer connection failed"); }
@@ -206,11 +305,20 @@ struct WorkspaceAuthority::Impl {
             }
             revision = batch.security_revision(); states.insert(states.end(), batch.actors().begin(), batch.actors().end());
         }
-        if (revision) observed_revision = std::max(observed_revision, *revision);
-        for (const auto& state : states) {
-            if (state.revoked()) revoked.insert(state.actor_id());
-            active[state.actor_id()] = state.active() && !revoked.contains(state.actor_id());
+        bool changed_state = revision && observed_revision_initialized && *revision > observed_revision;
+        if (revision) {
+            observed_revision = std::max(observed_revision, *revision);
+            observed_revision_initialized = true;
         }
+        for (const auto& state : states) {
+            const bool was_active = active.contains(state.actor_id()) && active.at(state.actor_id());
+            const bool was_revoked = revoked.contains(state.actor_id());
+            if (state.revoked()) revoked.insert(state.actor_id());
+            const bool now_active = state.active() && !revoked.contains(state.actor_id());
+            active[state.actor_id()] = now_active;
+            changed_state = changed_state || (was_active != now_active) || (was_revoked != revoked.contains(state.actor_id()));
+        }
+        if (changed_state) bump_epoch();
         invalidate();
         if (!identity_active(actor)) throw WorldError(wire::UNAUTHORIZED, "Workspace actor identity is inactive");
     }
@@ -253,7 +361,9 @@ struct WorkspaceAuthority::Impl {
         }
         if (result.security_revision() < observed_revision)
             throw WorldError(wire::UNAVAILABLE, "Issuer security state changed during workspace credential check");
+        if (observed_revision_initialized && result.security_revision() > observed_revision) bump_epoch();
         observed_revision = result.security_revision();
+        observed_revision_initialized = true;
         if (!result.active() || result.actor_revoked() || result.credential_revoked())
             throw WorldError(wire::UNAUTHORIZED, "Workspace bootstrap credential is revoked");
         return result;
@@ -296,7 +406,60 @@ WorkspaceAuthority::WorkspaceAuthority(const std::filesystem::path& path, Execut
     : impl_(std::make_unique<Impl>(path, execution)) {}
 WorkspaceAuthority::~WorkspaceAuthority() = default;
 bool WorkspaceAuthority::bound(const std::string& workspace) const { return impl_->stores.contains(workspace); }
+pb::ScopedAuthorityCheckReply WorkspaceAuthority::scoped_check(const pb::ScopedAuthorityCheckRequest& request) {
+    require(!request.workspace().empty() && request.workspace().size() <= 256 && request.workspace().find('\0') == std::string::npos,
+            "Workspace authority identity is invalid");
+    require(request.has_principal(), "Authenticated actor reference is required");
+    principal(request.principal());
+    require(request.components_size() <= 32, "Authority scope exceeds 32 components");
+    std::vector<std::string> components;
+    components.reserve(request.components_size());
+    for (const auto& component : request.components()) {
+        require(!component.empty() && component.size() <= 256, "Invalid opaque authority component");
+        components.push_back(component);
+    }
+    constexpr auto registry = "workspace-registry";
+    if (request.right() == a::WORKSPACE_CREATE) {
+        require(request.workspace() == registry && components.empty(), "Workspace creation authority is registry-scoped");
+    } else if (request.workspace() == registry) {
+        require(request.right() == a::POLICY_ADMINISTER, "Registry authority cannot grant ordinary workspace rights");
+    } else {
+        require(request.right() != a::WORKSPACE_CREATE, "Workspace creation authority is registry-scoped");
+    }
+    try {
+        impl_->prepare(request.workspace(), request.principal());
+    } catch (const WorldError& error) {
+        if (error.code != wire::UNAUTHORIZED || impl_->identity_active(request.principal())) throw;
+    }
+    a::Scope scope; *scope.mutable_domain() = domain(request.workspace());
+    for (const auto& component : components) scope.add_components(component);
+    const auto decision = impl_->store(request.workspace()).check(request.principal(), scope, request.right(),
+        [this](const auto& actor) { return impl_->identity_active(actor); });
+    pb::ScopedAuthorityCheckReply reply; reply.set_allowed(decision.allowed()); reply.set_revision(decision.revision());
+    reply.set_incarnation(impl_->incarnation); reply.set_epoch(impl_->epoch);
+    return reply;
+}
+pb::AuthorizationFence WorkspaceAuthority::authorization_fence(const a::ActorRef& actor) {
+    principal(actor);
+    if (actor.issuer_id() != impl_->issuer) throw WorldError(wire::FORBIDDEN, "Workspace issuer does not match actor identity");
+    std::map<std::string, a::ActorRef> subjects;
+    for (auto& [workspace, store] : impl_->stores) {
+        (void)workspace;
+        for (const auto& subject : store->subjects(actor)) subjects.emplace(subject.SerializeAsString(), subject);
+    }
+    std::vector<a::ActorRef> all; for (const auto& [key, subject] : subjects) { (void)key; all.push_back(subject); }
+    impl_->prepare_subjects(actor, all);
+    pb::AuthorizationFence reply; reply.set_incarnation(impl_->incarnation); reply.set_epoch(impl_->epoch); return reply;
+}
+pb::AuthorizationFence WorkspaceAuthority::fence_snapshot() const {
+    if (!impl_->ready || impl_->broken || impl_->epoch == UINT64_MAX)
+        throw WorldError(wire::UNAVAILABLE, "Workspace authorization fence is unavailable");
+    pb::AuthorizationFence reply; reply.set_incarnation(impl_->incarnation); reply.set_epoch(impl_->epoch); return reply;
+}
+void WorkspaceAuthority::policy_changed() { impl_->bump_epoch(); }
 unsigned WorkspaceAuthority::rights(const pb::AccessRequest& request, bool fresh) {
+    if (request.workspace() == "workspace-registry")
+        throw WorldError(wire::INVALID_ARGUMENT, "Reserved registry has no executable workspace access");
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Workspace requires authenticated actor authority");
     principal(request.principal());
     require(request.actor() == actor_name(request.principal()), "Workspace actor name does not match authenticated principal");
@@ -329,16 +492,18 @@ a::GrantPage WorkspaceAuthority::list(const pb::GrantListRequest& request) {
 a::GrantRecord WorkspaceAuthority::delegate(const pb::GrantDelegateRequest& request) {
     require(request.has_expected_revision(), "Expected authority revision is required");
     impl_->prepare(request.workspace(), request.principal(), &request.terms().subject());
-    const auto record = impl_->store(request.workspace()).delegate(request.principal(), request.parent_id(), request.terms(),
+    auto& store = impl_->store(request.workspace()); const auto before = store.revision();
+    const auto record = store.delegate(request.principal(), request.parent_id(), request.terms(),
         request.expected_revision(), [this](const auto& actor) { return impl_->identity_active(actor); });
-    impl_->invalidate(); return record;
+    if (store.revision() != before) impl_->bump_epoch(); else impl_->invalidate(); return record;
 }
 a::GrantRecord WorkspaceAuthority::revoke(const pb::GrantRevokeRequest& request) {
     require(request.has_expected_revision(), "Expected authority revision is required");
     impl_->prepare(request.workspace(), request.principal());
-    const auto record = impl_->store(request.workspace()).revoke(request.principal(), request.id(), request.expected_revision(),
+    auto& store = impl_->store(request.workspace()); const auto before = store.revision();
+    const auto record = store.revoke(request.principal(), request.id(), request.expected_revision(),
         [this](const auto& actor) { return impl_->identity_active(actor); });
-    impl_->invalidate(); return record;
+    if (store.revision() != before) impl_->bump_epoch(); else impl_->invalidate(); return record;
 }
 a::BootstrapBinding WorkspaceAuthority::bind_bootstrap(const pb::BootstrapBindRequest& request) {
     require(request.has_expected_revision(), "Expected authority revision is required");
@@ -347,18 +512,20 @@ a::BootstrapBinding WorkspaceAuthority::bind_bootstrap(const pb::BootstrapBindRe
     impl_->current(request.credential(), guard.claims);
     const auto item = impl_->bootstrap_template(request.selector());
     impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(), store.subjects(request.principal()));
+    const auto before = store.revision();
     const auto result = store.bind_bootstrap(request.principal(), request.selector(), request.parent_id(), item.terms(),
         request.expected_revision(), [this](const auto& actor) { return impl_->identity_active(actor); });
-    impl_->invalidate(); return result;
+    if (store.revision() != before) impl_->bump_epoch(); else impl_->invalidate(); return result;
 }
 a::BootstrapBinding WorkspaceAuthority::revoke_bootstrap(const pb::BootstrapRevokeRequest& request) {
     require(request.has_expected_revision(), "Expected authority revision is required");
     auto& store = impl_->store(request.workspace());
     Impl::BootstrapGuard guard(*impl_, request.credential(), request.principal());
     impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(), store.subjects(request.principal()));
+    const auto before = store.revision();
     const auto result = store.revoke_bootstrap(request.principal(), request.id(), request.expected_revision(),
         [this](const auto& actor) { return impl_->identity_active(actor); });
-    impl_->invalidate(); return result;
+    if (store.revision() != before) impl_->bump_epoch(); else impl_->invalidate(); return result;
 }
 a::BootstrapReport WorkspaceAuthority::apply_bootstrap(const pb::BootstrapApplyRequest& request) {
     auto& store = impl_->store(request.workspace());
@@ -383,9 +550,10 @@ a::BootstrapReport WorkspaceAuthority::apply_bootstrap(const pb::BootstrapApplyR
             const auto binding = store.bootstrap_binding(selector);
             impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(),
                 store.bootstrap_subjects({binding.id()}, request.principal()));
+            const auto before = store.revision();
             *result->mutable_grant() = store.materialize_bootstrap(binding.id(), request.principal(), selector, item.terms(),
                 [this](const auto& actor) { return impl_->identity_active(actor); });
-            impl_->invalidate();
+            if (store.revision() != before) impl_->bump_epoch(); else impl_->invalidate();
         } catch (const WorldError& error) {
             if (error.code == wire::UNAUTHORIZED || error.code == wire::UNAVAILABLE) throw;
             result->mutable_error()->set_code(error.code); result->mutable_error()->set_message(error.what());
@@ -397,23 +565,21 @@ void WorkspaceAuthority::tick() { impl_->tick(); }
 void WorkspaceAuthority::settle(bool effects_settled) { impl_->settle(effects_settled); }
 void WorkspaceAuthority::shutdown(const std::function<void()>& reconcile) { impl_->shutdown(reconcile); }
 std::uint64_t WorkspaceAuthority::cancellation_sequence() const { return impl_->cancellation_sequence; }
-void WorkspaceAuthority::keepalive() {
-    if (!impl_->broken && Clock::now()-impl_->last_exchange >= std::chrono::seconds(1)) {
-        id::IssuerRequest request; request.mutable_info();
-        try { impl_->exchange(std::move(request)); }
-        catch (const WorldError&) {
-            std::cerr << "Workspace issuer keepalive failed; authority is unavailable\n";
-            impl_->fail();
-        }
-    }
-}
+void WorkspaceAuthority::keepalive() { impl_->keepalive(); }
 bool WorkspaceAuthority::consume_changes() { const bool result = impl_->changed; impl_->changed = false; return result; }
 void WorkspaceAuthority::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
 void initialize_workspace_authority(const std::filesystem::path& path, ExecutionStore& execution) {
     pb::WorkspaceAuthoritySeed seed;
     require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &seed), "Invalid workspace authority seed");
     validate_message(seed); require(seed.protocol_version() == 1, "Unsupported workspace authority seed version");
-    execution.workspace_get(seed.workspace());
+    if (seed.workspace() == "workspace-registry") {
+        try {
+            execution.workspace_get(seed.workspace());
+            throw std::invalid_argument("Reserved workspace registry cannot have execution state");
+        } catch (const WorldError& error) {
+            if (error.code != wire::NOT_FOUND) throw;
+        }
+    } else execution.workspace_get(seed.workspace());
     authority::Store store(seed.authority_directory(), domain(seed.workspace()), true);
     store.install_roots({seed.roots().begin(), seed.roots().end()}, 0);
 }

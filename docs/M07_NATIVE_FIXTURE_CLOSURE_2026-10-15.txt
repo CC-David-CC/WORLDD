@@ -1,0 +1,31 @@
+M07 native fixture closure - 2026-10-15
+
+The resource witness parses Linux /proc/PID/cmdline as NUL-delimited argv.
+It identifies the native probe only when argv[0] is exactly /project/probe.
+It identifies the app Python process only when argv[0] equals sys.executable.
+The existing direct probe-parent, kernel budget, cgroup membership, and
+no-escape assertions remain active.
+
+The storage volume helper receives both the method directory and its explicit
+SPATIAL_SECURITY_EVIDENCE parent from the fixture caller. It accepts only a
+canonical method directory directly below spatial_security_evidence under
+the external spatial-artifacts tree. The evidence parent and method directory
+must belong to the operator. Each sudo Python helper invocation passes -B
+after the interpreter path. sudo resets PYTHONDONTWRITEBYTECODE, so that
+environment setting cannot prevent root-owned __pycache__ writes inside the
+frozen fixture tree when the helper imports its validation module. The -B
+flag keeps prepare, inspect, and cleanup calls from writing bytecode. The evidence parent may retain its observed 0755
+mode; the method directory must remain private. The helper rejects other
+hosts, escaped paths, symlinks, and wrong owners.
+
+Existing volume size, mount, loop-device, receipt, and cleanup protections
+remain unchanged. No source-local local/ directory or symlink workaround is
+used.
+
+Selected checks are the pure metadata regressions in
+tests/native/test_native_fixture_metadata.py. They cover misleading command
+arguments, exact argv[0] identity, valid external roots, escaped roots, wrong
+hosts, wrong owners, evidence-parent ownership, private method-root mode,
+symlinked roots, and invalid method names. These checks do not mount a volume
+or start a broker/world fixture. Runtime qualification stays on sb16 and
+sb16-2 after primary review.

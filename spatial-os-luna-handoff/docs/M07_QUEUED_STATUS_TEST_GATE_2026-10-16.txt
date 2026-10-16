@@ -1,0 +1,11 @@
+M07 queued-status regression gate inventory
+Date: 2026-10-16
+Source base: 4666b8aa959a57843446fd147681d003d7b338b0.
+
+The M07 required inventory now includes queued-copy-status-replacement. The test was registered under BUILD_TESTING, but M07 preflight did not require it. The required-set entry makes missing or disabled registration a preflight failure.
+
+Current generated CTest metadata has 199 registrations in each Debug and ASan-UBSan profile. M07 excludes geometry-native-crosshost and workspace-geometry-native-crosshost. The selected core count is therefore 197 per profile. The retained d164 metadata had 198 registrations and 196 selected core tests. This is a derived registration count, not a gate-pass claim.
+
+The existing focused runtime bundle contains the unit executable in both profiles. A fresh integrated gate must regenerate its inventory and full CTest metadata from the exact candidate source. The focused bundle metadata is not the full gate inventory.
+
+Three pure inventory regressions cover a missing row, a disabled row, and a complete enabled control. These tests were added but remain UNRUN in this checkpoint.

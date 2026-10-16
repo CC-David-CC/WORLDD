@@ -219,17 +219,42 @@ class ApplicationObservationTests(WorldIdentityFixture):
         self.assertIn(surface['id'],self.visible())
         self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.FORBIDDEN)
 
-    def test_revocation_after_render_prevents_queued_metadata_export(self):
+    def test_post_render_revocation_returns_fenced_denial_without_observation(self):
         self.setup_world();app,surface=self.probe();self.grant_viewer([grant.WORKSPACE_ACCESS])
         record=self.grant_viewer([grant.APPLICATION_OBSERVE],app)
-        def revoke_after_second_decision(count,reply):
+        receipts=[]
+        def revoke_after_post_render_decision(count,reply):
             if count==2:
                 self.assertTrue(reply.application_access.applications[0].observe)
-                access.ApplicationAccessTests.revoke_record(self,record)
-        self.relay.calls=0;self.relay.hook=revoke_after_second_decision
+                receipts.append(access.ApplicationAccessTests.revoke_record(self,record))
+        self.relay.calls=0;self.relay.hook=revoke_after_post_render_decision
+        reply=self.viewer.act(observe=core.ActorObserveRequest(width=128,height=128))
+        self.assertTrue(reply.HasField('error'),reply)
+        self.assertEqual(reply.error.code,core.FORBIDDEN)
+        self.assertEqual(reply.error.message,'Workspace authority changed during operation')
+        self.assertFalse(reply.HasField('action'))
+        self.assertEqual(len(receipts),1)
+        self.assertEqual(receipts[0].id,record.id)
+        self.assertEqual(access.ApplicationAccessTests.access(self,app,claims=self.second),[(False,False)])
+        self.assertNotIn(surface['id'],self.visible())
+        self.assertIn(surface['id'],self.visible(self.peer))
+
+    def test_revocation_while_observation_reply_is_queued_closes_channel(self):
+        self.setup_world();app,surface=self.probe();self.grant_viewer([grant.WORKSPACE_ACCESS])
+        record=self.grant_viewer([grant.APPLICATION_OBSERVE],app)
+        receipts=[]
+        def revoke_during_queued_reply_check(count,reply):
+            # Calls 1 and 2 belong to scene filtering and the post-render fence.
+            # Call 3 occurs when the world pump validates the queued response.
+            if count==3:
+                self.assertTrue(reply.application_access.applications[0].observe)
+                receipts.append(access.ApplicationAccessTests.revoke_record(self,record))
+        self.relay.calls=0;self.relay.hook=revoke_during_queued_reply_check
         with self.assertRaises(EOFError):
             self.viewer.act(observe=core.ActorObserveRequest(width=128,height=128))
         self.assertGreaterEqual(self.relay.calls,3)
+        self.assertEqual(len(receipts),1)
+        self.assertEqual(receipts[0].id,record.id)
         self.assertIn(surface['id'],self.visible(self.peer))
 
     def test_revocation_before_post_render_check_returns_no_metadata(self):

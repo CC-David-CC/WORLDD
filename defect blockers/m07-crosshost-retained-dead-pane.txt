@@ -1,3 +1,10 @@
+RESOLVED AT THE M07 GATE - 2026-10-16
+
+The repaired owner helper passed focused controls, retained-root recovery, and the complete cross-host fixture.
+Both final artifact audits passed. M07 is qualified.
+See docs/M07_QUALIFIED_2026-10-16.txt for the accepted evidence.
+The historical defect record follows unchanged.
+
 M07 cross-host owner cleanup confuses retained tmux windows with process lifetime
 
 Status: focused repair passed on both hosts. Full cross-host qualification remains pending.

@@ -94,6 +94,36 @@ class ProcessTerminationTests(unittest.TestCase):
         proc=self.run_boundary('deny-signal',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
         self.assertEqual(self.stop(proc),2)
         self.assertIn('cleanup unconfirmed:',(self.root/'probe.log').read_text())
+    def test_owned_cgroup_kill_precedes_namespace_wait_failure(self):
+        proc=self.run_boundary('deny-namespace-poll',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
+        # This sidecar is moved into the production authority cgroup, but is not
+        # a namespace or direct-child descendant. Only cgroup.kill can terminate it.
+        sidecar=subprocess.Popen(['/usr/bin/python3','-c','import time;time.sleep(30)'])
+        def cleanup_sidecar():
+            if sidecar.poll() is None: sidecar.kill()
+            sidecar.wait(timeout=3)
+        self.addCleanup(cleanup_sidecar)
+        sidecar_pidfd=os.pidfd_open(sidecar.pid);self.addCleanup(os.close,sidecar_pidfd)
+        deadline=time.monotonic()+2;authority=None;scope_name=None
+        while time.monotonic()<deadline and authority is None:
+            log_text=(self.root/'probe.log').read_text()
+            marker='termination fixture scope='
+            if marker in log_text:
+                scope_name=log_text.split(marker,1)[1].split()[0]
+                candidates=[p.parent for p in self.cgroup.rglob('cgroup.procs') if p.parent.name==scope_name]
+                if candidates: authority=candidates[0]
+            if authority is None: time.sleep(.005)
+        self.assertIsNotNone(authority,'Could not identify the real authority cgroup')
+        status=Path(f'/proc/{sidecar.pid}/status').read_text()
+        self.assertIn(f'PPid:\t{os.getpid()}',status,'Sidecar must remain outside the probe process tree')
+        (authority/'cgroup.procs').write_text(f'{sidecar.pid}\n')
+        self.assertIn(str(sidecar.pid),(authority/'cgroup.procs').read_text().split(),
+                      'Sidecar did not enter the owned cgroup before stop fault injection')
+        self.assertEqual(self.stop(proc),2)
+        self.assertTrue(select.select([sidecar_pidfd],[],[],0)[0],
+                        'cgroup.kill did not terminate the independent cgroup member before wait failure')
+        self.assertIn('application stop unconfirmed', (self.root/'probe.log').read_text())
+
     def test_confirmed_stop_has_already_terminated_detached_descendants(self):
         proc=self.run_boundary('normal',"import os,pathlib,time\npid=os.fork()\nif pid==0:\n os.setsid();pathlib.Path('ready').touch()\n while True: time.sleep(.1)\nelse: os.waitpid(pid,0)")
         descriptors=self.descendants(proc.pid);self.assertGreaterEqual(len(descriptors),4)
@@ -102,6 +132,10 @@ class ProcessTerminationTests(unittest.TestCase):
     def test_already_exited_process_can_be_stopped_twice(self):
         proc=self.run_boundary('normal',"import pathlib;pathlib.Path('ready').touch()")
         time.sleep(.05);self.assertEqual(self.stop(proc),0)
+    def test_reaped_application_exit_is_a_confirmed_stop(self):
+        proc=self.run_boundary('wait-exit',"import pathlib;pathlib.Path('ready').touch()")
+        self.assertEqual(self.stop(proc),0)
+
     def test_destructor_wait_error_cannot_return_broker_success(self):
         proc=self.run_boundary('destructor-deny-wait',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
         self.assertEqual(self.stop(proc),2)

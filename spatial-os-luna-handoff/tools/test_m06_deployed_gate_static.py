@@ -20,6 +20,9 @@ sys.argv[1:4] = []
 spec = importlib.util.spec_from_file_location('deployed_gate', tool)
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
+m07_spec = importlib.util.spec_from_file_location('m07_deployed_gate', tool.with_name('m07_deployed_gate.py'))
+m07 = importlib.util.module_from_spec(m07_spec)
+m07_spec.loader.exec_module(m07)
 
 
 class GateStaticTests(unittest.TestCase):
@@ -49,7 +52,8 @@ class GateStaticTests(unittest.TestCase):
         for name in [*receipt['extension_sources'], 'server/base.lock.json']:
             target = source / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_input / name, target)
+            # Fixture sources may be frozen read-only. Copy bytes into fresh writable temp files.
+            shutil.copyfile(source_input / name, target)
         server = self.put('runtime/Xvfb', 'fixture binary, never executed')
         receipt['binaries']['Xvfb'] = dict(path=str(server), sha256=gate.sha(server))
         library = self.put('runtime/libEGL.so', 'fixture EGL, never loaded')
@@ -69,6 +73,30 @@ class GateStaticTests(unittest.TestCase):
                        required_helper_names=[path.name for path in helpers],
                        hosts={expected_host: {'Debug': row}})
         return source, runtime, row, expected_host
+
+    def test_runtime_fixture_copies_are_writable_and_leave_frozen_sources_unchanged(self):
+        receipt = json.loads(receipt_input.read_text())
+        names = [*receipt['extension_sources'], 'server/base.lock.json']
+        before = {name: ((source_input / name).read_bytes(), (source_input / name).stat().st_mode)
+                  for name in names}
+        first_source, _, _, _ = self.runtime_fixture()
+        for name in names:
+            fixture_copy = first_source / name
+            self.assertEqual(fixture_copy.read_bytes(), before[name][0])
+            self.assertTrue(fixture_copy.stat().st_mode & 0o200, name)
+            self.assertEqual((source_input / name).read_bytes(), before[name][0])
+            self.assertEqual((source_input / name).stat().st_mode, before[name][1])
+        patch_name = next(name for name in receipt['extension_sources']
+                          if name.endswith('0001-spatial-input.patch'))
+        fixture_patch = first_source / patch_name
+        fixture_patch.write_bytes(before[patch_name][0] + b'fixture mutation')
+        self.assertEqual((source_input / patch_name).read_bytes(), before[patch_name][0])
+        second_source, _, _, _ = self.runtime_fixture()
+        self.assertEqual((second_source / patch_name).read_bytes(), before[patch_name][0])
+        self.assertTrue((second_source / patch_name).stat().st_mode & 0o200)
+        for name in names:
+            self.assertEqual((source_input / name).read_bytes(), before[name][0])
+            self.assertEqual((source_input / name).stat().st_mode, before[name][1])
 
     def make_tar(self, path, members):
         with tarfile.open(path, 'w:gz') as archive:
@@ -144,6 +172,98 @@ class GateStaticTests(unittest.TestCase):
             gate.extract_verified_bundle(alias, out, {})
         self.assertEqual(list(out.iterdir()), [])
 
+    def test_m07_inventory_distinguishes_missing_and_disabled_required_suites(self):
+        required = set(gate.REQUIRED) | set(m07.M07_REQUIRED)
+        inventory = [
+            {"name": name, "properties": []}
+            for name in sorted(required - {"workspace-copy-engine", "workspace-copy-journal"})
+        ]
+        inventory.append({"name": "workspace-copy-engine", "properties": [
+            {"name": "DISABLED", "value": "TRUE"}]})
+        result = m07.audit_inventory(inventory)
+        self.assertEqual(result["missing"], ["workspace-copy-journal"])
+        self.assertEqual(result["disabled"], ["workspace-copy-engine"])
+        self.assertEqual(result["registrations"]["workspace-copy-journal"], "missing")
+        self.assertEqual(result["registrations"]["workspace-copy-engine"], "disabled")
+        self.assertTrue(set(gate.REQUIRED).issubset(set(result["required"])))
+
+    def test_m07_adds_requirements_without_replacing_m06_baseline(self):
+        required = gate.required_test_names(m07.M07_REQUIRED)
+        self.assertTrue(set(gate.REQUIRED).issubset(required))
+        self.assertTrue(set(m07.M07_REQUIRED).issubset(required))
+
+    def test_m07_requires_both_crosshost_registrations_and_keeps_m06_default(self):
+        self.assertEqual(gate.DEDICATED_CROSSHOST, {"geometry-native-crosshost"})
+        self.assertEqual(gate.ctest_exclusion_expression(), "^geometry-native-crosshost$")
+        self.assertEqual(gate.ctest_exclusion_expression(m07.M07_DEDICATED),
+                         "^(geometry-native-crosshost|workspace-geometry-native-crosshost)$")
+        with self.assertRaisesRegex(RuntimeError, "invalid dedicated"):
+            gate.ctest_exclusion_expression({"workspace-geometry-native-crosshost"})
+
+    def test_m07_build_path_map_requires_four_distinct_external_profile_paths(self):
+        mapping = {"build": {}, "production-off": {}}
+        for group in mapping:
+            for profile in gate.PROFILES:
+                mapping[group][profile] = str(self.root / group / profile)
+        config = self.root / "build-paths.json"
+        config.write_text(json.dumps(mapping))
+        resolved = gate._validated_build_paths(config)
+        self.assertEqual(set(resolved), {"build", "production-off"})
+        self.assertEqual(set(resolved["build"]), set(gate.PROFILES))
+        mapping["production-off"].pop("ASan-UBSan")
+        config.write_text(json.dumps(mapping))
+        with self.assertRaisesRegex(RuntimeError, "exactly"):
+            gate._validated_build_paths(config)
+
+    def test_m07_cleanup_receipt_parser_accepts_fixture_shape_and_rejects_missing_receipt(self):
+        method = self.root / "method"
+        observer = method / "authority-native-observer"
+        observer.mkdir(parents=True)
+        unit = "spatial-m03-resources-m06-geometry-test.service"
+        adapter = {"scope_removed": True, "unexpected_population": False, "exit_code": 0}
+        remote_unit = {"unit": unit, "unit_after": "LoadState=not-found\nActiveState=inactive",
+                       "query_exit": 4, "cgroup_exists": False}
+        local_unit = {"unit": unit, "unit_after": "LoadState=not-found\nActiveState=inactive",
+                      "query_exit": 4, "cgroup_exists": False}
+        (method / "peer-resource-terminal.txt").write_text(
+            json.dumps(adapter) + "\n" + json.dumps(remote_unit) + "\n")
+        (method / "exact-unit-terminal.json").write_text(json.dumps(
+            {"unit": unit, "state": local_unit["unit_after"], "query_exit": 4, "cgroup_absent": True}))
+        (observer / "cleanup-receipts.json").write_text(json.dumps([
+            {"returncode": 0, "stdout": json.dumps(adapter) + "\n" + json.dumps(local_unit) + "\n",
+             "stderr": ""}
+        ]))
+        result = m07._verify_cleanup_receipts(method, method)
+        self.assertTrue(result["adapter_scope_removed"])
+        (method / "peer-resource-terminal.txt").unlink()
+        with self.assertRaisesRegex(RuntimeError, "cleanup evidence is missing"):
+            m07._verify_cleanup_receipts(method, method)
+
+    def test_m07_local_log_scan_rejects_sanitizer_in_observer_stderr(self):
+        evidence = self.root / "logs"
+        observer = evidence / "authority-native-observer"
+        observer.mkdir(parents=True)
+        for name in ("peer-native.stderr", "boundary.stdout", "boundary.stderr"):
+            (evidence / name).write_text("clean\\n")
+        (evidence / "geometry-host-session.log").write_text("")
+        (observer / "observer.stderr").write_text("clean\\n")
+        records = m07._scan_local_logs((evidence,))
+        self.assertTrue(any(row["bytes"] == 0 and row["path"].endswith("geometry-host-session.log")
+                            for row in records))
+        (observer / "observer.stderr").write_text("AddressSanitizer: heap-use-after-free\\n")
+        with self.assertRaisesRegex(RuntimeError, "sanitizer diagnostic"):
+            m07._scan_local_logs((evidence,))
+
+    def test_m07_configure_map_requires_all_geometry_placeholders(self):
+        values = {key: "/external/" + key.lower() for key in m07.GEOMETRY_ENV}
+        config = self.root / "configure-env.json"
+        config.write_text(json.dumps(values))
+        self.assertEqual(m07._validate_configure_map(config), values)
+        values.pop(m07.GEOMETRY_ENV[-1])
+        config.write_text(json.dumps(values))
+        with self.assertRaisesRegex(RuntimeError, "all eight"):
+            m07._validate_configure_map(config)
+
     def _empty_dir(self, name):
         path = self.root / name
         path.mkdir()
@@ -209,56 +329,39 @@ class GateStaticTests(unittest.TestCase):
 
     def test_storage_evidence_directories_are_fresh_owned_and_confined(self):
         source = self.root / 'source'
-        (source / 'local').mkdir(parents=True)
-        attempt = gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
-        debug = gate.create_storage_evidence_profile(attempt['root'], source, 'Debug')
-        asan = gate.create_storage_evidence_profile(attempt['root'], source, 'ASan-UBSan')
-        local = (source / 'local').resolve()
-        self.assertIn(local, Path(debug['path']).resolve().parents)
-        self.assertIn(local, Path(asan['path']).resolve().parents)
-        self.assertEqual(debug['mode'], 0o700)
-        self.assertEqual(asan['mode'], 0o700)
-        self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(debug['path']))), 4)
-        self.assertEqual(set(debug['registrations']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
-        self.assertEqual(len({row['path'] for row in debug['registrations'].values()}), 2)
-        receipt = dict(parents=attempt['parents'], attempt=attempt['attempt'], profile=debug,
-                       destinations={name: row['path'] for name, row in debug['registrations'].items()})
-        receipt_path = self.root / 'storage-augmentation.json'
-        gate.write_json(receipt_path, receipt)
-        self.assertEqual(json.loads(receipt_path.read_text()), receipt)
-        for row in debug['registrations'].values():
-            self.assertEqual(row['mode'], 0o700)
-            self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(row['path']))), 5)
-        with self.assertRaises(FileExistsError):
-            gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+        source.mkdir()
+        evidence_root = self.root / 'artifacts' / 'm06-gate-storage'
+        evidence_root.parent.mkdir(mode=0o700)
+        with patch.object(gate, 'STORAGE_EVIDENCE_ROOT', evidence_root):
+            attempt = gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+            debug = gate.create_storage_evidence_profile(attempt['root'], source, 'Debug')
+            asan = gate.create_storage_evidence_profile(attempt['root'], source, 'ASan-UBSan')
+            self.assertNotIn(source.resolve(), Path(debug['path']).resolve().parents)
+            self.assertNotIn(source.resolve(), Path(asan['path']).resolve().parents)
+            self.assertEqual(debug['mode'], 0o700)
+            self.assertEqual(asan['mode'], 0o700)
+            self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(debug['path']))), 3)
+            self.assertEqual(set(debug['registrations']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
+            self.assertEqual(len({row['path'] for row in debug['registrations'].values()}), 2)
+            for row in debug['registrations'].values():
+                path = Path(row['path'])
+                self.assertEqual(path.name, 'spatial_security_evidence')
+                self.assertEqual(row['mode'], 0o700)
+                self.assertEqual(len(gate.verify_storage_evidence_path(source, path)), 5)
+            with self.assertRaises(FileExistsError):
+                gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+            with self.assertRaisesRegex(RuntimeError, 'approved test host'):
+                gate.create_storage_evidence_attempt(source, 'a5500', 'attempt-02')
+            with self.assertRaisesRegex(RuntimeError, 'identifier is invalid'):
+                gate.create_storage_evidence_attempt(source, 'sb16', '../escape')
 
-        unsafe = self.root / 'unsafe-source'
-        local_unsafe = unsafe / 'local'
-        local_unsafe.mkdir(parents=True)
-        container = local_unsafe / 'm06-gate-storage'
-        container.mkdir()
-        outside = self.root / 'outside'
-        outside.mkdir()
-        (container / 'sb16').symlink_to(outside, target_is_directory=True)
-        with self.assertRaisesRegex(RuntimeError, 'real directory'):
-            gate.create_storage_evidence_attempt(unsafe, 'sb16', 'attempt-02')
-
-        absent = self.root / 'absent-source'
-        absent.mkdir()
-        created = gate.create_storage_evidence_attempt(absent, 'sb16-2', 'attempt-03')
-        self.assertTrue((absent / 'local').is_dir())
-        self.assertIn((absent / 'local').resolve(), created['root'].resolve().parents)
-        source_link = self.root / 'source-symlink'
-        source_link.symlink_to(absent, target_is_directory=True)
-        with self.assertRaisesRegex(RuntimeError, 'real directory'):
-            gate.create_storage_evidence_attempt(source_link, 'sb16', 'attempt-05')
-        unsafe_local = self.root / 'symlink-local-source'
-        unsafe_local.mkdir()
-        external_local = self.root / 'external-local'
-        external_local.mkdir()
-        (unsafe_local / 'local').symlink_to(external_local, target_is_directory=True)
-        with self.assertRaisesRegex(RuntimeError, 'real directory'):
-            gate.create_storage_evidence_attempt(unsafe_local, 'sb16', 'attempt-04')
+            outside = self.root / 'outside'
+            outside.mkdir()
+            (evidence_root / 'sb16').rename(evidence_root / 'sb16.saved')
+            (evidence_root / 'sb16').symlink_to(outside, target_is_directory=True)
+            with self.assertRaisesRegex(RuntimeError, 'real directory'):
+                gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-03')
+        self.assertFalse((source / 'local').exists())
 
     def test_storage_inventory_augmentation_changes_only_named_tests(self):
         def row(name):
@@ -381,6 +484,14 @@ class GateStaticTests(unittest.TestCase):
         (root / 'review.json').write_text(json.dumps(review))
         return target, root, volume, image, ordinary, review
 
+    def _retirement_marker_fixture(self, target, *, identifier='a' * 32, link_target='never-created'):
+        parent = target / 'acceptance' / 'state' / 'execution' / 'retired' / identifier
+        (parent / 'data' / 'project').mkdir(parents=True)
+        (parent / 'git').mkdir()
+        (parent / 'complete').write_text('complete\n')
+        (parent / 'staging').symlink_to(parent / link_target)
+        return parent / 'staging'
+
     def _allow_root_owned_fixture_probes(self, *, loop_output='', find_output='', mounted=False):
         patcher = patch.object(gate, 'STORAGE_FIXTURE_UID', os.getuid())
         patcher.start()
@@ -456,6 +567,95 @@ class GateStaticTests(unittest.TestCase):
         (root / 'review.json').write_text(json.dumps(bad_review))
         with self.assertRaisesRegex(RuntimeError, 'review or cleanup receipt'):
             gate.artifact_evidence_manifest(target)
+
+    def test_artifact_manifest_records_only_completed_retirement_marker_without_following(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        marker = self._retirement_marker_fixture(target)
+        self._allow_root_owned_fixture_probes()
+        manifest = gate.artifact_evidence_manifest(target)
+        expected = dict(path=str(marker.relative_to(target)),
+                        kind='completed-execution-retirement-marker',
+                        target_bytes_hex=os.fsencode(str(marker.parent / 'never-created')).hex(),
+                        target_sha256=gate.hashlib.sha256(os.fsencode(str(marker.parent / 'never-created'))).hexdigest())
+        self.assertEqual(manifest['artifact_links'], [expected])
+        self.assertFalse((marker.parent / 'never-created').exists())
+        self.assertEqual(gate.validate_artifact_links(target, [expected]), [expected])
+        for invalid in ([], [dict(expected, target_sha256='0' * 64)], [expected, dict(expected, path='extra')]):
+            with self.assertRaisesRegex(RuntimeError, 'link manifest'):
+                gate.validate_artifact_links(target, invalid)
+
+    def test_retirement_marker_rejects_malformed_identity_target_and_companions(self):
+        cases = ('bad-id', 'bad-target', 'missing-project', 'missing-complete', 'existing-target',
+                 'project-link', 'data-link', 'git-link', 'complete-link')
+        for case in cases:
+            target, root, volume, image, ordinary, review = self._bounded_artifact_fixture(case)
+            marker = self._retirement_marker_fixture(
+                target, identifier='z' * 32 if case == 'bad-id' else 'b' * 32,
+                link_target='elsewhere' if case == 'bad-target' else 'never-created')
+            if case == 'missing-project':
+                (marker.parent / 'data' / 'project').rmdir()
+            elif case == 'missing-complete':
+                (marker.parent / 'complete').unlink()
+            elif case == 'existing-target':
+                (marker.parent / 'never-created').write_text('unexpected')
+            elif case == 'project-link':
+                project = marker.parent / 'data' / 'project'
+                project.rmdir()
+                project.symlink_to(marker.parent / 'git', target_is_directory=True)
+            elif case == 'data-link':
+                data = marker.parent / 'data'
+                data.rename(marker.parent / 'data-real')
+                data.symlink_to(marker.parent / 'data-real', target_is_directory=True)
+            elif case == 'git-link':
+                git = marker.parent / 'git'
+                git.rename(marker.parent / 'git-real')
+                git.symlink_to(marker.parent / 'git-real', target_is_directory=True)
+            elif case == 'complete-link':
+                complete = marker.parent / 'complete'
+                complete.unlink()
+                complete.symlink_to(marker.parent / 'never-created')
+            self._allow_root_owned_fixture_probes()
+            with self.subTest(case=case), self.assertRaises(RuntimeError):
+                gate.artifact_evidence_manifest(target)
+
+    def test_artifact_manifest_rejects_arbitrary_directory_links_special_nodes_and_link_churn(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        arbitrary = target / 'unrelated-directory'
+        arbitrary.mkdir()
+        link = target / 'unrelated-link'
+        link.symlink_to(arbitrary, target_is_directory=True)
+        self._allow_root_owned_fixture_probes()
+        with self.assertRaisesRegex(RuntimeError, 'unapproved directory symlink'):
+            gate.artifact_evidence_manifest(target)
+        link.unlink()
+        fifo = target / 'special-node'
+        os.mkfifo(fifo)
+        with self.assertRaisesRegex(RuntimeError, 'not a regular file'):
+            gate.artifact_evidence_manifest(target)
+        fifo.unlink()
+        marker = self._retirement_marker_fixture(target)
+        original_readlink = gate.os.readlink
+        def replace_during_read(path):
+            marker.unlink()
+            marker.symlink_to(marker.parent / 'never-created')
+            return original_readlink(path)
+        with patch.object(gate.os, 'readlink', side_effect=replace_during_read):
+            with self.assertRaisesRegex(RuntimeError, 'identity is invalid'):
+                gate._retirement_marker_entry(target, str(marker.relative_to(target)))
+
+    def test_artifact_link_validator_rejects_linked_root_and_unreadable_walk(self):
+        target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
+        self._allow_root_owned_fixture_probes()
+        linked_root = self.root / 'linked-artifact-root'
+        linked_root.symlink_to(target, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'root is not a real directory'):
+            gate.validate_artifact_links(linked_root, [])
+        def unreadable_walk(*args, **kwargs):
+            kwargs['onerror'](PermissionError('fixture subtree denied'))
+            return iter(())
+        with patch.object(gate.os, 'walk', side_effect=unreadable_walk):
+            with self.assertRaisesRegex(RuntimeError, 'cannot inspect artifact links'):
+                gate.validate_artifact_links(target, [])
 
     def test_bounded_storage_exclusions_reject_active_mount_and_loop_resources(self):
         target, root, volume, image, ordinary, review = self._bounded_artifact_fixture('active-loop')
@@ -941,6 +1141,14 @@ class GateStaticTests(unittest.TestCase):
     def test_local_gate_positive_receipt_requires_mandatory_geometry_inventory(self):
         receipt = self.root / 'local/run.json'
         receipt.parent.mkdir(parents=True)
+        report_profiles = {profile: dict(status='passed_needs_crosshost_and_review', artifact_links=[], commands=[dict(
+            name='core', exit_code=0, junit_cases=len(gate.REQUIRED)-1,
+            all_registered_present=True, failed_or_skipped=False)]) for profile in gate.PROFILES}
+        for profile in gate.PROFILES:
+            directory, *_ = self._bounded_artifact_fixture('local/' + profile)
+            (directory / 'inventory.json').write_text(json.dumps(dict(
+                names=sorted(gate.REQUIRED), dedicated_crosshost=['geometry-native-crosshost'],
+                local_names=sorted(set(gate.REQUIRED)-gate.DEDICATED_CROSSHOST))))
         receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
             status='local_passed_crosshost_pending', phase_complete=False,
             requirement_suites=dict(native_controller='host-actor-controller-native',
@@ -948,17 +1156,43 @@ class GateStaticTests(unittest.TestCase):
                 recovery='actor-transition-recovery', host_session='host-session-production-native',
                 native_geometry_presentation='geometry-presentation-native',
                 native_geometry_crosshost='geometry-native-crosshost'),
-            profiles={profile: dict(status='passed_needs_crosshost_and_review', commands=[dict(
-                name='core', exit_code=0, junit_cases=len(gate.REQUIRED)-1,
-                all_registered_present=True, failed_or_skipped=False)]) for profile in gate.PROFILES})))
-        for profile in gate.PROFILES:
-            directory = receipt.parent / profile
-            directory.mkdir()
-            (directory / 'inventory.json').write_text(json.dumps(dict(
-                names=sorted(gate.REQUIRED), dedicated_crosshost=['geometry-native-crosshost'],
-                local_names=sorted(set(gate.REQUIRED)-gate.DEDICATED_CROSSHOST))))
+            profiles=report_profiles)))
+        self._allow_root_owned_fixture_probes()
         result = gate._validate_local_run(receipt, 'sb16', 'a' * 40)
         self.assertEqual(set(result['inventories']), set(gate.PROFILES))
+        debug_row = report_profiles['Debug']
+        del debug_row['artifact_links']
+        receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False,
+            requirement_suites=dict(native_controller='host-actor-controller-native',
+                held_input='host-actor-controller-native', real_world='actor-transition-real-world',
+                recovery='actor-transition-recovery', host_session='host-session-production-native',
+                native_geometry_presentation='geometry-presentation-native',
+                native_geometry_crosshost='geometry-native-crosshost'),
+            profiles=report_profiles)))
+        with self.assertRaisesRegex(RuntimeError, 'omits artifact link manifest'):
+            gate._validate_local_run(receipt, 'sb16', 'a' * 40)
+        debug_row['artifact_links'] = [dict(path='extra', kind='completed-execution-retirement-marker',
+            target_bytes_hex='', target_sha256='')]
+        receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False,
+            requirement_suites=dict(native_controller='host-actor-controller-native',
+                held_input='host-actor-controller-native', real_world='actor-transition-real-world',
+                recovery='actor-transition-recovery', host_session='host-session-production-native',
+                native_geometry_presentation='geometry-presentation-native',
+                native_geometry_crosshost='geometry-native-crosshost'),
+            profiles=report_profiles)))
+        with self.assertRaisesRegex(RuntimeError, 'link manifest'):
+            gate._validate_local_run(receipt, 'sb16', 'a' * 40)
+        debug_row['artifact_links'] = []
+        receipt.write_text(json.dumps(dict(host='sb16', candidate='a' * 40,
+            status='local_passed_crosshost_pending', phase_complete=False,
+            requirement_suites=dict(native_controller='host-actor-controller-native',
+                held_input='host-actor-controller-native', real_world='actor-transition-real-world',
+                recovery='actor-transition-recovery', host_session='host-session-production-native',
+                native_geometry_presentation='geometry-presentation-native',
+                native_geometry_crosshost='geometry-native-crosshost'),
+            profiles=report_profiles)))
         for missing in ('geometry-presentation-native',
                         'geometry-process-identity-witness',
                         'geometry-native-fixture-regressions'):

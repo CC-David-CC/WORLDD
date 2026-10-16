@@ -1,0 +1,37 @@
+M07 bounded workspace-copy responsiveness report
+Date: 2026-10-14
+Status: UNQUALIFIED focused evidence only. This does not establish M07 qualification or full-gate completion.
+
+Scope and pins
+- The production responsiveness fix is at checkpoint 14547ba4b17af35a4e4780812fd9a00c811f4dcc. This report branch starts at runner-preflight checkpoint dff5f1460b1c69cd59d6346eea48213a7dac64fd. No production source changed for these runs.
+- Runner/preflight checkpoint: dff5f1460b1c69cd59d6346eea48213a7dac64fd, branch m07/copy-engine-runner-preflight-20261014.
+- Focused test overlay SHA-256: e2f6f3c77614a545dbabaf2577b16f4ba7e22fbe21e09f4885cb78463152283f.
+- Runtime package source manifest SHA-256: 7f8590e4441829d121cbdc6df1056286905bcae1430b3982db3602b38faac31d.
+- Sanitizer package candidate v4f manifest SHA-256: a4f9537752ff247a8ad4510c5031eaa7fc2467488c0fa6559f81bdbde8647757; package metadata SHA-256 c0727cecc155002b6d415471c307c1bd759387f1e6d94db3765593a5540e379b.
+- Debug package candidate v1 manifest SHA-256: a771f92ee014c6a1626dd53f197ae2cdb20e123d09e8d22331fc0a28939823b4; package metadata SHA-256 c5952bb6bb106c9c431a4f9b997d1495cb96d17bb33d22a086eee786fe21ef07.
+- All six executions selected exactly WorkspaceCopyEngineTests.test_copy_broker_wait_keeps_action_issuer_alive_beyond_tls_idle. Each isolated fixture observed a real copy_stage_begin owner reply delay of about 4.1 seconds. Actor status calls remained responsive throughout those intervals.
+
+Six successful executions
+1. sb16 Debug repeat 1: test 23.359 s; delay 4.100302477 s; 30 status calls fully inside delay, maximum 0.119237335 s. Outer /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-run1; evidence /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-evidence/workspace-copy-engine-5660bb1e164644bd8ae977d281eafc11; review SHA-256 7cbefecd49f44dbf86da8ecd5a5688db21aa9e4ebe5055dffd12a978f34c37bd.
+2. sb16 Debug repeat 2: test 23.580 s; delay 4.100476894 s; 30 status calls inside delay, max 0.119674089 s. Outer /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-run2; evidence /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-attempt2-evidence/workspace-copy-engine-80f0d2fa32e148e994fc59971db085e1; review SHA-256 838c1bc1f818b40d05a0d800925bd35e6f793fdd473de61ffd62411631fa70af.
+3. sb16 Debug repeat 3: test 23.401 s; delay 4.100525207 s; 30 status calls inside delay, max 0.119901397 s. Outer /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-run3; evidence /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-attempt3-evidence/workspace-copy-engine-be9e50dda5b94328b8be55e77223d79a; review SHA-256 1435d17d41d04657f3d0989ab6fa6584cab9ad0683a1d2bce16b5892f3631edb.
+4. sb16 sanitizer: test 25.367 s; delay 4.100599544 s; 28 status calls inside delay, max 0.128373292 s. Outer /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-san-sb16-v4f-r1-outer; evidence /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-san-sb16-v4f-r1-evidence; review SHA-256 b9f0a3f19b501c6d367d56a5f433bc9227aa1835ce59563869b5d77ab0c525e6.
+5. sb16-2 Debug: test 23.107 s; delay 4.100201536 s; 26 status calls inside delay, max 0.133305432 s. Outer /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-sb16-2-v4f-r1-outer; evidence /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-sb16-2-v4f-r1-evidence; review SHA-256 d3e6562260329f179183ab85308251873eda0263732fb46948b37515cb91f27a.
+6. sb16-2 sanitizer: test 28.681 s; delay 4.100155829 s; 22 status calls inside delay, max 0.164250537 s. Outer /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-san-sb16-2-v4f-r3-outer; evidence /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-san-sb16-2-v4f-r3-evidence; review SHA-256 4782558362708f3f69d7e6f863511db932635e938bf112914824cd96a0f6e20d.
+
+Across these runs, issuer identity matched during the delayed owner reply. SAN logs had no ASAN or UBSAN markers. Journals recorded publication receipts. Relay mutation audits were empty. Runner receipts confirmed helper restoration and volume unmount. Each evidence directory retains the command result, exact selected test output, timing JSON, relay audits, issuer lifetime, journal, and cleanup receipts.
+
+Setup failures kept separate
+- An initial sb16-2 SAN launcher attempt exited 69 before creating a runtime outer directory. It invoked the canonical runner without bash although that script was not executable. No test ran.
+- The following sb16-2 SAN r2 static preflight failed because its source path pointed at the wrong nested checkout root. No outer/runtime was created. No test ran.
+- Corrected r3 invoked bash with the canonical runner and passed the isolated test above.
+- Earlier SAN candidate v3 package preflight exposed a missing runtime.textproto. That package setup failure is preserved and is not counted as a test failure or pass.
+- The separate owners9 selector episode had one trailing-CR loader error and a later invocation that ran all 30 ControlOwnerTests because a fixture positional argument consumed the selector. These are not part of this six-run selected test count; do not report them as a clean nine-case suite.
+
+Cleanup receipt
+- On sb16, after verifying their evidence, volume records, unmounted state, absent loop mappings, no holders, and retained hashes/logs, three exact passed fixture images were removed. Each image was 536,870,912 bytes.
+- The cleanup receipt is /home/dflanag3/spatial-artifacts/runs/m07-engine20-copy-response-debug-v1-passed-image-cleanup.json, SHA-256 2155962ab237e5c7b3d03acbad5030c82ba44351bac5b3367711255d7c554ce9.
+- The removed image hashes were 6591e1e07aedbf02999e32b37d72e670adef2f5e4587b2b953bcddc05c5f1a21, 15454a51bc0f075ea5c7b014718aed9aecbf96cb855d01be935df2767bccffd7, and 29aedac976875943b0aa99dee8655d5e3076d511bbf3a42fccaf688f9252e763. Root volume records and directories remain. The failed v3 image, unrelated David volume, raw logs, and review receipts remain.
+- Recovered bytes: 1,610,678,272. Free space changed from 8,906,477,568 to 10,517,155,840 bytes.
+
+This is focused Debug and sanitizer evidence for one responsiveness regression on both required hosts. Related regressions, broader suites, and the M07 full gate remain separate. This report does not claim qualification.

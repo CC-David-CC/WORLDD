@@ -4,6 +4,7 @@
 #include "identity/keys.hpp"
 #include "world/store.hpp"
 #include <openssl/rand.h>
+#include <openssl/sha.h>
 #include <sqlite3.h>
 #include <algorithm>
 #include <cerrno>
@@ -102,6 +103,25 @@ void validate_operation(const v1::IssuerOperation& operation) {
         require(request.has_participant() && request.has_expected_registry_revision() &&
                 request.expected_registry_revision() <= INT64_MAX, "Participant and registry revision are required");
         validate_participant(request.participant()); return;
+    }
+    if (operation.has_participant_domains_add()) {
+        const auto& request = operation.participant_domains_add();
+        require(request.operation_id().size() == 16 && request.participant_id().size() == 32 &&
+                request.expected_public_key().size() == 32 && request.expected_registered_revision() > 0 &&
+                request.expected_registered_revision() <= INT64_MAX && request.has_expected_registry_revision() &&
+                request.expected_registry_revision() <= INT64_MAX && request.has_expected_supervision_revision() &&
+                request.expected_supervision_revision() <= INT64_MAX && request.additions_size() > 0 &&
+                request.additions_size() <= 64, "Participant domain addition identity and revisions are required");
+        std::pair<int, std::string> prior{-1, {}};
+        for (const auto& domain : request.additions()) {
+            require((domain.kind() == authority::v1::WORLD || domain.kind() == authority::v1::WORKSPACE) &&
+                    !domain.id().empty() && domain.id().size() <= 256 && domain.id().find('\0') == std::string::npos,
+                    "Invalid authority domain addition");
+            const auto key = participant_detail::domain_key(domain);
+            require(prior.first < 0 || prior < key, "Domain additions must be unique and canonically sorted");
+            prior = key;
+        }
+        return;
     }
     if (operation.has_profile_read()) { validate_bootstrap_read(operation.profile_read(), false); return; }
     if (operation.has_profile_put()) {
@@ -231,6 +251,14 @@ void create_retirement_schema(sqlite3* db) {
             "PRIMARY KEY(participant_id,generation),"
             "FOREIGN KEY(participant_id,generation) REFERENCES authority_fence(participant_id,generation)); PRAGMA user_version=10");
 }
+void create_domains_add_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_participant_history(participant_id BLOB NOT NULL CHECK(length(participant_id)=32),"
+            "registered_revision INTEGER NOT NULL CHECK(registered_revision>0),record BLOB NOT NULL,"
+            "PRIMARY KEY(participant_id,registered_revision));"
+            "CREATE TABLE authority_domains_add_operation(operation_id BLOB PRIMARY KEY CHECK(length(operation_id)=16),"
+            "request_sha256 BLOB NOT NULL CHECK(length(request_sha256)=32),request BLOB NOT NULL,receipt BLOB NOT NULL);"
+            "PRAGMA user_version=11");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -286,12 +314,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 10;
+        sqlite3_int64 schema = 11;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 10 || ((schema >= 1 && schema <= 9) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 11 || ((schema >= 1 && schema <= 10) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -309,7 +337,7 @@ struct Issuer::Impl {
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
-            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); create_retirement_schema(db.get()); tx.commit();
+            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); create_retirement_schema(db.get()); create_domains_add_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -320,20 +348,67 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema < 10) {
+        if (!owner && schema <= 10 && migrate) {
             Transaction migration(db.get());
-            if (schema == 1) create_enrollment_schema(db.get());
-            if (schema < 3) create_security_schema(db.get());
-            if (schema < 4) create_bootstrap_schema(db.get());
-            if (schema < 5) create_participant_schema(db.get());
-            if (schema < 6) create_barrier_schema(db.get());
-            if (schema < 7) create_supervisor_schema(db.get());
-            if (schema < 8) create_launch_schema(db.get());
-            if (schema < 9) create_fence_schema(db.get());
-            create_retirement_schema(db.get()); migration.commit();
+            if (schema < 10) {
+                if (schema == 1) create_enrollment_schema(db.get());
+                if (schema < 3) create_security_schema(db.get());
+                if (schema < 4) create_bootstrap_schema(db.get());
+                if (schema < 5) create_participant_schema(db.get());
+                if (schema < 6) create_barrier_schema(db.get());
+                if (schema < 7) create_supervisor_schema(db.get());
+                if (schema < 8) create_launch_schema(db.get());
+                if (schema < 9) create_fence_schema(db.get());
+                create_retirement_schema(db.get());
+            }
+            create_domains_add_schema(db.get());
+            Query activations(db.get(), "SELECT participant_id,registration FROM authority_activation");
+            while (activations.step() == SQLITE_ROW) {
+                v1::AuthorityParticipantRecord old;
+                storage(old.ParseFromString(activations.blob(1)), "Invalid prior activation registration");
+                const auto current = participant_record(activations.blob(0), registry_revision());
+                storage(old.SerializeAsString() == current.SerializeAsString(), "Prior activation registration mismatch");
+            }
+            Query supervisors(db.get(), "SELECT participant_id,registration FROM authority_supervisor");
+            while (supervisors.step() == SQLITE_ROW) {
+                v1::AuthorityParticipantRecord old;
+                storage(old.ParseFromString(supervisors.blob(1)), "Invalid prior supervisor registration");
+                const auto current = participant_record(supervisors.blob(0), registry_revision());
+                storage(old.SerializeAsString() == current.SerializeAsString(), "Prior supervisor registration mismatch");
+            }
+            Query participants(db.get(), "SELECT id FROM authority_participant ORDER BY id");
+            while (participants.step() == SQLITE_ROW) {
+                const auto id = participants.blob(0);
+                const auto record = participant_record(id, registry_revision());
+                Query history(db.get(), "INSERT INTO authority_participant_history VALUES(?,?,?)");
+                history.blob(1, id); history.integer(2, record.registered_revision());
+                history.blob(3, record.SerializeAsString()); history.step();
+            }
+            migration.commit();
+        }
+        if (!owner) {
+            Query participants(db.get(), "SELECT id FROM authority_participant ORDER BY id");
+            while (participants.step() == SQLITE_ROW) {
+                const auto id = participants.blob(0);
+                const auto current = participant_record(id, registry_revision());
+                const auto historical = participant_record_at(id, current.registered_revision());
+                storage(current.SerializeAsString() == historical.SerializeAsString(), "Current participant definition is absent from immutable history");
+            }
         }
     }
 
+    v1::AuthorityParticipantRecord participant_record_at(const std::string& id, std::uint64_t revision) {
+        Query row(db.get(), "SELECT record FROM authority_participant_history WHERE participant_id=? AND registered_revision=?");
+        row.blob(1, id); row.integer(2, revision);
+        storage(row.step() == SQLITE_ROW, "Historical participant registration is missing");
+        v1::AuthorityParticipantRecord record;
+        storage(record.ParseFromString(row.blob(0)), "Historical participant registration is corrupt");
+        try { validate_participant_record(record, identity.issuer_id()); }
+        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Historical participant registration is invalid"); }
+        storage(record.participant().id() == id && record.registered_revision() == revision,
+                "Historical participant registration key mismatch");
+        return record;
+    }
     std::uint64_t registry_revision() {
         Query row(db.get(), "SELECT revision FROM authority_registry WHERE singleton=1");
         storage(row.step() == SQLITE_ROW && row.integer(0) >= 0, "Invalid authority registry revision");
@@ -347,7 +422,8 @@ struct Issuer::Impl {
                 context.connection_binding() != connection.binding || context.service_incarnation().size() != 32)
             throw WorldError(wire::UNAUTHORIZED, "Stale service connection context");
         const auto current = participant_record(context.registration().participant().id(), registry_revision());
-        storage(current.SerializeAsString() == context.registration().SerializeAsString(), "Service registration changed");
+        if (current.SerializeAsString() != context.registration().SerializeAsString())
+            throw WorldError(wire::UNAUTHORIZED, "Authenticated service registration is stale");
         return context;
     }
     v1::AuthorityActivationState activation(const std::string& participant, std::uint64_t generation = 0) {
@@ -364,8 +440,8 @@ struct Issuer::Impl {
         result.set_generation(row.integer(0)); result.set_service_incarnation(row.blob(1));
         result.set_issuer_incarnation(row.blob(2)); result.set_connection_binding(row.blob(3));
         storage(result.mutable_registration()->ParseFromString(row.blob(4)), "Invalid activation registration");
-        const auto registered = participant_record(participant, registry_revision());
-        storage(result.registration().SerializeAsString() == registered.SerializeAsString(), "Activation registration changed");
+        const auto historical = participant_record_at(participant, result.registration().registered_revision());
+        storage(result.registration().SerializeAsString() == historical.SerializeAsString(), "Activation registration history mismatch");
         result.set_applied_revision(row.integer(6)); result.set_head_revision(head); result.set_active(row.integer(7) != 0);
         return result;
     }
@@ -429,6 +505,35 @@ struct Issuer::Impl {
         validate_fence_begin(request);
         const auto& participant = request.participant_id();
         if (!supervised(participant)) throw WorldError(wire::FORBIDDEN, "Fencing requires a registered supervisor");
+        Query historical_fence(db.get(), "SELECT supervisor_public_key,request,state FROM authority_fence WHERE participant_id=? AND generation=?");
+        historical_fence.blob(1, participant); historical_fence.integer(2, request.generation());
+        if (historical_fence.step() == SQLITE_ROW) {
+            v1::AuthorityFenceState state;
+            storage(state.ParseFromString(historical_fence.blob(2)), "Invalid historical fence state");
+            if (historical_fence.blob(1) != request.SerializeAsString())
+                throw WorldError(wire::UNAUTHORIZED, "Fence request does not match the historical receipt");
+            storage(state.issuer_id() == identity.issuer_id() && state.registration().participant().id() == participant &&
+                    state.registration().registered_revision() == request.registered_revision() &&
+                    state.generation() == request.generation() && state.service_incarnation() == request.service_incarnation() &&
+                    state.launch_id() == request.launch_id() && state.authorization_id() == request.authorization_id() &&
+                    state.supervision_revision() == request.supervision_revision() &&
+                    state.supervisor_public_key() == historical_fence.blob(0),
+                    "Historical fence state does not match its receipt");
+            const auto history = participant_record_at(participant, state.registration().registered_revision());
+            storage(state.registration().SerializeAsString() == history.SerializeAsString(), "Historical fence registration mismatch");
+            const auto launch = launch_authorization(participant, request.service_incarnation());
+            storage(launch && launch->generation() == request.generation() &&
+                    launch->authorization_id() == request.authorization_id() &&
+                    launch->request().launch_id() == request.launch_id() &&
+                    launch->request().supervision_revision() == request.supervision_revision() &&
+                    launch->request().service().registration().SerializeAsString() == history.SerializeAsString() &&
+                    launch->supervisor_public_key() == historical_fence.blob(0),
+                    "Historical fence launch authorization is inconsistent");
+            v1::AuthoritySupervisorBinding prior;
+            *prior.mutable_registration() = state.registration(); prior.set_public_key(historical_fence.blob(0));
+            prior.set_revision(request.supervision_revision());
+            return prior;
+        }
         const auto binding = supervision_record(participant);
         if (binding.registration().registered_revision() != request.registered_revision() ||
                 binding.revision() != request.supervision_revision())
@@ -745,7 +850,121 @@ struct Issuer::Impl {
         Query update(db.get(), "UPDATE authority_registry SET revision=? WHERE singleton=1 AND revision=?");
         update.integer(1, head+1); update.integer(2, head); update.step();
         storage(sqlite3_changes(db.get()) == 1, "Authority registry lost its revision");
-        const auto result = participant_record(participant.id(), head+1); transaction.commit(); return result;
+        const auto result = participant_record(participant.id(), head+1);
+        Query history(db.get(), "INSERT INTO authority_participant_history VALUES(?,?,?)");
+        history.blob(1, participant.id()); history.integer(2, result.registered_revision());
+        history.blob(3, result.SerializeAsString()); history.step();
+        transaction.commit(); return result;
+    }
+    v1::AuthorityParticipantDomainsAdded add_participant_domains(const v1::AuthorityParticipantDomainsAdd& request) {
+        Transaction transaction(db.get());
+        const auto request_bytes = request.SerializeAsString();
+        Query prior(db.get(), "SELECT request_sha256,request,receipt FROM authority_domains_add_operation WHERE operation_id=?");
+        prior.blob(1, request.operation_id());
+        if (prior.step() == SQLITE_ROW) {
+            if (prior.blob(1) != request_bytes)
+                throw WorldError(wire::OPERATION_CONFLICT, "Participant domain operation ID was reused with different bytes");
+            std::string expected_digest(SHA256_DIGEST_LENGTH, '\0');
+            SHA256(reinterpret_cast<const unsigned char*>(request_bytes.data()), request_bytes.size(),
+                   reinterpret_cast<unsigned char*>(expected_digest.data()));
+            storage(prior.blob(0) == expected_digest, "Stored participant domain request digest is corrupt");
+            v1::AuthorityParticipantDomainsAdded receipt;
+            storage(receipt.ParseFromString(prior.blob(2)), "Stored participant domain receipt is corrupt");
+            storage(receipt.operation_id() == request.operation_id() && receipt.request_bytes() == request_bytes &&
+                    receipt.request_sha256() == expected_digest, "Stored participant domain receipt does not match its request");
+            transaction.commit(); return receipt;
+        }
+        Query count(db.get(), "SELECT count(*) FROM authority_domains_add_operation");
+        storage(count.step() == SQLITE_ROW && count.integer(0) >= 0, "Invalid participant domain operation count");
+        if (count.integer(0) >= 64)
+            throw WorldError(wire::RESOURCE_EXHAUSTED, "Participant domain operation receipt capacity is full");
+
+        const auto before = registry_revision();
+        if (before != request.expected_registry_revision())
+            throw WorldError(wire::REVISION_CONFLICT, "Authority registry revision changed");
+        auto old_record = participant_record(request.participant_id(), before);
+        if (old_record.registered_revision() != request.expected_registered_revision() ||
+                old_record.participant().public_key() != request.expected_public_key())
+            throw WorldError(wire::REVISION_CONFLICT, "Participant registration changed");
+
+        std::optional<v1::AuthoritySupervisorBinding> old_supervision;
+        if (supervised(request.participant_id())) {
+            old_supervision = supervision_record(request.participant_id());
+            if (old_supervision->revision() != request.expected_supervision_revision())
+                throw WorldError(wire::REVISION_CONFLICT, "Supervisor binding revision changed");
+        } else if (request.expected_supervision_revision() != 0) {
+            throw WorldError(wire::REVISION_CONFLICT, "Participant is not supervised at the expected revision");
+        }
+        Query active(db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
+        active.blob(1, request.participant_id());
+        if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Participant has an active generation");
+        Query obligations(db.get(), "SELECT 1 FROM authority_obligation o JOIN authority_barrier b ON b.revision=o.revision "
+                                    "JOIN authority_activation a ON a.participant_id=o.participant_id AND a.generation=o.generation "
+                                    "LEFT JOIN authority_retirement r ON r.participant_id=o.participant_id AND r.generation=o.generation "
+                                    "WHERE o.participant_id=? AND b.revision>a.applied_revision AND r.participant_id IS NULL LIMIT 1");
+        obligations.blob(1, request.participant_id());
+        if (obligations.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Participant has unresolved non-retired obligations");
+        Query pending_launch(db.get(), "SELECT 1 FROM authority_launch_authorization WHERE participant_id=? AND generation=0 LIMIT 1");
+        pending_launch.blob(1, request.participant_id());
+        if (pending_launch.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Participant has an unconsumed launch authorization");
+
+        auto participant = old_record.participant();
+        std::set<std::pair<int, std::string>> existing;
+        for (const auto& domain : participant.domains()) existing.insert(participant_detail::domain_key(domain));
+        for (const auto& addition : request.additions()) {
+            const auto key = participant_detail::domain_key(addition);
+            if (existing.count(key)) throw WorldError(wire::ALREADY_EXISTS, "Participant already owns an added domain");
+            Query claimed(db.get(), "SELECT 1 FROM authority_participant_domain WHERE kind=? AND domain_id=?");
+            claimed.integer(1, addition.kind()); claimed.blob(2, addition.id());
+            if (claimed.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Authority domain already has a registered participant");
+            *participant.add_domains() = addition;
+        }
+        if (participant.domains_size() > 64) throw WorldError(wire::RESOURCE_EXHAUSTED, "Participant domain limit is 64");
+        std::sort(participant.mutable_domains()->begin(), participant.mutable_domains()->end(), [](const auto& a, const auto& b) {
+            return participant_detail::domain_key(a) < participant_detail::domain_key(b);
+        });
+        storage(before < INT64_MAX, "Authority registry revision limit reached");
+        const auto next_registration = before + 1;
+        Query definition(db.get(), "UPDATE authority_participant SET registered_revision=?,definition=? WHERE id=? AND registered_revision=?");
+        definition.integer(1, next_registration); definition.blob(2, participant.SerializeAsString());
+        definition.blob(3, request.participant_id()); definition.integer(4, old_record.registered_revision()); definition.step();
+        storage(sqlite3_changes(db.get()) == 1, "Participant registration changed during domain addition");
+        for (const auto& addition : request.additions()) {
+            Query claim(db.get(), "INSERT INTO authority_participant_domain(kind,domain_id,participant_id) VALUES(?,?,?)");
+            claim.integer(1, addition.kind()); claim.blob(2, addition.id()); claim.blob(3, request.participant_id()); claim.step();
+        }
+        Query update(db.get(), "UPDATE authority_registry SET revision=? WHERE singleton=1 AND revision=?");
+        update.integer(1, before+1); update.integer(2, before); update.step();
+        storage(sqlite3_changes(db.get()) == 1, "Authority registry lost its revision");
+        const auto next_record = participant_record(request.participant_id(), before+1);
+        Query history(db.get(), "INSERT INTO authority_participant_history VALUES(?,?,?)");
+        history.blob(1, request.participant_id()); history.integer(2, next_registration);
+        history.blob(3, next_record.SerializeAsString()); history.step();
+
+        v1::AuthorityParticipantDomainsAdded receipt;
+        receipt.set_operation_id(request.operation_id());
+        std::string digest(SHA256_DIGEST_LENGTH, '\0');
+        SHA256(reinterpret_cast<const unsigned char*>(request_bytes.data()), request_bytes.size(),
+               reinterpret_cast<unsigned char*>(digest.data()));
+        receipt.set_request_sha256(digest); receipt.set_request_bytes(request_bytes);
+        *receipt.mutable_old_registration() = old_record; *receipt.mutable_new_registration() = next_record;
+        receipt.set_registry_revision_before(before); receipt.set_registry_revision_after(before+1);
+        if (old_supervision) {
+            auto next_supervision = *old_supervision;
+            *next_supervision.mutable_registration() = next_record;
+            storage(old_supervision->revision() < INT64_MAX, "Supervisor binding revision limit reached");
+            next_supervision.set_revision(old_supervision->revision()+1);
+            Query supervisor(db.get(), "UPDATE authority_supervisor SET registration=?,revision=? WHERE participant_id=? AND revision=?");
+            supervisor.blob(1, next_record.SerializeAsString()); supervisor.integer(2, next_supervision.revision());
+            supervisor.blob(3, request.participant_id()); supervisor.integer(4, old_supervision->revision()); supervisor.step();
+            storage(sqlite3_changes(db.get()) == 1, "Supervisor binding changed during participant domain addition");
+            *receipt.mutable_old_supervision() = *old_supervision;
+            *receipt.mutable_new_supervision() = next_supervision;
+        }
+        Query save(db.get(), "INSERT INTO authority_domains_add_operation VALUES(?,?,?,?)");
+        save.blob(1, request.operation_id()); save.blob(2, digest); save.blob(3, request_bytes);
+        save.blob(4, receipt.SerializeAsString()); save.step();
+        transaction.commit(); return receipt;
     }
     v1::BootstrapProfileState profile(const v1::BootstrapProfileRead& request) {
         v1::BootstrapProfileState result; result.set_issuer_id(identity.issuer_id());
@@ -1072,6 +1291,7 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
     else if (pending.operation.has_barrier_read()) *result.mutable_barrier() = impl_->barrier(pending.operation.barrier_read());
     else if (pending.operation.has_registry_read()) *result.mutable_registry() = impl_->registry(pending.operation.registry_read());
     else if (pending.operation.has_participant_register()) *result.mutable_participant() = impl_->register_participant(pending.operation.participant_register());
+    else if (pending.operation.has_participant_domains_add()) *result.mutable_participant_domains_added() = impl_->add_participant_domains(pending.operation.participant_domains_add());
     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
     else if (pending.operation.has_profile_read()) *result.mutable_profile() = impl_->profile(pending.operation.profile_read());
     else if (pending.operation.has_profile_put()) *result.mutable_profile() = impl_->put_profile(pending.operation.profile_put());
@@ -1351,8 +1571,9 @@ v1::AuthorityAuthenticationResult Issuer::authority_authentication_complete(cons
     if (connection.authority) throw WorldError(wire::BUSY, "This connection already has a service identity");
     Transaction transaction(impl_->db.get());
     const auto record = impl_->participant_record(pending.authority.participant_id(), impl_->registry_revision());
-    storage(record.registered_revision() == pending.authority.registered_revision() &&
-            record.participant().public_key() == pending.expected_key, "Service registration changed during proof");
+    if (record.registered_revision() != pending.authority.registered_revision() ||
+            record.participant().public_key() != pending.expected_key)
+        throw WorldError(wire::UNAUTHORIZED, "Service registration changed during proof");
     v1::AuthorityAuthenticationResult result;
     result.set_issuer_id(impl_->identity.issuer_id()); result.set_issuer_incarnation(impl_->incarnation);
     *result.mutable_registration() = record;

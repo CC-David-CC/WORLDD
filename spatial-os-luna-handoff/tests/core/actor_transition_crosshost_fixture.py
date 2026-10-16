@@ -7,6 +7,8 @@ runs in the existing C++ TLS probe and production transition coordinator.
 """
 import argparse
 import hashlib
+import importlib.util
+import stat
 import io
 import ipaddress
 import json
@@ -32,7 +34,75 @@ import issuer_pb2 as issuer
 import key_pb2 as keys
 import world_session_pb2 as session
 from harness.wire import frame, make_request, read_message, result_value
-import actor_transition_crosshost_host as host_support
+HOST_HELPER_MODULE_NAME = 'actor_transition_crosshost_host'
+
+def _pinned_host_helper_file(path, expected_sha256):
+    path = Path(path)
+    if not path.is_absolute() or path.is_symlink() or not path.is_file():
+        raise RuntimeError('host helper override must be an absolute regular non-symlink file')
+    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
+    before = path.lstat()
+    if not stat.S_ISREG(before.st_mode):
+        raise RuntimeError('host helper override must be a regular file')
+    descriptor = os.open(path, flags)
+    try:
+        opened = os.fstat(descriptor)
+        identity = lambda item: (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns, item.st_ctime_ns)
+        if not stat.S_ISREG(opened.st_mode) or identity(before) != identity(opened):
+            raise RuntimeError('host helper changed before its pin was checked')
+        content = bytearray()
+        while True:
+            block = os.read(descriptor, 1024 * 1024)
+            if not block:
+                break
+            content.extend(block)
+        after_fd = os.fstat(descriptor)
+        after_path = path.lstat()
+        if identity(after_fd) != identity(opened) or identity(after_path) != identity(opened):
+            raise RuntimeError('host helper changed while its pin was checked')
+    finally:
+        os.close(descriptor)
+    digest = hashlib.sha256(content).hexdigest()
+    if digest != expected_sha256:
+        raise RuntimeError('host helper SHA256 differs from the explicit pin')
+    return dict(path=str(path.resolve(strict=True)), sha256=digest, source=bytes(content))
+
+def _pinned_host_helper_from_argv():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--host-helper-path', type=Path)
+    parser.add_argument('--host-helper-sha256')
+    args, _ = parser.parse_known_args()
+    if (args.host_helper_path is None) != (args.host_helper_sha256 is None):
+        raise RuntimeError('host helper override requires both path and SHA256')
+    if args.host_helper_path is None:
+        return None
+    return _pinned_host_helper_file(args.host_helper_path, args.host_helper_sha256)
+
+def _load_pinned_host_helper(path, expected_sha256):
+    pin = _pinned_host_helper_file(path, expected_sha256)
+    spec = importlib.util.spec_from_file_location(HOST_HELPER_MODULE_NAME, pin['path'])
+    if spec is None or spec.loader is None:
+        raise RuntimeError('host helper import specification is unavailable')
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.modules.get(HOST_HELPER_MODULE_NAME)
+    sys.modules[HOST_HELPER_MODULE_NAME] = module
+    try:
+        code = compile(pin['source'], pin['path'], 'exec')
+        exec(code, module.__dict__)
+    except BaseException:
+        if previous is None:
+            sys.modules.pop(HOST_HELPER_MODULE_NAME, None)
+        else:
+            sys.modules[HOST_HELPER_MODULE_NAME] = previous
+        raise
+    return module
+
+HOST_HELPER_OVERRIDE = _pinned_host_helper_from_argv()
+if HOST_HELPER_OVERRIDE is None:
+    import actor_transition_crosshost_host as host_support
+else:
+    host_support = _load_pinned_host_helper(
+        HOST_HELPER_OVERRIDE['path'], HOST_HELPER_OVERRIDE['sha256'])
 import test_actor_transition_crosshost as harness
 
 HOSTS = ('sb16', 'sb16-2')
@@ -216,6 +286,10 @@ class Run:
         self.command_number = 0
         self.deadline = time.monotonic() + 1000
         self.fail_after = args.fail_after
+        self.host_helper = (dict(path=HOST_HELPER_OVERRIDE['path'], sha256=HOST_HELPER_OVERRIDE['sha256'])
+                            if HOST_HELPER_OVERRIDE else None)
+        host_support.atomic_json(self.output / 'fixture-selection.json',
+                                 dict(schema=1, host_helper_override=self.host_helper))
 
     def checkpoint(self, name):
         with (self.output / 'setup-checkpoints.txt').open('a') as output:
@@ -268,7 +342,7 @@ class Run:
                    'LD_LIBRARY_PATH=' + str(self.artifacts / 'lib'),
                    'PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python',
                    'ASAN_OPTIONS=detect_leaks=1:halt_on_error=1', 'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
-                   'python3', str(fixture_path(self.bundle, 'actor_transition_crosshost_host.py')), operation, self.token]
+                   'python3', str(Path(self.host_helper['path']) if self.host_helper else fixture_path(self.bundle, 'actor_transition_crosshost_host.py')), operation, self.token]
         if root:
             command += ['--root', str(root)]
         for name, value in options.items():
@@ -548,7 +622,7 @@ class Run:
                 errors.append(dict(host=host, root=str(root), error=str(error), recovery=[
                     'env', 'PYTHONPATH=' + str(self.python) + ':' + str(self.source / 'tests' / 'core') + ':' + str(self.source),
                     'PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python',
-                    'python3', str(fixture_path(self.bundle, 'actor_transition_crosshost_host.py')), 'stop', self.token, '--root', str(root)]))
+                    'python3', str(Path(self.host_helper['path']) if self.host_helper else fixture_path(self.bundle, 'actor_transition_crosshost_host.py')), 'stop', self.token, '--root', str(root)]))
         if self.issuer is not None:
             try:
                 self.issuer.cleanup_owned()
@@ -577,7 +651,16 @@ def main():
     parser.add_argument('--fail-after', choices=['issuer', 'issuer-record-after-spawn', 'seeded'] +
         [host + '-' + step for host in HOSTS for step in ('root', 'world', 'authority', 'started')],
         help='Primary-only cleanup regression: deliberately fail at a completed setup boundary')
+    parser.add_argument('--host-helper-path', type=Path)
+    parser.add_argument('--host-helper-sha256')
     args = parser.parse_args()
+    if ((args.host_helper_path is None) != (args.host_helper_sha256 is None)
+            or (args.host_helper_path is None) != (HOST_HELPER_OVERRIDE is None)):
+        raise RuntimeError('host helper override arguments differ from the pre-import pin check')
+    if args.host_helper_path is not None and (
+            str(args.host_helper_path.resolve(strict=True)) != HOST_HELPER_OVERRIDE['path']
+            or args.host_helper_sha256 != HOST_HELPER_OVERRIDE['sha256']):
+        raise RuntimeError('host helper arguments differ from the pre-import pin check')
     if socket.gethostname().split('.')[0] not in HOSTS:
         raise RuntimeError('Runtime forbidden outside sb16/sb16-2')
     os.umask(0o077)

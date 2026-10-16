@@ -1,0 +1,26 @@
+M07 migration evidence location repair
+Status: UNQUALIFIED. Full gate preparation must verify this correction.
+
+Frozen candidate2fa passed focused copy/fault verification.
+Its first complete gate preparation built Debug and all seven artifact targets successfully.
+Packaging then rejected the migration test's nonexistent build-local output directory as a missing input.
+Failure evidence is retained under m07-2fa73639-gate-preparation-20261015/prepare-outer-01.
+
+The migration registration now uses the configured SPATIAL_SECURITY_EVIDENCE location.
+Other native registrations already use the same delegated evidence variable.
+The gate configures and remaps that future output directory explicitly.
+No input-path exemption, binary placeholder, or production change is introduced.
+Migration assertions, timeout, sanitizer settings, executable and protobuf dependencies remain unchanged.
+
+Regression selection before execution:
+Configure the frozen successor with an external evidence root.
+Inspect actual CTest JSON and require the migration registration to use that exact output root.
+Keep the existing missing-input rejection control for verify_inventory_paths.
+Repeat the complete preparation that reproduced this failure.
+Then run the full milestone gate on both hosts. Focused copy/fault results remain recorded carry-forward.
+
+Configuration regression passed with command/wrapper exits 0/0.
+Actual CTest JSON uses the supplied external evidence root, which remains absent before execution.
+The same closure verifier still rejects the missing real workspaced executable in the unbuilt probe directory.
+Source-policy and locked acceptance guards passed. No fixture method executed.
+Complete gate preparation and runtime qualification remain pending for the successor commit.

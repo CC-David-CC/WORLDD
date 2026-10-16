@@ -6,6 +6,7 @@ import "issuer.proto";
 import "native_scope.proto";
 import "process_scope.proto";
 import "storage.proto";
+import "copy.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -37,6 +38,7 @@ message WorkspaceResourcePolicy {
   repeated ActorResourceLimit actors = 4;
   repeated ApplicationResourceProfile profiles = 5;
 }
+message WorkspaceCopyResourceProfile { string name = 1; uint64 revision = 2; WorkspaceResourcePolicy policy = 3; }
 message BrokerResourceConfig {
   uint32 protocol_version = 1;
   string delegated_cgroup = 2;
@@ -46,6 +48,7 @@ message BrokerResourceConfig {
   spatial.supervisor.v1.ProcessScopeBudget broker_budget = 5;
   // Reserved control-plane capacity. Applied to the manager before store initialization.
   spatial.supervisor.v1.ProcessScopeBudget manager_budget = 6;
+  repeated WorkspaceCopyResourceProfile copy_profiles = 7;
 }
 // Parent launch configuration. The child resource template must leave its root empty.
 message BrokerProcessConfig {
@@ -101,6 +104,17 @@ message AccessRequest {
   spatial.authority.v1.ActorRef principal = 3;
 }
 message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+// Private authenticated broker query. Components are opaque authority scope values.
+message ScopedAuthorityCheckRequest {
+  string workspace = 1;
+  spatial.authority.v1.ActorRef principal = 2;
+  spatial.authority.v1.Right right = 3;
+  repeated bytes components = 4;
+}
+// Deliberately returns no grants or workspace metadata.
+message ScopedAuthorityCheckReply { bool allowed = 1; uint64 revision = 2; bytes incarnation = 3; uint64 epoch = 4; }
+message AuthorizationFenceRequest { spatial.authority.v1.ActorRef principal = 1; }
+message AuthorizationFence { bytes incarnation = 1; uint64 epoch = 2; }
 // Application groups come from trusted native attribution, not client properties.
 message ApplicationRef { bytes workspace = 1; bytes application = 2; bytes server_id = 3; }
 message ApplicationAccessRequest {
@@ -113,7 +127,7 @@ message ApplicationAccess {
   optional bool control = 3;
 }
 // Results preserve request order and identity. Denied groups return explicit false values.
-message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
+message ApplicationAccessReply { repeated ApplicationAccess applications = 1; bytes incarnation = 2; uint64 epoch = 3; }
 // Live control reservations are scoped to this private broker connection.
 message ApplicationControlRequest {
   spatial.authority.v1.ActorRef principal = 1;
@@ -204,11 +218,20 @@ message BootstrapApplyRequest {
   string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
   spatial.identity.v1.SignedCredential credential = 3;
 }
+message WorkspaceCopyBeginRequest {
+  spatial.authority.v1.ActorRef principal = 1;
+  spatial.workspace.copy.v1.WorkspaceCopyRequest request = 2;
+}
+message WorkspaceCopyStatusQuery {
+  spatial.authority.v1.ActorRef principal = 1;
+  spatial.workspace.copy.v1.WorkspaceCopyStatusRequest request = 2;
+}
 // The broker and its namespace supervisor use this channel. Applications never receive it.
-message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
+message AppStart { uint32 protocol_version = 1; repeated string argv = 2; bool require_payload_boundary = 3; }
+message AppContinue { uint32 protocol_version = 1; bool release_payload = 2; }
 message AppEvent {
   uint32 protocol_version = 1;
-  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; }
+  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; uint32 payload_ready = 5; }
 }
 message Request {
   uint32 protocol_version = 1;
@@ -226,6 +249,10 @@ message Request {
     BootstrapBindRequest bootstrap_bind = 110;
     BootstrapRevokeRequest bootstrap_revoke = 111;
     BootstrapApplyRequest bootstrap_apply = 112;
+    ScopedAuthorityCheckRequest scoped_authority_check = 113;
+    AuthorizationFenceRequest authorization_fence = 114;
+    WorkspaceCopyBeginRequest workspace_copy_begin = 115;
+    WorkspaceCopyStatusQuery workspace_copy_status = 116;
   }
 }
 message Reply {
@@ -245,5 +272,8 @@ message Reply {
     ApplicationControlLease control_revoked = 109;
     spatial.authority.v1.BootstrapBinding binding = 110;
     spatial.authority.v1.BootstrapReport bootstrap = 111;
+    ScopedAuthorityCheckReply scoped_authority_check = 112;
+    AuthorizationFence authorization_fence = 113;
+    spatial.workspace.copy.v1.WorkspaceCopyStatus workspace_copy_status = 115;
   }
 }

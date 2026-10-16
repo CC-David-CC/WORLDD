@@ -14,6 +14,7 @@ import test_world_authority as authority
 from test_actor_pixels import ActorPixelTests,grant
 from test_world_identity import WorldProcess,SessionPeer,WORLD
 from test_world_remote import RemoteWorldProcess
+from world_process_lifecycle_fixture import WorldProcessLifecycleMixin
 from harness.oracles import pose
 from harness.wire import frame
 
@@ -22,7 +23,7 @@ class HybridWorldProcess(WorldProcess):
     connect=RemoteWorldProcess.connect
 
     def __init__(self,fixture,config,state,native=False,count=2,runtime_config=None,broker=None):
-        self.sequence=0;self.log=(fixture.root/f'hybrid-{len(fixture.worlds)}.log').open('wb')
+        self.sequence=0;self.broker_channel=None;self.log=(fixture.root/f'hybrid-{len(fixture.worlds)}.log').open('wb')
         self.server_key,self.server_cert=fixture.certificate('hybrid-world','world.test')
         tls=session.WorldActorTlsConfig(protocol_version=1,certificate_path=str(self.server_cert),
             private_key_path=str(self.server_key),client_ca_path=str(fixture.service_cert),
@@ -40,6 +41,7 @@ class HybridWorldProcess(WorldProcess):
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=(listener.fileno(),)+tuple(p[1].fileno() for p in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))
+            self._initialize_process_lifecycle()
         finally:
             listener.close()
             for _,server in pairs:server.close()
@@ -96,6 +98,18 @@ class RemoteNativeTests(ActorPixelTests):
         self.assertTrue(self.world_process.management('surface.get',id=surface['id'])['mapped'])
 
 
+class HybridWorldProcessLifecycleRegression(WorldProcessLifecycleMixin, unittest.TestCase):
+    def test_hybrid_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        fixture = self.Fixture(self.root)
+        with patch.dict(HybridWorldProcess.__init__.__globals__, {"WORLD": self.helper}):
+            world = HybridWorldProcess(
+                fixture, self.root / "identity.textproto", self.root / "state", count=1
+            )
+        self.assert_lifecycle_close(world)
+
+
 if __name__=='__main__':
     tests=unittest.TestSuite(RemoteNativeTests(name) for name in RemoteNativeTests.__dict__ if name.startswith('test_'))
+    tests.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(HybridWorldProcessLifecycleRegression))
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(tests).wasSuccessful())

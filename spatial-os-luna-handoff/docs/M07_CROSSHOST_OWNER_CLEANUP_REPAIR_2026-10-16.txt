@@ -1,0 +1,63 @@
+# M07 cross-host owner cleanup fixture repair
+
+Status: FOCUSED-PASS. Primary reviewed the source and accepted focused checks on both test hosts.
+M07 remains UNQUALIFIED. The complete cross-host rerun remains pending.
+
+Primary verification on 2026-10-16:
+The repaired stop operation passed against each exact retained failed root.
+Recovery panes 3646400 and 3615329 retired after 0/0/COMPLETE.
+All nine lifetime unit tests and one real slow-listener control passed on each host.
+Focused panes 3647005 and 3615934 retired after 0/0/COMPLETE.
+Primary verified runner arguments, seven receipt files, source hashes, results, and process retirement.
+The original failed evidence and retained roots remain preserved.
+
+Each host stores its recovery audit under:
+/home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/primary-recovery-01/PRIMARY_RECOVERY_AUDIT_01.json
+Recovery audit SHA256:
+sb16 f0cdaa02e247b9089f4dd55920a01315a2f2b2e7aedd008d7cdb7ab394523651
+sb16-2 13d85a00d588ca2396f3b8a3c20d00bd81fd79558ca9c4ef14bcddc5a6d81258
+
+Each host stores its focused audit under:
+/home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/primary-focused-controls-01/PRIMARY_FOCUSED_AUDIT_01.json
+Focused audit SHA256:
+sb16 c9bf1ecc682046bed7287667c2cda206d15a5e72ce61d7b5d6d7bb27331091ac
+sb16-2 8614f5793e8040e32999bcdebc5b7e67633f7f7648326ba67671b6f64ba61c7e
+
+The remaining selections below describe the complete lifecycle rerun.
+The coding worker performed static checks only. Primary executed the runtime checks above.
+
+
+Host: a5500 (Linux hostname G164). Worktree: `/home/dflanag3/src/spacial-m07-crosshost-owner-cleanup-20261016`. Branch: `m07/crosshost-owner-cleanup-20261016`. Base: `1e58e65dec132a0a16f004ca4527034dca081f77`.
+
+The failed Debug cross-host semantic run completed its actor transition. Cleanup then treated tmux session existence as process liveness and wrote cancellation before PID identity sampling. Tmux can retain a dead pane. Cleanup now pins and verifies the owner pidfd before cancellation. It waits for that pidfd to become ready under one 20-second deadline. A dead tmux pane does not affect completion. Identity mismatches and uncertain launch records retain the root. Start uses `exec` and captures the numeric pane PID from tmux `new-session -P -F`. It writes that PID promptly, then checks the process record's PID, complete command, and live pidfd before storing full owner identity. A startup timeout never relaunches the command. Worldd identity and fixture-root checks remain active. One stop byte is sent at most once.
+
+Primary review01 corrections: zombie test records are captured before exit. The dead-owner case expects no cancel marker or stop byte. Positive cleanup cases use the real root guard.
+
+## Frozen negative-control fixture
+
+`M06_CROSSHOST_HOST_BASELINE_FIXTURE` uses a preserved pre-pidfd helper. This branch adds only this file from the archived checkout at `tests/fixtures/legacy-negative-control/actor_transition_crosshost_host.py`. Its source pin is commit `4f241a95d98e28b037b17ad1826f6816c2cc17ad`, file SHA256 `192d2e0c824bc96d78d8d8060ec274191459c885eaf511e4c9bafb00a33161ee`. The already-maintained M06 record `docs/M06_CROSSHOST_OWNER_PIDFD_EXIT_RACE_2026-10-14.txt` attributes the same hash to the frozen source and records prior two-host negative-control runs. Its `guarded_pidfd` raises `RuntimeError` when identity changes during the probe, preserving the historical negative-control purpose.
+
+The source bytes came from an already-existing worktree whose origin identifies the recovery-era repository `dflanag3@box-git:/srv/data/git/spacial_desktop.git`. This change copied one fixture file only. It did not fetch or merge history, or copy logs and other checkout data. A pinned external copy is `/home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/review03/baseline/actor_transition_crosshost_host.py`.
+
+For the focused regression on sb16 and sb16-2, set `M06_CROSSHOST_HOST_FIXTURE` to the approved review02 helper bytes (SHA256 `cea2a97df65729884b0d7fc4bc19fead3e48ddc93660d9bb12ed94c2c7089a8c`) and `M06_CROSSHOST_HOST_BASELINE_FIXTURE` to the baseline file above (SHA256 `192d2e0c824bc96d78d8d8060ec274191459c885eaf511e4c9bafb00a33161ee`). Use the test source `tests/core/test_actor_transition_crosshost_host_pidfd.py` (SHA256 `0abdf595ef827229ebe84f56bfb6ae7735c0f1ed4a182f970cd36732e435f0c1`). The generated Debug Python bindings and `harness` package must remain on the existing focused bundle's `PYTHONPATH`. For target-host copies, preserve these exact hashes and set both variables to the copied absolute paths. The coding worker ran no tests. Primary runtime results are recorded above.
+
+Named source regressions are in `tests/core/test_actor_transition_crosshost_host_pidfd.py`:
+
+- `test_exited_owner_with_retained_dead_tmux_pane_finishes_from_pidfd`
+- `test_teardown_acquires_owner_identity_before_cancel_and_observes_exit`
+- `test_actual_live_owner_timeout_retains_root`
+- `test_wrong_live_pid_identity_refuses_cancellation`
+- `stop_owner_backlog_regression` retains the slow-listener one-byte assertion.
+
+Selected runtime checks, recorded before execution:
+
+1. On sb16 and sb16-2, run the `stop` operation against the exact retained root identified in the coordination task. Read the token from that root's `owner.json`. Confirm cleanup returns zero, owner and worldd identity checks finish, and the unrelated dead tmux session does not block completion.
+2. On both hosts, execute `test_actor_transition_crosshost_host_pidfd.py` with `M06_CROSSHOST_HOST_FIXTURE` set to the candidate host fixture and `M06_CROSSHOST_HOST_BASELINE_FIXTURE` set to the frozen baseline fixture. The four named cases exercise dead-pane completion, teardown ordering, live-owner timeout, and identity refusal. Existing pidfd guard cases remain selected.
+3. Run the existing cross-host lifecycle fixture in Debug on both hosts. Confirm semantic actor transition, one-stop-byte cleanup, zero `worldd.exit`, complete cleanup receipts, and removed roots.
+4. Repeat the lifecycle fixture in ASan/UBSan after Debug passes. Preserve exact source pins, manifests, and all failure roots.
+
+Direct retained-root command shape (use each host's candidate path and exact owner token):
+
+`python3 /path/to/actor_transition_crosshost_host.py stop OWNER_TOKEN --root /tmp/RETAINED_ROOT`
+
+The coding worker performed no imports, tests, compiler runtime, or world-host access. Primary accepted the focused runtime checks above. The complete cross-host gate remains pending.

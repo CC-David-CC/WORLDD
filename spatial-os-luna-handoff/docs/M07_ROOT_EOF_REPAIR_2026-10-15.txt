@@ -1,0 +1,13 @@
+M07 buffered root EOF repair (UNQUALIFIED)
+
+The nonblocking root pump dispatches at most one request per call.
+EOF can arrive while several complete requests remain buffered.
+The outer loop incorrectly classified any remaining bytes as a truncated frame.
+Drain complete buffered frames before normal shutdown or truncated-suffix rejection.
+Keep output ordering, transport deadlines, bounded frames, and copy single-flight checks unchanged.
+The existing finite stream and backpressure tests reproduce the failure.
+Add complete-prefix plus incomplete-header/body tests to preserve strict final-frame rejection.
+Selected runtime check: workspace-git, Debug and ASan/UBSan, on both test hosts.
+Related workspace-copy responsiveness and full phase qualification remain required.
+Original evidence: a5500 spatial-artifacts/m07-gate-failure-diagnosis-20261015/evidence-sb16-2-debug-partial-07.
+No runtime pass is claimed at this checkpoint.

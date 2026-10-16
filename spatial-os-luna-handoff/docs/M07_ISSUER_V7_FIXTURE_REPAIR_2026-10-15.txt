@@ -1,0 +1,12 @@
+The issuer schema is version 11.
+The v7 migration fixture now removes tables added after version 7.
+It removes authority_domains_add_operation and authority_participant_history.
+The production migration recreates both tables and advances the schema to version 11.
+The successful migration case still preserves existing rows and issuer key material.
+It still runs migration twice and denies activation without a launch grant.
+The test also checks both version-11 tables exist after migration.
+The rollback case removes the same future tables before migration.
+Its malformed authority_launch_authorization table remains the failure trigger.
+The rollback case still checks the database snapshot and version are unchanged.
+No production schema or authorization behavior changed.
+Runtime and regression execution remain pending.

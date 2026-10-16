@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
+#include <exception>
 #include <iostream>
 #include <linux/close_range.h>
 #include <linux/magic.h>
@@ -169,6 +170,66 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
     return result;
 }
 
+namespace {
+std::uint64_t process_start(pid_t pid) {
+    std::ifstream input("/proc/"+std::to_string(pid)+"/stat");std::string line;
+    valid(static_cast<bool>(std::getline(input,line)),"Payload process identity is unavailable");
+    const auto end=line.rfind(')');valid(end!=std::string::npos,"Payload process stat is malformed");
+    std::istringstream fields(line.substr(end+2));std::string field;
+    for(unsigned n=0;n<20;++n)valid(static_cast<bool>(fields>>field),"Payload process stat is incomplete");
+    std::size_t used=0;const auto ticks=std::stoull(field,&used);
+    valid(used==field.size() && ticks>0,"Payload process start time is invalid");return ticks;
+}
+v1::PayloadQuiescenceReceipt inventory(int directory,const v1::ProcessScopeIdentity& identity) {
+    v1::PayloadQuiescenceReceipt result;*result.mutable_scope()=identity;
+    std::istringstream ids(contents(directory,"cgroup.procs"));std::set<pid_t> ordered;pid_t pid=0;
+    while(ids>>pid) {valid(pid>1 && ordered.size()<4096,"Payload process inventory exceeds its bound");ordered.insert(pid);}
+    valid(ids.eof(),"Payload process inventory is malformed");
+    for(const auto item:ordered) {auto* process=result.add_processes();process->set_pid(item);process->set_start_ticks(process_start(item));}
+    return result;
+}
+}
+void ProcessScope::attach_payload(pid_t pid) {
+    valid(started_ && !removed_ && payload_<0 && pid>1 && pid!=child_ && pid!=getpid(),
+          "Payload attachment requires a new held application child");
+    std::istringstream members(contents(scope_,"cgroup.procs"));pid_t member=0;bool owned=false;
+    while(members>>member)if(member==pid)owned=true;
+    valid(owned,"Application payload is outside its owned process scope");
+    const auto before=process_start(pid);
+    check(mkdirat(scope_,"payload",0700)==0,"Cannot create owned payload boundary");
+    payload_=openat(scope_,"payload",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    check(payload_>=0,"Cannot pin owned payload boundary");
+    control(payload_,"cgroup.procs",std::to_string(pid)+"\n");
+    const auto receipt=inventory(payload_,identity_);
+    valid(receipt.processes_size()==1 && receipt.processes(0).pid()==static_cast<unsigned>(pid) &&
+          receipt.processes(0).start_ticks()==before,"Payload identity changed during attachment");
+}
+void ProcessScope::begin_payload_freeze() {
+    valid(payload_>=0 && !removed_ && !freeze_owned_,"No available owned application payload boundary");
+    valid(contents(payload_,"cgroup.freeze")=="0\n","Payload was frozen by another owner");
+    frozen_inventory_=inventory(payload_,identity_).SerializeAsString();
+    freeze_owned_=true;
+    try {control(payload_,"cgroup.freeze","1\n");}
+    catch(...) {try {thaw_payload();}catch(...){} throw;}
+}
+bool ProcessScope::payload_frozen() const {
+    valid(payload_>=0 && freeze_owned_ && !removed_,"No owned freeze is pending");
+    return contents(payload_,"cgroup.events").find("frozen 1\n")!=std::string::npos;
+}
+v1::PayloadQuiescenceReceipt ProcessScope::payload_receipt() const {
+    valid(payload_frozen(),"Payload freeze is incomplete");
+    auto result=inventory(payload_,identity_);
+    valid(result.SerializeAsString()==frozen_inventory_,"Payload process inventory changed during freeze");
+    result.set_frozen(true);return result;
+}
+void ProcessScope::thaw_payload() {
+    if(!freeze_owned_)return;
+    valid(payload_>=0 && !removed_,"Owned payload freeze lost its boundary");
+    control(payload_,"cgroup.freeze","0\n");
+    valid(contents(payload_,"cgroup.freeze")=="0\n","Payload thaw could not be proven");
+    freeze_owned_=false;frozen_inventory_.clear();
+}
+
 void ProcessScope::enable_children() {
     valid(!started_ && !removed_ && !populated(), "Child controllers require an empty prepared scope");
     control(scope_, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
@@ -327,15 +388,30 @@ void ProcessScope::throttle_memory(std::uint64_t bytes) {
     control(scope_, "memory.high", value);
     valid(contents(scope_, "memory.high") == value, "Memory throttle was not applied");
 }
-v1::ProcessScopeStopped ProcessScope::stop() {
+void ProcessScope::request_stop() {
+    std::exception_ptr failure;
+    const auto attempt = [&failure](auto&& action) {
+        try { action(); }
+        catch (...) { if (!failure) failure = std::current_exception(); }
+    };
+    if (freeze_owned_) attempt([this] { thaw_payload(); });
+    if (payload_ >= 0 && !freeze_owned_) { close(payload_); payload_ = -1; }
     if (!removed_) {
-        if (scope_ >= 0) control(scope_, "cgroup.kill", "1\n");
-        // Also cover a startup failure before cgroup migration. The direct child remains unreaped.
-        if (child_ > 0 && !reaped_) {
+        if (scope_ >= 0) attempt([this] { control(scope_, "cgroup.kill", "1\n"); });
+        if (child_ > 0 && !reaped_) attempt([this] {
             const int rc = pidfd_ >= 0 ? static_cast<int>(syscall(SYS_pidfd_send_signal, pidfd_, SIGKILL, nullptr, 0)) : kill(child_, SIGKILL);
-            check(rc == 0 || errno == ESRCH, "Cannot terminate owned authority child");
-        }
-        const auto deadline = Clock::now()+std::chrono::seconds(2);
+            if (rc < 0 && errno != ESRCH) throw std::runtime_error("Cannot terminate owned authority child");
+        });
+    }
+    stop_requested_ = true;
+    if (failure) std::rethrow_exception(failure);
+}
+const v1::ProcessScopeIdentity& ProcessScope::identity() const { return identity_; }
+bool ProcessScope::diagnostic_populated() const { return scope_ >= 0 && populated(); }
+bool ProcessScope::diagnostic_child_reaped() const { return reaped_; }
+v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline) {
+    valid(stop_requested_, "Owned termination was not requested");
+    if (!removed_) {
         while (scope_ >= 0 && populated()) {
             valid(Clock::now() < deadline, "Authority scope remains populated"); tick();
         }
@@ -358,6 +434,10 @@ v1::ProcessScopeStopped ProcessScope::stop() {
         removed_ = true;
     }
     v1::ProcessScopeStopped result; *result.mutable_identity() = identity_; return result;
+}
+v1::ProcessScopeStopped ProcessScope::stop() {
+    request_stop();
+    return complete_stop(Clock::now()+std::chrono::seconds(2));
 }
 ProcessScope::~ProcessScope() {
     try { stop(); }

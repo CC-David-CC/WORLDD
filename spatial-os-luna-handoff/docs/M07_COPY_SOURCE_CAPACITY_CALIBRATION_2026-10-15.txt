@@ -1,0 +1,44 @@
+M07 copy-source capacity calibration -- 2026-10-15
+
+UNQUALIFIED. This is one declared calibration, not a final qualification budget or production accounting repair.
+The earlier eight-MiB application EDQUOT failure remains unexplained.
+The validated observer now captures an actual syscall error and complete quota hierarchy for the known negative.
+The negative passed in 14.399 seconds: errno 122, durable exit 73, peer continuity/progress, and real owner policy checks.
+Its raw trace maps root 263 to an individual 4 MiB object under actor 32 MiB, workspace 64 MiB, and volume hierarchy.
+Negative proof SHA256: 88a0ea00191de76f345de40ef504f162081f74a39f2098ec38f0bbc6b6570946.
+Negative raw trace SHA256: 8e88dff979caebd05532bfc5f3350bc83d179c9859f0efe04976763b5a7118d0.
+
+The matched unchanged eight-MiB copy passed in 62.796 seconds with a valid capture.
+All ten source PID/start identities survived publication. Frozen bytes, independent files, progress, and relaunch checks passed.
+The unchanged eight-MiB no-copy control passed in 72.841 seconds with a valid sixty-second observation.
+Both cases preserved source actor 32 MiB, workspace 64 MiB, and five-millisecond writers.
+Both source state qgroups reached type-1 reservation peaks of 8,372,224 bytes in both runs.
+The remaining 16 KiB excludes referenced usage and other reservations. It is not guaranteed operating headroom.
+The no-copy result shows this constrained pressure also occurs without a copy. It does not identify the historical rejecting group.
+Separate peak entries are not simultaneous totals. A limit-constrained peak does not measure the unconstrained working set.
+
+Matched evidence root: sb16-2:/home/dflanag3/spatial-artifacts/m07-copy-quota-diagnostic-validation-f15ed797-20261015.
+Negative: 03-smallquota. Copy: 04-positive8m. Control: 05-nocopy8m.
+Copy result SHA256: 966e355ff7c573f7caa5db2432c1f8066dfa65550a5801d4f27439aba32e2dcb.
+Control result SHA256: 8de465baccc381f702ae45992ef29388c2459fbb61d71255f5081ca20908a4fe.
+All three cases have command/wrapper exits 0/0, restored helpers, unmounted/detached volumes, and stopped owned services/observers.
+Earlier failed images, invalid captures, and packages remain retained.
+
+The declared calibration selects only the existing complete positive scenario.
+Its source persistent/runtime object ceilings are 64 MiB each, with source actor and workspace ceilings of 256 MiB.
+The volume remains 512 MiB, with control-plane and filesystem reserves of 64 MiB each.
+The source workspace plus destination workspace allowances are 256 + 32 = 288 MiB, within the 384 MiB user allowance.
+Four 64 MiB source object ceilings are not a claim of simultaneous measured usage.
+Destination workspace 32 MiB, actor 12 MiB, and copy-app 4 MiB remain independently assigned.
+The unused destination copy-source profile remains at its prior 8 MiB rather than inheriting the calibration limit.
+All other scenario policies remain unchanged. The negative remains 4 MiB. The fourteen-application deadline fixture is unchanged.
+Five-millisecond writers, response and copy deadlines, resource memory caps, authority, and every positive assertion remain unchanged.
+No production code changed. No kernel build, filesystem replacement, or global synchronization is involved.
+
+The optional observer adds bounded read-only final qgroup and owner-catalog snapshots on release, before volume cleanup.
+Final snapshots report current/end values, not an atomic record of peak headroom or the earlier kernel decision.
+Each capture is bounded to two seconds. Snapshots, remaining drain, and shutdown share the completion budget.
+Capture failure or incomplete shutdown invalidates the diagnostic dataset and preserves its error.
+The reviewed next step is one full positive calibration on sb16-2 Debug with unchanged eb569 production executables.
+Calibration is UNRUN at this checkpoint. No escalation beyond this declared profile is authorized after failure.
+A successful calibration alone will not qualify M07 or select the final operating budget.

@@ -8,11 +8,15 @@ import sys
 import tempfile
 import time
 import uuid
+from copy_fixture_profiles import consume_profile, manager_memory_mib
 from google.protobuf import text_format
 import broker_pb2 as broker
 import process_scope_pb2 as process
 
 assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
+resource_profile = 'Debug'
+if sys.argv[1:2] and sys.argv[1].startswith('--copy-profile='):
+    _, resource_profile = consume_profile([sys.argv.pop(1)], '--copy-profile=')
 assert sys.argv[1:2] == ['--'] and len(sys.argv) > 2
 relative = Path('/proc/self/cgroup').read_text().strip().split('::', 1)[1]
 manager = Path('/sys/fs/cgroup') / relative.lstrip('/')
@@ -23,7 +27,7 @@ assert owner.stat().st_uid == os.getuid() and not (owner/'cgroup.procs').read_te
 scope = owner / ('adapter-' + uuid.uuid4().hex); scope.mkdir()
 pin = scope.stat()
 (scope/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
-result = dict(scope=str(scope), device=pin.st_dev, inode=pin.st_ino, removed=[], unexpected_population=False)
+result = dict(resource_profile=resource_profile, manager_memory_bytes=manager_memory_mib(resource_profile)*2**20, scope=str(scope), device=pin.st_dev, inode=pin.st_ino, removed=[], unexpected_population=False)
 code = 1
 try:
     with tempfile.TemporaryDirectory(prefix='spatial-adapter-resources-') as temporary:
@@ -39,7 +43,7 @@ try:
         config = broker.BrokerProcessConfig(protocol_version=1, delegated_cgroup=str(scope),
             resources=broker.BrokerResourceConfig(protocol_version=2,
                 broker_budget=budget(1024, 128, 400000),
-                manager_budget=budget(256, 32, 200000),
+                manager_budget=budget(manager_memory_mib(resource_profile), 32, 200000),
                 default_policy=broker.WorkspaceResourcePolicy(total=budget(512, 64, 200000),
                     actor_default=budget(256, 32, 100000), profiles=[
                         broker.ApplicationResourceProfile(name=name, maximum=budget(128, 16, 100000))

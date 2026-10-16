@@ -1,3 +1,23 @@
+## 2026-10-16: M07 QUALIFIED; M08 remains in development
+
+M01-M07 are qualified. M08-M16 and final Spatial-M1 acceptance remain pending.
+Both hosts passed full Debug and ASan-UBSan local qualification.
+Cross-host semantic, native geometry, and all four workspace cells passed.
+Strict reconciliation and both final artifact audits passed primary review.
+The completed matrix has 30 test-group runs and 1,688 test/scenario executions.
+These are repeated host/profile executions. No skips or sanitizer findings remain in the completed matrix.
+The frozen production candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+Reviewed test-only cleanup and collector changes are integrated on m07/qualified-20261016.
+All 251 production, schema, harness, and build-contract files match the tested candidate.
+No M08 source entered this gate. Earlier failed evidence remains preserved externally.
+See docs/M07_QUALIFIED_2026-10-16.txt from the repository root for proof paths and hashes.
+
+M08 combined checkpoint 43b36a8123926592325c531c7c1d3bec6ebb5122 is BOX-GIT VERIFIED and UNQUALIFIED.
+Its compile-only package passed review. Its broker runtime checks remain UNRUN.
+Actor cabinet gateway work continues on a separate middle-child branch.
+Workspace subtree-copy actions and full M08 qualification remain outstanding.
+David authorized GitHub publication of qualified M07. Publication requires verified push receipts.
+
 ## 2026-10-16: Cross-host prerequisites accepted; workspace behavior passed but collection failed
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED.

@@ -1,0 +1,43 @@
+UNQUALIFIED M07 copy sanitizer fixture manager repair proposal, 2026-10-15
+
+Base: d200833b7e09723dfc1a5900aab4981e388e1e9c.
+Runtime executables remain from eb569742f843c59e988e813f3431cf292c516fe7.
+
+Both first SAN positive runs failed. Kernel records prove a 256 MiB broker-manager
+cgroup OOM killed workspaced. SB16-2 PID 2616327 belonged to test unit
+9e34f01a29334c8084172561aa0d81eb. SB16 PID 2677349 belonged to unit
+2b6b5630c74f4049b788177e943b4c36. The Git worker status 1 message does not
+establish a cause. Durable running rows do not prove source process continuity.
+Missing processes and zombies make SAN continuity failed or unconfirmed.
+
+Matching kernel context SHA-256 values:
+SB16-2: 8755434584ac22c86b5162fa35754753c60ce659ba88d662117d15f941688af8
+SB16: 943727e7f540c3d45d070e62a50820981406878eb859df318c7d315632c003d5
+Raw records remain under each host's matrix/san-oom-kernel-evidence-01 directory.
+The coding-host recovery copy is /home/dflanag3/spatial-artifacts/m07-copy-san-manager-envelope-20261015.
+
+The explicit --profile=ASan-UBSan copy fixture option selects a 512 MiB manager.
+Runner preflight requires actual ASan and UBSan dependencies on all ten SAN executables.
+Debug requires their absence on all ten executables. Both profiles record hashes and dependencies. CMake selects this option only when SPATIAL_SANITIZERS is on.
+Debug and other adapter callers retain the 256 MiB default. No path or environment
+heuristic chooses the profile. The copy diagnostic entrypoint forwards the same option.
+The broker remains 1024 MiB. The outer native service remains 1536 MiB.
+Application, actor, workspace, storage, PID, CPU, I/O and swap limits are unchanged.
+All fixture assertions, sanitizer flags and quarantine settings are unchanged.
+Production sources and runtime binaries are unchanged. This is a test-only overlay.
+
+Selected checks: pure explicit-profile and instrumentation rejection tests on a test
+host, existing runner/static discovery, then the exact failed SAN positive on each host
+only after primary review. No retry or completed matrix is claimed by this proposal.
+
+Focused validation before checkpoint: both SB16 and SB16-2 passed six named pure
+profile tests, four named diagnostic static tests, import/preflight assertions,
+and discovery of 13 engine, five fault, and three diagnostic methods. No fixture
+method executed. Actual Debug and SAN dependencies matched all ten executable
+profiles on each host. Both canonical command and wrapper exits were zero.
+Evidence: /home/dflanag3/spatial-artifacts/m07-copy-san-manager-envelope-20261015
+on both hosts, under pure-outer-01 and pure-checks-01.
+The a5500 cmake-inventory-01 recorded Debug and SAN configure/ctest-N success,
+correct profile arguments on all six registrations, and the explicit security-auth
+dependency through engine to fault fixture. No project target was compiled.
+The failed SAN runtime cases remain failures. No runtime retry is claimed.

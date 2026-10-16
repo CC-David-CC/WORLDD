@@ -69,6 +69,29 @@ bool valid_control_lease(const broker_wire::ApplicationControlLease& lease) {
         lease.principal().actor_id().size() == 32 && lease.application().server_id().size() == 32 &&
         !lease.application().workspace().empty() && !lease.application().application().empty();
 }
+bool valid_copy_status(const workspace::copy::v1::WorkspaceCopyStatus& status,
+                       const std::string& expected_operation) {
+    if (!status.GetReflection()->GetUnknownFields(status).empty()) return false;
+    if (status.operation_id().size() != 16 || status.operation_id() != expected_operation ||
+        status.phase() < workspace::copy::v1::REQUESTED || status.phase() > workspace::copy::v1::UNCERTAIN) return false;
+    if (status.has_error_code() &&
+        (status.error_code() < workspace::copy::v1::COPY_INVALID_ARGUMENT || status.error_code() > workspace::copy::v1::COPY_OPERATION_CONFLICT))
+        return false;
+    const bool terminal_failure = status.phase() == workspace::copy::v1::ABORTED || status.phase() == workspace::copy::v1::UNCERTAIN;
+    if (terminal_failure != status.has_error_code()) return false;
+    if (status.has_authorized_manifest_digest() && status.authorized_manifest_digest().size() != 32) return false;
+    if (status.has_authorized_destination_workspace_id()) {
+        const auto& id = status.authorized_destination_workspace_id();
+        if (id.size() != 32 || id.find_first_not_of("0123456789abcdef") != std::string::npos ||
+            (status.phase() != workspace::copy::v1::VALIDATED && status.phase() != workspace::copy::v1::PUBLISHED && status.phase() != workspace::copy::v1::UNCERTAIN))
+            return false;
+    }
+    if (status.has_authorized_manifest_digest() &&
+        (!status.has_authorized_destination_workspace_id() ||
+         (status.phase() != workspace::copy::v1::VALIDATED && status.phase() != workspace::copy::v1::PUBLISHED && status.phase() != workspace::copy::v1::UNCERTAIN)))
+        return false;
+    return true;
+}
 }
 BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults,
                              const std::filesystem::path& resource_configuration) {
@@ -375,6 +398,16 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             }
             if (request.has_bootstrap_apply() && reply.has_bootstrap())
                 valid = bootstrap_report(reply.bootstrap(), request.bootstrap_apply());
+            if (request.has_scoped_authority_check() && reply.has_scoped_authority_check())
+                valid = reply.scoped_authority_check().revision() <= INT64_MAX && reply.scoped_authority_check().incarnation().size() == 16 && reply.scoped_authority_check().epoch() > 0;
+            if (request.has_authorization_fence() && reply.has_authorization_fence())
+                valid = reply.authorization_fence().incarnation().size() == 16 && reply.authorization_fence().epoch() > 0;
+            if (request.has_workspace_copy_begin() && reply.has_workspace_copy_status())
+                valid = valid_copy_status(reply.workspace_copy_status(), request.workspace_copy_begin().request().operation_id());
+            if (request.has_workspace_copy_status() && reply.has_workspace_copy_status())
+                valid = valid_copy_status(reply.workspace_copy_status(), request.workspace_copy_status().request().operation_id());
+            if (request.has_application_access() && reply.has_application_access())
+                valid = reply.application_access().incarnation().size() == 16 && reply.application_access().epoch() > 0 && valid;
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
@@ -403,6 +436,22 @@ broker_wire::AccessReply BrokerClient::access(const std::string& workspace, cons
     broker_wire::Request request; request.mutable_access()->set_workspace(workspace); request.mutable_access()->set_actor(actor);
     if (principal) *request.mutable_access()->mutable_principal() = *principal;
     return exchange(request).access();
+}
+broker_wire::ScopedAuthorityCheckReply BrokerClient::scoped_authority_check(const broker_wire::ScopedAuthorityCheckRequest& command) {
+    broker_wire::Request request; *request.mutable_scoped_authority_check() = command;
+    return exchange(request).scoped_authority_check();
+}
+broker_wire::AuthorizationFence BrokerClient::authorization_fence(const broker_wire::AuthorizationFenceRequest& command) {
+    broker_wire::Request request; *request.mutable_authorization_fence() = command;
+    return exchange(request).authorization_fence();
+}
+workspace::copy::v1::WorkspaceCopyStatus BrokerClient::workspace_copy_begin(const workspace::copy::v1::WorkspaceCopyRequest& command, const authority::v1::ActorRef& principal) {
+    broker_wire::Request request; auto* begin = request.mutable_workspace_copy_begin(); *begin->mutable_request() = command; *begin->mutable_principal() = principal;
+    return exchange(request).workspace_copy_status();
+}
+workspace::copy::v1::WorkspaceCopyStatus BrokerClient::workspace_copy_status(const workspace::copy::v1::WorkspaceCopyStatusRequest& command, const authority::v1::ActorRef& principal) {
+    broker_wire::Request request; auto* status = request.mutable_workspace_copy_status(); *status->mutable_request() = command; *status->mutable_principal() = principal;
+    return exchange(request).workspace_copy_status();
 }
 broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
     broker_wire::Request request; *request.mutable_application_access() = command;

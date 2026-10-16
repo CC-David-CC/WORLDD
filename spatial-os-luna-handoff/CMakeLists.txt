@@ -18,17 +18,18 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 configure_file(config/conformance.textproto runtime.textproto COPYONLY)
 set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
-list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1")
+list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1")
 protobuf_generate_cpp(presentation_probe_sources presentation_probe_headers tests/proto/presentation_probe.proto)
 protobuf_generate_cpp(presentation_proto_sources presentation_proto_headers proto/spatial/render/v1/presentation.proto)
 protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
-protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
 protobuf_generate_cpp(selection_scope_proto_sources selection_scope_proto_headers proto/spatial/security/v1/selection_scope.proto)
 protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
 protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
 protobuf_generate_cpp(storage_proto_sources storage_proto_headers proto/spatial/workspace/v1/storage.proto)
+protobuf_generate_cpp(copy_worker_proto_sources copy_worker_proto_headers proto/spatial/workspace/v1/copy_worker.proto)
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
@@ -40,12 +41,24 @@ protobuf_generate_cpp(actor_transition_crosshost_proto_sources actor_transition_
 protobuf_generate_cpp(host_actor_controller_proto_sources host_actor_controller_proto_headers proto/spatial/identity/v1/host_actor_controller.proto)
 protobuf_generate_cpp(host_session_proto_sources host_session_proto_headers proto/spatial/supervisor/v1/host_session.proto)
 protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
+set(presentation_interface_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(presentation_interface_proto_cc "${presentation_interface_generated_dir}/spatial/workspace/presentation/v1/presentation.pb.cc")
+set(presentation_interface_proto_h "${presentation_interface_generated_dir}/spatial/workspace/presentation/v1/presentation.pb.h")
+add_custom_command(OUTPUT "${presentation_interface_proto_cc}" "${presentation_interface_proto_h}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${presentation_interface_generated_dir}/spatial/workspace/presentation/v1"
+    COMMAND protobuf::protoc "--cpp_out=${presentation_interface_generated_dir}"
+        "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto"
+        "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1"
+        "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1"
+        "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1"
+        "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/presentation/v1/presentation.proto"
+    DEPENDS proto/spatial/workspace/presentation/v1/presentation.proto proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
 protobuf_generate_cpp(launch_proto_sources launch_proto_headers proto/spatial/supervisor/v1/launch.proto)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/compositor_native_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
-        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
+        "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/compositor_native.proto
     DEPENDS proto/spatial/render/v1/compositor_native.proto protobuf::protoc VERBATIM)
 add_custom_target(compositor-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/compositor_native_pb2.py")
@@ -53,6 +66,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.p
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
@@ -60,7 +74,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/presentation.proto
     DEPENDS proto/spatial/render/v1/presentation.proto proto/spatial/render/v1/compositor_native.proto
-        proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+        proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 add_custom_target(presentation-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.py")
 add_dependencies(presentation-python-protobuf geometry-view-python-protobuf)
 
@@ -69,10 +83,11 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_probe
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/presentation_probe.proto
     DEPENDS tests/proto/presentation_probe.proto proto/spatial/render/v1/compositor_native.proto
-        proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+        proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 add_custom_target(presentation-probe-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_probe_pb2.py")
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
@@ -83,6 +98,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
     DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/workspace/v1/storage.proto proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
         proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
@@ -97,8 +113,9 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1/core.proto
-    DEPENDS proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+    DEPENDS proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 add_custom_target(python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/input_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -133,6 +150,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/broker.proto
@@ -146,19 +164,21 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/storage.proto
     DEPENDS proto/spatial/workspace/v1/storage.proto proto/spatial/supervisor/v1/process_scope.proto proto/spatial/authority/v1/grants.proto
         protobuf::protoc VERBATIM)
 add_custom_target(storage-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py")
 add_dependencies(storage-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf scope-python-protobuf)
-add_dependencies(broker-python-protobuf storage-python-protobuf)
+add_dependencies(broker-python-protobuf storage-python-protobuf workspace-copy-python-protobuf)
 add_dependencies(launch-python-protobuf broker-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/key.proto
     DEPENDS proto/spatial/identity/v1/key.proto proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(key-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py")
@@ -167,6 +187,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/issuer_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/issuer.proto
     DEPENDS proto/spatial/identity/v1/issuer.proto proto/spatial/authority/v1/grants.proto proto/spatial/identity/v1/key.proto proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
@@ -175,9 +196,10 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_view_pb2.
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/geometry_view.proto
-    DEPENDS proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto
+    DEPENDS proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto
         proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(geometry-view-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_view_pb2.py")
 add_dependencies(geometry-view-python-protobuf python-protobuf)
@@ -186,6 +208,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_session_pb2.
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/world_session.proto
     DEPENDS proto/spatial/identity/v1/world_session.proto proto/spatial/identity/v1/geometry_view.proto proto/spatial/authority/v1/grants.proto proto/spatial/identity/v1/issuer.proto
@@ -196,9 +219,56 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/grants_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1/grants.proto
     DEPENDS proto/spatial/authority/v1/grants.proto proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(grants-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/grants_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/copy_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1/copy.proto
+    DEPENDS proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
+add_custom_target(workspace-copy-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/copy_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/copy_worker_pb2.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1/copy_worker_pb2.py"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/copy_worker.proto
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/workspace/copy_worker_python_compat.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1/copy_worker_pb2.py"
+    DEPENDS proto/spatial/workspace/v1/copy_worker.proto proto/spatial/workspace/copy/v1/copy.proto
+        src/workspace/copy_worker_python_compat.py protobuf::protoc VERBATIM)
+add_custom_target(copy-worker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/copy_worker_pb2.py"
+    "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/v1/copy_worker_pb2.py")
+add_dependencies(copy-worker-python-protobuf workspace-copy-python-protobuf)
+add_dependencies(storage-python-protobuf copy-worker-python-protobuf)
+add_dependencies(python-protobuf copy-worker-python-protobuf)
+add_dependencies(python-protobuf workspace-copy-python-protobuf)
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/presentation/v1/presentation_pb2.py"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/presentation/v1"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/presentation/v1/presentation.proto
+    DEPENDS proto/spatial/workspace/presentation/v1/presentation.proto
+        proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto
+        proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+add_custom_target(workspace-presentation-python-protobuf ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/spatial/workspace/presentation/v1/presentation_pb2.py")
+add_dependencies(workspace-presentation-python-protobuf python-protobuf)
+add_dependencies(native-scope-python-protobuf security-python-protobuf)
+add_dependencies(key-python-protobuf python-protobuf security-python-protobuf)
+add_dependencies(issuer-python-protobuf key-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf)
+add_dependencies(broker-python-protobuf issuer-python-protobuf native-scope-python-protobuf key-python-protobuf
+    python-protobuf grants-python-protobuf security-python-protobuf scope-python-protobuf storage-python-protobuf
+    workspace-copy-python-protobuf)
+add_custom_target(provision-storage-python-bindings)
+add_dependencies(provision-storage-python-bindings broker-python-protobuf)
 add_dependencies(world-session-python-protobuf geometry-view-python-protobuf issuer-python-protobuf grants-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/crosshost_revocation_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -209,6 +279,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/crosshost_revocati
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/crosshost_revocation.proto
     DEPENDS tests/proto/crosshost_revocation.proto proto/spatial/identity/v1/issuer.proto
         proto/spatial/supervisor/v1/launch.proto proto/spatial/workspace/v1/broker.proto protobuf::protoc VERBATIM)
@@ -229,10 +300,11 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_c
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/actor_transition_crosshost.proto
-    DEPENDS tests/proto/actor_transition_crosshost.proto proto/spatial/core/v1/core.proto
+    DEPENDS tests/proto/actor_transition_crosshost.proto proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto
         proto/spatial/identity/v1/actor_transition.proto proto/spatial/identity/v1/world_session.proto protobuf::protoc VERBATIM)
 add_custom_target(actor-transition-crosshost-python-protobuf ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_crosshost_pb2.py")
@@ -242,6 +314,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/actor_session_clie
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/actor_session_client.proto
     DEPENDS proto/spatial/identity/v1/actor_session_client.proto proto/spatial/identity/v1/issuer.proto
         proto/spatial/authority/v1/grants.proto proto/spatial/identity/v1/key.proto
@@ -273,11 +346,13 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-protobuf STATIC ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${geometry_view_proto_sources} ${geometry_view_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${host_actor_controller_proto_sources} ${host_actor_controller_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
+add_library(spatial-protobuf STATIC ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${geometry_view_proto_sources} ${geometry_view_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${host_actor_controller_proto_sources} ${host_actor_controller_proto_headers} ${grants_proto_sources} ${grants_proto_headers}
+    ${presentation_interface_proto_cc} ${presentation_interface_proto_h} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
-target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_sources(spatial-protobuf PRIVATE ${copy_worker_proto_sources} ${copy_worker_proto_headers})
+target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}" "${presentation_interface_generated_dir}")
 add_library(spatial-scene STATIC src/x11/native_channel.cpp src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
 target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
@@ -299,11 +374,11 @@ target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
 add_library(spatial-storage-channel STATIC src/workspace/storage_channel.cpp)
 target_link_libraries(spatial-storage-channel PUBLIC spatial-scene)
 add_library(spatial-storage-client STATIC src/workspace/storage_client.cpp)
-target_link_libraries(spatial-storage-client PUBLIC spatial-storage-channel)
+target_link_libraries(spatial-storage-client PUBLIC spatial-storage-channel PRIVATE OpenSSL::Crypto)
 add_library(spatial-storage-devices STATIC src/workspace/storage_devices.cpp)
 target_link_libraries(spatial-storage-devices PUBLIC spatial-scene)
 add_library(spatial-storage-owner STATIC src/workspace/storage_owner.cpp)
-target_link_libraries(spatial-storage-owner PUBLIC spatial-scene spatial-storage-devices SQLite::SQLite3)
+target_link_libraries(spatial-storage-owner PUBLIC spatial-scene spatial-storage-devices SQLite::SQLite3 OpenSSL::Crypto)
 add_executable(spatial-storage-owner-service src/workspace/storage_main.cpp)
 set_target_properties(spatial-storage-owner-service PROPERTIES OUTPUT_NAME spatial-storage-owner)
 target_link_libraries(spatial-storage-owner-service PRIVATE spatial-storage-owner spatial-storage-channel)
@@ -357,7 +432,7 @@ add_executable(identityd src/identity/issuer_main.cpp)
 target_link_libraries(identityd PRIVATE spatial-issuer)
 add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources} ${input_proto_headers})
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
-add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
+add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/workspace_presentations.cpp src/world/presentation_geometry.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
@@ -382,17 +457,56 @@ add_library(spatial-app-initializer STATIC src/workspace/app_initializer.cpp)
 target_link_libraries(spatial-app-initializer PUBLIC spatial-scene)
 add_executable(spatial-app-init src/workspace/app_init.cpp src/workspace/hardened_sanitizer.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-app-initializer)
-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
+add_executable(spatial-copy-finalize-worker src/workspace/copy_finalize_worker.cpp)
+target_include_directories(spatial-copy-finalize-worker PRIVATE src)
+target_link_libraries(spatial-copy-finalize-worker PRIVATE spatial-scene OpenSSL::Crypto)
+install(TARGETS spatial-copy-finalize-worker RUNTIME DESTINATION libexec)
+add_executable(spatial-copy-tree-worker src/workspace/copy_tree_worker.cpp)
+target_link_libraries(spatial-copy-tree-worker PRIVATE OpenSSL::Crypto spatial-protobuf)
+add_dependencies(spatial-copy-tree-worker copy-worker-python-protobuf)
+install(TARGETS spatial-copy-tree-worker RUNTIME DESTINATION libexec)
+add_library(spatial-workspace-copy-worker STATIC src/workspace/copy_worker.cpp)
+target_include_directories(spatial-workspace-copy-worker PUBLIC src)
+target_link_libraries(spatial-workspace-copy-worker PUBLIC spatial-storage-client spatial-workspace-resources spatial-scene spatial-protobuf)
+add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/copy_journal.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
 target_include_directories(workspaced PRIVATE src)
-target_link_libraries(workspaced PRIVATE spatial-storage-client spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+target_link_libraries(workspaced PRIVATE spatial-workspace-copy-worker spatial-storage-client spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+add_dependencies(workspaced spatial-copy-tree-worker spatial-copy-finalize-worker)
 add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
 add_dependencies(spatial-test-host worldd workspaced)
+add_custom_target(spatial-m07-fence-runtime-fixture)
+add_dependencies(spatial-m07-fence-runtime-fixture
+    identityd spatial-issuer-client worldd workspaced spatial-app-init spatial-process-scope-probe
+    broker-python-protobuf workspace-copy-python-protobuf python-protobuf grants-python-protobuf
+    issuer-python-protobuf key-python-protobuf native-scope-python-protobuf scope-python-protobuf
+    security-python-protobuf storage-python-protobuf geometry-view-python-protobuf world-session-python-protobuf)
 
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(queued-copy-status-replacement-test tests/core/queued_copy_status_replacement.cpp)
+    target_include_directories(queued-copy-status-replacement-test PRIVATE src)
+    target_link_libraries(queued-copy-status-replacement-test PRIVATE spatial-protobuf)
+    add_test(NAME queued-copy-status-replacement COMMAND $<TARGET_FILE:queued-copy-status-replacement-test>)
+    set_tests_properties(queued-copy-status-replacement PROPERTIES TIMEOUT 30)
+    add_executable(spatial-copy-tree-worker-fixture src/workspace/copy_tree_worker.cpp)
+    target_compile_definitions(spatial-copy-tree-worker-fixture PRIVATE SPATIAL_COPY_WORKER_TEST_FAULTS=1)
+    target_link_libraries(spatial-copy-tree-worker-fixture PRIVATE OpenSSL::Crypto spatial-protobuf)
+    add_dependencies(spatial-copy-tree-worker-fixture copy-worker-python-protobuf)
+    add_test(NAME copy-tree-worker COMMAND Python3::Interpreter
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py" $<TARGET_FILE:spatial-copy-tree-worker-fixture>)
+    set_tests_properties(copy-tree-worker PROPERTIES TIMEOUT 60)
+    add_test(NAME copy-finalize-worker COMMAND Python3::Interpreter
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_finalize_worker.py" $<TARGET_FILE:spatial-copy-finalize-worker>)
+    set_tests_properties(copy-finalize-worker PROPERTIES TIMEOUT 180)
+
+    add_executable(presentation-metadata-test tests/core/presentation_metadata.cpp)
+    target_include_directories(presentation-metadata-test PRIVATE src)
+    target_link_libraries(presentation-metadata-test PRIVATE spatial-scene)
+    add_test(NAME presentation-metadata COMMAND $<TARGET_FILE:presentation-metadata-test>)
+    set_tests_properties(presentation-metadata PROPERTIES TIMEOUT 30)
     add_executable(world-diagnostic-timing-test tests/core/world_diagnostic_timing.cpp)
     target_include_directories(world-diagnostic-timing-test PRIVATE src)
     add_dependencies(spatial-test-host world-diagnostic-timing-test)
@@ -407,12 +521,13 @@ if(BUILD_TESTING)
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/actor_transition_integration.proto
         DEPENDS tests/proto/actor_transition_integration.proto proto/spatial/identity/v1/actor_transition.proto
             proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/world_session.proto
-            proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+            proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
     add_custom_target(actor-transition-integration-python DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_integration_pb2.py")
     add_dependencies(actor-transition-integration-python python-protobuf issuer-python-protobuf
         host-actor-python-protobuf key-python-protobuf grants-python-protobuf security-python-protobuf world-session-python-protobuf broker-python-protobuf scope-python-protobuf)
@@ -479,10 +594,78 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-app-initializer-probe> ${initializer_check_arguments})
     set_tests_properties(app-initializer-lifecycle PROPERTIES TIMEOUT 60
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_executable(spatial-copy-worker-production-probe src/testing/copy_worker_production_probe.cpp)
+    target_link_libraries(spatial-copy-worker-production-probe PRIVATE spatial-workspace-copy-worker OpenSSL::Crypto)
+    add_dependencies(spatial-copy-worker-production-probe storage-python-protobuf broker-python-protobuf scope-python-protobuf copy-worker-python-protobuf)
+    add_dependencies(spatial-copy-worker-production-probe spatial-copy-tree-worker
+        spatial-storage-owner-service spatial-storage-owner-probe)
+    add_test(NAME copy-worker-production COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_copy_worker_production.py"
+        "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    set_tests_properties(copy-worker-production PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE
+        RESOURCE_LOCK spatial-copy-worker
+        ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-storage-client-probe src/testing/storage_client_probe.cpp)
     target_link_libraries(spatial-storage-client-probe PRIVATE spatial-storage-client)
     add_executable(spatial-storage-owner-probe src/testing/storage_owner_probe.cpp)
     target_link_libraries(spatial-storage-owner-probe PRIVATE spatial-storage-owner)
+    add_dependencies(spatial-storage-owner-probe broker-python-protobuf storage-python-protobuf)
+    add_test(NAME storage-snapshot-owner COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_snapshot.py"
+        $<TARGET_FILE:spatial-storage-owner-probe> "${CMAKE_CURRENT_SOURCE_DIR}")
+    set_tests_properties(storage-snapshot-owner PROPERTIES TIMEOUT 900
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
+    add_executable(workspace-copy-journal-test tests/core/workspace_copy_journal.cpp src/workspace/copy_journal.cpp)
+    target_include_directories(workspace-copy-journal-test PRIVATE src)
+    target_link_libraries(workspace-copy-journal-test PRIVATE spatial-scene SQLite::SQLite3 OpenSSL::Crypto)
+    add_test(NAME workspace-copy-journal COMMAND $<TARGET_FILE:workspace-copy-journal-test>)
+    set_tests_properties(workspace-copy-journal PROPERTIES TIMEOUT 60)
+    add_test(NAME workspace-copy-journal-migration COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_journal_migration.py" $<TARGET_FILE:workspaced>)
+    set_tests_properties(workspace-copy-journal-migration PROPERTIES TIMEOUT 60)
+    add_test(NAME workspace-execution-v7-migration COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_m07_execution_migrations.py" $<TARGET_FILE:workspaced>)
+    set_tests_properties(workspace-execution-v7-migration PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1;SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_custom_target(workspace-execution-v7-migration-artifacts
+        DEPENDS workspaced workspace-copy-python-protobuf)
+    add_executable(workspace-presentation-store-test tests/core/workspace_presentation_store.cpp)
+    target_include_directories(workspace-presentation-store-test PRIVATE src)
+    target_link_libraries(workspace-presentation-store-test PRIVATE spatial-core)
+    add_test(NAME workspace-presentation-store COMMAND $<TARGET_FILE:workspace-presentation-store-test>)
+    set_tests_properties(workspace-presentation-store PROPERTIES TIMEOUT 60)
+    add_executable(workspace-presentation-projection-test tests/core/test_workspace_presentation_projection.cpp)
+    target_include_directories(workspace-presentation-projection-test PRIVATE src)
+    target_link_libraries(workspace-presentation-projection-test PRIVATE spatial-core)
+    add_test(NAME workspace-presentation-projection COMMAND $<TARGET_FILE:workspace-presentation-projection-test>)
+    set_tests_properties(workspace-presentation-projection PROPERTIES TIMEOUT 60)
+    add_test(NAME workspace-presentation-actor COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_presentation_actor.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-presentation-actor PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(workspace-presentation-actor-fixture
+        DEPENDS identityd spatial-issuer-client worldd workspaced
+            broker-python-protobuf world-session-python-protobuf spatial-process-scope-probe
+            spatial-security-auth)
+    add_test(NAME workspace-presentation-shared-representation COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_shared_representation_actor.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-presentation-shared-representation PROPERTIES TIMEOUT 300
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(workspace-presentation-shared-representation-fixture
+        DEPENDS identityd spatial-issuer-client worldd workspaced spatial-security-auth
+            spatial-process-scope-probe broker-python-protobuf world-session-python-protobuf)
+    add_custom_target(actor-pixels-fixture
+        DEPENDS identityd spatial-issuer-client worldd workspaced spatial-security-auth
+            spatial-process-scope-probe spatial-confined-xprobe
+            broker-python-protobuf world-session-python-protobuf)
     add_dependencies(workspaced broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
         python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
     add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)
@@ -752,6 +935,14 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(identity-supervisor-registry PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-participant-domain-addition COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_domain_addition.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-participant-domain-addition PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(identity-participant-domain-addition-artifacts
+        DEPENDS identityd spatial-issuer-client issuer-python-protobuf key-python-protobuf
+                grants-python-protobuf python-protobuf)
     add_test(NAME identity-participant-incarnation COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_incarnation.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
@@ -882,6 +1073,7 @@ if(BUILD_TESTING)
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
             ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1/grants_probe.proto
         DEPENDS proto/spatial/authority/v1/grants_probe.proto proto/spatial/authority/v1/grants.proto
@@ -896,12 +1088,113 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-probe> $<TARGET_FILE:spatial-authority-migrate>)
     set_tests_properties(authority-bootstrap PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(workspace-copy-engine-fixture DEPENDS workspaced worldd identityd spatial-issuer-client spatial-security-auth
+        spatial-process-scope-probe spatial-storage-owner-service spatial-app-init
+        spatial-copy-tree-worker spatial-copy-finalize-worker broker-python-protobuf
+        copy-worker-python-protobuf storage-python-protobuf issuer-python-protobuf grants-python-protobuf
+        world-session-python-protobuf)
+    add_test(NAME workspace-copy-fixture-profiles COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fixture_profiles.py")
+    set_tests_properties(workspace-copy-fixture-profiles PROPERTIES TIMEOUT 30)
+    set(copy_fixture_profile_arguments)
+    if(SPATIAL_SANITIZERS)
+        list(APPEND copy_fixture_profile_arguments --profile=ASan-UBSan)
+    endif()
+    add_test(NAME workspace-copy-engine COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_engine.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env ${copy_fixture_profile_arguments})
+    set_tests_properties(workspace-copy-engine PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
+    add_custom_target(workspace-copy-fault-fixture
+        DEPENDS workspace-copy-engine-fixture spatial-authority-supervisor launch-python-protobuf
+            native-scope-python-protobuf scope-python-protobuf
+        SOURCES tests/core/test_workspace_copy_faults.py
+            tests/native/copy_fault_supervised_world.py
+            harness/copy_fault_evidence.py
+            tools/test_copy_fault_evidence.py
+            tools/test_workspace_copy_revocation_denial.py
+            tools/test_workspace_copy_journal_observer.py
+            tools/inspect_workspace_copy_supervisor_closure.py
+            tests/native/storage_owner_copy_fault_relay.py
+            tools/inspect_workspace_copy_fault_fixture.py
+            tools/run_workspace_copy_faults.py)
+    add_test(NAME workspace-copy-revocation-denial COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_workspace_copy_revocation_denial.py")
+    set_tests_properties(workspace-copy-revocation-denial PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-journal-observer COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_workspace_copy_journal_observer.py")
+    set_tests_properties(workspace-copy-journal-observer PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-fault-evidence-durability COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fault_evidence.py")
+    set_tests_properties(workspace-copy-fault-evidence-durability PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-fault-relay-timing COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_owner_copy_fault_relay_timing.py")
+    set_tests_properties(workspace-copy-fault-relay-timing PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-absolute-deadline COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies ${copy_fixture_profile_arguments})
+    add_test(NAME workspace-copy-actor-revocation COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_actor_identity_revocation_after_real_seal_receipt_blocks_copy_publication ${copy_fixture_profile_arguments})
+    add_test(NAME workspace-copy-lost-publication-ack COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish ${copy_fixture_profile_arguments})
+    add_test(NAME workspace-copy-hostile-git COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_hostile_git_hooks_filters_and_config_copy_sanitizes_admin_without_host_effects ${copy_fixture_profile_arguments})
+    add_test(NAME workspace-copy-worker-death-recovery COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch ${copy_fixture_profile_arguments})
+    set_tests_properties(workspace-copy-absolute-deadline workspace-copy-actor-revocation
+        workspace-copy-lost-publication-ack workspace-copy-hostile-git workspace-copy-worker-death-recovery
+        PROPERTIES TIMEOUT 450 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-    set_tests_properties(workspace-authority PROPERTIES TIMEOUT 180
+    set_tests_properties(workspace-authority PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME workspace-authorization-fence COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k authorization_fence)
+    set_tests_properties(workspace-authorization-fence PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME workspace-authorization-fence-scoped COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k scoped_authority)
+    add_test(NAME workspace-authorization-fence-registry COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k registry_authority_binding)
+    add_test(NAME workspace-authorization-fence-credential COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k credential_revocation_preserves_valid_workspace_process)
+    add_test(NAME workspace-authorization-fence-no-authority COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k application_access_fails_closed_without_authority_fence)
+    add_test(NAME workspace-authorization-fence-bootstrap COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_bootstrap.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k authorization_fence)
+    set_tests_properties(workspace-authorization-fence-registry workspace-authorization-fence-scoped workspace-authorization-fence-credential
+        workspace-authorization-fence-no-authority workspace-authorization-fence-bootstrap PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME authenticated-resources COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
@@ -1177,6 +1470,25 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         set_tests_properties(world-identity PROPERTIES TIMEOUT 120
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+        add_custom_target(broker-issuer-progress-fixture DEPENDS workspaced identityd spatial-issuer-client worldd
+            spatial-security-auth spatial-process-scope-probe spatial-app-init broker-python-protobuf
+            world-session-python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf
+            security-python-protobuf native-scope-python-protobuf)
+        add_test(NAME broker-issuer-progress COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_issuer_progress.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(broker-issuer-progress PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE
+            ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
+        add_custom_target(world-issuer-progress-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm spatial-xprobe
+            python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf)
+        add_test(NAME world-issuer-progress COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_issuer_progress.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        set_tests_properties(world-issuer-progress PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE
+            ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
         add_test(NAME world-authority COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_authority.py" $<TARGET_FILE:identityd>
@@ -1284,6 +1596,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
@@ -1292,9 +1605,9 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.p
         proto/spatial/identity/v1/host_actor_controller.proto proto/spatial/identity/v1/actor_transition.proto
         proto/spatial/identity/v1/actor_session_client.proto proto/spatial/identity/v1/issuer.proto
         proto/spatial/identity/v1/world_session.proto
-        proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+        proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
 add_custom_target(host-session-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.py")
-add_dependencies(spatial-host-session host-session-python-protobuf actor-session-client-python-protobuf launch-python-protobuf scope-python-protobuf
+add_dependencies(spatial-host-session provision-storage-python-bindings host-session-python-protobuf actor-session-client-python-protobuf launch-python-protobuf scope-python-protobuf
     native-scope-python-protobuf broker-python-protobuf storage-python-protobuf key-python-protobuf
     issuer-python-protobuf world-session-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
@@ -1302,6 +1615,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_control
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
@@ -1310,7 +1624,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_control
             ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/host_actor_controller.proto
             ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/actor_transition.proto
         DEPENDS proto/spatial/identity/v1/host_actor_controller.proto proto/spatial/identity/v1/actor_transition.proto
-            proto/spatial/core/v1/core.proto
+            proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto
             protobuf::protoc VERBATIM)
 add_custom_target(host-actor-python-protobuf DEPENDS
         "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
@@ -1322,6 +1636,7 @@ if(BUILD_TESTING)
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
@@ -1353,6 +1668,28 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(geometry-native-crosshost PROPERTIES TIMEOUT 1800
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};SPATIAL_GEOMETRY_EVIDENCE=$ENV{SPATIAL_GEOMETRY_EVIDENCE};SPATIAL_GEOMETRY_OBSERVER_HOST=$ENV{SPATIAL_GEOMETRY_OBSERVER_HOST};SPATIAL_GEOMETRY_AUTHORITY_ADDRESS=$ENV{SPATIAL_GEOMETRY_AUTHORITY_ADDRESS};SPATIAL_GEOMETRY_REMOTE_SOURCE=$ENV{SPATIAL_GEOMETRY_REMOTE_SOURCE};SPATIAL_GEOMETRY_REMOTE_BIN=$ENV{SPATIAL_GEOMETRY_REMOTE_BIN};SPATIAL_GEOMETRY_REMOTE_PYTHON=$ENV{SPATIAL_GEOMETRY_REMOTE_PYTHON};SPATIAL_GEOMETRY_REMOTE_XSERVER=$ENV{SPATIAL_GEOMETRY_REMOTE_XSERVER};SPATIAL_GEOMETRY_REMOTE_EVIDENCE=$ENV{SPATIAL_GEOMETRY_REMOTE_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME workspace-geometry-native-crosshost COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- env
+        "SPATIAL_GEOMETRY_EVIDENCE=$ENV{SPATIAL_GEOMETRY_EVIDENCE}"
+        "SPATIAL_GEOMETRY_OBSERVER_HOST=$ENV{SPATIAL_GEOMETRY_OBSERVER_HOST}"
+        "SPATIAL_GEOMETRY_AUTHORITY_ADDRESS=$ENV{SPATIAL_GEOMETRY_AUTHORITY_ADDRESS}"
+        "SPATIAL_GEOMETRY_REMOTE_SOURCE=$ENV{SPATIAL_GEOMETRY_REMOTE_SOURCE}"
+        "SPATIAL_GEOMETRY_REMOTE_BIN=$ENV{SPATIAL_GEOMETRY_REMOTE_BIN}"
+        "SPATIAL_GEOMETRY_REMOTE_PYTHON=$ENV{SPATIAL_GEOMETRY_REMOTE_PYTHON}"
+        "SPATIAL_GEOMETRY_REMOTE_XSERVER=$ENV{SPATIAL_GEOMETRY_REMOTE_XSERVER}"
+        "SPATIAL_GEOMETRY_REMOTE_EVIDENCE=$ENV{SPATIAL_GEOMETRY_REMOTE_EVIDENCE}"
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" --
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_geometry_native_crosshost.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-geometry-native-crosshost PROPERTIES TIMEOUT 1800
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_custom_target(workspace-geometry-native-crosshost-fixture
+        DEPENDS identityd spatial-issuer-client worldd spatial-authority-launch-probe spatial-security-auth
+            spatial-host-session spatialwm workspaced spatial-process-scope-probe
+            spatial-storage-broker-launch-probe spatial-confined-xprobe session-probe-python compositor-python-protobuf
+            broker-python-protobuf world-session-python-protobuf geometry-native-python
+            host-actor-python-protobuf actor-session-client-python-protobuf grants-python-protobuf python-protobuf)
 endif()
 
 if(BUILD_TESTING)
@@ -1464,6 +1801,7 @@ if(BUILD_TESTING)
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             ${CMAKE_CURRENT_SOURCE_DIR}/src/testing/session_probe.proto
         DEPENDS src/testing/session_probe.proto protobuf::protoc VERBATIM)
     add_custom_target(session-probe-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/session_probe_pb2.py")
@@ -1576,6 +1914,7 @@ if(BUILD_TESTING)
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             ${CMAKE_CURRENT_SOURCE_DIR}/src/testing/actor_transition_recovery_probe.proto
         DEPENDS src/testing/actor_transition_recovery_probe.proto src/testing/session_probe.proto
             proto/spatial/identity/v1/actor_transition.proto protobuf::protoc VERBATIM)

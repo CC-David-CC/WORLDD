@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <exception>
 #include <linux/audit.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
@@ -19,6 +20,7 @@
 #include <poll.h>
 #include <sched.h>
 #include <sstream>
+#include <system_error>
 #include <sys/prctl.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -101,7 +103,7 @@ int directory(const std::filesystem::path& path) {
 ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                                       const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request,
                                       std::function<void()> authority, std::unique_ptr<NativeCredential> native,
-                                      std::unique_ptr<ApplicationResources> resources)
+                                      std::unique_ptr<ApplicationResources> resources, std::optional<PersistentApplicationStateMount> persistent)
     : authority_(std::move(authority)), native_(std::move(native)), resources_(std::move(resources)) {
     if (!resources_) throw WorldError(wire::UNAVAILABLE, "Application resource scope is required");
     authority_();
@@ -134,6 +136,20 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
             "--setenv", "DISPLAY", ":"+native_->display_number(), "--setenv", "XAUTHORITY", "/run/spatial/Xauthority"};
         strings.insert(strings.end(), display.begin(), display.end());
     }
+    File persistent_data,persistent_config;
+    unsigned persistent_fd=native_?10:8;
+    if(persistent) {
+        if(persistent->root_fd<0 || (!persistent->data && !persistent->config))
+            throw WorldError(wire::STORAGE_ERROR,"Configured persistent mount is incomplete");
+        const auto mount=[&](bool selected,const char* name,File& pinned) {
+            if(!selected)return;
+            pinned.fd=openat(persistent->root_fd,name,O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+            if(pinned.fd<0)throw WorldError(wire::STORAGE_ERROR,"Cannot pin declared persistent subdomain");
+            const std::vector<std::string> binding{"--bind-fd",std::to_string(persistent_fd++),std::string("/state/")+name};
+            strings.insert(strings.end(),binding.begin(),binding.end());
+        };
+        mount(persistent->data,"data",persistent_data);mount(persistent->config,"config",persistent_config);
+    }
     const std::vector<std::string> tail{"--block-fd", "7", "--seccomp", "6", "--remount-ro", "/", "--", "/spatial-app-init"};
     strings.insert(strings.end(), tail.begin(), tail.end());
     File input_read, input_write, output_read, output_write;
@@ -149,6 +165,8 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
     for (std::size_t i = 1; i < strings.size(); ++i) launch.add_arguments(strings[i]);
     std::vector<int> selected{project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd, launch_read.fd};
     if (native_) { selected.push_back(native_->authority_fd()); selected.push_back(native_->socket_fd()); }
+    if(persistent_data.fd>=0)selected.push_back(persistent_data.fd);
+    if(persistent_config.fd>=0)selected.push_back(persistent_config.fd);
     for (unsigned i = 0; i < selected.size(); ++i) launch.add_inherited_fds(3+i);
     resources_->scope().start(launch, {input_read.fd, output_write.fd, diagnostic.fd}, selected);
     pid_ = resources_->scope().direct_child_pid();
@@ -162,15 +180,28 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         pin_namespace();
         write_all(launch_write.fd, "1", authority_);
         close(launch_write.fd); launch_write.fd = -1;
-        workspace::v1::AppStart start; start.set_protocol_version(1); *start.mutable_argv() = request.argv();
+        workspace::v1::AppStart start; start.set_protocol_version(1); start.set_require_payload_boundary(true); *start.mutable_argv() = request.argv();
         const auto payload = start.SerializeAsString(); const auto length = static_cast<std::uint32_t>(payload.size());
         std::string framed{static_cast<char>(length >> 24), static_cast<char>(length >> 16), static_cast<char>(length >> 8), static_cast<char>(length)};
-        framed += payload; write_all(input_write.fd, framed, authority_); close(input_write.fd); input_write.fd = -1;
+        framed += payload; write_all(input_write.fd, framed, authority_);
+        const auto held=event(Clock::now()+std::chrono::seconds(5));
+        if(!held.has_payload_ready() || held.payload_ready()<=1)
+            throw std::runtime_error("Application did not confirm its held payload");
+        pin_held_payload(held.payload_ready());
+        workspace::v1::AppContinue release;release.set_protocol_version(1);release.set_release_payload(true);
+        const auto release_bytes=release.SerializeAsString();const auto n=static_cast<std::uint32_t>(release_bytes.size());
+        const std::string release_frame{static_cast<char>(n>>24),static_cast<char>(n>>16),static_cast<char>(n>>8),static_cast<char>(n)};
+        write_all(input_write.fd,release_frame+release_bytes,authority_);
+        close(input_write.fd);input_write.fd=-1;
         const auto ready = event(Clock::now() + std::chrono::seconds(5));
         if (!ready.has_started() || !ready.started()) throw std::runtime_error("Application did not confirm exec");
         authority_();
     } catch (...) { stop_or_exit(); if (output_ >= 0) close(output_); output_ = -1; throw; }
 }
+void ApplicationProcess::begin_quiescence(){resources_->scope().begin_payload_freeze();}
+bool ApplicationProcess::quiescent() const{return resources_->scope().payload_frozen();}
+supervisor::v1::PayloadQuiescenceReceipt ApplicationProcess::quiescence_receipt() const{return resources_->scope().payload_receipt();}
+void ApplicationProcess::release_quiescence(){resources_->scope().thaw_payload();}
 ApplicationProcess::~ApplicationProcess() { stop_or_exit(); if (output_ >= 0) close(output_); }
 void ApplicationProcess::pin_namespace() {
     const auto deadline = Clock::now()+std::chrono::seconds(5);
@@ -197,13 +228,78 @@ void ApplicationProcess::pin_namespace() {
             pollfd state{selected.fd, POLLIN, 0};
             if (!parent_matches || !namespace_matches || poll(&state, 1, 0) != 0)
                 throw std::runtime_error("Application namespace identity is unavailable");
-            namespace_pidfd_ = selected.fd; selected.fd = -1; return;
+            namespace_pid_ = child; namespace_pidfd_ = selected.fd; selected.fd = -1; return;
         }
         pollfd state{pidfd_, POLLIN, 0};
         const auto result = poll(&state, 1, 5);
         if (result > 0 || (result < 0 && errno != EINTR)) throw std::runtime_error("Application boundary exited before namespace pinning");
     }
     throw std::runtime_error("Application namespace startup deadline expired");
+}
+void ApplicationProcess::pin_held_payload(unsigned expected) {
+    struct Identity { pid_t parent=0; unsigned local=0,levels=0; std::uint64_t start=0; dev_t device=0; ino_t inode=0; };
+    const auto identity=[](pid_t pid) {
+        Identity value;std::string line;
+        std::ifstream status("/proc/"+std::to_string(pid)+"/status");
+        while(std::getline(status,line)) {
+            if(line.starts_with("PPid:")) {std::istringstream input(line.substr(5));input>>value.parent;}
+            if(line.starts_with("NSpid:")) {std::istringstream input(line.substr(6));unsigned number=0;while(input>>number){value.local=number;++value.levels;}}
+        }
+        std::ifstream stat_file("/proc/"+std::to_string(pid)+"/stat");std::string stat_line;
+        std::getline(stat_file,stat_line);const auto close=stat_line.rfind(')');
+        if(close==std::string::npos)throw std::runtime_error("Cannot inspect held payload start identity");
+        std::istringstream fields(stat_line.substr(close+2));std::string field;
+        for(unsigned index=0;index<19;++index)if(!(fields>>field))throw std::runtime_error("Malformed held payload start identity");
+        if(!(fields>>value.start) || value.start==0)throw std::runtime_error("Missing held payload start identity");
+        File ns{open(("/proc/"+std::to_string(pid)+"/ns/pid").c_str(),O_RDONLY|O_CLOEXEC)};
+        struct stat inode{};
+        if(ns.fd<0 || fstat(ns.fd,&inode)!=0)throw std::runtime_error("Cannot pin held payload PID namespace");
+        value.device=inode.st_dev;value.inode=inode.st_ino;return value;
+    };
+    if(namespace_pid_<=1 || namespace_pidfd_<0 || expected<=1)
+        throw std::runtime_error("Held payload requires a retained namespace leader");
+    const auto leader=identity(namespace_pid_);
+    if(leader.local!=1 || leader.levels<2)throw std::runtime_error("Retained namespace leader identity changed");
+    std::array<File,8> retained;
+    std::array<pid_t,8> chain{};
+    std::array<Identity,8> identities{};
+    pid_t parent=namespace_pid_;std::size_t count=0;bool found=false;
+    for(;count<retained.size();++count) {
+        std::ifstream children("/proc/"+std::to_string(parent)+"/task/"+std::to_string(parent)+"/children");
+        pid_t child=0,extra=0;
+        if(!(children>>child) || child<=1 || (children>>extra))
+            throw std::runtime_error("Held payload requires a bounded unique descendant chain");
+        retained[count].fd=static_cast<int>(syscall(SYS_pidfd_open,child,0));
+        if(retained[count].fd<0)throw std::runtime_error("Cannot retain held payload chain identity");
+        const auto current=identity(child);
+        pollfd alive{retained[count].fd,POLLIN,0};
+        if(current.parent!=parent || current.levels!=leader.levels || current.local<=1 ||
+           current.device!=leader.device || current.inode!=leader.inode || poll(&alive,1,0)!=0)
+            throw std::runtime_error("Held payload descendant or namespace identity differs");
+        chain[count]=child;identities[count]=current;
+        if(current.local==expected){found=true;++count;break;}
+        parent=child;
+    }
+    if(!found)throw std::runtime_error("Reported held payload is absent from the bounded namespace chain");
+    pollfd leader_alive{namespace_pidfd_,POLLIN,0};
+    if(poll(&leader_alive,1,0)!=0)throw std::runtime_error("Retained namespace leader exited during payload attachment");
+    for(std::size_t index=0;index<count;++index) {
+        const auto current=identity(chain[index]);const auto& original=identities[index];
+        pollfd alive{retained[index].fd,POLLIN,0};
+        if(current.parent!=original.parent || current.local!=original.local || current.levels!=original.levels ||
+           current.start!=original.start || current.device!=original.device || current.inode!=original.inode || poll(&alive,1,0)!=0)
+            throw std::runtime_error("Held payload chain changed before attachment");
+    }
+    const auto selected=count-1;
+    resources_->scope().attach_payload(chain[selected]);
+    payload_pid_=chain[selected];payload_start_=identities[selected].start;
+    payload_pidfd_=retained[selected].fd;retained[selected].fd=-1;
+    const auto attached=identity(payload_pid_);pollfd alive{payload_pidfd_,POLLIN,0};
+    if(attached.start!=payload_start_ || attached.local!=expected || attached.device!=leader.device ||
+       attached.inode!=leader.inode || poll(&alive,1,0)!=0)
+        throw std::runtime_error("Held payload changed during owned cgroup attachment");
+    std::cerr<<"owned payload attachment host_pid="<<payload_pid_<<" start_ticks="<<payload_start_
+             <<" namespace_pid="<<expected<<" namespace_inode="<<leader.inode<<" chain_nodes="<<count<<'\n';
 }
 void ApplicationProcess::stop_or_exit() noexcept {
     try { stop(); }
@@ -215,27 +311,107 @@ void ApplicationProcess::stop_or_exit() noexcept {
 }
 void ApplicationProcess::stop() {
     if (pid_ <= 0) return;
+    const auto started = Clock::now();
+    const auto deadline = started + std::chrono::seconds(2);
+    std::exception_ptr failure;
+    const char* failure_operation = nullptr;
+    std::exception_ptr completion_failure;
+    const auto attempt = [&failure, &failure_operation](const char* label, auto&& action) {
+        try { action(); }
+        catch (...) {
+            if (!failure) { failure = std::current_exception(); failure_operation = label; }
+        }
+    };
+    // Issue every owned termination request before entering any process wait.
+    attempt("owned scope termination request", [this] { resources_->scope().request_stop(); });
     const auto signal_fd = [](int fd) {
         if (syscall(SYS_pidfd_send_signal, fd, SIGKILL, nullptr, 0) < 0 && errno != ESRCH)
             throw std::runtime_error("Cannot signal application boundary");
     };
-    if (namespace_pidfd_ >= 0) signal_fd(namespace_pidfd_);
-    if (pidfd_ >= 0) signal_fd(pidfd_);
-    else if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) // Still our unreaped child.
-        throw std::runtime_error("Cannot signal unreaped application boundary");
-    const auto deadline = Clock::now()+std::chrono::seconds(2);
+    if (namespace_pidfd_ >= 0) attempt("namespace leader signal", [this, &signal_fd] { signal_fd(namespace_pidfd_); });
+    if (pidfd_ >= 0) attempt("application child signal", [this, &signal_fd] { signal_fd(pidfd_); });
+    else attempt("application child signal", [this] {
+        if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) throw std::runtime_error("Cannot signal unreaped application boundary");
+    });
+
+    int poll_result = 0, poll_revents = 0, poll_error = 0;
+    bool namespace_exited = namespace_pidfd_ < 0, namespace_wait_failed = false, namespace_deadline_expired = false;
     if (namespace_pidfd_ >= 0) {
-        for (;;) {
+        while (!namespace_exited && !failure) {
             pollfd state{namespace_pidfd_, POLLIN, 0};
-            const auto result = poll(&state, 1, 10);
-            if (result > 0 && (state.revents & POLLIN)) break;
-            if (result > 0 || (result < 0 && errno != EINTR) || Clock::now() >= deadline)
-                throw std::runtime_error("Cannot confirm application namespace exit");
+            poll_result = poll(&state, 1, 10);
+            if (poll_result < 0) poll_error = errno;
+            poll_revents = state.revents;
+            if (poll_result > 0 &&
+                (poll_revents == POLLIN || poll_revents == POLLHUP || poll_revents == (POLLIN | POLLHUP))) {
+                namespace_exited = true; break;
+            }
+            if (poll_result < 0 && poll_error == EINTR) {
+                if (Clock::now() < deadline) continue;
+                namespace_wait_failed = true;
+                namespace_deadline_expired = true;
+                break;
+            }
+            if (poll_result < 0 || poll_result > 0 || Clock::now() >= deadline) {
+                namespace_wait_failed = true;
+                if (poll_result == 0 && Clock::now() >= deadline) namespace_deadline_expired = true;
+                break;
+            }
         }
     }
-    resources_->scope().stop();
+    // Scope emptiness and direct-child reap remain mandatory after namespace-wait errors.
+    try { resources_->scope().complete_stop(deadline); }
+    catch (...) {
+        completion_failure = std::current_exception();
+        if (!failure && !namespace_wait_failed) {
+            failure = completion_failure;
+            failure_operation = "owned scope completion";
+        }
+    }
+    const bool stop_failed = static_cast<bool>(failure) || static_cast<bool>(completion_failure) ||
+                             namespace_wait_failed || !namespace_exited;
+    if (stop_failed) {
+        const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - started).count();
+        try {
+            const auto& owned = resources_->scope().identity();
+            std::cerr << "application stop unconfirmed pid=" << pid_ << " namespace_pid=" << namespace_pid_
+                      << " scope=" << owned.scope_name() << " scope_device=" << owned.device()
+                      << " scope_inode=" << owned.inode() << " elapsed_us=" << elapsed
+                      << " poll_result=" << poll_result << " poll_revents=" << poll_revents;
+            if (poll_result < 0) std::cerr << " poll_errno=" << poll_error;
+            try {
+                std::cerr << " scope_populated=" << resources_->scope().diagnostic_populated()
+                          << " child_reaped=" << resources_->scope().diagnostic_child_reaped();
+            } catch (...) { /* Keep the primary diagnostic if cgroup inspection fails. */ }
+            if (failure) {
+                std::cerr << " first_failure=" << (failure_operation ? failure_operation : "owned stop") << ':';
+                try { std::rethrow_exception(failure); }
+                catch (const std::exception& error) { std::cerr << error.what(); }
+                catch (...) { std::cerr << "unknown"; }
+            } else if (namespace_wait_failed) std::cerr << " first_failure=namespace leader poll";
+            if (completion_failure && completion_failure != failure) {
+                std::cerr << " completion_failure=";
+                try { std::rethrow_exception(completion_failure); }
+                catch (const std::exception& error) { std::cerr << error.what(); }
+                catch (...) { std::cerr << "unknown"; }
+            }
+            std::cerr << '\n';
+        } catch (...) { /* Diagnostic failure must not replace the cleanup result. */ }
+        if (failure) std::rethrow_exception(failure);
+        if (namespace_wait_failed) {
+            if (namespace_deadline_expired) throw std::runtime_error("Application namespace exit deadline exceeded");
+            if (poll_result < 0)
+                throw std::system_error(poll_error, std::generic_category(), "Cannot poll application namespace leader");
+            if (poll_result > 0) throw std::runtime_error("Unexpected application namespace poll events");
+            throw std::runtime_error("Application namespace exit was not confirmed");
+        }
+        if (completion_failure) std::rethrow_exception(completion_failure);
+        throw std::runtime_error("Cannot confirm application namespace exit");
+    }
     if (namespace_pidfd_ >= 0) close(namespace_pidfd_);
-    namespace_pidfd_ = -1;
+    namespace_pidfd_ = -1; namespace_pid_ = -1;
+    if(payload_pidfd_>=0)close(payload_pidfd_);
+    payload_pidfd_=-1;payload_pid_=-1;payload_start_=0;
     if (pidfd_ >= 0) close(pidfd_);
     pidfd_ = -1; pid_ = -1;
 }

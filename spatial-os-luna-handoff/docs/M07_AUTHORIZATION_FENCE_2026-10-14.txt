@@ -1,0 +1,25 @@
+Private broker authorization fence contract
+
+Scoped authority replies and application-access batches carry a 16-byte process incarnation and a positive monotonic authorization epoch. The broker also exposes a private fence request that refreshes issuer state for the authenticated principal across every configured workspace authority before returning the current pair. Callers compare every collected decision pair with one final fence pair and discard the batch on any mismatch.
+
+Application-access first completes issuer refresh, process reconciliation, reaping, and native checks. It captures the pair before evaluating the batch. Evaluation performs only local store and process-record reads. It returns UNAVAILABLE if the pair changes before the batch completes.
+
+The epoch advances for observed issuer security revisions, actor or credential revocation transitions, actual durable grant or bootstrap revision changes, real workspace creation or membership changes, and service failure. Cache invalidation alone does not advance it. Epoch exhaustion disables authority. Each process gets a fresh kernel-random incarnation, so a restart cannot reuse an old fence pair.
+Issuer security revision zero is a valid initial value, not an uninitialized marker. Once a baseline revision has been observed, a later revision increase from zero advances the epoch. Credential revocation preserves an otherwise valid actor and running workspace process while still advancing the fence epoch.
+An issuer actor revocation cancels affected in-flight broker work. The cancellation guard may return the typed UNAUTHORIZED error "Issuer revocation invalidated the in-flight broker result" without a scoped reply. A subsequent settled scoped query must return a denied decision with the same broker incarnation and an advanced epoch. This error exception applies only to the in-flight cancellation result; it does not permit a later allowed decision.
+
+The private protocol change adds fields to ScopedAuthorityCheckReply and ApplicationAccessReply and adds request field 114 / reply field 113 for the fence operation. It exposes no grant records and changes no actor-facing schema. The authority store revision accessor is trusted internal code and does not authorize caller access.
+
+Selected checks and purpose
+
+- Build workspaced and worldd with broker C++ bindings to check private request/reply dispatch and caller compilation.
+- Build broker Python protobuf bindings to verify descriptor generation.
+- Compile the authority test module to catch fixture syntax errors.
+- Run CTest discovery only to verify focused registration. Coding-host runtime tests remain unrun.
+- Focused registrations select fence stability, restart incarnation, scoped and application reply stamp agreement, later-workspace revocation, credential revocation, no-authority failure, delegation revisions, and bootstrap-binding revisions. The scoped selector covers five methods: exact scope and fresh revocation, workspace policy ceiling, no legacy fallback, transport-loss denial, and issuer-revocation denial. A separate selector covers registry binding as the sixth scoped case. Repeated queries and membership mutations prove no-op stability.
+
+Debug retry diagnosis (2026-10-14)
+
+The frozen v18 package at source 8338661 completed on both required hosts but did not pass. sb16 completed 9/10 methods; credential revocation preserved the process but returned epoch 2 before and after. sb16-2 completed 2/3 methods; a direct scoped request timed out while worldd logged an unexpected broker reply identity. Evidence remains under /home/dflanag3/spatial-artifacts/m07-fence-v18-20261014/sb16/debug-run-retry and /home/dflanag3/spatial-artifacts/m07-fence-v18-20261014/sb16-2/debug-run-retry.
+
+The first failure came from using revision zero as the uninitialized sentinel in three authority paths. The correction tracks initialization separately. The second came from Python and worldd reading the same broker socket concurrently in the test fixture. The fixture now gives worldd a separate endpoint and serializes both real protobuf request paths through one broker stream. The regression exercises concurrent fence requests and real workspace select/clear actions while worldd remains alive. This note records diagnosis and contract interpretation; the corrective source has not yet been rebuilt or rerun.

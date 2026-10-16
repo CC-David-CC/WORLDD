@@ -5,6 +5,7 @@ import ssl
 import struct
 import subprocess
 import unittest
+from types import SimpleNamespace
 from google.protobuf import text_format
 import core_pb2 as core
 import issuer_pb2 as issuer
@@ -13,6 +14,7 @@ from harness.wire import frame,make_request
 from harness.oracles import pose
 from test_world_identity import WorldProcess,SessionPeer,WORLD
 from test_world_bootstrap import BootstrapWorldFixture
+from world_process_lifecycle_fixture import WorldProcessLifecycleMixin
 
 
 class TlsActorPeer(SessionPeer):
@@ -37,7 +39,7 @@ class TlsActorPeer(SessionPeer):
 
 class RemoteWorldProcess(WorldProcess):
     def __init__(self,fixture,local):
-        self.sequence=0;self.peers=[]
+        self.sequence=0;self.peers=[];self.broker_channel=None
         self.log_path=fixture.root/f'remote-world-{len(fixture.worlds)}.log'
         self.log=self.log_path.open('wb')
         self.server_key,self.server_cert=fixture.certificate('world-server','world.test')
@@ -54,6 +56,7 @@ class RemoteWorldProcess(WorldProcess):
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=(listener.fileno(),))
+            self._initialize_process_lifecycle()
         finally:listener.close()
         self.state_path=local.state_path
 
@@ -123,6 +126,40 @@ class RemoteWorldTests(BootstrapWorldFixture):
         denied=second.call(complete=complete)
         self.assertTrue(denied.HasField('error'),denied);self.assertEqual(denied.error.code,core.UNAUTHORIZED)
         self.assertTrue(first.call(complete=complete).HasField('opened'))
+
+
+class WorldProcessLifecycleRegression(WorldProcessLifecycleMixin, unittest.TestCase):
+    def test_base_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        fixture = self.Fixture(self.root)
+        with patch.dict(WorldProcess.__init__.__globals__, {"WORLD": self.helper}):
+            world = WorldProcess(fixture, self.root / "identity.textproto", self.root / "state", count=1)
+        self.assert_lifecycle_close(world)
+
+    def test_remote_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        fixture = self.Fixture(self.root)
+        local = SimpleNamespace(
+            state_path=self.root / "state",
+            config_path=self.root / "identity.textproto",
+            runtime_path=self.root / "runtime.textproto",
+        )
+        with patch.dict(RemoteWorldProcess.__init__.__globals__, {"WORLD": self.helper}):
+            world = RemoteWorldProcess(fixture, local)
+        self.assert_lifecycle_close(world)
+
+    def test_persistent_tls_world_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        from test_world_shared_state import PersistentTlsWorld
+        fixture = self.Fixture(self.root)
+        local = SimpleNamespace(
+            state_path=self.root / "state",
+            config_path=self.root / "identity.textproto",
+            runtime_path=self.root / "runtime.textproto",
+        )
+        with patch.dict(PersistentTlsWorld.__init__.__globals__, {"WORLD": self.helper}):
+            world = PersistentTlsWorld(fixture, local)
+        self.assert_lifecycle_close(world)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

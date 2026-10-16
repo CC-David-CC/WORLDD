@@ -7,6 +7,7 @@ import sys
 import time
 import unittest
 import test_session_application as existing
+from native_process_argv import argv0_matches, parse_proc_cmdline
 import broker_pb2 as broker
 import launch_pb2 as launch
 import process_scope_pb2 as process
@@ -158,12 +159,43 @@ class SessionResourceTests(existing.SessionApplicationTests):
         self.assertEqual((leaf / 'cpu.max').read_text().strip(), '100000 100000')
         self.assertEqual((leaf / 'memory.swap.max').read_text().strip(), '0')
         self.assertIn(f'{self.major}:{self.minor} rbps={64*MIB} wbps={8*MIB}', (leaf / 'io.max').read_text())
-        members = set(map(int, (leaf / 'cgroup.procs').read_text().split()))
+        payload = leaf / 'payload'
+        self.assertTrue(payload.is_dir(), 'Application payload must remain below its budgeted scope')
+        app_groups = [leaf, *(path for path in leaf.rglob('*') if path.is_dir())]
+        members_by_group = {path: set(map(int, (path / 'cgroup.procs').read_text().split()))
+                            for path in app_groups}
+        members = set().union(*members_by_group.values())
         self.assertGreaterEqual(len(members), 4)
-        self.assertFalse(members.intersection([self.world_ids.workspaced_pid, self.world_ids.worldd_pid, self.world_ids.spatialwm_pid]))
+        payload_members = members_by_group[payload]
+        self.assertTrue(payload_members, 'Confined application must run in the nested payload cgroup')
+        app_commands = {}
+        scope_cgroup = str(leaf.resolve()).replace('/sys/fs/cgroup', '')
+        for pid in sorted(members):
+            argv = parse_proc_cmdline(Path(f'/proc/{pid}/cmdline').read_bytes())
+            cgroup_lines = Path(f'/proc/{pid}/cgroup').read_text().splitlines()
+            unified = next((line.split('::', 1)[1] for line in cgroup_lines if '::' in line), None)
+            app_commands[pid] = {'argv': argv, 'cmdline': ' '.join(argv), 'cgroup': unified}
+            self.assertIsNotNone(unified, f'PID {pid} has no unified cgroup membership')
+            self.assertTrue(unified == scope_cgroup or unified.startswith(scope_cgroup + '/'),
+                            f'PID {pid} escaped its application scope: {unified}')
+        python_pids = {pid for pid in payload_members
+                       if argv0_matches(app_commands[pid]['argv'], sys.executable)}
+        probe_pids = {pid for pid in payload_members
+                       if argv0_matches(app_commands[pid]['argv'], '/project/probe')}
+        self.assertTrue(python_pids, app_commands)
+        self.assertTrue(probe_pids, app_commands)
+        for probe_pid in probe_pids:
+            parent_pid = int(Path(f'/proc/{probe_pid}/stat').read_text().rsplit(')', 1)[1].split()[1])
+            self.assertIn(parent_pid, python_pids, f'Probe must remain a child of the app process: {app_commands}')
+        broker_members = set(map(int, (self.broker_process_group() / 'cgroup.procs').read_text().split()))
+        self.assertTrue(broker_members, 'Broker manager must remain in its separate cgroup')
+        forbidden = broker_members | {self.world_ids.workspaced_pid, self.world_ids.worldd_pid,
+                                       self.world_ids.spatialwm_pid}
+        self.assertFalse(members.intersection(forbidden), app_commands)
         self.preserve('kernel', {str(path.relative_to(root)):
-            {name:(path/name).read_text() for name in ['memory.max', 'memory.swap.max', 'pids.max', 'cpu.max', 'io.max', 'cgroup.procs']}
-            for path in [workspace, actor, leaf]})
+            {name:(path/name).read_text() if (path/name).exists() else None
+             for name in ['memory.max', 'memory.swap.max', 'pids.max', 'cpu.max', 'io.max', 'cgroup.procs']}
+            for path in [workspace, actor, leaf, payload]})
         cleanup = self.request(stop_world=self.owner).cleanup
         self.assertEqual(cleanup.stage, launch.OWNED_SCOPES_STOPPED)
         self.finish_session()

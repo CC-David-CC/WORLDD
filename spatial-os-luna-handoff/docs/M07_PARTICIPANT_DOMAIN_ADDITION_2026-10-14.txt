@@ -1,0 +1,50 @@
+M07 PARTICIPANT DOMAIN ADDITION — 2026-10-14
+
+This source change adds a stopped, owner-authorized operation for expanding one
+registered participant's domain set. It preserves participant ID, public key,
+existing domains, grants, credentials, and historical authority records.
+
+`IssuerOperation.participant_domains_add` carries an operation ID, exact current
+participant key/revision, registry revision, optional supervisor revision (zero
+means unsupervised), and sorted unique additions. The owner signs the complete
+operation through the existing issuer challenge. The transaction rejects active
+generations, unresolved non-retired obligations, generation-zero launch proofs,
+claimed or duplicate domains, stale revisions, and domain/receipt capacity.
+
+Receipts preserve exact request bytes and SHA-256, prior and resulting
+registrations, global registry revisions, and prior/new supervisor bindings.
+Receipt replay looks up the operation ID before current preconditions. Identical
+bytes return the stored serialized receipt. Different bytes conflict. The
+bounded receipt table refuses new work when full and never evicts accepted rows.
+
+Issuer schema 11 adds immutable participant registration history and durable
+operation receipts. Ordinary schema 10 open refuses before DDL. Explicit
+`identityd --migrate` creates history and receipts in one SQLite transaction,
+validates prior activation and supervisor rows against the old current record,
+and seeds each current registration as its first history row. Later registrations
+and additions append history. Activation and barrier reads validate against the
+exact historical registration revision. Exact prior fence and retirement
+operations continue to use the stored historical registration; new fences still
+require the current supervisor binding.
+
+A cached authenticated service context and an authentication challenge from the
+old registration revision fail with UNAUTHORIZED after the update. A new service
+connection must authenticate with the new revision and receive a fresh
+supervisor launch authorization. Domain expansion creates no actor grant.
+
+Focused source regressions are registered as `identity-participant-domain-addition`.
+The fixture covers stopped addition, exact replay across a later addition,
+changed-byte conflict, stale/key/domain rejections, active and unconsumed-launch
+BUSY checks, interleaved global registry revisions, empty/missing/foreign/over-limit domains,
+receipt saturation without eviction, active/unconsumed-launch BUSY checks, and an
+explicit storage-fault injection for the otherwise unreachable inactive unresolved
+obligation guard; historical fence and retirement replay after expansion, typed rejection
+of expanded-scope fence requests, stale service/challenge/action rejection, fresh
+revision activation, authentic schema-10 refusal and migration, malformed history
+rollback, and existing schema migrations through v11. Older-schema migration
+fixtures drop only the new v11 tables before setting their historical version.
+The test has a direct unittest entrypoint, and its CMake artifact target names the
+production executables and generated Python bindings.
+
+The focused suite is source-only at this checkpoint. Builds and tests remain
+UNRUN. Combined authority and recopy qualification remain pending primary review.

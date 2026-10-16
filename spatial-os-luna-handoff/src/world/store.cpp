@@ -1,4 +1,6 @@
 #include "world/store.hpp"
+#include "world/presentation_geometry.hpp"
+#include "core/presentation_identity.hpp"
 #include "world/snapshot_size.hpp"
 #include "world/storage_vfs.hpp"
 #include "core/geometry.hpp"
@@ -7,6 +9,7 @@
 #include <sys/file.h>
 #include <unistd.h>
 #include <limits>
+#include <cstdint>
 #include <string>
 #include <utility>
 
@@ -34,10 +37,18 @@ struct Statement {
         require(number <= static_cast<std::uint64_t>(INT64_MAX), "Revision exceeds storage range");
         check(sqlite3_bind_int64(value, i, static_cast<sqlite3_int64>(number)));
     }
+    void blob(int i, const std::string& bytes) {
+        require(bytes.size() <= static_cast<std::size_t>(INT_MAX), "SQLite blob exceeds storage range");
+        check(sqlite3_bind_blob(value, i, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT));
+    }
     int step() { const int result = sqlite3_step(value); check(result); return result; }
     std::string text(int i) {
         const auto* bytes = sqlite3_column_text(value, i);
         return bytes ? std::string(reinterpret_cast<const char*>(bytes), sqlite3_column_bytes(value, i)) : "";
+    }
+    std::string blob(int i) {
+        const auto* bytes = static_cast<const char*>(sqlite3_column_blob(value, i));
+        return bytes ? std::string(bytes, sqlite3_column_bytes(value, i)) : "";
     }
 };
 void execute(sqlite3* db, const char* sql) { check(sqlite3_exec(db, sql, nullptr, nullptr, nullptr)); }
@@ -111,15 +122,27 @@ namespace {
 const char* workspace_context_schema =
     "CREATE TABLE world_workspaces(id TEXT PRIMARY KEY,available INTEGER NOT NULL CHECK(available IN (0,1)));"
     "CREATE TABLE actor_workspaces(actor TEXT PRIMARY KEY REFERENCES entities(id),workspace TEXT NOT NULL REFERENCES world_workspaces(id));"
-    "PRAGMA user_version=2";
+    "CREATE TABLE workspace_presentations(id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,room_id TEXT NOT NULL REFERENCES entities(id),pose BLOB NOT NULL,generation INTEGER NOT NULL CHECK(generation>0));"
+    "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL);"
+    "PRAGMA user_version=3";
+}
+void verify_workspace_presentation_schema(sqlite3* db) {
+    Statement tables(db, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('workspace_presentations','workspace_presentation_ops')");
+    if (tables.step() != SQLITE_ROW || sqlite3_column_int(tables.value, 0) != 2)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid v3 workspace presentation schema");
+    Statement presentations(db, "SELECT id,workspace_id,room_id,pose,generation FROM workspace_presentations LIMIT 0");
+    presentations.step();
+    Statement operations(db, "SELECT operation_id,principal,request_digest,kind,result FROM workspace_presentation_ops LIMIT 0");
+    operations.step();
 }
 struct WorldStore::Impl {
     File lock;
     CommitFault fault;
     std::unique_ptr<StorageVfs> storage_vfs;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
-    explicit Impl(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults) : fault{fixture_faults} {
-        require(!migrate_v1 || !fixture_faults, "Migration cannot enable fixture faults");
+    explicit Impl(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults, bool migrate_v2) : fault{fixture_faults} {
+        require((!migrate_v1 && !migrate_v2) || !fixture_faults, "Migration cannot enable fixture faults");
+        require(!(migrate_v1 && migrate_v2), "Select one world schema migration");
         require(directory.is_absolute(), "State directory must be absolute");
         require(!std::filesystem::is_symlink(directory), "State directory must not be a symlink");
         if (migrate_v1) require(std::filesystem::is_regular_file(directory / "world.db"), "Migration requires an existing world database");
@@ -138,7 +161,10 @@ struct WorldStore::Impl {
         int version;
         { Statement q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
         if (version == 1 && !migrate_v1) throw WorldError(wire::STORAGE_ERROR, "World schema v1 requires worldd --state-dir PATH --migrate-v1 while the world is stopped");
-        if (version < 0 || version > 2 || (migrate_v1 && version == 0)) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
+        if (version == 2 && !migrate_v2) throw WorldError(wire::STORAGE_ERROR, "World schema v2 requires worldd --state-dir PATH --migrate-v2 while the world is stopped");
+        if (migrate_v1 && version != 1 && version != 3) throw WorldError(wire::STORAGE_ERROR, "--migrate-v1 requires world schema v1 or its v3 target");
+        if (migrate_v2 && version != 2 && version != 3) throw WorldError(wire::STORAGE_ERROR, "--migrate-v2 requires world schema v2 or its v3 target");
+        if (version < 0 || version > 3 || (migrate_v1 && version == 0)) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
         if (version == 0) {
             Statement q(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
             q.step();
@@ -172,13 +198,23 @@ struct WorldStore::Impl {
             throw WorldError(wire::STORAGE_ERROR, "Invalid durable world identity or entry room");
         Statement all(db.get(), "SELECT id FROM entities ORDER BY id");
         while (all.step() == SQLITE_ROW) {
-            const auto entity = get(all.text(0)); references(entity);
+            const auto entity = get(all.text(0));
+            if (is_reserved_presentation_geometry_id(entity.id()))
+                throw WorldError(wire::STORAGE_ERROR, "World entity occupies the reserved presentation geometry namespace");
+            references(entity);
             if (entity.world_revision() > state.world_revision())
                 throw WorldError(wire::STORAGE_ERROR, "Entity revision exceeds world revision");
         }
         if (version == 1) {
             Transaction transaction(db.get(), true); execute(db.get(), workspace_context_schema); transaction.commit();
         }
+        if (version == 2) {
+            Transaction transaction(db.get(), true);
+            execute(db.get(), "CREATE TABLE workspace_presentations(id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,room_id TEXT NOT NULL REFERENCES entities(id),pose BLOB NOT NULL,generation INTEGER NOT NULL CHECK(generation>0));"
+                            "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL); PRAGMA user_version=3");
+            transaction.commit();
+        }
+        verify_workspace_presentation_schema(db.get());
         Statement context(db.get(), "SELECT actor FROM actor_workspaces JOIN entities ON actor=entities.id JOIN world_workspaces ON workspace=world_workspaces.id WHERE kind<>? OR available<>1");
         context.integer(1, wire::ACTOR);
         if (context.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Invalid durable actor workspace context");
@@ -232,8 +268,8 @@ struct WorldStore::Impl {
     }
 };
 
-WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults)
-    : impl_(std::make_unique<Impl>(directory, migrate_v1, fixture_faults)) {}
+WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults, bool migrate_v2)
+    : impl_(std::make_unique<Impl>(directory, migrate_v1, fixture_faults, migrate_v2)) {}
 WorldStore::~WorldStore() = default;
 bool WorldStore::fixture_faults() const { return impl_->fault.enabled; }
 wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request, const std::function<void()>& arm_git) {
@@ -272,6 +308,8 @@ wire::Entity WorldStore::create_actor(const wire::Entity& input) {
 }
 wire::Entity WorldStore::insert_entity(const wire::Entity& input) {
     valid_entity(input);
+    if (is_reserved_presentation_geometry_id(input.id()))
+        throw WorldError(wire::INVALID_ARGUMENT, "Entity ID uses a reserved presentation geometry namespace");
     require(!input.has_revision() && !input.has_world_revision(), "Revisions are assigned by the world");
     Transaction transaction(impl_->db.get(), true, &impl_->fault);
     { Statement q(impl_->db.get(), "SELECT 1 FROM entities WHERE id=?"); q.text(1, input.id());
@@ -317,6 +355,8 @@ wire::WorldDeleteReply WorldStore::erase(const wire::WorldDeleteRequest& request
     if (request.id() == impl_->info().entry_room()) throw WorldError(wire::IN_USE, "The world entry room cannot be deleted");
     { Statement q(impl_->db.get(), "SELECT 1 FROM entities WHERE room=?1 OR destination=?1 LIMIT 1"); q.text(1, request.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Entity is referenced"); }
+    { Statement q(impl_->db.get(), "SELECT 1 FROM workspace_presentations WHERE room_id=?1 LIMIT 1"); q.text(1, request.id());
+      if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Room contains a workspace presentation"); }
     Statement q(impl_->db.get(), "DELETE FROM entities WHERE id=? AND revision=?");
     q.text(1, request.id()); q.integer(2, request.expected_revision()); q.step();
     if (sqlite3_changes(impl_->db.get()) != 1) throw WorldError(wire::REVISION_CONFLICT, "Concurrent entity edit");
@@ -409,6 +449,327 @@ void WorldStore::revoke_workspace_selection(const std::string& workspace, const 
     valid_id(workspace); valid_id(actor); Transaction transaction(impl_->db.get(), true, &impl_->fault);
     Statement q(impl_->db.get(), "DELETE FROM actor_workspaces WHERE actor=? AND workspace=?"); q.text(1, actor); q.text(2, workspace); q.step();
     if (sqlite3_changes(impl_->db.get())) impl_->advance();
+    transaction.commit();
+}
+} // namespace spatial
+
+namespace spatial {
+namespace {
+constexpr int presentation_create_op = 1;
+constexpr int presentation_move_op = 2;
+constexpr int presentation_remove_op = 3;
+
+std::string presentation_hex(const std::string& bytes) {
+    constexpr char digits[] = "0123456789abcdef";
+    std::string result; result.reserve(bytes.size()*2);
+    for (unsigned char byte : bytes) { result.push_back(digits[byte>>4]); result.push_back(digits[byte&15]); }
+    return result;
+}
+std::string presentation_unhex(const std::string& hex) {
+    if (hex.size()%2) throw WorldError(wire::STORAGE_ERROR, "Invalid encoded presentation identity");
+    auto nibble=[](char c)->unsigned char { if(c>='0'&&c<='9')return c-'0'; if(c>='a'&&c<='f')return c-'a'+10; throw WorldError(wire::STORAGE_ERROR,"Invalid encoded presentation identity"); };
+    std::string result; result.reserve(hex.size()/2);
+    for(std::size_t i=0;i<hex.size();i+=2) result.push_back(static_cast<char>((nibble(hex[i])<<4)|nibble(hex[i+1])));
+    return result;
+}
+void validate_presentation_id(const std::string& value, const char* message) { require(value.size()==16,message); }
+void validate_operation(const std::string& operation_id, const std::string& digest, const std::string& principal) {
+    validate_presentation_id(operation_id, "Operation ID must contain exactly 16 bytes");
+    require(digest.size()==32, "Presentation digest must be SHA-256 bytes");
+    require(principal.size()==64, "Canonical presentation principal must contain two 32-byte identities");
+}
+
+void append_field(std::string& bytes, const std::string& field) {
+    if (field.size() > UINT32_MAX)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Presentation field too large");
+    const auto size = static_cast<std::uint32_t>(field.size());
+    for (int shift = 24; shift >= 0; shift -= 8)
+        bytes.push_back(static_cast<char>((size >> shift) & 0xff));
+    bytes.append(field);
+}
+
+std::string take_field(const std::string& bytes, std::size_t& offset) {
+    if (offset > bytes.size() || bytes.size() - offset < 4)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation journal record");
+    std::uint32_t size = 0;
+    for (int i = 0; i < 4; ++i)
+        size = (size << 8) | static_cast<unsigned char>(bytes[offset++]);
+    if (size > bytes.size() - offset)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation journal field");
+    std::string field = bytes.substr(offset, size);
+    offset += size;
+    return field;
+}
+
+WorkspacePresentation decode_presentation(const std::string& bytes) {
+    WorkspacePresentation result;
+    std::size_t offset = 0;
+    result.id = take_field(bytes, offset);
+    result.workspace_id = take_field(bytes, offset);
+    result.room_id = take_field(bytes, offset);
+    const auto pose_bytes = take_field(bytes, offset);
+    if (offset > bytes.size() || bytes.size() - offset != 8)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation journal generation");
+    std::uint64_t generation = 0;
+    for (int i = 0; i < 8; ++i)
+        generation = (generation << 8) | static_cast<unsigned char>(bytes[offset++]);
+    if (!result.pose.ParseFromString(pose_bytes) || generation == 0)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation journal pose");
+    result.generation = generation;
+    validate_presentation_id(result.id, "Invalid presentation identity");
+    valid_id(result.workspace_id);
+    valid_id(result.room_id);
+    valid_pose(result.pose);
+    return result;
+}
+
+std::string encode_presentation(const WorkspacePresentation& value) {
+    std::string result;
+    append_field(result, value.id);
+    append_field(result, value.workspace_id);
+    append_field(result, value.room_id);
+    append_field(result, value.pose.SerializeAsString());
+    for (int shift = 56; shift >= 0; shift -= 8)
+        result.push_back(static_cast<char>((value.generation >> shift) & 0xff));
+    return result;
+}
+std::string encode_presentation_receipt(const WorkspacePresentation& value, const std::string& source_room, bool removed) {
+    std::string result="WPR1";
+    append_field(result, source_room); append_field(result, removed ? std::string(1, '\1') : std::string(1, '\0'));
+    append_field(result, encode_presentation(value)); return result;
+}
+PresentationOperationReceipt decode_presentation_receipt(const std::string& bytes, int kind) {
+    if (bytes.empty()) {
+        if (kind==presentation_remove_op) return {{}, {}, true}; // Legacy tombstone has no trustworthy replay scope.
+        throw WorldError(wire::STORAGE_ERROR, "Missing presentation operation receipt");
+    }
+    if (bytes.compare(0,4,"WPR1") != 0) {
+        auto value=decode_presentation(bytes);
+        if (kind==presentation_create_op) return {value, {}, false};
+        if (kind==presentation_move_op) return {value, {}, false}; // Legacy move has no trustworthy source scope.
+        throw WorldError(wire::STORAGE_ERROR, "Invalid legacy presentation receipt kind");
+    }
+    std::size_t offset=4; const auto source=take_field(bytes,offset); const auto removed=take_field(bytes,offset);
+    const auto payload=take_field(bytes,offset);
+    if (offset!=bytes.size() || removed.size()!=1 || (removed[0]!='\0' && removed[0]!='\1'))
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation operation receipt");
+    auto value=decode_presentation(payload);
+    const bool is_removed=removed[0]=='\1';
+    if ((kind==presentation_remove_op && (!is_removed || source.empty())) ||
+        ((kind==presentation_create_op || kind==presentation_move_op) && is_removed) ||
+        (kind==presentation_create_op && !source.empty()) ||
+        (kind==presentation_move_op && source.empty()) ||
+        (kind!=presentation_create_op && kind!=presentation_move_op && kind!=presentation_remove_op))
+        throw WorldError(wire::STORAGE_ERROR,"Invalid presentation receipt kind or scope");
+    return {std::move(value),source,is_removed};
+}
+}
+
+WorkspacePresentation WorldStore::presentation(const std::string& id) {
+    validate_presentation_id(id, "Presentation ID must contain exactly 16 bytes");
+    const auto stored_id = presentation_hex(id);
+    Statement query(impl_->db.get(),
+        "SELECT id,workspace_id,room_id,pose,generation FROM workspace_presentations WHERE id=?");
+    query.text(1, stored_id);
+    if (query.step() != SQLITE_ROW)
+        throw WorldError(wire::NOT_FOUND, "Presentation not found");
+
+    WorkspacePresentation result;
+    result.id = presentation_unhex(query.text(0));
+    result.workspace_id = query.text(1);
+    result.room_id = query.text(2);
+    if (!result.pose.ParseFromString(query.blob(3)))
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation pose");
+    const auto generation = sqlite3_column_int64(query.value, 4);
+    if (generation < 1)
+        throw WorldError(wire::STORAGE_ERROR, "Invalid presentation generation");
+    result.generation = static_cast<std::uint64_t>(generation);
+    validate_presentation_id(result.id, "Invalid presentation identity");
+    valid_id(result.workspace_id);
+    valid_pose(result.pose);
+    if (impl_->get(result.room_id).kind() != wire::ROOM)
+        throw WorldError(wire::STORAGE_ERROR, "Presentation room is not a room");
+    return result;
+}
+
+std::optional<PresentationOperationReceipt> WorldStore::presentation_operation(const std::string& operation_id,
+    const std::string& digest, const std::string& principal, WorkspacePresentationOperation kind) {
+    validate_operation(operation_id,digest,principal);
+    const auto key=presentation_hex(operation_id);
+    Statement query(impl_->db.get(),"SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    query.text(1,key);
+    if (query.step()!=SQLITE_ROW) return std::nullopt;
+    if (query.text(0)!=presentation_hex(principal) || query.text(1)!=presentation_hex(digest) ||
+        sqlite3_column_int(query.value,2)!=static_cast<int>(kind))
+        throw WorldError(wire::REVISION_CONFLICT,"Presentation operation replay conflicts");
+    return decode_presentation_receipt(query.blob(3),static_cast<int>(kind));
+}
+
+std::vector<WorkspacePresentation> WorldStore::presentations() {
+    std::vector<WorkspacePresentation> result;
+    Statement query(impl_->db.get(), "SELECT id FROM workspace_presentations ORDER BY id");
+    while (query.step() == SQLITE_ROW)
+        result.push_back(presentation(presentation_unhex(query.text(0))));
+    return result;
+}
+
+WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentation& requested,
+    std::uint64_t expected_world_revision, const std::string& operation_id, const std::string& digest, const std::string& principal) {
+    validate_operation(operation_id, digest, principal);
+    validate_presentation_id(requested.id, "Presentation ID must contain exactly 16 bytes");
+    const auto operation_key=presentation_hex(operation_id), principal_key=presentation_hex(principal), digest_key=presentation_hex(digest), requested_key=presentation_hex(requested.id);
+    valid_id(requested.workspace_id);
+    valid_id(requested.room_id);
+    valid_pose(requested.pose);
+
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
+    Statement replay(impl_->db.get(),
+        "SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    replay.text(1, operation_key);
+    if (replay.step() == SQLITE_ROW) {
+        if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_create_op)
+            throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
+        auto result = decode_presentation_receipt(replay.blob(3), presentation_create_op).presentation;
+        return result;
+    }
+    if (impl_->info().world_revision() != expected_world_revision)
+        throw WorldError(wire::REVISION_CONFLICT, "World changed before presentation create");
+    if (impl_->get(requested.room_id).kind() != wire::ROOM)
+        throw WorldError(wire::INVALID_ARGUMENT, "Presentation room must be a room");
+    {
+        Statement duplicate(impl_->db.get(), "SELECT 1 FROM workspace_presentations WHERE id=?");
+        duplicate.text(1, requested_key);
+        if (duplicate.step() == SQLITE_ROW)
+            throw WorldError(wire::ALREADY_EXISTS, "Presentation identity already exists");
+    }
+
+    // Bound this subsystem independently. Existing world entity limits remain unchanged.
+    Statement budget(impl_->db.get(),
+        "SELECT count(*),coalesce(sum(length(id)+length(workspace_id)+length(room_id)+length(pose)),0) FROM workspace_presentations");
+    if (budget.step() != SQLITE_ROW) throw WorldError(wire::STORAGE_ERROR, "Cannot read presentation storage budget");
+    constexpr std::int64_t presentation_count_limit = 4096;
+    constexpr std::int64_t presentation_bytes_limit = 64 * 1024 * 1024;
+    const auto count = sqlite3_column_int64(budget.value, 0);
+    const auto bytes = sqlite3_column_int64(budget.value, 1);
+    const auto incoming = static_cast<std::int64_t>(requested.id.size() + requested.workspace_id.size() +
+        requested.room_id.size() + requested.pose.ByteSizeLong());
+    if (count >= presentation_count_limit || incoming > presentation_bytes_limit - bytes)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "World presentation storage limit reached");
+
+    WorkspacePresentation result = requested;
+    result.generation = 1;
+    Statement insert(impl_->db.get(), "INSERT INTO workspace_presentations VALUES(?,?,?,?,?)");
+    insert.text(1, requested_key);
+    insert.text(2, result.workspace_id);
+    insert.text(3, result.room_id);
+    insert.blob(4, result.pose.SerializeAsString());
+    insert.integer(5, result.generation);
+    insert.step();
+
+    Statement journal(impl_->db.get(), "INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,?)");
+    journal.text(1, operation_key);
+    journal.text(2, principal_key);
+    journal.text(3, digest_key);
+    journal.integer(4, presentation_create_op);
+    journal.blob(5, encode_presentation_receipt(result, {}, false));
+    journal.step();
+    impl_->advance();
+    transaction.commit();
+    return result;
+}
+
+WorkspacePresentation WorldStore::move_presentation(const std::string& id, const std::string& room,
+    const wire::Pose& pose, std::uint64_t expected_generation, const std::string& operation_id,
+    const std::string& digest, const std::string& principal, std::uint64_t expected_world_revision) {
+    validate_operation(operation_id, digest, principal);
+    const auto operation_key=presentation_hex(operation_id), principal_key=presentation_hex(principal), digest_key=presentation_hex(digest);
+    validate_presentation_id(id, "Presentation ID must contain exactly 16 bytes");
+    const auto id_key=presentation_hex(id);
+    valid_id(room);
+    valid_pose(pose);
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
+    Statement replay(impl_->db.get(),
+        "SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    replay.text(1, operation_key);
+    if (replay.step() == SQLITE_ROW) {
+        if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_move_op)
+            throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
+        auto result = decode_presentation_receipt(replay.blob(3), presentation_move_op).presentation;
+        return result;
+    }
+    if (expected_world_revision && impl_->info().world_revision()!=expected_world_revision)
+        throw WorldError(wire::REVISION_CONFLICT,"World changed during presentation placement validation");
+    if (impl_->get(room).kind() != wire::ROOM)
+        throw WorldError(wire::INVALID_ARGUMENT, "Presentation room must be a room");
+    auto result = presentation(id);
+    const auto source_room = result.room_id;
+    if (result.generation != expected_generation)
+        throw WorldError(wire::REVISION_CONFLICT, "Stale presentation generation");
+    if (result.generation == INT64_MAX)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Presentation generation exhausted");
+    result.room_id = room;
+    result.pose = pose;
+    ++result.generation;
+
+    Statement update(impl_->db.get(),
+        "UPDATE workspace_presentations SET room_id=?,pose=?,generation=? WHERE id=? AND generation=?");
+    update.text(1, room);
+    update.blob(2, pose.SerializeAsString());
+    update.integer(3, result.generation);
+    update.text(4, id_key);
+    update.integer(5, expected_generation);
+    update.step();
+    if (sqlite3_changes(impl_->db.get()) != 1)
+        throw WorldError(wire::REVISION_CONFLICT, "Concurrent presentation move");
+
+    Statement journal(impl_->db.get(), "INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,?)");
+    journal.text(1, operation_key);
+    journal.text(2, principal_key);
+    journal.text(3, digest_key);
+    journal.integer(4, presentation_move_op);
+    journal.blob(5, encode_presentation_receipt(result, source_room, false));
+    journal.step();
+    impl_->advance();
+    transaction.commit();
+    return result;
+}
+
+void WorldStore::remove_presentation(const std::string& id, std::uint64_t expected_generation,
+    const std::string& operation_id, const std::string& digest, const std::string& principal) {
+    validate_operation(operation_id, digest, principal);
+    const auto operation_key=presentation_hex(operation_id), principal_key=presentation_hex(principal), digest_key=presentation_hex(digest);
+    validate_presentation_id(id, "Presentation ID must contain exactly 16 bytes");
+    const auto id_key=presentation_hex(id);
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
+    Statement replay(impl_->db.get(),
+        "SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    replay.text(1, operation_key);
+    if (replay.step() == SQLITE_ROW) {
+        if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_remove_op)
+            throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
+        const auto receipt=decode_presentation_receipt(replay.blob(3),presentation_remove_op);
+        (void)receipt;
+        return;
+    }
+    const auto current = presentation(id);
+    if (current.generation != expected_generation)
+        throw WorldError(wire::REVISION_CONFLICT, "Stale presentation generation");
+
+    Statement remove(impl_->db.get(), "DELETE FROM workspace_presentations WHERE id=? AND generation=?");
+    remove.text(1, id_key);
+    remove.integer(2, expected_generation);
+    remove.step();
+    if (sqlite3_changes(impl_->db.get()) != 1)
+        throw WorldError(wire::REVISION_CONFLICT, "Concurrent presentation removal");
+
+    Statement journal(impl_->db.get(), "INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,?)");
+    journal.text(1, operation_key);
+    journal.text(2, principal_key);
+    journal.text(3, digest_key);
+    journal.integer(4, presentation_remove_op);
+    journal.blob(5, encode_presentation_receipt(current, current.room_id, true));
+    journal.step();
+    impl_->advance();
     transaction.commit();
 }
 } // namespace spatial

@@ -6,6 +6,7 @@ import socket
 import ssl
 import struct
 import subprocess
+import threading
 import time
 import unittest
 
@@ -107,7 +108,8 @@ class TlsFixture(EnrollmentFixture):
         return ctx
 
     def connect(self, context=None, hostname='issuer.test', receive_buffer=None):
-        raw = socket.socket(); raw.settimeout(2)
+        # Healthy issuer operations use the same bounded five-second I/O budget.
+        raw = socket.socket(); raw.settimeout(5)
         if receive_buffer: raw.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, receive_buffer)
         raw.connect(('127.0.0.1', self.port))
         try: peer = Peer((context or self.context()).wrap_socket(raw, server_hostname=hostname))
@@ -136,6 +138,28 @@ class TlsFixture(EnrollmentFixture):
 
 
 class TlsTests(TlsFixture):
+    def test_fixture_io_budget_allows_two_second_issuer_work(self):
+        peer = self.ready(); proc, _ = self.daemons[-1]
+        self.assertEqual(peer.stream.gettimeout(), 5)
+        pidfd = os.pidfd_open(proc.pid)
+        resume = None
+        try:
+            signal.pidfd_send_signal(pidfd, signal.SIGSTOP)
+            deadline = time.monotonic() + 1
+            while Path(f'/proc/{proc.pid}/stat').read_text().split()[2] != 'T':
+                self.assertLess(time.monotonic(), deadline, 'Issuer did not stop')
+                time.sleep(.01)
+            resume = threading.Timer(2.2, signal.pidfd_send_signal, args=(pidfd, signal.SIGCONT))
+            resume.start()
+            started = time.monotonic()
+            self.assertEqual(peer.call(info=pb.IssuerInfoRequest()).info, self.info)
+            self.assertGreaterEqual(time.monotonic() - started, 2)
+        finally:
+            signal.pidfd_send_signal(pidfd, signal.SIGCONT)
+            if resume is not None:
+                resume.cancel(); resume.join()
+            os.close(pidfd)
+
     def test_server_records_long_loop_delay_without_changing_protocol(self):
         peer = self.ready(); proc, log = self.daemons[-1]
         pidfd = os.pidfd_open(proc.pid)

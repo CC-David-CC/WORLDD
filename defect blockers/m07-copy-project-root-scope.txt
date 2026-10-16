@@ -1,6 +1,6 @@
 M07 draft workspace-copy uses storage identity as filesystem scope
 
-Status: confirmed by source review in an unintegrated draft. Correction and runtime regression remain pending.
+Status: correction is present in combined source; combined source remains unqualified pending M07 gates and runtime regression.
 Date: 2026-10-14.
 Draft branch: m07/copy-engine-20261014 on a5500.
 Affected functions: ExecutionStore::workspace_copy_begin and workspace_copy_status.

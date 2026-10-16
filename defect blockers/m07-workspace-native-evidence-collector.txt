@@ -1,3 +1,10 @@
+RESOLVED AT THE M07 GATE - 2026-10-16
+
+The corrected collector passed focused controls and all four real workspace cells. Strict reconciliation passed.
+Both final artifact audits passed. M07 is qualified.
+See docs/M07_QUALIFIED_2026-10-16.txt for the accepted evidence.
+The historical defect record follows unchanged.
+
 M07 workspace native evidence collector mismatch
 
 Status: CONFIRMED. Tooling repair is under review. M07 remains UNQUALIFIED.

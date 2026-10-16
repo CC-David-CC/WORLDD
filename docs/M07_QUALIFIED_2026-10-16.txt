@@ -1,0 +1,80 @@
+M07 QUALIFIED - 2026-10-16
+
+The complete M07 gate passed on sb16 and sb16-2.
+Primary reviewed the completed runtime results and the source integration.
+M01-M07 are qualified. M08-M16 and final Spatial-M1 acceptance remain pending.
+
+Frozen production candidate:
+1e58e65dec132a0a16f004ca4527034dca081f77
+Integration branch: m07/qualified-20261016.
+The integration preserves all 251 production, schema, harness, and build-contract files from that candidate.
+Reviewed test-only continuation commits are 90f3eec94a3f9800924d1bbb08f3810aae2214c1 and beaec482568989a918d10e7d870009d31f5fef36.
+Main's maintained notes and worker procedures are preserved.
+No M08 source entered the M07 gate.
+
+Completed qualification:
+- Both hosts passed full Debug and ASan-UBSan local gates.
+- Each host/profile passed startup5, harness51, core197, locked-P10-151, and bounded-storage5.
+- Both cross-host semantic profiles passed six cases each.
+- All four native geometry jobs passed nine tests each.
+- Native workspace checks passed both directions in both profiles.
+- Strict M07 reconciliation passed.
+- Both final after-crosshost artifact audits passed primary review.
+- Canonical runner results were 0/0/COMPLETE. Recorded pane processes retired.
+- Required cleanup, manifests, source pins, runtime pins, and remote evidence were accepted.
+
+The matrix contains 30 test-group runs and 1,688 reported test/scenario executions.
+These totals include repeated host/profile runs. They are not unique test counts.
+Focused repair controls and failed retries are excluded.
+The completed matrix has no skips and no sanitizer findings.
+
+Source and evidence mapping:
+The runtime remains the immutable 1e58e65d deployment on both test hosts.
+Test-only overlays repair owner cleanup and collection of actual fixture evidence.
+They preserve authorization assertions, mandatory cases, and the original failed reports.
+The initial dead-pane cleanup failure and workspace collector failure remain externally preserved.
+Collector amendments explicitly retain their original source and runner chains.
+No earlier failed receipt was overwritten or relabeled PASS.
+
+Final primary qualification proof:
+a5500:/home/dflanag3/spatial-artifacts/m07-final-qualification-20261016/integration-01/PRIMARY_M07_QUALIFICATION_01.json
+SHA256 920e469a930b7c41449391b6aecf9776a8c4d5701f70bb64a34cbe60d27c62d1
+This proof pins the seven primary reviews listed below.
+
+Local full-gate reviews:
+sb16: /home/dflanag3/spatial-artifacts/m07-collector-continuation-inputs-20261016/attempt-01/primary-local-full-gate-evidence-accepted-01.json
+SHA256 2ff75060ab187530dcbb1d7ef3a9415c8eecad82737270cde307360964e14a96
+sb16-2: same path on sb16-2.
+SHA256 b2c88c996d931357afc603b1d364131de2ea7d7c04a9068d97982330ccd3e3de
+
+Cross-host semantic and native review:
+a5500:/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-owner-fixed-02/PRIMARY_CROSSHOST_AUDIT_02.json
+SHA256 0165d58d0798ea0a2b06da495287561b29d5244865196d610fdc8f7d5e14781d
+
+Workspace matrix and strict reconciliation review:
+a5500:/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/primary-workspace-review-03/PRIMARY_WORKSPACE_AUDIT_01.json
+SHA256 156a7c69f2057c4bc36b9ee7945fecc4a68f278e0448df4e8a2f97b680da5c22
+Strict M07 reconciliation SHA256 aa9f633589b49299ef2890051554335ab1605fc1e6f0a81144451886cf4c4a86.
+
+Final artifact reviews:
+Both hosts: /home/dflanag3/spatial-artifacts/m07-collector-continuation-inputs-20261016/attempt-01/PRIMARY_AFTER_CROSSHOST_AUDIT_01.json
+sb16 SHA256 2597ea7b511dbddc714309344ec78ac6534103c60234054df54e1b75b9cffa16
+sb16-2 SHA256 e08ab1a063cea599aa235b21d04296215268b5fd6e3c8d0e6d7e4163b37c7b69
+
+Reviewed integration source mapping:
+a5500:/home/dflanag3/spatial-artifacts/m07-final-qualification-20261016/integration-01/SOURCE_INTEGRATION_REVIEW_01.json
+SHA256 cff3759207db15a5ddebed0cea1907d16f358d170553f078933b1dda89a7c89c
+The mapping records the exact staged merge tree before this status-only update.
+
+Next milestone:
+M08 remains UNQUALIFIED.
+Its combined FileEngine and broker checkpoint is 43b36a8123926592325c531c7c1d3bec6ebb5122.
+Its compile-only preparation passed primary review. Its broker runtime checks remain UNRUN.
+Actor cabinet gateway work remains isolated on m08/actor-cabinet-gateway-20261016.
+Workspace subtree-copy actions and the full M08 gate remain outstanding.
+The M07 evidence must remain preserved during M08 deployment and testing.
+
+Publication:
+David authorized GitHub publication after M07 qualification on 2026-10-16.
+Publish the qualified milestone branch without force. Preserve the box-git origin and existing GitHub history.
+A successful push receipt is required before claiming publication.

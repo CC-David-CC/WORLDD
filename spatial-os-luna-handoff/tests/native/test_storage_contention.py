@@ -1,5 +1,6 @@
 """Real retained actors, bounded writers, issuer commits, and revocation during Git."""
 import errno
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -21,9 +22,49 @@ import test_storage_session as existing
 from test_issuer_client import ClientProcess
 
 
+_ACK_TIMELINE_LIMIT = 256
+_ACK_TIMELINE_ESSENTIAL_RESERVE = 16
+_ACK_TIMELINE_GIT_SAMPLE_LIMIT = 64
+_ACK_TIMELINE_NOISY_STAGES = frozenset(('git_presence_sample', 'final_barrier'))
+
+
+def _record_bounded_ack_timeline(measurements, stage, monotonic_ns, *, essential=False, **fields):
+    events = measurements.setdefault('ack_timeline', [])
+    event = dict(monotonic_ns=monotonic_ns, stage=stage, **fields)
+    if not essential and len(events) >= _ACK_TIMELINE_LIMIT-_ACK_TIMELINE_ESSENTIAL_RESERVE:
+        measurements['ack_timeline_truncated'] = True
+        measurements['ack_timeline_dropped_count'] = measurements.get('ack_timeline_dropped_count', 0) + 1
+        return False
+    if len(events) >= _ACK_TIMELINE_LIMIT:
+        measurements['ack_timeline_truncated'] = True
+        measurements['ack_timeline_dropped_count'] = measurements.get('ack_timeline_dropped_count', 0) + 1
+        if essential:
+            replacement = next((index for index, existing in enumerate(events)
+                                if existing['stage'] in _ACK_TIMELINE_NOISY_STAGES), None)
+            if replacement is None:
+                return False
+            events.pop(replacement)
+        else:
+            return False
+    events.append(event)
+    return True
+
+
 def _cgroup_identity(path):
     info = path.stat()
     return info.st_dev, info.st_ino
+
+
+def _has_finite_cpu_quota(value):
+    fields = value.split()
+    if len(fields) != 2:
+        return False
+    quota, period = fields
+    if quota == 'max' or not quota.isascii() or not quota.isdigit():
+        return False
+    if not period.isascii() or not period.isdigit():
+        return False
+    return int(quota) > 0 and int(period) > 0
 
 
 def _read_cgroup_procs(path):
@@ -54,6 +95,16 @@ def _read_cgroup_procs(path):
         if after == before:
             return contents.split()
     raise RuntimeError('cgroup identity changed during bounded sample')
+
+
+def _read_process_comm(path):
+    """Return None only when Linux reports that the sampled process retired."""
+    try:
+        return path.read_text().strip()
+    except OSError as error:
+        if error.errno in (errno.ENOENT, errno.ESRCH):
+            return None
+        raise
 
 
 class _CgroupSamplePath:
@@ -99,12 +150,163 @@ while time.monotonic()<deadline and not Path('/state/data/stop').exists():
 
 
 class StorageContentionTests(existing.NativeStorageSessionTests):
+    def start_coordinator(self, *args, **kwargs):
+        result = super().start_coordinator(*args, **kwargs)
+        if self._testMethodName == 'test_native_storage_actor_revocation_during_bounded_git_import':
+            self._lifecycle_coordinator = result
+            # Cleanup callbacks run last-in, first-out. This capture runs before
+            # the inherited coordinator cleanup closes and persists its log.
+            self.addCleanup(self.capture_revocation_lifecycle)
+        return result
+
+    @staticmethod
+    def _process_witness(pid):
+        witness = dict(pid=pid, start_ticks=None, exit_observed=None, exit_code=None)
+        descriptor = None
+        try:
+            try:
+                descriptor = os.pidfd_open(pid)
+            except ProcessLookupError:
+                witness['exit_observed'] = True
+                witness['witness'] = 'pidfd_esrch'
+                return witness
+            except OSError as error:
+                witness['witness_error'] = errno.errorcode.get(error.errno, 'os_error')
+                return witness
+            try:
+                stat = Path('/proc/' + str(pid) + '/stat').read_text()
+                fields = stat[stat.rfind(')') + 2:].split()
+                witness['start_ticks'] = int(fields[19])
+                witness['exit_observed'] = bool(select.select([descriptor], [], [], 0)[0])
+            except FileNotFoundError:
+                witness['exit_observed'] = bool(select.select([descriptor], [], [], 0)[0])
+                if not witness['exit_observed']:
+                    witness['witness_error'] = 'proc_unavailable'
+            except PermissionError:
+                witness['witness_error'] = 'permission'
+            except (IndexError, ValueError):
+                witness['witness_error'] = 'stat_unavailable'
+            except OSError as error:
+                witness['witness_error'] = errno.errorcode.get(error.errno, 'os_error')
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+        return witness
+
+    def _revocation_service_witnesses(self):
+        services = {}
+        world_ids = getattr(self, 'world_ids', None)
+        if world_ids is not None:
+            for name in ('worldd_pid', 'workspaced_pid'):
+                services[name.removesuffix('_pid')] = self._process_witness(getattr(world_ids, name))
+        coordinator = getattr(self, '_lifecycle_coordinator', None)
+        if coordinator is not None:
+            witness = self._process_witness(coordinator.pid)
+            witness['exit_code'] = coordinator.poll()
+            services['coordinator'] = witness
+        return services
+
+    def capture_revocation_start(self):
+        # Capture stable PID plus /proc start ticks before any writer or Git load.
+        try:
+            self._revocation_services_at_workload_start = self._revocation_service_witnesses()
+        except Exception as error:
+            self._revocation_services_at_workload_start = {}
+            record = dict(error=type(error).__name__)
+            if isinstance(error, OSError):
+                record['errno'] = errno.errorcode.get(error.errno, 'os_error')
+            self.measurements['revocation_start_capture_error'] = record
+            try:
+                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+                target.mkdir(mode=0o700, parents=True, exist_ok=True)
+                (target/'revocation-start-capture-error.json').write_text(
+                    json.dumps(record, indent=2)+'\n')
+            except Exception:
+                pass
+
+    def capture_revocation_lifecycle(self):
+        try:
+            self._capture_revocation_lifecycle()
+        except Exception as error:
+            # Cleanup diagnostics must not replace the original test assertion.
+            self.measurements['revocation_lifecycle_capture_error'] = type(error).__name__
+            try:
+                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+                target.mkdir(mode=0o700, parents=True, exist_ok=True)
+                error_record = dict(error=type(error).__name__)
+                if isinstance(error, OSError):
+                    error_record['errno'] = errno.errorcode.get(error.errno, 'os_error')
+                (target/'revocation-lifecycle-capture-error.json').write_text(
+                    json.dumps(error_record, indent=2)+'\n')
+            except Exception:
+                pass
+
+    def _capture_revocation_lifecycle(self):
+        target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+        target.mkdir(mode=0o700, parents=True, exist_ok=True)
+        before_cleanup = self._revocation_service_witnesses()
+        at_start = getattr(self, '_revocation_services_at_workload_start', {})
+        identity_matches = {}
+        for name, current in before_cleanup.items():
+            initial = at_start.get(name)
+            if initial is None or initial['start_ticks'] is None or current['start_ticks'] is None:
+                identity_matches[name] = None
+            else:
+                identity_matches[name] = (
+                    current['pid'] == initial['pid'] and
+                    current['start_ticks'] == initial['start_ticks'])
+        log_path = getattr(self, 'logpath', None)
+        digest = hashlib.sha256()
+        relevant = bytearray()
+        total = 0
+        truncated_line = False
+        stderr_error = None
+        if log_path is not None:
+            try:
+                with log_path.open('rb') as source:
+                    while True:
+                        chunk = source.readline(4096)
+                        if not chunk:
+                            break
+                        digest.update(chunk)
+                        total += len(chunk)
+                        if truncated_line:
+                            if chunk.endswith(b'\n'):
+                                truncated_line = False
+                            continue
+                        if b'authority_diag ' in chunk and len(relevant) + len(chunk) <= 262144:
+                            relevant.extend(chunk)
+                        if not chunk.endswith(b'\n'):
+                            truncated_line = True
+            except OSError as error:
+                stderr_error = errno.errorcode.get(error.errno, 'os_error')
+        else:
+            stderr_error = 'not_available'
+        evidence = dict(
+            phase='before_fixture_cleanup',
+            services_at_workload_start=at_start,
+            services_before_cleanup=before_cleanup,
+            identity_matches_workload_start=identity_matches,
+            stderr=dict(bytes=total, sha256=digest.hexdigest() if total else None,
+                        retained_relevant_bytes=len(relevant),
+                        relevant_file='revocation-authority-diags.log',
+                        read_error=stderr_error))
+        try:
+            (target/'revocation-authority-diags.log').write_bytes(relevant)
+            (target/'revocation-lifecycle.json').write_text(json.dumps(evidence, indent=2)+'\n')
+        except OSError as error:
+            self.measurements['revocation_lifecycle_capture_error'] = errno.errorcode.get(error.errno, 'os_error')
+
     def volume_command(self, operation, *arguments):
         if operation=='prepare':arguments+=('--volume-bytes',str(1024*2**20))
         return super().volume_command(operation,*arguments)
 
     def setUp(self):
         super().setUp()
+        self._ack_timeline_enabled = False
+        self._ack_final_barrier_phase = False
+        self._ack_git_sample_count = 0
+        self._ack_git_discovered = False
         original=self.issuer.config_file
         def production_configuration(*arguments,**overrides):
             path=original(*arguments,**overrides)
@@ -118,6 +320,34 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self.issuer.config_file=production_configuration
         self.measurements = dict(samples=[], phase_complete=False)
         self.addCleanup(self.save_measurements)
+
+    def record_ack_timeline(self, stage, *, essential=False, **fields):
+        return _record_bounded_ack_timeline(
+            self.measurements,
+            stage,
+            time.monotonic_ns(),
+            essential=essential,
+            **fields,
+        )
+
+    def record_git_process_sample(self, pids):
+        self._ack_git_sample_count += 1
+        discovered = bool(pids) and not self._ack_git_discovered
+        if discovered:
+            self._ack_git_discovered = True
+        elif self._ack_git_sample_count > _ACK_TIMELINE_GIT_SAMPLE_LIMIT:
+            self.measurements['ack_timeline_truncated'] = True
+            self.measurements['ack_timeline_dropped_count'] = (
+                self.measurements.get('ack_timeline_dropped_count', 0) + 1
+            )
+            return
+        self.record_ack_timeline(
+            'git_discovered' if discovered else 'git_presence_sample',
+            essential=discovered,
+            sample_index=self._ack_git_sample_count,
+            present=bool(pids),
+            process_count=len(pids),
+        )
 
     def save_measurements(self):
         (self.volume_root/'contention.json').write_text(json.dumps(self.measurements,indent=2)+'\n')
@@ -133,9 +363,46 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             self.writers.append(self.execution/'applications'/result.process.process_id/'data')
         self.until(lambda: all((path/'writes.json').exists() for path in self.writers),bool)
         group = self.broker_process_group().parent
-        self.measurements['controls'] = {str(path.relative_to(group)): {
-            name:(path/name).read_text().strip() for name in ('memory.max','pids.max','cpu.max','io.max')}
-            for path in [group,*(p for p in group.rglob('*') if p.is_dir())]}
+        control_names = ('memory.max', 'pids.max', 'cpu.max', 'io.max')
+        directories = [group, *(path for path in group.rglob('*') if path.is_dir())]
+        controls = {}
+        payloads = []
+        for path in directories:
+            values = {}
+            missing = []
+            for name in control_names:
+                control = path / name
+                if control.is_file():
+                    values[name] = control.read_text().strip()
+                else:
+                    values[name] = None
+                    missing.append(name)
+            if missing:
+                # ProcessScope deliberately leaves controllers disabled below its
+                # budgeted application scope. Only its populated payload child may
+                # lack these files; all limits must exist on that immediate parent.
+                parent = path.parent
+                self.assertEqual(path.name, 'payload', f'Unexpected missing cgroup controls at {path}: {missing}')
+                self.assertIn(parent, directories, f'Payload has no observed budgeted parent: {path}')
+                self.assertTrue(all((parent / name).is_file() for name in control_names),
+                                f'Payload parent lacks effective controls: {parent}')
+                parent_limits = {name: (parent / name).read_text().strip() for name in control_names}
+                self.assertNotIn(parent_limits['memory.max'], ('', 'max'),
+                                 f'Payload ancestor has no memory ceiling: {parent_limits}')
+                self.assertNotIn(parent_limits['pids.max'], ('', 'max'),
+                                 f'Payload ancestor has no process ceiling: {parent_limits}')
+                self.assertTrue(_has_finite_cpu_quota(parent_limits['cpu.max']),
+                                f'Payload ancestor has no finite CPU ceiling: {parent_limits}')
+                self.assertTrue(parent_limits['io.max'],
+                                f'Payload ancestor has no I/O ceiling: {parent_limits}')
+                self.assertEqual(set(missing), set(control_names), f'Partial controller exposure at {path}')
+                payload_pids = _read_cgroup_procs(path)
+                self.assertTrue(payload_pids, f'Expected application processes in payload: {path}')
+                payloads.append(str(path.relative_to(group)))
+            controls[str(path.relative_to(group))] = values
+        self.assertTrue(payloads, 'Expected a nested application payload under budgeted scopes')
+        self.measurements['payloads_without_child_controls'] = payloads
+        self.measurements['controls'] = controls
         self.sample_writes()
         return group
 
@@ -153,7 +420,52 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
 
     def issuer_operation(self, client, operation):
         started=time.monotonic()
-        reply=self.issuer.execute(client,self.issuer.challenge(client,operation))
+        if not self._ack_timeline_enabled:
+            reply=self.issuer.execute(client,self.issuer.challenge(client,operation))
+        else:
+            challenge=self.issuer.challenge(client,operation)
+            request_started_ns=time.monotonic_ns()
+            reply=None
+            try:
+                reply=self.issuer.execute(client,challenge)
+            finally:
+                reply_received_ns=time.monotonic_ns()
+                action=operation.WhichOneof('action')
+                if action=='identity_revoke':
+                    security_revision=None
+                    if reply is not None and reply.HasField('identity_status'):
+                        security_revision=reply.identity_status.security_revision
+                    self.record_ack_timeline(
+                        'revocation_request',
+                        essential=True,
+                        request_started_ns=request_started_ns,
+                        reply_received_ns=reply_received_ns,
+                        reply_received=reply is not None,
+                        reply_has_error=bool(reply is not None and reply.HasField('error')),
+                        security_revision=security_revision,
+                    )
+                elif self._ack_final_barrier_phase and action=='barrier_read':
+                    status=None
+                    if reply is not None and reply.HasField('authority_barrier'):
+                        status=reply.authority_barrier
+                    applied_revisions=[] if status is None else [
+                        item.applied_revision for item in status.obligations
+                    ]
+                    self.record_ack_timeline(
+                        'final_barrier',
+                        request_started_ns=request_started_ns,
+                        reply_received_ns=reply_received_ns,
+                        request_revision=operation.barrier_read.revision,
+                        reply_received=reply is not None,
+                        revision=None if status is None else status.revision,
+                        participant_count=None if status is None else status.participant_count,
+                        pending_count=None if status is None else status.pending_count,
+                        complete=None if status is None else status.complete,
+                        applied_revisions=applied_revisions,
+                        applied_obligation_count=sum(
+                            value >= operation.barrier_read.revision for value in applied_revisions
+                        ),
+                    )
         elapsed=time.monotonic()-started
         self.assertFalse(reply.HasField('error'),reply)
         self.measurements.setdefault('issuer_operations',[]).append(dict(
@@ -246,6 +558,7 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self.finish_checked()
 
     def test_native_storage_actor_revocation_during_bounded_git_import(self):
+        self._ack_timeline_enabled=True
         repository=GitRepo(self.volume_root)
         with (repository.path/'large.bin').open('wb') as file:
             for number in range(80):file.write(os.urandom(2**20))
@@ -253,21 +566,22 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         repository.run('config','core.fsync','all')
         repository.run('add','large.bin');repository.run('commit','-m','bounded import witness')
         self.issuer.peer.close();self.issuer.peer=self.issuer.connect()
-        self.held_application();group=self.start_writers();pins=self.pins(group)
+        self.held_application();self.capture_revocation_start();group=self.start_writers();pins=self.pins(group)
         client=self.default_client()
         self.coordinator_sequence+=1
         request=probe.SessionProbeRequest(protocol_version=1,request_id=self.coordinator_sequence,
             broker=make_request('git.repo.import',dict(id='pressure-import',path=str(repository.path))))
         self.coordinator.stdin.write(frame(request));self.coordinator.stdin.flush()
+        self.record_ack_timeline('git_import_request_sent',essential=True,request_id=request.request_id)
         def git_running():
             values=[]
             for path in group.rglob('authority-*'):
                 pids=_read_cgroup_procs(path)
                 if pids is None:continue # A confirmed retired cgroup is absent from this independent sample.
                 for pid in pids:
-                    try:
-                        if Path('/proc/'+pid+'/comm').read_text().strip()=='git': values.append(int(pid))
-                    except FileNotFoundError:pass
+                    comm = _read_process_comm(Path('/proc/'+pid+'/comm'))
+                    if comm == 'git': values.append(int(pid))
+            self.record_git_process_sample(values)
             return values
         def observe_git():
             values=git_running()
@@ -289,13 +603,27 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             self.assertEqual(db.execute('SELECT count(*) FROM processes WHERE operation=?',('during-import',)).fetchone()[0],0)
         self.measurements['nested_execution_rejected_without_effect']=True
         revision=self.revoke_actor(client,issuer.ACTOR_TARGET)
+        started_ns=time.monotonic_ns()
         started=time.monotonic()
         exited=select.select(pins,[],[],2)[0]
         # Select may report the first exit. Check each retained handle within the same bound.
         while len(exited)<len(pins) and time.monotonic()-started<2:
             time.sleep(.01);exited=select.select(pins,[],[],0)[0]
-        self.measurements['exit_during_git']=dict(seconds=time.monotonic()-started,exited=len(exited),expected=len(pins),
-            git_still_running=git_running(),pending_reply=not bool(select.select([self.coordinator.stdout],[],[],0)[0]))
+        elapsed_seconds=time.monotonic()-started
+        git_still_running=git_running()
+        pending_reply=not bool(select.select([self.coordinator.stdout],[],[],0)[0])
+        self.measurements['exit_during_git']=dict(seconds=elapsed_seconds,exited=len(exited),expected=len(pins),
+            git_still_running=git_still_running,pending_reply=pending_reply)
+        self.record_ack_timeline(
+            'application_exit_sample',
+            essential=True,
+            sample_started_ns=started_ns,
+            sample_seconds=elapsed_seconds,
+            exited=len(exited),
+            expected=len(pins),
+            git_process_count=len(git_still_running),
+            pending_reply=pending_reply,
+        )
         self.measurements['broker_wait_channel']=Path('/proc/'+str(self.world_ids.workspaced_pid)+'/wchan').read_text()
         inspect=("import json,os,sys;from pathlib import Path;"
             "p=Path('/proc')/sys.argv[1];assert (p/'exe').resolve()==Path(sys.argv[2]).resolve();"
@@ -310,14 +638,140 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             self.assertLess(time.monotonic(),deadline,'Bounded import reply deadline')
             self.barrier(client,revision)
         reply=self.message(self.coordinator.stdout,probe.SessionProbeReply)
+        reply_received_ns=time.monotonic_ns()
+        self.record_ack_timeline(
+            'git_import_reply_received',
+            essential=True,
+            reply_received_ns=reply_received_ns,
+            request_id=reply.request_id,
+            request_id_matches=reply.request_id==request.request_id,
+            has_error=reply.HasField('error'),
+            result_has_error=reply.HasField('result') and reply.result.HasField('error'),
+        )
         self.assertEqual(reply.request_id,request.request_id)
         (self.volume_root/'git-import-reply.pb').write_bytes(reply.SerializeToString())
         self.assertFalse(reply.HasField('error'),reply)
         self.assertFalse(reply.result.HasField('error'),reply)
-        self.until(lambda:self.barrier(client,revision),lambda value:value.complete)
+        self._ack_final_barrier_phase=True
+        self.record_ack_timeline('final_barrier_wait_started',essential=True)
+        try:
+            completed=self.until(lambda:self.barrier(client,revision),lambda value:value.complete)
+        except Exception as error:
+            self.record_ack_timeline('final_barrier_failed',essential=True,error_type=type(error).__name__)
+            raise
+        self.record_ack_timeline(
+            'final_barrier_complete',
+            essential=True,
+            revision=completed.revision,
+            participant_count=completed.participant_count,
+            pending_count=completed.pending_count,
+            complete=completed.complete,
+            applied_revisions=[item.applied_revision for item in completed.obligations],
+            applied_obligation_count=sum(
+                item.applied_revision >= revision for item in completed.obligations
+            ),
+        )
         self.finish_checked()
         self.assertTrue(self.measurements['exit_during_git']['pending_reply'],'Import finished before the concurrent lifetime witness')
         self.assertEqual(len(exited),len(pins),'Busy administrative Git delayed actor revocation')
+
+
+class CgroupCpuQuotaValidationTests(unittest.TestCase):
+    def test_finite_quota_and_period_are_accepted(self):
+        self.assertTrue(_has_finite_cpu_quota('100000 100000'))
+
+    def test_unlimited_quota_is_rejected(self):
+        self.assertFalse(_has_finite_cpu_quota('max 100000'))
+
+    def test_malformed_quota_values_are_rejected(self):
+        for value in ('', '100000', '100000 100000 extra', 'quota 100000', '100000 period'):
+            with self.subTest(value=value):
+                self.assertFalse(_has_finite_cpu_quota(value))
+
+    def test_zero_quota_or_period_is_rejected(self):
+        for value in ('0 100000', '100000 0', '0 0'):
+            with self.subTest(value=value):
+                self.assertFalse(_has_finite_cpu_quota(value))
+
+
+class _ProcessCommSamplePath:
+    """A deterministic stand-in for one /proc/<pid>/comm read."""
+    def __init__(self, result):
+        self.result = result
+
+    def read_text(self):
+        if isinstance(self.result, OSError):
+            raise self.result
+        return self.result
+
+
+class ProcessCommReadingTests(unittest.TestCase):
+    def test_normal_comm_is_trimmed(self):
+        self.assertEqual(_read_process_comm(_ProcessCommSamplePath('git\n')), 'git')
+
+    def test_enoent_means_process_retired(self):
+        path = _ProcessCommSamplePath(FileNotFoundError(errno.ENOENT, 'process retired'))
+        self.assertIsNone(_read_process_comm(path))
+
+    def test_esrch_means_process_retired(self):
+        path = _ProcessCommSamplePath(ProcessLookupError(errno.ESRCH, 'process retired'))
+        self.assertIsNone(_read_process_comm(path))
+
+    def test_eacces_propagates(self):
+        path = _ProcessCommSamplePath(PermissionError(errno.EACCES, 'access denied'))
+        with self.assertRaises(OSError) as raised:
+            _read_process_comm(path)
+        self.assertEqual(raised.exception.errno, errno.EACCES)
+
+    def test_eio_propagates(self):
+        path = _ProcessCommSamplePath(OSError(errno.EIO, 'read failure'))
+        with self.assertRaises(OSError) as raised:
+            _read_process_comm(path)
+        self.assertEqual(raised.exception.errno, errno.EIO)
+
+
+class AckTimelineRecorderTests(unittest.TestCase):
+    def test_ack_timeline_stays_bounded_and_marks_truncation(self):
+        measurements={}
+        for index in range(_ACK_TIMELINE_LIMIT):
+            _record_bounded_ack_timeline(
+                measurements,'critical_context',index,essential=True,request_index=index
+            )
+        for index in range(2):
+            _record_bounded_ack_timeline(measurements,'final_barrier',index)
+        self.assertEqual(len(measurements['ack_timeline']),_ACK_TIMELINE_LIMIT)
+        self.assertTrue(measurements['ack_timeline_truncated'])
+        self.assertEqual(measurements['ack_timeline_dropped_count'],2)
+
+    def test_essential_ack_event_survives_a_full_sample_buffer(self):
+        measurements={}
+        for index in range(_ACK_TIMELINE_LIMIT-_ACK_TIMELINE_ESSENTIAL_RESERVE):
+            _record_bounded_ack_timeline(measurements,'final_barrier',index,request_index=index)
+        for index in range(_ACK_TIMELINE_ESSENTIAL_RESERVE):
+            _record_bounded_ack_timeline(
+                measurements,'critical_context',index,essential=True,request_index=index
+            )
+        accepted=_record_bounded_ack_timeline(
+            measurements,'git_import_reply_received',_ACK_TIMELINE_LIMIT,essential=True,request_id=7
+        )
+        self.assertTrue(accepted)
+        self.assertEqual(len(measurements['ack_timeline']),_ACK_TIMELINE_LIMIT)
+        self.assertEqual(measurements['ack_timeline'][-1]['stage'],'git_import_reply_received')
+        self.assertTrue(measurements['ack_timeline_truncated'])
+
+    def test_late_first_git_discovery_survives_sample_truncation(self):
+        case=object.__new__(StorageContentionTests)
+        case.measurements={}
+        case._ack_git_sample_count=0
+        case._ack_git_discovered=False
+        for _ in range(_ACK_TIMELINE_GIT_SAMPLE_LIMIT+1):
+            case.record_git_process_sample([])
+        case.record_git_process_sample([123])
+        timeline=case.measurements['ack_timeline']
+        self.assertTrue(case.measurements['ack_timeline_truncated'])
+        self.assertEqual(timeline[-1]['stage'],'git_discovered')
+        self.assertTrue(timeline[-1]['present'])
+        self.assertEqual(timeline[-1]['process_count'],1)
 
 
 class CgroupProcessSamplingTests(unittest.TestCase):
@@ -381,5 +835,8 @@ class CgroupProcessSamplingTests(unittest.TestCase):
 
 if __name__=='__main__':
     tests=['StorageContentionTests.'+name for name in StorageContentionTests.__dict__ if name.startswith('test_')]
+    tests += ['CgroupCpuQuotaValidationTests.'+name for name in CgroupCpuQuotaValidationTests.__dict__ if name.startswith('test_')]
     tests += ['CgroupProcessSamplingTests.'+name for name in CgroupProcessSamplingTests.__dict__ if name.startswith('test_')]
+    tests += ['ProcessCommReadingTests.'+name for name in ProcessCommReadingTests.__dict__ if name.startswith('test_')]
+    tests += ['AckTimelineRecorderTests.'+name for name in AckTimelineRecorderTests.__dict__ if name.startswith('test_')]
     unittest.main(verbosity=2,defaultTest=tests)
