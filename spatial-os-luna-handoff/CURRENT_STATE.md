@@ -1,3 +1,57 @@
+## 2026-10-16: Cross-host prerequisites accepted; workspace behavior passed but collection failed
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED.
+Both complete local Debug and ASan-UBSan gates remain accepted.
+The frozen production candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+No production source or binary changed. No M08 source entered this gate.
+
+The corrected cross-host prerequisite finished with 0/0/COMPLETE.
+Primary accepted all twelve semantic cases and thirty-six native geometry tests.
+All four native jobs completed. Their recorded pane processes retired.
+Both hosts passed the prerequisite's before and after artifact checks.
+The earlier retained-dead-pane cleanup failure remains resolved in this combined run.
+
+The first workspace cell then ran on sb16, with sb16-2 observing.
+Its real native test passed in 40.759 seconds.
+Its resource units and adapter scopes cleaned up successfully.
+Primary checked 120 local artifacts, 25 local logs, and five remote observer files.
+No retained log contained a sanitizer diagnostic.
+
+The outer report collector returned 2 after the passing test.
+It required boundary.stdout and boundary.stderr, which this workspace fixture does not produce.
+The fixture retains peer-native.stderr, observer.stderr, observer-raw.stdout, service logs, and cleanup receipts instead.
+The collector also scans its nested security directory twice.
+The four-cell workspace matrix has no accepted result yet.
+The failed run remains preserved. Its passing behavior does not qualify M07.
+
+A separate worker repairs the collector and adds focused controls.
+The correction will use a pinned external test tool. Frozen deployment source remains unchanged.
+The next workflow needs a new attempt and new evidence paths.
+Both directions and both build profiles must receive accepted workspace reports.
+Strict reconciliation, both final artifact audits, primary review, and integration follow.
+
+Accepted cross-host prerequisite audit:
+/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/m06-crosshost-collector-owner-fixed-02/PRIMARY_CROSSHOST_AUDIT_02.json
+SHA256 0165d58d0798ea0a2b06da495287561b29d5244865196d610fdc8f7d5e14781d
+
+Workspace failure audit:
+/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/primary-workspace-failure-01/PRIMARY_FAILURE_AUDIT_01.json
+SHA256 91c7a28bf60c740cf595921ea2b8c400ffdc5a6ea4a007aad82407b0175ccc34
+Actual workspace pane 3683935 retired after outer collector 2/2/COMPLETE.
+Workspace controller pane 3234546 also retired after 2/2/COMPLETE.
+
+The first controller setup refusal remains preserved separately.
+Its expected M06 dispatch receipt was absent from the conventional sibling path.
+Primary created a compatibility receipt from the immutable original launch and accepted audit.
+Its provenance explicitly records creation after completion. No test result was changed.
+Compatibility receipt SHA256 2e1bd9a0e05868dfdeaadc6332bb4f634852f75c63f3c09a57dac28be431eae9.
+Future M06 launchers must write this receipt when dispatch occurs.
+
+M08 preparation remains isolated on middle-child. Its broker runtime checks remain UNRUN.
+The combined Debug and sanitizer fixture builds passed after CMake dependency and command corrections.
+Its compile-only package is being prepared. It has not used the M07 test hosts.
+M09-M16 remain pending.
+
 ## 2026-10-16: Corrected M07 cross-host retry passed both semantic sections
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED.

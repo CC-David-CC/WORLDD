@@ -45,3 +45,8 @@ The actual cross-host retry passed all six semantic cases in Debug and ASan-UBSa
 Both cleanup receipts are complete with no errors. Primary verified process retirement and root removal.
 Semantic primary audit SHA256: 32de4bf59a0fbb59f90d62f056580339e0b644579408231adc20011683f54208.
 Native and workspace cross-host qualification remains pending.
+
+Primary accepted the completed corrected cross-host prerequisite.
+All twelve semantic cases and thirty-six native tests passed.
+Audit SHA256: 0165d58d0798ea0a2b06da495287561b29d5244865196d610fdc8f7d5e14781d.
+The separate workspace collector defect remains open. M07 remains UNQUALIFIED.

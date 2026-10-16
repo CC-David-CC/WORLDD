@@ -1,0 +1,25 @@
+M07 workspace native evidence collector mismatch
+
+Status: CONFIRMED. Tooling repair is under review. M07 remains UNQUALIFIED.
+
+The first sb16-to-sb16-2 Debug workspace test passed in 40.759 seconds.
+The outer collector then failed because it required boundary.stdout and boundary.stderr.
+The actual workspace fixture does not produce these files.
+It retains peer-native.stderr, authority-native-observer/observer.stderr, observer-raw.stdout, and service logs.
+Its peer and local observer cleanup receipts passed existing validation.
+The collector also scans the nested security directory twice.
+
+Proposed correction:
+Validate the actual workspace fixture's evidence paths and cleanup records.
+Scan each log once. Reject missing files, unsafe links, or sanitizer diagnostics.
+Pin the external collector tool in the workflow identity and every command.
+Preserve the frozen production deployment and all failed evidence.
+Run focused positive and negative controls before retrying the four-cell matrix.
+Complete strict reconciliation and both final artifact audits before qualification.
+
+The behavior pass is evidence of one run. It is not an accepted M07 gate result.
+
+Failure evidence on sb16:
+/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/evidence/workspace-collector-owner-fixed-02/Debug/sb16-to-sb16-2/authority-sb16
+Primary failure audit SHA256:
+91c7a28bf60c740cf595921ea2b8c400ffdc5a6ea4a007aad82407b0175ccc34
