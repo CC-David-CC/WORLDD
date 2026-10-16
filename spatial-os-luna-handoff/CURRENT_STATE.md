@@ -1,3 +1,29 @@
+## 2026-10-15: Deployment stopped on contradictory helper pins
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting details below.
+
+The a1ceef package finished all 24 preparation stages and passed independent byte/source checks.
+Actual deployment verification then failed on both hosts before focused fixtures started.
+Both manifests require two different hashes for the same installed storage helper.
+The new helper is installed correctly. The old helper remains backed up.
+Four stale egl_files entries conflict with the new installed_helpers entries.
+The predecessor manifest has the same defect.
+
+An external manifest copy changes only those four stale pins.
+Actual read-only runtime checks passed Debug and ASan/UBSan on both hosts with that copy.
+The original failed package and deployment evidence remain preserved.
+The final focused driver's actual-package metadata controls also passed with zero exits.
+These are preflight results. The seven focused suites and complete M07 gate remain UNRUN.
+
+A separate source branch adds a read-only pin-consistency guard and regression checks.
+Primary review and an encoding correction remain pending.
+Corrected artifact metadata and reversible deployment-repair scripts are in preparation.
+Source candidate remains a1ceef. No new production build is required for these metadata changes.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact pins and evidence paths.
+The next runtime step is the seven-suite Debug/sanitizer matrix on both hosts.
+The full gate follows successful deployment and focused checks.
+
 ## 2026-10-15: Broker correction passes all four focused runs
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

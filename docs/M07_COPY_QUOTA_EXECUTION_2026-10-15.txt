@@ -1,3 +1,49 @@
+Current checkpoint: deployment stopped on conflicting runtime helper pins
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The a1ceef four-profile preparation returned zero exits for all 24 build/artifact stages.
+Its original package passed byte, source, executable-mode, and inventory checks.
+Archive SHA: beb1cdffa87fbeab694271dc39e2e731de35b72c8b74b07b30264d017fdc1082.
+Package pin SHA: 08e534850d29806b86b93415b0a3a8373658dc258beaa3b4d95809209996bc14.
+The original package remains frozen. Its byte consistency did not establish manifest consistency.
+
+Deployment dry-runs passed on both hosts. Actual deployment returned command/wrapper exits 2/2 on both.
+Both deployment receipts report blocked_external_runtime. No new focused fixture started.
+The correct new storage helper is installed on both hosts. Each old helper remains in a verified backup.
+The manifest pins that helper twice per host/profile, under installed_helpers and egl_files.
+The installed_helpers entry names the new digest. The egl_files entry still names the old digest.
+These four conflicting rows make successful runtime verification impossible.
+The predecessor ee64407 manifest has the same defect. Comparing against it did not detect the conflict.
+
+Installed helper SHA: 450a294e31604880c37a4e2800ee597a98861d210fcd7cf8127d745510f4c5ed.
+Retained old helper SHA: e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f.
+The separately packaged sanitizer helper retains its own distinct digest.
+Do not change the sanitizer binary pin to match the globally installed Debug helper.
+
+The primary created an external corrected manifest copy. Only four old egl_files helper pins changed.
+Actual read-only runtime verification then passed Debug and ASan/UBSan on both hosts.
+The original manifest, failed deployment receipts, and failed package remain unchanged.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-runtime-manifest-pin-repair-20261015/primary-data-repair-01.
+Failed deployment evidence: m07-a1ceef31-deployment-20261015/HOST/deploy-01.
+Current deployment: HOST:/home/dflanag3/spatial-artifacts/deployments/m07-a1ceef3115ed/runtime.
+
+The final focused driver's actual-package metadata controls passed with zero command/wrapper exits.
+This validates registration metadata, not runtime behavior.
+Controls: a5500:/home/dflanag3/spatial-artifacts/m07-a1ceef31-focused-driver-20261015/actual-package-controls-01/run-01.
+The seven-suite Debug and sanitizer matrix remains UNRUN on both hosts.
+The complete M07 gate remains UNRUN for this candidate.
+
+Next: review the pin-consistency guard, repack corrected metadata, and verify the replacement independently.
+Reuse unchanged source, binaries, and build receipts explicitly. Do not rebuild or duplicate payload trees.
+Repair deployed metadata only after exact payload, source, runtime, and CTest checks pass.
+Preserve a reversible journal, old metadata, and source modes. Do not claim multi-file atomicity.
+Then run seven focused suites per profile and host before complete M07 qualification.
+Repair planning root: a5500:/home/dflanag3/spatial-artifacts/m07-a1ceef31-runtime-pin-repack-20261015.
+Source candidate remains a1ceef3115ed87bedfe5ed70993f6bff5b40d1d5.
+Milestone integration remains 706fe47. GitHub publication remains deferred.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: broker correction passes both hosts and profiles; successor package verified
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
