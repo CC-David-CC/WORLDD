@@ -1,3 +1,23 @@
+## 2026-10-15: Focused checks pass; full-gate startup needs an evidence-path repair
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+The frozen 84efe3 candidate passed all 28 focused suite executions and 556 individual tests.
+Primary audit verified summaries, receipts, sanitizer scans, source integrity, and deployment postchecks.
+The reviewed candidate is integrated and verified on box-git on m07/qualification-integration-20261014.
+
+Both full local gate launches stopped before any profile test ran.
+Their storage-evidence setup still tries to create source/local under the frozen source directory.
+The failure evidence is preserved. Source and binary postchecks remain valid.
+A worker is repairing external evidence paths and static regressions on m07/gate-external-evidence-20261015.
+The full gate has not reached test execution. Cross-host and reconciliation checks remain UNRUN.
+
+Verified duplicate staged-archive cleanup recovered about 2.86 GiB per host.
+Both hosts retain the active runtime and unresolved failure evidence.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact pins, failure paths, and the bounded repair assignment.
+
 ## 2026-10-15: Frozen successor deployed; final preflight starts on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

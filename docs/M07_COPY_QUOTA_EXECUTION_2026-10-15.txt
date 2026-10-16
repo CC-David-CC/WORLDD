@@ -1,3 +1,48 @@
+Current checkpoint: all focused checks pass; full gate stops during evidence setup
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Both final-candidate sequences passed Debug and ASan/UBSan.
+The primary audit confirms 28 suite executions and 556 successful individual test executions.
+It verified exact summaries, no skips, sanitizer scans, receipts, source integrity, and full deployment postchecks.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-native-fixture-finalization-20261015/primary-final-focused-audit-02.
+Focused-matrix SHA: 1b5f3d07c1e232a663cef451e25cca732549e086a4c23b53dc84140569d9582a.
+Audit01 remains preserved. Its parser wrongly required verbose unittest method names for a compact dot-format suite.
+Audit02 accepts complete compact or verbose listings. Six positive and negative parser controls passed.
+No application source or test requirement changed for that audit correction.
+
+The reviewed candidate 84efe3c044066a43d08e48f5b87b8ca31d3a53b9 is integrated as an UNQUALIFIED gate candidate.
+Branch m07/qualification-integration-20261014 is BOX-GIT VERIFIED at that exact commit.
+The source guard passed. The integration worktree remains clean.
+
+The full local gates were launched on both hosts.
+Both stopped during create_storage_evidence_attempt before entering a build profile or running any suite.
+The gate still tries to create runtime/source/local. The frozen source directory correctly refuses that write.
+This is a reproduced gate setup defect. It does not invalidate the completed focused runtime results.
+Both failed gate reports retain true source, binary, production-off, and installed-runtime postchecks.
+Internal evidence: HOST:/home/dflanag3/spatial-artifacts/deployments/m07-a1ceef3115ed/runtime/evidence/84efe3-HOST-local-01.
+Canonical runner evidence: HOST:/home/dflanag3/spatial-artifacts/m07-84efe3-full-gate-launch-20261015/runtime-runs/HOST/84efe3-HOST-local-01.
+Central copies: a5500:/home/dflanag3/spatial-artifacts/m07-gate-external-evidence-repair-20261015/initial-failures.
+
+A bounded worker is repairing the gate in a separate worktree and branch.
+Branch: m07/gate-external-evidence-20261015. Base: 84efe3.
+Worktree: a5500:/home/dflanag3/src/spacial-m07-gate-external-evidence-20261015.
+The repair moves storage evidence outside the source tree and preserves private, owned, canonical paths.
+Each registration must retain a spatial_security_evidence leaf for the native helper's direct method-child contract.
+The worker must update the related static regression and prove frozen-source operation before handoff.
+No source-directory permission workaround or source-local symlink is authorized.
+New source, package verification, affected runtime checks, and full-gate relaunch remain pending.
+There is no confirmed restart time. Cross-host and reconciliation gates remain UNRUN.
+
+Verified duplicate archive retirement recovered 3,075,338,240 allocated bytes per test host.
+Only old a1ceef31 and ee64407f staged m06-artifacts.tar.gz copies were removed.
+Their retained a5500 originals passed full hash checks first. No process, mapping, or loop reference used the removed files.
+All other staging files, active deployments, retained logs, and unresolved failure evidence remain.
+Closeout: a5500:/home/dflanag3/spatial-artifacts/m07-retention-20261015/duplicate-staged-archives-01/closeout.json.
+Free space after cleanup was approximately 30.2 GB on sb16 and 30.7 GB on sb16-2.
+Measure it again before the next gate.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: frozen successor deployed; final seven-suite preflight running on both hosts
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
