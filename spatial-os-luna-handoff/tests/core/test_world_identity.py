@@ -1,6 +1,8 @@
 """Real issuer proofs enter worldd and use its native actor implementation."""
 import os
+import hashlib
 import io
+import json
 import grants_pb2 as grants
 from pathlib import Path
 import select
@@ -72,12 +74,51 @@ class WorldProcess:
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=tuple(server.fileno() for _,server in pairs)+extra_fds)
+            self.start_ticks=self.process_start_ticks(self.proc.pid)
+            self.lifecycle_evidence=None
         except BaseException:
             if workspace_channel_owned: workspace_channel.close()
             if self.broker_channel: self.broker_channel.close(); self.broker_channel = None
             raise
         if workspace_channel_owned: workspace_channel.close()
         for _,server in pairs: server.close()
+    @staticmethod
+    def process_start_ticks(pid):
+        try:
+            stat=Path(f'/proc/{pid}/stat').read_text()
+            fields=stat[stat.rfind(')')+2:].split()
+            return int(fields[19])
+        except (OSError,ValueError,IndexError):
+            return None
+
+    def lifecycle_snapshot(self):
+        result={'pid':self.proc.pid,'start_ticks':self.start_ticks,'poll':self.proc.poll()}
+        result['returncode']=self.proc.returncode
+        return result
+
+    def record_final_lifecycle(self):
+        if self.log.closed:return
+        if self.lifecycle_evidence is None or not self.lifecycle_evidence.exists():return
+        try:
+            self.log.flush()
+            log_path=Path(self.log.name)
+            digest=hashlib.sha256()
+            lifecycle_tail=[]
+            with log_path.open('rb') as stream:
+                for line in stream:
+                    digest.update(line)
+                    if b'worldd: actor_lifecycle ' in line:
+                        lifecycle_tail.append(line.decode('utf-8','replace').rstrip('\r\n')[:512])
+                        if len(lifecycle_tail)>24:lifecycle_tail.pop(0)
+            evidence=json.loads(self.lifecycle_evidence.read_text())
+            lifecycle=evidence.setdefault('worldd_lifecycle',{})
+            lifecycle['after_world_close']=self.lifecycle_snapshot()
+            lifecycle['stderr_sha256']=digest.hexdigest()
+            lifecycle['stderr_lifecycle_tail']=lifecycle_tail
+            self.lifecycle_evidence.write_text(json.dumps(evidence,sort_keys=True,indent=2)+'\n')
+        except Exception as error:
+            print('World process lifecycle diagnostic write failed: '+type(error).__name__,file=sys.stderr)
+
     @staticmethod
     def workspace_channel(broker):
         factory = getattr(broker, 'world_channel_factory', None)
@@ -98,7 +139,11 @@ class WorldProcess:
         if self.proc.poll() is None:
             self.proc.stdin.close()
             try:self.proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:self.proc.kill();self.proc.wait(timeout=3);raise
+            except subprocess.TimeoutExpired:
+                self.proc.kill();self.proc.wait(timeout=3)
+                self.record_final_lifecycle()
+                raise
+        self.record_final_lifecycle()
         for stream in (self.proc.stdin,self.proc.stdout,self.log):
             if not stream.closed:stream.close()
         if self.broker_channel: self.broker_channel.close(); self.broker_channel = None

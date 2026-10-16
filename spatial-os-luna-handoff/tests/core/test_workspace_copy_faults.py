@@ -409,6 +409,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         runtime_path=self.root/'copy-fault-two-actor-runtime.textproto'
         runtime_path.write_text(engine.text_format.MessageToString(runtime))
         world=engine.fixtures.WorldProcess(self,config_path,state,runtime_config=runtime_path,broker=self.broker)
+        world.lifecycle_evidence=self.copy_evidence/'issuer-revocation-status.json'
         self.worlds.append(world);world.management('system.hello')
         world.state_path=state;world.config_path=config_path;world.runtime_path=runtime_path
         world.management('workspace.available',id='one',available=True)
@@ -436,6 +437,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
                       'exceptions':[],'published_seen':False,'denial_validated':False,
                       'release_monotonic_ns':None,'completion_deadline_monotonic_ns':None,
                       'durable_terminal':None,
+                      'worldd_lifecycle':{'before_fixture_cleanup':world.lifecycle_snapshot()},
                       'durable_busy':dict(count=0,first=None,last=None,last_error=None)}
         stop_worker=threading.Event()
         def record_status(result,started):
@@ -476,6 +478,7 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             result=self._outcome.result
             with status_lock:
                 status_audit['worker_alive']=worker.is_alive()
+                status_audit.setdefault('worldd_lifecycle',{})['before_fixture_cleanup']=world.lifecycle_snapshot()
                 status_audit['test_failure_count']=sum(test is self for test,_ in result.failures)
                 status_audit['test_error_count']=sum(test is self for test,_ in result.errors)
                 text=json.dumps(status_audit,sort_keys=True,indent=2)+'\n'
