@@ -1,3 +1,44 @@
+Current checkpoint: sb16 Debug core passes; P10 setup fails before behavior checks
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Candidate remains 076ba423c2864bdd0d93a07d89d49032808d2cae.
+sb16 passed all 196 Debug core registrations in 3448.35 seconds.
+Its five production startup checks and 51 harness tests also passed.
+P10 then returned status 1. All 151 cases failed during setup.
+The shared error is PermissionError creating runtime/source/evidence/target-runs under frozen source.
+harness/base.py reads SPATIAL_EVIDENCE_DIR. The gate does not supply it.
+The native resource delegate also omits that variable from its explicit forwarding list.
+These setup errors do not demonstrate 151 product behavior defects.
+sb16 sanitizer and bounded-storage stages remain UNRUN because the gate stopped.
+Canonical receipts report command 1, wrapper 1, COMPLETE, with empty wrapper stderr.
+Source, application artifacts, production-off artifacts, and installed runtime rechecks remain valid.
+
+Latest observation: a5500:/home/dflanag3/spatial-artifacts/m07-gate-evidence-successor-preparation-20261015/observations/1792121470032336269.json.
+sb16-2 remained live at Debug core 191/196, with every completed registration passing.
+Its recorded gate PID remains 2872135. Do not duplicate or interrupt that exam.
+Original sb16 failure evidence remains at:
+sb16:/home/dflanag3/spatial-artifacts/deployments/m07-a1ceef3115ed/runtime/evidence/076ba423-sb16-local-01/Debug/P10.log
+Sibling P10.json and parent run.json preserve the acceptance and gate results.
+A bounded worker will preserve raw failure bytes and repair external evidence construction and forwarding.
+The repair must preserve locked acceptance tests and frozen source permissions.
+Its isolated branch is m07/p10-external-evidence-repair-20261015.
+Runtime repair verification and integration remain UNRUN.
+
+Historical capacity work remains separate from the failed acceptance stage.
+The obsolete sb16 b152 deployment was fully archived and compared before exact retirement.
+Retirement recovered 8,634,507,264 allocated bytes. Current deployment pins remain unchanged.
+Archive root: a5500:/home/dflanag3/spatial-artifacts/m07-live-gate-capacity-20261015/b152-sb16-archive-02.
+Historical six-root sb16 and ten-root sb16-2 archives passed complete source comparisons.
+Their source retirement remains pending primary controller review.
+No current exam evidence or active package was removed.
+
+The second cross-host launch implementation failed primary durability review before runtime execution.
+A stronger worker is repairing actual coordinator restart and reconciliation behavior offline.
+It also reproduced a production reconciliation Path/string mismatch.
+That one-line tooling correction and regression will remain separately reviewable.
+No dedicated cross-host runtime job has started. No M07 qualification is claimed.
+
 Current checkpoint: full local exams continue; complete Debug copy and five fault suites pass on both hosts
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.

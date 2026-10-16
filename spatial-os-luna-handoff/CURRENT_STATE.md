@@ -1,3 +1,21 @@
+## 2026-10-15: sb16 Debug core passes; acceptance setup needs external evidence routing
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+sb16 passed all 196 Debug core registrations, plus startup and harness checks.
+P10 then failed: all 151 cases tried to create test files inside frozen source.
+The cases stopped during setup. They did not exercise product behavior.
+The gate must supply external SPATIAL_EVIDENCE_DIR and forward it through the native resource delegate.
+A bounded repair worker owns a separate branch. Locked acceptance tests and source permissions remain unchanged.
+sb16 sanitizers and bounded-storage stages remain UNRUN.
+
+sb16-2 remained live at 191/196 Debug core registrations. Every completed registration passed.
+Do not duplicate or interrupt its original job.
+The raw sb16 failure and canonical nonzero receipts remain preserved.
+Cross-host qualification and final review remain UNRUN.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for evidence paths and repair ownership.
+
 ## 2026-10-15: Full Debug copy and fault suites pass on both hosts; exams continue
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
