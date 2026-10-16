@@ -1,3 +1,95 @@
+Current checkpoint: corrected fixture retry launched on both hosts
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Reviewed follow-up 84efe3c044066a43d08e48f5b87b8ca31d3a53b9 is BOX-GIT VERIFIED.
+It remains on m07/native-fixture-closure-20261015. The worktree is clean and its writer stopped.
+Its only code change after febefe7 adds explicit -B to privileged Python helper calls.
+Prepare, inspect, and cleanup retain their original fixture arguments.
+All eleven metadata regressions and source checks passed again.
+The commit subject has a shell-quoting artifact. Its source diff and full SHA identify the reviewed correction.
+History remains unchanged.
+
+The primary reviewed the follow-up and sealed a fresh immutable fixture overlay with zero exits.
+New manifest SHA: 4799f9425b7f3d60dc4cc3b74053ee11d1a410a59ae9b8ea938d47d57169a6e9.
+Overlay: m07-native-fixture-focused-20261015/overlays/84efe3c0-02.
+Production source and binaries remain a1ceef. The fixture source is explicitly pinned to 84efe3.
+The first mutated overlay remains preserved. No pycache exception was added.
+
+Both second-attempt sequences are live under tmux.
+Tmux: m07-native-fixture-HOST-02.
+Outer: m07-native-fixture-focused-20261015/sequence-outers-02/HOST-01.
+Results: m07-native-fixture-focused-20261015/runs-02/HOST/PROFILE-results-01.
+sb16 sequence PID: 2837234. Debug adapter PID: 2837267.
+sb16-2 sequence PID: 2839754. Debug adapter PID: 2839786.
+At dispatch observation, both were in full deployment preflight. No second-attempt suite result is claimed.
+Each host runs three Debug suites, then sanitizer only after that Debug batch passes.
+The primary will review exact unittest/JUnit counts, sanitizer output, cleanup, and source/overlay integrity.
+
+A bounded worker is preparing final-candidate source/artifact integration without executing it.
+It must prove unchanged compile inputs before reusing existing binaries and build receipts.
+It must preserve source pins, locked files, runtime closure, and recovery evidence.
+No full rebuild, source integration, or final qualification is authorized by a diagnostic overlay pass alone.
+The complete candidate matrix and full M07 gate remain pending.
+
+--- Earlier retained checkpoint ---
+Current checkpoint: native fixture repair branch reviewed; bytecode retry required
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+The original seven-suite sb16 Debug batch completed: four PASS, three FAIL, zero unrun.
+Passed: workspace-git, workspace-processes, operator-storage, broker-control-client.
+Failed: session-resources, session-storage-contention, session-storage-owner.
+The sequence returned 1/1 COMPLETE. Its sanitizer profile remained UNRUN.
+All seven source-integrity checks passed in that original run.
+Evidence: m07-a1ceef31-focused-driver-20261015/primary-runtime-dispatch-01/sb16/Debug-results-01.
+
+The resource witness wrongly classified Python as a probe because its -c argument mentions /project/probe.
+The storage fixtures failed setup because a frozen clean source checkout has no generated local directory.
+The primary reviewed all seven repair files and preserved the original failure evidence.
+Fixture checkpoint febefe71dce27e7b08df1d05987eb61187ab31c1 is BOX-GIT VERIFIED and UNQUALIFIED.
+Branch: m07/native-fixture-closure-20261015. Base: a1ceef.
+The correction uses exact NUL-delimited argv[0] classification.
+The helper receives its external evidence parent explicitly through sudo.
+It checks host, canonical paths, operator ownership, and private method directories.
+Direct probe-parent, kernel budgets, cgroup isolation, volume bounds, and cleanup assertions remain active.
+Eleven metadata regressions, Python compilation, UTF-8/LF, source guard, and diff checks passed.
+
+A separately reviewed adapter passed 32 offline controls.
+It runs three affected suites with an explicitly pinned source-only fixture overlay.
+Production source, binaries, and CTest metadata remain unchanged at a1.
+The sealed fixture manifest SHA is 5579a44ebaab4e79e9f79051873e38245caf507ba2972ff57720f074426a2abc.
+Both Debug retries returned 1/1 COMPLETE and preserved their failure evidence.
+On each host, session-resources passed all 13 methods.
+Storage-contention reported all 17 methods OK, but its after-case overlay integrity check failed.
+The root helper created __pycache__ inside the sealed fixture directory.
+The guard stopped the remaining storage-owner suite. Sanitizer profiles remained UNRUN.
+The overall batches therefore FAILED. The storage-contention output is diagnostic only.
+This is overlay mutation, not a changed production source tree.
+Evidence: m07-native-fixture-focused-20261015/runs/HOST/Debug-results-01.
+The independent guard failure must not be ignored or reclassified as a pass.
+Both hosts confirmed sudo removes PYTHONDONTWRITEBYTECODE.
+A follow-up adds explicit Python -B to all privileged volume-helper calls.
+The first mutated overlay and all result records remain preserved. Do not edit them.
+
+The exact obsolete b152 deployment on sb16-2 was retired after complete archive and replacement verification.
+Removal returned 0/0 COMPLETE and recovered 8,635,035,648 allocated bytes.
+The source is absent. Its archive remains intact at SHA 147929b8c5abedd0b9036627757b317b2614978f202761235c16235e2fded334.
+Primary closeout: m07-retention-20261015/b152-retirement-prep-03/primary-closeout-review-01.json.
+Available bytes afterward: 31,839,784,960. Replacement receipt remains unchanged.
+The full-gate output budget remains 18 GiB plus an 8 GiB floor.
+The first two retirement proposals remain preserved and were not executed.
+The final controller uses stdin for the actual 2.45 MB audit instead of oversized SSH arguments.
+It holds the existing non-symlink user-owned gate lock during exact removal.
+Unresolved failure evidence outside the retired deployment remains protected.
+
+Next: review the -B follow-up, seal a fresh fixture overlay, then rerun three suites in both profiles on both hosts.
+After focused passes, integrate and freeze the final source candidate.
+Run the complete seven-suite candidate matrix and full required M07 gate.
+The full M07 gate remains UNRUN for the current candidate. No M07 qualification is claimed.
+GitHub publication remains deferred. Milestone integration remains 706fe47.
+
+--- Earlier retained checkpoint ---
 Current checkpoint: corrected deployment verified; focused runtime started on sb16
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
