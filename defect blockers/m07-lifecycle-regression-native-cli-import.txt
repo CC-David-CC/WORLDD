@@ -1,0 +1,33 @@
+M07 lifecycle regression native CLI import mismatch
+Date: 2026-10-16.
+Status: REPRODUCED on both hosts. Source correction reviewed. Native verification UNRUN.
+M07 remains UNQUALIFIED.
+
+Failure
+The combined2ec Debug batch passed geometry and participant diagnostics, then stopped at world-remote.
+The new Hybrid lifecycle method imports test_world_remote_native from the non-native suite.
+That chain reaches test_security_identity, which consumes an undeclared fourth executable argument.
+Both traces report IndexError at PROBE=Path(sys.argv.pop(1)).resolve().
+The five existing TLS methods and other three constructor regressions passed before the suite reported failure.
+No production failure is established by this import error.
+
+Reviewed correction
+Commit2a57d9085f5bc3a84803b80e6e416ae6b654d3b2. BOX-GIT VERIFIED.
+Move the Hybrid constructor regression to world-remote-native, which already declares its native context.
+Share setup and all16 unchanged lifecycle assertions through a stdlib-only non-TestCase mixin.
+Keep all original TLS/native methods and constructors unchanged.
+Preserve exactly four constructor regressions across both registrations.
+Do not add fake argv, skip tests, suppress exceptions, or import native fixtures into the TLS entrypoint.
+Primary compared the changed source and shared support AST with the reviewed base.
+Thirteen offline controls passed, with final command0/wrapper0/COMPLETE and PID3046783 absent.
+
+Verification still required
+Create a separate immutable source kit with the new helper and exact source closure.
+Run world-remote then world-remote-native in Debug and ASan-UBSan on both hosts.
+Expected scope: eight registration runs and48 inner executions, including16 constructor regressions.
+Keep earlier failed evidence and source kits unchanged.
+Focused passes do not qualify M07.
+
+Evidence on a5500
+/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/world-remote-failure-01.
+/home/dflanag3/spatial-artifacts/m07-lifecycle-regression-cli-repair-20261016/repair-01.

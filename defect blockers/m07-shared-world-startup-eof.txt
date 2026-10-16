@@ -1,3 +1,12 @@
+Focused verification update: 2026-10-16
+The repaired suite passed in the Debug continuation on both sb16 and sb16-2.
+Both continuation jobs returned command0/wrapper0/COMPLETE, with exact PIDs absent.
+All11 integrity postchecks passed on each host. No registration was skipped.
+Primary verified the report, log checksum, and inner unittest summary.
+Sanitizer verification and complete M07 qualification remain pending.
+Original failure evidence remains retained. A focused pass does not establish the original missing wire reply or X request owner.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-combined-fixture-validation-20261016/PRIMARY_CONTINUATION_TERMINAL_AUDIT_01.json.
+
 M07 shared-world startup EOF
 Date: 2026-10-16.
 Status: OBSERVED on both hosts' Debug runs after earlier cleanup failures. Focused retest remains pending.

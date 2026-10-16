@@ -1,3 +1,42 @@
+Current checkpoint: 2026-10-16: Focused Debug continuation passed; final CLI regression repair reviewed
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes earlier live-job observations.
+Both nine-suite Debug continuations completed with command0/wrapper0/COMPLETE.
+Exact pane PIDs3362654 and3337604 retired. All11 integrity postchecks passed per host.
+The nine registrations passed on sb16 and sb16-2 with zero failures or skips.
+They cover workspace authority, authorization fences, shared state, identity, and remote lifecycle, native, security, races, and configuration.
+The authority suite ran35 methods, including the new deterministic credential-revocation race.
+The shared-state suite ran four methods without its earlier cleanup/startup failures.
+The earlier geometry and diagnostic suites also passed: nine and16 methods per host.
+Together,11 distinct selected registrations passed per host across the two Debug batches.
+This is focused evidence. It does not replace the complete milestone gate.
+
+The first combined batch stopped at world-remote on both hosts.
+Its new Hybrid lifecycle regression imported native fixtures without their declared fourth CLI argument.
+Both retained traces end at test_security_identity.PROBE with IndexError.
+This is a regression-test context error. It is not evidence of a production process failure.
+The remaining nine suites ran separately against the same frozen2ec source and fd1 binaries.
+Primary verified their terminal receipts, PID retirement, suite exits, log checksums, and integrity postchecks.
+
+The reviewed correction is2a57d9085f5bc3a84803b80e6e416ae6b654d3b2. BOX-GIT VERIFIED. UNQUALIFIED.
+It moves the Hybrid lifecycle case into world-remote-native, which declares the required native context.
+A new stdlib-only mixin shares unchanged setup, reaping, and all16 lifecycle assertions.
+All original TLS/native tests and process constructors remain unchanged.
+Thirteen offline controls passed. Native verification of this correction remains UNRUN.
+A separate source kit and controller are being prepared. They must include the new helper explicitly.
+Next run world-remote, then world-remote-native, in Debug and ASan-UBSan on both hosts.
+Then run the broader affected sanitizer selection and refresh the full-gate candidate.
+No active native job is claimed in this checkpoint.
+Full sanitizer, acceptance, bounded-storage, and cross-host qualification remain UNRUN for the failed original gate.
+
+Evidence on a5500, under /home/dflanag3/spatial-artifacts:
+m07-combined-fixture-validation-20261016/PRIMARY_CONTINUATION_TERMINAL_AUDIT_01.json.
+m07-combined-fixture-runtime-20261016/continuation/{sb16,sb16-2}/Debug-01.
+m07-combined-fixture-validation-20261016/world-remote-failure-01.
+m07-lifecycle-regression-cli-repair-20261016/repair-01/PRIMARY_SOURCE_REVIEW_01.json.
+m07-lifecycle-regression-cli-repair-20261016/repair-01/HANDOFF.md.
+
 Current checkpoint: combined repair Debug batch running on both hosts
 Date: 2026-10-16. M07 remains UNQUALIFIED. This section supersedes earlier observations.
 
