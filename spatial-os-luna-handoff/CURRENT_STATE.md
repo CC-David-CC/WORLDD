@@ -13,6 +13,9 @@ sb16 pane PID: 3399810. Attempt: 1e58e65d-sb16-local-01.
 sb16-2 pane PID: 3372622. Attempt: 1e58e65d-sb16-2-local-01.
 Primary confirmed both exact processes live and both inner reports running.
 Both Debug lanes passed inventory, all five production-startup checks, and all 51 harness checks.
+Both hosts passed all 13 Debug copy-engine cases and all five Debug copy-fault scenarios.
+Primary checked the named results, raw logs, helper restoration, and unmounted volumes.
+Debug workspace-authority passed in 108.43 seconds on sb16 and 141.03 seconds on sb16-2.
 The 197-case local Debug core suite is running. No failure appears in the initial observation.
 No terminal Debug result is available. Sanitizer, P10 acceptance, bounded-storage-Git, and cross-host results remain pending.
 Keep this gate pinned to the candidate. A running job is not a qualification pass.
@@ -28,7 +31,9 @@ Separate M08 preparation does not advance the milestone count.
 Branch: m08/foundation-1e58-base-20261016. Commit: 7b584e0251fe18abf523ca47d92cb4d6e7e18013. BOX-GIT VERIFIED. UNQUALIFIED.
 The seven-file foundation preserves the frozen M07 base and its fixture repairs.
 Primary reviewed the replay, Debug compilation, sanitizer compilation, actual ELF linkage, and retired compile processes.
-The file-engine regression target has not run. Package staging and focused runtime checks remain pending.
+The file-engine regression target has not run.
+Its focused package passed primary content review. Target staging and focused runtime checks remain pending.
+The retained package on middle-child is 19,181,108 bytes. It contains 14 files and expands to 114,092,185 bytes.
 Actor/broker integration, file-copy execution, cabinet geometry, and full M08 qualification remain incomplete.
 Do not merge this preparation into the running M07 candidate.
 
@@ -48,8 +53,13 @@ Evidence under /home/dflanag3/spatial-artifacts on a5500:
 m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_PRELAUNCH_REVIEW_01.json.
 m07-fixture-repaired-full-gate-plan-20261016/full-gate-launch-01/aggregate-launch.json.
 m07-fixture-repaired-full-gate-plan-20261016/full-gate-observation-01.json.
+m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_DEBUG_COPY_SUITE_PAIR_AUDIT_01.json.
+m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_DEBUG_FAULT_PAIR_AUDIT_01.json.
 m07-fixture-repaired-full-gate-plan-20261016/PRIMARY_240_SOFT_WARNING_DIAGNOSTIC_POLICY_01.json.
 m08-foundation-1e58-base-primary-review-20261016/PRIMARY_FINAL_REPLAY_REVIEW_01.json.
+m08-foundation-1e58-base-primary-review-20261016/PRIMARY_FOCUSED_PACKAGE_REVIEW_01.json.
+m07-fixture-repaired-crosshost-coordination-20261016/review-01/primary-review-01/PRIMARY_FINAL_REVIEW_01.json.
+The cross-host preparation passed all 77 offline controls. Real cross-host qualification remains UNRUN.
 m07-next-gate-retirement-preparation-20261016/review-01/primary-retirement-pair-audit-01/PRIMARY_PAIR_REVIEW_01.json.
 m07-superseded-payload-retirement-20261016/review-02/PRIMARY_REVIEW_01.json.
 
