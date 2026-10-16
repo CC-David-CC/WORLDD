@@ -29,6 +29,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 CODING_HOSTS = {"G164": "a5500", "a5500": "a5500", "middle-child": "middle-child"}
 TEST_HOSTS = {"sb16", "sb16-2"}
+M07_FROZEN_CONTINUATION_CANDIDATE = '1e58e65dec132a0a16f004ca4527034dca081f77'
 EVIDENCE_KEYS = ("SPATIAL_SECURITY_EVIDENCE", "SPATIAL_SCOPE_EVIDENCE", "SPATIAL_RENDER_EVIDENCE")
 PROFILES = ("Debug", "ASan-UBSan")
 REQUIRED = {
@@ -58,6 +59,65 @@ def sha(path: Path) -> str:
         for block in iter(lambda: f.read(1024 * 1024), b""):
             h.update(block)
     return h.hexdigest()
+
+def _pinned_regular_file(path, expected_sha256, label):
+    path = Path(path)
+    if not path.is_absolute() or path.is_symlink():
+        raise RuntimeError(label + ' must be an absolute non-symlink file')
+    try:
+        before = path.lstat()
+    except OSError as error:
+        raise RuntimeError(label + ' is unavailable: ' + str(path)) from error
+    if not stat.S_ISREG(before.st_mode):
+        raise RuntimeError(label + ' must be a regular file: ' + str(path))
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
+    digest = hashlib.sha256()
+    try:
+        opened = os.fstat(descriptor)
+        identity = lambda item: (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns, item.st_ctime_ns)
+        if not stat.S_ISREG(opened.st_mode) or identity(before) != identity(opened):
+            raise RuntimeError(label + ' changed before it was pinned')
+        with os.fdopen(descriptor, 'rb', closefd=False) as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                digest.update(block)
+        after = path.lstat()
+        if identity(after) != identity(opened):
+            raise RuntimeError(label + ' changed while it was pinned')
+    finally:
+        os.close(descriptor)
+    actual = digest.hexdigest()
+    if actual != expected_sha256:
+        raise RuntimeError(label + ' SHA256 differs from the explicit pin')
+    return dict(path=str(path.resolve(strict=True)), sha256=actual)
+
+
+def _fixture_continuation(path, expected_sha256, candidate, deployment):
+    if not re.fullmatch(r'[0-9a-f]{64}', str(expected_sha256)):
+        raise RuntimeError('fixture continuation manifest SHA256 must be lowercase')
+    manifest_pin = _pinned_regular_file(path, expected_sha256, 'fixture continuation manifest')
+    source = (Path(deployment) / 'source').resolve()
+    if Path(manifest_pin['path']).is_relative_to(source):
+        raise RuntimeError('fixture continuation manifest must remain outside frozen deployment source')
+    if candidate != M07_FROZEN_CONTINUATION_CANDIDATE:
+        raise RuntimeError('fixture continuation candidate differs from frozen deployment')
+    manifest = _read_json(Path(manifest_pin['path']), 'fixture continuation manifest')
+    if set(manifest) != {'schema', 'candidate', 'semantic_fixture', 'host_helper'} or manifest.get('schema') != 1:
+        raise RuntimeError('fixture continuation manifest schema/keys differ')
+    if manifest.get('candidate') != candidate:
+        raise RuntimeError('fixture continuation candidate differs from frozen deployment')
+    selected = {}
+    for key in ('semantic_fixture', 'host_helper'):
+        row = manifest.get(key)
+        if not isinstance(row, dict) or set(row) != {'path', 'sha256'}:
+            raise RuntimeError('fixture continuation ' + key + ' pin is malformed')
+        if not re.fullmatch(r'[0-9a-f]{64}', str(row.get('sha256', ''))):
+            raise RuntimeError('fixture continuation ' + key + ' SHA256 must be lowercase')
+        pin = _pinned_regular_file(row['path'], row['sha256'], 'fixture continuation ' + key)
+        if Path(pin['path']).is_relative_to(source):
+            raise RuntimeError('fixture continuation inputs must remain outside the frozen deployment source')
+        selected[key] = pin
+    return dict(schema=1, candidate=candidate, manifest=manifest_pin, **selected)
+
 
 def run(command, *, cwd=None, env=None, log=None, timeout=None):
     start = time.monotonic()
@@ -1768,7 +1828,25 @@ def _validate_plan(plan, plan_path):
                 raise RuntimeError("native geometry needs reachable host addresses")
     return candidate, output
 
-def _validate_semantic_receipt(output):
+def _verify_remote_fixture_helper(host, helper):
+    script = (
+        "import hashlib,pathlib,stat,sys; "
+        "p=pathlib.Path(sys.argv[1]); expected=sys.argv[2]; "
+        "before=p.lstat(); "
+        "assert stat.S_ISREG(before.st_mode) and not p.is_symlink(), 'helper is not regular'; "
+        "raw=p.read_bytes(); after=p.lstat(); "
+        "assert (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)=="
+        "(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns), 'helper changed'; "
+        "actual=hashlib.sha256(raw).hexdigest(); "
+        "assert actual==expected, 'helper SHA256 differs'; print(actual)"
+    )
+    observed = _run_on_host(host, ['python3', '-B', '-c', script,
+                                   helper['path'], helper['sha256']], timeout=20).decode().strip()
+    if observed != helper['sha256']:
+        raise RuntimeError(host + ' fixture helper verification differs')
+
+
+def _validate_semantic_receipt(output, continuation=None):
     status = (output / "runtime-status.txt").read_text().splitlines()[0]
     cleanup = _read_json(output / "cleanup.json", "semantic cleanup")
     summary = _read_json(output / "plan-summary.json", "semantic plan")
@@ -1778,6 +1856,10 @@ def _validate_semantic_receipt(output):
         raise RuntimeError("semantic fixture lacks a successful terminal harness receipt")
     if cleanup.get("complete") is not True or cleanup.get("errors") != []:
         raise RuntimeError("semantic fixture cleanup is incomplete")
+    if continuation is not None:
+        selected = _read_json(output / 'fixture-selection.json', 'semantic fixture selection')
+        if selected.get('schema') != 1 or selected.get('host_helper_override') != continuation['host_helper']:
+            raise RuntimeError('semantic fixture helper selection differs from its pinned continuation')
     expected = [f"{case}:{direction}" for direction in ("sb16-to-sb16-2", "sb16-2-to-sb16")
                 for case in ("round-trip", "private-denial", "unavailable-destination")]
     if summary.get("cases") != 6 or summary.get("semantic_cases") != expected or set(summary.get("worlds", {})) != TEST_HOSTS:
@@ -1797,15 +1879,27 @@ def _validate_native_terminal(terminal, command_exit, wrapper_exit, stdout, stde
     if SAN_RE.search(stdout + stderr) or INNER_SKIP_RE.search(stdout):
         raise RuntimeError("native geometry output contains sanitizer diagnostics or skips")
 
-def _validate_semantic_fixture(deployment, profile, output):
+def _validate_semantic_fixture(deployment, profile, output, continuation=None):
     short = "debug" if profile == "Debug" else "asan"
     source = deployment / "source"
     account = pwd.getpwuid(os.getuid())
     environment = {"PATH": "/usr/bin:/bin", "HOME": account.pw_dir, "USER": account.pw_name, "LOGNAME": account.pw_name,
                    "PYTHONPATH": str(deployment / "build" / profile / "python") + ":" + str(source / "tests" / "core") + ":" + str(source),
                    "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"}
-    command = [sys.executable, str(source / "tests/core/actor_transition_crosshost_fixture.py"),
-               "--bundle", str(deployment), "--profile", short, "--output", str(output)]
+    fixture = (Path(continuation['semantic_fixture']['path']) if continuation
+               else source / 'tests/core/actor_transition_crosshost_fixture.py')
+    if continuation is not None:
+        for key in ('manifest', 'semantic_fixture', 'host_helper'):
+            expected = continuation[key]
+            current = _pinned_regular_file(expected['path'], expected['sha256'],
+                                            'fixture continuation ' + key + ' pre-execution')
+            if current != expected:
+                raise RuntimeError('fixture continuation ' + key + ' changed after manifest validation')
+    command = [sys.executable, str(fixture), "--bundle", str(deployment),
+               "--profile", short, "--output", str(output)]
+    if continuation:
+        command += ['--host-helper-path', continuation['host_helper']['path'],
+                    '--host-helper-sha256', continuation['host_helper']['sha256']]
     if output.exists():
         raise RuntimeError("semantic fixture output path must be new")
     launch_evidence = output.with_name(output.name + ".launch")
@@ -1827,11 +1921,11 @@ def _validate_semantic_fixture(deployment, profile, output):
     (launch_evidence / "command.exit").write_text(("TIMEOUT" if timed_out else str(process.returncode)) + "\n")
     if timed_out or process.returncode != 0:
         raise RuntimeError(profile + " semantic cross-host fixture failed or timed out; inspect its retained evidence")
-    receipt = _validate_semantic_receipt(output)
+    receipt = _validate_semantic_receipt(output, continuation)
     return dict(status="passed", output=str(output), launch_evidence=str(launch_evidence), **receipt)
 
-def _run_semantic_fixture(deployment, profile, output):
-    return _validate_semantic_fixture(deployment, profile, output)
+def _run_semantic_fixture(deployment, profile, output, continuation=None):
+    return _validate_semantic_fixture(deployment, profile, output, continuation)
 
 def _receipt_text(host, path):
     if host == "sb16":
@@ -2214,6 +2308,13 @@ def crosshost(a):
     plan_path = a.plan.resolve()
     plan = _read_json(plan_path, "cross-host plan")
     candidate, output = _validate_plan(plan, plan_path)
+    manifest_path = getattr(a, 'fixture_continuation_manifest', None)
+    manifest_sha = getattr(a, 'fixture_continuation_manifest_sha256', None)
+    if (manifest_path is None) != (manifest_sha is None):
+        raise RuntimeError('fixture continuation requires both manifest path and SHA256')
+    continuation = (_fixture_continuation(manifest_path, manifest_sha, candidate,
+                                          plan['deployments']['sb16']['path'])
+                    if manifest_path is not None else None)
     deployment = Path(plan["deployments"]["sb16"]["path"]).resolve()
     provenance_path = deployment / "provenance.json"
     deployment_receipt = deployment / "deployment-receipt.json"
@@ -2231,6 +2332,8 @@ def crosshost(a):
             raise RuntimeError("sb16-2 deployment receipt hashes do not match the reviewed plan")
     for host in sorted(TEST_HOSTS):
         _assert_runtime_gate_idle(host)
+        if continuation is not None:
+            _verify_remote_fixture_helper(host, continuation['host_helper'])
     for profile in PROFILES:
         for host, row in plan["native_geometry"][profile]["hosts"].items():
             if host == "sb16":
@@ -2283,6 +2386,12 @@ def crosshost(a):
     write_json(output / "plan.json", {key: value for key, value in plan.items() if key not in ("credentials", "private_roots")})
     report = dict(status="running", phase_complete=False, primary_review_required=True, candidate=candidate,
                   deployments=deployments, local_runs=local_runs, semantic={}, native_geometry={})
+    if continuation is not None:
+        report['fixture_continuation'] = dict(
+            manifest=continuation['manifest'],
+            semantic_fixture=continuation['semantic_fixture'],
+            host_helper=continuation['host_helper'],
+            m06_tool=dict(path=str(Path(__file__).resolve()), sha256=sha(Path(__file__).resolve())))
     write_json(output / "reconciliation.json", report)
     try:
         prechecks = [_crossstage_artifact_check(host, plan["deployments"][host], provenance,
@@ -2292,7 +2401,7 @@ def crosshost(a):
             raise RuntimeError("pre-crossstage artifact recheck failed")
         for profile in PROFILES:
             semantic_output = output / "semantic" / profile
-            report["semantic"][profile] = _run_semantic_fixture(deployment, profile, semantic_output)
+            report["semantic"][profile] = _run_semantic_fixture(deployment, profile, semantic_output, continuation)
             write_json(output / "reconciliation.json", report)
         runner = deployment / "source" / "tools/run_geometry_native_crosshost.py"
         if not runner.is_file() or sha(runner) != provenance.get("source_sha256", {}).get("tools/run_geometry_native_crosshost.py"):
@@ -2363,7 +2472,11 @@ def main():
     g.add_argument("--native-controller", required=True); g.add_argument("--real-world", required=True)
     g.add_argument("--recovery", required=True); g.add_argument("--host-session", required=True); g.add_argument("--held-input", required=True)
     g.set_defaults(fn=gate)
-    c = sub.add_parser("crosshost-handoff"); c.add_argument("--plan", type=Path, required=True); c.set_defaults(fn=crosshost)
+    c = sub.add_parser("crosshost-handoff")
+    c.add_argument("--plan", type=Path, required=True)
+    c.add_argument("--fixture-continuation-manifest", type=Path)
+    c.add_argument("--fixture-continuation-manifest-sha256")
+    c.set_defaults(fn=crosshost)
     a = p.parse_args()
     try: return a.fn(a)
     except BaseException as e: print(f"BLOCKED/FAILED: {e}", file=sys.stderr); return 2
