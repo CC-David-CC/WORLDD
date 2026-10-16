@@ -1,6 +1,6 @@
 M07 cross-host owner cleanup confuses retained tmux windows with process lifetime
 
-Status: retained-root stop recovery passed on both hosts. Broader qualification remains pending.
+Status: focused repair passed on both hosts. Full cross-host qualification remains pending.
 
 The first frozen-candidate cross-host Debug harness passed all six semantic cases.
 Its cleanup failed after the behavior checks completed.
@@ -34,3 +34,9 @@ The repaired helper cea2a97d passed the exact retained-root stop on both hosts.
 Recovery panes 3646400 and 3615329 retired after 0/0/COMPLETE.
 The original failed gate reports and roots remain unchanged.
 This focused recovery does not qualify the full cross-host matrix.
+
+Nine lifetime tests and one real slow-listener control passed on each host.
+Primary accepted panes 3647005 and 3615934 after 0/0/COMPLETE and process retirement.
+The reviewed repair is BOX-GIT VERIFIED as beaec482568989a918d10e7d870009d31f5fef36.
+Branch: m07/crosshost-owner-cleanup-20261016. Status: FOCUSED-PASS, not integrated.
+The complete cross-host retry still requires the separate continuation runner review.

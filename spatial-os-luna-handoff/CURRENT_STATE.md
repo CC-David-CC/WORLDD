@@ -23,7 +23,18 @@ The repaired stop command passed against the exact retained failed roots on both
 Actual recovery panes 3646400 and 3615329 retired after 0/0/COMPLETE.
 Primary verified exact arguments, source hashes, exit records, and preserved roots.
 Repaired helper SHA-256: cea2a97df65729884b0d7fc4bc19fead3e48ddc93660d9bb12ed94c2c7089a8c.
-Broader lifetime regressions and the full cross-host retry remain UNRUN.
+All nine owner lifetime tests and one real slow-listener control passed on each host.
+Focused panes 3647005 and 3615934 retired after 0/0/COMPLETE.
+Primary accepted their exact arguments, source pins, seven runner receipts, and results.
+Each host retains PRIMARY_FOCUSED_AUDIT_01.json under /home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/primary-focused-controls-01.
+Focused audit SHA-256: sb16 c9bf1ecc682046bed7287667c2cda206d15a5e72ce61d7b5d6d7bb27331091ac; sb16-2 8614f5793e8040e32999bcdebc5b7e67633f7f7648326ba67671b6f64ba61c7e.
+The reviewed cleanup repair is BOX-GIT VERIFIED as beaec482568989a918d10e7d870009d31f5fef36.
+Its separate branch is m07/crosshost-owner-cleanup-20261016. Its status is FOCUSED-PASS, not integrated.
+Fresh cross-host plan collector-owner-fixed-02 passed preparation and primary review.
+Plan SHA-256: 6105d677bfecf8026a652b32d53476b807e9074f7c81a6355f8275d5b6d3f23d.
+Primary plan review SHA-256: 5e054b64048a2c3a0b2ac809fd9953ff60d21dbd1d208a26cf24218c3022560c.
+Review found an imprecise helper import and missing dependency paths in the draft continuation runner.
+Those corrections remain isolated and under review. The full cross-host retry remains UNRUN.
 Each host retains PRIMARY_RECOVERY_AUDIT_01.json under /home/dflanag3/spatial-artifacts/m07-crosshost-owner-cleanup-20261016/primary-recovery-01.
 Recovery audit SHA-256: sb16 f0cdaa02e247b9089f4dd55920a01315a2f2b2e7aedd008d7cdb7ab394523651; sb16-2 13d85a00d588ca2396f3b8a3c20d00bd81fd79558ca9c4ef14bcddc5a6d81258.
 Native cross-host jobs, sanitizer semantic cases, workspace cells, and final artifact audits remain UNRUN.
