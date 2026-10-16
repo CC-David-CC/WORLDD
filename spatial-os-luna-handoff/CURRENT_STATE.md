@@ -1,4 +1,4 @@
-## 2026-10-16: Acceptance repair passes Debug and sanitizers on both hosts
+## 2026-10-16: Corrected d164 full local gates started cleanly on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This entry supersedes conflicting observations below.
@@ -12,7 +12,12 @@ Reviewed tooling repairs are combined as d164fed7 on the milestone branch and BO
 The combined source passed three reconciliation regressions and package-input preflight.
 No application input, schema, binary, CTest registration, or locked acceptance case changed.
 The source-only package is independently verified and frozen. Both hosts verified 2.67 MB update kits.
-The reversible deployment controller remains under review. Both deployed baselines remain 076ba423.
+The reviewed reversible updater passed 19 controls, then native verification and apply on both hosts.
+Both deployed candidates are now d164fed7 with 1031 source files. Application binaries remain unchanged.
+Both installed candidates passed 85 tooling checks with frozen-source and XACE dependency verification.
+Both full local gates are running in tmux, with Debug followed by ASan/UBSan.
+Both passed five production startup checks and 51 harness checks without initial errors.
+Latest recorded Debug core progress is 12/196 on sb16 and 13/196 on sb16-2, all completed rows passing.
 
 Both hosts also passed all five focused storage scenarios in Debug and ASan/UBSan.
 Primary verified raw results, evidence hashes, runtime hashes, unchanged source, and resource cleanup.
@@ -23,7 +28,9 @@ Two completed focused-storage image leaves were also retired per host. Their rev
 Fresh free space is about 40.05 GB on sb16 and 37.24 GB on sb16-2.
 Both hosts meet the revised 25 GiB output budget plus 8 GiB reserve.
 The saved Debug CTest baseline is restored on both hosts, with exact original 198-registration inventory hashes.
-The complete 196-registration sanitizer core, updated-candidate gates, cross-host checks, and final review remain pending.
+The full local gate results, 196-registration sanitizer core, cross-host checks, and final review remain pending.
+Cross-host coordinator repinning and isolated M08 source preparation are separate unqualified worker tasks.
+Neither task may change the frozen M07 candidate or deploy over the active gates.
 No user action is currently needed.
 Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for source pins, durations, and retained evidence.
 

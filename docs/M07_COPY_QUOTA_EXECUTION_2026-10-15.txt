@@ -1,4 +1,4 @@
-Current checkpoint: real P10 acceptance repair verified; combined candidate d164fed7 checked into box-git
+Current checkpoint: corrected d164fed7 full local gates started cleanly on both hosts
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
@@ -51,12 +51,44 @@ Inner provenance SHA256: 64946f2558cc3c010a00fc0dc24956d8db4ea43d2eef85e537f6e04
 Outer provenance SHA256: 695cf5d1047fad4f0c1f3d54570ee7c77825197404f27b3862a4dfa5619b4c64.
 Each host received only a 13-file source-update kit, about 2.67 MB. All transferred bytes passed hash checks.
 Kit path: HOST:Q/host-source-kits-01/HOST. The large archive remains on a5500.
-Source-only deployment and the complete gate remain pending.
-No deployment has silently substituted d164 for the 076 baseline.
+Source-only deployment is complete and verified on both hosts. Both deployed candidates are now d164fed7.
+Controller02 passed 14 actual-input/main controls and five real-filesystem mutation controls.
+The mutation controls include interruption after each of the eight changed leaves and explicit rollback.
+Controller02 SHA256: f530b93b6a843e184cd1fd6016e55d1e962f5bfa78b50d120fd654fa7eacceaf.
+Native verify-only and apply each returned 0/0/COMPLETE with empty stderr on both hosts.
+Actual probes checked 854 runtime files, 39 installed helper paths, exact source modes, and both inventories.
+Source closure grew from 1029 to 1031. All application artifacts and CTest baseline bytes remain unchanged.
+New deployment receipt SHA256:
+sb16 1093620d5e658f749fce52a18d89538eef8bfd8e8e4dc4dd19ef8f9a6c02e5d7.
+sb16-2 68f6572cd73df4e4dfbe00c137a5db21a129eb8daed5b348c6acb7cd69cba0c6.
+Durable old-byte backups, exact update journals, approvals, and canonical runs:
+HOST:Q/source-update-apply-02/journals and HOST:Q/primary-source-update-02.
+
+Both installed candidates passed 85 focused tooling checks before full-gate launch:
+53 static, six evidence-forwarding, three reconciliation, 12 storage-metadata, and 11 native-fixture metadata checks.
+They verified 198 registrations, 196 local registrations, 54 mandatory names, frozen source, and XACE dependency closure.
+Both canonical installed-tooling attempt02 runs returned 0/0/COMPLETE with empty stderr.
+The initial installed-tooling attempt omitted the static checker's three required arguments and ran no tests.
+Primary corrected the invocation and supplied all 21 pinned writable fixture inputs outside frozen source.
+No tested source or locked acceptance file changed. The initial failing logs remain preserved.
+Installed verification: HOST:Q/installed-tooling-verification-02/evidence/HOST.
+Driver SHA256: eabce2341bcb00d6ab18b4c13da0dfa5a69ba0e9679172c0b8ad7c7db0d108c0.
+
+Both corrected full local gates are now running in persistent tmux sessions.
+Attempt: d164fed7-HOST-local-01. The gate owns its host lock; no outer host flock exists.
+Canonical run: HOST:Q/full-gate-runtime-runs/HOST/ATTEMPT.
+Gate evidence: HOST:/home/dflanag3/spatial-artifacts/deployments/m07-a1ceef3115ed/runtime/evidence/ATTEMPT.
+Actual Python gate PIDs observed: sb16 3000265; sb16-2 2999022.
+Initial observation at 2026-10-16 04:50:14 UTC confirmed both live and without errors.
+Both passed five production startup checks and 51 harness checks.
+Latest later observation recorded 12 completed Debug core rows on sb16 and 13 on sb16-2, all passing.
+Debug core, acceptance, bounded storage, sanitizer profiles, cross-host checks, and final review remain incomplete.
+Do not restart these jobs merely because observation times out.
+Primary dispatch plan, exact commands, pins, and observations: a5500:Q/primary-full-gate-dispatch-01.
 
 Review rejected the first source updater before execution.
 It compared translated CTest metadata with archive hashes and could not inspect privileged process references.
-A stronger worker is completing controller02 with actual both-host inputs and explicit rollback controls.
+A stronger worker completed controller02 with actual both-host inputs and explicit rollback controls.
 Actual inputs also exposed retained gate augmentations in each live Debug CTestTestfile.cmake.
 Primary restored the saved receipt baseline on both hosts under maintenance locks.
 Each restoration returned 0/0/COMPLETE and exact 198-registration raw inventory hashes.
@@ -119,6 +151,10 @@ Fresh capacity admission at Q/primary-package-runs/capacity-admission-01.json re
 sb16 free 40052871168 bytes; sb16-2 free 37235720192 bytes.
 The gate budget is 25 GiB output plus 8 GiB reserve. Both hosts meet that 33 GiB minimum.
 Recheck capacity immediately before launch.
+Launch rechecked capacity successfully. A read-only watcher is investigating the larger early copy-worker allocation.
+Latest observed free bytes during Debug: sb16 38922936320; sb16-2 30200455168.
+The watcher must distinguish temporary peak use from retained output before proposing any cleanup.
+It must not alter current gate evidence or volumes.
 No user input or extra storage authorization is currently required.
 
 Current checkpoint: both Debug core suites pass; launcher repair checked into box-git
