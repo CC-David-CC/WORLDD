@@ -2605,3 +2605,53 @@ Primary combined-source review remains pending. Builds and runtime checks on tha
 Next: diagnose namespace exit, finish safe capacity recovery, review combined source, build and freeze a replacement candidate.
 Then run combined focused checks and the complete M07 gate on both hosts.
 No full gate, cross-host qualification, M07 completion, or GitHub cutover is claimed here.
+
+2026-10-16 capacity recovery completion and source-review successor
+
+This entry supersedes the preceding archive-running and primary-review-pending statements.
+Primary accepted the combined b2464b3c source after checking input ancestry, branch-owned blobs, and the shared merge.
+The combined source remains unbuilt and UNQUALIFIED. No replacement full gate has started.
+The new namespace-exit failure remains unresolved.
+Read defect blockers/m07-namespace-exit-before-owned-cgroup-stop.txt for the confirmed ordering gap and proposed correction.
+Luna owns m07/owned-stop-before-namespace-wait-20261016 from b2464b3c on a5500.
+Its external output root is /home/dflanag3/spatial-artifacts/m07-owned-stop-before-namespace-wait-20261016.
+The task preserves the absolute two-second stop budget and fail-closed exit proofs.
+Its source, implemented regressions, compilation, and runtime results require later primary review.
+An independent read-only contract review identified the existing process, namespace, and copy test boundaries.
+Report: /home/dflanag3/spatial-artifacts/m07-stop-contract-focused-review-20261016/REVIEW.txt.
+SHA256 18d78d28eda5ee912406c79185203c44bcd521d803d631d953e525ef1c02fafb.
+The proposed seccomp counterexample remains unverified until its fault isolation is demonstrated.
+
+Both archive-only and separate retirement commands completed command0/wrapper0/COMPLETE.
+Before retirement, nine guard controls passed on each host: 18 executions.
+These include actual read-only image descriptor and kernel-lock refusal, plus approval rejection counterexamples.
+Primary compared every retained archive member SHA with its unchanged source image SHA before approval.
+Fresh archive proofs rehashed the retained immutable archive before retirement.
+Exact source identities and references were checked again before each dirfd-based unlink.
+No recursive deletion occurred. Parent directories, logs, and source checkouts remain.
+
+Verified old-image retirement: sb16 38 leaves, 20,916,666,368 allocated bytes.
+sb16-2 53 leaves, 29,520,973,824 allocated bytes.
+Total recovered allocation: 50,437,640,192 bytes, about 46.97 GiB.
+Available bytes after primary post-audit: sb16 61,704,314,880; sb16-2 68,394,692,608.
+Current gate threshold: 61,203,283,968 bytes per host.
+Margins: 501,030,912 bytes on sb16; 7,191,408,640 bytes on sb16-2.
+Both meet current admission. Recheck after any package staging and before the full gate.
+This measurement does not authorize output beyond the recorded allowance.
+All 1031 frozen deployment source files per host matched their provenance hashes after retirement.
+Installed storage-owner and bwrap helper hashes remained unchanged.
+Protected M04/M06 graphics checkouts remained present.
+The new sb16 sanitizer failure image remains present at its original external evidence path, size 1 GiB.
+
+Retained archives on middle-child:
+/media/dflanag3/New Volume/spatial-artifacts/m07-retention-controller-review-20261016/review-05/HOST/old-images.tar.gz
+sb16 archive SHA256 c16a2d91079994bcedfda3a12f24a46549233af1893e453eebcc965fc16ebd64.
+sb16-2 archive SHA256 bb07259afd244ac5b55bd27aa05a737ceb2c7e4ec16270717f812a54efbc65cb.
+Retirement journal SHA256:
+sb16 8f2d8d94de10c5ce69d310cb214369ac570b7b39f67254339fc7bbd0b5ff6f54.
+sb16-2 0037c1d96ff5c32e187aeeafc3ec2360f32f4481be2a5ecfef2db5fba8f93b45.
+Complete canonical receipts, member inventories, source comparisons, approvals, journals, and primary post-audits:
+/home/dflanag3/spatial-artifacts/m07-retention-controller-review-20261016
+The redundant prelaunch transfer of an already-frozen script was refused before retirement started.
+Primary preserved that refusal and reused the existing script only after checking its exact SHA.
+No deletion failure or user recovery script was needed.

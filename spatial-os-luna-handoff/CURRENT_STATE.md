@@ -27,15 +27,23 @@ Do not retry or increase deadlines before reviewing this exact failure and the p
 Primary retained the failure logs and raw source pins outside Git.
 Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact evidence paths.
 A separate worker combined the reviewed branches as b2464b3c, BOX-GIT VERIFIED.
-Primary combined-source review remains pending. The candidate remains UNQUALIFIED and unbuilt.
+Primary checked both input ancestries, branch-owned blobs, and the shared production-file merge.
+The combined source is accepted for further work. It remains UNQUALIFIED and unbuilt.
 The original d164 candidate remains preserved. No complete replacement M07 gate has started.
 
-Both test hosts still lack the projected free space required for a fresh full gate.
-The old-image archive controller is running for sb16, with middle-child as the archive destination.
-No source image retirement has run in this recovery attempt.
-Archive verification and a separate exact-leaf review must precede deletion.
+Capacity recovery completed after archive verification and separate exact-leaf review.
+Both hosts passed nine archive approval/reference controls. Actual held descriptors and locks prevented clearance.
+Primary verified retirement of 38 old images on sb16 and 53 on sb16-2.
+The retained archives preserve all image bytes on middle-child. Parent directories and logs remain.
+Recovered allocation totals 50,437,640,192 bytes, about 46.97 GiB.
+Available space is 61,704,314,880 bytes on sb16 and 68,394,692,608 bytes on sb16-2.
+Both meet current gate admission. sb16 has only 501,030,912 bytes above that conservative threshold.
+Recheck capacity before transfers or a new gate. Do not infer a permanent storage guarantee.
+Primary verified all 1031 frozen source files per host and preserved the new failure image.
 The overwritten capacity-plan draft is preserved as an incident; its superseded hashes are invalid.
 Current immutable input is primary-preserved-input-01 under the external next-gate capacity plan.
+A separate Luna worker implements kill-before-wait ordering on m07/owned-stop-before-namespace-wait-20261016.
+Its source base is b2464b3c. Primary review, compilation, and all new runtime checks remain pending.
 
 ## 2026-10-16: Queued copy-status EOF reproduced; production repair is separate
 

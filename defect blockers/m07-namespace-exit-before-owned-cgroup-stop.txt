@@ -1,0 +1,44 @@
+M07: namespace-exit wait can prevent owned cgroup termination
+
+Status: runtime failure retained; cleanup ordering gap confirmed from source.
+The reason namespace exit was not confirmed remains unknown.
+Do not claim this explains the earlier two-pending-acknowledgment failure.
+
+Affected source: spatial-os-luna-handoff/src/workspace/process.cpp, ApplicationProcess::stop.
+Related source: spatial-os-luna-handoff/src/supervisor/process_scope.cpp, ProcessScope::stop.
+Reviewed combined candidate: b2464b3c243e6a3d2e180cb237750e93c56f8f5a.
+Failing binary source: 0ca9f93bc9cacd75542830cd7c4a93f175719fe3.
+Fixture source: 269512d8861b980f4ebd967acabf81cd09c454c5.
+
+Observed on sb16 with ASan/UBSan during native actor revocation and bounded Git import.
+The native method failed. Three recorder controls passed.
+CTest and its canonical wrapper returned8. Eight is an exit code, not a case count.
+The matching Debug runs and sb16-2 sanitizer run passed.
+Seven of nine retained application pidfds showed exit after 2.0098609 seconds.
+Git remained present and the import reply was pending.
+workspaced reported: application cleanup unconfirmed: Cannot confirm application namespace exit.
+It exited before the import completed. The reply reported Workspace authority channel closed.
+No captured sanitizer memory diagnostic occurred. The final barrier was not reached.
+
+ApplicationProcess signals the namespace leader and outer process before polling the leader pidfd.
+Only a successful leader wait reaches ProcessScope::stop and its cgroup.kill request.
+A leader timeout, poll error, or unexpected poll event skips that broader cleanup call.
+The two methods also start separate two-second deadlines.
+The failure log does not distinguish timeout, poll error, or unexpected events.
+
+Proposed correction: request termination of the owned cgroup before blocking on namespace exit.
+Preserve thaw-if-owned and all existing namespace, cgroup, child-reap, and identity proofs.
+Use one absolute two-second ApplicationProcess stop budget.
+Never treat successful signaling as proof of process exit.
+Preserve fail-closed reporting for signal and wait errors.
+Record bounded failure diagnostics without application contents or credentials.
+
+Required regressions: existing process-termination and authority-process-scope cases in both profiles on both hosts.
+Add a real kernel-boundary counterexample for kill-before-wait ordering and the shared deadline.
+Verify detached descendants, repeated stop, partial startup cleanup, and quiescence/thaw interactions.
+Then rerun native import/revocation and related copy cases before the complete M07 gate.
+Implementation and these new checks remain UNRUN at this record's creation.
+
+Failure evidence on a5500:
+/home/dflanag3/spatial-artifacts/m07-storage-ack-phase-timeline-primary-review-20261016/failure-sb16-SAN-01
+Read RAW_MANIFEST.json and PRIMARY_FAILURE_REVIEW.json.
