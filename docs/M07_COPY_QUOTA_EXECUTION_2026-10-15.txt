@@ -2715,3 +2715,71 @@ ASan/UBSan, production-off profiles, binding validation, archive verification, a
 Before launch, a5500 had 86,461,534,208 bytes available. The four build directories remain external and separate.
 No new package has been transferred to either test host. No new runtime or full gate has started.
 Focused process, native, and copy selection preparation is a separate bounded worker task.
+
+2026-10-16 four builds pass; package and focused controller pending
+
+Source remains frozen at fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e.
+All four normal Ninja build profiles passed without source changes.
+Test-enabled Debug262.503543 seconds; sanitizer374.496750 seconds.
+Production-OFF Debug176.066339 seconds; sanitizer256.17 seconds, rounded from the live preparation record.
+Primary Debug/SAN build-only reviews verified 199 registrations, 75 executable files, and 33 Python binding files per profile.
+The two dedicated cross-host registrations leave 197 local core registrations per profile.
+Primary SAN receipt: m07-fd1dccf8-gate-preparation-20261016/PRIMARY_SAN_BUILD_REVIEW_01.json.
+SHA256 5955e7fc9a9ab4649a35d80c358a7d0ed783ff1cff29424449ff32636031f6c0.
+An initial read-only audit accidentally counted the separate production configuration among ten test-enabled stages.
+Primary corrected that filter. No build, runtime, or source rerun resulted.
+Independent preparation review: m07-fd1dccf8-preparation-independent-review-20261016/REVIEW.txt.
+SHA256 91c17322115d04cd7f9c1286f129bb45c5377f9c95f8795dc5abc75c1fa5e226.
+The review confirms both production binding closures and 41 locked files. Runtime remains UNRUN.
+
+The original preparation wrapper PID2837095 and Python child2837136 remained alive during compression.
+Canonical command.exit and wrapper.exit remained absent; terminal-status remained RUNNING.
+Primary inspected their real process state before proceeding. No duplicate preparation was launched.
+Package compression, archive audit, transfer, and runtime are separate completion states.
+At this record, compression remains active. No package or runtime PASS is claimed.
+
+Focused launcher v1 used the wrong gate lock and conflicting evidence paths.
+Primary rejected it before any runtime. Receipt: m07-owned-stop-focused-runtime-20261016/PRIMARY_REVIEW_01.json.
+Worker v2 corrected those paths and offered separate stages with external metadata copies.
+Primary rejected v2 because storage relocation compared stale inventory and diagnostic Paths were not JSON serializable.
+Postcheck failure could also return zero, and successful CTest output hid inner diagnostics.
+Receipt: m07-owned-stop-focused-runtime-20261016/PRIMARY_REVIEW_02.json.
+Primary corrected these mechanisms in a new review-03 directory. Earlier drafts remain intact.
+Review-03 script SHA256 b241e438977360d1acf13783d284f42f8da009c600ae5a1556bf5e6fce2ca10d.
+Independent review is pending. Runtime remains UNRUN. No production or acceptance source changed.
+Stage1: authority-prepared-launch, authority-process-scope, process-scope-resources, process-termination, broker-resources, queued-copy-status-replacement.
+Stage2: original full25-method session-storage-contention registration and workspace-participant-races.
+Stage3: workspace-copy-engine, workspace-copy-actor-revocation, workspace-copy-worker-death-recovery, workspace-copy-absolute-deadline.
+Run both profiles on both qualification hosts. Primary controls paired-host stage progression.
+The shared-stop-deadline timing counterexample remains missing. Existing coverage does not prove it.
+
+Capacity correction before deployment
+
+Measured normal staged test runtime files: 6,403,996,463 bytes.
+Measured production-OFF runtime files: 2,290,218,144 bytes.
+Combined payload: 8,694,214,607 bytes, before source and compressed staging.
+The previous 6 GiB other-output allowance had no package/log breakdown and cannot contain this payload alone.
+Current full-gate capacity is NOT ADMITTED. Correct that budget before launch.
+Stage1-only admission will include actual archive bytes, expanded bytes, 1 GiB output, and 8 GiB reserve.
+Primary prepared transfer and normal verify-deploy orchestration with exact hashes and fresh destinations.
+Script: m07-fd1dccf8-gate-preparation-20261016/primary_deploy_pair.py.
+SHA256 f967110b01c49e65adaf7fb5d82619bb0163d9d7a84c7f4497b00574e08d7f69.
+It remains unexecuted and requires a completed primary package review first.
+Its canonical runtime directory is outside its staging checkout. The old deployment remains untouched.
+
+Read-only capacity ledger v1 contained a malformed historical runtime-manifest pin.
+It is not an approved cleanup input. The worker is preparing a separately pinned successor.
+A narrow read-only sb16 measurement found 8,744,968,192 allocated bytes in the old deployment runtime.
+Potential recovery preserves its source, receipts, failure evidence, and required graphics dependencies.
+Archive superseded generated payload only after replacement verification and fresh reference checks.
+No new archive or deletion has occurred. Do not reuse stale capacity admission.
+
+This goal turn advanced build evidence and rejected defective launcher paths before execution.
+The previous explanatory-only turn supplied no execution progress. The active goal remains unchanged.
+Independent review-03 found no concrete source-level launcher blocker.
+Report SHA256 8099fd4e252296e7db98240ee8d633792edfe07b26ee1016111cf67138847951.
+Primary accepted pinning and stage1 only. Actual JUnit behavior and all runtime remain UNRUN.
+Acceptance receipt SHA256 4b8b7f299ad541551972ffaeb2a0a2d070b2d1982c6ac4dd991aff50a4d13204.
+The corrected capacity review estimates 22 GiB of focused image reservations per host across both profiles.
+Do not reserve that simultaneously with the full gate without additional capacity or verified retirement.
+Read m07-fd1dccf8-capacity-ledger-20261016/review-02; it is a read-only plan, not cleanup approval.

@@ -57,3 +57,9 @@ The two new core methods cover an independent owned cgroup member and the real a
 The wait/exit control does not independently force namespace-leader POLLHUP.
 No dedicated shared-stop-deadline timing counterexample exists yet. Do not claim that coverage.
 Standard Ninja preparation is compiling the candidate. All new runtime checks remain UNRUN.
+
+2026-10-16: All four frozen-candidate build profiles passed. Runtime remains UNRUN.
+Primary rejected two focused launcher drafts before execution. Review-03 awaits independent review.
+Package compression is still active. No replacement full gate has started.
+Independent review found no source-level blocker in review-03. Primary accepted stage1 pinning.
+All runtime and the missing shared-deadline timing regression remain unverified.

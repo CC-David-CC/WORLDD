@@ -1,3 +1,38 @@
+## 2026-10-16: Four builds pass; focused runtime launcher remains under review
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Frozen candidate fd1dccf8 passed both test-enabled Ninja builds on a5500.
+Debug took 262.504 seconds. ASan/UBSan took 374.497 seconds.
+Both inventories contain 199 registrations: 197 local and two dedicated cross-host suites.
+Primary verified 75 executable hashes and 33 generated Python files in each profile.
+Both production builds with tests disabled passed: Debug176.066 seconds and sanitizer256.17 seconds, rounded.
+The independent preparation review confirmed 41 locked source files and both production binding closures.
+The original preparation process remained alive during package compression at the latest observation.
+Its canonical command and wrapper receipts were still pending. Packaging is not yet PASS.
+No new package transfer, runtime check, or replacement full gate has started.
+
+Primary rejected two preparation-only focused launcher drafts before execution.
+The corrected external review-03 launcher uses the canonical gate lock and one stage per invocation.
+It preserves package metadata and relocates only a private CTest metadata copy.
+Primary also corrected stale inventory comparison, diagnostic serialization, and postcheck exit handling.
+The independent source review found no concrete launcher blocker. Primary accepted review-03 for pinning and stage1 only.
+Actual JUnit output and all runtime behavior remain unverified. Project source and test oracles remain unchanged.
+The selected stages cover process cleanup, full native contention, participant races, and workspace copy faults.
+Both hosts must pass each selected stage before progression. All new runtime checks remain UNRUN.
+
+Measured staged runtime files total 8,694,214,607 bytes before source and compressed staging.
+This exceeds the previous 6 GiB other-output allowance. The previous full-gate admission is insufficiently justified.
+Recalculate capacity before the complete gate. Do not report full-gate capacity PASS from the old threshold.
+Stage-1 admission will separately include compressed and expanded package bytes, 1 GiB output, and 8 GiB reserve.
+A proposed recovery archives superseded generated deployment payload after replacement verification.
+No new archive or deletion has occurred. Preserve original failures and required graphics dependencies.
+
+External preparation: /home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016.
+External launcher: /home/dflanag3/spatial-artifacts/m07-owned-stop-focused-runtime-20261016/review-03.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for receipts and limitations.
+
 ## 2026-10-16: Related regressions pass; native namespace-exit failure retained
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
