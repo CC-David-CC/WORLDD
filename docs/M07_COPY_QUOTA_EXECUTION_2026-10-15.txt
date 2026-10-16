@@ -1,4 +1,38 @@
-Current checkpoint: reviewed test-only repair candidate and source kit ready; native retests remain UNRUN
+Current checkpoint: reviewed focused controller staged; original full gates remain live
+Date: 2026-10-16. M07 remains UNQUALIFIED. This section supersedes earlier observations.
+
+Snapshot at 12:59 UTC: sb16 completed181 Debug registrations,173 passed and eight failed.
+sb16-2 completed135,127 passed and eight failed. These are partial counts.
+Both workspace-copy-engine suites passed all13 methods.
+All five registered copy-fault suites passed in Debug on both hosts.
+Primary audited both engine reports, raw inner logs,136 service logs per host, and unmounted volumes.
+No sanitizer diagnostic was found in those inspected logs. Full sanitizer qualification remains UNRUN.
+The original intermittent copy acknowledgment cause remains unproven.
+
+Primary reviewed the repaired focused controller and its20 offline passing controls.
+Four listing-only comparisons verified all199 registrations, commands, properties, and working directories.
+The controller and exact command manifest are staged read-only on both test hosts.
+Controller SHA256:3d0becc1b7ad98d0e3913ed4bc8b417bb08fc584292d6711652049336da76dec.
+The six-file test repair kit remains pinned to1ff5dc623e6a713d229bf2f1d4684c4215d65690.
+Its production binaries remain explicitly pinned tofd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e.
+No source, metadata, or binary in either running exam was changed.
+Both target profile preflights and all focused native tests remain UNRUN.
+Wait for each original host job's terminal receipts and exact PID absence before using its canonical lock.
+Review both profile preflights before running the ten selected related suites.
+
+The sb16-2 credential-fence failure needs typed reply checks and a deterministic race reproduction.
+The missing reply variant does not prove application termination or an incarnation change.
+The sb16 shared-state suite also reported a startup EOF beyond its known cleanup initialization failure.
+Separate workers investigate these issues without changing the staged kit or live exam.
+The cross-host controller's missing pane-PID recording is being repaired offline.
+
+Primary evidence on a5500:
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/PRIMARY_REVIEW_02.json
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/PRIMARY_CONTROLLER_PAIR_STAGING_02.json
+/home/dflanag3/spatial-artifacts/m07-fd1-full-gate-launch-plan-20261016/primary-live-snapshot-20261016T125906Z.json
+Copy audit: m07-fd1-full-gate-launch-plan-20261016/primary-full-debug-copy-engine-audit-01/PRIMARY_INNER_LOG_AUDIT_02.json.
+
+Previous checkpoint: reviewed test-only repair candidate and source kit ready; native retests remain UNRUN
 Date: 2026-10-16. M07 remains UNQUALIFIED. Both original fd1 full gates remain live and unchanged.
 This section supersedes conflicting observations below.
 

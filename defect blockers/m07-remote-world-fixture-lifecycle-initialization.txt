@@ -1,6 +1,6 @@
 M07 remote world fixture lifecycle initialization
 Date: 2026-10-16.
-Status: REPRODUCED on both hosts. Repair is in progress on a separate branch.
+Status: REPRODUCED on both hosts. Source repair reviewed. Native verification remains UNRUN.
 Candidate: fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e. M07 remains UNQUALIFIED.
 
 Observed failure
@@ -26,6 +26,9 @@ Worker
 Branch: m07/remote-fixture-lifecycle-repair-20261016.
 Checkout on a5500: /home/dflanag3/src/spacial-m07-remote-fixture-lifecycle-repair-20261016.
 Runtime verification of the repair remains UNRUN.
+Reviewed task head: d1052bbbd18f1b983f371dc6e58040ec92afc7bd. BOX-GIT VERIFIED.
+Combined test-only validation source: 1ff5dc623e6a713d229bf2f1d4684c4215d65690.
+Its separate source kit and reviewed focused controller are staged on both hosts.
 No correction has been overlaid onto the running full exam.
 
 Evidence on a5500

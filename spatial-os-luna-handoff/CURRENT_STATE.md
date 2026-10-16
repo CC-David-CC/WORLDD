@@ -1,3 +1,36 @@
+## 2026-10-16: Focused controller reviewed and staged; original gates remain live
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+The original frozen candidate and both full-gate jobs remain unchanged.
+At 12:59 UTC, sb16 completed 181 Debug registrations: 173 passed and eight failed.
+sb16-2 completed 135: 127 passed and eight failed. These are partial results.
+Both workspace-copy-engine suites passed all 13 methods.
+All five registered copy-fault suites passed in Debug on both hosts.
+Primary verified the copy-engine inner logs, unmounted volumes, and absence of sanitizer diagnostics.
+These passes do not qualify M07 or establish the original intermittent acknowledgment cause.
+
+The reviewed test-only source kit is staged separately on both hosts.
+The repaired focused controller passed 20 offline controls and four complete 199-registration comparisons.
+Primary reviewed its complete source, controls, immutable pins, and runner arguments.
+The controller and command manifest are staged read-only on both hosts with verified hashes.
+Target preflights and focused runtime checks remain UNRUN.
+Each host must finish its original gate and retire its exact PID before focused testing.
+Each host must pass both profile registration preflights before native execution.
+
+The credential-fence failure remains under investigation on its separate branch.
+The test reads a success field without checking the reply variant.
+The actual failing reply was not retained. Process termination is not established.
+A worker is adding typed outcomes and a deterministic revocation-race regression.
+The shared-state suite also recorded a startup EOF beyond its known lifecycle cleanup failures.
+That EOF has a separate evidence-gathering task. No repair is assumed to cover it.
+Cross-host launcher PID recording is being corrected offline before future use.
+
+Controller evidence on a5500:
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/PRIMARY_REVIEW_02.json
+/home/dflanag3/spatial-artifacts/m07-fixture-retest-controller-20261016/PRIMARY_CONTROLLER_PAIR_STAGING_02.json
+Controller SHA256: 3d0becc1b7ad98d0e3913ed4bc8b417bb08fc584292d6711652049336da76dec.
+Live snapshot: m07-fd1-full-gate-launch-plan-20261016/primary-live-snapshot-20261016T125906Z.json.
+
 ## 2026-10-16: Test-only repairs reviewed; original full runs continue
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

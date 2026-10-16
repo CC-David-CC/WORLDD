@@ -1,0 +1,27 @@
+M07 shared-world startup EOF
+Date: 2026-10-16.
+Status: OBSERVED on sb16 Debug. Root cause and repair remain pending.
+Candidate: fd1dccf842dbaf0b5fc6ef6bbcb7688469bd734e. M07 remains UNQUALIFIED.
+
+Observed failure
+The world-shared-state suite failed during the original full Debug gate.
+Its cleanup tracebacks reproduce the known PersistentTlsWorld lifecycle initialization defect.
+One test also receives EOF while starting its native shared world.
+Test: test_two_tls_actors_share_committed_object_and_recover_same_world.
+Call path: new_world, start_remote, management('system.hello'), receive.
+The traceback reports: EOFError: worldd closed the channel.
+The cleanup repair alone does not establish a repair for this startup failure.
+The raw world stderr and process outcome need inspection before identifying the cause.
+
+Required diagnosis
+Preserve the complete CTest case and matching native logs.
+Check the world's actual startup error and process identity.
+Separate the initial startup failure from later cleanup exceptions.
+Add a targeted regression for any reproduced defect.
+Keep the original gate and reviewed source kit unchanged during diagnosis.
+
+Evidence
+sb16 deployed core log:
+/home/dflanag3/spatial-artifacts/deployments/m07-fd1dccf8/runtime/evidence/fd1dccf8-sb16-local-01/Debug/core.log
+CTest registration: world-shared-state, number156.
+Worker: m07_remote_fixture_lifecycle_repair, read-only diagnosis assignment.
