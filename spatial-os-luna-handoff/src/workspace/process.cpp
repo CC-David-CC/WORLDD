@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <exception>
 #include <linux/audit.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
@@ -309,25 +310,86 @@ void ApplicationProcess::stop_or_exit() noexcept {
 }
 void ApplicationProcess::stop() {
     if (pid_ <= 0) return;
+    const auto started = Clock::now();
+    const auto deadline = started + std::chrono::seconds(2);
+    std::exception_ptr failure;
+    std::string failure_message;
+    const auto attempt = [&failure, &failure_message](const char* label, auto&& action) {
+        try { action(); }
+        catch (const std::exception& error) {
+            if (!failure) {
+                failure = std::current_exception();
+                try { failure_message = std::string(label) + ": " + error.what(); } catch (...) {}
+            }
+        }
+        catch (...) {
+            if (!failure) {
+                failure = std::current_exception();
+                try { failure_message = std::string(label) + ": unknown failure"; } catch (...) {}
+            }
+        }
+    };
+    // Issue every owned termination request before entering any process wait.
+    attempt("owned scope termination request", [this] { resources_->scope().request_stop(); });
     const auto signal_fd = [](int fd) {
         if (syscall(SYS_pidfd_send_signal, fd, SIGKILL, nullptr, 0) < 0 && errno != ESRCH)
             throw std::runtime_error("Cannot signal application boundary");
     };
-    if (namespace_pidfd_ >= 0) signal_fd(namespace_pidfd_);
-    if (pidfd_ >= 0) signal_fd(pidfd_);
-    else if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) // Still our unreaped child.
-        throw std::runtime_error("Cannot signal unreaped application boundary");
-    const auto deadline = Clock::now()+std::chrono::seconds(2);
+    if (namespace_pidfd_ >= 0) attempt("namespace leader signal", [this, &signal_fd] { signal_fd(namespace_pidfd_); });
+    if (pidfd_ >= 0) attempt("application child signal", [this, &signal_fd] { signal_fd(pidfd_); });
+    else attempt("application child signal", [this] {
+        if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) throw std::runtime_error("Cannot signal unreaped application boundary");
+    });
+
+    int poll_result = 0, poll_revents = 0, poll_error = 0;
+    bool namespace_exited = namespace_pidfd_ < 0, namespace_wait_failed = false;
     if (namespace_pidfd_ >= 0) {
-        for (;;) {
+        while (!namespace_exited && !failure) {
             pollfd state{namespace_pidfd_, POLLIN, 0};
-            const auto result = poll(&state, 1, 10);
-            if (result > 0 && (state.revents & POLLIN)) break;
-            if (result > 0 || (result < 0 && errno != EINTR) || Clock::now() >= deadline)
-                throw std::runtime_error("Cannot confirm application namespace exit");
+            poll_result = poll(&state, 1, 10);
+            poll_revents = state.revents;
+            if (poll_result > 0 && poll_revents == POLLIN) { namespace_exited = true; break; }
+            if (poll_result < 0 && errno == EINTR) {
+                if (Clock::now() < deadline) continue;
+                if (failure_message.empty()) failure_message = "namespace exit poll deadline exceeded";
+                namespace_wait_failed = true;
+                break;
+            }
+            if (poll_result < 0) poll_error = errno;
+            if (poll_result < 0 || poll_result > 0 || Clock::now() >= deadline) {
+                if (failure_message.empty()) failure_message = "namespace exit poll failed";
+                namespace_wait_failed = true;
+                break;
+            }
         }
     }
-    resources_->scope().stop();
+    // Scope emptiness and direct-child reap remain mandatory after namespace-wait errors.
+    attempt("owned scope completion", [this, deadline] { resources_->scope().complete_stop(deadline); });
+    if (namespace_wait_failed && !failure) {
+        try { failure = std::make_exception_ptr(std::runtime_error(failure_message)); }
+        catch (...) { failure = std::current_exception(); }
+    }
+    if (!namespace_exited && !failure) {
+        try { failure = std::make_exception_ptr(std::runtime_error("namespace exit was not confirmed")); }
+        catch (...) { failure = std::current_exception(); }
+    }
+    if (failure) {
+        const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - started).count();
+        try {
+            const auto& owned = resources_->scope().identity();
+            std::cerr << "application stop unconfirmed pid=" << pid_ << " namespace_pid=" << namespace_pid_
+                      << " scope=" << owned.scope_name() << " scope_device=" << owned.device()
+                      << " scope_inode=" << owned.inode() << " elapsed_us=" << elapsed
+                      << " poll_result=" << poll_result << " poll_revents=" << poll_revents;
+            if (poll_result < 0) std::cerr << " poll_errno=" << poll_error;
+            try {
+                std::cerr << " scope_populated=" << resources_->scope().diagnostic_populated()
+                          << " child_reaped=" << resources_->scope().diagnostic_child_reaped();
+            } catch (...) { /* Keep the primary bounded diagnostic if cgroup inspection fails. */ }
+            std::cerr << " reason=" << failure_message << '\n';
+        } catch (...) { /* Diagnostic failure must not replace the cleanup result. */ }
+        std::rethrow_exception(failure);
+    }
     if (namespace_pidfd_ >= 0) close(namespace_pidfd_);
     namespace_pidfd_ = -1; namespace_pid_ = -1;
     if(payload_pidfd_>=0)close(payload_pidfd_);

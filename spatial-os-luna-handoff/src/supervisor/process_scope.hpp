@@ -1,6 +1,7 @@
 #pragma once
 #include "process_scope.pb.h"
 #include <array>
+#include <chrono>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -38,6 +39,11 @@ public:
     bool payload_frozen() const;
     v1::PayloadQuiescenceReceipt payload_receipt() const;
     void thaw_payload();
+    void request_stop();
+    v1::ProcessScopeStopped complete_stop(std::chrono::steady_clock::time_point deadline);
+    const v1::ProcessScopeIdentity& identity() const;
+    bool diagnostic_populated() const;
+    bool diagnostic_child_reaped() const;
     v1::ProcessScopeStopped stop();
 private:
     ProcessScope() = default;
@@ -47,7 +53,7 @@ private:
     bool freeze_owned_ = false;
     std::string frozen_inventory_;
     pid_t child_ = -1;
-    bool reaped_ = false, removed_ = false, started_ = false;
+    bool reaped_ = false, removed_ = false, started_ = false, stop_requested_ = false;
     v1::ProcessScopeIdentity identity_;
 };
 }

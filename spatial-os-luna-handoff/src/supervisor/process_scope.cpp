@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
+#include <exception>
 #include <iostream>
 #include <linux/close_range.h>
 #include <linux/magic.h>
@@ -387,17 +388,30 @@ void ProcessScope::throttle_memory(std::uint64_t bytes) {
     control(scope_, "memory.high", value);
     valid(contents(scope_, "memory.high") == value, "Memory throttle was not applied");
 }
-v1::ProcessScopeStopped ProcessScope::stop() {
-    if(freeze_owned_)thaw_payload();
-    if(payload_>=0){close(payload_);payload_=-1;}
+void ProcessScope::request_stop() {
+    std::exception_ptr failure;
+    const auto attempt = [&failure](auto&& action) {
+        try { action(); }
+        catch (...) { if (!failure) failure = std::current_exception(); }
+    };
+    if (freeze_owned_) attempt([this] { thaw_payload(); });
+    if (payload_ >= 0 && !freeze_owned_) { close(payload_); payload_ = -1; }
     if (!removed_) {
-        if (scope_ >= 0) control(scope_, "cgroup.kill", "1\n");
-        // Also cover a startup failure before cgroup migration. The direct child remains unreaped.
-        if (child_ > 0 && !reaped_) {
+        if (scope_ >= 0) attempt([this] { control(scope_, "cgroup.kill", "1\n"); });
+        if (child_ > 0 && !reaped_) attempt([this] {
             const int rc = pidfd_ >= 0 ? static_cast<int>(syscall(SYS_pidfd_send_signal, pidfd_, SIGKILL, nullptr, 0)) : kill(child_, SIGKILL);
-            check(rc == 0 || errno == ESRCH, "Cannot terminate owned authority child");
-        }
-        const auto deadline = Clock::now()+std::chrono::seconds(2);
+            if (rc < 0 && errno != ESRCH) throw std::runtime_error("Cannot terminate owned authority child");
+        });
+    }
+    stop_requested_ = true;
+    if (failure) std::rethrow_exception(failure);
+}
+const v1::ProcessScopeIdentity& ProcessScope::identity() const { return identity_; }
+bool ProcessScope::diagnostic_populated() const { return scope_ >= 0 && populated(); }
+bool ProcessScope::diagnostic_child_reaped() const { return reaped_; }
+v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline) {
+    valid(stop_requested_, "Owned termination was not requested");
+    if (!removed_) {
         while (scope_ >= 0 && populated()) {
             valid(Clock::now() < deadline, "Authority scope remains populated"); tick();
         }
@@ -420,6 +434,10 @@ v1::ProcessScopeStopped ProcessScope::stop() {
         removed_ = true;
     }
     v1::ProcessScopeStopped result; *result.mutable_identity() = identity_; return result;
+}
+v1::ProcessScopeStopped ProcessScope::stop() {
+    request_stop();
+    return complete_stop(Clock::now()+std::chrono::seconds(2));
 }
 ProcessScope::~ProcessScope() {
     try { stop(); }
