@@ -22,9 +22,18 @@ Primary rechecked all 1,040 source files and their read-only modes on each host.
 Both original failed gate reports remain byte-identical.
 The first focused attempts retained two errors each from copying frozen modes into mutable temporary fixtures.
 The correction creates writable private copies and tests unchanged original source bytes and modes.
-Append-only sanitizer continuation is being implemented on a separate branch. Its controls remain UNRUN.
+Append-only sanitizer continuation is written on a separate branch. Review corrections and its controls remain pending.
 It must preserve original Debug evidence and publish new reports beside the failed original report.
-Corrected Debug collection, actual sanitizer execution, combined audits, and cross-host qualification remain pending.
+The corrected collector processed both actual retained Debug trees successfully.
+Each fresh manifest contains 9,666 regular-file hashes, one typed marker, and two validated storage exclusions.
+Both collections matched all eleven retained command pins and preserved the original failed reports.
+These are fresh collections after the interrupted audit, not prechange hashes for every file.
+Full Debug revalidation, actual sanitizer execution, combined audits, and cross-host qualification remain pending.
+
+The conservative remaining-space check is not admitted. Current free bytes: sb16=40,783,249,408; sb16-2=48,017,534,976.
+The original reservation, minus measured retained Debug output, requires 57,923,670,016 and 57,924,145,152 bytes respectively.
+An archive inventory is checking older generated artifacts against current runtime dependencies.
+No current evidence, source, or qualified graphics dependency has been deleted.
 
 A separate status-reader PermissionError came from reading a root-owned storage report without sudo.
 The corrected observer uses sudo -n cat for that report. Its read succeeded without restarting tests.
@@ -32,6 +41,10 @@ Read-only observations are retained on a5500 under /home/dflanag3/spatial-artifa
 m07-fixture-repaired-full-gate-plan-20261016/primary-full-exam-live-20261016T165213Z.json.
 m07-artifact-link-manifest-repair-20261016/primary-controls-02/PRIMARY_CONTROLS_PAIR_AUDIT_01.json.
 Focused audit SHA-256: 9e2913aa3b8c2a3c36473a3cfadefb6986d387b8751705de9425078a98d62ed9.
+m07-artifact-link-manifest-repair-20261016/real-debug-collection-02/PRIMARY_COLLECTION_PAIR_01.json.
+Collection pair SHA-256: f149b6551ed4b01c244475b5cba541dd66571f020ad932675c747d9024560e6d.
+m07-artifact-link-manifest-repair-20261016/primary-capacity-01.json.
+m07-artifact-link-manifest-repair-20261016/primary-capacity-roots-01.json.
 The collector diagnosis is separate from that monitoring error.
 
 ## 2026-10-16: Full M07 local gates running on both hosts
