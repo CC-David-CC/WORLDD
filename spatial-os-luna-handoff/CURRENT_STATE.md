@@ -26,15 +26,29 @@ The corrected fixture completed four Debug executions: three passed; one failed 
 Request72 was queued with zero sent bytes. Revocation discarded that reply and closed the actor stream.
 worldd remained alive, then exited zero during cleanup. The durable copy was forbidden and aborted.
 The actor still lacked the required typed denial. The matrix stopped; later repetitions and controls remain UNRUN.
-A separate production branch owns a narrow reply-lifetime repair. Protected observation and partial frames must still close.
+A separate production repair checkpoint is BOX-GIT VERIFIED at 4666b8aa.
+Primary and independent source reviews found no remaining confirmed defect. Both build profiles passed.
+Protected observation and attempted frames still close. Actor cancellation precedes optional denial allocation.
+The new frame unit and all live regressions remain UNRUN on this source. It is not integrated.
 A separate isolated worker instruments participant delivery, settlement, and acknowledgement.
 Both native helper profiles built on a5500. Both hosts passed their deployment checks.
 The first standalone native launch failed on an evidence-path setup guard before workload.
 Primary retained that failure and launched the corrected Debug attempt with an explicit path-validator preflight.
 The corrected native Debug test passed on both hosts in about 21 and 24 seconds.
 All nine application pidfds exited promptly while the administrative reply remained pending.
-Cleanup and unchanged helper/deployment checks passed. Sanitizer checks and timeline audits remain pending.
+The selected sanitizer test also passed on both hosts in about 26 seconds, without sanitizer findings.
+Cleanup and unchanged helper/deployment checks passed in both profiles.
+World acknowledgements completed early; workspace acknowledgements followed the pending administrative work.
+No Git process remained at the application-exit sample, so stronger overlap evidence is not claimed.
 These focused passes do not explain the original missing acknowledgements.
+The sb16 Debug reproduction ran the original full 17-case registration, including preceding pressure methods.
+Sixteen cases passed. The revocation case errored before revocation when a sampled Git process disappeared during a procfs read.
+The full-registration reproduction on sb16-2 and both sanitizer profiles remain UNRUN.
+Primary reviewed fixture repair dd4e5b9b, BOX-GIT VERIFIED, which handles only ENOENT and ESRCH as retirement.
+Five deterministic cases preserve permission and I/O failures. They remain UNRUN pending a fixture-only deployment.
+The original missing acknowledgements remain unresolved.
+The separate queued-status repair bundle completed deployment verification on both hosts.
+Its focused runtime checks remain UNRUN at this checkpoint.
 No timeout increase or qualified production repair is claimed.
 
 The adfb2578 fixture-only overlay preserves pre-close and final worldd lifetime evidence.

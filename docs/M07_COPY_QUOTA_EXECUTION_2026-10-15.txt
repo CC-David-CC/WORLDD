@@ -65,10 +65,29 @@ Both hosts restored helpers, preserved the original deployment, and unmounted th
 The original full-gate run lacked this instrumentation. Its identical symptom is consistent with this mechanism.
 Audit:aggregate-audit/DEBUG-02-STOP-AUDIT.txt under the new evidence root.
 Audit SHA256:a730af2b096d17fa7db54fe51974e0daea365966b3ed1594859a02a42f52add6.
-A separate production repair branch will replace only an eligible queued copy-status reply with a fresh denial.
+A separate production repair replaces only an eligible queued copy-status reply with a fresh denial.
 It must preserve protected-observation closure, partial-frame closure, request correlation, and immediate actor cancellation.
 sent0 alone is insufficient for TLS. A prior SSL_write attempt can have transport progress before completion.
-No production repair has passed review or runtime testing yet. M07 remains UNQUALIFIED.
+Repair checkpoint:4666b8aa959a57843446fd147681d003d7b338b0, BOX-GIT VERIFIED.
+Branch:m07/queued-copy-status-denial-20261016. It is not integrated into the milestone candidate.
+Primary reviewed all four changed files. Independent source review found no confirmed defect.
+Debug and sanitizer compilation passed, including the real fault fixture and related graphics helpers.
+Native actor cancellation is requested before optional frame parsing or allocation.
+The queued frame is detached before callbacks. Construction failure closes the transport without restoring old bytes.
+The original output deadline remains unchanged. Repeated invalidation preserves only the new denial.
+The deterministic unit covers the production frame transform, not Actors::close or nested callback execution.
+Allocation-failure cancellation remains source-reviewed only. Live TLS WANT_WRITE is not covered by that unit.
+New unit, copy-revocation repetitions, identity, observation, pixels, leases, and quota controls remain UNRUN on this repair.
+Frozen package archive SHA256:c2b5a3f1cc6698d9ef1261dcc60885061a85f34f4859af163725af03de893056.
+Package manifest SHA256:4fea6f4785092a6fa05ca8f4a1ffc8b6e4305aceb4bab871e27cf9572a8d788b.
+Package root:a5500:/home/dflanag3/spatial-artifacts/m07-queued-copy-status-primary-runtime-20261016.
+Both hosts completed bundle deployment with command=0, wrapper=0, COMPLETE.
+Deployment verified all 1264 files and both native XACE graphics closures.
+The focused runner requires the exact configured identity, lease, observation, and pixel registrations.
+Primary enabled SPATIAL_INPUT_TESTS through normal CMake configuration before extracting those registrations.
+All 16 binaries, 14 protobuf bindings, build identifiers, runtime configuration, and compiler flags remained unchanged per profile.
+Reconfigure receipt SHA256:28ab7bcc7011186cf4453a86d7d4464f8909911512933f63d3291fa928aacce0.
+Focused runtime remains UNRUN at this checkpoint. M07 remains UNQUALIFIED.
 Across the original eight diagnostic executions, primary found no sanitizer diagnostics.
 Every temporary helper was restored. Every owned volume was unmounted.
 These are seven complete focused passes and one failed execution.
@@ -125,8 +144,30 @@ All nine application pidfds exited within 0.490 and 0.342 seconds respectively.
 Both retained administrative replies were still pending at that exit sample.
 Git processes were witnessed earlier but were absent at the exit sample. Do not claim stronger overlap evidence.
 The phase_complete diagnostic field remains false because this source never updates it; it is not the selected test's oracle.
-The full diagnostic timeline audit and sanitizer attempts remain pending.
+The selected sanitizer method also passed on both hosts:26.079 seconds on sb16;25.502 seconds on sb16-2.
+Primary verified canonical 0/0/COMPLETE receipts, the named test, no sanitizer markers, and volume/helper/deployment cleanup.
+All nine application pidfds exited within 0.527 and 0.657 seconds respectively.
+The administrative reply remained pending, but no Git process remained at either exit sample.
+Both world acknowledgements completed within one second. Workspace acknowledgements followed administrative work several seconds later.
+Both authorities consumed applied revision one before teardown transport failures.
+Four selected-method executions passed across Debug and sanitizer profiles on both hosts.
 Successful focused retries do not explain or repair the original missing acknowledgements.
+The original CTest registration runs 17 internal cases, including two native pressure methods before this method.
+The isolated selected-method runs omit that preceding workload. This is an evidence limit.
+A reviewed external CTest registration now preserves all 17 cases, their order, and the 180-second timeout.
+Launcher:suite-registration03/run_suite.py under the native diagnostic artifact root.
+Launcher SHA256:fd1546dbdcb1c455c80845bf767365f061fd2d77b9bc027370e863722bb87dab.
+The sb16 Debug reproduction completed 17 cases:16 passed and one errored before revocation.
+The Git witness observed ProcessLookupError(ESRCH) while reading a sampled process's /proc/PID/comm.
+CTest and the canonical command/wrapper returned 8. The failed evidence remains intact.
+JUnit SHA256:a11fb6514648e7230005c3fb8f9797d76578604b5c9827377b07d5487009ee1e.
+LastTest.log SHA256:b3552b5e152644aade2207290b3351d68e44a0aa7d42625040ecb1cd806495b3.
+sb16-2 and both sanitizer full-registration reproductions remain UNRUN. No blind retry occurred.
+Primary reviewed the two-file fixture repair dd4e5b9ba290a444407c091b94f23e46fd5a6c68, BOX-GIT VERIFIED.
+It treats only ENOENT and ESRCH as process retirement. Permission and I/O errors still propagate.
+Five deterministic cases cover the helper. Existing Git, timing, and revocation assertions remain unchanged.
+Those cases remain UNRUN. An explicit fixture-only overlay will retain the existing diagnostic binaries.
+This fixture repair does not explain the original missing acknowledgements or qualify M07.
 Native diagnostic artifacts:/home/dflanag3/spatial-artifacts/m07-storage-ack-primary-runtime-20261016.
 
 Separate M08 preparation
