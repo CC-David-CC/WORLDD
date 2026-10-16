@@ -76,6 +76,7 @@ class WorldProcess:
                 pass_fds=tuple(server.fileno() for _,server in pairs)+extra_fds)
             self.start_ticks=self.process_start_ticks(self.proc.pid)
             self.lifecycle_evidence=None
+            self.lifecycle_before_close=None
         except BaseException:
             if workspace_channel_owned: workspace_channel.close()
             if self.broker_channel: self.broker_channel.close(); self.broker_channel = None
@@ -112,6 +113,8 @@ class WorldProcess:
                         if len(lifecycle_tail)>24:lifecycle_tail.pop(0)
             evidence=json.loads(self.lifecycle_evidence.read_text())
             lifecycle=evidence.setdefault('worldd_lifecycle',{})
+            if self.lifecycle_before_close is not None:
+                lifecycle['before_world_close']=self.lifecycle_before_close
             lifecycle['after_world_close']=self.lifecycle_snapshot()
             lifecycle['stderr_sha256']=digest.hexdigest()
             lifecycle['stderr_lifecycle_tail']=lifecycle_tail
@@ -135,6 +138,8 @@ class WorldProcess:
         if reply.request_id!=self.sequence: raise AssertionError('Wrong management reply identity')
         return result_value(reply)
     def close(self):
+        if self.lifecycle_before_close is None:
+            self.lifecycle_before_close=self.lifecycle_snapshot()
         for peer in self.peers: peer.close()
         if self.proc.poll() is None:
             self.proc.stdin.close()

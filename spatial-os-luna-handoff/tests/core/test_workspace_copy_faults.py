@@ -437,7 +437,6 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
                       'exceptions':[],'published_seen':False,'denial_validated':False,
                       'release_monotonic_ns':None,'completion_deadline_monotonic_ns':None,
                       'durable_terminal':None,
-                      'worldd_lifecycle':{'before_fixture_cleanup':world.lifecycle_snapshot()},
                       'durable_busy':dict(count=0,first=None,last=None,last_error=None)}
         stop_worker=threading.Event()
         def record_status(result,started):
@@ -476,13 +475,24 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
         def persist_status_audit():
             # unittest records the original assertion before running cleanup callbacks.
             result=self._outcome.result
+            audit_path=self.copy_evidence/'issuer-revocation-status.json'
+            try:
+                existing=json.loads(audit_path.read_text())
+                existing_lifecycle=existing.get('worldd_lifecycle',{})
+            except FileNotFoundError:
+                existing_lifecycle={}
+            except Exception as error:
+                existing_lifecycle={}
+                print('Revocation lifecycle merge read failed: '+type(error).__name__,file=sys.stderr)
             with status_lock:
                 status_audit['worker_alive']=worker.is_alive()
-                status_audit.setdefault('worldd_lifecycle',{})['before_fixture_cleanup']=world.lifecycle_snapshot()
+                lifecycle=status_audit.setdefault('worldd_lifecycle',{})
+                for key in ('before_world_close','after_world_close','stderr_sha256','stderr_lifecycle_tail'):
+                    if key in existing_lifecycle:lifecycle[key]=existing_lifecycle[key]
                 status_audit['test_failure_count']=sum(test is self for test,_ in result.failures)
                 status_audit['test_error_count']=sum(test is self for test,_ in result.errors)
                 text=json.dumps(status_audit,sort_keys=True,indent=2)+'\n'
-            try:(self.copy_evidence/'issuer-revocation-status.json').write_text(text)
+            try:audit_path.write_text(text)
             except Exception as error:
                 print('Revocation status diagnostic write failed: '+type(error).__name__,file=sys.stderr)
         def stop_copy_poll():
