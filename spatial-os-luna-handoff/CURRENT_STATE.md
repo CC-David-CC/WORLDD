@@ -31,8 +31,10 @@ Primary and independent source reviews found no remaining confirmed defect. Both
 Protected observation and attempted frames still close. Actor cancellation precedes optional denial allocation.
 The new frame unit passed in Debug and ASan/UBSan on both hosts. The repair remains unintegrated.
 The Debug unit receipts are explicitly NONCANONICAL; primary preserved the worker wrapper and corrected subsequent launches.
-The first real Debug copy-revocation execution passed on each host with typed denial and durable forbidden abort.
-Neither first execution exercised asynchronous queued-reply replacement. Later repetitions and related regressions remain UNRUN.
+All copy-revocation repetitions passed:three Debug and one sanitizer execution per host, with typed denial and forbidden abort.
+None exercised asynchronous queued-reply replacement. The production frame unit covers that transform directly.
+The small-quota rejection control passed in both profiles on both hosts. Peer applications continued progressing.
+Related identity, observation, pixel, and lease registrations are running through a paired-host matrix.
 A separate isolated worker instruments participant delivery, settlement, and acknowledgement.
 Both native helper profiles built on a5500. Both hosts passed their deployment checks.
 The first standalone native launch failed on an evidence-path setup guard before workload.
@@ -55,7 +57,7 @@ Those four registrations completed 88 case executions, without skips or sanitize
 No complete M07 gate has restarted.
 The original missing acknowledgements remain unresolved.
 The separate queued-status repair bundle completed deployment verification on both hosts.
-Its remaining copy repetitions, quota controls, identity, observation, pixel, and lease regressions remain UNRUN.
+Its identity, observation, pixel, and lease matrix remains incomplete. Source integration and the complete M07 gate remain pending.
 No timeout increase or qualified production repair is claimed.
 
 The adfb2578 fixture-only overlay preserves pre-close and final worldd lifetime evidence.

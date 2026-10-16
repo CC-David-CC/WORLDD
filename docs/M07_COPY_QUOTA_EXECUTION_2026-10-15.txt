@@ -81,11 +81,22 @@ The new unit passed in Debug and ASan/UBSan on both hosts.
 Primary independently verified named output, empty sanitizer stderr, helper restoration, and unchanged deployment pins.
 The Debug unit used a worker-authored wrapper. Its receipts are explicitly NONCANONICAL diagnostics.
 Primary preserved those receipts and used the literal approved canonical runner for subsequent checks.
-The first real Debug copy-revocation execution passed on each host.
+All planned copy-revocation executions passed:three Debug and one ASan/UBSan per host.
 Each returned typed denial 12, recorded durable phase8/error3, and observed no publication.
 Primary checked actual status evidence, driver output, stable worldd lifetime, helper restoration, and unmounted volume records.
-Neither first execution hit the asynchronous queued-reply replacement branch. This is a live coverage limit.
-Two further Debug repetitions, one sanitizer repetition, and related authority/quota controls remain UNRUN per host.
+None of the eight executions hit the asynchronous queued-reply replacement branch. This remains a live coverage limit.
+The production frame unit covers replacement directly. The live runs cover the complete unchanged revocation scenario.
+The small-quota negative control passed in both profiles on both hosts.
+Each writer reached EDQUOT after accepting 4,161,536 bytes and durably exited with code 73. Its peer continued progressing.
+The unchanged negative control retains its 4 MiB source ceiling.
+Primary retained raw proof, output, lifecycle, and restoration records under primary-copy-audits and primary-quota-audits.
+Related identity, lease, observation, and pixel registrations are currently running through a paired-host matrix.
+Controller:PRIMARY_launch_remaining_v3.py under the package root.
+Controller SHA256:0fc89044118de331c9479a3e961e2723f675de36e227f711617e122ebaa76dcb.
+a5500 tmux:m07-queued-copy-status-primary-matrix-01. Controller PID 2786948; canonical wrapper PID 2786910.
+Canonical receipts:primary-matrix-run-01. State:matrix-controller/runs/20261016T080128Z/matrix-state.json.
+Both hosts run each stage in parallel. The next stage waits for both terminal results and cleanup.
+An observation failure does not relaunch a job. Any failed stage stops later launches.
 Frozen package archive SHA256:c2b5a3f1cc6698d9ef1261dcc60885061a85f34f4859af163725af03de893056.
 Package manifest SHA256:4fea6f4785092a6fa05ca8f4a1ffc8b6e4305aceb4bab871e27cf9572a8d788b.
 Package root:a5500:/home/dflanag3/spatial-artifacts/m07-queued-copy-status-primary-runtime-20261016.
@@ -170,7 +181,7 @@ The Git witness observed ProcessLookupError(ESRCH) while reading a sampled proce
 CTest and the canonical command/wrapper returned 8. The failed evidence remains intact.
 JUnit SHA256:a11fb6514648e7230005c3fb8f9797d76578604b5c9827377b07d5487009ee1e.
 LastTest.log SHA256:b3552b5e152644aade2207290b3351d68e44a0aa7d42625040ecb1cd806495b3.
-sb16-2 and both sanitizer full-registration reproductions remain UNRUN. No blind retry occurred.
+At that stop, sb16-2 and both sanitizer full-registration reproductions were UNRUN. No blind retry occurred.
 Primary reviewed the two-file fixture repair dd4e5b9ba290a444407c091b94f23e46fd5a6c68, BOX-GIT VERIFIED.
 It treats only ENOENT and ESRCH as process retirement. Permission and I/O errors still propagate.
 Five deterministic cases cover the helper. Existing Git, timing, and revocation assertions remain unchanged.
@@ -186,6 +197,11 @@ All four full registrations passed:88 individual case executions, without skips 
 Primary checked named cases, zero canonical exits, no sanitizer markers, unchanged helpers/deployment, and detached test loops.
 Exact raw logs, JUnit, lifecycle records, and hashes are retained under primary-full-audits in the overlay root.
 This fixture repair does not explain the original missing acknowledgements or qualify M07.
+Full-registration comparison:world applied results arrived 0.386-1.134 seconds after receipt across the four runs.
+Workspace acknowledgements queued 6.630-10.639 seconds after receipt. Import-reply receipt lacks an absolute timestamp.
+Report:/home/dflanag3/spatial-artifacts/m07-ack-full-registration-comparison-20261016/FULL_REGISTRATION_COMPARISON.txt.
+Report SHA256:3aaddd9939b48774b1e2aa4051fec305ad43d7aa4a7ab6536f936cdbb5d327ee.
+A separate fixture-only branch will record bounded phase timestamps. Its implementation and runtime qualification remain pending.
 Native diagnostic artifacts:/home/dflanag3/spatial-artifacts/m07-storage-ack-primary-runtime-20261016.
 
 Separate M08 preparation
