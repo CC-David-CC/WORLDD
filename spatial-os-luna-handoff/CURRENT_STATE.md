@@ -1,3 +1,42 @@
+## 2026-10-16: Related regressions pass; native namespace-exit failure retained
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+The separate queued-status repair completed its focused matrix on both hosts.
+Primary audited all four related Debug and sanitizer logs.
+Identity, control-lease, observation, and pixel checks passed 16 registrations and 336 inner test executions.
+No skips or sanitizer diagnostics occurred. Helpers and frozen deployment source remained unchanged.
+The existing eight copy passes and four small-quota controls remain valid focused evidence.
+No live copy repetition exercised asynchronous queued-reply replacement. Its frame unit covers that transform.
+
+Reviewed source 11d2c993 makes queued-copy-status-replacement mandatory in the M07 gate inventory.
+All six reconciliation and inventory controls passed once on each host: 12 executions.
+These standard-library tooling checks do not establish native or C++ sanitizer coverage.
+
+Reviewed fixture 269512d adds bounded phase timestamps without changing production deadlines or test oracles.
+The three recorder controls and one native import/revocation method ran in both profiles on both hosts.
+Fifteen method executions passed. The sb16 sanitizer native method failed.
+Its import reply reported INVALID_ARGUMENT: Workspace authority channel closed.
+The preceding log reports application cleanup unconfirmed: Cannot confirm application namespace exit.
+Seven of nine application processes had exited at the 2.010-second sample. Git remained present then.
+workspaced exited before the import completed. No sanitizer memory diagnostic was recorded.
+The matching Debug runs and sb16-2 sanitizer run passed. Original missing acknowledgments remain unexplained.
+Do not retry or increase deadlines before reviewing this exact failure and the production cleanup path.
+
+Primary retained the failure logs and raw source pins outside Git.
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact evidence paths.
+A separate worker combined the reviewed branches as b2464b3c, BOX-GIT VERIFIED.
+Primary combined-source review remains pending. The candidate remains UNQUALIFIED and unbuilt.
+The original d164 candidate remains preserved. No complete replacement M07 gate has started.
+
+Both test hosts still lack the projected free space required for a fresh full gate.
+The old-image archive controller is running for sb16, with middle-child as the archive destination.
+No source image retirement has run in this recovery attempt.
+Archive verification and a separate exact-leaf review must precede deletion.
+The overwritten capacity-plan draft is preserved as an incident; its superseded hashes are invalid.
+Current immutable input is primary-preserved-input-01 under the external next-gate capacity plan.
+
 ## 2026-10-16: Queued copy-status EOF reproduced; production repair is separate
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

@@ -2524,3 +2524,84 @@ All four candidate706fe47a configurations then passed their builds.
 Debug and sanitizer inventories each contain 198 registrations. Production-off closure exists in both profiles.
 Verified runtime files total 8,619,574,588 bytes. This is an artifact package, not tracked source data.
 Archive creation and validation remain active under the same canonical preparer handle.
+2026-10-16 checkpoint: related matrix audited; native namespace-exit failure reproduced
+
+M01-M06 qualified. M07 UNQUALIFIED. M08-M16 pending.
+This checkpoint supersedes conflicting earlier status statements in this file.
+
+Focused queued-status candidate: 4666b8aa959a57843446fd147681d003d7b338b0.
+Paired matrix is terminal command0/wrapper0/COMPLETE, status focused-matrix-complete.
+All four related categories passed in Debug and ASan/UBSan on both hosts.
+Totals: 16 CTest registrations; 336 inner unittest executions; no failures, skips, or sanitizer findings.
+Primary independently checked all four complete LastTest logs and their actual inner totals: 27/25/17/15.
+Helpers and frozen d164 deployment source stayed unchanged.
+Previous eight copy passes and four small-quota passes remain focused evidence.
+No live copy repetition reached the asynchronous queued-reply replacement branch.
+The direct frame unit covers that transformation. Do not claim live asynchronous branch coverage.
+
+External related audit on a5500:
+/home/dflanag3/spatial-artifacts/m07-queued-copy-status-primary-runtime-20261016/primary-related-audit-worker-01
+FINDINGS.txt SHA256 728aa7a0420ea41aee5382b539881b8eaec8c419ba04f36f5967fc5ec7eaba47.
+PRIMARY_ACCEPTANCE_01.json records the independent raw-log review.
+Retained audit size is 13 MiB. Raw evidence stays outside source checkouts.
+
+Gate inventory source: 11d2c9937d120055e94e777e346d992214a6aa7e, BOX-GIT VERIFIED.
+It requires queued-copy-status-replacement and adds missing/disabled/enabled inventory controls.
+The complete six-test utility file passed on each host: 12 executions, no skips.
+These Python tooling tests are independent of the Debug/sanitizer build profiles.
+External bundle and primary audits:
+/home/dflanag3/spatial-artifacts/m07-gate-inventory-focused-runtime-20261016
+Manifest SHA256 e0a9a875d6e03927a98c649a4dc2351dd2081f5bb959ee0b47d72fd5dc2545c2.
+
+Native fixture source: 269512d8861b980f4ebd967acabf81cd09c454c5, BOX-GIT VERIFIED.
+Binary source remains 0ca9f93bc9cacd75542830cd7c4a93f175719fe3 through an explicit test-only overlay.
+The overlay records monotonic import, revocation, process-exit, reply, and barrier phases.
+It preserves the original assertions and deadlines.
+Selection: three recorder controls and one bounded native import/revocation method per host/profile.
+Result: 15 method executions passed; one native method failed on sb16 ASan/UBSan.
+Debug passed on both hosts in 20.03 and 21.35 seconds. sb16-2 sanitizer passed in 25.43 seconds.
+sb16 sanitizer returned CTest8/wrapper8/COMPLETE after 24.36 seconds.
+Import reply: INVALID_ARGUMENT, Workspace authority channel closed.
+Preceding coordinator log: workspaced: application cleanup unconfirmed: Cannot confirm application namespace exit.
+The process sample showed seven of nine exits after 2.0098609 seconds; Git was still present and reply pending.
+workspaced exit was observed. The failure happened before the final barrier checks.
+No AddressSanitizer, LeakSanitizer, or UBSan error appeared in the retained logs.
+Helpers and deployment pins remained unchanged. Adapter scope removal passed.
+The stop cleanup command returned5 because the collected systemd unit was already absent; preserve that distinction.
+Do not equate this symptom with the original two-pending-acknowledgment failure without proof.
+No repeat was launched. A bounded read-only worker traces the namespace cleanup path.
+
+Primary review and 58 retained failure files:
+/home/dflanag3/spatial-artifacts/m07-storage-ack-phase-timeline-primary-review-20261016
+Failure subdirectory: failure-sb16-SAN-01, with RAW_MANIFEST.json and PRIMARY_FAILURE_REVIEW.json.
+Passing raw audits are under audits/HOST/PROFILE.
+Runtime overlay:
+/home/dflanag3/spatial-artifacts/m07-storage-ack-phase-timeline-runtime-20261016
+Reviewed transfer manifest SHA256 0f11fb156ccdb1e6409b06ee0b62b9c45369b488d389cc5960375c4ed2f67f8c.
+Primary corrected a duplicated overlay-path prefix before deployment.
+The first sb16 transfer verification refused tar-filter mode changes before any test ran.
+Primary restored only pinned regular-file and directory modes, then both hosts passed transfer verification.
+The initial audit incorrectly required the fixture's unused phase_complete placeholder.
+Primary preserved that audit and used the actual final_barrier_complete witness in version2.
+No test rerun or oracle change was involved in either audit correction.
+
+Capacity recovery remains incomplete. Measured available bytes before archive launch:
+sb16 40,787,951,616; sb16-2 38,874,230,784. Full-gate admission requires 61,203,283,968 per host.
+The immutable snapshot preserves 38 old leaves on sb16 and 53 on sb16-2, including 1 GiB leaves.
+An earlier worker overwrote its handed-off draft. Superseded 7d51/039794 pins are invalid.
+Primary preserved current bytes and an incident receipt under:
+/home/dflanag3/spatial-artifacts/m07-next-gate-capacity-plan-20261016/primary-preserved-input-01
+Current capacity-plan SHA256 17b7bae9aedc14653546d47115402db15d1af52dca36728d2fef08d89c249814.
+Reviewed archive controller:
+/home/dflanag3/spatial-artifacts/m07-retention-controller-review-20261016/review-05
+Archive-only sb16 job: tmux m07-retention-archive-sb16-05; canonical archive-sb16-01.
+Primary observed its controller PID2813096 live. Source snapshot and destination capacity checks passed.
+Archive destination uses middle-child's authorized data disk. No source image retirement has run.
+All deletion remains separately gated on archive/member hashes, unchanged source identity, and reference checks.
+
+The combined draft is BOX-GIT VERIFIED at b2464b3c243e6a3d2e180cb237750e93c56f8f5a.
+Branch m07/combined-repair-candidate-20261016 preserves both input branch histories through actual merge commits.
+Primary combined-source review remains pending. Builds and runtime checks on that combined source remain UNRUN.
+Next: diagnose namespace exit, finish safe capacity recovery, review combined source, build and freeze a replacement candidate.
+Then run combined focused checks and the complete M07 gate on both hosts.
+No full gate, cross-host qualification, M07 completion, or GitHub cutover is claimed here.
