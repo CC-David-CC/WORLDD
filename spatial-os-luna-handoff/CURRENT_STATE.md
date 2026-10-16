@@ -1,3 +1,45 @@
+## 2026-10-16: Final CLI repair quick gate passed; broader sanitizer batch launched
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes earlier live-job and unrun quick-pair observations.
+Reviewed candidate:2a57d9085f5bc3a84803b80e6e416ae6b654d3b2. BOX-GIT VERIFIED.
+Primary verified all1039 committed source blobs and the exact archive closure.
+Only eight Python test/helper files differ from production candidatefd1. Production source remains unchanged.
+The separate source kit is verified read-only on both hosts, including all54 directories.
+All four registration preflights passed with199 registrations and11 integrity postchecks per run.
+
+The final quick pair passed on both hosts in Debug and ASan-UBSan.
+world-remote ran eight cases. world-remote-native ran four cases.
+Total: eight passing CTest executions and48 inner executions, with zero failures or skips.
+All16 constructor lifecycle executions passed across the four host/profile pairs.
+All four native runner receipts are command0/wrapper0/COMPLETE. Their exact pane PIDs retired.
+All11 integrity postchecks passed per run.
+Primary scanned75 sanitizer evidence logs per host. No sanitizer diagnostic was found.
+The native import mismatch is repaired in focused evidence. This does not qualify M07.
+
+Primary launched the broader12-suite ASan-UBSan batch against the same final source on both hosts.
+Exact pane PIDs: sb16=3377518; sb16-2=3351188. Results remain pending.
+Keep one profile per host. Preserve original full-gate failures and every focused failure.
+After the broader checks pass, integrate the reviewed test-only delta and prepare the next frozen full-gate package.
+Reuse the verified external build caches with their existing CMake source home.
+Complete reviewed capacity recovery before the full exam. Focused runs have sufficient space.
+No full-exam restart or M07 qualification is claimed here.
+
+The controller passed25 offline controls after two retained fixture-control failures.
+Primary corrected the expected immutable receipt set to include the newly required continuation audit.
+Additional controls reject a live continuation PID and missing or tampered audit bytes.
+No production guard or native assertion was weakened.
+
+Evidence on a5500, under /home/dflanag3/spatial-artifacts/m07-cli-repair-validation-20261016:
+PRIMARY_KIT_REVIEW_01.json and PRIMARY_PAIR_KIT_DEPLOYMENT_01.json.
+PRIMARY_CONTROLLER_REVIEW_01.json and PRIMARY_PREFLIGHT_ADMISSION_01.json.
+PRIMARY_QUICK_DEBUG_AUDIT_01.json and PRIMARY_QUICK_SAN_AUDIT_01.json.
+PRIMARY_BROAD_SAN_PLAN_REVIEW_01.json and primary-finalization-01/broad-san-launch.json.
+NEXT_FULL_GATE_REFRESH_PLAN.txt and HANDOFF.md.
+Manifest SHA256:37256cf00a0dde3081c5417549d72fd10debf693e4dbbc276c4b1ed2378bee07.
+Archive SHA256:85d1bffe5d266e7217fc66b58fba11108ed66c089966dc557a8d747209a488ab.
+Controller SHA256:a0bd72f4582a1b5f3709e8e9a7f6dcf52bf26ebbd3bbb97a00052700c2d11760.
+
 ## 2026-10-16: Focused Debug continuation passed; final CLI regression repair reviewed
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

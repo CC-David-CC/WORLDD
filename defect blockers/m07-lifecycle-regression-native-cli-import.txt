@@ -1,3 +1,13 @@
+Focused verification: 2026-10-16
+Status: FOCUSED-PASS. Full M07 qualification remains pending.
+The reviewed correction passed world-remote and world-remote-native in Debug and ASan-UBSan on both hosts.
+All eight CTest executions and48 inner executions passed, with zero skips.
+All16 constructor lifecycle executions passed. All11 integrity postchecks passed per run.
+Primary scanned150 sanitizer evidence logs without findings.
+Canonical receipts are command0/wrapper0/COMPLETE. All exact pane PIDs retired.
+The broader12-suite sanitizer batch is now launched on both hosts. Its results remain pending.
+Evidence: a5500:/home/dflanag3/spatial-artifacts/m07-cli-repair-validation-20261016/PRIMARY_QUICK_DEBUG_AUDIT_01.json and PRIMARY_QUICK_SAN_AUDIT_01.json.
+
 M07 lifecycle regression native CLI import mismatch
 Date: 2026-10-16.
 Status: REPRODUCED on both hosts. Source correction reviewed. Native verification UNRUN.
