@@ -785,7 +785,7 @@ def artifact_evidence_manifest(target):
     return dict(sha256=hashes, exclusions=exclusions, artifact_links=artifact_links)
 
 
-def finalize_postrun_audit(report):
+def finalize_postrun_audit(report, expected_profiles=PROFILES):
     """Keep execution failures primary and retain every failed or unrun postcheck."""
     failures = []
     if report.get('source_sha256_rechecked') is not True:
@@ -793,7 +793,7 @@ def finalize_postrun_audit(report):
     for check in ('profile_artifacts_rechecked', 'production_off_rechecked', 'runtime_rechecked',
                   'metadata_rechecked', 'storage_evidence_rechecked'):
         values = report.get(check, {})
-        for profile in PROFILES:
+        for profile in expected_profiles:
             if values.get(profile) is not True:
                 profile_row = report.get('profiles', {}).get(profile)
                 failures.append(dict(check=check, profile=profile, value=values.get(profile),
@@ -1339,6 +1339,27 @@ def rec_executables(build):
             except OSError:
                 pass
 
+def profile_environment(environment, source, build, target):
+    env = environment.copy()
+    env.update(PYTHONPATH=str(build / "python") + ":" + str(source), SPATIAL_XPROBE=str(build / "spatial-xprobe"),
+        SPATIAL_SECURITY_EVIDENCE=str(target / "native"), SPATIAL_SCOPE_EVIDENCE=str(target / "scopes"),
+        SPATIAL_RENDER_EVIDENCE=str(target / "graphics"), ASAN_OPTIONS="detect_leaks=1:abort_on_error=1",
+        UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
+    for key in ("DISPLAY", "SPATIAL_TEST_DISPLAY", "SPATIAL_SECURITY_TEST_CORE_ONLY", "LD_LIBRARY_PATH", "__EGL_VENDOR_LIBRARY_FILENAMES"):
+        env.pop(key, None)
+    return env
+
+
+def profile_stage_commands(source, build, production, target, dedicated_crosshost):
+    return [
+        ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
+        ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
+        ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")], 14400),
+        ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
+        ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
+    ]
+
+
 def gate(a):
     import fcntl
     host = socket.gethostname().split(".")[0]
@@ -1366,17 +1387,49 @@ def gate(a):
     dedicated_crosshost = set(getattr(a, "dedicated_crosshost", DEDICATED_CROSSHOST))
     if not DEDICATED_CROSSHOST.issubset(dedicated_crosshost) or dedicated_crosshost - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
         raise RuntimeError("invalid dedicated cross-host registration set")
+    selection = getattr(a, 'selected_profiles', None)
+    selected = PROFILES if selection is None else tuple(selection)
+    continuation = None
+    if selected != PROFILES and selected != ('ASan-UBSan',):
+        raise RuntimeError('only the full ordered profiles or guarded sanitizer singleton are allowed')
+    if selected == ('ASan-UBSan',):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('m07_continuation', Path(__file__).with_name('m07_collector_continuation.py'))
+        amendment = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(amendment)
+        import types
+        continuation = amendment.prepare_batch(types.SimpleNamespace(**globals()), root,
+            getattr(a, 'collector_continuation', None), getattr(a, 'collector_continuation_sha256', None))
+        if a.attempt != continuation['out'].name:
+            raise RuntimeError('continuation must retain the exact original attempt parent')
+    elif getattr(a, 'collector_continuation', None) or getattr(a, 'collector_continuation_sha256', None):
+        raise RuntimeError('continuation proof is only valid for sanitizer singleton')
     out = root / "evidence" / (a.attempt or f"{host}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{uuid.uuid4().hex[:8]}")
-    out.mkdir(parents=True, exist_ok=False)
+    if continuation:
+        if out != continuation['out']:
+            raise RuntimeError('continuation output parent mismatch')
+    else:
+        out.mkdir(parents=True, exist_ok=False)
+    report_path = continuation['report_path'] if continuation else out / 'run.json'
+    storage_attempt_name = continuation['storage_attempt'] if continuation else out.name
     report = dict(status="running", phase_complete=False, host=host, candidate=rec["candidate"], attempt=out.name,
                   bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={},
                   required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost))
-    write_json(out / "run.json", report)
+    report['selected_profiles'] = list(selected)
+    report['report_kind'] = 'profile_batch' if continuation else 'full_local_attempt'
+    if continuation:
+        report['batch_id'] = storage_attempt_name
+        report['continuation'] = dict(context_path=str(continuation['context_path']),
+            context_sha256=continuation['context_sha256'], original_sha256=continuation['original_sha256'],
+            debug_audit_sha256=continuation['debug_audit_sha256'])
+        amendment.write_exclusive(None, report_path, report)
+    else:
+        write_json(report_path, report)
     source = root / "source"
     builds = root / "build"
     try:
-        storage_attempt = create_storage_evidence_attempt(source, host, out.name)
-        for profile in PROFILES:
+        storage_attempt = create_storage_evidence_attempt(source, host, storage_attempt_name)
+        for profile in selected:
             build = builds / profile
             production = root / 'production-off' / profile
             for rel, expected in rec['production_off'][profile]['runtime_files'].items():
@@ -1386,13 +1439,7 @@ def gate(a):
             storage_profile = create_storage_evidence_profile(storage_attempt["root"], source, profile)
             storage_evidence = {name: Path(row["path"])
                                 for name, row in storage_profile["registrations"].items()}
-            env = os.environ.copy()
-            env.update(PYTHONPATH=str(build / "python") + ":" + str(source), SPATIAL_XPROBE=str(build / "spatial-xprobe"),
-                SPATIAL_SECURITY_EVIDENCE=str(target / "native"), SPATIAL_SCOPE_EVIDENCE=str(target / "scopes"),
-                SPATIAL_RENDER_EVIDENCE=str(target / "graphics"), ASAN_OPTIONS="detect_leaks=1:abort_on_error=1",
-                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-            for key in ("DISPLAY", "SPATIAL_TEST_DISPLAY", "SPATIAL_SECURITY_TEST_CORE_ONLY", "LD_LIBRARY_PATH", "__EGL_VENDOR_LIBRARY_FILENAMES"):
-                env.pop(key, None)
+            env = profile_environment(os.environ, source, build, target)
             profile_runtime = verify_runtime(manifest, host, profile, source)
             wrapper_path = Path(profile_runtime["xace_wrapper"]["path"])
             env["SPATIAL_TEST_XSERVER"] = str(wrapper_path)
@@ -1455,20 +1502,14 @@ def gate(a):
                                          paths={name: str(path) for name, path in storage_evidence.items()})))
             row = report["profiles"][profile] = dict(status="running", inventory_count=len(names), commands=[
                 dict(name="inventory", command=["ctest", "--test-dir", str(build), "--show-only=json-v1"], exit_code=0, seconds=sec, assertions_passed=True)])
-            commands = [
-                ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
-                ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
-                ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")], 14400),
-                ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
-                ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
-            ]
+            commands = profile_stage_commands(source, build, production, target, dedicated_crosshost)
             for label, command, timeout in commands:
                 command_env = stage_environment(env, label, production, source, target)
                 result, seconds = run(command, cwd=source, env=command_env, log=target / (label + ".log"), timeout=timeout)
                 item = dict(name=label, command=command, exit_code=result.returncode, seconds=seconds)
                 if label == 'P10':
                     item['acceptance_evidence_dir'] = command_env['SPATIAL_EVIDENCE_DIR']
-                row["commands"].append(item); write_json(out / "run.json", report)
+                row["commands"].append(item); write_json(report_path, report)
                 output = (target / (label + '.log')).read_text(errors='replace')
                 reject_inner_skips(output)
                 if label == 'production-off-startup' and not re.search(r'Ran 5 tests in .*\n\nOK(?:\n|$)', output):
@@ -1493,7 +1534,7 @@ def gate(a):
                         {c.get('test') for c in cases} == set(json.loads((source / 'acceptance.lock.json').read_text())['test_ids']) and
                         all(c.get("status") == "passed" and c.get("phase") <= "P10" for c in cases))
                 if result.returncode:
-                    row["status"] = "failed"; write_json(out / "run.json", report)
+                    row["status"] = "failed"; write_json(report_path, report)
                     raise RuntimeError(f"{profile} {label} failed with status {result.returncode}; subsequent stages stopped")
                 if label == "harness" and not item["expected_51"]: raise RuntimeError("harness inventory is not exactly 51 passing tests")
                 if label == "core" and (item.get("junit_cases") != len(local_names) or not item.get("all_registered_present") or item.get("failed_or_skipped")): raise RuntimeError("CTest full-suite JUnit assertion failed")
@@ -1516,7 +1557,7 @@ def gate(a):
                     if not scope or Path(scope).exists() or os.path.ismount(target / "bounded-storage-git/volume"):
                         raise RuntimeError("storage owner scope or mount remains")
                 row["commands"][-1]["assertions_passed"] = True
-                write_json(out / "run.json", report)
+                write_json(report_path, report)
             storage_receipt = scan_storage_evidence(storage_evidence)
             target_logs = list(target.rglob("*.log"))
             findings = [str(p.relative_to(target)) for p in target_logs if SAN_RE.search(p.read_text(errors="replace"))]
@@ -1531,8 +1572,8 @@ def gate(a):
             row["artifact_exclusions"] = artifact_manifest['exclusions']
             row["artifact_links"] = artifact_manifest['artifact_links']
             row["status"] = "passed_needs_crosshost_and_review"
-            write_json(out / "run.json", report)
-        report["status"] = "local_passed_crosshost_pending"
+            write_json(report_path, report)
+        report["status"] = "profile_batch_passed" if continuation else "local_passed_crosshost_pending"
     except BaseException as e:
         report["status"] = "failed"; report["error"] = repr(e)
         report['execution_error'] = dict(type=type(e).__name__, message=str(e), traceback=traceback.format_exc())
@@ -1551,7 +1592,7 @@ def gate(a):
                 for name, expected in row["runtime_files"].items() if name not in row["ctest_metadata"])
         report["metadata_rechecked"] = {}
         report["storage_evidence_rechecked"] = {}
-        for profile in PROFILES:
+        for profile in selected:
             build = builds / profile
             metadata_record = out / profile / "metadata-relocation.json"
             if metadata_record.is_file():
@@ -1581,15 +1622,15 @@ def gate(a):
                 report["metadata_rechecked"][profile] = False
                 report["storage_evidence_rechecked"][profile] = False
         report["runtime_rechecked"] = {}
-        for profile in PROFILES:
+        for profile in selected:
             try:
                 verify_runtime(manifest, host, profile, source)
                 report["runtime_rechecked"][profile] = True
             except (OSError, KeyError, ValueError, RuntimeError):
                 report["runtime_rechecked"][profile] = False
-        finalize_postrun_audit(report)
+        finalize_postrun_audit(report, selected)
         report["phase_complete"] = False
-        write_json(out / "run.json", report)
+        write_json(report_path, report)
     return 1 if report["status"] == "failed" else 0
 
 def _read_json(path, label):

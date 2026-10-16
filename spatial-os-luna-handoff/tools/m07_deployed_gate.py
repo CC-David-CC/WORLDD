@@ -106,6 +106,9 @@ def run_local(a):
     ns = argparse.Namespace(
         deployment=a.deployment, attempt=a.attempt, native_controller=a.native_controller,
         real_world=a.real_world, recovery=a.recovery, host_session=a.host_session, held_input=a.held_input,
+        selected_profiles=getattr(a, 'selected_profiles', None),
+        collector_continuation=getattr(a, 'collector_continuation', None),
+        collector_continuation_sha256=getattr(a, 'collector_continuation_sha256', None),
         required_tests=sorted(M07_REQUIRED), dedicated_crosshost=sorted(M07_DEDICATED),
     )
     return m06.gate(ns)
@@ -451,6 +454,9 @@ def main():
     p.add_argument("--deployment", type=Path, required=True); p.add_argument("--attempt")
     for name in ("native-controller", "real-world", "recovery", "host-session", "held-input"):
         p.add_argument("--" + name, required=True)
+    p.add_argument('--selected-profile', dest='selected_profiles', action='append', choices=m06.PROFILES)
+    p.add_argument('--collector-continuation', type=Path)
+    p.add_argument('--collector-continuation-sha256')
     p.set_defaults(fn=run_local)
     p = sub.add_parser("reconcile")
     p.add_argument("--candidate", required=True); p.add_argument("--m06-reconciliation", type=Path, required=True)
