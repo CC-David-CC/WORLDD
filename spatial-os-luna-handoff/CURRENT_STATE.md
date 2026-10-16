@@ -1,3 +1,23 @@
+## 2026-10-15: Full Debug copy and fault suites pass on both hosts; exams continue
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Both original full local exam processes remain live on frozen candidate 076ba423.
+Both passed the complete 13-method workspace-copy engine suite and all five copy fault registrations.
+The latest recorded Debug core counts are 122/196 on sb16 and 105/196 on sb16-2.
+Every completed registration passed. Debug, sanitizers, cross-host checks, and final review remain incomplete.
+
+The retained copy fixtures exceeded the original disk-output estimate. More historical cleanup is being prepared before sanitizer needs space.
+Verified exact duplicate 706fe47a staged archives were removed. Each host recovered 1,537,662,976 allocated bytes.
+Their retained a5500 archive passed full hash verification. Current deployments, exam evidence, and sibling logs remain intact.
+
+Primary review rejected the first deferred cross-host launch scripts before execution.
+A separate worker is correcting their profile lookup, durable launch, transfer checks, and missing controls.
+No cross-host plan or runtime job has been launched. M07 remains unqualified.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact evidence locations and remaining work.
+
 ## 2026-10-15 22:29 EDT: Full M07 local exam running on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

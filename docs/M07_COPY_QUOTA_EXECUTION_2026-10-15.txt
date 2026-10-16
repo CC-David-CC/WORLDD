@@ -1,4 +1,53 @@
-Current checkpoint: full M07 local exam started on both hosts at 22:29 EDT, 2026-10-15
+Current checkpoint: full local exams continue; complete Debug copy and five fault suites pass on both hosts
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Both original full local gate processes remain live on candidate 076ba423c2864bdd0d93a07d89d49032808d2cae.
+Both passed all 13 workspace-copy engine methods, including live-application copying and controlled quota rejection.
+Both also passed deadline expiry, actor revocation, lost publication acknowledgment, hostile Git, and worker-death recovery.
+Latest recorded Debug core totals: sb16 122/196; sb16-2 105/196. Every completed registration passed.
+Both startup and harness stages passed earlier. Neither complete local gate has returned a result.
+Sanitizers, dedicated cross-host checks, reconciliation, and primary qualification review remain pending.
+
+Current observer: a5500:/home/dflanag3/spatial-artifacts/m07-gate-evidence-successor-preparation-20261015/primary-dispatch-plan-01/observe_full_exam.py.
+Observer SHA256: fb74119e517ca9c77e06aeb49ac4237baa310e8f935d4d831ae09d2b95e742d1.
+It records actual gate processes, reports, completed CTest rows, canonical receipts, and free space.
+Observation snapshots remain under the same preparation root's observations directory.
+One a5500 SSH observation timed out. Connectivity recovered and both original test processes remained live. No exam restarted.
+
+The planned 18 GiB output estimate was too small for retained copy fixtures.
+Targeted historical cleanup is being prepared before sanitizer consumes more space.
+Exact duplicate 706fe47a staged archive retirement finished successfully on both hosts.
+Controller: a5500:/home/dflanag3/spatial-artifacts/m07-retention-20261015/duplicate-staged-archives-03.
+Canonical retirement-outer-01 returned command 0, wrapper 0, COMPLETE, with empty stderr.
+Each host recovered 1,537,662,976 allocated bytes, approximately 1.43 GiB.
+Only HOST:/home/dflanag3/spatial-artifacts/m07-706fe47a-deploy-gate-plan-20261015/staging/HOST/m06-artifacts.tar.gz was removed.
+The retained a5500 copy is under m07-706fe47a-gate-preparation-20261015/packages/706fe47a-prepare-01.
+Its package-local pin SHA256 is bcdc3b1bb38038193a514f732861dc1e4fee34ce3da3118c7e4c18d6a964f4d7.
+Its archive SHA256 is 8ded6d13513c3b50740139239e28d75418c0609a9cffe21b8d701fdb56101648.
+Fresh hash, inode, owner, single-link, mount, process, descriptor, mapping, and loop checks preceded exact-leaf removal.
+Attempt02 stopped before host mutation because its controller assumed the wrong older pin location and schema key.
+Attempt03 uses the actual package-local pin and bundle_sha256 key. Failure evidence remains preserved.
+Current deployments, full exam evidence, manifests, logs, and protected M04/M06 graphics dependencies remain intact.
+Latest recorded free space after retirement was about 15.1 GB on sb16 and 15.6 GB on sb16-2.
+Further capacity preparation is at a5500:/home/dflanag3/spatial-artifacts/m07-live-gate-capacity-20261015.
+
+Primary local audit script is prepared at a5500:/home/dflanag3/spatial-artifacts/m07-gate-evidence-successor-preparation-20261015/primary-local-audit-plan-01/audit_local_gate.py.
+Its SHA256 is ad4d98b7078c1d6ff71d8b23bf096eae39418e040396cdfbd3149679b175c5e6.
+It checks actual XML, locked acceptance rows, runtime and artifact hashes, source closure, metadata, sanitizer logs, and cleanup.
+Its runtime execution remains UNRUN. It refuses a live local gate.
+
+Deferred cross-host preparation attempt01 failed primary source review before any execution.
+Do not execute a5500:/home/dflanag3/spatial-artifacts/m07-crosshost-gate-preparation-20261015 launch scripts.
+PRIMARY_REVIEW_REJECTED.txt records the wrong nested profile lookup, nondurable SSH jobs, transfer gaps, and incomplete controls.
+A separate worker owns the successor at a5500:/home/dflanag3/spatial-artifacts/m07-crosshost-launch-repair-20261015.
+Its source branch is m07/crosshost-launch-repair-20261015, based on 076ba423, with no production edits.
+Corrected scripts remain UNQUALIFIED until all requested offline controls and primary review pass.
+No cross-host plan has been generated. No dedicated cross-host runtime test has run.
+The mandatory registration union is 54: 23 M06, 30 M07, and the production host-session native slot.
+The full CTest inventory remains 198, with exactly two dedicated cross-host registrations deferred from the 196 local rows.
+
+Previous checkpoint: full M07 local exam started on both hosts at 22:29 EDT, 2026-10-15
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
 
