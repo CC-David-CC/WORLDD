@@ -59,6 +59,18 @@ def proc_start_ticks(pid):
     return int(fields[19])
 
 
+def pidfd_is_ready(fd):
+    """A pidfd opened after identity verification remains tied to that process."""
+    poller = select.poll()
+    poller.register(fd, select.POLLIN | select.POLLHUP | select.POLLERR)
+    events = poller.poll(0)
+    if not events:
+        return False
+    readiness = events[0][1]
+    return bool(readiness & (select.POLLIN | select.POLLHUP)) and not bool(
+        readiness & (select.POLLERR | select.POLLNVAL))
+
+
 def pidfd_proves_exit(fd, record):
     """Require kernel pidfd readiness and reject a live PID-reuse mismatch."""
     poller = select.poll()
@@ -290,32 +302,27 @@ def stop_owner_backlog_regression(evidence):
             listener.close()
 
     thread = threading.Thread(target=slow_owner, name='m06-stop-owner-regression', daemon=True)
-    child = None
-    original_run = subprocess.run
-    session_checks = {'count': 0}
+    owner_proc = None
+    original_stop_request = request_stop_once
     try:
         thread.start()
         if not ready.wait(3):
             raise TimeoutError('Synthetic stop owner did not start')
-        child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'])
-        dead_world = identity(child.pid)
-        child.terminate()
-        child.wait(timeout=3)
-        atomic_json(root / 'launch.json', dict(session='m06-stop-owner-regression'))
-        atomic_json(root / 'process.json', dict(owner=identity(os.getpid()), worldd=dead_world))
+        owner_proc = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'])
+        owner_record = identity(owner_proc.pid)
+        atomic_json(root / 'launch.json', dict(session='m06-stop-owner-regression',
+                    pane_pid=owner_proc.pid, owner=owner_record))
 
-        def fake_tmux_run(command, *args, **kwargs):
-            if command and command[0] == 'tmux':
-                session_checks['count'] += 1
-                code = 0 if session_checks['count'] <= 8 else 1
-                return subprocess.CompletedProcess(command, code, b'', b'')
-            return original_run(command, *args, **kwargs)
+        def request_and_exit(path, timeout):
+            sent = original_stop_request(path, timeout)
+            owner_proc.terminate()
+            return sent
 
-        subprocess.run = fake_tmux_run
+        globals()['request_stop_once'] = request_and_exit
         try:
             stop_owner(root, token)
         finally:
-            subprocess.run = original_run
+            globals()['request_stop_once'] = original_stop_request
         thread.join(timeout=3)
         if thread.is_alive():
             raise TimeoutError('Synthetic slow owner did not finish')
@@ -323,18 +330,16 @@ def stop_owner_backlog_regression(evidence):
             raise AssertionError('Synthetic stop owner failed: ' + '; '.join(server_errors))
         if received != [b'S']:
             raise AssertionError(f'Expected one stop byte; observed {received!r}')
-        if session_checks['count'] < 2:
-            raise AssertionError('Stop helper did not poll the retained owner process')
-        report = ('PASS: retained owner PID was polled while a slow Unix listener drained; '
+        report = ('PASS: retained owner pidfd was polled while a slow Unix listener drained; '
                   'exactly one stop byte was queued; EAGAIN did not trigger repeated requests.\n')
         if evidence is not None:
             (Path(evidence) / 'cleanup-transport-regression.txt').write_text(report, encoding='utf-8')
         print(report.strip(), flush=True)
     finally:
-        subprocess.run = original_run
-        if child is not None and child.poll() is None:
-            child.kill()
-            child.wait(timeout=3)
+        globals()['request_stop_once'] = original_stop_request
+        if owner_proc is not None and owner_proc.poll() is None:
+            owner_proc.kill()
+            owner_proc.wait(timeout=3)
         thread.join(timeout=3)
         if not thread.is_alive():
             root_guard(root, token)
@@ -413,34 +418,49 @@ def request_stop_once(path, timeout):
 
 def stop_owner(root, token):
     root_guard(root, token)
-    (root / 'cancel').touch(mode=0o600, exist_ok=True)
     process_path = root / 'process.json'
-    deadline = time.monotonic() + 20
-    stop_attempted = False
-    # start records its tmux intent before the job can spawn a worldd.
-    while (root / 'launch.json').exists():
-        launch = json.loads((root / 'launch.json').read_text())
-        alive = subprocess.run(['tmux', 'has-session', '-t', '=' + launch['session']],
-                               capture_output=True, timeout=3).returncode == 0
-        if not alive:
-            break
-        if process_path.exists():
-            record = json.loads(process_path.read_text())
+    launch_path = root / 'launch.json'
+    launch = json.loads(launch_path.read_text()) if launch_path.exists() else None
+    process = json.loads(process_path.read_text()) if process_path.exists() else None
+    owner_record = process.get('owner') if process else None
+    if launch and launch.get('owner'):
+        if owner_record is not None and owner_record != launch['owner']:
+            raise RuntimeError('Owner launch/process identity records disagree; retain root')
+        owner_record = launch['owner']
+    if launch and owner_record is None:
+        raise RuntimeError('Owner launch lacks a verified pane process identity; retain root')
+    if launch and launch.get('pane_pid') is not None:
+        pane_pid = launch['pane_pid']
+        if not isinstance(pane_pid, int) or isinstance(pane_pid, bool):
+            raise RuntimeError('Owner launch pane PID is not numeric; retain root')
+        if owner_record is not None and owner_record.get('pid') != pane_pid:
+            raise RuntimeError('Owner launch pane PID disagrees with process identity; retain root')
+    if process and owner_record is None:
+        raise RuntimeError('Process record lacks owner identity; retain root')
+
+    if owner_record is not None:
+        deadline = time.monotonic() + 20
+        try:
+            # Pin and verify the exact owner before cancellation can affect it.
+            owner_fd = guarded_pidfd(owner_record)
+        except (FileNotFoundError, ProcessLookupError):
+            owner_fd = None
+        if owner_fd is not None:
             try:
-                fd = guarded_pidfd(record['owner'])
-            except (FileNotFoundError, ProcessLookupError):
-                fd = None
-            if fd is not None:
-                os.close(fd)
-                if not stop_attempted:
-                    stop_attempted = True
-                    try:
-                        request_stop_once(root / 'stop.sock', min(1.0, max(0.0, deadline - time.monotonic())))
-                    except (FileNotFoundError, ConnectionRefusedError, TimeoutError):
-                        pass  # The persistent cancel marker still wakes the bounded owner loop.
-        if time.monotonic() >= deadline:
-            raise RuntimeError('Owner still running; retain root and recover with stop command')
-        time.sleep(.1)
+                (root / 'cancel').touch(mode=0o600, exist_ok=True)
+                try:
+                    request_stop_once(root / 'stop.sock', min(1.0, max(0.0, deadline - time.monotonic())))
+                except (FileNotFoundError, ConnectionRefusedError, TimeoutError):
+                    pass  # The persistent cancel marker wakes the bounded owner loop.
+                while not pidfd_is_ready(owner_fd):
+                    if time.monotonic() >= deadline:
+                        raise RuntimeError('Owner still running; retain root and recover with stop command')
+                    time.sleep(min(.1, max(0.0, deadline - time.monotonic())))
+            finally:
+                os.close(owner_fd)
+    elif launch:
+        raise RuntimeError('Owner lifetime is not recorded; retain root')
+
     if process_path.exists():
         record = json.loads(process_path.read_text())
         try:
@@ -540,13 +560,36 @@ def main():
                    '--root', str(root), '--binary', str(args.binary), '--address', args.address]
         import shlex
         atomic_json(root / 'launch.json', dict(session=session, argv=command))
-        shell_command = shlex.join(command) + ' >' + shlex.quote(str(root / 'owner.stdout')) + ' 2>' + shlex.quote(str(root / 'owner.stderr'))
-        subprocess.run(['tmux', 'new-session', '-d', '-s', session, shell_command], check=True, timeout=5)
+        shell_command = 'exec ' + shlex.join(command) + ' >' + shlex.quote(str(root / 'owner.stdout')) + ' 2>' + shlex.quote(str(root / 'owner.stderr'))
+        launched = subprocess.run(['tmux', 'new-session', '-d', '-P', '-F', '#{pane_pid}',
+                                   '-s', session, shell_command],
+                                  check=True, capture_output=True, text=True, timeout=5)
+        pane = launched.stdout.strip()
+        if not pane.isdecimal() or int(pane) <= 1:
+            raise RuntimeError('tmux returned an invalid numeric owner pane PID')
+        pane_pid = int(pane)
+        atomic_json(root / 'launch.json', dict(session=session, argv=command, pane_pid=pane_pid))
         deadline = time.monotonic() + 15
         while not (root / 'process.json').exists():
-            if time.monotonic() > deadline:
+            if time.monotonic() >= deadline:
                 raise TimeoutError('World owner did not write process record')
             time.sleep(.05)
+        process_record = json.loads((root / 'process.json').read_text())
+        pane_owner = process_record.get('owner')
+        expected_owner_command = [sys.executable, str(Path(__file__).resolve()), 'serve', args.token,
+                                  '--root', str(root), '--binary', str(args.binary), '--address', args.address]
+        if not isinstance(pane_owner, dict) or pane_owner.get('pid') != pane_pid:
+            raise RuntimeError('World owner process record does not match the retained tmux pane PID')
+        if pane_owner.get('command') != expected_owner_command:
+            raise RuntimeError('World owner process record does not match the launched command')
+        try:
+            owner_fd = guarded_pidfd(pane_owner)
+        except (FileNotFoundError, ProcessLookupError) as error:
+            raise RuntimeError('World owner exited before startup identity verification') from error
+        else:
+            os.close(owner_fd)
+        atomic_json(root / 'launch.json', dict(session=session, argv=command,
+                    pane_pid=pane_pid, owner=pane_owner))
         print((root / 'process.json').read_text())
     elif args.operation == 'serve':
         serve(root, args.token, args.binary, args.address)
