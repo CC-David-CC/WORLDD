@@ -36,6 +36,7 @@ M07_REQUIRED = frozenset({
     "workspace-authorization-fence", "workspace-authorization-fence-scoped",
     "workspace-authorization-fence-registry", "workspace-authorization-fence-credential",
     "workspace-authorization-fence-no-authority", "workspace-authorization-fence-bootstrap",
+    "queued-copy-status-replacement",
 })
 M07_DEDICATED = frozenset(m06.DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost"})
 GEOMETRY_ENV = (

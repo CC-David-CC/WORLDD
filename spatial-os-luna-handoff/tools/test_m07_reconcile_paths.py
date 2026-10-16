@@ -82,5 +82,33 @@ class ReconciliationPathTests(unittest.TestCase):
         self.assertFalse(self.args.output.exists())
 
 
+class RequiredInventoryTests(unittest.TestCase):
+    test_name = 'queued-copy-status-replacement'
+
+    def complete_inventory(self):
+        required = set(gate.m06.REQUIRED) | set(gate.M07_REQUIRED)
+        return [{'name': name, 'properties': []} for name in sorted(required)]
+
+    def test_missing_queued_status_regression_is_reported(self):
+        inventory = [row for row in self.complete_inventory() if row['name'] != self.test_name]
+        audit = gate.audit_inventory(inventory)
+        self.assertIn(self.test_name, audit['missing'])
+        self.assertEqual(audit['registrations'][self.test_name], 'missing')
+
+    def test_disabled_queued_status_regression_is_reported(self):
+        inventory = self.complete_inventory()
+        row = next(row for row in inventory if row['name'] == self.test_name)
+        row['properties'] = [{'name': 'DISABLED', 'value': '1'}]
+        audit = gate.audit_inventory(inventory)
+        self.assertIn(self.test_name, audit['disabled'])
+        self.assertEqual(audit['registrations'][self.test_name], 'disabled')
+
+    def test_enabled_complete_inventory_registers_queued_status_regression(self):
+        audit = gate.audit_inventory(self.complete_inventory())
+        self.assertEqual(audit['missing'], [])
+        self.assertEqual(audit['disabled'], [])
+        self.assertEqual(audit['registrations'][self.test_name], 'registered')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
