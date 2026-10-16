@@ -74,9 +74,7 @@ class WorldProcess:
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=tuple(server.fileno() for _,server in pairs)+extra_fds)
-            self.start_ticks=self.process_start_ticks(self.proc.pid)
-            self.lifecycle_evidence=None
-            self.lifecycle_before_close=None
+            self._initialize_process_lifecycle()
         except BaseException:
             if workspace_channel_owned: workspace_channel.close()
             if self.broker_channel: self.broker_channel.close(); self.broker_channel = None
@@ -91,6 +89,11 @@ class WorldProcess:
             return int(fields[19])
         except (OSError,ValueError,IndexError):
             return None
+
+    def _initialize_process_lifecycle(self):
+        self.start_ticks = self.process_start_ticks(self.proc.pid)
+        self.lifecycle_evidence = None
+        self.lifecycle_before_close = None
 
     def lifecycle_snapshot(self):
         result={'pid':self.proc.pid,'start_ticks':self.start_ticks,'poll':self.proc.poll()}

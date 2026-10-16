@@ -40,6 +40,7 @@ class HybridWorldProcess(WorldProcess):
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=(listener.fileno(),)+tuple(p[1].fileno() for p in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))
+            self._initialize_process_lifecycle()
         finally:
             listener.close()
             for _,server in pairs:server.close()

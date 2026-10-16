@@ -34,6 +34,7 @@ class RemotePrivateWorld(WorldProcess):
         self.credentials = self.directory
         self.launcher = str(Path(os.environ['SPATIAL_REMOTE_WITNESS']).with_name('world_topology_launcher.py'))
         self.proc = None
+        self.broker_channel = None
         fixture.addCleanup(self.remove)
         initialized = self.run([str(WORLD), '--state-dir', self.directory + '/state'],
                                frame(make_request('world.info', {})))
@@ -104,6 +105,7 @@ class RemotePrivateWorld(WorldProcess):
         command = self.launcher_command() + ['--world', str(WORLD), '--address', self.address]
         self.proc = subprocess.Popen(['ssh', self.remote_host, shlex.join(command)],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.log)
+        self._initialize_process_lifecycle()
         endpoint = receive(lambda n: os.read(self.proc.stdout.fileno(), n), self.proc.stdout, topology.WorldEndpoint)
         self.fixture.assertEqual((endpoint.protocol_version, endpoint.host, endpoint.address),
                                   (1, self.remote_host, self.address))

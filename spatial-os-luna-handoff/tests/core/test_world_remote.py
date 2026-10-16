@@ -1,10 +1,14 @@
 """Draft remote actor acceptance: real TLS, issuer proof, persistent grants, and world actions."""
+import json
 import os
 import socket
 import ssl
 import struct
 import subprocess
+import tempfile
 import unittest
+from pathlib import Path
+from types import SimpleNamespace
 from google.protobuf import text_format
 import core_pb2 as core
 import issuer_pb2 as issuer
@@ -54,6 +58,7 @@ class RemoteWorldProcess(WorldProcess):
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=(listener.fileno(),))
+            self._initialize_process_lifecycle()
         finally:listener.close()
         self.state_path=local.state_path
 
@@ -124,5 +129,106 @@ class RemoteWorldTests(BootstrapWorldFixture):
         self.assertTrue(denied.HasField('error'),denied);self.assertEqual(denied.error.code,core.UNAUTHORIZED)
         self.assertTrue(first.call(complete=complete).HasField('opened'))
 
+
+class WorldProcessLifecycleRegression(unittest.TestCase):
+    class Fixture:
+        def __init__(self, root):
+            self.root = root
+            self.worlds = []
+            self.service_cert = root / "service.crt"
+
+        def certificate(self, name, common_name):
+            return self.root / (name + ".key"), self.root / (name + ".crt")
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="world-process-lifecycle-")
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.helper = self.root / "wait-for-stdin"
+        self.helper.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "for _ in sys.stdin.buffer:\n"
+            "    pass\n"
+        )
+        self.helper.chmod(0o700)
+
+    def emergency_reap(self, world):
+        if world.proc.poll() is None:
+            world.proc.kill()
+            world.proc.wait(timeout=3)
+        for stream in (world.proc.stdin, world.proc.stdout, world.log):
+            if stream is not None and not stream.closed:
+                stream.close()
+
+    def assert_lifecycle_close(self, world):
+        self.addCleanup(self.emergency_reap, world)
+        self.assertIsNone(world.proc.poll())
+        evidence_path = self.root / ("lifecycle-" + str(len(list(self.root.glob("lifecycle-*.json")))) + ".json")
+        evidence_path.write_text("{}\n")
+        world.lifecycle_evidence = evidence_path
+        pid = world.proc.pid
+
+        world.close()
+
+        start_ticks = world.start_ticks
+        self.assertIsInstance(start_ticks, int)
+        self.assertGreater(start_ticks, 0)
+        self.assertEqual(world.proc.poll(), 0)
+        self.assertEqual(world.proc.returncode, 0)
+        self.assertTrue(world.proc.stdin.closed)
+        self.assertTrue(world.proc.stdout.closed)
+        self.assertTrue(world.log.closed)
+        lifecycle = json.loads(evidence_path.read_text())["worldd_lifecycle"]
+        self.assertEqual(lifecycle["before_world_close"]["pid"], pid)
+        self.assertEqual(lifecycle["before_world_close"]["start_ticks"], start_ticks)
+        self.assertIsNone(lifecycle["before_world_close"]["poll"])
+        self.assertEqual(lifecycle["after_world_close"]["pid"], pid)
+        self.assertEqual(lifecycle["after_world_close"]["start_ticks"], start_ticks)
+        self.assertEqual(lifecycle["after_world_close"]["poll"], 0)
+        self.assertEqual(lifecycle["after_world_close"]["returncode"], 0)
+        self.assertEqual(len(lifecycle["stderr_sha256"]), 64)
+
+    def test_base_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        fixture = self.Fixture(self.root)
+        with patch("test_world_identity.WORLD", self.helper):
+            world = WorldProcess(fixture, self.root / "identity.textproto", self.root / "state", count=1)
+        self.assert_lifecycle_close(world)
+
+    def test_remote_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        fixture = self.Fixture(self.root)
+        local = SimpleNamespace(
+            state_path=self.root / "state",
+            config_path=self.root / "identity.textproto",
+            runtime_path=self.root / "runtime.textproto",
+        )
+        with patch("test_world_remote.WORLD", self.helper):
+            world = RemoteWorldProcess(fixture, local)
+        self.assert_lifecycle_close(world)
+
+    def test_persistent_tls_world_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        from test_world_shared_state import PersistentTlsWorld
+        fixture = self.Fixture(self.root)
+        local = SimpleNamespace(
+            state_path=self.root / "state",
+            config_path=self.root / "identity.textproto",
+            runtime_path=self.root / "runtime.textproto",
+        )
+        with patch("test_world_shared_state.WORLD", self.helper):
+            world = PersistentTlsWorld(fixture, local)
+        self.assert_lifecycle_close(world)
+
+    def test_hybrid_world_process_initializes_and_records_lifecycle(self):
+        from unittest.mock import patch
+        from test_world_remote_native import HybridWorldProcess
+        fixture = self.Fixture(self.root)
+        with patch("test_world_remote_native.WORLD", self.helper):
+            world = HybridWorldProcess(
+                fixture, self.root / "identity.textproto", self.root / "state", count=1
+            )
+        self.assert_lifecycle_close(world)
 
 if __name__=='__main__':unittest.main(verbosity=2)

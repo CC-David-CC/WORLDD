@@ -48,6 +48,7 @@ class PersistentTlsWorld(WorldProcess):
         try:
             self.proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=self.log, pass_fds=(listener.fileno(),))
+            self._initialize_process_lifecycle()
         finally:
             listener.close()
 
