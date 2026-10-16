@@ -1,3 +1,28 @@
+## 2026-10-16: Capacity recovery verified; old deployment retirement remains pending
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below. Frozen candidate fd1dccf8 remains unchanged.
+All selected repair stages passed on both hosts in Debug and ASan/UBSan.
+
+Primary verified and retired 32 declared copy images per host after archive and source comparison.
+Their immutable archives remain on middle-child. All canonical commands and wrappers returned zero.
+Primary also retired each duplicate deployment package and nine archived obsolete incoming executables per host.
+Original processes retired. Protected source and metadata remained unchanged.
+Total verified allocation recovered: 38,697,672,704 bytes across both hosts.
+Latest available bytes: sb16 52,790,185,984; sb16-2 59,491,528,704.
+Each host needs at least 61,203,283,968 available bytes before the full local gate.
+The old899 build and production-off payloads remain. Their native preflight and five guard controls passed on both hosts.
+Their 45 changed or unarchived files must be preserved before payload removal.
+The first payload cleanup draft failed primary review. Its stronger successor passed source and native review.
+Delta preservation is running. No old899 payload removal has started.
+The replacement full local gate and cross-host qualification remain UNRUN.
+
+Evidence root on a5500:
+/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016
+Read PRIMARY_CAPACITY_RECOVERY_SUMMARY_01.json.
+SHA256:b72f0edb27827edd828c11ab74d655a4f2ec45b95dea075055396922f60309dc.
+Exact removed paths remain in the external image, package, and incoming retirement journals.
+
 ## 2026-10-16: All selected repair stages pass on both hosts; full M07 gate remains unrun
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

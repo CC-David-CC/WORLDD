@@ -1,4 +1,33 @@
-Current checkpoint: all selected repair stages pass; replacement full M07 gate remains UNRUN
+Current checkpoint: verified capacity recovery; old899 delta preservation running; full gate remains UNRUN
+Date: 2026-10-16. M07 remains UNQUALIFIED. Frozen candidate fd1dccf8 remains unchanged.
+This section supersedes conflicting observations below.
+
+All selected repair stages passed in Debug and ASan/UBSan on both hosts.
+Primary archived, compared, and retired 32 declared Stage3 images per host.
+Archive SHA256 sb16:939b38637de8d99f80651736a8e8080ae572cfd83af32cf9e0407e0efe634b4f.
+Archive SHA256 sb16-2:ad5aa812b1c700dc00bf5bc0d1cd9e84734fdd094f3438af85b29b57ae41e9ef.
+Archives remain on middle-child under /media/dflanag3/New Volume/spatial-artifacts/m07-fd1-focused-retention-20261016/review-02/HOST/old-images.tar.gz.
+The original image archive launch stopped before data transfer because its checksum command could not read a root-owned manifest.
+Fresh review-03 metadata used readable exact copies. Source and receiver checksum preconditions then passed.
+The failed attempt remains preserved. Matching immutable transfer destinations are verified and skipped during setup.
+
+Each host also retired one duplicate deployment package and nine archived obsolete incoming executables.
+All removal jobs returned command0/wrapper0/COMPLETE. Their original processes retired.
+Protected source and metadata remained unchanged. Exact removed paths remain in external retirement journals.
+Verified total allocation recovered:38,697,672,704 bytes across both hosts.
+Latest available bytes:sb16=52,790,185,984;sb16-2=59,491,528,704.
+Full local gate admission requires at least61,203,283,968 available bytes per host.
+The old899 build/production-off payloads still need preservation and guarded retirement.
+Their first cleanup draft failed source review. The stronger review-02 successor passed native preflight and five controls per host.
+The old899 delta preservation jobs are running. No old899 payload removal has started.
+The full local gate and cross-host qualification remain UNRUN.
+
+Recovery summary on a5500:
+/home/dflanag3/spatial-artifacts/m07-fd1dccf8-gate-preparation-20261016/PRIMARY_CAPACITY_RECOVERY_SUMMARY_01.json
+SHA256:b72f0edb27827edd828c11ab74d655a4f2ec45b95dea075055396922f60309dc.
+Native preflight launch record:PRIMARY_OLD899_NATIVE_LAUNCH_01.json under that same evidence root.
+
+Previous checkpoint: all selected repair stages pass; replacement full M07 gate remains UNRUN
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
