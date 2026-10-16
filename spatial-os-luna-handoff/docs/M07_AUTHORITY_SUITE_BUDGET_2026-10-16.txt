@@ -1,0 +1,24 @@
+M07 workspace-authority sanitizer suite budget
+Date: 2026-10-16
+Source base: 2a57d9085f5bc3a84803b80e6e416ae6b654d3b2.
+
+The sb16-2 broad ASan-UBSan run reached CTest's 180-second aggregate timeout.
+Its captured log shows 33 completed test methods, all passing, before CTest stopped the suite.
+The JUnit result reports a timeout. It reports no assertion failure or sanitizer finding.
+The suite contains 35 test methods.
+
+Test machinery contract change: raise only the workspace-authority CTest total budget from 180 to 240 seconds.
+The extra time lets the unchanged 35-method suite complete under ASan on the qualification host.
+No method deadline, wait bound, security assertion, test body, or acceptance lock changes.
+
+Source review found bounded fixture waits. World shutdown waits five seconds, then kills and waits three more.
+Broker channel shutdown joins its worker for at most five seconds.
+Authority initialization subprocesses use eight-second limits. World-info setup uses six seconds.
+No unbounded cleanup path explains the observed aggregate timeout.
+
+Evidence:
+- /home/dflanag3/spatial-artifacts/m07-cli-repair-validation-20261016/broad-san-authority-failure-01/sb16-2.json
+- /home/dflanag3/spatial-artifacts/m07-cli-repair-validation-20261016/broad-san-authority-failure-01/sb16-2-log-audit.json
+
+The source failure remains preserved. The focused 240-second authority suite must run on sb16 and sb16-2.
+The pending post-suite fence sanitizer remains unrun on sb16-2.
