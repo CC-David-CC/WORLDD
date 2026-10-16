@@ -1,0 +1,34 @@
+# M07 runtime manifest pin consistency repair"éÝyø§yÔ 2026-10-15
+
+The M07 deployment preflight found conflicting SHA-256 pins for
+`/usr/local/libexec/spatial-storage-owner`. Each host/profile lists the path
+under both `egl_files` and `installed_helpers`. The former carries the old
+helper digest; the latter carries the installed helper digest.
+
+Run this read-only check after editing the runtime manifest and before a build
+or package publish:
+
+```sh
+python3 tools/check_runtime_manifest_pins.py /absolute/path/to/runtime-manifest.json
+```
+
+Exit 0 means the required host/profile inventories are structurally complete
+and each repeated path has one digest. Exit 1 reports conflicting path pins.
+Exit 2 reports malformed JSON or manifest metadata. The command never edits
+the manifest and does not check remote filesystem contents.
+
+The root data repair should update only the four `egl_files` entries for
+`spatial-storage-owner` across sb16/sb16-2 and Debug/ASan-UBSan. Keep
+`installed_helpers` pinned to the new helper digest. This does not change the
+installed-helper versus sanitizer packaged-distribution distinction, runtime
+behavior, or required inventory names.
+
+Focused metadata-only regression command:
+
+```sh
+python3 -m unittest discover -s tests -p test_runtime_manifest_pins.py -v
+```
+
+The recorded old manifest is expected to fail the consistency check until the
+four EGL pins are repaired. No remote file existence or host mutation is part
+of this tool.
