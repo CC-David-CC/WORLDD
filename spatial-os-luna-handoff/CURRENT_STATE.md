@@ -1,3 +1,33 @@
+## 2026-10-16: Live M07 gate exposes a revocation-status EOF; disk capacity recovered
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This entry supersedes conflicting observations below.
+
+Both original d164 full local gates remain live and unchanged.
+Primary observed 123/196 completed Debug core rows on sb16 and 113/196 on sb16-2.
+sb16 has one failing row: workspace-copy-actor-revocation. The same row passed on sb16-2.
+The failed status request received EOFError instead of a typed denial after revocation.
+Both status audits record no observed publication. The issuer remained alive without recorded OOM events.
+Connection-lifecycle or timing differences remain hypotheses. The root cause is not established.
+A separate read-only source investigation owns the next diagnosis. Do not weaken the oracle or duplicate live jobs.
+Full acceptance, bounded storage, sanitizer profiles, cross-host qualification, and final review remain incomplete.
+
+The earlier output estimate omitted retained test image families.
+Pinned source identifies up to 43 GiB of retained images per host across both profiles.
+Primary archived and content-verified 57 old images from sb16 and 58 from sb16-2 on middle-child.
+Exact-leaf retirement recovered 30.0 GiB and 30.5 GiB respectively.
+Measured free space is about 55.53 GB and 53.25 GB respectively.
+Parents, logs, current-exam images, deployment pins, and all 1031 frozen source files remain intact.
+Revised admission includes remaining image bytes, a monitored 6 GiB other-output allowance, and an 8 GiB reserve.
+
+The deferred d164 cross-host coordinator passed 61 offline controls. Its native runtime remains UNRUN.
+No real cross-host plan may be generated before both complete local gates pass primary review.
+The isolated M08 foundation is compile-only and BOX-GIT VERIFIED; primary requested several bounded corrections.
+Successor efe3ed57 is pushed and compile-only. Primary review and every runtime check remain pending.
+It remains separate from M07. No M08 runtime or integration pass is claimed.
+
+Read docs/M07_COPY_QUOTA_EXECUTION_2026-10-15.txt for exact source, archive, diagnosis, and evidence pins.
+
 ## 2026-10-16: Corrected d164 full local gates started cleanly on both hosts
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.

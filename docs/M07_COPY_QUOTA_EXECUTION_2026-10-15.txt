@@ -1,4 +1,79 @@
-Current checkpoint: corrected d164fed7 full local gates started cleanly on both hosts
+Current checkpoint: d164 gates continue; revocation status EOF needs diagnosis; capacity recovered
+Date: 2026-10-16.
+M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
+This section supersedes conflicting observations below.
+
+Both original full local gates remain live on the unchanged d164fed7 candidate.
+Latest primary observation: sb16 completed 123/196 Debug core rows; sb16-2 completed 113/196.
+sb16 has one failed row: workspace-copy-actor-revocation, CTest number 90, 25.38 seconds.
+All other completed rows passed. The same revocation row passed on sb16-2 in 26.59 seconds.
+Both gates already passed five production-startup checks and 51 harness checks.
+Full acceptance, bounded storage, sanitizer profiles, cross-host qualification, and final review remain incomplete.
+Do not interrupt or duplicate these live jobs. A failed row is not a terminal runner receipt.
+
+The exact failed assertion is test_workspace_copy_faults.py line 541.
+The status exchange raised EOFError instead of returning a typed authority denial after actor revocation.
+sb16-2 returned error code 12, World session changed during operation.
+Both status audits record published_seen false. Their copy-owner fault receipts are materially identical.
+The issuer remained alive with unchanged PID/start identity and no recorded OOM events before cleanup.
+Status polling uses one established local worldd actor stream. It does not open TLS per status request.
+Issuer revocation uses a separate TLS connection. A new status TLS handshake is therefore not the explanation.
+This supports a connection-lifecycle or timing hypothesis. It does not establish the root cause.
+No disk-I/O cause, production defect, or fixture defect is yet proven.
+Raw evidence and hashes are preserved at:
+a5500:/home/dflanag3/spatial-artifacts/m07-d164-revocation-diagnosis-20261016.
+ANALYSIS.txt SHA256: 922861542b4dacac23f8cb620833d9987914865e1b1d33542b7cf33b5fc1698a.
+SHA256SUMS SHA256: 300313e52a778daeeca33363b27f3225340623f12e5ef39bd4f6c84e906abd32.
+A separate bounded worker traces request authentication, session invalidation, reply delivery, and connection closure.
+It must propose a cause and regression before editing production or weakening an oracle.
+
+The earlier 25 GiB output estimate omitted retained snapshot and copy-worker images.
+Source review identifies a conservative retained-image ceiling of 21.5 GiB per profile, or 43 GiB per host.
+This includes 9 GiB engine/fault images, 6.5 GiB snapshot/copy-worker images, 4 GiB native-session images,
+and 2 GiB bounded-storage images per profile. Sparse native images count at full logical allocation.
+Projection: a5500:/home/dflanag3/spatial-artifacts/m07-capacity-projection-20261016/PROJECTION.txt.
+Projection SHA256: fb3283a63376ba90b8bfa17a2e1288785e8f825760b7c6a3d02e34de0ace0405.
+
+Primary archived exactly 57 old image leaves from sb16 and 58 from sb16-2.
+Every selected image predates the current exam. Unknown historical contents were preserved, not classified as disposable.
+Both archives passed exact member, metadata, and content checks against their original source images.
+Fresh source and archive hashes, process references, namespace mounts, loop mappings, and inode identities were checked.
+Retirement used an approved entrypoint with pinned authorization, fresh archive proof, and durable per-leaf journal records.
+Both archive and retirement jobs returned command 0, wrapper 0, COMPLETE, with empty stderr.
+Recovered allocated bytes: sb16 32,212,721,664; sb16-2 32,720,814,080.
+This is about 30.0 GiB and 30.5 GiB respectively.
+Post-cleanup free bytes: sb16 55,531,225,088; sb16-2 53,245,947,904.
+All selected parent directories remain. Current evidence and all 1031 frozen source files remain unchanged.
+Deployment receipt and provenance hashes still match the d164 pins recorded below.
+
+Retained archives on middle-child:
+/media/dflanag3/New Volume/spatial-artifacts/m07-retention-20261016/attempt-03/HOST/old-images.tar.gz.
+sb16 archive SHA256: 86f2195aec0bab3db261e25800431f2abeba1540dcd602d183e2f941d3323820.
+sb16-2 archive SHA256: 401b896d623aa5294642863da251ecfd65d3b308037b607cafc0fc0d997febb1.
+Archive controls, exact manifests, source comparisons, journals, and primary reviews:
+a5500:/home/dflanag3/spatial-artifacts/m07-old-image-archive-20261016.
+Accepted archive jobs: attempt-03/canonical-runs/HOST/archive-01.
+Accepted retirement jobs: retirement-04/canonical-runs/HOST/retire-01.
+Earlier prelaunch and zombie-reference-scan refusals remain preserved. They removed no images.
+The corrected scan skips only proven exited zombies without a mount namespace. Live scan errors fail closed.
+
+Each host retains 30 current-exam image leaves. None were removed by this cleanup.
+Revised admission counts the remaining known image ceiling, a 6 GiB other-output allowance, and an 8 GiB reserve.
+The measured free space exceeds that combined requirement by about 10.96 GB and 8.68 GB respectively.
+The allowance is not a source-enforced aggregate cap. Continue capacity observation during the exams.
+Admission receipt: retirement-04/revised-capacity-admission.json under the archive tooling root.
+
+The deferred d164 cross-host coordinator passed 61 offline controls. Runtime remains UNRUN.
+Primary reviewed its deployment/schema repins and qualified-metadata changes against production augmentation order.
+Frozen tools: a5500:/home/dflanag3/spatial-artifacts/m07-d164-crosshost-coordination-20261016.
+Do not generate a real cross-host plan before both terminal local gates pass primary review.
+
+Isolated M08 foundation checkpoint f2f607b is BOX-GIT VERIFIED and compile-only, not integrated.
+Primary reviewed all seven files and requested directory, nonregular-file, durability, handle-exhaustion, and build-dependency repairs.
+That bounded successor remains separate from the frozen M07 source. All M08 runtime checks remain UNRUN.
+Successor efe3ed57 is BOX-GIT VERIFIED and compile-only. Its primary source review remains pending.
+
+Earlier checkpoint: corrected d164fed7 full local gates started cleanly on both hosts
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
@@ -15,7 +90,7 @@ No failed or skipped acceptance row or sanitizer finding was accepted.
 Canonical driver receipts on both hosts report command 0, wrapper 0, COMPLETE, with empty stderr.
 Primary independently rechecked actual row sets, raw hashes, exact runner argv, private evidence forwarding,
 service inactivity, cgroup removal, and the complete unchanged 1029-file frozen baseline source.
-Baseline deployed candidate remains 076ba423c2864bdd0d93a07d89d49032808d2cae.
+The focused diagnostic baseline was 076ba423c2864bdd0d93a07d89d49032808d2cae.
 The reviewed diagnostic overlay identifies repair commit 8a93f22743f4412715eaf29dbaac1875a03655c6.
 
 Diagnostic root R:
