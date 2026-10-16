@@ -1,4 +1,4 @@
-## 2026-10-16: Both d164 gates failed; focused diagnostics confirm a fixture quota failure
+## 2026-10-16: Queued copy-status EOF reproduced; production repair is separate
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This entry supersedes conflicting observations below.
@@ -18,14 +18,24 @@ The focused ASan/UBSan execution passed on sb16.
 On sb16-2, that execution delivered the denial and durably aborted the copy.
 It later failed because the original source writer exited after EDQUOT under its 4 MiB fixture quota.
 No sanitizer findings occurred in the eight focused executions.
-The original EOF remains unresolved. Passing retries do not prove a repair.
+The earlier EOF symptom is now reproduced with connection-lifecycle diagnostics in a later Debug execution.
 Read-only image inspection confirmed exit code one and quota errors from both writer loops.
 A reviewed fixture-only headroom correction is BOX-GIT VERIFIED at d9565c09.
 It declares 64 MiB source-state capacity and 256 MiB actor/workspace capacity before creating the volume.
-The first corrected Debug execution passed on each host with source processes intact.
-Further repetitions, sanitizer runs, and unchanged small-quota rejection controls remain pending.
+The corrected fixture completed four Debug executions: three passed; one failed on sb16-2 with EOF.
+Request72 was queued with zero sent bytes. Revocation discarded that reply and closed the actor stream.
+worldd remained alive, then exited zero during cleanup. The durable copy was forbidden and aborted.
+The actor still lacked the required typed denial. The matrix stopped; later repetitions and controls remain UNRUN.
+A separate production branch owns a narrow reply-lifetime repair. Protected observation and partial frames must still close.
 A separate isolated worker instruments participant delivery, settlement, and acknowledgement.
-No timeout increase or production repair is claimed.
+Both native helper profiles built on a5500. Both hosts passed their deployment checks.
+The first standalone native launch failed on an evidence-path setup guard before workload.
+Primary retained that failure and launched the corrected Debug attempt with an explicit path-validator preflight.
+The corrected native Debug test passed on both hosts in about 21 and 24 seconds.
+All nine application pidfds exited promptly while the administrative reply remained pending.
+Cleanup and unchanged helper/deployment checks passed. Sanitizer checks and timeline audits remain pending.
+These focused passes do not explain the original missing acknowledgements.
+No timeout increase or qualified production repair is claimed.
 
 The adfb2578 fixture-only overlay preserves pre-close and final worldd lifetime evidence.
 Both sanitizer executions show worldd alive before cleanup and exit zero after cleanup.

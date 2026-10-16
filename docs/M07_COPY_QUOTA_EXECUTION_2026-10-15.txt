@@ -1,4 +1,4 @@
-Current checkpoint: d164 local gates failed; focused diagnostics narrow three unresolved symptoms
+Current checkpoint: queued copy-status EOF reproduced; separate native acknowledgement diagnosis continues
 Date: 2026-10-16.
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This section supersedes conflicting observations below.
@@ -47,15 +47,32 @@ Reviewed documentation successor:d9565c09c7d483b3021750f5d2339492e3bc2562, BOX-G
 The first corrected Debug execution passed on each host, including source-process continuity.
 Independent review decoded each saved volume definition and verified the declared caps.
 It also checked typed denial, durable forbidden abort, no publication, helper restoration, and unmounted volumes.
-Remaining focused repetitions, sanitizer runs, and small-quota controls are pending.
+The second Debug execution passed on sb16 and failed on sb16-2.
+Four corrected executions completed: three passed and one failed. The matrix stopped at that failure.
+Debug-03, ASan-01, and both small-quota control profiles remain UNRUN on both hosts.
 New evidence:/home/dflanag3/spatial-artifacts/m07-revocation-quota-runtime-20261016.
 This explicitly overlays the d956 fixture source over the unchanged f3 diagnostic binaries.
 Overlay manifest SHA256:3f6f550ba158ecfe7960a37dff53f3842713177a07f15dec082a76dccf948264.
-Passing this correction does not resolve the original status EOF or qualify M07.
+The new failure reproduces the earlier EOF symptom and identifies its exact connection-lifecycle path.
+worldd PID3119006 queued request72 on channel2 with sent0 and output_size71.
+Queue time:432545919449418 monotonic nanoseconds.
+Credential revocation arrived at432545929945809 with in_dispatch0 and the same queued request.
+disconnect_drop_output followed at432545930109059. The actor observed EOF at432545930337130.
+This is a real unmodified test execution, without debugger intervention or timing injection.
+worldd remained alive before cleanup and exited zero during cleanup.
+The journal independently recorded ABORTED/COPY_FORBIDDEN. The actor never received its required typed denial.
+Both hosts restored helpers, preserved the original deployment, and unmounted their owned volumes.
+The original full-gate run lacked this instrumentation. Its identical symptom is consistent with this mechanism.
+Audit:aggregate-audit/DEBUG-02-STOP-AUDIT.txt under the new evidence root.
+Audit SHA256:a730af2b096d17fa7db54fe51974e0daea365966b3ed1594859a02a42f52add6.
+A separate production repair branch will replace only an eligible queued copy-status reply with a fresh denial.
+It must preserve protected-observation closure, partial-frame closure, request correlation, and immediate actor cancellation.
+sent0 alone is insufficient for TLS. A prior SSL_write attempt can have transport progress before completion.
+No production repair has passed review or runtime testing yet. M07 remains UNQUALIFIED.
 Across the original eight diagnostic executions, primary found no sanitizer diagnostics.
 Every temporary helper was restored. Every owned volume was unmounted.
 These are seven complete focused passes and one failed execution.
-The original EOF was not reproduced. Its cause remains unresolved.
+Those original eight diagnostic executions did not reproduce EOF.
 Logs show revocation consumed during dispatch with output_size0 in these executions.
 This does not prove what happened in the original failed full gate.
 Do not drain protected replies after revocation or relax the typed-denial oracle without a reviewed correction.
@@ -92,6 +109,25 @@ Workspace and world acknowledgements have independent settlement paths.
 Storage delay alone does not explain both missing acknowledgements.
 A separate f3-based diagnostic branch owns bounded participant-stage logs and failure evidence capture.
 Branch:m07/storage-ack-diagnostics-20261016. No behavior fix or deadline increase is approved.
+Diagnostic source:0e6a0447b43c9f3279270aa4e00654300f1a24bf, BOX-GIT VERIFIED.
+Binary source:0ca9f93bc9cacd75542830cd7c4a93f175719fe3. Its successor changes only fixture diagnostics.
+Debug and sanitizer helper builds passed, including spatialwm, confined X probe, and generated compositor bindings.
+Primary verified binary hashes, dependency resolution, and generated protobuf import closure.
+Frozen bundle:1259 files. Archive SHA256:b52b464953f6f587d7bb6013891f49dddbe5734486b3398fc3d66cf9ff383ecf.
+Manifest SHA256:1d9a769367247c7d50cd393fb9c3fd8cc18be9cce74021926ce85c863a9c5414.
+Both deployments verified the actual XACE receipt, extension sources, wrapper, graphics libraries, and installed root helpers.
+The first standalone Debug launch failed before workload because its evidence-directory name violated fixture validation.
+Primary retained that launcher and both failed setup receipts. No volume was created.
+The corrected launcher uses the required canonical spatial_security_evidence directory and calls its validator before services start.
+The corrected Debug attempts passed on both hosts:21.131 seconds on sb16;23.742 seconds on sb16-2.
+Primary checked the exact named test, canonical 0/0/COMPLETE receipts, unchanged helpers/deployment, and volume cleanup.
+All nine application pidfds exited within 0.490 and 0.342 seconds respectively.
+Both retained administrative replies were still pending at that exit sample.
+Git processes were witnessed earlier but were absent at the exit sample. Do not claim stronger overlap evidence.
+The phase_complete diagnostic field remains false because this source never updates it; it is not the selected test's oracle.
+The full diagnostic timeline audit and sanitizer attempts remain pending.
+Successful focused retries do not explain or repair the original missing acknowledgements.
+Native diagnostic artifacts:/home/dflanag3/spatial-artifacts/m07-storage-ack-primary-runtime-20261016.
 
 Separate M08 preparation
 Repair 7bf4f97d050e72488426b7342f3b623d33364d13 is BOX-GIT VERIFIED and unintegrated.
