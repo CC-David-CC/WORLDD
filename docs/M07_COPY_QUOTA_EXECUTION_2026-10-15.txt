@@ -1,3 +1,49 @@
+Current checkpoint: 2026-10-16: sb16-2 local M07 gate accepted; sb16 sanitizer still running
+
+M01-M06 remain qualified. M07 remains UNQUALIFIED.
+M08 has isolated drafts. M09-M16 remain pending.
+The frozen runtime candidate remains 1e58e65dec132a0a16f004ca4527034dca081f77.
+The candidate remains separate from local main.
+
+sb16-2 completed its full ASan-UBSan continuation with 0/0/COMPLETE.
+Exact sanitizer pane 3488189 retired. No new runtime failure occurred.
+The profile passed startup five, harness 51, core 197, locked P10 151, and storage scenarios five.
+The final scan checked 5,965 logs and found no sanitizer diagnostics.
+No mandatory test was skipped.
+
+The fixed collector composed accepted Debug and sanitizer evidence.
+Compose pane 3606334 and before-crosshost audit pane 3606677 each retired after 0/0/COMPLETE.
+Primary verified actual command arguments, terminal receipts, summaries, artifact manifests, and continuation pins.
+Both local profiles have 9,666 regular artifacts and their validated retirement marker.
+The original failed Debug run remains unchanged. Its reviewed amendment is separate.
+
+Combined local report SHA-256:
+076a7e371d581e5750d0e35d74fab8fa2f2cf9598b414fb9d2f5b41de2ef665b
+Before-crosshost artifact audit SHA-256:
+51f07031f0d8eacbc5035adcdbf2f3ef7fbc02900f6c46192768a3461fd0510d
+Primary accepted local evidence SHA-256:
+b2c88c996d931357afc603b1d364131de2ea7d7c04a9068d97982330ccd3e3de
+Receipt: /home/dflanag3/spatial-artifacts/m07-collector-continuation-inputs-20261016/attempt-01/primary-local-full-gate-evidence-accepted-01.json.
+
+At 2026-10-16T20:28:19.766439+00:00, sb16's exact sanitizer pane 3521819 remained live.
+It had completed 132 of 197 core suites. All completed suites passed.
+It also passed the earlier workspace-authority failure point.
+Remaining local stages and final sanitizer findings are still pending.
+Observe the existing runner. Do not redispatch it.
+
+Both direct interhost BatchMode SSH checks passed.
+Dedicated cross-host execution and both after-crosshost artifact audits remain UNRUN.
+Start that matrix only after both local hosts have accepted complete evidence.
+One host's local pass does not qualify M07.
+
+The M08 schema checkpoint remains 72ca37ce25f3f9b343cb5be19622c103aafb4025.
+The reviewed FileEngine oracle checkpoint is e9eeb87a5bbbdcba44a9cd761fa0a1ea0c38df02.
+Its final Debug and sanitizer targets compiled. Runtime checks remain UNRUN.
+The separate broker FileEngine increment remains incomplete and unqualified.
+Primary review identified clock, principal-binding, revocation, and effect-outcome defects.
+The worker is correcting those findings and adding named regression fixtures.
+No M08 draft is integrated into the frozen M07 deployment.
+
 Current checkpoint: 2026-10-16: Cleanup verified; both full sanitizer lanes are running
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
