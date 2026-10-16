@@ -1,4 +1,4 @@
-## 2026-10-16: Both d164 local gates finished; two distinct failures remain
+## 2026-10-16: Both d164 gates failed; focused diagnostics confirm a fixture quota failure
 
 M01-M06 remain qualified. M07 remains UNQUALIFIED. M08-M16 remain pending.
 This entry supersedes conflicting observations below.
@@ -16,10 +16,14 @@ The separate f3c2f348 diagnostic candidate preserves production behavior and all
 Three focused Debug revocation executions passed on each host.
 The focused ASan/UBSan execution passed on sb16.
 On sb16-2, that execution delivered the denial and durably aborted the copy.
-It later failed because the original source application PID disappeared.
+It later failed because the original source writer exited after EDQUOT under its 4 MiB fixture quota.
 No sanitizer findings occurred in the eight focused executions.
 The original EOF remains unresolved. Passing retries do not prove a repair.
-Read-only recovery of the failed source application's exit evidence is underway.
+Read-only image inspection confirmed exit code one and quota errors from both writer loops.
+A reviewed fixture-only headroom correction is BOX-GIT VERIFIED at d9565c09.
+It declares 64 MiB source-state capacity and 256 MiB actor/workspace capacity before creating the volume.
+The first corrected Debug execution passed on each host with source processes intact.
+Further repetitions, sanitizer runs, and unchanged small-quota rejection controls remain pending.
 A separate isolated worker instruments participant delivery, settlement, and acknowledgement.
 No timeout increase or production repair is claimed.
 

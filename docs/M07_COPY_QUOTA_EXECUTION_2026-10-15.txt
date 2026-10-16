@@ -33,8 +33,26 @@ Three Debug executions passed on each host. Each took about 25-28 seconds.
 ASan/UBSan passed on sb16 in 27.58 seconds.
 ASan/UBSan failed on sb16-2 in 29.73 seconds after the source payload PID disappeared.
 The latter still returned the expected denial and durably recorded ABORTED/COPY_FORBIDDEN without publication.
-Its failed check read /proc/3107500/stat. The actual exit cause is not yet established.
-Across all eight executions, primary found no sanitizer diagnostics.
+Its failed check read /proc/3107500/stat. Read-only image recovery established EDQUOT in both source writers.
+The source application exited with code one. Its real qgroup maximum was 4,194,304 bytes.
+The 837-byte stderr SHA256 is 542747159c8a32cae26032bd4779a9da312a15658db77e2ff15c0f233cc50a0b.
+No SQLite WAL existed. Host free space was about 48 GB; the quota was the immediate rejection.
+The exact transient usage or reservation peak was not recorded. Copy-accounting correctness remains unproven.
+A reviewed fixture patch declares headroom before volume creation for this continuous-writer scenario.
+Source-state quota is 64 MiB. Actor and workspace quotas are each 256 MiB.
+The volume remains 512 MiB. Destination copy-source quota remains 4 MiB.
+The existing small-quota rejection control and every revocation/continuity assertion remain unchanged.
+Code checkpoint:614d0d410cdfa26a8482d790ea1f3969757e8f1c.
+Reviewed documentation successor:d9565c09c7d483b3021750f5d2339492e3bc2562, BOX-GIT VERIFIED.
+The first corrected Debug execution passed on each host, including source-process continuity.
+Independent review decoded each saved volume definition and verified the declared caps.
+It also checked typed denial, durable forbidden abort, no publication, helper restoration, and unmounted volumes.
+Remaining focused repetitions, sanitizer runs, and small-quota controls are pending.
+New evidence:/home/dflanag3/spatial-artifacts/m07-revocation-quota-runtime-20261016.
+This explicitly overlays the d956 fixture source over the unchanged f3 diagnostic binaries.
+Overlay manifest SHA256:3f6f550ba158ecfe7960a37dff53f3842713177a07f15dec082a76dccf948264.
+Passing this correction does not resolve the original status EOF or qualify M07.
+Across the original eight diagnostic executions, primary found no sanitizer diagnostics.
 Every temporary helper was restored. Every owned volume was unmounted.
 These are seven complete focused passes and one failed execution.
 The original EOF was not reproduced. Its cause remains unresolved.
@@ -51,7 +69,13 @@ Primary verified all 1031 overlay source files after execution, plus the full un
 The first six Debug audits have an identified lifecycle-label/persistence limitation; their raw world logs remain intact.
 Evidence and primary audits on a5500 and each test host:
 /home/dflanag3/spatial-artifacts/m07-revocation-primary-runtime-20261016.
-Read-only failed-image recovery is assigned to a separate san-source-exit-recovery-01 output directory.
+Read-only image recovery finished with command=0, wrapper=0, COMPLETE, and empty stderr.
+The temporary filesystem was unmounted. Its exact read-only loop was detached and its mount directory removed.
+The source image SHA256 remained e2d78e52639b366e1b8e39320536bf0fd5a46b4c73dfe135a63460eaf5eea4d9.
+Primary recovery evidence exists on sb16-2 and a5500 at:
+/home/dflanag3/spatial-artifacts/m07-revocation-primary-runtime-20261016/san-source-exit-recovery-primary-01.
+A worker's first mount attempt was refused for its option. Primary retained that refusal and completed recovery.
+The original failed image remains intact. No original data was deleted.
 Keep the failed image and original logs. No additional full gate has started.
 Fresh free bytes after focused tests:sb16 50,620,493,824;sb16-2 48,329,170,944.
 
