@@ -1,0 +1,39 @@
+M07 gate external storage evidence repair
+Date: 2026-10-15
+
+The full M06 gate failed before profile execution because storage evidence setup
+attempted to create SOURCE/local beneath a frozen 0500 source tree. This repair
+places the two storage CTest registrations under
+/home/dflanag3/spatial-artifacts/m06-gate-storage/HOST/TOKEN/PROFILE.
+
+Each registration receives a distinct directory whose final component is
+spatial_security_evidence. The native storage fixture creates its method-named
+private directory directly beneath that component. The M06 inventory still
+relocates exactly the two registered CTest ENVIRONMENT values. Existing source,
+runtime, cleanup, inventory, and sanitizer checks remain active.
+
+The gate validates approved hosts and profiles before creating paths. It rejects
+traversal, symlinked components, wrong owners, nonprivate leaves, and duplicate
+attempt tokens. It never writes into the source tree. The storage session helper
+contract is checked against both generated profile roots and both host names.
+
+Selected metadata checks, before execution:
+- tools/test_m06_deployed_gate_static.py: preserve M06 inventory, relocation,
+  ownership, containment, registration-count, and postrun metadata checks.
+- tests/native/test_gate_storage_evidence_metadata.py: source immutability,
+  Debug and ASan-UBSan paths on both approved hosts, helper acceptance, and
+  host/profile/traversal/symlinked-ancestor/owner/mode/duplicate negatives.
+- Python syntax and UTF-8/LF checks for all changed text.
+- repository_data_guard.py, git diff --check, and explicit changed-file review.
+
+No runtime fixtures, builds, test-host commands, or deployment actions were run
+for this repair. Full gate recovery remains a separate reviewed task.
+
+
+Validation results:
+- The new storage metadata suite passed 12 of 12 cases on a5500.
+- The M06 static suite passed 52 of 52 host-independent cases.
+- The full 53-case static suite passed 52 cases. Its remaining case requires the current hostname to be sb16 or sb16-2. It failed on a5500 as expected and remains unrun on a qualification host.
+- The focused storage-directory test passed in the static suite.
+- Runs are retained under /home/dflanag3/spatial-artifacts/m07-gate-external-evidence-repair-20261015/check-runs-04, check-runs-08, and check-runs-09.
+- Runtime qualification and the repaired full M06 gate remain unrun for this source checkpoint. Preserve the earlier two-host pre-profile setup failures.

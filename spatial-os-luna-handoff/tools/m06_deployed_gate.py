@@ -45,6 +45,8 @@ REQUIRED = {
 DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
 STORAGE_LOCAL_EVIDENCE_TESTS = ("session-storage-owner", "session-storage-contention")
 STORAGE_FIXTURE_UID = 0
+STORAGE_EVIDENCE_ROOT = Path("/home/dflanag3/spatial-artifacts/m06-gate-storage")
+STORAGE_ATTEMPT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 GEOMETRY_CASES = [f"test_{i:02d}_" for i in range(1, 10)]
 SAN_RE = re.compile(r"AddressSanitizer|LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:")
 INNER_SKIP_RE = re.compile(r'^(?:\d+: )?(?:OK|FAILED)\s*\([^\n)]*skipped\s*=|'
@@ -291,71 +293,128 @@ def _require_real_directory(path: Path, *, create=False):
     return dict(path=str(path), uid=info.st_uid, mode=mode)
 
 
+def _storage_component(path: Path, *, create=False):
+    """Require one operator-owned real directory, creating only a private leaf."""
+    created = False
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        if not create:
+            raise RuntimeError('required storage evidence directory is missing: ' + str(path))
+        path.mkdir(mode=0o700)
+        created = True
+        info = path.lstat()
+    if not stat.S_ISDIR(info.st_mode) or path.is_symlink():
+        raise RuntimeError('storage evidence component is not a real directory: ' + str(path))
+    if info.st_uid != os.getuid():
+        raise RuntimeError('storage evidence component has unexpected owner: ' + str(path))
+    mode = stat.S_IMODE(info.st_mode)
+    if created and mode != 0o700:
+        raise RuntimeError('new storage evidence directory mode is not 0700: ' + str(path))
+    return dict(path=str(path), uid=info.st_uid, mode=mode)
+
+
+def _storage_host(host: str):
+    if not isinstance(host, str) or host not in TEST_HOSTS:
+        raise RuntimeError('storage evidence host is not an approved test host: ' + str(host))
+
+
+def _storage_profile(profile: str):
+    if profile not in PROFILES:
+        raise RuntimeError('storage evidence profile is not approved: ' + str(profile))
+
+
 def create_storage_evidence_attempt(source: Path, host: str, attempt: str):
-    """Reserve a new ignored source/local root for the two storage CTest fixtures."""
+    """Reserve an external attempt root for the two storage CTest fixtures."""
     _require_real_directory(source)
-    local = source / 'local'
-    local_receipt = _require_real_directory(local, create=True)
-    container = local / 'm06-gate-storage'
-    container_receipt = _require_real_directory(container, create=True)
+    _storage_host(host)
+    if not isinstance(attempt, str) or not STORAGE_ATTEMPT_RE.fullmatch(attempt) or attempt in {'.', '..'}:
+        raise RuntimeError('storage evidence attempt identifier is invalid')
+    artifact_root = STORAGE_EVIDENCE_ROOT.parent
+    artifact_receipt = _storage_component(artifact_root)
+    if artifact_root.resolve(strict=True) != artifact_root:
+        raise RuntimeError('storage evidence artifact root contains a symlinked parent')
+    container = STORAGE_EVIDENCE_ROOT
+    container_receipt = _storage_component(container, create=True)
     host_root = container / host
-    host_receipt = _require_real_directory(host_root, create=True)
+    host_receipt = _storage_component(host_root, create=True)
     token = hashlib.sha256((host + '\0' + attempt).encode()).hexdigest()[:24]
     attempt_root = host_root / token
     attempt_root.mkdir(mode=0o700, exist_ok=False)
     attempt_info = attempt_root.lstat()
-    local_resolved = local.resolve(strict=True)
     resolved = attempt_root.resolve(strict=True)
-    if (attempt_root.is_symlink() or local_resolved not in resolved.parents
-            or attempt_info.st_uid != os.getuid() or attempt_info.st_mode & 0o777 != 0o700):
-        raise RuntimeError('storage evidence attempt escaped source/local or has unsafe ownership/mode')
-    return dict(root=attempt_root, parents=[local_receipt, container_receipt, host_receipt],
+    if (not stat.S_ISDIR(attempt_info.st_mode) or attempt_root.is_symlink()
+            or STORAGE_EVIDENCE_ROOT.resolve(strict=True) not in resolved.parents
+            or attempt_info.st_uid != os.getuid() or stat.S_IMODE(attempt_info.st_mode) != 0o700):
+        raise RuntimeError('storage evidence attempt escaped external root or has unsafe ownership/mode')
+    return dict(root=attempt_root, parents=[artifact_receipt, container_receipt, host_receipt],
                 attempt=dict(path=str(attempt_root), uid=attempt_info.st_uid,
-                             mode=attempt_info.st_mode & 0o777), token=token)
+                             mode=stat.S_IMODE(attempt_info.st_mode)), token=token)
 
 
 def create_storage_evidence_profile(attempt_root: Path, source: Path, profile: str):
+    _storage_profile(profile)
+    verify_storage_evidence_path(source, attempt_root)
     leaf = attempt_root / profile
     leaf.mkdir(mode=0o700, exist_ok=False)
     info = leaf.lstat()
-    local = (source / 'local').resolve(strict=True)
     resolved = leaf.resolve(strict=True)
-    if leaf.is_symlink() or local not in resolved.parents:
-        raise RuntimeError('storage evidence profile escaped source/local')
-    if info.st_uid != os.getuid() or info.st_mode & 0o777 != 0o700:
-        raise RuntimeError('storage evidence profile has unexpected owner or mode')
+    if (leaf.is_symlink() or STORAGE_EVIDENCE_ROOT.resolve(strict=True) not in resolved.parents
+            or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700):
+        raise RuntimeError('storage evidence profile has unsafe containment, owner, or mode')
     registrations = {}
     for name in STORAGE_LOCAL_EVIDENCE_TESTS:
-        target = leaf / name
+        registration_root = leaf / name
+        registration_root.mkdir(mode=0o700, exist_ok=False)
+        registration_info = _storage_component(registration_root)
+        if registration_info['mode'] != 0o700:
+            raise RuntimeError('storage registration parent mode is not 0700: ' + name)
+        target = registration_root / 'spatial_security_evidence'
         target.mkdir(mode=0o700, exist_ok=False)
         target_info = target.lstat()
-        if target.is_symlink() or target_info.st_uid != os.getuid() or target_info.st_mode & 0o777 != 0o700:
-            raise RuntimeError('storage registration evidence leaf has unsafe owner or mode: ' + name)
         resolved_target = target.resolve(strict=True)
-        if local not in resolved_target.parents:
-            raise RuntimeError('storage registration evidence leaf escaped source/local')
-        registrations[name] = dict(path=str(target), uid=target_info.st_uid, mode=target_info.st_mode & 0o777)
-    return dict(path=str(leaf), uid=info.st_uid, mode=info.st_mode & 0o777, registrations=registrations)
+        if (not stat.S_ISDIR(target_info.st_mode) or target.is_symlink()
+                or STORAGE_EVIDENCE_ROOT.resolve(strict=True) not in resolved_target.parents
+                or target_info.st_uid != os.getuid() or stat.S_IMODE(target_info.st_mode) != 0o700):
+            raise RuntimeError('storage registration evidence leaf has unsafe containment, owner, or mode: ' + name)
+        registrations[name] = dict(path=str(target), uid=target_info.st_uid,
+                                    mode=stat.S_IMODE(target_info.st_mode))
+    return dict(path=str(leaf), uid=info.st_uid, mode=stat.S_IMODE(info.st_mode), registrations=registrations)
 
 
 def verify_storage_evidence_path(source: Path, path: Path):
-    local = source / 'local'
-    _require_real_directory(local)
-    local_resolved = local.resolve(strict=True)
+    _require_real_directory(source)
+    path = Path(path)
+    if not path.is_absolute() or '..' in path.parts:
+        raise RuntimeError('storage evidence path must be absolute and normalized')
+    source_real = source.resolve(strict=True)
+    if path == source or source_real in path.parents:
+        raise RuntimeError('storage evidence path must remain outside frozen source')
+    artifact_root = STORAGE_EVIDENCE_ROOT.parent
+    _storage_component(artifact_root)
+    _storage_component(STORAGE_EVIDENCE_ROOT)
+    if artifact_root.resolve(strict=True) != artifact_root or STORAGE_EVIDENCE_ROOT.resolve(strict=True) != STORAGE_EVIDENCE_ROOT:
+        raise RuntimeError('storage evidence root contains a symlinked parent')
     try:
-        relative = path.relative_to(local)
+        relative = path.relative_to(STORAGE_EVIDENCE_ROOT)
     except ValueError as error:
-        raise RuntimeError('storage evidence path is outside source/local') from error
-    current = local
+        raise RuntimeError('storage evidence path is outside the external storage root') from error
+    if (len(relative.parts) not in (2, 3, 5) or relative.parts[0] not in TEST_HOSTS
+            or not re.fullmatch(r'[0-9a-f]{24}', relative.parts[1])
+            or (len(relative.parts) >= 3 and relative.parts[2] not in PROFILES)
+            or (len(relative.parts) == 5 and
+                (relative.parts[3] not in STORAGE_LOCAL_EVIDENCE_TESTS
+                 or relative.parts[4] != 'spatial_security_evidence'))):
+        raise RuntimeError('storage evidence path has an invalid host, attempt, profile, or registration')
+    current = STORAGE_EVIDENCE_ROOT
     rows = []
     for part in relative.parts:
         current = current / part
-        rows.append(_require_real_directory(current))
+        rows.append(_storage_component(current))
     resolved = path.resolve(strict=True)
-    if local_resolved not in resolved.parents or not rows:
-        raise RuntimeError('storage evidence path escaped source/local')
-    if rows[-1]['mode'] != 0o700:
-        raise RuntimeError('storage evidence leaf mode changed')
+    root_real = STORAGE_EVIDENCE_ROOT.resolve(strict=True)
+    if root_real not in resolved.parents or not rows or rows[-1]['mode'] != 0o700:
+        raise RuntimeError('storage evidence path escaped external root or its leaf mode changed')
     return rows
 
 

@@ -304,56 +304,39 @@ class GateStaticTests(unittest.TestCase):
 
     def test_storage_evidence_directories_are_fresh_owned_and_confined(self):
         source = self.root / 'source'
-        (source / 'local').mkdir(parents=True)
-        attempt = gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
-        debug = gate.create_storage_evidence_profile(attempt['root'], source, 'Debug')
-        asan = gate.create_storage_evidence_profile(attempt['root'], source, 'ASan-UBSan')
-        local = (source / 'local').resolve()
-        self.assertIn(local, Path(debug['path']).resolve().parents)
-        self.assertIn(local, Path(asan['path']).resolve().parents)
-        self.assertEqual(debug['mode'], 0o700)
-        self.assertEqual(asan['mode'], 0o700)
-        self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(debug['path']))), 4)
-        self.assertEqual(set(debug['registrations']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
-        self.assertEqual(len({row['path'] for row in debug['registrations'].values()}), 2)
-        receipt = dict(parents=attempt['parents'], attempt=attempt['attempt'], profile=debug,
-                       destinations={name: row['path'] for name, row in debug['registrations'].items()})
-        receipt_path = self.root / 'storage-augmentation.json'
-        gate.write_json(receipt_path, receipt)
-        self.assertEqual(json.loads(receipt_path.read_text()), receipt)
-        for row in debug['registrations'].values():
-            self.assertEqual(row['mode'], 0o700)
-            self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(row['path']))), 5)
-        with self.assertRaises(FileExistsError):
-            gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+        source.mkdir()
+        evidence_root = self.root / 'artifacts' / 'm06-gate-storage'
+        evidence_root.parent.mkdir(mode=0o700)
+        with patch.object(gate, 'STORAGE_EVIDENCE_ROOT', evidence_root):
+            attempt = gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+            debug = gate.create_storage_evidence_profile(attempt['root'], source, 'Debug')
+            asan = gate.create_storage_evidence_profile(attempt['root'], source, 'ASan-UBSan')
+            self.assertNotIn(source.resolve(), Path(debug['path']).resolve().parents)
+            self.assertNotIn(source.resolve(), Path(asan['path']).resolve().parents)
+            self.assertEqual(debug['mode'], 0o700)
+            self.assertEqual(asan['mode'], 0o700)
+            self.assertEqual(len(gate.verify_storage_evidence_path(source, Path(debug['path']))), 3)
+            self.assertEqual(set(debug['registrations']), set(gate.STORAGE_LOCAL_EVIDENCE_TESTS))
+            self.assertEqual(len({row['path'] for row in debug['registrations'].values()}), 2)
+            for row in debug['registrations'].values():
+                path = Path(row['path'])
+                self.assertEqual(path.name, 'spatial_security_evidence')
+                self.assertEqual(row['mode'], 0o700)
+                self.assertEqual(len(gate.verify_storage_evidence_path(source, path)), 5)
+            with self.assertRaises(FileExistsError):
+                gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-01')
+            with self.assertRaisesRegex(RuntimeError, 'approved test host'):
+                gate.create_storage_evidence_attempt(source, 'a5500', 'attempt-02')
+            with self.assertRaisesRegex(RuntimeError, 'identifier is invalid'):
+                gate.create_storage_evidence_attempt(source, 'sb16', '../escape')
 
-        unsafe = self.root / 'unsafe-source'
-        local_unsafe = unsafe / 'local'
-        local_unsafe.mkdir(parents=True)
-        container = local_unsafe / 'm06-gate-storage'
-        container.mkdir()
-        outside = self.root / 'outside'
-        outside.mkdir()
-        (container / 'sb16').symlink_to(outside, target_is_directory=True)
-        with self.assertRaisesRegex(RuntimeError, 'real directory'):
-            gate.create_storage_evidence_attempt(unsafe, 'sb16', 'attempt-02')
-
-        absent = self.root / 'absent-source'
-        absent.mkdir()
-        created = gate.create_storage_evidence_attempt(absent, 'sb16-2', 'attempt-03')
-        self.assertTrue((absent / 'local').is_dir())
-        self.assertIn((absent / 'local').resolve(), created['root'].resolve().parents)
-        source_link = self.root / 'source-symlink'
-        source_link.symlink_to(absent, target_is_directory=True)
-        with self.assertRaisesRegex(RuntimeError, 'real directory'):
-            gate.create_storage_evidence_attempt(source_link, 'sb16', 'attempt-05')
-        unsafe_local = self.root / 'symlink-local-source'
-        unsafe_local.mkdir()
-        external_local = self.root / 'external-local'
-        external_local.mkdir()
-        (unsafe_local / 'local').symlink_to(external_local, target_is_directory=True)
-        with self.assertRaisesRegex(RuntimeError, 'real directory'):
-            gate.create_storage_evidence_attempt(unsafe_local, 'sb16', 'attempt-04')
+            outside = self.root / 'outside'
+            outside.mkdir()
+            (evidence_root / 'sb16').rename(evidence_root / 'sb16.saved')
+            (evidence_root / 'sb16').symlink_to(outside, target_is_directory=True)
+            with self.assertRaisesRegex(RuntimeError, 'real directory'):
+                gate.create_storage_evidence_attempt(source, 'sb16', 'attempt-03')
+        self.assertFalse((source / 'local').exists())
 
     def test_storage_inventory_augmentation_changes_only_named_tests(self):
         def row(name):
