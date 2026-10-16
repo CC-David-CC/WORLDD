@@ -1,0 +1,117 @@
+M07 collector-continuation crosshost plan. SOURCE-ONLY. UNQUALIFIED.
+Base: b9191ef1eb24ddbe1b42339260726f432ed224f5.
+Branch: m07/collector-crosshost-continuation-20261016.
+Worktree: /home/dflanag3/src/spacial-m07-collector-crosshost-continuation-20261016.
+
+This generator adapts the reviewed prepare_crosshost_plan.py.
+It writes the same schema-1 plan and four role maps.
+It selects combined-local.json inside each original local-01 evidence parent.
+It leaves the failed original run.json and Debug directory unchanged.
+It accepts only completed actual two-profile combined evidence.
+A successful sanitizer-batch.json alone cannot satisfy this gate.
+No execution receipt is created or inferred by this source task.
+
+Frozen baseline remains external and unchanged:
+/home/dflanag3/spatial-artifacts/m07-fixture-repaired-crosshost-coordination-20261016/review-01/candidate
+  prepare_crosshost_plan.py
+    fba21bd6bc7d658706b2094043eecb6248bba664d76cc9b4257d46abdec682e5
+  execute_workspace_crosshost_serial.py
+    3a1e43610fd6dd1d2b6c2571a88c6ef74faa6c02a8d8d496e3d48d1321ddbe3d
+  launch_m06_crosshost.sh
+    1d8a55904453d6c67723867573449ee730aea3166410c93553ac741b8b192b69
+The generator verifies these dependencies before producing its plan.
+It does not copy the executor, launcher, or generated historical evidence.
+The frozen 1e58 planning checkout still supplies source, schemas and validators.
+Default source-root stays spacial-m07-fixture-repaired-crosshost-preparation-20261016.
+Its commit, tracked files, required schemas and package provenance stay pinned.
+
+The fixed external auditor lives on each qualification host at:
+/home/dflanag3/spatial-artifacts/m07-collector-continuation-inputs-20261016/attempt-01/tools
+Only this exact three-tool closure can be imported:
+  m06_deployed_gate.py
+    d157bfa9e723b2924186338157bdf41f1ff1e3d771c163f9f5a4ddd0007fc298
+  m07_deployed_gate.py
+    15c6eb522bcbc5406b93c8d3d472c6c85a0c34f170ac6de4553fc70bf993580d
+  m07_collector_continuation.py
+    57b3941fcf204643963936f4d24ac0b0ddfd1d18954533daed180a27d3a4ddc2
+The preflight checks all three hashes before importing any file.
+No plan field selects an executable auditor or Python module.
+
+The generator reads the fixed inputs-sanitizer.json beside that tools directory.
+Current context SHA256 values supplied by primary:
+  sb16: 549c723352eef7ff3b894f3cce3cbc4fa239f70641428b8d9fe65a411da5aec0
+  sb16-2: 759b89247f5d2e45f7189f93d88858639619d447f6e13a3daf681669c4fe3852
+Primary must supply exact actual pins at dispatch. This source task runs nothing.
+Combined reports, before-sidecars, and new primary audits are still runtime inputs.
+They must exist and pass before generation. Do not invent missing receipts.
+
+Required checks on each host:
+- Take the canonical source gate lock nonblocking as dflanag3.
+- Recheck the exact immutable 1040-file frozen source and deployment pins.
+- Recheck the actual unchanged runtime and generated bindings through reviewed helpers.
+- Recheck the preserved FAILED original and its original 1/1/COMPLETE runner.
+- Prove the exact original PID absent and preserve all eleven command anchors.
+- Require the accepted corrected Debug audit and its complete manifest.
+- Require the actual new batch and combined report with matching context/tool pins.
+- Recheck the exact new canonical directory derived from context.batch_id.
+- Recheck its actual primary launch receipt, argv, PID, seven runner files and 0/0/COMPLETE.
+- Prove the actual new PID absent. Do not infer retirement from terminal text alone.
+- Recheck complete two-profile artifacts, typed links, exclusions and external storage.
+- Recheck current CTest metadata and exact inventory output for all 199 registrations.
+- Retain all startup5/harness51/core197/P10-151/storage5 authority assertions.
+- Require a pinned before-crosshost-artifact-audit.json matching the same full manifests.
+- Require the baseline PRIMARY_LOCAL_FULL_GATE_EVIDENCE_ACCEPTED primary audit schema.
+- Bind that audit to combined-local.json, both original counts and deployment receipt.
+- Keep the baseline 26GiB post-local free-space gate and runtime idle-process guard.
+- Refuse existing or dangling plan and M06 evidence outputs.
+
+Remote preflight reads evidence and runs only existing read-only probes.
+It never calls audit_artifacts or writes a before/after audit sidecar.
+The primary must run the fixed auditor separately before crosshost on BOTH hosts.
+It must run the same auditor after all crosshost work on BOTH hosts.
+The generated preparation receipt lists the two mandatory after-sidecar paths.
+The frozen crosshost checker alone does not enforce the new typed-link inventory.
+Final primary acceptance must recheck both actual after-sidecars and original chain.
+No plan generation result is a completed crosshost or milestone qualification claim.
+
+Future generator command, through the canonical runner on a coding/orchestration host:
+python3 -B TOOLS/m07_collector_crosshost_plan.py --attempt UNIQUE \
+  --runner-dir sb16=ACTUAL_NEW_SB16_CANONICAL_DIR \
+  --runner-dir sb16-2=ACTUAL_NEW_SB2_CANONICAL_DIR \
+  --audit-receipt sb16=ACTUAL_PRIMARY_COMBINED_AUDIT \
+  --audit-receipt sb16-2=ACTUAL_PRIMARY_COMBINED_AUDIT \
+  --address sb16=10.0.7.49 --address sb16-2=10.0.7.94 \
+  --context-sha256 sb16=ACTUAL_SHA --context-sha256 sb16-2=ACTUAL_SHA \
+  --combined-sha256 sb16=ACTUAL_SHA --combined-sha256 sb16-2=ACTUAL_SHA \
+  --before-audit-sha256 sb16=ACTUAL_SHA --before-audit-sha256 sb16-2=ACTUAL_SHA \
+  --audit-sha256 sb16=ACTUAL_SHA --audit-sha256 sb16-2=ACTUAL_SHA
+All host pairs must appear exactly once. SHA256 values must be lowercase hex.
+Canonical SAN directories remain under full-gate-runtime-runs/HOST/context.batch_id.
+The baseline launcher consumes the new plan unchanged after primary review.
+The baseline executor continues consuming the same plan and four role maps.
+No generic resume, profile routing or evidence-directory mechanism is added.
+
+Selected offline controls. All UNRUN in this source-only task:
+  python3 -B tools/test_m07_collector_crosshost_plan.py -v
+Run through the canonical runner on both qualification hosts after source review.
+Stage this new generator/test beside the three reviewed continuation tools and validators.
+New fixtures map fixed evidence names into ordinary temporary files.
+They execute reviewed origin, runner, launch, context and pin guards on those files.
+They mock source/runtime/profile audit boundaries already covered by continuation controls.
+They assert both full profile manifests and propagate each boundary refusal.
+They create actual 199-row inventory and metadata fixtures for metadata drift controls.
+They exercise generator main with transport mocks and real plan/role-map validators.
+No fixture executes SSH, native stages, model inference, mounts or source deletion.
+
+Affected existing controls:
+- Keep all77 frozen baseline controls and their source/hash pins unchanged.
+- offline_repin_controls.py remains14 baseline cases against prepare_crosshost_plan.py.
+  Its positive generator/metadata/current-inventory/runner-path cases now also have
+  continuation-specific counterparts in test_m07_collector_crosshost_plan.py.
+- offline_pane_pid_controls.py remains11 baseline launch/PID cases unchanged.
+- offline_main_resume_controls.py retains all baseline executor and resume cases unchanged.
+- Keep the reviewed22 continuation controls per host for actual source/runtime/link guards.
+The new tests supplement these controls. They do not replace any baseline acceptance test.
+
+Only AST syntax and source diff checks are authorized before primary review.
+No test, build, target contact, commit, native SAN or crosshost execution is claimed.
