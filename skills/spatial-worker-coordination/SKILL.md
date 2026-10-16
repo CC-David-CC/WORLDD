@@ -46,6 +46,9 @@ Record each executable's CMake target and output path separately. A library targ
 Build the executable target after its linked library changes. Verify claimed rebuilt ELF hashes against the previous package.
 Freeze packages by removing write permission. Preserve execute permission on binaries and directories.
 Target preflight must check executable permission and expected modes. A successful ldd check does not prove executability.
+Keep CTest bookkeeping outside frozen payloads.
+Verify the runtime user can create and write Testing/Temporary under the selected CTest directory.
+Preserve a setup refusal separately from an executed test failure.
 
 Use a persistent tmux session and a unique run directory for each attempt.
 Launch terminating jobs directly through tmux with exec. An idle interactive shell prevents pane-process retirement after command completion.
