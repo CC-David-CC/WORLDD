@@ -209,17 +209,47 @@ class ParticipantRuntimeTests(ClientFixture):
     def test_exposed_private_key_is_rejected_before_service_authentication(self):
         self.signer.chmod(0o644);self.error(self.start(),core.UNAVAILABLE);self.assertEqual(self.rows(),[])
 
+    def failure_diagnostic(self, runtime):
+        lines = runtime.log.read_text().splitlines()
+        self.assertEqual(len(lines), 2, lines)
+        metadata, failure = lines
+        self.assertLessEqual(len(metadata), 256, metadata)
+        self.assertTrue(all(32 <= ord(char) <= 126 for char in metadata), metadata)
+        fields = metadata.split(' ')
+        self.assertEqual(fields[0], 'authority_diag', metadata)
+        self.assertEqual(len(fields), 9, metadata)
+        names = ['mono_ns', 'pid', 'role', 'stage', 'incarnation_hash',
+                 'target_revision', 'consumed_revision', 'applied_revision']
+        values = {}
+        for name, field in zip(names, fields[1:]):
+            key, separator, value = field.partition('=')
+            self.assertEqual((key, separator), (name, '='), metadata)
+            values[name] = value
+        self.assertTrue(values['mono_ns'].isdigit(), metadata)
+        self.assertGreater(int(values['mono_ns']), 0, metadata)
+        self.assertEqual(values['pid'], str(runtime.proc.pid), metadata)
+        self.assertEqual(values['role'], 'participant', metadata)
+        self.assertEqual(values['stage'], 'participant_transport_failure', metadata)
+        self.assertEqual(len(values['incarnation_hash']), 16, metadata)
+        self.assertTrue(all(char in '0123456789abcdef'
+                            for char in values['incarnation_hash']), metadata)
+        for name in ('target_revision', 'consumed_revision', 'applied_revision'):
+            self.assertEqual(values[name], '0', metadata)
+        self.assertTrue(failure.startswith('authority participant failed: '), failure)
+        self.assertLessEqual(len(failure), 400, failure)
+        self.assertTrue(all(32 <= ord(char) <= 126 for char in failure), failure)
+        return failure
+
     def test_stalled_transport_records_operation_and_cause_without_reconnect(self):
         peer = FaultPeer(self, stall_handshake=True)
         runtime = self.start(endpoint_port=peer.port, io_timeout_ms=700)
         update = self.error(runtime, core.UNAVAILABLE)
         self.assertEqual(update.error.message, 'Authority participant channel failed; reconciliation is required')
         self.assertEqual(peer.connections, 1); self.assertEqual(self.rows(), [])
-        lines = runtime.log.read_text().splitlines()
-        self.assertEqual(len(lines), 1, lines)
-        self.assertIn('stage=issuer_connect', lines[0])
-        self.assertIn('cause=Issuer client deadline exceeded', lines[0])
-        self.assertIn('phase=tls_handshake wait=read progress=0/0', lines[0])
+        failure = self.failure_diagnostic(runtime)
+        self.assertIn('code=' + str(core.UNAVAILABLE) + ' request=0 stage=issuer_connect ', failure)
+        self.assertIn('cause=Issuer client deadline exceeded', failure)
+        self.assertIn('phase=tls_handshake wait=read progress=0/0', failure)
 
     def test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines(self):
         message = 'peer rejection\n\r\t' + 'x' * 600
@@ -232,10 +262,9 @@ class ParticipantRuntimeTests(ClientFixture):
         update = self.error(runtime, core.FORBIDDEN)
         self.assertEqual(update.error.message, message)
         self.assertEqual(peer.connections, 1); self.assertEqual(self.rows(), [])
-        lines = runtime.log.read_text().splitlines()
-        self.assertEqual(len(lines), 1, lines)
-        self.assertIn('stage=authentication_begin', lines[0])
-        self.assertIn('cause=peer rejection???', lines[0])
-        self.assertLessEqual(len(lines[0]), 400)
+        failure = self.failure_diagnostic(runtime)
+        self.assertEqual(failure, 'authority participant failed: code=' + str(core.FORBIDDEN)
+                         + ' request=0 stage=authentication_begin cause=peer rejection???'
+                         + 'x' * (240 - len('peer rejection???')))
 
 if __name__=='__main__':unittest.main(verbosity=2)
