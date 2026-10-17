@@ -2,6 +2,7 @@
 #include "core/protocol.hpp"
 #include <cerrno>
 #include <chrono>
+#include <cstdlib>
 #include <climits>
 #include <csignal>
 #include <cstring>
@@ -240,14 +241,15 @@ pid_t ProcessScope::direct_child_pid() const {
 }
 
 std::unique_ptr<ProcessScope> ProcessScope::launch(const std::filesystem::path& root,
-    const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams, const std::vector<int>& inherited) {
+    const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams,
+    const std::vector<int>& inherited, bool allow_test_security_evidence) {
     auto result = prepare(root);
-    result->start(request, streams, inherited);
+    result->start(request, streams, inherited, allow_test_security_evidence);
     return result;
 }
 
 void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
-    const std::array<int, 3>& streams, const std::vector<int>& inherited) {
+    const std::array<int, 3>& streams, const std::vector<int>& inherited, bool allow_test_security_evidence) {
     valid(!started_ && !removed_, "Authority scope cannot start again");
     validate_message(request);
     valid(inherited.size() <= 16 && static_cast<std::size_t>(request.inherited_fds_size()) == inherited.size(),
@@ -267,9 +269,34 @@ void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
         argv.push_back(const_cast<char*>(arg.c_str()));
     }
     argv.push_back(nullptr);
-    // Do not inherit provider credentials or supervisor secrets through the environment.
+    // Keep the launch environment minimal; only the explicitly trusted broker receives
+    // its private diagnostic directory, and only in test builds.
     char path[] = "PATH=/usr/bin:/bin", lang[] = "LANG=C.UTF-8";
-    char* environment[]{path, lang, nullptr};
+    std::string diagnostic_environment;
+    char* environment[]{path, lang, nullptr, nullptr};
+#ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+    const bool direct_broker = std::filesystem::path(exe).filename() == "workspaced";
+    const bool broker_test_bootstrap = exe == "/usr/bin/python3" &&
+        request.arguments_size() == 2 && request.arguments(0) == "-c" &&
+        request.arguments(1).find("os.execv(") != std::string::npos &&
+        request.arguments(1).find("/workspaced") != std::string::npos;
+    if (allow_test_security_evidence && (direct_broker || broker_test_bootstrap)) {
+        const char* evidence = std::getenv("SPATIAL_SECURITY_EVIDENCE");
+        if (evidence && evidence[0] == '/' && strnlen(evidence, 4097) <= 4096) {
+            Fd evidence_directory(open(evidence, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+            struct stat evidence_stat{};
+            if (evidence_directory.value >= 0 && fstat(evidence_directory.value, &evidence_stat) == 0 &&
+                S_ISDIR(evidence_stat.st_mode) && evidence_stat.st_uid == geteuid() &&
+                !(evidence_stat.st_mode & 0077)) {
+                diagnostic_environment = std::string("SPATIAL_SECURITY_EVIDENCE=") + evidence;
+                environment[2] = diagnostic_environment.data();
+                environment[3] = nullptr;
+            }
+        }
+    }
+#else
+    (void)allow_test_security_evidence;
+#endif
     std::array<Fd, 3> copied;
     for (std::size_t i = 0; i < copied.size(); ++i) {
         copied[i].value = fcntl(streams[i], F_DUPFD_CLOEXEC, 256);

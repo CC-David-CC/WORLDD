@@ -40,7 +40,12 @@ int main(int argc, char** argv) {
             for (const int descriptor : inherited) close(descriptor);
             inherited.clear();
         };
+#ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+        if (mode != "normal" && mode != "deny-write" && mode != "deny-wait" &&
+            mode != "test-security-evidence") throw std::invalid_argument("Unknown probe mode");
+#else
         if (mode != "normal" && mode != "deny-write" && mode != "deny-wait") throw std::invalid_argument("Unknown probe mode");
+#endif
         const int empty = open("/dev/null", O_RDWR | O_CLOEXEC);
         if (empty < 0) throw std::runtime_error("Cannot open private child streams");
         std::unique_ptr<spatial::supervisor::ProcessScope> process;
@@ -55,7 +60,13 @@ int main(int argc, char** argv) {
                 } else if (request.has_launch()) {
                     if (process) { reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_STATE); }
                     else {
-                        process = spatial::supervisor::ProcessScope::launch(argv[1], request.launch(), {empty, empty, empty}, inherited);
+                        process = spatial::supervisor::ProcessScope::launch(argv[1], request.launch(), {empty, empty, empty}, inherited,
+#ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+                            mode == "test-security-evidence"
+#else
+                            false
+#endif
+                        );
                         release_inherited();
                         *reply.mutable_state() = process->state();
                         if (mode == "deny-wait") deny_wait();

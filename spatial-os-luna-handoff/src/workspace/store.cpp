@@ -34,6 +34,8 @@
 #include <future>
 #include <map>
 #include <cmath>
+#include <cstdlib>
+#include <string_view>
 #include <utility>
 
 namespace spatial {
@@ -247,13 +249,98 @@ authority::v1::Right file_right(const FileActionRequest& request) {
   default: return authority::v1::RIGHT_UNSPECIFIED;
   }
 }
-class FileRootStale final : public std::runtime_error { public: FileRootStale():std::runtime_error("Registered project root binding is stale"){} };
+class FileRootStale final : public std::runtime_error {
+ public:
+  explicit FileRootStale(const char* source)
+      : std::runtime_error("Registered project root binding is stale"), source(source) {}
+  const char* source;
+};
 FileActionReply file_action_error(const std::string& id,
     workspace::v1::FileActionError::Code code,const char* detail,bool recovery=false) {
   FileActionReply reply;reply.set_protocol_version(1);reply.set_operation_id(id);
   auto* error=reply.mutable_error();error->set_code(code);error->set_detail(detail);
   if(recovery && id.size()==16)error->set_recovery_operation_id(id);
   return reply;
+}
+#if defined(SPATIAL_TEST_FILE_ACTION_DIAGNOSTICS)
+std::string diagnostic_hex(std::string_view value) {
+  constexpr char digits[] = "0123456789abcdef";
+  std::string result;
+  result.reserve(value.size() * 2);
+  for (const unsigned char byte : value) {
+    result.push_back(digits[byte >> 4]);
+    result.push_back(digits[byte & 15]);
+  }
+  return result;
+}
+void record_file_action_diagnostic(const FileActionReply& reply, std::string_view source) noexcept {
+  try {
+    if (!reply.has_error() || reply.error().code() != workspace::v1::FileActionError::STALE_HANDLE ||
+        source.empty() || source.size() > 96 || reply.error().detail().size() > 256 ||
+        reply.operation_id().size() != 16)
+      return;
+    for (const char c : source)
+      if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-'))
+        return;
+    const char* path = std::getenv("SPATIAL_SECURITY_EVIDENCE");
+    if (!path || path[0] != '/')
+      return;
+    File directory;
+    directory.fd = open(path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+    struct stat directory_stat {};
+    if (directory.fd < 0 || fstat(directory.fd, &directory_stat) != 0 ||
+        !S_ISDIR(directory_stat.st_mode) || directory_stat.st_uid != geteuid() ||
+        (directory_stat.st_mode & 077) != 0)
+      return;
+    File output;
+    output.fd = openat(directory.fd, "broker-file-action-private.log",
+        O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600);
+    struct stat output_stat {};
+    if (output.fd < 0 || fstat(output.fd, &output_stat) != 0 ||
+        !S_ISREG(output_stat.st_mode) || output_stat.st_uid != geteuid() ||
+        output_stat.st_nlink != 1 || (output_stat.st_mode & 077) != 0)
+      return;
+    if (flock(output.fd, LOCK_EX) != 0)
+      return;
+    if (fstat(output.fd, &output_stat) != 0 || output_stat.st_size < 0 ||
+        output_stat.st_size > 65536)
+      return;
+    const auto detail = reply.error().detail();
+    std::string line = "v=1 code=STALE_HANDLE source=";
+    line.append(source);
+    line.append(" operation_id=");
+    line.append(diagnostic_hex(reply.operation_id()));
+    line.append(" detail_hex=");
+    line.append(diagnostic_hex(detail));
+    line.push_back('\n');
+    if (line.size() > 768 || output_stat.st_size + static_cast<off_t>(line.size()) > 65536)
+      return;
+    std::size_t written = 0;
+    while (written < line.size()) {
+      const auto count = write(output.fd, line.data() + written, line.size() - written);
+      if (count < 0 && errno == EINTR)
+        continue;
+      if (count <= 0)
+        return;
+      written += static_cast<std::size_t>(count);
+    }
+    (void)fsync(output.fd);
+  } catch (...) {
+    // Test diagnostics never change the file-action result.
+  }
+}
+#else
+void record_file_action_diagnostic(const FileActionReply&, std::string_view) noexcept {}
+#endif
+const char* file_engine_stale_source(const std::string& detail) {
+  if (detail == "file handle is stale") return "file_engine.handle_missing";
+  if (detail == "file handle expired") return "file_engine.handle_expired";
+  if (detail == "directory handle is stale") return "file_engine.directory_generation_mismatch";
+  if (detail == "browse cursor is stale") return "file_engine.cursor_missing";
+  if (detail == "directory changed during browse") return "file_engine.cursor_directory_changed";
+  if (detail == "file changed during read") return "file_engine.file_generation_mismatch";
+  if (detail == "trash object changed") return "file_engine.trash_identity_changed";
+  return "file_engine.stale_reply_other";
 }
 } // namespace
 struct ExecutionStore::Impl {
@@ -301,7 +388,7 @@ struct ExecutionStore::Impl {
                                  const wire::WorktreeReply& registered) {
         const auto id=registered.id();
         if(invalid_file_worktrees.contains(id))
-            throw FileRootStale();
+            throw FileRootStale("store.cached_root_previously_invalidated");
         const auto path=(state/"worktrees"/id).string();
         if(registered.path()!=path)
             throw WorldError(wire::STORAGE_ERROR,"Registered project path differs from its pinned identity");
@@ -314,31 +401,32 @@ struct ExecutionStore::Impl {
                static_cast<std::uint64_t>(current.st_dev)!=static_cast<std::uint64_t>(cached.device) ||
                static_cast<std::uint64_t>(current.st_ino)!=static_cast<std::uint64_t>(cached.inode)) {
                 invalid_file_worktrees.insert(id);
-                throw FileRootStale();
+                throw FileRootStale("store.cached_root_descriptor_changed");
             }
             struct stat named{};
             if(lstat(path.c_str(),&named)!=0 || !S_ISDIR(named.st_mode) || S_ISLNK(named.st_mode) ||
                named.st_dev!=cached.device || named.st_ino!=cached.inode) {
                 invalid_file_worktrees.insert(id);
-                throw FileRootStale();
+                throw FileRootStale("store.cached_root_path_changed");
             }
             return cached;
         }
         if(file_engines.size()>=64)
             throw WorldError(wire::RESOURCE_EXHAUSTED,"Workspace file-engine cache reached its 64-root bound");
         File root_parent; root_parent.fd=open((state/"worktrees").c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
-        if(root_parent.fd<0)throw FileRootStale();
+        if(root_parent.fd<0)throw FileRootStale("store.worktrees_parent_open_failed");
         open_how how{}; how.flags=O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW;
         how.resolve=RESOLVE_BENEATH|RESOLVE_NO_SYMLINKS|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_XDEV;
         File root; root.fd=static_cast<int>(syscall(SYS_openat2,root_parent.fd,id.c_str(),&how,sizeof(how)));
         if(root.fd<0 || fstat(root.fd,&current)!=0 || !S_ISDIR(current.st_mode))
-            throw FileRootStale();
+            throw FileRootStale("store.registered_root_open_failed");
         if(storage) {
             workspace::v1::StorageOwnerRequest inspection;
             *inspection.mutable_inspect()->mutable_object()=storage_object(workspace::v1::StorageObject::PROJECT,path);
             storage->call(std::move(inspection));
         }
-        if(!file_journal->bind_root(id,static_cast<std::uint64_t>(current.st_dev),static_cast<std::uint64_t>(current.st_ino),observer)) throw FileRootStale();
+        if(!file_journal->bind_root(id,static_cast<std::uint64_t>(current.st_dev),static_cast<std::uint64_t>(current.st_ino),observer))
+            throw FileRootStale("store.journal_root_identity_changed");
         auto entry=std::make_unique<FileEngineEntry>();
         entry->root_fd=root.fd; root.fd=-1;
         entry->device=current.st_dev; entry->inode=current.st_ino;
@@ -1076,8 +1164,11 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
             return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project is unavailable or not ready");
         const auto expected_path=(impl_->state/"worktrees"/worktree_id).string();
         struct stat project_path{};
-        if(lstat(expected_path.c_str(),&project_path)!=0 || !S_ISDIR(project_path.st_mode) || S_ISLNK(project_path.st_mode))
-            return file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root is missing or unsafe",true);
+        if(lstat(expected_path.c_str(),&project_path)!=0 || !S_ISDIR(project_path.st_mode) || S_ISLNK(project_path.st_mode)) {
+            auto failure=file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root is missing or unsafe",true);
+            record_file_action_diagnostic(failure,"store.registered_root_missing_or_unsafe");
+            return failure;
+        }
         if(registered.text(0)!=expected_path)
             return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project path differs from workspace binding");
         auto found=impl_->file_engines.find(worktree_id);
@@ -1102,13 +1193,17 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         if(prior.state==FileOperationRecord::State::complete) {
             if(prior.engine_incarnation==impl_->file_engine_incarnation) return prior.reply;
             if(prior.reply.has_error() || prior.reply.has_trash() || request.has_permanent_delete()) return prior.reply;
-            return file_action_error(operation,FileActionError::STALE_HANDLE,"completed result contains process-local handles; inspect or browse to refresh",true);
+            auto failure=file_action_error(operation,FileActionError::STALE_HANDLE,"completed result contains process-local handles; inspect or browse to refresh",true);
+            record_file_action_diagnostic(failure,"store.completed_result_handle_refresh_required");
+            return failure;
         }
         auto* executor=dynamic_cast<StoreFileEffectExecutor*>(entry.effects.get());
         if(!executor) throw std::logic_error("file effect executor type mismatch");
         active_executor=executor;
         executor->set_operation(trusted,binding);
         auto reply=entry.engine->handle(trusted);
+        if(reply.has_error() && reply.error().code()==FileActionError::STALE_HANDLE)
+            record_file_action_diagnostic(reply,file_engine_stale_source(reply.error().detail()));
         if(executor->exhausted()) return file_action_error(operation,FileActionError::EXHAUSTED,"file-operation journal capacity is exhausted before filesystem effects");
         ScopedAuthorityCheckReply still_allowed;
         try { still_allowed=scoped_authority_check(admission); }
@@ -1147,9 +1242,11 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
             e.code==wire::NOT_FOUND ? FileActionError::NOT_FOUND :
             e.code==wire::RESOURCE_EXHAUSTED ? FileActionError::EXHAUSTED : FileActionError::UNAVAILABLE;
         return file_action_error(operation,code,"workspace file action admission or registry lookup failed");
-    } catch(const FileRootStale&) {
+    } catch(const FileRootStale& stale) {
         if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
-        return file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root changed; existing file handles are stale",true);
+        auto failure=file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root changed; existing file handles are stale",true);
+        record_file_action_diagnostic(failure,stale.source);
+        return failure;
     } catch(const std::length_error&) {
         if(active_executor && active_executor->effect_started()) return uncertainty_fallback;
         return file_action_error(operation,FileActionError::EXHAUSTED,"file-operation journal capacity is exhausted");

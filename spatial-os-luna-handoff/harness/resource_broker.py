@@ -58,8 +58,10 @@ class ResourceBroker:
         except BaseException:
             os.close(policy);raise
         try:
+            probe_mode = ('test-security-evidence' if Path(executable).name == 'workspaced' and
+                          os.environ.get('SPATIAL_SECURITY_EVIDENCE') else 'normal')
             self.owner = subprocess.Popen([str(Path(executable).parent/'spatial-process-scope-probe'),
-                config.delegated_cgroup, 'normal', *map(str, descriptors)], pass_fds=descriptors,
+                config.delegated_cgroup, probe_mode, *map(str, descriptors)], pass_fds=descriptors,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=owner_log, bufsize=0)
         except BaseException:
             os.close(policy)

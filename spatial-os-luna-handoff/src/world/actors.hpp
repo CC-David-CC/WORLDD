@@ -86,6 +86,7 @@ private:
         std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
     bool workspace_right(const Actor&, const std::string& workspace, authority::v1::Right right,
                          const std::vector<std::string>& components = {});
+    void cabinet_action(Actor&, const workspace::v1::ActorCabinetRequest&, workspace::v1::ActorCabinetReply*);
     void validate_presentation_placement(const std::string& room, const wire::Pose& pose, const std::string& exclude_id = {});
     std::set<std::string> observable_applications(const Actor&, const std::vector<ObservedApplication>&,
                                                   std::vector<broker_wire::AuthorizationFence>* fences);

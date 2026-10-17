@@ -15,10 +15,10 @@ public:
     static std::unique_ptr<ProcessScope> prepare(const std::filesystem::path& delegated_root,
                                                const v1::ProcessScopeBudget* budget = nullptr);
     void start(const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams,
-               const std::vector<int>& inherited = {});
+               const std::vector<int>& inherited = {}, bool allow_test_security_evidence = false);
     static std::unique_ptr<ProcessScope> launch(const std::filesystem::path& delegated_root,
         const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams,
-        const std::vector<int>& inherited = {});
+        const std::vector<int>& inherited = {}, bool allow_test_security_evidence = false);
     ~ProcessScope();
     ProcessScope(const ProcessScope&) = delete;
     ProcessScope& operator=(const ProcessScope&) = delete;

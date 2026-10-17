@@ -541,7 +541,11 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
-    target_compile_definitions(workspaced PRIVATE SPATIAL_TEST_FILE_JOURNAL_FAULTS=1)
+    target_compile_definitions(workspaced PRIVATE
+        SPATIAL_TEST_FILE_JOURNAL_FAULTS=1
+        SPATIAL_TEST_FILE_ACTION_DIAGNOSTICS=1)
+    target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD=1)
+    target_compile_definitions(spatial-process-scope-probe PRIVATE SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD=1)
     add_executable(workspace-file-operation-journal-test
         tests/core/file_operation_journal.cpp src/workspace/file_operation_journal.cpp)
     target_include_directories(workspace-file-operation-journal-test PRIVATE src)
@@ -739,6 +743,25 @@ if(BUILD_TESTING)
         DEPENDS identityd spatial-issuer-client worldd workspaced
             broker-python-protobuf world-session-python-protobuf spatial-process-scope-probe
             spatial-security-auth)
+    add_test(NAME workspace-actor-cabinet-gateway COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_cabinet_gateway.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k actor_cabinet_gateway_)
+    set_tests_properties(workspace-actor-cabinet-gateway PROPERTIES TIMEOUT 300
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
+    add_custom_target(workspace-actor-cabinet-gateway-fixture
+        COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-actor-cabinet-gateway"
+            "${Python3_EXECUTABLE}" -m py_compile
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_cabinet_gateway.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_presentation_actor.py"
+        DEPENDS workspace-presentation-actor-fixture
+            python-protobuf file-actions-python-protobuf grants-python-protobuf
+            world-session-python-protobuf broker-python-protobuf workspace-copy-python-protobuf
+            issuer-python-protobuf key-python-protobuf
+        SOURCES tests/core/test_actor_cabinet_gateway.py
+        VERBATIM)
     add_test(NAME workspace-presentation-shared-representation COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
@@ -1674,6 +1697,9 @@ endif()
 add_library(spatial-control-admin STATIC src/supervisor/control_admin.cpp)
 target_link_libraries(spatial-control-admin PUBLIC spatial-control-reply)
 add_library(spatial-session-broker STATIC src/supervisor/session_broker.cpp src/supervisor/session_launch.cpp src/supervisor/session_coordinator.cpp)
+if(BUILD_TESTING)
+    target_compile_definitions(spatial-session-broker PRIVATE SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD=1)
+endif()
 target_link_libraries(spatial-session-broker PUBLIC spatial-authority-launch spatial-core spatial-control-admin)
 add_library(spatial-host-actor-controller STATIC src/supervisor/host_actor_controller.cpp)
 target_link_libraries(spatial-host-actor-controller PUBLIC spatial-session-broker spatial-actor-transition spatial-protobuf)

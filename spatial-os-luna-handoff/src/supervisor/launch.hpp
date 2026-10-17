@@ -18,7 +18,8 @@ public:
     v1::AuthorityLaunchView prepare(const std::filesystem::path& delegated_root,
         const v1::AuthorityLaunchBinding& binding, int sealed_native_config);
     v1::AuthorityLaunchRecord start(const v1::AuthorityProcessLaunch& launch,
-        const std::array<int, 3>& streams, const std::vector<int>& inherited = {});
+        const std::array<int, 3>& streams, const std::vector<int>& inherited = {},
+        bool allow_test_security_evidence = false);
     // The coordinator retains the real service connection; callers cannot supply its identity.
     void attach(const v1::AuthorityParticipantAttach& request);
     std::optional<identity::v1::ParticipantUpdate> poll_participant();

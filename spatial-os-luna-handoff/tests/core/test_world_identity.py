@@ -1,4 +1,5 @@
 """Real issuer proofs enter worldd and use its native actor implementation."""
+import fcntl
 import os
 import hashlib
 import io
@@ -133,10 +134,120 @@ class WorldProcess:
             return stream, channel, True
         return getattr(broker, 'stream', None), None, False
 
+    def capture_management_eof(self, method):
+        evidence_root=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        process=getattr(self,'proc',None)
+        if not evidence_root or process is None:return
+        target=Path(evidence_root)/('worldd-startup-'+str(os.getpid())+'-'+method.replace('.','-'))
+        target.mkdir(parents=True,exist_ok=True)
+        def fd_state(fd):
+            item={'fd':fd}
+            try:item['flags']=fcntl.fcntl(fd,fcntl.F_GETFD)
+            except (OSError,ValueError) as error:item['fcntl_error']=str(error)
+            try:
+                info=os.fstat(fd);item['mode']=info.st_mode;item['device']=info.st_dev;item['inode']=info.st_ino
+            except (OSError,ValueError) as error:item['fstat_error']=str(error)
+            try:item['link']=os.readlink('/proc/self/fd/'+str(fd))
+            except OSError as error:item['link_error']=str(error)
+            return item
+        try:poll_result=process.poll()
+        except Exception as error:poll_result='poll-error:'+type(error).__name__
+        result={'diagnostic':'test-only-worldd-management-eof','method':method,
+            'parent_pid':os.getpid(),'worldd_argv':getattr(process,'args',None),
+            'worldd_pid':getattr(process,'pid',None),'worldd_poll':poll_result,
+            'worldd_returncode':getattr(process,'returncode',None),
+            'worldd_proc_stat':None,'worldd_proc_cmdline':None,'worldd_proc_exe':None,
+            'worldd_fds':[],'management_fds':{},'actor_sockets':[],'copied_logs':[]}
+        pid=result['worldd_pid']
+        if isinstance(pid,int):
+            proc_root=Path('/proc')/str(pid)
+            for key,path in (('worldd_proc_stat',proc_root/'stat'),('worldd_proc_cmdline',proc_root/'cmdline'),
+                             ('worldd_proc_exe',proc_root/'exe')):
+                try:
+                    if key=='worldd_proc_exe':result[key]=os.readlink(path)
+                    elif key=='worldd_proc_cmdline':result[key]=path.read_bytes().replace(b'\0',b' ').decode('utf-8','replace')
+                    else:result[key]=path.read_text(errors='replace')
+                except OSError as error:result[key+'_error']=str(error)
+            try:
+                fd_entries=[]
+                for item in (proc_root/'fd').iterdir():
+                    fd_entries.append(item)
+                    if len(fd_entries)>128:break
+                result['worldd_fds']=[{'fd':item.name,'target':os.readlink(item)} for item in fd_entries[:128]]
+                result['worldd_fds_truncated']=len(fd_entries)>128
+            except OSError as error:result['worldd_fds_error']=str(error)
+        for label in ('stdin','stdout'):
+            stream=getattr(process,label,None)
+            if stream is None:
+                result['management_fds'][label]={'unavailable':True}
+                continue
+            try:result['management_fds'][label]=fd_state(stream.fileno())
+            except Exception as error:result['management_fds'][label]={'state_error':type(error).__name__}
+        for index,peer in enumerate(getattr(self,'peers',()) or ()):
+            item={'index':index}
+            sock=getattr(peer,'stream',None)
+            if sock is None:
+                item['unavailable']=True
+                result['actor_sockets'].append(item)
+                continue
+            try:item['fd']=sock.fileno()
+            except Exception as error:item['fd_error']=type(error).__name__
+            try:item['flags']=fcntl.fcntl(sock.fileno(),fcntl.F_GETFD)
+            except Exception as error:item['fcntl_error']=type(error).__name__
+            try:item['local']=sock.getsockname();item['peer']=sock.getpeername()
+            except Exception as error:item['address_error']=type(error).__name__
+            try:item['so_error']=sock.getsockopt(socket.SOL_SOCKET,socket.SO_ERROR)
+            except Exception as error:item['socket_error']=type(error).__name__
+            result['actor_sockets'].append(item)
+        paths=set()
+        log=getattr(self,'log',None)
+        if log is not None:
+            try:log.flush()
+            except Exception:pass
+            try:paths.update(Path(log.name).parent.glob('*.log'))
+            except Exception as error:result['fixture_log_root_error']=type(error).__name__
+        scope=os.environ.get('SPATIAL_SCOPE_EVIDENCE')
+        if scope:
+            try:paths.update(Path(scope).glob('adapter-provisioning-*.json'))
+            except OSError as error:result['adapter_evidence_error']=type(error).__name__
+        paths=sorted((path for path in paths if path.is_file()),key=str)
+        result['log_files_found']=len(paths)
+        result['log_files_truncated']=len(paths)>48
+        total_bytes=0
+        for index,path in enumerate(paths[:48]):
+            try:
+                size=path.stat().st_size
+                if size>4*1024*1024 or total_bytes+size>16*1024*1024:
+                    result['copied_logs'].append({'source':str(path),'size':size,'skipped':'diagnostic size cap'})
+                    continue
+                digest=hashlib.sha256()
+                name=f'{index:03d}-{hashlib.sha256(str(path).encode()).hexdigest()[:12]}-{path.name}'
+                with path.open('rb') as source,(target/name).open('wb') as destination:
+                    while True:
+                        chunk=source.read(65536)
+                        if not chunk:break
+                        digest.update(chunk);destination.write(chunk)
+                total_bytes+=size
+                result['copied_logs'].append({'source':str(path),'copy':name,'size':size,
+                    'sha256':digest.hexdigest()})
+            except OSError as error:
+                result['copied_logs'].append({'source':str(path),'copy_error':type(error).__name__})
+        result['log_collection_limits']={'files_considered_max':48,'file_bytes_max':4194304,
+            'total_bytes_max':16777216,'bytes_copied':total_bytes}
+        temporary=target/'worldd-startup-diagnostic.json.tmp'
+        temporary.write_text(json.dumps(result,sort_keys=True,indent=2)+'\n')
+        temporary.replace(target/'worldd-startup-diagnostic.json')
+
     def management(self, method, **args):
         request=make_request(method,args); self.sequence+=1;request.request_id=self.sequence
         self.proc.stdin.write(frame(request));self.proc.stdin.flush()
-        reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+        try:
+            reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+        except EOFError:
+            try:self.capture_management_eof(method)
+            except Exception as diagnostic_error:
+                print('World startup diagnostic capture failed: '+type(diagnostic_error).__name__,file=sys.stderr)
+            raise
         if reply.HasField('error'): raise AssertionError(reply)
         if reply.request_id!=self.sequence: raise AssertionError('Wrong management reply identity')
         return result_value(reply)

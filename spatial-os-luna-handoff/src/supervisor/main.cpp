@@ -324,7 +324,8 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_arguments(std::to_string(config.broker_storage_target_fd()));
         }
         if (config.require_broker_confinement()) config.mutable_launch()->add_arguments("--production");
-        const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited);
+        const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO},
+            inherited, config.has_broker_native_target_fd() && config.has_broker_storage_owner());
         release_child_sources(config);
         storage_child.reset();
         if (config.has_broker_storage_owner()) {

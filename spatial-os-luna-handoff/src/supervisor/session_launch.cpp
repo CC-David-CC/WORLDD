@@ -6,6 +6,8 @@
 #include <google/protobuf/text_format.h>
 #include <climits>
 #include <csignal>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <linux/close_range.h>
 #include <sys/socket.h>
@@ -158,7 +160,24 @@ struct SessionLaunch::Impl {
         for (auto& arg : args) argv.push_back(arg.data());
         argv.push_back(nullptr);
         char env_path[] = "PATH=/usr/bin:/bin", env_lang[] = "LANG=C.UTF-8";
-        char* environment[]{env_path, env_lang, nullptr};
+        std::string diagnostic_environment;
+        char* environment[]{env_path, env_lang, nullptr, nullptr};
+#ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+        if (config.has_broker_native_target_fd() && config.has_broker_storage_owner()) {
+            const char* evidence = std::getenv("SPATIAL_SECURITY_EVIDENCE");
+            if (evidence && evidence[0] == '/' && strnlen(evidence, 4097) <= 4096) {
+                File evidence_directory(open(evidence, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+                struct stat evidence_stat{};
+                if (evidence_directory.value >= 0 && fstat(evidence_directory.value, &evidence_stat) == 0 &&
+                    S_ISDIR(evidence_stat.st_mode) && evidence_stat.st_uid == geteuid() &&
+                    !(evidence_stat.st_mode & 0077)) {
+                    diagnostic_environment = std::string("SPATIAL_SECURITY_EVIDENCE=") + evidence;
+                    environment[2] = diagnostic_environment.data();
+                    environment[3] = nullptr;
+                }
+            }
+        }
+#endif
         std::vector<int> inherited{sealed.value, mgmt.child.value};
         if (transfer) inherited.push_back(transfer->child.value);
         for (const auto fd : config.inherited_source_fds()) inherited.push_back(static_cast<int>(fd));

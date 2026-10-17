@@ -608,7 +608,8 @@ v1::AuthorityLaunchView AuthorityLaunch::prepare(const std::filesystem::path& ro
     return result;
 }
 v1::AuthorityLaunchRecord AuthorityLaunch::start(const v1::AuthorityProcessLaunch& request,
-    const std::array<int, 3>& streams, const std::vector<int>& inherited) {
+    const std::array<int, 3>& streams, const std::vector<int>& inherited,
+    bool allow_test_security_evidence) {
     require(impl_->record.stage() == v1::PREPARED && impl_->process && impl_->native, "No live prepared launch ownership");
     require(!impl_->stopping, "Launch cleanup has started");
     if (impl_->record.binding().supervised())
@@ -624,7 +625,7 @@ v1::AuthorityLaunchRecord AuthorityLaunch::start(const v1::AuthorityProcessLaunc
     } else impl_->bootstrap.clear();
     auto next = impl_->record; next.set_stage(v1::START_ATTEMPTED);
     impl_->persist(next); // A crash after this point must never replay execution.
-    try { impl_->process->start(actual, streams, descriptors); }
+    try { impl_->process->start(actual, streams, descriptors, allow_test_security_evidence); }
     catch (...) {
         if (impl_->relay_prepared) {
             impl_->relay_failed = true; impl_->relay.reset(); impl_->participant.reset();

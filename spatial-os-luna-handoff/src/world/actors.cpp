@@ -512,13 +512,281 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         const auto status = broker_->workspace_copy_status(request.workspace_copy_status(), *actor.principal);
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_copy_status() = status; return reply;
     }
-    case wire::ActorActionRequest::kCabinet:
-        throw WorldError(wire::UNIMPLEMENTED, "Cabinet file actions are not integrated");
+    case wire::ActorActionRequest::kCabinet: {
+        wire::ActorActionReply result;
+        result.set_accepted(true);
+        auto* cabinet = result.mutable_cabinet();
+        cabinet_action(actor, request.cabinet(), cabinet);
+        return result;
+    }
     case wire::ActorActionRequest::ACTION_NOT_SET:
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }
     wire::ActorActionReply result; result.set_accepted(true); return result;
 }
+void Actors::cabinet_action(Actor& actor, const workspace::v1::ActorCabinetRequest& input,
+                           workspace::v1::ActorCabinetReply* reply) {
+    using namespace workspace::v1;
+    using Right = authority::v1::Right;
+    if (!reply) throw std::invalid_argument("Missing cabinet reply storage");
+
+    // Prepare the no-metadata recovery envelope before any broker call can take effect.
+    const std::string operation_id = input.operation_id();
+    const std::string representation_id = input.representation_id();
+    const auto expected_generation = input.expected_generation();
+    reply->set_operation_id(operation_id);
+    reply->set_representation_id(representation_id);
+    reply->set_expected_generation(expected_generation);
+    reply->mutable_error()->set_code(FileActionError::UNCERTAIN);
+
+    if (operation_id.size() != 16 || representation_id.size() != 16 || expected_generation == 0 ||
+        input.ByteSizeLong() > 1100000 || input.action_case() == ActorCabinetRequest::ACTION_NOT_SET)
+        throw WorldError(wire::INVALID_ARGUMENT, "Invalid actor cabinet request");
+    if (!actor.principal) throw WorldError(wire::FORBIDDEN, "Authenticated workspace identity required");
+    if (!broker_) throw WorldError(wire::UNAVAILABLE, "Workspace file broker is unavailable");
+
+    // Snapshot identity before BrokerClient waits and pumps issuer/control traffic.
+    const std::string actor_token = actor.token;
+    const std::string actor_id = actor.entity.id();
+    const std::string source_room = actor.entity.room();
+    const std::string source_pose = actor.entity.pose().SerializeAsString();
+    const authority::v1::ActorRef principal = *actor.principal;
+    const std::vector<std::string> target_scope{source_room, representation_id};
+    const auto saved_context_current = [&]() {
+        const auto session = sessions_.find(actor_token);
+        return session != sessions_.end() && session->second == actor_id && actor.token == actor_token &&
+            actor.entity.id() == actor_id && actor.entity.room() == source_room &&
+            actor.entity.pose().SerializeAsString() == source_pose && actor.principal &&
+            actor.principal->SerializeAsString() == principal.SerializeAsString();
+    };
+    const auto same_binding = [](const wire::WorkspaceReply& a, const wire::WorkspaceReply& b) {
+        return a.id() == b.id() && a.worktree() == b.worktree() && a.revision() == b.revision();
+    };
+    if (!granted(actor, "observe", target_scope) || !granted(actor, "representation.view", target_scope))
+        throw WorldError(wire::FORBIDDEN, "Presentation visibility authority required");
+
+    WorkspacePresentation current;
+    try {
+        current = store_.presentation(representation_id);
+    } catch (const WorldError& error) {
+        if (error.code == wire::NOT_FOUND)
+            throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
+        throw;
+    }
+    if (current.room_id != source_room)
+        throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
+    if (current.generation != expected_generation)
+        throw WorldError(wire::STALE_TARGET, "Presentation generation changed");
+    if (current.workspace_id.empty())
+        throw WorldError(wire::UNAVAILABLE, "Presentation workspace binding is unavailable");
+    const auto camera = scene_pose(actor.entity.pose());
+    const auto target = scene_pose(current.pose);
+    if (std::hypot(target.p[0]-camera.p[0], target.p[1]-camera.p[1], target.p[2]-camera.p[2]) > config_.interaction_reach())
+        throw WorldError(wire::OUT_OF_REACH, "Presentation target exceeds interaction reach");
+
+    const auto observation = observe(actor, wire::ActorObserveRequest{});
+    if (!saved_context_current() || actor.entity.room() != observation.room() ||
+        actor.entity.pose().SerializeAsString() != observation.pose().SerializeAsString())
+        throw WorldError(wire::STALE_TARGET, "Actor session or context changed during cabinet visibility check");
+    const auto geometry_id = presentation_geometry_id(representation_id);
+    const auto visible = std::find_if(observation.visible().begin(), observation.visible().end(),
+        [&](const auto& item) { return item.id() == geometry_id && item.kind() == wire::OBJECT; });
+    if (visible == observation.visible().end() || visible->generation() != current.generation)
+        throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
+    WorkspacePresentation after_observe;
+    try {
+        after_observe = store_.presentation(representation_id);
+    } catch (const WorldError& error) {
+        if (error.code == wire::NOT_FOUND)
+            throw WorldError(wire::STALE_TARGET, "Presentation changed during visibility check");
+        throw;
+    }
+    if (after_observe.generation != current.generation || after_observe.room_id != current.room_id ||
+        after_observe.pose.SerializeAsString() != current.pose.SerializeAsString())
+        throw WorldError(wire::STALE_TARGET, "Presentation changed during visibility check");
+    if (!granted(actor, "observe", target_scope) || !granted(actor, "representation.view", target_scope))
+        throw WorldError(wire::FORBIDDEN, "Presentation visibility authority changed");
+    if (!granted(actor, "representation.use", target_scope))
+        throw WorldError(wire::FORBIDDEN, "Cabinet use authority required");
+    if (!saved_context_current())
+        throw WorldError(wire::UNAUTHORIZED, "Actor session or context changed before cabinet action");
+
+    const auto local_target_still_current = [&]() {
+        if (!saved_context_current() || !granted(actor, "observe", target_scope) ||
+            !granted(actor, "representation.view", target_scope) ||
+            !granted(actor, "representation.use", target_scope)) return false;
+        try {
+            const auto live = store_.presentation(representation_id);
+            const auto found = std::find_if(observation.visible().begin(), observation.visible().end(),
+                [&](const auto& item) { return item.id() == geometry_id && item.kind() == wire::OBJECT; });
+            return live.workspace_id == current.workspace_id && live.room_id == current.room_id &&
+                live.generation == current.generation && live.pose.SerializeAsString() == current.pose.SerializeAsString() &&
+                found != observation.visible().end() && found->generation() == current.generation;
+        } catch (...) { return false; }
+    };
+
+    wire::WorkspaceReply dispatch_binding;
+    try {
+        wire::Request query;
+        query.mutable_workspace_get()->set_id(current.workspace_id);
+        dispatch_binding = broker_->call(std::move(query)).workspace();
+    } catch (...) {
+        throw WorldError(wire::UNAVAILABLE, "Registered workspace binding is unavailable");
+    }
+    if (dispatch_binding.id() != current.workspace_id || dispatch_binding.worktree().empty() ||
+        !saved_context_current())
+        throw WorldError(wire::STALE_TARGET, "Workspace binding changed before cabinet action");
+
+    FileActionRequest private_request;
+    private_request.set_protocol_version(1);
+    private_request.set_operation_id(operation_id);
+    private_request.set_workspace_id(current.workspace_id);
+    *private_request.mutable_principal() = principal;
+    Right required = authority::v1::RIGHT_UNSPECIFIED;
+    bool effectful = true;
+    switch (input.action_case()) {
+    case ActorCabinetRequest::kBrowse:
+        *private_request.mutable_browse() = input.browse(); required = Right::FILE_BROWSE; effectful = false; break;
+    case ActorCabinetRequest::kRead:
+        *private_request.mutable_read() = input.read(); required = Right::FILE_READ; effectful = false; break;
+    case ActorCabinetRequest::kCreate:
+        *private_request.mutable_create() = input.create(); required = Right::FILE_CREATE; break;
+    case ActorCabinetRequest::kEdit:
+        *private_request.mutable_edit() = input.edit(); required = Right::FILE_EDIT; break;
+    case ActorCabinetRequest::kRename:
+        *private_request.mutable_rename() = input.rename(); required = Right::FILE_RENAME; break;
+    case ActorCabinetRequest::kMove:
+        *private_request.mutable_move() = input.move(); required = Right::FILE_MOVE; break;
+    case ActorCabinetRequest::kTrash:
+        *private_request.mutable_trash() = input.trash(); required = Right::FILE_TRASH; break;
+    case ActorCabinetRequest::kRestore:
+        *private_request.mutable_restore() = input.restore(); required = Right::FILE_RESTORE; break;
+    case ActorCabinetRequest::kPermanentDelete:
+        *private_request.mutable_permanent_delete() = input.permanent_delete(); required = Right::FILE_PERMANENT_DELETE; break;
+    case ActorCabinetRequest::kCopyJob:
+        *private_request.mutable_copy_job() = input.copy_job(); required = Right::FILE_COPY; break;
+    case ActorCabinetRequest::kTrashInspect:
+        *private_request.mutable_trash_inspect() = input.trash_inspect(); required = Right::FILE_BROWSE; effectful = false; break;
+    case ActorCabinetRequest::ACTION_NOT_SET:
+        throw WorldError(wire::INVALID_ARGUMENT, "No cabinet action selected");
+    }
+    if (required == authority::v1::RIGHT_UNSPECIFIED || private_request.ByteSizeLong() > 1100000)
+        throw WorldError(wire::INVALID_ARGUMENT, "Invalid private cabinet action");
+    if (!saved_context_current())
+        throw WorldError(wire::UNAUTHORIZED, "Actor session or context changed before cabinet delivery");
+    try {
+        wire::Request verify;
+        verify.mutable_workspace_get()->set_id(current.workspace_id);
+        const auto now_binding = broker_->call(std::move(verify)).workspace();
+        if (!same_binding(dispatch_binding, now_binding))
+            throw WorldError(wire::STALE_TARGET, "Workspace binding changed before cabinet delivery");
+        if (!local_target_still_current())
+            throw WorldError(wire::UNAUTHORIZED, "Actor authority or presentation changed before cabinet delivery");
+    } catch (const WorldError&) { throw; }
+      catch (...) { throw WorldError(wire::UNAVAILABLE, "Registered workspace binding is unavailable"); }
+
+    std::optional<FileActionReply> file_result;
+    try {
+        file_result.emplace(broker_->file_action(private_request));
+    } catch (const WorldError&) {
+        // BrokerClient throws a controlled rejection only before possible delivery.
+        reply->mutable_error()->set_code(FileActionError::UNAVAILABLE);
+        return;
+    } catch (...) {
+        // A failure moving or retaining a possibly delivered reply keeps the prepared UNCERTAIN outcome.
+        return;
+    }
+    const auto& received = *file_result;
+
+    const bool broker_error = received.has_error();
+    const auto broker_error_code = broker_error &&
+        FileActionError::Code_IsValid(received.error().code()) &&
+        received.error().code() != FileActionError::CODE_UNSPECIFIED
+        ? received.error().code() : FileActionError::UNAVAILABLE;
+
+    // Revalidate authority and all public bindings after the broker may have waited.
+    // Any failure here follows possible delivery, so effects retain the prepared UNCERTAIN envelope.
+    bool current_authority = false;
+    try {
+        const auto post_observation = observe(actor, wire::ActorObserveRequest{});
+        wire::Request query;
+        query.mutable_workspace_get()->set_id(current.workspace_id);
+        const auto after_effect_binding = broker_->call(std::move(query)).workspace();
+        const bool binding_matches = same_binding(dispatch_binding, after_effect_binding) &&
+            after_effect_binding.id() == current.workspace_id;
+
+        broker_wire::ScopedAuthorityCheckRequest check;
+        check.set_workspace(current.workspace_id);
+        *check.mutable_principal() = principal;
+        check.set_right(required);
+        check.add_components(dispatch_binding.worktree());
+        const auto decision = broker_->scoped_authority_check(check);
+
+        wire::Request confirm;
+        confirm.mutable_workspace_get()->set_id(current.workspace_id);
+        const auto confirmed_binding = broker_->call(std::move(confirm)).workspace();
+        broker_wire::AuthorizationFenceRequest fence_request;
+        *fence_request.mutable_principal() = principal;
+        const auto fence = broker_->authorization_fence(fence_request);
+        const bool authority_stable = decision.allowed() &&
+            decision.incarnation() == fence.incarnation() && decision.epoch() == fence.epoch();
+
+        // granted() consults only the local world authority store. Do it before
+        // the final identity/context/target comparison, which is the last operation.
+        const bool local_rights = granted(actor, "observe", target_scope) &&
+            granted(actor, "representation.view", target_scope) &&
+            granted(actor, "representation.use", target_scope);
+        const auto session = sessions_.find(actor_token);
+        const bool session_matches = session != sessions_.end() && session->second == actor_id &&
+            actor.token == actor_token && actor.entity.id() == actor_id && actor.principal &&
+            actor.principal->SerializeAsString() == principal.SerializeAsString() &&
+            actor.entity.room() == source_room && actor.entity.pose().SerializeAsString() == source_pose;
+        const auto live = store_.presentation(representation_id);
+        const auto post_visible = std::find_if(post_observation.visible().begin(), post_observation.visible().end(),
+            [&](const auto& item) { return item.id() == geometry_id && item.kind() == wire::OBJECT; });
+        const bool target_matches = live.workspace_id == current.workspace_id && live.room_id == current.room_id &&
+            live.generation == current.generation && live.pose.SerializeAsString() == current.pose.SerializeAsString() &&
+            post_observation.room() == source_room && post_observation.pose().SerializeAsString() == source_pose &&
+            post_visible != post_observation.visible().end() && post_visible->generation() == current.generation;
+        current_authority = binding_matches && same_binding(after_effect_binding, confirmed_binding) &&
+            authority_stable && local_rights && session_matches && target_matches;
+    } catch (...) {
+        current_authority = false;
+    }
+    if (!current_authority) {
+        reply->mutable_error()->set_code(effectful ? FileActionError::UNCERTAIN : FileActionError::UNAUTHORIZED);
+        return;
+    }
+    if (broker_error) {
+        // Project a file-state code only while the actor still has cabinet authority.
+        // The actor-facing envelope intentionally omits FileActionError.detail.
+        reply->mutable_error()->set_code(broker_error_code);
+        return;
+    }
+
+    try {
+        ActorCabinetReply projected;
+        projected.set_operation_id(operation_id);
+        projected.set_representation_id(representation_id);
+        projected.set_expected_generation(expected_generation);
+        if (received.has_directory()) *projected.mutable_directory() = received.directory();
+        else if (received.has_content()) *projected.mutable_content() = received.content();
+        else if (received.has_object()) *projected.mutable_object() = received.object();
+        else if (received.has_trash()) *projected.mutable_trash() = received.trash();
+        else if (received.has_trash_entry()) *projected.mutable_trash_entry() = received.trash_entry();
+        else if (received.has_copy_job()) {
+            *projected.mutable_copy_job() = received.copy_job();
+            projected.mutable_copy_job()->clear_detail();
+        } else {
+            reply->mutable_error()->set_code(effectful ? FileActionError::UNCERTAIN : FileActionError::UNAVAILABLE);
+            return;
+        }
+        reply->Swap(&projected);
+    } catch (...) {
+        // Keep the preallocated UNCERTAIN envelope if result projection allocates or fails.
+    }
+}
+
 void Actors::release_input(Actor& actor, bool close, bool keep_reservation) {
     close = close || actor.close_pending;
     if (renderer_ && !actor.native.actor_id().empty()) {
