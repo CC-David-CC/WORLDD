@@ -77,7 +77,9 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
                         pending.append((Path(entry.path), depth + 1))
                     elif entry.is_file(follow_symlinks=False) and (not logs_only or entry.name.endswith('.log')):
                         files.append(Path(entry.path))
-                        self.assertLessEqual(len(files), 48,
+                        # The file cap includes private broker diagnostics. The 16 MiB
+                        # aggregate and 4 MiB per-file caps keep 64 entries bounded.
+                        self.assertLessEqual(len(files), 64,
                                              f'evidence scan exceeds file bound: {root}')
         return files
 
@@ -391,10 +393,8 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
     def test_actor_cabinet_gateway_rejects_actor_movement_during_binding_wait(self):
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer, x=1.8)
+        target = self.make_presentation(world, peer)
         path = self.project / 'movement-during-wait-must-not-write.txt'
-        moving = peer.act(input=core.ActorInputRequest(axes=[-1, 0, 0, 0, 0, 0]))
-        self.assertTrue(moving.HasField('action'), moving)
         initial_reply = peer.call(inspect=session.WorldSessionInspect())
         self.assertTrue(initial_reply.HasField('state'), initial_reply)
         initial_pose = initial_reply.state.pose
@@ -408,6 +408,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 
         initial_distance = distance_from_target(initial_pose)
         self.assertLess(initial_distance, 3.0, 'fixture target must start within configured interaction reach')
+        operation = os.urandom(16)
 
         original_exchange = self.broker.exchange
         binding_wait_started = threading.Event()
@@ -428,7 +429,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 
         def create():
             try:
-                result_box.append(peer.act(cabinet=self.cabinet_request(target,
+                result_box.append(peer.act(cabinet=self.cabinet_request(target, operation_id=operation,
                     create=cabinet.FileCreate(directory_handle=b'', basename=path.name.encode(), content=b'x'))))
             except BaseException as error:
                 worker_errors.append(error)
@@ -440,6 +441,8 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             worker.start()
             worker_started = True
             self.assertTrue(binding_wait_started.wait(3), 'gateway did not reach its registered binding query')
+            moving = peer.act(input=core.ActorInputRequest(axes=[-1, 0, 0, 0, 0, 0]))
+            self.assertTrue(moving.HasField('action'), moving)
             # BrokerClient pumps actor ticks while waiting. The prior motion intent expires
             # after 250 ms and moves the actor beyond the target's three metre reach.
             time.sleep(.4)
@@ -462,6 +465,12 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertTrue(result_box[0].HasField('error'), result_box[0])
         self.assertEqual(result_box[0].error.code, core.STALE_TARGET)
         self.assertFalse(path.exists())
+        journal = self.execution / 'file-operations' / 'file-operations.db'
+        if journal.exists():
+            with sqlite3.connect(f'file:{journal}?mode=ro', uri=True) as db:
+                row = db.execute('SELECT state FROM file_operations WHERE workspace=? AND operation=?',
+                                 ('one', operation)).fetchone()
+            self.assertIsNone(row, 'stale actor context must not create a file-operation journal row')
 
     def test_actor_cabinet_gateway_revocation_after_effect_suppresses_metadata(self):
         self.enroll_second()
