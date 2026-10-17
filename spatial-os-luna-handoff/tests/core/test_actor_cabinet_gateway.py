@@ -408,6 +408,10 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 
         initial_distance = distance_from_target(initial_pose)
         self.assertLess(initial_distance, 3.0, 'fixture target must start within configured interaction reach')
+        # Queue motion before the cabinet call blocks the session event loop. Do not
+        # issue another request through this SessionPeer while its worker is active.
+        moving = peer.act(input=core.ActorInputRequest(axes=[-1, 0, 0, 0, 0, 0]))
+        self.assertTrue(moving.HasField('action'), moving)
         operation = os.urandom(16)
 
         original_exchange = self.broker.exchange
@@ -423,7 +427,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
                     request.management.workspace_get.id == 'one' and not injected['binding_wait']):
                 injected['binding_wait'] = True
                 binding_wait_started.set()
-                if not release_binding.wait(3):
+                if not release_binding.wait(5):
                     raise AssertionError('bounded workspace binding barrier was not released')
             return original_exchange(request)
 
@@ -441,11 +445,10 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             worker.start()
             worker_started = True
             self.assertTrue(binding_wait_started.wait(3), 'gateway did not reach its registered binding query')
-            moving = peer.act(input=core.ActorInputRequest(axes=[-1, 0, 0, 0, 0, 0]))
-            self.assertTrue(moving.HasField('action'), moving)
-            # BrokerClient pumps actor ticks while waiting. The prior motion intent expires
-            # after 250 ms and moves the actor beyond the target's three metre reach.
-            time.sleep(.4)
+            # BrokerClient pumps actor ticks while waiting. The conformance input
+            # timeout is 10 seconds here; 2.7 seconds of ticks moves the actor beyond
+            # the target's three metre reach while the binding barrier remains held.
+            time.sleep(2.7)
         finally:
             release_binding.set()
             self.broker.exchange = original_exchange
