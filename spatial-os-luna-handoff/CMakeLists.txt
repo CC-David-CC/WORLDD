@@ -744,6 +744,8 @@ if(BUILD_TESTING)
             broker-python-protobuf world-session-python-protobuf spatial-process-scope-probe
             spatial-security-auth)
     add_test(NAME workspace-actor-cabinet-gateway COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_private_test_evidence.py"
+        --root "${CMAKE_CURRENT_BINARY_DIR}/actor-cabinet-private-evidence" --
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"

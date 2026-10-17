@@ -1,0 +1,25 @@
+# M08 gateway repair checkpoint — UNQUALIFIED
+
+Date: 2026-10-17
+Branch: m08/gateway-runtime-repair-20261017
+Base: 90aa231
+
+The registered-worktree-path correction passed a focused diagnostic on both qualification hosts. The 16-case gateway suite ran on both hosts. Each host reported 12 passed and 4 failed. This checkpoint is not qualified.
+
+Package:
+- r14 SHA-256: 000caab51c8f824c846e53334793f8c2cb05a9e724e7fb94fc696d6d3fbc3c91
+
+Runtime evidence:
+- sb16: /home/dflanag3/spatial-artifacts/m08-gateway-runtime-repair-20261017/ctest-stage-r14-gateway-suite-sb16/Testing/Temporary/LastTest.log
+- sb16-2: /home/dflanag3/spatial-artifacts/m08-gateway-runtime-repair-20261017/ctest-stage-r14-gateway-suite-sb16-2/Testing/Temporary/LastTest.log
+- Per-host command receipts: run-debug-r14-gateway-suite-sb16-01/command.exit and run-debug-r14-gateway-suite-sb16-2-01/command.exit
+
+The same four failures reproduced on both hosts:
+1. private_stale_error_diagnostic — the private evidence tree has 49 files. The current bound is 48. The added file is broker-file-action-private.log; retain the bounded privacy scan.
+2. rejects_actor_movement_during_binding_wait — the test does not reach its binding-query barrier within 3 seconds. An earlier r7 run shows the actor starts at the edge of reach. Re-establish a reachable initial pose with margin, then prove movement during the held query makes the request fail before dispatch.
+3. revocation_after_effect_suppresses_metadata — the file effect and journal row exist, but the test completion marker is missing. ResourceBroker forwards only ASAN_OPTIONS and UBSAN_OPTIONS to workspaced. The journal test hooks are dropped.
+4. revocation_during_observation_is_clean_rejection — expected FORBIDDEN, received UNAUTHORIZED with “Issuer revocation invalidated the in-flight broker result.” Revoking an ancestor grant invalidates the requester's effective grant, while the requester's own credential and session remain active.
+
+The sb16-2 launcher required two setup corrections before tests ran. The initial failures were missing generated PYTHONPATH and an incorrect nested package script path. They were setup failures, not test failures.
+
+Next: fix each root cause without weakening assertions. Rebuild and rerun the focused gateway suite on both hosts. Then run focused sanitizer checks for the changed authority and process paths. M08 remains active and unqualified.

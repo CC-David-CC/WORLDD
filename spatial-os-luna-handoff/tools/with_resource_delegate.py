@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Run selected checks in a bounded transient system service on an authorized host."""
 import json
 import os

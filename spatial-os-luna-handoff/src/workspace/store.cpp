@@ -389,9 +389,9 @@ struct ExecutionStore::Impl {
         const auto id=registered.id();
         if(invalid_file_worktrees.contains(id))
             throw FileRootStale("store.cached_root_previously_invalidated");
-        const auto path=(state/"worktrees"/id).string();
-        if(registered.path()!=path)
-            throw WorldError(wire::STORAGE_ERROR,"Registered project path differs from its pinned identity");
+        const auto managed_path=managed(registered.path(),"worktrees");
+        const auto path=managed_path.string();
+        const auto path_component=managed_path.filename().string();
         const auto found=file_engines.find(id);
         struct stat current{};
         if(found!=file_engines.end()) {
@@ -417,7 +417,7 @@ struct ExecutionStore::Impl {
         if(root_parent.fd<0)throw FileRootStale("store.worktrees_parent_open_failed");
         open_how how{}; how.flags=O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW;
         how.resolve=RESOLVE_BENEATH|RESOLVE_NO_SYMLINKS|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_XDEV;
-        File root; root.fd=static_cast<int>(syscall(SYS_openat2,root_parent.fd,id.c_str(),&how,sizeof(how)));
+        File root; root.fd=static_cast<int>(syscall(SYS_openat2,root_parent.fd,path_component.c_str(),&how,sizeof(how)));
         if(root.fd<0 || fstat(root.fd,&current)!=0 || !S_ISDIR(current.st_mode))
             throw FileRootStale("store.registered_root_open_failed");
         if(storage) {
@@ -1162,7 +1162,7 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         registered.text(1,worktree_id);
         if(registered.step()!=SQLITE_ROW || registered.text(1)!="ready")
             return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project is unavailable or not ready");
-        const auto expected_path=(impl_->state/"worktrees"/worktree_id).string();
+        const auto expected_path=impl_->managed(registered.text(0),"worktrees").string();
         struct stat project_path{};
         if(lstat(expected_path.c_str(),&project_path)!=0 || !S_ISDIR(project_path.st_mode) || S_ISLNK(project_path.st_mode)) {
             auto failure=file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root is missing or unsafe",true);

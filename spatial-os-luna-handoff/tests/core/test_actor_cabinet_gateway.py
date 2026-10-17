@@ -47,13 +47,13 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             fields = dict(part.split('=', 1) for part in line.split())
             if fields.get('operation_id') == operation_id.hex():
                 matches.append(fields)
-        self.assertEqual(len(matches), 1, matches)
+        self.assertEqual(len(matches), 1, 'expected one bounded private diagnostic record')
         fields = matches[0]
         self.assertEqual(fields.get('code'), 'STALE_HANDLE')
         if expected_source is not None:
             self.assertEqual(fields.get('source'), expected_source)
         detail = bytes.fromhex(fields['detail_hex']).decode('utf-8')
-        self.assertTrue(detail)
+        self.assertTrue(detail, 'private diagnostic detail is empty')
         return detail
 
     def bounded_tree_files(self, root, *, logs_only=False, reject_symlinks=False):
@@ -151,7 +151,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
         self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room, target.representation_id])
         self.world_grant_second(world, [grant.REPRESENTATION_USE], components=[room, target.representation_id])
-        self.workspace_grant_second_domain(world, 'two', [grant.WORKSPACE_SELECT, grant.FILE_CREATE])
+        self.workspace_grant_second_domain(world, 'two', [grant.WORKSPACE_ACCESS, grant.FILE_CREATE])
         self.assertTrue(self.authenticate_second(peer).HasField('opened'))
         observation = peer.act(observe=core.ActorObserveRequest())
         self.assertTrue(observation.HasField('action'), observation)
@@ -186,12 +186,79 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         world = self.workspace(policy=['workspace.select', 'files.read'])
         peer = world.peers[0]
         target = self.make_presentation(world, peer)
-        denied = peer.act(cabinet=self.cabinet_request(target,
+        operation = os.urandom(16)
+        denied = peer.act(cabinet=self.cabinet_request(target, operation,
             create=cabinet.FileCreate(directory_handle=b'', basename=b'policy-denied.txt', content=b'x')))
         self.assertTrue(denied.HasField('action'), denied)
         self.assertTrue(denied.action.cabinet.HasField('error'), denied)
         self.assertEqual(denied.action.cabinet.error.code, cabinet.FileActionError.UNAUTHORIZED)
         self.assertFalse((self.project / 'policy-denied.txt').exists())
+        journal = self.execution / 'file-operations' / 'file-operations.db'
+        if journal.exists():
+            with sqlite3.connect(f'file:{journal}?mode=ro', uri=True) as db:
+                row = db.execute('SELECT state FROM file_operations WHERE workspace=? AND operation=?',
+                                 ('one', operation)).fetchone()
+            self.assertIsNone(row, 'policy denial must happen before durable file-operation dispatch')
+
+    def test_actor_cabinet_gateway_policy_denial_stays_unauthorized_after_use_revocation(self):
+        self.enroll_second()
+        race = {}
+        relay, release_broker_feed = self.world_grant_race(race)
+        world = self.workspace(policy=['workspace.select', 'files.read'], issuer_port=relay.port)
+        owner = world.peers[0]
+        target = self.make_presentation(world, owner)
+        peer = self.prepare_ancestor_revocable_use_actor(world, target, race)
+        operation = os.urandom(16)
+        path = self.project / 'policy-denied-during-revocation.txt'
+        original, held, release, error_codes, barrier_errors = self.hold_broker_file_error(operation)
+        result_box, worker_errors = [], []
+
+        def create():
+            try:
+                result_box.append(peer.act(cabinet=self.cabinet_request(target, operation,
+                    create=cabinet.FileCreate(directory_handle=b'', basename=path.name.encode(), content=b'x'))))
+            except BaseException as error:
+                worker_errors.append(error)
+
+        worker = threading.Thread(target=create)
+        worker_started = False
+        try:
+            worker.start()
+            worker_started = True
+            self.assertTrue(held.wait(5), 'broker did not return the workspace-policy denial')
+            self.assertEqual(error_codes, [cabinet.FileActionError.UNAUTHORIZED], barrier_errors)
+            self.revoke_world_grant_ancestor(race['ancestor'])
+            self.assertTrue(self.world_watch_relay.delivered.wait(.5),
+                            'representation-use revocation did not reach worldd')
+            release_broker_feed.set()
+            time.sleep(.08)
+            release.set()
+            worker.join(5)
+            self.assertFalse(worker.is_alive(), 'policy-denied request did not finish after feed release')
+        finally:
+            release_broker_feed.set()
+            release.set()
+            self.broker.exchange = original
+            if worker_started:
+                self.stop_actor_worker(peer, worker, (release_broker_feed, release))
+        self.assertFalse(worker_errors, worker_errors)
+        self.assertFalse(barrier_errors, barrier_errors)
+        self.assertEqual(len(result_box), 1)
+        result = result_box[0]
+        self.assertTrue(result.HasField('action'), result)
+        failure = result.action.cabinet
+        self.assertTrue(failure.HasField('error'), failure)
+        self.assertEqual(failure.error.code, cabinet.FileActionError.UNAUTHORIZED)
+        self.assertEqual(failure.operation_id, operation)
+        self.assertFalse(path.exists())
+        journal = self.execution / 'file-operations' / 'file-operations.db'
+        if journal.exists():
+            with sqlite3.connect(f'file:{journal}?mode=ro', uri=True) as db:
+                row = db.execute('SELECT state FROM file_operations WHERE workspace=? AND operation=?',
+                                 ('one', operation)).fetchone()
+            self.assertIsNone(row, 'policy denial must remain before durable file-operation dispatch')
+        self.assertFalse(relay.errors)
+        self.assertFalse(self.world_watch_relay.errors)
 
     def test_actor_cabinet_gateway_hidden_use_stale_and_reach_guards(self):
         self.enroll_second()
@@ -230,6 +297,22 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         world = self.workspace()
         peer = world.peers[0]
         target = self.make_presentation(world, peer)
+        binding = self.broker.call('workspace.get', id='one')
+        worktree_id = binding['worktree']
+        expected_root = self.project
+        process_root = Path(f'/proc/{self.broker.pid}/root') / str(expected_root).lstrip('/')
+        self.assertEqual(expected_root.parent, Path(self.execution) / 'worktrees',
+                         f'workspace path escaped its managed root: state={self.execution} '
+                         f'worktree={worktree_id} project={self.project}')
+        for label, candidate in (('host', expected_root), ('workspaced', process_root)):
+            try:
+                mode = candidate.lstat().st_mode
+            except OSError as error:
+                self.fail(f'{label} registered root is missing: candidate={candidate} error={error!r}; '
+                          f'workspaced_pid={self.broker.pid} state={self.execution} worktree={worktree_id}')
+            self.assertTrue(stat.S_ISDIR(mode) and not stat.S_ISLNK(mode),
+                            f'{label} registered root is unsafe: candidate={candidate} '
+                            f'mode={oct(mode)} workspaced_pid={self.broker.pid}')
         request = self.cabinet_request(target,
             create=cabinet.FileCreate(directory_handle=os.urandom(16),
                 basename=b'diagnostic-control.txt', content=b'never written'))
@@ -285,9 +368,11 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             if request.HasField('file_action'):
                 injected['file_action'] = True
             response = original_exchange(request)
-            if request.HasField('workspace_get') and request.workspace_get.id == 'one' and not injected['wrong_binding']:
-                self.assertTrue(response.HasField('workspace'), response)
-                response.workspace.id = 'different-workspace'
+            if (request.HasField('management') and request.management.HasField('workspace_get') and
+                    request.management.workspace_get.id == 'one' and not injected['wrong_binding']):
+                self.assertTrue(response.HasField('management'), response)
+                self.assertTrue(response.management.HasField('workspace'), response)
+                response.management.workspace.id = 'different-workspace'
                 injected['wrong_binding'] = True
             return response
 
@@ -306,7 +391,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
     def test_actor_cabinet_gateway_rejects_actor_movement_during_binding_wait(self):
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer, x=2.2)
+        target = self.make_presentation(world, peer, x=1.8)
         path = self.project / 'movement-during-wait-must-not-write.txt'
         moving = peer.act(input=core.ActorInputRequest(axes=[-1, 0, 0, 0, 0, 0]))
         self.assertTrue(moving.HasField('action'), moving)
@@ -333,7 +418,8 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         def exchange_with_binding_barrier(request):
             if request.HasField('file_action'):
                 injected['file_action'] = True
-            if request.HasField('workspace_get') and request.workspace_get.id == 'one' and not injected['binding_wait']:
+            if (request.HasField('management') and request.management.HasField('workspace_get') and
+                    request.management.workspace_get.id == 'one' and not injected['binding_wait']):
                 injected['binding_wait'] = True
                 binding_wait_started.set()
                 if not release_binding.wait(3):
@@ -453,11 +539,10 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
                 release_broker_feed.set()
 
     def registered_worktree_component(self, workspace_id):
-        binding = self.broker.request(workspace_get=core.WorkspaceIdRequest(id=workspace_id))
-        self.assertTrue(binding.HasField('workspace'), binding)
-        self.assertEqual(binding.workspace.id, workspace_id)
-        self.assertTrue(binding.workspace.worktree, binding)
-        return binding.workspace.worktree.encode('utf-8')
+        binding = self.broker.call('workspace.get', id=workspace_id)
+        self.assertEqual(binding['id'], workspace_id)
+        self.assertTrue(binding['worktree'])
+        return binding['worktree'].encode('utf-8')
 
     def prepare_ancestor_revocable_use_actor(self, world, target, race):
         race['ancestor'] = self.world_grant_second_via_ancestor(world)
@@ -593,7 +678,13 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             self.assertEqual(len(result_box), 1)
             denied = result_box[0]
             self.assertTrue(denied.HasField('error'), denied)
-            self.assertEqual(denied.error.code, core.FORBIDDEN)
+            branch_evidence = (f'branch=pre_dispatch_observation status_seen={relay.status_seen} '
+                f'observation_verified={observation_phase_seen.is_set()} '
+                f'watch_delivered={self.world_watch_relay.delivered.is_set()} '
+                f'world_watch_errors={len(self.world_watch_relay.errors)} '
+                f'broker_relay_errors={len(relay.errors)} result_code={denied.error.code} '
+                f'result_message={denied.error.message[:160]!r}')
+            self.assertEqual(denied.error.code, core.FORBIDDEN, branch_evidence)
             self.assertFalse(path.exists(), 'revoked presentation-use grant must stop before file dispatch')
             self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'),
                             'ancestor revocation must preserve the authenticated actor session')

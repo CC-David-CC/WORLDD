@@ -754,7 +754,10 @@ void Actors::cabinet_action(Actor& actor, const workspace::v1::ActorCabinetReque
         current_authority = false;
     }
     if (!current_authority) {
-        reply->mutable_error()->set_code(effectful ? FileActionError::UNCERTAIN : FileActionError::UNAUTHORIZED);
+        const bool broker_confirmed_no_effect = broker_error &&
+            broker_error_code == FileActionError::UNAUTHORIZED;
+        reply->mutable_error()->set_code(broker_confirmed_no_effect || !effectful
+            ? FileActionError::UNAUTHORIZED : FileActionError::UNCERTAIN);
         return;
     }
     if (broker_error) {

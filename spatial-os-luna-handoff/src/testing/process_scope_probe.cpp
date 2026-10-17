@@ -90,7 +90,12 @@ int main(int argc, char** argv) {
                         *reply.mutable_state() = process->state();
                     }
                 } else if (request.has_start() && process) {
+#ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+                    process->start(request.start(), {empty, empty, empty}, inherited,
+                                   mode == "test-security-evidence");
+#else
                     process->start(request.start(), {empty, empty, empty}, inherited);
+#endif
                     release_inherited();
                     *reply.mutable_state() = process->state();
                 } else if (request.has_state() && process) *reply.mutable_state() = process->state();
