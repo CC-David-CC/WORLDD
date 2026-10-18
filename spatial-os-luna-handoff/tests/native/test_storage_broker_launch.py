@@ -2,6 +2,7 @@
 
 Run with sudo on an authorized host. Retain the dedicated image after detaching it.
 """
+import fcntl
 import hashlib
 import json
 import os
@@ -61,12 +62,16 @@ def run(argv):
     return reply.stdout.strip()
 
 
-def create_volume(path):
+def create_volume(path, loop_device=None):
     path = Path(path)
     image = root/(path.name+'.img')
     path.mkdir()
     with image.open('xb') as output: output.truncate(512*mib)
-    loop = run(['losetup', '--find', '--show', image])
+    if loop_device is None:
+        loop = run(['losetup', '--find', '--show', image])
+    else:
+        loop = str(loop_device)
+        run(['losetup', loop, image])
     # Register the loop before mkfs/mount/blkid can fail. The finalizer can then
     # detach it even when setup stops before a usable volume is published.
     loop_devices.append(loop)
@@ -350,6 +355,34 @@ try:
     assert_owned_scopes_empty_for_state(parent_state)
     assert not any(path.name.startswith('authority-broker-') for path in alternate.iterdir())
     record['results']['same_boot_parent_change_fails_closed'] = dict(passed=True)
+    # Legacy records cannot prove the filesystem binding. Refuse them rather
+    # than silently accepting an unverified replacement during an upgrade.
+    parent_identity=(parent_state/'.broker-instance-id').read_text()
+    assert re.fullmatch('[a-f0-9]{32}',parent_identity)
+    registry_path=instance_registry/(parent_identity+'.lock')
+    original_registry=registry_path.read_bytes()
+    fields=original_registry.decode('ascii').split()
+    assert len(fields)==9 and fields[0]=='v2', fields
+    legacy_registry=(' '.join(['v1',*fields[1:6],fields[8]])).encode('ascii')
+    def replace_registry(contents):
+        with registry_path.open('r+b') as output:
+            fcntl.flock(output,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            output.seek(0); output.write(contents); output.truncate(); output.flush(); os.fsync(output.fileno())
+    try:
+        replace_registry(legacy_registry)
+        legacy,legacy_log=spawn('legacy-registry-rejected',state=parent_state)
+        legacy.stdin.close()
+        assert legacy.wait(timeout=15)==2, legacy_log.read_text(errors='replace')
+        legacy.stdout.close();children.remove(legacy)
+        assert 'Host-local broker identity lacks filesystem identity; operator re-registration is required' in legacy_log.read_text(errors='replace')
+        assert 'Storage owner unit:' not in legacy_log.read_text(errors='replace')
+        assert_owned_scopes_empty_for_state(parent_state)
+    finally:
+        replace_registry(original_registry)
+    restored,restored_log=spawn('restored-v2-registry',state=parent_state)
+    assert call(restored,'hello',core.HelloRequest()).hello.implementation == 'production'
+    finish(restored,state=parent_state)
+    record['results']['legacy_registry_fails_closed_and_v2_restart_survives'] = dict(passed=True)
     original,original_log=spawn('replacement-original',state=replacement_state)
     assert call(original,'hello',core.HelloRequest()).hello.implementation == 'production'
     replacement_scope=owned_scope(replacement_state)
@@ -358,18 +391,30 @@ try:
     saved_identity=root/'replaced-state-identity.copy'
     shutil.copyfile(replacement_state/'.broker-instance-id', saved_identity)
     old_image=volume_info[replacement_state.resolve()]['image']
+    old_loop=volume_info[replacement_state.resolve()]['loop']
+    old_fs_id=volume_info[replacement_state.resolve()]['filesystem_id']
+    old_stat=replacement_state.stat()
     detach_volume(replacement_state)
     replacement_state.rename(displaced)
     old_image.rename(root/'replaced-state-old.img')
-    create_volume(replacement_state)
+    create_volume(replacement_state, loop_device=old_loop)
+    new_fs_id=volume_info[replacement_state.resolve()]['filesystem_id']
+    new_stat=replacement_state.stat()
+    assert new_fs_id != old_fs_id, 'Replacement Btrfs filesystem must have a new UUID'
+    assert (new_stat.st_dev,new_stat.st_ino)==(old_stat.st_dev,old_stat.st_ino), (
+        'Replacement fixture must reuse the state device and inode to isolate filesystem identity')
+    record['replacement_filesystem_identity'] = dict(old_uuid=str(uuid.UUID(bytes=old_fs_id)),
+        new_uuid=str(uuid.UUID(bytes=new_fs_id)), same_device_inode=True, loop_device=old_loop)
+    save()
     shutil.copyfile(saved_identity, replacement_state/'.broker-instance-id')
     os.chown(replacement_state/'.broker-instance-id',uid,gid); (replacement_state/'.broker-instance-id').chmod(0o600)
     replaced,replaced_log=spawn('replacement-rejected',state=replacement_state)
+    replaced.stdin.close()
     assert replaced.wait(timeout=15)==2, replaced_log.read_text(errors='replace')
-    replaced.stdin.close();replaced.stdout.close();children.remove(replaced)
-    assert 'Broker state directory was replaced at its registered path' in replaced_log.read_text(errors='replace')
+    replaced.stdout.close();children.remove(replaced)
+    assert 'Broker state filesystem was replaced at its registered path' in replaced_log.read_text(errors='replace')
     assert populated_value((replacement_scope/'cgroup.events').read_text()) == 0
-    record['results']['same_path_replaced_state_inode_fails_closed'] = dict(passed=True)
+    record['results']['same_path_reformatted_filesystem_fails_closed'] = dict(passed=True)
     # Cancel at the real readiness boundary after the service is active.
     owner_policy.broker_uid = uid
     policy = policy_root/'cancel-ready.pb'; policy.write_bytes(owner_policy.SerializeToString())

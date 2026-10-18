@@ -12,15 +12,20 @@
 #include <algorithm>
 #include <cerrno>
 #include <csignal>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
+#include <linux/btrfs.h>
 #include <linux/fs.h>
+#include <linux/magic.h>
 #include <poll.h>
 #include <sys/prctl.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/random.h>
 #include <sys/socket.h>
+#include <sys/statfs.h>
+#include <sys/ioctl.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -113,6 +118,22 @@ class BrokerInstanceLock {
         for (unsigned char c:path) {result.push_back(hex[c>>4]);result.push_back(hex[c&15]);}
         return result;
     }
+    static std::string filesystem_identity(int descriptor, unsigned long long& filesystem_type) {
+        struct statfs filesystem{};
+        if (fstatfs(descriptor, &filesystem) != 0)
+            throw std::runtime_error("Cannot inspect broker state filesystem identity");
+        filesystem_type = static_cast<unsigned long long>(filesystem.f_type);
+        std::string identity;
+        if (filesystem.f_type == BTRFS_SUPER_MAGIC) {
+            btrfs_ioctl_fs_info_args info{};
+            if (ioctl(descriptor, BTRFS_IOC_FS_INFO, &info) != 0)
+                throw std::runtime_error("Cannot read Btrfs broker state filesystem identity");
+            identity.assign(reinterpret_cast<const char*>(info.fsid), BTRFS_FSID_SIZE);
+        } else {
+            identity.assign(reinterpret_cast<const char*>(&filesystem.f_fsid), sizeof(filesystem.f_fsid));
+        }
+        return encode_path(identity);
+    }
     static std::string read_all(int fd) {
         if (lseek(fd,0,SEEK_SET)<0) throw std::runtime_error("Cannot seek broker ownership record");
         std::string result; char bytes[1024];
@@ -135,6 +156,8 @@ public:
         struct stat dir_stat{};
         if(fstat(directory.value,&dir_stat)!=0||dir_stat.st_uid!=geteuid()||(dir_stat.st_mode&0022))
             throw std::invalid_argument("Broker state directory ownership is invalid");
+        unsigned long long filesystem_type=0;
+        const auto encoded_filesystem=filesystem_identity(directory.value,filesystem_type);
         const auto canonical_state=std::filesystem::canonical(state).string();
         identity::tls_detail::Fd state_lock(openat(directory.value,".broker-instance.lock",O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC,0600));
         if(state_lock.value<0||flock(state_lock.value,LOCK_EX|LOCK_NB)!=0)
@@ -184,13 +207,16 @@ public:
                 throw std::invalid_argument("Host-local broker identity lock is invalid");
             const bool locked=flock(host_lock.value,LOCK_EX|LOCK_NB)==0;
             const auto record=read_all(host_lock.value);
-            std::string record_boot, record_path;
-            unsigned long long parent_dev=0,parent_ino=0,state_dev=0,state_ino=0;
+            std::string record_boot, record_path, record_filesystem;
+            unsigned long long parent_dev=0,parent_ino=0,state_dev=0,state_ino=0,record_filesystem_type=0;
             bool valid_record=false;
             if(!record.empty()) {
                 std::istringstream input(record);
                 std::string version, encoded;
-                if(input>>version>>record_boot>>parent_dev>>parent_ino>>state_dev>>state_ino>>encoded&&version=="v1"&&input.eof()) {
+                if(!(input>>version))throw std::invalid_argument("Host-local broker identity record is malformed");
+                if(version=="v1")
+                    throw std::invalid_argument("Host-local broker identity lacks filesystem identity; operator re-registration is required");
+                if(input>>record_boot>>parent_dev>>parent_ino>>state_dev>>state_ino>>record_filesystem_type>>record_filesystem>>encoded&&version=="v2"&&input.eof()) {
                     record_path=encoded;valid_record=true;
                 }
                 if(!valid_record)throw std::invalid_argument("Host-local broker identity record is malformed");
@@ -202,11 +228,13 @@ public:
             }
             if(valid_record&&(state_dev!=static_cast<unsigned long long>(dir_stat.st_dev)||state_ino!=static_cast<unsigned long long>(dir_stat.st_ino)))
                 throw std::invalid_argument("Broker state directory was replaced at its registered path");
+            if(valid_record&&(record_filesystem_type!=filesystem_type||record_filesystem!=encoded_filesystem))
+                throw std::invalid_argument("Broker state filesystem was replaced at its registered path");
             if(!locked)throw std::runtime_error("Broker identity is already owned on this host");
             if(valid_record&&record_boot==boot&&(parent_dev!=static_cast<unsigned long long>(parent_stat.st_dev)||parent_ino!=static_cast<unsigned long long>(parent_stat.st_ino)))
                 throw std::invalid_argument("Delegated cgroup parent changed within the current boot");
             if(!valid_record||record_boot!=boot) {
-                const auto next="v1 "+boot+" "+std::to_string(parent_stat.st_dev)+" "+std::to_string(parent_stat.st_ino)+" "+std::to_string(dir_stat.st_dev)+" "+std::to_string(dir_stat.st_ino)+" "+encoded_state;
+                const auto next="v2 "+boot+" "+std::to_string(parent_stat.st_dev)+" "+std::to_string(parent_stat.st_ino)+" "+std::to_string(dir_stat.st_dev)+" "+std::to_string(dir_stat.st_ino)+" "+std::to_string(filesystem_type)+" "+encoded_filesystem+" "+encoded_state;
                 if(ftruncate(host_lock.value,0)!=0||pwrite(host_lock.value,next.data(),next.size(),0)!=static_cast<ssize_t>(next.size())||fsync(host_lock.value)!=0||fsync(runtime.value)!=0)
                     throw std::runtime_error("Cannot persist host-local broker identity binding");
             }

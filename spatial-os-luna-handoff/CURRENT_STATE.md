@@ -1,3 +1,16 @@
+## 2026-10-18: M08 broker filesystem identity repair passes focused Debug checks
+
+M08 remains UNQUALIFIED. The complete M08 gate has not started.
+The broker now binds host-local state records to filesystem identity as well as path, device, and inode.
+Both required hosts passed all 14 native storage-launch witness checks.
+The regression reuses the loop device and root inode while changing the Btrfs UUID.
+Legacy v1 records fail closed before owner startup. Valid v2 restart remains usable.
+Command and wrapper receipts were zero. Test mounts, loops, owner units, and delegation were cleaned.
+The exact source, evidence hashes, helper changes, compatibility limit, and unrun checks are recorded in
+docs/M08_BROKER_FILESYSTEM_IDENTITY_REPAIR_2026-10-18.txt.
+Focused sanitizer coverage, copy-job crash runtime, gateway integration, and full qualification remain pending.
+This entry describes this work branch's focused evidence. It does not qualify the whole milestone.
+
 ## 2026-10-16: M08 foundation imported on frozen M07 base
 
 M08 file-engine foundation is UNQUALIFIED. M07 full qualification remains RUNNING.

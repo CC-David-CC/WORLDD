@@ -1,0 +1,87 @@
+M08 broker filesystem identity repair
+Date: 2026-10-18
+Status: FOCUSED DEBUG PASS. M08 remains UNQUALIFIED.
+
+Defect and repair
+The retained replacement-state test accepted a new Btrfs filesystem at the registered path.
+The loop device and root inode were reused. The Btrfs UUID changed.
+The old host record bound only the canonical path, device, and inode.
+The probe then waited for input. This hid acceptance behind a 15-second timeout.
+
+The v2 host record also binds filesystem type and filesystem identity.
+Btrfs uses the full UUID from BTRFS_IOC_FS_INFO on the pinned directory.
+Other filesystems use their statfs filesystem identifier.
+Existing path, inode, boot, parent-cgroup, ownership, and exclusive-lock checks remain.
+Independent copies at different paths still receive distinct host-local broker identities.
+The regression explicitly reuses the old loop device and root inode.
+It closes probe input before waiting for the required rejection.
+
+Compatibility
+A v1 record lacks the evidence needed to validate its original filesystem.
+The broker rejects it before starting a storage owner.
+It does not silently populate the missing identity from the filesystem now at that path.
+The native regression installs a legacy record for its own stopped fixture only.
+It confirms refusal, restores the original v2 record, and confirms a normal restart.
+Existing v1 deployments require explicit operator re-registration after stopped-state verification.
+Verify the authoritative state, filesystem identity, ownership, and drained authority subtree first.
+Do not delete a registry record or change a broker ID merely to bypass this refusal.
+This checkpoint does not supply an administrative migration tool.
+
+Source and build evidence
+Base: 98bf9153ebd19bdaa685fe0bd6d7262a18cff0cb.
+The attempt-24 build compiled the changed broker code and both launch probes.
+The workspaced executable was also built from this checkout.
+All three recorded builds returned zero.
+The native attempt-25 source is an explicit test-only overlay on those binaries.
+No production source changed between the build and those runs.
+The overlay and all deployed payload files passed their manifests.
+Generated evidence stays outside Git.
+
+Focused runtime evidence
+Both hosts passed all 14 named native witness checks.
+Command and wrapper receipts returned zero on both hosts.
+The checks include restart scope draining, independent peer continuity, filesystem replacement refusal,
+legacy record refusal, valid v2 restart, startup cancellation, owner death, and invalid owner budgets.
+The final review records report no remaining test mounts or attached loop devices.
+The owner services and delegated test units were inactive.
+These results establish this focused Debug boundary only.
+Sanitizer runs, combined M08 integration, and the complete M08 gate remain UNRUN.
+
+On each host, the final evidence directory is:
+ /home/dflanag3/spatial-artifacts/m08-restart-scope-drain-20261018/attempt-25/run-001
+Review SHA256:
+ sb16: dd085f4d7d95429a7eacdfc8a8e43e24cc46d8b8eaf74e6cfb84a72a5b8a8195
+ sb16-2: 45d0d95b28dceb008f6c758b5b0b212871bbb64296b2a16fb09949adb121824b
+Test SHA256:
+ 6542a734d14786299e2d27152aae7cc3a4305a363eb54d2c6cd2e0a5ec67feb8
+
+Earlier evidence remains retained.
+The product failure is on sb16-2 under attempt-23/native-output/run-002.
+The incomplete focused bundle failed on sb16-2 under attempt-24/native-output/run-001.
+That bundle omitted workspaced. The corrected bundle passed before the compatibility extension.
+The final overlay and its source patch are under attempt-25/test-overlay on both hosts.
+
+System helper change and recovery
+Both hosts now have storage-owner SHA256:
+ 39ac9ba65326542eb1c53a384d21118cec161b01c09f1de2185afa4aeea89fc9
+Its source matches the reviewed attempt-23 package and current storage-owner source.
+The broker identity repair does not change that helper's source.
+Stop affected owner services before restoring a helper.
+The sb16 pre-update helper is retained at:
+ /home/dflanag3/spatial-artifacts/m08-restart-scope-drain-20261018/attempt-24/native-output/spatial-storage-owner.sb16.pre-fsid
+Its SHA256 is d29bbbdeb4065499b4a285dde1c4ce76a443bb47ae886f7a21766d3c9996cafd.
+The sb16-2 pre-update helper is retained at:
+ /home/dflanag3/spatial-artifacts/m08-restart-scope-drain-20261018/attempt-23/native-output/host-spatial-storage-owner.old
+Its SHA256 is 450a294e31604880c37a4e2800ee597a98861d210fcd7cf8127d745510f4c5ed.
+Restore the exact helper on its own host with:
+ sudo install -o root -g root -m 0755 BACKUP_PATH /usr/local/libexec/spatial-storage-owner
+Replace BACKUP_PATH with that host's complete path above.
+
+Next work
+Review and integrate this source checkpoint before rebuilding combined candidates.
+Run the current-source gateway suite and the copy-job crash/recovery test.
+Keep the populated-scope safety invariant intact.
+Freeze the combined M08 candidate only after its focused integration checks pass.
+
+Broker source SHA256: bf27a5dd58be4fbe7852e0efc91ca729f52db398c33b891f7d6d4741dbf2f25d
+Attempt-25 source patch SHA256: cb8db3d18ccaf04b61b3f214dd95093715d442f04595c4060b0b1663df475842
