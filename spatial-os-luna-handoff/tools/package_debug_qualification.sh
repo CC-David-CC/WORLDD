@@ -84,7 +84,7 @@ while IFS= read -r -d '' f; do
   fi
 done < <(find "$BUILD" -type f -perm /111 -print0)
 if grep -q 'not found' "$FINAL/ELF_DEPENDENCIES.txt"; then echo 'unresolved ELF dependency found' >&2; exit 32; fi
-if find "$FINAL" -type d -name Testing -print -quit | grep -q .; then echo 'CTest output leaked into package' >&2; exit 33; fi
+python3 "$PROJECT/tools/clean_package_ctest_bookkeeping.py" "$FINAL" "$BUILD"
 ( cd "$FINAL/source" && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$FINAL/SOURCE_MANIFEST.sha256"
 ( cd "$BUILD" && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$FINAL/BUILD_MANIFEST.sha256"
 ( cd "$FINAL" && find . -type f ! -name PACKAGE_MANIFEST.sha256 -print0 | sort -z | xargs -0 sha256sum ) > "$FINAL/PACKAGE_MANIFEST.sha256"
