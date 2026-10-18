@@ -710,6 +710,84 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             else:
                 release_broker_feed.set()
 
+    def test_actor_cabinet_gateway_requester_revocation_during_observation_invalidates_session(self):
+        self.enroll_second()
+        race = {'ancestor': self.second}
+        relay, release_broker_feed = self.world_grant_race(race)
+        world = self.workspace(issuer_port=relay.port)
+        owner = world.peers[0]
+        target = self.make_presentation(world, owner)
+        independent = [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE,
+                       grant.WORLD_MANIPULATE, grant.WORLD_PLACEMENT_CREATE,
+                       grant.WORLD_PLACEMENT_REMOVE]
+        self.world_grant_second(world, independent)
+        self.world_grant_second(world, [grant.REPRESENTATION_VIEW],
+                                components=[target.room_id, target.representation_id])
+        self.world_grant_second(world, [grant.REPRESENTATION_USE],
+                                components=[target.room_id, target.representation_id])
+        self.workspace_grant_second_domain(world, 'one', [grant.FILE_CREATE])
+        peer = world.peers[1]
+        self.assertTrue(self.authenticate_second(peer).HasField('opened'))
+        path = self.project / 'requester-revoked-during-observation.txt'
+        result_box, errors = [], []
+
+        def create():
+            try:
+                result_box.append(peer.act(cabinet=self.cabinet_request(target,
+                    create=cabinet.FileCreate(directory_handle=b'', basename=path.name.encode(), content=b'no'))))
+            except BaseException as error:
+                errors.append(error)
+
+        observation_phase_seen = threading.Event()
+        previous_reply_hook = relay.before_reply
+
+        def verify_observation_phase(request, response):
+            if request.HasField('actor_status'):
+                self.assertIn(self.second.actor_id, request.actor_status.actor_ids,
+                              'observation issuer request did not include the requester')
+                self.assertEqual(relay.status_seen, 1,
+                                 'revocation barrier must match the single observation workspace check')
+                observation_phase_seen.set()
+            if previous_reply_hook:
+                previous_reply_hook(request, response)
+
+        relay.before_reply = verify_observation_phase
+        relay.armed.set()
+        worker = threading.Thread(target=create)
+        worker_started = False
+        try:
+            worker.start()
+            worker_started = True
+            self.assertTrue(relay.triggered.wait(5), 'pre-dispatch workspace observation missed issuer barrier')
+            self.assertTrue(observation_phase_seen.wait(.5),
+                            'issuer callback did not verify requester and observation workspace-check phase')
+            self.assertTrue(self.world_watch_relay.delivered.wait(.5), 'requester revocation did not reach world authority')
+            release_broker_feed.set()
+            worker.join(5)
+            self.assertFalse(worker.is_alive(), 'pre-dispatch actor call did not finish after feed release')
+            self.assertFalse(errors, errors)
+            self.assertEqual(len(result_box), 1)
+            denied = result_box[0]
+            self.assertTrue(denied.HasField('error'), denied)
+            branch_evidence = (f'branch=requester_self_revocation status_seen={relay.status_seen} '
+                f'observation_verified={observation_phase_seen.is_set()} '
+                f'watch_delivered={self.world_watch_relay.delivered.is_set()} '
+                f'world_watch_errors={len(self.world_watch_relay.errors)} '
+                f'broker_relay_errors={len(relay.errors)} result_code={denied.error.code} '
+                f'result_message={denied.error.message[:160]!r}')
+            self.assertEqual(denied.error.code, core.UNAUTHORIZED, branch_evidence)
+            self.assertFalse(path.exists(), 'requester revocation must stop before file dispatch')
+            self.denied(peer.call(inspect=session.WorldSessionInspect()), core.UNAUTHORIZED)
+            self.assertEqual(relay.status_seen, 1,
+                             'the single status request must be the observation workspace check')
+            self.assertFalse(relay.errors)
+            self.assertFalse(self.world_watch_relay.errors)
+        finally:
+            if worker_started:
+                self.stop_actor_worker(peer, worker, (release_broker_feed,))
+            else:
+                release_broker_feed.set()
+
     def test_actor_cabinet_gateway_revocation_in_final_post_operation_window_is_uncertain(self):
         self.enroll_second()
         race = {}
