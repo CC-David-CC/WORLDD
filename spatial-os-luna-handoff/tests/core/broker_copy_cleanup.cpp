@@ -693,12 +693,31 @@ void callback_controls(const std::filesystem::path& delegated){
   static_assert(!std::is_constructible_v<spatial::supervisor::OwnedDrainedTree,int,const ProcessScopeIdentity&>);
   auto root=ProcessScope::prepare(delegated);const auto path=delegated/root->identity().scope_name();bool first=true,called=false;
   std::filesystem::create_directory(path/"preserved-child");
-  root->set_pre_prune_cleanup([&](const auto& view){check(view.identity().SerializeAsString()==root->identity().SerializeAsString(),"view root mismatch");check(std::filesystem::exists(path/"preserved-child"),"hook ran after prune");called=true;if(first){first=false;throw std::runtime_error("planned callback failure");}});
+  root->set_pre_prune_cleanup([&](const auto& view){check(view.identity().SerializeAsString()==root->identity().SerializeAsString(),"view root mismatch");check(!view.execution_may_have_run(),"prepared root falsely marked executable");check(std::filesystem::exists(path/"preserved-child"),"hook ran after prune");called=true;if(first){first=false;throw std::runtime_error("planned callback failure");}});
   rejects([&]{root->stop();},"callback failure returned complete receipt");check(called&&std::filesystem::exists(path/"preserved-child"),"failed callback pruned child");root->stop();check(!std::filesystem::exists(path),"retry did not finish cleanup");
   // Real direct-child termination/reap precedes the hook, and late installation rejects.
-  auto live=ProcessScope::prepare(delegated);bool saw_dead=false;live->set_pre_prune_cleanup([&](const auto&){saw_dead=live->diagnostic_child_reaped();check(!live->diagnostic_populated(),"callback saw live population");});
+  auto live=ProcessScope::prepare(delegated);bool saw_dead=false;live->set_pre_prune_cleanup([&](const auto& tree){saw_dead=live->diagnostic_child_reaped();check(!live->diagnostic_populated(),"callback saw live population");check(tree.execution_may_have_run(),"released child gate did not set sticky execution proof");});
   AuthorityProcessLaunch request;request.set_executable("/usr/bin/sleep");request.add_arguments("60");int null=open("/dev/null",O_RDWR|O_CLOEXEC);live->start(request,{null,null,null});close(null);
   rejects([&]{live->set_pre_prune_cleanup([](const auto&){});},"late callback installed");live->stop();check(saw_dead,"callback preceded direct-child reap");
+  // Isolate the fail-closed post-gate case: the callback rejects after the child exits,
+  // and the parent verifies that the exact scope remains for recovery.
+  auto outer=ProcessScope::prepare_named(delegated,"spatial-git-workers");outer->enable_children();const auto outer_path=delegated/outer->identity().scope_name();
+  int evidence[2];check(pipe2(evidence,O_CLOEXEC)==0,"predispatch evidence pipe");const pid_t probe=fork();check(probe>=0,"predispatch child fork");
+  if(probe==0){close(evidence[0]);try{auto uncertain=ProcessScope::prepare(outer_path);const auto identity=uncertain->identity();transfer(evidence[1],identity.SerializeAsString());
+      uncertain->set_pre_prune_cleanup([](const auto& tree){check(tree.execution_may_have_run(),"released gate lost execution possibility");throw std::runtime_error("unbound cleanup must remain uncertain");});
+      AuthorityProcessLaunch short_request;short_request.set_executable("/bin/true");int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"predispatch null");uncertain->start(short_request,{child_null,child_null,child_null});close(child_null);
+      try{uncertain->stop();_exit(92);}catch(const std::exception& error){_exit(std::string(error.what())=="unbound cleanup must remain uncertain"?0:94);}
+    }catch(...){_exit(93);}}
+  close(evidence[1]);pollfd evidence_ready{evidence[0],POLLIN,0};check(poll(&evidence_ready,1,5000)==1&&(evidence_ready.revents&POLLIN),"predispatch identity deadline");
+  ProcessScopeIdentity uncertain_identity;check(uncertain_identity.ParseFromString(receive(evidence[0])),"predispatch identity");close(evidence[0]);
+  int probe_status=0;bool probe_reaped=false;wait_for([&]{const auto waited=waitpid(probe,&probe_status,WNOHANG);check(waited>=0,"predispatch waitpid");return probe_reaped=waited==probe;});
+  check(probe_reaped&&WIFEXITED(probe_status)&&WEXITSTATUS(probe_status)==0,"uncertain cleanup child did not contain rejection");
+  const auto uncertain_path=outer_path/uncertain_identity.scope_name();struct stat retained_child{};
+  check(lstat(uncertain_path.c_str(),&retained_child)==0&&S_ISDIR(retained_child.st_mode)&&
+      static_cast<std::uint64_t>(retained_child.st_dev)==uncertain_identity.device()&&
+      static_cast<std::uint64_t>(retained_child.st_ino)==uncertain_identity.inode(),"unbound post-gate exact child was pruned or replaced");
+  check(ProcessScope::remove_reserved_empty(outer_path,outer->identity(),uncertain_identity.scope_name()),"retained test child did not permit exact parent-bound recovery");
+  check(!std::filesystem::exists(uncertain_path),"exact child remained after parent-bound recovery");outer->stop();
   bool destructor_called=false;{auto scope=ProcessScope::prepare(delegated);scope->set_pre_prune_cleanup([&](const auto&){destructor_called=true;});}check(destructor_called,"destructor skipped callback");
   auto expired=ProcessScope::prepare(delegated);const auto expired_path=delegated/expired->identity().scope_name();bool expired_called=false;
   expired->set_pre_prune_cleanup([&](const auto&){expired_called=true;});expired->request_stop();

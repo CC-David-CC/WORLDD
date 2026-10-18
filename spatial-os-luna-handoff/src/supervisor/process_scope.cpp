@@ -512,6 +512,8 @@ v1::PayloadQuiescenceReceipt inventory(int directory,const v1::ProcessScopeIdent
 }
 }
 void ProcessScope::attach_payload(pid_t pid) {
+    // The external child is already executable; never mint a never-dispatched proof after this call.
+    execution_may_have_run_ = true;
     valid(started_ && !removed_ && payload_<0 && pid>1 && pid!=child_ && pid!=getpid(),
           "Payload attachment requires a new held application child");
     std::istringstream members(contents(scope_,"cgroup.procs"));pid_t member=0;bool owned=false;
@@ -921,6 +923,8 @@ void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
     check(pidfd_ >= 0, "Cannot pin authority child");
     control(scope_, "cgroup.procs", std::to_string(child_)+"\n");
     valid(populated(), "Authority did not enter its owned scope");
+    // A failed send can be ambiguous. Mark execution possible before attempting release.
+    execution_may_have_run_ = true;
     check(send(gate.value, "G", 1, MSG_NOSIGNAL) == 1, "Cannot release authority startup gate");
     pollfd ready{gate.value, POLLIN | POLLHUP, 0}; int polled;
     do { polled = poll(&ready, 1, 2000); } while (polled < 0 && errno == EINTR);
@@ -1074,7 +1078,7 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
                 check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             };
             verify();
-            const OwnedDrainedTree tree(scope_, identity_,deadline);
+            const OwnedDrainedTree tree(scope_, identity_,deadline,execution_may_have_run_);
             pre_prune_cleanup_(tree);
             check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             verify();

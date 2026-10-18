@@ -48,8 +48,12 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   const auto deadline=tree.deadline();
   const auto check_deadline=[&] { if(std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("Copy cleanup deadline expired"); };
   check_deadline();
-  require(journal_.has_value(),"Unbound broker cleanup cannot produce a stop receipt");
+  // Validate the exact retained broker root before considering the no-execution exception.
   require(tree.identity().SerializeAsString()==broker_.SerializeAsString(),"Cleanup requires its actual retained broker root");
+  if(!journal_) {
+    require(!tree.execution_may_have_run(),"Unbound broker cleanup cannot produce a stop receipt after execution may have run");
+    return; // Exact prepared root, before any gate release or external payload attachment.
+  }
   journal_->verify(deadline);
   auto journal=FileOperationJournal::open_existing(*journal_,deadline);
   check_deadline();

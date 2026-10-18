@@ -18,16 +18,20 @@ public:
     int directory_fd() const { return directory_; }
     const v1::ProcessScopeIdentity& identity() const { return identity_; }
     std::chrono::steady_clock::time_point deadline() const { return deadline_; }
+    // Sticky proof bit: false only while this owned tree cannot have run supplied code.
+    bool execution_may_have_run() const { return execution_may_have_run_; }
     OwnedDrainedTree(const OwnedDrainedTree&) = delete;
     OwnedDrainedTree& operator=(const OwnedDrainedTree&) = delete;
 private:
     friend class ProcessScope;
     OwnedDrainedTree(int directory, const v1::ProcessScopeIdentity& identity,
-                     std::chrono::steady_clock::time_point deadline)
-        : directory_(directory), identity_(identity), deadline_(deadline) {}
+                     std::chrono::steady_clock::time_point deadline, bool execution_may_have_run)
+        : directory_(directory), identity_(identity), deadline_(deadline),
+          execution_may_have_run_(execution_may_have_run) {}
     int directory_;
     const v1::ProcessScopeIdentity& identity_;
     std::chrono::steady_clock::time_point deadline_;
+    const bool execution_may_have_run_;
 };
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
@@ -100,6 +104,8 @@ private:
     std::string frozen_inventory_;
     pid_t child_ = -1;
     bool reaped_ = false, removed_ = false, started_ = false, stop_requested_ = false, retained_scope_ = false;
+    // Sticky and conservative. Set before releasing the direct-child gate or attaching external code.
+    bool execution_may_have_run_ = false;
     std::function<void(const OwnedDrainedTree&)> pre_prune_cleanup_;
     v1::ProcessScopeIdentity identity_;
 };

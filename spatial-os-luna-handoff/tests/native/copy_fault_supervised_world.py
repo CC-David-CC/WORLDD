@@ -28,6 +28,19 @@ BaseWorld=engine.fixtures.WorldProcess
 
 
 
+def fixture_version(fixture):
+    version=getattr(fixture,'supervised_copy_recovery_fixture_version',1)
+    if type(version) is not int or version not in (1,2):
+        raise ValueError('Unsupported supervised copy recovery fixture version: '+repr(version))
+    return version
+
+
+def enforce_fixture_generation_policy(fixture,version,rows):
+    if version==1:
+        fixture.assertTrue(all(not row[-1] for row in rows),
+                            'Previous participant generation is still active')
+
+
 def context(fixture):
     if not hasattr(fixture,'lostack_supervisors'):
         fixture.lostack_supervisors=LostAckSupervisors(fixture)
@@ -37,8 +50,13 @@ def context(fixture):
 class LostAckSupervisors:
     def __init__(self,fixture):
         self.fixture=fixture;self.handles=[];self.services={};self.native=None
-        # Register before native setUp, launch/config creation, or any owned process starts.
+        self.fixture_version=fixture_version(fixture);self.delegation_parents={}
+        # Register before helper imports, native setUp, launch/config creation, or owned processes.
         fixture.addCleanup(self.cleanup)
+        self.delegation=None
+        if self.fixture_version==2:
+            import supervised_delegation_parent as delegation
+            self.delegation=delegation
         sys.path.insert(0,str(engine.SOURCE/'tests/native'))
         with patch.object(sys,'argv',[__file__,str(engine.BUILD/'spatial-authority-supervisor')]):
             native_fixture=importlib.import_module('test_security_identity')
@@ -55,7 +73,7 @@ class LostAckSupervisors:
     def service(self,runtime):
         fixture=self.fixture;identity=runtime.participant_id
         rows=self.activation_rows([identity])
-        fixture.assertTrue(all(not row[-1] for row in rows),'Previous participant generation is still active')
+        enforce_fixture_generation_policy(fixture,self.fixture_version,rows)
         if identity not in self.services:
             key,public=fixture.key('lostack-supervisor-'+identity.hex()[:12])
             peer=fixture.connect()
@@ -85,7 +103,7 @@ class LostAckSupervisors:
         participants=[record.binding.participant_id for record in records]
         fixture.assertEqual(len(set(participants)),2,'World and broker must have independent participants')
         before=self.activation_rows(participants)
-        # This signed attestation hashes actual checked records. It invents no cleanup receipt.
+        # This evidence manifest hashes actual checked records; issuer retirement authenticates the exact generation.
         manifest=dict(schema_version=1,root_owner_exit=broker.owner.returncode,
             root_owner_relay_sha256=hashlib.sha256(audit_bytes).hexdigest(),
             scopes=[dict(role=handle.role,supervisor_pid=handle.proc.pid,supervisor_exit=handle.proc.returncode,
@@ -109,6 +127,11 @@ class LostAckSupervisors:
             finally:
                 handle.close_control()
                 handle.preserve()
+        if self.fixture_version==2:
+            try:
+                self.delegation.cleanup_owned_parents(self.handles,self.delegation_parents)
+            except BaseException as error:
+                failures.append(type(error).__name__+': '+str(error)[:256])
         if self.native is not None and not self.native.doCleanups():failures.append('Owned XACE fixture cleanup failed')
         if failures:raise AssertionError('; '.join(failures))
 
@@ -141,34 +164,94 @@ class SupervisedHandle:
         self.config_path=self.private/'authority.textproto'
         self.config_path.write_text(engine.text_format.MessageToString(configuration));self.config_path.chmod(0o600)
         arguments=[str(self.config_path) if item=='@AUTHORITY@' else item for item in arguments]
-        self.cgroup=Path(os.environ['SPATIAL_TEST_CGROUP_ROOT'])/('lostack-'+role+'-'+os.urandom(8).hex())
-        fixture.assertEqual(self.cgroup.parent.stat().st_uid,os.getuid());self.cgroup.mkdir()
-        required_controllers={'cpu','memory','pids','io'}
-        available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())
-        subtree_control=self.cgroup/'cgroup.subtree_control'
-        before_subtree_control=subtree_control.read_text().split()
-        parent_processes=(self.cgroup/'cgroup.procs').read_text().split()
-        self.controller_delegation=dict(role_cgroup=str(self.cgroup),
-            parent_controllers=sorted(available_controllers),
-            parent_subtree_control_before=before_subtree_control,
-            parent_processes_before=parent_processes)
-        durable_write(self.evidence/'controller-delegation.json',
-            (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
-        fixture.assertEqual(parent_processes,[],
-                            'Supervisor delegation parent must be empty; observed '+repr(parent_processes))
-        fixture.assertTrue(required_controllers.issubset(available_controllers),
-            'Supervisor delegation parent lacks required controllers: expected '+repr(sorted(required_controllers))+
-            ', observed '+repr(sorted(available_controllers)))
-        fixture.assertEqual(before_subtree_control,[],
-            'Supervisor delegation parent must start unconfigured; observed '+repr(before_subtree_control))
-        subtree_control.write_text('+cpu +memory +pids +io\n')
-        enabled_controllers=set(subtree_control.read_text().split())
-        self.controller_delegation['parent_subtree_control_after']=sorted(enabled_controllers)
-        durable_write(self.evidence/'controller-delegation.json',
-            (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
-        fixture.assertEqual(enabled_controllers,required_controllers,
-            'Supervisor delegation parent did not enable every required controller: expected '+
-            repr(sorted(required_controllers))+', observed '+repr(sorted(enabled_controllers)))
+        if owner.fixture_version==1:
+            self.cgroup=Path(os.environ['SPATIAL_TEST_CGROUP_ROOT'])/('lostack-'+role+'-'+os.urandom(8).hex())
+            fixture.assertEqual(self.cgroup.parent.stat().st_uid,os.getuid());self.cgroup.mkdir()
+            required_controllers={'cpu','memory','pids','io'}
+            available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())
+            subtree_control=self.cgroup/'cgroup.subtree_control'
+            before_subtree_control=subtree_control.read_text().split()
+            parent_processes=(self.cgroup/'cgroup.procs').read_text().split()
+            self.controller_delegation=dict(role_cgroup=str(self.cgroup),
+                parent_controllers=sorted(available_controllers),
+                parent_subtree_control_before=before_subtree_control,
+                parent_processes_before=parent_processes)
+            durable_write(self.evidence/'controller-delegation.json',
+                (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+            fixture.assertEqual(parent_processes,[],
+                                'Supervisor delegation parent must be empty; observed '+repr(parent_processes))
+            fixture.assertTrue(required_controllers.issubset(available_controllers),
+                'Supervisor delegation parent lacks required controllers: expected '+repr(sorted(required_controllers))+
+                ', observed '+repr(sorted(available_controllers)))
+            fixture.assertEqual(before_subtree_control,[],
+                'Supervisor delegation parent must start unconfigured; observed '+repr(before_subtree_control))
+            subtree_control.write_text('+cpu +memory +pids +io\n')
+            enabled_controllers=set(subtree_control.read_text().split())
+            self.controller_delegation['parent_subtree_control_after']=sorted(enabled_controllers)
+            durable_write(self.evidence/'controller-delegation.json',
+                (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+            fixture.assertEqual(enabled_controllers,required_controllers,
+                'Supervisor delegation parent did not enable every required controller: expected '+
+                repr(sorted(required_controllers))+', observed '+repr(sorted(enabled_controllers)))
+        else:
+            try:
+                state_index=arguments.index('--state-dir')
+                state_dir=arguments[state_index+1]
+            except (ValueError,IndexError) as error:
+                raise AssertionError('supervised launch must derive its state directory from --state-dir') from error
+            key,canonical_state=owner.delegation.execution_key(state_dir,runtime.participant_id)
+            root=Path(os.environ['SPATIAL_TEST_CGROUP_ROOT']).resolve(strict=True)
+            parent_name='lostack-'+hashlib.sha256((str(key[0])+':'+str(key[1])+':').encode()+key[2]).hexdigest()[:24]
+            self.cgroup=root/parent_name
+            parent=owner.delegation_parents.get(key)
+            if parent is None:
+                if self.cgroup.exists():
+                    raise AssertionError('unowned stable delegation parent already exists')
+                self.cgroup.mkdir()
+                descriptor=os.open(self.cgroup,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
+                parent=dict(path=self.cgroup,fd=descriptor,uid=os.getuid(),key=key,state_dir=str(canonical_state))
+                owner.delegation_parents[key]=parent
+                required_controllers={'cpu','memory','pids','io'}
+                available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())
+                subtree_control=self.cgroup/'cgroup.subtree_control'
+                before_subtree_control=subtree_control.read_text().split()
+                fixture.assertEqual(before_subtree_control,[],
+                    'New supervisor delegation parent must start unconfigured; observed '+repr(before_subtree_control))
+                fixture.assertTrue(required_controllers.issubset(available_controllers),
+                    'Supervisor delegation parent lacks required controllers: expected '+repr(sorted(required_controllers))+
+                    ', observed '+repr(sorted(available_controllers)))
+                subtree_control.write_text('+cpu +memory +pids +io\n')
+            else:
+                fixture.assertEqual(parent['state_dir'],str(canonical_state),
+                    'Stable delegation key resolved to a different named state directory')
+                fixture.assertEqual(parent['path'],self.cgroup)
+            self.delegation_parent=parent
+            owner.delegation.verify_pinned_directory(self.cgroup,parent['fd'],os.getuid())
+            required_controllers={'cpu','memory','pids','io'}
+            available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())
+            subtree_control=self.cgroup/'cgroup.subtree_control'
+            before_subtree_control=subtree_control.read_text().split()
+            parent_processes=(self.cgroup/'cgroup.procs').read_text().split()
+            self.controller_delegation=dict(role_cgroup=str(self.cgroup),execution_directory=str(canonical_state),
+                execution_directory_device=key[0],execution_directory_inode=key[1],participant_id=key[2].hex(),
+                parent_controllers=sorted(available_controllers),parent_subtree_control_before=before_subtree_control,
+                parent_processes_before=parent_processes)
+            durable_write(self.evidence/'controller-delegation.json',
+                (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+            fixture.assertEqual(parent_processes,[],
+                'Supervisor delegation parent must have no direct processes; observed '+repr(parent_processes))
+            fixture.assertTrue(required_controllers.issubset(available_controllers),
+                'Supervisor delegation parent lacks required controllers: expected '+repr(sorted(required_controllers))+
+                ', observed '+repr(sorted(available_controllers)))
+            fixture.assertEqual(set(before_subtree_control),required_controllers,
+                'Stable supervisor delegation parent controller set changed')
+            enabled_controllers=set(before_subtree_control)
+            self.controller_delegation['parent_subtree_control_after']=sorted(enabled_controllers)
+            durable_write(self.evidence/'controller-delegation.json',
+                (json.dumps(self.controller_delegation,sort_keys=True,indent=2)+'\n').encode())
+            fixture.assertEqual(enabled_controllers,required_controllers,
+                'Supervisor delegation parent did not enable every required controller: expected '+
+                repr(sorted(required_controllers))+', observed '+repr(sorted(enabled_controllers)))
         specification=launch.AuthoritySupervisorConfig(protocol_version=1,journal_directory=str(self.journal),
             delegated_cgroup=str(self.cgroup),binding=self.binding,
             participant=launch.AuthorityParticipantAttach(runtime_config=str(attach),
@@ -216,6 +299,7 @@ class SupervisedHandle:
         fixture.assertEqual(select.select([self.pidfd],[],[],0)[0],[])
         fixture.assertEqual(os.readlink('/proc/'+str(self.pid)+'/exe'),str(executable))
         self.scope=self.cgroup/record.process.scope_name
+        fixture.assertNotEqual(self.scope,self.cgroup)
         child_controllers=set((self.scope/'cgroup.controllers').read_text().split())
         child_subtree_control=(self.scope/'cgroup.subtree_control').read_text().split()
         child_processes=(self.scope/'cgroup.procs').read_text().split()
@@ -419,10 +503,19 @@ class SupervisedHandle:
                 self.death_observed_monotonic_ns=time.monotonic_ns()
                 for stream in (self.proc.stdin,self.proc.stdout):
                     if stream is not None and not stream.closed:stream.close()
-            if self.cgroup is not None and self.cgroup.exists():
-                self.fixture.assertNotIn('populated 1',(self.cgroup/'cgroup.events').read_text())
-                self.fixture.assertFalse(any(path.is_dir() for path in self.cgroup.iterdir()))
-                self.cgroup.rmdir()
+            if self.owner.fixture_version==1:
+                if self.cgroup is not None and self.cgroup.exists():
+                    self.fixture.assertNotIn('populated 1',(self.cgroup/'cgroup.events').read_text())
+                    self.fixture.assertFalse(any(path.is_dir() for path in self.cgroup.iterdir()))
+                    self.cgroup.rmdir()
+            else:
+                if self.scope is not None and self.scope.exists():
+                    self.fixture.assertNotIn('populated 1',(self.scope/'cgroup.events').read_text())
+                    self.fixture.assertFalse(any(path.is_dir() for path in self.scope.iterdir()))
+                    raise AssertionError('Generation ProcessScope root remains after handle retirement')
+                if self.cgroup is not None:
+                    self.owner.delegation.verify_pinned_directory(
+                        self.cgroup,self.delegation_parent['fd'],os.getuid())
             self.closed=True
         finally:
             if self.proc is not None and self.proc.poll() is None:

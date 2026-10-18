@@ -1,0 +1,179 @@
+# Supervised file-action copy recovery prototype
+
+Status: INCOMPLETE and UNQUALIFIED. Source base is 17c0e2bbb248407f32c81f3726d799e5959a1a54.
+Branch: m08/supervised-copy-restart-fixture-v2-20261018.
+Checkout: /home/dflanag3/src/m08-supervised-copy-restart-fixture-v2-20261018.
+This prototype changes eight paths: one native fixture, two core tests, two additional native helpers, two tools, and this document.
+No production source, shared CMake, or locked assertion changed.
+All eleven existing FileActionBroker crash/restart cases remain required and pending.
+This single prototype is a dependency for their adaptation. It cannot replace them.
+
+## Repaired fixture defects
+
+The fixture initializes the actual LostAckSupervisors context after storage setup.
+A boolean marker previously escaped context() and caused attribute lookup failures.
+The denial control launches an otherwise valid supervisor using the actual registered signer.
+It bypasses only the fixture-local generation guard.
+It requires the exact production active-generation error message.
+AuthorityLaunchError has message and cleanup_record fields. It has no code field.
+The control compares issuer rows and launch.db plus WAL bytes before and after rejection.
+It checks candidate process retirement and the original generation's continuing activity.
+The denial runs before starting the copy, avoiding an expensive observation during its crash window.
+
+The crash uses pidfd_send_signal(SIGKILL) for the observed broker identity.
+The process schema uses pid, start_ticks, and executable from the actual SupervisedHandle.
+start_ticks remains the string returned by the fixture's /proc parser.
+Cleanup consumes the retained real supervisor failure reply.
+It checks exact process, native, authorization, and stopped-scope identities.
+It signs the issuer's actual retirement challenge through SupervisedHandle.retire().
+Retirement checks every owner field, fence ID, cleanup digest, and activation-row change.
+A duplicate retirement call fails before cleanup runs again.
+This uses the fixture signer. It does not establish SessionCoordinator transport coverage.
+
+The follow-up request and file assertion use after-supervised-sigkill-copy.txt consistently.
+Copy data is bounded at 16 MiB across 1024 files.
+The fixture preserves the exact stage and worker protobuf identities before and after recovery.
+
+## Production composition blocker found during review
+
+Source review identifies two prerequisites for the live-worker SIGKILL recovery oracle.
+The old and new broker roots must share one stable delegated parent, while retaining
+separate per-generation ProcessScope roots. FileEngine must also receive actual drain
+proof before the supervisor removes the recorded worker scope.
+
+Keep the existing pre-prune callback design. The lifecycle owner supplies a callback to
+the exact ProcessScope cleanup operation; that callback records the checked drain before
+pruning. Recovery may then consume that persisted identity. An absent scope alone remains
+insufficient proof, and the worktree stays quarantined when exact cleanup is uncertain.
+
+Relevant source: src/workspace/file_engine.cpp and src/supervisor/process_scope.cpp.
+Relevant fixture: tests/native/copy_fault_supervised_world.py. The prototype retains
+CANCELLED, exact staging removal, and successful follow-up assertions. Do not weaken them.
+Do not edit issuer state or copy-job records to manufacture drain proof. This fixture prototype makes no production changes and does not add a protobuf attestation.
+
+## Runner and helper lifecycle
+
+The runner composes tools/with_copy_worker_helpers.py from reviewed commit
+7167d804ea325b79495e77cd3952ce4241bf49cd.
+Required helper tool SHA256:
+128128ad18ca42d6629716279b3468a6681847bb86b0c2141eae35ce3b19b249.
+That tool is absent at the source base. Deploy an explicit reviewed source overlay.
+The runner rejects a missing or mismatched lifecycle tool before privileged mutation.
+The tool owns the shared per-user flock, process inspection, helper installation, child retirement,
+and helper restoration. This runner contains no duplicate privileged helper installation logic.
+The outer runner stops only its exact emitted delegated unit on cancellation.
+It then signals the lifecycle tool and waits for its cleanup receipt.
+Volume recovery runs only after the lifecycle wrapper exits.
+Cleanup and owned-child retirement must be confirmed before recording success.
+
+Capacity admission measures both evidence and volume filesystems.
+It counts a 512 MiB volume, measured helper backup sizes, 256 MiB diagnostic output,
+and a separate 512 MiB reserve. Existing deployed packages need no transfer allocation.
+The runner enforces the diagnostic output budget while the child runs.
+It records the exact selected profile and requires native graphics coverage.
+Do not set SPATIAL_SECURITY_TEST_CORE_ONLY=1.
+SPATIAL_TEST_XSERVER must name the previously qualified XACE wrapper for that host and profile.
+Keep its server receipt and graphics library closure pinned separately.
+The runner retains with_resource_delegate.py --native --copy-engine-v2 and with_adapter_resources.py.
+ASan-UBSan also passes --copy-profile=ASan-UBSan to the adapter.
+
+## Native source payload and static preflight prerequisites
+
+The native overlay must include the supervised core test, adapter, both supervised native helpers, the modified copy-fault fixture, the import-discovery tool, and the runtime driver. The separately versioned overlay also carries this proposal document. The prior six-file pure-control overlay remains unchanged and is not a native runtime package.
+
+The runtime driver's source digest list pins `tests/native/supervised_delegation_parent.py` and `tools/inspect_file_action_supervised_copy_recovery.py`. The latter is invoked as an import-only subprocess before fixture startup. Its import closure requires the generated `BUILD/python` protobuf modules plus the pinned source tree's core, native, harness, and tools modules. Import discovery starts no project service and executes no test method.
+
+The source overlay does not contain base tools such as `copy_fixture_profiles.py`, `with_resource_delegate.py`, `with_adapter_resources.py`, or `with_copy_worker_helpers.py`. Keep those from the exact pinned source tree or include their separately reviewed source overlay. The native runner also requires the built `identityd`, `spatial-issuer-client`, `worldd`, `spatial-authority-supervisor`, copy workers, generated Python bindings, a qualified `SPATIAL_TEST_XSERVER`, and the resource/cgroup configuration described below. No such build or native runtime was run for this source-only correction.
+
+Before native selection, perform static Python parsing and run the import-only discovery command below against the exact deployed source/build closure. Then verify the discovered method count and protobuf contract before enabling any service. This prototype's import-only discovery remains UNRUN after the overlay correction.
+
+## Required targets and commands for primary review
+
+Build profile: Debug, then ASan-UBSan, using separate external build directories.
+Build targets: workspace-copy-engine-fixture spatial-authority-supervisor.
+The existing fixture target owns its helper and generated Python dependency closure.
+The source overlay contains seven Python paths across its tests, native helpers, and tools; the eighth owned path is this document.
+Add the reviewed helper lifecycle overlay to the frozen test-host source package.
+Run tools/inspect_workspace_copy_supervisor_closure.py before deployment.
+No CMake registration is added here.
+
+Run host-independent controls on an authorized test host:
+PYTHONPATH=BUILD/python:SOURCE:SOURCE/tests/native:SOURCE/tools python3 -B SOURCE/tests/core/test_supervised_copy_recovery_adapter_contract.py
+
+Run import-only discovery on an authorized test host:
+python3 -B SOURCE/tools/inspect_file_action_supervised_copy_recovery.py BUILD SOURCE
+
+Run the dedicated native scenario through the verified external canonical runner in tmux:
+bash RUN_COMMAND SOURCE NEW_RUN_DIR python3 -B SOURCE/tools/run_file_action_supervised_copy_recovery.py BUILD SOURCE NEW_EVIDENCE test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal --profile=Debug
+
+Use --profile=ASan-UBSan for the sanitizer package.
+NEW_EVIDENCE must be new, under /home/dflanag3/spatial-artifacts, with an existing parent.
+The source package must supply executable-adjacent runtime configuration and transitive helper closure.
+Reuse each host/profile's qualified SPATIAL_TEST_XSERVER and graphics environment.
+The resource wrapper supplies broker configuration and delegated cgroup setup.
+Run on sb16 and sb16-2. Never run project probes or tests on middle-child.
+Expect the delegation and drain-proof blockers until their integrations are reviewed and repaired.
+
+## Evidence and remaining work
+
+Original six source files and hashes are preserved under:
+/home/dflanag3/spatial-artifacts/m08-supervised-copy-recovery-repair-20261018/original
+Original failure evidence remains untouched under:
+/home/dflanag3/spatial-artifacts/m08-supervised-copy-recovery-fixture-20261018
+The new external preserved-prior-evidence.json records their hashes.
+Static compilation and repository checks use the canonical tmux runner.
+Their selected invariants are recorded before execution in the external checks-plan.json.
+Pure adapter/helper controls passed 13/13 on sb16 and 13/13 on sb16-2 using the separately preserved pure-control overlay.
+The native SIGKILL/restart scenario and native Debug/SAN runs remain UNRUN.
+All eleven integration cases and full M08 remain UNRUN.
+The current native-source overlay adds the invoked import-discovery tool and records both it and the lazy v2 helper in the runtime source digest list.
+No commit is authorized before primary review.
+
+## Exact source trace and proposed production bridge
+
+This historical line-number trace is relative to the pre-prototype source base 63f4adb59bf353c33a073769cee47082a26a82c2. It is design context, not a current-branch source claim.
+No runtime failure is claimed from this source trace.
+
+- tests/native/copy_fault_supervised_world.py:144 creates the fresh per-generation role parent.
+- tests/native/copy_fault_supervised_world.py:306 validates the retained failed cleanup record.
+- tests/native/copy_fault_supervised_world.py:317 requires the actual broker scope to be absent.
+- tests/native/copy_fault_supervised_world.py:425 removes the role delegation parent after closure.
+- src/supervisor/main.cpp:388 fences failure and calls launch->stop().
+- src/supervisor/main.cpp:416 sends the checked cleanup record in the typed failure reply.
+- src/supervisor/launch.cpp:654 persists process_stopped from the actual owned ProcessScope.
+- src/supervisor/launch.cpp:660 persists OWNED_SCOPES_STOPPED after process and native cleanup.
+- src/supervisor/process_scope.cpp:928 issues recursive cgroup.kill on the owned broker scope.
+- src/supervisor/process_scope.cpp:954 recursively removes empty descendant scopes.
+- src/supervisor/process_scope.cpp:963 exposes the existing exact-root drained callback.
+- src/supervisor/process_scope.cpp:967 removes the owned broker root after identity checks.
+- src/workspace/store.cpp:2048 runs worker-parent recovery before action dispatch.
+- src/workspace/store.cpp:516 reconstructs FileEngine for the recorded workspace and worktree.
+- src/workspace/file_engine.cpp:570 rejects a different immediate delegated parent.
+- src/workspace/file_engine.cpp:623 calls stop_recovered with exact saved worker-parent identity.
+- src/supervisor/process_scope.cpp:528 rejects an absent parent as unconfirmed cleanup.
+- src/supervisor/process_scope.cpp:571 invokes the exact worker drain callback before removal.
+- src/workspace/file_engine.cpp:627 persists drained_process_scope through that callback.
+- src/workspace/file_engine.cpp:631 rejects an absent worker without durable drain proof.
+- src/workspace/file_engine.cpp:640 records UNCERTAIN and quarantines the worktree on failure.
+- src/workspace/file_operation_journal.cpp:190 requires drain proof to equal the saved process scope.
+- src/workspace/file_operation_journal.cpp:622 prevents replacing an acknowledged drain identity.
+- src/supervisor/session_launch.cpp:53 validates cleanup against the retained expected launch.
+
+Retained fixture direction, for separate primary review:
+
+Keep the stable broker delegation parent host-local and owner-managed. Key it by the
+canonical `--state-dir` directory device/inode and the actual participant ID. Pin the
+parent directory and verify the held descriptor and named path on every reuse. Each
+supervised generation receives a distinct ProcessScope root directly below that parent.
+The owner removes the exact empty parent only after all generation handles retire.
+
+The earlier attestation direction is obsolete and is not part of this fixture. Keep the
+existing production pre-prune cleanup callback: the authenticated ProcessScope lifecycle
+owner supplies the callback for the exact saved worker parent, and cleanup records its
+actual checked drain. Do not add a protobuf attestation, accept caller-supplied cgroup
+paths, or manufacture a worker receipt after the scope disappears. Preserve quarantine
+when exact scope identity or cleanup cannot be established.
+
+This source-only fixture change does not qualify the eleven other unsupervised cases or
+Spatial-M1. Build and runtime remain explicitly unrun until primary review and test-host
+qualification.
