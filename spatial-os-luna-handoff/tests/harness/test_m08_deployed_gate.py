@@ -243,7 +243,7 @@ class M08InventoryGateTests(unittest.TestCase):
                     launch.assert_not_called()
 
     def test_each_new_required_registration_is_checked_in_both_profiles(self):
-        names = ("copy-worker-stream", "process-scope-named-regression",
+        names = ("copy-worker-stream", "workspace-copy-worker-helpers-tooling", "process-scope-named-regression",
                  "workspace-file-action-storage-owner-btrfs", "storage-owner-fixture-tooling",
                  "workspace-cabinet-native-crosshost")
         for profile in gate.m06.PROFILES:

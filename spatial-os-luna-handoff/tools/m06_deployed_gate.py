@@ -1486,11 +1486,20 @@ def profile_environment(environment, source, build, target):
     return env
 
 
-def profile_stage_commands(source, build, production, target, dedicated_crosshost):
+def profile_stage_commands(source, build, production, target, dedicated_crosshost, *,
+                          copy_worker_helpers=False, profile=None):
+    core_command = ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E",
+                    ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")]
+    if copy_worker_helpers:
+        if profile not in PROFILES:
+            raise ValueError("Copy helper lifecycle requires an explicit build profile")
+        core_command = ["python3", str(source / "tools/with_copy_worker_helpers.py"),
+                        "--build", str(build), "--profile", profile,
+                        "--evidence", str(target / "copy-worker-helper-lifecycle"), "--", *core_command]
     return [
         ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
         ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
-        ("core", ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E", ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")], 14400),
+        ("core", core_command, 14400),
         ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
         ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
     ]
@@ -1654,7 +1663,9 @@ def gate(a):
                                          paths={name: str(path) for name, path in storage_evidence.items()})))
             row = report["profiles"][profile] = dict(status="running", inventory_count=len(names), commands=[
                 dict(name="inventory", command=["ctest", "--test-dir", str(build), "--show-only=json-v1"], exit_code=0, seconds=sec, assertions_passed=True)])
-            commands = profile_stage_commands(source, build, production, target, dedicated_crosshost)
+            commands = profile_stage_commands(source, build, production, target, dedicated_crosshost,
+                                                  copy_worker_helpers=getattr(a, "copy_worker_helpers", False),
+                                                  profile=profile)
             for label, command, timeout in commands:
                 command_env = stage_environment(env, label, production, source, target)
                 result, seconds = run(command, cwd=source, env=command_env, log=target / (label + ".log"), timeout=timeout)

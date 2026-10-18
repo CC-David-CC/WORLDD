@@ -1290,6 +1290,9 @@ if(BUILD_TESTING)
     add_test(NAME workspace-copy-fixture-profiles COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fixture_profiles.py")
     set_tests_properties(workspace-copy-fixture-profiles PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-worker-helpers-tooling COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_worker_helpers.py")
+    set_tests_properties(workspace-copy-worker-helpers-tooling PROPERTIES TIMEOUT 30)
     add_test(NAME workspace-copy-process-scope-readtrace-source COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_process_scope_readtrace_source.py")
     set_tests_properties(workspace-copy-process-scope-readtrace-source PROPERTIES TIMEOUT 30)
     set(copy_fixture_profile_arguments)
