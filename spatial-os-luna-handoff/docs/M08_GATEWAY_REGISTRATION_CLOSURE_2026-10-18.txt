@@ -1,0 +1,87 @@
+# M08 gateway registration closure
+
+Status: unqualified static candidate. No project runtime or CTest case ran on
+middle-child for this branch. The qualification gap is in test selection and
+target-only fixture closure.
+
+The gateway registration used `-k actor_cabinet_gateway_`. Source inspection
+finds 23 methods named `test_actor_cabinet_gateway_*` and one actor-copy method
+named `test_actor_cabinet_copy_requires_file_copy_and_completes_through_actor_path`.
+The old filter selected 23 of those 24 cases. The registration now uses
+`-k actor_cabinet_`, which selects all 24 declared cabinet cases and no
+inherited methods. The CTest budget remains 300 seconds.
+
+The gateway adapter now receives the configured `--copy-profile` before its
+`--` separator. It uses `m08_file_action_copy_profile`, which resolves to Debug
+or ASan-UBSan. Resource-delegate settings and both copy timing profiles remain
+unchanged.
+
+The gateway fixture target explicitly depends on `spatial-copy-tree-worker`,
+`spatial-copy-finalize-worker`, and `copy-worker-python-protobuf`. Its existing
+`workspace-presentation-actor-fixture` dependency provides `workspaced` and the
+runtime dependencies. Manual source review confirmed that `workspaced` also
+depends on both copy workers and links the file-operation journal through
+`spatial-protobuf`. The actor gateway module and inherited fixtures do not
+import `file_copy_job_journal_pb2`, so that separate Python binding remains
+owned by the file-action broker fixture target. This is a manual source audit.
+The actual target-only package build must verify this dependency closure.
+
+The CMake target-to-output mapping is distinct: `spatial-copy-tree-worker`
+comes from `src/workspace/copy_tree_worker.cpp` and produces
+`${CMAKE_CURRENT_BINARY_DIR}/spatial-copy-tree-worker` on Linux.
+`spatial-copy-finalize-worker` comes from
+`src/workspace/copy_finalize_worker.cpp` and produces
+`${CMAKE_CURRENT_BINARY_DIR}/spatial-copy-finalize-worker` on Linux.
+Neither target sets a custom output name or runtime directory.
+
+Selected static controls, recorded before execution:
+
+- All 16 `copy-progress-timing-tooling` methods: 15 existing controls and one
+  registration/selector closure control. They inspect actual Debug and
+  ASan-UBSan CTest inventories, profiles, budgets, selected method names, and
+  inherited-name exclusions.
+- All seven existing `workspace-private-test-evidence` controls. They confirm
+  the gateway registration still retains its external evidence wrapper.
+- All seven existing `test_copy_fixture_profiles.py` controls. They validate
+  configured adapter profile handling and fixture executable requirements.
+- Configure with
+  `cmake -S /home/dflanag3/src/m08-gateway-registration-closure-20261018/spatial-os-luna-handoff -B /home/dflanag3/spatial-artifacts/m08-gateway-registration-closure-20261018/build-debug -DBUILD_TESTING=ON -DSPATIAL_INPUT_TESTS=ON -DCMAKE_BUILD_TYPE=Debug -DSPATIAL_SANITIZERS=OFF`
+  and the matching `build-asan` path with `-DSPATIAL_SANITIZERS=ON`.
+  Capture each inventory with
+  `ctest --test-dir BUILD_PATH --show-only=json-v1`. These steps inspect
+  registration only.
+- Run
+  `python3 tests/core/test_copy_progress_timing.py --debug-inventory INVENTORY_DEBUG --san-inventory INVENTORY_ASAN`
+  against those actual inventories. Run `python3 -B tools/test_private_test_evidence.py`
+  and `python3 -B tools/test_copy_fixture_profiles.py` as related fixture controls.
+
+Static results: both configurations and inventory captures returned zero.
+Each inventory has 222 registrations. The gateway rows have the correct
+profile, `actor_cabinet_` selector, and 300-second CTest cap. Broker and storage
+profile flags and their 1080/360-second caps remain intact. The 16 timing
+controls passed. Seven private-evidence controls and seven copy-profile fixture
+controls also passed. No project runtime, CTest, or full build ran on
+middle-child.
+
+The final rerun includes all 16 timing controls and both seven-test fixture
+controls. The earlier `static-controls-run-02` receipt predates the final
+selector-control correction and is superseded.
+
+Canonical receipts:
+
+- `/home/dflanag3/spatial-artifacts/m08-gateway-registration-closure-20261018/configure-static-run-01`
+- `/home/dflanag3/spatial-artifacts/m08-gateway-registration-closure-20261018/static-controls-run-03` (final 16 timing and both fixture controls)
+- `/home/dflanag3/spatial-artifacts/m08-gateway-registration-closure-20261018/static-controls-run-02` (superseded)
+- `/home/dflanag3/spatial-artifacts/m08-gateway-registration-closure-20261018/fixture-controls-run-01` (earlier fixture-only run)
+- `/home/dflanag3/spatial-artifacts/m08-gateway-registration-closure-20261018/syntax-diffcheck-run-02` (final syntax and whitespace checks)
+
+Each runner recorded COMPLETE with command and wrapper exits zero. The tmux
+panes exited with status zero and retired. No associated command process remains.
+
+Runtime and CTest execution for this branch remain pending on sb16 and
+sb16-2. External baseline evidence for source63 plus a958 reports Debug
+results of 24 executed, 21 passed, and three failed on each host.
+The actor-copy case passed on both hosts. Those runs did not rebuild this branch source and do not qualify this
+registration change. A focused 24-case runtime must use the normal helper
+prefix required by the full M08 suite. The full M08 gate, sanitizer runtime,
+and results for this branch remain pending.

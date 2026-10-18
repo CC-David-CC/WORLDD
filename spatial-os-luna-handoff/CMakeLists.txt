@@ -821,10 +821,10 @@ if(BUILD_TESTING)
     add_test(NAME workspace-actor-cabinet-gateway COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_private_test_evidence.py" --
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --copy-profile=${m08_file_action_copy_profile} -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_cabinet_gateway.py" $<TARGET_FILE:identityd>
-        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k actor_cabinet_gateway_)
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k actor_cabinet_)
     set_tests_properties(workspace-actor-cabinet-gateway PROPERTIES TIMEOUT 300
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core;PYTHONDONTWRITEBYTECODE=1;PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-actor-cabinet-gateway")
     add_test(NAME workspace-private-test-evidence COMMAND "${Python3_EXECUTABLE}" -B
@@ -838,6 +838,7 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_private_test_evidence.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_private_test_evidence.py"
         DEPENDS workspace-presentation-actor-fixture
+            spatial-copy-tree-worker spatial-copy-finalize-worker copy-worker-python-protobuf
             python-protobuf file-actions-python-protobuf grants-python-protobuf
             world-session-python-protobuf broker-python-protobuf workspace-copy-python-protobuf
             issuer-python-protobuf key-python-protobuf
