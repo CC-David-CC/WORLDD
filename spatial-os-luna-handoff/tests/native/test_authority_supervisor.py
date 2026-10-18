@@ -29,8 +29,8 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
     def issuer_fixture(self):
         return HealthySupervisorIssuer('runTest')
 
-    def healthy_client_config(self):
-        path = self.issuer.config_file()
+    def healthy_client_config(self, endpoint_port=None):
+        path = self.issuer.config_file(endpoint_port=endpoint_port)
         config = text_format.Parse(path.read_text(), identity.IssuerTlsClientConfig())
         config.ClearField('io_timeout_ms')
         path.write_text(text_format.MessageToString(config))
@@ -200,6 +200,19 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
         self.command(3, release=identity.AuthorityRelease(generation=state.generation, applied_revision=1))
         self.child_update(proc, 'released'); self.message(channel, pb.AuthorityLaunchReply)
         self.assertEqual(proc.wait(timeout=5), 0); self.checked_cleanup()
+
+    def test_explicit_stop_before_activation_records_checked_scope_cleanup_without_fence(self):
+        proc, channel = self.running()
+        before = self.activation_rows()
+        reply = self.control(channel, stop=pb.AuthorityLaunchQuery())
+        self.assertEqual(reply.request_id, 77)
+        self.assertTrue(reply.HasField('view'), reply)
+        self.assertFalse(reply.view.record.HasField('fence'))
+        self.assertEqual(proc.wait(timeout=5), 0)
+        record = self.checked_cleanup()
+        self.assertEqual(record, reply.view.record)
+        self.assertEqual(self.activation_rows(), before)
+        self.assertEqual(self.issuer.snapshot_all()['authority_fence'], [])
 
     def test_management_cannot_inject_participant_commands_or_repeat_start(self):
         proc, channel = self.running()

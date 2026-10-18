@@ -419,20 +419,32 @@ int main(int argc, char** argv) {
         bool child_completed = false;
         bool cleanup_budget_exhausted = false;
         std::string pending_failure;
-        auto cleanup_once = [&]() -> std::optional<pb::AuthorityLaunchRecord> {
+        auto reserve_cleanup_attempt = [&]() {
             const auto now = Clock::now();
-            if (cleanup_attempts >= kMaximumCleanupAttempts) { cleanup_budget_exhausted = true; return std::nullopt; }
+            if (cleanup_attempts >= kMaximumCleanupAttempts) { cleanup_budget_exhausted = true; return false; }
             if (cleanup_attempts != 0 && now - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
-                cleanup_budget_exhausted = true; return std::nullopt;
+                cleanup_budget_exhausted = true; return false;
             }
             if (cleanup_attempts == 0) cleanup_started = now;
             ++cleanup_attempts;
+            return true;
+        };
+        auto update_cleanup_budget = [&]() {
+            if (cleanup_attempts >= kMaximumCleanupAttempts ||
+                Clock::now() - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
+                cleanup_budget_exhausted = true;
+                std::cerr << "Cleanup retry budget exhausted; preserving pending launch evidence\n";
+            }
+        };
+        auto cleanup_once = [&]() -> std::optional<pb::AuthorityLaunchRecord> {
+            if (!reserve_cleanup_attempt()) return std::nullopt;
             auto receipt = launch->stop();
             if (storage) storage->stop();
             return receipt;
         };
-        auto finish_unexpected = [&](const pb::AuthorityLaunchRecord& receipt, const std::string& message) {
-            pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
+        auto finish_unexpected = [&](const pb::AuthorityLaunchRecord& receipt, const std::string& message,
+                                     std::uint64_t request_id = 0) {
+            pb::AuthorityLaunchReply reply; reply.set_protocol_version(1); reply.set_request_id(request_id);
             reply.mutable_error()->set_message(message);
             *reply.mutable_error()->mutable_cleanup_record() = receipt;
             management->send(reply.SerializeAsString()); drain(*management);
@@ -479,15 +491,35 @@ int main(int argc, char** argv) {
                         if (stop) {
                             cleanup_pending = true;
                             if (!unexpected_failure && !child_completed) {
-                                try { launch->fence(); }
-                                catch (const std::exception& error) {
+                                try {
+                                    if (request.has_stop()) launch->prepare_explicit_stop();
+                                    else launch->fence();
+                                } catch (const std::exception& error) {
+                                    if (request.has_stop()) {
+                                        std::string message = error.what();
+                                        if (reserve_cleanup_attempt()) {
+                                            try {
+                                                launch->stop_pending();
+                                                if (storage) storage->stop();
+                                            } catch (const std::exception& cleanup) {
+                                                message += std::string("; local scope cleanup remains pending: ") + cleanup.what();
+                                            }
+                                            update_cleanup_budget();
+                                        } else {
+                                            message += "; cleanup retry budget exhausted; preserve pending launch evidence";
+                                        }
+                                        reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                                        reply.mutable_error()->set_message(message);
+                                        management->send(reply.SerializeAsString()); management->flush();
+                                        continue; // Preserve CLEANUP_PENDING and require a bounded explicit retry.
+                                    }
                                     unexpected_failure = true; pending_failure = error.what();
                                 }
                             }
                             try {
                                 auto receipt = cleanup_once();
                                 require(bool(receipt), "Cleanup retry budget exhausted; preserve pending evidence");
-                                if (unexpected_failure) return finish_unexpected(*receipt, pending_failure);
+                                if (unexpected_failure) return finish_unexpected(*receipt, pending_failure, request.request_id());
                                 *reply.mutable_view()->mutable_record() = *receipt;
                                 management->send(reply.SerializeAsString()); drain(*management); return 0;
                             } catch (const std::exception& error) {
@@ -495,11 +527,7 @@ int main(int argc, char** argv) {
                                 reply.mutable_error()->set_message(error.what());
                                 management->send(reply.SerializeAsString());
                                 management->flush();
-                                if (cleanup_attempts >= kMaximumCleanupAttempts ||
-                                    Clock::now() - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
-                                    cleanup_budget_exhausted = true;
-                                    std::cerr << "Cleanup retry budget exhausted; preserving pending launch evidence\n";
-                                }
+                                update_cleanup_budget();
                                 continue;
                             }
                         } else if (request.has_control_owner()) {

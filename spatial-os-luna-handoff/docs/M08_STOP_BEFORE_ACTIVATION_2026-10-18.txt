@@ -1,0 +1,19 @@
+M08 stop-before-activation handling
+
+Status: source implementation only. Build and runtime checks remain UNRUN pending primary review.
+
+An explicit supervisor stop now closes the private child relay before quiescing its retained ParticipantRuntime worker. The worker stops accepting commands under its queue mutex, does not dequeue queued mutations, and joins only after an already-dequeued issuer call returns. A command dequeued before quiescence is tracked before the mutex is released.
+
+The trusted worker distinguishes no activation command sent, correlated REVISION_CONFLICT rejection, checked inactive release, active generation, and unknown mutation outcome. Other issuer errors remain unknown because they may follow a committed mutation. Active and unknown outcomes use the existing strict AuthorityLaunch::fence transaction. Checked states must match the exact owned generation and service binding. No local launch stage or child claim establishes an inactive generation.
+
+If strict fencing fails during explicit stop, the supervisor charges one shared bounded cleanup attempt, stops local process and native scopes, and persists CLEANUP_PENDING receipts. It returns a correlated error without a terminal view or cleanup_record. The supervisor retains ownership for explicit retries within the existing three-attempt, 90-second policy. It does not retire issuer obligations. Asynchronous failures still use request ID zero.
+
+Selected regressions:
+- Native exact-capacity cold broker stop: proves checked process/native cleanup with no activation or fence.
+- Existing active-generation supervisor fence: proves the exact generation still fences before checked cleanup.
+- Lost activation reply: a real relay commits activation and drops the reply; a changed signing key makes the subsequent strict fence fail. A paired case returns typed STORAGE_ERROR after the same real commit. Both require request ID 77, no terminal reply or cleanup_record, CLEANUP_PENDING local stop receipts, and an active issuer generation with no fence or retirement. These tests remain UNRUN pending review and build.
+- Existing unconsumed authorization fence rejection: retains the strict fence rejection and checked cleanup behavior; the decoded request now keeps ID 77.
+
+No issuer schema, transaction, or acceptance contract changed. This increment only handles supervisor stop ordering and reply correlation. Full M08 restart qualification remains unqualified.
+
+Primary review preserves strict fencing when a terminal relay has already destroyed its worker. A checked relay release remains separate. The ambiguous-result cases check the exact fence-key rejection and consume all three cleanup attempts. A fourth stop must report budget exhaustion without changing the retained record.

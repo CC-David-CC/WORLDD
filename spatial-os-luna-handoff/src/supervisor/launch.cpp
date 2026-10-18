@@ -647,13 +647,65 @@ pid_t AuthorityLaunch::direct_child_pid() const {
         "Direct child identity requires a live started launch");
     return impl_->process->direct_child_pid();
 }
-v1::AuthorityLaunchRecord AuthorityLaunch::stop() {
-    if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
-    require(impl_->record.revision() && impl_->process && impl_->native, "Live ownership is unavailable; cleanup remains unresolved");
+void AuthorityLaunch::prepare_explicit_stop() {
+    require(impl_->started && impl_->process && impl_->native &&
+        (impl_->record.stage() == v1::START_ATTEMPTED || impl_->record.stage() == v1::CLEANUP_PENDING),
+        "Explicit stop requires retained live launch ownership");
+    // A checked relay release already made this exact service inactive.
+    // A lost worker gives no such proof, even before a previous stop attempt.
+    if (!impl_->participant) {
+        if (impl_->relay_released && !impl_->relay_failed) return;
+        require(impl_->authorization_config.has_value(),
+            "Explicit stop lost its retained authorization");
+        fence();
+        return;
+    }
+    require(!impl_->stopping || impl_->record.stage() == v1::CLEANUP_PENDING,
+        "Explicit stop is already in progress");
+    // Close child forwarding before freezing the only retained issuer mutation worker.
+    impl_->relay.reset(); impl_->bootstrap.clear();
+    if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
+    const auto outcome = impl_->participant->quiesce_for_supervisor_stop();
+    const auto& binding = impl_->record.binding();
+    if (outcome.state) {
+        const auto& state = *outcome.state;
+        const auto& service = impl_->record.authorization().request().service();
+        require(state.issuer_id() == binding.issuer_id() && state.has_registration() &&
+            state.registration().SerializeAsString() == service.registration().SerializeAsString() &&
+            state.issuer_incarnation() == service.issuer_incarnation() &&
+            state.connection_binding() == service.connection_binding() &&
+            state.service_incarnation() == service.service_incarnation() &&
+            state.service_incarnation() == binding.service_incarnation(),
+            "Quiesced issuer state differs from the exact owned service generation");
+        const auto expected_generation = impl_->record.authorization().request().previous_generation() + 1;
+        if (outcome.disposition == identity::ParticipantRuntime::StopDisposition::active)
+            require(state.active() && state.generation() == expected_generation,
+                "Quiesced active generation differs from the exact owned generation");
+        if (outcome.disposition == identity::ParticipantRuntime::StopDisposition::released)
+            require(!state.active() && state.generation() == expected_generation,
+                "Quiesced release differs from the exact owned generation");
+    }
+    switch (outcome.disposition) {
+    case identity::ParticipantRuntime::StopDisposition::never_sent:
+    case identity::ParticipantRuntime::StopDisposition::rejected:
+    case identity::ParticipantRuntime::StopDisposition::released:
+        return;
+    case identity::ParticipantRuntime::StopDisposition::active:
+    case identity::ParticipantRuntime::StopDisposition::unknown:
+        // Unknown outcomes use the existing strict issuer fence. A rejected fence leaves cleanup pending.
+        fence();
+        return;
+    }
+    throw std::runtime_error("Unknown participant quiescence result");
+}
+void AuthorityLaunch::stop_pending() {
+    if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return;
+    require(impl_->record.revision() && impl_->process && impl_->native,
+        "Live ownership is unavailable; cleanup remains unresolved");
     impl_->stopping = true;
     impl_->relay.reset(); impl_->bootstrap.clear();
     if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
-    impl_->participant.reset(); // Closing a connection does not retire its issuer generation.
+    if (impl_->participant) impl_->participant->quiesce_for_supervisor_stop();
     if (impl_->record.stage() != v1::CLEANUP_PENDING) {
         auto next = impl_->record;
         // Native issuance can succeed before its prepared-record commit fails.
@@ -667,6 +719,11 @@ v1::AuthorityLaunchRecord AuthorityLaunch::stop() {
     if (!impl_->record.has_native_stopped()) {
         auto next = impl_->record; *next.mutable_native_stopped() = impl_->native->stop(); impl_->persist(next);
     }
+}
+v1::AuthorityLaunchRecord AuthorityLaunch::stop() {
+    if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
+    stop_pending();
+    impl_->stopping = true; impl_->participant.reset();
     auto next = impl_->record; next.set_stage(v1::OWNED_SCOPES_STOPPED); impl_->persist(next);
     return impl_->record;
 }

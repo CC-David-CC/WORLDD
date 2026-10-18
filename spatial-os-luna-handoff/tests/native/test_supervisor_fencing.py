@@ -1,12 +1,96 @@
 """The real supervisor must connect its owned launch to issuer fencing."""
 import struct
+import socket
+import ssl
+import threading
 from pathlib import Path
 import sys
 import unittest
+from google.protobuf import text_format
 SOURCE = Path(sys.argv.pop(1)).resolve()
 sys.path.insert(0,str(SOURCE/'tests/native'))
+import core_pb2 as core
 import test_authority_supervisor as supervisor
 import launch_pb2 as launch
+from harness.wire import frame
+
+
+class LostActivationReplyRelay:
+    """Commit one real issuer activation, then drop its reply to create UNKNOWN at the sender."""
+    def __init__(self, owner, expected_service_incarnation, typed_storage_error=False):
+        self.owner = owner
+        self.fixture = owner.issuer
+        self.expected_service_incarnation = expected_service_incarnation
+        self.typed_storage_error = typed_storage_error
+        self.stop_event = threading.Event()
+        self.activation_committed = threading.Event()
+        self.errors = []
+        self.stream = None
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.minimum_version = ssl.TLSVersion.TLSv1_3
+        context.load_cert_chain(str(self.fixture.server_cert), str(self.fixture.server_key))
+        context.load_verify_locations(str(self.fixture.service_cert))
+        context.verify_mode = ssl.CERT_REQUIRED
+        self.context = context
+        self.listener = socket.socket()
+        self.listener.bind(('127.0.0.1', 0)); self.listener.listen(4); self.listener.settimeout(.1)
+        self.port = self.listener.getsockname()[1]
+        self.thread = threading.Thread(target=self.run, daemon=True); self.thread.start()
+        owner.addCleanup(self.close)
+
+    def run(self):
+        upstream = None
+        try:
+            while not self.stop_event.is_set():
+                try: raw, _ = self.listener.accept(); break
+                except socket.timeout: continue
+            else: return
+            raw.settimeout(3)
+            self.stream = self.context.wrap_socket(raw, server_side=True)
+            upstream = self.fixture.connect()
+            def exact(size):
+                data = bytearray()
+                while len(data) < size:
+                    part = self.stream.recv(size - len(data))
+                    if not part: raise EOFError()
+                    data.extend(part)
+                return bytes(data)
+            while not self.stop_event.is_set():
+                size = struct.unpack('!I', exact(4))[0]
+                if size > 1048576: raise AssertionError('Excessive issuer relay frame')
+                request = identity.IssuerRequest.FromString(exact(size))
+                request_id = request.request_id
+                reply = upstream.request(request)
+                reply.request_id = request_id
+                if request.HasField('authority_activate'):
+                    if not (reply.HasField('authority_activation') and reply.authority_activation.active and
+                            reply.authority_activation.service_incarnation() == self.expected_service_incarnation and
+                            reply.request_id == request_id):
+                        raise AssertionError('Upstream activation did not return the exact active service generation')
+                    self.activation_committed.set()
+                    if self.typed_storage_error:
+                        reply.Clear(); reply.protocol_version = 1; reply.request_id = request_id
+                        reply.error.code = core.STORAGE_ERROR
+                        reply.error.message = 'Injected typed failure after committed activation'
+                        self.stream.sendall(frame(reply))
+                    return
+                self.stream.sendall(frame(reply))
+        except (OSError, EOFError):
+            pass
+        except BaseException as error:
+            self.errors.append(error)
+        finally:
+            if self.stream: self.stream.close()
+            if upstream: upstream.close()
+
+    def close(self):
+        self.stop_event.set(); self.listener.close()
+        if self.stream:
+            try: self.stream.shutdown(socket.SHUT_RDWR)
+            except OSError: pass
+        self.thread.join(3)
+        if self.thread.is_alive(): raise AssertionError('Issuer relay did not stop')
+        if self.errors: raise self.errors[0]
 
 
 class SupervisorFencingBaselineTests(supervisor.AuthoritySupervisorTests):
@@ -40,7 +124,65 @@ class SupervisorFencingBaselineTests(supervisor.AuthoritySupervisorTests):
         self.assertEqual(rows['authority_activation'][0][-1],1)
 
 
+class SupervisorStopBeforeActivationTests(supervisor.AuthoritySupervisorTests):
+    def _assert_ambiguous_activation_stays_pending(self, typed_storage_error=False):
+        config = self.config()
+        runtime_path = Path(config.participant.runtime_config)
+        runtime = text_format.Parse(runtime_path.read_text(), identity.AuthorityParticipantRuntimeConfig())
+        relay_peer = LostActivationReplyRelay(self, runtime.service_incarnation, typed_storage_error=typed_storage_error)
+        runtime.issuer_client_config = str(self.healthy_client_config(endpoint_port=relay_peer.port))
+        runtime_path.write_text(text_format.MessageToString(runtime))
+        proc, channel = self.running(config)
+        self.command(1, activate=identity.AuthorityActivate(synchronized_revision=0))
+        failed = self.child_update(proc, 'error')
+        self.assertEqual(failed.request_id, 1)
+        if typed_storage_error:
+            self.assertEqual(failed.error.code, core.STORAGE_ERROR)
+        self.assertTrue(relay_peer.activation_committed.wait(2), 'Issuer activation did not commit before reply handling')
+        self.issuer.supervisor_key.write_bytes(self.issuer.signer.read_bytes())
+        reply = self.control(channel, stop=launch.AuthorityLaunchQuery())
+        self.assertEqual(reply.request_id, 77)
+        self.assertTrue(reply.HasField('error'), reply)
+        self.assertFalse(reply.HasField('view'), reply)
+        self.assertFalse(reply.error.HasField('cleanup_record'), reply)
+        self.assertIn('Fence signing key differs from owned authorization', reply.error.message)
+        self.assertIsNone(proc.poll(), 'Pending supervisor must retain explicit retry ownership')
+        record = self.read_record()
+        self.assertEqual(record.stage, launch.CLEANUP_PENDING)
+        self.assertTrue(record.HasField('process_stopped'))
+        self.assertTrue(record.HasField('native_stopped'))
+        self.assertFalse(record.HasField('fence'))
+        # The initial local cleanup and two retries consume the same three-attempt budget.
+        for _ in range(2):
+            retry = self.control(channel, stop=launch.AuthorityLaunchQuery())
+            self.assertTrue(retry.HasField('error'), retry)
+            self.assertIn('Fence signing key differs from owned authorization', retry.error.message)
+            self.assertFalse(retry.error.HasField('cleanup_record'), retry)
+            self.assertEqual(self.read_record(), record)
+        exhausted = self.control(channel, stop=launch.AuthorityLaunchQuery())
+        self.assertTrue(exhausted.HasField('error'), exhausted)
+        self.assertIn('Cleanup retry budget exhausted', exhausted.error.message)
+        self.assertFalse(exhausted.error.HasField('cleanup_record'), exhausted)
+        self.assertIsNone(proc.poll(), 'Budget exhaustion must retain pending ownership')
+        self.assertEqual(self.read_record(), record)
+        rows = self.issuer.snapshot_all()
+        self.assertEqual(len(rows['authority_activation']), 1)
+        self.assertEqual(rows['authority_activation'][0][-1], 1)
+        self.assertEqual(rows['authority_fence'], [])
+        self.assertEqual(rows['authority_retirement'], [])
+        proc.send_signal(signal.SIGTERM)
+        self.assertEqual(proc.wait(timeout=8), 2)
+        self.assertEqual(self.read_record(), record)
+
+    def test_lost_activation_reply_requires_strict_fence_and_keeps_pending_without_receipt(self):
+        self._assert_ambiguous_activation_stays_pending()
+
+    def test_typed_storage_error_after_commit_is_ambiguous_and_requires_strict_fence(self):
+        self._assert_ambiguous_activation_stays_pending(typed_storage_error=True)
+
+
 import sqlite3
+import signal
 import issuer_pb2 as identity
 import security_pb2 as security
 
@@ -50,7 +192,7 @@ class SupervisorFenceFailures(supervisor.AuthoritySupervisorTests):
         request=launch.AuthorityLaunchRequest(protocol_version=1,request_id=77,fence=launch.AuthorityLaunchQuery()).SerializeToString()
         channel.sendall(struct.pack('!I',len(request))+request)
         reply=self.message(channel,launch.AuthorityLaunchReply)
-        self.assertEqual(reply.request_id,0) # Existing fatal supervisor error channel.
+        self.assertEqual(reply.request_id,77) # A decoded stop/fence request keeps its correlation.
         self.assertTrue(reply.HasField('error'),reply)
         return reply
 
@@ -180,6 +322,6 @@ class CoordinatorFenceTests(supervisor.owned.OwnedParticipantTests):
 
 if __name__ == '__main__':
     suite=unittest.TestSuite(cls(name) for cls in
-        (SupervisorFencingBaselineTests,SupervisorFenceFailures,CoordinatorFenceTests)
+        (SupervisorFencingBaselineTests,SupervisorFenceFailures,SupervisorStopBeforeActivationTests,CoordinatorFenceTests)
         for name in cls.__dict__ if name.startswith('test_'))
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

@@ -77,6 +77,10 @@ struct ParticipantRuntime::Impl {
     bool inherited_channel = false;
     std::optional<std::uint64_t> delivered_revision;
     bool broken = false, closed = false, releasing = false;
+    bool accepting_commands = true, quiescing = false;
+    bool activation_started = false, activation_rejected = false;
+    bool mutation_in_flight = false;
+    std::optional<v1::AuthorityActivationState> stop_state;
     // Destruction requests stop and joins before destroying shared state.
     std::jthread worker;
 
@@ -142,15 +146,21 @@ struct ParticipantRuntime::Impl {
             bool backlog = false;
             while (!stop.stop_requested()) {
                 check_stop(stop);
+                { std::lock_guard lock(mutex); if (quiescing) break; }
                 std::optional<v1::ParticipantCommand> command;
                 std::optional<std::uint64_t> delivered;
                 bool queued = false, forwarded = false;
                 {
                     std::lock_guard lock(mutex); delivered = delivered_revision;
                     // Publish the initial feed before accepting mutations.
-                    if (cursor && !commands.empty()) {
+                    if (cursor && !quiescing && !commands.empty()) {
                         command = std::move(commands.front()); commands.pop_front();
                         forwarded = forwarded_requests.erase(command->request_id()) != 0;
+                        mutation_in_flight = command->has_activate() || command->has_applied() || command->has_release();
+                        if (command->has_activate()) {
+                            activation_started = true;
+                            activation_rejected = false;
+                        }
                     }
                     queued = !commands.empty();
                 }
@@ -186,6 +196,12 @@ struct ParticipantRuntime::Impl {
                             active ? active->applied_revision() : 0, false);
                     }
                     reply = client.call(std::move(request));
+                    {
+                        std::lock_guard lock(mutex);
+                        mutation_in_flight = false;
+                        if (command->has_activate() && reply.has_error() &&
+                            reply.error().code() == core::REVISION_CONFLICT) activation_rejected = true;
+                    }
                     update.Clear(); update.set_request_id(command->request_id());
                     if (reply.has_error() && command->has_activate() && reply.error().code() == core::REVISION_CONFLICT) {
                         // Fetch new events; the consumer must synchronize and explicitly request activation again.
@@ -193,6 +209,7 @@ struct ParticipantRuntime::Impl {
                     } else {
                         if (reply_error(reply, stage, command->request_id())) return;
                         active = reply.authority_activation();
+                        { std::lock_guard lock(mutex); stop_state = *active; }
                         if (command->has_activate()) *update.mutable_activated() = *active;
                         else if (command->has_applied()) {
                             *update.mutable_applied() = *active;
@@ -419,6 +436,31 @@ struct ParticipantRuntime::Impl {
         } else worker = std::jthread([this, config, domains = domain_set(expected)](std::stop_token stop) { run(stop, config, domains); });
     }
 };
+ParticipantRuntime::StopOutcome ParticipantRuntime::quiesce_for_supervisor_stop() {
+    bool inherited = false;
+    {
+        std::lock_guard lock(impl_->mutex);
+        impl_->accepting_commands = false;
+        impl_->quiescing = true;
+        inherited = impl_->inherited_channel;
+    }
+    // An inherited worker cannot prove issuer outcomes. Stop its private stream worker and remain unknown.
+    if (inherited) impl_->worker.request_stop();
+    if (impl_->worker.joinable()) impl_->worker.join();
+    std::lock_guard lock(impl_->mutex);
+    StopOutcome outcome;
+    if (impl_->inherited_channel || impl_->mutation_in_flight) return outcome;
+    if (impl_->stop_state) {
+        outcome.state = impl_->stop_state;
+        outcome.disposition = impl_->stop_state->active() ? StopDisposition::active : StopDisposition::released;
+    } else if (impl_->activation_rejected) {
+        outcome.disposition = StopDisposition::rejected;
+    } else if (!impl_->activation_started) {
+        outcome.disposition = StopDisposition::never_sent;
+    }
+    return outcome;
+}
+
 ParticipantRuntime::ParticipantRuntime(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains)
     : impl_(std::make_unique<Impl>(path, domains)) {}
 ParticipantRuntime::~ParticipantRuntime() = default;
@@ -430,7 +472,8 @@ void ParticipantRuntime::submit_impl(v1::ParticipantCommand command, bool forwar
     validate_message(command);
     require(command.operation_case() != v1::ParticipantCommand::OPERATION_NOT_SET, "Participant command requires an operation");
     std::lock_guard lock(impl_->mutex);
-    if (impl_->broken || impl_->closed || impl_->releasing) throw std::runtime_error("Authority participant channel is unavailable");
+    if (!impl_->accepting_commands || impl_->broken || impl_->closed || impl_->releasing)
+        throw std::runtime_error("Authority participant channel is unavailable");
     require(!impl_->pending.contains(command.request_id()), "Participant command request ID is already pending");
     if (impl_->pending.size() >= 128) {
         impl_->fail_locked(core::RESOURCE_EXHAUSTED, "Authority participant command queue overflow"); return;

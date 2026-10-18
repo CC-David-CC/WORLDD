@@ -44,6 +44,10 @@ public:
     int duplicate_broker_pidfd(const v1::AuthorityLaunchRecord& expected) const;
     int duplicate_world_pidfd(const v1::AuthorityLaunchRecord& expected) const;
     v1::AuthorityLaunchRecord stop();
+    // Stop local scopes while preserving CLEANUP_PENDING when issuer outcome is unresolved.
+    void stop_pending();
+    // Quiesce the retained issuer sender, then fence only an active or ambiguous generation.
+    void prepare_explicit_stop();
     // Fence the exact authorized generation. This does not retire issuer obligations.
     v1::AuthorityLaunchRecord fence();
     // Exceptional shutdown only. Checked graceful release needs no fence.

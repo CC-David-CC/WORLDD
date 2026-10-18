@@ -24,6 +24,12 @@ public:
     std::string service_incarnation() const;
 private:
     friend class spatial::supervisor::AuthorityLaunch;
+    enum class StopDisposition { never_sent, rejected, released, active, unknown };
+    struct StopOutcome {
+        StopDisposition disposition = StopDisposition::unknown;
+        std::optional<v1::AuthorityActivationState> state;
+    };
+    StopOutcome quiesce_for_supervisor_stop();
     // Preserve the child's revision. The issuer resolves synchronization races.
     void submit_forwarded(v1::ParticipantCommand command);
     void submit_impl(v1::ParticipantCommand command, bool forwarded);
