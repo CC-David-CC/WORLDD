@@ -744,8 +744,7 @@ if(BUILD_TESTING)
             broker-python-protobuf world-session-python-protobuf spatial-process-scope-probe
             spatial-security-auth)
     add_test(NAME workspace-actor-cabinet-gateway COMMAND "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_private_test_evidence.py"
-        --root "${CMAKE_CURRENT_BINARY_DIR}/actor-cabinet-private-evidence" --
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_private_test_evidence.py" --
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
@@ -758,11 +757,14 @@ if(BUILD_TESTING)
             "${Python3_EXECUTABLE}" -m py_compile
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_cabinet_gateway.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_presentation_actor.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_private_test_evidence.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_private_test_evidence.py"
         DEPENDS workspace-presentation-actor-fixture
             python-protobuf file-actions-python-protobuf grants-python-protobuf
             world-session-python-protobuf broker-python-protobuf workspace-copy-python-protobuf
             issuer-python-protobuf key-python-protobuf
         SOURCES tests/core/test_actor_cabinet_gateway.py
+            tools/with_private_test_evidence.py tools/test_private_test_evidence.py
         VERBATIM)
     add_test(NAME workspace-presentation-shared-representation COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
