@@ -229,7 +229,10 @@ void BrokerClient::wait(short events) {
         pollfd fds[2]{{channel_, events, 0}, {pidfd_, POLLIN, 0}};
         const auto ready = poll(fds, 2, 10);
         if (ready < 0 && errno == EINTR) continue;
-        if (ready < 0 || fds[1].revents || (fds[0].revents & (POLLHUP | POLLERR | POLLNVAL)))
+        if (ready < 0)
+            throw std::runtime_error("Workspace authority channel closed");
+        if ((events & POLLIN) && (fds[0].revents & POLLIN)) return;
+        if (fds[1].revents || (fds[0].revents & (POLLHUP | POLLERR | POLLNVAL)))
             throw std::runtime_error("Workspace authority channel closed");
         if (fds[0].revents & events) return;
     }
