@@ -116,7 +116,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertLessEqual(total, 16 * 1024 * 1024)
 
     def test_actor_cabinet_gateway_authorized_browse_read_create_and_retry(self):
-        world = self.workspace()
+        world = self.workspace(empty_initial_commit=True)
         peer = world.peers[0]
         target = self.make_cabinet(world, peer)
         browsed = peer.act(cabinet=self.cabinet_request(target,

@@ -1,0 +1,29 @@
+M08 GATEWAY EMPTY ROOT FIXTURE CORRECTION
+Date: 2026-10-18
+Status: fixture correction only; full gate pending.
+
+SOURCE AND BRANCH
+
+Worktree: /home/dflanag3/src/m08-gateway-empty-root-fixture-20261018
+Branch: m08/gateway-empty-root-fixture-20261018
+Base: BOX-GIT VERIFIED 85e1637a66820e57eecc6422670d0d2706736010
+Lineage: a958cd721e0a129856eef7f2f633d25b19462dcb plus fixture commit 85e1637a66820e57eecc6422670d0d2706736010.
+Owned paths: spatial-os-luna-handoff/tests/core/test_actor_cabinet_gateway.py and this note.
+
+RATIONALE
+
+The authorized browse test already checks that an authorized empty cabinet root returns zero entries. Its inherited workspace fixture seeds README.txt. A real Git worktree also retains its .git administrative link. Thus the old setup did not meet the oracle's empty-root precondition.
+
+The approved source guard uses the real registered linked worktree. Production namespace Option C hides and reserves root-level .git administration from the cabinet project namespace. Physical Git metadata remains present for real Git operations. The fixture must not delete .git, substitute an empty child or arbitrary root, or change the zero-entry expectation.
+
+The separate namespace branch adds workspace(empty_initial_commit=False), which opts out of the README seed when true. The test now calls workspace(empty_initial_commit=True) in the exact authorized browse/read/create/retry method. The real registered worktree, actor browse path, zero-entry assertion, create effect, idempotent retry, and read-back assertion remain intact.
+
+This fixture API and the Option C production namespace guard are dependencies from the separate namespace branch. They are not part of this two-file fixture patch. The assigned base does not contain the empty_initial_commit parameter. Compose this patch with the reviewed namespace source before running the gateway case. Do not claim this fixture alone passes against the base.
+
+The earlier a958 source review described root-empty browse as unresolved because .git was visible. The approved Option C guard changes the cabinet namespace boundary while preserving the registered Git worktree contract. It does not remove physical Git metadata.
+
+SCOPE AND VERIFICATION
+
+No production code, acceptance lock, other test method, skip, or oracle was changed. Namespace source guard: 45aa1050134057110c19db8577279beb05dda3dadd2a03aa87e74304a49254d8. The M08 full gate remains pending.
+
+The AST comparison passed against base 85e1637a66820e57eecc6422670d0d2706736010. Every other method remains unchanged. The target method differs only by its workspace() keyword argument. Python syntax compilation writes bytecode outside the checkout. No runtime test, build, test-host launch, commit, or push is part of this task.
