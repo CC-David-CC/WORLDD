@@ -158,6 +158,12 @@ def main(*,fixture_spec=None):
             PYTHONPATH=str(build/'python')+':'+str(source)+':'+str(source/'tests/core'),
             SPATIAL_SECURITY_EVIDENCE=str(evidence/'cases'),SPATIAL_SCOPE_EVIDENCE=str(evidence/'scopes'),
             ASAN_OPTIONS='detect_leaks=1:abort_on_error=1',UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
+        if os.environ.get('SPATIAL_SCOPE_READTRACE') == '1':
+            trace_path=evidence/'scope-readtrace.raw'
+            descriptor=os.open(trace_path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600);os.close(descriptor)
+            environment['SPATIAL_SCOPE_READTRACE_PATH']=str(trace_path)
+            report['scope_readtrace']=dict(path=str(trace_path),maximum_bytes=65536,
+                maximum_record_bytes=4096,maximum_depth=2,maximum_child_directories=8,maximum_pids=8)
         environment.pop('LSAN_OPTIONS',None)
         if fixture_spec is not None:
             observer=evidence/'observer';observer.mkdir(mode=0o700)

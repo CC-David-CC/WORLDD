@@ -1,10 +1,13 @@
 #include "supervisor/process_scope.hpp"
 #include "core/protocol.hpp"
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
 #include <climits>
 #include <csignal>
+#include <charconv>
+#include <cstdlib>
 #include <cstring>
 #include <dirent.h>
 #include <fcntl.h>
@@ -18,6 +21,9 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <system_error>
+#include <sys/file.h>
 #include <sys/prctl.h>
 #include <sys/random.h>
 #include <sys/socket.h>
@@ -65,6 +71,185 @@ void control(int directory, const char* name, const std::string& value) {
     check(size == static_cast<ssize_t>(value.size()), "Cannot write cgroup control");
 }
 void tick() { poll(nullptr, 0, 5); }
+#ifdef SPATIAL_PROCESS_SCOPE_READTRACE
+constexpr std::size_t kReadTraceSnapshotBytes = 4096;
+constexpr std::size_t kReadTraceFileBytes = 65536;
+constexpr std::size_t kReadTraceProcsBytes = 256;
+constexpr std::size_t kReadTracePidCount = 8;
+constexpr std::size_t kReadTraceChildDirectories = 8;
+constexpr unsigned kReadTraceChildDepth = 2;
+
+std::string read_trace_file(int directory, const char* name, std::size_t limit) noexcept {
+    try {
+        Fd fd(openat(directory, name, O_RDONLY | O_CLOEXEC | O_NOFOLLOW));
+        if (fd.value < 0) return "<unavailable>";
+        std::string result;
+        char buffer[256];
+        while (result.size() < limit) {
+            const auto wanted = std::min(sizeof(buffer), limit - result.size());
+            const auto count = read(fd.value, buffer, wanted);
+            if (count < 0 && errno == EINTR) continue;
+            if (count < 0) return "<read-error>";
+            if (!count) return result;
+            result.append(buffer, static_cast<std::size_t>(count));
+        }
+        char extra;
+        const auto count = read(fd.value, &extra, 1);
+        if (count > 0) {
+            constexpr std::string_view marker = "<truncated>";
+            if (result.size() >= marker.size()) result.resize(result.size() - marker.size());
+            result.append(marker);
+        }
+        return result;
+    } catch (...) { return "<read-error>"; }
+}
+
+void append_trace_field(std::string& output, std::string_view name, std::string_view value) {
+    if (output.size() >= kReadTraceSnapshotBytes) return;
+    const auto append = [&](char byte) {
+        if (output.size() < kReadTraceSnapshotBytes) output.push_back(byte);
+    };
+    if (!output.empty()) append(' ');
+    for (const auto byte : name) append(byte);
+    append('=');
+    for (const unsigned char byte : value) {
+        if (byte == '\n') { append('\\'); append('n'); }
+        else if (byte == '\r') { append('\\'); append('r'); }
+        else if (byte == '\\' || byte == ' ') { append('\\'); append(static_cast<char>(byte)); }
+        else append(static_cast<char>(byte));
+    }
+}
+
+std::uint64_t proc_start_time(pid_t pid) noexcept {
+    try {
+        const auto path = "/proc/" + std::to_string(pid) + "/stat";
+        Fd fd(open(path.c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW));
+        if (fd.value < 0) return 0;
+        char buffer[2048];
+        const auto count = read(fd.value, buffer, sizeof(buffer) - 1);
+        if (count <= 0) return 0;
+        buffer[count] = '\0';
+        const std::string_view stat(buffer, static_cast<std::size_t>(count));
+        const auto close = stat.rfind(')');
+        if (close == std::string_view::npos || close + 2 >= stat.size()) return 0;
+        std::istringstream fields(std::string(stat.substr(close + 2)));
+        std::string token;
+        for (unsigned field = 3; field <= 22; ++field) {
+            if (!(fields >> token)) return 0;
+            if (field == 22) {
+                std::uint64_t value = 0;
+                const auto parsed = std::from_chars(token.data(), token.data() + token.size(), value);
+                return parsed.ec == std::errc{} && parsed.ptr == token.data() + token.size() ? value : 0;
+            }
+        }
+    } catch (...) {}
+    return 0;
+}
+
+void add_trace_pids(std::string_view raw, std::array<pid_t, kReadTracePidCount>& pids,
+                    std::size_t& count, bool& limit_reached) {
+    std::size_t cursor = 0;
+    while (cursor < raw.size()) {
+        while (cursor < raw.size() && (raw[cursor] == '\n' || raw[cursor] == '\r' || raw[cursor] == ' ')) ++cursor;
+        if (cursor == raw.size()) break;
+        std::uint64_t value = 0;
+        const auto end = raw.find_first_of("\r\n \t", cursor);
+        const auto stop = end == std::string_view::npos ? raw.size() : end;
+        const auto parsed = std::from_chars(raw.data() + cursor, raw.data() + stop, value);
+        if (parsed.ec == std::errc{} && parsed.ptr == raw.data() + stop && value > 1 && value <= INT_MAX) {
+            const auto pid = static_cast<pid_t>(value);
+            bool found = false;
+            for (std::size_t i = 0; i < count; ++i) found = found || pids[i] == pid;
+            if (!found) {
+                if (count == pids.size()) limit_reached = true;
+                else pids[count++] = pid;
+            }
+        }
+        cursor = stop;
+    }
+}
+
+void write_scope_readtrace(int scope, const v1::ProcessScopeIdentity& identity, std::string_view events,
+                           bool populated) noexcept {
+    try {
+        const char* path = std::getenv("SPATIAL_SCOPE_READTRACE_PATH");
+        if (!path || !*path) return;
+        std::string line = "scope_read populated=" + std::to_string(populated ? 1 : 0);
+        append_trace_field(line, "scope", identity.scope_name());
+        append_trace_field(line, "device", std::to_string(identity.device()));
+        append_trace_field(line, "inode", std::to_string(identity.inode()));
+        append_trace_field(line, "events_used", events);
+
+        std::array<pid_t, kReadTracePidCount> pids{};
+        std::size_t pid_count = 0, child_count = 0;
+        bool pid_limit_reached = false, child_limit_reached = false;
+        const auto root_procs = read_trace_file(scope, "cgroup.procs", kReadTraceProcsBytes);
+        add_trace_pids(root_procs, pids, pid_count, pid_limit_reached);
+        append_trace_field(line, "root_procs", root_procs);
+
+        const auto walk = [&](auto&& self, int directory, std::string prefix, unsigned depth) -> void {
+            Fd duplicate(openat(directory, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
+            if (duplicate.value < 0) return;
+            DIR* entries = fdopendir(duplicate.value);
+            if (!entries) return;
+            duplicate.value = -1;
+            for (;;) {
+                errno = 0;
+                const auto* entry = readdir(entries);
+                if (!entry) break;
+                const std::string name = entry->d_name;
+                if (name == "." || name == "..") continue;
+                struct stat info{};
+                if (fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) < 0 || !S_ISDIR(info.st_mode)) continue;
+                if (child_count >= kReadTraceChildDirectories || depth >= kReadTraceChildDepth) {
+                    child_limit_reached = true; break;
+                }
+                Fd child(openat(directory, name.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+                if (child.value < 0) continue;
+                ++child_count;
+                const auto child_path = prefix.empty() ? name : prefix + "/" + name;
+                const auto procs = read_trace_file(child.value, "cgroup.procs", kReadTraceProcsBytes);
+                add_trace_pids(procs, pids, pid_count, pid_limit_reached);
+                append_trace_field(line, "child_path", child_path);
+                append_trace_field(line, "child_procs", procs);
+                self(self, child.value, child_path, depth + 1);
+            }
+            closedir(entries);
+        };
+        walk(walk, scope, "", 0);
+        append_trace_field(line, "child_dirs", std::to_string(child_count));
+        append_trace_field(line, "child_limit", child_limit_reached ? "1" : "0");
+        for (std::size_t i = 0; i < pid_count; ++i) {
+            append_trace_field(line, "pid_instance",
+                std::to_string(pids[i]) + ":" + std::to_string(proc_start_time(pids[i])));
+        }
+        append_trace_field(line, "pid_limit", pid_limit_reached ? "1" : "0");
+        constexpr std::string_view complete_marker = " truncated=0";
+        constexpr std::string_view truncated_marker = " truncated=1";
+        if (line.size() + complete_marker.size() + 1 > kReadTraceSnapshotBytes) {
+            line.resize(kReadTraceSnapshotBytes - truncated_marker.size() - 1);
+            line.append(truncated_marker);
+        } else line.append(complete_marker);
+        line.push_back('\n');
+
+        Fd output(open(path, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600));
+        if (output.value < 0 || flock(output.value, LOCK_EX) < 0) return;
+        struct stat info{};
+        if (fstat(output.value, &info) < 0 || !S_ISREG(info.st_mode) || info.st_uid != geteuid() ||
+            (info.st_mode & 0077) != 0 || info.st_size < 0 || static_cast<std::uint64_t>(info.st_size) + line.size() > kReadTraceFileBytes) {
+            (void)flock(output.value, LOCK_UN); return;
+        }
+        std::size_t written = 0;
+        while (written < line.size()) {
+            const auto count = write(output.value, line.data() + written, line.size() - written);
+            if (count < 0 && errno == EINTR) continue;
+            if (count <= 0) break;
+            written += static_cast<std::size_t>(count);
+        }
+        (void)flock(output.value, LOCK_UN);
+    } catch (...) {}
+}
+#endif
 void remove_empty_children(int directory, unsigned depth = 0) {
     valid(depth <= 8, "Excessive owned cgroup nesting");
     Fd duplicate(openat(directory, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
@@ -350,7 +535,8 @@ void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
 }
 
 bool ProcessScope::populated() const {
-    std::istringstream input(contents(scope_, "cgroup.events"));
+    const auto event_contents = contents(scope_, "cgroup.events");
+    std::istringstream input(event_contents);
     std::string key; unsigned long long value; bool found = false, populated = false;
     while (input >> key >> value) {
         if (key == "populated") {
@@ -358,7 +544,15 @@ bool ProcessScope::populated() const {
             found = true; populated = value != 0;
         }
     }
-    valid(found, "Missing cgroup population state"); return populated;
+    valid(found, "Missing cgroup population state");
+#ifdef SPATIAL_PROCESS_SCOPE_READTRACE
+    try {
+        const char* trace_path = std::getenv("SPATIAL_SCOPE_READTRACE_PATH");
+        if (trace_path && *trace_path && populated && started_ && child_ > 0 && pidfd_ >= 0 && child_exited())
+            write_scope_readtrace(scope_, identity_, event_contents, populated);
+    } catch (...) { /* Read tracing must never change the scope decision. */ }
+#endif
+    return populated;
 }
 bool ProcessScope::child_exited() const {
     if (reaped_ || child_ < 0) return true;
