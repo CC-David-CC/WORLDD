@@ -3,6 +3,7 @@ from contextlib import closing
 import os
 import select
 import signal
+import stat
 import sqlite3
 import struct
 import time
@@ -77,7 +78,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
             trash_handle=trashed.file_action.trash.handle,
             destination_directory_handle=root_handle,
             destination_basename=b'.spatial-copy-staging',
-            expected_generation=page.file_action.directory.generation))
+            expected_generation=trashed.file_action.trash.generation))
         self.expect_file_error(restored, files.FileActionError.INVALID_ARGUMENT)
         self.assertTrue(stage_root.is_dir())
         self.assertEqual(list(stage_root.iterdir()), [])
@@ -194,11 +195,31 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
 
     def test_file_action_copy_rejects_project_root_source(self):
         self.workspace(attach_world=False)
-        before={path.name for path in self.project.iterdir()}
+        staging = self.project/'.spatial-copy-staging'
+        before_public = {path.name for path in self.project.iterdir()
+                         if path.name != '.spatial-copy-staging'}
+        before_stage = None
+        if staging.exists() or staging.is_symlink():
+            info = staging.lstat()
+            self.assertTrue(stat.S_ISDIR(info.st_mode), 'private staging root must be a real directory')
+            self.assertFalse(stat.S_ISLNK(info.st_mode), 'private staging root must not be a symlink')
+            before_stage = (info.st_dev, info.st_ino)
+            self.assertEqual(list(staging.iterdir()), [], 'existing private staging root must be empty')
         reply=self.action(copy_job=files.FileCopyJob(
             command=files.FileCopyJob.START,maximum_bytes=1024,maximum_entries=8))
         self.expect_file_error(reply,files.FileActionError.INVALID_ARGUMENT)
-        self.assertEqual({path.name for path in self.project.iterdir()},before)
+        after = list(self.project.iterdir())
+        self.assertEqual({path.name for path in after if path.name != '.spatial-copy-staging'},
+                         before_public, 'invalid root-source copy must not publish a project entry')
+        stage_info = staging.lstat()
+        self.assertTrue(stat.S_ISDIR(stage_info.st_mode), 'private staging root must be a real directory')
+        self.assertFalse(stat.S_ISLNK(stage_info.st_mode), 'private staging root must not be a symlink')
+        self.assertEqual(stage_info.st_mode & 0o777, 0o700)
+        self.assertEqual(list(staging.iterdir()), [], 'invalid root-source copy must leave private staging empty')
+        if before_stage is not None:
+            info = staging.lstat()
+            self.assertEqual((info.st_dev, info.st_ino), before_stage,
+                             'existing private staging identity must remain unchanged')
 
     def _copy_source_handles(self, name):
         page=self.action(browse=files.FileBrowse(page_size=64))

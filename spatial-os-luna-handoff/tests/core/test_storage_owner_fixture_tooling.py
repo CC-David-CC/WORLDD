@@ -58,6 +58,17 @@ class Child:
     def terminate(self): self.returncode = -15
 
 
+def provisioned_resource_function():
+    path = SOURCE/'tools/with_adapter_resources.py'
+    tree = ast.parse(path.read_text())
+    node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and
+                n.name == 'provisioned_storage_resources')
+    namespace = dict(Path=Path, RuntimeError=RuntimeError, stat=__import__('stat'),
+                     manager_memory_mib=lambda profile: {'Debug':256,'ASan-UBSan':512}[profile])
+    exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), 'exec'), namespace)
+    return namespace['provisioned_storage_resources']
+
+
 class StorageOwnerFixtureToolingTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -84,6 +95,92 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             copy_engine_v2=False, working_directory=self.root, environment=inputs, argv=['true'])
         for name, value in inputs.items():
             self.assertEqual('--setenv='+name+'='+value in command, name != 'HOST_PRIVATE_KEY')
+
+    def test_explicit_storage_uses_exact_runtime_devices_and_rejects_mismatch(self):
+        function = provisioned_resource_function()
+        volume = self.root/'volumes'/'focus'/'mount'
+        volume.mkdir(parents=True)
+        record = volume.parent/'runtime.pb'
+        record.write_bytes(b'fixture')
+
+        def message(**fields):
+            value = types.SimpleNamespace(**fields)
+            value.HasField = lambda name: hasattr(value, name) and getattr(value, name) is not None
+            return value
+
+        def budget(devices=((7, 14), (259, 0))):
+            return message(memory_bytes=256*1024*1024,
+                io=[types.SimpleNamespace(major=major, minor=minor) for major, minor in devices])
+
+        def make_runtime():
+            resources = message(protocol_version=2, broker_budget=budget(), manager_budget=budget(),
+                default_policy=message(total=budget(), actor_default=budget(),
+                    profiles=[message(maximum=budget())]))
+            owner = message(budget=budget())
+            return message(protocol_version=1, volume_root=str(volume), require_confinement=True,
+                resources=resources, storage_owner=owner)
+
+        runtime = make_runtime()
+        module = types.SimpleNamespace(StorageVolumeRuntime=types.SimpleNamespace(
+            FromString=lambda data: runtime))
+        original_lstat = Path.lstat
+        metadata = types.SimpleNamespace(st_uid=0, st_mode=0o100644)
+        def lstat(path, *args, **kwargs):
+            result = original_lstat(path, *args, **kwargs)
+            return metadata if path == record else result
+
+        with patch.object(Path, 'lstat', lstat):
+            actual, device = function(volume, 'Debug', module)
+        self.assertIs(actual, runtime.resources)
+        self.assertEqual(device, '7:14')
+
+        for uid, mode in ((1000, 0o100644), (0, 0o100664), (0, 0o120777)):
+            runtime = make_runtime()
+            module.StorageVolumeRuntime.FromString = lambda data, runtime=runtime: runtime
+            metadata.st_uid, metadata.st_mode = uid, mode
+            with self.subTest(uid=uid, mode=oct(mode)), patch.object(Path, 'lstat', lstat):
+                with self.assertRaisesRegex(RuntimeError, 'root-owned protected regular file'):
+                    function(volume, 'Debug', module)
+
+        metadata.st_uid, metadata.st_mode = 0, 0o100644
+        runtime = make_runtime()
+        runtime.HasField = lambda name: name != 'resources'
+        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'no provisioned resource budgets'):
+            function(volume, 'Debug', module)
+
+        runtime = make_runtime()
+        runtime.resources.HasField = lambda name: name != 'manager_budget'
+        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'incomplete resource budgets'):
+            function(volume, 'Debug', module)
+
+        runtime = make_runtime()
+        runtime.resources.manager_budget.io = []
+        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'device set'):
+            function(volume, 'Debug', module)
+
+        runtime = make_runtime()
+        runtime.resources.default_policy.total.io = [types.SimpleNamespace(major=7, minor=99)]
+        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'device set'):
+            function(volume, 'Debug', module)
+
+        runtime = make_runtime()
+        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'does not match the selected resource profile'):
+            function(volume, 'ASan-UBSan', module)
+
+    def test_ordinary_adapter_fallback_keeps_host_budget_and_device(self):
+        tree = ast.parse((SOURCE/'tools/with_adapter_resources.py').read_text())
+        branch = next(node for node in ast.walk(tree) if isinstance(node, ast.If) and
+                      isinstance(node.test, ast.Name) and node.test.id == 'storage_volume')
+        fallback = ast.unparse(branch.orelse)
+        self.assertIn('broker.BrokerResourceConfig(protocol_version=2,', fallback)
+        self.assertIn('budget(1024, 128, 400000)', fallback)
+        self.assertIn('budget(manager_memory_mib(resource_profile), 32, 200000)', fallback)
+        self.assertIn("io_device = f'{major}:{minor}'", fallback)
 
     def test_normal_constructor_ignores_storage_environment(self):
         child = Child()

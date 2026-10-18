@@ -372,8 +372,9 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         if pair:
             second_repository = GitRepo(self.root/'second-repository')
             first.call('git.repo.import', id='repo-two', path=str(second_repository.path))
-            first.call('git.worktree.create', repo='repo-two', id='tree-two', branch='branch-two',
-                       start='main', operation_id='tree-two')
+            second_work = first.call('git.worktree.create', repo='repo-two', id='tree-two', branch='branch-two',
+                                     start='main', operation_id='tree-two')
+            self.project_two = Path(second_work['path'])
             first.call('workspace.create', id='two', worktree='tree-two', policy=policy)
         if legacy: first.call('workspace.member.set', id='one', actor='legacy-member', rights=POLICY)
         first.close()

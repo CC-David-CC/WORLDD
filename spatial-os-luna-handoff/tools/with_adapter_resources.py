@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import stat
 import subprocess
 import sys
 import tempfile
@@ -12,6 +13,46 @@ from copy_fixture_profiles import consume_profile, manager_memory_mib
 from google.protobuf import text_format
 import broker_pb2 as broker
 import process_scope_pb2 as process
+
+
+def provisioned_storage_resources(volume, resource_profile, broker_module):
+    """Load the exact provisioned Btrfs budgets for an explicit volume opt-in."""
+    volume = Path(volume)
+    if not volume.is_absolute() or volume.resolve(strict=True) != volume:
+        raise RuntimeError('Storage volume path must be an existing canonical absolute path')
+    runtime_path = volume.parent / 'runtime.pb'
+    metadata = runtime_path.lstat()
+    if (metadata.st_uid != 0 or metadata.st_mode & 0o022 or
+            not stat.S_ISREG(metadata.st_mode)):
+        raise RuntimeError('Storage runtime record must be a root-owned protected regular file')
+    runtime = broker_module.StorageVolumeRuntime.FromString(runtime_path.read_bytes())
+    if runtime.protocol_version != 1 or Path(runtime.volume_root) != volume or not runtime.require_confinement:
+        raise RuntimeError('Storage runtime record does not match the selected provisioned volume')
+    if (not runtime.HasField('resources') or not runtime.HasField('storage_owner') or
+            not runtime.storage_owner.HasField('budget')):
+        raise RuntimeError('Storage runtime record has no provisioned resource budgets')
+    resources = runtime.resources
+    if (not resources.HasField('broker_budget') or not resources.HasField('manager_budget') or
+            not resources.HasField('default_policy')):
+        raise RuntimeError('Storage runtime record has incomplete resource budgets')
+    policy = resources.default_policy
+    if not policy.HasField('total') or not policy.HasField('actor_default') or any(
+            not profile.HasField('maximum') for profile in policy.profiles):
+        raise RuntimeError('Storage runtime record has incomplete resource budgets')
+    expected_memory = manager_memory_mib(resource_profile) * 1024 * 1024
+    if resources.manager_budget.memory_bytes != expected_memory:
+        raise RuntimeError('Storage runtime manager budget does not match the selected resource profile')
+    devices = {(item.major, item.minor) for item in runtime.storage_owner.budget.io}
+    budgets = (resources.broker_budget, resources.manager_budget, policy.total, policy.actor_default,
+        *(profile.maximum for profile in policy.profiles))
+    if not devices or any(not budget.io or {(item.major, item.minor) for item in budget.io} != devices
+                          for budget in budgets):
+        raise RuntimeError('Storage runtime resource budgets do not bind the provisioned device set')
+    # The storage probe supports one accounting device. Provisioning sorts loop and
+    # backing devices; the first identity is the actual mounted loop device.
+    first = resources.manager_budget.io[0]
+    return resources, f'{first.major}:{first.minor}'
+
 
 assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
 resource_profile = 'Debug'
@@ -40,20 +81,25 @@ try:
             return process.ProcessScopeBudget(memory_bytes=memory*mib, swap_bytes=0, processes=processes,
                 cpu_microseconds=cpu, io=[dict(major=major, minor=minor,
                     read_bytes_per_second=64*mib, write_bytes_per_second=16*mib)])
-        config = broker.BrokerProcessConfig(protocol_version=1, delegated_cgroup=str(scope),
-            resources=broker.BrokerResourceConfig(protocol_version=2,
+        storage_volume = os.environ.get('SPATIAL_TEST_STORAGE_VOLUME')
+        if storage_volume:
+            resources, io_device = provisioned_storage_resources(storage_volume, resource_profile, broker)
+        else:
+            resources = broker.BrokerResourceConfig(protocol_version=2,
                 broker_budget=budget(1024, 128, 400000),
                 manager_budget=budget(manager_memory_mib(resource_profile), 32, 200000),
                 default_policy=broker.WorkspaceResourcePolicy(total=budget(512, 64, 200000),
                     actor_default=budget(256, 32, 100000), profiles=[
                         broker.ApplicationResourceProfile(name=name, maximum=budget(128, 16, 100000))
-                        for name in ('development', 'read-only')])))
+                        for name in ('development', 'read-only')]))
+            io_device = f'{major}:{minor}'
+        config = broker.BrokerProcessConfig(protocol_version=1, delegated_cgroup=str(scope), resources=resources)
         path = directory/'broker.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
         resource_path = directory/'resources.textproto'
         resource_path.write_text(text_format.MessageToString(config.resources)); resource_path.chmod(0o600)
         result['configuration'] = text_format.MessageToString(config)
         env = dict(os.environ, SPATIAL_TEST_BROKER_CONFIG=str(path), SPATIAL_TEST_CGROUP_ROOT=str(scope),
-            SPATIAL_TEST_RESOURCE_CONFIG=str(resource_path), SPATIAL_TEST_IO_DEVICE=f'{major}:{minor}')
+            SPATIAL_TEST_RESOURCE_CONFIG=str(resource_path), SPATIAL_TEST_IO_DEVICE=io_device)
         result['command'] = sys.argv[2:]
         child = subprocess.run(sys.argv[2:], env=env)
         code = result['exit_code'] = child.returncode
