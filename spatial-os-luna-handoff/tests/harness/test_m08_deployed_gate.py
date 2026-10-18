@@ -88,6 +88,97 @@ class M08InventoryGateTests(unittest.TestCase):
         self.assertEqual(set(effective), gate.REQUIRED)
         self.assertEqual(set(forwarded.dedicated_crosshost), gate.M08_DEDICATED_CROSSHOST)
         self.assertEqual(forwarded.storage_lane_by_profile, storage_by_profile)
+        self.assertEqual(tuple(forwarded.expected_harness_tests), gate.load_harness_test_inventory())
+        self.assertEqual(set(forwarded.storage_expected_results), gate.M08_STORAGE_EXPECTED_RESULTS)
+
+    def harness_output(self, test_ids, status_by_id=None, summary_count=None):
+        status_by_id = status_by_id or {}
+        lines = [f"{name.rsplit('.', 1)[-1]} ({name}) ... {status_by_id.get(name, 'ok')}"
+                 for name in test_ids]
+        count = len(test_ids) if summary_count is None else summary_count
+        return "\n".join(lines + ["", f"Ran {count} tests in 0.001s", "", "OK", ""])
+
+    def test_m08_harness_inventory_preserves_51_baseline_plus_38_additions(self):
+        test_ids = gate.load_harness_test_inventory()
+        self.assertEqual(len(test_ids), 89)
+        self.assertEqual(len(set(test_ids)), 89)
+        self.assertEqual(gate.M08_BASELINE_SHA256, "e4c14f05414e9cbd39f881fbb5d6fe45ffd5301f8f5c0a693bd36ec1808853f2")
+        self.assertEqual(gate.M08_HARNESS_GROUP_COUNTS, {
+            "test_oracles": 16, "test_tools": 11, "test_recovery_wire": 8,
+            "test_transport": 12, "test_workspace_wire": 4,
+            "test_m08_deployed_gate": 32, "test_private_evidence_scope": 5,
+            "test_resource_broker_environment": 1})
+        self.assertEqual(gate.m06.validate_harness_test_inventory(
+            self.harness_output(test_ids), test_ids)["harness_inventory_valid"], True)
+        self.assertEqual(gate.m06.validate_harness_test_inventory(
+            "Ran 51 tests in 0.001s\n\nOK\n")["expected_51"], True)
+
+    def test_m08_harness_inventory_rejects_missing_extra_duplicate_wrong_count_and_skip(self):
+        expected = gate.load_harness_test_inventory()
+        missing = list(expected[:-1])
+        self.assertFalse(gate.m06.validate_harness_test_inventory(
+            self.harness_output(missing), expected)["harness_inventory_valid"])
+        unexpected = list(expected[:-1]) + ["tests.harness.extra.Case.test_extra"]
+        result = gate.m06.validate_harness_test_inventory(self.harness_output(unexpected), expected)
+        self.assertFalse(result["harness_inventory_valid"])
+        self.assertIn("tests.harness.extra.Case.test_extra", result["unexpected_harness_tests"])
+        duplicated = list(expected[:-1]) + [expected[0], expected[0]]
+        self.assertFalse(gate.m06.validate_harness_test_inventory(
+            self.harness_output(duplicated), expected)["harness_inventory_valid"])
+        self.assertFalse(gate.m06.validate_harness_test_inventory(
+            self.harness_output(expected, summary_count=82), expected)["harness_inventory_valid"])
+        skipped = {expected[0]: "skipped 'missing fixture'"}
+        result = gate.m06.validate_harness_test_inventory(self.harness_output(expected, skipped), expected)
+        self.assertFalse(result["harness_inventory_valid"])
+        self.assertEqual(result["skipped_harness_tests"], [expected[0]])
+
+    def test_m08_harness_manifest_matches_unittest_discovery_without_running_tests(self):
+        suite = unittest.defaultTestLoader.discover("tests/harness", top_level_dir=".")
+        def flatten(node):
+            for item in node:
+                if isinstance(item, unittest.TestSuite):
+                    yield from flatten(item)
+                else:
+                    yield item.id()
+        self.assertEqual(tuple(sorted(flatten(suite))), gate.load_harness_test_inventory())
+
+    def test_m08_harness_manifest_refuses_missing_required_source_case(self):
+        manifest = json.loads(gate.M08_HARNESS_MANIFEST.read_text())
+        manifest["m08_addition_tests"].pop()
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "inventory.json"
+            path.write_text(json.dumps(manifest))
+            with patch.object(gate, "M08_HARNESS_MANIFEST", path):
+                with self.assertRaisesRegex(RuntimeError, "count contract"):
+                    gate.load_harness_test_inventory()
+
+    def test_m06_storage_five_and_m08_storage_six_contracts_are_exact(self):
+        m06_default = set(gate.m06.storage_scenario_result_names())
+        self.assertEqual(m06_default, {"large_import_retirement", "application_and_actor_quota",
+            "read_only", "sibling_survival", "restart"})
+        self.assertEqual(set(gate.m06.storage_scenario_result_names(m06_default)), m06_default)
+        self.assertEqual(set(gate.m06.storage_scenario_result_names(gate.M08_STORAGE_EXPECTED_RESULTS)),
+                         gate.M08_STORAGE_EXPECTED_RESULTS)
+        self.assertIn("production_application_copy_stage_mask", gate.M08_STORAGE_EXPECTED_RESULTS)
+        five_results = {name: {"passed": True} for name in m06_default}
+        six_results = {name: {"passed": True} for name in gate.M08_STORAGE_EXPECTED_RESULTS}
+        self.assertEqual(set(gate.m06.validate_storage_scenario_receipt({"results": five_results})), m06_default)
+        with self.assertRaisesRegex(RuntimeError, "required result inventory"):
+            gate.m06.validate_storage_scenario_receipt({"results": five_results}, gate.M08_STORAGE_EXPECTED_RESULTS)
+        self.assertEqual(set(gate.m06.validate_storage_scenario_receipt(
+            {"results": six_results}, gate.M08_STORAGE_EXPECTED_RESULTS)), gate.M08_STORAGE_EXPECTED_RESULTS)
+        for malformed in (dict(six_results, unexpected={"passed": True}),
+                          {key: value for key, value in six_results.items()
+                           if key != "production_application_copy_stage_mask"}):
+            with self.subTest(malformed=sorted(malformed)):
+                with self.assertRaisesRegex(RuntimeError, "required result inventory"):
+                    gate.m06.validate_storage_scenario_receipt(
+                        {"results": malformed}, gate.M08_STORAGE_EXPECTED_RESULTS)
+        for invalid in (m06_default | {"unexpected"},
+                        gate.M08_STORAGE_EXPECTED_RESULTS - {"restart"}):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(RuntimeError, "missing required or contains unexpected"):
+                    gate.m06.storage_scenario_result_names(invalid)
 
     def test_copy_tests_are_not_substituted_by_m07_workspace_copy_engine(self):
         self.assertIn("cabinet-copy-path", gate.M08_REQUIRED)

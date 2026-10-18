@@ -46,6 +46,9 @@ REQUIRED = {
 DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
 ALLOWED_DEDICATED_CROSSHOST = DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost", "workspace-cabinet-native-crosshost"}
 STORAGE_LOCAL_EVIDENCE_TESTS = ("session-storage-owner", "session-storage-contention")
+M06_STORAGE_SCENARIO_RESULTS = frozenset({
+    "large_import_retirement", "application_and_actor_quota", "read_only", "sibling_survival", "restart"})
+M08_STORAGE_SCENARIO_ADDITIONS = frozenset({"production_application_copy_stage_mask"})
 STORAGE_FIXTURE_UID = 0
 STORAGE_EVIDENCE_ROOT = Path("/home/dflanag3/spatial-artifacts/m06-gate-storage")
 STORAGE_ATTEMPT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
@@ -652,7 +655,55 @@ def scan_storage_evidence(registrations):
     return dict(files=files, cleanups=cleanups, exclusions=exclusions, logs_scanned=log_count)
 
 
-def _bounded_storage_artifact_exclusions(target):
+def storage_scenario_result_names(expected=None):
+    """Keep M06's five scenarios as the default; accept only the reviewed M08 superset."""
+    selected = M06_STORAGE_SCENARIO_RESULTS if expected is None else frozenset(expected)
+    if selected not in (M06_STORAGE_SCENARIO_RESULTS,
+                        M06_STORAGE_SCENARIO_RESULTS | M08_STORAGE_SCENARIO_ADDITIONS):
+        raise RuntimeError("storage Git scenario contract is missing required or contains unexpected results")
+    return selected
+
+
+def validate_storage_scenario_receipt(record, expected=None):
+    """Require exact storage scenario IDs and successful results for the selected gate contract."""
+    expected_results = storage_scenario_result_names(expected)
+    results = record.get("results") if isinstance(record, dict) else None
+    if not isinstance(results, dict) or set(results) != expected_results:
+        raise RuntimeError("storage-owner scenario receipt does not match the required result inventory")
+    if any(not isinstance(row, dict) or row.get("passed") is not True for row in results.values()):
+        raise RuntimeError("storage-owner scenario receipt contains a failed result")
+    return expected_results
+
+
+def validate_harness_test_inventory(output, expected_test_ids=None):
+    """Validate either the legacy M06 count or an exact versioned M08 test-ID set."""
+    if expected_test_ids is None:
+        return {"expected_51": bool(re.search(r"Ran 51 tests in .*\n\nOK(?:\n|$)", output))
+                and not re.search(r"\bskipped\b", output)}
+    expected = list(expected_test_ids)
+    if not expected or len(expected) != len(set(expected)):
+        raise RuntimeError("expected harness test inventory must be nonempty and unique")
+    pattern = re.compile(r"(?m)^(\S+) \((tests\.harness\.[^)]+)\) \.\.\. ([^\r\n]+)$")
+    rows = [(match.group(2), match.group(1), match.group(3).strip())
+            for match in pattern.finditer(output)]
+    reported = [row[0] for row in rows]
+    summary = re.search(r"Ran (\d+) tests in .*\n\nOK(?:\n|$)", output)
+    expected_set = set(expected)
+    reported_set = set(reported)
+    duplicates = sorted(name for name in reported_set if reported.count(name) > 1)
+    skipped = sorted(name for name, _short, status in rows if status.startswith("skipped"))
+    valid = (summary is not None and int(summary.group(1)) == len(expected)
+             and len(rows) == len(expected) and not duplicates and not skipped
+             and all(status == "ok" and short == name.rsplit(".", 1)[-1]
+                     for name, short, status in rows)
+             and reported_set == expected_set)
+    return {"harness_inventory_valid": valid, "expected_harness_count": len(expected),
+            "reported_harness_count": len(rows), "missing_harness_tests": sorted(expected_set-reported_set),
+            "unexpected_harness_tests": sorted(reported_set-expected_set),
+            "duplicate_harness_tests": duplicates, "skipped_harness_tests": skipped}
+
+
+def _bounded_storage_artifact_exclusions(target, expected_storage_results=None):
     """Validate the only root-owned files omitted from a gate artifact hash map."""
     target = Path(target)
     target_real = target.resolve(strict=True)
@@ -667,15 +718,13 @@ def _bounded_storage_artifact_exclusions(target):
             or review_info.st_uid != os.getuid()):
         raise RuntimeError('bounded storage review receipt is not an owned regular file')
     record = json.loads(review.read_text())
-    expected_results = {'large_import_retirement', 'application_and_actor_quota', 'read_only',
-                        'sibling_survival', 'restart'}
+    validate_storage_scenario_receipt(record, expected_storage_results)
     results = record.get('results')
     unit = record.get('unit')
     scope = record.get('scope')
     owner_units = record.get('owner_unit_cleanup')
     if (record.get('status') != 'passed' or record.get('mounted') is not False
-            or not isinstance(results, dict) or set(results) != expected_results
-            or any(not isinstance(row, dict) or row.get('passed') is not True for row in results.values())
+            or not isinstance(results, dict)
             or not isinstance(unit, str) or not re.fullmatch(r'spatial-m03-storage-integration-[0-9a-f]{32}\.service', unit)
             or not isinstance(scope, str) or not Path(scope).is_absolute() or Path(scope).exists()
             or not isinstance(owner_units, dict) or len(owner_units) != 2
@@ -762,12 +811,12 @@ def _retirement_marker_entry(target, relative, entry_kind='file'):
                 target_bytes_hex=target_bytes.hex(), target_sha256=hashlib.sha256(target_bytes).hexdigest())
 
 
-def validate_artifact_links(target, expected_links):
+def validate_artifact_links(target, expected_links, expected_storage_results=None):
     """Re-scan links without following them and bind the exact reported link inventory."""
     target = Path(target)
     if target.is_symlink() or not target.is_dir():
         raise RuntimeError('gate artifact root is not a real directory')
-    exclusions = _bounded_storage_artifact_exclusions(target)
+    exclusions = _bounded_storage_artifact_exclusions(target, expected_storage_results)
     excluded = {row['path'] for row in exclusions}
     actual = []
     def walk_error(error):
@@ -804,12 +853,12 @@ def validate_artifact_links(target, expected_links):
     return actual
 
 
-def artifact_evidence_manifest(target):
+def artifact_evidence_manifest(target, expected_storage_results=None):
     """Hash gate output strictly, with two validated storage exclusions and one typed marker."""
     target = Path(target)
     if target.is_symlink() or not target.is_dir():
         raise RuntimeError('gate artifact root is not a real directory')
-    exclusions = _bounded_storage_artifact_exclusions(target)
+    exclusions = _bounded_storage_artifact_exclusions(target, expected_storage_results)
     excluded = {row['path'] for row in exclusions}
     hashes = {}
     artifact_links = []
@@ -1471,6 +1520,14 @@ def gate(a):
     requirement_suites = dict(zip(('native_controller', 'real_world', 'recovery', 'host_session', 'held_input'), required_slots))
     requirement_suites.update(native_geometry_presentation="geometry-presentation-native", native_geometry_crosshost="geometry-native-crosshost")
     required = required_test_names(getattr(a, "required_tests", ()), required_slots)
+    expected_harness_tests = getattr(a, "expected_harness_tests", None)
+    if expected_harness_tests is not None:
+        expected_harness_tests = list(expected_harness_tests)
+        if (not expected_harness_tests or any(not isinstance(name, str) or not name for name in expected_harness_tests)
+                or len(expected_harness_tests) != len(set(expected_harness_tests))):
+            raise RuntimeError("expected harness inventory must be nonempty, textual, and unique")
+    expected_storage_results = storage_scenario_result_names(
+        getattr(a, "storage_expected_results", None))
     dedicated_crosshost = set(getattr(a, "dedicated_crosshost", DEDICATED_CROSSHOST))
     if not DEDICATED_CROSSHOST.issubset(dedicated_crosshost) or dedicated_crosshost - ALLOWED_DEDICATED_CROSSHOST:
         raise RuntimeError("invalid dedicated cross-host registration set")
@@ -1505,6 +1562,10 @@ def gate(a):
                   bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={},
                   required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost))
     report['selected_profiles'] = list(selected)
+    if getattr(a, "expected_harness_tests", None) is not None:
+        report['expected_harness_tests'] = expected_harness_tests
+    if getattr(a, "storage_expected_results", None) is not None:
+        report['storage_expected_results'] = sorted(expected_storage_results)
     report['report_kind'] = 'profile_batch' if continuation else 'full_local_attempt'
     if continuation:
         report['batch_id'] = storage_attempt_name
@@ -1607,7 +1668,7 @@ def gate(a):
                     raise RuntimeError('production-off startup must pass all five checks')
                 if label == "harness":
                     text = (target / "harness.log").read_text(errors="replace")
-                    item["expected_51"] = bool(re.search(r"Ran 51 tests in .*\n\nOK(?:\n|$)", text)) and not re.search(r"\bskipped\b", text)
+                    item.update(validate_harness_test_inventory(text, expected_harness_tests))
                 if label == "core":
                     try:
                         import xml.etree.ElementTree as ET
@@ -1627,16 +1688,19 @@ def gate(a):
                 if result.returncode:
                     row["status"] = "failed"; write_json(report_path, report)
                     raise RuntimeError(f"{profile} {label} failed with status {result.returncode}; subsequent stages stopped")
-                if label == "harness" and not item["expected_51"]: raise RuntimeError("harness inventory is not exactly 51 passing tests")
+                if label == "harness" and not item.get("harness_inventory_valid", item.get("expected_51", False)):
+                    if expected_harness_tests is None:
+                        raise RuntimeError("harness inventory is not exactly 51 passing tests")
+                    raise RuntimeError("harness test inventory differs from its required contract")
                 if label == "core" and (item.get("junit_cases") != len(local_names) or not item.get("all_registered_present") or item.get("failed_or_skipped")): raise RuntimeError("CTest full-suite JUnit assertion failed")
                 if label == "P10" and not (item.get("acceptance", {}).get("status") == "passed" and item["acceptance"].get("selected") == item["acceptance"].get("executed") == item["acceptance"].get("total_baseline") == 151 and item["acceptance"].get("not_selected") == 0 and not item["acceptance"].get("diagnostic_only") and item["acceptance"].get("through") == "P10" and item.get("acceptance_rows_valid")): raise RuntimeError("locked P10 inventory assertion failed")
                 if label == "bounded-storage-git":
                     review = target / "bounded-storage-git/review.json"
                     if not review.is_file(): raise RuntimeError("storage owner review receipt missing")
                     data = json.loads(review.read_text())
-                    expected_storage = {"large_import_retirement", "application_and_actor_quota", "read_only", "sibling_survival", "restart"}
-                    if data.get("status") != "passed" or set(data.get("results", {})) != expected_storage: raise RuntimeError("five storage-owner scenario receipt invalid")
-                    if not all(result.get("passed") for result in data["results"].values()): raise RuntimeError("storage-owner scenario failure")
+                    expected_storage = expected_storage_results
+                    if data.get("status") != "passed": raise RuntimeError("storage-owner scenario receipt invalid")
+                    validate_storage_scenario_receipt(data, expected_storage)
                     if data.get("mounted") is not False or any(data.get(key, {}).get("exit_code") != 0 for key in ("service_stop", "unmount", "detach")):
                         raise RuntimeError("storage-owner cleanup receipt invalid")
                     if "ActiveState=inactive" not in data.get("service_after", ""):
@@ -1658,7 +1722,7 @@ def gate(a):
             row["storage_cleanup_receipts"] = storage_receipt["cleanups"]
             row["storage_evidence_exclusions"] = storage_receipt["exclusions"]
             if findings: raise RuntimeError(profile + " sanitizer findings: " + ", ".join(findings))
-            artifact_manifest = artifact_evidence_manifest(target)
+            artifact_manifest = artifact_evidence_manifest(target, expected_storage_results)
             row["artifact_sha256"] = artifact_manifest['sha256']
             row["artifact_exclusions"] = artifact_manifest['exclusions']
             row["artifact_links"] = artifact_manifest['artifact_links']
@@ -1780,6 +1844,7 @@ def _validate_local_run(path, expected_host, candidate):
     if report.get("host") != expected_host or report.get("candidate") != candidate or report.get("status") != "local_passed_crosshost_pending" or report.get("phase_complete") is not False:
         raise RuntimeError(expected_host + " local gate receipt does not match the pending candidate")
     _validate_requirement_suites(report.get("requirement_suites", {}), expected_host)
+    expected_storage_results = storage_scenario_result_names(report.get("storage_expected_results"))
     required = set(REQUIRED) | set(report.get("required_tests", []))
     dedicated = set(report.get("dedicated_crosshost", DEDICATED_CROSSHOST))
     if not DEDICATED_CROSSHOST.issubset(dedicated) or dedicated - ALLOWED_DEDICATED_CROSSHOST:
@@ -1798,7 +1863,7 @@ def _validate_local_run(path, expected_host, candidate):
             raise RuntimeError(expected_host + " " + profile + " local CTest receipt is incomplete")
         if 'artifact_links' not in row:
             raise RuntimeError(expected_host + " " + profile + " local gate omits artifact link manifest")
-        validate_artifact_links(profile_dir, row.get('artifact_links'))
+        validate_artifact_links(profile_dir, row.get('artifact_links'), expected_storage_results)
         inventories[profile] = dict(path=str(profile_dir / "inventory.json"), sha256=sha(profile_dir / "inventory.json"), names=names)
     return dict(path=str(path), sha256=sha(path), inventories=inventories)
 

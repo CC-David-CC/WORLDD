@@ -2,6 +2,7 @@
 """M08 local inventory extension for the reviewed M06/M07 deployed gate."""
 from __future__ import annotations
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -49,6 +50,52 @@ M08_REQUIRED = frozenset({
 M08_DEDICATED_CROSSHOST = frozenset(m07.M07_DEDICATED | {"workspace-cabinet-native-crosshost"})
 INHERITED_REQUIRED = frozenset(m06.REQUIRED) | frozenset(m07.M07_REQUIRED)
 REQUIRED = INHERITED_REQUIRED | M08_REQUIRED
+M08_HARNESS_MANIFEST = HERE.with_name("m08_harness_test_inventory.json")
+M08_BASELINE_SHA256 = "e4c14f05414e9cbd39f881fbb5d6fe45ffd5301f8f5c0a693bd36ec1808853f2"
+M08_HARNESS_GROUP_COUNTS = {
+    "test_oracles": 16, "test_tools": 11, "test_recovery_wire": 8,
+    "test_transport": 12, "test_workspace_wire": 4,
+    "test_m08_deployed_gate": 32, "test_private_evidence_scope": 5,
+    "test_resource_broker_environment": 1,
+}
+M08_STORAGE_EXPECTED_RESULTS = m06.M06_STORAGE_SCENARIO_RESULTS | m06.M08_STORAGE_SCENARIO_ADDITIONS
+
+
+def load_harness_test_inventory():
+    """Load the maintained exact M06 baseline plus additive M08 unittest IDs."""
+    record = json.loads(M08_HARNESS_MANIFEST.read_text())
+    baseline = record.get("baseline_tests")
+    additions = record.get("m08_addition_tests")
+    if (record.get("schema") != 1 or not isinstance(baseline, list) or not isinstance(additions, list)
+            or record.get("baseline_count") != 51 or len(baseline) != 51
+            or record.get("m08_addition_count") != 38 or len(additions) != 38
+            or record.get("expected_count") != 89):
+        raise RuntimeError("M08 maintained harness inventory count contract is invalid")
+    baseline_digest = hashlib.sha256((chr(10).join(baseline) + chr(10)).encode()).hexdigest()
+    if record.get("baseline_sha256") != M08_BASELINE_SHA256 or baseline_digest != M08_BASELINE_SHA256:
+        raise RuntimeError("M08 inherited harness inventory differs from the frozen 51-test baseline")
+    all_ids = baseline + additions
+    if (any(not isinstance(name, str) or not name.startswith("tests.harness.") for name in all_ids)
+            or len(set(all_ids)) != 89):
+        raise RuntimeError("M08 maintained harness test IDs are malformed or duplicated")
+    group_counts = {}
+    for name in additions:
+        parts = name.split(".")
+        module = parts[2] if len(parts) >= 5 else ""
+        group_counts[module] = group_counts.get(module, 0) + 1
+    expected_groups = {"test_m08_deployed_gate": 32, "test_private_evidence_scope": 5,
+                       "test_resource_broker_environment": 1}
+    if group_counts != expected_groups:
+        raise RuntimeError("M08 additive harness inventory does not match its reviewed source groups")
+    baseline_groups = {}
+    for name in baseline:
+        parts = name.split(".")
+        module = parts[2] if len(parts) >= 5 else ""
+        baseline_groups[module] = baseline_groups.get(module, 0) + 1
+    if baseline_groups != {key: value for key, value in M08_HARNESS_GROUP_COUNTS.items()
+                           if key in {"test_oracles", "test_tools", "test_recovery_wire", "test_transport", "test_workspace_wire"}}:
+        raise RuntimeError("M08 inherited harness inventory does not match the frozen 51-test baseline")
+    return tuple(sorted(all_ids))
 
 
 def require_inventory(inventory):
@@ -192,6 +239,8 @@ def run_local(a):
         collector_continuation_sha256=getattr(a, "collector_continuation_sha256", None),
         required_tests=sorted(m07.M07_REQUIRED | M08_REQUIRED),
         dedicated_crosshost=sorted(M08_DEDICATED_CROSSHOST),
+        expected_harness_tests=load_harness_test_inventory(),
+        storage_expected_results=sorted(M08_STORAGE_EXPECTED_RESULTS),
     )
     return m06.gate(ns)
 
