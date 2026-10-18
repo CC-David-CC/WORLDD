@@ -1,0 +1,234 @@
+M08 copy cleanup outcome consumers ? 2026-10-18
+
+Status
+
+Source changes are unbuilt and unqualified. No tests, builds, runtime, or native
+checks ran in this task. The base primitives report remains the authority for
+its separate 13-case evidence; these changes add no PASS claim.
+
+Scope and trust path
+
+The journal now has a strict lookup for a saved scope-cleanup disposition. It
+requires the caller's exact durable job row, the current pinned execution and
+journal binding, and the workspace-to-worktree binding. It compares the current
+job bytes, immutable normalized job digest, workspace, worktree, job ID, and
+saved broker-root device, inode, boot ID, and launch-ID shape. If a durable
+parent generation exists, its root tuple, parent identity bytes, normalized
+absolute path, and root name must match. A serialized outcome or path alone
+cannot authorize recovery.
+
+The Store pins the already initialized execution state through the planned
+ExecutionStore canonical directory-FD accessor, then retains the pin for its
+lifetime. It does not open another ordinary SQLite descriptor. The journal
+lookup uses the existing managed journal connection; the pinned VFS validates
+its own retained inode set. The implementation still needs integration with
+the deadline worker's per-open managed-connection deadline context before it
+can satisfy the inherited cleanup deadline on busy SQLite operations.
+
+Before recovery constructs a FileEngine, Store validates each recovery job's
+saved disposition. Conflict kinds quarantine that worktree, so copy poll and
+START replay cannot return cached receipts. FileEngine checks the same
+validated disposition before cancellation, prior-proof bypass, publication,
+or stage cleanup. Missing, replaced, invalid-parent, and immutable-uncertainty
+outcomes retain the job's old proof, terminal uncertainty bytes, stage bytes,
+and parent evidence. The Store's quarantine set prevents later file actions.
+
+A valid RESERVED_SCOPE_RECONCILED disposition is accepted only for the exact
+START_INTENT job with neither worker identity nor drain proof. It may reconcile
+when its old parent record has already been pruned. It skips a second attempt to
+remove that reservation. It creates no worker proof. Jobs with no disposition
+still require the existing exact worker proof or a successful exact native
+stop before recovery can proceed.
+
+Pruning selects only eligible terminal rows (states 4, 5, 6, and 8) in a
+bounded batch. For each selected job, it deletes the paired disposition and
+job row in the same transaction. UNCERTAIN (state 7), active jobs, and all
+unselected evidence remain. The outcome table's existing row cap and
+idempotent insertion policy remain in force.
+
+Focused regression coverage added
+
+- Strict valid lookup against the current pin and exact job.
+- Rejection for foreign journal binding, changed worktree, changed saved root,
+  and malformed outcome identity/digest/root controls.
+- UNCERTAIN outcome retention when terminal pruning is requested.
+- Paired deletion of an eligible terminal job and its disposition, isolated
+  from unrelated rows.
+- A reconciled reservation's exact proof-free CANCELLED result remains valid.
+- Source-only supervised restart consumer regression described above.
+- Observer-throw lifetime regression holds a real cross-process SQLite
+  exclusive transaction, forces the observer to throw while lookup remains
+  queued, destroys local job/parent/pin wrappers, then releases and drains the
+  queue. It uses a child process to avoid same-process SQLite lock aliasing.
+- Existing broker integration tests already exercise a stable COMPLETE poll and
+  an independent workspace copy: `tests/core/test_file_action_broker.py`
+  around lines 374?395 and 1182?1209.
+- Existing cleanup participant controls cover exact proof, missing/replaced
+  worker, prior-proof replacement, reservation, invalid parent, and immutable
+  terminal uncertainty cases.
+
+A source regression now launches a fresh sibling ProcessScope generation after
+the old scope is pruned. Its child creates WorkspaceResources against its own
+current cgroup, pins the existing journal, and constructs FileEngine for the
+saved old job. It requires stale-proof quarantine and then performs an authorized
+browse through an independent FileEngine using the same real resource object.
+The test also asserts that the old outcome remains bound to the old broker root
+and that both generations share their immediate delegated parent. This source
+has not compiled or run. An independent copy-and-launch control and the repeated
+poll/start receipt oracle remain required at broker level. The reservation
+control exercises journal consumption; it does not replace the production
+recovery and repeated poll/start oracle.
+
+Validation and remaining integration
+
+The first authorized Debug -j2 compile stopped in `file_operation_journal.cpp`
+because the queued lookup captured a move-only pin wrapper by copy. No binary
+completed. The closure now retains the pin's shared implementation and owns
+all job, parent, binding, digest, and serialized bytes it uses.
+
+A corrected Debug -j2 compile was authorized in the same external build
+folder. It reached step 15/17. The journal and FileEngine translation units
+compiled, but `broker_copy_cleanup.cpp` failed on two unqualified nested
+`GitWorkerParentRecord` references and one dynamic diagnostic passed to a
+`const char*` assertion helper. No binary completed. Those source defects are
+fixed. The primary also repaired the supervised child fixture: it duplicates
+the project directory for the staging parent FD, captures child stderr with
+stdout, uses a 15-second absolute result deadline, and closes result pipes on
+all paths. Its repair receipt is
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-outcome-consumers-20261018/primary-review-repair-03/repair.json`;
+repaired fixture SHA-256 is
+`4ca055dd7cf00d49aafcaebf2709e4333f6591f55a1851eaf8f026bea54d1dd1`.
+A fallback destructor also kills and reaps the lock-holder helper if the
+observer regression exits through an unexpected path.
+
+The third Debug -j2 attempt reached step 2/3. The FileEngine target relinked,
+but the broker cleanup fixture failed because `GitWorkerParentRecord` is a
+top-level `spatial` type, not a nested `FileOperationJournal` type. Both
+qualifications are now corrected to `spatial::GitWorkerParentRecord`. The
+journal and broker test targets have not completed. These latest source bytes
+remain unbuilt pending another primary compile-slot decision.
+
+The corrected fixture source passed `git diff --check` and
+`repository_data_guard.py`. An incremental Debug -j2 compile of
+`broker-copy-cleanup-test` and `workspace-file-operation-journal-test` completed
+with command and wrapper exit 0 in the existing external build directory.
+Both targets compiled and linked. The canonical receipt is
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-outcome-consumers-20261018/runs/compile-debug-05/`.
+The frozen 1,320-file input manifest is
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-outcome-consumers-20261018/frozen-input-manifest-runtime-fix-01.txt`
+(SHA-256 `3a564a7636d56f67998dcb23cceea2dea8d0eda575e6639885afc729cabaa9f6`).
+A deployment package is staged at
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-outcome-consumers-20261018/package-debug-runtime-fix-v2/`;
+it contains updated broker and journal binaries, the unchanged prior
+FileEngine binary, wrappers, and the matching bundled library closure.
+No tests ran on middle-child. Store/bootstrap accessor caller is outside these
+targets and remains UNBUILT. The acceptance-lock source guard still reports
+the unchanged `harness/git_fixture.py` mismatch in this checkout; the primary
+reconciled it on a separate branch, which is not merged into this task
+checkout. The updated fixture regressions remain unrun on both qualification
+hosts. M08 remains unqualified.
+
+Run the combined M08 implementation in this order: deadline/ProcessScope
+participant, outcome consumers and paired pruning, then cold-start/bootstrap
+binding and stable-parent wiring. After those changes, exercise all original
+11 SIGKILL/restart cases on both qualification hosts. Native cleanup and issuer
+generation retirement must both complete before restart. M08 remains
+unqualified until the complete required gate passes on sb16 and sb16-2.
+
+
+Two-host runtime outcome before the current fixture repairs
+
+The primary ran the previous frozen Debug package on sb16 and sb16-2. On each
+host, `broker-copy-preprune-cleanup` and
+`workspace-file-operation-journal` failed; `workspace-file-engine` and the
+copy-worker stream passed. The cleanup failure reported `File journal read
+failed` during `old-proof-replaced`, before the supervised consumer child ran.
+The journal failure reported `Copy job root identity is not registered` in the
+isolated retention case. These are fixture setup defects, not passes for the
+consumer regression. Logs are retained at
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-consumers-primary-runtime-20261018/staging-01/`
+on each host. Retained fixture roots are `/tmp/spatial-preprune-5Ltbq5` on
+sb16 and `/tmp/spatial-preprune-klDJwe` on sb16-2.
+
+The current source repairs create the reusable journal pin before acquiring
+the cross-process exclusive transaction, then destroy the local wrappers only
+after the observer throws. The transaction remains held until the queued
+lookup drains. The retention journal now registers `tree-one` with its exact
+root tuple before inserting jobs. Eligible cancellation rows now follow the
+allowed RUNNING to CANCEL_REQUESTED to CANCELLED transitions with increasing
+timestamps. Flushed phase diagnostics identify setup and assertion progress.
+These repairs have not been compiled or rerun. The prior runtime remains 2
+PASS / 2 FAIL on each host; no current-source runtime claim is made.
+
+
+Supervised fixture lifecycle follow-up
+
+The primary ran package `package-debug-runtime-fix-v2` on both qualification
+hosts. Journal, FileEngine, and copy-worker stream passed on each host (3/4).
+The cleanup fixture reached the observer controls, then failed with `EBUSY`
+before the supervised consumer child. Logs are under
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-consumers-primary-runtime-20261018/staging-02/`.
+Retained fixture roots are `/tmp/spatial-preprune-3nRtgI` on sb16 and
+`/tmp/spatial-preprune-XQUGNV` on sb16-2.
+
+The test had enabled child controllers before starting its generation. The
+production ProcessScope start path attaches the direct child to the generation
+root, which rejects internal processes when controllers are already enabled.
+The fixture now relies on WorkspaceResources initialization to enable its
+manager controllers after moving itself into the manager. It waits up to 15
+seconds for the public `ProcessScope::state().direct_child_exited()` result,
+records the child success before stop reaps it, and emits flushed launch,
+child-exit, and stopped phases. No production code changed.
+
+Compile-debug-06 failed because the fixture called the private
+`ProcessScope::child_exited()` method. The fixture now uses the public state
+accessor. Compile-debug-07 compiled and linked `broker-copy-cleanup-test`
+with command and wrapper exit 0. Its 1,320-input manifest is
+`/home/dflanag3/spatial-artifacts/m08-copy-cleanup-outcome-consumers-20261018/frozen-input-manifest-runtime-fix-03.txt`
+(SHA-256 `09bfda62f1e6423a8c8c82112cf44b685615e73c011cafa3803136699d1b40f9`).
+The latest fixture source has not run on either qualification host. Store/bootstrap
+remains UNBUILT, and M08 remains unqualified.
+
+
+Supervised fixture resource-binding correction
+
+The primary ran the v3 broker delta on sb16 and sb16-2. The real replacement
+scope started, the child exited, and the scope reaped. The child then failed at
+`seal_resource_config` because the test template preselected `delegated_cgroup`.
+Production requires an empty template field and binds the actual owned cgroup
+when sealing the handoff. The fixture now passes only its storage project to
+the template helper and supplies the current child cgroup only as the sealing
+argument. Production validation, sealed handoff parsing, sole-process
+initialization, and post-recovery activation were traced. No production guard
+changed.
+
+The corrected source compiled and linked `broker-copy-cleanup-test` in
+compile-debug-09 with command and wrapper exit 0. Its frozen 1,320-input
+manifest is `frozen-input-manifest-runtime-fix-04.txt` (SHA-256
+`afc1e07b468e5431d04e39a7f92352eaff4d08081c2bd635fb4be945bf9c2b5e`). The
+v4 broker-only package is `package-debug-runtime-fix-v4-broker-delta/` with
+inventory SHA-256 `d23e098da9f9f3b1c71d82a8a14d606a78b01a2502744d26a56a774f6bf44f8e`.
+No v4 runtime has run. Store/bootstrap remains UNBUILT. M08 remains
+unqualified.
+
+Primary Debug runtime result, 2026-10-18:
+The corrected v4 broker probe passed on sb16 and sb16-2.
+All thirteen participant modes and the journal, pin, and callback controls passed.
+The old-proof replacement mode uses the actual supervised resource-backed child.
+It requires stale-proof quarantine and a successful authorized independent browse.
+The child exited successfully before its exact process scope was stopped.
+Durations: sb16 12.438 seconds; sb16-2 10.057 seconds.
+The unchanged journal, FileEngine, and stream programs passed on both hosts in attempt 02.
+Both final command and wrapper exits were zero. Both panes retired.
+Primary confirmed the exact transient resource units became inactive.
+All package inputs remained unchanged.
+
+Each host retains:
+/home/dflanag3/spatial-artifacts/m08-copy-cleanup-consumers-primary-runtime-20261018
+Final result: debug-run-04. Primary receipt: primary-focused-debug-verification-04.json.
+Source manifest SHA256: afc1e07b468e5431d04e39a7f92352eaff4d08081c2bd635fb4be945bf9c2b5e.
+Broker ELF SHA256: 210c440519e7c64c0f84f0a8f3a773e3878f902d87886eac970b44578d4e0898.
+The earlier three failed attempts and packaging/compile refusals remain retained.
+This is a component Debug pass. Consumer sanitizer and Btrfs checks remain UNRUN.
+The Store caller remains UNBUILT until bootstrap and consumers are combined.
+Full M08 qualification and the eleven native restart scenarios remain pending.

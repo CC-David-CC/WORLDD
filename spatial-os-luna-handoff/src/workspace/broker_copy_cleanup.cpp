@@ -15,25 +15,43 @@ void require(bool value,const char* message) { if(!value) throw std::runtime_err
 struct Fd { int value=-1; ~Fd(){if(value>=0)close(value);} };
 
 }
-BrokerCopyCleanupParticipant::BrokerCopyCleanupParticipant(PinnedFileOperationJournal journal,
-    supervisor::v1::ProcessScopeIdentity broker):journal_(std::move(journal)),broker_(std::move(broker)) {}
-std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::install(
-    supervisor::ProcessScope& owned_broker,int execution_directory_fd) {
-  auto participant=std::shared_ptr<BrokerCopyCleanupParticipant>(new BrokerCopyCleanupParticipant(
-      FileOperationJournal::pin_existing(execution_directory_fd),owned_broker.identity()));
+BrokerCopyCleanupParticipant::BrokerCopyCleanupParticipant(supervisor::v1::ProcessScopeIdentity broker)
+    :broker_(std::move(broker)) {}
+std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::deferred(
+    supervisor::AuthorityLaunch& owned_broker) {
+  const auto record=owned_broker.inspect();
+  require(record.stage()==supervisor::v1::PREPARED && record.native().role()==security::v1::BROKER,
+      "Deferred copy cleanup requires the prepared owned broker launch");
+  auto participant=std::shared_ptr<BrokerCopyCleanupParticipant>(
+      new BrokerCopyCleanupParticipant(record.process()));
   owned_broker.set_pre_prune_cleanup([participant](const auto& tree){participant->pre_prune(tree);});
   return participant;
 }
+std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::install(
+    supervisor::ProcessScope& owned_broker,int execution_directory_fd) {
+  auto participant=std::shared_ptr<BrokerCopyCleanupParticipant>(
+      new BrokerCopyCleanupParticipant(owned_broker.identity()));
+  participant->bind(FileOperationJournal::pin_existing(execution_directory_fd));
+  owned_broker.set_pre_prune_cleanup([participant](const auto& tree){participant->pre_prune(tree);});
+  return participant;
+}
+void BrokerCopyCleanupParticipant::bind(PinnedFileOperationJournal journal) {
+  require(!journal_ && journal.execution_directory_fd()>=0,
+      "Broker copy cleanup journal may bind exactly once");
+  journal.verify(); journal_.emplace(std::move(journal));
+}
 const workspace::v1::FileCopyCleanupJournalBinding& BrokerCopyCleanupParticipant::journal_binding() const {
-  return journal_.binding();
+  require(journal_.has_value(),"Broker copy cleanup journal is not bound");
+  return journal_->binding();
 }
 void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree& tree) {
   const auto deadline=tree.deadline();
   const auto check_deadline=[&] { if(std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("Copy cleanup deadline expired"); };
   check_deadline();
+  require(journal_.has_value(),"Unbound broker cleanup cannot produce a stop receipt");
   require(tree.identity().SerializeAsString()==broker_.SerializeAsString(),"Cleanup requires its actual retained broker root");
-  journal_.verify(deadline);
-  auto journal=FileOperationJournal::open_existing(journal_,deadline);
+  journal_->verify(deadline);
+  auto journal=FileOperationJournal::open_existing(*journal_,deadline);
   check_deadline();
   const auto root_path=std::filesystem::read_symlink("/proc/self/fd/"+std::to_string(tree.directory_fd()));
   const auto parent_path=std::filesystem::path("/proc/self/fd/"+std::to_string(tree.directory_fd()))/"spatial-git-workers";
@@ -46,13 +64,13 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
     check_deadline();
     if(job.broker_root_device()!=broker_.device() || job.broker_root_inode()!=broker_.inode() ||
         job.broker_root_boot_id()!=broker_.boot_id()) continue;
-    journal_.verify(deadline);
-    journal_.verify_workspace_binding(job,deadline);
+    journal_->verify(deadline);
+    journal_->verify_workspace_binding(job,deadline);
     check_deadline();
     auto saved=journal->scope_cleanup_outcome(job.workspace_id(),job.job_id(),{});
     check_deadline();
     if(saved) {
-      require(saved->journal().SerializeAsString()==journal_.binding().SerializeAsString() &&
+      require(saved->journal().SerializeAsString()==journal_->binding(deadline).SerializeAsString() &&
           saved->broker_root().SerializeAsString()==broker_.SerializeAsString() &&
           saved->job_identity_sha256()==FileOperationJournal::copy_job_identity_sha256(job),
           "Saved cleanup disposition belongs to another execution or root");
@@ -61,7 +79,7 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
     }
     const auto outcome=[&](Outcome::Kind kind,bool uncertain) {
       check_deadline();
-      Outcome value;value.set_format_version(1);*value.mutable_journal()=journal_.binding(deadline);
+      Outcome value;value.set_format_version(1);*value.mutable_journal()=journal_->binding(deadline);
       *value.mutable_broker_root()=broker_;value.set_workspace_id(job.workspace_id());
       value.set_worktree_id(job.worktree_id());value.set_job_id(job.job_id());
       value.set_job_identity_sha256(FileOperationJournal::copy_job_identity_sha256(job));value.set_kind(kind);
@@ -121,13 +139,13 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
     const bool stopped=supervisor::ProcessScope::stop_recovered(parent_path,job.process_scope_parent().device(),
         job.process_scope_parent().inode(),job.process_scope(),[&](const auto& identity) {
           check_deadline();
-          journal_.verify(deadline);
+          journal_->verify(deadline);
           if(immutable) outcome(Outcome::IMMUTABLE_UNCERTAINTY,false);
           else {
             *job.mutable_drained_process_scope()=identity;
             journal->update_copy_job(job,{});
             check_deadline();
-            journal_.verify(deadline);
+            journal_->verify(deadline);
           }
         },deadline);
     check_deadline();
@@ -135,9 +153,9 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
     if(!stopped) outcome(Outcome::MISSING_SCOPE,true);
   }
   check_deadline();
-  journal_.verify(deadline);
+  journal_->verify(deadline);
   journal->finish_cleanup();
   check_deadline();
-  journal_.verify(deadline);
+  journal_->verify(deadline);
 }
 }

@@ -1,4 +1,5 @@
 #include "workspace/store.hpp"
+#include "supervisor/broker_cleanup_bootstrap.hpp"
 #include "workspace/authority.hpp"
 #include "workspace/native_launch.hpp"
 #include "workspace/resources.hpp"
@@ -10,6 +11,7 @@
 #include <csignal>
 #include <iostream>
 #include <sys/stat.h>
+#include <sys/random.h>
 #include <unistd.h>
 #include <array>
 #include <cerrno>
@@ -170,7 +172,9 @@ int main(int argc, char** argv) {
         std::filesystem::path state, authority_config, seed, resource_config;
         unsigned migration = 0; bool fixture_faults = false, production = false;
         int native_fd = -1, resource_fd = -1, storage_fd = -1;
-        int control_fd = -1, control_peer = -1;
+        int control_fd = -1, control_peer = -1, cleanup_bootstrap_fd = -1;
+        std::unique_ptr<int, void(*)(int*)> cleanup_bootstrap_guard(&cleanup_bootstrap_fd,
+            +[](int* fd){ if (*fd >= 0) close(*fd); });
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
@@ -184,6 +188,12 @@ int main(int argc, char** argv) {
             else if (argument == "--storage-fd" && storage_fd < 0 && i+1 < argc) {
                 const std::string value(argv[++i]); std::size_t used = 0; storage_fd = std::stoi(value, &used);
                 if (used != value.size() || storage_fd < 3) throw std::invalid_argument("Invalid storage owner descriptor");
+            }
+            else if (argument == "--cleanup-bootstrap-fd" && cleanup_bootstrap_fd < 0 && i+1 < argc) {
+                const std::string value(argv[++i]); std::size_t used = 0;
+                cleanup_bootstrap_fd = std::stoi(value, &used);
+                if (used != value.size() || cleanup_bootstrap_fd < 3)
+                    throw std::invalid_argument("Invalid broker cleanup bootstrap descriptor");
             }
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
@@ -210,14 +220,21 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
-        if (production && (resource_fd < 0 || storage_fd < 0 || fixture_faults || migration || !seed.empty()))
-            throw std::invalid_argument("Production broker requires sealed resources and storage ownership without fixture faults");
+        if (production && (resource_fd < 0 || storage_fd < 0 || cleanup_bootstrap_fd < 0 ||
+            fixture_faults || migration || !seed.empty()))
+            throw std::invalid_argument("Production broker requires sealed resources, storage ownership, and cleanup bootstrap");
+        if (cleanup_bootstrap_fd >= 0 && (resource_fd < 0 || native_fd < 0 || migration || !seed.empty()))
+            throw std::invalid_argument("Cleanup bootstrap requires sealed supervised broker launch inputs");
         if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
         if (resource_fd >= 0 && (resource_fd == native_fd || resource_fd == control_fd))
             throw std::invalid_argument("Resource policy requires a separate descriptor");
-        if (storage_fd >= 0 && (storage_fd == native_fd || storage_fd == control_fd || storage_fd == resource_fd))
+        if (storage_fd >= 0 && (storage_fd == native_fd || storage_fd == control_fd || storage_fd == resource_fd ||
+            storage_fd == cleanup_bootstrap_fd))
             throw std::invalid_argument("Storage owner requires a separate descriptor");
+        if (cleanup_bootstrap_fd >= 0 && (cleanup_bootstrap_fd == native_fd || cleanup_bootstrap_fd == control_fd ||
+            cleanup_bootstrap_fd == resource_fd))
+            throw std::invalid_argument("Cleanup bootstrap requires a private descriptor");
         if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || resource_fd >= 0 || native_fd >= 0 || control_fd >= 0 || storage_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
@@ -230,6 +247,28 @@ int main(int argc, char** argv) {
         std::unique_ptr<spatial::StorageClient> storage;
         if (storage_fd >= 0) storage = std::make_unique<spatial::StorageClient>(storage_fd, state);
         spatial::ExecutionStore store(state, migration, fixture_faults, storage.get(), resources.get());
+        if (cleanup_bootstrap_fd >= 0) {
+            spatial::supervisor::BrokerCleanupBootstrap::require_credentials(cleanup_bootstrap_fd);
+            std::string correlation(32, '\0'); std::size_t offset = 0;
+            while (offset < correlation.size()) {
+                const auto count = getrandom(correlation.data()+offset, correlation.size()-offset, 0);
+                if (count < 0 && errno == EINTR) continue;
+                if (count <= 0) throw std::runtime_error("Cannot create cleanup bootstrap correlation id");
+                offset += static_cast<std::size_t>(count);
+            }
+            const auto bootstrap_deadline = spatial::supervisor::BrokerCleanupBootstrap::deadline_after(std::chrono::seconds(10));
+            int state_directory_fd = store.duplicate_state_directory_fd();
+            try {
+                spatial::supervisor::BrokerCleanupBootstrap::send_request(cleanup_bootstrap_fd, correlation,
+                    state_directory_fd, bootstrap_deadline);
+                close(state_directory_fd); state_directory_fd = -1;
+                spatial::supervisor::BrokerCleanupBootstrap::receive_ack(cleanup_bootstrap_fd, getppid(), getuid(),
+                    bootstrap_deadline, correlation);
+                if (std::chrono::steady_clock::now() >= bootstrap_deadline)
+                    throw std::runtime_error("Broker cleanup bootstrap deadline expired after acknowledgment");
+                close(cleanup_bootstrap_fd); cleanup_bootstrap_fd = -1;
+            } catch (...) { if (state_directory_fd >= 0) close(state_directory_fd); throw; }
+        }
         store.set_resources(resources.get());
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         if (!seed.empty()) { spatial::initialize_workspace_authority(seed, store); return 0; }

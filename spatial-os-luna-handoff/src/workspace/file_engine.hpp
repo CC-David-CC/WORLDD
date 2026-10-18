@@ -69,7 +69,8 @@ class FileEngine final {
       FileEffectExecutor* effects = nullptr, WorkspaceResources* resources = nullptr,
       int staging_parent_fd = -1, std::string staging_root_name = {},
       FileOperationJournal* journal = nullptr,
-      FileOperationJournal::Observer journal_observer = {});
+      FileOperationJournal::Observer journal_observer = {},
+      const PinnedFileOperationJournal* cleanup_pin = nullptr);
   ~FileEngine();
   FileEngine(const FileEngine&) = delete;
   FileEngine& operator=(const FileEngine&) = delete;

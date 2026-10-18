@@ -2,11 +2,14 @@
 #include "launch.pb.h"
 #include <array>
 #include <filesystem>
+#include <functional>
+#include <sys/types.h>
 #include <memory>
 #include <optional>
 #include <vector>
 
 namespace spatial::supervisor {
+class OwnedDrainedTree;
 // Owns one launch record and its live kernel/native handles.
 // Reopening an unresolved record does not reconstruct handles or permit execution.
 class AuthorityLaunch final {
@@ -20,6 +23,10 @@ public:
     v1::AuthorityLaunchRecord start(const v1::AuthorityProcessLaunch& launch,
         const std::array<int, 3>& streams, const std::vector<int>& inherited = {},
         bool allow_test_security_evidence = false);
+    // Private launch wiring installs cleanup while the exact process scope is prepared.
+    void set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback);
+    // Live direct child only. This PID authenticates the private bootstrap packet.
+    pid_t direct_child_pid() const;
     // The coordinator retains the real service connection; callers cannot supply its identity.
     void attach(const v1::AuthorityParticipantAttach& request);
     std::optional<identity::v1::ParticipantUpdate> poll_participant();

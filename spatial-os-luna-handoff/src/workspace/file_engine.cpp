@@ -352,6 +352,7 @@ struct FileEngine::Impl {
   WorkspaceResources* resources;
   FileOperationJournal* journal;
   FileOperationJournal::Observer journal_observer;
+  const PinnedFileOperationJournal* cleanup_pin=nullptr;
   struct CopyJob {
     std::string id, principal, source_id, destination_id, source_name, destination_name, staging_name;
     Handle source_handle, destination_handle;
@@ -374,7 +375,8 @@ struct FileEngine::Impl {
   Impl(int fd, std::string w, std::vector<std::string> s, FileAuthority& a,
        FileEngine::MonotonicNow clock, FileEffectExecutor* executor, WorkspaceResources* worker_resources,
        int stage_parent_fd, std::string stage_root_name,
-       FileOperationJournal* copy_journal, FileOperationJournal::Observer copy_journal_observer)
+       FileOperationJournal* copy_journal, FileOperationJournal::Observer copy_journal_observer,
+        const PinnedFileOperationJournal* current_cleanup_pin)
       : root(openat(fd, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK)),
         staging_parent(stage_parent_fd >= 0
                            ? openat(stage_parent_fd, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
@@ -387,7 +389,8 @@ struct FileEngine::Impl {
         now(std::move(clock)),
         resources(worker_resources),
         journal(copy_journal),
-        journal_observer(std::move(copy_journal_observer)) {
+        journal_observer(std::move(copy_journal_observer)),
+         cleanup_pin(current_cleanup_pin) {
     struct stat st {};
     struct stat supplied {};
     if (root.v < 0 || fstat(fd, &supplied) < 0 || fstat(root.v, &st) < 0 || !S_ISDIR(st.st_mode) ||
@@ -511,6 +514,24 @@ struct FileEngine::Impl {
   void recover_copy_jobs() {
     if(!journal) return;
     const auto records=journal->recovery_copy_jobs(workspace,journal_observer);
+    auto parents=journal->retained_git_worker_parents(journal_observer);
+    const auto active_parent=journal->find_git_worker_parent(journal_observer);
+    if(active_parent.state!=GitWorkerParentRecord::State::absent) parents.push_back(active_parent);
+    if(cleanup_pin) {
+      for(const auto& record:records) {
+        if(record.worktree_id()!=scope.front()) continue;
+        const auto parent=std::find_if(parents.begin(),parents.end(),[&](const auto& candidate) {
+          return candidate.state==GitWorkerParentRecord::State::bound &&
+              candidate.root_device==record.broker_root_device() && candidate.root_inode==record.broker_root_inode() &&
+              candidate.boot_id==record.broker_root_boot_id() &&
+              candidate.identity_bytes==record.process_scope_parent().SerializeAsString();
+        });
+        const auto disposition=journal->validated_scope_cleanup_outcome(record,
+            parent==parents.end()?nullptr:&*parent,*cleanup_pin,journal_observer);
+        if(disposition && disposition->kind()!=pb::FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED)
+          throw std::runtime_error("Copy worktree quarantined by durable scope cleanup conflict");
+      }
+    }
     const auto unsafe_legacy_record = [](const auto& record) {
       std::vector<std::string> source(record.source_path_components().begin(),
                                       record.source_path_components().end());
@@ -567,9 +588,6 @@ struct FileEngine::Impl {
     const auto current_broker=resources->broker_root_identity();
     std::ifstream boot_file("/proc/sys/kernel/random/boot_id");
     std::string current_boot;std::getline(boot_file,current_boot);
-    auto parents=journal->retained_git_worker_parents(journal_observer);
-    const auto active_parent=journal->find_git_worker_parent(journal_observer);
-    if(active_parent.state!=GitWorkerParentRecord::State::absent) parents.push_back(active_parent);
     for(auto record:records) {
       if(record.worktree_id()!=scope.front()) continue;
       if(record.worktree_root_device()!=static_cast<std::uint64_t>(root_stat.st_dev) ||
@@ -583,9 +601,18 @@ struct FileEngine::Impl {
             candidate.boot_id==record.broker_root_boot_id() &&
             candidate.identity_bytes==record.process_scope_parent().SerializeAsString();
       });
-      if(parent==parents.end()) throw std::runtime_error("Copy recovery parent generation is missing");
-      const std::filesystem::path prior_root(parent->root_path);
-      if(prior_root.parent_path()!=resources->broker_root_path().parent_path())
+      std::optional<pb::FileCopyScopeCleanupOutcome> disposition;
+      if(cleanup_pin) disposition=journal->validated_scope_cleanup_outcome(record,
+          parent==parents.end()?nullptr:&*parent,*cleanup_pin,journal_observer);
+      else if(parent==parents.end()) throw std::runtime_error("Copy recovery parent generation is missing");
+      if(disposition && disposition->kind()!=pb::FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED)
+        throw std::runtime_error("Copy worktree quarantined by durable scope cleanup conflict");
+      if(parent==parents.end() && (!disposition ||
+          disposition->kind()!=pb::FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED))
+        throw std::runtime_error("Copy recovery parent generation is missing");
+      const std::filesystem::path prior_root=parent==parents.end()?std::filesystem::path{}:
+          std::filesystem::path(parent->root_path);
+      if(parent!=parents.end() && prior_root.parent_path()!=resources->broker_root_path().parent_path())
         throw std::runtime_error("Copy recovery root is outside the delegated parent");
       const auto parent_path=prior_root/"spatial-git-workers";
       const bool start_intent=record.state()==pb::FILE_COPY_JOB_JOURNAL_START_INTENT;
@@ -649,7 +676,8 @@ struct FileEngine::Impl {
               if(!stopped && !record.has_drained_process_scope())
                 throw std::runtime_error("Recorded copy scope is absent without durable drain proof");
             }
-          } else {
+          } else if(!disposition ||
+                    disposition->kind()!=pb::FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED) {
             supervisor::ProcessScope::remove_reserved_empty(parent_path,
                 record.process_scope_parent(),record.reserved_process_scope_name());
           }
@@ -1869,11 +1897,12 @@ FileEngine::FileEngine(int root, std::string workspace, std::vector<std::string>
                        FileAuthority& authority, MonotonicNow now, FileEffectExecutor* effects,
                        WorkspaceResources* resources, int staging_parent_fd,
                        std::string staging_root_name, FileOperationJournal* journal,
-                       FileOperationJournal::Observer journal_observer)
-    : impl_(std::make_unique<Impl>(root, std::move(workspace), std::move(scope), authority,
+                       FileOperationJournal::Observer journal_observer,
+                        const PinnedFileOperationJournal* cleanup_pin)
+     : impl_(std::make_unique<Impl>(root, std::move(workspace), std::move(scope), authority,
                                    std::move(now), effects, resources, staging_parent_fd,
                                    std::move(staging_root_name), journal,
-                                   std::move(journal_observer))) {}
+                                   std::move(journal_observer), cleanup_pin)) {}
 FileEngine::~FileEngine() {
   if(!impl_)return;
   std::lock_guard lock(impl_->mutex);

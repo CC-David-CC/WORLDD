@@ -1,0 +1,32 @@
+M08 fixture-pin reconciliation, 2026-10-18
+Status: reviewed metadata correction. M08 remains UNQUALIFIED.
+
+The complete source guard found one mismatch among 42 locked files.
+Commit 9cca03a adds an optional empty_initial_commit argument to the real Git fixture.
+Its default remains False. Existing callers still receive README.txt containing base plus a newline.
+The explicit empty-project caller receives a real empty Git commit and a real .git directory.
+This opt-in supports the unchanged empty-cabinet oracle without exposing root Git administration.
+The fixture change already passed focused Debug and sanitizer checks on both required hosts.
+Those results do not replace the full milestone gate.
+
+The original fixture hash was:
+3468ccf443e4a1502cb774cf60d7073f86989e2ab0cc0759b53cb33d90dde8a8
+The reviewed current fixture hash is:
+6452b86487bb3c0a0e54c1d5d61151161bfc1bdc7b2e4dbb97119fd830fc9a09
+
+Primary compared the old locked fixture with the new fixture's default path through Python ASTs.
+Removing the optional argument and selecting its default else branch reproduces the complete old module AST.
+No other statement, subprocess environment filter, Git command, or timeout changed.
+The real Git fixture control checks both empty opt-in and default README behavior.
+The fixture implementation is unchanged by this reconciliation. Its existing focused runtime results remain applicable.
+Primary reran the complete static source guard against this metadata correction. It reported zero errors.
+
+This change updates only the named fixture hash and the lock's predecessor and explanatory notice.
+All 151 acceptance IDs remain identical. All 41 other locked file hashes remain identical.
+No assertion, oracle, witness, production source, wire schema, or acceptance timeout changes here.
+The handoff version and protocol edition remain unchanged.
+
+Base: 17c0e2bbb248407f32c81f3726d799e5959a1a54.
+Branch: m08/fixture-lock-reconciliation-20261018.
+Review and static evidence: /home/dflanag3/spatial-artifacts/m08-fixture-lock-reconciliation-20261018.
+Runtime evidence remains on sb16 and sb16-2, outside source checkouts.

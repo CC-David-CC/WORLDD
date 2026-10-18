@@ -1,11 +1,14 @@
 """Actual retained native broker with its bounded root storage owner."""
 import hashlib
+from contextlib import closing
 import gc
 import json
 import os
 from pathlib import Path
 import re
+import sqlite3
 import select
+import signal
 import socket
 import subprocess
 import sys
@@ -114,6 +117,160 @@ class NativeStorageSessionTests(existing.SessionApplicationTests):
         self.assertEqual(marker.read_text(), 'durable workspace data\n')
         self.assertTrue((self.app_data/'confinement.json').is_file())
         self.assertFalse(self.broker_process_group().parent.exists())
+
+    def test_cold_start_cleanup_binding_smoke(self):
+        self.held_application()
+        execution_db = self.execution/'execution.db'
+        journal_db = self.execution/'file-operations/file-operations.db'
+        self.assertTrue(execution_db.is_file())
+        self.assertTrue(journal_db.is_file())
+        with closing(sqlite3.connect(execution_db)) as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 8)
+        with closing(sqlite3.connect(journal_db)) as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 8)
+        self.act(stop=core.ActorStopRequest()); self.released()
+        world = self.request(stop_world=self.owner).cleanup
+        self.assertEqual(world.stage, launch.OWNED_SCOPES_STOPPED)
+        self.finish_session()
+        self.assertEqual(self.checked_cleanup().stage, launch.OWNED_SCOPES_STOPPED)
+
+    def test_failed_cleanup_retains_owner_for_explicit_retry(self):
+        self.held_application()
+        self.active_owner()
+        self.act(stop=core.ActorStopRequest())
+        self.released()
+        self.request(stop_world=self.owner)
+        database = self.execution/'file-operations'/'file-operations.db'
+        self.assertTrue(database.is_file(), 'The cold broker must create its real execution journal before cleanup')
+        with closing(sqlite3.connect(database, timeout=0, isolation_level=None)) as lock:
+            lock.execute('BEGIN EXCLUSIVE')
+            failed = self.request(expect_error=True, stop_broker=launch.AuthorityLaunchQuery())
+            self.assert_cleanup_failure_reason(failed)
+            self.assert_route_fenced(self.request(expect_error=True, broker=existing.make_request('system.hello', {})))
+            self.assert_retirement_denied(self.request(expect_error=True, retire_broker=launch.AuthorityLaunchQuery()))
+            self.check_active_participants()
+            lock.execute('ROLLBACK')
+        stopped = self.request(stop_broker=launch.AuthorityLaunchQuery()).cleanup
+        self.assertEqual(stopped, self.checked_cleanup())
+        self.assertEqual(stopped.stage, launch.OWNED_SCOPES_STOPPED)
+        retirement = self.request(retire_broker=launch.AuthorityLaunchQuery())
+        self.assertTrue(retirement.HasField('retirement'))
+        self.finish_session()
+
+    def retain_supervisor_pidfd(self):
+        children = Path(f'/proc/{self.coordinator.pid}/task/{self.coordinator.pid}/children').read_text().split()
+        supervisors = []
+        for value in children:
+            pid = int(value)
+            try:
+                name = Path(f'/proc/{pid}/exe').resolve().name
+            except FileNotFoundError:
+                continue
+            if name == 'spatial-authority-supervisor':
+                supervisors.append(pid)
+        self.assertEqual(len(supervisors), 1, children)
+        pid = supervisors[0]
+        return pid, os.pidfd_open(pid)
+
+    def prepare_locked_cleanup(self):
+        self.held_application()
+        unit = self.active_owner()
+        self.act(stop=core.ActorStopRequest())
+        self.released()
+        self.request(stop_world=self.owner)
+        database = self.execution/'file-operations'/'file-operations.db'
+        self.assertTrue(database.is_file(), 'Cold broker startup must create its real journal')
+        lock = sqlite3.connect(database, timeout=0, isolation_level=None)
+        lock.execute('BEGIN EXCLUSIVE')
+        return unit, lock
+
+    def assert_cleanup_failure_reason(self, reply):
+        self.assertTrue(reply.HasField('error'))
+        self.assertRegex(reply.error.message.lower(), r'(cleanup|pre-prune|prune|deadline|locked|busy)')
+
+    def assert_route_fenced(self, reply):
+        self.assertTrue(reply.HasField('error'))
+        self.assertIn('session supervisor ownership lost', reply.error.message.lower())
+
+    def assert_retirement_denied(self, reply):
+        self.assertTrue(reply.HasField('error'))
+        self.assertIn('broker retirement requires retained checked cleanup', reply.error.message.lower())
+
+    def assert_pending_without_receipts(self):
+        record = self.read_record()
+        self.assertEqual(record.stage, launch.CLEANUP_PENDING)
+        self.assertFalse(record.HasField('process_stopped'))
+        self.assertFalse(record.HasField('native_stopped'))
+        self.check_active_participants()
+
+    def disconnect_coordinator_and_wait_supervisor(self, supervisor_pidfd):
+        self.coordinator.terminate()
+        self.assertEqual(self.coordinator.wait(timeout=8), -signal.SIGTERM)
+        self.assertEqual(select.select([supervisor_pidfd], [], [], 35)[0], [supervisor_pidfd],
+            'Disconnected supervisor did not finish bounded best-effort teardown')
+
+    def test_cleanup_parent_disconnect_preserves_pending_without_receipt(self):
+        unit, lock = self.prepare_locked_cleanup()
+        _supervisor_pid, supervisor_pidfd = self.retain_supervisor_pidfd()
+        try:
+            failed = self.request(expect_error=True, stop_broker=launch.AuthorityLaunchQuery())
+            self.assert_cleanup_failure_reason(failed)
+            self.assert_pending_without_receipts()
+            self.disconnect_coordinator_and_wait_supervisor(supervisor_pidfd)
+        finally:
+            lock.execute('ROLLBACK'); lock.close(); os.close(supervisor_pidfd)
+        self.assert_pending_without_receipts()
+        self.assert_owner_stopped(unit)
+
+    def test_pending_supervisor_signal_exits_without_receipt_or_retirement(self):
+        unit, lock = self.prepare_locked_cleanup()
+        _supervisor_pid, supervisor_pidfd = self.retain_supervisor_pidfd()
+        try:
+            failed = self.request(expect_error=True, stop_broker=launch.AuthorityLaunchQuery())
+            self.assert_cleanup_failure_reason(failed)
+            self.assert_pending_without_receipts()
+            signal.pidfd_send_signal(supervisor_pidfd, signal.SIGTERM)
+            self.assertEqual(select.select([supervisor_pidfd], [], [], 35)[0], [supervisor_pidfd],
+                'SIGTERM did not release the pending supervisor through bounded teardown')
+            self.assertIsNone(self.coordinator.poll(), 'The management parent should remain connected for these checks')
+            self.assert_route_fenced(self.request(expect_error=True, broker=existing.make_request('system.hello', {})))
+            self.assert_retirement_denied(self.request(expect_error=True, retire_broker=launch.AuthorityLaunchQuery()))
+            self.check_active_participants()
+            lock.execute('ROLLBACK'); lock.close()
+            self.assert_pending_without_receipts()
+            self.assert_owner_stopped(unit)
+            self.coordinator.terminate()
+            self.assertEqual(self.coordinator.wait(timeout=8), -signal.SIGTERM)
+        finally:
+            if lock: lock.close()
+            os.close(supervisor_pidfd)
+
+    def test_cleanup_retry_exhaustion_stays_pending_and_rejects_stop(self):
+        unit, lock = self.prepare_locked_cleanup()
+        _supervisor_pid, supervisor_pidfd = self.retain_supervisor_pidfd()
+        try:
+            for attempt in range(3):
+                with self.subTest(cleanup_attempt=attempt + 1):
+                    reply = self.request(expect_error=True, stop_broker=launch.AuthorityLaunchQuery())
+                    self.assert_cleanup_failure_reason(reply)
+            self.assert_pending_without_receipts()
+            self.assert_route_fenced(self.request(expect_error=True, broker=existing.make_request('system.hello', {})))
+            self.assert_retirement_denied(self.request(expect_error=True, retire_broker=launch.AuthorityLaunchQuery()))
+            self.check_active_participants()
+            self.assertEqual(select.select([supervisor_pidfd], [], [], 0.1)[0], [],
+                'Exhausted supervisor must retain its pending owner while the parent stays connected')
+            rejected = self.request(expect_error=True, stop_broker=launch.AuthorityLaunchQuery())
+            self.assertIn('retry limit exhausted', rejected.error.message.lower())
+            self.assertIsNone(self.coordinator.poll())
+            self.assertEqual(select.select([supervisor_pidfd], [], [], 0.1)[0], [])
+            self.assert_pending_without_receipts()
+            lock.execute('ROLLBACK'); lock.close()
+            self.disconnect_coordinator_and_wait_supervisor(supervisor_pidfd)
+        finally:
+            if lock: lock.close()
+            os.close(supervisor_pidfd)
+        self.assert_pending_without_receipts()
+        self.assert_owner_stopped(unit)
 
     def test_native_storage_owner_loss_stops_execution_and_records_cleanup(self):
         self.held_application()

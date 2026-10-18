@@ -45,6 +45,8 @@ public:
     void set_native_launch(NativeLaunch* native);
     void set_resources(WorkspaceResources* resources);
     void set_observer(std::function<void()> observer);
+    // Duplicate the canonical state root retained under the execution lock.
+    int duplicate_state_directory_fd() const;
     void reconcile_authority();
     void reap();
     void advance_workspace_copies();

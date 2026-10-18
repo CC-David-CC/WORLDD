@@ -1,0 +1,17 @@
+M08 trusted cold-start cleanup binding
+Date: 2026-10-18
+Status: source increment only; M08 remains UNQUALIFIED.
+
+The supervisor creates a private SOCK_SEQPACKET channel and installs a deferred cleanup participant before starting a supervised workspaced broker. The child sends one canonical state-directory FD with a versioned protobuf frame after ExecutionStore creates execution.db and the schema-8 file journal. It waits for an ACK before set_resources, recovery dispatch, request processing, or readiness.
+
+The bootstrap frame carries only protocol version, correlation ID, and operation kind. The FD and kernel SCM_CREDENTIALS bind the request to the real direct child. The supervisor checks PID and UID, one descriptor, packet framing, configured root path, device, and inode. FileOperationJournal::pin_existing then verifies schema 8 and pins database and filesystem identities. The deferred participant accepts that pin once. Failure prevents readiness and leaves process-stop receipt generation fail-closed.
+
+For production storage-owner launches, configuration validation requires --state-dir to equal the canonical StorageOwner volume root. StorageOwner starts after workspaced exec because StorageClient waits for it; the supervisor receives the bootstrap after StorageOwner startup completes. For the existing supervised fixture lane, the private AuthoritySupervisorConfig supplies one absolute literal --state-dir and the broker resources plus native target. That lane receives the bootstrap without adding --production or changing fixture fault settings.
+
+ProcessScope forks the direct child and execves workspaced in that same PID. The child does not pass through an intermediary executable. Therefore the SCM_CREDENTIALS PID matches ProcessScope::direct_child_pid after exec.
+
+Selected checks and purpose, recorded before execution:
+- CTest broker-copy-preprune-cleanup: real SOCK_SEQPACKET and SCM_RIGHTS controls, PID/UID checks, unknown/version/malformed/correlation rejection, missing/extra/truncated descriptors, oversized packets, FD-close checks after rejection and injected allocation failure, timeout/closed peer, repeated EINTR against one absolute deadline, blocked-send deadline, configured-root/database-inode substitution, duplicate bind, and existing real-cgroup callback cases. The pipe EOF checks accept POLLHUP as the readiness event, then still require read() to return zero, proving every received writer closed.
+- Native selector NativeStorageSessionTests.test_cold_start_cleanup_binding_smoke under session-storage-owner: fresh production StorageOwner-backed volume, actual supervisor/workspaced cold-start, both schema-8 databases present after launch, and checked shutdown. Status: SMOKE only. It does not independently witness that workspaced remains blocked before ACK.
+
+Runtime checks: UNRUN on sb16 and sb16-2. The I/O methods share one absolute deadline per side. Synchronous stat, pinning, and binding calls are not interruptible; the caller checks the deadline before and after them and fails closed if they overrun. No build or test ran on middle-child. The eleven M08 restart scenarios, issuer retirement ordering, native cleanup, and full Spatial-M1 gate remain UNRUN or pending primary qualification.

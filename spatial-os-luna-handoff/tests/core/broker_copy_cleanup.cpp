@@ -1,7 +1,10 @@
 #include "workspace/broker_copy_cleanup.hpp"
+#include "workspace/file_engine.hpp"
+#include "workspace/resources.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 #include <sys/statfs.h>
 #include <sys/ioctl.h>
 #include <linux/btrfs.h>
@@ -13,6 +16,8 @@
 #include <signal.h>
 #include <cstdarg>
 #include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <cstdlib>
 #include <new>
 #include <exception>
@@ -27,11 +32,17 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 #include <openssl/evp.h>
+#include "supervisor/broker_cleanup_bootstrap.hpp"
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <arpa/inet.h>
 
 using spatial::FileOperationJournal;
 using spatial::BrokerCopyCleanupParticipant;
@@ -39,6 +50,15 @@ using spatial::supervisor::ProcessScope;
 using namespace spatial::workspace::v1;
 using namespace spatial::supervisor::v1;
 namespace {
+class RecoveryTestAuthority final : public spatial::FileAuthority {
+ public:
+  spatial::workspace::v1::ScopedAuthorityCheckReply check_fresh(
+      const spatial::workspace::v1::ScopedAuthorityCheckRequest&) override {
+    spatial::workspace::v1::ScopedAuthorityCheckReply reply;
+    reply.set_allowed(true); reply.set_revision(1); reply.set_incarnation(std::string(16, 'i'));
+    reply.set_epoch(1); return reply;
+  }
+};
 // Interpose the real callee syscall only in this executable. No production hook.
 std::atomic<bool> disappear_at_open{false},disappeared_at_open{false};
 std::uint64_t disappearance_parent_device=0,disappearance_parent_inode=0;
@@ -99,6 +119,7 @@ struct State {
     execute(db,"CREATE TABLE workspaces(id TEXT PRIMARY KEY,worktree TEXT);CREATE TABLE worktrees(id TEXT PRIMARY KEY,state TEXT,path TEXT);"
                "INSERT INTO workspaces VALUES('one','tree-one');");sqlite3_close(db);
     std::filesystem::create_directories(path/"project/.spatial-copy-staging/.spatial-copy-stage-job");
+    check(chmod((path/"project/.spatial-copy-staging").c_str(),0700)==0,"staging root mode setup failed");
     write_file(path/"project/source","real source");
     check(sqlite3_open((path/"execution.db").c_str(),&db)==SQLITE_OK,"registry seed");
     const auto insert="INSERT INTO worktrees VALUES('tree-one','ready','"+(path/"project").string()+"');";
@@ -256,6 +277,49 @@ bool child_can_lock(const std::filesystem::path& database) {
   }
   int status=0;check(waitpid(child,&status,0)==child&&WIFEXITED(status),"lock witness wait");
   check(WEXITSTATUS(status)<=1,"lock witness could not inspect database");return WEXITSTATUS(status)==0;
+}
+struct HeldExclusiveTransaction {
+  pid_t child=-1;int release_fd=-1;
+  HeldExclusiveTransaction(pid_t process,int release):child(process),release_fd(release){}
+  HeldExclusiveTransaction(const HeldExclusiveTransaction&)=delete;
+  HeldExclusiveTransaction& operator=(const HeldExclusiveTransaction&)=delete;
+  HeldExclusiveTransaction(HeldExclusiveTransaction&& other) noexcept
+      :child(std::exchange(other.child,-1)),release_fd(std::exchange(other.release_fd,-1)){}
+  HeldExclusiveTransaction& operator=(HeldExclusiveTransaction&&)=delete;
+  ~HeldExclusiveTransaction() {
+    if(release_fd>=0)close(release_fd);
+    if(child>0) { (void)kill(child,SIGKILL);int status=0;while(waitpid(child,&status,0)<0&&errno==EINTR){} }
+  }
+};
+int hold_exclusive_transaction_child(const char* database,int ready_fd,int release_fd) {
+  sqlite3* db=nullptr;check(sqlite3_open(database,&db)==SQLITE_OK,"transaction holder open");
+  execute(db,"BEGIN EXCLUSIVE");const char held='H';
+  check(write(ready_fd,&held,1)==1,"transaction holder readiness");close(ready_fd);
+  char resume=0;check(read(release_fd,&resume,1)==1,"transaction holder release read");close(release_fd);
+  execute(db,"ROLLBACK");close_test_db(db);return 0;
+}
+HeldExclusiveTransaction hold_exclusive_transaction(const std::filesystem::path& database) {
+  int ready[2],release[2];check(pipe(ready)==0&&pipe(release)==0,"transaction pipes");
+  const auto ready_arg=std::to_string(ready[1]),release_arg=std::to_string(release[0]);
+  const auto self=std::filesystem::read_symlink("/proc/self/exe").string();
+  const auto child=fork();check(child>=0,"transaction holder fork");
+  if(child==0) {
+    close(ready[0]);close(release[1]);
+    execl(self.c_str(),self.c_str(),"--hold-journal-lock",database.c_str(),ready_arg.c_str(),release_arg.c_str(),nullptr);
+    _exit(127);
+  }
+  close(ready[1]);close(release[0]);char held=0;pollfd wait_ready{ready[0],POLLIN,0};
+  const bool is_ready=poll(&wait_ready,1,5000)==1&&read(ready[0],&held,1)==1&&held=='H';
+  close(ready[0]);
+  if(!is_ready) { kill(child,SIGKILL);int status=0;(void)waitpid(child,&status,0);close(release[1]);
+    throw std::runtime_error("transaction holder did not acquire lock"); }
+  return {child,release[1]};
+}
+void release_exclusive_transaction(HeldExclusiveTransaction& held) {
+  const char resume='R';check(write(held.release_fd,&resume,1)==1,"transaction holder release failed");
+  close(held.release_fd);held.release_fd=-1;int status=0;
+  check(waitpid(held.child,&status,0)==held.child&&WIFEXITED(status)&&WEXITSTATUS(status)==0,
+        "transaction holder did not finish cleanly");held.child=-1;
 }
 struct SwapDuringOpenVfs {
   sqlite3_vfs api{};sqlite3_vfs* base=nullptr;
@@ -678,6 +742,262 @@ void emit_participant_diagnostic(std::ostringstream& out){
   auto line=out.str();if(line.size()>4095)line.resize(4095);line+='\n';
   (void)write(STDERR_FILENO,line.data(),line.size());
 }
+
+std::pair<unsigned,unsigned> test_storage_device(const std::filesystem::path& storage) {
+  struct stat info{};check(stat(storage.c_str(),&info)==0,"consumer storage device stat failed");
+  const auto link=std::filesystem::path("/sys/dev/block")/
+      (std::to_string(major(info.st_dev))+":"+std::to_string(minor(info.st_dev)));
+  auto device=std::filesystem::canonical(link);
+  if(std::filesystem::exists(device/"partition"))device=device.parent_path();
+  std::ifstream device_file(device/"dev");unsigned major_number=0,minor_number=0;char colon=0;
+  check(static_cast<bool>(device_file>>major_number>>colon>>minor_number)&&colon==':',
+        "consumer storage block device identity unavailable");
+  return {major_number,minor_number};
+}
+spatial::supervisor::v1::ProcessScopeBudget test_budget(std::uint64_t memory, std::uint64_t processes,
+    std::uint64_t cpu,const std::pair<unsigned,unsigned>& device) {
+  spatial::supervisor::v1::ProcessScopeBudget value;
+  value.set_memory_bytes(memory); value.set_swap_bytes(0); value.set_processes(processes);
+  value.set_cpu_microseconds(cpu);
+  auto* io=value.add_io();io->set_major(device.first);io->set_minor(device.second);
+  io->set_read_bytes_per_second(64ULL*1024*1024);io->set_write_bytes_per_second(16ULL*1024*1024);
+  return value;
+}
+spatial::workspace::v1::BrokerResourceConfig test_resource_config(
+    const std::filesystem::path& storage) {
+  const auto device=test_storage_device(storage);
+  const auto budget=[&](std::uint64_t memory,std::uint64_t processes,std::uint64_t cpu) {
+    return test_budget(memory,processes,cpu,device);
+  };
+  spatial::workspace::v1::BrokerResourceConfig config; config.set_protocol_version(2);
+  *config.mutable_broker_budget()=budget(1024ULL*1024*1024,128,400000);
+  *config.mutable_manager_budget()=budget(256ULL*1024*1024,32,200000);
+  auto* policy=config.mutable_default_policy();
+  *policy->mutable_total()=budget(512ULL*1024*1024,64,200000);
+  *policy->mutable_actor_default()=budget(256ULL*1024*1024,32,100000);
+  auto* profile=policy->add_profiles(); profile->set_name("development");
+  *profile->mutable_maximum()=budget(128ULL*1024*1024,16,100000);
+  return config;
+}
+int consumer_recovery_child(const char* state_path,const char* affected_project,
+                            const char* workspace,const char* worktree,const char* job_id,const char* independent_project) {
+  try {
+    const std::filesystem::path state=state_path, project=affected_project, independent=independent_project;
+    int state_fd=open(state.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
+    check(state_fd>=0,"consumer state directory open failed");
+    FileOperationJournal journal(state);
+    auto pin=FileOperationJournal::pin_existing(state_fd);
+    std::ifstream cgroup_file("/proc/self/cgroup"); std::string cgroup_line;
+    std::getline(cgroup_file,cgroup_line);
+    check(cgroup_line.starts_with("0::/"),"consumer cgroup path unavailable");
+    const auto cgroup=std::filesystem::path("/sys/fs/cgroup")/cgroup_line.substr(4);
+    const int resource_config=spatial::seal_resource_config(test_resource_config(project),cgroup);
+    spatial::WorkspaceResources resources(resource_config,true);
+    const auto saved=journal.scope_cleanup_outcome(workspace, job_id, {});
+    check(saved&&saved->kind()==spatial::workspace::v1::FileCopyScopeCleanupOutcome::REPLACED_SCOPE,
+          "consumer did not load the retained old-generation disposition");
+    const auto current_identity=resources.broker_root_identity();
+    check(saved->broker_root().device()!=current_identity.first || saved->broker_root().inode()!=current_identity.second,
+          "cleanup outcome was rebound to the new generation root");
+    RecoveryTestAuthority authority;
+    int project_fd=open(project.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
+    int stage_fd=fcntl(project_fd,F_DUPFD_CLOEXEC,3);
+    check(project_fd>=0&&stage_fd>=0,"affected consumer project descriptors open failed");
+    bool quarantined=false;
+    try {
+      spatial::FileEngine rejected(project_fd,workspace,{worktree},authority,
+          [] { return spatial::FileEngine::MonotonicClock::now(); },nullptr,&resources,stage_fd,
+          ".spatial-copy-staging",&journal,{},&pin);
+    } catch(const std::exception& error) {
+      quarantined=std::string(error.what())=="Copy worktree quarantined by durable scope cleanup conflict";
+    }
+    close(project_fd); close(stage_fd);
+    check(quarantined,"resource-backed FileEngine did not quarantine stale proof after scope replacement");
+    resources.finish_initialization();
+    std::filesystem::create_directories(independent/".spatial-copy-staging");
+    chmod((independent/".spatial-copy-staging").c_str(),0700);
+    project_fd=open(independent.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
+    stage_fd=fcntl(project_fd,F_DUPFD_CLOEXEC,3);
+    check(project_fd>=0&&stage_fd>=0,"independent consumer project descriptors open failed");
+    {
+      spatial::FileEngine engine(project_fd,"independent-workspace",{"tree-independent"},authority,
+          [] { return spatial::FileEngine::MonotonicClock::now(); },nullptr,&resources,stage_fd,
+          ".spatial-copy-staging",&journal,{},&pin);
+      spatial::workspace::v1::FileActionRequest request;
+      request.set_protocol_version(1); request.set_operation_id(std::string(16,'b'));
+      request.set_workspace_id("independent-workspace");
+      request.mutable_principal()->set_issuer_id(std::string(32,'i'));
+      request.mutable_principal()->set_actor_id(std::string(32,'a'));
+      request.add_authority_components("tree-independent"); request.mutable_browse()->set_page_size(32);
+      const auto reply=engine.handle(request);
+      check(reply.has_directory(),"authorized independent browse did not succeed");
+    }
+    close(project_fd); close(stage_fd); close(state_fd);
+    const char success[]="STALE_PROOF_QUARANTINED INDEPENDENT_BROWSE_OK\n";
+    check(write(STDOUT_FILENO,success,sizeof(success)-1)==static_cast<ssize_t>(sizeof(success)-1),"consumer result write failed");
+    return 0;
+  } catch(const std::exception& error) {
+    const std::string failure=std::string("CONSUMER_ERROR ")+error.what()+"\n";
+    (void)write(STDOUT_FILENO,failure.data(),failure.size()); return 1;
+  }
+}
+
+void bootstrap_controls(){
+  State state;
+  using Bootstrap=spatial::supervisor::BrokerCleanupBootstrap;
+  auto socket_pair=[](){int pair[2];check(socketpair(AF_UNIX,SOCK_SEQPACKET|SOCK_CLOEXEC,0,pair)==0,"bootstrap socketpair");
+    Bootstrap::require_credentials(pair[0]);Bootstrap::require_credentials(pair[1]);return std::array<int,2>{pair[0],pair[1]};};
+  auto send_raw=[&](int fd,const std::string& payload,const std::vector<int>& descriptors){
+    const std::uint32_t size=htonl(static_cast<std::uint32_t>(payload.size()));
+    std::string bytes(reinterpret_cast<const char*>(&size),sizeof(size));bytes+=payload;
+    iovec part{bytes.data(),bytes.size()};msghdr msg{};msg.msg_iov=&part;msg.msg_iovlen=1;
+    alignas(cmsghdr)char control[CMSG_SPACE(sizeof(int)*16)]{};
+    if(!descriptors.empty()){
+      msg.msg_control=control;msg.msg_controllen=CMSG_SPACE(sizeof(int)*descriptors.size());
+      auto* c=CMSG_FIRSTHDR(&msg);c->cmsg_level=SOL_SOCKET;c->cmsg_type=SCM_RIGHTS;
+      c->cmsg_len=CMSG_LEN(sizeof(int)*descriptors.size());std::memcpy(CMSG_DATA(c),descriptors.data(),sizeof(int)*descriptors.size());
+    }
+    check(sendmsg(fd,&msg,MSG_NOSIGNAL)==static_cast<ssize_t>(bytes.size()),"raw bootstrap frame send");
+  };
+  auto encode_frame=[](spatial::supervisor::v1::BrokerCleanupBootstrapFrame frame){
+    std::string payload;check(frame.SerializeToString(&payload),"bootstrap protobuf serialize");return payload;
+  };
+  auto expect_rejection_and_closed_rights=[&](const std::string& payload,std::size_t descriptor_count,
+                                                const char* expected,const char* why){
+    int channel[2];check(pipe2(channel,O_CLOEXEC)==0,"FD closure pipe");
+    std::vector<int> descriptors(descriptor_count,channel[1]);
+    auto pair=socket_pair();send_raw(pair[1],payload,descriptors);close(channel[1]);
+    bool intended=false;try{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),std::chrono::seconds(1));}
+    catch(const std::exception& error){intended=std::string(error.what()).find(expected)!=std::string::npos;}
+    check(intended,why);
+    pollfd event{channel[0],static_cast<short>(POLLIN|POLLHUP),0};
+    check(poll(&event,1,250)==1&&(event.revents&(POLLIN|POLLHUP)),"rejected bootstrap leaked received FD");
+    char byte=1;check(read(channel[0],&byte,1)==0,"rejected bootstrap retained pipe writer");
+    close(channel[0]);close(pair[0]);close(pair[1]);
+  };
+  {
+    spatial::supervisor::v1::BrokerCleanupBootstrapFrame frame;
+    frame.set_protocol_version(2);frame.set_correlation_id(std::string(32,'v'));frame.set_kind(frame.BIND_REQUEST);
+    expect_rejection_and_closed_rights(encode_frame(frame),1,"Invalid broker cleanup bootstrap frame",
+        "unsupported bootstrap version was not the rejection reason");
+  }
+  {
+    spatial::supervisor::v1::BrokerCleanupBootstrapFrame frame;
+    frame.set_protocol_version(1);frame.set_correlation_id(std::string(32,'u'));frame.set_kind(frame.BIND_REQUEST);
+    auto payload=encode_frame(frame);payload.append("\x98\x06\x01",3);
+    expect_rejection_and_closed_rights(payload,1,"Invalid broker cleanup bootstrap frame",
+        "unknown bootstrap protobuf field was not the rejection reason");
+  }
+  {
+    expect_rejection_and_closed_rights(std::string(1,static_cast<char>(0xff)),1,"Malformed broker cleanup bootstrap protobuf",
+        "malformed bootstrap protobuf was not the rejection reason");
+  }
+  {
+    std::string oversized(5000,'z');
+    expect_rejection_and_closed_rights(oversized,1,"truncated or oversized",
+        "oversized bootstrap frame was not the rejection reason");
+  }
+  {
+    auto pair=socket_pair();Bootstrap::send_ack(pair[0],std::string(32,'a'));
+    rejects([&]{(void)Bootstrap::receive_ack(pair[1],getpid(),getuid(),std::chrono::seconds(1),std::string(32,'b'));},
+        "mismatched bootstrap acknowledgment correlation accepted");close(pair[0]);close(pair[1]);
+  }
+  {
+    auto pair=socket_pair();const int flags=fcntl(pair[1],F_GETFL);check(flags>=0&&fcntl(pair[1],F_SETFL,flags|O_NONBLOCK)==0,"set bootstrap send nonblocking");
+    const char fill='q';while(send(pair[1],&fill,1,MSG_NOSIGNAL)>=0){}
+    check(errno==EAGAIN||errno==EWOULDBLOCK,"bootstrap send queue did not fill");
+    struct sigaction action{},previous{};action.sa_handler=+[](int){};sigemptyset(&action.sa_mask);
+    check(sigaction(SIGALRM,&action,&previous)==0,"install blocked-send interrupt handler");
+    const auto began=std::chrono::steady_clock::now();const auto deadline=Bootstrap::deadline_after(std::chrono::milliseconds(50));
+    ualarm(5000,5000);
+    rejects([&]{Bootstrap::send_request(pair[1],std::string(32,'s'),state.fd,deadline);},
+        "blocked bootstrap send exceeded its absolute deadline");
+    ualarm(0,0);sigaction(SIGALRM,&previous,nullptr);
+    check(std::chrono::steady_clock::now()-began<std::chrono::milliseconds(150),"blocked send deadline reset across EINTR");
+    close(pair[0]);close(pair[1]);
+  }
+  {
+    struct sigaction action{},previous{};action.sa_handler=+[](int){};sigemptyset(&action.sa_mask);
+    check(sigaction(SIGALRM,&action,&previous)==0,"install bootstrap interrupt handler");
+    ualarm(5000,5000);auto pair=socket_pair();const auto began=std::chrono::steady_clock::now();
+    const auto deadline=Bootstrap::deadline_after(std::chrono::milliseconds(50));
+    rejects([&]{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),deadline);},
+        "interrupted bootstrap receive accepted an empty peer");
+    ualarm(0,0);close(pair[0]);close(pair[1]);sigaction(SIGALRM,&previous,nullptr);
+    check(std::chrono::steady_clock::now()-began<std::chrono::milliseconds(150),"signal restarted bootstrap absolute deadline");
+  }
+  {
+    auto pair=socket_pair();
+    const pid_t child=fork();check(child>=0,"bootstrap fork");
+    if(child==0){close(pair[0]);try{Bootstrap::send_request(pair[1],std::string(32,'c'),state.fd);
+        Bootstrap::receive_ack(pair[1],getppid(),getuid(),std::chrono::seconds(2),std::string(32,'c'));_exit(0);}catch(...){_exit(81);}}
+    close(pair[1]);
+    auto request=Bootstrap::receive_request(pair[0],child,getuid(),std::chrono::seconds(2));
+    check(request.pid==child&&request.uid==getuid()&&request.frame.correlation_id()==std::string(32,'c'),"valid child bootstrap identity");
+    Bootstrap::validate_state_root(request.descriptor,state.path);
+    Bootstrap::send_ack(pair[0],request.frame.correlation_id());close(pair[0]);int status=0;
+    check(waitpid(child,&status,0)==child&&WIFEXITED(status)&&WEXITSTATUS(status)==0,"valid child bootstrap completion");
+  }
+  auto rejected_sender=[&](bool wrong_uid){
+    auto pair=socket_pair();const pid_t child=fork();check(child>=0,"negative bootstrap fork");
+    if(child==0){close(pair[0]);try{Bootstrap::send_request(pair[1],std::string(32,'d'),state.fd);_exit(0);}catch(...){_exit(82);}}
+    close(pair[1]);const auto uid=wrong_uid?static_cast<uid_t>(getuid()+1):getuid();
+    rejects([&]{(void)Bootstrap::receive_request(pair[0],wrong_uid?child:child+1,uid,std::chrono::seconds(2));},
+        wrong_uid?"wrong bootstrap UID accepted":"wrong bootstrap PID accepted");
+    close(pair[0]);int status=0;check(waitpid(child,&status,0)==child&&WIFEXITED(status)&&WEXITSTATUS(status)==0,"negative bootstrap child failed");
+  };
+  rejected_sender(false);rejected_sender(true);
+  {
+    spatial::supervisor::v1::BrokerCleanupBootstrapFrame frame;
+    frame.set_protocol_version(1);frame.set_correlation_id(std::string(32,'t'));frame.set_kind(frame.BIND_REQUEST);
+    expect_rejection_and_closed_rights(encode_frame(frame),16,"truncated or oversized",
+        "truncated ancillary data was not the rejection reason");
+  }
+  {
+    spatial::supervisor::v1::BrokerCleanupBootstrapFrame frame;
+    frame.set_protocol_version(1);frame.set_correlation_id(std::string(32,'m'));frame.set_kind(frame.BIND_REQUEST);
+    int channel[2];check(pipe2(channel,O_CLOEXEC)==0,"allocation failure FD pipe");
+    auto pair=socket_pair();send_raw(pair[1],encode_frame(frame),{channel[1]});close(channel[1]);
+    allocation_budget=0;bool allocation_failed=false;
+    try{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),std::chrono::seconds(1));}
+    catch(const std::bad_alloc&){allocation_failed=true;}
+    allocation_budget=-1;check(allocation_failed,"bootstrap receive allocation failure was not exercised");
+    pollfd event{channel[0],static_cast<short>(POLLIN|POLLHUP),0};
+    check(poll(&event,1,250)==1&&(event.revents&(POLLIN|POLLHUP)),"allocation failure leaked received FD");
+    char byte=1;check(read(channel[0],&byte,1)==0,"allocation failure retained pipe writer");
+    close(channel[0]);close(pair[0]);close(pair[1]);
+  }
+  {
+    auto pair=socket_pair();const pid_t child=fork();check(child>=0,"missing descriptor fork");
+    if(child==0){close(pair[0]);try{Bootstrap::send_request(pair[1],std::string(32,'e'),-1);_exit(0);}catch(...){_exit(83);}}
+    close(pair[1]);rejects([&]{(void)Bootstrap::receive_request(pair[0],child,getuid(),std::chrono::seconds(2));},"bytes-only bootstrap accepted");
+    close(pair[0]);int status=0;check(waitpid(child,&status,0)==child&&WIFEXITED(status)&&WEXITSTATUS(status)==0,"bytes-only sender failed");
+  }
+  {
+    spatial::supervisor::v1::BrokerCleanupBootstrapFrame frame;
+    frame.set_protocol_version(1);frame.set_correlation_id(std::string(32,'f'));frame.set_kind(frame.BIND_REQUEST);
+    expect_rejection_and_closed_rights(encode_frame(frame),2,"requires exactly one directory descriptor",
+        "extra bootstrap FD count was not the rejection reason");
+  }
+  {
+    expect_rejection_and_closed_rights(std::string("xy",2),1,"frame is incomplete",
+        "truncated bootstrap frame was not the rejection reason");
+  }
+  {
+    auto pair=socket_pair();close(pair[1]);
+    rejects([&]{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),std::chrono::milliseconds(20));},"closed bootstrap peer accepted");close(pair[0]);
+    pair=socket_pair();rejects([&]{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),std::chrono::milliseconds(20));},"bootstrap timeout accepted");close(pair[0]);close(pair[1]);
+  }
+  {
+    State other;rejects([&]{Bootstrap::validate_state_root(other.fd,state.path);},"substituted cleanup state root accepted");
+    auto pin=FileOperationJournal::pin_existing(state.fd);const auto database=state.path/"file-operations/file-operations.db";
+    const auto saved=state.path/"file-operations/file-operations.db.saved";std::filesystem::rename(database,saved);
+    write_file(database,"substituted database inode");chmod(database.c_str(),0600);
+    rejects([&]{pin.verify();},"substituted pinned database inode accepted");
+    std::filesystem::remove(database);std::filesystem::rename(saved,database);
+  }
+}
+
 void participant_case(const std::filesystem::path& delegated,const std::string& mode){
   active_cleanup_mode=mode;
   const auto case_began=std::chrono::steady_clock::now();
@@ -733,6 +1053,7 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
   }
   const auto marker=state.path/"project/.spatial-copy-staging/.spatial-copy-stage-job/stage-evidence";write_file(marker,"preserve marker");struct stat before{};check(stat(marker.c_str(),&before)==0,"marker stat");
   const auto original=job.SerializeAsString();auto participant=BrokerCopyCleanupParticipant::install(*root,state.fd);
+  rejects([&]{participant->bind(FileOperationJournal::pin_existing(state.fd));},"duplicate deferred journal bind accepted");
   if(mode=="deadline-multirow") {
     root->request_stop();const auto began=std::chrono::steady_clock::now();
     cleanup_phase(mode,"first_attempt_begin",case_began);
@@ -800,8 +1121,8 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
     disappear_at_open.store(false,std::memory_order_release);
     check(disappeared_at_open.load(std::memory_order_acquire),"actual callee openat race was not reached");
   }
-  FileOperationJournal recovered(state.path);auto after=recovered.find_copy_job(job.workspace_id(),job.job_id(),{});check(bool(after),"job lost");
-  const auto outcome=recovered.scope_cleanup_outcome(job.workspace_id(),job.job_id(),{});
+  auto recovered=std::make_unique<FileOperationJournal>(state.path);auto after=recovered->find_copy_job(job.workspace_id(),job.job_id(),{});check(bool(after),"job lost");
+  const auto outcome=recovered->scope_cleanup_outcome(job.workspace_id(),job.job_id(),{});
   {
     std::ostringstream diagnostic;diagnostic<<"copy_cleanup_diag mode="<<mode<<" phase=after";
     diagnostic_job(diagnostic,*after);diagnostic<<" has_outcome="<<bool(outcome);
@@ -819,12 +1140,113 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
     check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED&&!after->has_process_scope(),"reserved outcome invented proof");
     struct stat reserved_info{};
     check(lstat(worker.c_str(),&reserved_info)<0&&errno==ENOENT,"reserved child remained after reconciliation");
+
+    if(mode=="reserved") {
+
+      check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED&&
+            !after->has_process_scope()&&!after->has_drained_process_scope(),"reserved outcome invented proof");
+      auto pin=FileOperationJournal::pin_existing(state.fd);
+      auto cancelled=*after;
+      cancelled.set_state(FILE_COPY_JOB_JOURNAL_CANCELLED);
+      cancelled.set_updated_at_unix_ms(after->updated_at_unix_ms()+1);
+      auto* receipt=cancelled.mutable_terminal_receipt();
+      receipt->set_job_id(cancelled.job_id());receipt->set_state(FileCopyJobReceipt::CANCELLED);
+      receipt->set_bytes_copied(cancelled.bytes_progress());receipt->set_entries_copied(cancelled.entries_progress());
+      recovered->update_copy_job(cancelled,{});
+      const auto consumed=recovered->find_copy_job(cancelled.workspace_id(),cancelled.job_id(),{});
+      check(consumed&&consumed->state()==FILE_COPY_JOB_JOURNAL_CANCELLED&&
+            !consumed->has_process_scope()&&!consumed->has_drained_process_scope(),
+            "reconciled reservation did not become a proof-free cancellation");
+      const auto retained=recovered->validated_scope_cleanup_outcome(*consumed,nullptr,pin,{});
+      check(retained&&retained->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED,
+            "consumed reservation could not authorize its exact cancelled receipt");
+    }
   }
   else if(mode=="deadline-multirow") {
     check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED&&!after->has_process_scope(),"multi-row retry invented worker proof");
     sqlite3* raw=nullptr;check(sqlite3_open((state.path/"file-operations/file-operations.db").c_str(),&raw)==SQLITE_OK,"multi-row final inspection");
     sqlite3_stmt* count=nullptr;check(sqlite3_prepare_v2(raw,"SELECT count(*) FROM copy_scope_cleanup",-1,&count,nullptr)==SQLITE_OK&&sqlite3_step(count)==SQLITE_ROW,"multi-row final count");
     check(sqlite3_column_int64(count,0)==static_cast<sqlite3_int64>(kDeadlineRows),"exact retry did not finish every outcome");sqlite3_finalize(count);close_test_db(raw);
+  }
+  else if(mode=="old-proof-replaced") {
+    auto pin=FileOperationJournal::pin_existing(state.fd);
+    const auto parent=recovered->find_git_worker_parent({});
+    const auto* expected_parent=parent.state==spatial::GitWorkerParentRecord::State::absent?nullptr:&parent;
+    const auto queued_workspace=after->workspace_id();const auto queued_job=after->job_id();
+    const auto phase=[](const char* name){std::cerr<<"copy_cleanup_phase="<<name<<std::endl;};
+    auto held=[&] {
+      auto queued_expected=*after;auto queued_parent=parent;
+      // Pin establishment reads SQLite, so finish it before the external writer
+      // acquires BEGIN EXCLUSIVE. Its wrapper dies before that lock is released.
+      auto queued_pin=FileOperationJournal::pin_existing(state.fd);
+      phase("observer_pin_ready");
+      auto transaction=hold_exclusive_transaction(state.path/"file-operations/file-operations.db");
+      phase("exclusive_lock_ready");
+      rejects([&]{recovered->validated_scope_cleanup_outcome(queued_expected,&queued_parent,queued_pin,[] {
+        throw std::runtime_error("planned observer interruption");
+      });},"cleanup lookup observer did not interrupt while queued behind SQLite");
+      phase("observer_threw_while_lookup_queued");
+      return transaction;
+    }();
+    release_exclusive_transaction(held);phase("exclusive_lock_released");
+    const auto flushed=recovered->find_copy_job(queued_workspace,queued_job,{});
+    phase("queued_lookup_drained");
+    check(flushed&&flushed->SerializeAsString()==after->SerializeAsString(),
+          "observer-abandoned cleanup lookup did not drain with owned captures");
+    const auto disposition=recovered->validated_scope_cleanup_outcome(*after,expected_parent,pin,{});
+    phase("saved_disposition_validated");
+    check(disposition&&disposition->kind()==FileCopyScopeCleanupOutcome::REPLACED_SCOPE &&
+          after->has_drained_process_scope() &&
+          after->drained_process_scope().SerializeAsString()==after->process_scope().SerializeAsString(),
+          "stale old worker proof overrode the durable replacement disposition");
+    recovered.reset(); // The new supervised process must acquire the managed execution lock.
+    const auto independent_path=state.path/"independent-project";
+    std::filesystem::create_directories(independent_path);
+    auto generation=ProcessScope::prepare(delegated);
+    AuthorityProcessLaunch request;request.set_executable(std::filesystem::read_symlink("/proc/self/exe").string());
+    request.add_arguments("--consumer-recovery");request.add_arguments(state.path.string());
+    request.add_arguments((state.path/"project").string());request.add_arguments(job.workspace_id());
+    request.add_arguments(job.worktree_id());request.add_arguments(job.job_id());
+    request.add_arguments(independent_path.string());
+    struct ConsumerStreams {
+      int input=-1,output=-1,null=-1;
+      ~ConsumerStreams(){if(input>=0)close(input);if(output>=0)close(output);if(null>=0)close(null);}
+    } streams;
+    int output[2];check(pipe2(output,O_CLOEXEC)==0,"consumer result pipe");
+    streams.input=output[0];streams.output=output[1];
+    streams.null=open("/dev/null",O_RDWR|O_CLOEXEC);check(streams.null>=0,"consumer null stream");
+    check((delegated/generation->identity().scope_name()).parent_path()==path.parent_path(),
+          "recovery generation did not retain the same immediate delegated parent");
+    generation->start(request,{streams.null,streams.output,streams.output});
+    phase("recovery_generation_started");
+    close(streams.null);streams.null=-1;close(streams.output);streams.output=-1;
+    std::string result;char buffer[256];
+    const auto read_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(15);
+    for(;;){
+      const auto now=std::chrono::steady_clock::now();
+      check(now<read_deadline,"consumer result deadline expired");
+      const auto remaining=std::chrono::duration_cast<std::chrono::milliseconds>(read_deadline-now).count();
+      pollfd event{streams.input,static_cast<short>(POLLIN|POLLHUP),0};
+      const int ready=poll(&event,1,static_cast<int>(std::max<std::int64_t>(1,remaining)));
+      if(ready<0&&errno==EINTR)continue;
+      check(ready>0&&(event.revents&(POLLIN|POLLHUP)),"consumer result deadline or channel failure");
+      const auto count=read(streams.input,buffer,sizeof(buffer));if(count<0&&errno==EINTR)continue;
+      check(count>=0,"consumer result read failed");if(count==0)break;
+      result.append(buffer,static_cast<std::size_t>(count));check(result.size()<=4096,"consumer result exceeded bound");
+    }
+    close(streams.input);streams.input=-1;
+    const auto child_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(15);
+    while(!generation->state().direct_child_exited()) {
+      check(std::chrono::steady_clock::now()<child_deadline,
+            "supervised consumer child exit deadline expired");
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+    phase("supervised_consumer_child_exited");
+    const bool child_success=generation->exited_successfully();
+    (void)generation->stop();
+    phase("supervised_consumer_scope_stopped");
+    if(!child_success||result!="STALE_PROOF_QUARANTINED INDEPENDENT_BROWSE_OK\n")
+      throw std::runtime_error("supervised resource-backed recovery consumer failed: "+result);
   }
   else if(mode=="uncertain"){check(after->SerializeAsString()==original&&outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::IMMUTABLE_UNCERTAINTY,"terminal uncertainty mutated");}
   else if(mode=="missing-parent"||mode=="replaced-parent"||mode=="old-proof-parent-replaced") {
@@ -838,6 +1260,24 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
   }else check(after->drained_process_scope().SerializeAsString()==ids.worker.SerializeAsString(),"genuine exact proof missing");
   if(mode=="missing") {
     auto pin=FileOperationJournal::pin_existing(state.fd);
+    auto parent=recovered->find_git_worker_parent({});
+    const auto* expected_parent=parent.state==spatial::GitWorkerParentRecord::State::absent?nullptr:&parent;
+    const auto validated=recovered->validated_scope_cleanup_outcome(*after,expected_parent,pin,{});
+    check(validated && validated->kind()==FileCopyScopeCleanupOutcome::MISSING_SCOPE,
+        "exact saved cleanup disposition did not validate against current journal binding");
+    State foreign_state;
+    auto foreign_pin=FileOperationJournal::pin_existing(foreign_state.fd);
+    rejects([&]{recovered->validated_scope_cleanup_outcome(*after,expected_parent,foreign_pin,{});},
+        "cleanup disposition accepted a different current journal binding");
+    auto wrong_job=*after;wrong_job.set_worktree_id("another-worktree");
+    rejects([&]{recovered->validated_scope_cleanup_outcome(wrong_job,expected_parent,pin,{});},
+        "cleanup disposition accepted a different worktree job identity");
+    auto wrong_root=*after;wrong_root.set_broker_root_inode(wrong_root.broker_root_inode()+1);
+    rejects([&]{recovered->validated_scope_cleanup_outcome(wrong_root,expected_parent,pin,{});},
+        "cleanup disposition accepted a different saved broker root");
+    check(recovered->prune_terminal_copy_jobs(after->workspace_id(),static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()),1,{})==0 &&
+          recovered->scope_cleanup_outcome(after->workspace_id(),after->job_id(),{}).has_value(),
+        "uncertain cleanup evidence was pruned");
     auto writer=FileOperationJournal::open_existing(pin);
     writer->record_scope_cleanup_outcome(job,*outcome,true,{});
     auto changed=*outcome;changed.mutable_journal()->set_execution_inode(changed.journal().execution_inode()+1);
@@ -856,6 +1296,10 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
 }
 }
 int main(int argc,char** argv){try{
+  if(argc==5 && std::strcmp(argv[1],"--hold-journal-lock")==0)
+    return hold_exclusive_transaction_child(argv[2],std::stoi(argv[3]),std::stoi(argv[4]));
+  if(argc==8 && std::strcmp(argv[1],"--consumer-recovery")==0)
+    return consumer_recovery_child(argv[2],argv[3],argv[4],argv[5],argv[6],argv[7]);
   if(argc==2 && std::strcmp(argv[1],"--orphan-worker")==0){
     // Adversarial descendants may clear PDEATHSIG. The real cgroup must still drain them.
     check(prctl(PR_SET_PDEATHSIG,0)==0,"orphan worker clear parent-death signal");
@@ -869,6 +1313,7 @@ int main(int argc,char** argv){try{
   }
   check(argc==2||(argc==4&&std::strcmp(argv[2],"--only-participant-mode")==0),"expected delegated cgroup root");
   const std::filesystem::path root=argv[1];
+  if(argc==2)bootstrap_controls();
   if(argc==4){
     check(std::strcmp(argv[3],"deadline-multirow")==0,"unsupported isolated participant mode");
     participant_case(root,argv[3]);std::cout<<"BROKER_COPY_CLEANUP_SELECTED_PASS\n";return 0;

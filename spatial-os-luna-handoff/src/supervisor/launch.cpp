@@ -637,6 +637,16 @@ v1::AuthorityLaunchRecord AuthorityLaunch::start(const v1::AuthorityProcessLaunc
     impl_->started = true;
     return impl_->record;
 }
+void AuthorityLaunch::set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback) {
+    require(impl_->process && !impl_->started && impl_->record.stage() == v1::PREPARED && !impl_->stopping,
+        "Pre-prune cleanup requires the exact prepared launch scope");
+    impl_->process->set_pre_prune_cleanup(std::move(callback));
+}
+pid_t AuthorityLaunch::direct_child_pid() const {
+    require(impl_->started && impl_->process && !impl_->stopping,
+        "Direct child identity requires a live started launch");
+    return impl_->process->direct_child_pid();
+}
 v1::AuthorityLaunchRecord AuthorityLaunch::stop() {
     if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
     require(impl_->record.revision() && impl_->process && impl_->native, "Live ownership is unavailable; cleanup remains unresolved");

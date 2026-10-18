@@ -69,12 +69,14 @@ struct SessionLaunch::Impl {
     v1::AuthorityLaunchRecord record;
     std::optional<v1::AuthorityLaunchRecord> terminal_record;
     std::string terminal_failure;
-    bool stopped = false, reaped = false;
+    bool stopped = false, reaped = false, cleanup_requested = false;
+    unsigned cleanup_attempts = 0;
+    Clock::time_point cleanup_started{};
     int child_status = 0;
     std::uint64_t sequence = 0;
 
     void live() const {
-        require(owner == getpid() && !stopped && supervisor.live(), "Session supervisor ownership lost");
+        require(owner == getpid() && !stopped && !cleanup_requested && supervisor.live(), "Session supervisor ownership lost");
     }
     v1::AuthorityLaunchReply receive(std::uint64_t request, std::chrono::seconds timeout, bool recovering = false) {
         bool output_failed = false;
@@ -252,6 +254,16 @@ v1::AuthorityLaunchRecord SessionLaunch::stop() {
     require(state.owner == getpid(), "Session cleanup ownership lost");
     if (state.stopped) return state.record;
     require(bool(state.management), "Session cleanup ownership lost");
+    constexpr unsigned maximum_attempts = 3;
+    constexpr auto total_window = std::chrono::seconds(90);
+    constexpr auto per_attempt = std::chrono::seconds(40);
+    require(state.cleanup_attempts < maximum_attempts, "Session cleanup retry limit exhausted; preserve launch evidence");
+    const auto now = Clock::now();
+    if (state.cleanup_attempts == 0) state.cleanup_started = now;
+    else require(now - state.cleanup_started + per_attempt <= total_window,
+        "Session cleanup retry window exhausted; preserve launch evidence");
+    state.cleanup_requested = true;
+    ++state.cleanup_attempts;
     v1::AuthorityLaunchRecord result;
     if (!state.terminal_record) {
         std::uint64_t request_id = 0;
@@ -261,7 +273,7 @@ v1::AuthorityLaunchRecord SessionLaunch::stop() {
             request_id = state.sequence; state.management->send(request.SerializeAsString());
         }
         try {
-            const auto reply = state.receive(request_id, std::chrono::seconds(10), true);
+            const auto reply = state.receive(request_id, per_attempt, true);
             require(reply.has_view() && !reply.view().has_ready(), "Unexpected session cleanup reply");
             result = reply.view().record();
         } catch (...) { if (!state.terminal_record) throw; }

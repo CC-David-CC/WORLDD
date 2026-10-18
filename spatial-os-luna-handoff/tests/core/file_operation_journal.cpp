@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <array>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
@@ -472,6 +473,89 @@ int main() {
       journal.clear_git_worker_parent(parent_after_jobs,observer);
       check(journal.find_git_worker_parent(observer).state==GitWorkerParentRecord::State::absent,
             "verified empty parent could not clear after all job rows became terminal");
+    }
+    {
+      const auto retention_state=make_temp();
+      auto selected=record(std::string(16,'r'));
+      auto later=record(std::string(16,'s'));
+      auto unresolved=record(std::string(16,'u'));
+      const auto retention_phase=[](const char* name) {
+        std::cerr<<"journal_retention_phase="<<name<<std::endl;
+      };
+      {
+        FileOperationJournal journal(retention_state);
+        journal.bind_root("tree-one",7,19,observer);
+        retention_phase("root_bound");
+        for(auto* candidate:{&selected,&later,&unresolved}) {
+          journal.begin_copy_job(*candidate,observer);
+          candidate->set_state(FILE_COPY_JOB_JOURNAL_RUNNING);
+          candidate->set_updated_at_unix_ms(11);
+          journal.update_copy_job(*candidate,observer);
+        }
+        retention_phase("jobs_running");
+        selected.set_state(FILE_COPY_JOB_JOURNAL_CANCEL_REQUESTED);
+        selected.set_updated_at_unix_ms(12);
+        journal.update_copy_job(selected,observer);
+        terminal(selected,FILE_COPY_JOB_JOURNAL_CANCELLED,FileCopyJobReceipt::CANCELLED,13);
+        journal.update_copy_job(selected,observer);
+        retention_phase("oldest_cancelled");
+        later.set_state(FILE_COPY_JOB_JOURNAL_CANCEL_REQUESTED);
+        later.set_updated_at_unix_ms(14);
+        journal.update_copy_job(later,observer);
+        terminal(later,FILE_COPY_JOB_JOURNAL_CANCELLED,FileCopyJobReceipt::CANCELLED,15);
+        journal.update_copy_job(later,observer);
+        terminal(unresolved,FILE_COPY_JOB_JOURNAL_UNCERTAIN,FileCopyJobReceipt::UNCERTAIN,16);
+        journal.update_copy_job(unresolved,observer);
+        retention_phase("later_cancelled_uncertain_retained");
+      }
+      FileCopyScopeCleanupOutcome marker;marker.set_format_version(1);
+      const auto marker_bytes=marker.SerializeAsString();
+      sqlite3* raw=nullptr;
+      check(sqlite3_open((retention_state/"file-operations/file-operations.db").c_str(),&raw)==SQLITE_OK,
+            "paired prune test database open failed");
+      sqlite3_stmt* insert=nullptr;
+      check(sqlite3_prepare_v2(raw,"INSERT INTO copy_scope_cleanup(workspace,job_id,record) VALUES(?,?,?)",
+            -1,&insert,nullptr)==SQLITE_OK,"paired prune outcome insert prepare failed");
+      for(const auto* candidate:{&selected,&later,&unresolved}) {
+        sqlite3_reset(insert);sqlite3_clear_bindings(insert);
+        sqlite3_bind_text(insert,1,candidate->workspace_id().c_str(),-1,SQLITE_TRANSIENT);
+        sqlite3_bind_blob(insert,2,candidate->job_id().data(),static_cast<int>(candidate->job_id().size()),SQLITE_TRANSIENT);
+        sqlite3_bind_blob(insert,3,marker_bytes.data(),static_cast<int>(marker_bytes.size()),SQLITE_TRANSIENT);
+        check(sqlite3_step(insert)==SQLITE_DONE,"paired prune outcome insert failed");
+      }
+      sqlite3_finalize(insert);sqlite3_close(raw);
+      retention_phase("markers_inserted");
+      {
+        FileOperationJournal journal(retention_state);
+        check(journal.prune_terminal_copy_jobs(selected.workspace_id(),
+              static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()),1,observer)==1,
+              "bounded paired terminal job prune failed");
+        retention_phase("first_prune_verified");
+        check(!journal.find_copy_job(selected.workspace_id(),selected.job_id(),observer) &&
+              bool(journal.find_copy_job(later.workspace_id(),later.job_id(),observer)) &&
+              bool(journal.find_copy_job(unresolved.workspace_id(),unresolved.job_id(),observer)),
+              "prune did not select only its oldest eligible terminal row");
+        check(journal.prune_terminal_copy_jobs(selected.workspace_id(),
+              static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()),10,observer)==1,
+              "second bounded prune did not leave uncertain state untouched");
+        retention_phase("second_prune_verified");
+      }
+      check(sqlite3_open((retention_state/"file-operations/file-operations.db").c_str(),&raw)==SQLITE_OK,
+            "paired prune verification database open failed");
+      sqlite3_stmt* count=nullptr;
+      check(sqlite3_prepare_v2(raw,"SELECT count(*) FROM copy_scope_cleanup WHERE workspace=? AND job_id=?",
+            -1,&count,nullptr)==SQLITE_OK,"paired prune outcome query prepare failed");
+      auto outcome_count=[&](const auto& candidate) {
+        sqlite3_reset(count);sqlite3_clear_bindings(count);
+        sqlite3_bind_text(count,1,candidate.workspace_id().c_str(),-1,SQLITE_TRANSIENT);
+        sqlite3_bind_blob(count,2,candidate.job_id().data(),static_cast<int>(candidate.job_id().size()),SQLITE_TRANSIENT);
+        check(sqlite3_step(count)==SQLITE_ROW,"paired prune outcome count failed");
+        return sqlite3_column_int64(count,0);
+      };
+      check(outcome_count(selected)==0 && outcome_count(later)==0 && outcome_count(unresolved)==1,
+            "paired pruning did not retain only unresolved outcome evidence");
+      sqlite3_finalize(count);sqlite3_close(raw);
+      std::filesystem::remove_all(retention_state);
     }
     {
       auto prepared=record(std::string(16,'i'));

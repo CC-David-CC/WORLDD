@@ -1,0 +1,28 @@
+# M08 cleanup stop retry increment - 2026-10-18
+
+Status: source-only, UNQUALIFIED. No C++ build or runtime test was run. The implementation preserves the management protocol and adds no actor-visible bootstrap endpoint.
+
+A failed explicit stop retains the same AuthorityLaunch and cleanup participant in its supervisor. The correlated error has no cleanup record. SessionLaunch fences broker and world routing as soon as stop begins. Its retained private channel accepts explicit stop retries only. A successful explicit stop returns the correlated checked receipt and exits 0. A successful cleanup after unexpected child or relay failure sends the existing request_id=0 terminal error with the exact cleanup record and exits 2. Pending cleanup rejects inspect, fence, and control-owner requests without counting attempts. Issuer retirement remains gated by the checked receipt.
+
+The supervisor allows at most three actual launch->stop attempts and a 90-second aggregate window. It starts a later attempt only if 40 seconds remain. SessionLaunch waits at most 40 seconds per stop request. These bounds cover current source budgets: ProcessScope::stop uses a 2-second deadline (`src/supervisor/process_scope.cpp:996`); native requests use 3 seconds (`src/x11/native_channel.cpp:101`); StorageOwnerLaunch::stop can spend 8 seconds on systemctl stop, 8 seconds waiting for its service controller, and 8 seconds on systemctl show (`src/supervisor/storage_launch.cpp:122-140`). The remaining 11 seconds cover callback, communication, and reaping overhead. The service unit also sets TimeoutStopSec=3s (`src/supervisor/storage_launch.cpp:186`). Synchronous filesystem and SQLite calls are not claimed to be interruptible by this wait budget.
+
+When the budget expires while the parent remains connected, the supervisor keeps the owner pending, disables routing, rejects later requests, and blocks on management poll. It polls for writable events when the private response stream has queued output, so pending errors drain without waiting for another request. SIGTERM interrupts this wait and exits 2 through existing bounded best-effort destructors. Neither that path nor parent disconnect sends a cleanup receipt or retires the issuer. Startup failures before the first ready record remain outside this retry path and need separate recovery evidence.
+
+Selected regressions are implemented but runtime UNRUN. They use the actual production supervisor and cold broker setup. `tests/native/test_storage_session.py` now includes:
+
+- `test_failed_cleanup_retains_owner_for_explicit_retry`: a real SQLite write lock causes a correlated error without receipt, route denial, and denied retirement. Releasing the lock permits one explicit retry and exact checked cleanup before retirement.
+- `test_cleanup_parent_disconnect_preserves_pending_without_receipt`: with the lock held and the broker already pending, terminating the real coordinator disconnects its management parent. The test waits on the supervisor pidfd, then checks the durable CLEANUP_PENDING record has no stopped receipts and issuer activations remain active.
+- `test_pending_supervisor_signal_exits_without_receipt_or_retirement`: while the real parent remains connected and a SQLite write lock keeps cleanup pending, the test sends SIGTERM through the retained supervisor pidfd. It checks bounded supervisor exit, continued parent liveness, fenced actor routing, denied retirement, active issuer participants, and the pending record without stopped receipts.
+- `test_cleanup_retry_exhaustion_stays_pending_and_rejects_stop`: three locked stop attempts exhaust the cap. The test checks the fourth request's stable local SessionLaunch retry-limit error; it does not count this as direct supervisor command coverage. Actor routing and retirement remain denied, and the supervisor pidfd remains live while the parent remains connected. The test then releases the lock and disconnects the parent for bounded best-effort teardown; the durable launch record must remain pending without stopped receipts.
+- `test_native_storage_owner_loss_stops_execution_and_records_cleanup`: existing unexpected child-loss cleanup and storage-owner regression.
+
+The lock regressions use `BEGIN EXCLUSIVE` against the real cold broker database after startup has established the cleanup pin. `BEGIN IMMEDIATE` only reserves the writer slot in SQLite rollback-journal mode, so readers can still pass the pinned cleanup checks; the database has no pending copy rows that would force a write. `BEGIN EXCLUSIVE` blocks the journal's actual open/quick-check/read path and produces the bounded busy/deadline failure without fake rows. Error assertions check the cleanup/deadline/lock reason for failed stop attempts, the retained-supervisor route-fence reason, and the checked-cleanup retirement gate. Runtime evidence remains UNRUN; these regressions require the reviewed bootstrap integration.
+
+Next runtime command on each qualification host after bootstrap integration and package rebuild: run CTest registration `session-storage-owner` from the deployed build with the project-declared environment. Run `session-application` too for normal stop and unexpected-child compatibility. These tests still require primary review and both-host execution. They do not qualify all eleven restart scenarios or M08.
+
+Source pin for primary review:
+
+- Base commit: `17c0e2bbb248407f32c81f3726d799e5959a1a54`
+- `src/supervisor/main.cpp`: `c55d165d1786b3a52c702b83b682418d05810d56f9f10e065a891405c544739c`
+- `src/supervisor/session_launch.cpp`: `ac9046afcc8a3ae9ec719c8f4a146046a26ca714c243a0af7fdd03c6a6dd4ec8`
+- `tests/native/test_storage_session.py`: `fd3cb8335633be8d8510ff872f3a3df88f237b6294e5824e4db5ba2210c7e85d`

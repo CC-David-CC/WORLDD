@@ -326,6 +326,7 @@ const char* file_engine_stale_source(const std::string& detail) {
 } // namespace
 struct ExecutionStore::Impl {
     std::filesystem::path state;
+    File state_directory;
     const bool fixture_faults;
     bool exit_after_worktree = false;
     File lock;
@@ -354,6 +355,7 @@ struct ExecutionStore::Impl {
     StorageClient* storage = nullptr;
     std::function<void()> observer;
     std::unique_ptr<FileOperationJournal> file_journal;
+    std::optional<PinnedFileOperationJournal> cleanup_pin;
     std::string file_engine_incarnation;
     struct FileEngineEntry {
         int root_fd = -1;
@@ -446,8 +448,34 @@ struct ExecutionStore::Impl {
         entry->effects=std::make_unique<StoreFileEffectExecutor>(*owner,*file_journal,observer);
         entry->engine=std::make_unique<FileEngine>(entry->root_fd,workspace.id(),std::vector<std::string>{id},
             *entry->authority,[] { return std::chrono::steady_clock::now(); },entry->effects.get(),resources,
-            entry->staging_parent_fd,entry->staging_root_name,file_journal.get(),observer);
+            entry->staging_parent_fd,entry->staging_root_name,file_journal.get(),observer,
+            cleanup_pin?&*cleanup_pin:nullptr);
         return *file_engines.emplace(id,std::move(entry)).first->second;
+    }
+    void ensure_cleanup_pin() {
+        if(cleanup_pin) return;
+        const int state_fd=owner->duplicate_state_directory_fd();
+        if(state_fd<0) throw WorldError(wire::UNAVAILABLE,"Cannot pin canonical execution state directory");
+        try { cleanup_pin.emplace(FileOperationJournal::pin_existing(state_fd)); }
+        catch(...) { close(state_fd); throw; }
+        close(state_fd);
+    }
+    std::optional<workspace::v1::FileCopyScopeCleanupOutcome> validate_cleanup_disposition(
+        const FileOperationJournal::CopyJobRecord& record) {
+        if(!file_journal->scope_cleanup_outcome(record.workspace_id(),record.job_id(),observer)) return {};
+        ensure_cleanup_pin();
+        auto parents=file_journal->retained_git_worker_parents(observer);
+        const auto active=file_journal->find_git_worker_parent(observer);
+        if(active.state!=GitWorkerParentRecord::State::absent) parents.push_back(active);
+        const auto parent=std::find_if(parents.begin(),parents.end(),[&](const auto& candidate) {
+            return candidate.state==GitWorkerParentRecord::State::bound &&
+                candidate.root_device==record.broker_root_device() &&
+                candidate.root_inode==record.broker_root_inode() &&
+                candidate.boot_id==record.broker_root_boot_id() &&
+                candidate.identity_bytes==record.process_scope_parent().SerializeAsString();
+        });
+        return file_journal->validated_scope_cleanup_outcome(record,
+            parent==parents.end()?nullptr:&*parent,*cleanup_pin,observer);
     }
     void recover_git_worker_parent_before_dispatch() {
         if(!resources || git_parent_recovery_complete) return;
@@ -455,6 +483,7 @@ struct ExecutionStore::Impl {
         auto parents=file_journal->retained_git_worker_parents(observer);
         if(active.state!=GitWorkerParentRecord::State::absent) parents.push_back(active);
         const auto records=file_journal->recovery_copy_jobs_all(observer);
+        ensure_cleanup_pin();
         const auto current_root=resources->broker_root_path();
         const auto current_identity=resources->broker_root_identity();
         std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string boot;std::getline(boot_file,boot);
@@ -489,12 +518,20 @@ struct ExecutionStore::Impl {
         for(const auto& record:records) {
             if(invalid_file_worktrees.contains(record.worktree_id())) continue;
             const auto parent=std::find_if(parents.begin(),parents.end(),[&](const auto& p){return matches(p,record);});
-            if(parent==parents.end()) {
-                if(record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN)
-                    throw WorldError(wire::UNAVAILABLE,"Copy job has no durable Git parent generation");
-                invalid_file_worktrees.insert(record.worktree_id());continue;
-            }
             try {
+                if(!cleanup_pin) throw std::runtime_error("Current cleanup journal binding is unavailable");
+                const auto disposition=file_journal->validated_scope_cleanup_outcome(record,
+                    parent==parents.end()?nullptr:&*parent,*cleanup_pin,observer);
+                if(disposition && disposition->kind()!=workspace::v1::FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED) {
+                    invalid_file_worktrees.insert(record.worktree_id());continue;
+                }
+                const bool reconciled_reservation=disposition &&
+                    disposition->kind()==workspace::v1::FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED;
+                if(parent==parents.end() && !reconciled_reservation) {
+                    if(record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN)
+                        throw WorldError(wire::UNAVAILABLE,"Copy job has no durable Git parent generation");
+                    invalid_file_worktrees.insert(record.worktree_id());continue;
+                }
                 const auto workspace=owner->workspace_get(record.workspace_id());
                 if(workspace.worktree()!=record.worktree_id())
                     throw std::runtime_error("Copy workspace binding changed");
@@ -606,6 +643,11 @@ struct ExecutionStore::Impl {
         lock.fd = open((state / "execution.lock").c_str(), O_RDWR | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600);
         if (lock.fd < 0 || flock(lock.fd, LOCK_EX | LOCK_NB) != 0)
             throw WorldError(wire::IN_USE, "Execution state already has an authority or cannot be locked");
+        state_directory.fd = open(state.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+        struct stat state_info{};
+        require(state_directory.fd >= 0 && fstat(state_directory.fd, &state_info) == 0 &&
+            S_ISDIR(state_info.st_mode) && state_info.st_dev != 0 && state_info.st_ino != 0,
+            "Cannot retain canonical execution state directory");
         for (const auto* name : {"execution.db", "execution.db-journal", "execution.db-wal", "execution.db-shm", "repositories", "worktrees", "effects", "retired", "applications"})
             require(!std::filesystem::is_symlink(state / name), "Execution metadata must not be a symlink");
         std::filesystem::create_directories(state / "repositories");
@@ -925,6 +967,12 @@ ExecutionStore::~ExecutionStore() = default;
 CopyJournal& ExecutionStore::copy_journal() { return *impl_->copy_journal; }
 const CopyJournal& ExecutionStore::copy_journal() const { return *impl_->copy_journal; }
 bool ExecutionStore::fixture_faults() const { return impl_->fixture_faults; }
+int ExecutionStore::duplicate_state_directory_fd() const {
+    if (impl_->state_directory.fd < 0) throw std::runtime_error("Execution state directory is not pinned");
+    const int duplicate = fcntl(impl_->state_directory.fd, F_DUPFD_CLOEXEC, 3);
+    if (duplicate < 0) throw std::runtime_error("Cannot duplicate canonical execution state directory");
+    return duplicate;
+}
 wire::FaultArmReply ExecutionStore::arm_fault(const wire::FaultArmRequest& request) {
     if (!fixture_faults()) throw WorldError(wire::FORBIDDEN, "Fixture faults are disabled");
     validate_message(request);
@@ -1292,6 +1340,9 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
             }
             return file_action_error(operation,FileActionError::UNAUTHORIZED,"exact file right or workspace file policy denied the action");
         }
+        if(impl_->invalid_file_worktrees.contains(worktree_id))
+            return file_action_error(operation,FileActionError::UNCERTAIN,
+                "copy recovery disposition quarantines this worktree; saved evidence retained",true);
         Query registered(impl_->db.get(),"SELECT path,state FROM worktrees WHERE id=?");
         registered.text(1,worktree_id);
         if(registered.step()!=SQLITE_ROW || registered.text(1)!="ready")
@@ -1311,6 +1362,12 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
                 if(durable->principal_issuer_id()!=request.principal().issuer_id() ||
                    durable->principal_actor_id()!=request.principal().actor_id())
                     return file_action_error(operation,FileActionError::UNAUTHORIZED,"cabinet copy job belongs to another principal");
+                const auto disposition=impl_->validate_cleanup_disposition(*durable);
+                if(disposition && disposition->kind()!=FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED) {
+                    impl_->invalid_file_worktrees.insert(worktree_id);
+                    return file_action_error(operation,FileActionError::UNCERTAIN,
+                        "copy recovery disposition quarantines this worktree; saved evidence retained",true);
+                }
                 std::vector<std::string> source_components(
                     durable->source_path_components().begin(), durable->source_path_components().end());
                 std::vector<std::string> destination_components(
@@ -1359,6 +1416,12 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
                    durable->worktree_id()!=worktree_id)
                     return file_action_error(operation,FileActionError::CONFLICT,
                         "copy operation identity is already bound to different request context");
+                const auto disposition=impl_->validate_cleanup_disposition(*durable);
+                if(disposition && disposition->kind()!=FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED) {
+                    impl_->invalid_file_worktrees.insert(worktree_id);
+                    return file_action_error(operation,FileActionError::UNCERTAIN,
+                        "copy recovery disposition quarantines this worktree; saved evidence retained",true);
+                }
                 FileActionReply replay;replay.set_protocol_version(1);replay.set_operation_id(operation);
                 auto* receipt=replay.mutable_copy_job();receipt->set_job_id(durable->job_id());
                 using J=FileCopyJobJournalState;using R=FileCopyJobReceipt;

@@ -4,6 +4,8 @@
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
 #include "workspace/resources.hpp"
+#include "workspace/broker_copy_cleanup.hpp"
+#include "supervisor/broker_cleanup_bootstrap.hpp"
 #include "broker.pb.h"
 #include "compositor_native.pb.h"
 #include <google/protobuf/text_format.h>
@@ -15,6 +17,8 @@
 #include <optional>
 #include <poll.h>
 #include <set>
+#include <sys/random.h>
+#include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 
@@ -46,6 +50,25 @@ int descriptor(const char* text) {
 bool absolute(const std::string& text) {
     return !text.empty() && text.find('\0') == std::string::npos && std::filesystem::path(text).is_absolute();
 }
+bool cleanup_bootstrap_required(const pb::AuthoritySupervisorConfig& config) {
+    return config.has_broker_resources() && config.has_broker_native_target_fd();
+}
+std::filesystem::path configured_broker_state(const pb::AuthoritySupervisorConfig& config) {
+    std::filesystem::path state; unsigned found=0;
+    for (int i=0;i<config.launch().arguments_size();++i) {
+        const auto& argument=config.launch().arguments(i);
+        require(argument!="--cleanup-bootstrap-fd","Supervisor configuration cannot choose the private bootstrap endpoint");
+        if(argument=="--state-dir") {
+            require(i+1<config.launch().arguments_size() && found==0,"Broker requires one configured state directory");
+            state=config.launch().arguments(++i); ++found;
+        }
+    }
+    require(found==1 && absolute(state.string()) && state==state.lexically_normal(),
+        "Broker cleanup requires one absolute literal state directory");
+    if(config.has_broker_storage_owner())
+        require(state==config.broker_storage_owner().volume_root(),"Broker state differs from its storage-owner root");
+    return state;
+}
 pb::AuthoritySupervisorConfig configuration(const char* path, int native, int management, int handle) {
     pb::AuthoritySupervisorConfig value;
     require(google::protobuf::TextFormat::ParseFromString(spatial::identity::tls_detail::load_config(path), &value),
@@ -55,7 +78,7 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         (value.has_broker_storage_owner() && value.has_broker_resources() && value.broker_resources().protocol_version() == 2),
         "Production broker supervisor requires aggregate resources and storage ownership");
     for (const auto& arg : value.launch().arguments())
-        require(arg != "--production" && (!value.require_broker_confinement() || arg != "--fixture-faults"),
+        require(arg != "--cleanup-bootstrap-fd" && arg != "--production" && (!value.require_broker_confinement() || arg != "--fixture-faults"),
                 "Supervisor owns the production broker profile");
     require(value.protocol_version() == 1 && value.binding().supervised() &&
         value.has_participant() && value.has_authorization() && value.has_launch() &&
@@ -244,6 +267,7 @@ int main(int argc, char** argv) {
     std::unique_ptr<spatial::supervisor::StorageOwnerLaunch> storage;
     std::unique_ptr<spatial::identity::ParticipantStream> management;
     std::unique_ptr<spatial::supervisor::ChildHandleServer> handles;
+    std::shared_ptr<spatial::BrokerCopyCleanupParticipant> cleanup_participant;
     bool explicit_shutdown = false;
     bool storage_start_cleanup_confirmed = true;
     std::signal(SIGPIPE, SIG_IGN);
@@ -261,6 +285,14 @@ int main(int argc, char** argv) {
         File broker_config;
         File broker_resources;
         File storage_owner, storage_child;
+        File cleanup_bootstrap_supervisor, cleanup_bootstrap_child;
+        if (cleanup_bootstrap_required(config)) {
+            int pair[2]; require(socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, pair) == 0,
+                "Cannot create private broker cleanup bootstrap channel");
+            cleanup_bootstrap_supervisor.reset(pair[0]); cleanup_bootstrap_child.reset(pair[1]);
+            spatial::supervisor::BrokerCleanupBootstrap::require_credentials(pair[0]);
+            spatial::supervisor::BrokerCleanupBootstrap::require_credentials(pair[1]);
+        }
         if (config.has_broker_storage_owner()) {
             int pair[2]; require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) == 0,
                 "Cannot create private broker storage channel");
@@ -280,6 +312,8 @@ int main(int argc, char** argv) {
         if (config.has_broker_resources())
             broker_resources.reset(spatial::seal_resource_config(config.broker_resources(),
                 std::filesystem::path(config.delegated_cgroup()) / prepared.record().process().scope_name()));
+        if (cleanup_bootstrap_required(config))
+            cleanup_participant = spatial::BrokerCopyCleanupParticipant::deferred(*launch);
         if (config.has_broker_native_target_fd()) seal_broker_config(broker_config, *source, prepared.ready());
         if (config.has_compositor_native_target_fd()) seal_compositor_config(compositor_config, *source, prepared.ready());
         native_config.reset();
@@ -323,11 +357,22 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_arguments("--storage-fd");
             config.mutable_launch()->add_arguments(std::to_string(config.broker_storage_target_fd()));
         }
-        if (config.require_broker_confinement()) config.mutable_launch()->add_arguments("--production");
+        if (cleanup_bootstrap_required(config)) {
+            std::set<std::uint32_t> used(config.launch().inherited_fds().begin(), config.launch().inherited_fds().end());
+            std::uint32_t target = 0;
+            for (int candidate = 255; candidate >= 240; --candidate)
+                if (!used.count(static_cast<std::uint32_t>(candidate))) { target = static_cast<std::uint32_t>(candidate); break; }
+            require(target >= 240 && inherited.size() < 16, "No private broker cleanup descriptor slot remains");
+            config.mutable_launch()->add_inherited_fds(target);
+            inherited.push_back(cleanup_bootstrap_child.value);
+            config.mutable_launch()->add_arguments("--cleanup-bootstrap-fd");
+            config.mutable_launch()->add_arguments(std::to_string(target));
+            if (config.require_broker_confinement()) config.mutable_launch()->add_arguments("--production");
+        }
         const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO},
             inherited, config.has_broker_native_target_fd() && config.has_broker_storage_owner());
         release_child_sources(config);
-        storage_child.reset();
+        storage_child.reset(); cleanup_bootstrap_child.reset();
         if (config.has_broker_storage_owner()) {
             File broker_handle(launch->duplicate_broker_pidfd(started));
             storage_start_cleanup_confirmed = false;
@@ -341,49 +386,190 @@ int main(int argc, char** argv) {
             }
             storage_owner.reset();
         }
+        if (cleanup_participant) {
+            const auto bootstrap_deadline = spatial::supervisor::BrokerCleanupBootstrap::deadline_after(std::chrono::seconds(10));
+            auto received = spatial::supervisor::BrokerCleanupBootstrap::receive_request(
+                cleanup_bootstrap_supervisor.value, launch->direct_child_pid(), getuid(), bootstrap_deadline);
+            require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired before root validation");
+            const auto state_path = configured_broker_state(config);
+            spatial::supervisor::BrokerCleanupBootstrap::validate_state_root(received.descriptor, state_path);
+            require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired before journal pin");
+            auto pinned = spatial::FileOperationJournal::pin_existing(received.descriptor);
+            require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired while pinning journal");
+            cleanup_participant->bind(std::move(pinned));
+            require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired while binding journal");
+            spatial::supervisor::BrokerCleanupBootstrap::send_ack(cleanup_bootstrap_supervisor.value,
+                received.frame.correlation_id(), bootstrap_deadline);
+            cleanup_bootstrap_supervisor.reset();
+        }
         view(*management, started);
         broker_config.reset();
         broker_resources.reset();
         compositor_config.reset();
+        constexpr unsigned kMaximumCleanupAttempts = 3;
+        constexpr auto kCleanupWindow = std::chrono::seconds(90);
+        constexpr auto kMinimumAttemptBudget = std::chrono::seconds(40);
+        unsigned cleanup_attempts = 0;
+        Clock::time_point cleanup_started{};
+        bool cleanup_pending = false;
+        bool unexpected_failure = false;
+        bool child_completed = false;
+        bool cleanup_budget_exhausted = false;
+        std::string pending_failure;
+        auto cleanup_once = [&]() -> std::optional<pb::AuthorityLaunchRecord> {
+            const auto now = Clock::now();
+            if (cleanup_attempts >= kMaximumCleanupAttempts) { cleanup_budget_exhausted = true; return std::nullopt; }
+            if (cleanup_attempts != 0 && now - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
+                cleanup_budget_exhausted = true; return std::nullopt;
+            }
+            if (cleanup_attempts == 0) cleanup_started = now;
+            ++cleanup_attempts;
+            auto receipt = launch->stop();
+            if (storage) storage->stop();
+            return receipt;
+        };
+        auto finish_unexpected = [&](const pb::AuthorityLaunchRecord& receipt, const std::string& message) {
+            pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
+            reply.mutable_error()->set_message(message);
+            *reply.mutable_error()->mutable_cleanup_record() = receipt;
+            management->send(reply.SerializeAsString()); drain(*management);
+            return 2;
+        };
+        auto exit_pending_on_signal = [&]() {
+            if (!cleanup_pending || !interrupted) return false;
+            std::cerr << "Supervisor termination requested while cleanup remains pending\n";
+            std::cerr.flush();
+            return true;
+        };
         for (;;) {
-            require(!interrupted, "Supervisor termination requested");
-            // Inspect the private parent channel before accepting more child commands.
-            if (auto bytes = management->receive()) {
-                pb::AuthorityLaunchRequest request;
-                pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
-                bool stop = false;
-                try {
-                    require(request.ParseFromString(*bytes), "Malformed supervisor request");
-                    reply.set_request_id(request.request_id()); spatial::validate_message(request);
-                    require(request.protocol_version() == 1, "Unsupported supervisor request version");
-                    require(request.has_inspect() || request.has_stop() || request.has_fence() || request.has_control_owner(),
-                        "Supervisor supports only inspect, stop, fence, and control owner");
-                    stop = request.has_stop() || request.has_fence();
-                } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
-                if (!reply.has_error()) {
-                    // An explicit shutdown failure must not trigger an implicit fence retry.
-                    explicit_shutdown = stop;
-                    // Cleanup errors are fatal and cannot resume child routing.
-                    if (request.has_fence()) launch->fence();
-                    if (request.has_control_owner()) {
-                        try { *reply.mutable_control_owner() = launch->control_owner(); }
-                        catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
-                    }
-                    else *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
-                    if (stop && storage) storage->stop();
+            try {
+                if (exit_pending_on_signal()) return 2;
+                require(!interrupted, "Supervisor termination requested");
+                parent_alive(control);
+                if (cleanup_pending) {
+                    short events = POLLIN | POLLHUP | POLLERR;
+                    if (management->pending_output()) events |= POLLOUT;
+                    pollfd event{management->descriptor(), events, 0};
+                    int ready;
+                    do { ready = poll(&event, 1, -1); } while (ready < 0 && errno == EINTR && !interrupted);
+                    if (exit_pending_on_signal()) return 2; // Preserve pending evidence; no checked receipt.
+                    if (ready < 0) throw std::runtime_error("Pending cleanup management poll failed");
+                    if (event.revents & POLLOUT) management->flush();
+                    parent_alive(control);
                 }
-                management->send(reply.SerializeAsString());
-                if (stop) { drain(*management); return 0; }
+                if (auto bytes = management->receive()) {
+                    pb::AuthorityLaunchRequest request;
+                    pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
+                    bool stop = false;
+                    try {
+                        require(request.ParseFromString(*bytes), "Malformed supervisor request");
+                        reply.set_request_id(request.request_id()); spatial::validate_message(request);
+                        require(request.protocol_version() == 1, "Unsupported supervisor request version");
+                        require(request.has_inspect() || request.has_stop() || request.has_fence() || request.has_control_owner(),
+                            "Supervisor supports only inspect, stop, fence, and control owner");
+                        stop = request.has_stop() || request.has_fence();
+                        if (cleanup_pending) require(request.has_stop(), "Cleanup is pending; only an explicit stop retry is accepted");
+                        if (cleanup_budget_exhausted) throw std::runtime_error("Cleanup retry budget exhausted; preserve pending launch evidence");
+                    } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
+                    if (!reply.has_error()) {
+                        explicit_shutdown = stop;
+                        if (stop) {
+                            cleanup_pending = true;
+                            if (!unexpected_failure && !child_completed) {
+                                try { launch->fence(); }
+                                catch (const std::exception& error) {
+                                    unexpected_failure = true; pending_failure = error.what();
+                                }
+                            }
+                            try {
+                                auto receipt = cleanup_once();
+                                require(bool(receipt), "Cleanup retry budget exhausted; preserve pending evidence");
+                                if (unexpected_failure) return finish_unexpected(*receipt, pending_failure);
+                                *reply.mutable_view()->mutable_record() = *receipt;
+                                management->send(reply.SerializeAsString()); drain(*management); return 0;
+                            } catch (const std::exception& error) {
+                                reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                                reply.mutable_error()->set_message(error.what());
+                                management->send(reply.SerializeAsString());
+                                management->flush();
+                                if (cleanup_attempts >= kMaximumCleanupAttempts ||
+                                    Clock::now() - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
+                                    cleanup_budget_exhausted = true;
+                                    std::cerr << "Cleanup retry budget exhausted; preserving pending launch evidence\n";
+                                }
+                                continue;
+                            }
+                        } else if (request.has_control_owner()) {
+                            try { *reply.mutable_control_owner() = launch->control_owner(); }
+                            catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
+                        } else *reply.mutable_view()->mutable_record() = launch->inspect();
+                    }
+                    management->send(reply.SerializeAsString());
+                    if (!stop) management->flush();
+                }
+                if (cleanup_pending) continue;
+                if (handles) handles->pump(*launch);
+                launch->pump_channel();
+                if (launch->child_completed()) {
+                    child_completed = true;
+                    cleanup_pending = true;
+                    try {
+                        auto receipt = cleanup_once();
+                        require(bool(receipt), "Cleanup retry budget exhausted; preserve pending evidence");
+                        view(*management, *receipt); drain(*management); return 0;
+                    } catch (const std::exception& error) {
+                        pending_failure = error.what();
+                        std::cerr << "Child completed; cleanup pending: " << pending_failure << '\n';
+                    }
+                }
+                if (storage) storage->check_alive();
+                management->flush(); tick();
+            } catch (const std::exception& error) {
+                if (exit_pending_on_signal()) return 2;
+                if (management && management->descriptor() >= 0) {
+                    pollfd event{management->descriptor(), POLLHUP | POLLERR | POLLRDHUP, 0};
+                    const int ready = poll(&event, 1, 0);
+                    if (ready > 0 && (event.revents & (POLLHUP | POLLERR | POLLRDHUP))) {
+                        if (!cleanup_pending) {
+                            cleanup_pending = true;
+                            try { launch->fence_after_failure(); }
+                            catch (const std::exception& fencing) {
+                                std::cerr << "Management disconnect fencing unresolved: " << fencing.what() << '\n';
+                            }
+                        }
+                        std::cerr << "Management parent disconnected while cleanup may be pending; returning without a checked receipt\n";
+                        std::cerr.flush();
+                        return 2; // Stack unwinding retains the existing bounded best-effort destructors.
+                    }
+                }
+                if (!cleanup_pending) {
+                    unexpected_failure = true;
+                    cleanup_pending = true;
+                    pending_failure = error.what();
+                    std::cerr << "authority supervisor: " << pending_failure << '\n';
+                    try { launch->fence_after_failure(); }
+                    catch (const std::exception& fencing) {
+                        std::cerr << "authority supervisor crash fencing unresolved: " << fencing.what() << '\n';
+                    }
+                    try {
+                        auto receipt = cleanup_once();
+                        if (receipt && storage_start_cleanup_confirmed) return finish_unexpected(*receipt, pending_failure);
+                    } catch (const std::exception& cleanup) {
+                        std::cerr << "authority supervisor cleanup pending: " << cleanup.what() << '\n';
+                    }
+                    if (cleanup_attempts >= kMaximumCleanupAttempts ||
+                        Clock::now() - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
+                        cleanup_budget_exhausted = true;
+                        std::cerr << "Cleanup retry budget exhausted; preserving pending launch evidence\n";
+                    }
+                } else {
+                    std::cerr << "authority supervisor cleanup retry rejected: " << error.what() << '\n';
+                    std::cerr.flush();
+                    if (cleanup_attempts >= kMaximumCleanupAttempts ||
+                        Clock::now() - cleanup_started + kMinimumAttemptBudget > kCleanupWindow)
+                        cleanup_budget_exhausted = true;
+                }
             }
-            if (handles) handles->pump(*launch);
-            launch->pump_channel();
-            if (launch->child_completed()) {
-                const auto stopped = launch->stop();
-                if (storage) storage->stop();
-                view(*management, stopped); drain(*management); return 0;
-            }
-            if (storage) storage->check_alive();
-            management->flush(); tick();
         }
     } catch (const std::exception& error) {
         std::cerr << "authority supervisor: " << error.what() << '\n';

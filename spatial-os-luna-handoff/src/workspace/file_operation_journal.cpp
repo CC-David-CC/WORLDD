@@ -991,6 +991,111 @@ std::optional<workspace::v1::FileCopyScopeCleanupOutcome> FileOperationJournal::
     return value;
   },observer);
 }
+std::optional<workspace::v1::FileCopyScopeCleanupOutcome> FileOperationJournal::validated_scope_cleanup_outcome(
+    const CopyJobRecord& expected,const GitWorkerParentRecord* parent,
+    const PinnedFileOperationJournal& current,const Observer& observer) {
+  using Outcome=workspace::v1::FileCopyScopeCleanupOutcome;
+  validate_copy_job(expected);
+  current.verify();
+  const auto binding=current.binding();
+  // The pin must name this journal's own state directory. Do not open another
+  // ordinary SQLite descriptor: that can discard POSIX locks held by SQLite.
+  if(impl_->pins) {
+    pin_require(impl_->pins->binding.SerializeAsString()==binding.SerializeAsString(),
+        "Cleanup lookup pin differs from the opened journal");
+  } else {
+    const auto pinned_path=std::filesystem::read_symlink(
+        "/proc/self/fd/"+std::to_string(current.execution_directory_fd()));
+    const auto state_path=std::filesystem::absolute(impl_->database.parent_path().parent_path()).lexically_normal();
+    pin_require(pinned_path==state_path,"Cleanup pin does not name the opened execution state");
+    struct stat root{},journal_dir{},journal_db{},execution_db{};
+    pin_require(stat(state_path.c_str(),&root)==0 && stat(impl_->database.parent_path().c_str(),&journal_dir)==0 &&
+        stat(impl_->database.c_str(),&journal_db)==0 &&
+        stat((state_path/"execution.db").c_str(),&execution_db)==0 &&
+        static_cast<std::uint64_t>(root.st_dev)==binding.execution_device() &&
+        static_cast<std::uint64_t>(root.st_ino)==binding.execution_inode() &&
+        static_cast<std::uint64_t>(journal_dir.st_dev)==binding.journal_directory_device() &&
+        static_cast<std::uint64_t>(journal_dir.st_ino)==binding.journal_directory_inode() &&
+        static_cast<std::uint64_t>(journal_db.st_dev)==binding.journal_database_device() &&
+        static_cast<std::uint64_t>(journal_db.st_ino)==binding.journal_database_inode() &&
+        static_cast<std::uint64_t>(execution_db.st_dev)==binding.execution_database_device() &&
+        static_cast<std::uint64_t>(execution_db.st_ino)==binding.execution_database_inode(),
+        "Cleanup pin differs from the opened journal filesystem identity");
+  }
+  if(parent) {
+    const std::filesystem::path path(parent->root_path);
+    pin_require(parent->state==GitWorkerParentRecord::State::bound &&
+        parent->root_device==expected.broker_root_device() && parent->root_inode==expected.broker_root_inode() &&
+        parent->boot_id==expected.broker_root_boot_id() &&
+        parent->identity_bytes==expected.process_scope_parent().SerializeAsString() &&
+        path.is_absolute() && path.lexically_normal()==path,
+        "Cleanup parent does not match the durable copy job");
+  }
+  const auto expected_bytes=expected.SerializeAsString();
+  const auto digest=copy_job_identity_sha256(expected);
+  // call() may return by throwing from its observer while this operation remains
+  // queued. Own every capability and value the closure needs until it executes.
+  const auto retained_pin=current.impl_;
+  const auto expected_copy=expected;
+  const std::optional<GitWorkerParentRecord> parent_copy=parent
+      ? std::optional<GitWorkerParentRecord>(*parent) : std::nullopt;
+  auto result=impl_->call([retained_pin,expected_copy,parent_copy,binding,expected_bytes,digest]
+      (sqlite3* db)->std::optional<Outcome> {
+    PinnedFileOperationJournal pin(retained_pin);
+    Transaction tx(db,"BEGIN");
+    Statement job(db,"SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?");
+    job.text(1,expected_copy.workspace_id());job.blob(2,expected_copy.job_id());
+    pin_require(job.row() && job.bytes(0)==expected_bytes,
+        "Cleanup lookup job differs from its exact durable row");
+    Statement saved(db,"SELECT record FROM copy_scope_cleanup WHERE workspace=? AND job_id=?");
+    saved.text(1,expected_copy.workspace_id());saved.blob(2,expected_copy.job_id());
+    if(!saved.row()) { tx.commit();return std::nullopt; }
+    pin.verify();
+    pin.verify_workspace_binding(expected_copy);
+    const auto bytes=saved.bytes(0);Outcome value;
+    pin_require(bytes.size()<=kMaxOutcome && value.ParseFromString(bytes) && !has_unknown_fields(value) &&
+        value.format_version()==1 && value.journal().SerializeAsString()==binding.SerializeAsString() &&
+        value.workspace_id()==expected_copy.workspace_id() && value.worktree_id()==expected_copy.worktree_id() &&
+        value.job_id()==expected_copy.job_id() && value.job_identity_sha256()==digest &&
+        value.broker_root().device()==expected_copy.broker_root_device() &&
+        value.broker_root().inode()==expected_copy.broker_root_inode() &&
+        value.broker_root().boot_id()==expected_copy.broker_root_boot_id() &&
+        value.broker_root().launch_id().size()==32 && !has_unknown_fields(value.broker_root()) &&
+        value.broker_root().scope_name().size()<=128 &&
+        value.kind()>=Outcome::RESERVED_SCOPE_RECONCILED &&
+        value.kind()<=Outcome::IMMUTABLE_UNCERTAINTY,
+        "Cleanup disposition differs from its current journal, job, or saved broker root");
+    if(parent_copy) pin_require(value.broker_root().scope_name()==std::filesystem::path(parent_copy->root_path).filename().string(),
+        "Cleanup disposition names another broker root");
+    if(value.kind()==Outcome::RESERVED_SCOPE_RECONCILED) {
+      const bool fresh_intent=expected_copy.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_START_INTENT &&
+          !expected_copy.has_process_scope() && !expected_copy.has_drained_process_scope();
+      const bool consumed_cancel=expected_copy.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_CANCELLED &&
+          !expected_copy.has_process_scope() && !expected_copy.has_drained_process_scope() &&
+          expected_copy.has_terminal_receipt() &&
+          expected_copy.terminal_receipt().state()==workspace::v1::FileCopyJobReceipt::CANCELLED &&
+          expected_copy.terminal_receipt().job_id()==expected_copy.job_id();
+      pin_require(fresh_intent || consumed_cancel,
+          "Reserved cleanup disposition is not an unconsumed intent or its cancelled result");
+    }
+    if(value.kind()==Outcome::MISSING_SCOPE)
+      pin_require(expected_copy.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN &&
+          expected_copy.has_process_scope() && !expected_copy.has_drained_process_scope(),
+          "Missing-scope disposition conflicts with the saved uncertain worker");
+    if(value.kind()==Outcome::REPLACED_SCOPE)
+      pin_require(expected_copy.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN &&
+          expected_copy.has_process_scope(),"Replaced-scope disposition lacks an uncertain saved worker");
+    if(value.kind()==Outcome::INVALID_PARENT)
+      pin_require(expected_copy.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN,
+          "Invalid-parent disposition lacks a durable uncertain job");
+    if(value.kind()==Outcome::IMMUTABLE_UNCERTAINTY)
+      pin_require(expected_copy.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN &&
+          expected_copy.has_process_scope(),"Immutable uncertainty disposition has no uncertain worker");
+    tx.commit();return value;
+  },observer);
+  if(result) { current.verify();current.verify_workspace_binding(expected);current.verify(); }
+  return result;
+}
 void FileOperationJournal::record_scope_cleanup_outcome(const CopyJobRecord& expected,
     const workspace::v1::FileCopyScopeCleanupOutcome& outcome,bool mark_uncertain,const Observer& observer) {
   using Outcome=workspace::v1::FileCopyScopeCleanupOutcome;
@@ -1441,11 +1546,25 @@ std::size_t FileOperationJournal::prune_terminal_copy_jobs(const std::string& wo
     throw std::invalid_argument("Invalid copy job retention request");
   return impl_->call([workspace,older_than_unix_ms,maximum_rows](sqlite3* db) {
     Transaction tx(db);
-    Statement remove(db,"DELETE FROM file_copy_jobs WHERE rowid IN (SELECT rowid FROM file_copy_jobs "
-        "WHERE workspace=? AND state IN (4,5,6,8) AND updated_at<? ORDER BY updated_at LIMIT ?)");
-    remove.text(1,workspace); remove.number(2,static_cast<sqlite3_int64>(older_than_unix_ms));
-    remove.number(3,static_cast<sqlite3_int64>(maximum_rows)); remove.done();
-    const auto count=static_cast<std::size_t>(sqlite3_changes(db)); tx.commit(); return count;
+    std::vector<std::string> jobs;
+    Statement eligible(db,"SELECT job_id FROM file_copy_jobs "
+        "WHERE workspace=? AND state IN (4,5,6,8) AND updated_at<? ORDER BY updated_at,job_id LIMIT ?");
+    eligible.text(1,workspace); eligible.number(2,static_cast<sqlite3_int64>(older_than_unix_ms));
+    eligible.number(3,static_cast<sqlite3_int64>(maximum_rows));
+    while(eligible.row()) {
+      jobs.push_back(eligible.bytes(0));
+      if(jobs.size()>maximum_rows) throw std::runtime_error("Copy job prune selection exceeded its bound");
+    }
+    for(const auto& job_id:jobs) {
+      Statement outcome(db,"DELETE FROM copy_scope_cleanup WHERE workspace=? AND job_id=?");
+      outcome.text(1,workspace); outcome.blob(2,job_id); outcome.done();
+      Statement remove(db,"DELETE FROM file_copy_jobs WHERE workspace=? AND job_id=? "
+          "AND state IN (4,5,6,8) AND updated_at<?");
+      remove.text(1,workspace); remove.blob(2,job_id);
+      remove.number(3,static_cast<sqlite3_int64>(older_than_unix_ms)); remove.done();
+      if(sqlite3_changes(db)!=1) throw std::runtime_error("Eligible copy job changed during transactional pruning");
+    }
+    tx.commit(); return jobs.size();
   },observer);
 }
 } // namespace spatial

@@ -70,6 +70,11 @@ public:
   static std::string copy_job_identity_sha256(const CopyJobRecord&);
   std::optional<workspace::v1::FileCopyScopeCleanupOutcome> scope_cleanup_outcome(
       const std::string& workspace, const std::string& job_id, const Observer& observer);
+  // Validate a stored disposition against the exact current job and pinned
+  // execution/journal binding before it can affect recovery decisions.
+  std::optional<workspace::v1::FileCopyScopeCleanupOutcome> validated_scope_cleanup_outcome(
+      const CopyJobRecord& expected, const GitWorkerParentRecord* parent,
+      const PinnedFileOperationJournal& current, const Observer& observer);
   // Exact old bytes are checked in the same transaction as outcome insertion and optional uncertainty.
   void record_scope_cleanup_outcome(const CopyJobRecord& expected,
       const workspace::v1::FileCopyScopeCleanupOutcome&, bool mark_uncertain, const Observer& observer);

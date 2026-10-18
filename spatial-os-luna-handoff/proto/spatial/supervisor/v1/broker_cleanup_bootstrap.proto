@@ -1,0 +1,14 @@
+syntax = "proto3";
+package spatial.supervisor.v1;
+
+// Private cold-start binding frame. The descriptor, not this message, carries authority.
+message BrokerCleanupBootstrapFrame {
+  uint32 protocol_version = 1;
+  bytes correlation_id = 2;
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    BIND_REQUEST = 1;
+    BIND_ACK = 2;
+  }
+  Kind kind = 3;
+}

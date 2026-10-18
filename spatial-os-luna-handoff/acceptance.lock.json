@@ -1,12 +1,12 @@
 {
   "edition": "spatial-protobuf/1",
   "handoff_version": "0.18.0",
-  "notice": "Explicit additive actor pixel, M05 actor representation, and M07 presentation/copy schema migrations. Preserve all 151 acceptance assertions, oracles, witnesses, and existing fields. See docs/ACTOR_PIXELS_MIGRATION.md, docs/M05_ACTOR_REPRESENTATION.txt, and docs/M07_SCHEMA_BASELINE_MIGRATION_2026-10-15.md. The M07 descriptor comparison and negative controls are recorded externally in /home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015/. Additive M08 actor cabinet schema boundary is documented in docs/M08_SCHEMA_BOUNDARY_MIGRATION_2026-10-16.md; runtime support remains unimplemented. Explicit M08 additive presentation-kind and copy-failure metadata revision 0.18.0. See docs/M08_PUBLIC_SCHEMA_ADDITIONS_2026-10-18.txt. Preserve all 151 acceptance IDs and every unrelated lock entry. This schema checkpoint does not qualify M08.",
+  "notice": "Explicit additive actor pixel, M05 actor representation, and M07 presentation/copy schema migrations. Preserve all 151 acceptance assertions, oracles, witnesses, and existing fields. See docs/ACTOR_PIXELS_MIGRATION.md, docs/M05_ACTOR_REPRESENTATION.txt, and docs/M07_SCHEMA_BASELINE_MIGRATION_2026-10-15.md. The M07 descriptor comparison and negative controls are recorded externally in /home/dflanag3/spatial-artifacts/m07-schema-lock-independent-review-20261015/. Additive M08 actor cabinet schema boundary is documented in docs/M08_SCHEMA_BOUNDARY_MIGRATION_2026-10-16.md; runtime support remains unimplemented. Explicit M08 additive presentation-kind and copy-failure metadata revision 0.18.0. See docs/M08_PUBLIC_SCHEMA_ADDITIONS_2026-10-18.txt. Preserve all 151 acceptance IDs and every unrelated lock entry. This schema checkpoint does not qualify M08. Explicit reviewed M08 fixture-pin reconciliation: commit 9cca03a adds only an opt-in real empty initial Git commit. Default fixture behavior, all 151 acceptance IDs, and all 41 other locked file hashes are unchanged. See ../docs/M08_FIXTURE_LOCK_RECONCILIATION_2026-10-18.txt. This metadata refresh does not qualify M08.",
   "files": {
     "docs/CONTRACT.md": "784506e661aa36de6683a5dc493a952306216ef9206b5b51e20d265960e40b84",
     "harness/__init__.py": "e4a165ed823ff7b3bafb35fa5fc0cd9b8045a0687c64851dbc94fa84cbed0234",
     "harness/base.py": "2d0ecb0407268a4192747f82493bbc0e3d5f941005bf6e5e92a3ce06a8574dd0",
-    "harness/git_fixture.py": "3468ccf443e4a1502cb774cf60d7073f86989e2ab0cc0759b53cb33d90dde8a8",
+    "harness/git_fixture.py": "6452b86487bb3c0a0e54c1d5d61151161bfc1bdc7b2e4dbb97119fd830fc9a09",
     "harness/oracles.py": "0f07c887dc9937ed44af6f74dff0482debcb25c72d5fd6da13c496c41099bf26",
     "harness/probe.py": "c5ff0b50e263d4c53f6823f202adfe9d3c8d3bb9bc824efa8eb8415d8effb019",
     "harness/rpc.py": "a93eeba7b5abd9a29f4fb9fc356456fee52e05970f7588b6cb20412acd6306a2",
@@ -199,5 +199,5 @@
     "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable",
     "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return"
   ],
-  "predecessor_sha256": "cdcc8989fa4ab908ecd5b69910d3e651b407396aa101d11cabed66ef2565d075"
+  "predecessor_sha256": "3fecc7b2c1c3f1eaf16d8c04b5442597863f69f5dbc2cccd281c9a94e55d2a2a"
 }
