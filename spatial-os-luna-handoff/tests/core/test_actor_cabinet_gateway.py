@@ -9,6 +9,7 @@ import threading
 from unittest.mock import patch
 import time
 import unittest
+from harness.private_evidence import bounded_tree_files, install_case_evidence
 import core_pb2 as core
 import file_actions_pb2 as cabinet
 import world_session_pb2 as session
@@ -17,12 +18,31 @@ import test_workspace_presentation_actor as presentation
 
 
 class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
+    def setUp(self):
+        evidence_parent = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if evidence_parent:
+            case_root, restore_environment = install_case_evidence(
+                evidence_parent, self._testMethodName)
+            self.case_evidence_root = case_root
+            # Register restoration before inherited setup can fail or launch children.
+            self.addCleanup(restore_environment)
+        super().setUp()
+
     def make_presentation(self, world, peer, x=.8, workspace_id='one'):
         info = world.management('world.info')
         result = peer.act(presentation_create=core.PresentationCreateRequest(
             protocol_version=1, operation_id=os.urandom(16), workspace_id=workspace_id,
             room_id=info['entry_room'], transform=presentation.pose(x),
-            expected_world_revision=info['world_revision']))
+            expected_world_revision=info['world_revision'], kind=core.PRESENTATION_KIND_GENERIC))
+        self.assertTrue(result.HasField('action'), result)
+        return result.action.presentation
+
+    def make_cabinet(self, world, peer, x=.8, workspace_id='one'):
+        info = world.management('world.info')
+        result = peer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id=workspace_id,
+            room_id=info['entry_room'], transform=presentation.pose(x),
+            expected_world_revision=info['world_revision'], kind=core.PRESENTATION_KIND_CABINET))
         self.assertTrue(result.HasField('action'), result)
         return result.action.presentation
 
@@ -57,31 +77,8 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         return detail
 
     def bounded_tree_files(self, root, *, logs_only=False, reject_symlinks=False):
-        root = Path(root)
-        pending = [(root, 0)]
-        files = []
-        entries_seen = 0
-        while pending:
-            directory, depth = pending.pop()
-            self.assertLessEqual(depth, 8, f'nested evidence exceeds depth bound: {directory}')
-            with os.scandir(directory) as entries:
-                for entry in entries:
-                    entries_seen += 1
-                    self.assertLessEqual(entries_seen, 2048,
-                                         f'evidence scan exceeds entry bound: {root}')
-                    if entry.is_symlink():
-                        if reject_symlinks:
-                            self.fail(f'evidence tree contains a symlink: {entry.path}')
-                        continue
-                    if entry.is_dir(follow_symlinks=False):
-                        pending.append((Path(entry.path), depth + 1))
-                    elif entry.is_file(follow_symlinks=False) and (not logs_only or entry.name.endswith('.log')):
-                        files.append(Path(entry.path))
-                        # The file cap includes private broker diagnostics. The 16 MiB
-                        # aggregate and 4 MiB per-file caps keep 64 entries bounded.
-                        self.assertLessEqual(len(files), 64,
-                                             f'evidence scan exceeds file bound: {root}')
-        return files
+        return bounded_tree_files(self, root, logs_only=logs_only,
+                                  reject_symlinks=reject_symlinks)
 
     def assert_private_error_not_leaked(self, operation_id, expected_source, public_reply):
         detail = self.private_error_diagnostic(operation_id, expected_source)
@@ -119,12 +116,13 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
     def test_actor_cabinet_gateway_authorized_browse_read_create_and_retry(self):
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer)
+        target = self.make_cabinet(world, peer)
         browsed = peer.act(cabinet=self.cabinet_request(target,
             browse=cabinet.FileBrowse(page_size=32)))
         self.assertTrue(browsed.HasField('action'), browsed)
         page = browsed.action.cabinet
         self.assertTrue(page.HasField('directory'), page)
+        self.assertEqual(len(page.directory.entries), 0, 'an accessible empty workspace stays empty')
         self.assertEqual(page.operation_id, browsed.action.cabinet.operation_id)
 
         operation = os.urandom(16)
@@ -148,7 +146,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.enroll_second()
         world = self.workspace(pair=True)
         owner, peer = world.peers
-        target = self.make_presentation(world, owner, workspace_id='one')
+        target = self.make_cabinet(world, owner, workspace_id='one')
         room = target.room_id
         self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
         self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room, target.representation_id])
@@ -160,6 +158,10 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         cabinet_view = next(item for item in observation.action.observation.presentation_views
                             if item.representation_id == target.representation_id)
         self.assertTrue(cabinet_view.locked)
+        self.assertTrue(cabinet_view.cabinet_locked)
+        self.assertEqual(cabinet_view.kind, core.PRESENTATION_KIND_CABINET)
+        public_fields = {field.name for field, _ in cabinet_view.ListFields()}
+        self.assertFalse({'workspace_id', 'workspace', 'file_name', 'directory', 'branch'} & public_fields)
         world.management('workspace.available', id='two', available=True)
         self.assertTrue(peer.act(workspace_select=core.WorkspaceIdRequest(id='two')).HasField('action'))
 
@@ -174,6 +176,13 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         # Grant only FILE_CREATE to the presentation's actual workspace. No browse,
         # read, or WORKSPACE_ACCESS grant is added, yet create remains authorized.
         self.workspace_grant_second_domain(world, 'one', [grant.FILE_CREATE])
+        create_only_view = peer.act(observe=core.ActorObserveRequest())
+        self.assertTrue(create_only_view.HasField('action'), create_only_view)
+        cabinet_view = next(item for item in create_only_view.action.observation.presentation_views
+                            if item.representation_id == target.representation_id)
+        self.assertEqual(cabinet_view.kind, core.PRESENTATION_KIND_CABINET)
+        self.assertTrue(cabinet_view.locked, 'generic M07 lock stays tied to WORKSPACE_ACCESS')
+        self.assertFalse(cabinet_view.cabinet_locked, 'create-only effective file authority unlocks cabinet status')
         created = peer.act(cabinet=self.cabinet_request(target,
             create=cabinet.FileCreate(directory_handle=b'', basename=b'create-only.txt', content=b'yes')))
         self.assertTrue(created.HasField('action'), created)
@@ -184,10 +193,59 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertTrue(no_browse.action.cabinet.HasField('error'), no_browse)
         self.assertEqual(no_browse.action.cabinet.error.code, cabinet.FileActionError.UNAUTHORIZED)
 
+    def test_actor_cabinet_gateway_rejects_generic_presentation_target(self):
+        world = self.workspace()
+        peer = world.peers[0]
+        generic = self.make_presentation(world, peer)
+        result = peer.act(cabinet=self.cabinet_request(generic, browse=cabinet.FileBrowse(page_size=8)))
+        self.assertTrue(result.HasField('error'), result)
+        self.assertEqual(result.error.code, core.NOT_VISIBLE)
+
+    def test_cabinet_view_move_and_use_authority_are_separate(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner, peer = world.peers
+        target = self.make_cabinet(world, owner)
+        room = target.room_id
+        self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
+        self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room, target.representation_id])
+        self.assertTrue(self.authenticate_second(peer).HasField('opened'))
+        observation = peer.act(observe=core.ActorObserveRequest())
+        self.assertTrue(observation.HasField('action'), observation)
+        cabinet_view = next(item for item in observation.action.observation.presentation_views
+                            if item.representation_id == target.representation_id)
+        self.assertTrue(cabinet_view.cabinet_locked)
+        denied_use = peer.act(cabinet=self.cabinet_request(target, browse=cabinet.FileBrowse(page_size=8)))
+        self.assertTrue(denied_use.HasField('error'), denied_use)
+        self.assertEqual(denied_use.error.code, core.FORBIDDEN)
+        self.world_grant_second(world, [grant.REPRESENTATION_MOVE], components=[room, target.representation_id])
+        moved = peer.act(presentation_move=core.PresentationMoveRequest(
+            protocol_version=1, operation_id=os.urandom(16), representation_id=target.representation_id,
+            room_id=room, transform=presentation.pose(1.2),
+            expected_representation_generation=target.generation))
+        self.assertTrue(moved.HasField('action'), moved)
+        self.assertEqual(moved.action.presentation.kind, core.PRESENTATION_KIND_CABINET)
+        self.assertTrue(moved.action.presentation.cabinet_locked)
+
+    def test_cabinet_placement_requires_effective_file_authority(self):
+        world = self.workspace(policy=['workspace.select'])
+        peer = world.peers[0]
+        info = world.management('world.info')
+        request = lambda kind: core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='one',
+            room_id=info['entry_room'], transform=presentation.pose(.8),
+            expected_world_revision=world.management('world.info')['world_revision'], kind=kind)
+        denied = peer.act(presentation_create=request(core.PRESENTATION_KIND_CABINET))
+        self.assertTrue(denied.HasField('error'), denied)
+        self.assertEqual(denied.error.code, core.FORBIDDEN)
+        generic = peer.act(presentation_create=request(core.PRESENTATION_KIND_GENERIC))
+        self.assertTrue(generic.HasField('action'), generic)
+        self.assertEqual(generic.action.presentation.kind, core.PRESENTATION_KIND_GENERIC)
+
     def test_actor_cabinet_gateway_workspace_policy_denies_exact_right(self):
         world = self.workspace(policy=['workspace.select', 'files.read'])
         peer = world.peers[0]
-        target = self.make_presentation(world, peer)
+        target = self.make_cabinet(world, peer)
         operation = os.urandom(16)
         denied = peer.act(cabinet=self.cabinet_request(target, operation,
             create=cabinet.FileCreate(directory_handle=b'', basename=b'policy-denied.txt', content=b'x')))
@@ -208,7 +266,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         relay, release_broker_feed = self.world_grant_race(race)
         world = self.workspace(policy=['workspace.select', 'files.read'], issuer_port=relay.port)
         owner = world.peers[0]
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         peer = self.prepare_ancestor_revocable_use_actor(world, target, race)
         operation = os.urandom(16)
         path = self.project / 'policy-denied-during-revocation.txt'
@@ -266,7 +324,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.enroll_second()
         world = self.workspace()
         owner, peer = world.peers
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         room = target.room_id
         self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
         self.assertTrue(self.authenticate_second(peer).HasField('opened'))
@@ -287,7 +345,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertTrue(stale.HasField('error'), stale)
         self.assertEqual(stale.error.code, core.STALE_TARGET)
 
-        far = self.make_presentation(world, owner, x=40)
+        far = self.make_cabinet(world, owner, x=40)
         out_of_reach = owner.act(cabinet=self.cabinet_request(far,
             browse=cabinet.FileBrowse(page_size=8)))
         self.assertTrue(out_of_reach.HasField('error'), out_of_reach)
@@ -298,7 +356,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
                         'diagnostic regression requires a private evidence directory')
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer)
+        target = self.make_cabinet(world, peer)
         binding = self.broker.call('workspace.get', id='one')
         worktree_id = binding['worktree']
         expected_root = self.project
@@ -330,7 +388,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.enroll_second()
         world = self.workspace()
         owner, peer = world.peers
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         room = target.room_id
         self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
         self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room, target.representation_id])
@@ -361,7 +419,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
     def test_actor_cabinet_gateway_rejects_wrong_registered_workspace_binding(self):
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer)
+        target = self.make_cabinet(world, peer)
         path = self.project / 'wrong-binding-must-not-write.txt'
         original_exchange = self.broker.exchange
         injected = {'wrong_binding': False, 'file_action': False}
@@ -393,7 +451,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
     def test_actor_cabinet_gateway_rejects_actor_movement_during_authority_wait(self):
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer)
+        target = self.make_cabinet(world, peer)
         path = self.project / 'movement-during-wait-must-not-write.txt'
         initial_reply = peer.call(inspect=session.WorldSessionInspect())
         self.assertTrue(initial_reply.HasField('state'), initial_reply)
@@ -487,7 +545,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         with patch.dict(os.environ, env):
             world = self.workspace(issuer_port=relay.port)
         owner = world.peers[0]
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         peer = self.prepare_ancestor_revocable_use_actor(world, target, race)
 
         operation = os.urandom(16)
@@ -631,7 +689,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.enroll_second()
         world = self.workspace()
         owner, peer = world.peers
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         room = target.room_id
         self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
         self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room, target.representation_id])
@@ -647,13 +705,93 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertTrue(created.action.cabinet.HasField('object'), created)
         self.assertEqual((self.project / 'worktree-scoped.txt').read_bytes(), b'scoped')
 
+    def test_registered_worktree_scope_controls_cabinet_placement_and_file_use(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner, peer = world.peers
+        room = world.management('world.info')['entry_room']
+        self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE,
+            grant.WORLD_OBSERVE, grant.WORLD_PLACEMENT_CREATE])
+        self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room])
+        self.workspace_grant_second_domain(world, 'one', [grant.WORKSPACE_PRESENTATION_ATTACH])
+        self.workspace_grant_second_domain(world, 'two', [grant.WORKSPACE_PRESENTATION_ATTACH])
+        tree_one = self.registered_worktree_component('one')
+        tree_two = self.registered_worktree_component('two')
+        self.assertNotEqual(tree_one, tree_two)
+        self.grant_file_scope_to_second(world, 'one', [grant.FILE_CREATE], [tree_one])
+        # This otherwise valid FILE_CREATE grant names workspace one's worktree.
+        self.grant_file_scope_to_second(world, 'two', [grant.FILE_CREATE], [tree_one])
+        self.assertTrue(self.authenticate_second(peer).HasField('opened'))
+
+        info = world.management('world.info')
+        exact = peer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='one',
+            room_id=room, transform=presentation.pose(.8),
+            expected_world_revision=info['world_revision'],
+            kind=core.PRESENTATION_KIND_CABINET))
+        self.assertTrue(exact.HasField('action'), exact)
+        exact_target = exact.action.presentation
+        self.assertEqual(exact_target.kind, core.PRESENTATION_KIND_CABINET)
+        self.assertFalse(exact_target.cabinet_locked)
+        self.assertTrue(exact_target.locked, 'FILE_CREATE does not imply WORKSPACE_ACCESS')
+        exact_observation = peer.act(observe=core.ActorObserveRequest())
+        self.assertTrue(exact_observation.HasField('action'), exact_observation)
+        projected = next(view for view in exact_observation.action.observation.presentation_views
+                         if view.representation_id == exact_target.representation_id)
+        self.assertEqual(projected.kind, core.PRESENTATION_KIND_CABINET)
+        self.assertTrue(projected.locked, 'generic M07 lock stays tied to WORKSPACE_ACCESS')
+        self.assertFalse(projected.cabinet_locked)
+        self.world_grant_second(world, [grant.REPRESENTATION_USE],
+                                components=[room, exact_target.representation_id])
+        created = peer.act(cabinet=self.cabinet_request(exact_target,
+            create=cabinet.FileCreate(directory_handle=b'', basename=b'exact-worktree.txt', content=b'exact')))
+        self.assertTrue(created.HasField('action'), created)
+        self.assertTrue(created.action.cabinet.HasField('object'), created)
+        self.assertEqual((self.project / 'exact-worktree.txt').read_bytes(), b'exact')
+
+        # Generic placement is a positive control for the otherwise valid room and attach rights.
+        generic = peer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='two',
+            room_id=room, transform=presentation.pose(1.6),
+            expected_world_revision=world.management('world.info')['world_revision'],
+            kind=core.PRESENTATION_KIND_GENERIC))
+        self.assertTrue(generic.HasField('action'), generic)
+        before = owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
+        cabinet_count = sum(view.kind == core.PRESENTATION_KIND_CABINET
+                            for view in before.presentation_views)
+        denied_placement = peer.act(presentation_create=core.PresentationCreateRequest(
+            protocol_version=1, operation_id=os.urandom(16), workspace_id='two',
+            room_id=room, transform=presentation.pose(2.4),
+            expected_world_revision=world.management('world.info')['world_revision'],
+            kind=core.PRESENTATION_KIND_CABINET))
+        self.assertTrue(denied_placement.HasField('error'), denied_placement)
+        self.assertEqual(denied_placement.error.code, core.FORBIDDEN)
+        after = owner.call(geometry_view=session.WorldGeometryViewRequest()).geometry_view
+        self.assertEqual(sum(view.kind == core.PRESENTATION_KIND_CABINET
+                             for view in after.presentation_views), cabinet_count)
+
+        wrong_target = self.make_cabinet(world, owner, x=3.2, workspace_id='two')
+        self.world_grant_second(world, [grant.REPRESENTATION_USE],
+                                components=[room, wrong_target.representation_id])
+        observation = peer.act(observe=core.ActorObserveRequest())
+        self.assertTrue(observation.HasField('action'), observation)
+        wrong_view = next(view for view in observation.action.observation.presentation_views
+                          if view.representation_id == wrong_target.representation_id)
+        self.assertTrue(wrong_view.cabinet_locked)
+        denied_use = peer.act(cabinet=self.cabinet_request(wrong_target,
+            create=cabinet.FileCreate(directory_handle=b'', basename=b'wrong-worktree.txt', content=b'wrong')))
+        self.assertTrue(denied_use.HasField('action'), denied_use)
+        self.assertTrue(denied_use.action.cabinet.HasField('error'), denied_use)
+        self.assertEqual(denied_use.action.cabinet.error.code, cabinet.FileActionError.UNAUTHORIZED)
+        self.assertFalse((self.project / 'wrong-worktree.txt').exists())
+
     def test_actor_cabinet_gateway_revocation_during_observation_is_clean_rejection(self):
         self.enroll_second()
         race = {}
         relay, release_broker_feed = self.world_grant_race(race)
         world = self.workspace(issuer_port=relay.port)
         owner = world.peers[0]
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         peer = self.prepare_ancestor_revocable_use_actor(world, target, race)
         path = self.project / 'revoked-during-observation.txt'
         result_box, errors = [], []
@@ -726,7 +864,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         relay, release_broker_feed = self.world_grant_race(race)
         world = self.workspace(issuer_port=relay.port)
         owner = world.peers[0]
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         independent = [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE,
                        grant.WORLD_MANIPULATE, grant.WORLD_PLACEMENT_CREATE,
                        grant.WORLD_PLACEMENT_REMOVE]
@@ -806,7 +944,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         relay.armed.set()
         world = self.workspace(issuer_port=relay.port)
         owner = world.peers[0]
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         peer = self.prepare_ancestor_revocable_use_actor(world, target, race)
         operation = os.urandom(16)
         principal = self.principal(self.second)
@@ -1004,7 +1142,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
     def test_actor_cabinet_gateway_authorized_file_state_error_is_preserved(self):
         world = self.workspace()
         peer = world.peers[0]
-        target = self.make_presentation(world, peer)
+        target = self.make_cabinet(world, peer)
         path = self.project / 'authorized-conflict.txt'
         first = peer.act(cabinet=self.cabinet_request(target,
             create=cabinet.FileCreate(directory_handle=b'', basename=path.name.encode(), content=b'original')))
@@ -1055,7 +1193,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         relay, release_broker_feed = self.world_grant_race(race)
         world = self.workspace(issuer_port=relay.port)
         owner = world.peers[0]
-        target = self.make_presentation(world, owner)
+        target = self.make_cabinet(world, owner)
         peer = self.prepare_ancestor_revocable_use_actor(world, target, race)
         path = self.project / 'revoked-error-conflict.txt'
         first = peer.act(cabinet=self.cabinet_request(target,
@@ -1111,29 +1249,246 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertFalse(relay.errors)
         self.assertFalse(self.world_watch_relay.errors)
 
-    def test_actor_cabinet_gateway_copy_is_typed_unimplemented_and_bounds_input(self):
-        world = self.workspace()
-        peer = world.peers[0]
-        target = self.make_presentation(world, peer)
-        copy_reply = peer.act(cabinet=self.cabinet_request(target,
+    def test_actor_cabinet_copy_requires_file_copy_and_completes_through_actor_path(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_COPY)
+        source_bytes = b'actor cabinet copy regression\n'
+        self.create_gateway_file(owner, target, b'copy-source.txt', source_bytes)
+
+        peer_root = peer.act(cabinet=self.cabinet_request(target,
+            browse=cabinet.FileBrowse(directory_handle=b'', page_size=32)))
+        self.assertTrue(peer_root.HasField('action'), peer_root)
+        self.assertTrue(peer_root.action.cabinet.HasField('directory'), peer_root)
+        peer_source = next(entry for entry in peer_root.action.cabinet.directory.entries
+                           if entry.name == b'copy-source.txt')
+        denied = peer.act(cabinet=self.cabinet_request(target,
             copy_job=cabinet.FileCopyJob(command=cabinet.FileCopyJob.START,
-                source_handle=b'opaque', destination_directory_handle=b'', destination_basename=b'copy')))
-        self.assertTrue(copy_reply.HasField('action'), copy_reply)
-        self.assertTrue(copy_reply.action.cabinet.HasField('error'), copy_reply)
-        self.assertEqual(copy_reply.action.cabinet.error.code, cabinet.FileActionError.UNIMPLEMENTED)
-        self.assertFalse((self.project / 'copy').exists())
+                source_handle=peer_source.handle,
+                destination_directory_handle=peer_root.action.cabinet.directory.handle,
+                destination_basename=b'denied-copy.txt', maximum_bytes=1024, maximum_entries=8)))
+        self.assertTrue(denied.HasField('action'), denied)
+        self.assertTrue(denied.action.cabinet.HasField('error'), denied)
+        self.assertEqual(denied.action.cabinet.error.code, cabinet.FileActionError.UNAUTHORIZED)
+        self.assertFalse((self.project / 'denied-copy.txt').exists())
+
+        owner_root = owner.act(cabinet=self.cabinet_request(target,
+            browse=cabinet.FileBrowse(directory_handle=b'', page_size=32)))
+        self.assertTrue(owner_root.HasField('action'), owner_root)
+        self.assertTrue(owner_root.action.cabinet.HasField('directory'), owner_root)
+        owner_source = next(entry for entry in owner_root.action.cabinet.directory.entries
+                            if entry.name == b'copy-source.txt')
+        started = owner.act(cabinet=self.cabinet_request(target,
+            copy_job=cabinet.FileCopyJob(command=cabinet.FileCopyJob.START,
+                source_handle=owner_source.handle,
+                destination_directory_handle=owner_root.action.cabinet.directory.handle,
+                destination_basename=b'actor-copy.txt', maximum_bytes=1024, maximum_entries=8)))
+        self.assertTrue(started.HasField('action'), started)
+        self.assertTrue(started.action.cabinet.HasField('copy_job'), started)
+        job_id = started.action.cabinet.copy_job.job_id
+        self.assertEqual(len(job_id), 16)
+        deadline = time.monotonic() + 10
+        terminal = None
+        while time.monotonic() < deadline:
+            polled = owner.act(cabinet=self.cabinet_request(target,
+                copy_job=cabinet.FileCopyJob(command=cabinet.FileCopyJob.POLL, job_id=job_id)))
+            self.assertTrue(polled.HasField('action'), polled)
+            self.assertTrue(polled.action.cabinet.HasField('copy_job'), polled)
+            receipt = polled.action.cabinet.copy_job
+            if receipt.state in (cabinet.FileCopyJobReceipt.COMPLETE, cabinet.FileCopyJobReceipt.CANCELLED,
+                                 cabinet.FileCopyJobReceipt.CONFLICT, cabinet.FileCopyJobReceipt.UNCERTAIN,
+                                 cabinet.FileCopyJobReceipt.FAILED):
+                terminal = receipt
+                break
+            self.assertIn(receipt.state, (cabinet.FileCopyJobReceipt.QUEUED, cabinet.FileCopyJobReceipt.RUNNING))
+            time.sleep(.02)
+        self.assertIsNotNone(terminal, 'actor copy job did not reach a terminal state')
+        self.assertEqual(terminal.state, cabinet.FileCopyJobReceipt.COMPLETE)
+        self.assertEqual(terminal.bytes_copied, len(source_bytes))
+        self.assertEqual(terminal.entries_copied, 1)
+        self.assertEqual(len(terminal.content_digest), 32)
+        destination = self.project / 'actor-copy.txt'
+        self.assertEqual(destination.read_bytes(), source_bytes)
+        repeated = owner.act(cabinet=self.cabinet_request(target,
+            copy_job=cabinet.FileCopyJob(command=cabinet.FileCopyJob.POLL, job_id=job_id)))
+        self.assertTrue(repeated.HasField('action'), repeated)
+        self.assertTrue(repeated.action.cabinet.HasField('copy_job'), repeated)
+        self.assertEqual(repeated.action.cabinet.copy_job.SerializeToString(deterministic=True),
+                         terminal.SerializeToString(deterministic=True),
+                         'terminal copy polling is stable')
+
         malformed = cabinet.ActorCabinetRequest(representation_id=target.representation_id,
             expected_generation=target.generation, operation_id=b'short',
             browse=cabinet.FileBrowse(page_size=8))
-        invalid = peer.act(cabinet=malformed)
+        invalid = owner.act(cabinet=malformed)
         self.assertTrue(invalid.HasField('error'), invalid)
         self.assertEqual(invalid.error.code, core.INVALID_ARGUMENT)
-        bad_name = peer.act(cabinet=self.cabinet_request(target,
+        bad_name = owner.act(cabinet=self.cabinet_request(target,
             create=cabinet.FileCreate(directory_handle=b'', basename=b'../escape.txt', content=b'x')))
         self.assertTrue(bad_name.HasField('action'), bad_name)
         self.assertTrue(bad_name.action.cabinet.HasField('error'), bad_name)
         self.assertEqual(bad_name.action.cabinet.error.code, cabinet.FileActionError.INVALID_ARGUMENT)
         self.assertFalse((self.project.parent / 'escape.txt').exists())
+
+
+
+    def prepare_file_operation_peer(self, world, target, excluded_right):
+        _, peer = world.peers
+        room = target.room_id
+        self.world_grant_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE, grant.WORLD_OBSERVE])
+        self.world_grant_second(world, [grant.REPRESENTATION_VIEW], components=[room, target.representation_id])
+        self.world_grant_second(world, [grant.REPRESENTATION_USE], components=[room, target.representation_id])
+        file_rights = (
+            grant.FILE_BROWSE, grant.FILE_READ, grant.FILE_CREATE, grant.FILE_EDIT,
+            grant.FILE_RENAME, grant.FILE_MOVE, grant.FILE_COPY, grant.FILE_TRASH,
+            grant.FILE_RESTORE, grant.FILE_PERMANENT_DELETE,
+        )
+        rights = [grant.WORKSPACE_ACCESS, *(right for right in file_rights if right != excluded_right)]
+        self.workspace_grant_second_domain(world, 'one', rights)
+        self.assertTrue(self.authenticate_second(peer).HasField('opened'))
+        return peer
+
+    def create_gateway_file(self, peer, target, basename, content):
+        reply = peer.act(cabinet=self.cabinet_request(target,
+            create=cabinet.FileCreate(directory_handle=b'', basename=basename, content=content)))
+        self.assertTrue(reply.HasField('action'), reply)
+        self.assertTrue(reply.action.cabinet.HasField('object'), reply)
+        return reply.action.cabinet.object
+
+    def assert_gateway_denied_then_allowed(self, peer, owner, request, unchanged_path, expected_bytes):
+        denied = peer.act(cabinet=request)
+        self.assertTrue(denied.HasField('action'), denied)
+        self.assertTrue(denied.action.cabinet.HasField('error'), denied)
+        self.assertEqual(denied.action.cabinet.error.code, cabinet.FileActionError.UNAUTHORIZED)
+        self.assertEqual(denied.action.cabinet.operation_id, request.operation_id)
+        if unchanged_path is not None:
+            self.assertEqual(unchanged_path.read_bytes(), expected_bytes)
+
+        allowed_request = cabinet.ActorCabinetRequest()
+        allowed_request.CopyFrom(request)
+        allowed_request.operation_id = os.urandom(16)
+        allowed = owner.act(cabinet=allowed_request)
+        self.assertTrue(allowed.HasField('action'), allowed)
+        self.assertFalse(allowed.action.cabinet.HasField('error'), allowed)
+        return allowed.action.cabinet
+
+    def test_actor_cabinet_gateway_edit_requires_file_edit_right(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_EDIT)
+        obj = self.create_gateway_file(owner, target, b'edit-right.txt', b'before')
+        path = self.project / 'edit-right.txt'
+        request = self.cabinet_request(target,
+            edit=cabinet.FileEdit(file_handle=obj.handle, expected_generation=obj.generation, content=b'after'))
+        result = self.assert_gateway_denied_then_allowed(peer, owner, request, path, b'before')
+        self.assertTrue(result.HasField('object'), result)
+        self.assertEqual(path.read_bytes(), b'after')
+
+    def test_actor_cabinet_gateway_rename_requires_file_rename_right(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_RENAME)
+        obj = self.create_gateway_file(owner, target, b'rename-source.txt', b'rename')
+        source = self.project / 'rename-source.txt'
+        destination = self.project / 'rename-destination.txt'
+        request = self.cabinet_request(target,
+            rename=cabinet.FileRename(file_handle=obj.handle, expected_generation=obj.generation,
+                                      new_basename=destination.name.encode()))
+        result = self.assert_gateway_denied_then_allowed(peer, owner, request, source, b'rename')
+        self.assertTrue(result.HasField('object'), result)
+        self.assertFalse(source.exists())
+        self.assertEqual(destination.read_bytes(), b'rename')
+
+    def test_actor_cabinet_gateway_move_requires_file_move_right(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_MOVE)
+        destination_dir = self.project / 'move-destination'
+        destination_dir.mkdir()
+        page = owner.act(cabinet=self.cabinet_request(target, browse=cabinet.FileBrowse(page_size=32)))
+        self.assertTrue(page.HasField('action'), page)
+        entry = next(item for item in page.action.cabinet.directory.entries
+                     if item.name == b'move-destination')
+        self.assertTrue(entry.is_directory)
+        obj = self.create_gateway_file(owner, target, b'move-source.txt', b'move')
+        source = self.project / 'move-source.txt'
+        destination = destination_dir / 'move-destination.txt'
+        request = self.cabinet_request(target,
+            move=cabinet.FileMove(file_handle=obj.handle, expected_generation=obj.generation,
+                destination_directory_handle=entry.handle, new_basename=destination.name.encode()))
+        result = self.assert_gateway_denied_then_allowed(peer, owner, request, source, b'move')
+        self.assertTrue(result.HasField('object'), result)
+        self.assertFalse(source.exists())
+        self.assertEqual(destination.read_bytes(), b'move')
+
+    def test_actor_cabinet_gateway_trash_requires_file_trash_right(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_TRASH)
+        obj = self.create_gateway_file(owner, target, b'trash-right.txt', b'trash')
+        path = self.project / 'trash-right.txt'
+        request = self.cabinet_request(target,
+            trash=cabinet.FileTrash(file_handle=obj.handle, expected_generation=obj.generation))
+        result = self.assert_gateway_denied_then_allowed(peer, owner, request, path, b'trash')
+        self.assertTrue(result.HasField('trash'), result)
+        self.assertFalse(path.exists())
+        self.assertEqual((self.project / '.spatial-trash' / result.trash.handle.hex()).read_bytes(), b'trash')
+
+    def test_actor_cabinet_gateway_restore_requires_file_restore_right(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_RESTORE)
+        obj = self.create_gateway_file(owner, target, b'restore-right.txt', b'restore')
+        path = self.project / 'restore-right.txt'
+        trashed = owner.act(cabinet=self.cabinet_request(target,
+            trash=cabinet.FileTrash(file_handle=obj.handle, expected_generation=obj.generation)))
+        self.assertTrue(trashed.HasField('action'), trashed)
+        self.assertTrue(trashed.action.cabinet.HasField('trash'), trashed)
+        receipt = trashed.action.cabinet.trash
+        trash_path = self.project / '.spatial-trash' / receipt.handle.hex()
+        request = self.cabinet_request(target,
+            restore=cabinet.FileRestore(trash_handle=receipt.handle,
+                destination_directory_handle=b'', destination_basename=b'restore-right.txt',
+                expected_generation=receipt.generation))
+        result = self.assert_gateway_denied_then_allowed(peer, owner, request, trash_path, b'restore')
+        self.assertTrue(result.HasField('object'), result)
+        self.assertEqual(path.read_bytes(), b'restore')
+        self.assertFalse(trash_path.exists())
+
+    def test_actor_cabinet_gateway_permanent_delete_requires_separate_right(self):
+        self.enroll_second()
+        world = self.workspace(pair=True)
+        owner = world.peers[0]
+        target = self.make_cabinet(world, owner)
+        peer = self.prepare_file_operation_peer(world, target, grant.FILE_PERMANENT_DELETE)
+        obj = self.create_gateway_file(owner, target, b'permanent-right.txt', b'delete')
+        path = self.project / 'permanent-right.txt'
+        trashed = owner.act(cabinet=self.cabinet_request(target,
+            trash=cabinet.FileTrash(file_handle=obj.handle, expected_generation=obj.generation)))
+        self.assertTrue(trashed.HasField('action'), trashed)
+        self.assertTrue(trashed.action.cabinet.HasField('trash'), trashed)
+        receipt = trashed.action.cabinet.trash
+        trash_path = self.project / '.spatial-trash' / receipt.handle.hex()
+        self.assertFalse(path.exists())
+        self.assertTrue(trash_path.is_file())
+        request = self.cabinet_request(target,
+            permanent_delete=cabinet.FilePermanentDelete(trash_handle=receipt.handle,
+                expected_generation=receipt.generation))
+        result = self.assert_gateway_denied_then_allowed(peer, owner, request, trash_path, b'delete')
+        self.assertTrue(result.HasField('object'), result)
+        self.assertFalse(trash_path.exists())
 
 
 # Keep this focused entrypoint from rediscovering its base presentation suite.

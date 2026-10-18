@@ -17,6 +17,7 @@ public:
 };
 
 // One Store belongs to one worldd. All mutations commit before returning.
+enum class PresentationKind : int { generic = 0, cabinet = 1 };
 struct WorkspacePresentation {
     // id is the exact 16-byte protocol identity, including embedded NUL bytes.
     std::string id;
@@ -24,13 +25,14 @@ struct WorkspacePresentation {
     std::string room_id;
     wire::Pose pose;
     std::uint64_t generation = 0;
+    PresentationKind kind = PresentationKind::generic;
 };
 enum class WorkspacePresentationOperation : int { create = 1, move = 2, remove = 3 };
 struct PresentationOperationReceipt { WorkspacePresentation presentation; std::string source_room_id; bool removed = false; };
 
 class WorldStore {
 public:
-    explicit WorldStore(const std::filesystem::path& state_dir, bool migrate_v1 = false, bool fixture_faults = false, bool migrate_v2 = false);
+    explicit WorldStore(const std::filesystem::path& state_dir, bool migrate_v1 = false, bool fixture_faults = false, bool migrate_v2 = false, bool migrate_v3 = false);
     ~WorldStore();
     WorldStore(const WorldStore&) = delete;
     WorldStore& operator=(const WorldStore&) = delete;

@@ -42,6 +42,25 @@ std::string principal_bytes(unsigned char seed) {
     for (std::size_t i=0;i<value.size();++i) value[i]=static_cast<char>(seed+i);
     value[31]='\0'; value[57]='\0'; return value;
 }
+void append_receipt_field(std::string& out, const std::string& value) {
+    const auto size=static_cast<std::uint32_t>(value.size());
+    for (int shift=24;shift>=0;shift-=8) out.push_back(static_cast<char>((size>>shift)&0xff));
+    out.append(value);
+}
+std::string legacy_generic_receipt(const WorkspacePresentation& value) {
+    std::string payload;
+    append_receipt_field(payload,value.id);
+    append_receipt_field(payload,value.workspace_id);
+    append_receipt_field(payload,value.room_id);
+    append_receipt_field(payload,value.pose.SerializeAsString());
+    for (int shift=56;shift>=0;shift-=8)
+        payload.push_back(static_cast<char>((value.generation>>shift)&0xff));
+    std::string receipt="WPR1";
+    append_receipt_field(receipt,"");
+    append_receipt_field(receipt,std::string(1,'\0'));
+    append_receipt_field(receipt,payload);
+    return receipt;
+}
 std::string temp_state() {
     auto base=std::filesystem::temp_directory_path()/"spatial-presentation-store-XXXXXX";
     auto name=base.string(); std::vector<char> bytes(name.begin(),name.end()); bytes.push_back('\0');
@@ -67,10 +86,15 @@ int main() {
             store.workspace_available("shared-workspace", true);
             wire::Entity actor; actor.set_id("viewer"); actor.set_kind(wire::ACTOR); actor.set_room("office"); actor.set_label("viewer"); *actor.mutable_pose()=pose(1.25); store.create_actor(actor); store.select_workspace("viewer","shared-workspace");
             WorkspacePresentation a; a.id=rep_a; a.workspace_id="shared-workspace"; a.room_id=store.info().entry_room(); a.pose=pose(1);
+            a.kind=PresentationKind::cabinet;
             auto created=store.create_presentation(a,store.info().world_revision(),create_a,request_a,principal);
-            expect(created.generation==1,"create starts at generation one");
+            expect(created.generation==1 && created.kind==PresentationKind::cabinet,"create persists the explicit cabinet designation");
+            expect(store.presentation(rep_a).kind==PresentationKind::cabinet,"cabinet designation is read from durable state");
             auto replay=store.create_presentation(a,0,create_a,request_a,principal);
-            expect(replay.id==created.id && replay.pose.SerializeAsString()==created.pose.SerializeAsString(),"create replay returns original receipt");
+            expect(replay.id==created.id && replay.pose.SerializeAsString()==created.pose.SerializeAsString() && replay.kind==PresentationKind::cabinet,"create replay returns the versioned cabinet receipt");
+            auto changed_kind=a; changed_kind.kind=PresentationKind::generic;
+            bool kind_conflict=false; try { store.create_presentation(changed_kind,0,create_a,request_a,principal); } catch(const WorldError& e) { kind_conflict=e.code==wire::REVISION_CONFLICT; }
+            expect(kind_conflict,"same-operation replay cannot change presentation kind");
             bool other_actor_replay=false; try { store.create_presentation(a,0,create_a,request_a,other_principal); } catch(const WorldError& e) { other_actor_replay=e.code==wire::REVISION_CONFLICT; }
             expect(other_actor_replay,"operation IDs are bound to the authenticated principal");
             bool conflict=false;try { store.create_presentation(a,0,create_a,digest_bytes(99),principal); } catch(const WorldError& e) { conflict=e.code==wire::REVISION_CONFLICT; }
@@ -84,6 +108,7 @@ int main() {
             const auto* receipt_blob=static_cast<const char*>(sqlite3_column_blob(receipt_query,0));
             const auto receipt_size=sqlite3_column_bytes(receipt_query,0);
             std::string malformed_receipt(receipt_blob,static_cast<std::size_t>(receipt_size));
+            const std::string valid_cabinet_receipt=malformed_receipt;
             sqlite3_finalize(receipt_query);
             expect(malformed_receipt.size()>20 && malformed_receipt.compare(0,4,"WPR1")==0 && malformed_receipt[12]=='\0',"create receipt has canonical nonremoved marker");
             malformed_receipt[12]='\1';
@@ -97,16 +122,56 @@ int main() {
             try { store.presentation_operation(create_a,request_a,principal,WorkspacePresentationOperation::create); }
             catch(const WorldError& e) { malformed_rejected=e.code==wire::STORAGE_ERROR; }
             expect(malformed_rejected,"create decoder rejects tombstone marker under the wrong operation kind");
-            a.id=rep_b; a.room_id="office"; a.pose=pose(2);
+            malformed_receipt[12]='\0';
+            expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&receipt_db)==SQLITE_OK,"reopen create receipt after corruption check");
+            expect(sqlite3_prepare_v2(receipt_db,"UPDATE workspace_presentation_ops SET result=?1 WHERE operation_id=lower(hex(?2))",-1,&receipt_update,nullptr)==SQLITE_OK,"prepare receipt restoration");
+            sqlite3_bind_blob(receipt_update,1,malformed_receipt.data(),static_cast<int>(malformed_receipt.size()),SQLITE_TRANSIENT);
+            sqlite3_bind_blob(receipt_update,2,create_a.data(),static_cast<int>(create_a.size()),SQLITE_TRANSIENT);
+            expect(sqlite3_step(receipt_update)==SQLITE_DONE && sqlite3_changes(receipt_db)==1,"restore original receipt after malformed-input assertion");
+            sqlite3_finalize(receipt_update); sqlite3_close(receipt_db);
+            malformed_receipt=valid_cabinet_receipt;
+            expect(malformed_receipt.size()>=5 && malformed_receipt[malformed_receipt.size()-2]=='1',"cabinet receipt carries the PKD1 kind format version");
+            malformed_receipt[malformed_receipt.size()-2]='2';
+            expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&receipt_db)==SQLITE_OK,"open cabinet receipt version witness");
+            expect(sqlite3_prepare_v2(receipt_db,"UPDATE workspace_presentation_ops SET result=?1 WHERE operation_id=lower(hex(?2))",-1,&receipt_update,nullptr)==SQLITE_OK,"prepare unknown kind version update");
+            sqlite3_bind_blob(receipt_update,1,malformed_receipt.data(),static_cast<int>(malformed_receipt.size()),SQLITE_TRANSIENT);
+            sqlite3_bind_blob(receipt_update,2,create_a.data(),static_cast<int>(create_a.size()),SQLITE_TRANSIENT);
+            expect(sqlite3_step(receipt_update)==SQLITE_DONE && sqlite3_changes(receipt_db)==1,"write unknown cabinet kind version");
+            sqlite3_finalize(receipt_update); sqlite3_close(receipt_db);
+            bool unknown_kind_version=false;
+            try { store.presentation_operation(create_a,request_a,principal,WorkspacePresentationOperation::create); }
+            catch(const WorldError& e) { unknown_kind_version=e.code==wire::STORAGE_ERROR; }
+            expect(unknown_kind_version,"receipt decoder rejects unknown versioned kind encoding");
+            expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&receipt_db)==SQLITE_OK,"reopen cabinet receipt after version check");
+            expect(sqlite3_prepare_v2(receipt_db,"UPDATE workspace_presentation_ops SET result=?1 WHERE operation_id=lower(hex(?2))",-1,&receipt_update,nullptr)==SQLITE_OK,"prepare valid cabinet receipt restoration");
+            sqlite3_bind_blob(receipt_update,1,valid_cabinet_receipt.data(),static_cast<int>(valid_cabinet_receipt.size()),SQLITE_TRANSIENT);
+            sqlite3_bind_blob(receipt_update,2,create_a.data(),static_cast<int>(create_a.size()),SQLITE_TRANSIENT);
+            expect(sqlite3_step(receipt_update)==SQLITE_DONE && sqlite3_changes(receipt_db)==1,"restore valid cabinet receipt after malformed-version assertion");
+            sqlite3_finalize(receipt_update); sqlite3_close(receipt_db);
+            a.id=rep_b; a.room_id="office"; a.pose=pose(2); a.kind=PresentationKind::generic;
             auto second=store.create_presentation(a,store.info().world_revision(),create_b,request_b,principal);
-            expect(second.workspace_id==created.workspace_id && store.presentations().size()==2,"multiple refs preserve one workspace identity");
+            expect(second.workspace_id==created.workspace_id && second.kind==PresentationKind::generic &&
+                   store.presentation(rep_b).kind==PresentationKind::generic && store.presentations().size()==2,
+                   "multiple refs preserve workspace identity and the second ref is generic");
+            expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&receipt_db)==SQLITE_OK,
+                   "open generic receipt compatibility witness");
+            expect(sqlite3_prepare_v2(receipt_db,"SELECT result FROM workspace_presentation_ops WHERE operation_id=lower(hex(?1))",-1,&receipt_query,nullptr)==SQLITE_OK,
+                   "prepare generic receipt read");
+            sqlite3_bind_blob(receipt_query,1,create_b.data(),static_cast<int>(create_b.size()),SQLITE_TRANSIENT);
+            expect(sqlite3_step(receipt_query)==SQLITE_ROW,"read generic create receipt");
+            const auto* generic_blob=static_cast<const char*>(sqlite3_column_blob(receipt_query,0));
+            const auto generic_size=sqlite3_column_bytes(receipt_query,0);
+            const std::string generic_receipt(generic_blob,static_cast<std::size_t>(generic_size));
+            expect(generic_receipt==legacy_generic_receipt(second),
+                   "generic receipt preserves exact legacy five-field payload and receipt bytes");
+            sqlite3_finalize(receipt_query); sqlite3_close(receipt_db);
             auto moved=store.move_presentation(rep_a,"office",pose(3),1,move_a,request_move,principal);
-            expect(moved.generation==2 && moved.room_id=="office","move advances generation and placement");
+            expect(moved.generation==2 && moved.room_id=="office" && moved.kind==PresentationKind::cabinet,"move preserves cabinet designation");
             wire::WorldDeleteRequest delete_room; delete_room.set_id("office"); delete_room.set_expected_revision(store.get("office").revision());
             bool room_in_use=false; try { store.erase(delete_room); } catch(const WorldError& e) { room_in_use=e.code==wire::IN_USE; }
             expect(room_in_use && store.get("office").kind()==wire::ROOM,"room deletion is blocked while a presentation refers to it");
             auto move_replay=store.move_presentation(rep_a,"meeting",pose(7),1,move_a,request_move,principal);
-            expect(move_replay.generation==2 && move_replay.room_id=="office","move replay returns committed result");
+            expect(move_replay.generation==2 && move_replay.room_id=="office" && move_replay.kind==PresentationKind::cabinet,"move replay returns committed cabinet result");
             bool stale=false;try { store.move_presentation(rep_a,"meeting",pose(7),1,move_stale,request_stale,principal); } catch(const WorldError& e) { stale=e.code==wire::REVISION_CONFLICT; }
             expect(stale,"stale generation is rejected");
             auto visible=visible_presentations(store,"office",[&rep_a](const auto&,const auto& id){return id==rep_a;},[](const auto&){return false;},[](const auto&,const auto&){return false;});
@@ -167,11 +232,27 @@ int main() {
             expect(store.workspace_available("shared-workspace"),"presentation mutations preserve availability");
             expect(store.selected_workspace("viewer")=="shared-workspace","presentation mutations preserve actor selection");
         }
+        // Recreate the prior v3 layout. Its rows and legacy receipts must default to GENERIC.
+        sqlite3* legacy_db=nullptr;
+        expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&legacy_db)==SQLITE_OK,"open legacy v3 layout witness");
+        expect(sqlite3_exec(legacy_db,"ALTER TABLE workspace_presentations DROP COLUMN kind; PRAGMA user_version=3",nullptr,nullptr,nullptr)==SQLITE_OK,"restore old v3 presentation layout");
+        sqlite3_close(legacy_db);
+        bool v3_migration_required=false;
+        try { WorldStore unapproved(directory); } catch(const WorldError& e) { v3_migration_required=e.code==wire::STORAGE_ERROR; }
+        expect(v3_migration_required,"v3 state refuses an implicit designation migration");
+        {
+            WorldStore upgraded(directory,false,false,false,true);
+            expect(upgraded.presentation(rep_b).kind==PresentationKind::generic,"v3 row migrates as generic");
+            const auto old_receipt=upgraded.presentation_operation(binary_id(12),digest_bytes(32),principal_bytes(41),WorkspacePresentationOperation::create);
+            expect(old_receipt && old_receipt->presentation.kind==PresentationKind::generic,"legacy five-field receipt decodes as generic");
+            const auto cabinet_receipt=upgraded.presentation_operation(binary_id(11),digest_bytes(31),principal_bytes(41),WorkspacePresentationOperation::create);
+            expect(cabinet_receipt && cabinet_receipt->presentation.kind==PresentationKind::cabinet,"versioned cabinet receipt survives v3 row migration");
+        }
         {
             WorldStore restored(directory);
             expect(restored.presentations().size()==1,"reference survives restart");
             auto remaining=restored.presentation(rep_b);
-            expect(remaining.room_id=="office" && remaining.generation==1 && remaining.pose.position().x()==2,"recovery preserves ID, transform, and generation");
+            expect(remaining.room_id=="office" && remaining.generation==1 && remaining.pose.position().x()==2 && remaining.kind==PresentationKind::generic,"recovery preserves legacy generic designation and transform");
             expect(restored.workspace_available("shared-workspace"),"restart preserves independent availability");
             expect(restored.selected_workspace("viewer")=="shared-workspace","restart preserves independent selection");
         }
@@ -187,21 +268,21 @@ int main() {
         { WorldStore migrated_state(directory); const auto migrated_actor=migrated_state.get("viewer"); expect(migrated_actor.room()=="office" && migrated_actor.pose().position().x()==1.25,"v2 migration preserves actor room and pose"); expect(migrated_state.selected_workspace("viewer")=="shared-workspace","v2 migration preserves per-world workspace selection"); }
         expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&db)==SQLITE_OK,"reopen migrated state");
         sqlite3_stmt* version=nullptr; expect(sqlite3_prepare_v2(db,"PRAGMA user_version",-1,&version,nullptr)==SQLITE_OK,"read migrated schema version");
-        expect(sqlite3_step(version)==SQLITE_ROW && sqlite3_column_int(version,0)==3,"explicit migration advances schema to v3");
+        expect(sqlite3_step(version)==SQLITE_ROW && sqlite3_column_int(version,0)==4,"explicit migration advances schema to v4");
         sqlite3_finalize(version); sqlite3_close(db);
-        { WorldStore retried_v2(directory,false,false,true); expect(retried_v2.info().world_id()==world_id,"v2 migration retry accepts its verified v3 target"); }
-        { WorldStore retried_v1(directory,true); expect(retried_v1.info().world_id()==world_id,"v1 migration retry accepts its verified v3 target"); }
+        { WorldStore retried_v2(directory,false,false,true); expect(retried_v2.info().world_id()==world_id,"v2 migration retry accepts its verified v4 target"); }
+        { WorldStore retried_v1(directory,true); expect(retried_v1.info().world_id()==world_id,"v1 migration retry accepts its verified v4 target"); }
         bool mixed_rejected=false;
-        try { WorldStore invalid(directory,true,false,true); } catch(const std::invalid_argument& e) { mixed_rejected=std::string(e.what())=="Select one world schema migration"; }
+        try { WorldStore invalid(directory,true,false,true,true); } catch(const std::invalid_argument& e) { mixed_rejected=std::string(e.what())=="Select one world schema migration"; }
         expect(mixed_rejected,"mixed world migration flags are rejected");
         expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&db)==SQLITE_OK,"open unknown schema witness");
-        expect(sqlite3_exec(db,"PRAGMA user_version=4",nullptr,nullptr,nullptr)==SQLITE_OK,"set unknown schema version"); sqlite3_close(db);
+        expect(sqlite3_exec(db,"PRAGMA user_version=5",nullptr,nullptr,nullptr)==SQLITE_OK,"set unknown schema version"); sqlite3_close(db);
         const auto unknown_before=read_bytes(std::filesystem::path(directory)/"world.db");
         bool unknown_rejected=false;
         try { WorldStore invalid(directory,true); } catch(const WorldError& e) { unknown_rejected=e.code==wire::STORAGE_ERROR; }
         expect(unknown_rejected && read_bytes(std::filesystem::path(directory)/"world.db")==unknown_before,"unknown version is rejected without repair");
         expect(sqlite3_open((std::filesystem::path(directory)/"world.db").c_str(),&db)==SQLITE_OK,"restore target schema witness");
-        expect(sqlite3_exec(db,"PRAGMA user_version=3; DROP TABLE workspace_presentation_ops; CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL)",nullptr,nullptr,nullptr)==SQLITE_OK,"remove a required target schema column"); sqlite3_close(db);
+        expect(sqlite3_exec(db,"PRAGMA user_version=4; DROP TABLE workspace_presentation_ops; CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL)",nullptr,nullptr,nullptr)==SQLITE_OK,"remove a required v4 target schema column"); sqlite3_close(db);
         const auto corrupt_target_before=read_bytes(std::filesystem::path(directory)/"world.db");
         for (const auto& migration : std::vector<std::pair<bool,bool>>{{true,false},{false,true}}) {
             bool corrupt_target_rejected=false;

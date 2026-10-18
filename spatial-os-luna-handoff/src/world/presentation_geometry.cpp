@@ -27,6 +27,8 @@ void append_presentation_geometry(wire::RenderScene& scene, const std::string& r
         *view->mutable_transform()=record.pose;
         view->set_generation(record.generation);
         view->set_locked(record.locked);
+        view->set_kind(record.kind == PresentationKind::cabinet ? wire::PRESENTATION_KIND_CABINET : wire::PRESENTATION_KIND_GENERIC);
+        view->set_cabinet_locked(record.cabinet_locked);
     }
 }
 } // namespace spatial

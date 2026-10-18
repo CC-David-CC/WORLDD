@@ -1,5 +1,6 @@
 """Confined immutable tree-copy helper regressions."""
 import os
+import re
 import resource
 import subprocess
 import sys
@@ -98,6 +99,9 @@ class CopyTreeWorkerTests(unittest.TestCase):
                        "--ro-bind", request_file.name, "/job.pb"]
             if output_write_errno is not None:
                 command.extend(["--setenv", "SPATIAL_COPY_TEST_OUTPUT_WRITE_ERRNO", output_write_errno])
+            for variable in ("ASAN_OPTIONS", "UBSAN_OPTIONS"):
+                if variable in os.environ:
+                    command.extend(["--setenv", variable, os.environ[variable]])
             command.extend(["--remount-ro", "/", "--", "/copy-worker"])
             return subprocess.run(command, capture_output=True, timeout=15)
 
@@ -128,52 +132,6 @@ class CopyTreeWorkerTests(unittest.TestCase):
                 (b"child", b"F", child_mode, b"nested bytes")])
             self.assertEqual(file_message.copied.content_digest, expected_file)
             self.assertEqual(directory_message.copied.content_digest, expected_directory)
-
-    def test_cabinet_protocol_rejects_nested_mounts(self):
-        command=["sudo","-n","env","PYTHONDONTWRITEBYTECODE=1","unshare","--mount","--propagation","private",
-                 sys.executable,str(Path(__file__).resolve()),str(WORKER),"--nested-mount-fixture"]
-        result=subprocess.run(command,capture_output=True,text=True,timeout=45)
-        output = result.stdout + "\n" + result.stderr
-        if result.returncode == 77 and "SPATIAL_NESTED_MOUNT_UNAVAILABLE:" in output:
-            self.skipTest(output.strip())
-        if result.returncode != 0:
-            lower = output.lower()
-            if ("unshare failed: operation not permitted" in lower or
-                    "unshare failed: permission denied" in lower):
-                self.skipTest("host policy denies a private mount namespace: " + output.strip())
-        self.assertEqual(result.returncode, 0,
-            "privileged private nested-mount fixture failed: " + output)
-
-    def run_nested_mount_fixture(self):
-        if os.environ.get("PYTHONDONTWRITEBYTECODE") != "1":
-            raise AssertionError("nested root fixture did not receive PYTHONDONTWRITEBYTECODE=1")
-        with tempfile.TemporaryDirectory() as temp:
-            root=Path(temp); source=root/"source"; destination=root/"destination"
-            source.mkdir(); destination.mkdir()
-            mountpoint=source/"mounted"; mountpoint.mkdir()
-            outside=root/"outside"; outside.mkdir(); (outside/"payload").write_bytes(b"mounted")
-            mounted=False
-            try:
-                try:
-                    subprocess.run(["mount","--bind",str(outside),str(mountpoint)],
-                                   check=True,capture_output=True,text=True,timeout=5)
-                except subprocess.CalledProcessError as exc:
-                    detail = (exc.stdout or "") + "\n" + (exc.stderr or "")
-                    lower = detail.lower()
-                    if any(marker in lower for marker in (
-                            "operation not permitted", "permission denied", "not supported")):
-                        print("SPATIAL_NESTED_MOUNT_UNAVAILABLE: " + detail.strip(),
-                              file=sys.stderr)
-                        raise SystemExit(77)
-                    raise
-                mounted=True
-                result=decode_result(self.run_cabinet_worker(source.parent,"source",destination,"copy",True))
-                if result.WhichOneof("outcome")!="failure" or result.failure.reason!=copy_worker_pb2.FAILURE_SPECIAL_ENTRY:
-                    raise AssertionError("worker did not reject nested bind mount: "+repr(result))
-            finally:
-                if mounted:
-                    subprocess.run(["umount",str(mountpoint)],check=True,capture_output=True,
-                                   text=True,timeout=10)
 
     def test_cabinet_copy_allows_same_parent_sibling_files_and_directories(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -376,8 +334,37 @@ class CopyTreeWorkerTests(unittest.TestCase):
             self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_DESTINATION_CONFLICT)
             self.assertEqual((destination / "same").read_bytes(), b"destination")
 
+class CopyTreeWorkerNestedMountTests(CopyTreeWorkerTests):
+    def test_cabinet_protocol_rejects_nested_mounts(self):
+        self.assertNotEqual(os.geteuid(), 0, "the worker fixture must run as the invoking user")
+        self.assertEqual(os.geteuid(), int(os.environ["SPATIAL_COPY_FIXTURE_UID"]))
+        status = Path("/proc/self/status").read_text()
+        cap_eff = next(line.split()[1] for line in status.splitlines() if line.startswith("CapEff:"))
+        self.assertEqual(cap_eff, "0000000000000000", "fixture runner retained Linux capabilities")
+        root = Path(os.environ["SPATIAL_COPY_NESTED_MOUNT_FIXTURE_ROOT"]).resolve()
+        source = root / "source"; mountpoint = source / "mounted"
+        destination = root / "destination"
+        self.assertTrue(mountpoint.is_dir())
+        mountpoints = []
+        for line in Path("/proc/self/mountinfo").read_text().splitlines():
+            fields = line.split()
+            if len(fields) > 5:
+                mountpoints.append(re.sub(r"\\([0-7]{3})", lambda m: chr(int(m.group(1), 8)), fields[4]))
+        self.assertIn(str(mountpoint), mountpoints, "fixture mount is absent from namespace mount table")
+        result = decode_result(self.run_cabinet_worker(source.parent, "source", destination, "copy", True))
+        self.assertEqual(result.WhichOneof("outcome"), "failure")
+        self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_SPECIAL_ENTRY)
+        # This helper writes only broker-private staging. A rejected copy can
+        # leave partial staging; only FileEngine can publish the final target.
+        self.assertFalse((destination / "copy" / "mounted" / "payload").exists(),
+                         "nested-mount payload escaped into private staging")
+        self.assertEqual((mountpoint / "payload").read_bytes(), b"mounted")
+        control = root / "control"; control.mkdir()
+        (control / "payload").write_bytes(b"positive control")
+        positive = decode_result(self.run_cabinet_worker(root, "control", destination, "control-copy", True))
+        self.assertEqual(positive.WhichOneof("outcome"), "copied")
+        self.assertEqual((destination / "control-copy" / "payload").read_bytes(), b"positive control")
+
+
 if __name__ == "__main__":
-    if "--nested-mount-fixture" in sys.argv:
-        CopyTreeWorkerTests().run_nested_mount_fixture()
-    else:
-        unittest.main(verbosity=2)
+    unittest.main(verbosity=2)

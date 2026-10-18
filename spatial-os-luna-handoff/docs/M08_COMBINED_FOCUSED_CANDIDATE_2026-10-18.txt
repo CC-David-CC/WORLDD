@@ -1,0 +1,23 @@
+M08 combined focused candidate, 2026-10-18
+Status: UNQUALIFIED. Full M08 gate has not started.
+
+Base: a15407ceadc569e87d63a0a3742c921f2de54470.
+This retains reviewed scope format 2, protocol 4 progress, deadlines, and quota-aware staging.
+Public schema revision: 85b831a4bfb9f07fd9b88ade833e0cc593afcd4d.
+Cabinet feature and actor tests: 224f8a2b7bef05d8ab3596291a5039128ae633aa.
+Required private nested-mount fixture: 175bda6e2db4b036386731b8b21d3337f3b014b8.
+
+Primary resolved two nested-fixture merge conflicts.
+The worker fixture retains ordinary EIO fault injection and forwards sanitizer settings.
+The required mount test has no skip path and runs the worker without root capabilities.
+The documentation retains protocol 4 progress and in-project masked staging.
+All locked file hashes verify. Changed Python syntax and staged whitespace checks pass.
+
+Prior isolated Debug evidence remains scoped to its recorded source inputs.
+Cabinet store and migration passed on both required hosts.
+Storage fixture tooling passed eight controls; four Debug targets built.
+Combined runtime, sanitizers, and native cabinet tests remain UNRUN.
+Gate reconciliation tooling and fresh storage-volume preparation are separate pending inputs.
+Do not deploy this checkpoint as a qualified milestone.
+
+Artifacts: middle-child:/home/dflanag3/spatial-artifacts/m08-combined-focused-20261018/

@@ -1,0 +1,30 @@
+M08 nested-mount worker fixture
+Status: FOCUSED DEBUG PASS. Full M08 qualification remains UNRUN.
+
+The required copy-tree-worker-nested-mount case replaces the prior skipped case.
+The controller creates a private mount namespace with private propagation.
+The test script runs with the invoking host UID and zero effective capabilities.
+The real confined worker rejects an actual nested bind mount with FAILURE_SPECIAL_ENTRY.
+The mounted payload does not enter private staging. The mounted source stays unchanged.
+An ordinary subtree copy then succeeds. The caller mount table remains unchanged.
+The privileged namespace supervisor has a 60-second limit and five-second forced-stop grace.
+The driver and copy sandbox preserve configured ASan and UBSan options.
+
+Both sb16 and sb16-2 passed 11 ordinary cases and the required nested-mount case.
+There were zero failures and zero skips in the final run.
+Each command and canonical wrapper returned zero.
+Evidence on each host:
+ /home/dflanag3/spatial-artifacts/m08-copy-nested-mount-runtime-20261018/attempt-02/run-001
+The unchanged Debug worker comes from production source 44c2bf26336769cb65680edefd46fcd95ae2d5c9.
+The test source SHA256 is 30f5b12231ed5b926ab36a5b82c3a737b7b95639d3782305c576d08e59918bfb.
+The namespace driver SHA256 is 6b7c9c63b479550b265f7d5e9d715af931637ce7288f045da4b7f92b515da56b.
+
+The original attempt-01 failure remains on each host.
+The new assertion incorrectly treated helper-private staging as final publication.
+The worker may leave private partial output after rejection. FileEngine owns final publication.
+Primary replaced that assertion with a check that mounted payload never enters staging.
+The typed rejection, identity checks, positive control, and mount isolation stay mandatory.
+Broker publication and staging cleanup require their separate production-path tests.
+This fixture provides no broker, cabinet geometry, sanitizer, or full-gate qualification claim.
+
+Add copy-tree-worker-nested-mount to the M08 required inventory during integration.

@@ -122,15 +122,15 @@ namespace {
 const char* workspace_context_schema =
     "CREATE TABLE world_workspaces(id TEXT PRIMARY KEY,available INTEGER NOT NULL CHECK(available IN (0,1)));"
     "CREATE TABLE actor_workspaces(actor TEXT PRIMARY KEY REFERENCES entities(id),workspace TEXT NOT NULL REFERENCES world_workspaces(id));"
-    "CREATE TABLE workspace_presentations(id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,room_id TEXT NOT NULL REFERENCES entities(id),pose BLOB NOT NULL,generation INTEGER NOT NULL CHECK(generation>0));"
+    "CREATE TABLE workspace_presentations(id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,room_id TEXT NOT NULL REFERENCES entities(id),pose BLOB NOT NULL,generation INTEGER NOT NULL CHECK(generation>0),kind INTEGER NOT NULL DEFAULT 0 CHECK(kind IN (0,1)));"
     "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL);"
-    "PRAGMA user_version=3";
+    "PRAGMA user_version=4";
 }
 void verify_workspace_presentation_schema(sqlite3* db) {
     Statement tables(db, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('workspace_presentations','workspace_presentation_ops')");
     if (tables.step() != SQLITE_ROW || sqlite3_column_int(tables.value, 0) != 2)
-        throw WorldError(wire::STORAGE_ERROR, "Invalid v3 workspace presentation schema");
-    Statement presentations(db, "SELECT id,workspace_id,room_id,pose,generation FROM workspace_presentations LIMIT 0");
+        throw WorldError(wire::STORAGE_ERROR, "Invalid v4 workspace presentation schema");
+    Statement presentations(db, "SELECT id,workspace_id,room_id,pose,generation,kind FROM workspace_presentations LIMIT 0");
     presentations.step();
     Statement operations(db, "SELECT operation_id,principal,request_digest,kind,result FROM workspace_presentation_ops LIMIT 0");
     operations.step();
@@ -140,9 +140,9 @@ struct WorldStore::Impl {
     CommitFault fault;
     std::unique_ptr<StorageVfs> storage_vfs;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
-    explicit Impl(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults, bool migrate_v2) : fault{fixture_faults} {
-        require((!migrate_v1 && !migrate_v2) || !fixture_faults, "Migration cannot enable fixture faults");
-        require(!(migrate_v1 && migrate_v2), "Select one world schema migration");
+    explicit Impl(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults, bool migrate_v2, bool migrate_v3) : fault{fixture_faults} {
+        require((!migrate_v1 && !migrate_v2 && !migrate_v3) || !fixture_faults, "Migration cannot enable fixture faults");
+        require(static_cast<int>(migrate_v1) + static_cast<int>(migrate_v2) + static_cast<int>(migrate_v3) <= 1, "Select one world schema migration");
         require(directory.is_absolute(), "State directory must be absolute");
         require(!std::filesystem::is_symlink(directory), "State directory must not be a symlink");
         if (migrate_v1) require(std::filesystem::is_regular_file(directory / "world.db"), "Migration requires an existing world database");
@@ -162,9 +162,11 @@ struct WorldStore::Impl {
         { Statement q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
         if (version == 1 && !migrate_v1) throw WorldError(wire::STORAGE_ERROR, "World schema v1 requires worldd --state-dir PATH --migrate-v1 while the world is stopped");
         if (version == 2 && !migrate_v2) throw WorldError(wire::STORAGE_ERROR, "World schema v2 requires worldd --state-dir PATH --migrate-v2 while the world is stopped");
-        if (migrate_v1 && version != 1 && version != 3) throw WorldError(wire::STORAGE_ERROR, "--migrate-v1 requires world schema v1 or its v3 target");
-        if (migrate_v2 && version != 2 && version != 3) throw WorldError(wire::STORAGE_ERROR, "--migrate-v2 requires world schema v2 or its v3 target");
-        if (version < 0 || version > 3 || (migrate_v1 && version == 0)) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
+        if (version == 3 && !migrate_v3) throw WorldError(wire::STORAGE_ERROR, "World schema v3 requires worldd --state-dir PATH --migrate-v3 while the world is stopped");
+        if (migrate_v1 && version != 1 && version != 4) throw WorldError(wire::STORAGE_ERROR, "--migrate-v1 requires world schema v1 or its v4 target");
+        if (migrate_v2 && version != 2 && version != 4) throw WorldError(wire::STORAGE_ERROR, "--migrate-v2 requires world schema v2 or its v4 target");
+        if (migrate_v3 && version != 3 && version != 4) throw WorldError(wire::STORAGE_ERROR, "--migrate-v3 requires world schema v3 or its v4 target");
+        if (version < 0 || version > 4 || (migrate_v1 && version == 0)) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
         if (version == 0) {
             Statement q(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
             q.step();
@@ -210,8 +212,13 @@ struct WorldStore::Impl {
         }
         if (version == 2) {
             Transaction transaction(db.get(), true);
-            execute(db.get(), "CREATE TABLE workspace_presentations(id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,room_id TEXT NOT NULL REFERENCES entities(id),pose BLOB NOT NULL,generation INTEGER NOT NULL CHECK(generation>0));"
-                            "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL); PRAGMA user_version=3");
+            execute(db.get(), "CREATE TABLE workspace_presentations(id TEXT PRIMARY KEY,workspace_id TEXT NOT NULL,room_id TEXT NOT NULL REFERENCES entities(id),pose BLOB NOT NULL,generation INTEGER NOT NULL CHECK(generation>0),kind INTEGER NOT NULL DEFAULT 0 CHECK(kind IN (0,1)));"
+                            "CREATE TABLE workspace_presentation_ops(operation_id TEXT PRIMARY KEY,principal TEXT NOT NULL,request_digest TEXT NOT NULL,kind INTEGER NOT NULL,result BLOB NOT NULL); PRAGMA user_version=4");
+            transaction.commit();
+        }
+        if (version == 3 && migrate_v3) {
+            Transaction transaction(db.get(), true);
+            execute(db.get(), "ALTER TABLE workspace_presentations ADD COLUMN kind INTEGER NOT NULL DEFAULT 0 CHECK(kind IN (0,1)); PRAGMA user_version=4");
             transaction.commit();
         }
         verify_workspace_presentation_schema(db.get());
@@ -268,8 +275,8 @@ struct WorldStore::Impl {
     }
 };
 
-WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults, bool migrate_v2)
-    : impl_(std::make_unique<Impl>(directory, migrate_v1, fixture_faults, migrate_v2)) {}
+WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults, bool migrate_v2, bool migrate_v3)
+    : impl_(std::make_unique<Impl>(directory, migrate_v1, fixture_faults, migrate_v2, migrate_v3)) {}
 WorldStore::~WorldStore() = default;
 bool WorldStore::fixture_faults() const { return impl_->fault.enabled; }
 wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request, const std::function<void()>& arm_git) {
@@ -508,14 +515,24 @@ WorkspacePresentation decode_presentation(const std::string& bytes) {
     result.workspace_id = take_field(bytes, offset);
     result.room_id = take_field(bytes, offset);
     const auto pose_bytes = take_field(bytes, offset);
-    if (offset > bytes.size() || bytes.size() - offset != 8)
+    const auto tail = bytes.size() - offset;
+    if (tail != 8 && tail != 13)
         throw WorldError(wire::STORAGE_ERROR, "Invalid presentation journal generation");
+    unsigned char encoded_kind = 0;
+    if (tail == 13) {
+        if (bytes.compare(offset + 8, 4, "PKD1") != 0)
+            throw WorldError(wire::STORAGE_ERROR, "Unknown presentation kind encoding version");
+        encoded_kind = static_cast<unsigned char>(bytes[offset + 12]);
+        if (encoded_kind != 1) throw WorldError(wire::STORAGE_ERROR, "Invalid versioned presentation kind");
+    }
     std::uint64_t generation = 0;
     for (int i = 0; i < 8; ++i)
         generation = (generation << 8) | static_cast<unsigned char>(bytes[offset++]);
+    if (tail == 13) offset += 5;
     if (!result.pose.ParseFromString(pose_bytes) || generation == 0)
         throw WorldError(wire::STORAGE_ERROR, "Invalid presentation journal pose");
     result.generation = generation;
+    result.kind = static_cast<PresentationKind>(encoded_kind);
     validate_presentation_id(result.id, "Invalid presentation identity");
     valid_id(result.workspace_id);
     valid_id(result.room_id);
@@ -531,6 +548,8 @@ std::string encode_presentation(const WorkspacePresentation& value) {
     append_field(result, value.pose.SerializeAsString());
     for (int shift = 56; shift >= 0; shift -= 8)
         result.push_back(static_cast<char>((value.generation >> shift) & 0xff));
+    if (value.kind == PresentationKind::cabinet) { result.append("PKD1"); result.push_back(1); }
+    else if (value.kind != PresentationKind::generic) throw WorldError(wire::STORAGE_ERROR, "Invalid presentation kind");
     return result;
 }
 std::string encode_presentation_receipt(const WorkspacePresentation& value, const std::string& source_room, bool removed) {
@@ -569,7 +588,7 @@ WorkspacePresentation WorldStore::presentation(const std::string& id) {
     validate_presentation_id(id, "Presentation ID must contain exactly 16 bytes");
     const auto stored_id = presentation_hex(id);
     Statement query(impl_->db.get(),
-        "SELECT id,workspace_id,room_id,pose,generation FROM workspace_presentations WHERE id=?");
+        "SELECT id,workspace_id,room_id,pose,generation,kind FROM workspace_presentations WHERE id=?");
     query.text(1, stored_id);
     if (query.step() != SQLITE_ROW)
         throw WorldError(wire::NOT_FOUND, "Presentation not found");
@@ -584,6 +603,9 @@ WorkspacePresentation WorldStore::presentation(const std::string& id) {
     if (generation < 1)
         throw WorldError(wire::STORAGE_ERROR, "Invalid presentation generation");
     result.generation = static_cast<std::uint64_t>(generation);
+    const auto kind = sqlite3_column_int(query.value, 5);
+    if (kind < 0 || kind > 1) throw WorldError(wire::STORAGE_ERROR, "Invalid presentation kind");
+    result.kind = static_cast<PresentationKind>(kind);
     validate_presentation_id(result.id, "Invalid presentation identity");
     valid_id(result.workspace_id);
     valid_pose(result.pose);
@@ -621,6 +643,8 @@ WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentatio
     valid_id(requested.workspace_id);
     valid_id(requested.room_id);
     valid_pose(requested.pose);
+    if (requested.kind != PresentationKind::generic && requested.kind != PresentationKind::cabinet)
+        throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation kind");
 
     Transaction transaction(impl_->db.get(), true, &impl_->fault);
     Statement replay(impl_->db.get(),
@@ -630,6 +654,8 @@ WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentatio
         if (replay.text(0) != principal_key || replay.text(1) != digest_key || sqlite3_column_int(replay.value, 2) != presentation_create_op)
             throw WorldError(wire::REVISION_CONFLICT, "Presentation operation replay conflicts");
         auto result = decode_presentation_receipt(replay.blob(3), presentation_create_op).presentation;
+        if (result.kind != requested.kind)
+            throw WorldError(wire::REVISION_CONFLICT, "Presentation kind replay conflicts");
         return result;
     }
     if (impl_->info().world_revision() != expected_world_revision)
@@ -658,12 +684,13 @@ WorkspacePresentation WorldStore::create_presentation(const WorkspacePresentatio
 
     WorkspacePresentation result = requested;
     result.generation = 1;
-    Statement insert(impl_->db.get(), "INSERT INTO workspace_presentations VALUES(?,?,?,?,?)");
+    Statement insert(impl_->db.get(), "INSERT INTO workspace_presentations(id,workspace_id,room_id,pose,generation,kind) VALUES(?,?,?,?,?,?)");
     insert.text(1, requested_key);
     insert.text(2, result.workspace_id);
     insert.text(3, result.room_id);
     insert.blob(4, result.pose.SerializeAsString());
     insert.integer(5, result.generation);
+    insert.integer(6, static_cast<int>(result.kind));
     insert.step();
 
     Statement journal(impl_->db.get(), "INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,?)");

@@ -210,7 +210,7 @@ class SharedWorkspaceRepresentationCase(WorkspacePresentationActorTests):
         locked = next(v for v in private_view.presentation_views if v.representation_id == right.representation_id)
         self.assertTrue(locked.locked)
         self.assertEqual({f.name for f in locked.DESCRIPTOR.fields},
-            {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
+            {'representation_id', 'room_id', 'transform', 'generation', 'locked', 'kind', 'cabinet_locked'})
         self.assertNotIn(b'one', locked.SerializeToString())
         self.denied(second_viewer.act(workspace_select=core.WorkspaceIdRequest(id='one')), core.FORBIDDEN)
         self.assertTrue(any(v.locked for v in private_view.presentation_views))

@@ -1,6 +1,7 @@
 #include "core/scene.hpp"
 #include "core/presentation_identity.hpp"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -35,7 +36,8 @@ void validate_presentation_views(const wire::RenderScene& scene, std::string_vie
     for (const auto& view : scene.presentation_views()) {
         require(view.representation_id().size() == 16 && !view.room_id().empty() &&
                 view.room_id().size() <= 256 && view.room_id().find('\0') == std::string::npos &&
-                view.generation() > 0 && view.has_transform(), "Invalid public presentation view");
+                view.generation() > 0 && view.has_transform() && wire::PresentationKind_IsValid(view.kind()),
+                "Invalid public presentation view");
         if (!expected_room.empty())
             require(view.room_id() == expected_room, "Presentation view room mismatch");
         if (common_room.empty()) common_room = view.room_id();
@@ -271,23 +273,33 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
     for (const auto& object : scene.objects()) {
         require(object.kind() == wire::OBJECT && object.has_pose(), "Invalid scene object");
         const auto projected_id = object.id();
+        const auto view = std::find_if(scene.presentation_views().begin(), scene.presentation_views().end(),
+            [&](const auto& candidate) { return presentation_geometry_id(candidate.representation_id()) == object.id(); });
         wire::RenderScene single; *single.mutable_camera() = scene.camera(); *single.mutable_config() = scene.config();
         auto* box = single.add_barriers(); *box = object; box->set_id("internal-object-face"); box->set_kind(wire::BARRIER);
-        const double half = (scene.config().has_object_size() ? scene.config().object_size() : .2) / 2;
-        auto* low = box->mutable_bounds()->mutable_min(); low->set_x(-half); low->set_y(-half); low->set_z(-half);
-        auto* high = box->mutable_bounds()->mutable_max(); high->set_x(half); high->set_y(half); high->set_z(half);
+        const double size = scene.config().has_object_size() ? scene.config().object_size() : .2;
+        const double half_x = size * (view != scene.presentation_views().end() && view->kind() == wire::PRESENTATION_KIND_CABINET ? .45 : .5);
+        const double half_y = size * (view != scene.presentation_views().end() && view->kind() == wire::PRESENTATION_KIND_CABINET ? .30 : .5);
+        const double half_z = size * (view != scene.presentation_views().end() && view->kind() == wire::PRESENTATION_KIND_CABINET ? .70 : .5);
+        auto* low = box->mutable_bounds()->mutable_min(); low->set_x(-half_x); low->set_y(-half_y); low->set_z(-half_z);
+        auto* high = box->mutable_bounds()->mutable_max(); high->set_x(half_x); high->set_y(half_y); high->set_z(half_z);
         auto* color = single.mutable_config()->mutable_barrier_color();
         if (scene.config().has_object_color()) *color = scene.config().object_color();
         else { color->set_red(224); color->set_green(174); color->set_blue(72); }
         auto converted = scene_panels(single);
-        const auto view = std::find_if(scene.presentation_views().begin(), scene.presentation_views().end(),
-            [&](const auto& candidate) { return presentation_geometry_id(candidate.representation_id()) == object.id(); });
         for (auto& face : converted) {
             face.representation.set_id(projected_id);
             face.representation.set_kind(wire::OBJECT);
             face.representation.set_generation(view == scene.presentation_views().end() ? object.revision() : view->generation());
-            if (view != scene.presentation_views().end() && view->locked()) {
-                for (auto& channel : face.color) channel = 1.0f - channel;
+            if (view != scene.presentation_views().end()) {
+                if (view->kind() == wire::PRESENTATION_KIND_CABINET) {
+                    const float scale = view->cabinet_locked() ? .45f : 1.0f;
+                    face.color = view->cabinet_locked() ? std::array<float,3>{.35f,.40f,.45f} : std::array<float,3>{.12f,.62f,.58f};
+                    for (auto& channel : face.color) channel *= scale;
+                    face.representation.set_kind(wire::OBJECT);
+                } else if (view->locked()) {
+                    for (auto& channel : face.color) channel = 1.0f - channel;
+                }
             }
             result.push_back(std::move(face));
         }

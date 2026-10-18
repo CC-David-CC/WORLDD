@@ -1,0 +1,46 @@
+M08 cabinet integration review, 2026-10-18
+Status: UNQUALIFIED source checkpoint.
+Parent: 85b831a4bfb9f07fd9b88ade833e0cc593afcd4d.
+
+Cabinet kind is explicit and persists separately from workspace availability and selection.
+No effective registered-project file authority means no cabinet creation.
+Generic presentations preserve their existing authority and lock behavior.
+Cabinet projection checks effective file rights at the registered worktree resource.
+The public view contains only representation, room, transform, generation, and lock/kind metadata.
+Locked cabinets disclose no workspace identity, paths, filenames, branches, or application names.
+File use still requires visible and reachable geometry plus current operation authority.
+Room placement and movement do not grant file authority.
+
+World schema 4 adds the presentation kind.
+Existing schema 3 requires explicit stopped --migrate-v3.
+Legacy rows become generic. Generic receipt bytes retain their previous format.
+Cabinet receipts carry an explicit PKD1 version tail.
+Legacy M07 lock semantics and generic protobuf defaults remain unchanged.
+The separate reviewed 0.18.0 schema contract supplies public lock pins.
+All locked file hashes verify after this integration.
+
+Primary review corrected a test that accidentally created two cabinet receipts.
+The migration test now keeps a genuine generic receipt as its legacy control.
+It checks exact raw legacy bytes before migration and separately checks versioned cabinet receipts.
+The standalone Debug store/migration executable passed on sb16 and sb16-2.
+This is two host/group executions. It does not qualify the combined world runtime.
+ELF SHA256: 8adb4ff1f5d68d4a898cfd7572af3c8bb28614923c0fa59ab0a097634ed6e245.
+Evidence on each host: m08-cabinet-store-runtime-20261018/attempt-01/run-001.
+Its source is the pinned d346 cabinet worktree with the reviewed migration correction.
+
+The actor copy placeholder now has an implemented-contract regression.
+It uses actor create, browse, START, POLL, and stable terminal results.
+An otherwise valid actor without FILE_COPY must fail before any destination is created.
+The test requires the reviewed copy-runtime and storage integration before execution.
+Native witness source checks an authorized observer and a locked observer through real spatialwm pixels.
+Their actor identities, generations, transforms, and metadata limits are explicit assertions.
+Native witness and actor-copy runtime remain UNRUN.
+
+Reviewed actor operation and evidence-isolation inputs: 64317ae, d346022, and fc33e9b.
+All five private-evidence tooling controls passed on the integrated source.
+The combined CMake graph configured successfully.
+No project runtime ran on middle-child.
+Combined actor/store/native runtime, sanitizer checks, and the full M08 gate remain UNRUN.
+M08 remains unqualified.
+
+Artifacts: middle-child:/home/dflanag3/spatial-artifacts/m08-cabinet-schema-integration-20261018/

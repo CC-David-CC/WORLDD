@@ -377,7 +377,7 @@ class WorkspaceGeometryNativeCrossHostTests(NativeCrossHostTests):
             self.assertEqual(observed, representation)
             self.assertFalse(observed.locked)
             self.assertEqual({field.name for field in observed.DESCRIPTOR.fields},
-                {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
+                {'representation_id', 'room_id', 'transform', 'generation', 'locked', 'kind', 'cabinet_locked'})
             geometry_id = 'workspace-presentation.v1/' + representation.representation_id.hex()
             visible = next(item for item in observation.visible if item.id == geometry_id)
             self.assertGreater(visible.visible_pixels, 0)
@@ -573,7 +573,7 @@ class WorkspaceGeometryNativeCrossHostTests(NativeCrossHostTests):
                       if v.representation_id == representation.representation_id)
         self.assertTrue(locked.locked)
         self.assertEqual({field.name for field in locked.DESCRIPTOR.fields},
-            {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
+            {'representation_id', 'room_id', 'transform', 'generation', 'locked', 'kind', 'cabinet_locked'})
         # Exact public schema plus full-message string checks cover all metadata.
         self.assertEqual({field.name for field in locked_view.DESCRIPTOR.fields},
             {'world_id', 'actor_id', 'view_id', 'authority_generation', 'authority_service_incarnation',

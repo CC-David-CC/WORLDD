@@ -214,9 +214,21 @@ class WorkspaceTests(unittest.TestCase):
                 migrated = subprocess.run([binary, '--state-dir', str(state), flag], input=b'', capture_output=True, timeout=5)
                 self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with self.world_db() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
             migrated_world_tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
             self.assertTrue({'workspace_presentations', 'workspace_presentation_ops'} <= migrated_world_tables)
+            db.execute('ALTER TABLE workspace_presentations DROP COLUMN kind')
+            db.execute('PRAGMA user_version=3')
+        v3_before = (self.state / 'world.db').read_bytes()
+        implicit = subprocess.run([WORLD, '--state-dir', str(self.state)], input=b'', capture_output=True, timeout=5)
+        self.assertNotEqual(implicit.returncode, 0); self.assertIn(b'--migrate-v3', implicit.stderr)
+        self.assertEqual((self.state / 'world.db').read_bytes(), v3_before)
+        for _ in range(2):
+            migrated_v3 = subprocess.run([WORLD, '--state-dir', str(self.state), '--migrate-v3'], input=b'', capture_output=True, timeout=5)
+            self.assertEqual(migrated_v3.returncode, 0, migrated_v3.stderr)
+        with self.world_db() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertIn('kind', {row[1] for row in db.execute('PRAGMA table_info(workspace_presentations)')})
         mixed_before = (self.state / 'world.db').read_bytes()
         mixed = subprocess.run([WORLD, '--state-dir', str(self.state), '--migrate-v1', '--migrate-v2'], input=b'', capture_output=True, timeout=5)
         self.assertNotEqual(mixed.returncode, 0); self.assertEqual(mixed.stdout, b'')
@@ -228,7 +240,7 @@ class WorkspaceTests(unittest.TestCase):
     def test_current_world_schema_rejects_corrupt_entity_protobuf_without_repair(self):
         self.client.stop()
         with self.world_db() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
             db.execute('UPDATE entities SET data=?', (b'\xff',))
         before = (self.state / 'world.db').read_bytes()
         result = subprocess.run([WORLD, '--state-dir', str(self.state)], input=b'', capture_output=True, timeout=5)

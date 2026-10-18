@@ -208,6 +208,10 @@ message FaultArmReply { optional bool armed = 1; }
 // Presentation request types live here because the authenticated actor envelope
 // also lives here and their transforms use the canonical core Pose type. This
 // keeps imports one-way while preserving the planned request fields and tags.
+enum PresentationKind {
+  PRESENTATION_KIND_GENERIC = 0;
+  PRESENTATION_KIND_CABINET = 1;
+}
 message PresentationCreateRequest {
   uint32 protocol_version = 1;
   bytes operation_id = 2;
@@ -215,6 +219,7 @@ message PresentationCreateRequest {
   optional string room_id = 4;
   Pose transform = 5;
   uint64 expected_world_revision = 6;
+  PresentationKind kind = 7;
 }
 message PresentationMoveRequest {
   uint32 protocol_version = 1;
@@ -420,7 +425,9 @@ message PresentationView {
   string room_id = 2;
   Pose transform = 3;
   uint64 generation = 4;
-  bool locked = 5;
+  bool locked = 5; // Legacy generic presentation lock state.
+  PresentationKind kind = 6;
+  bool cabinet_locked = 7;
 }
 message ActorActionReply {
   bool accepted = 1;

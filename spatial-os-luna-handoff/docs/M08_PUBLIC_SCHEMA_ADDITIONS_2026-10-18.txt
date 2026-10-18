@@ -1,0 +1,38 @@
+M08 public protobuf additions, 2026-10-18
+Status: reviewed additive schema checkpoint. Runtime remains UNRUN.
+
+The lock handoff version changes from 0.17.0 to 0.18.0.
+The edition remains spatial-protobuf/1.
+This revision adds cabinet identity and explicit copy failure metadata.
+It changes no existing field, tag, enum value, cardinality, oneof, or option.
+
+Add PresentationKind with GENERIC=0 and CABINET=1.
+The full enum names are PRESENTATION_KIND_GENERIC and PRESENTATION_KIND_CABINET.
+Add PresentationCreateRequest.kind as PresentationKind at tag 7.
+Add PresentationView.kind as PresentationKind at tag 6.
+Add PresentationView.cabinet_locked as bool at tag 7.
+Add FileCopyJobReceipt.State.FAILED with value 7.
+Add FileCopyJobReceipt.failure_code as FileActionError.Code at tag 7.
+Generic presentation defaults preserve legacy wire bytes.
+Cabinet metadata contains no workspace identity, paths, filenames, or application names.
+Failure metadata does not replace authorization or durable cleanup proof.
+
+The independent descriptor comparison used protoc 3.21.12 with imported descriptors.
+Its baseline is 44c2bf26336769cb65680edefd46fcd95ae2d5c9.
+The candidate uses the reviewed cabinet core and copy integration schemas.
+Every descriptor matches after removal of only the six listed additions.
+Five negative controls were rejected.
+They changed an existing tag, deleted a field, and added unauthorized public or private fields and an enum value.
+
+Only the two changed public schema hashes are updated in acceptance.lock.json.
+All 151 acceptance IDs remain unchanged.
+All other lock entries and acceptance assertions remain unchanged.
+Private copy-worker protocol and journal changes have separate reviews.
+This change does not prove rendering, persistence, cabinet authority, or copy behavior.
+Those checks remain required before M08 qualification.
+
+External audit: middle-child:/home/dflanag3/spatial-artifacts/m08-public-schema-audit-20261018/
+Audit script SHA256: 23915cdb8ab6ef2b7dcf82d858a5493fc3245ff6cb56c284818785afb33a450b
+Audit results SHA256: 27e20acec317994e08ef01420aa95c2742a1782e25495eb77496c2dc6046fbad
+proto/spatial/core/v1/core.proto SHA256: 52eda03b3b6658346f4ba6d782270e60b898fe5beea3f7d48d3d940facc2ed5e
+proto/spatial/workspace/v1/file_actions.proto SHA256: b6d050d0b8feb2a1649ae52f385a1b43896c29c1c0b7ae1a67070300a27cbe25

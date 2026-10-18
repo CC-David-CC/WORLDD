@@ -644,8 +644,14 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-copy-tree-worker-fixture PRIVATE OpenSSL::Crypto spatial-protobuf)
     add_dependencies(spatial-copy-tree-worker-fixture copy-worker-python-protobuf)
     add_test(NAME copy-tree-worker COMMAND Python3::Interpreter
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py" $<TARGET_FILE:spatial-copy-tree-worker-fixture>)
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py" $<TARGET_FILE:spatial-copy-tree-worker-fixture>
+        CopyTreeWorkerTests)
     set_tests_properties(copy-tree-worker PROPERTIES TIMEOUT 60)
+    add_test(NAME copy-tree-worker-nested-mount COMMAND Python3::Interpreter
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/run_copy_nested_mount_fixture.py"
+        $<TARGET_FILE:spatial-copy-tree-worker-fixture>
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py")
+    set_tests_properties(copy-tree-worker-nested-mount PROPERTIES TIMEOUT 90)
     add_executable(cabinet-copy-path-test tests/core/cabinet_copy_path.cpp)
     target_link_libraries(cabinet-copy-path-test PRIVATE spatial-workspace-copy-worker)
     add_test(NAME cabinet-copy-path COMMAND $<TARGET_FILE:cabinet-copy-path-test>)
@@ -1880,6 +1886,28 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(workspace-geometry-native-crosshost PROPERTIES TIMEOUT 1800
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME workspace-cabinet-native-crosshost COMMAND
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- env
+        "SPATIAL_GEOMETRY_EVIDENCE=$ENV{SPATIAL_GEOMETRY_EVIDENCE}"
+        "SPATIAL_GEOMETRY_OBSERVER_HOST=$ENV{SPATIAL_GEOMETRY_OBSERVER_HOST}"
+        "SPATIAL_GEOMETRY_AUTHORITY_ADDRESS=$ENV{SPATIAL_GEOMETRY_AUTHORITY_ADDRESS}"
+        "SPATIAL_GEOMETRY_REMOTE_SOURCE=$ENV{SPATIAL_GEOMETRY_REMOTE_SOURCE}"
+        "SPATIAL_GEOMETRY_REMOTE_BIN=$ENV{SPATIAL_GEOMETRY_REMOTE_BIN}"
+        "SPATIAL_GEOMETRY_REMOTE_PYTHON=$ENV{SPATIAL_GEOMETRY_REMOTE_PYTHON}"
+        "SPATIAL_GEOMETRY_REMOTE_XSERVER=$ENV{SPATIAL_GEOMETRY_REMOTE_XSERVER}"
+        "SPATIAL_GEOMETRY_REMOTE_EVIDENCE=$ENV{SPATIAL_GEOMETRY_REMOTE_EVIDENCE}"
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" --
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_cabinet_native_crosshost.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-cabinet-native-crosshost PROPERTIES TIMEOUT 1800
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_custom_target(workspace-cabinet-native-crosshost-fixture
+        DEPENDS identityd spatial-issuer-client worldd spatial-authority-launch-probe spatial-security-auth
+            spatial-host-session spatialwm workspaced spatial-process-scope-probe
+            spatial-storage-broker-launch-probe spatial-confined-xprobe session-probe-python compositor-python-protobuf
+            broker-python-protobuf world-session-python-protobuf geometry-native-python
+            host-actor-python-protobuf actor-session-client-python-protobuf grants-python-protobuf python-protobuf)
     add_custom_target(workspace-geometry-native-crosshost-fixture
         DEPENDS identityd spatial-issuer-client worldd spatial-authority-launch-probe spatial-security-auth
             spatial-host-session spatialwm workspaced spatial-process-scope-probe

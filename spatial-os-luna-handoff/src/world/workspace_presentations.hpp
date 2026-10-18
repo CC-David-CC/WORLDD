@@ -12,6 +12,8 @@ struct PresentationGeometry {
     std::uint64_t generation = 0;
     bool locked = true;
     bool usable = false;
+    PresentationKind kind = PresentationKind::generic;
+    bool cabinet_locked = false;
 };
 using WorkspaceReadable = std::function<bool(const std::string&)>;
 using PresentationUsable = std::function<bool(const std::string&, const std::string&)>;

@@ -567,8 +567,25 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(broker.Reply.DESCRIPTOR.fields_by_name['scoped_authority_check'].number, 112)
         public_view = core.PresentationView.DESCRIPTOR
         self.assertEqual({field.name for field in public_view.fields},
-                         {'representation_id', 'room_id', 'transform', 'generation', 'locked'})
+                         {'representation_id', 'room_id', 'transform', 'generation', 'locked', 'kind', 'cabinet_locked'})
         self.assertEqual(public_view.fields_by_name['transform'].message_type.full_name, 'spatial.core.v1.Pose')
+
+    def test_m08_presentation_view_defaults_preserve_legacy_generic_wire(self):
+        descriptor = core.PresentationView.DESCRIPTOR
+        self.assertEqual(descriptor.fields_by_name['kind'].number, 6)
+        self.assertEqual(descriptor.fields_by_name['cabinet_locked'].number, 7)
+        legacy = core.PresentationView(representation_id=bytes(range(16)),
+            room_id='legacy', generation=7, locked=True)
+        legacy.transform.SetInParent()
+        legacy_wire = legacy.SerializeToString(deterministic=True)
+        expected_legacy_five_field_payload = (
+            b'\x0a\x10' + bytes(range(16)) + b'\x12\x06legacy\x1a\x00\x20\x07\x28\x01')
+        self.assertEqual(legacy_wire, expected_legacy_five_field_payload)
+        extended = core.PresentationView()
+        extended.CopyFrom(legacy)
+        extended.kind = core.PRESENTATION_KIND_GENERIC
+        extended.cabinet_locked = False
+        self.assertEqual(extended.SerializeToString(deterministic=True), legacy_wire)
 
     def test_private_scoped_authority_check_uses_exact_scope_and_fresh_revocation(self):
         self.enroll_second()

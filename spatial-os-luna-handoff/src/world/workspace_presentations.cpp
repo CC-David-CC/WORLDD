@@ -25,7 +25,9 @@ std::vector<PresentationGeometry> visible_presentations(WorldStore& store, const
         geometry.room_id = record.room_id;
         geometry.pose = record.pose;
         geometry.generation = record.generation;
+        geometry.kind = record.kind;
         geometry.locked = !fresh_workspace_read || !fresh_workspace_read(record.workspace_id);
+        geometry.cabinet_locked = record.kind == PresentationKind::cabinet && geometry.locked;
         geometry.usable = fresh_presentation_use && fresh_presentation_use(record.id, record.workspace_id);
         result.push_back(std::move(geometry));
     }

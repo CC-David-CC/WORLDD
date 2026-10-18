@@ -105,6 +105,40 @@ bool Actors::workspace_right(const Actor& actor, const std::string& workspace, a
     const auto decision=workspace_check(actor,workspace,right,components);
     return decision && decision->allowed();
 }
+bool Actors::workspace_file_access(const Actor& actor, const std::string& workspace,
+                                   std::vector<broker_wire::AuthorizationFence>* fences) {
+    if (!broker_ || workspace.empty()) return false;
+    const auto resolve_binding = [&]() -> std::optional<wire::WorkspaceReply> {
+        try {
+            wire::Request query;
+            query.mutable_workspace_get()->set_id(workspace);
+            const auto reply = broker_->call(std::move(query));
+            if (!reply.has_workspace()) return std::nullopt;
+            auto binding = reply.workspace();
+            if (binding.id() != workspace || binding.worktree().empty()) return std::nullopt;
+            return binding;
+        } catch (...) {
+            return std::nullopt;
+        }
+    };
+    const auto binding = resolve_binding();
+    if (!binding) return false;
+    const std::vector<std::string> components{binding->worktree()};
+    using Right = authority::v1::Right;
+    static constexpr Right file_rights[] = {Right::FILE_BROWSE, Right::FILE_READ, Right::FILE_CREATE,
+        Right::FILE_EDIT, Right::FILE_RENAME, Right::FILE_MOVE, Right::FILE_COPY, Right::FILE_TRASH,
+        Right::FILE_RESTORE, Right::FILE_PERMANENT_DELETE};
+    for (const auto right : file_rights) {
+        const auto decision = workspace_check(actor, workspace, right, components, fences);
+        if (!decision || !decision->allowed()) continue;
+        const auto confirmed = resolve_binding();
+        if (!confirmed || confirmed->id() != binding->id() ||
+            confirmed->worktree() != binding->worktree() || confirmed->revision() != binding->revision())
+            return false;
+        return true;
+    }
+    return false;
+}
 void Actors::validate_presentation_placement(const std::string& room, const wire::Pose& pose,
                                                const std::string& exclude_id) {
     if (store_.get(room).kind() != wire::ROOM) throw WorldError(wire::INVALID_ARGUMENT, "Presentation room is invalid");
@@ -331,7 +365,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kPresentationCreate: {
         const auto& input = request.presentation_create();
         if (input.protocol_version() != 1 || input.operation_id().size() != 16 || input.workspace_id().empty() ||
-            !input.has_transform() || !actor.principal)
+            !input.has_transform() || !actor.principal ||
+            (input.kind() != wire::PRESENTATION_KIND_GENERIC && input.kind() != wire::PRESENTATION_KIND_CABINET))
             throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation create request");
         (void)scene_pose(input.transform());
         if (!broker_)
@@ -341,6 +376,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         if (!granted(actor, "presentation.create", scope)) throw WorldError(wire::FORBIDDEN, "Presentation placement authority required");
         if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH))
             throw WorldError(wire::FORBIDDEN, "Workspace presentation attachment authority required");
+        if (input.kind() == wire::PRESENTATION_KIND_CABINET && !workspace_file_access(actor, input.workspace_id()))
+            throw WorldError(wire::FORBIDDEN, "Cabinet placement requires project-file authority");
         if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH) ||
             !granted(actor, "presentation.create", scope))
             throw WorldError(wire::FORBIDDEN, "Presentation creation authority changed");
@@ -354,6 +391,9 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
                 !granted(actor,"presentation.create",scope))
                 throw WorldError(wire::FORBIDDEN,"Presentation creation authority changed");
             const bool locked=!workspace_right(actor,committed.workspace_id,authority::v1::WORKSPACE_ACCESS);
+            const bool cabinet_locked = committed.kind == PresentationKind::cabinet && !workspace_file_access(actor,committed.workspace_id);
+            if (committed.kind == PresentationKind::cabinet && cabinet_locked)
+                throw WorldError(wire::FORBIDDEN,"Cabinet file authority changed");
             if (!granted(actor,"presentation.create",scope))
                 throw WorldError(wire::FORBIDDEN,"Presentation creation authority changed");
             const std::vector<std::string> view_scope{committed.room_id,committed.id};
@@ -362,6 +402,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
             wire::ActorActionReply reply; reply.set_accepted(true);
             auto* view=reply.mutable_presentation(); view->set_representation_id(committed.id); view->set_room_id(committed.room_id);
             *view->mutable_transform()=committed.pose; view->set_generation(committed.generation); view->set_locked(locked);
+            view->set_kind(committed.kind == PresentationKind::cabinet ? wire::PRESENTATION_KIND_CABINET : wire::PRESENTATION_KIND_GENERIC);
+            view->set_cabinet_locked(cabinet_locked);
             return reply;
         }
         validate_presentation_placement(room, input.transform());
@@ -374,15 +416,21 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
             offset += static_cast<std::size_t>(count);
         }
         if (!workspace_right(actor, input.workspace_id(), authority::v1::WORKSPACE_PRESENTATION_ATTACH) ||
-            !granted(actor, "presentation.create", scope))
+            !granted(actor, "presentation.create", scope) ||
+            (input.kind() == wire::PRESENTATION_KIND_CABINET && !workspace_file_access(actor, input.workspace_id())))
             throw WorldError(wire::FORBIDDEN, "Presentation creation authority changed");
-        WorkspacePresentation desired{id, input.workspace_id(), room, input.transform(), 0};
+        WorkspacePresentation desired{id, input.workspace_id(), room, input.transform(), 0,
+            input.kind() == wire::PRESENTATION_KIND_CABINET ? PresentationKind::cabinet : PresentationKind::generic};
         const auto created = store_.create_presentation(desired, input.expected_world_revision(), input.operation_id(),
                                                         request_digest(input), principal);
         wire::ActorActionReply reply; reply.set_accepted(true);
         auto* view = reply.mutable_presentation(); view->set_representation_id(created.id); view->set_room_id(created.room_id);
         *view->mutable_transform() = created.pose; view->set_generation(created.generation);
         view->set_locked(!workspace_right(actor, created.workspace_id, authority::v1::WORKSPACE_ACCESS));
+        view->set_kind(created.kind == PresentationKind::cabinet ? wire::PRESENTATION_KIND_CABINET : wire::PRESENTATION_KIND_GENERIC);
+        view->set_cabinet_locked(created.kind == PresentationKind::cabinet && !workspace_file_access(actor, created.workspace_id));
+        if (created.kind == PresentationKind::cabinet && view->cabinet_locked())
+            throw WorldError(wire::FORBIDDEN,"Cabinet file authority changed");
         const std::vector<std::string> view_scope{created.room_id,created.id};
         if (!granted(actor,"observe",view_scope) || !granted(actor,"representation.view",view_scope))
             throw WorldError(wire::FORBIDDEN,"Presentation view authority changed");
@@ -434,6 +482,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
                 const auto& committed=receipt->presentation;
                 auto* view=reply.mutable_presentation(); view->set_representation_id(committed.id); view->set_room_id(committed.room_id);
                 *view->mutable_transform()=committed.pose; view->set_generation(committed.generation); view->set_locked(locked);
+                view->set_kind(committed.kind == PresentationKind::cabinet ? wire::PRESENTATION_KIND_CABINET : wire::PRESENTATION_KIND_GENERIC);
+                view->set_cabinet_locked(committed.kind == PresentationKind::cabinet && !workspace_file_access(actor, committed.workspace_id));
             }
             return reply;
         }
@@ -490,6 +540,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
             auto* view = reply.mutable_presentation(); view->set_representation_id(moved.id); view->set_room_id(moved.room_id);
             *view->mutable_transform() = moved.pose; view->set_generation(moved.generation);
             view->set_locked(!workspace_right(actor, moved.workspace_id, authority::v1::WORKSPACE_ACCESS));
+            view->set_kind(moved.kind == PresentationKind::cabinet ? wire::PRESENTATION_KIND_CABINET : wire::PRESENTATION_KIND_GENERIC);
+            view->set_cabinet_locked(moved.kind == PresentationKind::cabinet && !workspace_file_access(actor, moved.workspace_id));
             const std::vector<std::string> view_scope{moved.room_id,moved.id};
             if (!granted(actor,"observe",view_scope) || !granted(actor,"representation.view",view_scope))
                 throw WorldError(wire::FORBIDDEN,"Presentation view authority changed");
@@ -577,6 +629,8 @@ void Actors::cabinet_action(Actor& actor, const workspace::v1::ActorCabinetReque
         throw WorldError(wire::NOT_VISIBLE, "Presentation target is unavailable");
     if (current.generation != expected_generation)
         throw WorldError(wire::STALE_TARGET, "Presentation generation changed");
+    if (current.kind != PresentationKind::cabinet)
+        throw WorldError(wire::NOT_VISIBLE, "Cabinet target is unavailable");
     if (current.workspace_id.empty())
         throw WorldError(wire::UNAVAILABLE, "Presentation workspace binding is unavailable");
     const auto camera = scene_pose(actor.entity.pose());
@@ -1134,7 +1188,8 @@ wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
         const auto decision=workspace_check(actor,record.workspace_id,authority::v1::WORKSPACE_ACCESS,{},collected);
         ProjectionCandidate candidate;
         candidate.geometry={record.id,record.room_id,record.pose,record.generation,
-                            !decision || !decision->allowed(),false};
+                            !decision || !decision->allowed(),false,record.kind,
+                            record.kind == PresentationKind::cabinet && !workspace_file_access(actor,record.workspace_id,collected)};
         candidate.workspace_id=record.workspace_id;
         candidates.push_back(std::move(candidate));
     }
