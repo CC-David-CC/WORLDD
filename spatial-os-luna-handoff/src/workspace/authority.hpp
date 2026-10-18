@@ -14,7 +14,8 @@ public:
     ~WorkspaceAuthority();
     bool bound(const std::string& workspace) const;
     unsigned rights(const workspace::v1::AccessRequest&, bool fresh);
-    workspace::v1::ScopedAuthorityCheckReply scoped_check(const workspace::v1::ScopedAuthorityCheckRequest&);
+    workspace::v1::ScopedAuthorityCheckReply scoped_check(
+        const workspace::v1::ScopedAuthorityCheckRequest&, bool refresh = true);
     workspace::v1::AuthorizationFence authorization_fence(const authority::v1::ActorRef&);
     workspace::v1::AuthorizationFence fence_snapshot() const;
     void policy_changed();

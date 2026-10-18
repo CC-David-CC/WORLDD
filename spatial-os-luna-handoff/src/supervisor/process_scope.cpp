@@ -341,6 +341,16 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare_owned(const std::filesystem:
           "Invalid broker-owned scope identity");
     return prepare_impl(root, nullptr, scope_name);
 }
+std::unique_ptr<ProcessScope> ProcessScope::prepare_named(const std::filesystem::path& root,
+                                                  const std::string& requested_name,
+                                                  const v1::ProcessScopeBudget* budget) {
+    if (!requested_name.empty())
+        valid(requested_name.size() <= 128 && requested_name != "." && requested_name != ".." &&
+              requested_name.find_first_of("/\\") == std::string::npos &&
+              requested_name.find('\0') == std::string::npos,
+              "Invalid reserved ProcessScope name");
+    return prepare_impl(root, budget, requested_name);
+}
 std::unique_ptr<ProcessScope> ProcessScope::prepare_impl(const std::filesystem::path& root,
                                                   const v1::ProcessScopeBudget* budget,
                                                   const std::string& stable_name) {
@@ -503,6 +513,216 @@ void ProcessScope::thaw_payload() {
     freeze_owned_=false;frozen_inventory_.clear();
 }
 
+bool ProcessScope::stop_recovered(const std::filesystem::path& parent_path,
+                                   std::uint64_t parent_device, std::uint64_t parent_inode,
+                                   const v1::ProcessScopeIdentity& identity,
+                                   const std::function<void(const v1::ProcessScopeIdentity&)>& drained) {
+    valid(identity.scope_name().size() > 0 && identity.scope_name().size() <= 128 &&
+          identity.scope_name() != "." && identity.scope_name() != ".." &&
+          identity.scope_name().find_first_of("/\\") == std::string::npos &&
+          identity.scope_name().find('\0') == std::string::npos &&
+          identity.device() > 0 && identity.inode() > 0 &&
+          identity.boot_id().size() == 36 && identity.launch_id().size() == 16,
+          "Invalid recovered ProcessScope identity");
+    Fd parent(open(parent_path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+    if(parent.value<0 && errno==ENOENT)
+        throw std::runtime_error("Recovered ProcessScope parent is absent; cleanup is unconfirmed");
+    check(parent.value >= 0, "Cannot open recovered ProcessScope parent");
+    struct statfs fs{}; struct stat parent_stat{};
+    check(fstatfs(parent.value, &fs) == 0 && fstat(parent.value, &parent_stat) == 0,
+          "Cannot inspect recovered ProcessScope parent");
+    valid(fs.f_type == CGROUP2_SUPER_MAGIC && parent_stat.st_uid == geteuid() &&
+          static_cast<std::uint64_t>(parent_stat.st_dev) == parent_device &&
+          static_cast<std::uint64_t>(parent_stat.st_ino) == parent_inode,
+          "Recovered ProcessScope parent identity changed");
+    const int child_fd = openat(parent.value, identity.scope_name().c_str(),
+        O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    if (child_fd < 0 && errno == ENOENT) return false;
+    check(child_fd >= 0, "Cannot open recovered ProcessScope child");
+    Fd child(child_fd);
+    struct stat child_stat{};
+    check(fstat(child.value, &child_stat) == 0, "Cannot inspect recovered ProcessScope child");
+    valid(child_stat.st_uid == geteuid() &&
+          static_cast<std::uint64_t>(child_stat.st_dev) == identity.device() &&
+          static_cast<std::uint64_t>(child_stat.st_ino) == identity.inode(),
+          "Recovered ProcessScope child identity changed");
+    std::ifstream boot_file("/proc/sys/kernel/random/boot_id");
+    std::string current_boot; std::getline(boot_file, current_boot);
+    valid(current_boot == identity.boot_id(), "Recovered ProcessScope belongs to another boot");
+    control(child.value, "cgroup.kill", "1\n");
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    for (;;) {
+        const auto events = contents(child.value, "cgroup.events");
+        valid(events.find("populated 0\n") != std::string::npos ||
+              events.find("populated 1\n") != std::string::npos,
+              "Recovered ProcessScope population state is malformed");
+        if (events.find("populated 0\n") != std::string::npos) break;
+        valid(Clock::now() < deadline, "Recovered ProcessScope did not become empty");
+        tick();
+    }
+    std::istringstream process_ids(contents(child.value, "cgroup.procs"));
+    std::string process_id;
+    valid(!(process_ids >> process_id), "Recovered ProcessScope still contains processes");
+    struct stat named{};
+    check(fstatat(parent.value, identity.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
+          "Recovered ProcessScope disappeared before removal");
+    valid(named.st_dev == child_stat.st_dev && named.st_ino == child_stat.st_ino,
+          "Recovered ProcessScope name was replaced");
+    if(drained) drained(identity);
+    check(fstatat(parent.value,identity.scope_name().c_str(),&named,AT_SYMLINK_NOFOLLOW)==0 &&
+          named.st_dev==child_stat.st_dev && named.st_ino==child_stat.st_ino,
+          "Recovered ProcessScope changed during drain acknowledgment");
+    check(unlinkat(parent.value, identity.scope_name().c_str(), AT_REMOVEDIR) == 0,
+          "Cannot remove recovered ProcessScope");
+    return true;
+}
+bool ProcessScope::remove_reserved_empty(const std::filesystem::path& parent_path,
+                                   const v1::ProcessScopeIdentity& parent_identity,
+                                   const std::string& reserved_name) {
+    valid(parent_identity.scope_name()=="spatial-git-workers" &&
+          parent_identity.boot_id().size()==36 &&
+          reserved_name.size()>0 && reserved_name.size()<=128 &&
+          reserved_name!="." && reserved_name!=".." &&
+          reserved_name.find_first_of("/\\")==std::string::npos &&
+          reserved_name.find('\0')==std::string::npos,
+          "Invalid reserved empty ProcessScope binding");
+    Fd parent(open(parent_path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    check(parent.value>=0,"Cannot open reserved ProcessScope parent");
+    struct statfs fs{};struct stat parent_stat{};
+    check(fstatfs(parent.value,&fs)==0 && fstat(parent.value,&parent_stat)==0,
+          "Cannot inspect reserved ProcessScope parent");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && parent_stat.st_uid==geteuid() &&
+          static_cast<std::uint64_t>(parent_stat.st_dev)==parent_identity.device() &&
+          static_cast<std::uint64_t>(parent_stat.st_ino)==parent_identity.inode(),
+          "Reserved ProcessScope parent identity changed");
+    const int child_fd=openat(parent.value,reserved_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(child_fd<0 && errno==ENOENT)return false;
+    check(child_fd>=0,"Cannot open reserved ProcessScope child");
+    Fd child(child_fd);struct stat child_stat{};
+    check(fstat(child.value,&child_stat)==0,"Cannot inspect reserved ProcessScope child");
+    valid(child_stat.st_uid==geteuid() && fstatfs(child.value,&fs)==0 && fs.f_type==CGROUP2_SUPER_MAGIC,
+          "Reserved ProcessScope child is not an owned cgroup");
+    std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string current_boot;std::getline(boot_file,current_boot);
+    valid(current_boot==parent_identity.boot_id(),"Reserved ProcessScope belongs to another boot");
+    valid(contents(child.value,"cgroup.events").find("populated 0\n")!=std::string::npos &&
+          contents(child.value,"cgroup.procs").empty(),
+          "Unbound reserved ProcessScope is not empty");
+    std::istringstream stats(contents(child.value,"cgroup.stat"));std::string key;unsigned long long count=0;
+    bool descendants_known=false;
+    while(stats>>key>>count)if(key=="nr_descendants"){descendants_known=true;valid(count==0,"Unbound ProcessScope has descendants");}
+    valid(descendants_known,"Unbound ProcessScope descendant count is unavailable");
+    struct stat named{};check(fstatat(parent.value,reserved_name.c_str(),&named,AT_SYMLINK_NOFOLLOW)==0,
+          "Reserved ProcessScope disappeared before removal");
+    valid(named.st_dev==child_stat.st_dev && named.st_ino==child_stat.st_ino,
+          "Reserved ProcessScope name was replaced");
+    check(unlinkat(parent.value,reserved_name.c_str(),AT_REMOVEDIR)==0,
+          "Cannot remove empty reserved ProcessScope");
+    return true;
+}
+bool ProcessScope::remove_recovered_git_parent(const std::filesystem::path& root_path,
+    std::uint64_t root_device,std::uint64_t root_inode,const v1::ProcessScopeIdentity& identity) {
+    valid(identity.scope_name()=="spatial-git-workers" && identity.boot_id().size()==36 &&
+          identity.launch_id().size()==16 && identity.device()>0 && identity.inode()>0 &&
+          root_device>0 && root_inode>0,"Invalid recovered Git parent identity");
+    Fd root(open(root_path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    check(root.value>=0,"Cannot open recovered Git parent root");
+    struct statfs fs{};struct stat root_stat{};
+    check(fstatfs(root.value,&fs)==0 && fstat(root.value,&root_stat)==0,"Cannot inspect Git parent root");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && root_stat.st_uid==geteuid() &&
+          static_cast<std::uint64_t>(root_stat.st_dev)==root_device &&
+          static_cast<std::uint64_t>(root_stat.st_ino)==root_inode,"Git parent root identity changed");
+    const int parent_fd=openat(root.value,identity.scope_name().c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(parent_fd<0 && errno==ENOENT)return false;
+    check(parent_fd>=0,"Cannot open recovered Git worker parent");
+    Fd parent(parent_fd);struct stat parent_stat{};
+    check(fstat(parent.value,&parent_stat)==0 && fstatfs(parent.value,&fs)==0,"Cannot inspect recovered Git worker parent");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && parent_stat.st_uid==geteuid() &&
+          static_cast<std::uint64_t>(parent_stat.st_dev)==identity.device() &&
+          static_cast<std::uint64_t>(parent_stat.st_ino)==identity.inode(),"Recovered Git worker parent identity changed");
+    std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string current_boot;std::getline(boot_file,current_boot);
+    valid(current_boot==identity.boot_id(),"Recovered Git worker parent belongs to another boot");
+    valid(contents(parent.value,"cgroup.procs").empty() &&
+          contents(parent.value,"cgroup.events").find("populated 0\n")!=std::string::npos,
+          "Recovered Git worker parent still contains processes");
+    std::istringstream stats(contents(parent.value,"cgroup.stat"));std::string key;unsigned long long count=0;bool known=false;
+    while(stats>>key>>count)if(key=="nr_descendants"){known=true;valid(count==0,"Recovered Git worker parent has unknown descendants");}
+    valid(known,"Recovered Git worker parent descendant count is unavailable");
+    struct stat named{};check(fstatat(root.value,identity.scope_name().c_str(),&named,AT_SYMLINK_NOFOLLOW)==0,
+        "Recovered Git worker parent disappeared before removal");
+    valid(named.st_dev==parent_stat.st_dev && named.st_ino==parent_stat.st_ino,
+        "Recovered Git worker parent name was replaced");
+    check(unlinkat(root.value,identity.scope_name().c_str(),AT_REMOVEDIR)==0,
+        "Cannot remove recovered Git worker parent");
+    return true;
+}
+bool ProcessScope::remove_unjournaled_empty_git_parent(const std::filesystem::path& root_path,
+    std::uint64_t root_device,std::uint64_t root_inode) {
+    valid(root_device>0 && root_inode>0,"Invalid unjournaled Git parent root identity");
+    constexpr const char* name="spatial-git-workers";
+    Fd root(open(root_path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    check(root.value>=0,"Cannot open unjournaled Git parent root");
+    struct statfs fs{};struct stat root_stat{};
+    check(fstatfs(root.value,&fs)==0 && fstat(root.value,&root_stat)==0,"Cannot inspect unjournaled Git parent root");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && root_stat.st_uid==geteuid() &&
+          static_cast<std::uint64_t>(root_stat.st_dev)==root_device &&
+          static_cast<std::uint64_t>(root_stat.st_ino)==root_inode,"Unjournaled Git parent root identity changed");
+    const int parent_fd=openat(root.value,name,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(parent_fd<0 && errno==ENOENT)return false;
+    check(parent_fd>=0,"Cannot open unjournaled Git worker parent");
+    Fd parent(parent_fd);struct stat parent_stat{};
+    check(fstat(parent.value,&parent_stat)==0 && fstatfs(parent.value,&fs)==0,"Cannot inspect unjournaled Git worker parent");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && parent_stat.st_uid==geteuid(),
+          "Unjournaled Git worker parent is not an owned cgroup");
+    valid(contents(parent.value,"cgroup.procs").empty() &&
+          contents(parent.value,"cgroup.events").find("populated 0\n")!=std::string::npos,
+          "Unjournaled Git worker parent is populated");
+    std::istringstream stats(contents(parent.value,"cgroup.stat"));
+    std::string key;unsigned long long count=0;bool known=false;
+    while(stats>>key>>count)if(key=="nr_descendants"){known=true;valid(count==0,"Unjournaled Git worker parent has descendants");}
+    valid(known,"Unjournaled Git worker descendant count is unavailable");
+    struct stat named{};
+    check(fstatat(root.value,name,&named,AT_SYMLINK_NOFOLLOW)==0,
+          "Unjournaled Git worker parent disappeared before removal");
+    valid(named.st_dev==parent_stat.st_dev && named.st_ino==parent_stat.st_ino,
+          "Unjournaled Git worker parent name was replaced");
+    check(unlinkat(root.value,name,AT_REMOVEDIR)==0,"Cannot remove empty unjournaled Git worker parent");
+    return true;
+}
+bool ProcessScope::remove_reserved_git_parent(const std::filesystem::path& root_path,
+    std::uint64_t root_device,std::uint64_t root_inode,const std::string& boot_id,
+    const std::string& reserved_name) {
+    valid(root_device>0 && root_inode>0 && boot_id.size()==36 &&
+          reserved_name=="spatial-git-workers","Invalid reserved Git worker parent identity");
+    Fd root(open(root_path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    check(root.value>=0,"Cannot open reserved Git parent root");
+    struct statfs fs{};struct stat root_stat{};
+    check(fstatfs(root.value,&fs)==0 && fstat(root.value,&root_stat)==0,"Cannot inspect reserved Git parent root");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && root_stat.st_uid==geteuid() &&
+          static_cast<std::uint64_t>(root_stat.st_dev)==root_device &&
+          static_cast<std::uint64_t>(root_stat.st_ino)==root_inode,"Reserved Git parent root identity changed");
+    const int parent_fd=openat(root.value,reserved_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(parent_fd<0 && errno==ENOENT)return false;
+    check(parent_fd>=0,"Cannot open reserved Git worker parent");
+    Fd parent(parent_fd);struct stat parent_stat{};
+    check(fstat(parent.value,&parent_stat)==0 && fstatfs(parent.value,&fs)==0,"Cannot inspect reserved Git worker parent");
+    valid(fs.f_type==CGROUP2_SUPER_MAGIC && parent_stat.st_uid==geteuid(),
+        "Reserved Git worker parent is not an owned cgroup");
+    std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string current_boot;std::getline(boot_file,current_boot);
+    valid(current_boot==boot_id,"Reserved Git worker parent belongs to another boot");
+    valid(contents(parent.value,"cgroup.procs").empty() &&
+          contents(parent.value,"cgroup.events").find("populated 0\n")!=std::string::npos,
+          "Reserved Git worker parent is not empty");
+    std::istringstream stats(contents(parent.value,"cgroup.stat"));std::string key;unsigned long long count=0;bool known=false;
+    while(stats>>key>>count)if(key=="nr_descendants"){known=true;valid(count==0,"Reserved Git worker parent has descendants");}
+    valid(known,"Reserved Git worker parent descendant count is unavailable");
+    struct stat named{};check(fstatat(root.value,reserved_name.c_str(),&named,AT_SYMLINK_NOFOLLOW)==0,
+        "Reserved Git worker parent disappeared before removal");
+    valid(named.st_dev==parent_stat.st_dev && named.st_ino==parent_stat.st_ino,
+        "Reserved Git worker parent name was replaced");
+    check(unlinkat(root.value,reserved_name.c_str(),AT_REMOVEDIR)==0,
+        "Cannot remove reserved Git worker parent");
+    return true;
+}
 void ProcessScope::enable_children() {
     valid(!started_ && !removed_ && !populated(), "Child controllers require an empty prepared scope");
     control(scope_, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
@@ -717,7 +937,8 @@ void ProcessScope::request_stop() {
 const v1::ProcessScopeIdentity& ProcessScope::identity() const { return identity_; }
 bool ProcessScope::diagnostic_populated() const { return scope_ >= 0 && populated(); }
 bool ProcessScope::diagnostic_child_reaped() const { return reaped_; }
-v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline) {
+v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
+    const std::function<void(const v1::ProcessScopeIdentity&)>& drained) {
     valid(stop_requested_, "Owned termination was not requested");
     if (!removed_) {
         while (scope_ >= 0 && populated()) {
@@ -737,15 +958,21 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline) 
                   "Cannot find owned scope for removal");
             valid(identity_.inode() && identity_.device() == static_cast<std::uint64_t>(named.st_dev) &&
                   identity_.inode() == static_cast<std::uint64_t>(named.st_ino), "Owned scope identity changed");
+            valid(!populated() && contents(scope_,"cgroup.procs").empty() && (child_<=0 || reaped_),
+                  "Owned scope drain proof changed before acknowledgment");
+            if(drained) drained(identity_);
+            check(fstatat(parent_,identity_.scope_name().c_str(),&named,AT_SYMLINK_NOFOLLOW)==0 &&
+                  identity_.device()==static_cast<std::uint64_t>(named.st_dev) && identity_.inode()==named.st_ino,
+                  "Owned scope changed during drain acknowledgment");
             check(unlinkat(parent_, identity_.scope_name().c_str(), AT_REMOVEDIR) == 0, "Cannot remove owned scope");
         }
         removed_ = true;
     }
     v1::ProcessScopeStopped result; *result.mutable_identity() = identity_; return result;
 }
-v1::ProcessScopeStopped ProcessScope::stop() {
+v1::ProcessScopeStopped ProcessScope::stop(const std::function<void(const v1::ProcessScopeIdentity&)>& drained) {
     request_stop();
-    return complete_stop(Clock::now()+std::chrono::seconds(2));
+    return complete_stop(Clock::now()+std::chrono::seconds(2),drained);
 }
 ProcessScope::~ProcessScope() {
     try { stop(); }

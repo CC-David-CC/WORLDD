@@ -376,14 +376,22 @@ struct ExecutionStore::Impl {
     std::string file_engine_incarnation;
     struct FileEngineEntry {
         int root_fd = -1;
+        int staging_parent_fd = -1;
+        std::string staging_root_name;
         dev_t device = 0; ino_t inode = 0;
         std::string workspace, worktree, path;
         std::unique_ptr<FileAuthority> authority;
         std::unique_ptr<FileEffectExecutor> effects;
         std::unique_ptr<FileEngine> engine;
-        ~FileEngineEntry() { if(root_fd>=0) close(root_fd); }
+        ~FileEngineEntry() {
+            if(root_fd>=0) close(root_fd);
+            if(staging_parent_fd>=0) close(staging_parent_fd);
+        }
     };
     std::map<std::string,std::unique_ptr<FileEngineEntry>> file_engines;
+    bool file_action_dispatch_active = false;
+    bool copy_authority_reconcile_pending = false;
+    bool git_parent_recovery_complete = false;
     FileEngineEntry& file_engine(const wire::WorkspaceReply& workspace,
                                  const wire::WorktreeReply& registered) {
         const auto id=registered.id();
@@ -431,11 +439,133 @@ struct ExecutionStore::Impl {
         entry->root_fd=root.fd; root.fd=-1;
         entry->device=current.st_dev; entry->inode=current.st_ino;
         entry->workspace=workspace.id(); entry->worktree=id; entry->path=path;
+        // Logical worktree IDs are opaque. Only the registered managed path
+        // component names the broker-private sibling staging directory.
+        if(path_component.size()!=32 || path_component.find_first_not_of("0123456789abcdef")!=std::string::npos)
+            throw FileRootStale("store.invalid_managed_path_for_copy_staging");
+        entry->staging_root_name=".spatial-copy-staging-"+path_component;
+        entry->staging_parent_fd=openat(root_parent.fd,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
+        if(entry->staging_parent_fd<0)
+            throw FileRootStale("store.copy_staging_parent_open_failed");
+        if(mkdirat(entry->staging_parent_fd,entry->staging_root_name.c_str(),0700)!=0 && errno!=EEXIST)
+            throw FileRootStale("store.copy_staging_root_create_failed");
+        struct stat staging_named{};
+        if(fstatat(entry->staging_parent_fd,entry->staging_root_name.c_str(),&staging_named,AT_SYMLINK_NOFOLLOW)!=0 ||
+           !S_ISDIR(staging_named.st_mode) || S_ISLNK(staging_named.st_mode) ||
+           staging_named.st_uid!=geteuid() || (staging_named.st_mode&0777)!=0700 ||
+           staging_named.st_dev!=current.st_dev || fsync(entry->staging_parent_fd)!=0)
+            throw FileRootStale("store.copy_staging_root_identity_invalid");
         entry->authority=std::make_unique<StoreFileAuthority>(*owner);
         entry->effects=std::make_unique<StoreFileEffectExecutor>(*owner,*file_journal,observer);
         entry->engine=std::make_unique<FileEngine>(entry->root_fd,workspace.id(),std::vector<std::string>{id},
-            *entry->authority,[] { return std::chrono::steady_clock::now(); },entry->effects.get());
+            *entry->authority,[] { return std::chrono::steady_clock::now(); },entry->effects.get(),resources,
+            entry->staging_parent_fd,entry->staging_root_name,file_journal.get(),observer);
         return *file_engines.emplace(id,std::move(entry)).first->second;
+    }
+    void recover_git_worker_parent_before_dispatch() {
+        if(!resources || git_parent_recovery_complete) return;
+        const auto active=file_journal->find_git_worker_parent(observer);
+        auto parents=file_journal->retained_git_worker_parents(observer);
+        if(active.state!=GitWorkerParentRecord::State::absent) parents.push_back(active);
+        const auto records=file_journal->recovery_copy_jobs_all(observer);
+        const auto current_root=resources->broker_root_path();
+        const auto current_identity=resources->broker_root_identity();
+        std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string boot;std::getline(boot_file,boot);
+        auto matches=[](const auto& parent,const auto& record) {
+            return parent.state==GitWorkerParentRecord::State::bound &&
+                parent.root_device==record.broker_root_device() && parent.root_inode==record.broker_root_inode() &&
+                parent.boot_id==record.broker_root_boot_id() &&
+                parent.identity_bytes==record.process_scope_parent().SerializeAsString();
+        };
+        // Validate all generation paths before constructing any engine. Engines can
+        // recover several generations in one workspace.
+        std::set<std::string> unsafe_parents;
+        for(const auto& parent:parents) {
+            const std::filesystem::path path(parent.root_path);
+            struct stat info{};
+            const bool exists=lstat(path.c_str(),&info)==0;
+            const bool unreadable=!exists && errno!=ENOENT;
+            if(!path.is_absolute() || path.lexically_normal()!=path || path.parent_path()!=current_root.parent_path() ||
+               unreadable || (parent.boot_id==boot && exists &&
+                 (static_cast<std::uint64_t>(info.st_dev)!=parent.root_device ||
+                  static_cast<std::uint64_t>(info.st_ino)!=parent.root_inode))) {
+                bool affected=false;
+                for(const auto& record:records) if(matches(parent,record)) {
+                    if(record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN)
+                        throw WorldError(wire::UNAVAILABLE,"Active copy parent identity cannot be verified");
+                    invalid_file_worktrees.insert(record.worktree_id());affected=true;
+                }
+                if(!affected) throw WorldError(wire::UNAVAILABLE,"Git worker parent identity cannot be verified");
+                unsafe_parents.insert(parent.identity_bytes);
+            }
+        }
+        for(const auto& record:records) {
+            if(invalid_file_worktrees.contains(record.worktree_id())) continue;
+            const auto parent=std::find_if(parents.begin(),parents.end(),[&](const auto& p){return matches(p,record);});
+            if(parent==parents.end()) {
+                if(record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN)
+                    throw WorldError(wire::UNAVAILABLE,"Copy job has no durable Git parent generation");
+                invalid_file_worktrees.insert(record.worktree_id());continue;
+            }
+            try {
+                const auto workspace=owner->workspace_get(record.workspace_id());
+                if(workspace.worktree()!=record.worktree_id())
+                    throw std::runtime_error("Copy workspace binding changed");
+                Query q(db.get(),"SELECT path,state FROM worktrees WHERE id=?");q.text(1,record.worktree_id());
+                if(!q.step() || q.text(1)!="ready") throw std::runtime_error("Copy worktree unavailable");
+                wire::WorktreeReply verified;verified.set_id(record.worktree_id());verified.set_path(q.text(0));
+                (void)file_engine(workspace,verified);
+            } catch(...) {
+                const auto durable=file_journal->find_copy_job(record.workspace_id(),record.job_id(),observer);
+                if(!durable || durable->state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN) throw;
+                invalid_file_worktrees.insert(record.worktree_id());
+            }
+        }
+        // Even quarantined files must not leave an exact live worker running.
+        // Cleanup failure remains uncertainty; it never clears the saved evidence.
+        for(const auto& record:records) {
+            if(!invalid_file_worktrees.contains(record.worktree_id()) || record.broker_root_boot_id()!=boot) continue;
+            const auto parent=std::find_if(parents.begin(),parents.end(),[&](const auto& p){return matches(p,record);});
+            if(parent==parents.end() || unsafe_parents.contains(parent->identity_bytes)) continue;
+            try {
+                const auto path=std::filesystem::path(parent->root_path)/"spatial-git-workers";
+                if(record.has_process_scope())
+                    (void)supervisor::ProcessScope::stop_recovered(path,
+                        record.process_scope_parent().device(),record.process_scope_parent().inode(),record.process_scope());
+                else
+                    supervisor::ProcessScope::remove_reserved_empty(path,record.process_scope_parent(),record.reserved_process_scope_name());
+            } catch(...) {}
+        }
+        if(active.state!=GitWorkerParentRecord::State::absent) {
+            const auto reconciled=file_journal->recovery_copy_jobs_all(observer);
+            const bool uncertain=std::any_of(reconciled.begin(),reconciled.end(),[&](const auto& record) {
+                return matches(active,record) && record.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN;
+            });
+            if(uncertain) {
+                file_journal->retain_git_worker_parent(active,observer);
+            } else {
+                struct stat prior{};
+                const bool prior_exists=lstat(active.root_path.c_str(),&prior)==0;
+                if(!prior_exists && errno!=ENOENT)
+                    throw WorldError(wire::UNAVAILABLE,"Cannot inspect Git worker root before retirement");
+                if(active.boot_id==boot && prior_exists) {
+                    if(active.state==GitWorkerParentRecord::State::reserved)
+                        supervisor::ProcessScope::remove_reserved_git_parent(active.root_path,active.root_device,
+                            active.root_inode,active.boot_id,"spatial-git-workers");
+                    else {
+                        supervisor::v1::ProcessScopeIdentity identity;
+                        if(!identity.ParseFromString(active.identity_bytes))
+                            throw WorldError(wire::UNAVAILABLE,"Git parent identity is malformed");
+                        supervisor::ProcessScope::remove_recovered_git_parent(active.root_path,
+                            active.root_device,active.root_inode,identity);
+                    }
+                }
+                file_journal->clear_git_worker_parent(active,observer);
+            }
+        } else if(parents.empty()) {
+            supervisor::ProcessScope::remove_unjournaled_empty_git_parent(current_root,current_identity.first,current_identity.second);
+        }
+        git_parent_recovery_complete=true;
     }
     std::set<std::string> invalid_file_worktrees;
     void validate_state_mapping(const workspace::v1::ConfiguredStateMapping& mapping) {
@@ -1120,10 +1250,11 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
     return out;
 }
 void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
-workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(const workspace::v1::ScopedAuthorityCheckRequest& request) {
+workspace::v1::ScopedAuthorityCheckReply ExecutionStore::scoped_authority_check(
+    const workspace::v1::ScopedAuthorityCheckRequest& request, bool refresh) {
     if (!impl_->authority || !impl_->authority->bound(request.workspace()))
         throw WorldError(wire::UNIMPLEMENTED, "Persistent scoped workspace authority is not configured");
-    auto decision = impl_->authority->scoped_check(request);
+    auto decision = impl_->authority->scoped_check(request, refresh);
     if (request.workspace() != "workspace-registry") {
         const auto workspace = workspace_get(request.workspace());
         const auto policy = rights_mask(workspace.policy());
@@ -1162,8 +1293,18 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         admission.set_workspace(workspace.id()); *admission.mutable_principal()=request.principal();
         admission.set_right(file_right(request)); admission.add_components(worktree_id);
         const auto allowed=scoped_authority_check(admission);
-        if(!allowed.allowed())
+        if(!allowed.allowed()) {
+            if(request.has_copy_job() && request.copy_job().command()!=FileCopyJob::START &&
+               request.copy_job().job_id().size()==16) {
+                const auto existing=impl_->file_engines.find(worktree_id);
+                if(existing!=impl_->file_engines.end()) {
+                    const auto principal_identity=request.principal().SerializeAsString();
+                    existing->second->engine->stop_copy_job_for_authority_loss(
+                        request.copy_job().job_id(),principal_identity);
+                }
+            }
             return file_action_error(operation,FileActionError::UNAUTHORIZED,"exact file right or workspace file policy denied the action");
+        }
         Query registered(impl_->db.get(),"SELECT path,state FROM worktrees WHERE id=?");
         registered.text(1,worktree_id);
         if(registered.step()!=SQLITE_ROW || registered.text(1)!="ready")
@@ -1177,6 +1318,24 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         }
         if(registered.text(0)!=expected_path)
             return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project path differs from workspace binding");
+        if(request.has_copy_job() && request.copy_job().command()==FileCopyJob::POLL) {
+            const auto durable=impl_->file_journal->find_copy_job(workspace.id(),request.copy_job().job_id(),impl_->observer);
+            if(durable && durable->worktree_id()==worktree_id) {
+                if(durable->principal_issuer_id()!=request.principal().issuer_id() ||
+                   durable->principal_actor_id()!=request.principal().actor_id())
+                    return file_action_error(operation,FileActionError::UNAUTHORIZED,"cabinet copy job belongs to another principal");
+                const auto fresh=scoped_authority_check(admission);
+                if(!fresh.allowed())
+                    return file_action_error(operation,FileActionError::UNAUTHORIZED,"authority changed before durable copy receipt delivery");
+                if(durable->has_terminal_receipt()) {
+                    FileActionReply reply;reply.set_protocol_version(1);reply.set_operation_id(operation);
+                    *reply.mutable_copy_job()=durable->terminal_receipt();
+                    return reply;
+                }
+                if(impl_->invalid_file_worktrees.contains(worktree_id))
+                    return file_action_error(operation,FileActionError::UNCERTAIN,"copy worker recovery is quarantined for this worktree",true);
+            }
+        }
         auto found=impl_->file_engines.find(worktree_id);
         wire::WorktreeReply verified;
         if(found==impl_->file_engines.end()) verified=impl_->worktree(worktree_id);
@@ -1194,6 +1353,35 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
             return file_action_error(operation,FileActionError::UNAUTHORIZED,"authority was revoked before a cached file outcome could be returned");
         if(prior.state==FileOperationRecord::State::conflict)
             return file_action_error(operation,FileActionError::CONFLICT,"operation identity is already bound to a different trusted request");
+        if(request.has_copy_job() && request.copy_job().command()==FileCopyJob::START) {
+            const auto durable=impl_->file_journal->find_copy_job_by_operation(workspace.id(),operation,impl_->observer);
+            if(durable) {
+                if(durable->initiating_request_sha256()!=digest ||
+                   durable->principal_issuer_id()!=request.principal().issuer_id() ||
+                   durable->principal_actor_id()!=request.principal().actor_id() ||
+                   durable->worktree_id()!=worktree_id)
+                    return file_action_error(operation,FileActionError::CONFLICT,
+                        "copy operation identity is already bound to different request context");
+                FileActionReply replay;replay.set_protocol_version(1);replay.set_operation_id(operation);
+                auto* receipt=replay.mutable_copy_job();receipt->set_job_id(durable->job_id());
+                using J=FileCopyJobJournalState;using R=FileCopyJobReceipt;
+                switch(durable->state()) {
+                  case J::FILE_COPY_JOB_JOURNAL_QUEUED: receipt->set_state(R::QUEUED); break;
+                  case J::FILE_COPY_JOB_JOURNAL_RUNNING:
+                  case J::FILE_COPY_JOB_JOURNAL_CANCEL_REQUESTED: receipt->set_state(R::RUNNING); break;
+                  default:
+                    if(durable->has_terminal_receipt()) *receipt=durable->terminal_receipt();
+                    else return file_action_error(operation,FileActionError::UNCERTAIN,
+                        "copy operation recovery has no durable terminal receipt",true);
+                }
+                // Reconcile only an unfinished operation intent. A durable job
+                // also resolves a retry whose operation outcome is already
+                // complete or uncertain; never rewrite those retained outcomes.
+                if(prior.state==FileOperationRecord::State::intent)
+                    impl_->file_journal->finish(binding,FileOperationRecord::State::complete,replay,impl_->observer);
+                return replay;
+            }
+        }
         if(prior.state==FileOperationRecord::State::intent || prior.state==FileOperationRecord::State::uncertain)
             return file_action_error(operation,FileActionError::UNCERTAIN,"operation has unresolved durable intent",true);
         if(prior.state==FileOperationRecord::State::complete) {
@@ -1207,7 +1395,18 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         if(!executor) throw std::logic_error("file effect executor type mismatch");
         active_executor=executor;
         executor->set_operation(trusted,binding);
-        auto reply=entry.engine->handle(trusted);
+        impl_->file_action_dispatch_active = true;
+        auto reply = [&] {
+            struct ResetDispatch {
+                Impl& state;
+                ~ResetDispatch() { state.file_action_dispatch_active = false; }
+            } reset{*impl_};
+            return entry.engine->handle(trusted);
+        }();
+        if (impl_->copy_authority_reconcile_pending) {
+            impl_->copy_authority_reconcile_pending = false;
+            reconcile_authority();
+        }
         if(reply.has_error() && reply.error().code()==FileActionError::STALE_HANDLE)
             record_file_action_diagnostic(reply,file_engine_stale_source(reply.error().detail()));
         if(executor->exhausted()) return file_action_error(operation,FileActionError::EXHAUSTED,"file-operation journal capacity is exhausted before filesystem effects");
@@ -1581,6 +1780,28 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
 }
 void ExecutionStore::reconcile_authority() {
     if (!impl_->authority) return;
+    if (impl_->file_action_dispatch_active) {
+        impl_->copy_authority_reconcile_pending = true;
+    } else {
+        // Authority watcher updates arrive on this broker thread. Cancel file-copy
+        // workers here, without waiting for their owners to issue another request.
+        for (const auto& [worktree, entry] : impl_->file_engines) {
+            (void)worktree;
+            if (!entry || !entry->engine) continue;
+            const auto workspace = entry->workspace;
+            const auto component = entry->worktree;
+            entry->engine->reconcile_copy_job_authority([this, workspace, component](const std::string& encoded) {
+                auth::ActorRef principal;
+                if (!principal.ParseFromString(encoded)) return false;
+                workspace::v1::ScopedAuthorityCheckRequest check;
+                check.set_workspace(workspace);
+                *check.mutable_principal() = std::move(principal);
+                check.set_right(auth::FILE_COPY);
+                check.add_components(component);
+                return scoped_authority_check(check, false).allowed();
+            });
+        }
+    }
     struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };
     std::vector<Running> records;
     {
@@ -1809,6 +2030,7 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
 void ExecutionStore::set_native_launch(NativeLaunch* native) { impl_->native = native; }
 void ExecutionStore::set_resources(WorkspaceResources* resources) {
     impl_->resources=resources;if(!resources)return;
+    resources->bind_git_worker_journal(impl_->file_journal.get());
     Query missing(impl_->db.get(),"SELECT count(*) FROM copy_operations c JOIN workspaces w ON w.id=c.destination LEFT JOIN workspace_copy_policies p ON p.workspace=w.id WHERE c.phase=7 AND p.workspace IS NULL");
     require(missing.step()==SQLITE_ROW && sqlite3_column_int64(missing.value,0)==0,"Published copy is missing its durable resource policy");
     Query bindings(impl_->db.get(),"SELECT workspace,binding FROM workspace_copy_policies ORDER BY workspace");
@@ -1817,6 +2039,8 @@ void ExecutionStore::set_resources(WorkspaceResources* resources) {
         require(profile.ParseFromString(bindings.text(1)),"Persisted copy resource policy is malformed");validate_message(profile);
         resources->register_copy_workspace(bindings.text(0),profile);
     }
+    impl_->recover_git_worker_parent_before_dispatch();
+    resources->finish_initialization();
 }
 void ExecutionStore::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
 void ExecutionStore::stop_all() {

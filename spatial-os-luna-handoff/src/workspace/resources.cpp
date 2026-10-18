@@ -1,5 +1,6 @@
 #include "workspace/resources.hpp"
 #include "supervisor/process_scope_controller_reset.hpp"
+#include "workspace/file_operation_journal.hpp"
 #include "workspace/storage_devices.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
@@ -126,8 +127,10 @@ struct Group {
     Budget budget;
     std::uint64_t memory = 0, swap = 0, processes = 0, applications = 0;
     std::map<std::string, std::shared_ptr<Group>> actors;
-    Group(const std::filesystem::path& parent, const Budget& value) : budget(value) {
-        scope = supervisor::ProcessScope::prepare(parent, &budget);
+    Group(const std::filesystem::path& parent, const Budget& value,
+          const std::string& reserved_name = {}) : budget(value) {
+        scope = reserved_name.empty() ? supervisor::ProcessScope::prepare(parent, &budget)
+                                      : supervisor::ProcessScope::prepare_named(parent, reserved_name, &budget);
         path = parent / scope->state().identity().scope_name();
         directory.reset(open(path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
         struct stat info{};
@@ -210,10 +213,53 @@ struct WorkspaceResources::Impl {
     std::filesystem::path root;
     int directory = -1;
     identity::tls_detail::Fd manager_directory;
-    bool manager_created = false, moved = false, enabled = false;
+    bool manager_created = false, moved = false, enabled = false, activated = false;
     std::map<std::string, std::shared_ptr<Group>> groups;
     std::shared_ptr<Group> git_group;
+    FileOperationJournal* git_journal = nullptr;
+    std::filesystem::path git_recovery_parent_path;
     std::uint64_t memory = 0, swap = 0, processes = 0;
+    Budget git_budget() const {
+        Budget budget;
+        budget.set_memory_bytes(256ULL * 1024 * 1024);
+        budget.set_swap_bytes(0); budget.set_processes(16); budget.set_cpu_microseconds(200000);
+        for (const auto& source : config.broker_budget().io()) {
+            auto* target = budget.add_io(); target->set_major(source.major()); target->set_minor(source.minor());
+            target->set_read_bytes_per_second(source.read_bytes_per_second());
+            target->set_write_bytes_per_second(source.write_bytes_per_second());
+        }
+        supervisor::validate_budget(budget);
+        return budget;
+    }
+    void ensure_git_group() {
+        activate();
+        if(git_group) return;
+        const auto budget=git_budget();
+        if(!fits(budget)) throw WorldError(wire::RESOURCE_EXHAUSTED,"Broker envelope cannot reserve Git worker capacity");
+        if(git_journal) {
+            struct stat root_stat{};
+            if(fstat(directory,&root_stat)!=0) throw std::runtime_error("Cannot inspect Git worker root");
+            std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string boot_id;std::getline(boot_file,boot_id);
+            const auto reservation=git_journal->reserve_git_worker_parent(
+                static_cast<std::uint64_t>(root_stat.st_dev),static_cast<std::uint64_t>(root_stat.st_ino),root.string(),boot_id,{});
+            if(reservation.state==GitWorkerParentRecord::State::bound)
+                throw std::runtime_error("Bound Git worker parent requires broker-wide recovery before reuse");
+            if(reservation.state!=GitWorkerParentRecord::State::reserved)
+                throw std::runtime_error("Git worker parent reservation was not durable");
+            supervisor::ProcessScope::remove_reserved_git_parent(root,
+                reservation.root_device,reservation.root_inode,reservation.boot_id,"spatial-git-workers");
+        }
+        auto group=std::make_shared<Group>(root,budget,"spatial-git-workers");
+        group->scope->throttle_memory(192ULL*1024*1024);
+        if(git_journal) {
+            const auto bytes=group->scope->identity().SerializeAsString();
+            struct stat root_stat{};if(fstat(directory,&root_stat)!=0)throw std::runtime_error("Cannot inspect Git worker root after creation");
+            std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string boot_id;std::getline(boot_file,boot_id);
+            git_journal->bind_git_worker_parent(static_cast<std::uint64_t>(root_stat.st_dev),
+                static_cast<std::uint64_t>(root_stat.st_ino),root.string(),boot_id,bytes,{});
+        }
+        reserve(budget); git_group=std::move(group);
+    }
     std::uint64_t unfunded(const char* counter, std::uint64_t manager_reserve, unsigned dimension) const {
         auto funded = std::min(std::stoull(read_at(manager_directory.value, counter)),
                                static_cast<unsigned long long>(manager_reserve));
@@ -274,31 +320,89 @@ struct WorkspaceResources::Impl {
         check(fstatfs(directory, &fs) == 0 && fstat(directory, &info) == 0, "Cannot inspect broker resource root");
         require(fs.f_type == CGROUP2_SUPER_MAGIC && info.st_uid == geteuid() && read_at(directory, "cgroup.type") == "domain\n",
                 "Expected an owned domain cgroup");
-        require(words(read_at(directory, "cgroup.procs")) == std::set<std::string>{std::to_string(getpid())} &&
-                words(read_at(directory, "cgroup.subtree_control")).empty(), "Broker resource root must be exclusive and unconfigured");
-        std::istringstream stats(read_at(directory, "cgroup.stat")); std::string key; unsigned long long count = 0; bool empty = false;
-        while (stats >> key >> count) if (key == "nr_descendants") empty = count == 0;
-        require(empty, "Broker resource root must have no existing descendants");
+        require(words(read_at(directory, "cgroup.procs")) == std::set<std::string>{std::to_string(getpid())},
+                "Broker resource root must contain only the broker before recovery");
         const auto available = words(read_at(directory, "cgroup.controllers"));
         for (const auto* name : {"cpu", "memory", "pids", "io"}) require(available.contains(name), "Required controller is unavailable");
-        // Bind the exclusive root once, before opening any execution database or running Git.
-        // The envelope covers the manager and every nested workspace process.
-        require(read_at(directory, "memory.max") == "max\n" && read_at(directory, "memory.swap.max") == "max\n" &&
-                read_at(directory, "pids.max") == "max\n" && read_at(directory, "cpu.max") == "max 100000\n" &&
-                supervisor::detail::io_limits_are_unlimited(read_at(directory, "io.max")),
-                "Broker envelope must not replace existing root limits");
-        write_budget(directory, config.broker_budget());
-        check(mkdirat(directory, "broker-manager", 0700) == 0, "Cannot create broker manager group"); manager_created = true;
-        const int manager = openat(directory, "broker-manager", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
-        check(manager >= 0, "Cannot pin broker manager group");
+    }
+    void remove_empty_child(const char* name) {
+        const int child_fd=openat(directory,name,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        if(child_fd<0 && errno==ENOENT)return;
+        check(child_fd>=0,"Cannot open stale broker cgroup");
+        identity::tls_detail::Fd child(child_fd);
+        struct statfs fs{};struct stat info{};
+        check(fstatfs(child.value,&fs)==0 && fstat(child.value,&info)==0,"Cannot inspect stale broker cgroup");
+        require(fs.f_type==CGROUP2_SUPER_MAGIC && info.st_uid==geteuid(),"Stale broker child is not an owned cgroup");
+        require(read_at(child.value,"cgroup.procs").empty() &&
+                read_at(child.value,"cgroup.events").find("populated 0\n")!=std::string::npos,
+                "Stale broker child is populated");
+        std::istringstream stats(read_at(child.value,"cgroup.stat"));std::string key;unsigned long long count=0;bool known=false;
+        while(stats>>key>>count)if(key=="nr_descendants"){known=true;require(count==0,"Stale broker child has descendants");}
+        require(known,"Stale broker child descendant count is unavailable");
+        struct stat named{};check(fstatat(directory,name,&named,AT_SYMLINK_NOFOLLOW)==0,"Stale broker child disappeared");
+        require(named.st_dev==info.st_dev && named.st_ino==info.st_ino,"Stale broker child name changed");
+        check(unlinkat(directory,name,AT_REMOVEDIR)==0,"Cannot remove empty stale broker child");
+    }
+    void activate() {
+        if(activated)return;
+        require(words(read_at(directory,"cgroup.procs"))==std::set<std::string>{std::to_string(getpid())},
+                "Broker resource root is not exclusive after copy recovery");
+        remove_empty_child("broker-manager");
+        std::istringstream stats(read_at(directory,"cgroup.stat"));std::string key;unsigned long long count=0;bool empty=false;
+        while(stats>>key>>count)if(key=="nr_descendants")empty=count==0;
+        require(empty,"Broker resource root still has unknown descendants after copy recovery");
+        const auto active=words(read_at(directory,"cgroup.subtree_control"));
+        for(const auto& name:active)require(name=="cpu"||name=="memory"||name=="pids"||name=="io",
+                "Broker resource root has an unknown subtree controller");
+        if(!active.empty()) {
+            const auto disable=supervisor::detail::stale_subtree_controller_disable_command(
+                read_at(directory,"cgroup.subtree_control"));
+            if(!disable.empty())write_at(directory,"cgroup.subtree_control",disable);
+        }
+        const auto expected_cpu=std::to_string(config.broker_budget().cpu_microseconds())+" 100000\n";
+        auto compatible=[](const std::string& current,const std::string& expected,const std::string& fresh) {
+            return current==fresh || current==expected;
+        };
+        require(compatible(read_at(directory,"memory.max"),std::to_string(config.broker_budget().memory_bytes())+"\n","max\n") &&
+                compatible(read_at(directory,"memory.swap.max"),std::to_string(config.broker_budget().swap_bytes())+"\n","max\n") &&
+                compatible(read_at(directory,"pids.max"),std::to_string(config.broker_budget().processes())+"\n","max\n") &&
+                compatible(read_at(directory,"cpu.max"),expected_cpu,"max 100000\n") &&
+                compatible(read_at(directory,"memory.oom.group"),"1\n","0\n"),
+                "Broker envelope would replace an unknown root limit");
+        const auto io=read_at(directory,"io.max");
+        std::map<std::string,std::pair<std::string,std::string>> expected_io;
+        for(const auto& item:config.broker_budget().io())
+            expected_io[std::to_string(item.major())+":"+std::to_string(item.minor())]=
+                {std::to_string(item.read_bytes_per_second()),std::to_string(item.write_bytes_per_second())};
+        std::map<std::string,std::pair<std::string,std::string>> actual_io;
+        std::istringstream io_lines(io);std::string io_line;
+        while(std::getline(io_lines,io_line)) {
+            std::istringstream fields(io_line);std::string device,field,read="max",write="max";
+            if(!(fields>>device))continue;
+            while(fields>>field) {
+                const auto split=field.find('=');
+                require(split!=std::string::npos,"Malformed existing broker I/O limit");
+                const auto name=field.substr(0,split),value=field.substr(split+1);
+                if(name=="rbps")read=value;else if(name=="wbps")write=value;
+                else require((name=="riops"||name=="wiops")&&value=="max",
+                    "Broker envelope would replace an unknown I/O operation limit");
+            }
+            actual_io[device]={read,write};
+        }
+        require(io.empty() || actual_io==expected_io,"Broker envelope would replace unknown I/O limits");
+        write_budget(directory,config.broker_budget());
+        check(mkdirat(directory,"broker-manager",0700)==0,"Cannot create broker manager group");manager_created=true;
+        const int manager=openat(directory,"broker-manager",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        check(manager>=0,"Cannot pin broker manager group");
         try {
-            write_at(manager, "cgroup.procs", "0\n"); moved = true; enabled = true;
-            write_at(directory, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
-            write_budget(manager, config.manager_budget());
-        } catch (...) { close(manager); throw; }
+            write_at(manager,"cgroup.procs","0\n");moved=true;
+            write_at(directory,"cgroup.subtree_control","+cpu +memory +pids +io\n");enabled=true;
+            write_budget(manager,config.manager_budget());
+        } catch(...) {close(manager);throw;}
         close(manager);
-        manager_directory.reset(openat(directory, "broker-manager", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
-        check(manager_directory.value >= 0, "Cannot retain manager resource accounting");
+        manager_directory.reset(openat(directory,"broker-manager",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+        check(manager_directory.value>=0,"Cannot retain manager resource accounting");
+        activated=true;
     }
     ~Impl() {
         try {
@@ -379,6 +483,9 @@ WorkspaceResources::~WorkspaceResources() = default;
 GitJobResources::GitJobResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 GitJobResources::~GitJobResources() = default;
 supervisor::ProcessScope& GitJobResources::scope() { return *impl_->scope; }
+const supervisor::v1::ProcessScopeIdentity& GitJobResources::parent_identity() const {
+    return impl_->group->scope->identity();
+}
 ApplicationResources::ApplicationResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 ApplicationResources::~ApplicationResources() = default;
 supervisor::ProcessScope& ApplicationResources::scope() { return *impl_->scope; }
@@ -408,40 +515,52 @@ bool WorkspaceResources::has_profile(const std::string& name, const std::string&
     for (const auto& selected:policy->profiles()) if (selected.name()==name) return true;
     return false;
 }
-std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job(std::span<const int> directory_handles) {
+const supervisor::v1::ProcessScopeIdentity& WorkspaceResources::git_worker_parent_identity() {
+    impl_->ensure_git_group();
+    return impl_->git_group->scope->identity();
+}
+std::filesystem::path WorkspaceResources::git_worker_parent_path() const {
+    if(!impl_->git_recovery_parent_path.empty()) return impl_->git_recovery_parent_path;
+    return impl_->git_group ? impl_->git_group->path : impl_->root / "spatial-git-workers";
+}
+std::filesystem::path WorkspaceResources::broker_root_path() const { return impl_->root; }
+void WorkspaceResources::set_git_worker_recovery_parent_path(const std::filesystem::path& path) {
+    require(!path.empty() && path.is_absolute() && path.lexically_normal()==path,
+        "Git worker recovery parent path must be absolute and normalized");
+    impl_->git_recovery_parent_path=path;
+}
+void WorkspaceResources::clear_git_worker_recovery_parent_path() { impl_->git_recovery_parent_path.clear(); }
+void WorkspaceResources::bind_git_worker_journal(FileOperationJournal* journal) {
+    require(!impl_->git_group,"Git worker journal must bind before worker parent creation");
+    impl_->git_journal=journal;
+}
+void WorkspaceResources::finish_initialization() { impl_->activate(); }
+std::pair<std::uint64_t,std::uint64_t> WorkspaceResources::broker_root_identity() const {
+    struct stat info{};
+    if(fstat(impl_->directory,&info)!=0) throw std::runtime_error("Cannot inspect broker cgroup identity");
+    return {static_cast<std::uint64_t>(info.st_dev),static_cast<std::uint64_t>(info.st_ino)};
+}
+std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job(
+    std::span<const int> directory_handles, const std::string& reserved_scope_name) {
     require(!directory_handles.empty() && directory_handles.size() <= 12, "Git worker requires bounded directory handles");
     validate_storage_device_handles(impl_->config.broker_budget(), directory_handles);
-    Budget budget;
-    budget.set_memory_bytes(256ULL * 1024 * 1024);
-    budget.set_swap_bytes(0);
-    budget.set_processes(16);
-    budget.set_cpu_microseconds(200000);
-    for (const auto& source : impl_->config.broker_budget().io()) {
-        auto* target = budget.add_io();
-        target->set_major(source.major()); target->set_minor(source.minor());
-        target->set_read_bytes_per_second(source.read_bytes_per_second());
-        target->set_write_bytes_per_second(source.write_bytes_per_second());
-    }
-    supervisor::validate_budget(budget);
-    if (!impl_->git_group) {
-        if (!impl_->fits(budget)) throw WorldError(wire::RESOURCE_EXHAUSTED, "Broker envelope cannot reserve Git worker capacity");
-        auto group = std::make_shared<Group>(impl_->root, budget);
-        group->scope->throttle_memory(192ULL * 1024 * 1024);
-        impl_->reserve(budget);
-        impl_->git_group = std::move(group);
-    }
+    Budget budget=impl_->git_budget();
+    impl_->ensure_git_group();
     // Keep completed-job cache in this bounded parent. Each new job still gets its own scope.
     if (!impl_->git_group->fits(budget))
         throw WorldError(wire::RESOURCE_EXHAUSTED, "Git worker capacity is occupied");
     auto prepared = std::make_unique<GitJobResources::Impl>();
     prepared->owner = impl_; prepared->group = impl_->git_group; prepared->budget = budget;
     prepared->group->reserve(budget); prepared->reserved = true;
-    prepared->scope = supervisor::ProcessScope::prepare(prepared->group->path, &budget);
+    prepared->scope = reserved_scope_name.empty()
+        ? supervisor::ProcessScope::prepare(prepared->group->path, &budget)
+        : supervisor::ProcessScope::prepare_named(prepared->group->path, reserved_scope_name, &budget);
     prepared->scope->throttle_memory(192ULL * 1024 * 1024);
     return std::unique_ptr<GitJobResources>(new GitJobResources(std::move(prepared)));
 }
 std::unique_ptr<ApplicationResources> WorkspaceResources::prepare(const workspace::v1::LaunchRequest& request,
     const std::array<std::filesystem::path, 3>& paths) {
+    impl_->activate();
     const auto* policy = &impl_->config.default_policy();
     for (const auto& selected : impl_->config.workspaces()) if (selected.workspace() == request.workspace()) policy = &selected;
     if(const auto copied=impl_->copied_policies.find(request.workspace());copied!=impl_->copied_policies.end())policy=&copied->second;

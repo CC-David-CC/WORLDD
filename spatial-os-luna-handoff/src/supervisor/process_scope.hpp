@@ -3,8 +3,10 @@
 #include <array>
 #include <chrono>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <string>
+#include <cstdint>
 #include <vector>
 #include <sys/types.h>
 
@@ -18,6 +20,22 @@ public:
     // Reuses one named direct child owned by a durable broker identity.
     static std::unique_ptr<ProcessScope> prepare_owned(const std::filesystem::path& delegated_root,
         const std::string& scope_name);
+    // Create one exact caller-reserved child cgroup. The name must be unique under
+    // delegated_root and is validated as a single path component.
+    static std::unique_ptr<ProcessScope> prepare_named(const std::filesystem::path& delegated_root,
+                                               const std::string& scope_name,
+                                               const v1::ProcessScopeBudget* budget = nullptr);
+    // Stop only the exact recorded child scope below an identity-pinned parent.
+    static bool stop_recovered(const std::filesystem::path&, std::uint64_t, std::uint64_t,
+                               const v1::ProcessScopeIdentity&,
+                               const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
+    static bool remove_reserved_empty(const std::filesystem::path&, const v1::ProcessScopeIdentity&,
+                                      const std::string&);
+    static bool remove_recovered_git_parent(const std::filesystem::path&, std::uint64_t, std::uint64_t,
+                                            const v1::ProcessScopeIdentity&);
+    static bool remove_reserved_git_parent(const std::filesystem::path&, std::uint64_t, std::uint64_t,
+                                           const std::string&, const std::string&);
+    static bool remove_unjournaled_empty_git_parent(const std::filesystem::path&, std::uint64_t, std::uint64_t);
     void start(const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams,
                const std::vector<int>& inherited = {}, bool allow_test_security_evidence = false);
     static std::unique_ptr<ProcessScope> launch(const std::filesystem::path& delegated_root,
@@ -44,11 +62,12 @@ public:
     v1::PayloadQuiescenceReceipt payload_receipt() const;
     void thaw_payload();
     void request_stop();
-    v1::ProcessScopeStopped complete_stop(std::chrono::steady_clock::time_point deadline);
+    v1::ProcessScopeStopped complete_stop(std::chrono::steady_clock::time_point deadline,
+        const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
     const v1::ProcessScopeIdentity& identity() const;
     bool diagnostic_populated() const;
     bool diagnostic_child_reaped() const;
-    v1::ProcessScopeStopped stop();
+    v1::ProcessScopeStopped stop(const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
 private:
     static std::unique_ptr<ProcessScope> prepare_impl(const std::filesystem::path&, const v1::ProcessScopeBudget*, const std::string&);
     ProcessScope() = default;

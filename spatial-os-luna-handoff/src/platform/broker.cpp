@@ -74,6 +74,48 @@ bool bootstrap_report(const authority::v1::BootstrapReport& report, const broker
     }
     return true;
 }
+bool valid_copy_job_receipt(const workspace::v1::FileCopyJob& request,
+                            const workspace::v1::FileCopyJobReceipt& receipt) {
+    using Job = workspace::v1::FileCopyJob;
+    using Receipt = workspace::v1::FileCopyJobReceipt;
+    using Error = workspace::v1::FileActionError;
+    if (!receipt.GetReflection()->GetUnknownFields(receipt).empty() ||
+        receipt.job_id().size() != 16 || receipt.detail().size() > 1024 ||
+        receipt.bytes_copied() > 4ULL * 1024 * 1024 * 1024 ||
+        receipt.entries_copied() > 200000 ||
+        !Receipt::State_IsValid(receipt.state()) ||
+        receipt.state() == Receipt::STATE_UNSPECIFIED) return false;
+    if (request.command() == Job::START) {
+        // A durable retry returns the same job's current state, including its
+        // immutable terminal result. Only a new START is necessarily QUEUED.
+        if (!request.job_id().empty() ||
+            receipt.bytes_copied() > request.maximum_bytes() ||
+            receipt.entries_copied() > request.maximum_entries()) return false;
+    } else if (request.command() == Job::POLL || request.command() == Job::CANCEL) {
+        if (request.job_id().size() != 16 || receipt.job_id() != request.job_id()) return false;
+        if (request.command() == Job::CANCEL &&
+            (receipt.state() == Receipt::QUEUED || receipt.state() == Receipt::RUNNING)) return false;
+    } else return false;
+    if (receipt.state() == Receipt::QUEUED &&
+        (receipt.bytes_copied() != 0 || receipt.entries_copied() != 0)) return false;
+    if (receipt.state() == Receipt::COMPLETE) {
+        if (receipt.content_digest().size() != 32 || receipt.failure_code() != Error::CODE_UNSPECIFIED) return false;
+    } else if (!receipt.content_digest().empty()) return false;
+    if (receipt.state() == Receipt::FAILED) {
+        switch (receipt.failure_code()) {
+        case Error::INVALID_ARGUMENT:
+        case Error::NOT_FOUND:
+        case Error::EXHAUSTED:
+        case Error::UNAVAILABLE:
+        case Error::STALE_HANDLE:
+        case Error::UNIMPLEMENTED:
+            break;
+        default:
+            return false;
+        }
+    } else if (receipt.failure_code() != Error::CODE_UNSPECIFIED) return false;
+    return true;
+}
 bool valid_control_lease(const broker_wire::ApplicationControlLease& lease) {
     return lease.id().size() == 32 && lease.principal().issuer_id().size() == 32 &&
         lease.principal().actor_id().size() == 32 && lease.application().server_id().size() == 32 &&
@@ -682,7 +724,8 @@ workspace::v1::FileActionReply BrokerClient::file_action(const workspace::v1::Fi
         case workspace::v1::FileActionRequest::kTrash:
             valid_outcome = received->has_trash(); break;
         case workspace::v1::FileActionRequest::kCopyJob:
-            valid_outcome = received->has_copy_job(); break;
+            valid_outcome = received->has_copy_job() &&
+                valid_copy_job_receipt(command.copy_job(), received->copy_job()); break;
         case workspace::v1::FileActionRequest::kTrashInspect:
             valid_outcome = received->has_trash_entry(); break;
         case workspace::v1::FileActionRequest::ACTION_NOT_SET:

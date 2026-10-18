@@ -406,7 +406,8 @@ WorkspaceAuthority::WorkspaceAuthority(const std::filesystem::path& path, Execut
     : impl_(std::make_unique<Impl>(path, execution)) {}
 WorkspaceAuthority::~WorkspaceAuthority() = default;
 bool WorkspaceAuthority::bound(const std::string& workspace) const { return impl_->stores.contains(workspace); }
-pb::ScopedAuthorityCheckReply WorkspaceAuthority::scoped_check(const pb::ScopedAuthorityCheckRequest& request) {
+pb::ScopedAuthorityCheckReply WorkspaceAuthority::scoped_check(
+    const pb::ScopedAuthorityCheckRequest& request, bool refresh) {
     require(!request.workspace().empty() && request.workspace().size() <= 256 && request.workspace().find('\0') == std::string::npos,
             "Workspace authority identity is invalid");
     require(request.has_principal(), "Authenticated actor reference is required");
@@ -426,10 +427,12 @@ pb::ScopedAuthorityCheckReply WorkspaceAuthority::scoped_check(const pb::ScopedA
     } else {
         require(request.right() != a::WORKSPACE_CREATE, "Workspace creation authority is registry-scoped");
     }
-    try {
-        impl_->prepare(request.workspace(), request.principal());
-    } catch (const WorldError& error) {
-        if (error.code != wire::UNAUTHORIZED || impl_->identity_active(request.principal())) throw;
+    if (refresh) {
+        try {
+            impl_->prepare(request.workspace(), request.principal());
+        } catch (const WorldError& error) {
+            if (error.code != wire::UNAUTHORIZED || impl_->identity_active(request.principal())) throw;
+        }
     }
     a::Scope scope; *scope.mutable_domain() = domain(request.workspace());
     for (const auto& component : components) scope.add_components(component);

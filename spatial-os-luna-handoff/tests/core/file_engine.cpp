@@ -157,6 +157,285 @@ static pb::FileActionReply create(spatial::FileEngine& engine, const char* name,
   action.mutable_create()->set_content("data");
   return engine.handle(action);
 }
+static void recovery_requires_scope_cleanup_for_same_boot_root_replacement() {
+  const std::string saved_boot(36, 'a');
+  const std::string current_boot(36, 'a');
+  const std::string prior_boot(36, 'b');
+  assert(!spatial::file_engine_detail::can_skip_recovered_scope_cleanup(
+      false, saved_boot, current_boot));
+  assert(!spatial::file_engine_detail::can_skip_recovered_scope_cleanup(
+      true, saved_boot, current_boot));
+  assert(spatial::file_engine_detail::can_skip_recovered_scope_cleanup(
+      false, saved_boot, prior_boot));
+  assert(!spatial::file_engine_detail::can_skip_recovered_scope_cleanup(
+      false, {}, current_boot));
+  assert(!spatial::file_engine_detail::can_skip_recovered_scope_cleanup(
+      false, saved_boot, {}));
+}
+static void copy_staging_root_is_reserved_and_stale_state_fails_closed() {
+  TempProject project;
+  Auth auth;
+  assert(mkdirat(project.root, ".spatial-copy-staging", 0700) == 0);
+  const int stage = openat(project.root, ".spatial-copy-staging",
+                           O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  assert(stage >= 0);
+  assert(mkdirat(stage, ".job-stale", 0700) == 0);
+  close(stage);
+  bool rejected = false;
+  try {
+    spatial::FileEngine engine(project.root, "workspace-a", {"cabinet-opaque-id"}, auth);
+  } catch (const std::invalid_argument&) {
+    rejected = true;
+  }
+  assert(rejected);
+  struct stat stale {};
+  assert(fstatat(project.root, ".spatial-copy-staging/.job-stale", &stale,
+                 AT_SYMLINK_NOFOLLOW) == 0 && S_ISDIR(stale.st_mode));
+  const int stage_again = openat(project.root, ".spatial-copy-staging",
+                                 O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  assert(stage_again >= 0 && unlinkat(stage_again, ".job-stale", AT_REMOVEDIR) == 0);
+  close(stage_again);
+  spatial::FileEngine engine(project.root, "workspace-a", {"cabinet-opaque-id"}, auth);
+  auto browse = request(98);
+  browse.mutable_browse()->set_page_size(64);
+  const auto listing = engine.handle(browse);
+  assert(listing.has_directory());
+  for (const auto& entry : listing.directory().entries())
+    assert(entry.name() != ".spatial-copy-staging");
+  auto create_reserved = request(99);
+  create_reserved.mutable_create()->set_basename(".spatial-copy-staging");
+  create_reserved.mutable_create()->set_content("must not replace broker staging");
+  assert(engine.handle(create_reserved).error().code() ==
+         pb::FileActionError::INVALID_ARGUMENT);
+}
+
+static pb::FileCopyJobJournalRecord durable_copy_start_intent(
+    const std::string& job_id, const struct stat& root_identity) {
+  pb::FileCopyJobJournalRecord record;
+  record.set_format_version(1);
+  record.set_workspace_id("workspace-a");
+  record.set_job_id(job_id);
+  record.set_initiating_operation_id(std::string(16, job_id[0]));
+  record.set_initiating_request_sha256(std::string(32, 'd'));
+  record.set_principal_issuer_id(std::string(32, 'i'));
+  record.set_principal_actor_id(std::string(32, 'a'));
+  record.set_worktree_id("cabinet-opaque-id");
+  record.set_worktree_root_device(static_cast<std::uint64_t>(root_identity.st_dev));
+  record.set_worktree_root_inode(static_cast<std::uint64_t>(root_identity.st_ino));
+  record.set_exact_right(az::FILE_COPY);
+  record.add_source_path_components("source.bin");
+  auto* source=record.mutable_source();
+  source->set_device(static_cast<std::uint64_t>(root_identity.st_dev));
+  source->set_inode(static_cast<std::uint64_t>(root_identity.st_ino)+1);
+  source->set_type(pb::FileCopyFilesystemIdentity::REGULAR_FILE);
+  auto* destination=record.mutable_destination_directory();
+  destination->set_device(static_cast<std::uint64_t>(root_identity.st_dev));
+  destination->set_inode(static_cast<std::uint64_t>(root_identity.st_ino));
+  destination->set_type(pb::FileCopyFilesystemIdentity::DIRECTORY);
+  record.set_destination_basename("recovered-copy.bin");
+  record.set_staging_name(".spatial-copy-stage-"+operation_hex(job_id));
+  auto* stage_root=record.mutable_staging_root();
+  stage_root->set_device(static_cast<std::uint64_t>(root_identity.st_dev));
+  stage_root->set_inode(static_cast<std::uint64_t>(root_identity.st_ino)+2);
+  stage_root->set_type(pb::FileCopyFilesystemIdentity::DIRECTORY);
+  record.set_staging_subvolume_id(0);
+  record.set_destination_subvolume_id(0);
+  record.set_maximum_bytes(1024);
+  record.set_maximum_entries(8);
+  auto* parent=record.mutable_process_scope_parent();
+  parent->set_launch_id(std::string(16, 'p'));
+  parent->set_scope_name("spatial-git-workers");
+  parent->set_boot_id("12345678-1234-1234-1234-123456789012");
+  parent->set_device(1);
+  parent->set_inode(2);
+  record.set_broker_root_device(1);
+  record.set_broker_root_inode(3);
+  record.set_broker_root_boot_id(parent->boot_id());
+  record.set_reserved_process_scope_name("copy-"+operation_hex(job_id));
+  record.set_state(pb::FILE_COPY_JOB_JOURNAL_START_INTENT);
+  record.set_created_at_unix_ms(1);
+  record.set_updated_at_unix_ms(1);
+  return record;
+}
+
+static void recovered_copy_job_poll_and_cancel_use_durable_receipt() {
+  TempProject project;
+  Auth auth;
+  struct stat root_identity{};
+  assert(fstat(project.root,&root_identity)==0);
+  const auto state=std::filesystem::path(project.path)/"journal-state";
+  assert(std::filesystem::create_directory(state));
+  spatial::FileOperationJournal journal(state);
+  const std::string job_id(16,'r');
+  assert(journal.bind_root("cabinet-opaque-id",
+      static_cast<std::uint64_t>(root_identity.st_dev),
+      static_cast<std::uint64_t>(root_identity.st_ino),{}));
+  auto cancelled=durable_copy_start_intent(job_id,root_identity);
+  journal.begin_copy_job(cancelled,{});
+  cancelled.set_state(pb::FILE_COPY_JOB_JOURNAL_CANCELLED);
+  cancelled.set_updated_at_unix_ms(2);
+  auto* terminal=cancelled.mutable_terminal_receipt();
+  terminal->set_job_id(job_id);
+  terminal->set_state(pb::FileCopyJobReceipt_State_CANCELLED);
+  terminal->set_detail("recovered and stopped before publication");
+  journal.update_copy_job(cancelled,{});
+
+  auto unresolved=durable_copy_start_intent(std::string(16,'u'),root_identity);
+  unresolved.set_initiating_operation_id(std::string(16,'v'));
+  journal.begin_copy_job(unresolved,{});
+
+  spatial::FileEngine engine(project.root,"workspace-a",{"cabinet-opaque-id"},
+      auth,[]{return spatial::FileEngine::MonotonicClock::now();},nullptr,nullptr,
+      -1,{},&journal);
+  auto poll=request(901);
+  poll.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+  poll.mutable_copy_job()->set_job_id(job_id);
+  const auto polled=engine.handle(poll);
+  assert(polled.has_copy_job() &&
+      polled.copy_job().SerializeAsString()==terminal->SerializeAsString());
+
+  auto cancel=request(902);
+  cancel.mutable_copy_job()->set_command(pb::FileCopyJob_Command_CANCEL);
+  cancel.mutable_copy_job()->set_job_id(job_id);
+  const auto cancelled_again=engine.handle(cancel);
+  assert(cancelled_again.has_copy_job() &&
+      cancelled_again.copy_job().SerializeAsString()==terminal->SerializeAsString());
+
+  auto foreign=request(903);
+  foreign.mutable_principal()->set_actor_id(std::string(32,'x'));
+  foreign.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+  foreign.mutable_copy_job()->set_job_id(job_id);
+  assert(engine.handle(foreign).error().code()==pb::FileActionError::UNAUTHORIZED);
+
+  auto other_worktree=spatial::FileEngine(project.root,"workspace-a",{"another-worktree"},auth);
+  auto wrong_scope=request(904);
+  wrong_scope.set_authority_components(0,"another-worktree");
+  wrong_scope.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+  wrong_scope.mutable_copy_job()->set_job_id(job_id);
+  assert(other_worktree.handle(wrong_scope).error().code()==pb::FileActionError::NOT_FOUND);
+
+  auto missing=request(905);
+  missing.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+  missing.mutable_copy_job()->set_job_id(std::string(16,'m'));
+  assert(engine.handle(missing).error().code()==pb::FileActionError::NOT_FOUND);
+
+  auto unresolved_poll=request(906);
+  unresolved_poll.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+  unresolved_poll.mutable_copy_job()->set_job_id(unresolved.job_id());
+  assert(engine.handle(unresolved_poll).error().code()==pb::FileActionError::UNCERTAIN);
+  auto unresolved_cancel=request(907);
+  unresolved_cancel.mutable_copy_job()->set_command(pb::FileCopyJob_Command_CANCEL);
+  unresolved_cancel.mutable_copy_job()->set_job_id(unresolved.job_id());
+  assert(engine.handle(unresolved_cancel).error().code()==pb::FileActionError::UNCERTAIN);
+}
+
+static void uncertain_copy_recovery_preserves_evidence_and_isolates_workspace() {
+  TempProject project;
+  Auth auth;
+  struct stat root_identity{};
+  assert(fstat(project.root,&root_identity)==0);
+  const auto state=std::filesystem::path(project.path)/"uncertain-journal";
+  assert(std::filesystem::create_directory(state));
+  auto journal=std::make_unique<spatial::FileOperationJournal>(state);
+  assert(journal->bind_root("cabinet-opaque-id",
+      static_cast<std::uint64_t>(root_identity.st_dev),
+      static_cast<std::uint64_t>(root_identity.st_ino),{}));
+
+  assert(mkdirat(project.root,".spatial-copy-staging",0700)==0);
+  const int staging_root=openat(project.root,".spatial-copy-staging",
+      O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+  assert(staging_root>=0);
+  struct stat staging_root_identity{};
+  assert(fstat(staging_root,&staging_root_identity)==0);
+  const std::string job_id(16,'u');
+  auto uncertain=durable_copy_start_intent(job_id,root_identity);
+  auto* root_identity_record=uncertain.mutable_staging_root();
+  root_identity_record->set_device(static_cast<std::uint64_t>(staging_root_identity.st_dev));
+  root_identity_record->set_inode(static_cast<std::uint64_t>(staging_root_identity.st_ino));
+  auto* stage_identity=uncertain.mutable_staging();
+  stage_identity->set_device(static_cast<std::uint64_t>(staging_root_identity.st_dev));
+  stage_identity->set_inode(static_cast<std::uint64_t>(staging_root_identity.st_ino)+1);
+  stage_identity->set_generation(1);
+  stage_identity->set_type(pb::FileCopyFilesystemIdentity::DIRECTORY);
+  auto* scope=uncertain.mutable_process_scope();
+  scope->set_launch_id(std::string(16,'l'));
+  scope->set_scope_name("copy-"+operation_hex(job_id));
+  scope->set_boot_id("12345678-1234-1234-1234-123456789012");
+  scope->set_device(1);scope->set_inode(2);
+  uncertain.set_state(pb::FILE_COPY_JOB_JOURNAL_QUEUED);
+  uncertain.set_updated_at_unix_ms(2);
+  (void)journal->reserve_git_worker_parent(uncertain.broker_root_device(),uncertain.broker_root_inode(),
+      project.path,uncertain.broker_root_boot_id(),{});
+  journal->bind_git_worker_parent(uncertain.broker_root_device(),uncertain.broker_root_inode(),
+      project.path,uncertain.broker_root_boot_id(),uncertain.process_scope_parent().SerializeAsString(),{});
+  const std::string stage_name=uncertain.staging_name();
+  assert(mkdirat(staging_root,stage_name.c_str(),0700)==0);
+  const int stage=openat(staging_root,stage_name.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+  assert(stage>=0);
+  const int marker=openat(stage,"retain-for-review",O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC,0600);
+  assert(marker>=0);close(marker);
+  struct stat exact_stage{};
+  assert(fstat(stage,&exact_stage)==0);
+  stage_identity->set_device(static_cast<std::uint64_t>(exact_stage.st_dev));
+  stage_identity->set_inode(static_cast<std::uint64_t>(exact_stage.st_ino));
+  close(stage);
+  // Bind the observed stage inode, never an assumed allocation sequence.
+  journal->begin_copy_job(uncertain,{});
+  uncertain.set_state(pb::FILE_COPY_JOB_JOURNAL_UNCERTAIN);
+  uncertain.set_updated_at_unix_ms(3);
+  auto* receipt=uncertain.mutable_terminal_receipt();
+  receipt->set_job_id(job_id);
+  receipt->set_state(pb::FileCopyJobReceipt_State_UNCERTAIN);
+  receipt->set_detail("preserve stage for explicit recovery review");
+  const auto immutable_receipt=receipt->SerializeAsString();
+  journal->update_copy_job(uncertain,{});
+
+  for(int restart=0;restart<2;++restart) {
+    journal.reset();
+    journal=std::make_unique<spatial::FileOperationJournal>(state);
+    const auto parent=journal->find_git_worker_parent({});
+    assert(parent.state==spatial::GitWorkerParentRecord::State::bound &&
+           parent.identity_bytes==uncertain.process_scope_parent().SerializeAsString());
+    spatial::FileEngine recovered(project.root,"workspace-a",{"cabinet-opaque-id"},
+        auth,[]{return spatial::FileEngine::MonotonicClock::now();},nullptr,nullptr,
+        -1,{},journal.get());
+    auto poll=request(908+restart);
+    poll.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+    poll.mutable_copy_job()->set_job_id(job_id);
+    const auto polled=recovered.handle(poll);
+    assert(polled.has_copy_job() &&
+           polled.copy_job().state()==pb::FileCopyJobReceipt_State_UNCERTAIN &&
+           polled.copy_job().SerializeAsString()==immutable_receipt);
+    auto browse=request(918+restart);
+    browse.mutable_browse()->set_page_size(16);
+    assert(recovered.handle(browse).has_directory());
+  }
+  TempProject independent;
+  Auth independent_auth;
+  spatial::FileEngine independent_workspace(independent.root,"workspace-b",{"other-cabinet"},independent_auth);
+  auto independent_browse=request(930);
+  independent_browse.set_workspace_id("workspace-b");
+  independent_browse.clear_authority_components();
+  independent_browse.add_authority_components("other-cabinet");
+  independent_browse.mutable_browse()->set_page_size(16);
+  assert(independent_workspace.handle(independent_browse).has_directory());
+
+  struct stat retained{};
+  assert(fstatat(staging_root,stage_name.c_str(),&retained,AT_SYMLINK_NOFOLLOW)==0 &&
+         retained.st_dev==exact_stage.st_dev && retained.st_ino==exact_stage.st_ino);
+  const int retained_stage=openat(staging_root,stage_name.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+  assert(retained_stage>=0);
+  struct stat marker_stat{};
+  assert(fstatat(retained_stage,"retain-for-review",&marker_stat,AT_SYMLINK_NOFOLLOW)==0 &&
+         S_ISREG(marker_stat.st_mode));
+  struct stat unpublished{};
+  assert(fstatat(project.root,"recovered-copy.bin",&unpublished,AT_SYMLINK_NOFOLLOW)<0 && errno==ENOENT);
+  close(retained_stage);close(staging_root);
+  const auto durable=journal->find_copy_job("workspace-a",job_id,{});
+  assert(durable && durable->state()==pb::FILE_COPY_JOB_JOURNAL_UNCERTAIN &&
+         durable->terminal_receipt().SerializeAsString()==immutable_receipt);
+}
+
 static void root_clock_and_descriptor_regressions() {
   TempProject project;
   Auth auth;
@@ -323,6 +602,10 @@ static void post_effect_allocation_regressions() {
   close(trash_fd);
 }
 int main() {
+  recovery_requires_scope_cleanup_for_same_boot_root_replacement();
+  copy_staging_root_is_reserved_and_stale_state_fails_closed();
+  recovered_copy_job_poll_and_cancel_use_durable_receipt();
+  uncertain_copy_recovery_preserves_evidence_and_isolates_workspace();
   root_clock_and_descriptor_regressions();
   reservation_and_directory_regressions();
   post_effect_allocation_regressions();
@@ -610,8 +893,28 @@ int main() {
   assert(engine.handle(copy).error().code() == pb::FileActionError::UNAUTHORIZED &&
          auth.last == az::FILE_COPY);
   auth.allow = true;
-  assert(engine.handle(copy).error().code() == pb::FileActionError::UNIMPLEMENTED &&
+  assert(engine.handle(copy).error().code() == pb::FileActionError::INVALID_ARGUMENT &&
          auth.last == az::FILE_COPY);
+  const auto existing_source = create(engine, "copy-existing-source", 18);
+  assert(existing_source.has_object());
+  auto no_overwrite = request(19);
+  auto* no_overwrite_job = no_overwrite.mutable_copy_job();
+  no_overwrite_job->set_command(pb::FileCopyJob::START);
+  no_overwrite_job->set_source_handle(existing_source.object().handle());
+  no_overwrite_job->set_destination_directory_handle(root_handle);
+  no_overwrite_job->set_destination_basename("copy-existing-source");
+  no_overwrite_job->set_maximum_bytes(1024);
+  no_overwrite_job->set_maximum_entries(8);
+  assert(engine.handle(no_overwrite).error().code() == pb::FileActionError::CONFLICT);
+  auto bad_limit = request(20);
+  auto* bad_limit_job = bad_limit.mutable_copy_job();
+  bad_limit_job->set_command(pb::FileCopyJob::START);
+  bad_limit_job->set_source_handle(existing_source.object().handle());
+  bad_limit_job->set_destination_directory_handle(root_handle);
+  bad_limit_job->set_destination_basename("copy-new-name");
+  bad_limit_job->set_maximum_bytes(4ULL * 1024 * 1024 * 1024 + 1);
+  bad_limit_job->set_maximum_entries(8);
+  assert(engine.handle(bad_limit).error().code() == pb::FileActionError::INVALID_ARGUMENT);
 
   // Reject trashing the project root before dereferencing a basename.
   auto root_trash = request(40);

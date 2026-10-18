@@ -13,16 +13,21 @@
 #include <iostream>
 #include <exception>
 #include <linux/audit.h>
+#include <linux/btrfs.h>
+#include <linux/magic.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
 #include <linux/memfd.h>
+#include <linux/openat2.h>
 #include <linux/seccomp.h>
 #include <poll.h>
 #include <sched.h>
 #include <sstream>
 #include <system_error>
+#include <sys/ioctl.h>
 #include <sys/prctl.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -99,6 +104,53 @@ int directory(const std::filesystem::path& path) {
     if (fd < 0) throw std::runtime_error("Cannot pin application mount");
     return fd;
 }
+void ensure_copy_staging_root(int project_fd) {
+    const int project_read = openat(project_fd, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+    if (project_read < 0) throw std::runtime_error("Cannot verify project root for copy staging");
+    struct stat project{}, stage{};
+    if (fstat(project_read, &project) < 0 || !S_ISDIR(project.st_mode)) {
+        close(project_read);
+        throw std::runtime_error("Cannot verify project root for copy staging");
+    }
+    bool created = false;
+    if (mkdirat(project_fd, ".spatial-copy-staging", 0700) == 0) created = true;
+    else if (errno != EEXIST) {
+        close(project_read);
+        throw std::runtime_error("Cannot prepare private copy staging root");
+    }
+    open_how how{};
+    how.flags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK;
+    how.resolve = RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS | RESOLVE_NO_XDEV;
+    const int staging = static_cast<int>(syscall(SYS_openat2, project_fd, ".spatial-copy-staging", &how, sizeof(how)));
+    if (staging < 0) {
+        close(project_read);
+        throw std::runtime_error("Copy staging root has an unsafe type or mount");
+    }
+    const bool valid = fstat(staging, &stage) == 0 && S_ISDIR(stage.st_mode) &&
+        stage.st_dev == project.st_dev && stage.st_uid == geteuid() && (stage.st_mode & 0777) == 0700;
+    struct statfs filesystem{};
+    bool same_subvolume = false;
+    if (valid && fstatfs(project_read, &filesystem) == 0) {
+        if (static_cast<unsigned long>(filesystem.f_type) == BTRFS_SUPER_MAGIC) {
+            btrfs_ioctl_get_subvol_info_args project_info{}, stage_info{};
+            same_subvolume = ioctl(project_read, BTRFS_IOC_GET_SUBVOL_INFO, &project_info) == 0 &&
+                ioctl(staging, BTRFS_IOC_GET_SUBVOL_INFO, &stage_info) == 0 &&
+                project_info.treeid != 0 && project_info.treeid == stage_info.treeid;
+        } else {
+            same_subvolume = stage.st_dev == project.st_dev;
+        }
+    }
+    close(staging);
+    if (!valid || !same_subvolume) {
+        close(project_read);
+        throw std::runtime_error("Copy staging root identity or subvolume is unsafe");
+    }
+    if (created && fsync(project_read) < 0) {
+        const int error = errno; close(project_read);
+        throw std::system_error(error, std::generic_category(), "Cannot synchronize copy staging root");
+    }
+    close(project_read);
+}
 }
 ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                                       const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request,
@@ -117,6 +169,7 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
     if (pipe2(launch_pipe, O_CLOEXEC) != 0) throw std::runtime_error("Cannot hold application startup");
     File launch_read{launch_pipe[0]}, launch_write{launch_pipe[1]};
     File project_fd{directory(project)}, repo_fd{directory(repository)}, state_fd{directory(state)}, policy{filter()};
+    ensure_copy_staging_root(project_fd.fd);
     const std::string bind = writable ? "--bind-fd" : "--ro-bind-fd";
     std::vector<std::string> strings{bwrap, "--unshare-all", "--unshare-user", "--disable-userns", "--die-with-parent", "--new-session",
         "--cap-drop", "ALL", "--hostname", "spatial-workspace", "--clearenv", "--setenv", "PATH", "/usr/bin:/bin",
@@ -126,8 +179,9 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         "--symlink", "usr/bin", "/bin", "--symlink", "usr/lib", "/lib", "--symlink", "usr/lib64", "/lib64",
         "--ro-bind", "/usr/lib64", "/usr/lib64", "--proc", "/proc", "--dev", "/dev",
         "--bind-fd", "5", "/state", "--bind", (state / "tmp").string(), "/tmp",
-        bind, "3", "/project", "--symlink", "/project", project.string(),
-        bind, "4", repository.string(),
+        bind, "3", "/project", "--tmpfs", "/project/.spatial-copy-staging",
+        "--remount-ro", "/project/.spatial-copy-staging",
+        "--symlink", "/project", project.string(), bind, "4", repository.string(),
         "--ro-bind", executable.string(), "/spatial-app-init", "--chdir", "/project"};
     if (native_) {
         const std::vector<std::string> display{

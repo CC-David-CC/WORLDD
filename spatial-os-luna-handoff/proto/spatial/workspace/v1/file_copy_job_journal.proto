@@ -1,0 +1,93 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+
+import "grants.proto";
+import "process_scope.proto";
+import "file_actions.proto";
+
+enum FileCopyJobJournalState {
+  FILE_COPY_JOB_JOURNAL_STATE_UNSPECIFIED = 0;
+  FILE_COPY_JOB_JOURNAL_QUEUED = 1;
+  FILE_COPY_JOB_JOURNAL_RUNNING = 2;
+  FILE_COPY_JOB_JOURNAL_CANCEL_REQUESTED = 3;
+  FILE_COPY_JOB_JOURNAL_COMPLETE = 4;
+  FILE_COPY_JOB_JOURNAL_CANCELLED = 5;
+  FILE_COPY_JOB_JOURNAL_CONFLICT = 6;
+  FILE_COPY_JOB_JOURNAL_UNCERTAIN = 7;
+  FILE_COPY_JOB_JOURNAL_FAILED = 8;
+  FILE_COPY_JOB_JOURNAL_START_INTENT = 9;
+}
+
+message FileCopyFilesystemIdentity {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    REGULAR_FILE = 1;
+    DIRECTORY = 2;
+  }
+  uint64 device = 1;
+  uint64 inode = 2;
+  uint64 generation = 3;
+  Type type = 4;
+}
+
+// Private durable broker state. Paths are root-relative POSIX byte components.
+message FileCopyJobPreparedResult {
+  bytes staging_output_name = 1;
+  FileCopyFilesystemIdentity output = 2;
+  uint64 bytes_copied = 3;
+  uint32 entries_copied = 4;
+  bytes content_sha256 = 5;
+}
+
+message FileCopyJobJournalRecord {
+  uint32 format_version = 1;
+  string workspace_id = 2;
+  bytes job_id = 3;
+  bytes initiating_operation_id = 4;
+  bytes initiating_request_sha256 = 5;
+  bytes principal_issuer_id = 6;
+  bytes principal_actor_id = 7;
+  string worktree_id = 8;
+  uint64 worktree_root_device = 9;
+  uint64 worktree_root_inode = 10;
+  spatial.authority.v1.Right exact_right = 11;
+
+  // Includes the final source basename. Empty components are invalid.
+  repeated bytes source_path_components = 12;
+  FileCopyFilesystemIdentity source = 13;
+  repeated bytes destination_directory_components = 14;
+  FileCopyFilesystemIdentity destination_directory = 15;
+  bytes destination_basename = 16;
+  bytes staging_name = 17;
+  // staging is absent only in START_INTENT, before the directory exists.
+  FileCopyFilesystemIdentity staging = 18;
+
+  uint64 maximum_bytes = 19;
+  uint32 maximum_entries = 20;
+  spatial.supervisor.v1.ProcessScopeIdentity process_scope = 21;
+  FileCopyJobJournalState state = 22;
+  uint64 bytes_progress = 23;
+  uint32 entries_progress = 24;
+  FileCopyJobReceipt terminal_receipt = 25;
+
+  // Set by trusted broker code. These timestamps bound terminal-row retention.
+  uint64 created_at_unix_ms = 26;
+  uint64 updated_at_unix_ms = 27;
+  FileCopyJobPreparedResult prepared_result = 28;
+
+  // The staging root is a broker-private sibling of the worktree. It must
+  // share the destination filesystem and Btrfs subvolume for atomic rename.
+  FileCopyFilesystemIdentity staging_root = 29;
+  // Stable broker-owned Git worker parent. Recovery may stop only the exact
+  // process_scope child below this pinned parent.
+  spatial.supervisor.v1.ProcessScopeIdentity process_scope_parent = 30;
+  uint64 broker_root_device = 31;
+  uint64 broker_root_inode = 32;
+  string broker_root_boot_id = 33;
+  bytes reserved_process_scope_name = 34;
+  uint64 staging_subvolume_id = 35;
+  uint64 destination_subvolume_id = 36;
+  // Broker-only acknowledgment after exact scope emptiness proof and before
+  // scope removal, staging cleanup, or publication. Never supplied by a worker.
+  spatial.supervisor.v1.ProcessScopeIdentity drained_process_scope = 37;
+}

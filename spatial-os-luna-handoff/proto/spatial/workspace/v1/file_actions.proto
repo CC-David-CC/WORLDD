@@ -47,9 +47,9 @@ message FileContent { bytes data = 1; uint64 total_size = 2; uint64 generation =
 message FileObject { bytes handle = 1; uint64 generation = 2; uint64 size = 3; }
 message FileTrashReceipt { bytes handle = 1; uint64 generation = 2; }
 message FileCopyJobReceipt {
-  enum State { STATE_UNSPECIFIED = 0; QUEUED = 1; RUNNING = 2; COMPLETE = 3; CANCELLED = 4; CONFLICT = 5; UNCERTAIN = 6; }
+  enum State { STATE_UNSPECIFIED = 0; QUEUED = 1; RUNNING = 2; COMPLETE = 3; CANCELLED = 4; CONFLICT = 5; UNCERTAIN = 6; FAILED = 7; }
   bytes job_id = 1; State state = 2; uint64 bytes_copied = 3; uint32 entries_copied = 4;
-  bytes content_digest = 5; string detail = 6;
+  bytes content_digest = 5; string detail = 6; FileActionError.Code failure_code = 7;
 }
 message FileActionError {
   enum Code { CODE_UNSPECIFIED = 0; INVALID_ARGUMENT = 1; UNAUTHORIZED = 2; NOT_FOUND = 3; CONFLICT = 4; EXHAUSTED = 5; UNAVAILABLE = 6; UNCERTAIN = 7; STALE_HANDLE = 8; UNIMPLEMENTED = 9; }

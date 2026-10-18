@@ -45,6 +45,13 @@ unsigned max_depth=128;
 bool cabinet_mode=false;
 dev_t cabinet_source_device=0;
 uint64_t cabinet_source_mount_id=0;
+uint64_t cabinet_generation(const struct stat& st,bool directory) {
+ uint64_t gen=static_cast<uint64_t>(st.st_ino)*0x9e3779b185ebca87ULL;
+ gen^=static_cast<uint64_t>(st.st_dev)+(gen<<6)+(gen>>2);
+ if(!directory){gen^=static_cast<uint64_t>(st.st_ctim.tv_sec)+(gen<<6)+(gen>>2);
+  gen^=static_cast<uint64_t>(st.st_ctim.tv_nsec)+(gen<<6)+(gen>>2);gen^=static_cast<uint64_t>(st.st_size)+(gen<<6)+(gen>>2);}
+ return gen?gen:1;
+}
 #ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
 long fail_readdir_after=-1;
 bool readdir_fault_used=false;
@@ -217,6 +224,12 @@ int main() {
             if(S_ISLNK(before.st_mode))throw Failure(pb::FAILURE_SYMLINK);
             if(request.cabinet_source_is_directory()!=S_ISDIR(before.st_mode) || (!S_ISDIR(before.st_mode)&&!S_ISREG(before.st_mode)))throw Failure(pb::FAILURE_SPECIAL_ENTRY);
             if(before.st_dev!=a.st_dev)throw Failure(pb::FAILURE_SPECIAL_ENTRY);
+            if(request.expected_source_device()!=0 || request.expected_source_inode()!=0 || request.expected_source_generation()!=0) {
+                if(request.expected_source_device()!=static_cast<std::uint64_t>(before.st_dev) ||
+                   request.expected_source_inode()!=static_cast<std::uint64_t>(before.st_ino) ||
+                   request.expected_source_generation()!=cabinet_generation(before,S_ISDIR(before.st_mode)))
+                    throw Failure(pb::FAILURE_SOURCE_CHANGED);
+            }
             if(++entries>max_entries||++enumerated>max_entries)throw Failure(pb::FAILURE_ENTRY_LIMIT);
             hash->field("");const unsigned char type=S_ISDIR(before.st_mode)?'D':'F';hash->add(&type,1);hash->u64(before.st_mode&0777);
             if(S_ISDIR(before.st_mode)){

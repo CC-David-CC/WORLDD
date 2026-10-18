@@ -127,22 +127,50 @@ class CopyTreeWorkerTests(unittest.TestCase):
             self.assertEqual(directory_message.copied.content_digest, expected_directory)
 
     def test_cabinet_protocol_rejects_nested_mounts(self):
+        command=["sudo","-n","env","PYTHONDONTWRITEBYTECODE=1","unshare","--mount","--propagation","private",
+                 sys.executable,str(Path(__file__).resolve()),str(WORKER),"--nested-mount-fixture"]
+        result=subprocess.run(command,capture_output=True,text=True,timeout=45)
+        output = result.stdout + "\n" + result.stderr
+        if result.returncode == 77 and "SPATIAL_NESTED_MOUNT_UNAVAILABLE:" in output:
+            self.skipTest(output.strip())
+        if result.returncode != 0:
+            lower = output.lower()
+            if ("unshare failed: operation not permitted" in lower or
+                    "unshare failed: permission denied" in lower):
+                self.skipTest("host policy denies a private mount namespace: " + output.strip())
+        self.assertEqual(result.returncode, 0,
+            "privileged private nested-mount fixture failed: " + output)
+
+    def run_nested_mount_fixture(self):
+        if os.environ.get("PYTHONDONTWRITEBYTECODE") != "1":
+            raise AssertionError("nested root fixture did not receive PYTHONDONTWRITEBYTECODE=1")
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); source = root / "source"; destination = root / "destination"
+            root=Path(temp); source=root/"source"; destination=root/"destination"
             source.mkdir(); destination.mkdir()
-            mountpoint = source / "mounted"; mountpoint.mkdir()
-            outside = root / "outside"; outside.mkdir(); (outside / "payload").write_bytes(b"mounted")
-            mounted = subprocess.run(["mount", "--bind", str(outside), str(mountpoint)],
-                                     capture_output=True, timeout=5)
-            if mounted.returncode != 0:
-                self.skipTest("host does not permit a private bind-mount fixture")
+            mountpoint=source/"mounted"; mountpoint.mkdir()
+            outside=root/"outside"; outside.mkdir(); (outside/"payload").write_bytes(b"mounted")
+            mounted=False
             try:
-                result = decode_result(self.run_cabinet_worker(source.parent, "source", destination,
-                    "copy", True))
-                self.assertEqual(result.WhichOneof("outcome"), "failure")
-                self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_SPECIAL_ENTRY)
+                try:
+                    subprocess.run(["mount","--bind",str(outside),str(mountpoint)],
+                                   check=True,capture_output=True,text=True,timeout=5)
+                except subprocess.CalledProcessError as exc:
+                    detail = (exc.stdout or "") + "\n" + (exc.stderr or "")
+                    lower = detail.lower()
+                    if any(marker in lower for marker in (
+                            "operation not permitted", "permission denied", "not supported")):
+                        print("SPATIAL_NESTED_MOUNT_UNAVAILABLE: " + detail.strip(),
+                              file=sys.stderr)
+                        raise SystemExit(77)
+                    raise
+                mounted=True
+                result=decode_result(self.run_cabinet_worker(source.parent,"source",destination,"copy",True))
+                if result.WhichOneof("outcome")!="failure" or result.failure.reason!=copy_worker_pb2.FAILURE_SPECIAL_ENTRY:
+                    raise AssertionError("worker did not reject nested bind mount: "+repr(result))
             finally:
-                subprocess.run(["umount", str(mountpoint)], check=True, timeout=5)
+                if mounted:
+                    subprocess.run(["umount",str(mountpoint)],check=True,capture_output=True,
+                                   text=True,timeout=10)
 
     def test_cabinet_copy_allows_same_parent_sibling_files_and_directories(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -337,4 +365,7 @@ class CopyTreeWorkerTests(unittest.TestCase):
             self.assertEqual((destination / "same").read_bytes(), b"destination")
 
 if __name__ == "__main__":
-    unittest.main()
+    if "--nested-mount-fixture" in sys.argv:
+        CopyTreeWorkerTests().run_nested_mount_fixture()
+    else:
+        unittest.main(verbosity=2)

@@ -23,6 +23,8 @@ protobuf_generate_cpp(presentation_probe_sources presentation_probe_headers test
 protobuf_generate_cpp(presentation_proto_sources presentation_proto_headers proto/spatial/render/v1/presentation.proto)
 protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
 protobuf_generate_cpp(file_actions_proto_sources file_actions_proto_headers proto/spatial/workspace/v1/file_actions.proto)
+protobuf_generate_cpp(copy_job_journal_proto_sources copy_job_journal_proto_headers
+    proto/spatial/workspace/v1/file_copy_job_journal.proto)
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
@@ -127,6 +129,18 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/file_actions_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/file_actions.proto
     DEPENDS proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/file_copy_job_journal_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/file_copy_job_journal.proto
+    DEPENDS proto/spatial/workspace/v1/file_copy_job_journal.proto proto/spatial/workspace/v1/file_actions.proto
+        proto/spatial/authority/v1/grants.proto proto/spatial/supervisor/v1/process_scope.proto protobuf::protoc VERBATIM)
+add_custom_target(copy-job-journal-python-protobuf DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/file_copy_job_journal_pb2.py")
 add_custom_target(file-actions-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/file_actions_pb2.py")
 add_dependencies(presentation-python-protobuf file-actions-python-protobuf)
 add_dependencies(presentation-probe-python file-actions-python-protobuf)
@@ -403,6 +417,7 @@ target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_hea
 target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${cabinet_proto_sources} ${cabinet_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${file_actions_proto_sources} ${file_actions_proto_headers})
+target_sources(spatial-protobuf PRIVATE ${copy_job_journal_proto_sources} ${copy_job_journal_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${copy_worker_proto_sources} ${copy_worker_proto_headers})
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}" "${presentation_interface_generated_dir}")
 add_library(spatial-scene STATIC src/x11/native_channel.cpp src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
@@ -423,6 +438,11 @@ target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
 add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp)
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
+if(BUILD_TESTING)
+    add_executable(process-scope-recovery-validation-test tests/core/process_scope_recovery.cpp)
+    target_link_libraries(process-scope-recovery-validation-test PRIVATE spatial-process-scope)
+    add_test(NAME process-scope-recovery-validation COMMAND process-scope-recovery-validation-test)
+endif()
 add_library(spatial-storage-channel STATIC src/workspace/storage_channel.cpp)
 target_link_libraries(spatial-storage-channel PUBLIC spatial-scene)
 add_library(spatial-storage-client STATIC src/workspace/storage_client.cpp)
@@ -430,15 +450,18 @@ target_link_libraries(spatial-storage-client PUBLIC spatial-storage-channel PRIV
 add_library(spatial-storage-devices STATIC src/workspace/storage_devices.cpp)
 target_link_libraries(spatial-storage-devices PUBLIC spatial-scene)
 add_library(spatial-storage-owner STATIC src/workspace/storage_owner.cpp)
+add_library(spatial-file-operation-journal STATIC src/workspace/file_operation_journal.cpp)
+target_include_directories(spatial-file-operation-journal PUBLIC src)
+target_link_libraries(spatial-file-operation-journal PUBLIC spatial-protobuf SQLite::SQLite3)
 add_library(spatial-file-engine STATIC src/workspace/file_engine.cpp)
 target_include_directories(spatial-file-engine PUBLIC src)
-target_link_libraries(spatial-file-engine PUBLIC spatial-protobuf)
+target_link_libraries(spatial-file-engine PUBLIC spatial-protobuf spatial-workspace-copy-worker spatial-file-operation-journal OpenSSL::Crypto)
 target_link_libraries(spatial-storage-owner PUBLIC spatial-scene spatial-storage-devices SQLite::SQLite3 OpenSSL::Crypto)
 add_executable(spatial-storage-owner-service src/workspace/storage_main.cpp)
 set_target_properties(spatial-storage-owner-service PROPERTIES OUTPUT_NAME spatial-storage-owner)
 target_link_libraries(spatial-storage-owner-service PRIVATE spatial-storage-owner spatial-storage-channel)
 add_library(spatial-workspace-resources STATIC src/workspace/resources.cpp)
-target_link_libraries(spatial-workspace-resources PUBLIC spatial-process-scope spatial-identity-tls spatial-storage-devices)
+target_link_libraries(spatial-workspace-resources PUBLIC spatial-process-scope spatial-identity-tls spatial-storage-devices spatial-file-operation-journal)
 add_library(spatial-storage-launch STATIC src/supervisor/storage_launch.cpp)
 target_link_libraries(spatial-storage-launch PUBLIC spatial-process-scope spatial-identity-tls)
 add_executable(spatial-storage-launch-probe src/testing/storage_launch_probe.cpp)
@@ -523,9 +546,9 @@ install(TARGETS spatial-copy-tree-worker RUNTIME DESTINATION libexec)
 add_library(spatial-workspace-copy-worker STATIC src/workspace/copy_worker.cpp)
 target_include_directories(spatial-workspace-copy-worker PUBLIC src)
 target_link_libraries(spatial-workspace-copy-worker PUBLIC spatial-storage-client spatial-workspace-resources spatial-scene spatial-protobuf)
-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/file_operation_journal.cpp src/workspace/copy_journal.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
+add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/copy_journal.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
 target_include_directories(workspaced PRIVATE src)
-target_link_libraries(workspaced PRIVATE spatial-file-engine spatial-workspace-copy-worker spatial-storage-client spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+target_link_libraries(workspaced PRIVATE spatial-file-operation-journal spatial-file-engine spatial-workspace-copy-worker spatial-storage-client spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
 add_dependencies(workspaced spatial-copy-tree-worker spatial-copy-finalize-worker)
 add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
@@ -556,15 +579,16 @@ if(BUILD_TESTING)
     add_test(NAME storage-owner-state-metadata COMMAND $<TARGET_FILE:storage-owner-state-metadata-test>)
     set_tests_properties(storage-owner-state-metadata PROPERTIES TIMEOUT 20)
     target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_PROCESS_SCOPE_READTRACE=1)
+    target_compile_definitions(spatial-file-engine PRIVATE SPATIAL_TEST_COPY_RECOVERY_FAULTS=1)
+    target_compile_definitions(spatial-file-operation-journal PRIVATE SPATIAL_TEST_FILE_JOURNAL_FAULTS=1)
     target_compile_definitions(workspaced PRIVATE
         SPATIAL_TEST_FILE_JOURNAL_FAULTS=1
         SPATIAL_TEST_FILE_ACTION_DIAGNOSTICS=1)
     target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD=1)
     target_compile_definitions(spatial-process-scope-probe PRIVATE SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD=1)
-    add_executable(workspace-file-operation-journal-test
-        tests/core/file_operation_journal.cpp src/workspace/file_operation_journal.cpp)
+    add_executable(workspace-file-operation-journal-test tests/core/file_operation_journal.cpp)
     target_include_directories(workspace-file-operation-journal-test PRIVATE src)
-    target_link_libraries(workspace-file-operation-journal-test PRIVATE spatial-protobuf SQLite::SQLite3)
+    target_link_libraries(workspace-file-operation-journal-test PRIVATE spatial-file-operation-journal)
     add_test(NAME workspace-file-operation-journal COMMAND $<TARGET_FILE:workspace-file-operation-journal-test>)
     set_tests_properties(workspace-file-operation-journal PROPERTIES TIMEOUT 60)
     add_executable(file-action-effect-wait-test tests/core/file_action_effect_wait.cpp)
@@ -575,10 +599,14 @@ if(BUILD_TESTING)
     target_link_libraries(broker-file-action-client-test PRIVATE spatial-core)
     add_test(NAME broker-file-action-client COMMAND $<TARGET_FILE:broker-file-action-client-test>)
     set_tests_properties(broker-file-action-client PROPERTIES TIMEOUT 30)
+    add_dependencies(copy-job-journal-python-protobuf grants-python-protobuf scope-python-protobuf file-actions-python-protobuf)
     add_custom_target(workspace-file-action-fixtures
-        COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-file-action-fixtures" "${Python3_EXECUTABLE}" -m py_compile "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_file_action_broker.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_copy_engine.py"
-        DEPENDS workspaced worldd identityd spatial-issuer-client spatial-process-scope-probe workspace-file-operation-journal-test file-action-effect-wait-test broker-file-action-client-test broker-python-protobuf cabinet-python-protobuf file-actions-python-protobuf world-session-python-protobuf compositor-python-protobuf
-        SOURCES tests/core/test_file_action_broker.py tests/core/test_workspace_copy_engine.py tests/core/file_operation_journal.cpp tests/core/broker_file_action_client.cpp tests/core/file_action_effect_wait.cpp)
+        COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-file-action-fixtures" "${Python3_EXECUTABLE}" -m py_compile "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_file_action_broker.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_copy_engine.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_staging_mask.py"
+        DEPENDS copy-job-journal-python-protobuf workspaced worldd identityd spatial-issuer-client spatial-process-scope-probe workspace-file-operation-journal-test file-action-effect-wait-test broker-file-action-client-test broker-python-protobuf cabinet-python-protobuf file-actions-python-protobuf world-session-python-protobuf compositor-python-protobuf
+        SOURCES tests/core/test_file_action_broker.py tests/core/test_workspace_copy_engine.py tests/core/test_copy_staging_mask.py tests/core/file_operation_journal.cpp tests/core/broker_file_action_client.cpp tests/core/file_action_effect_wait.cpp)
+    add_test(NAME workspace-copy-staging-mask COMMAND Python3::Interpreter -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_staging_mask.py")
+    set_tests_properties(workspace-copy-staging-mask PROPERTIES TIMEOUT 30)
     add_test(NAME workspace-file-action-broker COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"

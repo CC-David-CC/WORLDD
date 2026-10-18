@@ -149,6 +149,26 @@ struct CopyTreeJob::Impl {
  std::uint64_t max_bytes=0;
  std::uint32_t max_entries=0;
  bool completed=false,finalizing=false,derive_head=false;
+ supervisor::v1::ProcessScopeState last_identity;
+ std::function<void(const supervisor::v1::ProcessScopeIdentity&)> drained;
+ void stop_and_release() {
+  if(!job) {
+   if(completed)return;
+   throw WorldError(wire::UNAVAILABLE,"copy worker scope is unavailable before cleanup proof");
+  }
+  auto& scope=job->scope();
+  const auto expected=scope.identity().SerializeAsString();
+  const auto stopped=scope.stop(drained);
+  if(stopped.identity().SerializeAsString()!=expected)
+   throw WorldError(wire::UNAVAILABLE,"copy worker ProcessScope identity changed during stop");
+  last_identity.Clear();
+  last_identity.CopyFrom(scope.state());
+  if(last_identity.identity().SerializeAsString()!=stopped.identity().SerializeAsString() ||
+     last_identity.populated() || !last_identity.direct_child_exited())
+   throw WorldError(wire::UNAVAILABLE,"copy worker ProcessScope did not report an empty terminal state");
+  completed=true;
+  job.reset();
+ }
  unsigned expected_protocol=1;
  std::set<int> expected_classes;
  std::string expected_branch;
@@ -157,7 +177,12 @@ struct CopyTreeJob::Impl {
 CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,int source_fd,int destination_fd,
  std::uint64_t expected_source_subvolume,std::uint64_t expected_destination_subvolume,
  std::uint64_t max_bytes,std::uint32_t max_entries,const workspace::copyworker::v1::StateExportRequest* state_export,
- std::string cabinet_source_name,std::string cabinet_destination_name,bool cabinet_source_is_directory):impl_(std::make_unique<Impl>()) {
+ std::string cabinet_source_name,std::string cabinet_destination_name,bool cabinet_source_is_directory,const struct stat* cabinet_expected_source,
+ std::string reserved_scope_name,
+ std::function<void(const supervisor::v1::ProcessScopeIdentity&,
+                    const supervisor::v1::ProcessScopeIdentity&)> before_launch,
+ std::function<void(const supervisor::v1::ProcessScopeIdentity&)> drained):impl_(std::make_unique<Impl>()) {
+ impl_->drained=std::move(drained);
  impl_->max_bytes=max_bytes;impl_->max_entries=max_entries;
  const bool cabinet=!cabinet_source_name.empty()||!cabinet_destination_name.empty();
  require(source_fd>=0&&destination_fd>=0&&max_bytes>0&&max_entries>0&&
@@ -198,12 +223,24 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,int source_fd,int destina
  struct stat bs{},hs{}; require(bf.value>=0&&hf.value>=0&&fstat(bf.value,&bs)==0&&fstat(hf.value,&hs)==0&&S_ISREG(bs.st_mode)&&bs.st_uid==0&&(bs.st_mode&0022)==0&&S_ISREG(hs.st_mode)&&hs.st_uid==0&&(hs.st_mode&0022)==0&&(hs.st_mode&0111)!=0,"trusted worker binaries unavailable");
  spatial::workspace::copyworker::v1::WorkerRequest job_request;impl_->expected_protocol=cabinet?3:(state_export?2:1);job_request.set_protocol_version(impl_->expected_protocol);job_request.set_maximum_bytes(max_bytes);job_request.set_maximum_entries(max_entries);
  if(state_export){validate_message(*state_export);*job_request.mutable_state_export()=*state_export;}
- if(cabinet){job_request.set_cabinet_source_name(cabinet_source_name);job_request.set_cabinet_destination_name(cabinet_destination_name);job_request.set_cabinet_source_is_directory(cabinet_source_is_directory);}
+ if(cabinet){job_request.set_cabinet_source_name(cabinet_source_name);job_request.set_cabinet_destination_name(cabinet_destination_name);job_request.set_cabinet_source_is_directory(cabinet_source_is_directory);
+  if(cabinet_expected_source){require(cabinet_expected_source->st_ino>0,"invalid expected cabinet source identity");
+   job_request.set_expected_source_device(static_cast<std::uint64_t>(cabinet_expected_source->st_dev));
+   job_request.set_expected_source_inode(static_cast<std::uint64_t>(cabinet_expected_source->st_ino));
+   const auto& expected=*cabinet_expected_source;
+   std::uint64_t gen=static_cast<std::uint64_t>(expected.st_ino)*0x9e3779b185ebca87ULL;
+   gen^=static_cast<std::uint64_t>(expected.st_dev)+(gen<<6)+(gen>>2);
+   if(!cabinet_source_is_directory){gen^=static_cast<std::uint64_t>(expected.st_ctim.tv_sec)+(gen<<6)+(gen>>2);
+    gen^=static_cast<std::uint64_t>(expected.st_ctim.tv_nsec)+(gen<<6)+(gen>>2);gen^=static_cast<std::uint64_t>(expected.st_size)+(gen<<6)+(gen>>2);}
+   job_request.set_expected_source_generation(gen?gen:1);
+  }}
  std::string job_bytes;require(job_request.SerializeToString(&job_bytes)&&job_bytes.size()<=4096,"cannot serialize bounded worker request");
  Fd job_config(memfd_create("spatial-copy-worker-job",MFD_CLOEXEC|MFD_ALLOW_SEALING));require(job_config.value>=0,"cannot create worker job config");
  std::size_t config_written=0;while(config_written<job_bytes.size()){auto n=write(job_config.value,job_bytes.data()+config_written,job_bytes.size()-config_written);if(n<0&&errno==EINTR)continue;require(n>0,"cannot write worker job config");config_written+=static_cast<std::size_t>(n);}
  require(lseek(job_config.value,0,SEEK_SET)==0&&fcntl(job_config.value,F_ADD_SEALS,F_SEAL_WRITE|F_SEAL_GROW|F_SEAL_SHRINK|F_SEAL_SEAL)==0,"cannot seal worker job config");
- std::array<int,2> handles{source_fd,destination_fd}; impl_->job=resources.prepare_git_job(handles); auto& scope=impl_->job->scope();
+ std::array<int,2> handles{source_fd,destination_fd};
+ impl_->job=resources.prepare_git_job(handles,reserved_scope_name); auto& scope=impl_->job->scope();
+ if(before_launch) before_launch(scope.identity(),impl_->job->parent_identity());
  int pipefd[2]; require(pipe2(pipefd,O_CLOEXEC)==0,"cannot create worker receipt pipe"); Fd out(pipefd[0]),writer(pipefd[1]); int flags=fcntl(out.value,F_GETFL);require(flags>=0&&fcntl(out.value,F_SETFL,flags|O_NONBLOCK)==0,"cannot make receipt reader nonblocking");
  int error_pipe[2];require(pipe2(error_pipe,O_CLOEXEC)==0,"Cannot create worker diagnostic pipe");
  Fd error_read(error_pipe[0]),error_write(error_pipe[1]);require(fcntl(error_read.value,F_SETFL,O_NONBLOCK)==0,"Cannot bound helper diagnostics");
@@ -216,7 +253,7 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,int source_fd,int destina
  launch.add_inherited_fds(6);launch.add_inherited_fds(3);launch.add_inherited_fds(4);launch.add_inherited_fds(5);launch.add_inherited_fds(7);
  scope.start(launch,{nullfd.value,writer.value,error_write.value},{bf.value,source_fd,destination_fd,hf.value,job_config.value});
  writer.close_now();error_write.close_now();
- impl_->out=std::move(out);
+ impl_->out=std::move(out);impl_->last_identity=scope.state();
 }
 CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,const std::vector<int>& directories,
  const workspace::copyworker::v1::WorkerRequest& request):impl_(std::make_unique<Impl>()) {
@@ -272,11 +309,18 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,const std::vector<int>& d
    launch.add_inherited_fds(descriptor);inherited.push_back(directories[n]);
  }
  args.insert(args.end(),{"--remount-ro","/","--",helper});for(const auto& arg:args)launch.add_arguments(arg);
- scope.start(launch,{nullfd.value,writer.value,error_write.value},inherited);writer.close_now();error_write.close_now();impl_->out=std::move(out);
+ scope.start(launch,{nullfd.value,writer.value,error_write.value},inherited);writer.close_now();error_write.close_now();impl_->out=std::move(out);impl_->last_identity=scope.state();
 }
 CopyTreeJob::~CopyTreeJob()=default;
-supervisor::v1::ProcessScopeState CopyTreeJob::identity() const {return impl_->job->scope().state();}
+supervisor::v1::ProcessScopeState CopyTreeJob::identity() const {
+ return impl_->job?impl_->job->scope().state():impl_->last_identity;
+}
+void CopyTreeJob::cancel() {
+ impl_->stop_and_release();
+}
 std::optional<CopyWorkerReceipt> CopyTreeJob::poll() {
+
+ try {
  require(!impl_->completed,"Copy worker result was already consumed");
  auto& scope=impl_->job->scope();
  auto& output=impl_->output;
@@ -288,10 +332,9 @@ std::optional<CopyWorkerReceipt> CopyTreeJob::poll() {
  require(output.size()<=result_bound,"copy worker protobuf result too large");
  if(!scope.state().direct_child_exited())return std::nullopt;
  const auto status=scope.exit_status();
- (void)scope.stop();
+ impl_->stop_and_release();
  output+=read_pipe(impl_->out.value,result_bound);
  require(output.size()<=result_bound,"copy worker protobuf result too large after exit");
- impl_->completed=true;
  impl_->drain_errors();impl_->emit_errors();
  if(impl_->diagnostics_overflow || impl_->errors.find("AddressSanitizer")!=std::string::npos ||
     impl_->errors.find("LeakSanitizer")!=std::string::npos || impl_->errors.find("UndefinedBehaviorSanitizer")!=std::string::npos ||
@@ -348,6 +391,13 @@ std::optional<CopyWorkerReceipt> CopyTreeJob::poll() {
  require(result.copied().GetReflection()->GetUnknownFields(result.copied()).field_count()==0&&result.copied().content_digest().size()==32,"invalid typed copy receipt");
  CopyWorkerReceipt copied;copied.bytes=result.copied().actual_bytes();copied.entries=result.copied().actual_entries();copied.digest=result.copied().content_digest();
  require(copied.bytes<=max_bytes&&copied.entries<=max_entries,"copy worker exceeded declared bounds");return copied;
+ } catch (const WorldError& error) {
+  throw CopyWorkerError(error.code == wire::RESOURCE_EXHAUSTED
+      ? CopyWorkerError::Code::resource_exhausted
+      : error.code == wire::INVALID_ARGUMENT
+          ? CopyWorkerError::Code::invalid_argument
+          : CopyWorkerError::Code::unavailable, error.what());
+ }
 }
 CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_fd,int destination_fd,
  std::uint64_t source_subvolume,std::uint64_t destination_subvolume,

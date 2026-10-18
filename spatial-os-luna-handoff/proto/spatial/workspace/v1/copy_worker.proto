@@ -25,6 +25,9 @@ message WorkerRequest {
   bytes cabinet_source_name = 6;
   bytes cabinet_destination_name = 7;
   bool cabinet_source_is_directory = 8;
+  uint64 expected_source_device = 9;
+  uint64 expected_source_inode = 10;
+  uint64 expected_source_generation = 11;
 }
 message CopyReceipt {
   uint64 actual_bytes = 1;
