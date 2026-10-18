@@ -1,6 +1,8 @@
 # M08 Debug qualification package workflow
 
-Use `tools/package_debug_qualification.sh` to build a fresh Debug qualification package. It archives the pinned source into the package and configures CMake directly at the final package source and build paths. It builds every default target with two jobs. It performs registration-only CTest inspection and rejects missing executables or noncanonical CTest paths. It validates source, build, and package manifests, checks ELF dependencies, freezes the package, and writes a checksummed archive.
+Use `tools/package_debug_qualification.sh` to build a fresh Debug qualification package. It archives the pinned source and configures CMake at the final package paths. It builds every default target with two jobs.
+
+The script copies CTest registration files into a separate writable stage. It adds explicit per-test working directories that point to the package build. CTest list and JSON output stay in that stage. The frozen package contains no CTest `Testing` directory.
 
 Example on middle-child:
 
@@ -8,7 +10,8 @@ Example on middle-child:
 bash spatial-os-luna-handoff/tools/package_debug_qualification.sh \
   /home/dflanag3/src/m08-package-closure-relocation-20261018/spatial-os-luna-handoff \
   /home/dflanag3/spatial-artifacts/m08-package-closure-relocation-20261018/package-debug-UNQUALIFIED-<commit> \
-  /home/dflanag3/spatial-artifacts/m08-package-closure-relocation-20261018/package-debug-UNQUALIFIED-<commit>.tar.gz
+  /home/dflanag3/spatial-artifacts/m08-package-closure-relocation-20261018/package-debug-UNQUALIFIED-<commit>.tar.gz \
+  /home/dflanag3/spatial-artifacts/m08-package-closure-relocation-20261018/ctest-stage-<commit>
 ```
 
-Run through the installed `run-command.sh` inside a persistent tmux session. The script refuses existing output paths and requires at least 10 GiB free before building. It does not run tests or deploy the package. A successful package remains UNQUALIFIED until its required runtime qualification passes.
+Run through the installed `run-command.sh` inside persistent tmux. The script refuses existing output paths and requires at least 10 GiB free before building. It performs registration-only CTest inspection. It does not run tests or deploy the package. A successful package remains UNQUALIFIED until runtime qualification passes.
