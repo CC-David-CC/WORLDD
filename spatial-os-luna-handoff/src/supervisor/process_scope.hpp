@@ -17,14 +17,17 @@ class OwnedDrainedTree final {
 public:
     int directory_fd() const { return directory_; }
     const v1::ProcessScopeIdentity& identity() const { return identity_; }
+    std::chrono::steady_clock::time_point deadline() const { return deadline_; }
     OwnedDrainedTree(const OwnedDrainedTree&) = delete;
     OwnedDrainedTree& operator=(const OwnedDrainedTree&) = delete;
 private:
     friend class ProcessScope;
-    OwnedDrainedTree(int directory, const v1::ProcessScopeIdentity& identity)
-        : directory_(directory), identity_(identity) {}
+    OwnedDrainedTree(int directory, const v1::ProcessScopeIdentity& identity,
+                     std::chrono::steady_clock::time_point deadline)
+        : directory_(directory), identity_(identity), deadline_(deadline) {}
     int directory_;
     const v1::ProcessScopeIdentity& identity_;
+    std::chrono::steady_clock::time_point deadline_;
 };
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
@@ -42,9 +45,12 @@ public:
     // Stop only the exact recorded child scope below an identity-pinned parent.
     static bool stop_recovered(const std::filesystem::path&, std::uint64_t, std::uint64_t,
                                const v1::ProcessScopeIdentity&,
-                               const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
+                               const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {},
+                               std::chrono::steady_clock::time_point deadline =
+                                   std::chrono::steady_clock::time_point::max());
     static bool remove_reserved_empty(const std::filesystem::path&, const v1::ProcessScopeIdentity&,
-                                      const std::string&);
+                                      const std::string&, std::chrono::steady_clock::time_point deadline =
+                                          std::chrono::steady_clock::time_point::max());
     static bool remove_recovered_git_parent(const std::filesystem::path&, std::uint64_t, std::uint64_t,
                                             const v1::ProcessScopeIdentity&);
     static bool remove_reserved_git_parent(const std::filesystem::path&, std::uint64_t, std::uint64_t,

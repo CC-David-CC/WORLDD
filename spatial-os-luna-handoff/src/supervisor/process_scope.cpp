@@ -19,6 +19,7 @@
 #include <linux/magic.h>
 #include <poll.h>
 #include <sstream>
+#include <thread>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -44,6 +45,11 @@ struct Fd {
     ~Fd() { if (value >= 0) close(value); }
     Fd(const Fd&) = delete;
     Fd& operator=(const Fd&) = delete;
+};
+struct DirectoryStream {
+    DIR* value = nullptr;
+    ~DirectoryStream() { if(value) closedir(value); }
+    int close() { if(!value)return 0;DIR* current=value;value=nullptr;return closedir(current); }
 };
 void check(bool okay, const char* message) {
     if (!okay) throw std::runtime_error(std::string(message) + ": " + std::strerror(errno));
@@ -72,6 +78,19 @@ void control(int directory, const char* name, const std::string& value) {
     check(size == static_cast<ssize_t>(value.size()), "Cannot write cgroup control");
 }
 void tick() { poll(nullptr, 0, 5); }
+void check_deadline(std::chrono::steady_clock::time_point deadline,
+                    const char* message = "Cleanup deadline expired") {
+    if (deadline != std::chrono::steady_clock::time_point::max() &&
+        Clock::now() >= deadline) throw std::runtime_error(message);
+}
+void tick_until(std::chrono::steady_clock::time_point deadline) {
+    check_deadline(deadline);
+    const auto remaining=deadline-Clock::now();
+    const auto pause=std::min(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::milliseconds(5)),std::chrono::duration_cast<std::chrono::nanoseconds>(remaining));
+    if(pause>std::chrono::nanoseconds::zero())std::this_thread::sleep_for(pause);
+    check_deadline(deadline);
+}
 #ifdef SPATIAL_PROCESS_SCOPE_READTRACE
 constexpr std::size_t kReadTraceSnapshotBytes = 4096;
 constexpr std::size_t kReadTraceFileBytes = 65536;
@@ -271,35 +290,55 @@ void validate_no_child_cgroups(int directory) {
     } catch (...) { closedir(entries); throw; }
     closedir(entries);
 }
-void remove_empty_children(int directory, unsigned depth = 0) {
+void remove_empty_children(int directory, unsigned depth = 0,
+                           std::chrono::steady_clock::time_point deadline =
+                               std::chrono::steady_clock::time_point::max()) {
+    check_deadline(deadline);
     valid(depth <= 8, "Excessive owned cgroup nesting");
+    check_deadline(deadline);
     Fd duplicate(openat(directory, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
+    check_deadline(deadline);
     check(duplicate.value >= 0, "Cannot enumerate owned cgroups");
-    DIR* entries = fdopendir(duplicate.value);
-    check(entries != nullptr, "Cannot read owned cgroups");
-    duplicate.value = -1;
+    DirectoryStream stream;
+    stream.value=fdopendir(duplicate.value);
+    if(stream.value)duplicate.value=-1;
+    check_deadline(deadline);
+    check(stream.value != nullptr, "Cannot read owned cgroups");
+    DIR* entries=stream.value;
     try {
         for (;;) {
+            check_deadline(deadline);
             errno = 0; const auto* entry = readdir(entries);
             if (!entry) { check(errno == 0, "Cannot enumerate owned cgroups"); break; }
             const std::string name = entry->d_name;
             if (name == "." || name == "..") continue;
             struct stat info{};
             check(fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) == 0, "Cannot inspect owned cgroup child");
+            check_deadline(deadline);
             if (!S_ISDIR(info.st_mode)) continue;
             valid(info.st_uid == geteuid(), "Foreign cgroup child prevents cleanup");
+            check_deadline(deadline);
             Fd child(openat(directory, name.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+            check_deadline(deadline);
             check(child.value >= 0, "Cannot pin owned cgroup child");
             struct stat retained{};
             check(fstat(child.value, &retained) == 0, "Cannot inspect retained cgroup child");
+            check_deadline(deadline);
             valid(retained.st_dev == info.st_dev && retained.st_ino == info.st_ino, "Cgroup child identity changed");
-            remove_empty_children(child.value, depth+1);
+            check_deadline(deadline);
+            remove_empty_children(child.value, depth+1, deadline);
+            check_deadline(deadline);
             check(fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) == 0, "Cannot recheck cgroup child");
+            check_deadline(deadline);
             valid(retained.st_dev == info.st_dev && retained.st_ino == info.st_ino, "Cgroup child identity changed before removal");
+            check_deadline(deadline);
             check(unlinkat(directory, name.c_str(), AT_REMOVEDIR) == 0, "Cannot remove empty owned cgroup child");
+            check_deadline(deadline);
         }
-    } catch (...) { closedir(entries); throw; }
-    closedir(entries);
+    } catch (...) { throw; }
+    check_deadline(deadline);
+    check(stream.close()==0,"Cannot close owned cgroup directory");
+    check_deadline(deadline);
 }
 [[noreturn]] void child_failure(int gate, int error) {
     (void)send(gate, &error, sizeof(error), MSG_NOSIGNAL); _exit(126);
@@ -516,7 +555,11 @@ void ProcessScope::thaw_payload() {
 bool ProcessScope::stop_recovered(const std::filesystem::path& parent_path,
                                    std::uint64_t parent_device, std::uint64_t parent_inode,
                                    const v1::ProcessScopeIdentity& identity,
-                                   const std::function<void(const v1::ProcessScopeIdentity&)>& drained) {
+                                   const std::function<void(const v1::ProcessScopeIdentity&)>& drained,
+                                   std::chrono::steady_clock::time_point deadline) {
+    const auto stop_deadline=deadline==std::chrono::steady_clock::time_point::max()
+        ? Clock::now()+std::chrono::seconds(2) : deadline;
+    check_deadline(stop_deadline);
     valid(identity.scope_name().size() > 0 && identity.scope_name().size() <= 128 &&
           identity.scope_name() != "." && identity.scope_name() != ".." &&
           identity.scope_name().find_first_of("/\\") == std::string::npos &&
@@ -524,61 +567,86 @@ bool ProcessScope::stop_recovered(const std::filesystem::path& parent_path,
           identity.device() > 0 && identity.inode() > 0 &&
           identity.boot_id().size() == 36 && (identity.launch_id().size() == 16 || identity.launch_id().size() == 32),
           "Invalid recovered ProcessScope identity");
+    check_deadline(stop_deadline);
     Fd parent(open(parent_path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+    check_deadline(stop_deadline);
     if(parent.value<0 && errno==ENOENT)
         throw std::runtime_error("Recovered ProcessScope parent is absent; cleanup is unconfirmed");
     check(parent.value >= 0, "Cannot open recovered ProcessScope parent");
     struct statfs fs{}; struct stat parent_stat{};
+    check_deadline(stop_deadline);
     check(fstatfs(parent.value, &fs) == 0 && fstat(parent.value, &parent_stat) == 0,
           "Cannot inspect recovered ProcessScope parent");
+    check_deadline(stop_deadline);
     valid(fs.f_type == CGROUP2_SUPER_MAGIC && parent_stat.st_uid == geteuid() &&
           static_cast<std::uint64_t>(parent_stat.st_dev) == parent_device &&
           static_cast<std::uint64_t>(parent_stat.st_ino) == parent_inode,
           "Recovered ProcessScope parent identity changed");
+    check_deadline(stop_deadline);
     const int child_fd = openat(parent.value, identity.scope_name().c_str(),
         O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
-    if (child_fd < 0 && errno == ENOENT) return false;
-    check(child_fd >= 0, "Cannot open recovered ProcessScope child");
+    const int child_error=errno;
     Fd child(child_fd);
+    check_deadline(stop_deadline);
+    if (child_fd < 0 && child_error == ENOENT) return false;
+    check(child_fd >= 0, "Cannot open recovered ProcessScope child");
     struct stat child_stat{};
+    check_deadline(stop_deadline);
     check(fstat(child.value, &child_stat) == 0, "Cannot inspect recovered ProcessScope child");
+    check_deadline(stop_deadline);
     valid(child_stat.st_uid == geteuid() &&
           static_cast<std::uint64_t>(child_stat.st_dev) == identity.device() &&
           static_cast<std::uint64_t>(child_stat.st_ino) == identity.inode(),
           "Recovered ProcessScope child identity changed");
+    check_deadline(stop_deadline);
     std::ifstream boot_file("/proc/sys/kernel/random/boot_id");
     std::string current_boot; std::getline(boot_file, current_boot);
+    check_deadline(stop_deadline);
     valid(current_boot == identity.boot_id(), "Recovered ProcessScope belongs to another boot");
+    check_deadline(stop_deadline);
     control(child.value, "cgroup.kill", "1\n");
-    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    check_deadline(stop_deadline);
     for (;;) {
+        check_deadline(stop_deadline);
         const auto events = contents(child.value, "cgroup.events");
+        check_deadline(stop_deadline);
         valid(events.find("populated 0\n") != std::string::npos ||
               events.find("populated 1\n") != std::string::npos,
               "Recovered ProcessScope population state is malformed");
         if (events.find("populated 0\n") != std::string::npos) break;
-        valid(Clock::now() < deadline, "Recovered ProcessScope did not become empty");
-        tick();
+        check_deadline(stop_deadline,"Recovered ProcessScope did not become empty");
+        tick_until(stop_deadline);
     }
-    std::istringstream process_ids(contents(child.value, "cgroup.procs"));
+    check_deadline(stop_deadline);
+    const auto process_list=contents(child.value, "cgroup.procs");
+    check_deadline(stop_deadline);
+    std::istringstream process_ids(process_list);
     std::string process_id;
     valid(!(process_ids >> process_id), "Recovered ProcessScope still contains processes");
     struct stat named{};
+    check_deadline(stop_deadline);
     check(fstatat(parent.value, identity.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
           "Recovered ProcessScope disappeared before removal");
+    check_deadline(stop_deadline);
     valid(named.st_dev == child_stat.st_dev && named.st_ino == child_stat.st_ino,
           "Recovered ProcessScope name was replaced");
+    check_deadline(stop_deadline);
     if(drained) drained(identity);
+    check_deadline(stop_deadline);
     check(fstatat(parent.value,identity.scope_name().c_str(),&named,AT_SYMLINK_NOFOLLOW)==0 &&
           named.st_dev==child_stat.st_dev && named.st_ino==child_stat.st_ino,
           "Recovered ProcessScope changed during drain acknowledgment");
+    check_deadline(stop_deadline);
     check(unlinkat(parent.value, identity.scope_name().c_str(), AT_REMOVEDIR) == 0,
           "Cannot remove recovered ProcessScope");
+    check_deadline(stop_deadline);
     return true;
 }
 bool ProcessScope::remove_reserved_empty(const std::filesystem::path& parent_path,
                                    const v1::ProcessScopeIdentity& parent_identity,
-                                   const std::string& reserved_name) {
+                                   const std::string& reserved_name,
+                                   std::chrono::steady_clock::time_point deadline) {
+    check_deadline(deadline);
     valid(parent_identity.scope_name()=="spatial-git-workers" &&
           parent_identity.boot_id().size()==36 &&
           reserved_name.size()>0 && reserved_name.size()<=128 &&
@@ -586,37 +654,59 @@ bool ProcessScope::remove_reserved_empty(const std::filesystem::path& parent_pat
           reserved_name.find_first_of("/\\")==std::string::npos &&
           reserved_name.find('\0')==std::string::npos,
           "Invalid reserved empty ProcessScope binding");
+    check_deadline(deadline);
     Fd parent(open(parent_path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+    check_deadline(deadline);
     check(parent.value>=0,"Cannot open reserved ProcessScope parent");
     struct statfs fs{};struct stat parent_stat{};
+    check_deadline(deadline);
     check(fstatfs(parent.value,&fs)==0 && fstat(parent.value,&parent_stat)==0,
           "Cannot inspect reserved ProcessScope parent");
+    check_deadline(deadline);
     valid(fs.f_type==CGROUP2_SUPER_MAGIC && parent_stat.st_uid==geteuid() &&
           static_cast<std::uint64_t>(parent_stat.st_dev)==parent_identity.device() &&
           static_cast<std::uint64_t>(parent_stat.st_ino)==parent_identity.inode(),
           "Reserved ProcessScope parent identity changed");
+    check_deadline(deadline);
     const int child_fd=openat(parent.value,reserved_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
-    if(child_fd<0 && errno==ENOENT)return false;
+    const int child_error=errno;
+    Fd child(child_fd);
+    check_deadline(deadline);
+    if(child_fd<0 && child_error==ENOENT)return false;
     check(child_fd>=0,"Cannot open reserved ProcessScope child");
-    Fd child(child_fd);struct stat child_stat{};
+    struct stat child_stat{};
+    check_deadline(deadline);
     check(fstat(child.value,&child_stat)==0,"Cannot inspect reserved ProcessScope child");
+    check_deadline(deadline);
     valid(child_stat.st_uid==geteuid() && fstatfs(child.value,&fs)==0 && fs.f_type==CGROUP2_SUPER_MAGIC,
           "Reserved ProcessScope child is not an owned cgroup");
+    check_deadline(deadline);
     std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string current_boot;std::getline(boot_file,current_boot);
+    check_deadline(deadline);
     valid(current_boot==parent_identity.boot_id(),"Reserved ProcessScope belongs to another boot");
-    valid(contents(child.value,"cgroup.events").find("populated 0\n")!=std::string::npos &&
-          contents(child.value,"cgroup.procs").empty(),
+    check_deadline(deadline);
+    const auto events=contents(child.value,"cgroup.events");
+    check_deadline(deadline);
+    const auto procs=contents(child.value,"cgroup.procs");
+    check_deadline(deadline);
+    valid(events.find("populated 0\n")!=std::string::npos && procs.empty(),
           "Unbound reserved ProcessScope is not empty");
-    std::istringstream stats(contents(child.value,"cgroup.stat"));std::string key;unsigned long long count=0;
+    const auto stats_text=contents(child.value,"cgroup.stat");
+    check_deadline(deadline);
+    std::istringstream stats(stats_text);std::string key;unsigned long long count=0;
     bool descendants_known=false;
     while(stats>>key>>count)if(key=="nr_descendants"){descendants_known=true;valid(count==0,"Unbound ProcessScope has descendants");}
     valid(descendants_known,"Unbound ProcessScope descendant count is unavailable");
+    check_deadline(deadline);
     struct stat named{};check(fstatat(parent.value,reserved_name.c_str(),&named,AT_SYMLINK_NOFOLLOW)==0,
           "Reserved ProcessScope disappeared before removal");
+    check_deadline(deadline);
     valid(named.st_dev==child_stat.st_dev && named.st_ino==child_stat.st_ino,
           "Reserved ProcessScope name was replaced");
+    check_deadline(deadline);
     check(unlinkat(parent.value,reserved_name.c_str(),AT_REMOVEDIR)==0,
           "Cannot remove empty reserved ProcessScope");
+    check_deadline(deadline);
     return true;
 }
 bool ProcessScope::remove_recovered_git_parent(const std::filesystem::path& root_path,
@@ -944,35 +1034,54 @@ bool ProcessScope::diagnostic_populated() const { return scope_ >= 0 && populate
 bool ProcessScope::diagnostic_child_reaped() const { return reaped_; }
 v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
     const std::function<void(const v1::ProcessScopeIdentity&)>& drained) {
+    check_deadline(deadline,"Authority scope cleanup deadline exceeded");
     valid(stop_requested_, "Owned termination was not requested");
     if (!removed_) {
-        while (scope_ >= 0 && populated()) {
-            valid(Clock::now() < deadline, "Authority scope remains populated"); tick();
+        while (scope_ >= 0) {
+            check_deadline(deadline,"Authority scope remains populated");
+            const bool has_processes=populated();
+            check_deadline(deadline,"Authority scope remains populated");
+            if(!has_processes)break;
+            tick_until(deadline);
         }
         while (child_ > 0 && !reaped_) {
+            check_deadline(deadline,"Authority child reap deadline exceeded");
             int status; const auto waited = waitpid(child_, &status, WNOHANG);
-            if (waited < 0 && errno == EINTR) continue;
+            if (waited < 0 && errno == EINTR) { check_deadline(deadline,"Authority child reap deadline exceeded"); continue; }
             check(waited >= 0, "Cannot reap authority child");
-            if (waited == child_) { reaped_ = true; break; }
-            valid(Clock::now() < deadline, "Authority child reap deadline exceeded"); tick();
+            if (waited == child_) { reaped_ = true; check_deadline(deadline,"Authority child reap deadline exceeded"); break; }
+            check_deadline(deadline,"Authority child reap deadline exceeded");
+            tick_until(deadline);
         }
         if (scope_ >= 0 && pre_prune_cleanup_) {
-            const auto verify = [this] {
+            const auto verify = [this,deadline] {
+                check_deadline(deadline,"Authority scope cleanup deadline exceeded");
                 struct stat held{}, named{};
-                check(fstat(scope_, &held) == 0 &&
-                      fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
-                      "Cannot inspect owned tree before pruning");
+                check(fstat(scope_, &held) == 0,"Cannot inspect held owned tree before pruning");
+                check_deadline(deadline,"Authority scope cleanup deadline exceeded");
+                check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
+                      "Cannot inspect named owned tree before pruning");
+                check_deadline(deadline,"Authority scope cleanup deadline exceeded");
                 valid(S_ISDIR(named.st_mode) && held.st_dev == named.st_dev && held.st_ino == named.st_ino &&
-                      identity_.device() == static_cast<std::uint64_t>(held.st_dev) && identity_.inode() == held.st_ino &&
-                      !populated() && contents(scope_, "cgroup.procs").empty() && (child_ <= 0 || reaped_),
+                      identity_.device() == static_cast<std::uint64_t>(held.st_dev) && identity_.inode() == held.st_ino,
                       "Owned drained tree identity or population changed");
+                const bool has_processes=populated();
+                check_deadline(deadline,"Authority scope cleanup deadline exceeded");
+                const auto processes=contents(scope_,"cgroup.procs");
+                check_deadline(deadline,"Authority scope cleanup deadline exceeded");
+                valid(!has_processes && processes.empty() && (child_ <= 0 || reaped_),
+                      "Owned drained tree population changed");
+                check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             };
             verify();
-            const OwnedDrainedTree tree(scope_, identity_);
+            const OwnedDrainedTree tree(scope_, identity_,deadline);
             pre_prune_cleanup_(tree);
+            check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             verify();
         }
-        if (scope_ >= 0) remove_empty_children(scope_);
+        check_deadline(deadline,"Authority scope cleanup deadline exceeded");
+        if (scope_ >= 0) remove_empty_children(scope_,0,deadline);
+        check_deadline(deadline,"Authority scope cleanup deadline exceeded");
         if (!identity_.scope_name().empty() && !retained_scope_) {
             struct stat named{};
             check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
@@ -981,14 +1090,20 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
                   identity_.inode() == static_cast<std::uint64_t>(named.st_ino), "Owned scope identity changed");
             valid(!populated() && contents(scope_,"cgroup.procs").empty() && (child_<=0 || reaped_),
                   "Owned scope drain proof changed before acknowledgment");
+            check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             if(drained) drained(identity_);
+            check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             check(fstatat(parent_,identity_.scope_name().c_str(),&named,AT_SYMLINK_NOFOLLOW)==0 &&
                   identity_.device()==static_cast<std::uint64_t>(named.st_dev) && identity_.inode()==named.st_ino,
                   "Owned scope changed during drain acknowledgment");
+            check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             check(unlinkat(parent_, identity_.scope_name().c_str(), AT_REMOVEDIR) == 0, "Cannot remove owned scope");
+            removed_=true;
+            check_deadline(deadline,"Authority scope cleanup deadline exceeded");
         }
         removed_ = true;
     }
+    check_deadline(deadline,"Authority scope cleanup deadline exceeded");
     v1::ProcessScopeStopped result; *result.mutable_identity() = identity_; return result;
 }
 v1::ProcessScopeStopped ProcessScope::stop(const std::function<void(const v1::ProcessScopeIdentity&)>& drained) {

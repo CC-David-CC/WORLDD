@@ -2,6 +2,7 @@
 #include "file_actions.pb.h"
 #include "file_copy_job_journal.pb.h"
 #include <cstdint>
+#include <chrono>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -10,6 +11,8 @@
 #include <vector>
 
 namespace spatial {
+using CleanupDeadline = std::chrono::steady_clock::time_point;
+constexpr CleanupDeadline kNoCleanupDeadline = CleanupDeadline::max();
 struct FileOperationBinding {
   std::string workspace;
   std::string operation_id;
@@ -39,10 +42,12 @@ public:
   PinnedFileOperationJournal(PinnedFileOperationJournal&&) noexcept;
   PinnedFileOperationJournal& operator=(PinnedFileOperationJournal&&) noexcept;
   PinnedFileOperationJournal(const PinnedFileOperationJournal&) = delete;
-  const workspace::v1::FileCopyCleanupJournalBinding& binding() const;
-  void verify() const;
+  const workspace::v1::FileCopyCleanupJournalBinding& binding(
+      CleanupDeadline deadline = kNoCleanupDeadline) const;
+  void verify(CleanupDeadline deadline = kNoCleanupDeadline) const;
   int execution_directory_fd() const;
-  void verify_workspace_binding(const workspace::v1::FileCopyJobJournalRecord&) const;
+  void verify_workspace_binding(const workspace::v1::FileCopyJobJournalRecord&,
+      CleanupDeadline deadline = kNoCleanupDeadline) const;
 private:
   friend class FileOperationJournal;
   struct Impl;
@@ -60,7 +65,8 @@ public:
   // creates a database, migrates schema, changes modes, or replaces a database.
   static PinnedFileOperationJournal pin_existing(int execution_directory_fd);
   // Acquire execution.lock. Never create, migrate, chmod, or replace an existing journal.
-  static std::unique_ptr<FileOperationJournal> open_existing(const PinnedFileOperationJournal&);
+  static std::unique_ptr<FileOperationJournal> open_existing(const PinnedFileOperationJournal&,
+      CleanupDeadline deadline = kNoCleanupDeadline);
   static std::string copy_job_identity_sha256(const CopyJobRecord&);
   std::optional<workspace::v1::FileCopyScopeCleanupOutcome> scope_cleanup_outcome(
       const std::string& workspace, const std::string& job_id, const Observer& observer);

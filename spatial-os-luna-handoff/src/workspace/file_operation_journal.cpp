@@ -37,6 +37,33 @@ constexpr std::size_t kMaxOutcome = 8192;
 constexpr std::size_t kMaxCopyJobRecord = 16 * 1024;
 constexpr std::uint64_t kMaxCopyJobRows = 65536;
 constexpr std::size_t kMaxCopyJobPruneBatch = 1024;
+thread_local CleanupDeadline* active_cleanup_deadline = nullptr;
+void check_deadline(CleanupDeadline deadline) {
+  if(deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=deadline)
+    throw std::runtime_error("Copy cleanup deadline expired");
+}
+void check_cleanup_deadline() {
+  if(active_cleanup_deadline) check_deadline(*active_cleanup_deadline);
+}
+struct CleanupDeadlineContext {
+  CleanupDeadline* previous;
+  explicit CleanupDeadlineContext(CleanupDeadline& deadline):previous(active_cleanup_deadline){active_cleanup_deadline=&deadline;}
+  ~CleanupDeadlineContext(){active_cleanup_deadline=previous;}
+};
+int cleanup_busy(void* context, int prior) {
+  auto* deadline = static_cast<CleanupDeadline*>(context);
+  if (!deadline || *deadline == kNoCleanupDeadline) return prior < 100 ? 1 : 0;
+  const auto now=std::chrono::steady_clock::now();
+  if(now>=*deadline) return 0;
+  const auto remain=std::chrono::duration_cast<std::chrono::milliseconds>(*deadline-now).count();
+  const auto delay=std::min<std::int64_t>(1,std::max<std::int64_t>(0,remain));
+  if(delay) std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+  return std::chrono::steady_clock::now()<*deadline ? 1 : 0;
+}
+int cleanup_progress(void* context) {
+  auto* deadline=static_cast<CleanupDeadline*>(context);
+  return deadline && *deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=*deadline;
+}
 void check(int rc, sqlite3* db, const char* message) {
   (void)db;
   if (rc == SQLITE_FULL) throw std::length_error("File operation journal capacity exhausted");
@@ -45,14 +72,19 @@ void check(int rc, sqlite3* db, const char* message) {
 }
 class Statement {
  public:
-  Statement(sqlite3* db, const char* sql) : db_(db) { check(sqlite3_prepare_v2(db, sql, -1, &value_, nullptr), db, "File journal query failed"); }
+  Statement(sqlite3* db, const char* sql) : db_(db) {
+    check_cleanup_deadline();
+    const int rc=sqlite3_prepare_v2(db,sql,-1,&value_,nullptr);
+    if(rc!=SQLITE_OK){if(value_)sqlite3_finalize(value_);value_=nullptr;check(rc,db,"File journal query failed");}
+    try { check_cleanup_deadline(); } catch(...) { sqlite3_finalize(value_);value_=nullptr;throw; }
+  }
   ~Statement() { sqlite3_finalize(value_); }
   sqlite3_stmt* get() const { return value_; }
   void text(int at, const std::string& value) { check(sqlite3_bind_text(value_, at, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT), db_, "File journal bind failed"); }
   void blob(int at, const std::string& value) { check(sqlite3_bind_blob(value_, at, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT), db_, "File journal bind failed"); }
   void number(int at, sqlite3_int64 value) { check(sqlite3_bind_int64(value_, at, value), db_, "File journal bind failed"); }
-  bool row() { const int rc = sqlite3_step(value_); check(rc, db_, "File journal read failed"); return rc == SQLITE_ROW; }
-  void done() { check(sqlite3_step(value_), db_, "File journal write failed"); }
+  bool row() { check_cleanup_deadline(); const int rc = sqlite3_step(value_); check_cleanup_deadline(); check(rc, db_, "File journal read failed"); return rc == SQLITE_ROW; }
+  void done() { check_cleanup_deadline(); check(sqlite3_step(value_), db_, "File journal write failed"); check_cleanup_deadline(); }
   std::string bytes(int column) const {
     const auto* p = static_cast<const char*>(sqlite3_column_blob(value_, column));
     const int n = sqlite3_column_bytes(value_, column);
@@ -76,10 +108,12 @@ class Transaction {
  private: sqlite3* db_; bool done_=false;
 };
 void sql(sqlite3* db, const char* text) {
+  check_cleanup_deadline();
   char* error = nullptr;
   const int rc = sqlite3_exec(db, text, nullptr, nullptr, &error);
   const std::string detail=error?error:"";
   sqlite3_free(error);
+  check_cleanup_deadline();
   if(rc!=SQLITE_OK)
     throw std::runtime_error("File operation journal initialization failed: "+detail);
 }
@@ -600,32 +634,46 @@ PinnedFileOperationJournal::PinnedFileOperationJournal(std::shared_ptr<Impl> imp
 PinnedFileOperationJournal::~PinnedFileOperationJournal()=default;
 PinnedFileOperationJournal::PinnedFileOperationJournal(PinnedFileOperationJournal&&) noexcept=default;
 PinnedFileOperationJournal& PinnedFileOperationJournal::operator=(PinnedFileOperationJournal&&) noexcept=default;
-const workspace::v1::FileCopyCleanupJournalBinding& PinnedFileOperationJournal::binding() const { verify(); return impl_->binding; }
-void PinnedFileOperationJournal::verify() const { pin_require(bool(impl_),"Missing pinned journal ownership"); impl_->verify(); }
+const workspace::v1::FileCopyCleanupJournalBinding& PinnedFileOperationJournal::binding(CleanupDeadline deadline) const { verify(deadline); return impl_->binding; }
+void PinnedFileOperationJournal::verify(CleanupDeadline deadline) const {
+  pin_require(bool(impl_),"Missing pinned journal ownership");
+  if(deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("Copy cleanup deadline expired");
+  impl_->verify();
+  if(deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("Copy cleanup deadline expired");
+}
 int PinnedFileOperationJournal::execution_directory_fd() const { verify(); return impl_->root.value; }
-void PinnedFileOperationJournal::verify_workspace_binding(const workspace::v1::FileCopyJobJournalRecord& job) const {
-  verify();
+void PinnedFileOperationJournal::verify_workspace_binding(const workspace::v1::FileCopyJobJournalRecord& job, CleanupDeadline deadline) const {
+  verify(deadline);
+  CleanupDeadlineContext deadline_context(deadline);
+  try {
   ExistingConnection connection(impl_->root.value,impl_->execution.value,"execution.db");
   const int result=sqlite3_open_v2(connection.vfs->filename,&connection.db,SQLITE_OPEN_READONLY|SQLITE_OPEN_NOFOLLOW,connection.vfs->name);
   check(result,connection.db,"Cannot inspect pinned workspace registry");
-  sqlite3_busy_timeout(connection.db,500);
+  if(deadline==kNoCleanupDeadline) sqlite3_busy_timeout(connection.db,500);
+  else { sqlite3_busy_handler(connection.db,cleanup_busy,&deadline); sqlite3_progress_handler(connection.db,1000,cleanup_progress,&deadline); }
   {
   Statement row(connection.db,"SELECT w.worktree,t.state,t.path FROM workspaces w JOIN worktrees t ON t.id=w.worktree WHERE w.id=?");
   row.text(1,job.workspace_id());
   pin_require(row.row() && row.string(0)==job.worktree_id() && row.string(1)=="ready",
       "Cleanup workspace/worktree binding changed");
   PinnedFd worktree,staging;
+  check_cleanup_deadline();
   worktree.value=open(row.string(2).c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+  check_cleanup_deadline();
   struct stat info{};
   pin_require(worktree.value>=0 && fstat(worktree.value,&info)==0 &&
       static_cast<std::uint64_t>(info.st_dev)==job.worktree_root_device() &&
       static_cast<std::uint64_t>(info.st_ino)==job.worktree_root_inode(),"Cleanup worktree root changed");
+  check_cleanup_deadline();
   staging.value=openat(worktree.value,".spatial-copy-staging",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+  check_cleanup_deadline();
   pin_require(staging.value>=0 && fstat(staging.value,&info)==0 &&
       static_cast<std::uint64_t>(info.st_dev)==job.staging_root().device() &&
       static_cast<std::uint64_t>(info.st_ino)==job.staging_root().inode(),"Cleanup staging root changed");
+  check_cleanup_deadline();
   }
-  verify();connection.close();verify();
+  verify(deadline);connection.close();verify(deadline);
+  } catch(...) { throw; }
 }
 PinnedFileOperationJournal FileOperationJournal::pin_existing(int root_fd) {
   auto pin=std::make_shared<PinnedFileOperationJournal::Impl>();
@@ -676,20 +724,23 @@ struct FileOperationJournal::Impl {
   std::thread worker;
   std::promise<void> ready;
   std::shared_ptr<PinnedFileOperationJournal::Impl> pins;
+  CleanupDeadline deadline = kNoCleanupDeadline;
   PinnedFd execution_lock;
   std::unique_ptr<AnchoredJournalVfs> anchored;
   std::exception_ptr close_failure;
   explicit Impl(const std::filesystem::path& state,
-                std::shared_ptr<PinnedFileOperationJournal::Impl> pinned = {})
-      : database(state / "file-operations" / "file-operations.db"), pins(std::move(pinned)) {
+                std::shared_ptr<PinnedFileOperationJournal::Impl> pinned = {},
+                CleanupDeadline operation_deadline = kNoCleanupDeadline)
+      : database(state / "file-operations" / "file-operations.db"), pins(std::move(pinned)), deadline(operation_deadline) {
     if(pins) {
-      pins->verify();
+      check_deadline(deadline);pins->verify();check_deadline(deadline);
       execution_lock.value=openat(pins->root.value,"execution.lock",O_RDWR|O_NOFOLLOW|O_CLOEXEC);
+      check_deadline(deadline);
       pin_require(execution_lock.value>=0,"Existing execution lock is required");
-      check_file_identity(execution_lock.value,pins->root.value,"execution.lock",false);
-      pin_require(flock(execution_lock.value,LOCK_EX|LOCK_NB)==0,"Execution is still owned by a broker");
+      check_file_identity(execution_lock.value,pins->root.value,"execution.lock",false);check_deadline(deadline);
+      pin_require(flock(execution_lock.value,LOCK_EX|LOCK_NB)==0,"Execution is still owned by a broker");check_deadline(deadline);
       anchored=std::make_unique<AnchoredJournalVfs>(pins->journal.value,pins->database.value,"file-operations.db");
-      database=anchored->filename;
+      check_deadline(deadline);database=anchored->filename;
     } else {
     const auto directory=database.parent_path();
     if(std::filesystem::is_symlink(state) || !std::filesystem::is_directory(state))
@@ -707,6 +758,7 @@ struct FileOperationJournal::Impl {
         throw std::runtime_error("File operation journal path must not be a symlink");
     }
     }
+    check_deadline(deadline);
     auto signal = ready.get_future();
     worker = std::thread([this] { run(); });
     try { signal.get(); } catch (...) { if(worker.joinable())worker.join(); throw; }
@@ -723,13 +775,18 @@ struct FileOperationJournal::Impl {
   }
   void run() {
     sqlite3* db = nullptr;
+    active_cleanup_deadline=&deadline;
     try {
+      check_cleanup_deadline();
       const int flags = SQLITE_OPEN_READWRITE | (pins?0:SQLITE_OPEN_CREATE) | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW;
+      check_cleanup_deadline();
       int rc = sqlite3_open_v2(database.c_str(), &db, flags, anchored?anchored->name:nullptr);
+      check_cleanup_deadline();
       check(rc, db, "Cannot open file operation journal");
       if(pins) pin_require(sqlite3_db_readonly(db,"main")==0,"Cleanup journal is not writable");
       if (!pins && chmod(database.c_str(), 0600) != 0) throw std::runtime_error("Cannot protect file operation journal database");
-      sqlite3_busy_timeout(db, 5000);
+      if(deadline==kNoCleanupDeadline) sqlite3_busy_timeout(db,5000);
+      else { sqlite3_busy_handler(db,cleanup_busy,&deadline); sqlite3_progress_handler(db,1000,cleanup_progress,&deadline); }
       if(!pins) sql(db, "PRAGMA page_size=4096; PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; PRAGMA trusted_schema=OFF; PRAGMA max_page_count=16384");
       else {
         pins->verify();
@@ -844,10 +901,12 @@ struct FileOperationJournal::Impl {
           pins->verify();
         }
       { Statement q(db, "PRAGMA quick_check"); if (!q.row() || q.string(0) != "ok") throw std::runtime_error("File operation journal integrity failed"); }
+      check_cleanup_deadline();
       ready.set_value();
     } catch (...) {
       try { ready.set_exception(std::current_exception()); } catch (...) {}
       close_worker(db);
+      active_cleanup_deadline=nullptr;
       return;
     }
     for (;;) {
@@ -858,19 +917,35 @@ struct FileOperationJournal::Impl {
       try { task(db); } catch (...) { /* packaged task transports failures to its waiter */ }
     }
     close_worker(db);
+    try { check_cleanup_deadline(); } catch(...) { if(!close_failure) close_failure=std::current_exception(); }
+    active_cleanup_deadline=nullptr;
   }
   template<class F> auto call(F&& operation, const Observer& observer) -> std::invoke_result_t<F, sqlite3*> {
     using Result = std::invoke_result_t<F, sqlite3*>;
     auto packaged=std::make_shared<std::packaged_task<Result(sqlite3*)>>(
         [this,operation=std::forward<F>(operation)](sqlite3* db) mutable -> Result {
+          check_cleanup_deadline();
           if(pins) pins->verify();
-          return operation(db);
+          check_cleanup_deadline();
+          if constexpr(std::is_void_v<Result>) {
+            operation(db);
+            check_cleanup_deadline();
+          } else {
+            auto result=operation(db);
+            check_cleanup_deadline();
+            return result;
+          }
         });
     auto result = packaged->get_future();
     { std::lock_guard lock(mutex); if (stopping) throw std::runtime_error("File operation journal is stopping");
       tasks.emplace_back([task=std::move(packaged)](sqlite3* db) mutable { (*task)(db); }); }
     wake.notify_one();
-    while (result.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready) if (observer) observer();
+    while (result.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready) {
+      if(deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=deadline) {
+        // Wait for cooperative SQLite cancellation and task completion before returning.
+      }
+      if(observer) observer();
+    }
     if constexpr (std::is_void_v<Result>) result.get(); else return result.get();
   }
 };
@@ -878,14 +953,18 @@ FileOperationJournal::FileOperationJournal(const std::filesystem::path& director
 FileOperationJournal::~FileOperationJournal() = default;
 void FileOperationJournal::finish_cleanup() {
   pin_require(bool(impl_->pins),"Only pinned cleanup owns explicit finish");
+  if(impl_->deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=impl_->deadline) throw std::runtime_error("Copy cleanup deadline expired");
   impl_->finish();
   if(impl_->close_failure) std::rethrow_exception(impl_->close_failure);
+  if(impl_->deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=impl_->deadline) throw std::runtime_error("Copy cleanup deadline expired");
 }
 FileOperationJournal::FileOperationJournal(std::unique_ptr<Impl> impl):impl_(std::move(impl)) {}
-std::unique_ptr<FileOperationJournal> FileOperationJournal::open_existing(const PinnedFileOperationJournal& pin) {
-  pin.verify();
+std::unique_ptr<FileOperationJournal> FileOperationJournal::open_existing(const PinnedFileOperationJournal& pin, CleanupDeadline deadline) {
+  if(deadline!=kNoCleanupDeadline && std::chrono::steady_clock::now()>=deadline)
+    throw std::runtime_error("Copy cleanup deadline expired");
+  pin.verify(deadline);
   return std::unique_ptr<FileOperationJournal>(new FileOperationJournal(std::make_unique<Impl>(
-      std::filesystem::path{},pin.impl_)));
+      std::filesystem::path{},pin.impl_,deadline)));
 }
 std::string FileOperationJournal::copy_job_identity_sha256(const CopyJobRecord& record) {
   validate_copy_job(record);

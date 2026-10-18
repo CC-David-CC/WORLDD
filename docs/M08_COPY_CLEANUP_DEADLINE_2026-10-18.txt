@@ -1,0 +1,70 @@
+# M08 copy cleanup deadline contract (2026-10-18)
+
+Status: UNQUALIFIED diagnostic checkpoint. Debug compilation passed. Journal, process-scope validation, and FileEngine checks passed on both hosts. The full cleanup probe timed out on both hosts. No sanitizer run has tested this candidate. CMake registration is unchanged.
+
+## Contract
+
+`ProcessScope::complete_stop` owns one absolute `steady_clock` deadline. It exposes that exact deadline through the borrowed `OwnedDrainedTree` callback view. The broker copy cleanup participant passes it to journal opening and workspace binding checks, the recovered worker stop, reserved-child cleanup, and final journal close. Recursive descendant pruning checks the same deadline. No cleanup step starts a fresh per-job budget.
+
+`FileOperationJournal::open_existing(pin, deadline)` gives the pinned worker connection one deadline for startup and all queued operations. SQLite busy waits use a deadline-aware handler. SQLite virtual-machine work uses a progress handler. Statement row steps, transaction writes, commits, queued operations, and close paths check the same deadline. Ordinary journal construction keeps its previous behavior. Pin verification accepts an operation deadline without storing it in the reusable pin.
+
+Expiry rejects the stopped receipt. The exact process-scope tree, copy stage, and durable partial journal outcomes remain available for exact retry. The drain callback commits proof before the worker cgroup is unlinked. A terminal uncertainty remains immutable. Synchronous filesystem and kernel calls cannot be interrupted; the code checks the deadline before and after them and rejects a late completion receipt.
+
+## Focused regression selection
+
+- Existing `broker-copy-cleanup-test` / `test_broker_copy_cleanup.py`: existing 13 participant and pinned-journal oracles remain in place.
+- Expiry before participant callback: proves no callback or prune starts after deadline; an ordinary bounded retry succeeds.
+- Expiry after direct-child reap: proves successful `waitpid` state persists before the deadline check; retry does not hit `ECHILD` and invokes the callback again.
+- Held SQLite `BEGIN IMMEDIATE`: proves the inherited budget bounds lock waiting, preserves worker and stage evidence, and permits retry after lock release.
+- Multi-row recovery: 2,000 valid start-intent rows prove one absolute budget yields durable partial outcomes, no stopped receipt, and successful exact retry.
+- Present empty reserved child: complements the existing absent-child reservation control and proves exact empty child removal without manufactured worker proof.
+
+## Actual verification and retained failures
+
+Debug production and test targets compiled after recorded compile fixes.
+Reusable build directory:
+/home/dflanag3/spatial-artifacts/m08-copy-cleanup-deadline-20261018/debug-build-retry-04/cmake-build
+
+The corrected full Debug run executed four programs on each host.
+Journal, process-scope validation, and FileEngine passed on each host.
+The cleanup program exceeded its unchanged 60-second wrapper limit on each host.
+This is three passed programs and one failed program per host, not a cleanup pass.
+The earlier long-TMPDIR journal setup failure passed after launcher correction to /tmp.
+The original root-replacement error oracle remains unchanged.
+
+Each test host retains evidence below:
+/home/dflanag3/spatial-artifacts/m08-copy-cleanup-deadline-primary-runtime-20261018
+Full program results: debug-corrected-run-02.
+Selected multirow diagnostic results: multirow-diagnostic-run-03.
+
+The selected diagnostic used source manifest SHA256:
+2154e95f70b7f2752e3173e60e9d344a4c6b648036cea61f2dd3ca5f20d758f5
+Diagnostic package SHA256:
+bba4e6e87fede6a09dd7ce9886a43af483d5c495d1df7ff1cf51b74d0e17d184
+
+On sb16, seeding finished at 34,163 ms. The first cleanup attempt began at
+34,198 ms and rejected at 34,523 ms with Copy cleanup deadline expired.
+The immediate inspection found five durable outcomes among 2,000 rows.
+The exact retry began at 34,523 ms.
+On sb16-2, seeding finished at 30,559 ms. The first attempt began at
+30,584 ms and rejected at 31,034 ms with the same deadline error.
+The immediate inspection found four durable outcomes among 2,000 rows.
+The exact retry began at 31,035 ms.
+The outer 60-second wrapper killed both probes before their 30-second retry
+budgets expired. These runs prove bounded rejection and partial durability.
+They do not prove successful retry. Later aggregate counts include retry work.
+Do not present those counts as the first-attempt prefix.
+
+## Next bounded correction
+
+Preserve this diagnostic checkpoint before changing its fixture population.
+Use 128 valid rows for the focused regression. Keep the 300 ms first deadline,
+the two-second observation bound, and the unchanged outer and retry limits.
+Keep specific deadline rejection, nonzero strict partial progress, retained root
+and stage evidence, exact final row count, and no manufactured drain proof.
+The observed first prefix was at most five rows. The smaller population still
+exceeds that prefix by more than 25 times. This changes a nonlocked test fixture,
+not production budgets or acceptance assertions. Review both-host results.
+Preserve stderr on successful runs as well as failures.
+Run the selected case first. Run the full cleanup probe after it passes.
+Sanitizer, combined integration, native recovery, and the full M08 gate remain UNRUN.

@@ -43,6 +43,7 @@ namespace {
 std::atomic<bool> disappear_at_open{false},disappeared_at_open{false};
 std::uint64_t disappearance_parent_device=0,disappearance_parent_inode=0;
 thread_local long allocation_budget=-1;
+std::string active_cleanup_mode="startup";
 }
 void* operator new(std::size_t size) {
   if(allocation_budget==0) throw std::bad_alloc();
@@ -75,6 +76,13 @@ extern "C" int openat(int directory,const char* name,int flags,...) {
 namespace {
 void check(bool ok,const char* text){if(!ok)throw std::runtime_error(text);}
 template<class F> void rejects(F f,const char* text){bool failed=false;try{f();}catch(const std::exception&){failed=true;}check(failed,text);}
+template<class F> void deadline_rejects(F f,const char* text){bool expired=false;try{f();}catch(const std::exception& error){expired=std::string(error.what()).find("deadline")!=std::string::npos;}check(expired,text);}
+void cleanup_phase(const std::string& mode,const char* phase,std::chrono::steady_clock::time_point began,const std::string& detail={}){
+  const auto elapsed=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-began).count();
+  std::cerr<<"cleanup_phase mode="<<mode<<" phase="<<phase<<" elapsed_ms="<<elapsed;
+  if(!detail.empty())std::cerr<<" detail="<<detail;
+  std::cerr<<std::endl;
+}
 void write_file(const std::filesystem::path& path,const std::string& value){std::ofstream file(path);file<<value;file.close();check(!file.fail(),"fixture write failed");}
 std::string read_file(const std::filesystem::path& path){std::ifstream file(path);return {std::istreambuf_iterator<char>(file),{}};}
 void wait_for(auto predicate){const auto until=std::chrono::steady_clock::now()+std::chrono::seconds(5);while(!predicate()){check(std::chrono::steady_clock::now()<until,"fixture deadline");std::this_thread::sleep_for(std::chrono::milliseconds(5));}}
@@ -628,6 +636,17 @@ void callback_controls(const std::filesystem::path& delegated){
   AuthorityProcessLaunch request;request.set_executable("/usr/bin/sleep");request.add_arguments("60");int null=open("/dev/null",O_RDWR|O_CLOEXEC);live->start(request,{null,null,null});close(null);
   rejects([&]{live->set_pre_prune_cleanup([](const auto&){});},"late callback installed");live->stop();check(saw_dead,"callback preceded direct-child reap");
   bool destructor_called=false;{auto scope=ProcessScope::prepare(delegated);scope->set_pre_prune_cleanup([&](const auto&){destructor_called=true;});}check(destructor_called,"destructor skipped callback");
+  auto expired=ProcessScope::prepare(delegated);const auto expired_path=delegated/expired->identity().scope_name();bool expired_called=false;
+  expired->set_pre_prune_cleanup([&](const auto&){expired_called=true;});expired->request_stop();
+  rejects([&]{expired->complete_stop(std::chrono::steady_clock::now());},"expired deadline returned stopped receipt");
+  check(!expired_called&&std::filesystem::exists(expired_path),"expired callback pruned or entered participant");
+  expired->stop();check(expired_called&&!std::filesystem::exists(expired_path),"expired callback retry did not finish");
+  auto reap_retry=ProcessScope::prepare(delegated);unsigned reap_callbacks=0;bool reap_persisted=false;
+  reap_retry->set_pre_prune_cleanup([&](const auto& tree){++reap_callbacks;if(reap_callbacks==1){while(std::chrono::steady_clock::now()<tree.deadline())std::this_thread::sleep_for(std::chrono::milliseconds(1));}else reap_persisted=reap_retry->diagnostic_child_reaped();});
+  AuthorityProcessLaunch retry_request;retry_request.set_executable("/usr/bin/sleep");retry_request.add_arguments("60");int retry_null=open("/dev/null",O_RDWR|O_CLOEXEC);reap_retry->start(retry_request,{retry_null,retry_null,retry_null});close(retry_null);
+  reap_retry->request_stop();rejects([&]{reap_retry->complete_stop(std::chrono::steady_clock::now()+std::chrono::milliseconds(150));},"expiry after direct-child reap returned receipt");
+  check(reap_retry->diagnostic_child_reaped(),"deadline expiry forgot successful waitpid reap");reap_retry->stop();
+  check(reap_callbacks==2&&reap_persisted,"reap retry hit ECHILD or skipped callback");
   auto retry=ProcessScope::prepare(delegated);const auto retry_path=delegated/retry->identity().scope_name();
   std::vector<std::filesystem::path> deep;auto nested=retry_path;
   for(int depth=0;depth<10;++depth){nested/="nested";std::filesystem::create_directory(nested);deep.push_back(nested);}
@@ -660,9 +679,28 @@ void emit_participant_diagnostic(std::ostringstream& out){
   (void)write(STDERR_FILENO,line.data(),line.size());
 }
 void participant_case(const std::filesystem::path& delegated,const std::string& mode){
+  active_cleanup_mode=mode;
+  const auto case_began=std::chrono::steady_clock::now();
+  cleanup_phase(mode,"case_begin",case_began);
   State state;auto root=ProcessScope::prepare(delegated);const auto path=delegated/root->identity().scope_name();
-  root->enable_children();const bool provisional=mode=="reserved";const auto ids=create_descendants(path,!provisional);
-  auto job=record(state,root->identity(),ids,provisional);seed(state,root->identity(),path,ids,job);
+  root->enable_children();const bool provisional=mode=="reserved"||mode=="reserved-empty"||mode=="deadline-multirow";const auto ids=create_descendants(path,!provisional);
+  if(mode=="reserved-empty")check(mkdir((path/"spatial-git-workers/copy-job").c_str(),0755)==0,"present reserved child creation failed");
+  auto job=record(state,root->identity(),ids,provisional);
+  cleanup_phase(mode,"base_seed_begin",case_began);
+  seed(state,root->identity(),path,ids,job);
+  cleanup_phase(mode,"base_seed_done",case_began);
+  constexpr std::uint64_t kDeadlineRows=2000;
+  if(mode=="deadline-multirow") {
+    cleanup_phase(mode,"multirow_seed_begin",case_began,"rows="+std::to_string(kDeadlineRows));
+    FileOperationJournal rows(state.path);
+    for(std::uint64_t i=1;i<kDeadlineRows;++i) {
+      auto extra=job;std::string suffix(16,'j');for(unsigned byte=0;byte<8;++byte)suffix[15-byte]=static_cast<char>((i>>(byte*8))&0xff);
+      extra.set_job_id(suffix);suffix.assign(16,'o');for(unsigned byte=0;byte<8;++byte)suffix[15-byte]=static_cast<char>((i>>(byte*8))&0xff);
+      extra.set_initiating_operation_id(suffix);rows.begin_copy_job(extra,{});
+      if(i%250==0)cleanup_phase(mode,"multirow_seed_progress",case_began,"rows="+std::to_string(i+1));
+    }
+    cleanup_phase(mode,"multirow_seed_done",case_began,"rows="+std::to_string(kDeadlineRows));
+  }
   const auto worker=path/"spatial-git-workers/copy-job";
   if(mode=="old-proof-replaced"||mode=="old-proof-parent-replaced"){
     FileOperationJournal journal(state.path);
@@ -695,6 +733,39 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
   }
   const auto marker=state.path/"project/.spatial-copy-staging/.spatial-copy-stage-job/stage-evidence";write_file(marker,"preserve marker");struct stat before{};check(stat(marker.c_str(),&before)==0,"marker stat");
   const auto original=job.SerializeAsString();auto participant=BrokerCopyCleanupParticipant::install(*root,state.fd);
+  if(mode=="deadline-multirow") {
+    root->request_stop();const auto began=std::chrono::steady_clock::now();
+    cleanup_phase(mode,"first_attempt_begin",case_began);
+    std::string first_rejection;
+    try {root->complete_stop(began+std::chrono::milliseconds(300));}
+    catch(const std::exception& error){first_rejection=error.what();cleanup_phase(mode,"first_attempt_rejected",case_began,first_rejection);}
+    check(first_rejection.find("deadline")!=std::string::npos,"multi-row cleanup failed for a reason other than the shared deadline");
+    const auto elapsed=std::chrono::steady_clock::now()-began;
+    check(elapsed<std::chrono::seconds(2),"multi-row cleanup restarted or ignored its absolute budget");
+    check(std::filesystem::exists(path),"multi-row expiry returned or removed root");
+    cleanup_phase(mode,"partial_outcome_query_begin",case_began);
+    sqlite3* raw=nullptr;check(sqlite3_open((state.path/"file-operations/file-operations.db").c_str(),&raw)==SQLITE_OK,"multi-row outcome inspection");
+    sqlite3_stmt* count=nullptr;check(sqlite3_prepare_v2(raw,"SELECT count(*) FROM copy_scope_cleanup",-1,&count,nullptr)==SQLITE_OK&&sqlite3_step(count)==SQLITE_ROW,"multi-row outcome query");
+    const auto partial=sqlite3_column_int64(count,0);sqlite3_finalize(count);close_test_db(raw);
+    cleanup_phase(mode,"partial_outcome_query_done",case_began,"partial="+std::to_string(partial)+" total="+std::to_string(kDeadlineRows));
+    check(partial>0&&partial<static_cast<sqlite3_int64>(kDeadlineRows),"multi-row deadline did not preserve bounded partial outcomes");
+    cleanup_phase(mode,"exact_retry_begin",case_began);
+    try {root->complete_stop(std::chrono::steady_clock::now()+std::chrono::seconds(30));}
+    catch(const std::exception& error){cleanup_phase(mode,"exact_retry_rejected",case_began,error.what());throw;}
+    cleanup_phase(mode,"exact_retry_done",case_began);
+    std::cout<<"multirow_single_deadline_partial_retry=PASS partial="<<partial<<" total="<<kDeadlineRows<<"\n";
+  }
+  if(mode=="deadline-lock") {
+    sqlite3* lock=nullptr;check(sqlite3_open((state.path/"file-operations/file-operations.db").c_str(),&lock)==SQLITE_OK,"deadline lock open");
+    execute(lock,"BEGIN IMMEDIATE");root->request_stop();const auto began=std::chrono::steady_clock::now();
+    deadline_rejects([&]{root->complete_stop(began+std::chrono::milliseconds(250));},"held SQLite writer lock did not expire through its shared deadline");
+    const auto elapsed=std::chrono::steady_clock::now()-began;
+    check(elapsed<std::chrono::seconds(2),"held lock exceeded inherited cleanup budget");
+    check(std::filesystem::exists(worker)&&std::filesystem::exists(marker)&&read_file(marker)=="preserve marker","expired lock cleanup removed worker or stage evidence");
+    execute(lock,"ROLLBACK");close_test_db(lock);
+    root->complete_stop(std::chrono::steady_clock::now()+std::chrono::seconds(10));
+    std::cout<<"held_sqlite_deadline_retry=PASS elapsed_ms="<<std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()<<"\n";
+  }
   {auto pinned=FileOperationJournal::pin_existing(state.fd);pinned.verify_workspace_binding(job);
     auto foreign=job;foreign.set_workspace_id("foreign-workspace");rejects([&]{pinned.verify_workspace_binding(foreign);},"foreign workspace accepted");
     foreign=job;foreign.set_worktree_root_inode(job.worktree_root_inode()+1);rejects([&]{pinned.verify_workspace_binding(foreign);},"foreign worktree inode accepted");}
@@ -723,7 +794,8 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
     }
     diagnostic<<" matched="<<matched;emit_participant_diagnostic(diagnostic);
   }
-  root->stop();check(!std::filesystem::exists(path),"root not removed");
+  if(mode!="deadline-lock"&&mode!="deadline-multirow") { root->stop(); }
+  check(!std::filesystem::exists(path),"root not removed");
   if(mode=="missing-at-open") {
     disappear_at_open.store(false,std::memory_order_release);
     check(disappeared_at_open.load(std::memory_order_acquire),"actual callee openat race was not reached");
@@ -743,7 +815,17 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
     emit_participant_diagnostic(diagnostic);
   }
   check(after->prepared_result().SerializeAsString()==job.prepared_result().SerializeAsString(),"prepared identity changed");
-  if(mode=="reserved"){check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED&&!after->has_process_scope(),"reserved outcome invented proof");}
+  if(mode=="reserved"||mode=="reserved-empty") {
+    check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED&&!after->has_process_scope(),"reserved outcome invented proof");
+    struct stat reserved_info{};
+    check(lstat(worker.c_str(),&reserved_info)<0&&errno==ENOENT,"reserved child remained after reconciliation");
+  }
+  else if(mode=="deadline-multirow") {
+    check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::RESERVED_SCOPE_RECONCILED&&!after->has_process_scope(),"multi-row retry invented worker proof");
+    sqlite3* raw=nullptr;check(sqlite3_open((state.path/"file-operations/file-operations.db").c_str(),&raw)==SQLITE_OK,"multi-row final inspection");
+    sqlite3_stmt* count=nullptr;check(sqlite3_prepare_v2(raw,"SELECT count(*) FROM copy_scope_cleanup",-1,&count,nullptr)==SQLITE_OK&&sqlite3_step(count)==SQLITE_ROW,"multi-row final count");
+    check(sqlite3_column_int64(count,0)==static_cast<sqlite3_int64>(kDeadlineRows),"exact retry did not finish every outcome");sqlite3_finalize(count);close_test_db(raw);
+  }
   else if(mode=="uncertain"){check(after->SerializeAsString()==original&&outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::IMMUTABLE_UNCERTAINTY,"terminal uncertainty mutated");}
   else if(mode=="missing-parent"||mode=="replaced-parent"||mode=="old-proof-parent-replaced") {
     check(outcome&&outcome->kind()==FileCopyScopeCleanupOutcome::INVALID_PARENT&&after->state()==FILE_COPY_JOB_JOURNAL_UNCERTAIN,"parent conflict was not durable");
@@ -785,4 +867,10 @@ int main(int argc,char** argv){try{
     const int result=sqlite3_exec(db,"BEGIN IMMEDIATE",nullptr,nullptr,nullptr);close_test_db(db);
     return result==SQLITE_BUSY?0:95;
   }
-  check(argc==2,"expected delegated cgroup root");const std::filesystem::path root=argv[1];journal_controls();constructor_allocation_controls();substitution_during_open_control();pin_lock_controls();alias_transaction_controls();hot_journal_controls();alias_header_orphan_controls();btrfs_layout_controls();callback_controls(root);for(const auto* mode:{"exact","missing","missing-at-open","replaced","old-proof-replaced","uncertain","reserved","foreign-view","commit-failure","prepared","missing-parent","replaced-parent","old-proof-parent-replaced"})participant_case(root,mode);std::cout<<"BROKER_COPY_CLEANUP_PASS\n";return 0;}catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}
+  check(argc==2||(argc==4&&std::strcmp(argv[2],"--only-participant-mode")==0),"expected delegated cgroup root");
+  const std::filesystem::path root=argv[1];
+  if(argc==4){
+    check(std::strcmp(argv[3],"deadline-multirow")==0,"unsupported isolated participant mode");
+    participant_case(root,argv[3]);std::cout<<"BROKER_COPY_CLEANUP_SELECTED_PASS\n";return 0;
+  }
+  journal_controls();constructor_allocation_controls();substitution_during_open_control();pin_lock_controls();alias_transaction_controls();hot_journal_controls();alias_header_orphan_controls();btrfs_layout_controls();callback_controls(root);for(const auto* mode:{"exact","missing","missing-at-open","replaced","old-proof-replaced","uncertain","reserved","reserved-empty","deadline-lock","deadline-multirow","foreign-view","commit-failure","prepared","missing-parent","replaced-parent","old-proof-parent-replaced"})participant_case(root,mode);std::cout<<"BROKER_COPY_CLEANUP_PASS\n";return 0;}catch(const std::exception& error){std::cerr<<"cleanup_phase mode="<<active_cleanup_mode<<" phase=probe_unwind detail="<<error.what()<<std::endl;std::cerr<<error.what()<<'\n';return 1;}}
