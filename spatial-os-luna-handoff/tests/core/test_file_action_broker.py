@@ -84,6 +84,75 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         self.assertTrue(stage_root.is_dir())
         self.assertEqual(list(stage_root.iterdir()), [])
 
+    def test_file_action_namespace_legacy_digest_replay_conflicts_without_effect(self):
+        self.workspace(attach_world=False)
+        self.action(browse=files.FileBrowse(page_size=16))
+        request = cabinet.FileActionRequest(
+            protocol_version=1, operation_id=uuid.uuid4().bytes, workspace_id='one',
+            principal=self.principal(),
+            create=files.FileCreate(basename=b'legacy-replay.txt', content=b'must not appear'))
+        trusted = cabinet.FileActionRequest(); trusted.CopyFrom(request)
+        trusted.ClearField('authority_components'); trusted.authority_components.append(b'tree-one')
+        legacy_digest = __import__('hashlib').sha256(
+            trusted.SerializeToString(deterministic=True)).digest()
+        root = os.stat(self.project)
+        principal = request.principal.issuer_id + request.principal.actor_id
+        legacy_reply = files.FileActionReply(protocol_version=1, operation_id=request.operation_id)
+        legacy_reply.object.size = 22
+        database = self.execution/'file-operations'/'file-operations.db'
+        with closing(sqlite3.connect(database)) as db:
+            db.execute('INSERT INTO file_operations '
+                '(workspace,operation,principal,worktree,device,inode,exact_right,digest,engine,state,outcome) '
+                'VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+                ('one', request.operation_id, principal, 'tree-one', root.st_dev, root.st_ino,
+                 grant.FILE_CREATE, legacy_digest, bytes(16), 2,
+                 legacy_reply.SerializeToString(deterministic=True)))
+            db.commit()
+            before = db.execute('SELECT * FROM file_operations WHERE workspace=? AND operation=?',
+                ('one', request.operation_id)).fetchone()
+            before_raw = tuple(bytes(value) if isinstance(value, memoryview) else value
+                for value in before)
+        reply = self.broker.request(file_action=request)
+        self.expect_file_error(reply, files.FileActionError.CONFLICT)
+        self.assertFalse((self.project/'legacy-replay.txt').exists())
+        with closing(sqlite3.connect(database)) as db:
+            after = db.execute('SELECT * FROM file_operations WHERE workspace=? AND operation=?',
+                ('one', request.operation_id)).fetchone()
+        after_raw = tuple(bytes(value) if isinstance(value, memoryview) else value
+            for value in after)
+        self.assertEqual(after_raw, before_raw, 'legacy completed row must remain unchanged')
+
+    def test_file_action_namespace_copy_admin_destination_rejected_before_effect(self):
+        self.workspace(attach_world=False)
+        (self.project/'namespace-source.txt').write_bytes(b'copy control')
+        root_handle, source_handle = self._copy_source_handles('namespace-source.txt')
+        operation = uuid.uuid4().bytes
+        request = cabinet.FileActionRequest(
+            protocol_version=1, operation_id=operation, workspace_id='one',
+            principal=self.principal(), copy_job=files.FileCopyJob(
+                command=files.FileCopyJob.START, source_handle=source_handle,
+                destination_directory_handle=root_handle, destination_basename=b'.git',
+                maximum_bytes=1024, maximum_entries=8))
+        denied = self.broker.request(file_action=request)
+        self.expect_file_error(denied, files.FileActionError.INVALID_ARGUMENT)
+        stage = self.project/'.spatial-copy-staging'
+        self.assertTrue(stage.is_dir())
+        self.assertEqual(list(stage.iterdir()), [])
+        database = self.execution/'file-operations'/'file-operations.db'
+        with closing(sqlite3.connect(database)) as db:
+            rows = db.execute('SELECT count(*) FROM file_copy_jobs '
+                'WHERE workspace=? AND initiating_operation=?', ('one', operation)).fetchone()[0]
+        self.assertEqual(rows, 0, 'rejected admin destination must not create a durable copy job')
+        root_handle, source_handle = self._copy_source_handles('namespace-source.txt')
+        control = self.action(copy_job=files.FileCopyJob(
+            command=files.FileCopyJob.START, source_handle=source_handle,
+            destination_directory_handle=root_handle, destination_basename=b'namespace-control.txt',
+            maximum_bytes=1024, maximum_entries=8))
+        self.assertTrue(control.file_action.HasField('copy_job'), control)
+        receipt = self._poll_copy_to_terminal(control.file_action.copy_job.job_id)
+        self.assertEqual(receipt.state, files.FileCopyJobReceipt.COMPLETE, receipt)
+        self.assertEqual((self.project/'namespace-control.txt').read_bytes(), b'copy control')
+
     def test_file_action_authorized_browse_read_create_and_exact_retry(self):
         self.workspace(attach_world=False)
         (self.project/'known.txt').write_bytes(b'known payload')

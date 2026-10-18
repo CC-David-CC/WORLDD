@@ -362,9 +362,9 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         factory = getattr(self, 'broker_factory', BrokerProcess)
         return factory(self, state, config)
 
-    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False, attach_world=True):
+    def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False, attach_world=True, empty_initial_commit=False):
         self.execution = getattr(self,'execution_override',self.root/'execution'); first = self.make_broker(self.execution)
-        repository = GitRepo(self.root)
+        repository = GitRepo(self.root, empty_initial_commit=empty_initial_commit)
         first.call('git.repo.import', id='repo-one', path=str(repository.path))
         work = first.call('git.worktree.create', repo='repo-one', id='tree-one', branch='branch-one', start='main', operation_id='tree')
         self.project = Path(work['path'])
@@ -1089,6 +1089,18 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         relay.armed.set(); result = self.broker.request(launch=request)
         self.denied(result,core.UNAVAILABLE); self.assertTrue(relay.delivered.is_set())
         self.until(lambda:self.gone(pids),bool); self.assertFalse((self.project/'done').exists())
+
+
+class GitFixtureEmptyProjectTests(unittest.TestCase):
+    def test_empty_initial_commit_is_opt_in_and_real(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="spatial-empty-git-fixture-") as tmp:
+            empty = GitRepo(Path(tmp) / "empty", empty_initial_commit=True)
+            self.assertEqual(empty.run("ls-tree", "-r", "--name-only", "HEAD"), "")
+            self.assertEqual(empty.run("rev-parse", "--verify", "HEAD"), empty.head())
+            seeded = GitRepo(Path(tmp) / "seeded")
+            self.assertEqual(seeded.run("ls-tree", "-r", "--name-only", "HEAD"), "README.txt")
+            self.assertEqual((seeded.path / "README.txt").read_text(encoding="utf-8"), "base\n")
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

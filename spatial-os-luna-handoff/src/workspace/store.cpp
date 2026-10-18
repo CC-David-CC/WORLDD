@@ -3,6 +3,7 @@
 #include "workspace/copy_journal.hpp"
 #include "workspace/copy_worker.hpp"
 #include "workspace/file_engine.hpp"
+#include "workspace/file_action_policy.hpp"
 #include "workspace/file_operation_journal.hpp"
 #include "copy_worker.pb.h"
 #include "workspace/git_command.hpp"
@@ -20,9 +21,6 @@
 #include <sys/syscall.h>
 #include <linux/fs.h>
 #include <linux/openat2.h>
-#include <openssl/evp.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <unistd.h>
 #include <sys/random.h>
 #include <algorithm>
@@ -215,23 +213,6 @@ class StoreFileEffectExecutor final : public FileEffectExecutor {
   const FileActionRequest* request_=nullptr;
   std::function<void()> observer_; bool intent_started_=false,effect_started_=false,journal_exhausted_=false;
 };
-std::string deterministic_message(const google::protobuf::Message& message) {
-  std::string bytes; bytes.reserve(message.ByteSizeLong());
-  {
-    google::protobuf::io::StringOutputStream stream(&bytes);
-    google::protobuf::io::CodedOutputStream coded(&stream); coded.SetSerializationDeterministic(true);
-    if(!message.SerializeToCodedStream(&coded) || coded.HadError())
-      throw std::runtime_error("Cannot serialize trusted file operation");
-    coded.Trim();
-  }
-  return bytes;
-}
-std::string sha256_bytes(const std::string& bytes) {
-  std::array<unsigned char,32> digest{}; unsigned length=0;
-  if(EVP_Digest(bytes.data(),bytes.size(),digest.data(),&length,EVP_sha256(),nullptr)!=1 || length!=32)
-    throw std::runtime_error("Cannot digest trusted file operation");
-  return {reinterpret_cast<const char*>(digest.data()),digest.size()};
-}
 authority::v1::Right file_right(const FileActionRequest& request) {
   using A=FileActionRequest::ActionCase;
   switch(request.action_case()) {
@@ -1330,6 +1311,16 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
                 if(durable->principal_issuer_id()!=request.principal().issuer_id() ||
                    durable->principal_actor_id()!=request.principal().actor_id())
                     return file_action_error(operation,FileActionError::UNAUTHORIZED,"cabinet copy job belongs to another principal");
+                std::vector<std::string> source_components(
+                    durable->source_path_components().begin(), durable->source_path_components().end());
+                std::vector<std::string> destination_components(
+                    durable->destination_directory_components().begin(),
+                    durable->destination_directory_components().end());
+                destination_components.push_back(durable->destination_basename());
+                if(file_policy::is_registered_root_admin_path(source_components) ||
+                   file_policy::is_registered_root_admin_path(destination_components))
+                    return file_action_error(operation,FileActionError::UNCERTAIN,
+                        "legacy copy touches registered root administration; saved evidence retained",true);
                 const auto fresh=scoped_authority_check(admission);
                 if(!fresh.allowed())
                     return file_action_error(operation,FileActionError::UNAUTHORIZED,"authority changed before durable copy receipt delivery");
@@ -1348,7 +1339,7 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         else { verified.set_id(worktree_id); verified.set_path(expected_path); }
         auto& entry=impl_->file_engine(workspace,verified);
         auto trusted=request; trusted.clear_authority_components(); trusted.add_authority_components(worktree_id);
-        const auto digest=sha256_bytes(deterministic_message(trusted));
+        const auto digest=file_policy::request_digest(trusted);
         std::string principal_identity=request.principal().issuer_id()+request.principal().actor_id();
         FileOperationBinding binding{workspace.id(),operation,std::move(principal_identity),
             worktree_id,static_cast<std::uint64_t>(entry.device),static_cast<std::uint64_t>(entry.inode),

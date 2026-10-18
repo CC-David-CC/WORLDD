@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 
 class GitRepo:
-    def __init__(self,root:Path):
+    def __init__(self,root:Path,empty_initial_commit:bool=False):
         self.path=Path(root)/"source-repo";self.path.mkdir(parents=True)
         self.env=os.environ.copy()
         self.env.update({"GIT_CONFIG_NOSYSTEM":"1","GIT_CONFIG_GLOBAL":os.devnull,"GIT_TERMINAL_PROMPT":"0",
@@ -15,7 +15,10 @@ class GitRepo:
             if k in {"GIT_DIR","GIT_WORK_TREE","GIT_INDEX_FILE","GIT_COMMON_DIR","GIT_OBJECT_DIRECTORY","GIT_ALTERNATE_OBJECT_DIRECTORIES","GIT_CONFIG_COUNT"} or k.startswith(("GIT_CONFIG_KEY_","GIT_CONFIG_VALUE_")):
                 self.env.pop(k,None)
         self.run("init","-b","main")
-        self.write("README.txt","base\n");self.run("add","--","README.txt");self.run("commit","-m","initial")
+        if empty_initial_commit:
+            self.run("commit","--allow-empty","-m","initial empty project")
+        else:
+            self.write("README.txt","base\n");self.run("add","--","README.txt");self.run("commit","-m","initial")
     def run(self,*args,cwd=None,check=True):
         p=subprocess.run(["git","-c","core.hooksPath=/dev/null","-C",str(cwd or self.path),*args],
                          env=self.env,text=True,capture_output=True,timeout=15)

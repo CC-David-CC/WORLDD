@@ -1,4 +1,5 @@
 #include "workspace/file_engine.hpp"
+#include "workspace/file_action_policy.hpp"
 #include "workspace/copy_worker.hpp"
 
 #include <fcntl.h>
@@ -15,6 +16,7 @@
 #include <iostream>
 #include <new>
 #include <string>
+#include <sqlite3.h>
 
 namespace {
 // Fail allocation only after the real mutation becomes visible. This catches
@@ -437,6 +439,127 @@ static void uncertain_copy_recovery_preserves_evidence_and_isolates_workspace() 
          durable->terminal_receipt().SerializeAsString()==immutable_receipt);
 }
 
+static void unsafe_legacy_admin_copy_recovery_preserves_stage_and_proof() {
+  TempProject project;
+  Auth auth;
+  struct stat root_identity{};
+  assert(fstat(project.root,&root_identity)==0);
+  const auto state=std::filesystem::path(project.path)/"uncertain-journal";
+  assert(std::filesystem::create_directory(state));
+  auto journal=std::make_unique<spatial::FileOperationJournal>(state);
+  assert(journal->bind_root("cabinet-opaque-id",
+      static_cast<std::uint64_t>(root_identity.st_dev),
+      static_cast<std::uint64_t>(root_identity.st_ino),{}));
+
+  assert(mkdirat(project.root,".spatial-copy-staging",0700)==0);
+  const int staging_root=openat(project.root,".spatial-copy-staging",
+      O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+  assert(staging_root>=0);
+  struct stat staging_root_identity{};
+  assert(fstat(staging_root,&staging_root_identity)==0);
+  const std::string job_id(16,'u');
+  auto uncertain=durable_copy_start_intent(job_id,root_identity);
+  uncertain.clear_source_path_components();
+  uncertain.add_source_path_components(".git");
+  uncertain.add_source_path_components("config");
+  auto* root_identity_record=uncertain.mutable_staging_root();
+  root_identity_record->set_device(static_cast<std::uint64_t>(staging_root_identity.st_dev));
+  root_identity_record->set_inode(static_cast<std::uint64_t>(staging_root_identity.st_ino));
+  auto* stage_identity=uncertain.mutable_staging();
+  stage_identity->set_device(static_cast<std::uint64_t>(staging_root_identity.st_dev));
+  stage_identity->set_inode(static_cast<std::uint64_t>(staging_root_identity.st_ino)+1);
+  stage_identity->set_generation(1);
+  stage_identity->set_type(pb::FileCopyFilesystemIdentity::DIRECTORY);
+  auto* scope=uncertain.mutable_process_scope();
+  scope->set_launch_id(std::string(32,'l'));
+  scope->set_scope_name("copy-"+operation_hex(job_id));
+  scope->set_boot_id("12345678-1234-1234-1234-123456789012");
+  scope->set_device(1);scope->set_inode(2);
+  uncertain.set_state(pb::FILE_COPY_JOB_JOURNAL_QUEUED);
+  uncertain.set_updated_at_unix_ms(2);
+  (void)journal->reserve_git_worker_parent(uncertain.broker_root_device(),uncertain.broker_root_inode(),
+      project.path,uncertain.broker_root_boot_id(),{});
+  journal->bind_git_worker_parent(uncertain.broker_root_device(),uncertain.broker_root_inode(),
+      project.path,uncertain.broker_root_boot_id(),uncertain.process_scope_parent().SerializeAsString(),{});
+  const std::string stage_name=uncertain.staging_name();
+  assert(mkdirat(staging_root,stage_name.c_str(),0700)==0);
+  const int stage=openat(staging_root,stage_name.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+  assert(stage>=0);
+  const int marker=openat(stage,"retain-for-review",O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC,0600);
+  assert(marker>=0);close(marker);
+  struct stat exact_stage{};
+  assert(fstat(stage,&exact_stage)==0);
+  stage_identity->set_device(static_cast<std::uint64_t>(exact_stage.st_dev));
+  stage_identity->set_inode(static_cast<std::uint64_t>(exact_stage.st_ino));
+  close(stage);
+  // Bind the observed stage inode, never an assumed allocation sequence.
+  journal->begin_copy_job(uncertain,{});
+  uncertain.set_state(pb::FILE_COPY_JOB_JOURNAL_QUEUED);
+  uncertain.set_updated_at_unix_ms(3);
+  journal->update_copy_job(uncertain,{});
+  const auto raw_record = [&]() {
+    sqlite3* db=nullptr; sqlite3_stmt* query=nullptr;
+    const auto database=(state/"file-operations"/"file-operations.db").string();
+    assert(sqlite3_open_v2(database.c_str(),&db,SQLITE_OPEN_READONLY,nullptr)==SQLITE_OK);
+    assert(sqlite3_prepare_v2(db,"SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?",-1,&query,nullptr)==SQLITE_OK);
+    assert(sqlite3_bind_text(query,1,"workspace-a",-1,SQLITE_STATIC)==SQLITE_OK);
+    assert(sqlite3_bind_blob(query,2,job_id.data(),static_cast<int>(job_id.size()),SQLITE_STATIC)==SQLITE_OK);
+    assert(sqlite3_step(query)==SQLITE_ROW);
+    const auto* bytes=static_cast<const char*>(sqlite3_column_blob(query,0));
+    const auto size=sqlite3_column_bytes(query,0);
+    assert(bytes && size>0);
+    std::string result(bytes,static_cast<std::size_t>(size));
+    sqlite3_finalize(query); sqlite3_close(db); return result;
+  };
+  const auto original_raw_record=raw_record();
+
+  for(int restart=0;restart<2;++restart) {
+    journal.reset();
+    journal=std::make_unique<spatial::FileOperationJournal>(state);
+    const auto parent=journal->find_git_worker_parent({});
+    assert(parent.state==spatial::GitWorkerParentRecord::State::bound &&
+           parent.identity_bytes==uncertain.process_scope_parent().SerializeAsString());
+    spatial::FileEngine recovered(project.root,"workspace-a",{"cabinet-opaque-id"},
+        auth,[]{return spatial::FileEngine::MonotonicClock::now();},nullptr,nullptr,
+        -1,{},journal.get());
+    auto poll=request(908+restart);
+    poll.mutable_copy_job()->set_command(pb::FileCopyJob_Command_POLL);
+    poll.mutable_copy_job()->set_job_id(job_id);
+    const auto polled=recovered.handle(poll);
+    assert(polled.has_error() && polled.error().code()==pb::FileActionError::UNCERTAIN);
+    auto browse=request(918+restart);
+    browse.mutable_browse()->set_page_size(16);
+    assert(recovered.handle(browse).error().code()==pb::FileActionError::UNCERTAIN);
+  }
+  TempProject independent;
+  Auth independent_auth;
+  spatial::FileEngine independent_workspace(independent.root,"workspace-b",{"other-cabinet"},independent_auth);
+  auto independent_browse=request(930);
+  independent_browse.set_workspace_id("workspace-b");
+  independent_browse.clear_authority_components();
+  independent_browse.add_authority_components("other-cabinet");
+  independent_browse.mutable_browse()->set_page_size(16);
+  assert(independent_workspace.handle(independent_browse).has_directory());
+
+  struct stat retained{};
+  assert(fstatat(staging_root,stage_name.c_str(),&retained,AT_SYMLINK_NOFOLLOW)==0 &&
+         retained.st_dev==exact_stage.st_dev && retained.st_ino==exact_stage.st_ino);
+  const int retained_stage=openat(staging_root,stage_name.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+  assert(retained_stage>=0);
+  struct stat marker_stat{};
+  assert(fstatat(retained_stage,"retain-for-review",&marker_stat,AT_SYMLINK_NOFOLLOW)==0 &&
+         S_ISREG(marker_stat.st_mode));
+  struct stat unpublished{};
+  assert(fstatat(project.root,"recovered-copy.bin",&unpublished,AT_SYMLINK_NOFOLLOW)<0 && errno==ENOENT);
+  close(retained_stage);close(staging_root);
+  assert(raw_record()==original_raw_record);
+  const auto durable=journal->find_copy_job("workspace-a",job_id,{});
+  assert(durable && durable->state()==pb::FILE_COPY_JOB_JOURNAL_QUEUED &&
+         durable->source_path_components_size()==2 && durable->source_path_components(0)==".git" &&
+         durable->source_path_components(1)=="config" &&
+         durable->SerializeAsString()==uncertain.SerializeAsString());
+}
+
 static void root_clock_and_descriptor_regressions() {
   TempProject project;
   Auth auth;
@@ -761,6 +884,7 @@ int main(int argc,char** argv) {
   copy_staging_root_is_reserved_and_stale_state_fails_closed();
   recovered_copy_job_poll_and_cancel_use_durable_receipt();
   uncertain_copy_recovery_preserves_evidence_and_isolates_workspace();
+  unsafe_legacy_admin_copy_recovery_preserves_stage_and_proof();
   root_clock_and_descriptor_regressions();
   reservation_and_directory_regressions();
   post_effect_allocation_regressions();
@@ -1217,6 +1341,127 @@ int main(int argc,char** argv) {
   assert(exhausted_result.has_error() &&
          exhausted_result.error().code() == pb::FileActionError::EXHAUSTED);
   assert(fstatat(root, "must-not-publish", &st, AT_SYMLINK_NOFOLLOW) < 0);
+
+  // The registered root .git entry is workspace administration. The cabinet
+  // presents ordinary root files and nested repositories as project content.
+  TempProject admin_project;
+  assert(mkdirat(admin_project.root, ".git", 0700) == 0);
+  const int admin_dir = openat(admin_project.root, ".git", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  assert(admin_dir >= 0);
+  const int head_fd = openat(admin_dir, "HEAD", O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+  assert(head_fd >= 0 && write(head_fd, "ref: refs/heads/main\n", 21) == 21);
+  close(head_fd); close(admin_dir);
+  const int readme_fd = openat(admin_project.root, "README.txt", O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+  assert(readme_fd >= 0 && write(readme_fd, "seed\n", 5) == 5); close(readme_fd);
+  const int dot_fd = openat(admin_project.root, ".visible-dotfile", O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+  assert(dot_fd >= 0 && write(dot_fd, "dot", 3) == 3); close(dot_fd);
+  assert(mkdirat(admin_project.root, "nested", 0700) == 0);
+  const int admin_nested_fd = openat(admin_project.root, "nested", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  assert(admin_nested_fd >= 0 && mkdirat(admin_nested_fd, ".git", 0700) == 0);
+  const int nested_git = openat(admin_nested_fd, ".git", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  assert(nested_git >= 0);
+  const int nested_head = openat(nested_git, "HEAD", O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+  assert(nested_head >= 0 && write(nested_head, "nested", 6) == 6);
+  close(nested_head); close(nested_git); close(admin_nested_fd);
+  Auth admin_auth;
+  spatial::FileEngine admin_engine(admin_project.root, "workspace-a", {"cabinet-opaque-id"}, admin_auth);
+  auto admin_root = request(6100);
+  admin_root.mutable_browse()->set_page_size(64);
+  const auto admin_listing = admin_engine.handle(admin_root);
+  assert(admin_listing.has_directory());
+  std::string readme_handle, admin_nested_handle, dotfile_handle;
+  bool saw_dotfile = false, saw_reserved = false;
+  for (const auto& entry : admin_listing.directory().entries()) {
+    if (entry.name() == ".git") saw_reserved = true;
+    if (entry.name() == "README.txt") readme_handle = entry.handle();
+    if (entry.name() == ".visible-dotfile") { dotfile_handle = entry.handle(); saw_dotfile = !entry.handle().empty(); }
+    if (entry.name() == "nested") admin_nested_handle = entry.handle();
+  }
+  assert(!saw_reserved && !readme_handle.empty() && saw_dotfile && !admin_nested_handle.empty());
+  assert(spatial::file_policy::is_registered_root_admin_path({".git"}));
+  assert(!spatial::file_policy::is_registered_root_admin_path({"nested", ".git"}));
+  auto admin_read = request(6101);
+  admin_read.mutable_read()->set_file_handle(readme_handle);
+  admin_read.mutable_read()->set_maximum_bytes(16);
+  assert(admin_engine.handle(admin_read).content().data() == "seed\n");
+  auto nested_listing_request = request(6102);
+  nested_listing_request.mutable_browse()->set_directory_handle(admin_nested_handle);
+  const auto nested_listing = admin_engine.handle(nested_listing_request);
+  assert(nested_listing.has_directory());
+  std::string nested_git_handle;
+  for (const auto& entry : nested_listing.directory().entries())
+    if (entry.name() == ".git") nested_git_handle = entry.handle();
+  assert(!nested_git_handle.empty());
+  auto nested_git_listing_request = request(6103);
+  nested_git_listing_request.mutable_browse()->set_directory_handle(nested_git_handle);
+  const auto nested_git_listing = admin_engine.handle(nested_git_listing_request);
+  assert(nested_git_listing.has_directory() && nested_git_listing.directory().entries_size() == 1 &&
+         nested_git_listing.directory().entries(0).name() == "HEAD");
+  auto root_create_admin = request(6104);
+  root_create_admin.mutable_create()->set_directory_handle("");
+  root_create_admin.mutable_create()->set_basename(".git");
+  root_create_admin.mutable_create()->set_content("overwrite");
+  assert(admin_engine.handle(root_create_admin).error().code() == pb::FileActionError::INVALID_ARGUMENT);
+  std::uint64_t readme_generation = 0;
+  for (const auto& entry : admin_listing.directory().entries())
+    if (entry.name() == "README.txt") readme_generation = entry.generation();
+  auto rename_admin_destination = request(6105);
+  rename_admin_destination.mutable_rename()->set_file_handle(readme_handle);
+  rename_admin_destination.mutable_rename()->set_expected_generation(readme_generation);
+  rename_admin_destination.mutable_rename()->set_new_basename(".git");
+  assert(rename_admin_destination.has_rename());
+  assert(admin_engine.handle(rename_admin_destination).error().code() == pb::FileActionError::INVALID_ARGUMENT);
+  auto move_admin_destination = request(6106);
+  move_admin_destination.mutable_move()->set_file_handle(readme_handle);
+  move_admin_destination.mutable_move()->set_expected_generation(readme_generation);
+  move_admin_destination.mutable_move()->set_destination_directory_handle("");
+  move_admin_destination.mutable_move()->set_new_basename(".git");
+  assert(admin_engine.handle(move_admin_destination).error().code() == pb::FileActionError::INVALID_ARGUMENT);
+  std::uint64_t dotfile_generation = 0;
+  for (const auto& entry : admin_listing.directory().entries())
+    if (entry.name() == ".visible-dotfile") dotfile_generation = entry.generation();
+  auto trash_seed = request(6107);
+  trash_seed.mutable_trash()->set_file_handle(dotfile_handle);
+  trash_seed.mutable_trash()->set_expected_generation(dotfile_generation);
+  const auto trashed_seed = admin_engine.handle(trash_seed);
+  assert(trashed_seed.has_trash());
+  auto restore_admin_destination = request(6108);
+  restore_admin_destination.mutable_restore()->set_trash_handle(trashed_seed.trash().handle());
+  restore_admin_destination.mutable_restore()->set_expected_generation(trashed_seed.trash().generation());
+  restore_admin_destination.mutable_restore()->set_destination_directory_handle("");
+  restore_admin_destination.mutable_restore()->set_destination_basename(".git");
+  assert(admin_engine.handle(restore_admin_destination).error().code() == pb::FileActionError::INVALID_ARGUMENT);
+  auto copy_admin = request(6109);
+  auto* copy_request = copy_admin.mutable_copy_job();
+  copy_request->set_command(pb::FileCopyJob::START);
+  copy_request->set_source_handle(readme_handle);
+  copy_request->set_destination_directory_handle("");
+  copy_request->set_destination_basename(".git");
+  copy_request->set_maximum_bytes(1024); copy_request->set_maximum_entries(16);
+  assert(admin_engine.handle(copy_admin).error().code() == pb::FileActionError::INVALID_ARGUMENT);
+  assert(read_file(admin_project.root, "README.txt") == "seed\n");
+  const int check_admin = openat(admin_project.root, ".git/HEAD", O_RDONLY | O_CLOEXEC);
+  assert(check_admin >= 0); char head_bytes[32]{};
+  assert(read(check_admin, head_bytes, sizeof(head_bytes)) == 21); close(check_admin);
+
+  struct stat original_admin{};
+  assert(fstatat(admin_project.root, ".git", &original_admin, AT_SYMLINK_NOFOLLOW) == 0 &&
+         S_ISDIR(original_admin.st_mode));
+  assert(renameat(admin_project.root, ".git", admin_project.root, ".git-held-for-namespace-test") == 0);
+  auto absent_admin_copy = request(6110);
+  auto* absent_copy_request = absent_admin_copy.mutable_copy_job();
+  absent_copy_request->set_command(pb::FileCopyJob::START);
+  absent_copy_request->set_source_handle(readme_handle);
+  absent_copy_request->set_destination_directory_handle("");
+  absent_copy_request->set_destination_basename(".git");
+  absent_copy_request->set_maximum_bytes(1024); absent_copy_request->set_maximum_entries(16);
+  assert(admin_engine.handle(absent_admin_copy).error().code() == pb::FileActionError::INVALID_ARGUMENT);
+  struct stat absent_admin{};
+  assert(fstatat(admin_project.root, ".git", &absent_admin, AT_SYMLINK_NOFOLLOW) < 0 && errno == ENOENT);
+  assert(renameat(admin_project.root, ".git-held-for-namespace-test", admin_project.root, ".git") == 0);
+  struct stat restored_admin{};
+  assert(fstatat(admin_project.root, ".git", &restored_admin, AT_SYMLINK_NOFOLLOW) == 0 &&
+         restored_admin.st_dev == original_admin.st_dev && restored_admin.st_ino == original_admin.st_ino);
 
   close(dest);
   close(root);

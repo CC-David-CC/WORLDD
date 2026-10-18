@@ -1,4 +1,5 @@
 #include "workspace/file_engine.hpp"
+#include "workspace/file_action_policy.hpp"
 #include "workspace/copy_worker.hpp"
 #include "workspace/resources.hpp"
 
@@ -11,9 +12,6 @@
 #include <linux/openat2.h>
 #include <sys/ioctl.h>
 #include <sys/random.h>
-#include <openssl/evp.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
 #include <sys/syscall.h>
@@ -163,21 +161,6 @@ std::string hex(std::string_view in) {
     out += h[c & 15];
   }
   return out;
-}
-std::string deterministic_message(const google::protobuf::Message& message) {
-  std::string bytes;bytes.reserve(message.ByteSizeLong());
-  google::protobuf::io::StringOutputStream stream(&bytes);
-  google::protobuf::io::CodedOutputStream coded(&stream);coded.SetSerializationDeterministic(true);
-  if(!message.SerializeToCodedStream(&coded)||coded.HadError())
-    throw std::runtime_error("cannot serialize copy operation identity");
-  coded.Trim();return bytes;
-}
-std::string sha256(std::string_view bytes) {
-  std::string digest(EVP_MAX_MD_SIZE, '\0'); unsigned int size=0;
-  if(EVP_Digest(bytes.data(),bytes.size(),reinterpret_cast<unsigned char*>(digest.data()),
-      &size,EVP_sha256(),nullptr)!=1 || size!=32)
-    throw std::runtime_error("cannot hash file copy request");
-  digest.resize(size); return digest;
 }
 std::uint64_t unix_millis() {
   return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -383,6 +366,7 @@ struct FileEngine::Impl {
     Clock::time_point deadline{};Clock::time_point last_use{};
   };
   std::unordered_map<std::string, Handle> handles;
+  bool unsafe_legacy_copy_namespace = false;
   std::unordered_map<std::string, std::unique_ptr<CopyJob>> copy_jobs;
   std::unordered_map<std::string, std::pair<dev_t, ino_t>> retained_uncertain_stages;
   std::unordered_map<std::string, Cursor> cursors;
@@ -471,6 +455,8 @@ struct FileEngine::Impl {
     }
     it->second.last_use = tick;
     auto h = it->second;
+    if (file_policy::is_registered_root_admin_path(h.path))
+      fail(pb::FileActionError::STALE_HANDLE, "registered root administration is outside cabinet files");
     if (directory && !h.directory)
       fail(pb::FileActionError::INVALID_ARGUMENT, "directory handle required");
     // Resolve at the operation boundary. Do not validate one descriptor and then
@@ -478,6 +464,8 @@ struct FileEngine::Impl {
     return h;
   }
   std::string add_handle(std::vector<std::string> path, std::uint64_t gen, bool dir) {
+    if (file_policy::is_registered_root_admin_path(path))
+      fail(pb::FileActionError::INVALID_ARGUMENT, "registered root administration is outside cabinet files");
     const auto tick = now();
     if (handles.size() >= 16384) {
       for (auto it = handles.begin(); it != handles.end();) {
@@ -523,6 +511,36 @@ struct FileEngine::Impl {
   void recover_copy_jobs() {
     if(!journal) return;
     const auto records=journal->recovery_copy_jobs(workspace,journal_observer);
+    const auto unsafe_legacy_record = [](const auto& record) {
+      std::vector<std::string> source(record.source_path_components().begin(),
+                                      record.source_path_components().end());
+      std::vector<std::string> destination(record.destination_directory_components().begin(),
+                                           record.destination_directory_components().end());
+      destination.push_back(record.destination_basename());
+      return file_policy::is_registered_root_admin_path(source) ||
+             file_policy::is_registered_root_admin_path(destination);
+    };
+    if (std::any_of(records.begin(), records.end(), [&](const auto& record) {
+          return record.worktree_id() == scope.front() && unsafe_legacy_record(record);
+        })) {
+      unsafe_legacy_copy_namespace = true;
+      for (const auto& record : records) {
+        if (record.worktree_id() != scope.front() || !unsafe_legacy_record(record) ||
+            record.staging_name().empty() || !record.has_staging()) continue;
+        struct stat named{};
+        if (fstatat(staging_root.v, record.staging_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0) {
+          if (!S_ISDIR(named.st_mode) ||
+              static_cast<std::uint64_t>(named.st_dev) != record.staging().device() ||
+              static_cast<std::uint64_t>(named.st_ino) != record.staging().inode())
+            throw std::runtime_error("Unsafe legacy copy stage identity changed; evidence retained");
+          retained_uncertain_stages.emplace(record.staging_name(),
+                                            std::make_pair(named.st_dev, named.st_ino));
+        } else if (errno != ENOENT) {
+          throw std::runtime_error("Cannot inspect unsafe legacy copy stage; evidence retained");
+        }
+      }
+      return;
+    }
     const bool has_uncertain=std::any_of(records.begin(),records.end(),[](const auto& record) {
       return record.state()==pb::FILE_COPY_JOB_JOURNAL_UNCERTAIN;
     });
@@ -929,6 +947,8 @@ struct FileEngine::Impl {
     for (int i = 0; i < r.authority_components_size(); ++i)
       if (r.authority_components(i) != scope[i])
         fail(pb::FileActionError::INVALID_ARGUMENT, "workspace scope does not match cabinet");
+    if (unsafe_legacy_copy_namespace)
+      fail(pb::FileActionError::UNCERTAIN, "unsafe legacy copy recovery is quarantined; evidence retained");
     if (r.has_browse()) {
       authorize(authority, r, authz::FILE_BROWSE, workspace, scope);
       const auto tick = now();
@@ -980,6 +1000,7 @@ struct FileEngine::Impl {
           if(listing.value==0){if(listing.error)fail(pb::FileActionError::UNAVAILABLE,"directory enumeration failed");return std::nullopt;}
           const auto& name=listing.bytes;
           if (name == "." || name == ".." || name == ".spatial-trash" ||
+              (h.path.empty() && name == ".git") ||
               (name == ".spatial-copy-staging" || name.starts_with(kCopyStagePrefix) || name.starts_with(".spatial-copy-stage-"))) continue;
           struct stat st {};
           Fd pinned(file_engine_detail::pin_leaf(d.v, name.c_str()));
@@ -1408,6 +1429,11 @@ struct FileEngine::Impl {
         if (source.path.empty())
           fail(pb::FileActionError::INVALID_ARGUMENT, "copy destination would be inside the project-root source");
         valid_name(request.destination_basename());
+        auto destination_path = destination.path;
+        destination_path.push_back(request.destination_basename());
+        if (file_policy::is_registered_root_admin_path(destination_path))
+          fail(pb::FileActionError::INVALID_ARGUMENT,
+               "registered root administration is outside cabinet files");
         const auto source_name = source.path.back();
         auto source_parent_path = source.path;
         source_parent_path.pop_back();
@@ -1457,7 +1483,7 @@ struct FileEngine::Impl {
           auto& record=job->durable;
           record.set_format_version(2);record.set_workspace_id(workspace);record.set_job_id(job->id);
           record.set_initiating_operation_id(r.operation_id());
-          record.set_initiating_request_sha256(sha256(deterministic_message(r)));
+          record.set_initiating_request_sha256(file_policy::request_digest(r));
           record.set_principal_issuer_id(r.principal().issuer_id());
           record.set_principal_actor_id(r.principal().actor_id());
           record.set_worktree_id(scope.front());
