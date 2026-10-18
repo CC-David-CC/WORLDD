@@ -1,6 +1,6 @@
 # M08 copy cleanup deadline contract (2026-10-18)
 
-Status: UNQUALIFIED diagnostic checkpoint. Debug compilation passed. Journal, process-scope validation, and FileEngine checks passed on both hosts. The full cleanup probe timed out on both hosts. No sanitizer run has tested this candidate. CMake registration is unchanged.
+Status: UNQUALIFIED milestone work. The focused 128-row case and complete Debug cleanup regression passed on both hosts. Earlier 2,000-row timeout evidence remains retained. No sanitizer run has tested this candidate. CMake registration is unchanged.
 
 ## Contract
 
@@ -16,7 +16,7 @@ Expiry rejects the stopped receipt. The exact process-scope tree, copy stage, an
 - Expiry before participant callback: proves no callback or prune starts after deadline; an ordinary bounded retry succeeds.
 - Expiry after direct-child reap: proves successful `waitpid` state persists before the deadline check; retry does not hit `ECHILD` and invokes the callback again.
 - Held SQLite `BEGIN IMMEDIATE`: proves the inherited budget bounds lock waiting, preserves worker and stage evidence, and permits retry after lock release.
-- Multi-row recovery: 2,000 valid start-intent rows prove one absolute budget yields durable partial outcomes, no stopped receipt, and successful exact retry.
+- Multi-row recovery: 128 valid start-intent rows check one absolute budget, durable partial outcomes, no stopped receipt, and successful exact retry. The earlier 2,000-row diagnostic remains preserved in commit dd8af2e.
 - Present empty reserved child: complements the existing absent-child reservation control and proves exact empty child removal without manufactured worker proof.
 
 ## Actual verification and retained failures
@@ -68,3 +68,27 @@ not production budgets or acceptance assertions. Review both-host results.
 Preserve stderr on successful runs as well as failures.
 Run the selected case first. Run the full cleanup probe after it passes.
 Sanitizer, combined integration, native recovery, and the full M08 gate remain UNRUN.
+
+## 128-row correction and actual Debug results
+
+Only the nonlocked row population and successful-stderr reporting changed.
+The 300 ms first budget, two-second observation bound, 30-second retry, and
+60-second wrapper limit remain unchanged. All partial and final oracles remain.
+Package SHA256: 96f35f72798b00ae0a419aa7e00e60de55eadcd5d5a4e15296d36c8028ff06ef.
+Source manifest SHA256: e3b2f0ee0d9e369b61ef63f571af3fafcd0c7719451b9b9a2ae8f5b6b9fd9d3e.
+
+The selected case passed on both hosts in multirow-128-run-04.
+On sb16 it preserved six partial outcomes and finished retry at 8,855 ms.
+On sb16-2 it preserved seven partial outcomes and finished retry at 7,869 ms.
+Each test returned zero. The exact transient resource unit became inactive.
+
+The complete default Debug cleanup group passed on both hosts in full-128-run-05.
+Both ran all 16 participant modes and the pinned-journal and callback controls.
+The Python test took 21.554 seconds on sb16 and 18.697 seconds on sb16-2.
+The Btrfs-specific control reported UNRUN in this default-filesystem lane.
+Primary-pass-verification.json records output hashes and exact inactive unit state.
+Evidence root on each host remains the primary-runtime path recorded above.
+
+This confirms focused Debug cleanup behavior. It does not qualify M08.
+Current-candidate sanitizer, Btrfs, integrated consumers, native bootstrap/restart,
+and the complete M08 gate remain pending.

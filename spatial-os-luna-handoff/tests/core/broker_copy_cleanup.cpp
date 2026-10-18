@@ -689,7 +689,7 @@ void participant_case(const std::filesystem::path& delegated,const std::string& 
   cleanup_phase(mode,"base_seed_begin",case_began);
   seed(state,root->identity(),path,ids,job);
   cleanup_phase(mode,"base_seed_done",case_began);
-  constexpr std::uint64_t kDeadlineRows=2000;
+  constexpr std::uint64_t kDeadlineRows=128;
   if(mode=="deadline-multirow") {
     cleanup_phase(mode,"multirow_seed_begin",case_began,"rows="+std::to_string(kDeadlineRows));
     FileOperationJournal rows(state.path);

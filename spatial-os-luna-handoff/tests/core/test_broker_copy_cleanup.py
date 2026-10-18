@@ -51,6 +51,8 @@ class BrokerCopyCleanupTests(unittest.TestCase):
                     print('probe_partial_stderr_end',file=sys.stderr,flush=True)
                 self.fail('broker cleanup probe exceeded the unchanged 60 second cap; partial output preserved above')
             print(result.stdout,flush=True)
+            if result.stderr:
+                print(result.stderr,file=sys.stderr,flush=True)
             self.assertEqual(result.returncode,0,result.stderr)
             self.assertIn(expected,result.stdout)
             self.assertEqual([item for item in root.iterdir() if item.is_dir()],[])
