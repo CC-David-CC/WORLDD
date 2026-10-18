@@ -91,7 +91,8 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         value.has_broker_storage_owner() == value.has_broker_storage_target_fd() &&
         (!value.has_broker_storage_owner() || value.has_broker_resources()) &&
         value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) +
-            (value.has_broker_resources() ? 1 : 0) + (value.has_broker_storage_owner() ? 1 : 0) <= 16 &&
+            (value.has_broker_resources() ? 1 : 0) + (value.has_broker_storage_owner() ? 1 : 0) +
+            (cleanup_bootstrap_required(value) ? 1 : 0) <= 16 &&
         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
         "Invalid supervisor configuration");
     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
@@ -279,6 +280,9 @@ int main(int argc, char** argv) {
         const int handle = argc == 5 ? descriptor(argv[4]) : -1;
         require(native != control && handle != native && handle != control, "Privileged descriptors must differ");
         auto config = configuration(argv[1], native, control, handle);
+        // Validate caller arguments before adding the supervisor-owned bootstrap endpoint.
+        const auto broker_state = cleanup_bootstrap_required(config)
+            ? configured_broker_state(config) : std::filesystem::path{};
         management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
         if (handle >= 0) handles = std::make_unique<spatial::supervisor::ChildHandleServer>(handle, getppid());
         File native_config(native);
@@ -391,8 +395,7 @@ int main(int argc, char** argv) {
             auto received = spatial::supervisor::BrokerCleanupBootstrap::receive_request(
                 cleanup_bootstrap_supervisor.value, launch->direct_child_pid(), getuid(), bootstrap_deadline);
             require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired before root validation");
-            const auto state_path = configured_broker_state(config);
-            spatial::supervisor::BrokerCleanupBootstrap::validate_state_root(received.descriptor, state_path);
+            spatial::supervisor::BrokerCleanupBootstrap::validate_state_root(received.descriptor, broker_state);
             require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired before journal pin");
             auto pinned = spatial::FileOperationJournal::pin_existing(received.descriptor);
             require(Clock::now()<bootstrap_deadline,"Broker cleanup bootstrap deadline expired while pinning journal");

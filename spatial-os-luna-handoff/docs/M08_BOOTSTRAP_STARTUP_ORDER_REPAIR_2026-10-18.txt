@@ -1,0 +1,27 @@
+M08 private broker bootstrap startup order repair
+Date: 2026-10-18
+Status: UNQUALIFIED source repair. Compilation and runtime remain UNRUN.
+
+Both native Debug startup suites executed twelve checks on each test host.
+Each suite reported six passes, five failures, and one error.
+The frozen native package used fe78764e3b3ea583391f28ce9235389445f25b1b.
+Evidence remains in each host's m08-copy-cleanup-native-primary-runtime-20261018 root.
+Read runs/01-authority-broker-handoff and its adjacent security directory.
+
+The supervisor added its private --cleanup-bootstrap-fd argument before extracting the configured state path.
+The path extractor then rejected that internally generated argument as caller-supplied configuration.
+Valid resource-backed broker startup could not bind its cleanup journal or receive an acknowledgment.
+
+Capture and validate the caller's literal state path before changing launch arguments.
+Keep that immutable path for comparison with the child's canonical directory descriptor.
+Continue to reject caller-supplied private bootstrap arguments before process ownership.
+Do not remove descriptor identity, credentials, correlation, schema, or deadline checks.
+
+Reserve the private bootstrap descriptor when checking the sixteen-descriptor launch limit.
+The participant, native, resource, optional storage, and private bootstrap descriptors all consume real slots.
+Reject excessive external mappings before ownership rather than after starting the child.
+
+Selected regressions: actual owned broker startup and stop; broker death; cold root mismatch;
+exact descriptor capacity; specific overcapacity rejection; caller-supplied private endpoint rejection.
+The existing failed-exec cleanup failure requires a separate proof-lifetime repair.
+Do not weaken its checked-cleanup oracle or run SIGKILL recovery before startup passes.
