@@ -847,7 +847,19 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
                          b'cancel then start another copy')
 
     def test_file_action_copy_job_revocation_stops_without_followup_request(self):
+        self._assert_copy_job_revocation_stops_without_followup_request()
+
+    def test_file_action_copy_job_revocation_reconnects_after_owner_idle_timeout(self):
         self.workspace(attach_world=False)
+        # Demonstrate transport expiry before the worker starts.
+        time.sleep(self.config.idle_timeout_ms / 1000 + .2)
+        self.closed(self.owner_peer)
+        self.owner_peer.close()
+        self._assert_copy_job_revocation_stops_without_followup_request(workspace_ready=True)
+
+    def _assert_copy_job_revocation_stops_without_followup_request(self, workspace_ready=False):
+        if not workspace_ready:
+            self.workspace(attach_world=False)
         source=self.project/'revoked-source'; source.mkdir()
         payload=bytes(range(256))*64
         for index in range(4096):

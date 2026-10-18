@@ -334,7 +334,13 @@ class WorldIdentityFixture(ClientFixture):
     def revoke(self, kind=pb.CREDENTIAL_TARGET, revision=0):
         target=pb.IdentityReference(kind=kind,id=self.identity.credential_id if kind==pb.CREDENTIAL_TARGET else self.identity.actor_id)
         operation=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=target,expected_security_revision=revision,reason='world regression'))
-        reply=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+        # Fixture setup can outlive the issuer's idle timeout. Authenticate each
+        # consequential owner operation on a fresh, independently verified TLS peer.
+        peer=self.connect()
+        try:
+            reply=self.execute(peer,self.challenge(peer,operation))
+        finally:
+            peer.close()
         self.assertTrue(reply.HasField('identity_status'),reply)
     def until(self, fn, predicate):
         deadline=time.monotonic()+4

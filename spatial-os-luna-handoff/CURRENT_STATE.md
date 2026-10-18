@@ -1,3 +1,41 @@
+## 2026-10-18: M08 revocation fixture reconnect candidate
+
+M08 remains UNQUALIFIED. The primary sanitizer failure in
+`m08-combined-sanitizer-source63-20261018/broker27-980-run-01` remains preserved.
+That run passed 26 of 27 cases. The copy-job revocation case raised EOF while
+using the owner TLS peer created during fixture setup. Primary scanned all 176
+logs from the failed batch and found no ASan diagnostics. This candidate changes
+fixture behavior only.
+
+`WorldIdentityFixture.revoke` now opens a fresh mutually authenticated issuer
+connection for each revocation and closes it after the request. The existing
+copy-job revocation case uses that shared helper. A new case waits past the
+configured issuer idle timeout, confirms the setup peer is transport-closed with
+the fixture's nonmutating info request, and closes it before starting the worker.
+It checks revocation stops the worker without polling or cancelling it. It retains
+the original publication, staging cleanup, and durable journal checks.
+
+Selected runtime tests were recorded before compile-only validation. Run these
+`FileActionBrokerRegressionTests` methods and direct shared-helper caller
+controls in Debug and ASan-UBSan on both sb16 and sb16-2:
+
+- `FileActionBrokerRegressionTests.test_file_action_copy_job_revocation_stops_without_followup_request`
+- `FileActionBrokerRegressionTests.test_file_action_copy_job_revocation_reconnects_after_owner_idle_timeout`
+
+- `WorldIdentityTests.test_revoked_credential_cannot_enter`
+- `WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry`
+- `WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation`
+- `WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor`
+- `WorldIdentityTests.test_prepared_credential_revocation_prevents_activation`
+
+Use the registered resource wrappers and the exact unittest selectors. Full
+`world-identity` native input coverage remains pending qualified XACE and
+`SPATIAL_XPROBE` closure. Runtime results are UNRUN on this compile-only worker.
+The canonical syntax and diff check runner completed with command and wrapper
+exit zero. Its receipt is
+`/home/dflanag3/spatial-artifacts/m08-revocation-owner-peer-repair-20261018/syntax-diffcheck-run-03`.
+The tmux pane exited zero and retired after the command returned.
+
 ## 2026-10-18: M08 broker filesystem identity repair passes focused Debug checks
 
 M08 remains UNQUALIFIED. The complete M08 gate has not started.
