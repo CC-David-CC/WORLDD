@@ -99,6 +99,15 @@ class P10EvidenceForwardingTests(unittest.TestCase):
         self.assertFalse((self.profile / 'acceptance').exists())
         self.assertEqual(self.source_file.read_bytes(), self.source_hash)
 
+    def test_delegate_forwards_python_bytecode_suppression_through_sudo(self):
+        command = delegate.build_service_command(
+            unit='spatial-test.service', username='dflanag3', native=True,
+            copy_engine_v2=False, working_directory=self.source,
+            environment={'PYTHONDONTWRITEBYTECODE': '1'},
+            argv=['python3', 'test.py'])
+        self.assertIn('--setenv=PYTHONDONTWRITEBYTECODE=1', command)
+        self.assertEqual(command[-3:], ['--', 'python3', 'test.py'])
+
     def test_delegate_preserves_existing_service_limits(self):
         base = dict(unit='spatial-test.service', username='dflanag3',
                     working_directory=self.source, environment={}, argv=['true'])
