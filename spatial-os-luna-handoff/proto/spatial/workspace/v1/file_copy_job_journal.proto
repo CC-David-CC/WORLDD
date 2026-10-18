@@ -91,3 +91,38 @@ message FileCopyJobJournalRecord {
   // scope removal, staging cleanup, or publication. Never supplied by a worker.
   spatial.supervisor.v1.ProcessScopeIdentity drained_process_scope = 37;
 }
+
+// Private launch-pinned filesystem identity. It grants no actor authority.
+message FileCopyCleanupJournalBinding {
+  uint32 format_version = 1;
+  uint64 execution_device = 2;
+  uint64 execution_inode = 3;
+  bytes filesystem_identity = 4;
+  uint64 execution_database_device = 5;
+  uint64 execution_database_inode = 6;
+  uint64 journal_directory_device = 7;
+  uint64 journal_directory_inode = 8;
+  uint64 journal_database_device = 9;
+  uint64 journal_database_inode = 10;
+  bytes journal_id = 11;
+}
+// Observed by production cleanup before pruning the real owned ancestor tree.
+// These outcomes never substitute for drained_process_scope.
+message FileCopyScopeCleanupOutcome {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    RESERVED_SCOPE_RECONCILED = 1;
+    MISSING_SCOPE = 2;
+    REPLACED_SCOPE = 3;
+    INVALID_PARENT = 4;
+    IMMUTABLE_UNCERTAINTY = 5;
+  }
+  uint32 format_version = 1;
+  FileCopyCleanupJournalBinding journal = 2;
+  spatial.supervisor.v1.ProcessScopeIdentity broker_root = 3;
+  string workspace_id = 4;
+  string worktree_id = 5;
+  bytes job_id = 6;
+  bytes job_identity_sha256 = 7;
+  Kind kind = 8;
+}

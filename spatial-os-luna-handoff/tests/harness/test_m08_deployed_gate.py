@@ -245,8 +245,10 @@ class M08InventoryGateTests(unittest.TestCase):
     def test_each_new_required_registration_is_checked_in_both_profiles(self):
         names = ("copy-worker-stream", "workspace-copy-worker-helpers-tooling", "process-scope-named-regression",
                  "workspace-file-action-storage-owner-btrfs", "storage-owner-fixture-tooling",
-                 "workspace-cabinet-native-crosshost", "actor-cabinet-gateway-instrumentation")
+                 "workspace-cabinet-native-crosshost", "actor-cabinet-gateway-instrumentation",
+                 "broker-copy-preprune-cleanup")
         self.assertIn("actor-cabinet-gateway-instrumentation", gate.M08_REQUIRED)
+        self.assertIn("broker-copy-preprune-cleanup", gate.M08_REQUIRED)
         for profile in gate.m06.PROFILES:
             for name in names:
                 with self.subTest(profile=profile, name=name):

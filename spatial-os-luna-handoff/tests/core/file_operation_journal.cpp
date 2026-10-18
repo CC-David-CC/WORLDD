@@ -349,8 +349,8 @@ int main() {
       check(sqlite3_open(version_path.c_str(),&version_db)==SQLITE_OK,"could not inspect migrated database");
       sqlite3_stmt* version_statement=nullptr;
       check(sqlite3_prepare_v2(version_db,"PRAGMA user_version",-1,&version_statement,nullptr)==SQLITE_OK &&
-            sqlite3_step(version_statement)==SQLITE_ROW && sqlite3_column_int(version_statement,0)==7,
-            "journal did not migrate schema version 1 to 7");
+            sqlite3_step(version_statement)==SQLITE_ROW && sqlite3_column_int(version_statement,0)==8,
+            "journal did not migrate schema version 1 to 8");
       sqlite3_finalize(version_statement); sqlite3_close(version_db);
       check(journal.bind_root("tree-one",7,19,observer),"v1 root pin did not survive migration");
       check(!journal.bind_root("tree-one",7,20,observer),"v1 migration changed root identity");

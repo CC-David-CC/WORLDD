@@ -39,6 +39,7 @@ M08_REQUIRED = frozenset({
     "copy-worker-stream",
     "workspace-copy-worker-helpers-tooling",
     "copy-progress-timing-tooling",
+    "broker-copy-preprune-cleanup",
     "actor-cabinet-gateway-instrumentation",
     "workspace-actor-cabinet-gateway",
     "workspace-private-test-evidence",

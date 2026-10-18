@@ -1,0 +1,77 @@
+M08 copy pre-prune cleanup primitives
+Date: 2026-10-18
+Status: FOCUSED PRIMITIVES PASS. M08 remains UNQUALIFIED.
+
+This checkpoint adds trusted cleanup before an owned broker cgroup is pruned.
+It does not connect that cleanup to production broker launch or restart.
+The inherited stop deadline and outcome consumers remain pending.
+
+ProcessScope creates a private borrowed OwnedDrainedTree after drain and child reap.
+It checks the held and named root identities before and after the callback.
+A failed callback prevents the stop receipt and retains descendants for retry.
+The callback runs again after a failed prune.
+
+The cleanup participant pins existing execution and journal files by descriptor.
+It requires initialized journal schema 8 and the exact execution lock.
+Normal journal startup migrates schema 7 to 8 transactionally.
+Cleanup cannot create a database or migrate an existing journal.
+The schema stores a persistent journal identity and separate cleanup outcomes.
+Those outcomes never substitute for an exact worker drain acknowledgment.
+Terminal UNCERTAIN records, staged bytes, prepared identities, and old proofs remain preserved.
+
+The private SQLite adapter uses same-inode hardlinks under private alias directories.
+It keeps canonical rollback-journal names and SQLite Unix locking.
+O_PATH pins do not release those POSIX locks when closed.
+It rejects WAL headers before shared-memory access and bounds orphan inspection.
+It retains callback-reachable ownership until SQLite closes.
+A close failure prevents the cleanup receipt.
+
+Frozen runtime source snapshot:
+06f763abffdda2c15e9f440f7e5325af1ab08fd7db6e5ab8ca453cea40add9bf
+Both profiles compiled with 1309 unchanged source inputs.
+This concise documentation was added after that build snapshot.
+
+Focused runtime passed on sb16 and sb16-2 in Debug and ASan/UBSan.
+Each profile passed thirteen actual-cgroup participant cases.
+They cover exact drain, missing/replaced scopes and parents, old proof, uncertainty,
+reservation reconciliation, foreign roots, failed commits, and prepared identity.
+The reserved case covers an absent reservation, not a present reserved child.
+The related journal, recovery-validation, and FileEngine programs passed both profiles on both hosts.
+Default-filesystem cleanup sanitizer durations were 17.449s and 27.858s.
+No sanitizer findings appeared in retained successful logs.
+
+Private Btrfs fixtures passed both profiles on both hosts.
+They prove same-subvolume alias access and cross-subvolume EXDEV rejection.
+The thirteen participant cases also passed on those fixtures.
+Durations: sb16 Debug 40.612s, sanitizer 39.83s;
+sb16-2 Debug 35.776s, sanitizer 34.184s.
+The fixture images were unmounted, their exact owned loops detached, and images removed after PASS.
+Existing world and storage-owner volumes were not changed.
+
+Evidence on each host:
+/home/dflanag3/spatial-artifacts/m08-copy-preprune-callback-repair-runtime-20261018/primary-focused-primitives-verification-01.json
+Central builds, packages, source manifests, and failed evidence:
+/home/dflanag3/spatial-artifacts/m08-copy-preprune-cleanup-20261018
+The current test executable uses a verified delta over the retained b9c4 package.
+Its dependency and source hashes remain separately recorded.
+
+Earlier failures remain retained.
+The initial SQLite descriptor path failed O_NOFOLLOW with ELOOP.
+The alias repair corrected that production adapter defect.
+Three later failures came from test setup: unsupported cgroup rename,
+missing real root registration, and premature destruction of the intended orphan worker.
+The corrected fixture retains its real owner through deliberate exit.
+An adversarial test child clears its own parent-death signal and reports readiness.
+The parent verifies a live worker and exact cgroup inode after owner exit.
+Production parent-death behavior and all thirteen outcome assertions remain unchanged.
+Failed fixture state is retained on real assertion failure.
+
+Remaining production work:
+- Propagate one absolute stop deadline through callbacks, SQLite waits, and row loops.
+- Consume and retain cleanup outcomes before old proof can authorize recovery.
+- Bind the journal on cold broker startup through trusted launch ownership.
+- Preserve the immediate delegated parent across broker generations.
+- Complete checked native cleanup and issuer retirement before restart.
+- Exercise all eleven original supervised crash/restart scenarios.
+- Add the present-reservation positive control.
+- Integrate and freeze the combined source, then run the complete M08 gate on both hosts.

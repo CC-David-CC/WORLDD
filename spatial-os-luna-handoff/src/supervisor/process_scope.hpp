@@ -12,6 +12,20 @@
 
 namespace spatial::supervisor {
 void validate_budget(const v1::ProcessScopeBudget& budget);
+// Borrowed only during the owned pre-prune callback. Protobuf cannot mint this view.
+class OwnedDrainedTree final {
+public:
+    int directory_fd() const { return directory_; }
+    const v1::ProcessScopeIdentity& identity() const { return identity_; }
+    OwnedDrainedTree(const OwnedDrainedTree&) = delete;
+    OwnedDrainedTree& operator=(const OwnedDrainedTree&) = delete;
+private:
+    friend class ProcessScope;
+    OwnedDrainedTree(int directory, const v1::ProcessScopeIdentity& identity)
+        : directory_(directory), identity_(identity) {}
+    int directory_;
+    const v1::ProcessScopeIdentity& identity_;
+};
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
 public:
@@ -61,6 +75,8 @@ public:
     bool payload_frozen() const;
     v1::PayloadQuiescenceReceipt payload_receipt() const;
     void thaw_payload();
+    // Install once before launch. Failure preserves descendants and suppresses the stop receipt.
+    void set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback);
     void request_stop();
     v1::ProcessScopeStopped complete_stop(std::chrono::steady_clock::time_point deadline,
         const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
@@ -78,6 +94,7 @@ private:
     std::string frozen_inventory_;
     pid_t child_ = -1;
     bool reaped_ = false, removed_ = false, started_ = false, stop_requested_ = false, retained_scope_ = false;
+    std::function<void(const OwnedDrainedTree&)> pre_prune_cleanup_;
     v1::ProcessScopeIdentity identity_;
 };
 }
