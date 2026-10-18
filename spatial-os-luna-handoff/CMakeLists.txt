@@ -827,6 +827,13 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k actor_cabinet_)
     set_tests_properties(workspace-actor-cabinet-gateway PROPERTIES TIMEOUT 300
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core;PYTHONDONTWRITEBYTECODE=1;PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-actor-cabinet-gateway")
+    add_test(NAME actor-cabinet-gateway-instrumentation COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_cabinet_gateway_instrumentation.py")
+    set_tests_properties(actor-cabinet-gateway-instrumentation PROPERTIES TIMEOUT 30
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core;PYTHONDONTWRITEBYTECODE=1;PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-actor-cabinet-gateway-instrumentation")
+    add_custom_target(actor-cabinet-gateway-instrumentation-fixture
+        SOURCES tests/core/test_actor_cabinet_gateway_instrumentation.py tests/core/gateway_trace.py)
+    add_dependencies(actor-cabinet-gateway-instrumentation-fixture broker-python-protobuf grants-python-protobuf)
     add_test(NAME workspace-private-test-evidence COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_private_test_evidence.py")
     set_tests_properties(workspace-private-test-evidence PROPERTIES TIMEOUT 30)

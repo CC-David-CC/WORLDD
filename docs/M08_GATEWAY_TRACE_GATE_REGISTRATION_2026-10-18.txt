@@ -1,0 +1,65 @@
+# M08 gateway trace test registration
+
+Contract: CTest registers `actor-cabinet-gateway-instrumentation` as a direct,
+30-second Python control. Its import path includes generated build Python
+bindings, the handoff source root, and `tests/core`. The fixture build target
+exposes both Python sources and depends on `broker-python-protobuf` and
+`grants-python-protobuf`. The M08 local inventory gate requires this exact
+CTest name. A configured profile that lacks the registration must refuse
+before launching the inherited gate.
+
+This is an additive registration. It does not replace or edit the locked
+`workspace-actor-cabinet-gateway` acceptance test. It does not add a delegated
+runtime, native display, or input wrapper to the pure transcript controls.
+The target-specific fixture build target is available to create the generated
+Python imports before running the direct test. CTest inventory inspection does
+not execute test commands.
+
+## Selected checks
+
+- Run `tests/harness/test_m08_deployed_gate.py` with Python `-B`. This checks
+  mandatory-name refusal, both-profile validation, direct invocation, import
+  paths, timeout, fixture sources, and generated binding dependencies.
+- Configure Debug and ASan/UBSan with `BUILD_TESTING=ON` and
+  `SPATIAL_INPUT_TESTS=ON`; inspect each actual CTest inventory with
+  `ctest --show-only=json-v1`. Compare names against the reviewed integration
+  inventories and pass candidate rows through `require_inventory`.
+- Build only `actor-cabinet-gateway-instrumentation-fixture` to generate the
+  required Python protobuf imports. Run the 14-method gateway transcript
+  control directly. This target closure generates Python bindings only; no
+  project C++ runtime or CTest is run on middle-child.
+
+## Configuration and inventory evidence
+
+Base inventories are the primary-reviewed integration8f records:
+
+- `/home/dflanag3/spatial-artifacts/m08-cabinet-reviewed-integration-20261018/inventory-gate-Debug-02.json`
+- `/home/dflanag3/spatial-artifacts/m08-cabinet-reviewed-integration-20261018/inventory-gate-ASan-UBSan-02.json`
+
+Candidate Debug and ASan/UBSan configurations use `SPATIAL_INPUT_TESTS=ON`.
+Their external build directories and actual `ctest --show-only=json-v1` output
+are retained under `/home/dflanag3/spatial-artifacts/m08-gateway-trace-gate-registration-20261018/`.
+
+## Results
+
+Debug and ASan/UBSan each configured successfully with `SPATIAL_INPUT_TESTS=ON`.
+The candidate CTest JSON has 223 rows in each profile. Each profile retains all
+222 names in its matching primary-reviewed `SPATIAL_INPUT_TESTS=ON` baseline
+and adds only `actor-cabinet-gateway-instrumentation`. Compared with the prior
+183-row `SPATIAL_INPUT_TESTS=OFF` inventories, the candidate also contains all
+39 input-profile registrations, plus this new test. The M08 `require_inventory`
+check accepts both candidate inventories. The new row has `TIMEOUT=30`, uses the
+configured build/source/test import paths, and has no skip property.
+
+Both focused gate controls passed. The full `test_m08_deployed_gate.py` suite
+passed all 32 methods after the target-only Python protobuf generation.
+The 14-method gateway transcript control also passed. The first harness attempt
+lacked generated bindings and failed import-based unittest discovery; it is
+retained at `gate-unit-run-04/stderr.log`. No new harness test IDs were added.
+The new assertions extend existing manifest-listed methods, preserving the
+pinned 89-ID inventory. No C++ target, CTest execution, native job, or runtime
+was launched on middle-child.
+
+The later A+B CMake merge will share the nearby test-registration region.
+Resolve that overlap deliberately. Keep its `broker-copy-preprune-cleanup`
+requirement separate; this standalone base does not contain that target.

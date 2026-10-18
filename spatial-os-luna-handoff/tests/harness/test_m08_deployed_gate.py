@@ -245,7 +245,8 @@ class M08InventoryGateTests(unittest.TestCase):
     def test_each_new_required_registration_is_checked_in_both_profiles(self):
         names = ("copy-worker-stream", "workspace-copy-worker-helpers-tooling", "process-scope-named-regression",
                  "workspace-file-action-storage-owner-btrfs", "storage-owner-fixture-tooling",
-                 "workspace-cabinet-native-crosshost")
+                 "workspace-cabinet-native-crosshost", "actor-cabinet-gateway-instrumentation")
+        self.assertIn("actor-cabinet-gateway-instrumentation", gate.M08_REQUIRED)
         for profile in gate.m06.PROFILES:
             for name in names:
                 with self.subTest(profile=profile, name=name):
@@ -553,6 +554,32 @@ class M08InventoryGateTests(unittest.TestCase):
             gate.m06.apply_profile_storage_environment(base, "Debug", {"Debug": {"SPATIAL_TEST_STORAGE_VOLUME": "/bad"}})
 
     def test_m08_inventory_validator_keeps_cabinet_test_out_of_per_profile_core(self):
+        name = "actor-cabinet-gateway-instrumentation"
+        fixture = name + "-fixture"
+        project = Path(gate.__file__).resolve().parents[1]
+        cmake = (project / "CMakeLists.txt").read_text(encoding="utf-8")
+        test_start = cmake.index(f"add_test(NAME {name} ")
+        test_end = cmake.index(f"set_tests_properties({name} PROPERTIES", test_start)
+        invocation = cmake[test_start:test_end]
+        self.assertIn('COMMAND "${Python3_EXECUTABLE}" -B', invocation)
+        self.assertIn("tests/core/test_actor_cabinet_gateway_instrumentation.py", invocation)
+        self.assertNotIn("with_resource_delegate.py", invocation)
+        self.assertNotIn("with_test_display.py", invocation)
+        property_end = cmake.index("\n", cmake.index(")", test_end))
+        properties = cmake[test_end:property_end]
+        self.assertRegex(properties, r"TIMEOUT\s+30")
+        self.assertIn("PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core", properties)
+        target_start = cmake.index(f"add_custom_target({fixture}")
+        target_end = cmake.index(")", target_start) + 1
+        target = cmake[target_start:target_end]
+        self.assertIn("tests/core/test_actor_cabinet_gateway_instrumentation.py", target)
+        self.assertIn("tests/core/gateway_trace.py", target)
+        dependency_start = cmake.index(f"add_dependencies({fixture}", target_end)
+        dependency_end = cmake.index(")", dependency_start) + 1
+        dependencies = cmake[dependency_start:dependency_end]
+        self.assertIn("broker-python-protobuf", dependencies)
+        self.assertIn("grants-python-protobuf", dependencies)
+
         names = sorted(gate.REQUIRED)
         dedicated = gate.m06.DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost",
                                                      "workspace-cabinet-native-crosshost"}
