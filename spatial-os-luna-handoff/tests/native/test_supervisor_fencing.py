@@ -64,7 +64,7 @@ class LostActivationReplyRelay:
                 reply.request_id = request_id
                 if request.HasField('authority_activate'):
                     if not (reply.HasField('authority_activation') and reply.authority_activation.active and
-                            reply.authority_activation.service_incarnation() == self.expected_service_incarnation and
+                            reply.authority_activation.service_incarnation == self.expected_service_incarnation and
                             reply.request_id == request_id):
                         raise AssertionError('Upstream activation did not return the exact active service generation')
                     self.activation_committed.set()
@@ -188,6 +188,26 @@ import security_pb2 as security
 
 
 class SupervisorFenceFailures(supervisor.AuthoritySupervisorTests):
+    def assert_pending_cleanup_retry(self,proc,channel,reply):
+        self.assertTrue(reply.HasField('error'),reply)
+        self.assertFalse(reply.error.HasField('cleanup_record'),reply)
+        self.assertIsNone(proc.poll(),'Failed cleanup must retain supervisor ownership')
+
+        inspect=self.control(channel,inspect=launch.AuthorityLaunchQuery())
+        self.assertEqual(inspect.request_id,77)
+        self.assertTrue(inspect.HasField('error'),inspect)
+        self.assertFalse(inspect.HasField('view'),inspect)
+        self.assertFalse(inspect.error.HasField('cleanup_record'),inspect)
+        self.assertIn('only an explicit stop retry is accepted',inspect.error.message)
+        self.assertIsNone(proc.poll(),'Rejected inspection must leave pending owner alive')
+
+        retry=self.control(channel,stop=launch.AuthorityLaunchQuery())
+        self.assertEqual(retry.request_id,77)
+        self.assertTrue(retry.HasField('error'),retry)
+        self.assertFalse(retry.HasField('view'),retry)
+        self.assertFalse(retry.error.HasField('cleanup_record'),retry)
+        self.assertIsNone(proc.poll(),'Failed explicit retry must retain pending owner')
+
     def failed_fence(self,channel):
         request=launch.AuthorityLaunchRequest(protocol_version=1,request_id=77,fence=launch.AuthorityLaunchQuery()).SerializeToString()
         channel.sendall(struct.pack('!I',len(request))+request)
@@ -234,7 +254,10 @@ class SupervisorFenceFailures(supervisor.AuthoritySupervisorTests):
         self.assertEqual(revoked.code,security.OK);self.assertTrue(revoked.revoked)
         reply=self.failed_fence(channel)
         self.assertTrue(reply.HasField('error'),reply)
-        self.assertEqual(proc.wait(timeout=5),2)
+        self.assertFalse(reply.error.HasField('cleanup_record'),reply)
+        self.assert_pending_cleanup_retry(proc,channel,reply)
+        proc.send_signal(signal.SIGTERM)
+        self.assertEqual(proc.wait(timeout=8),2)
         record=self.read_record()
         self.assertEqual(record.stage,launch.CLEANUP_PENDING)
         self.assertTrue(record.HasField('fence'));self.assertTrue(record.HasField('process_stopped'))
@@ -248,7 +271,10 @@ class SupervisorFenceFailures(supervisor.AuthoritySupervisorTests):
             db.execute("CREATE TRIGGER refuse_fence BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'fence journal fault'); END")
         reply=self.failed_fence(channel)
         self.assertTrue(reply.HasField('error'),reply)
-        self.assertEqual(proc.wait(timeout=5),2)
+        self.assertFalse(reply.error.HasField('cleanup_record'),reply)
+        self.assert_pending_cleanup_retry(proc,channel,reply)
+        proc.send_signal(signal.SIGTERM)
+        self.assertEqual(proc.wait(timeout=8),2)
         self.assertEqual(self.read_record(),before)
         self.assertEqual(len(self.issuer.snapshot_all()['authority_fence']),1)
 
