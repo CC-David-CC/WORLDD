@@ -102,6 +102,9 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
         errors=[]
         try:super().close()
         except BaseException as error:errors.append(error)
+        for endpoint in getattr(self,'_construction_sockets',()):
+            try:endpoint.close()
+            except BaseException as error:errors.append(error)
         owner=getattr(self,'owner',None)
         if owner is not None:
             try:
@@ -116,9 +119,6 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
                         if owner.poll() is None:
                             try:owner.kill();owner.wait(timeout=3)
                             except BaseException as final_cleanup:errors.append(final_cleanup)
-        for endpoint in getattr(self,'_construction_sockets',()):
-            try:endpoint.close()
-            except BaseException as error:errors.append(error)
         storage_log=getattr(self,'storage_log',None)
         if storage_log is not None and not storage_log.closed:
             try:storage_log.close()

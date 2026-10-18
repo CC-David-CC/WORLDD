@@ -4,6 +4,7 @@ Runtime execution is restricted to sb16 and sb16-2 through the dedicated runner.
 """
 import json
 import hashlib
+import importlib
 from contextlib import closing
 import signal
 import os
@@ -104,6 +105,14 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
         supervised=config is not None and (fixture.copy_fault_mode=='drop-publication-ack' or hasattr(fixture,'lostack_supervisors'))
         self.partial_ready=False
         if supervised:
+            # The broker waits for its root storage peer before sending bootstrap.
+            # Install the owner policy, then start its relay before the wrapper waits for its initial view.
+            owner_config=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
+            local=fixture.root/f'fault-owner-launch-{len(fixture.brokers)}.pb'
+            local.write_bytes(owner_config.SerializeToString());local.chmod(0o600)
+            private=fixture.operator_directory/f'fault-launch-{len(fixture.brokers)}.pb'
+            fixture.operator_run(['install','-m','600',str(local),str(private)])
+            self._start_fault_owner(fixture,owner_end,len(fixture.brokers))
             def cleanup_partial_supervised_broker():
                 if self.partial_ready:return
                 failures=[]
@@ -142,23 +151,27 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
                                                  extra_fds={'--storage-fd':broker_end.fileno()})
         self.proc=self.resources.process;self.pid=self.resources.pid
         broker_end.close();child.close()
-        owner_config=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
-        owner_config.broker_pid=self.pid
-        local=fixture.root/f'fault-owner-launch-{len(fixture.brokers)}.pb'
-        local.write_bytes(owner_config.SerializeToString());local.chmod(0o600)
-        private=fixture.operator_directory/f'fault-launch-{len(fixture.brokers)}.pb'
-        fixture.operator_run(['install','-m','600',str(local),str(private)])
+        if not supervised:
+            owner_config=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
+            owner_config.broker_pid=self.pid
+            local=fixture.root/f'fault-owner-launch-{len(fixture.brokers)}.pb'
+            local.write_bytes(owner_config.SerializeToString());local.chmod(0o600)
+            private=fixture.operator_directory/f'fault-launch-{len(fixture.brokers)}.pb'
+            fixture.operator_run(['install','-m','600',str(local),str(private)])
+            self._start_fault_owner(fixture,owner_end,len(fixture.brokers))
+        self.initialize_transport(world_channel_opt_in=False);fixture.brokers.append(self)
+        self.partial_ready=True
+
+    def _start_fault_owner(self,fixture,owner_end,index):
         code='import os,sys;os.dup2(0,3);os.set_inheritable(3,True);os.execv(sys.argv[1],sys.argv[1:])'
+        self.audit_path=fixture.operator_directory/f'copy-fault-{index}.json'
         owner_command=[sys.executable,'-B',str(FAULT_RELAY),'--channel-fd','3','--build',str(engine.BUILD),
-            '--config',str(private),'--audit',str(fixture.operator_directory/f'copy-fault-{len(fixture.brokers)}.json'),
+            '--config',str(fixture.operator_directory/f'fault-launch-{index}.pb'),'--audit',str(self.audit_path),
             '--mode',fixture.copy_fault_mode]
-        self.audit_path=fixture.operator_directory/f'copy-fault-{len(fixture.brokers)}.json'
         self.owner=subprocess.Popen(['sudo','-n','env','ASAN_OPTIONS=detect_leaks=1:abort_on_error=1',
             'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',sys.executable,'-B','-c',code,*owner_command],
             stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
-        owner_end.close();self.initialize_transport(world_channel_opt_in=False);fixture.brokers.append(self)
-        self.partial_ready=True
-
+        owner_end.close()
 
     def close(self):
         errors=[]
@@ -237,6 +250,48 @@ class StorageBrokerConstructorFailureTests(unittest.TestCase):
             self.assertEqual(fixture.brokers,[])
             self.assertTrue(sockets)
             self.assertTrue(all(endpoint.fileno()<0 for endpoint in sockets))
+
+    def test_supervised_copy_fault_starts_root_relay_before_waiting_for_initial_view(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);operator=root/'operator';operator.mkdir()
+            owner_config=storage.StorageOwnerConfig(protocol_version=1)
+            owner_path=root/'owner.pb';owner_path.write_bytes(owner_config.SerializeToString())
+            template=engine.broker.BrokerProcessConfig(protocol_version=1)
+            template.resources.protocol_version=1
+            template_path=root/'resources.textproto'
+            template_path.write_text(engine.text_format.MessageToString(template))
+            fixture=SimpleNamespace(root=root,brokers=[],copy_resource_config=template_path,
+                owner_configuration=owner_path,operator_directory=operator,copy_fault_mode='drop-publication-ack',
+                addCleanup=lambda callback:None,operator_run=lambda args:b'')
+            process=CopyFaultStorageBrokerProcess.__new__(CopyFaultStorageBrokerProcess)
+            process.fixture=fixture;process.owner=None;process.storage_log=None;process.audit_path=None
+            process.partial_ready=False;process._construction_sockets=[]
+            engine.fixtures.initialize_broker_lifecycle(process,fixture,'copy-fault-broker-0.log')
+            events=[]
+            class Owner:
+                def wait(self,timeout):return 0
+                def poll(self):return 0
+            class Resources:
+                process=object();pid=123
+                def close(self):return None
+            sys.path.insert(0,str(engine.SOURCE/'tests/native'))
+            helper=importlib.import_module('copy_fault_supervised_world')
+            def launch_owner(*args,**kwargs):
+                events.append('root-owner-relay')
+                return Owner()
+            def supervised_resources(*args,**kwargs):
+                events.append('supervised-wrapper')
+                self.assertIsNotNone(process.owner,'Root owner relay must exist before initial-view wait')
+                return Resources()
+            with (
+                patch.object(subprocess,'Popen',side_effect=launch_owner),
+                patch.object(helper,'SupervisedBrokerResources',side_effect=supervised_resources),
+                patch.object(engine.fixtures.BrokerProcess,'initialize_transport'),
+            ):
+                CopyFaultStorageBrokerProcess._construct(process,fixture,root/'state',root/'authority.pb')
+            self.assertEqual(events,['root-owner-relay','supervised-wrapper'])
+            self.assertTrue(process.partial_ready)
+            process.close()
 
     def test_resourcebroker_startup_error_retains_cleanup_failure_note(self):
         with tempfile.TemporaryDirectory() as temporary:
