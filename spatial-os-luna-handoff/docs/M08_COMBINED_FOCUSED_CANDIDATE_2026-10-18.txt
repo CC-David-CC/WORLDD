@@ -17,7 +17,23 @@ Prior isolated Debug evidence remains scoped to its recorded source inputs.
 Cabinet store and migration passed on both required hosts.
 Storage fixture tooling passed eight controls; four Debug targets built.
 Combined runtime, sanitizers, and native cabinet tests remain UNRUN.
-Gate reconciliation tooling and fresh storage-volume preparation are separate pending inputs.
+Gate reconciliation tooling is now integrated. Fresh storage-volume preparation remains pending.
 Do not deploy this checkpoint as a qualified milestone.
 
 Artifacts: middle-child:/home/dflanag3/spatial-artifacts/m08-combined-focused-20261018/
+
+Integrated gate and deadline update
+The initial combined Debug build passed with command and wrapper exits 0.
+The subsequent source changes are Python gate, fixture, tooling tests, and maintained notes.
+They preserve all compiled C++ and protobuf inputs from that build.
+Gate source chain: 03ed27a, 56aa6e2, 314a8c9, and 83d322d74e3301572b944ad4d94c04d023cf09c7.
+The gate requires both independent native cross-host matrices and all M08 local groups.
+The isolated gate tooling passed 26 tests. Combined tooling remains pending.
+Deadline fixture correction: 9852110c93e6f7ff8dc15bdbfb456df63ebc75e1.
+Its nine tooling controls passed. The real scheduler deadline regression remains UNRUN.
+
+Four superseded M07 focused artifact directories were retired on each required host.
+No process or mount referenced their exact paths at inspection.
+Final M07 gate evidence and unresolved M08 evidence remain preserved.
+Recovered bytes: sb16 4708802560; sb16-2 4722495488.
+Cleanup ledgers on each host: spatial-artifacts/cleanup/m08-fresh-fixture-capacity-20261018/.

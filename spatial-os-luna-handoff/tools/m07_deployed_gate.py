@@ -39,6 +39,10 @@ M07_REQUIRED = frozenset({
     "queued-copy-status-replacement",
 })
 M07_DEDICATED = frozenset(m06.DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost"})
+WORKSPACE_CROSSHOST_CASES = {
+    "workspace-geometry-native-crosshost": "test_shared_workspace_geometry_changes_both_native_hosts",
+    "workspace-cabinet-native-crosshost": "test_cabinet_projection_and_persistent_placement_reach_native_pixels",
+}
 GEOMETRY_ENV = (
     "SPATIAL_GEOMETRY_EVIDENCE", "SPATIAL_GEOMETRY_OBSERVER_HOST",
     "SPATIAL_GEOMETRY_AUTHORITY_ADDRESS", "SPATIAL_GEOMETRY_REMOTE_SOURCE",
@@ -253,7 +257,28 @@ def _scan_remote_evidence(host, path):
         raise RuntimeError("observer evidence lacks one retained geometry host service log")
     return dict(files=result["files"], service_log=service_logs[0])
 
+def workspace_crosshost_core_case_count(total_tests, test_name="workspace-geometry-native-crosshost"):
+    if test_name not in WORKSPACE_CROSSHOST_CASES:
+        raise RuntimeError("unsupported dedicated workspace cross-host CTest")
+    dedicated = set(M07_DEDICATED)
+    if test_name == "workspace-cabinet-native-crosshost":
+        dedicated.add(test_name)
+    return total_tests - len(dedicated)
+
+
+def workspace_crosshost_registration(inventory, test_name="workspace-geometry-native-crosshost"):
+    if test_name not in WORKSPACE_CROSSHOST_CASES:
+        raise RuntimeError("unsupported dedicated workspace cross-host CTest")
+    matches = [row for row in inventory if row.get("name") == test_name]
+    if len(matches) != 1:
+        raise RuntimeError(test_name + " CTest registration is missing or duplicated")
+    return matches[0]
+
+
 def run_workspace_crosshost(a):
+    test_name = getattr(a, "test_name", "workspace-geometry-native-crosshost")
+    if test_name not in WORKSPACE_CROSSHOST_CASES:
+        raise RuntimeError("unsupported dedicated workspace cross-host CTest")
     host = socket.gethostname().split(".")[0]
     if host not in m06.TEST_HOSTS:
         raise RuntimeError("workspace cross-host stage runs only on sb16 or sb16-2")
@@ -288,10 +313,7 @@ def run_workspace_crosshost(a):
     if process.returncode:
         raise RuntimeError("cannot read deployed CTest inventory")
     inventory = json.loads(process.stdout)["tests"]
-    matches = [row for row in inventory if row.get("name") == "workspace-geometry-native-crosshost"]
-    if len(matches) != 1:
-        raise RuntimeError("workspace geometry CTest registration is missing or duplicated")
-    row = matches[0]
+    row = workspace_crosshost_registration(inventory, test_name)
     command = list(row.get("command", []))
     baked = provenance.get("configure_env", {})
     if set(baked) != set(GEOMETRY_ENV) or any(not baked[key] for key in GEOMETRY_ENV):
@@ -332,10 +354,10 @@ def run_workspace_crosshost(a):
                     env[key] = value
     env["SPATIAL_TEST_XSERVER"] = runtime["xace_wrapper"]["path"]
     env["SPATIAL_SECURITY_EVIDENCE"] = str(security_evidence)
-    log = evidence / "workspace-geometry-native-crosshost.log"
+    log = evidence / (test_name + ".log")
     result, seconds = m06.run(command, cwd=source, env=env, log=log, timeout=1800)
     output = log.read_text(errors="replace")
-    method_dir = evidence / "test_shared_workspace_geometry_changes_both_native_hosts"
+    method_dir = evidence / WORKSPACE_CROSSHOST_CASES[test_name]
     cleanup = _verify_cleanup_receipts(method_dir, method_dir)
     local_logs = _scan_local_logs((evidence, security_evidence))
     remote_logs = _scan_remote_evidence(observer, Path(roles["SPATIAL_GEOMETRY_REMOTE_EVIDENCE"]) /
@@ -344,7 +366,7 @@ def run_workspace_crosshost(a):
               and not m06.SAN_RE.search(output))
     summary = dict(schema=1, status="passed" if passed else "failed_or_incomplete",
         qualification="UNQUALIFIED", candidate=a.candidate, host=host, profile=a.profile,
-        direction=a.direction, roles=roles, observer_deployment=observer_roles,
+        direction=a.direction, test_name=test_name, roles=roles, observer_deployment=observer_roles,
         m06_deployment_pins={host: {key: matrix["deployments"][host][key] for key in ("path", "provenance_sha256", "deployment_receipt_sha256")} for host in m06.TEST_HOSTS},
         cleanup=cleanup, local_log_inventory=local_logs, remote_log_inventory=remote_logs,
         deployment_provenance_sha256=m06.sha(provenance_path),
@@ -353,16 +375,11 @@ def run_workspace_crosshost(a):
     m06.write_json(evidence / "workspace-crosshost-receipt.json", summary)
     return 0 if passed else 1
 
-def reconcile(a):
-    candidate = a.candidate
-    if not re.fullmatch(r"[0-9a-f]{40}", candidate):
-        raise RuntimeError("reconciliation requires one full candidate SHA")
-    m06_report = _read(a.m06_reconciliation, "M06 cross-host reconciliation")
-    if (m06_report.get("candidate") != candidate or
-            m06_report.get("status") != "passed_needs_primary_review" or
-            m06_report.get("phase_complete") is not False):
-        raise RuntimeError("M06 cross-host handoff is absent, stale, or not passed")
-    local_receipts = m06_report.get("local_runs", {})
+def validate_workspace_local_receipts(local_receipts, candidate, test_name,
+                                      required_tests=M07_REQUIRED, dedicated_tests=M07_DEDICATED):
+    """Validate local gate receipts against one explicitly selected cross-host contract."""
+    required_tests = set(required_tests)
+    dedicated_tests = set(dedicated_tests)
     if set(local_receipts) != set(m06.TEST_HOSTS):
         raise RuntimeError("M06 reconciliation lacks both host-local receipts")
     for host, row in local_receipts.items():
@@ -373,17 +390,41 @@ def reconcile(a):
         else:
             local_report = row.get("remote_receipt", {})
         if (local_report.get("candidate") != candidate
-                or not M07_REQUIRED.issubset(set(local_report.get("required_tests", [])))
-                or set(local_report.get("dedicated_crosshost", [])) != set(M07_DEDICATED)):
-            raise RuntimeError(host + " local receipt does not pin all mandatory M07 suites/exclusions")
+                or not required_tests.issubset(set(local_report.get("required_tests", [])))
+                or set(local_report.get("dedicated_crosshost", [])) != dedicated_tests):
+            raise RuntimeError(host + " local receipt does not pin all mandatory suites/exclusions for " + test_name)
         for profile in m06.PROFILES:
             names = set(row.get("inventories", {}).get(profile, {}).get("names", []))
             profile_result = local_report.get("profiles", {}).get(profile, {})
             core = next((item for item in profile_result.get("commands", []) if item.get("name") == "core"), {})
-            if (not M07_REQUIRED.issubset(names)
-                    or core.get("exit_code") != 0 or core.get("junit_cases") != len(names) - len(M07_DEDICATED)
-                    or core.get("all_registered_present") is not True or core.get("failed_or_skipped") is not False):
-                raise RuntimeError(host + " " + profile + " local CTest result is incomplete for M07")
+            if (not required_tests.issubset(names)
+                    or core.get("exit_code") != 0
+                    or core.get("junit_cases") != len(names) - len(dedicated_tests)
+                    or core.get("all_registered_present") is not True
+                    or core.get("failed_or_skipped") is not False):
+                raise RuntimeError(host + " " + profile + " local CTest result is incomplete for " + test_name)
+
+
+def reconcile(a):
+    test_name = getattr(a, "test_name", "workspace-geometry-native-crosshost")
+    if test_name not in WORKSPACE_CROSSHOST_CASES:
+        raise RuntimeError("unsupported dedicated workspace cross-host CTest")
+    candidate = a.candidate
+    if not re.fullmatch(r"[0-9a-f]{40}", candidate):
+        raise RuntimeError("reconciliation requires one full candidate SHA")
+    m06_report = _read(a.m06_reconciliation, "M06 cross-host reconciliation")
+    if (m06_report.get("candidate") != candidate or
+            m06_report.get("status") != "passed_needs_primary_review" or
+            m06_report.get("phase_complete") is not False):
+        raise RuntimeError("M06 cross-host handoff is absent, stale, or not passed")
+    local_receipts = m06_report.get("local_runs", {})
+    required_tests = set(getattr(a, "required_tests", M07_REQUIRED))
+    dedicated_tests = set(getattr(a, "dedicated_tests", ()))
+    if not dedicated_tests:
+        dedicated_tests = set(M07_DEDICATED)
+        if test_name == "workspace-cabinet-native-crosshost":
+            dedicated_tests.add(test_name)
+    validate_workspace_local_receipts(local_receipts, candidate, test_name, required_tests, dedicated_tests)
     m06_plan_path = Path(a.m06_reconciliation).resolve().parent / "plan.json"
     m06_plan = _read(m06_plan_path, "M06 pinned deployment plan")
     if m06_plan.get("candidate") != candidate or set(m06_plan.get("deployments", {})) != set(m06.TEST_HOSTS):
@@ -415,7 +456,8 @@ def reconcile(a):
                 receipt.get("observer_deployment", {}).get("provenance_sha256") != observer_pin.get("provenance_sha256") or
                 receipt.get("observer_deployment", {}).get("deployment_receipt_sha256") != observer_pin.get("deployment_receipt_sha256")):
             raise RuntimeError("workspace cross-host roles differ from M06 pinned host artifacts")
-        if (receipt.get("candidate") != candidate or receipt.get("status") != "passed"
+        if (receipt.get("test_name", "workspace-geometry-native-crosshost") != test_name
+                or receipt.get("candidate") != candidate or receipt.get("status") != "passed"
                 or receipt.get("qualification") != "UNQUALIFIED" or receipt.get("phase_complete") is not False
                 or receipt.get("exit_code") != 0 or not receipt.get("cleanup", {}).get("adapter_scope_removed")
                 or not receipt.get("cleanup", {}).get("cgroup_absent")
@@ -461,11 +503,13 @@ def main():
     p = sub.add_parser("reconcile")
     p.add_argument("--candidate", required=True); p.add_argument("--m06-reconciliation", type=Path, required=True)
     p.add_argument("--workspace-results", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--test-name", choices=sorted(WORKSPACE_CROSSHOST_CASES), default="workspace-geometry-native-crosshost")
     p.set_defaults(fn=reconcile)
     p = sub.add_parser("workspace-crosshost")
     p.add_argument("--deployment", type=Path, required=True); p.add_argument("--candidate", required=True)
     p.add_argument("--profile", required=True); p.add_argument("--direction", required=True)
     p.add_argument("--roles", type=Path, required=True); p.add_argument("--m06-plan", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--test-name", choices=sorted(WORKSPACE_CROSSHOST_CASES), default="workspace-geometry-native-crosshost")
     p.set_defaults(fn=run_workspace_crosshost)
     a = parser.parse_args()
     try:

@@ -30,6 +30,19 @@ def fixture_class():
     return namespace['BrokerProcess']
 
 
+def resource_environment_function():
+    path = SOURCE/'harness/resource_broker.py'
+    tree = ast.parse(path.read_text())
+    allowlist = next(node for node in tree.body if isinstance(node, ast.Assign) and
+                     any(isinstance(target, ast.Name) and target.id == '_RESOURCE_ENVIRONMENT'
+                         for target in node.targets))
+    function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and
+                    node.name == 'resource_environment')
+    namespace = {}
+    exec(compile(ast.Module(body=[allowlist, function], type_ignores=[]), str(path), 'exec'), namespace)
+    return namespace['resource_environment']
+
+
 class Child:
     def __init__(self):
         self.pid = os.getpid()
@@ -55,6 +68,11 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
 
     def descriptors(self):
         return set(os.listdir('/proc/self/fd'))
+
+    def test_resource_environment_forwards_copy_deadline_and_keeps_allowlist(self):
+        source = {'SPATIAL_TEST_COPY_DEADLINE_MS': '50', 'UNRELATED_SECRET': 'must-not-pass'}
+        self.assertEqual(resource_environment_function()(source),
+                         {'SPATIAL_TEST_COPY_DEADLINE_MS': '50'})
 
     def test_storage_inputs_cross_only_explicit_allowlist(self):
         path = SOURCE/'tools/with_resource_delegate.py'

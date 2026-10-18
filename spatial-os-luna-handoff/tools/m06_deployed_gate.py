@@ -44,6 +44,7 @@ REQUIRED = {
     "geometry-native-fixture-regressions",
 }
 DEDICATED_CROSSHOST = {"geometry-native-crosshost"}
+ALLOWED_DEDICATED_CROSSHOST = DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost", "workspace-cabinet-native-crosshost"}
 STORAGE_LOCAL_EVIDENCE_TESTS = ("session-storage-owner", "session-storage-contention")
 STORAGE_FIXTURE_UID = 0
 STORAGE_EVIDENCE_ROOT = Path("/home/dflanag3/spatial-artifacts/m06-gate-storage")
@@ -1085,12 +1086,16 @@ def required_test_names(additional=(), required_slots=()):
 
 def ctest_exclusion_expression(dedicated=DEDICATED_CROSSHOST):
     dedicated = set(dedicated)
+    if not DEDICATED_CROSSHOST.issubset(dedicated) or dedicated - ALLOWED_DEDICATED_CROSSHOST:
+        raise RuntimeError("invalid dedicated cross-host exclusion set")
     if dedicated == DEDICATED_CROSSHOST:
         return "^geometry-native-crosshost$"
-    allowed = DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost"}
-    if dedicated != allowed:
-        raise RuntimeError("invalid dedicated cross-host exclusion set")
-    return "^(geometry-native-crosshost|workspace-geometry-native-crosshost)$"
+    if dedicated == DEDICATED_CROSSHOST | {"workspace-geometry-native-crosshost"}:
+        return "^(geometry-native-crosshost|workspace-geometry-native-crosshost)$"
+    names = "|".join(name for name in (
+        "geometry-native-crosshost", "workspace-geometry-native-crosshost",
+        "workspace-cabinet-native-crosshost") if name in dedicated)
+    return "^(" + names + ")$"
 
 def _validated_build_paths(path):
     if path is None:
@@ -1399,6 +1404,28 @@ def rec_executables(build):
             except OSError:
                 pass
 
+PROFILE_STORAGE_ENV_KEYS = (
+    "SPATIAL_TEST_STORAGE_VOLUME",
+    "SPATIAL_TEST_STORAGE_LAUNCH_CONFIG",
+    "SPATIAL_TEST_STORAGE_COPY_QUOTA_BYTES",
+)
+
+
+def apply_profile_storage_environment(environment, profile, profile_inputs):
+    selected = environment.copy()
+    if not profile_inputs:
+        return selected
+    values = profile_inputs.get(profile)
+    if values is None:
+        return selected
+    if not isinstance(values, dict) or set(values) != set(PROFILE_STORAGE_ENV_KEYS):
+        raise RuntimeError(profile + " StorageOwner profile environment is incomplete")
+    if any(not isinstance(values[key], str) or not values[key] for key in PROFILE_STORAGE_ENV_KEYS):
+        raise RuntimeError(profile + " StorageOwner profile environment contains an empty value")
+    selected.update(values)
+    return selected
+
+
 def profile_environment(environment, source, build, target):
     env = environment.copy()
     env.update(PYTHONPATH=str(build / "python") + ":" + str(source), SPATIAL_XPROBE=str(build / "spatial-xprobe"),
@@ -1445,8 +1472,10 @@ def gate(a):
     requirement_suites.update(native_geometry_presentation="geometry-presentation-native", native_geometry_crosshost="geometry-native-crosshost")
     required = required_test_names(getattr(a, "required_tests", ()), required_slots)
     dedicated_crosshost = set(getattr(a, "dedicated_crosshost", DEDICATED_CROSSHOST))
-    if not DEDICATED_CROSSHOST.issubset(dedicated_crosshost) or dedicated_crosshost - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
+    if not DEDICATED_CROSSHOST.issubset(dedicated_crosshost) or dedicated_crosshost - ALLOWED_DEDICATED_CROSSHOST:
         raise RuntimeError("invalid dedicated cross-host registration set")
+    if "workspace-cabinet-native-crosshost" in dedicated_crosshost:
+        requirement_suites["native_cabinet_crosshost"] = "workspace-cabinet-native-crosshost"
     selection = getattr(a, 'selected_profiles', None)
     selected = PROFILES if selection is None else tuple(selection)
     continuation = None
@@ -1500,6 +1529,8 @@ def gate(a):
             storage_evidence = {name: Path(row["path"])
                                 for name, row in storage_profile["registrations"].items()}
             env = profile_environment(os.environ, source, build, target)
+            env = apply_profile_storage_environment(
+                env, profile, getattr(a, "storage_lane_by_profile", {}))
             profile_runtime = verify_runtime(manifest, host, profile, source)
             wrapper_path = Path(profile_runtime["xace_wrapper"]["path"])
             env["SPATIAL_TEST_XSERVER"] = str(wrapper_path)
@@ -1751,7 +1782,7 @@ def _validate_local_run(path, expected_host, candidate):
     _validate_requirement_suites(report.get("requirement_suites", {}), expected_host)
     required = set(REQUIRED) | set(report.get("required_tests", []))
     dedicated = set(report.get("dedicated_crosshost", DEDICATED_CROSSHOST))
-    if not DEDICATED_CROSSHOST.issubset(dedicated) or dedicated - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
+    if not DEDICATED_CROSSHOST.issubset(dedicated) or dedicated - ALLOWED_DEDICATED_CROSSHOST:
         raise RuntimeError(expected_host + " local gate has invalid dedicated test set")
     inventories = {}
     for profile in PROFILES:
@@ -2364,7 +2395,7 @@ def crosshost(a):
             _validate_requirement_suites(remote_report.get("requirement_suites", {}), host)
             required_remote = set(REQUIRED) | set(remote_report.get("required_tests", []))
             dedicated_remote = set(remote_report.get("dedicated_crosshost", DEDICATED_CROSSHOST))
-            if not DEDICATED_CROSSHOST.issubset(dedicated_remote) or dedicated_remote - {"geometry-native-crosshost", "workspace-geometry-native-crosshost"}:
+            if not DEDICATED_CROSSHOST.issubset(dedicated_remote) or dedicated_remote - ALLOWED_DEDICATED_CROSSHOST:
                 raise RuntimeError("sb16-2 local receipt has invalid dedicated test set")
             remote_inventories = {}
             for profile in PROFILES:
