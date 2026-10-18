@@ -1,0 +1,91 @@
+M08 copy-progress fixture timing contract, 2026-10-18
+Status: UNQUALIFIED. Corrected runtime checks remain UNRUN.
+Base: e007f354afd89c31c4b945a3a7d6de0cb01a8b4d.
+
+This records an explicit correction to a nonlocked fixture timing assumption.
+It does not change the production copy contract or the locked acceptance suite.
+
+Independent stronger review:
+middle-child:/home/dflanag3/spatial-artifacts/m08-copy-timing-strong-review-20261018/REVIEW.json
+SHA256: c97b7b208581e29174f58b452ac93a28dadbbb15c610f42b33fc3d67401fecfc.
+The review read the original source, normative M08 copy semantics, and both host diagnostics.
+Nested AGENTS.md requires this review before correcting a genuine test/contract contradiction.
+
+The original fixture stopped observing a copy after 60 seconds.
+Production FileEngine fixes its worker deadline at 300 seconds.
+docs/M08_CABINET_SUBTREE_COPY_JOBS.md records that deadline and requires durable filesystem synchronization.
+src/workspace/file_engine.cpp sets the deadline before worker launch.
+The main-loop scheduler expires unattended jobs and requires exact scope and staging cleanup proofs.
+The production deadline, 50 ms test override, and 10-second unattended-expiry regression stay unchanged.
+
+The diagnostic retained 12,000 regular files, each containing seven payload bytes.
+Both hosts exposed monotonic progress at 4,096 and 8,192 entries.
+Both then reported COMPLETE with 12,001 entries and 84,000 payload bytes.
+sb16 completed at 104.104539 seconds. sb16-2 completed at 82.517344 seconds.
+The maximum sampled POLL latency was 0.207213 and 0.208611 seconds, respectively.
+Workers predominantly waited in jbd2_log_wait_commit. Sampled CPU throttling stayed zero.
+These observations support filesystem synchronization latency, not a 60-second production guarantee.
+Neither diagnostic exercised the original cancellation phase.
+The original 60-second failures remain FAILED. Diagnostic zero exits are not acceptance passes.
+
+Evidence on each host:
+/home/dflanag3/spatial-artifacts/m08-combined-debug-source63-20261018/copy-progress-diagnostic-evidence-01/
+Read diagnostic.jsonl, selection.json, and helper-lifecycle/lifecycle.json there.
+The external review preserves their SHA256 hashes and confirmed helper restoration.
+
+The corrected fixture observes each job for at most 300 seconds after START returns.
+Each job receives one absolute monotonic observation deadline.
+Progress never resets that deadline.
+The shared polling helper checks the deadline before POLL and before returning its receipt.
+A late COMPLETE or late positive RUNNING receipt cannot bypass the deadline.
+The second window waits for positive live progress before issuing CANCEL.
+It does not grant cancellation another 300 seconds.
+The five-second RPC deadline and two-second scope drain/reap wait remain unchanged.
+The latter is not a whole-operation filesystem synchronization limit.
+
+The fixture retains the full workload and all existing assertions.
+These include monotonic bounded progress, repeated unchanged positive snapshots, and terminal counter dominance.
+COMPLETE remains mandatory for the first job.
+CANCELLED and an identical durable cancellation receipt remain mandatory for the second job.
+Fresh authority, exact cleanup, and absent destination checks remain intact.
+No fsync, quota, worker limit, authority check, or production deadline changes.
+
+Only workspace-file-action-broker selects the existing native copy-engine-v2 service profile.
+Its RuntimeMaxSec is 900. TimeoutStopSec remains five seconds.
+Its CTest timeout is 1,080 seconds.
+Two observation windows can consume 600 seconds of the 39-method batch.
+The service cap leaves 300 seconds for other methods, setup, and teardown.
+CTest leaves 175 seconds beyond the service and stop limits.
+These are bounded qualification caps, not evidence that every execution fits them.
+An overrun must fail. Preserve its evidence before splitting the slow registration or reconsidering its budget.
+The dedicated storage-owner registration retains CTest 360 and native service 240 seconds.
+Other M06 resource defaults remain unchanged.
+
+Both file-action registrations now declare the adapter profile explicitly.
+SPATIAL_SANITIZERS=OFF selects --copy-profile=Debug and the existing 256 MiB manager profile.
+SPATIAL_SANITIZERS=ON selects --copy-profile=ASan-UBSan and the existing 512 MiB manager profile.
+The adapter flag precedes its -- separator.
+This matches e007f354's protected provisioned-runtime validation.
+It does not rewrite provisioned budgets or increase rate, process, memory, or quota limits.
+
+Host-independent controls exercise timely, expired, boundary, late-completion, and late-progress observations.
+They also prove that fresh progress cannot slide the deadline.
+Configured Debug and sanitizer CTest inventories supply actual launch arguments to the controls.
+Negative controls reject missing, wrong, duplicate, and misplaced profile arguments and short broker budgets.
+The controls verify the storage-owner limits and other M06 defaults remain unchanged.
+These checks do not qualify production runtime or C++ sanitizer behavior.
+
+Run the unchanged full workload on sb16 and sb16-2 in both profiles before qualification.
+Retain the unattended-expiry, authority, cancellation, stream, and durability regressions.
+The complete corrected 39-method batch remains pending.
+CMake changes affect the source-derived build ID.
+Keep source63 Debug04 and sanitizer packages frozen.
+Use rebuilt binaries or an explicit reviewed fixture overlay with separate base and overlay pins.
+Never claim an old binary was rebuilt from the new fixture commit.
+
+CTest registration copy-progress-timing-tooling runs the six pure deadline controls with a 30-second limit.
+Primary must add that registration to the mandatory M08 inventory during integration.
+The reviewed fixture overlay must include harness/copy_progress_timing.py.
+Copying only the edited test_file_action_broker.py is incomplete.
+The configured launch checks additionally require both actual Debug and sanitizer inventories.
+Run test_copy_progress_timing.py with --debug-inventory PATH and --san-inventory PATH for those checks.

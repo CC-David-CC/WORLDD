@@ -17,6 +17,7 @@ import file_actions_pb2 as files
 import file_copy_job_journal_pb2 as copy_journal
 import core_pb2 as core
 from harness.wire import MAX_FRAME
+from harness.copy_progress_timing import COPY_JOB_OBSERVATION_SECONDS, poll_copy_job_before_deadline
 from test_workspace_authority import BrokerProcess, WorkspaceAuthorityTests, PROJECT, POLICY, world_authority
 
 class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
@@ -972,9 +973,11 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
             maximum_entries=20000))
         self.assertTrue(started.file_action.HasField('copy_job'),started)
         job_id=started.file_action.copy_job.job_id
-        observed=[];deadline=time.monotonic()+60
+        observed=[];deadline=time.monotonic()+COPY_JOB_OBSERVATION_SECONDS
         while True:
-            polled=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
+            polled=poll_copy_job_before_deadline(
+                lambda: self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id)),
+                deadline)
             self.assertTrue(polled.file_action.HasField('copy_job'),polled)
             receipt=polled.file_action.copy_job
             if receipt.state==files.FileCopyJobReceipt.RUNNING:
@@ -1006,9 +1009,11 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
             destination_basename=b'progress-cancel',maximum_bytes=1024*1024,
             maximum_entries=20000))
         cancel_id=cancel_start.file_action.copy_job.job_id
-        running=None;deadline=time.monotonic()+60
+        running=None;deadline=time.monotonic()+COPY_JOB_OBSERVATION_SECONDS
         while time.monotonic()<deadline:
-            polled=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=cancel_id))
+            polled=poll_copy_job_before_deadline(
+                lambda: self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=cancel_id)),
+                deadline)
             running=polled.file_action.copy_job
             if running.state==files.FileCopyJobReceipt.RUNNING and (running.bytes_copied or running.entries_copied):
                 break
