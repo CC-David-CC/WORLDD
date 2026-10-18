@@ -686,10 +686,18 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             release_broker_feed.set()
             worker.join(5)
             self.assertFalse(worker.is_alive(), 'pre-dispatch actor call did not finish after feed release')
-            self.assertFalse(errors, errors)
-            self.assertEqual(len(result_box), 1)
+            observed_reply = result_box[0] if result_box else None
+            diagnostic = (
+                f'actor_error={observed_reply.error.message!r}'
+                if observed_reply is not None and observed_reply.HasField('error')
+                else f'actor_reply={observed_reply!r}'
+            )
+            diagnostic += (f'; worker_errors={errors!r}; broker_relay_errors={relay.errors!r}; '
+                           f'world_relay_errors={self.world_watch_relay.errors!r}')
+            self.assertFalse(errors, diagnostic)
+            self.assertEqual(len(result_box), 1, diagnostic)
             denied = result_box[0]
-            self.assertTrue(denied.HasField('error'), denied)
+            self.assertTrue(denied.HasField('error'), f'{denied!r}; {diagnostic}')
             branch_evidence = (f'branch=pre_dispatch_observation status_seen={relay.status_seen} '
                 f'observation_verified={observation_phase_seen.is_set()} '
                 f'watch_delivered={self.world_watch_relay.delivered.is_set()} '
