@@ -312,6 +312,17 @@ void validate_budget(const v1::ProcessScopeBudget& value) {
 }
 std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root,
                                                   const v1::ProcessScopeBudget* budget) {
+    return prepare_impl(root, budget, {});
+}
+std::unique_ptr<ProcessScope> ProcessScope::prepare_owned(const std::filesystem::path& root, const std::string& scope_name) {
+    valid(scope_name.size() == 49 && scope_name.starts_with("authority-broker-") &&
+          scope_name.substr(17).find_first_not_of("0123456789abcdef") == std::string::npos,
+          "Invalid broker-owned scope identity");
+    return prepare_impl(root, nullptr, scope_name);
+}
+std::unique_ptr<ProcessScope> ProcessScope::prepare_impl(const std::filesystem::path& root,
+                                                  const v1::ProcessScopeBudget* budget,
+                                                  const std::string& stable_name) {
     if (budget) validate_budget(*budget);
     auto result = std::unique_ptr<ProcessScope>(new ProcessScope);
     result->parent_ = open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
@@ -330,17 +341,34 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
         if (count < 0 && errno == EINTR) continue;
         check(count > 0, "Cannot create launch identity"); received += static_cast<std::size_t>(count);
     }
-    std::string name = "authority-"; constexpr char hex[] = "0123456789abcdef";
-    for (unsigned char c : random) { name += hex[c >> 4]; name += hex[c & 15]; }
+    std::string name = stable_name.empty() ? "authority-" : stable_name; constexpr char hex[] = "0123456789abcdef";
+    if (stable_name.empty()) for (unsigned char c : random) { name += hex[c >> 4]; name += hex[c & 15]; }
     std::ifstream boot("/proc/sys/kernel/random/boot_id"); std::string boot_id; std::getline(boot, boot_id);
     valid(boot_id.size() == 36, "Cannot read kernel boot identity");
     result->identity_.set_launch_id(random); result->identity_.set_boot_id(boot_id);
-    check(mkdirat(result->parent_, name.c_str(), 0700) == 0, "Cannot create authority scope");
+    result->retained_scope_ = !stable_name.empty();
+    if (mkdirat(result->parent_, name.c_str(), 0700) != 0) {
+        if (!result->retained_scope_ || errno != EEXIST) check(false, "Cannot create authority scope");
+    }
     result->identity_.set_scope_name(name);
     result->scope_ = openat(result->parent_, name.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     check(result->scope_ >= 0, "Cannot retain authority scope");
-    struct stat owned{}; check(fstat(result->scope_, &owned) == 0, "Cannot identify authority scope");
+    struct stat owned{}, named{}; check(fstat(result->scope_, &owned) == 0, "Cannot identify authority scope");
+    check(fstatat(result->parent_, name.c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0, "Cannot revalidate owned scope name");
+    valid(owned.st_dev == named.st_dev && owned.st_ino == named.st_ino && owned.st_uid == geteuid(),
+          "Owned scope identity changed during pinning");
     result->identity_.set_device(owned.st_dev); result->identity_.set_inode(owned.st_ino);
+    if (result->retained_scope_ && owned.st_uid != geteuid()) throw std::invalid_argument("Broker scope is not owned by this identity");
+    if (result->retained_scope_ && contents(result->scope_, "cgroup.type") != "domain\n") throw std::invalid_argument("Broker scope is not a domain cgroup");
+    if (result->retained_scope_ && result->populated()) {
+        control(result->scope_, "cgroup.kill", "1\n");
+        const auto deadline = Clock::now() + std::chrono::seconds(5);
+        while (result->populated()) { valid(Clock::now() < deadline, "Stale broker scope did not drain"); tick(); }
+    }
+    if (result->retained_scope_) {
+        remove_empty_children(result->scope_);
+        valid(contents(result->scope_, "cgroup.procs").empty(), "Stale broker scope still has processes");
+    }
     if (budget) {
         // This empty scope cannot run a child until every required controller accepts its limit.
         control(result->scope_, "memory.max", std::to_string(budget->memory_bytes()) + "\n");
@@ -644,7 +672,7 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline) 
             valid(Clock::now() < deadline, "Authority child reap deadline exceeded"); tick();
         }
         if (scope_ >= 0) remove_empty_children(scope_);
-        if (!identity_.scope_name().empty()) {
+        if (!identity_.scope_name().empty() && !retained_scope_) {
             struct stat named{};
             check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
                   "Cannot find owned scope for removal");

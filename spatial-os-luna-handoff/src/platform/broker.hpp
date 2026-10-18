@@ -12,6 +12,7 @@
 
 namespace spatial {
 namespace supervisor { class ProcessScope; class StorageOwnerLaunch; }
+class BrokerInstanceLock;
 namespace broker_wire = workspace::v1;
 // Lifecycle belongs to the session supervisor, not a world authority.
 class BrokerProcess {
@@ -27,6 +28,8 @@ public:
     // Half-close management, verify the actual child's successful exit, then stop owned scopes.
     void finish();
 private:
+    // Destroy the scope before releasing the startup lock if construction unwinds.
+    std::unique_ptr<BrokerInstanceLock> instance_lock_;
     std::unique_ptr<supervisor::ProcessScope> scope_;
     std::unique_ptr<supervisor::StorageOwnerLaunch> storage_;
     int channel_ = -1, pidfd_ = -1;

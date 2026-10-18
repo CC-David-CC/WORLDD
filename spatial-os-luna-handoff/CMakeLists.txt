@@ -541,6 +541,9 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_test(NAME broker-instance-registry-provisioning COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_instance_registry.py")
+    set_tests_properties(broker-instance-registry-provisioning PROPERTIES TIMEOUT 20)
     target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_PROCESS_SCOPE_READTRACE=1)
     target_compile_definitions(workspaced PRIVATE
         SPATIAL_TEST_FILE_JOURNAL_FAULTS=1
