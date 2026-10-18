@@ -551,6 +551,10 @@ if(BUILD_TESTING)
     target_include_directories(process-scope-controller-reset-test PRIVATE src)
     add_test(NAME process-scope-controller-reset COMMAND $<TARGET_FILE:process-scope-controller-reset-test>)
     set_tests_properties(process-scope-controller-reset PROPERTIES TIMEOUT 20)
+    add_executable(storage-owner-state-metadata-test tests/core/storage_owner_state_metadata.cpp)
+    target_include_directories(storage-owner-state-metadata-test PRIVATE src)
+    add_test(NAME storage-owner-state-metadata COMMAND $<TARGET_FILE:storage-owner-state-metadata-test>)
+    set_tests_properties(storage-owner-state-metadata PROPERTIES TIMEOUT 20)
     target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_PROCESS_SCOPE_READTRACE=1)
     target_compile_definitions(workspaced PRIVATE
         SPATIAL_TEST_FILE_JOURNAL_FAULTS=1

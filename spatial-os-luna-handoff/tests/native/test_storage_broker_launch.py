@@ -39,14 +39,15 @@ import storage_pb2 as storage
 import process_scope_pb2 as process
 
 mib = 2**20
-volume, image = root/'volume', root/'volume.img'
-volume.mkdir()
+volume = root/'volume'
+state_a=root/'crash-state-a'; state_b=root/'crash-state-b'; clone_state=root/'crash-state-clone'
+parent_state=root/'parent-binding-state'; replacement_state=root/'replaced-state'
 policy_root = Path('/run')/('spatial-storage-session-'+uuid.uuid4().hex)
 policy_root.mkdir(mode=0o755); policy_root.chmod(0o755)
 record = dict(status='running', phase_complete=False, host=socket.gethostname(), results={}, commands=[],
               runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
-unit, loop, delegate = None, None, None
-mounted = False; children = []; streams = []; owner_units = set()
+unit, delegate = None, None
+volume_info = {}; mounted_volumes = []; loop_devices = []; children = []; streams = []; owner_units = set()
 
 
 def save(): (root/'review.json').write_text(json.dumps(record, indent=2)+'\n')
@@ -58,6 +59,50 @@ def run(argv):
                                    stdout=reply.stdout, stderr=reply.stderr)); save()
     assert reply.returncode == 0, record['commands'][-1]
     return reply.stdout.strip()
+
+
+def create_volume(path):
+    path = Path(path)
+    image = root/(path.name+'.img')
+    path.mkdir()
+    with image.open('xb') as output: output.truncate(512*mib)
+    loop = run(['losetup', '--find', '--show', image])
+    # Register the loop before mkfs/mount/blkid can fail. The finalizer can then
+    # detach it even when setup stops before a usable volume is published.
+    loop_devices.append(loop)
+    volume_info[path.resolve()] = dict(image=image, loop=loop, filesystem_id=None)
+    run(['mkfs.btrfs', '-q', '-f', loop])
+    if os.path.ismount(path): raise RuntimeError('volume mountpoint was already mounted')
+    # Track mount intent before the command. Cleanup checks the live mount table,
+    # so a failed mount is harmless while a partial successful mount is removed.
+    mounted_volumes.append(path)
+    run(['mount', '-t', 'btrfs', '-o', 'rw,nodev,nosuid', loop, path])
+    filesystem_id = uuid.UUID(run(['blkid','-s','UUID','-o','value',loop])).bytes
+    volume_info[path.resolve()]['filesystem_id'] = filesystem_id
+    return path
+
+
+def owner_policy_for(state, broker_uid=uid):
+    info = volume_info[Path(state).resolve()]
+    value = storage.StorageOwnerConfig(protocol_version=1, volume_root=str(state),
+        filesystem_id=info['filesystem_id'], broker_uid=broker_uid,
+        volume_bytes=512*mib, control_plane_bytes=64*mib, filesystem_reserve_bytes=64*mib)
+    value.default_policy.total_bytes = 256*mib
+    value.default_policy.actor_state_default_bytes = 48*mib
+    for name in ['development','read-only']:
+        value.default_policy.profiles.add(name=name, state_bytes=32*mib)
+    return value
+
+
+def detach_volume(path):
+    path = Path(path)
+    if path in mounted_volumes:
+        if os.path.ismount(path): run(['umount', path])
+        mounted_volumes.remove(path)
+    info = volume_info.get(path.resolve())
+    if info and info['loop'] in loop_devices:
+        run(['losetup', '-d', info['loop']])
+        loop_devices.remove(info['loop'])
 
 
 def exact(stream, size):
@@ -102,11 +147,15 @@ def assert_owned_scopes_empty():
 
 
 def spawn(label, wrong_uid=False, wrong_volume=False, owner_devices=None, state=None, delegated=None):
-    owner_policy.broker_uid = uid+1 if wrong_uid else uid
-    policy = policy_root/(label+'.pb'); policy.write_bytes(owner_policy.SerializeToString())
+    state = Path(state) if state is not None else volume
+    policy = policy_root/(label+'.pb')
+    policy.write_bytes(owner_policy_for(state, uid+1 if wrong_uid else uid).SerializeToString())
+    configured_volume = root if wrong_volume else state
+    if not wrong_volume:
+        assert Path(configured_volume).resolve() == state.resolve(), 'Broker state and storage volume roots must match'
     config = broker.BrokerProcessConfig(protocol_version=1, delegated_cgroup=str(delegated or (delegate/'broker-root')),
         resources=resources, storage_owner=storage.StorageOwnerLaunchConfig(protocol_version=1,
-            owner_configuration=str(policy), volume_root=str(root if wrong_volume else volume), budget=budget(256, 16, 100000)))
+            owner_configuration=str(policy), volume_root=str(configured_volume), budget=budget(256, 16, 100000)))
     if owner_devices is not None:
         config.storage_owner.budget.ClearField('io')
         for a, b in sorted(owner_devices):
@@ -117,8 +166,7 @@ def spawn(label, wrong_uid=False, wrong_volume=False, owner_devices=None, state=
     def drop():
         (delegate/'manager/cgroup.procs').write_text(str(os.getpid())+'\n')
         os.setgroups([]); os.setgid(gid); os.setuid(uid)
-    state = Path(state) if state is not None else volume
-    state.mkdir(parents=True, exist_ok=True); os.chown(state, uid, gid)
+    os.chown(state, uid, gid)
     child = subprocess.Popen([str(build/'spatial-storage-broker-launch-probe'), str(state), str(path)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log, preexec_fn=drop,
         env=dict(os.environ, ASAN_OPTIONS='detect_leaks=1:abort_on_error=1', UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1'))
@@ -140,14 +188,9 @@ def finish(child, expected_exit=0, state=None):
 
 
 try:
-    with image.open('xb') as output: output.truncate(512*mib)
-    loop = run(['losetup', '--find', '--show', image])
-    run(['mkfs.btrfs', '-q', '-f', loop]); run(['mount', '-t', 'btrfs', '-o', 'rw,nodev,nosuid', loop, volume]); mounted = True
-    owner_policy = storage.StorageOwnerConfig(protocol_version=1, volume_root=str(volume),
-        filesystem_id=uuid.UUID(run(['blkid','-s','UUID','-o','value',loop])).bytes, broker_uid=uid,
-        volume_bytes=512*mib, control_plane_bytes=64*mib, filesystem_reserve_bytes=64*mib)
-    owner_policy.default_policy.total_bytes = 256*mib; owner_policy.default_policy.actor_state_default_bytes = 48*mib
-    for name in ['development','read-only']: owner_policy.default_policy.profiles.add(name=name, state_bytes=32*mib)
+    for state_path in (volume, state_a, state_b, clone_state, parent_state, replacement_state):
+        create_volume(state_path)
+    owner_policy = owner_policy_for(volume)
     unit = 'spatial-m03-storage-launch-witness-'+uuid.uuid4().hex+'.service'
     run(['systemd-run','--unit='+unit,'--collect','--service-type=exec','--uid=dflanag3','-p',
         'Delegate=cpu memory pids io','-p','DelegateSubgroup=manager','-p','MemoryMax=1536M','-p','MemorySwapMax=0',
@@ -159,8 +202,8 @@ try:
     (delegate/'broker-root/cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
     backing = (Path('/sys/dev/block')/f'{os.major(root.stat().st_dev)}:{os.minor(root.stat().st_dev)}').resolve()
     if (backing/'partition').exists(): backing = backing.parent
-    block = Path(loop).stat()
-    devices = {tuple(map(int,(backing/'dev').read_text().split(':'))), (os.major(block.st_rdev),os.minor(block.st_rdev))}
+    devices = {tuple(map(int,(backing/'dev').read_text().split(':')))}
+    devices.update((os.major(Path(loop_path).stat().st_rdev),os.minor(Path(loop_path).stat().st_rdev)) for loop_path in loop_devices)
     def budget(memory, processes, cpu):
         return process.ProcessScopeBudget(memory_bytes=memory*mib, swap_bytes=0, processes=processes,
             cpu_microseconds=cpu, io=[dict(major=a,minor=b,read_bytes_per_second=64*mib,write_bytes_per_second=16*mib)
@@ -170,7 +213,8 @@ try:
             actor_default=budget(256,32,100000), profiles=[broker.ApplicationResourceProfile(name=name,
                 maximum=budget(128,16,100000)) for name in ['development','read-only']]))
     # Reject incomplete owner budgets before any catalog or quota mutation.
-    loop_device = (os.major(block.st_rdev), os.minor(block.st_rdev))
+    primary_block = Path(volume_info[volume.resolve()]['loop']).stat()
+    loop_device = (os.major(primary_block.st_rdev), os.minor(primary_block.st_rdev))
     backing_device = tuple(map(int, (backing/'dev').read_text().split(':')))
     assert loop_device != backing_device
     for label, selected in [('owner-wrong-device', {backing_device}),
@@ -219,8 +263,6 @@ try:
 
     # SIGKILL the BrokerProcess owner to bypass destructors. Keep a real detached
     # process in its stable subtree, then restart that same state beside a peer.
-    state_a=root/'crash-state-a'; state_b=root/'crash-state-b'
-    state_a.mkdir(); state_b.mkdir(); os.chown(state_a,uid,gid); os.chown(state_b,uid,gid)
     first, first_log=spawn('scope-crash-first',state=state_a)
     assert call(first,'hello',core.HelloRequest()).hello.implementation == 'production'
     first_scope=owned_scope(state_a)
@@ -232,9 +274,8 @@ try:
     record['results']['same_state_concurrent_start_rejected'] = dict(passed=True)
     assert call(first,'hello',core.HelloRequest()).hello.implementation == 'production'
     assert (first_scope.stat().st_dev,first_scope.stat().st_ino)==first_scope_inode
-    clone_state=root/'crash-state-clone'; shutil.copytree(state_a,clone_state)
-    for path in clone_state.iterdir(): os.chown(path,uid,gid)
-    os.chown(clone_state,uid,gid)
+    shutil.copyfile(state_a/'.broker-instance-id', clone_state/'.broker-instance-id')
+    os.chown(clone_state/'.broker-instance-id', uid, gid); (clone_state/'.broker-instance-id').chmod(0o600)
     clone, clone_log=spawn('scope-crash-clone',state=clone_state)
     assert call(clone,'hello',core.HelloRequest()).hello.implementation == 'production'
     clone_scope=owned_scope(clone_state)
@@ -289,7 +330,6 @@ try:
         if app.poll() is None: app.kill()
         app.wait(timeout=5); app.stdin.close()
     # A broker identity remains bound to its delegated parent for this boot.
-    parent_state=root/'parent-binding-state'; parent_state.mkdir(); os.chown(parent_state,uid,gid)
     parent_owner,parent_log=spawn('parent-binding-original',state=parent_state)
     assert call(parent_owner,'hello',core.HelloRequest()).hello.implementation == 'production'
     finish(parent_owner,state=parent_state)
@@ -302,17 +342,20 @@ try:
     assert_owned_scopes_empty_for_state(parent_state)
     assert not any(path.name.startswith('authority-broker-') for path in alternate.iterdir())
     record['results']['same_boot_parent_change_fails_closed'] = dict(passed=True)
-    replacement_state=root/'replaced-state'; replacement_state.mkdir(); os.chown(replacement_state,uid,gid)
     original,original_log=spawn('replacement-original',state=replacement_state)
     assert call(original,'hello',core.HelloRequest()).hello.implementation == 'production'
     replacement_scope=owned_scope(replacement_state)
     finish(original,state=replacement_state)
-    displaced=root/'replaced-state-old'; replacement_state.rename(displaced)
-    replacement_state.mkdir();
-    for path in displaced.iterdir():
-        target=replacement_state/path.name
-        if path.is_file(): shutil.copy2(path,target); os.chown(target,uid,gid)
-    os.chown(replacement_state,uid,gid)
+    displaced=root/'replaced-state-old'
+    saved_identity=root/'replaced-state-identity.copy'
+    shutil.copyfile(replacement_state/'.broker-instance-id', saved_identity)
+    old_image=volume_info[replacement_state.resolve()]['image']
+    detach_volume(replacement_state)
+    replacement_state.rename(displaced)
+    old_image.rename(root/'replaced-state-old.img')
+    create_volume(replacement_state)
+    shutil.copyfile(saved_identity, replacement_state/'.broker-instance-id')
+    os.chown(replacement_state/'.broker-instance-id',uid,gid); (replacement_state/'.broker-instance-id').chmod(0o600)
     replaced,replaced_log=spawn('replacement-rejected',state=replacement_state)
     assert replaced.wait(timeout=15)==2, replaced_log.read_text(errors='replace')
     replaced.stdin.close();replaced.stdout.close();children.remove(replaced)
@@ -389,12 +432,19 @@ finally:
         record['owner_cleanup'][name] = run(['systemctl','show',name,'-p','LoadState','-p','ActiveState'])
     if unit:
         run(['systemctl','stop',unit]); record['delegate_after'] = run(['systemctl','show',unit,'-p','LoadState','-p','ActiveState'])
-    if mounted: run(['umount',volume]); mounted = False
-    if loop: run(['losetup','-d',loop])
+    for volume_path in list(reversed(list(volume_info))):
+        detach_volume(volume_path)
+    # A loop can be attached even when mkfs or mount failed before the path was
+    # published as a mounted volume. Always drain any remaining tracked loops.
+    for loop_path in list(reversed(loop_devices)):
+        run(['losetup','-d',loop_path])
+        loop_devices.remove(loop_path)
     for path in policy_root.iterdir():
         assert path.is_file() and path.suffix == '.pb'; path.unlink()
     policy_root.rmdir()
-    record['mounted'] = mounted; record['loop_attached'] = bool(loop and run(['losetup','-j',image])); save()
+    record['mounted_volumes'] = [str(path) for path in mounted_volumes]
+    record['loop_devices_attached'] = [loop_path for loop_path in loop_devices]
+    save()
     os.chown(root/'review.json',uid,gid)
     for path in root.glob('*.log'): os.chown(path,uid,gid)
 print(json.dumps(dict(status=record['status'],results=record['results'])))
