@@ -212,7 +212,7 @@ static void copy_staging_root_is_reserved_and_stale_state_fails_closed() {
 static pb::FileCopyJobJournalRecord durable_copy_start_intent(
     const std::string& job_id, const struct stat& root_identity) {
   pb::FileCopyJobJournalRecord record;
-  record.set_format_version(1);
+  record.set_format_version(2);
   record.set_workspace_id("workspace-a");
   record.set_job_id(job_id);
   record.set_initiating_operation_id(std::string(16, job_id[0]));
@@ -243,7 +243,7 @@ static pb::FileCopyJobJournalRecord durable_copy_start_intent(
   record.set_maximum_bytes(1024);
   record.set_maximum_entries(8);
   auto* parent=record.mutable_process_scope_parent();
-  parent->set_launch_id(std::string(16, 'p'));
+  parent->set_launch_id(std::string(32, 'p'));
   parent->set_scope_name("spatial-git-workers");
   parent->set_boot_id("12345678-1234-1234-1234-123456789012");
   parent->set_device(1);
@@ -358,7 +358,7 @@ static void uncertain_copy_recovery_preserves_evidence_and_isolates_workspace() 
   stage_identity->set_generation(1);
   stage_identity->set_type(pb::FileCopyFilesystemIdentity::DIRECTORY);
   auto* scope=uncertain.mutable_process_scope();
-  scope->set_launch_id(std::string(16,'l'));
+  scope->set_launch_id(std::string(32,'l'));
   scope->set_scope_name("copy-"+operation_hex(job_id));
   scope->set_boot_id("12345678-1234-1234-1234-123456789012");
   scope->set_device(1);scope->set_inode(2);

@@ -69,7 +69,7 @@ public:
     bool diagnostic_child_reaped() const;
     v1::ProcessScopeStopped stop(const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
 private:
-    static std::unique_ptr<ProcessScope> prepare_impl(const std::filesystem::path&, const v1::ProcessScopeBudget*, const std::string&);
+    static std::unique_ptr<ProcessScope> prepare_impl(const std::filesystem::path&, const v1::ProcessScopeBudget*, const std::string&, bool retain_scope);
     ProcessScope() = default;
     bool populated() const;
     bool child_exited() const;

@@ -109,7 +109,7 @@ void validate_copy_identity(const workspace::v1::FileCopyFilesystemIdentity& id,
 }
 void validate_copy_job(const workspace::v1::FileCopyJobJournalRecord& r) {
   using namespace workspace::v1;
-  if(has_unknown_fields(r) || r.format_version()!=1 || r.workspace_id().empty() ||
+  if(has_unknown_fields(r) || (r.format_version()!=1 && r.format_version()!=2) || r.workspace_id().empty() ||
      r.workspace_id().size()>256 || r.job_id().size()!=16 ||
      r.initiating_operation_id().size()!=16 || r.initiating_request_sha256().size()!=32 ||
      r.principal_issuer_id().size()!=32 || r.principal_actor_id().size()!=32 ||
@@ -135,6 +135,8 @@ void validate_copy_job(const workspace::v1::FileCopyJobJournalRecord& r) {
   if(has_unknown_fields(r.process_scope_parent()) ||
      r.process_scope_parent().scope_name()!="spatial-git-workers" ||
      r.process_scope_parent().boot_id().size()!=36 ||
+     r.process_scope_parent().boot_id()!=r.broker_root_boot_id() ||
+     r.process_scope_parent().launch_id().size()!=(r.format_version()==1?16U:32U) ||
      r.process_scope_parent().device()==0 || r.process_scope_parent().inode()==0)
     throw std::invalid_argument("Invalid stable Git worker parent identity");
   if(r.source_path_components_size()==0 || r.source_path_components_size()>256 ||
@@ -177,7 +179,7 @@ void validate_copy_job(const workspace::v1::FileCopyJobJournalRecord& r) {
     if(r.staging().device()!=r.destination_directory().device())
       throw std::invalid_argument("Copy staging and destination directory are on different devices");
     if(!r.has_process_scope() || has_unknown_fields(r.process_scope()) ||
-       r.process_scope().launch_id().size()!=16 || r.process_scope().scope_name().empty() ||
+       r.process_scope().launch_id().size()!=(r.format_version()==1?16U:32U) || r.process_scope().scope_name().empty() ||
        r.process_scope().scope_name().size()>128 || r.process_scope().boot_id().empty() ||
        r.process_scope().boot_id().size()>128 || r.process_scope().device()==0 ||
        r.process_scope().device()>INT64_MAX || r.process_scope().inode()==0 ||
@@ -564,6 +566,8 @@ void FileOperationJournal::mark_uncertain(const FileOperationBinding& b,
 }
 void FileOperationJournal::begin_copy_job(const CopyJobRecord& record,const Observer& observer) {
   validate_copy_job(record);
+  if(record.format_version()!=2 || (record.has_process_scope() && record.process_scope().launch_id().size()!=32))
+    throw std::invalid_argument("New copy jobs require current format and 32-byte launch identity");
   if(record.has_drained_process_scope()) throw std::invalid_argument("A new copy job cannot begin with a drain acknowledgment");
   if(record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_START_INTENT &&
      record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_QUEUED &&
@@ -706,6 +710,14 @@ GitWorkerParentRecord FileOperationJournal::reserve_git_worker_parent(
       if((result.state==GitWorkerParentRecord::State::reserved && !result.identity_bytes.empty()) ||
          (result.state==GitWorkerParentRecord::State::bound && result.identity_bytes.empty()))
         throw std::runtime_error("Git worker parent reservation state is malformed");
+      if(result.state==GitWorkerParentRecord::State::bound) {
+        supervisor::v1::ProcessScopeIdentity identity;
+        if(!identity.ParseFromString(result.identity_bytes) || has_unknown_fields(identity) ||
+           identity.scope_name()!="spatial-git-workers" || identity.boot_id()!=result.boot_id ||
+           !identity.device() || !identity.inode() ||
+           (identity.launch_id().size()!=16 && identity.launch_id().size()!=32))
+          throw std::runtime_error("Bound Git worker parent identity is malformed");
+      }
     } else {
       Statement add(db,"INSERT INTO git_worker_parent(id,state,root_device,root_inode,boot_id,identity,root_path) VALUES(1,1,?,?,?,x'',?)");
       add.number(1,static_cast<sqlite3_int64>(root_device));add.number(2,static_cast<sqlite3_int64>(root_inode));add.text(3,boot_id);add.text(4,root_path);add.done();
@@ -720,8 +732,8 @@ void FileOperationJournal::bind_git_worker_parent(std::uint64_t root_device,std:
   const std::filesystem::path parsed_root(root_path);
   if(root_device==0 || root_inode==0 || boot_id.size()!=36 || root_path.empty() || root_path.size()>4096 ||
      root_path.find('\0')!=std::string::npos || !parsed_root.is_absolute() || parsed_root.lexically_normal()!=parsed_root || identity_bytes.empty() ||
-     !identity.ParseFromString(identity_bytes) || identity.scope_name()!="spatial-git-workers" ||
-     identity.boot_id()!=boot_id || identity.device()==0 || identity.inode()==0 || identity.launch_id().size()!=16)
+     !identity.ParseFromString(identity_bytes) || has_unknown_fields(identity) || identity.scope_name()!="spatial-git-workers" ||
+     identity.boot_id()!=boot_id || identity.device()==0 || identity.inode()==0 || identity.launch_id().size()!=32)
     throw std::invalid_argument("Invalid bound Git worker parent identity");
   impl_->call([=](sqlite3* db) {
     Transaction tx(db);
@@ -754,6 +766,14 @@ GitWorkerParentRecord FileOperationJournal::find_git_worker_parent(const Observe
        (result.state==GitWorkerParentRecord::State::reserved && !result.identity_bytes.empty()) ||
        (result.state==GitWorkerParentRecord::State::bound && result.identity_bytes.empty()))
       throw std::runtime_error("Git worker parent journal record is malformed");
+    if(result.state==GitWorkerParentRecord::State::bound) {
+      supervisor::v1::ProcessScopeIdentity identity;
+      if(!identity.ParseFromString(result.identity_bytes) || has_unknown_fields(identity) ||
+         identity.scope_name()!="spatial-git-workers" || identity.boot_id()!=result.boot_id ||
+         !identity.device() || !identity.inode() ||
+         (identity.launch_id().size()!=16 && identity.launch_id().size()!=32))
+        throw std::runtime_error("Bound Git worker parent identity is malformed");
+    }
     return result;
   },observer);
 }
@@ -801,7 +821,7 @@ std::vector<GitWorkerParentRecord> FileOperationJournal::retained_git_worker_par
          parent.boot_id.size()!=36 || parent.root_path.size()>4096 || parent.root_path.find('\0')!=std::string::npos ||
          !path.is_absolute() || path.lexically_normal()!=path || !scope.ParseFromString(parent.identity_bytes) ||
          scope.scope_name()!="spatial-git-workers" || scope.boot_id()!=parent.boot_id ||
-         !scope.device() || !scope.inode() || scope.launch_id().size()!=16)
+         !scope.device() || !scope.inode() || (scope.launch_id().size()!=16 && scope.launch_id().size()!=32))
         throw std::runtime_error("Retained Git worker parent is malformed");
       result.push_back(std::move(parent));
       if(result.size()>kMaxCopyJobRows) throw std::runtime_error("Retained Git parent count exceeds copy job bound");

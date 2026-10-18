@@ -56,7 +56,7 @@ std::filesystem::path make_v1_state() {
 }
 FileOperationJournal::CopyJobRecord record(std::string job_id=std::string(16,'j')) {
   FileOperationJournal::CopyJobRecord value;
-  value.set_format_version(1); value.set_workspace_id("workspace-one"); value.set_job_id(std::move(job_id));
+  value.set_format_version(2); value.set_workspace_id("workspace-one"); value.set_job_id(std::move(job_id));
   value.set_initiating_operation_id(value.job_id()); value.set_initiating_request_sha256(std::string(32,'d'));
   value.set_principal_issuer_id(std::string(32,'i')); value.set_principal_actor_id(std::string(32,'a'));
   value.set_worktree_id("tree-one"); value.set_worktree_root_device(7); value.set_worktree_root_inode(19);
@@ -74,16 +74,22 @@ FileOperationJournal::CopyJobRecord record(std::string job_id=std::string(16,'j'
   auto* stage_root=value.mutable_staging_root();stage_root->set_device(7);stage_root->set_inode(39);
   stage_root->set_type(FileCopyFilesystemIdentity::DIRECTORY);
   value.set_staging_subvolume_id(0);value.set_destination_subvolume_id(0);
-  auto* parent=value.mutable_process_scope_parent();parent->set_launch_id(std::string(16,'p'));
+  auto* parent=value.mutable_process_scope_parent();parent->set_launch_id(std::string(32,'p'));
   parent->set_scope_name("spatial-git-workers");parent->set_boot_id("12345678-1234-1234-1234-123456789012");
   parent->set_device(2);parent->set_inode(3);
   value.set_broker_root_device(2);value.set_broker_root_inode(3);
   value.set_broker_root_boot_id(parent->boot_id());value.set_reserved_process_scope_name("copy-"+value.job_id());
-  auto* process=value.mutable_process_scope(); process->set_launch_id(std::string(16,'l'));
+  auto* process=value.mutable_process_scope(); process->set_launch_id(std::string(32,'l'));
   process->set_scope_name("scope-job"); process->set_boot_id("boot-id");
   process->set_device(7); process->set_inode(50);
   value.set_state(FILE_COPY_JOB_JOURNAL_QUEUED);
   value.set_created_at_unix_ms(10); value.set_updated_at_unix_ms(10);
+  return value;
+}
+FileOperationJournal::CopyJobRecord legacy_v1_record(std::string job_id=std::string(16,'v')) {
+  auto value=record(std::move(job_id)); value.set_format_version(1);
+  value.mutable_process_scope()->set_launch_id(std::string(16,'l'));
+  value.mutable_process_scope_parent()->set_launch_id(std::string(16,'p'));
   return value;
 }
 void terminal(FileOperationJournal::CopyJobRecord& value,
@@ -99,6 +105,36 @@ void terminal(FileOperationJournal::CopyJobRecord& value,
     receipt->set_failure_code(FileActionError::UNAVAILABLE);
     receipt->set_detail("copy failed before publication");
   }
+}
+std::string read_copy_job_bytes(const std::filesystem::path& state,const std::string& workspace,const std::string& job_id) {
+  sqlite3* db=nullptr;const auto database=state/"file-operations"/"file-operations.db";
+  check(sqlite3_open(database.c_str(),&db)==SQLITE_OK,"could not open legacy copy bytes");
+  sqlite3_stmt* q=nullptr;
+  check(sqlite3_prepare_v2(db,"SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?",-1,&q,nullptr)==SQLITE_OK,
+        "could not prepare legacy copy bytes");
+  sqlite3_bind_text(q,1,workspace.data(),static_cast<int>(workspace.size()),SQLITE_TRANSIENT);
+  sqlite3_bind_blob(q,2,job_id.data(),static_cast<int>(job_id.size()),SQLITE_TRANSIENT);
+  check(sqlite3_step(q)==SQLITE_ROW,"legacy copy row disappeared");
+  const auto* data=static_cast<const char*>(sqlite3_column_blob(q,0));
+  const int size=sqlite3_column_bytes(q,0);
+  const std::string result(data,static_cast<std::size_t>(size));
+  sqlite3_finalize(q);sqlite3_close(db);return result;
+}
+void seed_legacy_terminal(const std::filesystem::path& state,const FileOperationJournal::CopyJobRecord& job) {
+  sqlite3* db=nullptr;
+  const auto database=state/"file-operations"/"file-operations.db";
+  check(sqlite3_open(database.c_str(),&db)==SQLITE_OK,"could not open legacy copy fixture");
+  sqlite3_stmt* q=nullptr;
+  check(sqlite3_prepare_v2(db,"INSERT INTO file_copy_jobs(workspace,job_id,initiating_operation,state,updated_at,record) VALUES(?,?,?,?,?,?)",-1,&q,nullptr)==SQLITE_OK,
+        "could not prepare legacy copy fixture");
+  const auto bytes=job.SerializeAsString();
+  sqlite3_bind_text(q,1,job.workspace_id().data(),static_cast<int>(job.workspace_id().size()),SQLITE_TRANSIENT);
+  sqlite3_bind_blob(q,2,job.job_id().data(),static_cast<int>(job.job_id().size()),SQLITE_TRANSIENT);
+  sqlite3_bind_blob(q,3,job.initiating_operation_id().data(),static_cast<int>(job.initiating_operation_id().size()),SQLITE_TRANSIENT);
+  sqlite3_bind_int(q,4,job.state()); sqlite3_bind_int64(q,5,static_cast<sqlite3_int64>(job.updated_at_unix_ms()));
+  sqlite3_bind_blob(q,6,bytes.data(),static_cast<int>(bytes.size()),SQLITE_TRANSIENT);
+  check(sqlite3_step(q)==SQLITE_DONE,"could not seed legacy terminal copy row");
+  sqlite3_finalize(q); sqlite3_close(db);
 }
 }
 namespace {
@@ -168,6 +204,27 @@ int verify_legacy_file_operations() {
 }
 
 int main() {
+    {
+      auto state=make_v1_state();
+      FileOperationJournal journal(state);
+      auto current=record(std::string(16,'c'));
+      auto wrong=current; wrong.set_format_version(1);
+      rejects([&]{journal.begin_copy_job(wrong,{});},"new copy job accepted v1 with a current 32-byte identity");
+      wrong=current; wrong.mutable_process_scope()->set_launch_id(std::string(16,'x'));
+      rejects([&]{journal.begin_copy_job(wrong,{});},"new copy job accepted v2 with a legacy 16-byte identity");
+      wrong=current; wrong.mutable_process_scope_parent()->set_launch_id(std::string(16,'p'));
+      rejects([&]{journal.begin_copy_job(wrong,{});},"new v2 copy job accepted a legacy parent launch identity");
+      wrong=current; wrong.mutable_process_scope_parent()->set_launch_id(std::string(33,'p'));
+      rejects([&]{journal.begin_copy_job(wrong,{});},"new v2 copy job accepted an unsupported parent launch length");
+      wrong=current; wrong.set_format_version(3);
+      rejects([&]{journal.begin_copy_job(wrong,{});},"new copy job accepted an unsupported private format version");
+      journal.begin_copy_job(current,{});
+      auto reopened=journal.find_copy_job(current.workspace_id(),current.job_id(),{});
+      check(reopened && reopened->process_scope().launch_id()==std::string(32,'l'),
+            "current 32-byte ProcessScope identity did not survive journal reopen");
+      std::filesystem::remove_all(state);
+    }
+
   try {
     check(verify_legacy_file_operations()==0,"legacy file-operation journal regression failed");
     {
@@ -227,7 +284,7 @@ int main() {
             "cancel acknowledgment timestamp moved backwards after clock rollback");
       auto erased=job;erased.clear_drained_process_scope();
       rejects([&]{journal.update_copy_job(erased,{});},"durable drain proof was removed");
-      auto changed=job;changed.mutable_drained_process_scope()->set_launch_id(std::string(16,'x'));
+      auto changed=job;changed.mutable_drained_process_scope()->set_launch_id(std::string(32,'x'));
       rejects([&]{journal.update_copy_job(changed,{});},"durable drain proof identity changed");
       FileOperationJournal reopened(proof_state);
       check(reopened.find_copy_job(job.workspace_id(),job.job_id(),{})->drained_process_scope().SerializeAsString()==
@@ -255,6 +312,31 @@ int main() {
         check(journal.find_copy_job(job.workspace_id(),job.job_id(),{})->prepared_result().SerializeAsString()==identity,
               "prepared cancellation discarded immutable output identity");
       }
+      std::filesystem::remove_all(state);
+    }
+    {
+      auto state=make_v1_state();
+      { FileOperationJournal schema(state); }
+      auto legacy=legacy_v1_record(std::string(16,'v'));
+      terminal(legacy,FILE_COPY_JOB_JOURNAL_FAILED,FileCopyJobReceipt::FAILED,20);
+      const auto original_receipt=legacy.terminal_receipt().SerializeAsString();
+      const auto original_record=legacy.SerializeAsString();
+      seed_legacy_terminal(state,legacy);
+      check(read_copy_job_bytes(state,legacy.workspace_id(),legacy.job_id())==original_record,
+            "legacy terminal seed bytes differ before recovery");
+      {
+        FileOperationJournal recovered(state);
+        auto loaded=recovered.find_copy_job(legacy.workspace_id(),legacy.job_id(),{});
+        check(loaded && loaded->format_version()==1 && loaded->process_scope().launch_id().size()==16,
+              "legacy v1 ProcessScope record did not reopen");
+        check(loaded->terminal_receipt().SerializeAsString()==original_receipt,
+              "legacy terminal receipt bytes changed during recovery");
+        check(recovered.recovery_copy_jobs(legacy.workspace_id(),{}).empty() &&
+              recovered.recovery_copy_jobs_all({}).empty(),
+              "terminal legacy record leaked into active recovery results");
+      }
+      check(read_copy_job_bytes(state,legacy.workspace_id(),legacy.job_id())==original_record,
+            "legacy terminal journal bytes changed after reopen/recovery scan");
       std::filesystem::remove_all(state);
     }
     const auto state=make_v1_state();
@@ -290,7 +372,7 @@ int main() {
       }
       supervisor::v1::ProcessScopeIdentity parent_identity;
       parent_identity.set_scope_name("spatial-git-workers");parent_identity.set_boot_id(boot);
-      parent_identity.set_launch_id(std::string(16,'p'));parent_identity.set_device(9);parent_identity.set_inode(11);
+      parent_identity.set_launch_id(std::string(32,'p'));parent_identity.set_device(9);parent_identity.set_inode(11);
       journal.bind_git_worker_parent(2,3,"/sys/fs/cgroup/mock-root",boot,parent_identity.SerializeAsString(),observer);
       auto bound=journal.find_git_worker_parent(observer);
       check(bound.state==GitWorkerParentRecord::State::bound &&

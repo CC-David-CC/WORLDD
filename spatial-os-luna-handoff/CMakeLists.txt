@@ -442,6 +442,9 @@ if(BUILD_TESTING)
     add_executable(process-scope-recovery-validation-test tests/core/process_scope_recovery.cpp)
     target_link_libraries(process-scope-recovery-validation-test PRIVATE spatial-process-scope)
     add_test(NAME process-scope-recovery-validation COMMAND process-scope-recovery-validation-test)
+    add_executable(process-scope-named-regression-test tests/core/process_scope_named_regression.cpp)
+    target_link_libraries(process-scope-named-regression-test PRIVATE spatial-process-scope)
+    add_dependencies(process-scope-named-regression-test scope-python-protobuf)
 endif()
 add_library(spatial-storage-channel STATIC src/workspace/storage_channel.cpp)
 target_link_libraries(spatial-storage-channel PUBLIC spatial-scene)
@@ -1025,6 +1028,12 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_scope_resources.py"
         $<TARGET_FILE:spatial-process-scope-probe>)
+    add_test(NAME process-scope-named-regression COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_scope_named_regression.py"
+        $<TARGET_FILE:process-scope-named-regression-test>)
+    set_tests_properties(process-scope-named-regression PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     set_tests_properties(process-scope-resources PROPERTIES TIMEOUT 150
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME broker-resources COMMAND "${Python3_EXECUTABLE}"

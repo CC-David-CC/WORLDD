@@ -51,6 +51,16 @@ int main() {
     }
     assert(missing_parent_unconfirmed);
 
+    auto current_identity=valid_identity;
+    current_identity.set_scope_name("copy-recovery-current-missing-parent");
+    current_identity.set_launch_id(std::string(32,'y'));
+    bool current_missing_parent_unconfirmed=false;
+    try {
+        (void)spatial::supervisor::ProcessScope::stop_recovered(
+            "/nonexistent",1,1,current_identity);
+    } catch(const std::runtime_error&) { current_missing_parent_unconfirmed=true; }
+    if(!current_missing_parent_unconfirmed) return 5;
+
     bool unjournaled_root_rejected=false;
     try {
         (void)spatial::supervisor::ProcessScope::remove_unjournaled_empty_git_parent(

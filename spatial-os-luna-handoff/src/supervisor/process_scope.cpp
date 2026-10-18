@@ -333,13 +333,13 @@ void validate_budget(const v1::ProcessScopeBudget& value) {
 }
 std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root,
                                                   const v1::ProcessScopeBudget* budget) {
-    return prepare_impl(root, budget, {});
+    return prepare_impl(root, budget, {}, false);
 }
 std::unique_ptr<ProcessScope> ProcessScope::prepare_owned(const std::filesystem::path& root, const std::string& scope_name) {
     valid(scope_name.size() == 49 && scope_name.starts_with("authority-broker-") &&
           scope_name.substr(17).find_first_not_of("0123456789abcdef") == std::string::npos,
           "Invalid broker-owned scope identity");
-    return prepare_impl(root, nullptr, scope_name);
+    return prepare_impl(root, nullptr, scope_name, true);
 }
 std::unique_ptr<ProcessScope> ProcessScope::prepare_named(const std::filesystem::path& root,
                                                   const std::string& requested_name,
@@ -349,11 +349,11 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare_named(const std::filesystem:
               requested_name.find_first_of("/\\") == std::string::npos &&
               requested_name.find('\0') == std::string::npos,
               "Invalid reserved ProcessScope name");
-    return prepare_impl(root, budget, requested_name);
+    return prepare_impl(root, budget, requested_name, false);
 }
 std::unique_ptr<ProcessScope> ProcessScope::prepare_impl(const std::filesystem::path& root,
                                                   const v1::ProcessScopeBudget* budget,
-                                                  const std::string& stable_name) {
+                                                  const std::string& stable_name, bool retain_scope) {
     if (budget) validate_budget(*budget);
     auto result = std::unique_ptr<ProcessScope>(new ProcessScope);
     result->parent_ = open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
@@ -377,7 +377,7 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare_impl(const std::filesystem::
     std::ifstream boot("/proc/sys/kernel/random/boot_id"); std::string boot_id; std::getline(boot, boot_id);
     valid(boot_id.size() == 36, "Cannot read kernel boot identity");
     result->identity_.set_launch_id(random); result->identity_.set_boot_id(boot_id);
-    result->retained_scope_ = !stable_name.empty();
+    result->retained_scope_ = retain_scope;
     if (mkdirat(result->parent_, name.c_str(), 0700) != 0) {
         if (!result->retained_scope_ || errno != EEXIST) check(false, "Cannot create authority scope");
     }
@@ -522,7 +522,7 @@ bool ProcessScope::stop_recovered(const std::filesystem::path& parent_path,
           identity.scope_name().find_first_of("/\\") == std::string::npos &&
           identity.scope_name().find('\0') == std::string::npos &&
           identity.device() > 0 && identity.inode() > 0 &&
-          identity.boot_id().size() == 36 && identity.launch_id().size() == 16,
+          identity.boot_id().size() == 36 && (identity.launch_id().size() == 16 || identity.launch_id().size() == 32),
           "Invalid recovered ProcessScope identity");
     Fd parent(open(parent_path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
     if(parent.value<0 && errno==ENOENT)
@@ -622,7 +622,7 @@ bool ProcessScope::remove_reserved_empty(const std::filesystem::path& parent_pat
 bool ProcessScope::remove_recovered_git_parent(const std::filesystem::path& root_path,
     std::uint64_t root_device,std::uint64_t root_inode,const v1::ProcessScopeIdentity& identity) {
     valid(identity.scope_name()=="spatial-git-workers" && identity.boot_id().size()==36 &&
-          identity.launch_id().size()==16 && identity.device()>0 && identity.inode()>0 &&
+          (identity.launch_id().size()==16 || identity.launch_id().size()==32) && identity.device()>0 && identity.inode()>0 &&
           root_device>0 && root_inode>0,"Invalid recovered Git parent identity");
     Fd root(open(root_path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
     check(root.value>=0,"Cannot open recovered Git parent root");

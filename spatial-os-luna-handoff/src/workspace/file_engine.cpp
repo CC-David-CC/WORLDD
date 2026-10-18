@@ -1440,7 +1440,7 @@ struct FileEngine::Impl {
           const auto& parent_identity=resources->git_worker_parent_identity();
           const auto broker_identity=resources->broker_root_identity();
           auto& record=job->durable;
-          record.set_format_version(1);record.set_workspace_id(workspace);record.set_job_id(job->id);
+          record.set_format_version(2);record.set_workspace_id(workspace);record.set_job_id(job->id);
           record.set_initiating_operation_id(r.operation_id());
           record.set_initiating_request_sha256(sha256(deterministic_message(r)));
           record.set_principal_issuer_id(r.principal().issuer_id());
