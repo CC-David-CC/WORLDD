@@ -1,6 +1,7 @@
 #include "workspace/broker_copy_cleanup.hpp"
 #include "workspace/file_engine.hpp"
 #include "workspace/resources.hpp"
+#include "workspace/storage_devices.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -21,6 +22,7 @@
 #include <cstdlib>
 #include <new>
 #include <exception>
+#include <functional>
 #include <sstream>
 #include <atomic>
 #include <cstring>
@@ -33,6 +35,8 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <optional>
+#include <set>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
@@ -50,6 +54,10 @@ using spatial::supervisor::ProcessScope;
 using namespace spatial::workspace::v1;
 using namespace spatial::supervisor::v1;
 namespace {
+unsigned test_device_major(dev_t value) { return major(value); }
+unsigned test_device_minor(dev_t value) { return minor(value); }
+#undef major
+#undef minor
 class RecoveryTestAuthority final : public spatial::FileAuthority {
  public:
   spatial::workspace::v1::ScopedAuthorityCheckReply check_fresh(
@@ -762,40 +770,143 @@ void emit_participant_diagnostic(std::ostringstream& out){
   (void)write(STDERR_FILENO,line.data(),line.size());
 }
 
-std::pair<unsigned,unsigned> test_storage_device(const std::filesystem::path& storage) {
-  struct stat info{};check(stat(storage.c_str(),&info)==0,"consumer storage device stat failed");
-  const auto link=std::filesystem::path("/sys/dev/block")/
-      (std::to_string(major(info.st_dev))+":"+std::to_string(minor(info.st_dev)));
-  auto device=std::filesystem::canonical(link);
-  if(std::filesystem::exists(device/"partition"))device=device.parent_path();
-  std::ifstream device_file(device/"dev");unsigned major_number=0,minor_number=0;char colon=0;
-  check(static_cast<bool>(device_file>>major_number>>colon>>minor_number)&&colon==':',
-        "consumer storage block device identity unavailable");
-  return {major_number,minor_number};
+using TestStorageDevice = std::pair<unsigned, unsigned>;
+using TestStorageDevices = std::vector<TestStorageDevice>;
+struct TestScopedFd {
+  int value=-1;
+  explicit TestScopedFd(int descriptor):value(descriptor){}
+  ~TestScopedFd(){if(value>=0)close(value);}
+  TestScopedFd(const TestScopedFd&)=delete;
+  TestScopedFd& operator=(const TestScopedFd&)=delete;
+};
+TestStorageDevices test_storage_devices(int descriptor) {
+  std::set<TestStorageDevice> devices;
+  std::function<void(int,unsigned)> filesystem_device;
+  std::function<void(dev_t,unsigned)> block_device;
+  const auto read_device=[](const std::filesystem::path& node) {
+    std::ifstream file(node/"dev");unsigned major_number=0,minor_number=0;char colon=0;
+    check(static_cast<bool>(file>>major_number>>colon>>minor_number)&&colon==':',
+          "consumer storage block identity unavailable");
+    return TestStorageDevice{major_number,minor_number};
+  };
+  block_device=[&](dev_t number,unsigned depth) {
+    check(depth<8,"consumer storage device nesting exceeds supported bound");
+    const auto link=std::filesystem::path("/sys/dev/block")/
+        (std::to_string(test_device_major(number))+":"+std::to_string(test_device_minor(number)));
+    auto device=std::filesystem::canonical(link);
+    if(std::filesystem::exists(device/"partition"))device=device.parent_path();
+    const auto identity=read_device(device);
+    if(!devices.insert(identity).second)return;
+    // Match production coverage: charge a loop queue and its real backing filesystem.
+    const auto backing_file=device/"loop/backing_file";
+    if(std::filesystem::exists(backing_file)) {
+      std::ifstream backing(backing_file);std::string path;std::getline(backing,path);
+      check((backing.good()||backing.eof())&&std::filesystem::path(path).is_absolute(),
+            "consumer loop backing identity unavailable");
+      TestScopedFd backing_fd(open(path.c_str(),O_PATH|O_NOFOLLOW|O_CLOEXEC));
+      check(backing_fd.value>=0,"consumer loop backing filesystem pin failed");
+      filesystem_device(backing_fd.value,depth+1);
+    }
+    const auto slaves=device/"slaves";
+    if(std::filesystem::exists(slaves)) {
+      for(const auto& child:std::filesystem::directory_iterator(slaves))
+        devices.insert(read_device(child.path()));
+    }
+  };
+  filesystem_device=[&](int held,unsigned depth) {
+    check(depth<8,"consumer filesystem device nesting exceeds supported bound");
+    struct stat info{};struct statfs filesystem{};
+    check(held>=0&&fstat(held,&info)==0&&fstatfs(held,&filesystem)==0,
+          "consumer storage filesystem identity unavailable");
+    if(filesystem.f_type==BTRFS_SUPER_MAGIC) {
+      const auto pinned_path="/proc/self/fd/"+std::to_string(held);
+      TestScopedFd query(open(pinned_path.c_str(),O_RDONLY|O_CLOEXEC));
+      struct stat pinned{};
+      check(query.value>=0&&fstat(query.value,&pinned)==0&&pinned.st_dev==info.st_dev&&pinned.st_ino==info.st_ino,
+            "consumer Btrfs query authority could not be pinned");
+      btrfs_ioctl_fs_info_args volume{};
+      check(ioctl(query.value,BTRFS_IOC_FS_INFO,&volume)>=0,
+            "consumer Btrfs volume device query failed");
+      check(volume.num_devices==1,"consumer Btrfs fixture must be single-device");
+      btrfs_ioctl_dev_info_args selected{};selected.devid=volume.max_id;
+      check(ioctl(query.value,BTRFS_IOC_DEV_INFO,&selected)>=0,
+            "consumer Btrfs block device query failed");
+      const auto length=strnlen(reinterpret_cast<const char*>(selected.path),sizeof(selected.path));
+      check(length>0&&length<sizeof(selected.path),"consumer Btrfs block device path invalid");
+      const std::filesystem::path block_path(std::string(reinterpret_cast<const char*>(selected.path),length));
+      struct stat block{};
+      check(block_path.is_absolute()&&stat(block_path.c_str(),&block)==0&&S_ISBLK(block.st_mode),
+            "consumer Btrfs block device unavailable");
+      block_device(block.st_rdev,depth+1);
+    } else {
+      block_device(info.st_dev,depth+1);
+    }
+  };
+  filesystem_device(descriptor,0);
+  return TestStorageDevices(devices.begin(),devices.end());
 }
-spatial::supervisor::v1::ProcessScopeBudget test_budget(std::uint64_t memory, std::uint64_t processes,
-    std::uint64_t cpu,const std::pair<unsigned,unsigned>& device) {
+void test_storage_device_coverage_controls(int directory,const TestStorageDevices& devices) {
+  check(directory>=0&&!devices.empty(),"consumer storage device closure is unavailable");
+  const auto coverage=[&](std::optional<std::size_t> omitted) {
+    ProcessScopeBudget budget;
+    for(std::size_t index=0;index<devices.size();++index) {
+      if(omitted&&*omitted==index)continue;
+      auto* io=budget.add_io();io->set_major(devices[index].first);io->set_minor(devices[index].second);
+      io->set_read_bytes_per_second(64ULL*1024*1024);io->set_write_bytes_per_second(16ULL*1024*1024);
+    }
+    return budget;
+  };
+  spatial::validate_storage_device_handles(coverage(std::nullopt),std::span<const int>(&directory,1));
+  for(std::size_t index=0;index<devices.size();++index) {
+    bool rejected=false;
+    try { spatial::validate_storage_device_handles(coverage(index),std::span<const int>(&directory,1)); }
+    catch(const std::exception& error) {
+      const auto reason=std::string(error.what());
+      rejected=reason=="Workspace storage device has no I/O budget"||
+          reason=="Stacked storage device has no I/O budget";
+    }
+    check(rejected,"production storage validator did not reject the intended missing-device budget");
+  }
+}
+
+spatial::supervisor::v1::ProcessScopeBudget test_budget(std::uint64_t memory,std::uint64_t processes,
+    std::uint64_t cpu,const TestStorageDevices& devices) {
   spatial::supervisor::v1::ProcessScopeBudget value;
-  value.set_memory_bytes(memory); value.set_swap_bytes(0); value.set_processes(processes);
+  value.set_memory_bytes(memory);value.set_swap_bytes(0);value.set_processes(processes);
   value.set_cpu_microseconds(cpu);
-  auto* io=value.add_io();io->set_major(device.first);io->set_minor(device.second);
-  io->set_read_bytes_per_second(64ULL*1024*1024);io->set_write_bytes_per_second(16ULL*1024*1024);
+  for(const auto& device:devices) {
+    auto* io=value.add_io();io->set_major(device.first);io->set_minor(device.second);
+    io->set_read_bytes_per_second(64ULL*1024*1024);io->set_write_bytes_per_second(16ULL*1024*1024);
+  }
   return value;
 }
 spatial::workspace::v1::BrokerResourceConfig test_resource_config(
     const std::filesystem::path& storage) {
-  const auto device=test_storage_device(storage);
+  TestScopedFd directory(open(storage.c_str(),O_PATH|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW));
+  check(directory.value>=0,"consumer storage directory pin failed");
+  const auto devices=test_storage_devices(directory.value);
+  test_storage_device_coverage_controls(directory.value,devices);
   const auto budget=[&](std::uint64_t memory,std::uint64_t processes,std::uint64_t cpu) {
-    return test_budget(memory,processes,cpu,device);
+    return test_budget(memory,processes,cpu,devices);
   };
-  spatial::workspace::v1::BrokerResourceConfig config; config.set_protocol_version(2);
+  spatial::workspace::v1::BrokerResourceConfig config;config.set_protocol_version(2);
   *config.mutable_broker_budget()=budget(1024ULL*1024*1024,128,400000);
   *config.mutable_manager_budget()=budget(256ULL*1024*1024,32,200000);
   auto* policy=config.mutable_default_policy();
   *policy->mutable_total()=budget(512ULL*1024*1024,64,200000);
   *policy->mutable_actor_default()=budget(256ULL*1024*1024,32,100000);
-  auto* profile=policy->add_profiles(); profile->set_name("development");
+  auto* profile=policy->add_profiles();profile->set_name("development");
   *profile->mutable_maximum()=budget(128ULL*1024*1024,16,100000);
+  const auto check_devices=[&](const auto& value) {
+    check(static_cast<std::size_t>(value.io_size())==devices.size(),
+          "consumer resource budget omitted storage closure devices");
+    for(std::size_t index=0;index<devices.size();++index)
+      check(value.io(static_cast<int>(index)).major()==devices[index].first&&
+          value.io(static_cast<int>(index)).minor()==devices[index].second,
+          "consumer resource budgets do not share one storage closure");
+  };
+  check_devices(config.broker_budget());check_devices(config.manager_budget());
+  check_devices(policy->total());check_devices(policy->actor_default());check_devices(profile->maximum());
   return config;
 }
 int consumer_recovery_child(const char* state_path,const char* affected_project,

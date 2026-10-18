@@ -1,0 +1,32 @@
+M08 Btrfs cleanup consumer fixture device closure
+Date: 2026-10-18
+Status: SOURCE-ONLY REPAIR. Runtime UNRUN.
+
+The consumer fixture used st_dev as a block-device identity. Btrfs reports an anonymous
+filesystem device number such as 0:111, which has no /sys/dev/block entry. The failing
+consumer therefore stopped before the old-proof-replaced assertions ran.
+
+The fixture now pins its storage directory once. It identifies Btrfs through fstatfs,
+reopens that pinned object through /proc/self/fd, verifies the inode, and queries the
+single device with BTRFS_IOC_FS_INFO and BTRFS_IOC_DEV_INFO. It resolves the reported
+block device and builds a bounded, deduplicated device closure. The closure includes
+partition parents, loop queues and their backing filesystem, and direct stacked-device slaves.
+Normal filesystems still begin with the directory's single st_dev device.
+
+Every broker, manager, policy, actor-default, and profile budget gets the same closure.
+The fixture calls the production validate_storage_device_handles API with full coverage,
+then removes each actual device in turn. Each negative control must fail with the
+production missing-device diagnostic. No production code or acceptance rule changed.
+The fixture preserves the consumer success protocol exactly; it adds no diagnostic stdout.
+
+The existing old-proof-replaced consumer mode remains the positive end-to-end regression.
+The Btrfs runtime attempts on 2026-10-18 failed in this fixture before quarantine and
+independent-browse assertions. Preserve their logs and modified images under
+/home/dflanag3/spatial-artifacts/m08-copy-cleanup-framingfix-runtime-20261018 and do not
+reuse those images without review.
+
+Selected checks after primary review: compile the broker-copy-cleanup-test target, then
+run old-proof-replaced on a newly provisioned or explicitly reviewed private Btrfs fixture.
+The runtime attempt also checks quarantine, independent browse, and action assertions. Do
+not reuse the failed images above without review. These checks were not run for this source
+change. Build and both-host runtime remain UNRUN.
