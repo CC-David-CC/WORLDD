@@ -604,9 +604,12 @@ if(BUILD_TESTING)
     set_tests_properties(broker-file-action-client PROPERTIES TIMEOUT 30)
     add_dependencies(copy-job-journal-python-protobuf grants-python-protobuf scope-python-protobuf file-actions-python-protobuf)
     add_custom_target(workspace-file-action-fixtures
-        COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-file-action-fixtures" "${Python3_EXECUTABLE}" -m py_compile "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_file_action_broker.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_copy_engine.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_staging_mask.py"
-        DEPENDS copy-job-journal-python-protobuf workspaced worldd identityd spatial-issuer-client spatial-process-scope-probe workspace-file-operation-journal-test file-action-effect-wait-test broker-file-action-client-test broker-python-protobuf cabinet-python-protobuf file-actions-python-protobuf world-session-python-protobuf compositor-python-protobuf
-        SOURCES tests/core/test_file_action_broker.py tests/core/test_workspace_copy_engine.py tests/core/test_copy_staging_mask.py tests/core/file_operation_journal.cpp tests/core/broker_file_action_client.cpp tests/core/file_action_effect_wait.cpp)
+        COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-file-action-fixtures" "${Python3_EXECUTABLE}" -m py_compile "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_file_action_broker.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_copy_engine.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_staging_mask.py" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_storage_git_integration.py"
+        DEPENDS copy-job-journal-python-protobuf workspaced worldd identityd spatial-issuer-client spatial-process-scope-probe spatial-storage-launch-probe storage-python-protobuf workspace-file-operation-journal-test file-action-effect-wait-test broker-file-action-client-test broker-python-protobuf cabinet-python-protobuf file-actions-python-protobuf world-session-python-protobuf compositor-python-protobuf
+        SOURCES tests/core/test_file_action_broker.py tests/core/test_workspace_authority.py tests/core/test_workspace_copy_engine.py tests/core/test_copy_staging_mask.py tests/native/test_storage_git_integration.py tests/core/file_operation_journal.cpp tests/core/broker_file_action_client.cpp tests/core/file_action_effect_wait.cpp)
+    add_test(NAME storage-owner-fixture-tooling COMMAND Python3::Interpreter -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_owner_fixture_tooling.py")
+    set_tests_properties(storage-owner-fixture-tooling PROPERTIES TIMEOUT 30)
     add_test(NAME workspace-copy-staging-mask COMMAND Python3::Interpreter -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_staging_mask.py")
     set_tests_properties(workspace-copy-staging-mask PROPERTIES TIMEOUT 30)
@@ -616,6 +619,12 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_file_action_broker.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k file_action_)
     set_tests_properties(workspace-file-action-broker PROPERTIES TIMEOUT 300
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
+    add_test(NAME workspace-file-action-storage-owner-btrfs COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_file_action_broker.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k storage_owner_authenticated_btrfs_copy_and_quota_rejection)
+    set_tests_properties(workspace-file-action-storage-owner-btrfs PROPERTIES TIMEOUT 360
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_executable(workspace-file-engine-test tests/core/file_engine.cpp)
     target_link_libraries(workspace-file-engine-test PRIVATE spatial-file-engine)

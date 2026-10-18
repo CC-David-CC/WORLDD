@@ -324,6 +324,57 @@ try:
     rights = [core.WORKSPACE_SELECT,core.FILES_READ,core.FILES_WRITE,core.PROCESS_LAUNCH]
     management('workspace_create',core.WorkspaceCreateRequest(id='workspace-a',worktree='active-tree',policy=rights))
     management('workspace_member_set',core.WorkspaceMemberRequest(id='workspace-a',actor='writer',rights=rights))
+    stage_root=Path(project.path)/'.spatial-copy-staging'
+    stage_root.mkdir(mode=0o700,exist_ok=True)
+    os.chown(stage_root,uid,gid); stage_root.chmod(0o700)
+    project_rootid=run(['btrfs','inspect-internal','rootid',project.path],actor=True).strip()
+    stage_rootid=run(['btrfs','inspect-internal','rootid',stage_root],actor=True).strip()
+    assert project_rootid==stage_rootid,(project_rootid,stage_rootid)
+    stage_stat=stage_root.stat()
+    assert (stage_stat.st_uid,stage_stat.st_gid,stage_stat.st_mode&0o777)==(uid,gid,0o700),stage_stat
+    marker=stage_root/'prepared-marker'; marker.write_bytes(b'broker-owned-stage')
+    os.chown(marker,uid,gid); marker.chmod(0o600)
+    marker_stat=marker.stat()
+    assert (marker_stat.st_uid,marker_stat.st_gid,marker_stat.st_mode&0o777)==(uid,gid,0o600),marker_stat
+    mask_code=f'''import json,os
+from pathlib import Path
+roots=[Path('/project'),Path({str(project.path)!r}),Path('.')]
+result={{'paths':{{}},'inherited_project_fds':[]}}
+for fd_name in os.listdir('/proc/self/fd'):
+ try:
+  target=os.readlink('/proc/self/fd/'+fd_name)
+  if target=='/project' or target.startswith({str(project.path)!r}):
+   roots.append(Path('/proc/self/fd')/fd_name); result['inherited_project_fds'].append([fd_name,target])
+ except OSError: pass
+for index,root_path in enumerate(roots):
+ stage=root_path/'.spatial-copy-staging'; witness={{'entries':None}}
+ try: witness['entries']=sorted(os.listdir(stage))
+ except OSError as error: witness['entries_error']=error.errno
+ try: witness['read']=(stage/'prepared-marker').read_bytes().decode()
+ except OSError as error: witness['read_errno']=error.errno
+ try:
+  with (stage/f'probe-{{index}}').open('wb') as stream: stream.write(b'forbidden')
+  witness['write_errno']=0
+ except OSError as error: witness['write_errno']=error.errno
+ try: os.unlink(stage/'prepared-marker'); witness['unlink_errno']=0
+ except OSError as error: witness['unlink_errno']=error.errno
+ try: os.rename(stage/'prepared-marker',stage/f'moved-{{index}}'); witness['rename_errno']=0
+ except OSError as error: witness['rename_errno']=error.errno
+ result['paths'][str(root_path)]=witness
+Path('/project/mask-witness.json').write_text(json.dumps(result))
+Path('/project/ordinary-write-after-mask').write_bytes(b'allowed')
+'''
+    mask_app=launch('workspace-a','writer','copy-stage-mask',mask_code)
+    witness=json.loads((Path(project.path)/'mask-witness.json').read_text())
+    import errno
+    assert witness['inherited_project_fds']==[],witness
+    assert witness['paths'] and all(item.get('entries')==[] and item.get('read_errno')==errno.ENOENT and
+        item.get('write_errno')==errno.EROFS and item.get('unlink_errno')==errno.ENOENT and
+        item.get('rename_errno')==errno.ENOENT for item in witness['paths'].values()),witness
+    assert marker.read_bytes()==b'broker-owned-stage' and not list(stage_root.glob('probe-*'))
+    assert (Path(project.path)/'ordinary-write-after-mask').read_bytes()==b'allowed'
+    record['results']['production_application_copy_stage_mask']=dict(passed=True,application=mask_app,
+        witness=witness,project_subvolume_rootid=project_rootid,stage_subvolume_rootid=stage_rootid); save()
     fill = """import errno,json,os
 written=0; error=0
 with open('/state/payload.dat','wb',buffering=0) as target:

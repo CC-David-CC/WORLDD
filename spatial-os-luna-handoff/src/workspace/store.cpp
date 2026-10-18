@@ -440,12 +440,17 @@ struct ExecutionStore::Impl {
         entry->root_fd=root.fd; root.fd=-1;
         entry->device=current.st_dev; entry->inode=current.st_ino;
         entry->workspace=workspace.id(); entry->worktree=id; entry->path=path;
-        // Logical worktree IDs are opaque. Only the registered managed path
-        // component names the broker-private sibling staging directory.
+        // Keep staging inside the registered PROJECT subvolume. Btrfs atomic
+        // rename cannot publish across the parent worktrees subvolume boundary.
+        // ApplicationProcess mounts a read-only tmpfs over this exact path.
         if(path_component.size()!=32 || path_component.find_first_not_of("0123456789abcdef")!=std::string::npos)
             throw FileRootStale("store.invalid_managed_path_for_copy_staging");
-        entry->staging_root_name=".spatial-copy-staging-"+path_component;
-        entry->staging_parent_fd=openat(root_parent.fd,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW);
+        const std::string legacy_name=".spatial-copy-staging-"+path_component;
+        struct stat legacy{};
+        if(fstatat(root_parent.fd,legacy_name.c_str(),&legacy,AT_SYMLINK_NOFOLLOW)==0 || errno!=ENOENT)
+            throw WorldError(wire::UNAVAILABLE,"Legacy sibling copy staging requires explicit recovery");
+        entry->staging_root_name=".spatial-copy-staging";
+        entry->staging_parent_fd=fcntl(entry->root_fd,F_DUPFD_CLOEXEC,3);
         if(entry->staging_parent_fd<0)
             throw FileRootStale("store.copy_staging_parent_open_failed");
         if(mkdirat(entry->staging_parent_fd,entry->staging_root_name.c_str(),0700)!=0 && errno!=EEXIST)

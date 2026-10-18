@@ -76,7 +76,7 @@ class CopyTreeWorkerTests(unittest.TestCase):
                                   preexec_fn=lower_nofile if nofile_limit is not None else None)
 
     def run_cabinet_worker(self, source_parent, source_name, destination, destination_name,
-                           source_is_directory, quota=1 << 20, entries=100):
+                           source_is_directory, quota=1 << 20, entries=100, output_write_errno=None):
         request = copy_worker_pb2.WorkerRequest(
             protocol_version=3, maximum_bytes=quota, maximum_entries=entries,
             cabinet_source_name=os.fsencode(source_name),
@@ -95,7 +95,10 @@ class CopyTreeWorkerTests(unittest.TestCase):
                        "--setenv", "LC_ALL", "C", "--ro-bind", str(WORKER), "/copy-worker",
                        "--dir", "/source", "--dir", "/destination",
                        "--ro-bind", str(source_parent), "/source", "--bind", str(destination), "/destination",
-                       "--ro-bind", request_file.name, "/job.pb", "--remount-ro", "/", "--", "/copy-worker"]
+                       "--ro-bind", request_file.name, "/job.pb"]
+            if output_write_errno is not None:
+                command.extend(["--setenv", "SPATIAL_COPY_TEST_OUTPUT_WRITE_ERRNO", output_write_errno])
+            command.extend(["--remount-ro", "/", "--", "/copy-worker"])
             return subprocess.run(command, capture_output=True, timeout=15)
 
     def test_cabinet_protocol_copies_file_and_directory_with_canonical_digest(self):
@@ -336,6 +339,15 @@ class CopyTreeWorkerTests(unittest.TestCase):
                 source, destination, entries=1000, nofile_limit=64))
             self.assertEqual(message.WhichOneof("outcome"), "failure")
             self.assertEqual(message.failure.reason, copy_worker_pb2.FAILURE_DESCRIPTOR_LIMIT)
+
+    def test_output_write_eio_is_reported_as_io_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); source=root/'source'; destination=root/'destination'
+            source.mkdir(); destination.mkdir(); (source/'payload').write_bytes(b'write fault payload')
+            result=decode_result(self.run_cabinet_worker(source,'payload',destination,'copy',False,
+                output_write_errno='EIO'))
+            self.assertEqual(result.WhichOneof('outcome'),'failure')
+            self.assertEqual(result.failure.reason,copy_worker_pb2.FAILURE_IO)
 
     def test_readdir_error_is_reported_as_io_failure(self):
         with tempfile.TemporaryDirectory() as temp:

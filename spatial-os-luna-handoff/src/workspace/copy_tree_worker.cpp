@@ -29,6 +29,9 @@ struct Failure final : std::runtime_error {
 void need(bool value, pb::FailureReason reason=pb::FAILURE_INTERNAL) {
     if (!value) throw Failure(reason);
 }
+pb::FailureReason io_failure() {
+    return errno==EDQUOT || errno==ENOSPC ? pb::FAILURE_STORAGE_EXHAUSTED : pb::FAILURE_IO;
+}
 struct Fd { int n=-1; explicit Fd(int x=-1):n(x){} ~Fd(){if(n>=0)close(n);} Fd(const Fd&)=delete; Fd& operator=(const Fd&)=delete; Fd(Fd&& other) noexcept:n(other.n){other.n=-1;} Fd& operator=(Fd&& other) noexcept {if(this!=&other){if(n>=0)close(n);n=other.n;other.n=-1;}return *this;} };
 struct DirCloser { void operator()(DIR* d) const { if (d) closedir(d); } };
 using Dir = std::unique_ptr<DIR,DirCloser>;
@@ -56,6 +59,16 @@ uint64_t cabinet_generation(const struct stat& st,bool directory) {
 #ifdef SPATIAL_COPY_WORKER_TEST_FAULTS
 long fail_readdir_after=-1;
 bool readdir_fault_used=false;
+bool output_write_fault_used=false;
+ssize_t output_write(int fd,const void* buffer,size_t size) {
+    const char* fault=std::getenv("SPATIAL_COPY_TEST_OUTPUT_WRITE_ERRNO");
+    if(!output_write_fault_used&&fault&&std::strcmp(fault,"EIO")==0) {
+        output_write_fault_used=true;errno=EIO;return -1;
+    }
+    return write(fd,buffer,size);
+}
+#else
+ssize_t output_write(int fd,const void* buffer,size_t size) { return write(fd,buffer,size); }
 #endif
 std::unique_ptr<Hash> hash;
 void emit_progress(bool force=false);
@@ -74,7 +87,7 @@ void copy_file(int s,int d,const std::string& name,const struct stat& st,const s
     if(a.n<0) throw Failure(errno==ENOENT?pb::FAILURE_SOURCE_CHANGED:pb::FAILURE_IO);
     if(cabinet_mode&&mount_id(a.n)!=cabinet_source_mount_id)throw Failure(pb::FAILURE_SPECIAL_ENTRY);
     Fd b(openat(d,destination_name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
-    if(b.n<0) throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:pb::FAILURE_IO);
+    if(b.n<0) throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:io_failure());
     struct stat now{};
     if(fstat(a.n,&now)<0) throw Failure(pb::FAILURE_IO);
     if(now.st_dev!=st.st_dev||now.st_ino!=st.st_ino||!S_ISREG(now.st_mode)||now.st_nlink!=1)
@@ -87,14 +100,14 @@ void copy_file(int s,int d,const std::string& name,const struct stat& st,const s
         if(uint64_t(r)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
         hash->add(buf,r);ssize_t off=0;
         while(off<r){ssize_t w=write(b.n,buf+off,r-off);if(w<0&&errno==EINTR)continue;
-            if(w<=0) throw Failure(pb::FAILURE_IO);
+            if(w<=0) throw Failure(io_failure());
             off+=w;
         }
         count+=r;bytes+=r;emit_progress();
     }
     if(count!=uint64_t(st.st_size))throw Failure(pb::FAILURE_SOURCE_CHANGED);
     if(cabinet_mode){struct stat after{};if(fstat(a.n,&after)!=0||after.st_dev!=st.st_dev||after.st_ino!=st.st_ino||after.st_nlink!=st.st_nlink||after.st_size!=st.st_size||after.st_mode!=st.st_mode||after.st_mtim.tv_sec!=st.st_mtim.tv_sec||after.st_mtim.tv_nsec!=st.st_mtim.tv_nsec||after.st_ctim.tv_sec!=st.st_ctim.tv_sec||after.st_ctim.tv_nsec!=st.st_ctim.tv_nsec)throw Failure(pb::FAILURE_SOURCE_CHANGED);}
-    if(fchmod(b.n,st.st_mode&0777)!=0||fsync(b.n)!=0)throw Failure(pb::FAILURE_IO);
+    if(fchmod(b.n,st.st_mode&0777)!=0||fsync(b.n)!=0)throw Failure(io_failure());
 }
 void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
     struct stat directory_before{};if(cabinet_mode&&fstat(s,&directory_before)!=0)throw Failure(pb::FAILURE_IO);
@@ -140,7 +153,7 @@ void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
         hash->add(&type,1);hash->u64(st.st_mode&0777);
         if(type=='D') {
             if(mkdirat(d,n.c_str(),0700)!=0)
-                throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:pb::FAILURE_IO);
+                throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:io_failure());
             Fd a(openat(s,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
             Fd b(openat(d,n.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
             if(a.n<0||b.n<0)throw Failure(pb::FAILURE_IO);
@@ -149,12 +162,12 @@ void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
             if(opened.st_dev!=st.st_dev||opened.st_ino!=st.st_ino)throw Failure(pb::FAILURE_SOURCE_CHANGED);
             if(cabinet_mode&&mount_id(a.n)!=cabinet_source_mount_id)throw Failure(pb::FAILURE_SPECIAL_ENTRY);
             tree(a.n,b.n,rel,depth+1);
-            if(fchmod(b.n,st.st_mode&0777)!=0||fsync(b.n)!=0)throw Failure(pb::FAILURE_IO);
+            if(fchmod(b.n,st.st_mode&0777)!=0||fsync(b.n)!=0)throw Failure(io_failure());
         } else {
             copy_file(s,d,n,st);
         }
     }
-    if(fsync(d)!=0)throw Failure(pb::FAILURE_IO);
+    if(fsync(d)!=0)throw Failure(io_failure());
     if(cabinet_mode){struct stat directory_after{};if(fstat(s,&directory_after)!=0||directory_after.st_dev!=directory_before.st_dev||directory_after.st_ino!=directory_before.st_ino||directory_after.st_mode!=directory_before.st_mode||directory_after.st_size!=directory_before.st_size||directory_after.st_mtim.tv_sec!=directory_before.st_mtim.tv_sec||directory_after.st_mtim.tv_nsec!=directory_before.st_mtim.tv_nsec||directory_after.st_ctim.tv_sec!=directory_before.st_ctim.tv_sec||directory_after.st_ctim.tv_nsec!=directory_before.st_ctim.tv_nsec)throw Failure(pb::FAILURE_SOURCE_CHANGED);}
 }
 bool write_all(int fd,const void* data,size_t size) {
@@ -250,14 +263,14 @@ int main() {
                 struct stat pinned{};if(source_root.n<0||fstat(source_root.n,&pinned)!=0||pinned.st_dev!=before.st_dev||pinned.st_ino!=before.st_ino)throw Failure(pb::FAILURE_SOURCE_CHANGED);
                 if(mount_id(source_root.n)!=cabinet_source_mount_id)throw Failure(pb::FAILURE_SPECIAL_ENTRY);
                 if (mkdirat(d.n,destination_name.c_str(),0700) != 0)
-                    throw Failure(pb::FAILURE_DESTINATION_CONFLICT);
+                    throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:io_failure());
                 Fd output_root(openat(d.n,destination_name.c_str(),
                     O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
                 if (output_root.n < 0) throw Failure(pb::FAILURE_IO);
                 tree(source_root.n,output_root.n,"");
                 if (fchmod(output_root.n,before.st_mode&0777) != 0 ||
                     fsync(output_root.n) != 0 || fsync(d.n) != 0)
-                    throw Failure(pb::FAILURE_IO);
+                    throw Failure(io_failure());
             } else {
                 Fd source_file(openat(s.n,source_name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
                 if(source_file.n<0)throw Failure(pb::FAILURE_SOURCE_CHANGED);
@@ -266,10 +279,10 @@ int main() {
                 if(pinned.st_nlink!=1)throw Failure(pb::FAILURE_HARD_LINK);
                 if(pinned.st_size<0||static_cast<uint64_t>(pinned.st_size)>max_bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
                 hash->u64(static_cast<uint64_t>(pinned.st_size));
-                Fd output(openat(d.n,destination_name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));if(output.n<0)throw Failure(pb::FAILURE_DESTINATION_CONFLICT);
-                char buffer[65536];uint64_t copied=0;for(;;){ssize_t n=read(source_file.n,buffer,sizeof buffer);if(n<0&&errno==EINTR)continue;if(n<0)throw Failure(pb::FAILURE_IO);if(!n)break;if(static_cast<uint64_t>(n)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);hash->add(buffer,n);ssize_t off=0;while(off<n){ssize_t w=write(output.n,buffer+off,n-off);if(w<0&&errno==EINTR)continue;if(w<=0)throw Failure(pb::FAILURE_IO);off+=w;}copied+=n;bytes+=n;emit_progress();}
+                Fd output(openat(d.n,destination_name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));if(output.n<0)throw Failure(errno==EEXIST?pb::FAILURE_DESTINATION_CONFLICT:io_failure());
+                char buffer[65536];uint64_t copied=0;for(;;){ssize_t n=read(source_file.n,buffer,sizeof buffer);if(n<0&&errno==EINTR)continue;if(n<0)throw Failure(pb::FAILURE_IO);if(!n)break;if(static_cast<uint64_t>(n)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);hash->add(buffer,n);ssize_t off=0;while(off<n){ssize_t w=output_write(output.n,buffer+off,n-off);if(w<0&&errno==EINTR)continue;if(w<=0)throw Failure(io_failure());off+=w;}copied+=n;bytes+=n;emit_progress();}
                 struct stat after{};if(copied!=static_cast<uint64_t>(pinned.st_size)||fstat(source_file.n,&after)!=0||after.st_dev!=pinned.st_dev||after.st_ino!=pinned.st_ino||after.st_nlink!=pinned.st_nlink||after.st_size!=pinned.st_size||after.st_mode!=pinned.st_mode||after.st_mtim.tv_sec!=pinned.st_mtim.tv_sec||after.st_mtim.tv_nsec!=pinned.st_mtim.tv_nsec||after.st_ctim.tv_sec!=pinned.st_ctim.tv_sec||after.st_ctim.tv_nsec!=pinned.st_ctim.tv_nsec)throw Failure(pb::FAILURE_SOURCE_CHANGED);
-                if(fchmod(output.n,pinned.st_mode&0777)!=0||fsync(output.n)!=0||fsync(d.n)!=0)throw Failure(pb::FAILURE_IO);
+                if(fchmod(output.n,pinned.st_mode&0777)!=0||fsync(output.n)!=0||fsync(d.n)!=0)throw Failure(io_failure());
             }
         } else if(exporting) {
             // The trusted contract selects only these persistent roots. Runtime home,
@@ -289,9 +302,9 @@ int main() {
                 need(input.n>=0 && output.n>=0 && fstat(input.n,&pinned)==0 &&
                      before.st_dev==pinned.st_dev && before.st_ino==pinned.st_ino,pb::FAILURE_SOURCE_CHANGED);
                 tree(input.n,output.n,name,1);
-                need(fchmod(output.n,before.st_mode&0777)==0 && fsync(output.n)==0,pb::FAILURE_IO);
+                if(fchmod(output.n,before.st_mode&0777)!=0 || fsync(output.n)!=0)throw Failure(io_failure());
             }
-            need(fsync(d.n)==0,pb::FAILURE_IO);
+            if(fsync(d.n)!=0)throw Failure(io_failure());
         } else tree(s.n,d.n,"");
         emit_progress(true);
         auto* receipt=result.mutable_copied();receipt->set_actual_bytes(bytes);receipt->set_actual_entries(static_cast<uint32_t>(entries));receipt->set_content_digest(hash->end());

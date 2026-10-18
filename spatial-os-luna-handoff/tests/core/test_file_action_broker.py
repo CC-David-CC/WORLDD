@@ -6,6 +6,7 @@ import signal
 import sqlite3
 import struct
 import time
+import unittest
 import uuid
 import broker_pb2 as broker
 import grants_pb2 as grant
@@ -15,7 +16,7 @@ import file_actions_pb2 as files
 import file_copy_job_journal_pb2 as copy_journal
 import core_pb2 as core
 from harness.wire import MAX_FRAME
-from test_workspace_authority import WorkspaceAuthorityTests, PROJECT, POLICY, world_authority
+from test_workspace_authority import BrokerProcess, WorkspaceAuthorityTests, PROJECT, POLICY, world_authority
 
 class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
     """Named source regressions for the private broker-to-FileEngine boundary."""
@@ -31,9 +32,20 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         self.assertTrue(reply.file_action.HasField('error'), reply.file_action)
         self.assertEqual(reply.file_action.error.code, code, reply.file_action)
 
+    def test_file_action_refuses_unrecovered_legacy_sibling_staging_layout(self):
+        self.workspace(attach_world=False)
+        legacy = self.project.parent/('.spatial-copy-staging-'+self.project.name)
+        legacy.mkdir(mode=0o700)
+        marker = legacy/'preserved'
+        marker.write_bytes(b'keep for explicit recovery')
+        reply = self.action(browse=files.FileBrowse(page_size=64))
+        self.expect_file_error(reply, files.FileActionError.UNAVAILABLE)
+        self.assertEqual(marker.read_bytes(), b'keep for explicit recovery')
+        self.assertFalse((self.project/'.spatial-copy-staging').exists())
+
     def test_file_action_copy_staging_root_is_hidden_and_reserved(self):
         self.workspace(attach_world=False)
-        stage_root = self.project.parent/('.spatial-copy-staging-'+self.project.name)
+        stage_root = self.project/'.spatial-copy-staging'
         page = self.action(browse=files.FileBrowse(page_size=64))
         self.assertTrue(page.file_action.HasField('directory'), page)
         self.assertTrue(stage_root.is_dir())
@@ -208,6 +220,65 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
                 return receipt
             self.assertLess(time.monotonic(),deadline,'copy job did not reach a terminal state')
             time.sleep(.02)
+
+    def test_storage_owner_authenticated_btrfs_copy_and_quota_rejection(self):
+        storage_volume=os.environ.get('SPATIAL_TEST_STORAGE_VOLUME')
+        launch_config=os.environ.get('SPATIAL_TEST_STORAGE_LAUNCH_CONFIG')
+        quota=os.environ.get('SPATIAL_TEST_STORAGE_COPY_QUOTA_BYTES')
+        self.assertTrue(storage_volume, 'SETUP FAILURE: SPATIAL_TEST_STORAGE_VOLUME is required')
+        self.assertTrue(launch_config, 'SETUP FAILURE: SPATIAL_TEST_STORAGE_LAUNCH_CONFIG is required')
+        self.assertEqual(quota, str(96*1024*1024), 'SETUP FAILURE: expected 96 MiB StorageOwner quota')
+        self.execution_override=Path(storage_volume).resolve(strict=True)
+        self.broker_factory = lambda fixture, state, config=None: BrokerProcess(
+            fixture, state, config, storage_options=(self.execution_override, Path(launch_config)))
+        self.assertTrue(self.execution_override.is_dir(), 'SETUP FAILURE: storage volume is not a directory')
+        self.workspace(attach_world=False)
+        self.assertEqual(self.execution, self.execution_override)
+        self.assertTrue(self.project.is_relative_to(self.execution),
+            'registered PROJECT must be created below the provisioned StorageOwner volume')
+        def rootid(path):
+            result=__import__('subprocess').run(['btrfs','inspect-internal','rootid',str(path)],
+                check=True,capture_output=True,text=True,timeout=10)
+            return int(result.stdout.strip())
+        volume_rootid=rootid(self.execution)
+        project_rootid=rootid(self.project)
+        self.assertNotEqual(project_rootid, volume_rootid,
+            'StorageOwner PROJECT must be a registered Btrfs subvolume below the volume root')
+        page=self.action(browse=files.FileBrowse(page_size=64))
+        self.assertTrue(page.file_action.HasField('directory'), page)
+        stage_root=self.project/'.spatial-copy-staging'
+        self.assertTrue(stage_root.is_dir())
+        self.assertEqual(rootid(stage_root), project_rootid,
+            'private staging root must share the registered PROJECT Btrfs subvolume')
+        (self.project/'authorized-source.bin').write_bytes(b'authorized btrfs copy')
+        root_handle,source_handle=self._copy_source_handles('authorized-source.bin')
+        started=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.START,
+            source_handle=source_handle,destination_directory_handle=root_handle,
+            destination_basename=b'authorized-small-copy',maximum_bytes=1024*1024,
+            maximum_entries=8))
+        self.assertTrue(started.file_action.HasField('copy_job'),started)
+        receipt=self._poll_copy_to_terminal(started.file_action.copy_job.job_id,timeout=60)
+        self.assertEqual(receipt.state,files.FileCopyJobReceipt.COMPLETE,receipt)
+        self.assertEqual((self.project/'authorized-small-copy').read_bytes(),b'authorized btrfs copy')
+        self.assertEqual(list(stage_root.iterdir()),[])
+
+        source=self.project/'owner-quota-source.bin'
+        with source.open('wb') as stream:
+            for _ in range(64):
+                stream.write(os.urandom(1024*1024))
+            stream.flush(); os.fsync(stream.fileno())
+        source.chmod(0o600)
+        root_handle,source_handle=self._copy_source_handles(source.name)
+        limited=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.START,
+            source_handle=source_handle,destination_directory_handle=root_handle,
+            destination_basename=b'quota-must-reject',maximum_bytes=128*1024*1024,
+            maximum_entries=8))
+        self.assertTrue(limited.file_action.HasField('copy_job'),limited)
+        rejected=self._poll_copy_to_terminal(limited.file_action.copy_job.job_id,timeout=90)
+        self.assertEqual(rejected.state,files.FileCopyJobReceipt.FAILED,rejected)
+        self.assertEqual(rejected.failure_code,files.FileActionError.EXHAUSTED,rejected)
+        self.assertFalse((self.project/'quota-must-reject').exists())
+        self.assertEqual(list(stage_root.iterdir()),[])
 
     def test_file_action_copy_job_regular_file_bytes_and_stable_poll(self):
         self.workspace(attach_world=False)
@@ -414,7 +485,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         finally:os.close(pidfd)
         thread.join(5);self.assertFalse(thread.is_alive());self.assertEqual(errors,['transport-closed'])
         if published:
-            stage=self.project.parent/('.spatial-copy-staging-'+self.project.name)/os.fsdecode(before.staging_name)
+            stage=self.project/'.spatial-copy-staging'/os.fsdecode(before.staging_name)
             (stage/os.fsdecode(before.prepared_result.staging_output_name)).rename(self.project/'proof-destination')
         self.broker=type(old)(self,self.execution,self.authority_config)
         result=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
@@ -428,7 +499,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
                 'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',('one',job_id)).fetchone()[0])
         self.assertEqual(after.drained_process_scope,before.drained_process_scope)
         self.assertEqual(after.prepared_result,before.prepared_result)
-        self.assertFalse((self.project.parent/('.spatial-copy-staging-'+self.project.name)/os.fsdecode(before.staging_name)).exists())
+        self.assertFalse((self.project/'.spatial-copy-staging'/os.fsdecode(before.staging_name)).exists())
         old.close()
 
     def _copy_job_sigkill_restart(self, retain_uncertain, prepared_case=None):
@@ -450,7 +521,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         job_id=started.file_action.copy_job.job_id
         old_root=old.resources.root
         worker_scope=old_root/'spatial-git-workers'/('copy-'+job_id.hex())
-        stage_root=self.project.parent/('.spatial-copy-staging-'+self.project.name)
+        stage_root=self.project/'.spatial-copy-staging'
         deadline=time.monotonic()+5
         while time.monotonic()<deadline:
             if worker_scope.exists() and (worker_scope/'cgroup.procs').read_text().split():
@@ -677,7 +748,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
             destination_basename=b'occupied',maximum_bytes=1024,maximum_entries=8))
         self.expect_file_error(result,files.FileActionError.CONFLICT)
         self.assertEqual(destination.read_bytes(),b'keep existing')
-        self.assertEqual(list((self.project.parent/('.spatial-copy-staging-'+self.project.name)).iterdir()), [])
+        self.assertEqual(list((self.project/'.spatial-copy-staging').iterdir()), [])
 
     def test_file_action_copy_job_foreign_principal_cannot_poll_owner_job(self):
         self.workspace(attach_world=False)
@@ -720,7 +791,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         self.assertEqual(durable.drained_process_scope,durable.process_scope)
         self.assertEqual(durable.terminal_receipt,cancelled.file_action.copy_job)
 
-        self.assertEqual(list((self.project.parent/('.spatial-copy-staging-'+self.project.name)).iterdir()), [])
+        self.assertEqual(list((self.project/'.spatial-copy-staging').iterdir()), [])
         repeated=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
         self.assertEqual(repeated.file_action.copy_job.SerializeToString(deterministic=True),
                          cancelled.file_action.copy_job.SerializeToString(deterministic=True))
@@ -740,7 +811,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         self.assertTrue(cancelled.file_action.HasField('copy_job'),cancelled)
         self.assertEqual(cancelled.file_action.copy_job.state,files.FileCopyJobReceipt.CANCELLED,
                          cancelled.file_action.copy_job)
-        self.assertEqual(list((self.project.parent/('.spatial-copy-staging-'+self.project.name)).iterdir()), [])
+        self.assertEqual(list((self.project/'.spatial-copy-staging').iterdir()), [])
 
         # Cancellation must release the stopped worker reservation for a later job.
         root_handle,source_handle=self._copy_source_handles('cancel-restart-source')
@@ -776,7 +847,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
             destination_basename=b'revoked-copy',maximum_bytes=128*1024*1024,maximum_entries=8192))
         self.assertTrue(started.file_action.HasField('copy_job'),started)
         self.assertFalse((self.project/'revoked-copy').exists(), 'copy must still be active before revocation')
-        stage_root=self.project.parent/('.spatial-copy-staging-'+self.project.name)
+        stage_root=self.project/'.spatial-copy-staging'
         self.assertTrue(list(stage_root.iterdir()), 'copy staging must exist before revocation')
         deadline=time.monotonic()+3
         active_workers=set()
@@ -1065,7 +1136,7 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         self.assertEqual(receipt.state,files.FileCopyJobReceipt.FAILED,receipt)
         self.assertEqual(receipt.failure_code,files.FileActionError.EXHAUSTED,receipt)
         self.assertFalse((self.project/'too-small').exists())
-        self.assertEqual(list((self.project.parent/('.spatial-copy-staging-'+self.project.name)).iterdir()), [])
+        self.assertEqual(list((self.project/'.spatial-copy-staging').iterdir()), [])
         repeated=self.action(copy_job=files.FileCopyJob(
             command=files.FileCopyJob.POLL,job_id=denied_id))
         self.assertEqual(repeated.file_action.copy_job.SerializeToString(deterministic=True),

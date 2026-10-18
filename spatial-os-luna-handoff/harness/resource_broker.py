@@ -49,7 +49,7 @@ class RetainedBrokerChild:
 
 
 class ResourceBroker:
-    def __init__(self, executable, command, channel, log, owner_log, configuration, extra_fds=None):
+    def __init__(self, executable, command, channel, log, owner_log, configuration, extra_fds=None, startup_gate_fd=None):
         self.sequence = 0
         self.closed = False
         config = broker.BrokerProcessConfig()
@@ -71,6 +71,14 @@ class ResourceBroker:
                 arguments[index]=str(3+len(descriptors));descriptors.append(descriptor)
         except BaseException:
             os.close(policy);raise
+        if startup_gate_fd is not None:
+            if startup_gate_fd < 3 or startup_gate_fd in descriptors:
+                os.close(policy)
+                raise ValueError('Startup gate must be a distinct inherited descriptor')
+            gate_descriptor = 3 + len(descriptors)
+            descriptors.append(startup_gate_fd)
+        else:
+            gate_descriptor = None
         try:
             probe_mode = ('test-security-evidence' if Path(executable).name == 'workspaced' and
                           os.environ.get('SPATIAL_SECURITY_EVIDENCE') else 'normal')
@@ -94,8 +102,9 @@ class ResourceBroker:
                 fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
             environment = resource_environment(os.environ)
             arguments += ['--resource-config-fd', '5']
+            gate = f'assert os.read({gate_descriptor},1)==b\"!\";os.close({gate_descriptor});' if gate_descriptor is not None else ''
             code = ('import os;os.dup2(3,0);os.dup2(3,1);os.dup2(4,2);os.close(3);os.close(4);'
-                f'os.environ.update({environment!r});os.execv({str(executable)!r},{arguments!r})')
+                f'{gate}os.environ.update({environment!r});os.execv({str(executable)!r},{arguments!r})')
             self.call(start=scope.AuthorityProcessLaunch(executable='/usr/bin/python3',
                 arguments=['-c',code], inherited_fds=list(range(3,3+len(descriptors)))))
             children = Path(f'/proc/{self.owner.pid}/task/{self.owner.pid}/children').read_text().split()

@@ -15,6 +15,7 @@ enum FailureReason {
   FAILURE_INTERNAL = 9;
   FAILURE_DEPTH_LIMIT = 10;
   FAILURE_DESCRIPTOR_LIMIT = 11;
+  FAILURE_STORAGE_EXHAUSTED = 12;
 }
 message WorkerRequest {
   uint32 protocol_version = 1;

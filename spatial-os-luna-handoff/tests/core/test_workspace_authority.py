@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 import socket
+import struct
+import select
 import sqlite3
 import subprocess
 import time
@@ -66,25 +68,161 @@ class BrokerChannel:
 
 
 class BrokerProcess:
-    def __init__(self, fixture, state, config=None):
-        self.stream, child = socket.socketpair(); self.sequence = 0
-        self.log = (fixture.root/f'broker-{len(fixture.brokers)}.log').open('wb')
-        command = [str(BROKER), '--state-dir', str(state)]
-        if config: command += ['--authority-config', str(config)]
-        self.resources = None
-        configuration = os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
-        self.owner_log = None
-        if configuration:
-            self.owner_log = (fixture.root/f'broker-owner-{len(fixture.brokers)}.log').open('wb')
-            self.resources = ResourceBroker(BROKER, command, child, self.log, self.owner_log, configuration)
-            self.proc = self.resources.process
-            self.pid = self.resources.pid
-        else:
-            self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
-            self.pid = self.proc.pid
-        child.close()
-        self.initialize_transport(world_channel_opt_in=True)
-        fixture.brokers.append(self)
+    def __init__(self, fixture, state, config=None, *, storage_options=None):
+        self.sequence = 0
+        self.resources = self.proc = None
+        self.owner_log = self.storage_owner = self.storage_owner_log = None
+        self.storage_control = self.storage_gate_write = None
+        self.storage_unit = None
+        self.storage_cleanup_confirmed = None
+        self.channels = []
+        self.closed = False
+        self.log_path = fixture.root/f'broker-{len(fixture.brokers)}.log'
+        self.storage_cleanup_path = self.log_path.with_suffix('.storage-cleanup.log')
+        self.stream = self.log = None
+        child = owner_channel = gate_read = None
+        try:
+            self.stream, child = socket.socketpair()
+            self.log = self.log_path.open('wb')
+            command = [str(BROKER), '--state-dir', str(state)]
+            if config: command += ['--authority-config', str(config)]
+            configuration = os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+            if storage_options is not None:
+                if not configuration:
+                    raise RuntimeError('SETUP FAILURE: StorageOwner lane requires the production ResourceBroker template')
+                storage_volume, storage_launch = storage_options
+                if Path(state).resolve() != Path(storage_volume).resolve():
+                    raise RuntimeError('SETUP FAILURE: broker state root must be the provisioned StorageOwner volume')
+                self.storage_control, owner_channel = socket.socketpair()
+                for endpoint in (self.storage_control, owner_channel):
+                    endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_PASSCRED, 1)
+                gate_read, self.storage_gate_write = os.pipe()
+                command += ['--storage-fd', str(self.storage_control.fileno())]
+            if configuration:
+                self.owner_log = (fixture.root/f'broker-owner-{len(fixture.brokers)}.log').open('wb')
+                extra_fds = {'--storage-fd':self.storage_control.fileno()} if storage_options is not None else None
+                self.resources = ResourceBroker(BROKER, command, child, self.log, self.owner_log, configuration,
+                                                extra_fds=extra_fds, startup_gate_fd=gate_read)
+                self.proc = self.resources.process
+                self.pid = self.resources.pid
+            else:
+                self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
+                self.pid = self.proc.pid
+            if gate_read is not None:
+                os.close(gate_read); gate_read = None
+            child.close(); child = None
+            if storage_options is not None:
+                self.start_storage_owner(WORLD.parent/'spatial-storage-launch-probe', storage_launch, owner_channel)
+                owner_channel = None
+                if os.write(self.storage_gate_write, b'!') != 1:
+                    raise OSError('Incomplete broker startup gate write')
+                os.close(self.storage_gate_write); self.storage_gate_write = None
+            self.initialize_transport(world_channel_opt_in=True)
+            fixture.brokers.append(self)
+        except BaseException as error:
+            # Kill the gated wrapper before closing its gate. Never authorize exec on failure.
+            cleanup_errors = []
+            if self.proc is not None:
+                try: self.proc.kill()
+                except BaseException as cleanup: cleanup_errors.append(repr(cleanup))
+            try: self.close()
+            except BaseException as cleanup: cleanup_errors.append(repr(cleanup))
+            if cleanup_errors:
+                error.add_note('Partial broker cleanup: '+ '; '.join(cleanup_errors))
+            raise
+        finally:
+            for endpoint in (child, owner_channel):
+                if endpoint is not None: endpoint.close()
+            if gate_read is not None: os.close(gate_read)
+            if self.storage_gate_write is not None:
+                os.close(self.storage_gate_write); self.storage_gate_write = None
+
+    def start_storage_owner(self, probe, launch_config, owner_channel):
+        try:
+            pidfd = os.pidfd_open(self.pid)
+            try:
+                self.storage_owner_log = (self.log_path.parent/f'broker-storage-owner-{self.pid}.log').open('wb')
+                self.storage_owner = subprocess.Popen([str(probe), str(launch_config),
+                    str(owner_channel.fileno()), str(pidfd)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                    stderr=self.storage_owner_log, pass_fds=(owner_channel.fileno(),pidfd), bufsize=0)
+            finally:
+                os.close(pidfd)
+        finally:
+            owner_channel.close()
+        self.storage_exchange(1, False)
+
+    def storage_exchange(self, request_id, stop):
+        import storage_pb2 as storage
+        request=storage.StorageLaunchControl(protocol_version=1,request_id=request_id)
+        if stop: request.stop=True
+        payload=request.SerializeToString()
+        self.storage_owner.stdin.write(struct.pack('!I',len(payload))+payload); self.storage_owner.stdin.flush()
+        deadline=time.monotonic()+12
+        def exact(count):
+            data=b''
+            while len(data)<count:
+                remain=deadline-time.monotonic()
+                if remain<=0 or not select.select([self.storage_owner.stdout],[],[],remain)[0]:
+                    raise TimeoutError('StorageOwner response timed out')
+                chunk=os.read(self.storage_owner.stdout.fileno(),count-len(data))
+                if not chunk: raise EOFError('StorageOwner probe closed its response pipe')
+                data+=chunk
+            return data
+        size=struct.unpack('!I',exact(4))[0]
+        if not 0<size<=1024*1024: raise AssertionError('Invalid StorageOwner response frame')
+        reply=storage.StorageLaunchResult.FromString(exact(size))
+        if reply.unit: self.storage_unit = reply.unit
+        if reply.HasField('startup_cleanup_confirmed'):
+            self.storage_cleanup_confirmed = reply.startup_cleanup_confirmed
+        if reply.protocol_version!=1 or reply.request_id!=request_id:
+            raise AssertionError(f'StorageOwner response identity mismatch: {reply}')
+        if stop and not reply.stopped: raise AssertionError(f'StorageOwner stop failed: {reply}')
+        if not stop and not reply.running: raise AssertionError(f'StorageOwner start failed: {reply}')
+
+    def stop_storage_owner(self):
+        owner = self.storage_owner
+        errors = []
+        def attempt(action):
+            try: return action()
+            except BaseException as error: errors.append(error)
+        if owner is not None:
+            try:
+                self.storage_exchange(2, True)
+                self.storage_cleanup_confirmed = True
+                owner.stdin.close()
+                if owner.wait(timeout=20) != 0:
+                    raise AssertionError('StorageOwner probe failed to exit')
+            except BaseException as error:
+                errors.append(error)
+            # EOF asks the probe destructor to stop its exact service after a bad reply.
+            if owner.stdin is not None: attempt(owner.stdin.close)
+            if owner.poll() is None:
+                try: owner.wait(timeout=12)
+                except subprocess.TimeoutExpired:
+                    attempt(owner.terminate)
+                    try: owner.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        attempt(owner.kill)
+                        attempt(lambda: owner.wait(timeout=3))
+                    except BaseException as error: errors.append(error)
+                except BaseException as error: errors.append(error)
+            if owner.stdout is not None: attempt(owner.stdout.close)
+            self.storage_owner = None
+        if self.storage_control is not None: attempt(self.storage_control.close)
+        if self.storage_owner_log is not None: attempt(self.storage_owner_log.close)
+        if errors:
+            evidence = ('unit='+str(self.storage_unit)+'\nchecked_cleanup_confirmed='+
+                        str(self.storage_cleanup_confirmed)+'\nerrors='+repr([str(e) for e in errors])+'\n')
+            log_name = getattr(self.storage_owner_log, 'name', None)
+            if isinstance(log_name, (str, bytes, os.PathLike)):
+                try:
+                    with open(log_name, 'rb') as diagnostics:
+                        evidence += 'owner_diagnostics=' + diagnostics.read(65536).decode('utf-8', errors='replace') + '\n'
+                except OSError as error: errors.append(error)
+            attempt(lambda: self.storage_cleanup_path.write_text(evidence))
+            errors[0].add_note(evidence)
+            for error in errors[1:]: errors[0].add_note('Additional storage cleanup error: '+repr(error))
+            raise errors[0]
 
     def initialize_transport(self, *, world_channel_opt_in):
         self.io_lock = threading.RLock()
@@ -132,21 +270,30 @@ class BrokerProcess:
             return self.exchange(request)
 
     def close(self):
-        if self.stream.fileno()<0:return
-        for channel in tuple(self.channels): channel.close()
-        if self.resources:
-            try:
-                self.stream.shutdown(socket.SHUT_WR)
-                self.resources.close()
-            finally:
-                self.stream.close(); self.log.close(); self.owner_log.close()
-            return
-        if self.proc.poll() is None:
-            try:self.stream.shutdown(socket.SHUT_WR)
-            except OSError:pass
+        if self.closed: return
+        errors = []
+        def attempt(action):
+            try: action()
+            except BaseException as error: errors.append(error)
+        for channel in tuple(self.channels): attempt(channel.close)
+        if self.stream is not None:
+            try: self.stream.shutdown(socket.SHUT_WR)
+            except OSError: pass
+        if self.resources is not None:
+            attempt(self.resources.close)
+        elif self.proc is not None and self.proc.poll() is None:
             try: self.proc.wait(timeout=5)
-            except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3); raise
-        self.stream.close();self.log.close()
+            except subprocess.TimeoutExpired:
+                attempt(self.proc.kill)
+                attempt(lambda: self.proc.wait(timeout=3))
+                errors.append(TimeoutError('Broker did not exit after channel closure'))
+        attempt(self.stop_storage_owner)
+        for stream in (self.stream, self.log, self.owner_log):
+            if stream is not None: attempt(stream.close)
+        self.closed = True
+        if errors:
+            for error in errors[1:]: errors[0].add_note('Additional cleanup error: '+repr(error))
+            raise errors[0]
 
 
 class BrokerTransportCompatibilityTests(unittest.TestCase):
@@ -211,8 +358,12 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             scope=grant.Scope(domain=grant.Domain(kind=grant.WORKSPACE, id='one'), components=components),
             rights=rights, delegable_rights=rights if delegable is None and depth else delegable or (), delegation_depth=depth)
 
+    def make_broker(self, state, config=None):
+        factory = getattr(self, 'broker_factory', BrokerProcess)
+        return factory(self, state, config)
+
     def workspace(self, policy=POLICY, roots=None, issuer_port=None, registry=False, legacy=False, pair=False, attach_world=True):
-        self.execution = getattr(self,'execution_override',self.root/'execution'); first = BrokerProcess(self, self.execution)
+        self.execution = getattr(self,'execution_override',self.root/'execution'); first = self.make_broker(self.execution)
         repository = GitRepo(self.root)
         first.call('git.repo.import', id='repo-one', path=str(repository.path))
         work = first.call('git.worktree.create', repo='repo-one', id='tree-one', branch='branch-one', start='main', operation_id='tree')
@@ -267,7 +418,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
         self.authority_config = path
-        self.broker = BrokerProcess(self, self.execution) if legacy else BrokerProcess(self, self.execution, path)
+        self.broker = self.make_broker(self.execution) if legacy else self.make_broker(self.execution, path)
         if not attach_world:return None
         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
         world.management('workspace.available', id='one', available=True)
@@ -541,7 +692,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         world.close()
         self.assertEqual(world.proc.returncode, 0, 'worldd must close before its broker restarts')
         self.broker.close()
-        self.broker = BrokerProcess(self, self.execution, self.authority_config)
+        self.broker = self.make_broker(self.execution, self.authority_config)
         restarted = self.broker.request(authorization_fence=request).authorization_fence
         self.assertNotEqual(restarted.incarnation, first.incarnation)
         self.assertGreater(restarted.epoch, 0)
@@ -872,7 +1023,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertTrue(self.authenticate_second(peer).HasField('opened')); self.select(peer)
         process = self.launch_process(peer,"from pathlib import Path\nPath('durable').write_text('saved')")
         self.wait_job(world,process); world.close(); self.broker.close()
-        self.broker = BrokerProcess(self,self.execution,self.root/'workspace-policy.textproto')
+        self.broker = self.make_broker(self.execution,self.root/'workspace-policy.textproto')
         restarted = WorldProcess(self,world.config_path,world.state_path,runtime_config=world.runtime_path,broker=self.broker)
         self.worlds.append(restarted); restarted.management('system.hello'); peer = restarted.peers[0]
         self.assertTrue(self.authenticate_second(peer).HasField('opened'))
