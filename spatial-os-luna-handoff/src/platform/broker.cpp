@@ -279,7 +279,7 @@ void BrokerClient::pump() {
                     throw std::runtime_error("Unexpected broker reply identity");
                 response_ = std::move(reply);
             }
-            if (++frames == 64) return;
+            if (response_ || ++frames == 64) return;
         }
         if (received >= 262144) return;
         std::array<char,65536> bytes{};
@@ -503,7 +503,52 @@ workspace::v1::FileActionReply BrokerClient::file_action(const workspace::v1::Fi
     }
     if (outer.has_file_action()) {
         auto* received = outer.mutable_file_action();
-        if (received->protocol_version() == 1 && received->operation_id() == command.operation_id()) {
+        bool valid_outcome = false;
+        switch (command.action_case()) {
+        case workspace::v1::FileActionRequest::kBrowse:
+            valid_outcome = received->has_directory(); break;
+        case workspace::v1::FileActionRequest::kRead:
+            valid_outcome = received->has_content(); break;
+        case workspace::v1::FileActionRequest::kCreate:
+        case workspace::v1::FileActionRequest::kEdit:
+        case workspace::v1::FileActionRequest::kRename:
+        case workspace::v1::FileActionRequest::kMove:
+        case workspace::v1::FileActionRequest::kRestore:
+        case workspace::v1::FileActionRequest::kPermanentDelete:
+            valid_outcome = received->has_object(); break;
+        case workspace::v1::FileActionRequest::kTrash:
+            valid_outcome = received->has_trash(); break;
+        case workspace::v1::FileActionRequest::kCopyJob:
+            valid_outcome = received->has_copy_job(); break;
+        case workspace::v1::FileActionRequest::kTrashInspect:
+            valid_outcome = received->has_trash_entry(); break;
+        case workspace::v1::FileActionRequest::ACTION_NOT_SET:
+            break;
+        }
+        if (received->has_error()) {
+            bool known_code = false;
+            switch (received->error().code()) {
+            case workspace::v1::FileActionError::INVALID_ARGUMENT:
+            case workspace::v1::FileActionError::UNAUTHORIZED:
+            case workspace::v1::FileActionError::NOT_FOUND:
+            case workspace::v1::FileActionError::CONFLICT:
+            case workspace::v1::FileActionError::EXHAUSTED:
+            case workspace::v1::FileActionError::UNAVAILABLE:
+            case workspace::v1::FileActionError::UNCERTAIN:
+            case workspace::v1::FileActionError::STALE_HANDLE:
+            case workspace::v1::FileActionError::UNIMPLEMENTED:
+                known_code = true; break;
+            case workspace::v1::FileActionError::CODE_UNSPECIFIED:
+            default:
+                break;
+            }
+            const bool recovery_valid = received->error().code() == workspace::v1::FileActionError::UNCERTAIN
+                ? received->error().recovery_operation_id() == command.operation_id()
+                : received->error().recovery_operation_id().empty();
+            valid_outcome = known_code && recovery_valid;
+        }
+        if (received->protocol_version() == 1 && received->operation_id() == command.operation_id() &&
+            valid_outcome && received->outcome_case() != workspace::v1::FileActionReply::OUTCOME_NOT_SET) {
             workspace::v1::FileActionReply result;
             result.Swap(received);
             return result;
