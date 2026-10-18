@@ -147,6 +147,18 @@ If a push fails, preserve the local commit and report the failure. Do not recrea
 On a rejected push, fetch and inspect divergence. Do not overwrite the other worker's history.
 GitHub publication remains a separate authorization decision.
 
+## Frozen payload publication and recovery
+
+A cross-parent directory rename can require write permission on both parents and the moved directory. The moved directory may need permission to update `..`. A frozen payload root may lack that permission.
+
+Prefer publishing a writable private enclosing directory. Move the enclosing directory, not the frozen payload root. If that is not possible, pin the exact owned moved directory with a file descriptor. Temporarily grant owner write permission to that directory. Restore its original mode in `finally`. Preserve all frozen payload modes.
+
+After publication, verify the pinned inode at its final name. Compare the complete final inventory with the expected inventory. Recompute report paths after every rename. Hash and inspect the final path, not a stale staging path.
+
+If a command fails after a publication side effect, inspect the final destination before retrying. Verify its inode, hash, and complete inventory. Reconcile completed publication and preserve the earlier failure evidence. Do not blindly rerun deployment, transfer, or extraction.
+
+Use deployment and recovery scripts whose hashes and review receipts match the intended artifact. Do not reuse an older same-version draft when a newer script repairs a recorded defect.
+
 ## Primary review and integration
 
 Check source and tests against the production caller, server, and authority contract.
