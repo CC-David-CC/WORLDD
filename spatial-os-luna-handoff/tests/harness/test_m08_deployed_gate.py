@@ -229,9 +229,30 @@ class M08InventoryGateTests(unittest.TestCase):
             readonly = "30 25 8:1 / " + target + " ro,relatime - btrfs /dev/sda1 rw"
             with self.assertRaisesRegex(RuntimeError, "writable top-level Btrfs"):
                 gate.validate_storage_volume(volume, mountinfo=readonly)
-            compressed = "30 25 8:1 / " + target + " rw,compress=zstd - btrfs /dev/sda1 rw"
-            with self.assertRaisesRegex(RuntimeError, "compression disabled"):
-                gate.validate_storage_volume(volume, mountinfo=compressed)
+            for option in ("compress=zstd", "compress=lzo", "compress-force", "compress-force=no"):
+                with self.subTest(option=option):
+                    compressed = "30 25 8:1 / " + target + " rw," + option + " - btrfs /dev/sda1 rw"
+                    with self.assertRaisesRegex(RuntimeError, "compression disabled"):
+                        gate.validate_storage_volume(volume, mountinfo=compressed)
+
+    def test_storage_volume_accepts_absent_or_explicitly_disabled_compression(self):
+        with tempfile.TemporaryDirectory() as temp:
+            volume = Path(temp).resolve()
+            rootid = subprocess.CompletedProcess([], 0, stdout="5\n", stderr="")
+            devices = subprocess.CompletedProcess([], 0,
+                stdout="Label: none\n\tTotal devices 1 FS bytes used 0\n", stderr="")
+            for option in ("", "compress=no"):
+                with self.subTest(compression=option or "absent"):
+                    options = "rw,relatime" + (("," + option) if option else "")
+                    mountinfo = "30 25 8:1 / " + str(volume) + " " + options + " - btrfs /dev/sda1 rw"
+                    with patch.object(type(volume), "stat", return_value=SimpleNamespace(st_ino=256)), \
+                         patch.object(gate.subprocess, "run", side_effect=[rootid, devices]) as run:
+                        gate.validate_storage_volume(volume, mountinfo=mountinfo)
+                    self.assertEqual(run.call_count, 2)
+                    self.assertEqual(run.call_args_list[0].args[0][:3],
+                                     ["btrfs", "inspect-internal", "rootid"])
+                    self.assertEqual(run.call_args_list[1].args[0][:3],
+                                     ["btrfs", "filesystem", "show"])
 
     def test_storage_lane_prerequisite_failure_never_launches_gate(self):
         deployment = self.deployment(self.inventory())

@@ -102,7 +102,7 @@ def validate_storage_volume(volume_path, mountinfo=None):
             break
     if found is None or found[0] != "/" or found[1] != "btrfs" or "rw" not in found[2] or "ro" in found[2]:
         raise RuntimeError("M08 StorageOwner volume must be a writable top-level Btrfs mount")
-    if any(option.startswith(("compress", "compress-force")) for option in found[2]):
+    if any(option.startswith("compress") and option != "compress=no" for option in found[2]):
         raise RuntimeError("M08 StorageOwner Btrfs volume must have compression disabled")
     if volume_path.stat().st_ino != 256:
         raise RuntimeError("M08 StorageOwner volume root must be the top-level Btrfs inode 256")
