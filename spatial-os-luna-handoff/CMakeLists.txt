@@ -753,6 +753,9 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k actor_cabinet_gateway_)
     set_tests_properties(workspace-actor-cabinet-gateway PROPERTIES TIMEOUT 300
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
+    add_test(NAME workspace-private-test-evidence COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_private_test_evidence.py")
+    set_tests_properties(workspace-private-test-evidence PROPERTIES TIMEOUT 30)
     add_custom_target(workspace-actor-cabinet-gateway-fixture
         COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-actor-cabinet-gateway"
             "${Python3_EXECUTABLE}" -m py_compile

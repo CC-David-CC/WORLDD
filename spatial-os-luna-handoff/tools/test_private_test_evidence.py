@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Focused path and permissions checks for private test evidence setup."""
 from pathlib import Path
+import os
+import shutil
+import stat
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -31,20 +36,56 @@ class PrivateEvidenceSetupTests(unittest.TestCase):
             base = Path(temp)
             package = base / 'bundle'
             (package / 'source' / 'tools').mkdir(parents=True)
-            (package / 'PACKAGE_MANIFEST.SHA256SUMS').write_text('manifest')
+            (package / 'PACKAGE_MANIFEST.sha256').write_text('manifest')
             evidence_root = base / 'external-evidence'
             leaf = create_private_evidence(evidence_root, script=package / 'source/tools/wrapper.py', cwd=package)
             self.assertTrue(leaf.is_relative_to(evidence_root))
-            self.assertEqual(leaf.stat().st_mode & 0o777, 0o700)
+            self.assertEqual(stat.S_IMODE(leaf.stat().st_mode), 0o700)
 
-    def test_frozen_bundle_root_is_rejected(self):
+    def test_current_frozen_bundle_marker_rejects_inside_root(self):
         with tempfile.TemporaryDirectory() as temp:
             package = Path(temp) / 'bundle'
             (package / 'builds' / 'debug').mkdir(parents=True)
-            (package / 'PACKAGE_MANIFEST.SHA256SUMS').write_text('manifest')
+            (package / 'PACKAGE_MANIFEST.sha256').write_text('manifest')
             with self.assertRaisesRegex(RuntimeError, 'inside frozen package'):
                 create_private_evidence(package / 'builds/debug/evidence',
                                         script=package / 'source/tools/wrapper.py', cwd=package)
+
+    def test_legacy_frozen_bundle_marker_rejects_inside_root(self):
+        with tempfile.TemporaryDirectory() as temp:
+            package = Path(temp) / 'bundle'
+            (package / 'builds' / 'debug').mkdir(parents=True)
+            (package / 'PACKAGE_MANIFEST.SHA256SUMS').write_text('legacy manifest')
+            with self.assertRaisesRegex(RuntimeError, 'inside frozen package'):
+                create_private_evidence(package / 'builds/debug/evidence',
+                                        script=package / 'source/tools/wrapper.py', cwd=package)
+
+    def test_wrapper_passes_private_external_root_to_child(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            package = base / 'bundle'
+            tools = package / 'source' / 'tools'
+            tools.mkdir(parents=True)
+            (package / 'PACKAGE_MANIFEST.sha256').write_text('manifest')
+            wrapper = tools / 'with_private_test_evidence.py'
+            shutil.copy2(Path(__file__).with_name('with_private_test_evidence.py'), wrapper)
+            evidence_root = base / 'external-evidence'
+            child = (
+                'import os, stat; from pathlib import Path; '
+                'p = Path(os.environ["SPATIAL_SECURITY_EVIDENCE"]); '
+                'print(p); '
+                'assert p.is_relative_to(Path(' + repr(str(evidence_root)) + ')); '
+                'assert stat.S_IMODE(p.stat().st_mode) == 0o700'
+            )
+            result = subprocess.run(
+                [sys.executable, str(wrapper), '--root', str(evidence_root), '--', sys.executable, '-c', child],
+                cwd=package, text=True, capture_output=True, check=False,
+                env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'},
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            passed_path = Path(result.stdout.strip())
+            self.assertTrue(passed_path.is_relative_to(evidence_root.resolve()))
+            self.assertEqual(stat.S_IMODE(passed_path.stat().st_mode), 0o700)
 
 
 if __name__ == '__main__':
