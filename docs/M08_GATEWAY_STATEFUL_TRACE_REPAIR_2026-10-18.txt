@@ -1,0 +1,92 @@
+M08 gateway stateful trace repair, 2026-10-18
+Status: UNQUALIFIED source-only fixture repair. Native runtime UNRUN.
+
+Host: middle-child.
+Branch: m08/gateway-stateful-trace-repair-20261018
+Checkout: /home/dflanag3/src/m08-gateway-stateful-trace-repair-20261018
+Base: a958cd721e0a129856eef7f2f633d25b19462dcb
+No commits, pushes, native sessions, builds, or locked-test changes.
+Free space before checkout: 92 GiB. Expected tracked source: about 11 MB.
+
+Inputs and ownership
+
+Copied only four frozen fixture/document inputs from the diagnosis checkout.
+Their source path and SHA256 values are in external input-manifest.json.
+The initial tracked patch and exact four input files remain externally preserved.
+The diagnosis checkout still matches all four original hashes after this repair.
+Owned changes: tests/core/gateway_trace.py, test_actor_cabinet_gateway.py,
+test_actor_cabinet_gateway_instrumentation.py, and this new repair note.
+The three test paths are under spatial-os-luna-handoff/.
+The copied diagnosis document remains an unchanged historical input.
+This note supersedes its claim that instrumentation-08 resolved missing-CREATE coverage.
+No production behavior or empty-cabinet contract changed.
+
+Result
+
+FinalWindowBrokerTrace.exchange now owns final-window request/reply state transitions.
+The actual live hook and host-independent protobuf controls call that same method.
+It rejects unexpected requests before forwarding them to the broker callback.
+It validates reply oneofs, allow/deny results, workspace identity and revision,
+registered worktree, principal, and authority incarnation/epoch before advancing.
+It reaches final_fence_reached only after the complete validated request sequence.
+
+The source mapping is actors.cpp:108-140, 765-784, 1188-1192, 1284, 1298, and 1307.
+Projection first probes WORKSPACE_ACCESS, resolves its binding, denies BROWSE/READ,
+allows CREATE, and confirms its binding. Two rendered WORKSPACE_ACCESS checks and
+the observation fence follow. The separate final binding/CREATE/confirmation/fence
+must still occur. The projection CREATE/fence cannot set the final barrier state.
+The live hook holds only the last fence. Existing bounded release waits remain.
+Normal broker exchange is restored after the selected action returns, before inspect.
+
+R1 stays intact: every attempted file_action is counted before identity/phase filtering.
+The authorized binding control requires exactly one dispatch and real file contents.
+The mismatched binding case requires zero attempts, STALE_TARGET, and no created file.
+R2 stays intact: post-fence gateway traffic is rejected until the action returns.
+The final-window hook checks exchange_errors again after the actor worker joins.
+The real effect, durable operation, real revocation, UNCERTAIN, original operation ID,
+and no-object assertions remain. Cleanup still releases waits and joins both workers.
+
+Controls and evidence
+
+Selected checks were recorded externally before execution.
+The new controls build raw broker protobuf request/reply transcripts independently
+from the recognizer's event labels. They exercise the same exchange method as live use.
+They prove full projection CREATE/fence cannot activate the final barrier, removal
+of final CREATE rejects the next real binding request, and a valid transcript reaches
+that state exactly once. Other controls cover EDIT, wrong principal/workspace/scope,
+premature/duplicate fences and checks, changed replies/bindings, and dispatch counting.
+An AST control verifies live-hook use of the shared exchange and final-barrier state.
+
+Canonical static-01 passed 13 tests before normal-hook restoration was moved earlier.
+Canonical static-02 passed 13 tests but is superseded by static-03.
+Primary then found an inherited Python protobuf create() accessor in the binding control.
+Shared require_create_payload now reads the message property correctly in both hooks.
+A real protobuf extraction smoke verifies that helper and checks binding-hook use.
+All three changed Python files were audited for callable protobuf field accessors.
+Canonical static-03 passed all 14 controls on final fixture bytes.
+Its command.exit and wrapper.exit are 0. terminal-status.txt is COMPLETE.
+All three tmux panes are dead with status 0. Their runner processes retired.
+AST parsing, control-byte checks, and git diff --check passed.
+An additional AST comparison proves exactly the two authorized scenario methods differ
+from base. Every other scenario method, including root-empty browse, matches base.
+
+Exact canonical command and logs are in:
+/home/dflanag3/spatial-artifacts/m08-gateway-stateful-trace-repair-20261018/static-03
+The command uses the installed spatial-worker-coordination/scripts/run-command.sh.
+Its argv receipt names the external validate.py and existing generated protobuf directory.
+No bytecode was written into source. Source hashes are in output-manifest.json.
+Static tests establish fixture instrumentation behavior only.
+
+Passed: 14 static controls, syntax/control-byte/diff checks, unchanged-method AST check.
+Failed: none in either static run.
+Blocked: none within this bounded source-repair assignment.
+UNRUN: both native gateway cases on both hosts; all full M08 and crash qualification.
+Pending: root-empty production solution, held separately from this repair.
+
+Next safe task
+
+Primary reviews the three final Python files and their diff against frozen inputs.
+Freeze the reviewed overlay hashes before running the exact two Debug scenarios on
+sb16 and sb16-2 with the existing frozen binary package and required helper closure.
+Preserve the original three-failure evidence. Do not count static passes as native passes.
+Run the repository data guard before any future checkpoint. No checkpoint was made here.
