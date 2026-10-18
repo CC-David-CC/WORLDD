@@ -83,6 +83,11 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
         self.audit_path=None
         self.partial_ready=False
         self._construction_sockets=[]
+        self.delegation_parent=None
+        self.delegation_parent_root=None
+        self.delegation_parent_identity=None
+        self.bootstrap_delegation=(config is None and
+            getattr(getattr(fixture,'lostack_supervisors',None),'fixture_version',None)==2)
         try:self._construct(fixture,state,config)
         except BaseException as error:
             cleanup_succeeded=False
@@ -94,6 +99,15 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
             raise
 
     def _construct(self,fixture,state,config):
+        # Some constructor-failure regressions call this method directly on an
+        # object created with __new__. Keep its lifetime state identical to
+        # the normal constructor before any setup side effects begin.
+        if not hasattr(self,'delegation_parent'):self.delegation_parent=None
+        if not hasattr(self,'delegation_parent_root'):self.delegation_parent_root=None
+        if not hasattr(self,'delegation_parent_identity'):self.delegation_parent_identity=None
+        if not hasattr(self,'bootstrap_delegation'):
+            self.bootstrap_delegation=(config is None and
+                getattr(getattr(fixture,'lostack_supervisors',None),'fixture_version',None)==2)
         self.stream,child=socket.socketpair()
         self._construction_sockets.extend((self.stream,child))
         self.log=(fixture.root/f'copy-fault-broker-{len(fixture.brokers)}.log').open('wb')
@@ -104,6 +118,18 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
         for end in (owner_end,broker_end):end.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
         supervised=config is not None and (fixture.copy_fault_mode=='drop-publication-ack' or hasattr(fixture,'lostack_supervisors'))
         self.partial_ready=False
+        context_owner=None
+        if hasattr(fixture,'lostack_supervisors'):
+            context_owner=fixture.lostack_supervisors
+            if context_owner.fixture_version==2:
+                participant=None
+                if config is not None:
+                    authority_config=engine.broker.WorkspaceAuthorityConfig()
+                    engine.text_format.Parse(Path(config).read_text(),authority_config)
+                    runtime=authority.AuthorityParticipantRuntimeConfig()
+                    engine.text_format.Parse(Path(authority_config.participant_runtime_config).read_text(),runtime)
+                    participant=runtime.participant_id
+                self.delegation_parent=context_owner.retain_execution_parent(state,participant)
         if supervised:
             # The broker waits for its root storage peer before sending bootstrap.
             # Install the owner policy, then start its relay before the wrapper waits for its initial view.
@@ -140,6 +166,15 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
         command=[str(engine.fixtures.BROKER),'--state-dir',str(state),'--storage-fd',str(broker_end.fileno())]
         if config:command+=['--authority-config',str(config)]
         configuration=str(fixture.copy_resource_config)
+        if self.delegation_parent is not None:
+            bound=engine.broker.BrokerProcessConfig()
+            engine.text_format.Parse(Path(configuration).read_text(),bound)
+            fixture.assertEqual(bound.resources.delegated_cgroup,'',
+                'Resource policy template must remain unbound before broker-owned scope sealing')
+            bound.delegated_cgroup=str(self.delegation_parent['path'])
+            local=fixture.root/f'copy-resources-{len(fixture.brokers)}.textproto'
+            local.write_text(engine.text_format.MessageToString(bound));local.chmod(0o600)
+            configuration=str(local)
         if supervised:
             # Both authority generations must have real crash ownership before the lost-ACK fault.
             sys.path.insert(0,str(engine.SOURCE/'tests/native'))
@@ -150,6 +185,12 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
             self.resources=engine.ResourceBroker(engine.fixtures.BROKER,command,child,self.log,self.owner_log,configuration,
                                                  extra_fds={'--storage-fd':broker_end.fileno()})
         self.proc=self.resources.process;self.pid=self.resources.pid
+        if self.delegation_parent is not None:
+            self.delegation_parent_root=Path(self.resources.root)
+            self.delegation_parent_identity=context_owner.delegation.verify_pinned_directory(
+                self.delegation_parent['path'],self.delegation_parent['fd'],os.getuid())
+            fixture.assertEqual(self.delegation_parent_root.parent,self.delegation_parent['path'],
+                'Initial broker resource root is outside its retained execution parent')
         broker_end.close();child.close()
         if not supervised:
             owner_config=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
@@ -201,6 +242,27 @@ class StorageBrokerConstructorFailureTests(unittest.TestCase):
     def fixture(self,root):
         return SimpleNamespace(root=Path(root),brokers=[],
             copy_resource_config=Path(root)/'copy-resources.textproto')
+
+    def test_bootstrap_delegation_identity_binds_once_and_rejects_replacement(self):
+        sys.path.insert(0,str(engine.SOURCE/'tests/native'))
+        import supervised_delegation_parent as delegation
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);state=root/'execution';state.mkdir()
+            bootstrap,canonical=delegation.execution_identity(state)
+            participant=b'participant-one'
+            bound,checked=delegation.execution_key(state,participant)
+            self.assertEqual(bound[:2],bootstrap)
+            self.assertEqual(checked,canonical)
+            parent={'participant_id':None}
+            delegation.bind_participant(parent,participant)
+            delegation.bind_participant(parent,participant)
+            with self.assertRaisesRegex(ValueError,'another participant'):
+                delegation.bind_participant(parent,b'foreign-participant')
+            moved=root/'retained-execution';state.rename(moved);state.mkdir()
+            replacement,_=delegation.execution_identity(state)
+            self.assertNotEqual(replacement,bootstrap,
+                'A replacement execution inode must not reuse the bootstrap delegation identity')
+            self.assertNotEqual((*replacement,participant),bound)
 
     def test_resourcebroker_startup_fault_preserves_error_and_closes_partial_fixture(self):
         with tempfile.TemporaryDirectory() as temporary:

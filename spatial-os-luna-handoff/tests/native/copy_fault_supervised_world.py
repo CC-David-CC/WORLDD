@@ -64,6 +64,47 @@ class LostAckSupervisors:
         self.native._testMethodName=fixture._testMethodName
         self.native.setUp();self.native.start()
 
+    def retain_execution_parent(self,state_dir,participant_id=None):
+        fixture=self.fixture
+        if self.fixture_version!=2 or self.delegation is None:
+            raise RuntimeError('SETUP FAILURE: stable execution delegation requires fixture version 2')
+        identity,canonical_state=self.delegation.execution_identity(state_dir)
+        root=Path(os.environ['SPATIAL_TEST_CGROUP_ROOT']).resolve(strict=True)
+        path=root/('lostack-'+hashlib.sha256((str(identity[0])+':'+str(identity[1])).encode()).hexdigest()[:24])
+        parent=self.delegation_parents.get(identity)
+        if parent is None:
+            if path.exists():raise AssertionError('unowned stable delegation parent already exists')
+            path.mkdir()
+            try:
+                descriptor=os.open(path,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
+            except BaseException as error:
+                try:path.rmdir()
+                except BaseException as cleanup:error.add_note('Delegation directory cleanup also failed: '+repr(cleanup))
+                raise
+            parent=dict(path=path,fd=descriptor,uid=os.getuid(),key=identity,
+                state_dir=str(canonical_state),participant_id=None)
+            self.delegation_parents[identity]=parent
+            required={'cpu','memory','pids','io'}
+            available=set((path/'cgroup.controllers').read_text().split())
+            subtree=path/'cgroup.subtree_control'
+            before=set(subtree.read_text().split())
+            if before:
+                raise AssertionError('New stable execution parent must start unconfigured: '+repr(sorted(before)))
+            if not required.issubset(available):
+                raise AssertionError('Stable execution parent lacks required controllers: '+repr(sorted(required-available)))
+            subtree.write_text('+cpu +memory +pids +io\n')
+        else:
+            fixture.assertEqual(parent['state_dir'],str(canonical_state),
+                'Stable delegation identity resolved to a different canonical execution directory')
+            fixture.assertEqual(parent['path'],path)
+        self.delegation.verify_pinned_directory(path,parent['fd'],os.getuid())
+        if participant_id is not None:
+            key,checked_state=self.delegation.execution_key(state_dir,participant_id)
+            fixture.assertEqual(key[:2],identity)
+            fixture.assertEqual(str(checked_state),parent['state_dir'])
+            self.delegation.bind_participant(parent,participant_id)
+        return parent
+
     def activation_rows(self,participants):
         with sqlite3.connect('file:'+str(self.fixture.state/'identity.db')+'?mode=ro',uri=True,timeout=.5) as database:
             return database.execute('SELECT participant_id,generation,service_incarnation,registration,'
@@ -127,11 +168,25 @@ class LostAckSupervisors:
             finally:
                 handle.close_control()
                 handle.preserve()
+        parents_safe=True
         if self.fixture_version==2:
-            try:
-                self.delegation.cleanup_owned_parents(self.handles,self.delegation_parents)
-            except BaseException as error:
-                failures.append(type(error).__name__+': '+str(error)[:256])
+            for broker in reversed(self.fixture.brokers):
+                if getattr(broker,'delegation_parent',None) is None:continue
+                owner=getattr(broker,'owner',None)
+                if owner is None:continue
+                try:
+                    status=owner.wait(timeout=10)
+                    if status!=0:raise AssertionError('Storage owner exited '+str(status))
+                except BaseException as error:
+                    failures.append('storage owner cleanup: '+type(error).__name__+': '+str(error)[:256])
+                    parents_safe=False
+            if parents_safe:
+                try:
+                    self.delegation.cleanup_owned_parents(self.handles,self.delegation_parents)
+                except BaseException as error:
+                    failures.append(type(error).__name__+': '+str(error)[:256])
+            else:
+                failures.append('stable delegation retained because storage owner cleanup is unconfirmed')
         if self.native is not None and not self.native.doCleanups():failures.append('Owned XACE fixture cleanup failed')
         if failures:raise AssertionError('; '.join(failures))
 
@@ -199,33 +254,11 @@ class SupervisedHandle:
                 state_dir=arguments[state_index+1]
             except (ValueError,IndexError) as error:
                 raise AssertionError('supervised launch must derive its state directory from --state-dir') from error
-            key,canonical_state=owner.delegation.execution_key(state_dir,runtime.participant_id)
-            root=Path(os.environ['SPATIAL_TEST_CGROUP_ROOT']).resolve(strict=True)
-            parent_name='lostack-'+hashlib.sha256((str(key[0])+':'+str(key[1])+':').encode()+key[2]).hexdigest()[:24]
-            self.cgroup=root/parent_name
-            parent=owner.delegation_parents.get(key)
-            if parent is None:
-                if self.cgroup.exists():
-                    raise AssertionError('unowned stable delegation parent already exists')
-                self.cgroup.mkdir()
-                descriptor=os.open(self.cgroup,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
-                parent=dict(path=self.cgroup,fd=descriptor,uid=os.getuid(),key=key,state_dir=str(canonical_state))
-                owner.delegation_parents[key]=parent
-                required_controllers={'cpu','memory','pids','io'}
-                available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())
-                subtree_control=self.cgroup/'cgroup.subtree_control'
-                before_subtree_control=subtree_control.read_text().split()
-                fixture.assertEqual(before_subtree_control,[],
-                    'New supervisor delegation parent must start unconfigured; observed '+repr(before_subtree_control))
-                fixture.assertTrue(required_controllers.issubset(available_controllers),
-                    'Supervisor delegation parent lacks required controllers: expected '+repr(sorted(required_controllers))+
-                    ', observed '+repr(sorted(available_controllers)))
-                subtree_control.write_text('+cpu +memory +pids +io\n')
-            else:
-                fixture.assertEqual(parent['state_dir'],str(canonical_state),
-                    'Stable delegation key resolved to a different named state directory')
-                fixture.assertEqual(parent['path'],self.cgroup)
+            parent=owner.retain_execution_parent(state_dir,runtime.participant_id)
+            canonical_state=Path(parent['state_dir'])
+            key=(*parent['key'],runtime.participant_id)
             self.delegation_parent=parent
+            self.cgroup=parent['path']
             owner.delegation.verify_pinned_directory(self.cgroup,parent['fd'],os.getuid())
             required_controllers={'cpu','memory','pids','io'}
             available_controllers=set((self.cgroup/'cgroup.controllers').read_text().split())

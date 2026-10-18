@@ -61,6 +61,15 @@ class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
     def test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal(self):
         self.workspace(attach_world=False)
         old = self.broker
+        bootstrap=next((item for item in self.brokers if getattr(item,'bootstrap_delegation',False)),None)
+        self.assertIsNotNone(bootstrap,'Initial Git/workspace broker must retain the execution delegation parent')
+        self.assertEqual(bootstrap.delegation_parent_root.parent,old.resources.handle.cgroup,
+                         'Bootstrap and supervised authority must use one delegated parent')
+        self.assertEqual(bootstrap.delegation_parent_identity,
+            old.resources.handle.owner.delegation.verify_pinned_directory(
+                old.resources.handle.cgroup,bootstrap.delegation_parent['fd'],os.getuid()),
+            'Supervised restart must retain the pinned bootstrap parent identity')
+        self.assertEqual(bootstrap.delegation_parent['participant_id'],old.resources.handle.binding.participant_id)
         recovery = SupervisedCopyBrokerRecovery(self, old, self.authority_config)
         denial = recovery.reject_live_replacement_at_issuer(type(old))
         self.assertEqual(denial.message, 'Service already has an active generation')

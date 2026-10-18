@@ -4,9 +4,8 @@ import stat
 from pathlib import Path
 
 
-def execution_key(state_dir, participant_id):
-    if not isinstance(participant_id, bytes) or not participant_id:
-        raise ValueError('participant identity must be nonempty bytes')
+def execution_identity(state_dir):
+    """Pin a canonical execution directory before its participant is known."""
     canonical = Path(state_dir).resolve(strict=True)
     descriptor = os.open(canonical, os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
     try:
@@ -14,9 +13,27 @@ def execution_key(state_dir, participant_id):
         named = os.stat(canonical, follow_symlinks=False)
         if not stat.S_ISDIR(held.st_mode) or (held.st_dev, held.st_ino) != (named.st_dev, named.st_ino):
             raise ValueError('supervised state directory changed during identity capture')
-        return (held.st_dev, held.st_ino, participant_id), canonical
+        return (held.st_dev, held.st_ino), canonical
     finally:
         os.close(descriptor)
+
+
+def execution_key(state_dir, participant_id):
+    if not isinstance(participant_id, bytes) or not participant_id:
+        raise ValueError('participant identity must be nonempty bytes')
+    identity, canonical = execution_identity(state_dir)
+    return (*identity, participant_id), canonical
+
+
+def bind_participant(parent, participant_id):
+    if not isinstance(participant_id, bytes) or not participant_id:
+        raise ValueError('participant identity must be nonempty bytes')
+    current = parent.get('participant_id')
+    if current is None:
+        parent['participant_id'] = participant_id
+    elif current != participant_id:
+        raise ValueError('execution delegation is already bound to another participant')
+    return parent
 
 
 def verify_pinned_directory(path, descriptor, expected_uid):
