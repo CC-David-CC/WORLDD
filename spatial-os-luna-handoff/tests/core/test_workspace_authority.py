@@ -67,19 +67,24 @@ class BrokerChannel:
         if self.errors: raise self.errors[0]
 
 
+def initialize_broker_lifecycle(process, fixture, log_name):
+    # Subclasses that own their launch sequence still use BrokerProcess.close().
+    process.sequence = 0
+    process.resources = process.proc = None
+    process.owner_log = process.storage_owner = process.storage_owner_log = None
+    process.storage_control = process.storage_gate_write = None
+    process.storage_unit = None
+    process.storage_cleanup_confirmed = None
+    process.channels = []
+    process.closed = False
+    process.log_path = fixture.root/log_name
+    process.storage_cleanup_path = process.log_path.with_suffix('.storage-cleanup.log')
+    process.stream = process.log = None
+
+
 class BrokerProcess:
     def __init__(self, fixture, state, config=None, *, storage_options=None):
-        self.sequence = 0
-        self.resources = self.proc = None
-        self.owner_log = self.storage_owner = self.storage_owner_log = None
-        self.storage_control = self.storage_gate_write = None
-        self.storage_unit = None
-        self.storage_cleanup_confirmed = None
-        self.channels = []
-        self.closed = False
-        self.log_path = fixture.root/f'broker-{len(fixture.brokers)}.log'
-        self.storage_cleanup_path = self.log_path.with_suffix('.storage-cleanup.log')
-        self.stream = self.log = None
+        initialize_broker_lifecycle(self, fixture, f'broker-{len(fixture.brokers)}.log')
         child = owner_channel = gate_read = None
         try:
             self.stream, child = socket.socketpair()
@@ -290,10 +295,10 @@ class BrokerProcess:
         attempt(self.stop_storage_owner)
         for stream in (self.stream, self.log, self.owner_log):
             if stream is not None: attempt(stream.close)
-        self.closed = True
         if errors:
             for error in errors[1:]: errors[0].add_note('Additional cleanup error: '+repr(error))
             raise errors[0]
+        self.closed = True
 
 
 class BrokerTransportCompatibilityTests(unittest.TestCase):

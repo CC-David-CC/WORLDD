@@ -13,6 +13,8 @@ import socket
 import sqlite3
 import subprocess
 import sys
+import tempfile
+from types import SimpleNamespace
 import threading
 import time
 import unittest
@@ -73,20 +75,41 @@ def read_copy_terminal_before_deadline(database_path,operation_id,deadline_ns,bu
 
 class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
     def __init__(self,fixture,state,config=None):
+        engine.fixtures.initialize_broker_lifecycle(self,fixture,f'copy-fault-broker-{len(fixture.brokers)}.log')
         self.fixture=fixture
-        self.stream,child=socket.socketpair();self.sequence=0
+        self.owner=None
+        self.storage_log=None
+        self.audit_path=None
+        self.partial_ready=False
+        self._construction_sockets=[]
+        try:self._construct(fixture,state,config)
+        except BaseException as error:
+            cleanup_succeeded=False
+            try:
+                self.close()
+                cleanup_succeeded=True
+            except BaseException as cleanup:error.add_note('Partial copy-fault broker cleanup also failed: '+repr(cleanup))
+            if cleanup_succeeded:self.partial_ready=True
+            raise
+
+    def _construct(self,fixture,state,config):
+        self.stream,child=socket.socketpair()
+        self._construction_sockets.extend((self.stream,child))
         self.log=(fixture.root/f'copy-fault-broker-{len(fixture.brokers)}.log').open('wb')
         self.owner_log=(fixture.root/f'copy-fault-resource-{len(fixture.brokers)}.log').open('wb')
         self.storage_log=(fixture.root/f'copy-fault-storage-{len(fixture.brokers)}.log').open('wb')
         owner_end,broker_end=socket.socketpair()
+        self._construction_sockets.extend((owner_end,broker_end))
         for end in (owner_end,broker_end):end.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
         supervised=config is not None and (fixture.copy_fault_mode=='drop-publication-ack' or hasattr(fixture,'lostack_supervisors'))
-        self.partial_ready=not supervised
+        self.partial_ready=False
         if supervised:
             def cleanup_partial_supervised_broker():
                 if self.partial_ready:return
                 failures=[]
-                for stream in (self.stream,child,owner_end,broker_end):stream.close()
+                for endpoint in self._construction_sockets:
+                    try:endpoint.close()
+                    except BaseException as error:failures.append('Channel cleanup: '+type(error).__name__)
                 try:
                     if getattr(self,'resources',None) is not None:self.resources.close()
                 except BaseException as error:failures.append('Supervisor cleanup: '+type(error).__name__)
@@ -95,11 +118,15 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
                     try:owner.wait(timeout=10)
                     except BaseException as error:failures.append('Root owner cleanup: '+type(error).__name__)
                 for log in (self.log,self.owner_log,self.storage_log):
-                    if not log.closed:log.flush();log.close()
-                    if Path(log.name).exists():(fixture.copy_evidence/Path(log.name).name).write_bytes(Path(log.name).read_bytes())
+                    try:
+                        if not log.closed:log.flush();log.close()
+                        if Path(log.name).exists():(fixture.copy_evidence/Path(log.name).name).write_bytes(Path(log.name).read_bytes())
+                    except BaseException as error:failures.append('Log cleanup: '+type(error).__name__)
                 (fixture.copy_evidence/'lost-publication-partial-broker-cleanup.json').write_text(json.dumps(
                     dict(failures=failures,owner_exit=None if owner is None else owner.poll()),sort_keys=True,indent=2)+'\n')
                 if failures:raise AssertionError('; '.join(failures))
+                self.closed=True
+                self.partial_ready=True
             fixture.addCleanup(cleanup_partial_supervised_broker)
         command=[str(engine.fixtures.BROKER),'--state-dir',str(state),'--storage-fd',str(broker_end.fileno())]
         if config:command+=['--authority-config',str(config)]
@@ -134,21 +161,110 @@ class CopyFaultStorageBrokerProcess(engine.StorageBrokerProcess):
 
 
     def close(self):
-        try:
-            super().close()
-        finally:
-            # Keep every relay audit and service diagnostic before volume cleanup,
-            # including failed assertions and setup attempts.
-            fixture=self.fixture
-            if self.audit_path is not None:
+        errors=[]
+        try:super().close()
+        except BaseException as error:errors.append(error)
+        fixture=getattr(self,'fixture',None)
+        evidence=getattr(fixture,'copy_evidence',None)
+        if self.partial_ready and self.audit_path is not None and evidence is not None:
+            try:
                 result=subprocess.run(['sudo','-n','cat',str(self.audit_path)],capture_output=True,timeout=5)
-                if result.returncode==0:
-                    (fixture.copy_evidence/self.audit_path.name).write_bytes(result.stdout)
-            for log in (self.log,self.owner_log,self.storage_log):
+                if result.returncode==0:(evidence/self.audit_path.name).write_bytes(result.stdout)
+            except BaseException as error:errors.append(error)
+        for log in (getattr(self,'log',None),getattr(self,'owner_log',None),getattr(self,'storage_log',None)):
+            if log is None:continue
+            try:
                 if not log.closed:log.flush()
                 path=Path(log.name)
-                if path.exists():(fixture.copy_evidence/path.name).write_bytes(path.read_bytes())
+                if evidence is not None and path.exists():(evidence/path.name).write_bytes(path.read_bytes())
+            except BaseException as error:errors.append(error)
+        if errors:
+            for error in errors[1:]:errors[0].add_note('Additional copy-fault broker cleanup error: '+repr(error))
+            raise errors[0]
 
+
+
+class StorageBrokerConstructorFailureTests(unittest.TestCase):
+    def fixture(self,root):
+        return SimpleNamespace(root=Path(root),brokers=[],
+            copy_resource_config=Path(root)/'copy-resources.textproto')
+
+    def test_resourcebroker_startup_fault_preserves_error_and_closes_partial_fixture(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture=self.fixture(temporary)
+            process=engine.StorageBrokerProcess.__new__(engine.StorageBrokerProcess)
+            primary=RuntimeError('injected ResourceBroker constructor failure')
+            sockets=[]
+            socketpair=engine.socket.socketpair
+            def tracked_socketpair(*args,**kwargs):
+                pair=socketpair(*args,**kwargs);sockets.extend(pair);return pair
+            with (
+                patch.object(engine,'ResourceBroker',side_effect=primary),
+                patch.object(engine.socket,'socketpair',side_effect=tracked_socketpair),
+            ):
+                with self.assertRaises(RuntimeError) as raised:
+                    engine.StorageBrokerProcess.__init__(process,fixture,Path(temporary)/'state')
+            self.assertIs(raised.exception,primary)
+            self.assertTrue(process.closed)
+            self.assertTrue(process.stream._closed)
+            self.assertTrue(process.log.closed)
+            self.assertTrue(process.owner_log.closed)
+            self.assertEqual(fixture.brokers,[])
+            self.assertTrue(sockets)
+            self.assertTrue(all(endpoint.fileno()<0 for endpoint in sockets))
+
+    def test_copyfault_subclass_initializes_inherited_close_state_before_launch(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture=self.fixture(temporary)
+            process=CopyFaultStorageBrokerProcess.__new__(CopyFaultStorageBrokerProcess)
+            primary=RuntimeError('injected copy-fault ResourceBroker constructor failure')
+            sockets=[]
+            socketpair=engine.socket.socketpair
+            def tracked_socketpair(*args,**kwargs):
+                pair=socketpair(*args,**kwargs);sockets.extend(pair);return pair
+            with (
+                patch.object(engine,'ResourceBroker',side_effect=primary),
+                patch.object(engine.socket,'socketpair',side_effect=tracked_socketpair),
+            ):
+                with self.assertRaises(RuntimeError) as raised:
+                    CopyFaultStorageBrokerProcess.__init__(process,fixture,Path(temporary)/'state')
+            self.assertIs(raised.exception,primary)
+            self.assertTrue(process.closed)
+            self.assertTrue(process.stream._closed)
+            self.assertTrue(process.log.closed)
+            self.assertTrue(process.owner_log.closed)
+            self.assertTrue(process.storage_log.closed)
+            self.assertEqual(fixture.brokers,[])
+            self.assertTrue(sockets)
+            self.assertTrue(all(endpoint.fileno()<0 for endpoint in sockets))
+
+    def test_resourcebroker_startup_error_retains_cleanup_failure_note(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture=self.fixture(temporary)
+            process=engine.StorageBrokerProcess.__new__(engine.StorageBrokerProcess)
+            primary=RuntimeError('injected ResourceBroker constructor failure')
+            cleanup=OSError('injected partial cleanup failure')
+            sockets=[]
+            socketpair=engine.socket.socketpair
+            def tracked_socketpair(*args,**kwargs):
+                pair=socketpair(*args,**kwargs);sockets.extend(pair);return pair
+            with (
+                patch.object(engine,'ResourceBroker',side_effect=primary),
+                patch.object(engine.socket,'socketpair',side_effect=tracked_socketpair),
+                patch.object(engine.StorageBrokerProcess,'close',side_effect=cleanup),
+            ):
+                with self.assertRaises(RuntimeError) as raised:
+                    engine.StorageBrokerProcess.__init__(process,fixture,Path(temporary)/'state')
+            self.assertIs(raised.exception,primary)
+            self.assertIn(repr(cleanup),raised.exception.__notes__[0])
+            self.assertEqual(fixture.brokers,[])
+            self.assertTrue(sockets)
+            self.assertTrue(all(endpoint.fileno()<0 for endpoint in sockets))
+            stream=getattr(process,'stream',None)
+            if stream is not None and stream.fileno()>=0:stream.close()
+            for stream in (getattr(process,'log',None),getattr(process,'owner_log',None),
+                           getattr(process,'storage_log',None)):
+                if stream is not None and not stream.closed:stream.close()
 
 
 class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
@@ -1057,6 +1173,7 @@ def load_tests(loader,tests,pattern):
            'test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch')
     suite=unittest.TestSuite(WorkspaceCopyFaultTests(name) for name in names)
     assert len(suite._tests)==5
+    suite.addTests(loader.loadTestsFromTestCase(StorageBrokerConstructorFailureTests))
     return suite
 
 if __name__=='__main__':unittest.main()

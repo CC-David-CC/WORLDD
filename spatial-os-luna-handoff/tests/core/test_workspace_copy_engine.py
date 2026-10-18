@@ -37,47 +37,95 @@ SOURCE=Path(__file__).resolve().parents[2]
 
 class StorageBrokerProcess(fixtures.BrokerProcess):
     def __init__(self,fixture,state,config=None):
-        self.stream,child=socket.socketpair();self.sequence=0
-        self.log=(fixture.root/f'copy-broker-{len(fixture.brokers)}.log').open('wb')
-        self.owner_log=(fixture.root/f'copy-resource-{len(fixture.brokers)}.log').open('wb')
-        self.storage_log=(fixture.root/f'copy-storage-{len(fixture.brokers)}.log').open('wb')
-        owner_end,broker_end=socket.socketpair()
-        for end in (owner_end,broker_end):end.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
-        command=[str(fixtures.BROKER),'--state-dir',str(state),'--storage-fd',str(broker_end.fileno())]
-        if config:command+=['--authority-config',str(config)]
-        configuration=str(fixture.copy_resource_config)
-        self.resources=ResourceBroker(fixtures.BROKER,command,child,self.log,self.owner_log,configuration,
-                                      extra_fds={'--storage-fd':broker_end.fileno()})
-        self.proc=self.resources.process;self.pid=self.resources.pid
-        broker_end.close();child.close()
-        configuration=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
-        configuration.broker_pid=self.pid
-        local=fixture.root/f'owner-launch-{len(fixture.brokers)}.pb'
-        local.write_bytes(configuration.SerializeToString());local.chmod(0o600)
-        private=fixture.operator_directory/f'launch-{len(fixture.brokers)}.pb'
-        fixture.operator_run(['install','-m','600',str(local),str(private)])
-        code='import os,sys;os.dup2(0,3);os.set_inheritable(3,True);os.execv(sys.argv[1],sys.argv[1:])'
-        owner_command=[str(BUILD/'spatial-storage-owner'),'--channel-fd','3','--config',str(private)]
-        self.audit_path=None
-        if getattr(fixture,'relay_mode',None) is not None:
-            self.audit_path=fixture.operator_directory/f'relay-{len(fixture.brokers)}.json'
-            owner_command=[sys.executable,'-B',str(SOURCE/'tests/native/storage_owner_receipt_relay.py'),
-                '--channel-fd','3','--build',str(BUILD),'--config',str(private),'--audit',str(self.audit_path)]
-            if fixture.relay_mode:owner_command+=['--mutate']
-            if getattr(fixture,'relay_delay',False):owner_command+=['--delay-copy-begin']
-        self.owner=subprocess.Popen(['sudo','-n','env',
-            'ASAN_OPTIONS=detect_leaks=1:abort_on_error=1',
-            'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
-            sys.executable,'-B','-c',code,*owner_command],
-            stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
-        owner_end.close();self.initialize_transport(world_channel_opt_in=False);fixture.brokers.append(self)
-    def close(self):
-        if self.stream.fileno()<0:return
-        try:super().close()
+        fixtures.initialize_broker_lifecycle(self,fixture,f'copy-broker-{len(fixture.brokers)}.log')
+        self.fixture=fixture
+        self.owner=None
+        self.storage_log=None
+        self._construction_sockets=[]
+        child=owner_end=broker_end=None
+        try:
+            self.stream,child=socket.socketpair()
+            self._construction_sockets.extend((self.stream,child))
+            self.log=(fixture.root/f'copy-broker-{len(fixture.brokers)}.log').open('wb')
+            self.owner_log=(fixture.root/f'copy-resource-{len(fixture.brokers)}.log').open('wb')
+            self.storage_log=(fixture.root/f'copy-storage-{len(fixture.brokers)}.log').open('wb')
+            owner_end,broker_end=socket.socketpair()
+            self._construction_sockets.extend((owner_end,broker_end))
+            for end in (owner_end,broker_end):end.setsockopt(socket.SOL_SOCKET,socket.SO_PASSCRED,1)
+            command=[str(fixtures.BROKER),'--state-dir',str(state),'--storage-fd',str(broker_end.fileno())]
+            if config:command+=['--authority-config',str(config)]
+            configuration=str(fixture.copy_resource_config)
+            self.resources=ResourceBroker(fixtures.BROKER,command,child,self.log,self.owner_log,configuration,
+                                          extra_fds={'--storage-fd':broker_end.fileno()})
+            self.proc=self.resources.process;self.pid=self.resources.pid
+            broker_end.close();child.close()
+            configuration=storage.StorageOwnerConfig.FromString(fixture.owner_configuration.read_bytes())
+            configuration.broker_pid=self.pid
+            local=fixture.root/f'owner-launch-{len(fixture.brokers)}.pb'
+            local.write_bytes(configuration.SerializeToString());local.chmod(0o600)
+            private=fixture.operator_directory/f'launch-{len(fixture.brokers)}.pb'
+            fixture.operator_run(['install','-m','600',str(local),str(private)])
+            code='import os,sys;os.dup2(0,3);os.set_inheritable(3,True);os.execv(sys.argv[1],sys.argv[1:])'
+            owner_command=[str(BUILD/'spatial-storage-owner'),'--channel-fd','3','--config',str(private)]
+            self.audit_path=None
+            if getattr(fixture,'relay_mode',None) is not None:
+                self.audit_path=fixture.operator_directory/f'relay-{len(fixture.brokers)}.json'
+                owner_command=[sys.executable,'-B',str(SOURCE/'tests/native/storage_owner_receipt_relay.py'),
+                    '--channel-fd','3','--build',str(BUILD),'--config',str(private),'--audit',str(self.audit_path)]
+                if fixture.relay_mode:owner_command+=['--mutate']
+                if getattr(fixture,'relay_delay',False):owner_command+=['--delay-copy-begin']
+            self.owner=subprocess.Popen(['sudo','-n','env',
+                'ASAN_OPTIONS=detect_leaks=1:abort_on_error=1',
+                'UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
+                sys.executable,'-B','-c',code,*owner_command],
+                stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
+            owner_end.close()
+            self.initialize_transport(world_channel_opt_in=False)
+            fixture.brokers.append(self)
+        except BaseException as error:
+            cleanup_errors=[]
+            try:self.close()
+            except BaseException as cleanup:cleanup_errors.append(cleanup)
+            for endpoint in self._construction_sockets:
+                try:endpoint.close()
+                except BaseException as cleanup:cleanup_errors.append(cleanup)
+            for cleanup in cleanup_errors:
+                error.add_note('Partial storage broker cleanup also failed: '+repr(cleanup))
+            raise
         finally:
-            result=self.owner.wait(timeout=10)
-            self.storage_log.close()
-            if result!=0:raise AssertionError('Actual storage owner exited '+str(result))
+            for endpoint in (child,owner_end,broker_end):
+                if endpoint is not None:
+                    try:endpoint.close()
+                    except OSError:pass
+
+    def close(self):
+        errors=[]
+        try:super().close()
+        except BaseException as error:errors.append(error)
+        owner=getattr(self,'owner',None)
+        if owner is not None:
+            try:
+                result=owner.wait(timeout=10)
+                if result!=0:errors.append(AssertionError('Actual storage owner exited '+str(result)))
+            except BaseException as error:
+                errors.append(error)
+                if owner.poll() is None:
+                    try:owner.terminate();owner.wait(timeout=5)
+                    except BaseException as cleanup:
+                        errors.append(cleanup)
+                        if owner.poll() is None:
+                            try:owner.kill();owner.wait(timeout=3)
+                            except BaseException as final_cleanup:errors.append(final_cleanup)
+        for endpoint in getattr(self,'_construction_sockets',()):
+            try:endpoint.close()
+            except BaseException as error:errors.append(error)
+        storage_log=getattr(self,'storage_log',None)
+        if storage_log is not None and not storage_log.closed:
+            try:storage_log.close()
+            except BaseException as error:errors.append(error)
+        if errors:
+            for error in errors[1:]:errors[0].add_note('Additional storage broker cleanup error: '+repr(error))
+            raise errors[0]
 
 class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthorityTests):
     # Fixture inputs are selected before the volume and owner policy are created.
