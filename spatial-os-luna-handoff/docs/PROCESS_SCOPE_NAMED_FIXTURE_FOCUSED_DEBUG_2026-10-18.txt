@@ -1,0 +1,17 @@
+M08 ProcessScope named-scope focused Debug checks
+Date: 2026-10-18
+Status: UNQUALIFIED. Focused checks passed; this is not M08 qualification.
+
+Source parent: 507e6261c967646477f2694e5b2a91cb8c14f93c.
+The focused fixture overlay SHA-256 is 61ea0137d5f64ae04e025fcff6204e31b6ac3e82738f85ab65d45d9fa958e9e5.
+The source change enables cpu, memory, pids, and io controllers at the delegated service parent and test cgroup before invoking production ProcessScope.
+
+Focused Debug results on sb16 and sb16-2:
+- workspace-file-operation-journal-test: command.exit=0, wrapper.exit=0 on both hosts.
+- workspace-file-engine-test: command.exit=0, wrapper.exit=0 on both hosts.
+- process-scope-recovery-validation-test: command.exit=0, wrapper.exit=0 on both hosts.
+- test_process_scope_named_regression.py through with_resource_delegate.py: command.exit=0, wrapper.exit=0 on both hosts. Assertions cover live named-cgroup collision preservation, direct child liveness, drain callback, named-scope removal, owner-death recovery with a 32-byte launch identity, and owned-scope reuse.
+
+Attempt-01 named failures are preserved. They exposed missing controller setup in the original test fixture. Attempt-02 preserved a diagnostic failure showing that the nested test cgroup lacked available controllers. An sb16-2 attempt-02 launch also omitted the resource wrapper and is retained as a setup failure. The corrected attempt-03 delegated runs passed on both hosts. Full receipts and overlay manifest: /home/dflanag3/spatial-artifacts/m08-copy-scope-runtime-20261018/runtime-handoff.md and adjacent attempt directories.
+
+Sanitizer checks, broader integration suites, full M08 gate, and M08 qualification remain UNRUN. No production binary was rebuilt for this fixture-only correction.

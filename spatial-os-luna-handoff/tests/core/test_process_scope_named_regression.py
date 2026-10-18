@@ -15,9 +15,21 @@ assert ROOT.stat().st_uid==os.getuid()
 class NamedScopeRegression(unittest.TestCase):
     def test_named_collision_drains_and_owned_reuses(self):
         with tempfile.TemporaryDirectory() as temp:
-            root=ROOT/('named-scope-'+Path(temp).name)
+            delegated_root = ROOT.parent
+            required = {'cpu', 'memory', 'pids', 'io'}
+            available = set((delegated_root / 'cgroup.controllers').read_text().split())
+            missing = required - available
+            if missing:
+                raise AssertionError(f'delegated cgroup parent lacks required controllers: {sorted(missing)}')
+            (delegated_root / 'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
+            root=delegated_root/('named-scope-'+Path(temp).name)
             root.mkdir()
             try:
+                available = set((root / 'cgroup.controllers').read_text().split())
+                missing = required - available
+                if missing:
+                    raise AssertionError(f'named regression cgroup lacks required controllers: {sorted(missing)}')
+                (root / 'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
                 result=subprocess.run([str(PROBE),str(root)],capture_output=True,text=True,timeout=15)
                 self.assertEqual(result.returncode,0,result.stderr)
                 self.assertIn('named_collision_preserved=1 drain_callback=1 named_removed=1 recovery32=1 owner_exit=1 owned_reused=1',result.stdout)
