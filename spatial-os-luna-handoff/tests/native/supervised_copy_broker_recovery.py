@@ -102,6 +102,28 @@ class SupervisedCopyBrokerRecovery:
         self.fixture.assertIsNotNone(candidate.initial)
         self.fixture.assertTrue(candidate.initial.HasField('error'), candidate.initial)
         require_active_generation_denial(self.fixture, candidate.initial)
+        self.fixture.assertTrue(candidate.initial.error.HasField('cleanup_record'),
+                                'Issuer denial must include the checked cleanup record')
+        cleanup = candidate.initial.error.cleanup_record
+        self.fixture.assertEqual(cleanup, candidate.record(),
+                                 'Cleanup receipt must match the durable launch row')
+        self.fixture.assertEqual(cleanup.stage, launch.OWNED_SCOPES_STOPPED)
+        self.fixture.assertTrue(cleanup.HasField('process_stopped'), cleanup)
+        self.fixture.assertTrue(cleanup.HasField('native_stopped'), cleanup)
+        self.fixture.assertEqual(cleanup.process_stopped.identity, cleanup.process)
+        self.fixture.assertEqual(cleanup.native_stopped.identity, cleanup.native)
+        self.fixture.assertEqual(cleanup.process.launch_id, cleanup.native.launch_id)
+        scope_name = cleanup.process.scope_name
+        self.fixture.assertTrue(scope_name)
+        self.fixture.assertNotIn('/', scope_name)
+        self.fixture.assertNotIn('\\', scope_name)
+        self.fixture.assertNotIn(scope_name, ('.', '..'))
+        self.fixture.assertEqual(os.path.basename(scope_name), scope_name)
+        self.fixture.assertTrue(cleanup.process.launch_id)
+        self.fixture.assertGreater(cleanup.process.inode, 0)
+        candidate_scope = candidate.cgroup / scope_name
+        self.fixture.assertFalse(candidate_scope.exists(),
+                                 'Denied candidate ProcessScope cgroup remains present')
         self.fixture.assertEqual(owner.activation_rows([participant]), rows_before,
                                  'Rejected replacement changed issuer activation history')
         self.fixture.assertEqual(launch_journal_bytes(self.handle.journal), journal_before,

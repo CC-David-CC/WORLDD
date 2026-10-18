@@ -1,0 +1,7 @@
+# Native cleanup startup regressions
+
+The cold bootstrap case uses a real broker child and production deferred cleanup participant. A symlink in the configured state path makes the pinned descriptor resolve to a different canonical root. The supervisor must retain CLEANUP_PENDING evidence without a stop receipt. The test removes only the exact empty ProcessScope cgroup whose device and inode it recorded. Missing or changed identity preserves the cgroup and fails.
+
+The issuer-denial case starts an authentic candidate while the prior generation remains active. It checks the cleanup record against the durable launch row, verifies both stopped identities, and requires the candidate ProcessScope root to be absent. It does not retire the denied candidate in the issuer.
+
+The native cases have not run in this source-only checkpoint.

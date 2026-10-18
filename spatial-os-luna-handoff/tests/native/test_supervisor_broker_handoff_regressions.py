@@ -4,7 +4,9 @@ import os
 from pathlib import Path
 import select
 import signal
+import shutil
 import subprocess
+import time
 import unittest
 from unittest.mock import patch
 from google.protobuf import text_format
@@ -274,6 +276,125 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertFalse((self.journal / 'launch.db').exists())
         self.assertFalse((self.root / 'execution').exists())
         self.assertEqual(self.activation_rows(), [])
+
+    def cleanup_cgroups(self):
+        if getattr(self, 'preserve_cgroup_evidence', False):
+            return
+        super().cleanup_cgroups()
+
+    def test_cold_bootstrap_root_mismatch_preserves_unbound_cleanup_evidence(self):
+        self.assertTrue(os.environ.get('SPATIAL_TEST_BROKER_CONFIG'))
+        self.assertTrue(os.environ.get('SPATIAL_SECURITY_EVIDENCE'),
+                        'Cold failure evidence must be retained outside the fixture tree')
+        config = self.broker_config()
+        self.assertTrue(config.HasField('broker_resources'))
+        real_parent = self.root / 'execution-real'
+        real_parent.mkdir()
+        alias_parent = self.root / 'execution-alias'
+        alias_parent.symlink_to(real_parent, target_is_directory=True)
+        state_index = config.launch.arguments.index('--state-dir')
+        config.launch.arguments[state_index + 1] = str(alias_parent / 'execution')
+        candidate = {}
+        def exact_cleanup():
+            if candidate.get('done'):
+                return
+            scope = candidate.get('scope')
+            if scope is None:
+                self.preserve_cgroup_evidence = True
+                self._preserve_missing_cold_identity(candidate)
+                self.fail('No exact candidate cgroup identity; preserving evidence')
+            try:
+                self.assertEqual(scope.parent, self.cgroup)
+                self.assertFalse(scope.is_symlink())
+                st = scope.stat(follow_symlinks=False)
+                self.assertEqual(st.st_uid, os.getuid())
+                self.assertEqual((st.st_dev, st.st_ino), candidate['identity'])
+                self.assertEqual((scope/'cgroup.procs').read_text().split(), [])
+                self.assertEqual(self._cgroup_value(scope/'cgroup.events','populated'),'0')
+                self.assertEqual(self._cgroup_value(scope/'cgroup.stat','nr_descendants'),'0')
+                self.assertFalse(any(x.is_dir() for x in scope.iterdir()))
+                scope.rmdir()
+                candidate['scope'] = None
+                candidate['done'] = True
+            except Exception:
+                self.preserve_cgroup_evidence = True
+                raise
+        self.addCleanup(exact_cleanup)
+        candidate['started'] = True
+        proc, channel = self.supervisor_process(config)
+        reply = self.message(channel, launch.AuthorityLaunchReply)
+        candidate['reply'] = reply
+        self.assertTrue(reply.HasField('error'), reply)
+        self.assertEqual(reply.error.message,'Cleanup bootstrap descriptor names a different state root',reply)
+        self.assertFalse(reply.error.HasField('cleanup_record'),reply)
+        self.assertEqual(proc.wait(timeout=10),2)
+        record = self.read_record()
+        self.assertEqual(record.stage,launch.CLEANUP_PENDING)
+        self.assertTrue(record.HasField('process'))
+        self.assertFalse(record.HasField('process_stopped'),record)
+        self.assertFalse(record.HasField('native_stopped'),record)
+        scope_name = record.process.scope_name
+        self.assertTrue(scope_name)
+        self.assertNotIn(scope_name, ('.', '..'))
+        self.assertNotIn('/', scope_name)
+        self.assertNotIn('\\', scope_name)
+        scope = self.cgroup / scope_name
+        st = scope.stat(follow_symlinks=False)
+        journal_identity = (record.process.device, record.process.inode)
+        self.assertEqual((st.st_dev, st.st_ino), journal_identity,
+                         'Candidate cgroup path differs from the durable ProcessScope identity')
+        candidate.update(scope=scope, identity=journal_identity)
+        self.assertEqual((scope/'cgroup.procs').read_text().split(),[])
+        self.assertEqual(self._cgroup_value(scope/'cgroup.events','populated'),'0')
+        self.assertEqual(self._cgroup_value(scope/'cgroup.stat','nr_descendants'),'0')
+        self.assertFalse(any(x.is_dir() for x in scope.iterdir()))
+        try:
+            self._preserve_cold_failure(reply,record,scope,st)
+        except Exception:
+            self.preserve_cgroup_evidence = True
+            raise
+        exact_cleanup()
+
+    def _preserve_missing_cold_identity(self, candidate):
+        base = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if not base:
+            return
+        evidence = Path(base) / ('cold-bootstrap-missing-identity-' + str(time.monotonic_ns()))
+        evidence.mkdir(parents=True, mode=0o700)
+        reply = candidate.get('reply')
+        if reply is not None:
+            (evidence/'error.pb').write_bytes(reply.SerializeToString())
+        for path in self.journal.iterdir():
+            if path.is_file():
+                shutil.copyfile(path, evidence/('journal-'+path.name))
+        for path in self.root.glob('supervisor-*.log'):
+            if path.is_file():
+                shutil.copyfile(path, evidence/path.name)
+
+    @staticmethod
+    def _cgroup_value(path,key):
+        values=dict(line.split(maxsplit=1) for line in path.read_text().splitlines())
+        if key not in values: raise AssertionError(f'Missing {key} in {path}')
+        return values[key]
+
+    def _preserve_cold_failure(self,reply,record,scope,identity):
+        base=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if not base: self.fail('SPATIAL_SECURITY_EVIDENCE is required')
+        evidence=Path(base)/('cold-bootstrap-root-mismatch-'+str(time.monotonic_ns()))
+        evidence.mkdir(parents=True,mode=0o700)
+        (evidence/'error.pb').write_bytes(reply.SerializeToString())
+        (evidence/'launch-record.pb').write_bytes(record.SerializeToString())
+        details={'path':str(scope),'device':identity.st_dev,'inode':identity.st_ino,
+            'scope_name':record.process.scope_name,'process_stopped':record.HasField('process_stopped'),
+            'native_stopped':record.HasField('native_stopped'),
+            'procs':(scope/'cgroup.procs').read_text().split(),
+            'events':dict(line.split(maxsplit=1) for line in (scope/'cgroup.events').read_text().splitlines()),
+            'stat':dict(line.split(maxsplit=1) for line in (scope/'cgroup.stat').read_text().splitlines())}
+        (evidence/'cgroup.json').write_text(json.dumps(details,sort_keys=True,indent=2)+'\n')
+        for path in self.journal.iterdir():
+            if path.is_file(): shutil.copyfile(path,evidence/('journal-'+path.name))
+        for path in self.root.glob('supervisor-*.log'):
+            if path.is_file(): shutil.copyfile(path,evidence/path.name)
 
     def test_failed_broker_exec_records_checked_native_cleanup_without_activation(self):
         config = self.broker_config()
