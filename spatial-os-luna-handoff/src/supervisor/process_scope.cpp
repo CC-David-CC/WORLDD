@@ -916,6 +916,11 @@ void ProcessScope::throttle_memory(std::uint64_t bytes) {
     control(scope_, "memory.high", value);
     valid(contents(scope_, "memory.high") == value, "Memory throttle was not applied");
 }
+void ProcessScope::set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback) {
+    valid(!started_ && !stop_requested_ && !removed_ && !pre_prune_cleanup_ && bool(callback),
+          "Pre-prune cleanup requires unstarted retained scope ownership");
+    pre_prune_cleanup_ = std::move(callback);
+}
 void ProcessScope::request_stop() {
     std::exception_ptr failure;
     const auto attempt = [&failure](auto&& action) {
@@ -950,6 +955,22 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
             check(waited >= 0, "Cannot reap authority child");
             if (waited == child_) { reaped_ = true; break; }
             valid(Clock::now() < deadline, "Authority child reap deadline exceeded"); tick();
+        }
+        if (scope_ >= 0 && pre_prune_cleanup_) {
+            const auto verify = [this] {
+                struct stat held{}, named{};
+                check(fstat(scope_, &held) == 0 &&
+                      fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
+                      "Cannot inspect owned tree before pruning");
+                valid(S_ISDIR(named.st_mode) && held.st_dev == named.st_dev && held.st_ino == named.st_ino &&
+                      identity_.device() == static_cast<std::uint64_t>(held.st_dev) && identity_.inode() == held.st_ino &&
+                      !populated() && contents(scope_, "cgroup.procs").empty() && (child_ <= 0 || reaped_),
+                      "Owned drained tree identity or population changed");
+            };
+            verify();
+            const OwnedDrainedTree tree(scope_, identity_);
+            pre_prune_cleanup_(tree);
+            verify();
         }
         if (scope_ >= 0) remove_empty_children(scope_);
         if (!identity_.scope_name().empty() && !retained_scope_) {

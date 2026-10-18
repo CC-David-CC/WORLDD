@@ -33,12 +33,40 @@ struct GitWorkerParentRecord {
   std::string root_path;
   std::string identity_bytes;
 };
+class PinnedFileOperationJournal final {
+public:
+  ~PinnedFileOperationJournal();
+  PinnedFileOperationJournal(PinnedFileOperationJournal&&) noexcept;
+  PinnedFileOperationJournal& operator=(PinnedFileOperationJournal&&) noexcept;
+  PinnedFileOperationJournal(const PinnedFileOperationJournal&) = delete;
+  const workspace::v1::FileCopyCleanupJournalBinding& binding() const;
+  void verify() const;
+  int execution_directory_fd() const;
+  void verify_workspace_binding(const workspace::v1::FileCopyJobJournalRecord&) const;
+private:
+  friend class FileOperationJournal;
+  struct Impl;
+  explicit PinnedFileOperationJournal(std::shared_ptr<Impl>);
+  std::shared_ptr<Impl> impl_;
+};
 class FileOperationJournal final {
 public:
   using Observer = std::function<void()>;
   using CopyJobRecord = workspace::v1::FileCopyJobJournalRecord;
   explicit FileOperationJournal(const std::filesystem::path& state_directory);
   ~FileOperationJournal();
+  // Trusted lifecycle setup only. Neither protobuf nor a pathname mints this capability.
+  // Existing-only recovery may create bounded private hardlink aliases. It never
+  // creates a database, migrates schema, changes modes, or replaces a database.
+  static PinnedFileOperationJournal pin_existing(int execution_directory_fd);
+  // Acquire execution.lock. Never create, migrate, chmod, or replace an existing journal.
+  static std::unique_ptr<FileOperationJournal> open_existing(const PinnedFileOperationJournal&);
+  static std::string copy_job_identity_sha256(const CopyJobRecord&);
+  std::optional<workspace::v1::FileCopyScopeCleanupOutcome> scope_cleanup_outcome(
+      const std::string& workspace, const std::string& job_id, const Observer& observer);
+  // Exact old bytes are checked in the same transaction as outcome insertion and optional uncertainty.
+  void record_scope_cleanup_outcome(const CopyJobRecord& expected,
+      const workspace::v1::FileCopyScopeCleanupOutcome&, bool mark_uncertain, const Observer& observer);
   FileOperationJournal(const FileOperationJournal&) = delete;
   FileOperationJournal& operator=(const FileOperationJournal&) = delete;
   bool bind_root(const std::string& worktree, std::uint64_t device, std::uint64_t inode,
@@ -76,7 +104,10 @@ public:
       std::uint64_t older_than_unix_ms, std::size_t maximum_rows,
       const Observer& observer);
 private:
+  friend class BrokerCopyCleanupParticipant;
+  void finish_cleanup();
   struct Impl;
+  explicit FileOperationJournal(std::unique_ptr<Impl>);
   std::unique_ptr<Impl> impl_;
 };
 }  // namespace spatial
