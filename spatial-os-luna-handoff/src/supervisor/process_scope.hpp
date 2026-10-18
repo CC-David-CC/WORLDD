@@ -4,6 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 #include <sys/types.h>
 
@@ -14,6 +15,9 @@ class ProcessScope final {
 public:
     static std::unique_ptr<ProcessScope> prepare(const std::filesystem::path& delegated_root,
                                                const v1::ProcessScopeBudget* budget = nullptr);
+    // Reuses one named direct child owned by a durable broker identity.
+    static std::unique_ptr<ProcessScope> prepare_owned(const std::filesystem::path& delegated_root,
+        const std::string& scope_name);
     void start(const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams,
                const std::vector<int>& inherited = {}, bool allow_test_security_evidence = false);
     static std::unique_ptr<ProcessScope> launch(const std::filesystem::path& delegated_root,
@@ -46,6 +50,7 @@ public:
     bool diagnostic_child_reaped() const;
     v1::ProcessScopeStopped stop();
 private:
+    static std::unique_ptr<ProcessScope> prepare_impl(const std::filesystem::path&, const v1::ProcessScopeBudget*, const std::string&);
     ProcessScope() = default;
     bool populated() const;
     bool child_exited() const;
@@ -53,7 +58,7 @@ private:
     bool freeze_owned_ = false;
     std::string frozen_inventory_;
     pid_t child_ = -1;
-    bool reaped_ = false, removed_ = false, started_ = false, stop_requested_ = false;
+    bool reaped_ = false, removed_ = false, started_ = false, stop_requested_ = false, retained_scope_ = false;
     v1::ProcessScopeIdentity identity_;
 };
 }

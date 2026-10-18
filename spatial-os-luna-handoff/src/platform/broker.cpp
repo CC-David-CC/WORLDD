@@ -7,15 +7,25 @@
 #include "identity/tls_support.hpp"
 #include <google/protobuf/text_format.h>
 #include <set>
+#include <sstream>
 #include <array>
 #include <algorithm>
 #include <cerrno>
 #include <csignal>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
+#include <linux/btrfs.h>
+#include <linux/fs.h>
+#include <linux/magic.h>
 #include <poll.h>
 #include <sys/prctl.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/random.h>
 #include <sys/socket.h>
+#include <sys/statfs.h>
+#include <sys/ioctl.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -92,7 +102,155 @@ bool valid_copy_status(const workspace::copy::v1::WorkspaceCopyStatus& status,
         return false;
     return true;
 }
-}
+
+} // namespace
+class BrokerInstanceLock {
+    static std::string fresh_identity() {
+        unsigned char raw[16]; std::size_t got=0;
+        while (got < sizeof(raw)) { auto n=getrandom(raw+got,sizeof(raw)-got,0); if(n<0&&errno==EINTR)continue; if(n<=0)break; got+=static_cast<std::size_t>(n); }
+        if (got != sizeof(raw)) throw std::runtime_error("Cannot create broker identity");
+        static constexpr char hex[]="0123456789abcdef"; std::string result; result.reserve(32);
+        for (auto c:raw) {result.push_back(hex[c>>4]);result.push_back(hex[c&15]);}
+        return result;
+    }
+    static std::string encode_path(const std::string& path) {
+        static constexpr char hex[]="0123456789abcdef"; std::string result; result.reserve(path.size()*2);
+        for (unsigned char c:path) {result.push_back(hex[c>>4]);result.push_back(hex[c&15]);}
+        return result;
+    }
+    static std::string filesystem_identity(int descriptor, unsigned long long& filesystem_type) {
+        struct statfs filesystem{};
+        if (fstatfs(descriptor, &filesystem) != 0)
+            throw std::runtime_error("Cannot inspect broker state filesystem identity");
+        filesystem_type = static_cast<unsigned long long>(filesystem.f_type);
+        std::string identity;
+        if (filesystem.f_type == BTRFS_SUPER_MAGIC) {
+            btrfs_ioctl_fs_info_args info{};
+            if (ioctl(descriptor, BTRFS_IOC_FS_INFO, &info) != 0)
+                throw std::runtime_error("Cannot read Btrfs broker state filesystem identity");
+            identity.assign(reinterpret_cast<const char*>(info.fsid), BTRFS_FSID_SIZE);
+        } else {
+            identity.assign(reinterpret_cast<const char*>(&filesystem.f_fsid), sizeof(filesystem.f_fsid));
+        }
+        return encode_path(identity);
+    }
+    static std::string read_all(int fd) {
+        if (lseek(fd,0,SEEK_SET)<0) throw std::runtime_error("Cannot seek broker ownership record");
+        std::string result; char bytes[1024];
+        for (;;) {auto n=read(fd,bytes,sizeof(bytes));if(n<0&&errno==EINTR)continue;if(n<0)throw std::runtime_error("Cannot read broker ownership record");if(!n)break;result.append(bytes,static_cast<std::size_t>(n));if(result.size()>16384)throw std::invalid_argument("Broker ownership record is excessive");}
+        return result;
+    }
+    static void publish_identity(int directory, std::string& identity_value) {
+        identity_value=fresh_identity();
+        const std::string temporary=".broker-instance-id.tmp-"+identity_value;
+        identity::tls_detail::Fd staged(openat(directory,temporary.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
+        if(staged.value<0)throw std::runtime_error("Cannot stage broker identity");
+        std::size_t written=0;while(written<identity_value.size()){auto n=write(staged.value,identity_value.data()+written,identity_value.size()-written);if(n<0&&errno==EINTR)continue;if(n<=0)throw std::runtime_error("Cannot write broker identity");written+=static_cast<std::size_t>(n);}
+        if(fsync(staged.value)!=0||renameat(directory,temporary.c_str(),directory,".broker-instance-id")!=0||fsync(directory)!=0)
+            throw std::runtime_error("Cannot durably publish broker identity");
+    }
+public:
+    BrokerInstanceLock(const std::filesystem::path& state, const std::filesystem::path& delegated_parent) {
+        identity::tls_detail::Fd directory(open(state.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+        if(directory.value<0)throw std::runtime_error("Cannot open broker state directory");
+        struct stat dir_stat{};
+        if(fstat(directory.value,&dir_stat)!=0||dir_stat.st_uid!=geteuid()||(dir_stat.st_mode&0022))
+            throw std::invalid_argument("Broker state directory ownership is invalid");
+        unsigned long long filesystem_type=0;
+        const auto encoded_filesystem=filesystem_identity(directory.value,filesystem_type);
+        const auto canonical_state=std::filesystem::canonical(state).string();
+        identity::tls_detail::Fd state_lock(openat(directory.value,".broker-instance.lock",O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC,0600));
+        if(state_lock.value<0||flock(state_lock.value,LOCK_EX|LOCK_NB)!=0)
+            throw std::runtime_error("Broker state identity is already owned or lock is invalid");
+        struct stat state_lock_stat{};
+        if(fstat(state_lock.value,&state_lock_stat)!=0||!S_ISREG(state_lock_stat.st_mode)||state_lock_stat.st_uid!=geteuid()||state_lock_stat.st_nlink!=1||(state_lock_stat.st_mode&0077))
+            throw std::invalid_argument("Broker identity lock ownership is invalid");
+
+        identity::tls_detail::Fd parent(open(delegated_parent.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+        struct stat parent_stat{};
+        if(parent.value<0||fstat(parent.value,&parent_stat)!=0)throw std::runtime_error("Cannot pin delegated cgroup parent identity");
+        identity::tls_detail::Fd bootfd(open("/proc/sys/kernel/random/boot_id",O_RDONLY|O_CLOEXEC|O_NOFOLLOW));
+        if(bootfd.value<0)throw std::runtime_error("Cannot read kernel boot identity");
+        char boot_bytes[64]{};ssize_t boot_size;do{boot_size=read(bootfd.value,boot_bytes,sizeof(boot_bytes)-1);}while(boot_size<0&&errno==EINTR);
+        if(boot_size<=0)throw std::runtime_error("Cannot read kernel boot identity");
+        std::string boot(boot_bytes,static_cast<std::size_t>(boot_size));while(!boot.empty()&&(boot.back()=='\n'||boot.back()=='\r'))boot.pop_back();
+        if(boot.empty()||boot.find_first_not_of("0123456789abcdef-")!=std::string::npos)throw std::invalid_argument("Kernel boot identity is malformed");
+
+        // Keep this host-local binding across logout; boot ID permits safe rebinding after reboot.
+        identity::tls_detail::Fd host_state_root(open("/var/lib",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+        struct stat host_state_root_stat{};
+        if(host_state_root.value<0||fstat(host_state_root.value,&host_state_root_stat)!=0||host_state_root_stat.st_uid!=0||!S_ISDIR(host_state_root_stat.st_mode)||(host_state_root_stat.st_mode&0022))
+            throw std::runtime_error("Secure host-local broker state root is unavailable");
+        const auto runtime_name="spatial-broker-instances-"+std::to_string(geteuid());
+        identity::tls_detail::Fd runtime(openat(host_state_root.value,runtime_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+        struct stat runtime_subdir{};
+        if(runtime.value<0||fstat(runtime.value,&runtime_subdir)!=0||runtime_subdir.st_uid!=geteuid()||!S_ISDIR(runtime_subdir.st_mode)||(runtime_subdir.st_mode&0077))
+            throw std::runtime_error("Pre-provisioned host-local broker state directory is unavailable or invalid");
+
+        identity::tls_detail::Fd idfd(openat(directory.value,".broker-instance-id",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));
+        if(idfd.value<0&&errno==ENOENT)publish_identity(directory.value,identity_);
+        else {
+            if(idfd.value<0)throw std::runtime_error("Cannot read broker identity");
+            char buffer[33]{};auto n=read(idfd.value,buffer,sizeof(buffer));
+            if(n!=32)throw std::invalid_argument("Broker identity file is malformed");
+            identity_.assign(buffer,32);
+            if(identity_.find_first_not_of("0123456789abcdef")!=std::string::npos)throw std::invalid_argument("Broker identity file is malformed");
+        }
+        if(fsync(directory.value)!=0)throw std::runtime_error("Cannot sync broker identity directory");
+
+        for(unsigned attempt=0;attempt<2;++attempt) {
+            const std::string lock_name=identity_+".lock";
+            identity::tls_detail::Fd host_lock(openat(runtime.value,lock_name.c_str(),O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC,0600));
+            if(host_lock.value<0)throw std::runtime_error("Cannot open host-local broker identity lock");
+            struct stat host_stat{};
+            if(fstat(host_lock.value,&host_stat)!=0||!S_ISREG(host_stat.st_mode)||host_stat.st_uid!=geteuid()||host_stat.st_nlink!=1||(host_stat.st_mode&0077))
+                throw std::invalid_argument("Host-local broker identity lock is invalid");
+            const bool locked=flock(host_lock.value,LOCK_EX|LOCK_NB)==0;
+            const auto record=read_all(host_lock.value);
+            std::string record_boot, record_path, record_filesystem;
+            unsigned long long parent_dev=0,parent_ino=0,state_dev=0,state_ino=0,record_filesystem_type=0;
+            bool valid_record=false;
+            if(!record.empty()) {
+                std::istringstream input(record);
+                std::string version, encoded;
+                if(!(input>>version))throw std::invalid_argument("Host-local broker identity record is malformed");
+                if(version=="v1")
+                    throw std::invalid_argument("Host-local broker identity lacks filesystem identity; operator re-registration is required");
+                if(input>>record_boot>>parent_dev>>parent_ino>>state_dev>>state_ino>>record_filesystem_type>>record_filesystem>>encoded&&version=="v2"&&input.eof()) {
+                    record_path=encoded;valid_record=true;
+                }
+                if(!valid_record)throw std::invalid_argument("Host-local broker identity record is malformed");
+            }
+            const auto encoded_state=encode_path(canonical_state);
+            if(valid_record&&record_path!=encoded_state) {
+                if(attempt!=0)throw std::runtime_error("Copied broker identity could not be re-registered");
+                publish_identity(directory.value,identity_);continue;
+            }
+            if(valid_record&&(state_dev!=static_cast<unsigned long long>(dir_stat.st_dev)||state_ino!=static_cast<unsigned long long>(dir_stat.st_ino)))
+                throw std::invalid_argument("Broker state directory was replaced at its registered path");
+            if(valid_record&&(record_filesystem_type!=filesystem_type||record_filesystem!=encoded_filesystem))
+                throw std::invalid_argument("Broker state filesystem was replaced at its registered path");
+            if(!locked)throw std::runtime_error("Broker identity is already owned on this host");
+            if(valid_record&&record_boot==boot&&(parent_dev!=static_cast<unsigned long long>(parent_stat.st_dev)||parent_ino!=static_cast<unsigned long long>(parent_stat.st_ino)))
+                throw std::invalid_argument("Delegated cgroup parent changed within the current boot");
+            if(!valid_record||record_boot!=boot) {
+                const auto next="v2 "+boot+" "+std::to_string(parent_stat.st_dev)+" "+std::to_string(parent_stat.st_ino)+" "+std::to_string(dir_stat.st_dev)+" "+std::to_string(dir_stat.st_ino)+" "+std::to_string(filesystem_type)+" "+encoded_filesystem+" "+encoded_state;
+                if(ftruncate(host_lock.value,0)!=0||pwrite(host_lock.value,next.data(),next.size(),0)!=static_cast<ssize_t>(next.size())||fsync(host_lock.value)!=0||fsync(runtime.value)!=0)
+                    throw std::runtime_error("Cannot persist host-local broker identity binding");
+            }
+            struct stat opened{},named{};
+            identity::tls_detail::Fd verified(openat(directory.value,".broker-instance-id",O_RDONLY|O_NOFOLLOW|O_CLOEXEC));
+            if(verified.value<0||fstat(verified.value,&opened)!=0||fstatat(directory.value,".broker-instance-id",&named,AT_SYMLINK_NOFOLLOW)!=0||!S_ISREG(opened.st_mode)||opened.st_uid!=geteuid()||opened.st_nlink!=1||(opened.st_mode&0077)||opened.st_dev!=named.st_dev||opened.st_ino!=named.st_ino)
+                throw std::invalid_argument("Broker identity file ownership or link identity is invalid");
+            host_fd_=std::exchange(host_lock.value,-1);fd_=std::exchange(state_lock.value,-1);
+            scope_name_="authority-broker-"+identity_;return;
+        }
+        throw std::runtime_error("Cannot register broker state identity");
+    }
+    ~BrokerInstanceLock(){if(host_fd_>=0)close(host_fd_);if(fd_>=0)close(fd_);}
+    const std::string& scope_name()const{return scope_name_;}
+private:int fd_=-1,host_fd_=-1;std::string identity_,scope_name_;
+};
 BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults,
                              const std::filesystem::path& resource_configuration) {
     if (!resource_configuration.empty()) {
@@ -121,7 +279,9 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0)
             throw std::runtime_error("Cannot create broker channel");
         identity::tls_detail::Fd parent(pair[0]), child(pair[1]);
-        scope_ = supervisor::ProcessScope::prepare(config.delegated_cgroup());
+        std::filesystem::create_directories(state);
+        instance_lock_ = std::make_unique<BrokerInstanceLock>(state, config.delegated_cgroup());
+        scope_ = supervisor::ProcessScope::prepare_owned(config.delegated_cgroup(), instance_lock_->scope_name());
         identity::tls_detail::Fd policy(seal_resource_config(config.resources(),
             std::filesystem::path(config.delegated_cgroup()) / scope_->state().identity().scope_name()));
         supervisor::v1::AuthorityProcessLaunch request;
@@ -229,7 +389,10 @@ void BrokerClient::wait(short events) {
         pollfd fds[2]{{channel_, events, 0}, {pidfd_, POLLIN, 0}};
         const auto ready = poll(fds, 2, 10);
         if (ready < 0 && errno == EINTR) continue;
-        if (ready < 0 || fds[1].revents || (fds[0].revents & (POLLHUP | POLLERR | POLLNVAL)))
+        if (ready < 0)
+            throw std::runtime_error("Workspace authority channel closed");
+        if ((events & POLLIN) && (fds[0].revents & POLLIN)) return;
+        if (fds[1].revents || (fds[0].revents & (POLLHUP | POLLERR | POLLNVAL)))
             throw std::runtime_error("Workspace authority channel closed");
         if (fds[0].revents & events) return;
     }
@@ -279,7 +442,7 @@ void BrokerClient::pump() {
                     throw std::runtime_error("Unexpected broker reply identity");
                 response_ = std::move(reply);
             }
-            if (++frames == 64) return;
+            if (response_ || ++frames == 64) return;
         }
         if (received >= 262144) return;
         std::array<char,65536> bytes{};
@@ -503,7 +666,52 @@ workspace::v1::FileActionReply BrokerClient::file_action(const workspace::v1::Fi
     }
     if (outer.has_file_action()) {
         auto* received = outer.mutable_file_action();
-        if (received->protocol_version() == 1 && received->operation_id() == command.operation_id()) {
+        bool valid_outcome = false;
+        switch (command.action_case()) {
+        case workspace::v1::FileActionRequest::kBrowse:
+            valid_outcome = received->has_directory(); break;
+        case workspace::v1::FileActionRequest::kRead:
+            valid_outcome = received->has_content(); break;
+        case workspace::v1::FileActionRequest::kCreate:
+        case workspace::v1::FileActionRequest::kEdit:
+        case workspace::v1::FileActionRequest::kRename:
+        case workspace::v1::FileActionRequest::kMove:
+        case workspace::v1::FileActionRequest::kRestore:
+        case workspace::v1::FileActionRequest::kPermanentDelete:
+            valid_outcome = received->has_object(); break;
+        case workspace::v1::FileActionRequest::kTrash:
+            valid_outcome = received->has_trash(); break;
+        case workspace::v1::FileActionRequest::kCopyJob:
+            valid_outcome = received->has_copy_job(); break;
+        case workspace::v1::FileActionRequest::kTrashInspect:
+            valid_outcome = received->has_trash_entry(); break;
+        case workspace::v1::FileActionRequest::ACTION_NOT_SET:
+            break;
+        }
+        if (received->has_error()) {
+            bool known_code = false;
+            switch (received->error().code()) {
+            case workspace::v1::FileActionError::INVALID_ARGUMENT:
+            case workspace::v1::FileActionError::UNAUTHORIZED:
+            case workspace::v1::FileActionError::NOT_FOUND:
+            case workspace::v1::FileActionError::CONFLICT:
+            case workspace::v1::FileActionError::EXHAUSTED:
+            case workspace::v1::FileActionError::UNAVAILABLE:
+            case workspace::v1::FileActionError::UNCERTAIN:
+            case workspace::v1::FileActionError::STALE_HANDLE:
+            case workspace::v1::FileActionError::UNIMPLEMENTED:
+                known_code = true; break;
+            case workspace::v1::FileActionError::CODE_UNSPECIFIED:
+            default:
+                break;
+            }
+            const bool recovery_valid = received->error().code() == workspace::v1::FileActionError::UNCERTAIN
+                ? received->error().recovery_operation_id() == command.operation_id()
+                : received->error().recovery_operation_id().empty();
+            valid_outcome = known_code && recovery_valid;
+        }
+        if (received->protocol_version() == 1 && received->operation_id() == command.operation_id() &&
+            valid_outcome && received->outcome_case() != workspace::v1::FileActionReply::OUTCOME_NOT_SET) {
             workspace::v1::FileActionReply result;
             result.Swap(received);
             return result;

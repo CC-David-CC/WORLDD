@@ -1,0 +1,21 @@
+# M08 broker readable/HUP repair (UNQUALIFIED)
+
+Branch: m08/broker-readable-hup-fix-20261018
+Base: ca7ec67262e432a6b08b1a6a1e614bb9ac38e1b7
+
+BrokerClient::wait() now returns to its read loop when POLLIN is requested and ready. It does this before it handles POLLHUP, POLLERR, or child exit. The next pump() drains complete buffered replies. Truncated and empty streams still fail and produce UNCERTAIN after a request may have been sent.
+
+The C++ regression closes the peer immediately after a reply. It repeats the valid reply case 16 times. It also checks malformed replies, missing acknowledgments, and truncated frames.
+
+Focused validation on middle-child:
+
+- Debug configure passed.
+- Debug target broker-file-action-client-test built.
+- CTest passed: 1/1.
+- Fixed binary repeated 100 times: 100 passed, 0 failed.
+- Pre-fix binary repeated 100 times: 33 passed, 67 failed.
+- The pre-fix binary SHA256 was 0d3b4a538893fcbb1bd61f9760fa089406c19ced637d5549ca3453dc18c8e3a3. Its source commit was ab22985dbae9482216ffe41c39988bf1de6f6af7; broker and test file blobs match base ca7ec67.
+- The fixed binary SHA256 is a1b6074005f01a5e9c2c5c99198ae99f1220b8c348da6b2c7ee1ff22610fd0cd.
+- git diff --check and repository_data_guard.py passed.
+
+Logs and command receipts are under /home/dflanag3/spatial-artifacts/m08-broker-readable-hup-fix-20261018/. No test-host qualification or full M08 gate ran. This checkpoint is not milestone qualification.

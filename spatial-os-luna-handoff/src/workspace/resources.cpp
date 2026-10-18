@@ -1,4 +1,5 @@
 #include "workspace/resources.hpp"
+#include "supervisor/process_scope_controller_reset.hpp"
 #include "workspace/storage_devices.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
@@ -284,7 +285,8 @@ struct WorkspaceResources::Impl {
         // The envelope covers the manager and every nested workspace process.
         require(read_at(directory, "memory.max") == "max\n" && read_at(directory, "memory.swap.max") == "max\n" &&
                 read_at(directory, "pids.max") == "max\n" && read_at(directory, "cpu.max") == "max 100000\n" &&
-                read_at(directory, "io.max").empty(), "Broker envelope must not replace existing root limits");
+                supervisor::detail::io_limits_are_unlimited(read_at(directory, "io.max")),
+                "Broker envelope must not replace existing root limits");
         write_budget(directory, config.broker_budget());
         check(mkdirat(directory, "broker-manager", 0700) == 0, "Cannot create broker manager group"); manager_created = true;
         const int manager = openat(directory, "broker-manager", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);

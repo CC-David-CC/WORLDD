@@ -1,6 +1,7 @@
 #include "workspace/storage_owner.hpp"
 #include "workspace/copy_collections.hpp"
 #include "workspace/storage_devices.hpp"
+#include "workspace/broker_state_metadata.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
 #include <algorithm>
@@ -375,8 +376,16 @@ struct StorageOwner::Impl {
         check(lock.value >= 0 && flock(lock.value, LOCK_EX | LOCK_NB) == 0, "Storage volume already has an owner");
         if (fresh) {
             const auto pinned_path = "/proc/self/fd/" + std::to_string(root.value);
-            for (const auto& entry : std::filesystem::directory_iterator(pinned_path))
-                require(entry.path().filename() == ".storage-owner", "Fresh storage volume contains unrecognized data");
+            bool has_broker_identity = false, has_broker_lock = false;
+            for (const auto& entry : std::filesystem::directory_iterator(pinned_path)) {
+                const auto entry_name = entry.path().filename().string();
+                if (entry_name == ".storage-owner") continue;
+                require(workspace::detail::is_broker_state_metadata_name(entry_name), "Fresh storage volume contains unrecognized data");
+                if (entry_name == workspace::detail::broker_instance_id_name) has_broker_identity = true;
+                else has_broker_lock = true;
+            }
+            require(has_broker_identity == has_broker_lock, "Fresh storage volume has incomplete broker state metadata");
+            if (has_broker_identity) workspace::detail::validate_broker_state_metadata(root.value, config.broker_uid());
             btrfs_ioctl_quota_ctl_args enable{}; enable.cmd = BTRFS_QUOTA_CTL_ENABLE;
             check(ioctl(root.value, BTRFS_IOC_QUOTA_CTL, &enable) == 0, "Cannot enable volume quota accounting");
             check(ioctl(root.value, BTRFS_IOC_QUOTA_RESCAN_WAIT) == 0, "Cannot await initial quota accounting");

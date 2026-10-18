@@ -390,7 +390,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertEqual(denied.error.code, core.STALE_TARGET)
         self.assertFalse(path.exists())
 
-    def test_actor_cabinet_gateway_rejects_actor_movement_during_binding_wait(self):
+    def test_actor_cabinet_gateway_rejects_actor_movement_during_authority_wait(self):
         world = self.workspace()
         peer = world.peers[0]
         target = self.make_presentation(world, peer)
@@ -408,27 +408,28 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 
         initial_distance = distance_from_target(initial_pose)
         self.assertLess(initial_distance, 3.0, 'fixture target must start within configured interaction reach')
-        # Queue motion before the cabinet call blocks the session event loop. Do not
-        # issue another request through this SessionPeer while its worker is active.
+        # Queue motion before the cabinet request. Its first broker wait is the
+        # workspace-scoped authority check. Do not issue another request through
+        # this SessionPeer while its worker is active.
         moving = peer.act(input=core.ActorInputRequest(axes=[-1, 0, 0, 0, 0, 0]))
         self.assertTrue(moving.HasField('action'), moving)
         operation = os.urandom(16)
 
         original_exchange = self.broker.exchange
-        binding_wait_started = threading.Event()
-        release_binding = threading.Event()
-        injected = {'binding_wait': False, 'file_action': False}
+        authority_wait_started = threading.Event()
+        release_authority = threading.Event()
+        injected = {'authority_wait': False, 'file_action': False}
         result_box, worker_errors = [], []
 
-        def exchange_with_binding_barrier(request):
+        def exchange_with_authority_barrier(request):
             if request.HasField('file_action'):
                 injected['file_action'] = True
-            if (request.HasField('management') and request.management.HasField('workspace_get') and
-                    request.management.workspace_get.id == 'one' and not injected['binding_wait']):
-                injected['binding_wait'] = True
-                binding_wait_started.set()
-                if not release_binding.wait(5):
-                    raise AssertionError('bounded workspace binding barrier was not released')
+            if (request.HasField('scoped_authority_check') and
+                    request.scoped_authority_check.workspace == 'one' and not injected['authority_wait']):
+                injected['authority_wait'] = True
+                authority_wait_started.set()
+                if not release_authority.wait(5):
+                    raise AssertionError('bounded workspace authority barrier was not released')
             return original_exchange(request)
 
         def create():
@@ -440,20 +441,21 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 
         worker = threading.Thread(target=create)
         worker_started = False
-        self.broker.exchange = exchange_with_binding_barrier
+        self.broker.exchange = exchange_with_authority_barrier
         try:
             worker.start()
             worker_started = True
-            self.assertTrue(binding_wait_started.wait(3), 'gateway did not reach its registered binding query')
+            self.assertTrue(authority_wait_started.wait(3), 'gateway did not reach its workspace-scoped authority check')
             # BrokerClient pumps actor ticks while waiting. The conformance input
             # timeout is 10 seconds here; 2.7 seconds of ticks moves the actor beyond
-            # the target's three metre reach while the binding barrier remains held.
+            # the target's three metre reach while the authority barrier remains held.
             time.sleep(2.7)
         finally:
-            release_binding.set()
+            release_authority.set()
             self.broker.exchange = original_exchange
             if worker_started:
-                self.stop_actor_worker(peer, worker, (release_binding,))
+                worker.join(2)
+                self.stop_actor_worker(peer, worker, (release_authority,))
         self.assertFalse(worker_errors, worker_errors)
         self.assertEqual(len(result_box), 1)
         final_reply = peer.call(inspect=session.WorldSessionInspect())
@@ -463,7 +465,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
                            'authoritative actor pose must move beyond configured reach during the held wait')
         self.assertGreater(final_distance, initial_distance,
                            'authoritative actor pose must move away from the cabinet target')
-        self.assertTrue(injected['binding_wait'])
+        self.assertTrue(injected['authority_wait'])
         self.assertFalse(injected['file_action'], 'gateway dispatched after actor movement changed its context')
         self.assertTrue(result_box[0].HasField('error'), result_box[0])
         self.assertEqual(result_box[0].error.code, core.STALE_TARGET)

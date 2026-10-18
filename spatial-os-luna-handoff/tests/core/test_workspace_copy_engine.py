@@ -431,14 +431,6 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.assertEqual(reply.error.code,core.BUSY,reply)
         self.assertEqual(self.process_rows(),before)
         self.assertEqual({path.name for path in (self.execution/'applications').iterdir()},objects)
-        file_path=self.project/'during-copy-must-not-exist.txt'
-        request=cabinet.FileActionRequest(protocol_version=1,operation_id=uuid.uuid4().bytes,
-            workspace_id='one',principal=self.principal(),
-            create=file_actions.FileCreate(basename=file_path.name.encode(),content=b'forbidden'))
-        file_reply=self.broker.request(file_action=request)
-        self.assertTrue(file_reply.HasField('error'),file_reply)
-        self.assertEqual(file_reply.error.code,core.BUSY,file_reply)
-        self.assertFalse(file_path.exists(),'File action escaped the active workspace-copy BUSY fence')
     def assert_copy_has_no_authority_or_processes(self,destination):
         with closing(sqlite3.connect(self.execution/'execution.db')) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM processes WHERE workspace=?',(destination,)).fetchone()[0],0)

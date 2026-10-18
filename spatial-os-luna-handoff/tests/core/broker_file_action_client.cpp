@@ -29,7 +29,7 @@ template<class Message> void send_message(int fd,const Message& value) {
   const std::array<char,4> h{char(n>>24),char(n>>16),char(n>>8),char(n)};
   exact_write(fd,h.data(),h.size()); exact_write(fd,bytes.data(),bytes.size());
 }
-enum class Fault { good, wrong_shape, unknown_error, wrong_recovery, empty_recovery, missing_ack };
+enum class Fault { good, wrong_shape, unknown_error, wrong_recovery, empty_recovery, missing_ack, truncated_ack };
 void run(Fault fault,bool should_pass) {
   int pair[2]; if(socketpair(AF_UNIX,SOCK_STREAM,0,pair)) throw std::runtime_error("socketpair failed");
   std::exception_ptr peer_error;
@@ -42,6 +42,13 @@ void run(Fault fault,bool should_pass) {
       ready.mutable_management()->mutable_identities()->set_workspaced_pid(getpid()); send_message(pair[1],ready);
       auto request=receive<broker_wire::Request>(pair[1]);
       if(fault==Fault::missing_ack) return;
+      if(fault==Fault::truncated_ack) {
+        const std::array<char,4> header{0,0,0,10};
+        const std::array<char,2> prefix{char(8),char(1)};
+        exact_write(pair[1],header.data(),header.size());
+        exact_write(pair[1],prefix.data(),prefix.size());
+        return;
+      }
       broker_wire::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
       auto* result=reply.mutable_file_action(); result->set_protocol_version(1);
       result->set_operation_id(request.file_action().operation_id());
@@ -59,7 +66,7 @@ void run(Fault fault,bool should_pass) {
     request.set_workspace_id("workspace-one"); request.mutable_principal()->set_issuer_id(std::string(32,'i'));
     request.mutable_principal()->set_actor_id(std::string(32,'a')); request.mutable_browse()->set_page_size(10);
     auto reply=client.file_action(request);
-    if(fault==Fault::missing_ack)
+    if(fault==Fault::missing_ack || fault==Fault::truncated_ack)
       passed=reply.has_error() && reply.error().code()==FileActionError::UNCERTAIN &&
         reply.operation_id()==request.operation_id() && reply.error().recovery_operation_id()==request.operation_id();
     else if(fault==Fault::good) passed=reply.has_directory();
@@ -72,6 +79,11 @@ void run(Fault fault,bool should_pass) {
 }
 }
 int main() {
-  try { run(Fault::good,true); run(Fault::wrong_shape,true); run(Fault::unknown_error,true); run(Fault::wrong_recovery,true); run(Fault::empty_recovery,true); run(Fault::missing_ack,true); return 0; }
+  try {
+    // The peer closes as soon as it sends the reply; repeat this race-sensitive case.
+    for(int i=0;i<16;++i) run(Fault::good,true);
+    run(Fault::wrong_shape,true); run(Fault::unknown_error,true); run(Fault::wrong_recovery,true); run(Fault::empty_recovery,true); run(Fault::missing_ack,true); run(Fault::truncated_ack,true);
+    return 0;
+  }
   catch(...) { return 1; }
 }

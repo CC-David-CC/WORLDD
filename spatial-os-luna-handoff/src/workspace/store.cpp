@@ -603,10 +603,16 @@ struct ExecutionStore::Impl {
         const auto path = state / collection / (q.text(0) + suffix);
         require(!std::filesystem::exists(path), "Allocated Git path already exists"); return path;
     }
-    std::filesystem::path managed(const std::string& value, const char* collection) const {
+    std::filesystem::path managed(const std::string& value, const char* collection,
+                                  bool symlink_means_stale = false) const {
         const std::filesystem::path path(value);
-        if (path.parent_path() != state / collection || std::filesystem::is_symlink(path))
+        if (path.parent_path() != state / collection)
             throw WorldError(wire::STORAGE_ERROR, "Stored Git path escaped its execution registry");
+        if (std::filesystem::is_symlink(path)) {
+            if (symlink_means_stale)
+                throw FileRootStale("store.registered_root_symlink");
+            throw WorldError(wire::STORAGE_ERROR, "Stored Git path escaped its execution registry");
+        }
         return path;
     }
     wire::RepositoryReply repository(const std::string& id) {
@@ -1162,7 +1168,7 @@ workspace::v1::FileActionReply ExecutionStore::file_action(const workspace::v1::
         registered.text(1,worktree_id);
         if(registered.step()!=SQLITE_ROW || registered.text(1)!="ready")
             return file_action_error(operation,FileActionError::UNAVAILABLE,"registered project is unavailable or not ready");
-        const auto expected_path=impl_->managed(registered.text(0),"worktrees").string();
+        const auto expected_path=impl_->managed(registered.text(0),"worktrees",true).string();
         struct stat project_path{};
         if(lstat(expected_path.c_str(),&project_path)!=0 || !S_ISDIR(project_path.st_mode) || S_ISLNK(project_path.st_mode)) {
             auto failure=file_action_error(operation,FileActionError::STALE_HANDLE,"registered project root is missing or unsafe",true);

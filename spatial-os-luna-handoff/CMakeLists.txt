@@ -541,6 +541,20 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_test(NAME broker-instance-registry-provisioning COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_instance_registry.py")
+    set_tests_properties(broker-instance-registry-provisioning PROPERTIES TIMEOUT 20)
+    add_test(NAME broker-cgroup-events-parser COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_cgroup_events.py")
+    set_tests_properties(broker-cgroup-events-parser PROPERTIES TIMEOUT 20)
+    add_executable(process-scope-controller-reset-test tests/core/process_scope_controller_reset.cpp)
+    target_include_directories(process-scope-controller-reset-test PRIVATE src)
+    add_test(NAME process-scope-controller-reset COMMAND $<TARGET_FILE:process-scope-controller-reset-test>)
+    set_tests_properties(process-scope-controller-reset PROPERTIES TIMEOUT 20)
+    add_executable(storage-owner-state-metadata-test tests/core/storage_owner_state_metadata.cpp)
+    target_include_directories(storage-owner-state-metadata-test PRIVATE src)
+    add_test(NAME storage-owner-state-metadata COMMAND $<TARGET_FILE:storage-owner-state-metadata-test>)
+    set_tests_properties(storage-owner-state-metadata PROPERTIES TIMEOUT 20)
     target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_PROCESS_SCOPE_READTRACE=1)
     target_compile_definitions(workspaced PRIVATE
         SPATIAL_TEST_FILE_JOURNAL_FAULTS=1
@@ -589,6 +603,10 @@ if(BUILD_TESTING)
     add_test(NAME copy-tree-worker COMMAND Python3::Interpreter
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py" $<TARGET_FILE:spatial-copy-tree-worker-fixture>)
     set_tests_properties(copy-tree-worker PROPERTIES TIMEOUT 60)
+    add_executable(cabinet-copy-path-test tests/core/cabinet_copy_path.cpp)
+    target_link_libraries(cabinet-copy-path-test PRIVATE spatial-workspace-copy-worker)
+    add_test(NAME cabinet-copy-path COMMAND $<TARGET_FILE:cabinet-copy-path-test>)
+    set_tests_properties(cabinet-copy-path PROPERTIES TIMEOUT 30)
     add_test(NAME copy-finalize-worker COMMAND Python3::Interpreter
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_finalize_worker.py" $<TARGET_FILE:spatial-copy-finalize-worker>)
     set_tests_properties(copy-finalize-worker PROPERTIES TIMEOUT 180)

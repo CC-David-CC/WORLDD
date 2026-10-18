@@ -56,6 +56,26 @@ void require_intent_receipt(const workspace::v1::StorageCopyStageReceipt& receip
     }
 }
 }
+bool cabinet_copy_destination_inside_source(int source_directory_fd,int destination_directory_fd) {
+ require(source_directory_fd>=0&&destination_directory_fd>=0,"invalid cabinet copy directory descriptor");
+ struct stat expected{};
+ if(fstat(source_directory_fd,&expected)<0||!S_ISDIR(expected.st_mode))
+  throw std::runtime_error("cannot inspect pinned cabinet source directory");
+ Fd current(openat(destination_directory_fd,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC));
+ if(current.value<0)throw std::runtime_error("cannot pin cabinet destination ancestry");
+ for(unsigned depth=0;depth<4096;++depth) {
+  struct stat here{};
+  if(fstat(current.value,&here)<0)throw std::runtime_error("cannot inspect cabinet destination ancestry");
+  if(here.st_dev==expected.st_dev&&here.st_ino==expected.st_ino)return true;
+  Fd parent(openat(current.value,"..",O_RDONLY|O_DIRECTORY|O_CLOEXEC));
+  if(parent.value<0)throw std::runtime_error("cannot inspect cabinet destination parent");
+  struct stat above{};
+  if(fstat(parent.value,&above)<0)throw std::runtime_error("cannot inspect cabinet destination parent");
+  if(above.st_dev==here.st_dev&&above.st_ino==here.st_ino)return false;
+  current=std::move(parent);
+ }
+ throw std::runtime_error("cabinet destination ancestry depth exceeded");
+}
 void validate_copy_stage_receipt(const workspace::v1::StorageCopyStageReceipt& receipt,
     const workspace::v1::StorageCopyStageBegin& intent,const workspace::v1::StorageObjectState& source,
     const workspace::v1::StorageObjectState& destination,StorageClient& storage) {
@@ -136,16 +156,25 @@ struct CopyTreeJob::Impl {
 };
 CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,int source_fd,int destination_fd,
  std::uint64_t expected_source_subvolume,std::uint64_t expected_destination_subvolume,
- std::uint64_t max_bytes,std::uint32_t max_entries,const workspace::copyworker::v1::StateExportRequest* state_export):impl_(std::make_unique<Impl>()) {
+ std::uint64_t max_bytes,std::uint32_t max_entries,const workspace::copyworker::v1::StateExportRequest* state_export,
+ std::string cabinet_source_name,std::string cabinet_destination_name,bool cabinet_source_is_directory):impl_(std::make_unique<Impl>()) {
  impl_->max_bytes=max_bytes;impl_->max_entries=max_entries;
- require(source_fd>=0&&destination_fd>=0&&expected_source_subvolume>0&&expected_destination_subvolume>0&&
-   expected_source_subvolume!=expected_destination_subvolume&&max_bytes>0&&max_entries>0,"invalid copy worker request");
+ const bool cabinet=!cabinet_source_name.empty()||!cabinet_destination_name.empty();
+ require(source_fd>=0&&destination_fd>=0&&max_bytes>0&&max_entries>0&&
+   (!cabinet||(max_bytes<=4ULL*1024*1024*1024&&max_entries<=200000))&&
+   ((!cabinet&&expected_source_subvolume>0&&expected_destination_subvolume>0&&expected_source_subvolume!=expected_destination_subvolume)||
+    (cabinet&&expected_source_subvolume==0&&expected_destination_subvolume==0&&!cabinet_source_name.empty()&&!cabinet_destination_name.empty())),
+   "invalid copy worker request");
  struct stat a{},b{}; btrfs_ioctl_get_subvol_info_args source_info{},destination_info{};
- require(fstat(source_fd,&a)==0&&fstat(destination_fd,&b)==0&&S_ISDIR(a.st_mode)&&S_ISDIR(b.st_mode)&&
-   ioctl(source_fd,BTRFS_IOC_GET_SUBVOL_INFO,&source_info)>=0&&ioctl(destination_fd,BTRFS_IOC_GET_SUBVOL_INFO,&destination_info)>=0&&
+ require(fstat(source_fd,&a)==0&&fstat(destination_fd,&b)==0&&S_ISDIR(a.st_mode)&&S_ISDIR(b.st_mode),
+   "copy worker roots must be pinned directories");
+ if(!cabinet)require(ioctl(source_fd,BTRFS_IOC_GET_SUBVOL_INFO,&source_info)>=0&&ioctl(destination_fd,BTRFS_IOC_GET_SUBVOL_INFO,&destination_info)>=0&&
    source_info.treeid==expected_source_subvolume&&destination_info.treeid==expected_destination_subvolume&&
    (source_info.flags&BTRFS_ROOT_SUBVOL_RDONLY)!=0&&(destination_info.flags&BTRFS_ROOT_SUBVOL_RDONLY)==0,
    "pinned copy roots do not match registered snapshot/staging subvolumes");
+ if(cabinet)require(cabinet_source_name.size()<=255&&cabinet_destination_name.size()<=255&&
+   cabinet_source_name.find_first_of("/\0",0,2)==std::string::npos&&cabinet_destination_name.find_first_of("/\0",0,2)==std::string::npos,
+   "invalid cabinet copy basenames");
  auto ancestor=[](int root,int descendant){
   struct stat expected{};if(fstat(root,&expected)<0)throw std::runtime_error("cannot inspect pinned copy root");
   Fd current(openat(descendant,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC));if(current.value<0)throw std::runtime_error("cannot pin copy root ancestry");
@@ -156,14 +185,20 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,int source_fd,int destina
    current=std::move(parent);
   }throw std::runtime_error("copy root ancestry depth exceeded");
  };
- require(!ancestor(source_fd,destination_fd)&&!ancestor(destination_fd,source_fd),"copy roots cannot be nested");
+ if(!cabinet)require(!ancestor(source_fd,destination_fd)&&!ancestor(destination_fd,source_fd),"copy roots cannot be nested");
+ if(cabinet&&cabinet_source_is_directory) {
+  Fd cabinet_source(openat(source_fd,cabinet_source_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
+  require(cabinet_source.value>=0&&!cabinet_copy_destination_inside_source(cabinet_source.value,destination_fd),
+      "cabinet destination directory cannot be inside the copied source");
+ }
  struct stat a_check{},b_check{};require(fstat(source_fd,&a_check)==0&&fstat(destination_fd,&b_check)==0&&
-   (a_check.st_dev!=b_check.st_dev||a_check.st_ino!=b_check.st_ino),"copy roots alias");
+   (cabinet||(a_check.st_dev!=b_check.st_dev||a_check.st_ino!=b_check.st_ino)),"copy roots alias");
  const char* bwrap="/usr/local/libexec/spatial-bwrap"; const char* helper="/usr/local/libexec/spatial-copy-tree-worker";
  Fd bf(open(bwrap,O_PATH|O_NOFOLLOW|O_CLOEXEC)),hf(open(helper,O_PATH|O_NOFOLLOW|O_CLOEXEC));
  struct stat bs{},hs{}; require(bf.value>=0&&hf.value>=0&&fstat(bf.value,&bs)==0&&fstat(hf.value,&hs)==0&&S_ISREG(bs.st_mode)&&bs.st_uid==0&&(bs.st_mode&0022)==0&&S_ISREG(hs.st_mode)&&hs.st_uid==0&&(hs.st_mode&0022)==0&&(hs.st_mode&0111)!=0,"trusted worker binaries unavailable");
- spatial::workspace::copyworker::v1::WorkerRequest job_request;impl_->expected_protocol=state_export?2:1;job_request.set_protocol_version(impl_->expected_protocol);job_request.set_maximum_bytes(max_bytes);job_request.set_maximum_entries(max_entries);
+ spatial::workspace::copyworker::v1::WorkerRequest job_request;impl_->expected_protocol=cabinet?3:(state_export?2:1);job_request.set_protocol_version(impl_->expected_protocol);job_request.set_maximum_bytes(max_bytes);job_request.set_maximum_entries(max_entries);
  if(state_export){validate_message(*state_export);*job_request.mutable_state_export()=*state_export;}
+ if(cabinet){job_request.set_cabinet_source_name(cabinet_source_name);job_request.set_cabinet_destination_name(cabinet_destination_name);job_request.set_cabinet_source_is_directory(cabinet_source_is_directory);}
  std::string job_bytes;require(job_request.SerializeToString(&job_bytes)&&job_bytes.size()<=4096,"cannot serialize bounded worker request");
  Fd job_config(memfd_create("spatial-copy-worker-job",MFD_CLOEXEC|MFD_ALLOW_SEALING));require(job_config.value>=0,"cannot create worker job config");
  std::size_t config_written=0;while(config_written<job_bytes.size()){auto n=write(job_config.value,job_bytes.data()+config_written,job_bytes.size()-config_written);if(n<0&&errno==EINTR)continue;require(n>0,"cannot write worker job config");config_written+=static_cast<std::size_t>(n);}
