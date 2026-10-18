@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import socket
 import select
+import tempfile
+import threading
 import struct
 import subprocess
 import time
@@ -22,6 +24,25 @@ from harness.resource_broker import ResourceBroker
 
 BROKER = native.PROBE.parent/'workspaced'
 POLICY = ['workspace.select', 'files.read', 'files.write', 'process.launch']
+
+PUBLISH_RECORD_HELPER = '''\
+def publish_record(path, payload, replace=os.replace):
+    path = os.fspath(path)
+    directory = os.path.dirname(path) or '.'
+    temporary = tempfile.NamedTemporaryFile(mode='w', prefix='.record-', suffix='.tmp',
+                                            dir=directory, delete=False)
+    temporary_path = temporary.name
+    try:
+        with temporary:
+            json.dump(payload, temporary)
+        replace(temporary_path, path)
+    except BaseException:
+        try:
+            os.unlink(temporary_path)
+        except FileNotFoundError:
+            pass
+        raise
+'''
 
 
 class Broker:
@@ -97,7 +118,8 @@ class Broker:
 # This program runs INSIDE the production confinement boundary. It uses installed
 # Xlib for ordinary application output. The server identity is read independently.
 APP = r'''
-import ctypes,json,os,pathlib,struct,socket,time
+import ctypes,json,os,pathlib,struct,socket,tempfile,time
+''' + PUBLISH_RECORD_HELPER + r'''
 inherited=[]
 for fd in range(3,256):
  try:os.fstat(fd);inherited.append(fd)
@@ -124,7 +146,8 @@ record={'cookie':fields[3].hex(),'window':w,'display':os.environ['DISPLAY'],'aut
 try:pathlib.Path(os.environ['XAUTHORITY']).write_bytes(b'bad')
 except OSError:record['auth_readonly']=True
 else:record['auth_readonly']=False
-pathlib.Path('/state/data/record.json').write_text(json.dumps(record))
+record_path=pathlib.Path('/state/data/record.json')
+publish_record(record_path,record)
 while not pathlib.Path('/state/data/release').exists():time.sleep(.005)
 lib.XCloseDisplay(d)
 '''
@@ -173,6 +196,88 @@ class NativeLaunchTests(unittest.TestCase):
         (self.broker.state/'applications'/process.process_id/'data/release').touch()
         result = self.broker.call('process.wait', id=process.process_id, timeout_seconds=5)
         self.assertEqual(result, {'exit_code':0})
+
+    def test_record_publication_hides_incomplete_json_until_replace(self):
+        path = self.root/'record.json'
+        payload = {'ready': True, 'nested': {'value': 'complete'}}
+        replace_entered = threading.Event()
+        allow_replace = threading.Event()
+        failures = []
+
+        helper_scope = {'json': json, 'os': os, 'tempfile': tempfile}
+        exec(PUBLISH_RECORD_HELPER, helper_scope)
+
+        def controlled_replace(source, destination):
+            replace_entered.set()
+            if not allow_replace.wait(timeout=3):
+                raise AssertionError('reader did not release fixture publisher')
+            os.replace(source, destination)
+
+        def writer():
+            try:
+                helper_scope['publish_record'](path, payload, replace=controlled_replace)
+            except BaseException as error:
+                failures.append(error)
+
+        thread = threading.Thread(target=writer)
+        thread.start()
+        try:
+            self.assertTrue(replace_entered.wait(timeout=3), 'writer did not reach replacement barrier')
+            self.assertFalse(path.exists(), 'final record became visible before complete JSON publication')
+            allow_replace.set()
+            thread.join(timeout=3)
+            self.assertFalse(thread.is_alive(), 'writer did not finish publication')
+            self.assertEqual(failures, [])
+            self.assertEqual(json.loads(path.read_text()), payload)
+        finally:
+            allow_replace.set()
+            thread.join(timeout=3)
+
+    def test_record_publication_replace_failure_preserves_reused_descriptor(self):
+        path = self.root/'record.json'
+        payload = {'ready': True}
+        temporary_files = []
+        temporary_paths = []
+        reused_fds = []
+        dump = json.dump
+        helper_scope = {'json': json, 'os': os, 'tempfile': tempfile}
+        exec(PUBLISH_RECORD_HELPER, helper_scope)
+
+        def capture_dump(value, stream):
+            temporary_files.append((stream, stream.fileno()))
+            dump(value, stream)
+
+        with tempfile.TemporaryFile() as unrelated:
+            def failing_replace(source, destination):
+                temporary_paths.append(Path(source))
+                self.assertEqual(Path(source).parent, path.parent)
+                self.assertEqual(destination, str(path))
+                self.assertEqual(json.loads(Path(source).read_text()), payload)
+                self.assertEqual(len(temporary_files), 1)
+                stream, fd = temporary_files[0]
+                self.assertTrue(stream.closed, 'temporary file remained open during replacement')
+                # Reuse the exact closed descriptor without relying on allocator timing.
+                reused_fds.append(os.dup2(unrelated.fileno(), fd))
+                raise OSError('injected replacement failure')
+
+            try:
+                with patch.object(json, 'dump', side_effect=capture_dump):
+                    with self.assertRaisesRegex(OSError, 'injected replacement failure'):
+                        helper_scope['publish_record'](path, payload, replace=failing_replace)
+                self.assertEqual(len(reused_fds), 1)
+                fd = reused_fds[0]
+                self.assertEqual(os.write(fd, b'still usable'), len(b'still usable'))
+                os.lseek(fd, 0, os.SEEK_SET)
+                self.assertEqual(os.read(fd, len(b'still usable')), b'still usable')
+                self.assertEqual(len(temporary_paths), 1)
+                self.assertFalse(temporary_paths[0].exists(), 'failed publication left a temporary file')
+                self.assertFalse(path.exists(), 'failed publication created the final record')
+            finally:
+                for fd in reused_fds:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        pass
 
     def test_confined_application_has_real_native_identity(self):
         self.launch_fixture(); process = self.launch(); record = self.record(process)
