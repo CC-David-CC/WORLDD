@@ -866,9 +866,12 @@ void bootstrap_controls(){
   using Bootstrap=spatial::supervisor::BrokerCleanupBootstrap;
   auto socket_pair=[](){int pair[2];check(socketpair(AF_UNIX,SOCK_SEQPACKET|SOCK_CLOEXEC,0,pair)==0,"bootstrap socketpair");
     Bootstrap::require_credentials(pair[0]);Bootstrap::require_credentials(pair[1]);return std::array<int,2>{pair[0],pair[1]};};
-  auto send_raw=[&](int fd,const std::string& payload,const std::vector<int>& descriptors){
-    const std::uint32_t size=htonl(static_cast<std::uint32_t>(payload.size()));
-    std::string bytes(reinterpret_cast<const char*>(&size),sizeof(size));bytes+=payload;
+  auto send_raw=[&](int fd,const std::string& payload,const std::vector<int>& descriptors,bool raw_packet=false){
+    std::string bytes=payload;
+    if(!raw_packet){
+      const std::uint32_t size=htonl(static_cast<std::uint32_t>(payload.size()));
+      bytes.assign(reinterpret_cast<const char*>(&size),sizeof(size));bytes+=payload;
+    }
     iovec part{bytes.data(),bytes.size()};msghdr msg{};msg.msg_iov=&part;msg.msg_iovlen=1;
     alignas(cmsghdr)char control[CMSG_SPACE(sizeof(int)*16)]{};
     if(!descriptors.empty()){
@@ -882,13 +885,14 @@ void bootstrap_controls(){
     std::string payload;check(frame.SerializeToString(&payload),"bootstrap protobuf serialize");return payload;
   };
   auto expect_rejection_and_closed_rights=[&](const std::string& payload,std::size_t descriptor_count,
-                                                const char* expected,const char* why){
+                                                const char* expected,const char* why,bool raw_packet=false){
     int channel[2];check(pipe2(channel,O_CLOEXEC)==0,"FD closure pipe");
     std::vector<int> descriptors(descriptor_count,channel[1]);
-    auto pair=socket_pair();send_raw(pair[1],payload,descriptors);close(channel[1]);
-    bool intended=false;try{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),std::chrono::seconds(1));}
-    catch(const std::exception& error){intended=std::string(error.what()).find(expected)!=std::string::npos;}
-    check(intended,why);
+    auto pair=socket_pair();send_raw(pair[1],payload,descriptors,raw_packet);close(channel[1]);
+    bool intended=false;std::string rejection_reason;
+    try{(void)Bootstrap::receive_request(pair[0],getpid(),getuid(),std::chrono::seconds(1));}
+    catch(const std::exception& error){rejection_reason=error.what();intended=rejection_reason.find(expected)!=std::string::npos;}
+    if(!intended)throw std::runtime_error(std::string(why)+"; actual rejection: "+(rejection_reason.empty()?"<none>":rejection_reason));
     pollfd event{channel[0],static_cast<short>(POLLIN|POLLHUP),0};
     check(poll(&event,1,250)==1&&(event.revents&(POLLIN|POLLHUP)),"rejected bootstrap leaked received FD");
     char byte=1;check(read(channel[0],&byte,1)==0,"rejected bootstrap retained pipe writer");
@@ -1000,7 +1004,7 @@ void bootstrap_controls(){
   }
   {
     expect_rejection_and_closed_rights(std::string("xy",2),1,"frame is incomplete",
-        "truncated bootstrap frame was not the rejection reason");
+        "truncated bootstrap frame was not the rejection reason",true);
   }
   {
     auto pair=socket_pair();close(pair[1]);
