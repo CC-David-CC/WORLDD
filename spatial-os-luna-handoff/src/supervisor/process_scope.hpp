@@ -20,18 +20,22 @@ public:
     std::chrono::steady_clock::time_point deadline() const { return deadline_; }
     // Sticky proof bit: false only while this owned tree cannot have run supplied code.
     bool execution_may_have_run() const { return execution_may_have_run_; }
+    // True only when the trusted startup child reported a complete pre-exec errno.
+    bool trusted_preexec_failure() const { return trusted_preexec_failure_; }
     OwnedDrainedTree(const OwnedDrainedTree&) = delete;
     OwnedDrainedTree& operator=(const OwnedDrainedTree&) = delete;
 private:
     friend class ProcessScope;
     OwnedDrainedTree(int directory, const v1::ProcessScopeIdentity& identity,
-                     std::chrono::steady_clock::time_point deadline, bool execution_may_have_run)
+                     std::chrono::steady_clock::time_point deadline, bool execution_may_have_run,
+                     bool trusted_preexec_failure)
         : directory_(directory), identity_(identity), deadline_(deadline),
-          execution_may_have_run_(execution_may_have_run) {}
+          execution_may_have_run_(execution_may_have_run), trusted_preexec_failure_(trusted_preexec_failure) {}
     int directory_;
     const v1::ProcessScopeIdentity& identity_;
     std::chrono::steady_clock::time_point deadline_;
     const bool execution_may_have_run_;
+    const bool trusted_preexec_failure_;
 };
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
@@ -106,6 +110,8 @@ private:
     bool reaped_ = false, removed_ = false, started_ = false, stop_requested_ = false, retained_scope_ = false;
     // Sticky and conservative. Set before releasing the direct-child gate or attaching external code.
     bool execution_may_have_run_ = false;
+    // Set only after a complete positive errno record and EOF from the private startup gate.
+    bool trusted_preexec_failure_ = false;
     std::function<void(const OwnedDrainedTree&)> pre_prune_cleanup_;
     v1::ProcessScopeIdentity identity_;
 };

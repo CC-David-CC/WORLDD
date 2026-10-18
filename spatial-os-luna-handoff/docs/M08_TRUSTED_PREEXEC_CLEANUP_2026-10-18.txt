@@ -1,0 +1,9 @@
+# Trusted pre-exec cleanup proof (2026-10-18)
+
+A released startup gate remains conservatively marked as possibly executable. A complete positive native errno record followed by EOF from the private close-on-exec gate proves the trusted child failed before the requested executable ran. This separate in-process proof allows checked cleanup of an unbound broker scope after a failed exec.
+
+The gate reader uses one absolute two-second deadline. It accepts only exactly one Linux errno value in the range 1 through 4095, followed by EOF. Successful exec closes the gate without a record. Partial, oversized, zero, out-of-range, unreadable, or late acknowledgements remain ambiguous and cannot produce the proof. External payload attachment clears the proof before attachment work.
+
+The broker cleanup participant checks the exact retained root identity first. It permits unbound cleanup only when execution was impossible or the trusted pre-exec proof exists. Normal drain, reap, identity verification, and stop-receipt handling remain in force.
+
+Focused core regressions cover missing-executable cleanup, successful-exec rejection, short, oversized, and zero acknowledgements, a late acknowledgement under repeated signal interruptions, and retained-scope recovery. Runtime qualification is pending primary review.

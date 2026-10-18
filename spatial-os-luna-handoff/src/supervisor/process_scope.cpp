@@ -514,6 +514,7 @@ v1::PayloadQuiescenceReceipt inventory(int directory,const v1::ProcessScopeIdent
 void ProcessScope::attach_payload(pid_t pid) {
     // The external child is already executable; never mint a never-dispatched proof after this call.
     execution_may_have_run_ = true;
+    trusted_preexec_failure_ = false;
     valid(started_ && !removed_ && payload_<0 && pid>1 && pid!=child_ && pid!=getpid(),
           "Payload attachment requires a new held application child");
     std::istringstream members(contents(scope_,"cgroup.procs"));pid_t member=0;bool owned=false;
@@ -926,13 +927,41 @@ void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
     // A failed send can be ambiguous. Mark execution possible before attempting release.
     execution_may_have_run_ = true;
     check(send(gate.value, "G", 1, MSG_NOSIGNAL) == 1, "Cannot release authority startup gate");
-    pollfd ready{gate.value, POLLIN | POLLHUP, 0}; int polled;
-    do { polled = poll(&ready, 1, 2000); } while (polled < 0 && errno == EINTR);
-    check(polled > 0, "Authority exec deadline exceeded");
-    int error = 0; ssize_t count;
-    do { count = read(gate.value, &error, sizeof(error)); } while (count < 0 && errno == EINTR);
-    if (count > 0) { errno = error; check(false, "Authority exec failed"); }
-    check(count == 0, "Cannot confirm authority exec");
+    const auto startup_deadline = Clock::now() + std::chrono::seconds(2);
+    std::array<unsigned char, sizeof(int) + 1> acknowledgement{};
+    std::size_t received = 0;
+    bool eof = false;
+    while (!eof) {
+        const auto now = Clock::now();
+        check(now < startup_deadline, "Authority exec deadline exceeded");
+        const auto remaining = std::chrono::ceil<std::chrono::milliseconds>(startup_deadline - now).count();
+        const int timeout = static_cast<int>(std::min<std::int64_t>(remaining, INT_MAX));
+        pollfd ready{gate.value, POLLIN | POLLHUP, 0};
+        const int polled = poll(&ready, 1, timeout);
+        if (polled < 0 && errno == EINTR) continue; // Recompute from the same absolute deadline.
+        check(polled > 0, "Authority exec deadline exceeded");
+        check(!(ready.revents & (POLLERR | POLLNVAL)), "Cannot confirm authority exec");
+        const ssize_t count = recv(gate.value, acknowledgement.data() + received,
+                                   acknowledgement.size() - received, MSG_DONTWAIT);
+        if (count < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
+        check(count >= 0, "Cannot confirm authority exec");
+        check(Clock::now() < startup_deadline, "Authority exec deadline exceeded");
+        if (count == 0) {
+            eof = true;
+            continue;
+        }
+        received += static_cast<std::size_t>(count);
+        check(received <= sizeof(int), "Cannot confirm authority exec");
+    }
+    check(received == 0 || received == sizeof(int), "Cannot confirm authority exec");
+    if (received == sizeof(int)) {
+        int error = 0;
+        std::memcpy(&error, acknowledgement.data(), sizeof(error));
+        check(error > 0 && error <= 4095, "Cannot confirm authority exec");
+        trusted_preexec_failure_ = true;
+        errno = error;
+        check(false, "Authority exec failed");
+    }
 }
 
 bool ProcessScope::populated() const {
@@ -1078,7 +1107,7 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
                 check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             };
             verify();
-            const OwnedDrainedTree tree(scope_, identity_,deadline,execution_may_have_run_);
+            const OwnedDrainedTree tree(scope_, identity_,deadline,execution_may_have_run_,trusted_preexec_failure_);
             pre_prune_cleanup_(tree);
             check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             verify();

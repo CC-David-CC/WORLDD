@@ -46,7 +46,37 @@
 #include "supervisor/broker_cleanup_bootstrap.hpp"
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <time.h>
 #include <arpa/inet.h>
+
+static void ignore_startup_signal(int) {}
+
+// Executable-local interposition exercises malformed startup acknowledgements.
+extern "C" ssize_t send(int socket_fd, const void* buffer, std::size_t size, int flags) noexcept {
+  const char* mode=std::getenv("SPATIAL_TEST_START_ACK_MODE");
+  if(mode && size==sizeof(int)) {
+    if(std::strcmp(mode,"short")==0)
+      return static_cast<ssize_t>(::syscall(SYS_sendto,socket_fd,buffer,size-1,flags,nullptr,0));
+    if(std::strcmp(mode,"oversized")==0) {
+      const auto sent=::syscall(SYS_sendto,socket_fd,buffer,size,flags,nullptr,0);
+      if(sent==static_cast<long>(size)) { const unsigned char extra=0xA5; (void)::syscall(SYS_sendto,socket_fd,&extra,1,flags,nullptr,0); }
+      return static_cast<ssize_t>(sent);
+    }
+    if(std::strcmp(mode,"zero")==0) {
+      const int invalid=0;
+      return static_cast<ssize_t>(::syscall(SYS_sendto,socket_fd,&invalid,sizeof(invalid),flags,nullptr,0));
+    }
+    if(std::strcmp(mode,"late")==0) {
+      const pid_t waiter=::getppid();
+      for(int n=0;n<30;++n) {
+        const timespec pause{0,100000000};
+        (void)::syscall(SYS_nanosleep,&pause,nullptr);
+        (void)::syscall(SYS_kill,waiter,SIGUSR1);
+      }
+    }
+  }
+  return static_cast<ssize_t>(::syscall(SYS_sendto,socket_fd,buffer,size,flags,nullptr,0));
+}
 
 using spatial::FileOperationJournal;
 using spatial::BrokerCopyCleanupParticipant;
@@ -707,12 +737,49 @@ void callback_controls(const std::filesystem::path& delegated){
   auto live=ProcessScope::prepare(delegated);bool saw_dead=false;live->set_pre_prune_cleanup([&](const auto& tree){saw_dead=live->diagnostic_child_reaped();check(!live->diagnostic_populated(),"callback saw live population");check(tree.execution_may_have_run(),"released child gate did not set sticky execution proof");});
   AuthorityProcessLaunch request;request.set_executable("/usr/bin/sleep");request.add_arguments("60");int null=open("/dev/null",O_RDWR|O_CLOEXEC);live->start(request,{null,null,null});close(null);
   rejects([&]{live->set_pre_prune_cleanup([](const auto&){});},"late callback installed");live->stop();check(saw_dead,"callback preceded direct-child reap");
+  // A complete private errno proves the requested program never ran.
+  auto failed_exec=ProcessScope::prepare(delegated);const auto failed_exec_path=delegated/failed_exec->identity().scope_name();bool failed_exec_checked=false;
+  failed_exec->set_pre_prune_cleanup([&](const auto& tree){
+    check(tree.execution_may_have_run(),"failed exec cleared sticky execution possibility");
+    check(tree.trusted_preexec_failure(),"complete pre-exec errno proof was lost");
+    failed_exec_checked=true;
+  });
+  AuthorityProcessLaunch missing;missing.set_executable("/nonexistent-trusted-preexec-test");int missing_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(missing_null>=0,"failed exec null");
+  bool missing_rejected=false;try{failed_exec->start(missing,{missing_null,missing_null,missing_null});}catch(const std::exception& error){missing_rejected=std::string(error.what()).find("Authority exec failed")!=std::string::npos;}close(missing_null);
+  check(missing_rejected,"missing executable did not report its trusted exec failure");
+  failed_exec->stop();check(failed_exec_checked&&!std::filesystem::exists(failed_exec_path),"trusted pre-exec failure did not complete checked stop");
+  auto outer=ProcessScope::prepare_named(delegated,"spatial-git-workers");outer->enable_children();const auto outer_path=delegated/outer->identity().scope_name();
+  // Malformed acknowledgements remain ambiguous and cannot mint the pre-exec proof.
+  const auto check_ambiguous_ack=[&](const char* mode){
+    int ack_pipe[2];check(pipe2(ack_pipe,O_CLOEXEC)==0,"ambiguous ack evidence pipe");const pid_t ack_probe=fork();check(ack_probe>=0,"ambiguous ack child fork");
+    if(ack_probe==0){close(ack_pipe[0]);try{auto uncertain=ProcessScope::prepare(outer_path);const auto identity=uncertain->identity();transfer(ack_pipe[1],identity.SerializeAsString());
+        uncertain->set_pre_prune_cleanup([](const auto& tree){check(tree.execution_may_have_run(),"gate release lost sticky execution possibility");check(!tree.trusted_preexec_failure(),"malformed gate response minted pre-exec proof");throw std::runtime_error("unbound cleanup must remain uncertain");});
+        AuthorityProcessLaunch bad_ack;bad_ack.set_executable("/nonexistent-malformed-ack-test");int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"malformed ack null");
+        if(std::strcmp(mode,"late")==0){struct sigaction action{};action.sa_handler=ignore_startup_signal;sigemptyset(&action.sa_mask);check(sigaction(SIGUSR1,&action,nullptr)==0,"install startup interrupt handler");}
+        check(setenv("SPATIAL_TEST_START_ACK_MODE",mode,1)==0,"set malformed ack mode");bool ambiguous=false;
+        const auto start_began=std::chrono::steady_clock::now();
+        const auto expected=std::strcmp(mode,"late")==0?"Authority exec deadline exceeded":"Cannot confirm authority exec";
+        try{uncertain->start(bad_ack,{child_null,child_null,child_null});}catch(const std::exception& error){ambiguous=std::string(error.what()).find(expected)!=std::string::npos;}
+        const auto start_elapsed=std::chrono::steady_clock::now()-start_began;
+        close(child_null);unsetenv("SPATIAL_TEST_START_ACK_MODE");check(ambiguous,"malformed or late gate response was accepted as a trusted exec failure");
+        if(std::strcmp(mode,"late")==0)check(start_elapsed>=std::chrono::milliseconds(1500)&&start_elapsed<std::chrono::milliseconds(2800),"interrupted startup wait did not honor one absolute deadline");
+        try{uncertain->stop();_exit(95);}catch(const std::exception& error){_exit(std::string(error.what())=="unbound cleanup must remain uncertain"?0:96);}
+      }catch(...){_exit(97);}}
+    close(ack_pipe[1]);pollfd ready{ack_pipe[0],POLLIN,0};check(poll(&ready,1,5000)==1&&(ready.revents&POLLIN),"ambiguous ack identity deadline");
+    ProcessScopeIdentity identity;check(identity.ParseFromString(receive(ack_pipe[0])),"ambiguous ack identity");close(ack_pipe[0]);
+    int status=0;wait_for([&]{const auto waited=waitpid(ack_probe,&status,WNOHANG);check(waited>=0,"ambiguous ack waitpid");return waited==ack_probe;});
+    check(WIFEXITED(status)&&WEXITSTATUS(status)==0,"ambiguous cleanup rejection was not contained");
+    const auto child_path=outer_path/identity.scope_name();struct stat retained{};
+    check(lstat(child_path.c_str(),&retained)==0&&S_ISDIR(retained.st_mode)&&static_cast<std::uint64_t>(retained.st_dev)==identity.device()&&static_cast<std::uint64_t>(retained.st_ino)==identity.inode(),"ambiguous scope was pruned or replaced");
+    check(ProcessScope::remove_reserved_empty(outer_path,outer->identity(),identity.scope_name()),"ambiguous exact child did not permit parent-bound recovery");
+    check(!std::filesystem::exists(child_path),"ambiguous exact child remained after recovery");
+  };
+  check_ambiguous_ack("short");check_ambiguous_ack("oversized");check_ambiguous_ack("zero");check_ambiguous_ack("late");
   // Isolate the fail-closed post-gate case: the callback rejects after the child exits,
   // and the parent verifies that the exact scope remains for recovery.
-  auto outer=ProcessScope::prepare_named(delegated,"spatial-git-workers");outer->enable_children();const auto outer_path=delegated/outer->identity().scope_name();
   int evidence[2];check(pipe2(evidence,O_CLOEXEC)==0,"predispatch evidence pipe");const pid_t probe=fork();check(probe>=0,"predispatch child fork");
   if(probe==0){close(evidence[0]);try{auto uncertain=ProcessScope::prepare(outer_path);const auto identity=uncertain->identity();transfer(evidence[1],identity.SerializeAsString());
-      uncertain->set_pre_prune_cleanup([](const auto& tree){check(tree.execution_may_have_run(),"released gate lost execution possibility");throw std::runtime_error("unbound cleanup must remain uncertain");});
+      uncertain->set_pre_prune_cleanup([](const auto& tree){check(tree.execution_may_have_run(),"released gate lost execution possibility");check(!tree.trusted_preexec_failure(),"successful exec minted pre-exec proof");throw std::runtime_error("unbound cleanup must remain uncertain");});
       AuthorityProcessLaunch short_request;short_request.set_executable("/bin/true");int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"predispatch null");uncertain->start(short_request,{child_null,child_null,child_null});close(child_null);
       try{uncertain->stop();_exit(92);}catch(const std::exception& error){_exit(std::string(error.what())=="unbound cleanup must remain uncertain"?0:94);}
     }catch(...){_exit(93);}}

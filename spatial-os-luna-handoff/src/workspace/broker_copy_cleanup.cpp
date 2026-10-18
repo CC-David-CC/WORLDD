@@ -51,8 +51,9 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   // Validate the exact retained broker root before considering the no-execution exception.
   require(tree.identity().SerializeAsString()==broker_.SerializeAsString(),"Cleanup requires its actual retained broker root");
   if(!journal_) {
-    require(!tree.execution_may_have_run(),"Unbound broker cleanup cannot produce a stop receipt after execution may have run");
-    return; // Exact prepared root, before any gate release or external payload attachment.
+    require(!tree.execution_may_have_run() || tree.trusted_preexec_failure(),
+        "Unbound broker cleanup cannot produce a stop receipt after execution may have run");
+    return; // Exact root with either no dispatch or a trusted pre-exec failure.
   }
   journal_->verify(deadline);
   auto journal=FileOperationJournal::open_existing(*journal_,deadline);
