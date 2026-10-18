@@ -39,11 +39,13 @@ Recovered bytes: sb16 4708802560; sb16-2 4722495488.
 Cleanup ledgers on each host: spatial-artifacts/cleanup/m08-fresh-fixture-capacity-20261018/.
 
 Target-only native fixture closure repair
-The stronger package audit found missing generated input_pb2 on the cabinet import path.
-The path reaches test_surface_identity and test_actor_binding through the native geometry fixture.
-Both native geometry fixture targets now depend explicitly on input-python-protobuf.
-Do not generate bindings manually or rely on an unrelated ALL build.
-The audit lists conservative unused method helper references separately from required runtime outputs.
+The initial conservative audit followed an unused inherited boundary test into input_pb2.
+Primary added two input dependencies before the selected-method audit finished.
+The selected workspace and cabinet fixtures disable those inherited tests.
+Primary removed the unnecessary dependencies after that audit correction.
+The actual selected closure contains 74 files and all 17 required binary helpers.
+It has no missing generated modules. Do not build helpers for unused inherited methods.
+The conservative report and selected-method exclusion evidence remain preserved externally.
 The package remains UNQUALIFIED until independent extraction and checksum checks pass.
 Compression preflight correction 5230d602 is integrated without changing C++ or protobuf inputs.
 Fresh 512 MiB focus01 Btrfs volumes were prepared successfully on both required hosts.
