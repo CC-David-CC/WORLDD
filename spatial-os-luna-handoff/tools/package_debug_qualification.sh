@@ -47,7 +47,7 @@ for src in files:
   total += len(names)
  dst.write_text(text)
  print(f'{rel}: registrations={len(names)}')
-assert total==168, f'expected 168 registrations in metadata, got {total}'
+assert total==172, f'expected 172 registrations in metadata, got {total}'
 shutil.copy2(build/'DartConfiguration.tcl',stage/'DartConfiguration.tcl')
 dart=(stage/'DartConfiguration.tcl').read_text()
 dart=re.sub(r'^BuildDirectory: .*$',f'BuildDirectory: {stage}',dart,flags=re.M)
@@ -59,22 +59,22 @@ import json,pathlib,subprocess,sys
 root,stage=map(pathlib.Path,sys.argv[1:]); build=root/'builds/debug'
 r=subprocess.run(['ctest','--test-dir',str(stage),'--show-only=json-v1'],text=True,capture_output=True,check=True)
 j=json.loads(r.stdout); tests=j.get('tests',[]); names=[t['name'] for t in tests]
-assert len(tests)==168, f'expected 168 registrations, got {len(tests)}'
-assert len(set(names))==168, 'duplicate CTest names'
+assert len(tests)==172, f'expected 172 registrations, got {len(tests)}'
+assert len(set(names))==172, 'duplicate CTest names'
 previously_missing=['broker-file-action-client-test','file-action-effect-wait-test','presentation-metadata-test','queued-copy-status-replacement-test','spatial-actor-session-client-probe','spatial-actor-session-client-tls-probe','spatial-actor-transition-coordinator-probe','spatial-host-actor-controller-probe','spatial-snapshot-size-regression','workspace-copy-journal-test','workspace-file-engine-test','workspace-file-operation-journal-test','workspace-presentation-projection-test','workspace-presentation-store-test','world-diagnostic-timing-test']
 for name in previously_missing:
  exe=build/name
  assert exe.is_file() and exe.stat().st_mode & 0o111, f'missing previously absent executable {name}'
 wd=[p['value'] for t in tests for p in t.get('properties',[]) if p.get('name')=='WORKING_DIRECTORY']
-assert len(wd)==168 and set(wd)=={str(build)}, f'working dirs are not package build: {set(wd)}'
+assert len(wd)==172 and set(wd)=={str(build)}, f'working dirs are not package build: {set(wd)}'
 (stage/'CTEST_REGISTRATION.json').write_text(json.dumps(j,indent=2,sort_keys=True)+'\n')
 r=subprocess.run(['ctest','--test-dir',str(stage),'-N','-C','Debug'],text=True,capture_output=True)
 (stage/'CTEST_LIST_ONLY.txt').write_text(r.stdout+r.stderr)
 assert r.returncode==0, f'ctest -N exit {r.returncode}'
 assert 'Could not find executable' not in r.stdout+r.stderr, 'missing registered executable'
 assert f'Test project {stage}' in r.stdout, 'CTest bookkeeping is not external'
-assert 'Total Tests: 168' in r.stdout, 'CTest registration count mismatch'
-print(f'external CTest stage registrations=168; prior missing executables=15 present; explicit package workdirs=168; list-only is warning-free')
+assert 'Total Tests: 172' in r.stdout, 'CTest registration count mismatch'
+print(f'external CTest stage registrations=172; prior missing executables=15 present; explicit package workdirs=172; list-only is warning-free')
 PY
 : > "$FINAL/ELF_DEPENDENCIES.txt"
 while IFS= read -r -d '' f; do
@@ -122,7 +122,7 @@ PY
 ctest --test-dir "$CTEST_STAGE" -N -C Debug > "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt" 2>&1
 ! grep -q 'Could not find executable' "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
 grep -F "Test project $CTEST_STAGE" "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
-grep -F 'Total Tests: 168' "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
+grep -F 'Total Tests: 172' "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
 [[ "$(realpath "$BACKUP")" == "$BACKUP" && -d "$BACKUP" && ! -L "$BACKUP" ]]
 removed_bytes=$(du -sb "$BACKUP" | awk '{print $1}')
 find "$BACKUP" -type d -exec chmod u+w {} +
