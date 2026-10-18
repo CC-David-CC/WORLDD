@@ -544,6 +544,13 @@ if(BUILD_TESTING)
     add_test(NAME broker-instance-registry-provisioning COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_instance_registry.py")
     set_tests_properties(broker-instance-registry-provisioning PROPERTIES TIMEOUT 20)
+    add_test(NAME broker-cgroup-events-parser COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_cgroup_events.py")
+    set_tests_properties(broker-cgroup-events-parser PROPERTIES TIMEOUT 20)
+    add_executable(process-scope-controller-reset-test tests/core/process_scope_controller_reset.cpp)
+    target_include_directories(process-scope-controller-reset-test PRIVATE src)
+    add_test(NAME process-scope-controller-reset COMMAND $<TARGET_FILE:process-scope-controller-reset-test>)
+    set_tests_properties(process-scope-controller-reset PROPERTIES TIMEOUT 20)
     target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_PROCESS_SCOPE_READTRACE=1)
     target_compile_definitions(workspaced PRIVATE
         SPATIAL_TEST_FILE_JOURNAL_FAULTS=1

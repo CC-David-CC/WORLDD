@@ -18,6 +18,7 @@ import sys
 import time
 import uuid
 from google.protobuf import text_format
+from cgroup_events import populated_value
 
 assert os.getuid() == 0 and socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
 build, root = (Path(value).resolve() for value in sys.argv[1:])
@@ -87,7 +88,7 @@ def owned_scope(state):
 
 def assert_owned_scopes_empty_for_state(state):
     scope=owned_scope(state)
-    assert (scope/'cgroup.events').read_text().strip() == 'populated 0', scope
+    assert populated_value((scope/'cgroup.events').read_text()) == 0, scope
     assert not (scope/'cgroup.procs').read_text().strip(), scope
     assert not any(path.is_dir() for path in scope.rglob('*')), scope
 
@@ -95,7 +96,7 @@ def assert_owned_scopes_empty_for_state(state):
 def assert_owned_scopes_empty():
     for scope in (delegate/'broker-root').iterdir():
         if not scope.is_dir(): continue
-        assert (scope/'cgroup.events').read_text().strip() == 'populated 0', scope
+        assert populated_value((scope/'cgroup.events').read_text()) == 0, scope
         assert not (scope/'cgroup.procs').read_text().strip(), scope
         assert not any(path.is_dir() for path in scope.rglob('*')), scope
 
@@ -273,9 +274,9 @@ try:
             time.sleep(.01)
         owner_unit(restart_log)
         assert select.select([app_pin],[],[],0)[0]==[app_pin], 'Stale descendant survived before first broker request'
-        assert (first_scope/'cgroup.events').read_text().strip()=='populated 1'
+        assert populated_value((first_scope/'cgroup.events').read_text()) == 1
         assert not app_group.exists(), 'Stale child cgroup survived restart drain'
-        assert (owned_scope(state_b)/'cgroup.events').read_text().strip()=='populated 1'
+        assert populated_value((owned_scope(state_b)/'cgroup.events').read_text()) == 1
         # The independent broker must remain usable while the restarted broker accepts work.
         assert call(second,'hello',core.HelloRequest()).hello.implementation == 'production'
         assert call(restarted,'hello',core.HelloRequest()).hello.implementation == 'production'
@@ -316,7 +317,7 @@ try:
     assert replaced.wait(timeout=15)==2, replaced_log.read_text(errors='replace')
     replaced.stdin.close();replaced.stdout.close();children.remove(replaced)
     assert 'Broker state directory was replaced at its registered path' in replaced_log.read_text(errors='replace')
-    assert (replacement_scope/'cgroup.events').read_text().strip()=='populated 0'
+    assert populated_value((replacement_scope/'cgroup.events').read_text()) == 0
     record['results']['same_path_replaced_state_inode_fails_closed'] = dict(passed=True)
     # Cancel at the real readiness boundary after the service is active.
     owner_policy.broker_uid = uid
