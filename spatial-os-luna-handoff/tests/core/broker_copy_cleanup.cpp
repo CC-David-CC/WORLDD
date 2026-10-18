@@ -1330,11 +1330,21 @@ int main(int argc,char** argv){try{
     const int result=sqlite3_exec(db,"BEGIN IMMEDIATE",nullptr,nullptr,nullptr);close_test_db(db);
     return result==SQLITE_BUSY?0:95;
   }
-  check(argc==2||(argc==4&&std::strcmp(argv[2],"--only-participant-mode")==0),"expected delegated cgroup root");
+  const bool only_mode=argc==4&&std::strcmp(argv[2],"--only-participant-mode")==0;
+  const bool mode_set=argc==4&&std::strcmp(argv[2],"--participant-mode-set")==0;
+  check(argc==2||only_mode||mode_set,"expected delegated cgroup root");
   const std::filesystem::path root=argv[1];
-  if(argc==2)bootstrap_controls();
-  if(argc==4){
+  if(only_mode){
     check(std::strcmp(argv[3],"deadline-multirow")==0,"unsupported isolated participant mode");
     participant_case(root,argv[3]);std::cout<<"BROKER_COPY_CLEANUP_SELECTED_PASS\n";return 0;
   }
-  journal_controls();constructor_allocation_controls();substitution_during_open_control();pin_lock_controls();alias_transaction_controls();hot_journal_controls();alias_header_orphan_controls();btrfs_layout_controls();callback_controls(root);for(const auto* mode:{"exact","missing","missing-at-open","replaced","old-proof-replaced","uncertain","reserved","reserved-empty","deadline-lock","deadline-multirow","foreign-view","commit-failure","prepared","missing-parent","replaced-parent","old-proof-parent-replaced"})participant_case(root,mode);std::cout<<"BROKER_COPY_CLEANUP_PASS\n";return 0;}catch(const std::exception& error){std::cerr<<"cleanup_phase mode="<<active_cleanup_mode<<" phase=probe_unwind detail="<<error.what()<<std::endl;std::cerr<<error.what()<<'\n';return 1;}}
+  if(mode_set)check(std::strcmp(argv[3],"controls-plus-15")==0,"unsupported participant mode set");
+  if(argc==2||mode_set)bootstrap_controls();
+  journal_controls();constructor_allocation_controls();substitution_during_open_control();pin_lock_controls();alias_transaction_controls();hot_journal_controls();alias_header_orphan_controls();btrfs_layout_controls();callback_controls(root);
+  for(const auto* mode:{"exact","missing","missing-at-open","replaced","old-proof-replaced","uncertain","reserved","reserved-empty","deadline-lock","deadline-multirow","foreign-view","commit-failure","prepared","missing-parent","replaced-parent","old-proof-parent-replaced"}){
+    if(mode_set&&std::strcmp(mode,"deadline-multirow")==0)continue;
+    participant_case(root,mode);
+  }
+  if(mode_set)std::cout<<"BROKER_COPY_CLEANUP_CONTROLS_PLUS_15_PASS\n";
+  else std::cout<<"BROKER_COPY_CLEANUP_PASS\n";
+  return 0;}catch(const std::exception& error){std::cerr<<"cleanup_phase mode="<<active_cleanup_mode<<" phase=probe_unwind detail="<<error.what()<<std::endl;std::cerr<<error.what()<<'\n';return 1;}}

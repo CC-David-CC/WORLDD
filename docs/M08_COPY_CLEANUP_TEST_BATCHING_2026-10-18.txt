@@ -1,0 +1,7 @@
+M08 copy-cleanup test batching (2026-10-18)
+
+The full probe still supports its original direct invocation. It runs all controls and all 16 participant modes, including the 128-row `deadline-multirow` case.
+
+CTest now schedules two mandatory entries. `broker-copy-preprune-cleanup` runs the controls and the other 15 participant modes, then emits `BROKER_COPY_CLEANUP_CONTROLS_PLUS_15_PASS`. `broker-copy-preprune-deadline-multirow` runs the existing heavy mode alone and emits `BROKER_COPY_CLEANUP_SELECTED_PASS`. Both use the same production probe, real cgroup setup, Btrfs fixture environment, and Python 60-second probe timeout. CTest remains capped at 90 seconds. The 300 ms first deadline, 2 second elapsed bound, 30 second exact-retry deadline, and 128 rows are unchanged.
+
+A pass from the 15-mode entry does not claim the full 16-mode result. Both entries are required for the complete copy-cleanup test inventory. This is an explicit test scheduling change to isolate aggregate runtime; it does not remove or weaken a case or oracle. Runtime evidence remains pending.

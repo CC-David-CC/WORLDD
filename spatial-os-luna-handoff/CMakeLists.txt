@@ -604,8 +604,15 @@ if(BUILD_TESTING)
         python-protobuf security-python-protobuf workspace-copy-python-protobuf)
     add_test(NAME broker-copy-preprune-cleanup COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_copy_cleanup.py" $<TARGET_FILE:broker-copy-cleanup-test>)
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_copy_cleanup.py" $<TARGET_FILE:broker-copy-cleanup-test>
+        --participant-mode-set controls-plus-15)
     set_tests_properties(broker-copy-preprune-cleanup PROPERTIES TIMEOUT 90 RUN_SERIAL TRUE
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME broker-copy-preprune-deadline-multirow COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_copy_cleanup.py" $<TARGET_FILE:broker-copy-cleanup-test>
+        --only-participant-mode deadline-multirow)
+    set_tests_properties(broker-copy-preprune-deadline-multirow PROPERTIES TIMEOUT 90 RUN_SERIAL TRUE
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(workspace-file-operation-journal-test tests/core/file_operation_journal.cpp)
     target_include_directories(workspace-file-operation-journal-test PRIVATE src)

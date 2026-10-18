@@ -8,12 +8,17 @@ import unittest
 import uuid
 
 PROBE=Path(sys.argv.pop(1)).resolve()
-ONLY_PARTICIPANT_MODE=None
-if len(sys.argv)>1 and sys.argv[1]=='--only-participant-mode':
-    if len(sys.argv)<3:
-        raise SystemExit('--only-participant-mode requires a mode')
-    ONLY_PARTICIPANT_MODE=sys.argv.pop(2)
-    sys.argv.pop(1)
+PARTICIPANT_SELECTOR=None
+if len(sys.argv)>1 and sys.argv[1] in ('--only-participant-mode','--participant-mode-set'):
+    selector=sys.argv.pop(1)
+    if len(sys.argv)<2:
+        raise SystemExit(selector+' requires a value')
+    value=sys.argv.pop(1)
+    if selector=='--only-participant-mode' and value!='deadline-multirow':
+        raise SystemExit('unsupported isolated participant mode: '+value)
+    if selector=='--participant-mode-set' and value!='controls-plus-15':
+        raise SystemExit('unsupported participant mode set: '+value)
+    PARTICIPANT_SELECTOR=(selector,value)
 class BrokerCopyCleanupTests(unittest.TestCase):
     def test_real_preprune_journal_and_scope_boundaries(self):
         self.assertIn(socket.gethostname().split('.')[0], ('sb16','sb16-2'))
@@ -30,9 +35,11 @@ class BrokerCopyCleanupTests(unittest.TestCase):
             (root/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
             argv=[str(PROBE),str(root)]
             expected='BROKER_COPY_CLEANUP_PASS'
-            if ONLY_PARTICIPANT_MODE is not None:
-                argv.extend(['--only-participant-mode',ONLY_PARTICIPANT_MODE])
-                expected='BROKER_COPY_CLEANUP_SELECTED_PASS'
+            if PARTICIPANT_SELECTOR is not None:
+                selector,value=PARTICIPANT_SELECTOR
+                argv.extend([selector,value])
+                expected=('BROKER_COPY_CLEANUP_SELECTED_PASS' if selector=='--only-participant-mode'
+                          else 'BROKER_COPY_CLEANUP_CONTROLS_PLUS_15_PASS')
             try:
                 result=subprocess.run(argv,capture_output=True,text=True,timeout=60)
             except subprocess.TimeoutExpired as error:
