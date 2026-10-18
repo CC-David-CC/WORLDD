@@ -9,6 +9,12 @@ import tempfile
 from typing import Mapping
 
 
+PACKAGE_MANIFEST_MARKERS = (
+    'PACKAGE_MANIFEST.sha256',
+    'PACKAGE_MANIFEST.SHA256SUMS',
+)
+
+
 def resolve_root(override: str | None = None, *, environ: Mapping[str, str] | None = None,
                  home: Path | None = None) -> Path:
     env = os.environ if environ is None else environ
@@ -23,7 +29,7 @@ def resolve_root(override: str | None = None, *, environ: Mapping[str, str] | No
 def frozen_package_root(script: Path, cwd: Path) -> Path | None:
     for candidate in (script.resolve(), cwd.resolve()):
         for parent in (candidate, *candidate.parents):
-            if (parent / 'PACKAGE_MANIFEST.SHA256SUMS').is_file():
+            if any((parent / marker).is_file() for marker in PACKAGE_MANIFEST_MARKERS):
                 return parent
     return None
 
