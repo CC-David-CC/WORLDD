@@ -563,14 +563,23 @@ int main(int argc, char** argv) {
                     if (ready > 0 && (event.revents & (POLLHUP | POLLERR | POLLRDHUP))) {
                         if (!cleanup_pending) {
                             cleanup_pending = true;
-                            try { launch->fence_after_failure(); }
-                            catch (const std::exception& fencing) {
-                                std::cerr << "Management disconnect fencing unresolved: " << fencing.what() << '\n';
+                            // Management loss cannot resolve whether the issuer accepted activation.
+                            // Stop the locally owned scopes without fencing or acknowledging that generation.
+                            try {
+                                auto receipt = cleanup_once();
+                                if (receipt && storage_start_cleanup_confirmed) {
+                                    std::cerr << "Management parent disconnected; owned scopes stopped; issuer outcome remains unresolved\n";
+                                    std::cerr.flush();
+                                    return 2;
+                                }
+                                std::cerr << "Management parent disconnected; cleanup remains pending\n";
+                            } catch (const std::exception& cleanup) {
+                                std::cerr << "Management parent disconnected; cleanup remains pending: " << cleanup.what() << '\n';
                             }
                         }
-                        std::cerr << "Management parent disconnected while cleanup may be pending; returning without a checked receipt\n";
+                        std::cerr << "Management parent disconnected while cleanup may be pending; preserving unresolved evidence\n";
                         std::cerr.flush();
-                        return 2; // Stack unwinding retains the existing bounded best-effort destructors.
+                        return 2; // Do not promote an already-pending cleanup record to a terminal receipt.
                     }
                 }
                 if (!cleanup_pending) {
