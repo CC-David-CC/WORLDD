@@ -15,6 +15,8 @@ import file_actions_pb2 as cabinet
 import world_session_pb2 as session
 import grants_pb2 as grant
 import test_workspace_presentation_actor as presentation
+from gateway_trace import (FinalWindowBrokerTrace, FINAL_WINDOW_SEQUENCE,
+                            record_file_action_attempt, require_create_payload, scoped_check_matches)
 
 
 class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
@@ -420,30 +422,138 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         world = self.workspace()
         peer = world.peers[0]
         target = self.make_cabinet(world, peer)
-        path = self.project / 'wrong-binding-must-not-write.txt'
         original_exchange = self.broker.exchange
-        injected = {'wrong_binding': False, 'file_action': False}
+        principal = self.principal()
+        worktree = self.registered_worktree_component('one')
 
-        def exchange_with_wrong_binding(request):
-            if request.HasField('file_action'):
-                injected['file_action'] = True
-            response = original_exchange(request)
-            if (request.HasField('management') and request.management.HasField('workspace_get') and
-                    request.management.workspace_get.id == 'one' and not injected['wrong_binding']):
+        def run_create(path, corrupt_dispatch_binding):
+            state = {'stage': 0, 'binding': None, 'stamps': [],
+                     'dispatch_seen': False, 'file_action_attempts': 0, 'file_action_seen': False,
+                     'wrong_binding': False, 'trace': []}
+
+            def check_request(request, right, expected_allowed, label):
+                self.assertTrue(request.HasField('scoped_authority_check'), request)
+                check = request.scoped_authority_check
+                self.assertTrue(scoped_check_matches(check, 'one', principal, right,
+                    [worktree] if right != grant.WORKSPACE_ACCESS else []), (label, check))
+                response = original_exchange(request)
+                self.assertTrue(response.HasField('scoped_authority_check'), response)
+                decision = response.scoped_authority_check
+                self.assertEqual(decision.allowed, expected_allowed, (label, decision))
+                self.assertEqual(len(decision.incarnation), 16, (label, decision))
+                self.assertGreater(decision.epoch, 0, (label, decision))
+                state['stamps'].append((decision.incarnation, decision.epoch))
+                state['trace'].append(label)
+                state['stage'] += 1
+                return response
+
+            def workspace_reply(request, label):
+                self.assertTrue(request.HasField('management'), request)
+                self.assertTrue(request.management.HasField('workspace_get'), request)
+                self.assertEqual(request.management.workspace_get.id, 'one', request)
+                response = original_exchange(request)
                 self.assertTrue(response.HasField('management'), response)
                 self.assertTrue(response.management.HasField('workspace'), response)
-                response.management.workspace.id = 'different-workspace'
-                injected['wrong_binding'] = True
-            return response
+                binding = response.management.workspace
+                self.assertEqual(binding.id, 'one', binding)
+                self.assertEqual(binding.worktree.encode('utf-8'), worktree, binding)
+                if state['binding'] is None:
+                    state['binding'] = (binding.id, binding.worktree, binding.revision)
+                else:
+                    self.assertEqual((binding.id, binding.worktree, binding.revision), state['binding'], binding)
+                state['trace'].append(label)
+                state['stage'] += 1
+                if label == 'dispatch_binding':
+                    state['dispatch_seen'] = True
+                    if corrupt_dispatch_binding:
+                        response.management.workspace.id = 'different-workspace'
+                        state['wrong_binding'] = True
+                return response
 
-        self.broker.exchange = exchange_with_wrong_binding
-        try:
-            denied = peer.act(cabinet=self.cabinet_request(target,
-                create=cabinet.FileCreate(directory_handle=b'', basename=path.name.encode(), content=b'x')))
-        finally:
-            self.broker.exchange = original_exchange
-        self.assertTrue(injected['wrong_binding'], 'fixture did not alter the registered workspace reply')
-        self.assertFalse(injected['file_action'], 'gateway dispatched after a mismatched workspace binding')
+            control_operation = os.urandom(16)
+
+            def exchange_with_phase_checked_binding(request):
+                record_file_action_attempt(request, state)
+                if state['stage'] == 0:
+                    return check_request(request, grant.WORKSPACE_ACCESS, True, 'projection_workspace_access')
+                if state['stage'] == 1:
+                    return workspace_reply(request, 'projection_binding')
+                if state['stage'] == 2:
+                    return check_request(request, grant.FILE_BROWSE, True, 'projection_browse_allowed')
+                if state['stage'] == 3:
+                    return workspace_reply(request, 'projection_binding_confirmation')
+                if state['stage'] in (4, 5):
+                    label = ('projection_workspace_access_render_before' if state['stage'] == 4
+                             else 'projection_workspace_access_render_after')
+                    return check_request(request, grant.WORKSPACE_ACCESS, True, label)
+                if state['stage'] == 6:
+                    self.assertTrue(request.HasField('authorization_fence'), request)
+                    self.assertEqual(request.authorization_fence.principal, principal, request)
+                    response = original_exchange(request)
+                    self.assertTrue(response.HasField('authorization_fence'), response)
+                    fence = response.authorization_fence
+                    self.assertTrue(all(stamp == (fence.incarnation, fence.epoch)
+                                        for stamp in state['stamps']), (state['stamps'], fence))
+                    state['trace'].append('projection_observation_fence')
+                    state['stage'] += 1
+                    return response
+                if state['stage'] == 7:
+                    return workspace_reply(request, 'dispatch_binding')
+                if state['stage'] == 8 and not corrupt_dispatch_binding:
+                    self.assertTrue(request.HasField('management'), request)
+                    self.assertTrue(request.management.HasField('workspace_get'), request)
+                    self.assertEqual(request.management.workspace_get.id, 'one', request)
+                    response = original_exchange(request)
+                    self.assertTrue(response.HasField('management'), response)
+                    self.assertTrue(response.management.HasField('workspace'), response)
+                    binding = response.management.workspace
+                    self.assertEqual((binding.id, binding.worktree, binding.revision), state['binding'], binding)
+                    state['trace'].append('dispatch_binding_confirmation')
+                    state['stage'] += 1
+                    return response
+                if state['stage'] >= 9:
+                    if request.HasField('file_action'):
+                        self.assertEqual(request.file_action.workspace_id, 'one', request)
+                        self.assertEqual(request.file_action.operation_id, control_operation, request)
+                        self.assertEqual(request.file_action.principal, principal, request)
+                        require_create_payload(request, basename=path.name.encode(), content=b'x')
+                        state['file_action_seen'] = True
+                    return original_exchange(request)
+                self.fail(f'unexpected broker request in projection/dispatch phase {state["stage"]}: {request!r}')
+
+            self.broker.exchange = exchange_with_phase_checked_binding
+            try:
+                result = peer.act(cabinet=self.cabinet_request(target, control_operation,
+                    create=cabinet.FileCreate(directory_handle=b'', basename=path.name.encode(), content=b'x')))
+            finally:
+                self.broker.exchange = original_exchange
+            return result, state
+
+        control_path = self.project / 'authorized-binding-control.txt'
+        control, control_state = run_create(control_path, False)
+        self.assertTrue(control_state['dispatch_seen'], control_state['trace'])
+        self.assertTrue(control_state['file_action_seen'], control_state['trace'])
+        self.assertEqual(control_state['file_action_attempts'], 1, control_state)
+        self.assertEqual(control_state['trace'], [
+            'projection_workspace_access', 'projection_binding', 'projection_browse_allowed',
+            'projection_binding_confirmation', 'projection_workspace_access_render_before',
+            'projection_workspace_access_render_after', 'projection_observation_fence',
+            'dispatch_binding', 'dispatch_binding_confirmation'])
+        self.assertTrue(control.HasField('action'), control)
+        self.assertTrue(control.action.cabinet.HasField('object'), control)
+        self.assertEqual(control_path.read_bytes(), b'x')
+
+        path = self.project / 'wrong-binding-must-not-write.txt'
+        denied, injected = run_create(path, True)
+        self.assertTrue(injected['wrong_binding'], injected['trace'])
+        self.assertTrue(injected['dispatch_seen'], injected['trace'])
+        self.assertFalse(injected['file_action_seen'], 'gateway dispatched after a mismatched dispatch binding')
+        self.assertEqual(injected['file_action_attempts'], 0, injected)
+        self.assertEqual(injected['trace'], [
+            'projection_workspace_access', 'projection_binding', 'projection_browse_allowed',
+            'projection_binding_confirmation', 'projection_workspace_access_render_before',
+            'projection_workspace_access_render_after', 'projection_observation_fence',
+            'dispatch_binding'])
         self.assertTrue(denied.HasField('error'), denied)
         self.assertEqual(denied.error.code, core.STALE_TARGET)
         self.assertFalse(path.exists())
@@ -953,8 +1063,11 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         fence_held = threading.Event()
         release_fence = threading.Event()
         response_box, worker_errors, exchange_errors = [], [], []
-        trace = []
-        phase = {'stage': 0, 'scope_reply': None, 'fence_reply': None}
+        trace_contract = FinalWindowBrokerTrace(
+            workspace='one', principal=principal, worktree=worktree, operation=operation,
+            basename=path.name.encode(), content=b'effect', workspace_access=grant.WORKSPACE_ACCESS,
+            browse=grant.FILE_BROWSE, read=grant.FILE_READ, create=grant.FILE_CREATE)
+        trace = trace_contract.events
         phase_lock = threading.Lock()
         original_exchange = self.broker.exchange
         revocation_done = threading.Event()
@@ -964,87 +1077,17 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 
         def exchange_with_fence_barrier(request):
             try:
-                operation_request = (
-                    request.HasField('file_action') and
-                    request.file_action.workspace_id == 'one' and
-                    request.file_action.operation_id == operation and
-                    request.file_action.principal == principal)
-                if operation_request:
-                    response = original_exchange(request)
-                    complete = (
-                        response.HasField('file_action') and
-                        response.file_action.HasField('object') and
-                        response.file_action.operation_id == operation)
-                    if complete:
-                        with phase_lock:
-                            phase['stage'] = 1
-                            trace.append('file_action_complete')
-                    else:
-                        exchange_errors.append(f'unexpected file_action reply: {response!r}')
-                    return response
-
-                stage = phase['stage']
-                management_get = (
-                    request.HasField('management') and
-                    request.management.HasField('workspace_get') and
-                    request.management.workspace_get.id == 'one')
-                if stage in (1, 3) and management_get:
-                    response = original_exchange(request)
-                    valid_binding = (
-                        response.HasField('management') and
-                        response.management.HasField('workspace') and
-                        response.management.workspace.id == 'one' and
-                        response.management.workspace.worktree.encode('utf-8') == worktree)
-                    if valid_binding:
-                        with phase_lock:
-                            phase['stage'] = stage + 1
-                            trace.append('post_observe_workspace_binding' if stage == 1
-                                         else 'confirmed_workspace_binding')
-                    else:
-                        exchange_errors.append(f'unexpected workspace binding reply: {response!r}')
-                    return response
-
-                if stage == 2 and request.HasField('scoped_authority_check'):
-                    check = request.scoped_authority_check
-                    exact_check = (
-                        check.workspace == 'one' and check.principal == principal and
-                        check.right == grant.FILE_CREATE and list(check.components) == [worktree])
-                    if not exact_check:
-                        exchange_errors.append(f'wrong scoped authority check: {check!r}')
-                        return original_exchange(request)
-                    response = original_exchange(request)
-                    if response.HasField('scoped_authority_check') and response.scoped_authority_check.allowed:
-                        with phase_lock:
-                            phase['stage'] = 3
-                            phase['scope_reply'] = response.scoped_authority_check
-                            trace.append('exact_file_create_scoped_check')
-                    else:
-                        exchange_errors.append(f'exact scoped check was not allowed: {response!r}')
-                    return response
-
-                if stage == 4 and request.HasField('authorization_fence'):
-                    if request.authorization_fence.principal != principal:
-                        exchange_errors.append(f'wrong authorization fence principal: {request.authorization_fence!r}')
-                        return original_exchange(request)
-                    response = original_exchange(request)
-                    scope_reply = phase['scope_reply']
-                    matches_scope = (
-                        response.HasField('authorization_fence') and scope_reply is not None and
-                        response.authorization_fence.incarnation == scope_reply.incarnation and
-                        response.authorization_fence.epoch == scope_reply.epoch)
-                    if not matches_scope:
-                        exchange_errors.append(f'fence did not match scoped-check reply: {response!r}')
-                        return response
+                if trace_contract.stage == 0 and not request.HasField('file_action'):
+                    # Initial visibility and dispatch validation precede the selected effect.
+                    return original_exchange(request)
+                response = trace_contract.exchange(request, original_exchange)
+                if trace_contract.final_fence_reached and not fence_held.is_set():
+                    trace_contract.finish()
                     with phase_lock:
-                        phase['stage'] = 5
-                        phase['fence_reply'] = response
-                        trace.append('authorization_fence_held')
-                    fence_held.set()
+                        fence_held.set()
                     if not release_fence.wait(5):
                         exchange_errors.append('bounded authorization-fence release expired')
-                    return response
-
-                return original_exchange(request)
+                return response
             except BaseException as error:
                 exchange_errors.append(repr(error))
                 raise
@@ -1069,9 +1112,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             self.assert_completed_file_operation(operation)
             self.assertTrue(path.is_file(), 'file operation must complete before the final fence')
             self.assertEqual(path.read_bytes(), b'effect')
-            self.assertEqual(trace, ['file_action_complete', 'post_observe_workspace_binding',
-                                     'exact_file_create_scoped_check', 'confirmed_workspace_binding',
-                                     'authorization_fence_held'])
+            self.assertEqual(trace, list(FINAL_WINDOW_SEQUENCE))
             self.assertFalse(exchange_errors, exchange_errors)
 
             def revoke_ancestor():
@@ -1095,6 +1136,8 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             worker.join(5)
             self.assertFalse(worker.is_alive(), 'gateway call did not finish after fence release')
             self.assertFalse(worker_errors, worker_errors)
+            self.assertFalse(exchange_errors, exchange_errors)
+            self.broker.exchange = original_exchange
             self.assertEqual(len(response_box), 1)
             result = response_box[0]
             self.assertTrue(result.HasField('action'), result)
