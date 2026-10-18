@@ -12,6 +12,25 @@ sys.path.insert(0, str(WORKER.parent / "python"))
 from spatial.workspace.v1 import copy_worker_pb2
 BWRAP = Path("/usr/local/libexec/spatial-bwrap")
 
+def u64(value):
+    return int(value).to_bytes(8, "big", signed=False)
+
+def cabinet_digest(entries):
+    import hashlib
+    stream = bytearray()
+    def field(value):
+        stream.extend(u64(len(value)))
+        stream.extend(value)
+    field(b"spatial-cabinet-copy-v1")
+    for relative_path, kind, mode, payload in entries:
+        field(relative_path)
+        stream.extend(kind)
+        stream.extend(u64(mode & 0o777))
+        if kind == b"F":
+            stream.extend(u64(len(payload)))
+            stream.extend(payload)
+    return hashlib.sha256(stream).digest()
+
 def decode_result(result):
     if any(marker in result.stderr for marker in (b'AddressSanitizer', b'LeakSanitizer', b'UndefinedBehaviorSanitizer', b'runtime error:')):
         raise AssertionError(f"sanitizer diagnostics from confined worker: {result.stderr!r}")
@@ -22,7 +41,7 @@ def decode_result(result):
         raise AssertionError("worker frame length is invalid")
     message = copy_worker_pb2.WorkerResult()
     message.ParseFromString(result.stdout[4:])
-    if message.protocol_version != 1 or message.WhichOneof("outcome") is None:
+    if message.WhichOneof("outcome") is None:
         raise AssertionError("worker result version or outcome is invalid")
     return message
 
@@ -55,6 +74,131 @@ class CopyTreeWorkerTests(unittest.TestCase):
                     resource.setrlimit(resource.RLIMIT_NOFILE, (nofile_limit, resource.getrlimit(resource.RLIMIT_NOFILE)[1]))
             return subprocess.run(command, capture_output=True, timeout=15,
                                   preexec_fn=lower_nofile if nofile_limit is not None else None)
+
+    def run_cabinet_worker(self, source_parent, source_name, destination, destination_name,
+                           source_is_directory, quota=1 << 20, entries=100):
+        request = copy_worker_pb2.WorkerRequest(
+            protocol_version=3, maximum_bytes=quota, maximum_entries=entries,
+            cabinet_source_name=os.fsencode(source_name),
+            cabinet_destination_name=os.fsencode(destination_name),
+            cabinet_source_is_directory=source_is_directory)
+        with tempfile.NamedTemporaryFile() as request_file:
+            request_file.write(request.SerializeToString()); request_file.flush()
+            command = [str(BWRAP), "--unshare-all", "--unshare-user", "--disable-userns",
+                       "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv",
+                       "--ro-bind", "/usr/bin", "/usr/bin", "--ro-bind", "/usr/lib", "/usr/lib",
+                       "--ro-bind", "/usr/lib64", "/usr/lib64", "--ro-bind", "/usr/share", "/usr/share",
+                       "--symlink", "usr/bin", "/bin", "--symlink", "usr/lib", "/lib",
+                       "--symlink", "usr/lib64", "/lib64", "--proc", "/proc", "--dev", "/dev",
+                       "--tmpfs", "/tmp", "--setenv", "PATH", "/usr/bin:/bin",
+                       "--setenv", "HOME", "/nonexistent", "--setenv", "TMPDIR", "/tmp",
+                       "--setenv", "LC_ALL", "C", "--ro-bind", str(WORKER), "/copy-worker",
+                       "--dir", "/source", "--dir", "/destination",
+                       "--ro-bind", str(source_parent), "/source", "--bind", str(destination), "/destination",
+                       "--ro-bind", request_file.name, "/job.pb", "--remount-ro", "/", "--", "/copy-worker"]
+            return subprocess.run(command, capture_output=True, timeout=15)
+
+    def test_cabinet_protocol_copies_file_and_directory_with_canonical_digest(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); (source / "nested").mkdir()
+            file = source / "single"; file.write_bytes(b"root file")
+            os.chmod(file, 0o751)
+            file_message = decode_result(self.run_cabinet_worker(source, "single", destination,
+                "copied-file", False))
+            self.assertEqual(file_message.protocol_version, 3)
+            self.assertEqual(file_message.WhichOneof("outcome"), "copied")
+            self.assertEqual((destination / "copied-file").read_bytes(), b"root file")
+            self.assertEqual((destination / "copied-file").stat().st_mode & 0o777, 0o751)
+            (source / "nested" / "child").write_bytes(b"nested bytes")
+            directory_message = decode_result(self.run_cabinet_worker(source, "nested", destination,
+                "copied-tree", True))
+            self.assertEqual(directory_message.WhichOneof("outcome"), "copied")
+            self.assertEqual((destination / "copied-tree" / "child").read_bytes(), b"nested bytes")
+            self.assertEqual(directory_message.copied.actual_entries, 2)
+            expected_file = cabinet_digest([
+                (b"", b"F", file.stat().st_mode, b"root file")])
+            nested_mode = (source / "nested").stat().st_mode
+            child_mode = (source / "nested" / "child").stat().st_mode
+            expected_directory = cabinet_digest([
+                (b"", b"D", nested_mode, b""),
+                (b"child", b"F", child_mode, b"nested bytes")])
+            self.assertEqual(file_message.copied.content_digest, expected_file)
+            self.assertEqual(directory_message.copied.content_digest, expected_directory)
+
+    def test_cabinet_protocol_rejects_nested_mounts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir()
+            mountpoint = source / "mounted"; mountpoint.mkdir()
+            outside = root / "outside"; outside.mkdir(); (outside / "payload").write_bytes(b"mounted")
+            mounted = subprocess.run(["mount", "--bind", str(outside), str(mountpoint)],
+                                     capture_output=True, timeout=5)
+            if mounted.returncode != 0:
+                self.skipTest("host does not permit a private bind-mount fixture")
+            try:
+                result = decode_result(self.run_cabinet_worker(source.parent, "source", destination,
+                    "copy", True))
+                self.assertEqual(result.WhichOneof("outcome"), "failure")
+                self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_SPECIAL_ENTRY)
+            finally:
+                subprocess.run(["umount", str(mountpoint)], check=True, timeout=5)
+
+    def test_cabinet_copy_allows_same_parent_sibling_files_and_directories(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); (root / "source-file").write_bytes(b"same parent")
+            result = decode_result(self.run_cabinet_worker(root, "source-file", root,
+                "copied-file", False))
+            self.assertEqual(result.WhichOneof("outcome"), "copied")
+            self.assertEqual((root / "copied-file").read_bytes(), b"same parent")
+            source_tree = root / "tree"; source_tree.mkdir()
+            (source_tree / "child").write_bytes(b"inside")
+            result = decode_result(self.run_cabinet_worker(root, "tree", root,
+                "copied-tree", True))
+            self.assertEqual(result.WhichOneof("outcome"), "copied")
+            self.assertEqual((root / "copied-tree" / "child").read_bytes(), b"inside")
+
+    def test_cabinet_protocol_rejects_symlink_special_and_ceilings(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); (source / "link").symlink_to("/etc/passwd")
+            result = decode_result(self.run_cabinet_worker(source, "link", destination, "copy", False))
+            self.assertEqual(result.WhichOneof("outcome"), "failure")
+            self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_SYMLINK)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); os.mkfifo(source / "fifo")
+            result = decode_result(self.run_cabinet_worker(source, "fifo", destination, "copy", False))
+            self.assertEqual(result.WhichOneof("outcome"), "failure")
+            self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_SPECIAL_ENTRY)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); (source / "large").write_bytes(b"12345")
+            result = decode_result(self.run_cabinet_worker(source, "large", destination, "copy", False, quota=4))
+            self.assertEqual(result.WhichOneof("outcome"), "failure")
+            self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_BYTE_LIMIT)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); (source / "file").write_bytes(b"source")
+            (destination / "existing").write_bytes(b"keep")
+            result = decode_result(self.run_cabinet_worker(source, "file", destination, "existing", False))
+            self.assertEqual(result.WhichOneof("outcome"), "failure")
+            self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_DESTINATION_CONFLICT)
+            self.assertEqual((destination / "existing").read_bytes(), b"keep")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); (source / "tree").mkdir()
+            (destination / "existing").mkdir(); (destination / "existing" / "keep").write_bytes(b"keep")
+            result = decode_result(self.run_cabinet_worker(source, "tree", destination, "existing", True))
+            self.assertEqual(result.WhichOneof("outcome"), "failure")
+            self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_DESTINATION_CONFLICT)
+            self.assertEqual((destination / "existing" / "keep").read_bytes(), b"keep")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root / "source"; destination = root / "destination"
+            source.mkdir(); destination.mkdir(); (source / "tree").mkdir(); (source / "tree" / "child").touch()
+            result = decode_result(self.run_cabinet_worker(source, "tree", destination, "copy", True, entries=1))
+            self.assertEqual(result.WhichOneof("outcome"), "failure")
+            self.assertEqual(result.failure.reason, copy_worker_pb2.FAILURE_ENTRY_LIMIT)
 
     def test_positive_copy_preserves_bytes_without_sharing_inodes(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -1,0 +1,37 @@
+# M08 cabinet subtree copy jobs
+
+Status: contract change from the M08 typed-UNIMPLEMENTED placeholder. Public protobuf field numbers remain unchanged. This contract changes only `FileCopyJob` semantics. The current checkpoint implements the confined worker primitive only. FileEngine START/POLL/CANCEL, broker job persistence, authority binding, cancellation, and restart reconciliation remain follow-up increments.
+
+## Requests and ownership
+
+`START` requires an empty `job_id`, valid source and destination-directory handles, a valid basename, positive byte and entry ceilings, and a fresh `FILE_COPY` grant. The server creates a random 16-byte job ID. The initiating principal owns that job. Every poll and cancellation requires the same principal and a fresh `FILE_COPY` grant. Workspace selection or cabinet presentation alone does not grant copy authority.
+
+A source handle may identify one regular file or one directory subtree. A file copy counts the root file as one entry. A directory copy counts the root directory and every descendant. Only regular-file payload bytes count against the byte ceiling. The destination must not exist. The destination may share a parent with the source, but it may not lie within the copied directory subtree. Invalid or stale handles, symlinks, nested mounts, hard links, special files, and source changes fail closed.
+
+The copy preserves regular permission bits masked to `0777`. It copies no ownership, xattrs, ACLs, credentials, host paths, or special files. It stages output under a private job-specific sibling name. It publishes only by atomic no-replace rename after validation and synchronization.
+
+The client ceilings must be positive and no larger than the server ceilings: 4 GiB of payload bytes and 200,000 entries. The worker enforces both limits during enumeration and copying. It also enforces maximum nesting depth 128 and a descriptor budget derived from its actual `RLIMIT_NOFILE`, reserving 16 descriptors and charging three descriptors per nested level. The broker admits at most 16 active cabinet copy jobs per workspaced instance. Each job uses the existing `WorkspaceResources` worker cgroup budget. The project filesystem quota remains the storage limit. These ceilings do not change M07 workspace-copy limits or behavior.
+
+## Worker and digest
+
+The helper runs inside the existing no-network copy sandbox and `ProcessScope`. The source is read-only. Staging is writable. The helper receives only pinned descriptors and a sealed, bounded protobuf request. Authority, the journal, job lifecycle, cancellation, and publication remain in the broker process.
+
+Content digest is SHA-256 over this canonical byte stream. All integer lengths and counts use unsigned 64-bit big-endian encoding. Byte strings are encoded as length followed by raw bytes. The stream begins with the length-prefixed domain string `spatial-cabinet-copy-v1`. It then encodes the source root as an entry with an empty relative path, type byte `F` or `D`, and permission bits masked to `0777`. Directories are enumerated in lexicographic unsigned-byte name order. Each descendant contributes its length-prefixed relative path, type byte, and masked permission bits. A regular file then contributes its 64-bit payload length and exact payload bytes. A directory contributes its descendants. Synchronization is a required precondition for a successful receipt and is not hashed. No timestamps, inode numbers, or host paths enter the digest.
+
+Before publication, the worker verifies that each opened file retains its pinned device and inode, link count, size, mode, modification time, and change time. It verifies directory identity and metadata after enumerating descendants. It synchronizes every copied file and directory and the staging parent. The broker rechecks fresh authority and the destination parent identity before atomic no-replace publication.
+
+`POLL` returns only bounded monotonic progress and a terminal receipt. Progress counts include entries observed and bytes copied, never exceed the request ceilings, and are journaled. `COMPLETE` is returned only after publication identity and digest are durable. A pre-existing destination is never changed. A conflict removes only staging whose recorded identity still matches the job.
+
+`CANCEL` returns `CANCELLED` only after the owned ProcessScope is proven empty, staging cleanup is identity-checked and synchronized, and the terminal journal commit succeeds. Revocation requests cancellation of the worker. If a filesystem effect may have happened, or cleanup, authority, or journal completion cannot be proven, the job becomes `UNCERTAIN` with its job ID. The application process remains alive.
+
+## Durable identity and recovery
+
+The file-operation journal binds each actor request to workspace, operation ID, principal, worktree root identity, exact right, canonical request digest, and engine incarnation. A versioned journal extension stores copy job ID, initiating request and principal, server-approved limits, source identity and relative path, destination-parent identity, basename, staging identity, ProcessScope identity, boot ID, state, progress, and terminal receipt. SQLite remains confined to its existing journal owner thread. Journal limits and fail-closed behavior remain in force.
+
+On restart, recovery never relaunches a worker. If the recorded boot ID differs from the current kernel boot ID, the old worker cannot still exist. For a same-boot restart, recovery may clean staging only if the exact recorded ProcessScope can be reopened by its delegated-root-relative identity, its device and inode match, and `cgroup.events`, `cgroup.procs`, and descendants prove it empty. If the scope cannot be reopened and proven empty, recovery keeps staging and records `UNCERTAIN`; it does not claim cancellation or remove the stage. A missing or replaced scope cannot be treated as empty.
+
+Recovery first checks whether the exact published destination matches its durable device, inode, type, limits, count, and digest receipt. If the exact destination receipt is proven, recovery may commit `COMPLETE`; publication itself is allowed only after the worker scope is confirmed empty. Otherwise, recovery removes staging only when the ProcessScope is proven empty and the recorded staging device and inode still match; it then synchronizes the parent and commits `CANCELLED`. If same-boot scope emptiness cannot be proven, it preserves staging and commits `UNCERTAIN`. Any other unprovable identity, authority, cleanup, or journal result also stays `UNCERTAIN`. Recovery never repeats publication or removes an unrelated object.
+
+## Regression scope
+
+This worker-only increment tests recursive file and directory copy, exact canonical digests, mode preservation, same-parent siblings, trusted fd ancestry rejection, protocol-3 file and directory no-overwrite, symlink and special-file rejection, byte and entry ceilings, depth and descriptor bounds, and the existing M07 helper regressions. The nested-mount test is skipped when the host cannot create a private bind mount; production mount-ID checks still compile and run on ordinary source entries. Source-mutation, cancellation, authority-revocation, worker-failure recovery, restart reconciliation, and ProcessScope cleanup tests belong to the remaining FileEngine/broker job increments. The production populated-scope check remains unchanged. This component is UNQUALIFIED until the required M08 phase gate.

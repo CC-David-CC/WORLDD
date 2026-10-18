@@ -13,6 +13,8 @@ namespace spatial {
 class WorkspaceResources;
 class StorageClient;
 struct CopyWorkerReceipt { std::uint64_t bytes=0; std::uint32_t entries=0; std::string digest; std::string validation; };
+// True only when destination_directory is inside the pinned source directory.
+bool cabinet_copy_destination_inside_source(int source_directory_fd, int destination_directory_fd);
 // All start/poll/finalize calls run on the broker owner thread.
 // The child receives sealed protobuf input and pinned roots. It never receives SQLite.
 class CopyTreeJob final {
@@ -20,7 +22,9 @@ public:
     CopyTreeJob(WorkspaceResources&, int source_fd, int destination_fd,
         std::uint64_t source_subvolume_id, std::uint64_t destination_subvolume_id,
         std::uint64_t maximum_bytes, std::uint32_t maximum_entries,
-        const workspace::copyworker::v1::StateExportRequest* state_export = nullptr);
+        const workspace::copyworker::v1::StateExportRequest* state_export = nullptr,
+        std::string cabinet_source_name = {}, std::string cabinet_destination_name = {},
+        bool cabinet_source_is_directory = false);
     CopyTreeJob(WorkspaceResources&, const std::vector<int>& staging_fds,
         const workspace::copyworker::v1::WorkerRequest& finalization);
     ~CopyTreeJob();

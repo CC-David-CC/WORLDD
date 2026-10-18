@@ -589,6 +589,10 @@ if(BUILD_TESTING)
     add_test(NAME copy-tree-worker COMMAND Python3::Interpreter
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_tree_worker.py" $<TARGET_FILE:spatial-copy-tree-worker-fixture>)
     set_tests_properties(copy-tree-worker PROPERTIES TIMEOUT 60)
+    add_executable(cabinet-copy-path-test tests/core/cabinet_copy_path.cpp)
+    target_link_libraries(cabinet-copy-path-test PRIVATE spatial-workspace-copy-worker)
+    add_test(NAME cabinet-copy-path COMMAND $<TARGET_FILE:cabinet-copy-path-test>)
+    set_tests_properties(cabinet-copy-path PROPERTIES TIMEOUT 30)
     add_test(NAME copy-finalize-worker COMMAND Python3::Interpreter
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_finalize_worker.py" $<TARGET_FILE:spatial-copy-finalize-worker>)
     set_tests_properties(copy-finalize-worker PROPERTIES TIMEOUT 180)
