@@ -55,6 +55,38 @@ def require_active_generation_denial(fixture, reply):
     fixture.assertTrue(reply.HasField('error'), reply)
     fixture.assertEqual(reply.error.message, 'Service already has an active generation', reply)
 
+
+def wait_for_active_generation(fixture, handle, timeout_seconds=5):
+    """Wait for the exact issuer activation row while the real supervisor lives."""
+    deadline = time.monotonic() + timeout_seconds
+    participant = handle.binding.participant_id
+    generation = handle.previous_generation + 1
+    incarnation = handle.binding.service_incarnation
+    registration = handle.supervision.registration.SerializeToString(deterministic=True)
+    while True:
+        rows = handle.owner.activation_rows([participant])
+        process_state = handle.proc.poll()
+        pidfd_ready = bool(select.select([handle.pidfd], [], [], 0)[0]) if handle.pidfd is not None else True
+        if handle.initial is not None and handle.initial.HasField('error'):
+            fixture.fail('Supervisor startup failed before active generation readiness: %r '
+                         'rows=%r process=%r pidfd_ready=%r' %
+                         (handle.initial.error, rows, process_state, pidfd_ready))
+        if process_state is not None or pidfd_ready:
+            fixture.fail('Supervisor failed before active generation readiness: rows=%r process=%r pidfd_ready=%r' %
+                         (rows, process_state, pidfd_ready))
+        active = [row for row in rows if row[-1]]
+        if active:
+            fixture.assertTrue(
+                len(active) == 1 and active[0][:4] == (participant, generation, incarnation, registration),
+                'Unexpected active generation: rows=%r process=%r pidfd_ready=%r' %
+                (rows, process_state, pidfd_ready))
+            return active[0]
+        now = time.monotonic()
+        if now >= deadline:
+            fixture.fail('Timed out waiting for exact active generation: rows=%r process=%r pidfd_ready=%r' %
+                         (rows, process_state, pidfd_ready))
+        time.sleep(min(.01, deadline - now))
+
 class SupervisedCopyBrokerRecovery:
     """Kill, validate, retire, and replace one real supervised broker generation."""
 

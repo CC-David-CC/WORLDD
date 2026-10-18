@@ -8,12 +8,14 @@ from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 import unittest
+from unittest.mock import Mock, call, patch
 import os
 import sys
 
 import launch_pb2 as launch
 import issuer_pb2 as issuer
-from supervised_copy_broker_recovery import finish_checked_retirement, require_active_generation_denial
+from supervised_copy_broker_recovery import (finish_checked_retirement, require_active_generation_denial,
+    wait_for_active_generation)
 
 NATIVE = Path(__file__).resolve().parents[1]/'native'
 sys.path.insert(0, str(NATIVE))
@@ -22,6 +24,147 @@ from copy_fault_supervised_world import enforce_fixture_generation_policy, fixtu
 
 
 class AdapterContractTests(unittest.TestCase):
+    def readiness_registration(self, *, revision=3, issuer_id=b'issuer', public_key=b'key'):
+        return issuer.AuthorityParticipantRecord(
+            participant=issuer.AuthorityParticipant(id=b'participant', public_key=public_key),
+            registered_revision=revision, issuer_id=issuer_id)
+
+    def readiness_row(self, *, active=1, generation=7, incarnation=b'incarnation', registration=None):
+        if registration is None:
+            registration = self.readiness_registration()
+        return (b'participant', generation, incarnation,
+                registration.SerializeToString(deterministic=True), 1, active, active)
+
+    def readiness_clock(self, timeout=5):
+        clock = SimpleNamespace(now=100., sleeps=[])
+        def sleep(seconds):
+            self.assertGreater(seconds, 0)
+            self.assertLessEqual(seconds, .01)
+            if clock.now + seconds > 100 + timeout + 1e-9:
+                raise RuntimeError('Readiness attempted to sleep beyond its absolute deadline')
+            clock.sleeps.append(seconds)
+            clock.now += seconds
+        for name, replacement in (('monotonic', lambda: clock.now), ('sleep', sleep)):
+            patcher = patch('supervised_copy_broker_recovery.time.' + name, replacement)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        return clock
+
+    def readiness_fixture(self, row_sequence):
+        handle = SimpleNamespace(
+            binding=SimpleNamespace(participant_id=b'participant', service_incarnation=b'incarnation'),
+            previous_generation=6,
+            supervision=SimpleNamespace(registration=self.readiness_registration()),
+            owner=SimpleNamespace(activation_rows=Mock(side_effect=row_sequence)),
+            proc=SimpleNamespace(poll=Mock(return_value=None)), pidfd=42, initial=None)
+        patcher = patch('supervised_copy_broker_recovery.select.select', return_value=([], [], []))
+        handle.pidfd_poll = patcher.start()
+        self.addCleanup(patcher.stop)
+        return handle
+
+    def test_active_readiness_waits_through_absent_and_pending_rows(self):
+        clock = self.readiness_clock()
+        pending = self.readiness_row(active=0)
+        history = self.readiness_row(active=0, generation=6, incarnation=b'old-incarnation',
+                                     registration=self.readiness_registration(revision=2))
+        active = self.readiness_row()
+        handle = self.readiness_fixture([[], [pending], [history, active]])
+        row = wait_for_active_generation(self, handle)
+        self.assertIs(row, active)
+        self.assertEqual(row[3], handle.supervision.registration.SerializeToString(deterministic=True))
+        self.assertEqual(clock.sleeps, [.01, .01])
+        self.assertEqual(handle.owner.activation_rows.call_args_list,
+                         [call([b'participant'])] * 3)
+        self.assertEqual(handle.proc.poll.call_count, 3)
+        self.assertEqual(handle.pidfd_poll.call_args_list,
+                         [call([handle.pidfd], [], [], 0)] * 3)
+
+    def test_active_readiness_rejects_wrong_generation_incarnation_or_registration(self):
+        good = self.readiness_row()
+        cases = {
+            'participant': (b'other-participant',) + good[1:],
+            'generation': self.readiness_row(generation=6),
+            'incarnation': self.readiness_row(incarnation=b'other-incarnation'),
+            'registration revision': self.readiness_row(registration=self.readiness_registration(revision=4)),
+            'registration issuer': self.readiness_row(registration=self.readiness_registration(issuer_id=b'other')),
+            'registration key': self.readiness_row(registration=self.readiness_registration(public_key=b'other')),
+        }
+        for name, row in cases.items():
+            with self.subTest(field=name):
+                handle = self.readiness_fixture([[row]])
+                with patch('supervised_copy_broker_recovery.time.sleep',
+                           side_effect=RuntimeError('Known-bad active generation attempted to wait')):
+                    with self.assertRaisesRegex(AssertionError, 'Unexpected active generation'):
+                        wait_for_active_generation(self, handle)
+                self.assertEqual(handle.owner.activation_rows.call_count, 1)
+
+    def test_active_readiness_rejects_multiple_active_rows_before_waiting(self):
+        good = self.readiness_row()
+        for other in (good, self.readiness_row(generation=6)):
+            with self.subTest(other=other):
+                handle = self.readiness_fixture([[other, good]])
+                with patch('supervised_copy_broker_recovery.time.sleep',
+                           side_effect=RuntimeError('Multiple active generations attempted to wait')):
+                    with self.assertRaisesRegex(AssertionError, 'Unexpected active generation'):
+                        wait_for_active_generation(self, handle)
+                self.assertEqual(handle.owner.activation_rows.call_count, 1)
+
+    def test_active_readiness_fails_promptly_when_supervisor_or_pidfd_dies_pending(self):
+        pending = [self.readiness_row(active=0)]
+        for failure in ('supervisor', 'pidfd'):
+            with self.subTest(failure=failure):
+                clock = self.readiness_clock()
+                handle = self.readiness_fixture([pending, pending])
+                handle.proc.poll.side_effect = [None, 9 if failure == 'supervisor' else None]
+                handle.pidfd_poll.side_effect = [([], [], []),
+                    ([handle.pidfd] if failure == 'pidfd' else [], [], [])]
+                def sleep_once(seconds):
+                    if clock.sleeps:
+                        raise RuntimeError('Dead supervisor or broker attempted another wait')
+                    clock.sleeps.append(seconds)
+                with patch('supervised_copy_broker_recovery.time.sleep', sleep_once):
+                    with self.assertRaisesRegex(AssertionError, 'Supervisor failed before active generation readiness'):
+                        wait_for_active_generation(self, handle)
+                self.assertEqual(clock.sleeps, [.01])
+                self.assertEqual(handle.proc.poll.call_count, 2)
+                self.assertEqual(handle.pidfd_poll.call_count, 2)
+
+    def test_active_readiness_preserves_typed_startup_error_with_dead_process(self):
+        handle = self.readiness_fixture([[self.readiness_row(active=0)]])
+        handle.proc.poll.return_value = 9
+        handle.pidfd_poll.return_value = ([handle.pidfd], [], [])
+        handle.initial = launch.AuthorityLaunchReply(protocol_version=1)
+        handle.initial.error.message = 'Service already has an active generation'
+        with patch('supervised_copy_broker_recovery.time.sleep',
+                   side_effect=RuntimeError('Startup error attempted to wait')):
+            with self.assertRaisesRegex(AssertionError,
+                    'Supervisor startup failed.*Service already has an active generation'):
+                wait_for_active_generation(self, handle)
+        self.assertEqual(handle.initial.error.message, 'Service already has an active generation')
+        self.assertEqual(handle.proc.poll.call_count, 1)
+        self.assertEqual(handle.pidfd_poll.call_count, 1)
+
+    def test_active_readiness_timeout_uses_absolute_deadline_without_wall_clock_wait(self):
+        for rows in ([], [self.readiness_row(active=0)]):
+            for timeout in (5, .025):
+                with self.subTest(rows=rows, timeout=timeout):
+                    clock = self.readiness_clock(timeout)
+                    handle = self.readiness_fixture(None)
+                    handle.owner.activation_rows.side_effect = None
+                    handle.owner.activation_rows.return_value = rows
+                    arguments = {} if timeout == 5 else {'timeout_seconds': timeout}
+                    with self.assertRaisesRegex(AssertionError,
+                            'Timed out waiting for exact active generation: rows=.*process=None pidfd_ready=False'):
+                        wait_for_active_generation(self, handle, **arguments)
+                    self.assertAlmostEqual(clock.now, 100 + timeout)
+                    self.assertAlmostEqual(sum(clock.sleeps), timeout)
+                    self.assertEqual(handle.owner.activation_rows.call_count, len(clock.sleeps) + 1)
+                    self.assertEqual(handle.proc.poll.call_count, handle.owner.activation_rows.call_count)
+                    self.assertEqual(handle.pidfd_poll.call_count, handle.owner.activation_rows.call_count)
+                    if timeout == .025:
+                        self.assertEqual(len(clock.sleeps), 3)
+                        self.assertAlmostEqual(clock.sleeps[-1], .005)
+
     def lifecycle(self, *, stage=launch.OWNED_SCOPES_STOPPED, control_closed=False):
         events = []
         record = launch.AuthorityLaunchRecord(stage=stage)
@@ -125,14 +268,14 @@ class AdapterContractTests(unittest.TestCase):
 
     def test_fixture_defaults_to_original_v1_active_generation_guard(self):
         self.assertEqual(fixture_version(self), 1)
-        active_rows = [(b'participant', 1, b'incarnation', b'registration', 1, 1, 1)]
+        active_rows = [self.readiness_row(generation=1)]
         with self.assertRaisesRegex(AssertionError, 'Previous participant generation is still active'):
             enforce_fixture_generation_policy(self, fixture_version(self), active_rows)
 
     def test_fixture_v2_is_explicit_and_allows_live_candidate_to_reach_issuer(self):
         self.supervised_copy_recovery_fixture_version = 2
         self.assertEqual(fixture_version(self), 2)
-        active_rows = [(b'participant', 1, b'incarnation', b'registration', 1, 1, 1)]
+        active_rows = [self.readiness_row(generation=1)]
         enforce_fixture_generation_policy(self, fixture_version(self), active_rows)
         self.supervised_copy_recovery_fixture_version = 3
         with self.assertRaisesRegex(ValueError, 'Unsupported supervised copy recovery fixture version'):
