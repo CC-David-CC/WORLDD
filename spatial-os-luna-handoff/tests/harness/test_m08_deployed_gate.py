@@ -86,6 +86,7 @@ class M08InventoryGateTests(unittest.TestCase):
         self.assertEqual(set(forwarded.required_tests), gate.m07.M07_REQUIRED | gate.M08_REQUIRED)
         effective = gate.m06.required_test_names(forwarded.required_tests, ())
         self.assertEqual(set(effective), gate.REQUIRED)
+        self.assertIn("broker-copy-preprune-deadline-multirow", effective)
         self.assertEqual(set(forwarded.dedicated_crosshost), gate.M08_DEDICATED_CROSSHOST)
         self.assertEqual(forwarded.storage_lane_by_profile, storage_by_profile)
         self.assertEqual(tuple(forwarded.expected_harness_tests), gate.load_harness_test_inventory())
@@ -246,9 +247,10 @@ class M08InventoryGateTests(unittest.TestCase):
         names = ("copy-worker-stream", "workspace-copy-worker-helpers-tooling", "process-scope-named-regression",
                  "workspace-file-action-storage-owner-btrfs", "storage-owner-fixture-tooling",
                  "workspace-cabinet-native-crosshost", "actor-cabinet-gateway-instrumentation",
-                 "broker-copy-preprune-cleanup")
+                 "broker-copy-preprune-cleanup", "broker-copy-preprune-deadline-multirow")
         self.assertIn("actor-cabinet-gateway-instrumentation", gate.M08_REQUIRED)
         self.assertIn("broker-copy-preprune-cleanup", gate.M08_REQUIRED)
+        self.assertIn("broker-copy-preprune-deadline-multirow", gate.M08_REQUIRED)
         for profile in gate.m06.PROFILES:
             for name in names:
                 with self.subTest(profile=profile, name=name):

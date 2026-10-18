@@ -40,6 +40,7 @@ M08_REQUIRED = frozenset({
     "workspace-copy-worker-helpers-tooling",
     "copy-progress-timing-tooling",
     "broker-copy-preprune-cleanup",
+    "broker-copy-preprune-deadline-multirow",
     "actor-cabinet-gateway-instrumentation",
     "workspace-actor-cabinet-gateway",
     "workspace-private-test-evidence",

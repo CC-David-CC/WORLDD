@@ -1,0 +1,12 @@
+M08 required cleanup batches - 2026-10-18
+
+The deployed M08 gate requires both `broker-copy-preprune-cleanup` and
+`broker-copy-preprune-deadline-multirow`. They are separate mandatory CTest
+registrations. The gate rejects an inventory missing either registration in
+Debug or ASan-UBSan before launching qualification.
+
+The deployed-gate harness adds the multirow registration to its existing
+parameterized missing-registration test. Its existing complete-inventory
+control covers the new requirement through `gate.REQUIRED`. The 89-case
+harness inventory and inherited baseline remain unchanged. This inventory
+repair does not qualify M08 or replace host runtime evidence.
