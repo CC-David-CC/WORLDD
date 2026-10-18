@@ -541,6 +541,7 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    target_compile_definitions(spatial-process-scope PRIVATE SPATIAL_PROCESS_SCOPE_READTRACE=1)
     target_compile_definitions(workspaced PRIVATE SPATIAL_TEST_FILE_JOURNAL_FAULTS=1)
     add_executable(workspace-file-operation-journal-test
         tests/core/file_operation_journal.cpp src/workspace/file_operation_journal.cpp)
@@ -1186,6 +1187,9 @@ if(BUILD_TESTING)
     add_test(NAME workspace-copy-fixture-profiles COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_fixture_profiles.py")
     set_tests_properties(workspace-copy-fixture-profiles PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-process-scope-readtrace-source COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_process_scope_readtrace_source.py")
+    set_tests_properties(workspace-copy-process-scope-readtrace-source PROPERTIES TIMEOUT 30)
     set(copy_fixture_profile_arguments)
     if(SPATIAL_SANITIZERS)
         list(APPEND copy_fixture_profile_arguments --profile=ASan-UBSan)
