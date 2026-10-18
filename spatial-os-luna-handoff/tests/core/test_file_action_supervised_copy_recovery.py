@@ -17,7 +17,7 @@ import file_actions_pb2 as files
 import test_workspace_copy_engine as engine
 import test_workspace_copy_faults as copy_faults
 sys.path.insert(0, str(engine.SOURCE / 'tests/native'))
-from supervised_copy_broker_recovery import SupervisedCopyBrokerRecovery
+from supervised_copy_broker_recovery import SupervisedCopyBrokerRecovery, wait_for_active_generation
 
 
 class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
@@ -71,6 +71,7 @@ class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
             'Supervised restart must retain the pinned bootstrap parent identity')
         self.assertEqual(bootstrap.delegation_parent['participant_id'],old.resources.handle.binding.participant_id)
         recovery = SupervisedCopyBrokerRecovery(self, old, self.authority_config)
+        wait_for_active_generation(self, recovery.handle)
         denial = recovery.reject_live_replacement_at_issuer(type(old))
         self.assertEqual(denial.message, 'Service already has an active generation')
         source = self.project / 'supervised-sigkill-source'
