@@ -1369,6 +1369,48 @@ if(BUILD_TESTING)
     add_test(NAME workspace-copy-fault-relay-timing COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_owner_copy_fault_relay_timing.py")
     set_tests_properties(workspace-copy-fault-relay-timing PROPERTIES TIMEOUT 30)
+    add_test(NAME workspace-copy-supervised-recovery-adapter-contract COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_supervised_copy_recovery_adapter_contract.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-copy-supervised-recovery-adapter-contract PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core:${CMAKE_CURRENT_SOURCE_DIR}/tests/native")
+    add_test(NAME workspace-copy-storage-broker-constructor-failures COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_copy_faults.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>
+        StorageBrokerConstructorFailureTests)
+    set_tests_properties(workspace-copy-storage-broker-constructor-failures PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core:${CMAKE_CURRENT_SOURCE_DIR}/tests/native")
+    add_test(NAME workspace-copy-supervised-sigkill-recovery COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_file_action_supervised_copy_recovery.py"
+        "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+        test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal ${copy_fixture_profile_arguments})
+    set_tests_properties(workspace-copy-supervised-sigkill-recovery PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core:${CMAKE_CURRENT_SOURCE_DIR}/tests/native:${CMAKE_CURRENT_SOURCE_DIR}/tools")
+    add_custom_target(workspace-copy-supervised-recovery-fixture
+        DEPENDS workspace-copy-fault-fixture copy-job-journal-python-protobuf
+        SOURCES tests/core/test_supervised_copy_recovery_adapter_contract.py
+            tests/core/test_workspace_copy_faults.py
+            tests/core/test_file_action_supervised_copy_recovery.py
+            tests/core/test_workspace_copy_engine.py
+            tests/core/test_workspace_authority.py
+            tests/core/test_world_identity.py
+            tests/core/test_issuer_client.py
+            tests/native/copy_fault_supervised_world.py
+            tests/native/supervised_copy_broker_recovery.py
+            tests/native/supervised_delegation_parent.py
+            tests/native/storage_owner_copy_fault_relay.py
+            tests/native/test_security_identity.py
+            tests/native/display_ready.py
+            tests/native/native_display_geometry.py
+            harness/copy_fault_evidence.py
+            harness/issuer_progress.py
+            harness/wire.py
+            tools/run_file_action_supervised_copy_recovery.py
+            tools/inspect_file_action_supervised_copy_recovery.py
+            tools/copy_fixture_profiles.py
+            tools/with_resource_delegate.py
+            tools/with_adapter_resources.py
+            tools/with_copy_worker_helpers.py)
     add_test(NAME workspace-copy-absolute-deadline COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
