@@ -1,12 +1,14 @@
 from pathlib import Path
 from contextlib import closing
 import sqlite3
+import struct
 import uuid
 import broker_pb2 as broker
 import grants_pb2 as grant
 import issuer_pb2 as issuer
 import cabinet_pb2 as cabinet
 import file_actions_pb2 as files
+from harness.wire import MAX_FRAME
 from test_workspace_authority import WorkspaceAuthorityTests, PROJECT, POLICY, world_authority
 
 class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
@@ -143,15 +145,17 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
 
     def test_file_action_invalid_and_oversized_envelopes_have_no_effect(self):
         self.workspace(attach_world=False)
-        oversized = cabinet.FileActionRequest(
-            protocol_version=1, operation_id=uuid.uuid4().bytes, workspace_id='one',
-            principal=self.principal(),
-            create=files.FileCreate(basename=b'large.txt', content=b'x'*(1024*1024+1)))
-        self.expect_file_error(self.broker.request(file_action=oversized), files.FileActionError.INVALID_ARGUMENT)
         bad_id = cabinet.FileActionRequest(
             protocol_version=1, operation_id=b'short', workspace_id='one',
             principal=self.principal(), create=files.FileCreate(basename=b'bad.txt'))
         self.expect_file_error(self.broker.request(file_action=bad_id), files.FileActionError.INVALID_ARGUMENT)
+        self.assertFalse((self.project/'bad.txt').exists())
+
+        # The transport contract rejects an excessive length before reading a body.
+        # Send the raw prefix because the normal client frame() helper forbids it.
+        self.broker.stream.sendall(struct.pack('!I', MAX_FRAME + 1))
+        returncode = self.broker.proc.wait(timeout=5)
+        self.assertNotEqual(returncode, 0, 'Broker accepted an over-limit frame length')
         self.assertFalse((self.project/'large.txt').exists())
         self.assertFalse((self.project/'bad.txt').exists())
 

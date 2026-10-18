@@ -12,6 +12,18 @@ import process_scope_pb2 as scope
 from harness.wire import frame, read_message
 
 
+_RESOURCE_ENVIRONMENT = (
+    'ASAN_OPTIONS', 'UBSAN_OPTIONS',
+    'SPATIAL_TEST_FILE_JOURNAL_FAIL_FINISH_ONCE',
+    'SPATIAL_TEST_FILE_JOURNAL_FINISH_NOTIFY',
+    'SPATIAL_TEST_FILE_JOURNAL_FINISH_DELAY_MS',
+)
+
+
+def resource_environment(environ):
+    return {name: environ[name] for name in _RESOURCE_ENVIRONMENT if name in environ}
+
+
 class RetainedBrokerChild:
     """Actual pidfd and retained production exit status. The scope owner stays separate."""
     def __init__(self, resources):
@@ -78,10 +90,7 @@ class ResourceBroker:
                 offset += written
             fcntl.fcntl(policy, fcntl.F_ADD_SEALS,
                 fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
-            environment = {name:os.environ[name] for name in (
-                'ASAN_OPTIONS','UBSAN_OPTIONS',
-                'SPATIAL_TEST_FILE_JOURNAL_FINISH_NOTIFY',
-                'SPATIAL_TEST_FILE_JOURNAL_FINISH_DELAY_MS') if name in os.environ}
+            environment = resource_environment(os.environ)
             arguments += ['--resource-config-fd', '5']
             code = ('import os;os.dup2(3,0);os.dup2(3,1);os.dup2(4,2);os.close(3);os.close(4);'
                 f'os.environ.update({environment!r});os.execv({str(executable)!r},{arguments!r})')
