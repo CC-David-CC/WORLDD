@@ -302,6 +302,14 @@ try:
             assert time.monotonic()<deadline, 'Detached app readiness deadline';time.sleep(.01)
         # Keep the witness in a distinct sub-cgroup so restart must drain descendants.
         app_group=first_scope/'detached-app';app_group.mkdir()
+        os.chown(app_group, uid, gid)
+        app_group_owner=app_group.stat(follow_symlinks=False)
+        assert (app_group_owner.st_uid, app_group_owner.st_gid)==(uid, gid), (
+            'Detached-app cgroup must be owned by the broker identity', app_group_owner)
+        assert app_group_owner.st_uid != 0, 'Detached-app cgroup fixture must not be root-owned'
+        record['results']['detached_app_cgroup_owner_matches_broker'] = dict(
+            passed=True, uid=app_group_owner.st_uid, gid=app_group_owner.st_gid, root_owned=False)
+        save()
         (app_group/'cgroup.procs').write_text(str(app.pid)+'\n')
         assert (app_group/'cgroup.procs').read_text().strip()==str(app.pid)
         first.kill(); assert first.wait(timeout=10)==-9
