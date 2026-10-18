@@ -1,0 +1,24 @@
+M08 native broker handoff fixture compatibility diagnosis
+2026-10-18
+
+Scope and source pin
+
+This fixture-only checkpoint uses combined source base 150d553350a985e6457c73c8e2c138dddf406fc4. Runtime failures came from the preserved native Debug run on sb16 and sb16-2 using the immutable fe787 package. The run produced 6 passes, 5 failures, and 1 error per host. It did not qualify M08.
+
+Safe fixture corrections
+
+The cold-root mismatch test called `.index()` on a generated protobuf repeated-string container. It now converts that container to a list before locating `--state-dir`; the alias-root assertion is unchanged. The test still checks the same alias-root mismatch and preserves unbound cleanup evidence.
+
+The exact resource-capacity fixture supplied 13 explicit source descriptors. Its resource launch also allocates one private cleanup-bootstrap descriptor. The actual maximum therefore requires 12 explicit sources: 12 explicit source descriptors plus four generated descriptors (participant, native, resources, and private cleanup) total 16. A new one-over-capacity case checks that 13 sources fail before scope ownership. The fixture now supplies that count. It preserves the same exact-capacity success oracle.
+
+Production blockers left untouched
+
+`src/supervisor/main.cpp` rejects externally supplied `--cleanup-bootstrap-fd` in `configuration()`, then internally appends this flag to the mutable launch arguments before calling `configured_broker_state()`. That helper rejects the same flag. Resource-backed native broker startup therefore fails during private bootstrap. The owned-broker and broker-death tests cannot be repaired safely by changing fixture expectations or removing resource/native startup. A production fix and rebuilt package are required.
+
+The no-resource exact-capacity case receives an asynchronous reply with request ID 0 where its stop request expects 77. Root traced this to `main.cpp`: explicit stop calls `finish_unexpected()` after `launch->fence()` rejects a never-activated fixture generation, and the callback at line 432 does not set the request ID. This is a production stop/fencing correlation issue. The fixture does not weaken or skip the stop assertion. A new test also verifies that a caller-supplied private bootstrap option is rejected before scope ownership.
+
+The failed-exec cleanup mismatch is outside this fixture patch. Root owns that diagnosis. Original logs and security evidence remain at the recorded external runtime artifact roots.
+
+Validation
+
+This checkpoint permits static Python syntax/AST validation, diff checks, and repository data guard only. No build or runtime rerun is claimed.

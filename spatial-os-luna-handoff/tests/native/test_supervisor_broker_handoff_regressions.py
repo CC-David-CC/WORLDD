@@ -201,6 +201,17 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
                 self.assertFalse(self.child_config.exists())
                 self.assertEqual(self.activation_rows(), [])
 
+    def test_external_private_bootstrap_descriptor_is_rejected_before_scope_ownership(self):
+        config = self.broker_config()
+        config.launch.arguments.extend(['--cleanup-bootstrap-fd', '255'])
+        proc, _ = self.supervisor_process(config)
+        self.assertEqual(proc.wait(timeout=5), 2)
+        diagnostic = '\n'.join(p.read_text(errors='replace') for p in self.root.glob('supervisor-*.log'))
+        self.assertIn('Supervisor owns the production broker profile', diagnostic)
+        self.assertFalse((self.journal / 'launch.db').exists())
+        self.assertFalse(self.child_config.exists())
+        self.assertEqual(self.activation_rows(), [])
+
     def mapped_broker(self, targets, with_resources=False):
         config = self.broker_config()
         if not with_resources:
@@ -247,14 +258,17 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertEqual(proc.wait(timeout=5), 0)
         self.checked_cleanup()
 
-    def test_resource_descriptor_capacity_reserves_all_three_generated_descriptors(self):
+    def test_resource_descriptor_capacity_reserves_all_four_generated_descriptors(self):
         proc, _ = self.mapped_broker(range(60, 74), with_resources=True)
         self.assertEqual(proc.wait(timeout=5), 2)
+        diagnostic = '\n'.join(p.read_text(errors='replace') for p in self.root.glob('supervisor-*.log'))
+        self.assertIn('Invalid supervisor configuration', diagnostic)
         self.assertFalse((self.journal / 'launch.db').exists())
         self.assertFalse(self.child_config.exists())
 
     def test_exact_resource_descriptor_capacity_launches_real_broker(self):
-        proc, channel = self.mapped_broker(range(60, 73), with_resources=True)
+        # Four generated descriptors leave room for twelve explicit sources.
+        proc, channel = self.mapped_broker(range(60, 72), with_resources=True)
         initial = self.message(channel, launch.AuthorityLaunchReply)
         self.assertTrue(initial.HasField('view'), initial)
         self.assertEqual(BrokerPipe(self, proc).call('system.hello')['implementation'], 'production')
@@ -262,6 +276,15 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertEqual(reply.view.record.stage, launch.OWNED_SCOPES_STOPPED)
         self.assertEqual(proc.wait(timeout=5), 0)
         self.checked_cleanup()
+
+    def test_one_over_resource_descriptor_capacity_fails_before_scope_ownership(self):
+        proc, _ = self.mapped_broker(range(60, 73), with_resources=True)
+        self.assertEqual(proc.wait(timeout=5), 2)
+        diagnostic = '\n'.join(p.read_text(errors='replace') for p in self.root.glob('supervisor-*.log'))
+        self.assertIn('Invalid supervisor configuration', diagnostic)
+        self.assertFalse((self.journal / 'launch.db').exists())
+        self.assertFalse(self.child_config.exists())
+        self.assertEqual(self.activation_rows(), [])
 
     def test_compositor_scope_cannot_supply_a_broker_credential(self):
         original = baseline.supervisor.native_pb.NativeScopeConfig
@@ -292,7 +315,7 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         real_parent.mkdir()
         alias_parent = self.root / 'execution-alias'
         alias_parent.symlink_to(real_parent, target_is_directory=True)
-        state_index = config.launch.arguments.index('--state-dir')
+        state_index = list(config.launch.arguments).index('--state-dir')
         config.launch.arguments[state_index + 1] = str(alias_parent / 'execution')
         candidate = {}
         def exact_cleanup():
