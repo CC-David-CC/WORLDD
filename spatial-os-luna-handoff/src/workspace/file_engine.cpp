@@ -378,7 +378,9 @@ struct FileEngine::Impl {
     pb::FileCopyJobReceipt terminal;
     FileOperationJournal::CopyJobRecord durable;
     bool finished = false;
-    Clock::time_point last_use{};
+    std::uint64_t maximum_bytes=0;std::uint32_t maximum_entries=0;
+    std::uint64_t bytes_progress=0;std::uint32_t entries_progress=0;
+    Clock::time_point deadline{};Clock::time_point last_use{};
   };
   std::unordered_map<std::string, Handle> handles;
   std::unordered_map<std::string, std::unique_ptr<CopyJob>> copy_jobs;
@@ -745,15 +747,21 @@ struct FileEngine::Impl {
       } else if(!published &&
                 (!record.has_prepared_result() || staged_output_intact || start_intent)) {
         terminal.set_state(pb::FileCopyJobReceipt_State_CANCELLED);
+        terminal.set_bytes_copied(record.bytes_progress());
+        terminal.set_entries_copied(record.entries_progress());
         terminal.set_detail("recovery stopped the exact worker and discarded private staging before publication");
         record.set_state(pb::FILE_COPY_JOB_JOURNAL_CANCELLED);
       } else {
         terminal.set_state(pb::FileCopyJobReceipt_State_UNCERTAIN);
+        terminal.set_bytes_copied(record.bytes_progress());
+        terminal.set_entries_copied(record.entries_progress());
         terminal.set_detail("recovery preserved staged evidence because publication could not be proven");
         record.set_state(pb::FILE_COPY_JOB_JOURNAL_UNCERTAIN);
         if(stage_exists)
           retained_uncertain_stages.emplace(record.staging_name(),std::make_pair(named_stage.st_dev,named_stage.st_ino));
       }
+      record.set_bytes_progress(terminal.bytes_copied());
+      record.set_entries_progress(terminal.entries_copied());
       *record.mutable_terminal_receipt()=terminal;
       record.set_updated_at_unix_ms(std::max(record.updated_at_unix_ms(),unix_millis()));
       journal->update_copy_job(record,journal_observer);
@@ -768,8 +776,12 @@ struct FileEngine::Impl {
     journal->update_copy_job(job.durable,journal_observer);
   }
   void persist_copy_terminal(CopyJob& job) {
-    if(!journal) return;
     using namespace pb;
+    if(job.terminal.state()!=FileCopyJobReceipt_State_COMPLETE) {
+      job.terminal.set_bytes_copied(job.bytes_progress);
+      job.terminal.set_entries_copied(job.entries_progress);
+    }
+    if(!journal) return;
     switch(job.terminal.state()) {
       case FileCopyJobReceipt_State_COMPLETE: job.durable.set_state(FILE_COPY_JOB_JOURNAL_COMPLETE); break;
       case FileCopyJobReceipt_State_CANCELLED: job.durable.set_state(FILE_COPY_JOB_JOURNAL_CANCELLED); break;
@@ -778,6 +790,8 @@ struct FileEngine::Impl {
       case FileCopyJobReceipt_State_FAILED: job.durable.set_state(FILE_COPY_JOB_JOURNAL_FAILED); break;
       default: throw std::logic_error("copy job terminal receipt has no terminal state");
     }
+    job.durable.set_bytes_progress(job.terminal.bytes_copied());
+    job.durable.set_entries_progress(job.terminal.entries_copied());
     *job.durable.mutable_terminal_receipt()=job.terminal;
     job.durable.set_updated_at_unix_ms(std::max(job.durable.updated_at_unix_ms(),unix_millis()));
     journal->update_copy_job(job.durable,journal_observer);
@@ -1423,6 +1437,7 @@ struct FileEngine::Impl {
         if (!resources)
           fail(pb::FileActionError::UNIMPLEMENTED, "copy worker resources are not configured");
         auto job = std::make_unique<CopyJob>();
+        job->maximum_bytes=request.maximum_bytes();job->maximum_entries=request.maximum_entries();
         job->id = random_bytes(16); job->principal = principal;
         job->source_id = request.source_handle(); job->destination_id = request.destination_directory_handle();
         job->source_name = source_name; job->destination_name = request.destination_basename();
@@ -1495,6 +1510,14 @@ struct FileEngine::Impl {
           if (fsync(staging_root.v) < 0)
             fail(pb::FileActionError::UNCERTAIN, "copy staging directory is not durable");
           const auto output_name = ".spatial-copy-output-" + hex(job->id);
+          job->deadline=now()+std::chrono::seconds(300);
+#ifdef SPATIAL_TEST_COPY_RECOVERY_FAULTS
+          if(const char* raw=std::getenv("SPATIAL_TEST_COPY_DEADLINE_MS")) {
+            char* end=nullptr;const auto value=std::strtoll(raw,&end,10);
+            if(end!=raw&&*end=='\0'&&value>0&&value<=300000)
+              job->deadline=now()+std::chrono::milliseconds(value);
+          }
+#endif
           auto before_launch=[&](const supervisor::v1::ProcessScopeIdentity& process_scope,
                                  const supervisor::v1::ProcessScopeIdentity& parent_scope) {
             if(!journal)return;
@@ -1656,8 +1679,25 @@ struct FileEngine::Impl {
         revalidate();
         const auto copied = job.worker->poll();
         if (!copied) {
-          auto* receipt = out.mutable_copy_job();
-          receipt->set_job_id(job.id); receipt->set_state(pb::FileCopyJobReceipt_State_RUNNING);
+          if(auto progress=job.worker->take_progress()) {
+            if(progress->bytes>job.maximum_bytes||progress->entries>job.maximum_entries||
+               progress->bytes<job.bytes_progress||progress->entries<job.entries_progress)
+              fail(pb::FileActionError::UNAVAILABLE,"copy worker progress violates approved bounds or monotonicity");
+            const bool changed=progress->bytes!=job.bytes_progress||progress->entries!=job.entries_progress;
+            job.bytes_progress=progress->bytes;job.entries_progress=progress->entries;
+            if(changed&&journal) {
+              job.durable.set_bytes_progress(progress->bytes);job.durable.set_entries_progress(progress->entries);
+              persist_copy_job(job);
+            }
+            auto* receipt=out.mutable_copy_job();receipt->set_job_id(job.id);
+            receipt->set_state(pb::FileCopyJobReceipt_State_RUNNING);
+            receipt->set_bytes_copied(progress->bytes);receipt->set_entries_copied(progress->entries);
+          } else {
+            auto* receipt = out.mutable_copy_job();
+            receipt->set_job_id(job.id); receipt->set_state(pb::FileCopyJobReceipt_State_RUNNING);
+            receipt->set_bytes_copied(job.bytes_progress);
+            receipt->set_entries_copied(job.entries_progress);
+          }
           return out;
         }
         revalidate();
@@ -1884,6 +1924,38 @@ void FileEngine::reconcile_copy_job_authority(
     job.finished = true;
     impl_->persist_copy_terminal_noexcept(job);
   }
+}
+bool FileEngine::expire_one_copy_job() noexcept {
+  if(!impl_)return false;
+  std::lock_guard lock(impl_->mutex);
+  const auto tick=impl_->now();
+  for(auto& [id,owned]:impl_->copy_jobs) {
+    (void)id;auto& job=*owned;
+    if(job.finished||job.deadline==Impl::Clock::time_point{}||tick<job.deadline)continue;
+    try {
+      job.worker->cancel();
+      impl_->cleanup_copy_stage_internal(job);
+      job.terminal.Clear();job.terminal.set_job_id(job.id);
+      job.terminal.set_state(pb::FileCopyJobReceipt_State_FAILED);
+      job.terminal.set_failure_code(pb::FileActionError_Code_UNAVAILABLE);
+      job.terminal.set_detail("absolute 300-second copy worker deadline expired; exact worker drain and staging cleanup confirmed");
+      job.finished=true;
+      try { impl_->persist_copy_terminal(job); }
+      catch(...) {
+        job.terminal.Clear();job.terminal.set_job_id(job.id);
+        job.terminal.set_state(pb::FileCopyJobReceipt_State_UNCERTAIN);
+        job.terminal.set_detail("copy worker deadline expired; terminal journal commit is unconfirmed");
+        impl_->persist_copy_terminal_noexcept(job);
+      }
+    } catch(...) {
+      job.terminal.Clear();job.terminal.set_job_id(job.id);
+      job.terminal.set_state(pb::FileCopyJobReceipt_State_UNCERTAIN);
+      job.terminal.set_detail("copy worker deadline expired; exact worker drain or staging cleanup is unconfirmed");
+      job.finished=true;impl_->persist_copy_terminal_noexcept(job);
+    }
+    return true;
+  }
+  return false;
 }
 pb::FileActionReply FileEngine::handle(const pb::FileActionRequest& r) {
   std::lock_guard lock(impl_->mutex);

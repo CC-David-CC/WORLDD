@@ -78,6 +78,7 @@ class FileEngine final {
   void stop_copy_job_for_authority_loss(const std::string& job_id, const std::string& principal_identity) noexcept;
   // Recheck active owners when the broker consumes an authority change.
   void reconcile_copy_job_authority(const std::function<bool(const std::string&)>& allowed) noexcept;
+  bool expire_one_copy_job() noexcept;
 
  private:
   struct Impl;

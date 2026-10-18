@@ -868,6 +868,168 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         self.assertEqual(repeated.file_action.copy_job.SerializeToString(deterministic=True),
                          receipt.SerializeToString(deterministic=True))
 
+    def test_file_action_copy_job_reports_bounded_live_progress(self):
+        self.workspace(attach_world=False)
+        source=self.project/'many-entry-source';source.mkdir()
+        for index in range(12000):
+            (source/f'entry-{index:05d}').write_bytes(b'payload')
+        root_handle,source_handle=self._copy_source_handles('many-entry-source')
+        started=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.START,
+            source_handle=source_handle,destination_directory_handle=root_handle,
+            destination_basename=b'progress-copy',maximum_bytes=1024*1024,
+            maximum_entries=20000))
+        self.assertTrue(started.file_action.HasField('copy_job'),started)
+        job_id=started.file_action.copy_job.job_id
+        observed=[];deadline=time.monotonic()+60
+        while True:
+            polled=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
+            self.assertTrue(polled.file_action.HasField('copy_job'),polled)
+            receipt=polled.file_action.copy_job
+            if receipt.state==files.FileCopyJobReceipt.RUNNING:
+                observed.append((receipt.bytes_copied,receipt.entries_copied))
+            if receipt.state not in (files.FileCopyJobReceipt.QUEUED,files.FileCopyJobReceipt.RUNNING):
+                break
+            self.assertLess(time.monotonic(),deadline,'copy job exceeded its absolute observation deadline')
+            time.sleep(.005)
+        self.assertTrue(observed,'copy completed without exposing a RUNNING snapshot')
+        previous=(0,0);unchanged_positive=False
+        for current in observed:
+            self.assertGreaterEqual(current[0],previous[0]);self.assertGreaterEqual(current[1],previous[1])
+            self.assertLessEqual(current[0],1024*1024);self.assertLessEqual(current[1],20000)
+            if current==previous and current[1]>0: unchanged_positive=True
+            previous=current
+        self.assertTrue(unchanged_positive,'repeated POLL did not preserve an unchanged positive snapshot')
+        self.assertGreater(previous[1],0,'copy completed without exposing positive live progress')
+        self.assertEqual(receipt.state,files.FileCopyJobReceipt.COMPLETE,receipt)
+        self.assertGreaterEqual(receipt.bytes_copied,previous[0]);self.assertGreaterEqual(receipt.entries_copied,previous[1])
+        with closing(sqlite3.connect(self.execution/'file-operations'/'file-operations.db')) as db:
+            durable=copy_journal.FileCopyJobJournalRecord.FromString(db.execute(
+                'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',('one',job_id)).fetchone()[0])
+        self.assertGreaterEqual(durable.bytes_progress,previous[0])
+        self.assertGreaterEqual(durable.entries_progress,previous[1])
+
+        root_handle,source_handle=self._copy_source_handles('many-entry-source')
+        cancel_start=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.START,
+            source_handle=source_handle,destination_directory_handle=root_handle,
+            destination_basename=b'progress-cancel',maximum_bytes=1024*1024,
+            maximum_entries=20000))
+        cancel_id=cancel_start.file_action.copy_job.job_id
+        running=None;deadline=time.monotonic()+60
+        while time.monotonic()<deadline:
+            polled=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=cancel_id))
+            running=polled.file_action.copy_job
+            if running.state==files.FileCopyJobReceipt.RUNNING and (running.bytes_copied or running.entries_copied):
+                break
+            self.assertIn(running.state,(files.FileCopyJobReceipt.QUEUED,files.FileCopyJobReceipt.RUNNING),running)
+            time.sleep(.005)
+        self.assertTrue(running and running.state==files.FileCopyJobReceipt.RUNNING and running.entries_copied>0,
+                        'cancellation case never reached live progress')
+        cancelled=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.CANCEL,job_id=cancel_id))
+        self.assertEqual(cancelled.file_action.copy_job.state,files.FileCopyJobReceipt.CANCELLED)
+        self.assertGreaterEqual(cancelled.file_action.copy_job.bytes_copied,running.bytes_copied)
+        self.assertGreaterEqual(cancelled.file_action.copy_job.entries_copied,running.entries_copied)
+        with closing(sqlite3.connect(self.execution/'file-operations'/'file-operations.db')) as db:
+            durable_cancel=copy_journal.FileCopyJobJournalRecord.FromString(db.execute(
+                'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',('one',cancel_id)).fetchone()[0])
+        self.assertEqual(durable_cancel.terminal_receipt,cancelled.file_action.copy_job)
+        self.assertEqual(durable_cancel.bytes_progress,cancelled.file_action.copy_job.bytes_copied)
+        self.assertEqual(durable_cancel.entries_progress,cancelled.file_action.copy_job.entries_copied)
+        self.assertFalse((self.project/'progress-cancel').exists())
+
+    def test_file_action_copy_job_absolute_deadline_drains_without_poll(self):
+        old=os.environ.get('SPATIAL_TEST_COPY_DEADLINE_MS')
+        os.environ['SPATIAL_TEST_COPY_DEADLINE_MS']='50'
+        def restore_deadline():
+            if old is None: os.environ.pop('SPATIAL_TEST_COPY_DEADLINE_MS',None)
+            else: os.environ['SPATIAL_TEST_COPY_DEADLINE_MS']=old
+        self.addCleanup(restore_deadline)
+        self.workspace(pair=True,attach_world=False)
+        source=self.project/'deadline-source';source.mkdir()
+        for index in range(12000): (source/f'entry-{index:05d}').write_bytes(b'payload')
+        (self.project_two/'independent-source.txt').write_bytes(b'independent workspace remains usable')
+        root_handle,source_handle=self._copy_source_handles('deadline-source')
+        started=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.START,
+            source_handle=source_handle,destination_directory_handle=root_handle,
+            destination_basename=b'deadline-copy',maximum_bytes=1024*1024,
+            maximum_entries=20000))
+        job_id=started.file_action.copy_job.job_id
+        self.assertIsNotNone(self.broker.resources,'deadline regression needs the production process-scope owner')
+        database=self.execution/'file-operations'/'file-operations.db'
+        with closing(sqlite3.connect(database)) as db:
+            initial=copy_journal.FileCopyJobJournalRecord.FromString(db.execute(
+                'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',('one',job_id)).fetchone()[0])
+        self.assertTrue(initial.HasField('process_scope'))
+        worker_scope=self.broker.resources.root/'spatial-git-workers'/initial.process_scope.scope_name
+        deadline=time.monotonic()+10
+        terminal_record=None
+        while time.monotonic()<deadline:
+            with closing(sqlite3.connect(database)) as db:
+                row=db.execute('SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
+                               ('one',job_id)).fetchone()
+            self.assertIsNotNone(row,'copy job journal row disappeared')
+            current=copy_journal.FileCopyJobJournalRecord.FromString(row[0])
+            if current.state==copy_journal.FILE_COPY_JOB_JOURNAL_FAILED:
+                terminal_record=current
+                break
+            time.sleep(.01)
+        self.assertIsNotNone(terminal_record,'main-loop scheduler did not persist terminal failure without POLL')
+        self.assertEqual(terminal_record.terminal_receipt.state,files.FileCopyJobReceipt.FAILED)
+        self.assertEqual(terminal_record.terminal_receipt.failure_code,files.FileActionError.UNAVAILABLE)
+        self.assertEqual(terminal_record.drained_process_scope,terminal_record.process_scope)
+        self.assertFalse(worker_scope.exists(),'exact journaled ProcessScope must be removed before the first POLL')
+        stage_identity=terminal_record.staging_root
+        stage_roots=[]
+        for base in (self.project,self.project.parent):
+            with os.scandir(base) as entries:
+                for entry in entries:
+                    try:
+                        if not entry.is_dir(follow_symlinks=False): continue
+                        info=entry.stat(follow_symlinks=False)
+                    except FileNotFoundError:
+                        continue
+                    if info.st_dev==stage_identity.device and info.st_ino==stage_identity.inode:
+                        stage_roots.append(Path(entry.path))
+        self.assertEqual(len(stage_roots),1,'journaled staging-root identity must resolve uniquely')
+        self.assertEqual(list(stage_roots[0].iterdir()),[],
+                         'identity-matched staging must be removed before the first POLL')
+        self.assertFalse((self.project/'deadline-copy').exists(),'expired job must not publish')
+        terminal=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
+        self.assertEqual(terminal.file_action.copy_job,terminal_record.terminal_receipt)
+        self.assertEqual(terminal.file_action.copy_job.state,files.FileCopyJobReceipt.FAILED)
+        self.assertEqual(terminal.file_action.copy_job.failure_code,files.FileActionError.UNAVAILABLE)
+        self.assertIn('deadline expired',terminal.file_action.copy_job.detail)
+        self.assertFalse((self.project/'deadline-copy').exists())
+
+        self.assertEqual(self.broker.call('git.status',worktree='tree-two')['branch'],'branch-two')
+        independent_page=self.broker.request(file_action=cabinet.FileActionRequest(
+            protocol_version=1,operation_id=uuid.uuid4().bytes,workspace_id='two',
+            principal=self.principal(),browse=files.FileBrowse(page_size=16)))
+        self.assertTrue(independent_page.file_action.HasField('directory'),independent_page)
+        independent_root=independent_page.file_action.directory.handle
+        independent_source=next(entry.handle for entry in independent_page.file_action.directory.entries
+                                if entry.name==b'independent-source.txt')
+        independent_started=self.broker.request(file_action=cabinet.FileActionRequest(
+            protocol_version=1,operation_id=uuid.uuid4().bytes,workspace_id='two',
+            principal=self.principal(),copy_job=files.FileCopyJob(
+                command=files.FileCopyJob.START,source_handle=independent_source,
+                destination_directory_handle=independent_root,destination_basename=b'independent-copy.txt',
+                maximum_bytes=1024,maximum_entries=8)))
+        independent_job=independent_started.file_action.copy_job.job_id
+        independent_deadline=time.monotonic()+10
+        while True:
+            copied=self.broker.request(file_action=cabinet.FileActionRequest(
+                protocol_version=1,operation_id=uuid.uuid4().bytes,workspace_id='two',
+                principal=self.principal(),copy_job=files.FileCopyJob(
+                    command=files.FileCopyJob.POLL,job_id=independent_job)))
+            copy_receipt=copied.file_action.copy_job
+            if copy_receipt.state not in (files.FileCopyJobReceipt.QUEUED,
+                                          files.FileCopyJobReceipt.RUNNING): break
+            self.assertLess(time.monotonic(),independent_deadline,'independent workspace copy stalled')
+            time.sleep(.01)
+        self.assertEqual(copy_receipt.state,files.FileCopyJobReceipt.COMPLETE,copy_receipt)
+        self.assertEqual((self.project_two/'independent-copy.txt').read_bytes(),
+                         b'independent workspace remains usable')
+
     def test_file_action_copy_job_entry_limit_counts_root_and_children(self):
         self.workspace(attach_world=False)
         source=self.project/'bounded-source'

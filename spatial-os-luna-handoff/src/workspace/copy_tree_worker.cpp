@@ -41,6 +41,7 @@ struct Hash {
     std::string end(){unsigned char b[32];unsigned n=0;need(EVP_DigestFinal_ex(c.get(),b,&n)==1&&n==32);return {reinterpret_cast<char*>(b),n};}
 };
 uint64_t bytes=0,entries=0,enumerated=0,max_bytes=0,max_entries=0;
+uint64_t last_progress_bytes=0,last_progress_entries=0;unsigned progress_protocol=0;
 unsigned max_depth=128;
 bool cabinet_mode=false;
 dev_t cabinet_source_device=0;
@@ -57,6 +58,7 @@ long fail_readdir_after=-1;
 bool readdir_fault_used=false;
 #endif
 std::unique_ptr<Hash> hash;
+void emit_progress(bool force=false);
 uint64_t mount_id(int fd) {
     struct statx info{};
     if(syscall(SYS_statx,fd,"",AT_EMPTY_PATH|AT_STATX_SYNC_AS_STAT,STATX_MNT_ID,&info)!=0 ||
@@ -88,7 +90,7 @@ void copy_file(int s,int d,const std::string& name,const struct stat& st,const s
             if(w<=0) throw Failure(pb::FAILURE_IO);
             off+=w;
         }
-        count+=r;bytes+=r;
+        count+=r;bytes+=r;emit_progress();
     }
     if(count!=uint64_t(st.st_size))throw Failure(pb::FAILURE_SOURCE_CHANGED);
     if(cabinet_mode){struct stat after{};if(fstat(a.n,&after)!=0||after.st_dev!=st.st_dev||after.st_ino!=st.st_ino||after.st_nlink!=st.st_nlink||after.st_size!=st.st_size||after.st_mode!=st.st_mode||after.st_mtim.tv_sec!=st.st_mtim.tv_sec||after.st_mtim.tv_nsec!=st.st_mtim.tv_nsec||after.st_ctim.tv_sec!=st.st_ctim.tv_sec||after.st_ctim.tv_nsec!=st.st_ctim.tv_nsec)throw Failure(pb::FAILURE_SOURCE_CHANGED);}
@@ -130,6 +132,7 @@ void tree(int s,int d,const std::string& prefix,unsigned depth=0) {
         if(S_ISLNK(st.st_mode))throw Failure(pb::FAILURE_SYMLINK);
         if(cabinet_mode && st.st_dev!=cabinet_source_device)throw Failure(pb::FAILURE_SPECIAL_ENTRY);
         if(++entries>max_entries)throw Failure(pb::FAILURE_ENTRY_LIMIT);
+        emit_progress();
         auto rel=prefix.empty()?n:prefix+"/"+n;
         hash->field(rel);
         unsigned char type=S_ISDIR(st.st_mode)?'D':S_ISREG(st.st_mode)?'F':'?';
@@ -159,6 +162,14 @@ bool write_all(int fd,const void* data,size_t size) {
     while(size){ssize_t n=write(fd,p,size);if(n<0&&errno==EINTR)continue;if(n<=0)return false;p+=n;size-=n;}
     return true;
 }
+void emit_progress(bool force) {
+    if(progress_protocol!=4)return;
+    if(!force && bytes-last_progress_bytes<64ULL*1024*1024 && entries-last_progress_entries<4096)return;
+    pb::WorkerResult result;result.set_protocol_version(4);auto* p=result.mutable_progress();p->set_actual_bytes(bytes);p->set_actual_entries(static_cast<uint32_t>(entries));
+    std::string payload;if(!result.SerializeToString(&payload)||payload.empty()||payload.size()>128)return;
+    unsigned char prefix[4]={static_cast<unsigned char>(payload.size()>>24),static_cast<unsigned char>(payload.size()>>16),static_cast<unsigned char>(payload.size()>>8),static_cast<unsigned char>(payload.size())};
+    if(write_all(STDOUT_FILENO,prefix,sizeof(prefix))&&write_all(STDOUT_FILENO,payload.data(),payload.size())){last_progress_bytes=bytes;last_progress_entries=entries;}
+}
 int emit(pb::WorkerResult result) {
     std::string payload;if(!result.SerializeToString(&payload)||payload.empty()||payload.size()>4096)return 2;
     unsigned char prefix[4]={static_cast<unsigned char>(payload.size()>>24),static_cast<unsigned char>(payload.size()>>16),static_cast<unsigned char>(payload.size()>>8),static_cast<unsigned char>(payload.size())};
@@ -180,9 +191,10 @@ int main() {
         pb::WorkerRequest request;need(request.ParseFromString(input)&&request.maximum_bytes()>0&&request.maximum_bytes()<=4ULL*1024*1024*1024&&request.maximum_entries()>0&&request.maximum_entries()<=200000);
         need(request.GetReflection()->GetUnknownFields(request).empty());
         const bool exporting=request.protocol_version()==2 && request.has_state_export() && !request.has_finalization();
-        const bool cabinet=request.protocol_version()==3 && !request.has_state_export() && !request.has_finalization() && !request.cabinet_source_name().empty() && !request.cabinet_destination_name().empty();
+        const bool cabinet=(request.protocol_version()==3 || request.protocol_version()==4) && !request.has_state_export() && !request.has_finalization() && !request.cabinet_source_name().empty() && !request.cabinet_destination_name().empty();
         need(exporting || cabinet || (request.protocol_version()==1 && !request.has_state_export() && !request.has_finalization() && request.cabinet_source_name().empty() && request.cabinet_destination_name().empty()));
-        cabinet_mode=cabinet;
+        result.set_protocol_version(request.protocol_version());
+        cabinet_mode=cabinet;progress_protocol=request.protocol_version()==4?4:0;
         result.set_protocol_version(request.protocol_version());
         if(exporting) {
             const auto& state=request.state_export();
@@ -231,6 +243,7 @@ int main() {
                     throw Failure(pb::FAILURE_SOURCE_CHANGED);
             }
             if(++entries>max_entries||++enumerated>max_entries)throw Failure(pb::FAILURE_ENTRY_LIMIT);
+            emit_progress();
             hash->field("");const unsigned char type=S_ISDIR(before.st_mode)?'D':'F';hash->add(&type,1);hash->u64(before.st_mode&0777);
             if(S_ISDIR(before.st_mode)){
                 Fd source_root(openat(s.n,source_name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC));
@@ -254,7 +267,7 @@ int main() {
                 if(pinned.st_size<0||static_cast<uint64_t>(pinned.st_size)>max_bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);
                 hash->u64(static_cast<uint64_t>(pinned.st_size));
                 Fd output(openat(d.n,destination_name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));if(output.n<0)throw Failure(pb::FAILURE_DESTINATION_CONFLICT);
-                char buffer[65536];uint64_t copied=0;for(;;){ssize_t n=read(source_file.n,buffer,sizeof buffer);if(n<0&&errno==EINTR)continue;if(n<0)throw Failure(pb::FAILURE_IO);if(!n)break;if(static_cast<uint64_t>(n)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);hash->add(buffer,n);ssize_t off=0;while(off<n){ssize_t w=write(output.n,buffer+off,n-off);if(w<0&&errno==EINTR)continue;if(w<=0)throw Failure(pb::FAILURE_IO);off+=w;}copied+=n;bytes+=n;}
+                char buffer[65536];uint64_t copied=0;for(;;){ssize_t n=read(source_file.n,buffer,sizeof buffer);if(n<0&&errno==EINTR)continue;if(n<0)throw Failure(pb::FAILURE_IO);if(!n)break;if(static_cast<uint64_t>(n)>max_bytes-bytes)throw Failure(pb::FAILURE_BYTE_LIMIT);hash->add(buffer,n);ssize_t off=0;while(off<n){ssize_t w=write(output.n,buffer+off,n-off);if(w<0&&errno==EINTR)continue;if(w<=0)throw Failure(pb::FAILURE_IO);off+=w;}copied+=n;bytes+=n;emit_progress();}
                 struct stat after{};if(copied!=static_cast<uint64_t>(pinned.st_size)||fstat(source_file.n,&after)!=0||after.st_dev!=pinned.st_dev||after.st_ino!=pinned.st_ino||after.st_nlink!=pinned.st_nlink||after.st_size!=pinned.st_size||after.st_mode!=pinned.st_mode||after.st_mtim.tv_sec!=pinned.st_mtim.tv_sec||after.st_mtim.tv_nsec!=pinned.st_mtim.tv_nsec||after.st_ctim.tv_sec!=pinned.st_ctim.tv_sec||after.st_ctim.tv_nsec!=pinned.st_ctim.tv_nsec)throw Failure(pb::FAILURE_SOURCE_CHANGED);
                 if(fchmod(output.n,pinned.st_mode&0777)!=0||fsync(output.n)!=0||fsync(d.n)!=0)throw Failure(pb::FAILURE_IO);
             }
@@ -280,6 +293,7 @@ int main() {
             }
             need(fsync(d.n)==0,pb::FAILURE_IO);
         } else tree(s.n,d.n,"");
+        emit_progress(true);
         auto* receipt=result.mutable_copied();receipt->set_actual_bytes(bytes);receipt->set_actual_entries(static_cast<uint32_t>(entries));receipt->set_content_digest(hash->end());
     } catch(const Failure& e) {
         result.mutable_failure()->set_reason(e.reason);

@@ -48,6 +48,7 @@ public:
     void reconcile_authority();
     void reap();
     void advance_workspace_copies();
+    bool expire_one_workspace_copy();
     void stop_all();
     wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
     wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);

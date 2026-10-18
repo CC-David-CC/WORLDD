@@ -389,6 +389,7 @@ int main(int argc, char** argv) {
         };
         copy_progress = [&] { pump_root(true); };
         for (;;) {
+            store.expire_one_workspace_copy();
             enforce();
             pump_root(false);
             // Deliver an existing reply before beginning another copy step.

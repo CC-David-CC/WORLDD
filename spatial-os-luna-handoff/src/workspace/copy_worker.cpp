@@ -28,10 +28,6 @@ namespace spatial {
 namespace {
 struct Fd { int value=-1; explicit Fd(int v=-1):value(v){} ~Fd(){if(value>=0)close(value);} void close_now(){if(value>=0){::close(value);value=-1;}} Fd(const Fd&)=delete; Fd& operator=(const Fd&)=delete; Fd(Fd&& other) noexcept:value(std::exchange(other.value,-1)){} Fd& operator=(Fd&& other) noexcept {if(this!=&other){if(value>=0)close(value);value=std::exchange(other.value,-1);}return *this;} };
 void require(bool v,const char*m){if(!v)throw std::invalid_argument(m);}
-std::string read_pipe(int fd,std::size_t limit){
- std::string out; std::array<char,256>b{};
- for(;;){auto n=read(fd,b.data(),b.size());if(n==0)return out;if(n<0&&errno==EINTR)continue;if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))return out;if(n<0)throw std::runtime_error("copy worker pipe read failed");require(out.size()+static_cast<size_t>(n)<=limit,"copy worker receipt too large");out.append(b.data(),n);}
-}
 bool matches_intent(const workspace::v1::StorageCopyStageReceipt& receipt,
                     const workspace::v1::StorageCopyStageBegin& intent,
                     const workspace::v1::StorageObjectState& source,
@@ -129,7 +125,8 @@ workspace::v1::StorageCopyStageReceipt copy_registered_snapshot_to_staging(Stora
 struct CopyTreeJob::Impl {
  std::unique_ptr<GitJobResources> job;
  Fd out,diagnostic;
- std::string output,errors;
+ std::string errors;
+ std::optional<CopyWorkerStreamDecoder> decoder;
  bool diagnostics_emitted=false,diagnostics_overflow=false;
  void drain_errors() {
   if(diagnostic.value<0)return;
@@ -221,7 +218,7 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,int source_fd,int destina
  const char* bwrap="/usr/local/libexec/spatial-bwrap"; const char* helper="/usr/local/libexec/spatial-copy-tree-worker";
  Fd bf(open(bwrap,O_PATH|O_NOFOLLOW|O_CLOEXEC)),hf(open(helper,O_PATH|O_NOFOLLOW|O_CLOEXEC));
  struct stat bs{},hs{}; require(bf.value>=0&&hf.value>=0&&fstat(bf.value,&bs)==0&&fstat(hf.value,&hs)==0&&S_ISREG(bs.st_mode)&&bs.st_uid==0&&(bs.st_mode&0022)==0&&S_ISREG(hs.st_mode)&&hs.st_uid==0&&(hs.st_mode&0022)==0&&(hs.st_mode&0111)!=0,"trusted worker binaries unavailable");
- spatial::workspace::copyworker::v1::WorkerRequest job_request;impl_->expected_protocol=cabinet?3:(state_export?2:1);job_request.set_protocol_version(impl_->expected_protocol);job_request.set_maximum_bytes(max_bytes);job_request.set_maximum_entries(max_entries);
+ spatial::workspace::copyworker::v1::WorkerRequest job_request;impl_->expected_protocol=cabinet?4:(state_export?2:1);job_request.set_protocol_version(impl_->expected_protocol);job_request.set_maximum_bytes(max_bytes);job_request.set_maximum_entries(max_entries);impl_->decoder.emplace(impl_->expected_protocol,max_bytes,max_entries);
  if(state_export){validate_message(*state_export);*job_request.mutable_state_export()=*state_export;}
  if(cabinet){job_request.set_cabinet_source_name(cabinet_source_name);job_request.set_cabinet_destination_name(cabinet_destination_name);job_request.set_cabinet_source_is_directory(cabinet_source_is_directory);
   if(cabinet_expected_source){require(cabinet_expected_source->st_ino>0,"invalid expected cabinet source identity");
@@ -259,7 +256,7 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,const std::vector<int>& d
  const workspace::copyworker::v1::WorkerRequest& request):impl_(std::make_unique<Impl>()) {
  require(request.protocol_version()==2 && request.has_finalization() && !request.has_state_export() && directories.size()>=2 && directories.size()<=5 &&
          directories.size()==static_cast<std::size_t>(request.finalization().classes_size()),"Invalid finalization handles");
- impl_->max_bytes=request.maximum_bytes();impl_->max_entries=request.maximum_entries();impl_->finalizing=true;impl_->expected_protocol=2;
+ impl_->max_bytes=request.maximum_bytes();impl_->max_entries=request.maximum_entries();impl_->finalizing=true;impl_->expected_protocol=2;impl_->decoder.emplace(impl_->expected_protocol,impl_->max_bytes,impl_->max_entries);
  for(const auto data_class:request.finalization().classes())require(impl_->expected_classes.insert(data_class).second,"Duplicate finalization job class");
  impl_->expected_branch=request.finalization().expected_branch();impl_->derive_head=request.finalization().derive_head_from_snapshot();
  require(request.finalization().state_companions_size()<=32,"Finalization companion count exceeds bound");
@@ -311,6 +308,99 @@ CopyTreeJob::CopyTreeJob(WorkspaceResources& resources,const std::vector<int>& d
  args.insert(args.end(),{"--remount-ro","/","--",helper});for(const auto& arg:args)launch.add_arguments(arg);
  scope.start(launch,{nullfd.value,writer.value,error_write.value},inherited);writer.close_now();error_write.close_now();impl_->out=std::move(out);impl_->last_identity=scope.state();
 }
+CopyWorkerPipeRead read_copy_worker_pipe(int fd,std::size_t limit) {
+ require(limit>0&&limit<=CopyWorkerStreamDecoder::kMaxInputBytes,"invalid copy pipe read budget");
+ CopyWorkerPipeRead result;std::array<char,256> buffer{};
+ while(result.bytes.size()<limit) {
+  const auto capacity=std::min(buffer.size(),limit-result.bytes.size());
+  const auto count=read(fd,buffer.data(),capacity);
+  if(count==0){result.eof=true;break;}
+  if(count<0&&errno==EINTR)continue;
+  if(count<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;
+  if(count<0)throw std::runtime_error("copy worker pipe read failed");
+  result.bytes.append(buffer.data(),static_cast<std::size_t>(count));
+ }
+ return result;
+}
+void validate_copy_worker_progress(std::uint64_t old_bytes,std::uint32_t old_entries,
+ std::uint64_t new_bytes,std::uint32_t new_entries,std::uint64_t maximum_bytes,std::uint32_t maximum_entries) {
+ require(maximum_bytes>0&&maximum_entries>0&&new_bytes<=maximum_bytes&&new_entries<=maximum_entries&&
+     new_bytes>=old_bytes&&new_entries>=old_entries,"copy worker progress is malformed, overlimit, or regressing");
+}
+CopyWorkerStreamDecoder::CopyWorkerStreamDecoder(std::uint32_t protocol,
+ std::uint64_t maximum_bytes,std::uint32_t maximum_entries)
+ :protocol_(protocol),maximum_bytes_(maximum_bytes),maximum_entries_(maximum_entries) {
+ require(protocol_>=1&&protocol_<=4&&maximum_bytes_>0&&maximum_entries_>0,
+     "invalid copy worker stream limits");
+}
+void CopyWorkerStreamDecoder::feed(std::string_view bytes,bool end_of_stream) {
+ require(bytes.size()<=kMaxInputBytes,"copy worker stream read exceeds per-poll bound");
+ require(!end_of_stream_||bytes.empty(),"copy worker stream produced bytes after EOF");
+ require(buffered_.size()<=kMaxBufferedBytes&&bytes.size()<=kMaxBufferedBytes-buffered_.size(),
+     "copy worker retained frame backlog exceeded its bound");
+ if(!bytes.empty()) {
+  require(terminal_message_.empty(),"copy worker emitted data after terminal frame");
+  buffered_.append(bytes.data(),bytes.size());
+ }
+ if(end_of_stream)end_of_stream_=true;
+ parse_available();
+ if(end_of_stream_&&!buffered_.empty()) {
+  require(buffered_.size()>=4,"truncated copy worker frame prefix at EOF");
+  const auto u=[](unsigned char c){return static_cast<std::uint32_t>(c);};
+  const std::uint32_t size=(u(buffered_[0])<<24)|(u(buffered_[1])<<16)|
+      (u(buffered_[2])<<8)|u(buffered_[3]);
+  require(size>0&&size<=16384,"invalid copy worker frame length at EOF");
+  require(buffered_.size()>=4+size,"truncated copy worker frame at EOF");
+ }
+ if(end_of_stream_&&buffered_.empty())
+  require(!terminal_message_.empty(),"copy worker stream ended without a terminal frame");
+}
+void CopyWorkerStreamDecoder::parse_available() {
+ using Frame=spatial::workspace::copyworker::v1::WorkerResult;
+ std::size_t frames=0;
+ while(frames<64&&buffered_.size()>=4) {
+  const auto u=[](unsigned char c){return static_cast<std::uint32_t>(c);};
+  const std::uint32_t size=(u(buffered_[0])<<24)|(u(buffered_[1])<<16)|
+      (u(buffered_[2])<<8)|u(buffered_[3]);
+  require(size>0&&size<=16384,"invalid copy worker frame length");
+  if(buffered_.size()<4+size)break;
+  require(terminal_message_.empty(),"copy worker emitted multiple terminal frames or data after terminal");
+  Frame frame;
+  require(frame.ParseFromArray(buffered_.data()+4,static_cast<int>(size))&&
+      frame.protocol_version()==protocol_&&frame.outcome_case()!=Frame::OUTCOME_NOT_SET&&
+      frame.GetReflection()->GetUnknownFields(frame).field_count()==0,
+      "invalid copy worker protobuf frame");
+  if(frame.has_progress()) {
+   require(protocol_==4&&frame.progress().GetReflection()->GetUnknownFields(frame.progress()).field_count()==0,
+       "invalid copy worker progress frame");
+   CopyWorkerReceipt next;next.bytes=frame.progress().actual_bytes();next.entries=frame.progress().actual_entries();
+   validate_copy_worker_progress(latest_progress_?latest_progress_->bytes:0,
+       latest_progress_?latest_progress_->entries:0,next.bytes,next.entries,maximum_bytes_,maximum_entries_);
+   if(!latest_progress_||next.bytes!=latest_progress_->bytes||next.entries!=latest_progress_->entries) {
+    latest_progress_=next;progress_changed_=true;
+   }
+  } else {
+   if(frame.has_copied()&&latest_progress_)
+    validate_copy_worker_progress(latest_progress_->bytes,latest_progress_->entries,
+        frame.copied().actual_bytes(),frame.copied().actual_entries(),maximum_bytes_,maximum_entries_);
+   terminal_message_.assign(buffered_.data()+4,size);
+  }
+  buffered_.erase(0,4+size);
+  ++frames;
+ }
+}
+std::optional<CopyWorkerReceipt> CopyWorkerStreamDecoder::take_progress() {
+ if(!progress_changed_)return std::nullopt;
+ progress_changed_=false;return latest_progress_;
+}
+const std::optional<CopyWorkerReceipt>& CopyWorkerStreamDecoder::latest_progress() const noexcept {
+ return latest_progress_;
+}
+const std::string& CopyWorkerStreamDecoder::terminal_message() const noexcept { return terminal_message_; }
+bool CopyWorkerStreamDecoder::ready() const noexcept {
+ return !terminal_message_.empty()&&buffered_.empty();
+}
+std::size_t CopyWorkerStreamDecoder::buffered_bytes() const noexcept { return buffered_.size(); }
 CopyTreeJob::~CopyTreeJob()=default;
 supervisor::v1::ProcessScopeState CopyTreeJob::identity() const {
  return impl_->job?impl_->job->scope().state():impl_->last_identity;
@@ -318,35 +408,32 @@ supervisor::v1::ProcessScopeState CopyTreeJob::identity() const {
 void CopyTreeJob::cancel() {
  impl_->stop_and_release();
 }
+std::optional<CopyWorkerReceipt> CopyTreeJob::take_progress() {
+ return impl_->decoder->take_progress();
+}
 std::optional<CopyWorkerReceipt> CopyTreeJob::poll() {
 
  try {
  require(!impl_->completed,"Copy worker result was already consumed");
  auto& scope=impl_->job->scope();
- auto& output=impl_->output;
  impl_->drain_errors();
  if(impl_->diagnostics_overflow){impl_->emit_errors();throw WorldError(wire::STORAGE_ERROR,"Copy helper diagnostics exceeded their bound");}
  const auto max_bytes=impl_->max_bytes;const auto max_entries=impl_->max_entries;
- const std::size_t result_bound=impl_->finalizing?16388:4100;
- output+=read_pipe(impl_->out.value,result_bound);
- require(output.size()<=result_bound,"copy worker protobuf result too large");
- if(!scope.state().direct_child_exited())return std::nullopt;
+ const bool child_exited=scope.state().direct_child_exited();
+ const auto input=read_copy_worker_pipe(impl_->out.value,CopyWorkerStreamDecoder::kMaxInputBytes);
+ impl_->decoder->feed(input.bytes,input.eof);
+ if(!child_exited || !input.eof || !impl_->decoder->ready())return std::nullopt;
  const auto status=scope.exit_status();
  impl_->stop_and_release();
- output+=read_pipe(impl_->out.value,result_bound);
- require(output.size()<=result_bound,"copy worker protobuf result too large after exit");
  impl_->drain_errors();impl_->emit_errors();
  if(impl_->diagnostics_overflow || impl_->errors.find("AddressSanitizer")!=std::string::npos ||
     impl_->errors.find("LeakSanitizer")!=std::string::npos || impl_->errors.find("UndefinedBehaviorSanitizer")!=std::string::npos ||
     impl_->errors.find("runtime error:")!=std::string::npos)
     throw WorldError(wire::STORAGE_ERROR,"Copy helper emitted sanitizer diagnostics");
  if(status!=0){const auto message="copy worker failed (exit_status="+std::to_string(status)+"); stage outcome requires inspection";throw WorldError(wire::STORAGE_ERROR,message.c_str());}
- require(output.size()>=4,"missing copy worker protobuf frame");
- auto u=[](unsigned char c){return static_cast<std::uint32_t>(c);};
- const std::uint32_t frame_size=(u(output[0])<<24)|(u(output[1])<<16)|(u(output[2])<<8)|u(output[3]);
- require(frame_size>0&&frame_size<=result_bound-4&&output.size()==4+frame_size,"invalid copy worker frame length");
+ require(!impl_->decoder->terminal_message().empty(),"missing copy worker terminal frame");
  spatial::workspace::copyworker::v1::WorkerResult result;
- require(result.ParseFromArray(output.data()+4,static_cast<int>(frame_size))&&result.protocol_version()==impl_->expected_protocol&&result.outcome_case()!=spatial::workspace::copyworker::v1::WorkerResult::OUTCOME_NOT_SET&&result.GetReflection()->GetUnknownFields(result).field_count()==0,"invalid copy worker protobuf result");
+ require(result.ParseFromString(impl_->decoder->terminal_message()),"invalid copy worker terminal protobuf");
  if(result.has_finalized()) {
   require(impl_->finalizing,"Copy-mode worker returned a finalization outcome");
   validate_message(result.finalized());
@@ -397,6 +484,10 @@ std::optional<CopyWorkerReceipt> CopyTreeJob::poll() {
       : error.code == wire::INVALID_ARGUMENT
           ? CopyWorkerError::Code::invalid_argument
           : CopyWorkerError::Code::unavailable, error.what());
+ } catch (const CopyWorkerError&) {
+  throw;
+ } catch (const std::exception& error) {
+  throw CopyWorkerError(CopyWorkerError::Code::unavailable,error.what());
  }
 }
 CopyWorkerReceipt run_copy_tree_worker(WorkspaceResources& resources,int source_fd,int destination_fd,

@@ -1,4 +1,5 @@
 #include "workspace/file_engine.hpp"
+#include "workspace/copy_worker.hpp"
 
 #include <fcntl.h>
 #include <signal.h>
@@ -601,7 +602,161 @@ static void post_effect_allocation_regressions() {
   assert(fstatat(trash_fd, quarantine.c_str(), &st, AT_SYMLINK_NOFOLLOW) < 0 && errno == ENOENT);
   close(trash_fd);
 }
-int main() {
+std::string framed_copy_worker_result(const spatial::workspace::copyworker::v1::WorkerResult& result) {
+  std::string payload;
+  assert(result.SerializeToString(&payload));
+  const auto size=static_cast<std::uint32_t>(payload.size());
+  std::string framed;
+  framed.push_back(static_cast<char>((size>>24)&0xff));
+  framed.push_back(static_cast<char>((size>>16)&0xff));
+  framed.push_back(static_cast<char>((size>>8)&0xff));
+  framed.push_back(static_cast<char>(size&0xff));
+  framed+=payload;
+  return framed;
+}
+spatial::workspace::copyworker::v1::WorkerResult progress_frame(std::uint64_t bytes,std::uint32_t entries) {
+  spatial::workspace::copyworker::v1::WorkerResult result;
+  result.set_protocol_version(4);
+  result.mutable_progress()->set_actual_bytes(bytes);
+  result.mutable_progress()->set_actual_entries(entries);
+  return result;
+}
+spatial::workspace::copyworker::v1::WorkerResult copied_frame(std::uint64_t bytes,std::uint32_t entries) {
+  spatial::workspace::copyworker::v1::WorkerResult result;
+  result.set_protocol_version(4);
+  result.mutable_copied()->set_actual_bytes(bytes);
+  result.mutable_copied()->set_actual_entries(entries);
+  result.mutable_copied()->set_content_digest(std::string(32,'d'));
+  return result;
+}
+void copy_worker_pipe_read_regressions() {
+  using spatial::read_copy_worker_pipe;
+  int descriptors[2]{};
+  assert(pipe2(descriptors,O_NONBLOCK|O_CLOEXEC)==0);
+  const auto wire=framed_copy_worker_result(progress_frame(10,2))+
+      framed_copy_worker_result(copied_frame(10,2));
+  assert(write(descriptors[1],wire.data(),wire.size())==static_cast<ssize_t>(wire.size()));
+  // An exited writer can leave more bytes than this poll's budget in the pipe.
+  close(descriptors[1]);
+  spatial::CopyWorkerStreamDecoder decoder(4,100,10);
+  std::string received;
+  bool eof=false;
+  unsigned polls=0;
+  while(!eof) {
+    const auto result=read_copy_worker_pipe(descriptors[0],7);
+    assert(result.bytes.size()<=7);
+    if(polls==0)assert(!result.eof && !result.bytes.empty());
+    received+=result.bytes;decoder.feed(result.bytes,result.eof);
+    eof=result.eof;assert(++polls<100);
+  }
+  assert(received==wire && polls>1 && decoder.ready());
+  close(descriptors[0]);
+  assert(pipe2(descriptors,O_NONBLOCK|O_CLOEXEC)==0);
+  const auto empty_live=read_copy_worker_pipe(descriptors[0],7);
+  assert(empty_live.bytes.empty() && !empty_live.eof);
+  assert(write(descriptors[1],wire.data(),2)==2);
+  close(descriptors[1]);
+  const auto truncated=read_copy_worker_pipe(descriptors[0],7);
+  assert(truncated.bytes.size()==2 && truncated.eof);
+  spatial::CopyWorkerStreamDecoder invalid(4,100,10);
+  bool rejected=false;
+  try { invalid.feed(truncated.bytes,truncated.eof); }
+  catch(const std::invalid_argument&) { rejected=true; }
+  assert(rejected);
+  close(descriptors[0]);
+}
+void copy_worker_stream_decoder_regressions() {
+  using spatial::CopyWorkerStreamDecoder;
+  auto rejected=[](auto fn){bool threw=false;try{fn();}catch(const std::invalid_argument&){threw=true;}assert(threw);};
+  const auto progress=framed_copy_worker_result(progress_frame(10,2));
+  const auto terminal=framed_copy_worker_result(copied_frame(10,2));
+  CopyWorkerStreamDecoder fragmented(4,100,10);
+  fragmented.feed(std::string_view(progress).substr(0,2));
+  assert(!fragmented.latest_progress());
+  std::string fragmented_tail(progress.substr(2));
+  fragmented_tail+=terminal;
+  fragmented.feed(fragmented_tail,true);
+  assert(fragmented.ready());
+  assert(fragmented.latest_progress() && fragmented.latest_progress()->bytes==10 &&
+         fragmented.latest_progress()->entries==2);
+  const auto consumed=fragmented.take_progress();
+  assert(consumed && consumed->bytes==10 && consumed->entries==2);
+  assert(!fragmented.take_progress());
+
+  CopyWorkerStreamDecoder bad_length(4,100,10);
+  rejected([&]{bad_length.feed(std::string("\0\0\0\0",4));});
+  CopyWorkerStreamDecoder oversized_length(4,100,10);
+  std::string oversized_prefix(4,static_cast<char>(0));
+  oversized_prefix[2]=static_cast<char>(0x40);oversized_prefix[3]=static_cast<char>(0x01);
+  rejected([&]{oversized_length.feed(oversized_prefix);});
+  CopyWorkerStreamDecoder bad_protobuf(4,100,10);
+  std::string malformed(4,static_cast<char>(0));malformed[3]=static_cast<char>(1);
+  malformed.push_back(static_cast<char>(0xff));
+  rejected([&]{bad_protobuf.feed(malformed);});
+  CopyWorkerStreamDecoder partial_prefix(4,100,10);
+  partial_prefix.feed(std::string_view(progress).substr(0,2));
+  rejected([&]{partial_prefix.feed({},true);});
+  CopyWorkerStreamDecoder partial_payload(4,100,10);
+  std::string truncated=progress.substr(0,5);
+  partial_payload.feed(truncated);
+  rejected([&]{partial_payload.feed({},true);});
+  CopyWorkerStreamDecoder missing_terminal(4,100,10);
+  rejected([&]{missing_terminal.feed(progress,true);});
+
+  auto legacy_terminal=copied_frame(10,2);
+  legacy_terminal.set_protocol_version(3);
+  CopyWorkerStreamDecoder legacy_v3(3,100,10);
+  legacy_v3.feed(framed_copy_worker_result(legacy_terminal),true);
+  assert(legacy_v3.ready());
+  auto legacy_progress=progress_frame(10,2);
+  legacy_progress.set_protocol_version(3);
+  CopyWorkerStreamDecoder rejects_legacy_progress(3,100,10);
+  rejected([&]{rejects_legacy_progress.feed(framed_copy_worker_result(legacy_progress));});
+
+  CopyWorkerStreamDecoder multiple_terminal(4,100,10);
+  rejected([&]{multiple_terminal.feed(terminal+terminal);});
+  CopyWorkerStreamDecoder progress_after_terminal(4,100,10);
+  rejected([&]{progress_after_terminal.feed(terminal+progress);});
+  CopyWorkerStreamDecoder final_regression(4,100,10);
+  rejected([&]{final_regression.feed(framed_copy_worker_result(progress_frame(50,4))+
+      framed_copy_worker_result(copied_frame(49,4)),true);});
+  CopyWorkerStreamDecoder regressing(4,100,10);
+  rejected([&]{regressing.feed(framed_copy_worker_result(progress_frame(50,4))+
+      framed_copy_worker_result(progress_frame(49,5)));});
+  CopyWorkerStreamDecoder over_limit(4,100,10);
+  rejected([&]{over_limit.feed(framed_copy_worker_result(progress_frame(101,1)));});
+
+  CopyWorkerStreamDecoder backlog(4,100,10);
+  const auto tiny=framed_copy_worker_result(progress_frame(1,1));
+  std::string batch;
+  while(batch.size()+tiny.size()<=16000)batch+=tiny;
+  bool bounded=false;
+  for(unsigned i=0;i<20&&!bounded;++i) {
+    try { backlog.feed(batch); }
+    catch(const std::invalid_argument&) { bounded=true; }
+  }
+  assert(bounded);
+  assert(backlog.buffered_bytes()<=CopyWorkerStreamDecoder::kMaxBufferedBytes);
+}
+
+void copy_worker_progress_validation_regressions() {
+  using spatial::validate_copy_worker_progress;
+  validate_copy_worker_progress(0,0,4096,17,8192,64);
+  validate_copy_worker_progress(4096,17,4096,17,8192,64);
+  auto rejected=[](auto fn){bool threw=false;try{fn();}catch(const std::invalid_argument&){threw=true;}assert(threw);};
+  rejected([&]{validate_copy_worker_progress(4096,17,4095,17,8192,64);});
+  rejected([&]{validate_copy_worker_progress(4096,17,4096,16,8192,64);});
+  rejected([&]{validate_copy_worker_progress(0,0,8193,1,8192,64);});
+  rejected([&]{validate_copy_worker_progress(0,0,1,65,8192,64);});
+  // A terminal receipt uses the same check, so it cannot retract a published snapshot.
+  rejected([&]{validate_copy_worker_progress(4096,17,4000,18,8192,64);});
+}
+int main(int argc,char** argv) {
+  copy_worker_pipe_read_regressions();
+  copy_worker_stream_decoder_regressions();
+  copy_worker_progress_validation_regressions();
+  if(argc==2 && std::string(argv[1])=="--copy-worker-stream-only")return 0;
+  assert(argc==1);
   recovery_requires_scope_cleanup_for_same_boot_root_replacement();
   copy_staging_root_is_reserved_and_stale_state_fails_closed();
   recovered_copy_job_poll_and_cancel_use_durable_receipt();

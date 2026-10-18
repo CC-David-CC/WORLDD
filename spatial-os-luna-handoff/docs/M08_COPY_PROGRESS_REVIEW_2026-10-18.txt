@@ -1,0 +1,34 @@
+M08 copy progress review, 2026-10-18
+Status: UNQUALIFIED integration checkpoint.
+Parent: 507e6261c967646477f2694e5b2a91cb8c14f93c.
+
+The source combines reviewed durable recovery, named scope ownership, live progress, and fixed job deadlines.
+Protocol 4 sends cumulative progress after 64 MiB or 4096 entries and at completion.
+The broker bounds each read, parsing step, retained buffer, progress count, and job lifetime.
+RUNNING replies preserve the latest counters when no fresh snapshot arrives.
+Terminal receipts preserve counters. Recovery reads durable counters.
+The main loop expires unattended jobs without waiting for POLL.
+The production deadline remains five minutes.
+Cleanup requires exact scope drainage and identity-matched staging removal.
+Unconfirmed cleanup or journal durability yields UNCERTAIN.
+
+Primary review corrected a pipe read that could exceed its per-poll budget.
+The reader now stops at that budget and reports actual pipe EOF separately.
+Child exit does not imply that all pipe bytes have been consumed.
+Real nonblocking pipe tests cover bounded reads, EAGAIN, fragmentation, and truncated EOF.
+Decoder tests cover malformed frames, bounded backlog, legacy final-only behavior, and monotonic counters.
+The focused stream group passed on sb16 and sb16-2.
+Those executions used the preintegration source manifest with the same decoder and pipe reader.
+They do not prove the combined broker behavior.
+
+The combined Debug build passed for broker fixtures, journal, file engine, named scope, recovery, and copy helper.
+Build command and runner both returned zero.
+Combined runtime, sanitizer, unattended deadline, and real broker progress checks remain UNRUN.
+The separate storage repair still owns production Btrfs staging and typed quota failure checks.
+The named fixture controller setup correction remains a separate reviewed test-only checkpoint.
+M08 remains unqualified. The full M08 gate has not started.
+
+Artifacts: middle-child:/home/dflanag3/spatial-artifacts/m08-copy-progress-integration-20261018/
+Stream evidence on both test hosts: m08-copy-progress-pipe-runtime-20261018/attempt-01/run-001.
+Stream ELF SHA256: 7dc2c3623b3620a0023a99a55630f636dfd598fecac25aac4222299adf46f125.
+Stream source manifest SHA256: 9bd05abcacff60f2a46b278ca01d8815a8f0b93d3a80c8d2543dcc4fd15cd100.

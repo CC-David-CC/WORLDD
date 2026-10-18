@@ -391,6 +391,7 @@ struct ExecutionStore::Impl {
     std::map<std::string,std::unique_ptr<FileEngineEntry>> file_engines;
     bool file_action_dispatch_active = false;
     bool copy_authority_reconcile_pending = false;
+    std::string copy_expiry_cursor;
     bool git_parent_recovery_complete = false;
     FileEngineEntry& file_engine(const wire::WorkspaceReply& workspace,
                                  const wire::WorktreeReply& registered) {
@@ -2081,6 +2082,27 @@ workspace::v1::StorageCopyDestinationPrepare copy_allocation(const CopyJournal::
     require(binding.owner_catalog().entries_size()>0,"Copy allocation omitted its source workspace");
     result.set_source_workspace_id(binding.owner_catalog().entries(0).workspace_id());return result;
 }
+}
+bool ExecutionStore::expire_one_workspace_copy() {
+    if(impl_->file_action_dispatch_active)return false;
+    impl_->file_action_dispatch_active=true;
+    bool expired=false;
+    try {
+        if(!impl_->file_engines.empty()) {
+            auto item=impl_->copy_expiry_cursor.empty()?impl_->file_engines.begin():
+                impl_->file_engines.upper_bound(impl_->copy_expiry_cursor);
+            if(item==impl_->file_engines.end())item=impl_->file_engines.begin();
+            impl_->copy_expiry_cursor=item->first;
+            if(item->second&&item->second->engine)expired=item->second->engine->expire_one_copy_job();
+        }
+    } catch(...) {
+        impl_->file_action_dispatch_active=false;
+        if(impl_->copy_authority_reconcile_pending) { impl_->copy_authority_reconcile_pending=false;reconcile_authority(); }
+        throw;
+    }
+    impl_->file_action_dispatch_active=false;
+    if(impl_->copy_authority_reconcile_pending) { impl_->copy_authority_reconcile_pending=false;reconcile_authority(); }
+    return expired;
 }
 void ExecutionStore::advance_workspace_copies() {
     if(impl_->advancing_copy || !impl_->storage || !impl_->resources || !impl_->authority)return;

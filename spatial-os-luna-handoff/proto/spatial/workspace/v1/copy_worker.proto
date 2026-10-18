@@ -34,6 +34,10 @@ message CopyReceipt {
   uint32 actual_entries = 2;
   bytes content_digest = 3;
 }
+message CopyProgress {
+  uint64 actual_bytes = 1;
+  uint32 actual_entries = 2;
+}
 message Failure {
   FailureReason reason = 1;
 }
@@ -43,6 +47,7 @@ message WorkerResult {
     CopyReceipt copied = 2;
     Failure failure = 3;
     FinalizeReceipt finalized = 4;
+    CopyProgress progress = 5;
   }
 }
 
