@@ -744,11 +744,17 @@ void retirement_ack_failure_retry(const std::filesystem::path& delegated){
   const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"ack retry child pidfd");
   pollfd child_done{child_handle,POLLIN,0};const int child_ready=poll(&child_done,1,5000);close(child_handle);
   check(child_ready==1&&(child_done.revents&POLLIN),"ack retry child did not exit before cleanup");
-  rejects([&]{owned->stop([&](const auto& acknowledged) {
-    ++drained_callbacks;
-    check(acknowledged.SerializeAsString()==original.SerializeAsString(),"drain acknowledgment identity changed");
-    throw std::runtime_error("planned drain acknowledgment failure");
-  });},"failed final drain acknowledgment returned a stop receipt");
+  bool planned_ack_failure=false;
+  try {
+    owned->stop([&](const auto& acknowledged) {
+      ++drained_callbacks;
+      check(acknowledged.SerializeAsString()==original.SerializeAsString(),"drain acknowledgment identity changed");
+      throw std::runtime_error("planned drain acknowledgment failure");
+    });
+  } catch(const std::exception& error) {
+    planned_ack_failure=std::string(error.what())=="planned drain acknowledgment failure";
+  }
+  check(planned_ack_failure,"planned final drain acknowledgment failure was not propagated");
   struct stat after_failure{};
   check(lstat(owned_path.c_str(),&after_failure)==0&&S_ISDIR(after_failure.st_mode)&&
       after_failure.st_dev==static_cast<dev_t>(original.device())&&

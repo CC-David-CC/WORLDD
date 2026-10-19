@@ -1,0 +1,17 @@
+# Process-scope retirement retry after acknowledgment failure
+
+## Invariant
+
+A retained broker scope remains retained until the exact scope directory is successfully unlinked. A retirement callback authorizes only the current cleanup attempt. A later failure must not cache that authorization.
+
+## Defect and repair
+
+`ProcessScope::complete_stop` previously cleared `retained_scope_` immediately after a positive retirement callback. If the later drained acknowledgment or identity check failed, a retry could delete the stable root even when the retirement callback then refused. The implementation now computes a local removal decision and clears retained state only after successful `unlinkat`. Existing identity, drain, and deadline checks remain in place. Non-retained scopes still follow their normal removal path.
+
+## Regression and evidence
+
+`retirement_ack_failure_retry` launches `/bin/true`, waits on the owned pidfd, authorizes retirement once, then throws from the final drain acknowledgment. It verifies the same device and inode survive both the failure and a retry whose callback refuses. It removes the fixture root explicitly after those assertions. The case runs in the complete cleanup controls and through the isolated `retirement-ack-retry` selector.
+
+The regression-only commit `2817efc09bc31eb571146ca10a4fc3a3243c535b` reproduced the defect on sb16-2 against production base `5440113d27edd57cfa45baec8a786468e1be6430`. The isolated test failed with `retry cached retirement authorization or changed stable broker root` after 0.030 seconds. The canonical run is `/home/dflanag3/spatial-artifacts/m08-ack-retirement-bad-2817-sb16-2-20261019/runs/baseline-01`; its broker cleanup ELF SHA256 was `3b561a4e807ae61c2b32e3708fb5181de0ed830abff85cf33972c5da6379fe1d`.
+
+The corrected source and regression have not been built or run. Focused Debug and sanitizer checks remain pending primary review and execution.
