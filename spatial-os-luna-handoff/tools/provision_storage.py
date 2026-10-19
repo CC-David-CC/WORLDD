@@ -120,6 +120,35 @@ def atomic_write(path, data, mode=0o600):
         if Path(temporary).exists(): Path(temporary).unlink()
 
 
+def assign_volume_root_owner(volume, broker_uid, verify_mount):
+    """Assign only the verified mounted root to its recorded broker UID."""
+    require(0 < broker_uid < 2**31, 'Expected an unprivileged broker UID')
+    fd = os.open(volume, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        before = os.fstat(fd)
+        require(stat.S_ISDIR(before.st_mode), 'Mounted volume root is not a directory')
+        path_before = volume.lstat()
+        require(stat.S_ISDIR(path_before.st_mode) and
+                (path_before.st_dev, path_before.st_ino) == (before.st_dev, before.st_ino),
+                'Mounted volume root changed while opening it')
+        require(before.st_uid in (0, broker_uid), 'Mounted volume root has an unexpected owner')
+        verify_mount()
+        if before.st_uid != broker_uid:
+            os.fchown(fd, broker_uid, -1)
+        os.fchmod(fd, 0o700)
+        after = os.fstat(fd)
+        path_after = volume.lstat()
+        require(stat.S_ISDIR(after.st_mode) and after.st_uid == broker_uid and
+                after.st_gid == before.st_gid and stat.S_IMODE(after.st_mode) == 0o700 and
+                (after.st_dev, after.st_ino) == (before.st_dev, before.st_ino) and
+                stat.S_ISDIR(path_after.st_mode) and
+                (path_after.st_dev, path_after.st_ino) == (after.st_dev, after.st_ino),
+                'Mounted volume root ownership or identity did not persist')
+        verify_mount()
+    finally:
+        os.close(fd)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation', choices=('create', 'mount', 'unmount', 'inspect'))
@@ -222,6 +251,16 @@ def main():
             description = json.loads(run(['findmnt', '--json', '--mountpoint', str(volume), '-o', 'SOURCE,FSTYPE,OPTIONS']))['filesystems']
             require(len(description) == 1 and description[0]['source'] == loop and description[0]['fstype'] == 'btrfs' and
                     {'rw','nodev','nosuid','subvolid=5'} <= set(description[0]['options'].split(',')), 'Unexpected volume mount policy')
+
+            def verify_volume_mount():
+                current = json.loads(run(['findmnt', '--json', '--mountpoint', str(volume),
+                                          '-o', 'TARGET,SOURCE,FSTYPE,OPTIONS']))['filesystems']
+                require(len(current) == 1 and current[0]['target'] == str(volume) and
+                        current[0]['source'] == loop and current[0]['fstype'] == 'btrfs' and
+                        {'rw','nodev','nosuid','subvolid=5'} <= set(current[0]['options'].split(',')),
+                        'Volume mount identity changed during root ownership update')
+
+            assign_volume_root_owner(volume, record.definition.owner_policy.broker_uid, verify_volume_mount)
             device = Path('/sys/dev/block')/f'{os.major(info.st_dev)}:{os.minor(info.st_dev)}'
             backing = device.resolve(strict=True)
             if (backing/'partition').exists(): backing = backing.parent

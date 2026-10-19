@@ -63,6 +63,25 @@ class OperatorStorageTests(unittest.TestCase):
     def start(self):
         runtime = broker.StorageVolumeRuntime.FromString((self.entry/'runtime.pb').read_bytes())
         self.assertTrue(runtime.require_confinement)
+        volume_root = Path(runtime.volume_root)
+        flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+        root_fd = os.open(volume_root, flags)
+        try:
+            root_info = os.fstat(root_fd)
+            path_info = volume_root.lstat()
+            witness = dict(volume_root=str(volume_root), broker_uid=self.definition.owner_policy.broker_uid,
+                           current_euid=os.geteuid(), root_uid=root_info.st_uid, root_gid=root_info.st_gid,
+                           root_mode=oct(root_info.st_mode & 0o7777), root_device=root_info.st_dev,
+                           root_inode=root_info.st_ino,
+                           path_matches_fd=(path_info.st_dev, path_info.st_ino) ==
+                                           (root_info.st_dev, root_info.st_ino))
+            witness_path = self.root/f'volume-root-owner-{len(self.actions)}.json'
+            witness_path.write_text(json.dumps(witness, indent=2))
+            self.assertTrue(witness['path_matches_fd'], witness)
+            self.assertEqual(root_info.st_uid, self.definition.owner_policy.broker_uid, witness)
+            self.assertEqual(root_info.st_mode & 0o777, 0o700, witness)
+        finally:
+            os.close(root_fd)
         original = broker.BrokerProcessConfig()
         text_format.Parse(Path(os.environ['SPATIAL_TEST_BROKER_CONFIG']).read_text(), original)
         config = broker.BrokerProcessConfig(protocol_version=1,delegated_cgroup=original.delegated_cgroup,

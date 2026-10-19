@@ -1,0 +1,54 @@
+M08 operator-storage root ownership repair ? 2026-10-19
+
+The storage-owner broker opens the Btrfs volume root as its effective UID. The operator provisioner now assigns only the already-verified top-level mounted directory to the broker UID recorded in the protected volume definition. It preserves the directory GID and sets mode 0700. It uses an O_NOFOLLOW directory descriptor and checks the path inode before and after the update.
+
+The ownership step runs after the persistent image inode, filesystem UUID, exact loop source, Btrfs type, and rw/nodev/nosuid/subvolid=5 mount checks. It verifies that mount identity again while the descriptor remains open. It accepts an initial root-owned directory or the recorded broker UID. Any other owner fails closed. The same verified step runs for create and remount, so remount enforces the persisted broker identity without changing the image, UUID, or subvolume.
+
+Regression coverage adds a safe temporary-directory test for UID/GID/mode and descriptor identity, a symlink refusal, and a wrong-mount refusal before mutation. The native operator-storage test writes an fd-backed prelaunch witness before each broker start and checks UID, mode, and path identity. The selected native recovery test covers fresh create and remount persistence.
+
+Evidence motivating the repair: sb16-2 prelaunch witness at `/home/dflanag3/spatial-artifacts/m08-operator-storage-owner-witness-07e4373-sb16-2-01/diagnosis.json`, SHA256 `81fc20c3d7ddba071bce5c2dc0d9b3ddd6a2ff348a7fd3e17776a14642b17b39`. It recorded root UID/GID 0:0, mode 0755, and requested broker UID 1000 on the exact mounted Btrfs root. The probe refused startup with `Broker state directory ownership is invalid`.
+
+This checkpoint is unqualified. Focused tests and host runtime checks remain pending primary review. The host witness is diagnostic evidence, not a qualification result.
+
+Primary focused verification, 2026-10-19
+
+Status: UNQUALIFIED. No full gate or sanitizer pass is claimed.
+The first focused run passed two tooling cases and failed one fixture setup.
+The symlink test inherited mode 0775. It expected mode 0755.
+Commit 1d82c052e8cc6c422891f51b5bd1282d225418c4 sets that precondition explicitly.
+The next run passed all three tooling cases on sb16-2.
+The selected native persistent-recovery case failed at its first broker launch.
+Its ownership witness confirmed UID 1000, GID 0, mode 0700, and matching fd/path identity.
+The ownership refusal is repaired for this fresh-volume probe.
+The broker then refused: Production broker requires sealed resources, storage ownership, and cleanup bootstrap.
+The direct BrokerProcess cleanup-bootstrap repair remains on a separate branch.
+Remount recovery and sanitizer coverage remain UNRUN.
+
+Retained source is 126d928cf70b5665ff70e16a117bb82a50bd8f10.
+The tooling-only overlay uses correction 1d82c052e8cc6c422891f51b5bd1282d225418c4.
+Runtime binaries remain frozen079. This mixed diagnostic run is not qualification evidence.
+Raw sb16-2 root: /home/dflanag3/spatial-artifacts/m08-storage-ownership-focused-126d928-20261019
+Canonical runs: runs/ownership-01 and runs/ownership-02.
+Second run receipts: command.exit=1, wrapper.exit=1, COMPLETE.
+The fixture unmounted successfully and detached its loop device.
+Independent findmnt returned 1. losetup -j returned no association.
+The runtime flock was free after completion.
+
+Independent Git restart diagnosis
+One selected crash-restart case failed on sb16 in 1.306 seconds.
+Retained stderr identifies: Git worker journal must bind before worker parent creation.
+Constructor recovery runs Git before the later journal-binding initialization.
+A separate repair must preserve pending-effect uncertainty and prohibit unjournaled workers.
+Do not treat clean-root retirement as proof that crashed restart is repaired.
+Raw sb16 root: /home/dflanag3/spatial-artifacts/m08-git-restart-diagnostic-7cb728c-20261019
+Canonical run: runs/git-restart-01; command.exit=1, wrapper.exit=1, COMPLETE.
+Diagnostic overlay: 7cb728cb7dbff4dbb711c75e3df9c57c588950bc.
+Provenance correction: actual broker and other binaries were frozen079.
+The passed BROKER argument pointed to a5, but did not select the launched executable.
+The old HOST selected its sibling workspaced through platform::Worker.
+Actual broker SHA256: 312d1cea19004cbd461d027daafba0ff1c25682b8f73bbd68c9448e8173fd2a8.
+This reproduces the original defect. It does not validate an a5 broker.
+External correction: provenance-correction.json under the raw sb16 root.
+Future runs must verify the live broker executable path and SHA256.
+Colocate the complete required executable closure under the diagnostic runtime root.
+The resource wrapper confirmed scope removal and the unit became inactive/not-found.
