@@ -21,6 +21,8 @@ import launch_pb2 as launch
 
 
 class NativeStorageSessionTests(existing.SessionApplicationTests):
+    bootstrap_in_session_delegate = True
+
     def setUp(self):
         super().setUp()
         assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
@@ -32,6 +34,9 @@ class NativeStorageSessionTests(existing.SessionApplicationTests):
         self.addCleanup(self.cleanup_volume)
         self.volume_command('prepare', self.previous_config)
         self.execution = self.volume_root/'volume'
+        metadata = self.execution.stat()
+        self.assertEqual(metadata.st_uid, os.getuid(), 'Broker metadata root must belong to its execution identity')
+        self.assertEqual(metadata.st_mode & 0o777, 0o700, 'Broker metadata root must remain private')
         self.configuration = broker.BrokerProcessConfig()
         text_format.Parse((self.volume_root/'broker.textproto').read_text(), self.configuration)
         os.environ['SPATIAL_TEST_BROKER_CONFIG'] = str(self.volume_root/'broker.textproto')

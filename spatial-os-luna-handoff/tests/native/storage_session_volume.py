@@ -64,6 +64,18 @@ if operation == 'prepare':
         run(['mkfs.btrfs', '-q', '-f', record['loop']])
         run(['mount', '-t', 'btrfs', '-o', 'rw,nodev,nosuid', record['loop'], volume])
         record['mounted'] = True; save()
+        # BrokerInstanceLock validates ownership before starting the storage owner.
+        # Provision the broker metadata root with the configured broker identity.
+        volume_fd = os.open(volume, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+        try:
+            os.fchown(volume_fd, operator.pw_uid, operator.pw_gid)
+            os.fchmod(volume_fd, 0o700)
+            info = os.fstat(volume_fd)
+            assert info.st_uid == operator.pw_uid and info.st_mode & 0o777 == 0o700
+            record['broker_state_identity'] = dict(uid=info.st_uid, mode='0700', device=info.st_dev, inode=info.st_ino)
+            save()
+        finally:
+            os.close(volume_fd)
         policy_dir = Path('/run')/('spatial-m03-native-storage-'+uuid.uuid4().hex)
         policy_dir.mkdir(mode=0o755); policy_dir.chmod(0o755)
         record['policy_directory'] = str(policy_dir); save()

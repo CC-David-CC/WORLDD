@@ -1,0 +1,69 @@
+M08 storage-session launcher repair
+Status: FOCUSED launcher controls passed. Native storage suite UNRUN. M08 UNQUALIFIED.
+Base: 6fb4f77a8de01afab74d2ec5aa0e794369b71863.
+Primary replaced the rejected v2 launcher with a maintained source tool.
+Signal handling retains the active process. Cleanup checks children after parent exit.
+The tool validates actual descriptor and volume receipts.
+It requires exact unittest outcomes, command/wrapper exits, no sanitizer findings,
+retired processes, stopped services, and verified original-helper restoration.
+Unknown cleanup prevents helper replacement and further qualification.
+The graphics environment enters the delegated test command explicitly.
+No production binaries, public messages, or locked acceptance tests changed.
+
+Selected controls and purpose were recorded before execution.
+Seven controls passed on each host: incomplete evidence, Debug identity, orphan child,
+signal routing, failed restoration, graphics propagation, and unittest/log parsing.
+Evidence on sb16 and sb16-2:
+/home/dflanag3/spatial-artifacts/m08-storage-launcher-contract-20261018/run-01
+Both command.exit and wrapper.exit are zero. Both tmux panes retired with zero.
+Durations: sb16 0.182s; sb16-2 0.283s. No skipped tests.
+These controls do not qualify the native seven-method storage suite.
+Next: reviewed profile preflight, temporary helper installation, Debug storage suite,
+then ASan/UBSan only after all Debug evidence and restoration pass on the same host.
+
+Native Debug attempt 01 executed on both hosts and FAILED: five setup failures and two errors.
+The path validator rejected five current method names. The two older method names
+reached bootstrap, which rejected the root-owned Btrfs metadata directory.
+BrokerInstanceLock requires the broker UID before the storage owner starts.
+The fixture now provisions that exact UID and private mode using a pinned directory FD.
+Production ownership checks remain unchanged. Five exact method names join the path allowlist.
+Two new metadata controls exercise every actual method name and reject an unregistered name.
+Both failed runs restored the original helper hash and left no live owned processes.
+Evidence: each host spatial-artifacts/m08-storage-session-profile-runtime-20261018/debug-native-01.
+Corrected fixture runtime and its sanitizer checks remain UNRUN at this checkpoint.
+The launcher verifies the complete frozen fixture source manifest before host mutation.
+
+Parser correction, focused attempt 04
+Seven launcher controls passed on each host (sb16: 0.181s; sb16-2: 0.281s).
+The parser now bounds the final method at the unittest summary without requiring a dashed separator.
+Both command and wrapper receipts are zero and COMPLETE.
+Evidence: /home/dflanag3/spatial-artifacts/m08-storage-session-profile-runtime-20261018/launcher-seven-04 on each host.
+The fixture-storage-setup-03 snapshot remains frozen. The reviewed launcher overlay has SHA256 464ffacea7c9caba3a4da73a172703bcc48d3b04190f11812edb94439a4b2688.
+Native Debug retry and sanitizer checks remain UNRUN. M08 remains UNQUALIFIED.
+
+Native Debug attempt 02
+All seven methods failed during coordinator startup on both hosts.
+The broker reports: Git worker parent identity cannot be verified.
+The earlier method allowlist and directory ownership failures are resolved.
+This run did not reach the storage behavioral assertions.
+Both runs cleaned all volumes and descriptors, stopped owned services, and restored the original helper.
+No sanitizer run followed this failed Debug attempt.
+Evidence: debug-native-02 beside the prior run on each host.
+
+Launcher controls attempt 05
+Seven controls passed on each host (0.186s and 0.287s).
+The parser accepts the observed successful systemd epilogue.
+It rejects unsuccessful status and unexpected trailing output.
+Source SHA256: 80b1565f3addb6f6e04d12bab49224df290fa5ec795e2dd5857410fad13826dd.
+Evidence: launcher-seven-05 beside the prior run on each host.
+Native storage remains FAILED. M08 remains UNQUALIFIED.
+
+Prepared native retry 03
+Storage sessions now opt into one common bootstrap and session delegation parent.
+The private bootstrap template changes only its outer delegated_cgroup.
+The nested resource policy remains unbound. Production identity checks are unchanged.
+Other session fixtures keep their current behavior.
+Selected regression: all seven native storage methods on both hosts.
+Run Debug first. Run sanitizer only after that host's complete Debug pass.
+Required checks include retained owner, cleanup retry, disconnect, signal, exhaustion, and owner loss.
+These checks remain UNRUN at this checkpoint.

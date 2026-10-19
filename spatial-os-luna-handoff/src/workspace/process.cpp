@@ -108,9 +108,16 @@ void ensure_copy_staging_root(int project_fd) {
     const int project_read = openat(project_fd, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
     if (project_read < 0) throw std::runtime_error("Cannot verify project root for copy staging");
     struct stat project{}, stage{};
-    if (fstat(project_read, &project) < 0 || !S_ISDIR(project.st_mode)) {
+    const int project_stat_result = fstat(project_read, &project);
+    const int project_stat_error = project_stat_result < 0 ? errno : 0;
+    if (project_stat_result < 0 || !S_ISDIR(project.st_mode)) {
+        std::ostringstream detail;
+        detail << "Cannot verify project root for copy staging (fstat_errno=" << project_stat_error
+               << ",mode=" << std::oct << (project.st_mode & 07777) << std::dec << ")";
+        std::string message = detail.str();
+        if (message.size() > 256) message.resize(256);
         close(project_read);
-        throw std::runtime_error("Cannot verify project root for copy staging");
+        throw std::runtime_error(message);
     }
     bool created = false;
     if (mkdirat(project_fd, ".spatial-copy-staging", 0700) == 0) created = true;
@@ -126,24 +133,62 @@ void ensure_copy_staging_root(int project_fd) {
         close(project_read);
         throw std::runtime_error("Copy staging root has an unsafe type or mount");
     }
-    const bool valid = fstat(staging, &stage) == 0 && S_ISDIR(stage.st_mode) &&
-        stage.st_dev == project.st_dev && stage.st_uid == geteuid() && (stage.st_mode & 0777) == 0700;
+    const int stage_stat_result = fstat(staging, &stage);
+    const int stage_stat_error = stage_stat_result < 0 ? errno : 0;
+    const uid_t effective_uid = geteuid();
+    const bool valid = stage_stat_result == 0 && S_ISDIR(stage.st_mode) &&
+        stage.st_dev == project.st_dev && stage.st_uid == effective_uid && (stage.st_mode & 0777) == 0700;
     struct statfs filesystem{};
     bool same_subvolume = false;
-    if (valid && fstatfs(project_read, &filesystem) == 0) {
-        if (static_cast<unsigned long>(filesystem.f_type) == BTRFS_SUPER_MAGIC) {
-            btrfs_ioctl_get_subvol_info_args project_info{}, stage_info{};
-            same_subvolume = ioctl(project_read, BTRFS_IOC_GET_SUBVOL_INFO, &project_info) == 0 &&
-                ioctl(staging, BTRFS_IOC_GET_SUBVOL_INFO, &stage_info) == 0 &&
-                project_info.treeid != 0 && project_info.treeid == stage_info.treeid;
+    int filesystem_error = 0;
+    int project_subvolume_error = 0;
+    int staging_subvolume_error = 0;
+    std::uint64_t project_tree = 0;
+    std::uint64_t staging_tree = 0;
+    if (valid) {
+        if (fstatfs(project_read, &filesystem) < 0) {
+            filesystem_error = errno;
         } else {
-            same_subvolume = stage.st_dev == project.st_dev;
+            if (static_cast<unsigned long>(filesystem.f_type) == BTRFS_SUPER_MAGIC) {
+                btrfs_ioctl_get_subvol_info_args project_info{}, stage_info{};
+                const int project_result = ioctl(project_read, BTRFS_IOC_GET_SUBVOL_INFO, &project_info);
+                if (project_result < 0) project_subvolume_error = errno;
+                const int staging_result = ioctl(staging, BTRFS_IOC_GET_SUBVOL_INFO, &stage_info);
+                if (staging_result < 0) staging_subvolume_error = errno;
+                project_tree = project_result == 0 ? project_info.treeid : 0;
+                staging_tree = staging_result == 0 ? stage_info.treeid : 0;
+                same_subvolume = project_result == 0 && staging_result == 0 &&
+                    project_tree != 0 && project_tree == staging_tree;
+            } else {
+                same_subvolume = stage.st_dev == project.st_dev;
+            }
         }
     }
     close(staging);
     if (!valid || !same_subvolume) {
+        std::ostringstream detail;
+        detail << "Copy staging root identity or subvolume is unsafe"
+               << " (valid=" << valid << ",same_subvolume=" << same_subvolume
+               << ",euid=" << effective_uid
+               << ",project_uid=" << project.st_uid << ",project_gid=" << project.st_gid
+               << ",project_mode=" << std::oct << (project.st_mode & 07777) << std::dec
+               << ",project_dev=" << static_cast<unsigned long long>(project.st_dev)
+               << ",project_ino=" << static_cast<unsigned long long>(project.st_ino)
+               << ",stage_uid=" << stage.st_uid << ",stage_gid=" << stage.st_gid
+               << ",stage_mode=" << std::oct << (stage.st_mode & 07777) << std::dec
+               << ",stage_dev=" << static_cast<unsigned long long>(stage.st_dev)
+               << ",stage_ino=" << static_cast<unsigned long long>(stage.st_ino)
+               << ",project_stat_errno=" << project_stat_error
+               << ",stage_stat_errno=" << stage_stat_error
+               << ",fstatfs_errno=" << filesystem_error
+               << ",fs_type=" << std::hex << static_cast<unsigned long>(filesystem.f_type) << std::dec
+               << ",project_subvolume_errno=" << project_subvolume_error
+               << ",stage_subvolume_errno=" << staging_subvolume_error
+               << ",project_tree=" << project_tree << ",stage_tree=" << staging_tree << ")";
+        std::string message = detail.str();
+        if (message.size() > 768) message.resize(768);
         close(project_read);
-        throw std::runtime_error("Copy staging root identity or subvolume is unsafe");
+        throw std::runtime_error(message);
     }
     if (created && fsync(project_read) < 0) {
         const int error = errno; close(project_read);

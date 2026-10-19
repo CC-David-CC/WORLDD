@@ -116,8 +116,15 @@ class SessionApplicationTests(existing.SessionActorTests):
         config.broker_resource_target_fd = 255
         logpath = self.root / 'bootstrap-broker.log'
         log = logpath.open('wb')
+        bootstrap_resource_path = resource_path
+        if getattr(self, 'bootstrap_in_session_delegate', False):
+            # Recovery verifies that resource generations share one delegation parent.
+            # Keep the nested resource policy unbound until BrokerProcess launches it.
+            resource.delegated_cgroup = str(self.cgroup)
+            self.assertFalse(resource.resources.delegated_cgroup)
+            bootstrap_resource_path = str(self.config_file('bootstrap-broker-resources', resource))
         bootstrap = subprocess.Popen([str(Path(binary).with_name('spatial-storage-broker-launch-probe')),
-            str(self.execution), resource_path, '--broker-envelope'],
+            str(self.execution), bootstrap_resource_path, '--broker-envelope'],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log)
         def cleanup():
             if bootstrap.poll() is None: bootstrap.kill()
