@@ -361,7 +361,7 @@ def run_workspace_crosshost(a):
     cleanup = _verify_cleanup_receipts(method_dir, method_dir)
     local_logs = _scan_local_logs((evidence, security_evidence))
     remote_logs = _scan_remote_evidence(observer, Path(roles["SPATIAL_GEOMETRY_REMOTE_EVIDENCE"]) /
-                                        "test_shared_workspace_geometry_changes_both_native_hosts")
+                                        WORKSPACE_CROSSHOST_CASES[test_name])
     passed = (result.returncode == 0 and re.search(r"Ran 1 test in .*\n\nOK(?:\n|$)", output) is not None
               and not m06.SAN_RE.search(output))
     summary = dict(schema=1, status="passed" if passed else "failed_or_incomplete",

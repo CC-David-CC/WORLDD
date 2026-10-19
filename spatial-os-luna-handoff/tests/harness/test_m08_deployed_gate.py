@@ -347,8 +347,16 @@ class M08InventoryGateTests(unittest.TestCase):
                     self.assertEqual(run.call_count, 2)
                     self.assertEqual(run.call_args_list[0].args[0][:3],
                                      ["btrfs", "inspect-internal", "rootid"])
-                    self.assertEqual(run.call_args_list[1].args[0][:3],
-                                     ["btrfs", "filesystem", "show"])
+                    self.assertEqual(run.call_args_list[1].args[0],
+                                     ["sudo", "-n", "btrfs", "filesystem", "show", "--raw", str(volume)])
+            with self.subTest(inspector="permission denied"):
+                denied = subprocess.CalledProcessError(1, ["sudo", "-n", "btrfs"], stderr="permission denied")
+                with patch.object(type(volume), "stat", return_value=SimpleNamespace(st_ino=256)), \
+                     patch.object(gate.subprocess, "run", side_effect=[rootid, denied]) as run:
+                    with self.assertRaisesRegex(RuntimeError, "cannot verify StorageOwner Btrfs volume"):
+                        gate.validate_storage_volume(volume, mountinfo=mountinfo)
+                self.assertEqual(run.call_args_list[1].args[0],
+                                 ["sudo", "-n", "btrfs", "filesystem", "show", "--raw", str(volume)])
 
     def test_storage_lane_prerequisite_failure_never_launches_gate(self):
         deployment = self.deployment(self.inventory())
@@ -391,6 +399,98 @@ class M08InventoryGateTests(unittest.TestCase):
         self.assertEqual(gate.m07.workspace_crosshost_core_case_count(90), 88)
         self.assertEqual(gate.m07.workspace_crosshost_core_case_count(
                          90, "workspace-geometry-native-crosshost"), 88)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            deployment = root / "deployment"
+            (deployment / "source").mkdir(parents=True)
+            (deployment / "build" / "Debug").mkdir(parents=True)
+            candidate = "a" * 40
+            configure = {key: "/baked/" + key.lower() for key in gate.m07.GEOMETRY_ENV}
+            provenance = {"candidate": candidate, "configure_env": configure,
+                "runtime_manifest": {"hosts": {"sb16": {"Debug": {
+                    "xace_wrapper": {"path": "/runtime/xace-wrapper"}}}}}}
+            (deployment / "provenance.json").write_text(json.dumps(provenance))
+            (deployment / "deployment-receipt.json").write_text(json.dumps(
+                {"candidate": candidate, "host": "sb16", "status": "verified"}))
+            pin = {"path": str(deployment),
+                "provenance_sha256": gate.m06.sha(deployment / "provenance.json"),
+                "deployment_receipt_sha256": gate.m06.sha(deployment / "deployment-receipt.json")}
+            matrix_path = root / "matrix.json"
+            matrix_path.write_text(json.dumps({"candidate": candidate, "deployments": {
+                "sb16": pin, "sb16-2": {"path": "/remote/deployment",
+                    "provenance_sha256": "b" * 64, "deployment_receipt_sha256": "c" * 64}}}))
+            roles = {key: "/remote/" + key.lower() for key in gate.m07.GEOMETRY_ENV}
+            roles.update({"SPATIAL_GEOMETRY_OBSERVER_HOST": "sb16-2",
+                "SPATIAL_GEOMETRY_REMOTE_EVIDENCE": "/remote/evidence",
+                "SPATIAL_GEOMETRY_REMOTE_SOURCE": "/remote/deployment/source",
+                "SPATIAL_GEOMETRY_REMOTE_BIN": "/remote/deployment/build/Debug",
+                "SPATIAL_GEOMETRY_REMOTE_PYTHON": "/remote/deployment/build/Debug/python",
+                "SPATIAL_GEOMETRY_REMOTE_XSERVER": "/remote/xace-wrapper"})
+            role_path = root / "roles.json"
+            role_path.write_text(json.dumps(roles))
+            inventory = [{"name": name,
+                "command": [key + "=" + configure[key] for key in gate.m07.GEOMETRY_ENV],
+                "properties": []} for name in (
+                    "workspace-geometry-native-crosshost", "workspace-cabinet-native-crosshost")]
+            ctest = subprocess.CompletedProcess([], 0, stdout=json.dumps({"tests": inventory}), stderr="")
+            run_result = subprocess.CompletedProcess([], 0, stdout="", stderr="")
+            method_by_test = {
+                "workspace-geometry-native-crosshost": "test_shared_workspace_geometry_changes_both_native_hosts",
+                "workspace-cabinet-native-crosshost": "test_cabinet_projection_and_persistent_placement_reach_native_pixels",
+            }
+            for test_name, method_name in method_by_test.items():
+                with self.subTest(test_name=test_name):
+                    output = root / ("evidence-" + test_name)
+                    args = SimpleNamespace(test_name=test_name, direction="sb16-to-sb16-2",
+                        profile="Debug", candidate=candidate, roles=role_path,
+                        m06_plan=matrix_path, deployment=deployment, output=output)
+                    requested = []
+                    def transport(_host, argv, **_kwargs):
+                        scan_path = argv[-1]
+                        requested.append(scan_path)
+                        if scan_path == "/remote/evidence/" + method_name:
+                            return json.dumps({"exists": True, "files": [{
+                                "path": scan_path + "/geometry-host-session.log",
+                                "sha256": "d" * 64, "bytes": 12}], "bad": []}).encode()
+                        return json.dumps({"exists": True, "files": [{
+                            "path": "/remote/evidence/test_shared_workspace_geometry_changes_both_native_hosts/geometry-host-session.log",
+                            "sha256": "d" * 64, "bytes": 12}], "bad": []}).encode()
+                    def write_run(_command, *, log, **_kwargs):
+                        Path(log).write_text("Ran 1 test in 0.001s\n\nOK\n")
+                        return run_result, 0.001
+                    from contextlib import ExitStack
+                    with ExitStack() as stack:
+                        stack.enter_context(patch.object(gate.m07.socket, "gethostname", return_value="sb16"))
+                        stack.enter_context(patch.object(gate.m07, "_role_map", return_value=roles))
+                        stack.enter_context(patch.object(gate.m07, "_remote_profile_pin", return_value={"host": "sb16-2"}))
+                        stack.enter_context(patch.object(gate.m07.m06, "_validate_remote_deployment"))
+                        stack.enter_context(patch.object(gate.m07.subprocess, "run", return_value=ctest))
+                        stack.enter_context(patch.object(gate.m07.m06, "run", side_effect=write_run))
+                        stack.enter_context(patch.object(gate.m07, "_verify_cleanup_receipts", return_value={"verified": True}))
+                        stack.enter_context(patch.object(gate.m07, "_scan_local_logs", return_value=[]))
+                        stack.enter_context(patch.object(gate.m07.m06, "_run_on_host", side_effect=transport))
+                        self.assertEqual(gate.m07.run_workspace_crosshost(args), 0)
+                    expected = "/remote/evidence/" + method_name
+                    self.assertEqual(requested, [expected])
+                    receipt = json.loads((output / "workspace-crosshost-receipt.json").read_text())
+                    self.assertEqual(receipt["remote_log_inventory"]["service_log"]["path"],
+                                     expected + "/geometry-host-session.log")
+                    if test_name == "workspace-cabinet-native-crosshost":
+                        args.output = root / "evidence-cabinet-wrongcase"
+                        with ExitStack() as stack:
+                            stack.enter_context(patch.object(gate.m07.socket, "gethostname", return_value="sb16"))
+                            stack.enter_context(patch.object(gate.m07, "_role_map", return_value=roles))
+                            stack.enter_context(patch.object(gate.m07, "_remote_profile_pin", return_value={"host": "sb16-2"}))
+                            stack.enter_context(patch.object(gate.m07.m06, "_validate_remote_deployment"))
+                            stack.enter_context(patch.object(gate.m07.subprocess, "run", return_value=ctest))
+                            stack.enter_context(patch.object(gate.m07.m06, "run", side_effect=write_run))
+                            stack.enter_context(patch.object(gate.m07, "_verify_cleanup_receipts", return_value={"verified": True}))
+                            stack.enter_context(patch.object(gate.m07, "_scan_local_logs", return_value=[]))
+                            stack.enter_context(patch.object(gate.m07.m06, "_run_on_host",
+                                return_value=json.dumps({"exists": False, "files": [], "bad": []}).encode()))
+                            with self.assertRaisesRegex(RuntimeError, "observer evidence is missing"):
+                                gate.m07.run_workspace_crosshost(args)
 
 
     @contextmanager

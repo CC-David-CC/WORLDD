@@ -161,7 +161,7 @@ def validate_storage_volume(volume_path, mountinfo=None):
     try:
         result = subprocess.run(["btrfs", "inspect-internal", "rootid", str(volume_path)],
                                 check=True, capture_output=True, text=True, timeout=10)
-        devices = subprocess.run(["btrfs", "filesystem", "show", "--raw", str(volume_path)],
+        devices = subprocess.run(["sudo", "-n", "btrfs", "filesystem", "show", "--raw", str(volume_path)],
                                  check=True, capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError) as error:
         raise RuntimeError("cannot verify StorageOwner Btrfs volume: " + repr(error)) from error
