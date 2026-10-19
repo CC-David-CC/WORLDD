@@ -43,5 +43,12 @@ Do not treat clean-root retirement as proof that crashed restart is repaired.
 Raw sb16 root: /home/dflanag3/spatial-artifacts/m08-git-restart-diagnostic-7cb728c-20261019
 Canonical run: runs/git-restart-01; command.exit=1, wrapper.exit=1, COMPLETE.
 Diagnostic overlay: 7cb728cb7dbff4dbb711c75e3df9c57c588950bc.
-Broker: a5dea9e0ac6eb98dd37eae9ff8c51da3474bdc5d. Other binaries: frozen079.
+Provenance correction: actual broker and other binaries were frozen079.
+The passed BROKER argument pointed to a5, but did not select the launched executable.
+The old HOST selected its sibling workspaced through platform::Worker.
+Actual broker SHA256: 312d1cea19004cbd461d027daafba0ff1c25682b8f73bbd68c9448e8173fd2a8.
+This reproduces the original defect. It does not validate an a5 broker.
+External correction: provenance-correction.json under the raw sb16 root.
+Future runs must verify the live broker executable path and SHA256.
+Colocate the complete required executable closure under the diagnostic runtime root.
 The resource wrapper confirmed scope removal and the unit became inactive/not-found.
