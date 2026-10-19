@@ -2,6 +2,60 @@ M08 full-gate prerequisite progress - 2026-10-19
 
 M08 remains UNQUALIFIED. This is preparation evidence, not runtime qualification.
 
+Latest reviewed focused results
+
+Both hosts passed the full 14-method handoff group in Debug and ASan-UBSan.
+Both hosts also passed all 25 storage-contention cases in both profiles.
+These are 56 handoff and 100 contention executions, including repeated host/profile runs.
+Each contention run includes three native cases and 22 unit cases.
+No skip or sanitizer finding occurred. Helper cleanup and restoration passed.
+The six-second barrier and registered timeouts remain unchanged.
+One current pass per lane does not exclude historical intermittent timing failures.
+These focused results do not qualify M08.
+
+Runtime binaries remain frozen f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
+The fixture source base is 1fe85fa688d3910fbd1fc158dd9c9ef82c643d1a.
+The exact handoff test overlay is 9b22ab8a4be0bcad543d45910290cbdc91fd9e7d.
+All 1196 composite source files were hash-verified on both hosts before launch.
+Source archive SHA256: a638723b6fb56f3ee30b1038190c4f0c7ee76fa0d9102b91d877c1687919c4f1.
+The handoff correction is now integrated at 2c0f257a85e1e56a3776b9b5586bfedfada4d81f.
+The focused X server wrapper is Debug in both application profiles.
+These application sanitizer runs do not establish X server sanitizer coverage.
+
+Each host has fresh distinct Debug and sanitizer StorageOwner volumes.
+Each image is 512 MiB. Workspace copy quota remains 96 MiB.
+Debug broker memory remains 1024 MiB. Sanitizer broker memory is 1280 MiB.
+The reviewed formula preserves Debug headroom and the sanitizer manager delta.
+Production admission checks and all other ceilings remain unchanged.
+Both hosts passed exact filesystem, ownership, protected policy, and device-binding verification.
+The old frozen079 volumes remain unchanged.
+
+The workspace-authority Debug group ran all 38 methods on each host and failed.
+One revocation callback references nonexistent second_record.credential_id.
+The callback error closes its relay, producing UNAVAILABLE before the intended UNAUTHORIZED assertion.
+Its teardown reports the same callback error. No production failure is established by that error.
+The original evidence is preserved. A narrow protobuf fixture repair remains in progress.
+Workspace-authority sanitizer coverage remains UNRUN for this attempt.
+Handoff and contention ran separately after checked cleanup; the authority failure remains FAILED.
+
+All-target and production-off builds passed both profiles at source 0ca57393824e9cb725b1b296332f1e0f49b8d03e.
+All eight configure/build stage receipts are 0/0/COMPLETE.
+Their build identities match between testing-on and production-off within each profile.
+Later test/tool changes still require exact build-input mapping at the final candidate freeze.
+Build-cache generator selection was reviewed and integrated at b1916669f0d34a2f9ef791777be272bdcd51d583.
+It preserves existing Makefiles and Ninja caches while refusing a foreign source root.
+
+Host evidence: /home/dflanag3/spatial-artifacts/m08-headroom-native-focused-20261019.
+Both hosts retain source-pin.json, runs, per-group profile results, JUnit, and helper lifecycle evidence.
+ROG holds primary-handoff-review.json and primary-contention-review.json at the same artifact root.
+ROG build evidence: /home/dflanag3/spatial-artifacts/m08-profile-candidate-rebuild-20261019.
+Fresh plan source review: /home/dflanag3/spatial-artifacts/m08-fresh-storage-fixture-prep-headroom-20261019.
+
+Remaining work: repair and rerun the authority fixture, finish the combined focused matrix,
+freeze and package the final candidate, then run both full local gates and cross-host qualification.
+The full new M08 gate remains UNRUN. Earlier sections below retain historical observations.
+
+
 BUILD_TESTING=OFF
 
 Both production spatial-host-session targets built from clean f109697a0cc9a021dd0bc3b884aef8ffe4c8a637 on ROG.
