@@ -27,6 +27,122 @@ _ACK_TIMELINE_LIMIT = 256
 _ACK_TIMELINE_ESSENTIAL_RESERVE = 16
 _ACK_TIMELINE_GIT_SAMPLE_LIMIT = 64
 _ACK_TIMELINE_NOISY_STAGES = frozenset(('git_presence_sample', 'final_barrier'))
+_RESOURCE_DIAGNOSTIC_MAX_CGROUPS = 64
+_RESOURCE_DIAGNOSTIC_MAX_DEPTH = 4
+_RESOURCE_DIAGNOSTIC_FILES = (
+    'memory.current', 'memory.max', 'memory.events', 'memory.events.local',
+    'pids.current', 'pids.max', 'pids.events', 'cgroup.events',
+)
+
+
+def _resource_number_file(path):
+    try:
+        value = path.read_text().strip()
+    except OSError as error:
+        return dict(error=errno.errorcode.get(error.errno, 'OS_ERROR'))
+    if not value:
+        return None
+    try:
+        return int(value) if value.isascii() and value.isdigit() else value
+    except (TypeError, ValueError):
+        return 'UNPARSEABLE'
+
+
+def _resource_event_file(path):
+    try:
+        fields = path.read_text().splitlines()
+    except OSError as error:
+        return dict(error=errno.errorcode.get(error.errno, 'OS_ERROR'))
+    values = {}
+    for field in fields[:16]:
+        parts = field.split()
+        if len(parts) != 2 or not parts[1].isascii() or not parts[1].isdigit():
+            continue
+        values[parts[0]] = int(parts[1])
+    return values
+
+
+def _snapshot_fixture_resource_cgroups(root):
+    """Read only the bounded cgroup subtree owned by this native test's broker."""
+    root = Path(root)
+    if not root.is_absolute() or root.resolve(strict=True) != root:
+        raise RuntimeError('Broker resource root is not a canonical absolute path')
+    root_stat = root.stat()
+    if not root.is_dir() or not (root/'cgroup.controllers').is_file():
+        raise RuntimeError('Broker resource root is not a cgroup directory')
+    pending = [(root, 0)]
+    entries = []
+    truncated = False
+    while pending:
+        path, depth = pending.pop(0)
+        if len(entries) >= _RESOURCE_DIAGNOSTIC_MAX_CGROUPS:
+            truncated = True
+            break
+        info = path.stat()
+        if info.st_dev != root_stat.st_dev:
+            raise RuntimeError('Broker cgroup subtree crossed a device boundary')
+        relative = '.' if path == root else str(path.relative_to(root))
+        entry = dict(path=relative, device=info.st_dev, inode=info.st_ino,
+                     files={})
+        procs = path/'cgroup.procs'
+        try:
+            with procs.open('rb') as stream:
+                raw = stream.read(8192)
+            entry['cgroup_procs_count'] = len(raw.split())
+            entry['cgroup_procs_sample_complete'] = len(raw) < 8192
+        except OSError as error:
+            entry['cgroup_procs_error'] = errno.errorcode.get(error.errno, 'OS_ERROR')
+        for name in _RESOURCE_DIAGNOSTIC_FILES:
+            file = path/name
+            if name.endswith('.events') or name.endswith('.events.local'):
+                value = _resource_event_file(file)
+            else:
+                value = _resource_number_file(file)
+            if value is not None:
+                entry['files'][name] = value
+        entries.append(entry)
+        if depth < _RESOURCE_DIAGNOSTIC_MAX_DEPTH:
+            children = []
+            try:
+                for child in path.iterdir():
+                    if child.name in ('cgroup.procs', 'cgroup.threads'):
+                        continue
+                    if child.is_dir() and not child.is_symlink():
+                        children.append(child)
+            except OSError as error:
+                entry['children_error'] = errno.errorcode.get(error.errno, 'OS_ERROR')
+            pending.extend((child, depth+1) for child in sorted(children, key=lambda item: item.name))
+    return dict(root_device=root_stat.st_dev, root_inode=root_stat.st_ino,
+                cgroup_count=len(entries), truncated=truncated, cgroups=entries)
+
+
+def _resource_budget_values(budget):
+    return dict(memory_bytes=int(budget.memory_bytes), swap_bytes=int(budget.swap_bytes),
+                processes=int(budget.processes), cpu_microseconds=int(budget.cpu_microseconds))
+
+
+def _fixture_resource_limits(configuration, workspace, profile_name):
+    resources = configuration.resources
+    selected = next((item for item in resources.workspaces if item.workspace == workspace),
+                    resources.default_policy)
+    profile = next(item.maximum for item in selected.profiles if item.name == profile_name)
+    actor = selected.actor_default
+    return dict(
+        broker=_resource_budget_values(resources.broker_budget),
+        manager=_resource_budget_values(resources.manager_budget),
+        workspace_total=_resource_budget_values(selected.total),
+        actor_default=_resource_budget_values(actor),
+        actor_override_count=len(selected.actors),
+        actor_override_budgets=[_resource_budget_values(item.maximum) for item in selected.actors],
+        requested_profile=profile_name,
+        requested_application=_resource_budget_values(profile),
+        effective_actor_profile=dict(
+            memory_bytes=min(selected.total.memory_bytes, actor.memory_bytes, profile.memory_bytes),
+            swap_bytes=min(selected.total.swap_bytes, actor.swap_bytes, profile.swap_bytes),
+            processes=min(selected.total.processes, actor.processes, profile.processes),
+            cpu_microseconds=min(selected.total.cpu_microseconds, actor.cpu_microseconds,
+                                 profile.cpu_microseconds)),
+    )
 
 
 def _record_bounded_ack_timeline(measurements, stage, monotonic_ns, *, essential=False, **fields):
@@ -363,12 +479,47 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         for path in self.issuer.root.glob('*.log'):
             (self.volume_root/('issuer-fixture-'+path.name)).write_bytes(path.read_bytes())
 
+    def capture_resource_rejection(self, request_id, operation_id, requested_profile, error):
+        """Preserve one bounded pre-cleanup snapshot without replacing the launch failure."""
+        target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
+        target.mkdir(mode=0o700, parents=True, exist_ok=True)
+        broker_root = self.broker_process_group().parent
+        record = dict(
+            phase='after_failed_application_launch',
+            test_method=self._testMethodName,
+            request_id=request_id,
+            operation_id=operation_id,
+            error_type=type(error).__name__,
+            resource_limits=_fixture_resource_limits(self.configuration, existing.existing.WORKSPACE, requested_profile),
+            production_held_reservation_counters='UNOBSERVED',
+            cgroups=_snapshot_fixture_resource_cgroups(broker_root),
+        )
+        path = target/('resource-rejection-'+self._testMethodName+'.json')
+        path.write_text(json.dumps(record, indent=2)+'\n')
+        path.chmod(0o600)
+        print('storage_resource_rejection_evidence '+json.dumps(
+            dict(path=str(path), phase=record['phase'], request_id=request_id,
+                 cgroup_count=record['cgroups']['cgroup_count'],
+                 truncated=record['cgroups']['truncated'])), file=sys.stderr, flush=True)
+
     def start_writers(self):
         self.writers = []
         # The native application and writer each reserve 128 MiB. Actor capacity is 256 MiB.
         for number in range(1):
-            result = self.act(process_launch=core.ProcessLaunchRequest(operation_id=f'writer-{number}',
-                profile='development', argv=['/usr/bin/python3','-c',WRITER]))
+            operation_id=f'writer-{number}'
+            try:
+                result = self.act(process_launch=core.ProcessLaunchRequest(operation_id=operation_id,
+                    profile='development', argv=['/usr/bin/python3','-c',WRITER]))
+            except AssertionError as error:
+                try:
+                    self.capture_resource_rejection(
+                        request_id=self.action_sequence, operation_id=operation_id,
+                        requested_profile='development', error=error)
+                except Exception as diagnostic_error:
+                    print('storage_resource_rejection_evidence_error '+json.dumps(
+                        dict(error_type=type(diagnostic_error).__name__)),
+                        file=sys.stderr, flush=True)
+                raise
             self.writers.append(self.execution/'applications'/result.process.process_id/'data')
         self.until(lambda: all((path/'writes.json').exists() for path in self.writers),bool)
         group = self.broker_process_group().parent
