@@ -4,6 +4,8 @@ import ast
 import copy
 import importlib.util
 import json
+import re
+import shlex
 from pathlib import Path
 import sys
 import unittest
@@ -70,7 +72,7 @@ class ObservationTimingTests(unittest.TestCase):
             poll_copy_job_before_deadline(poll_at(300), deadline, now=lambda: clock[0])
 
 
-def configured_launch_suite(inventories):
+def configured_launch_suite(inventories, baseline_inventories=None):
     spec = importlib.util.spec_from_file_location('timing_resource_delegate', ROOT/'tools/with_resource_delegate.py')
     delegate = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(delegate)
@@ -225,31 +227,211 @@ def configured_launch_suite(inventories):
                     self.assertNotIn(copy_case, old_selected)
                     self.assertEqual(len(old_selected), 23)
 
-        def test_profile_flags_cover_only_the_three_configured_registrations(self):
+        def test_profile_flags_cover_every_adapter_registration(self):
+            def validate(candidate, lane):
+                self.assertEqual(len(candidate['tests']), 238)
+                rows = []
+                for row in candidate['tests']:
+                    command = row.get('command', [])
+                    adapters = [index for index, value in enumerate(command)
+                                if value.endswith('/tools/with_adapter_resources.py')]
+                    if adapters:
+                        self.assertEqual(len(adapters), 1, row['name'])
+                        index = adapters[0]
+                        expected = '--copy-profile='+lane
+                        self.assertEqual(command[index+1:index+3], [expected, '--'], row['name'])
+                        self.assertEqual([value for value in command
+                                          if value.startswith('--copy-profile=')], [expected], row['name'])
+                        rows.append(row)
+                    else:
+                        self.assertFalse(any(value.startswith('--copy-profile=') for value in command),
+                                         row['name'])
+                self.assertEqual(len(rows), 56)
+                authority = next(row for row in candidate['tests'] if row['name'] == 'workspace-authority')
+                self.assertNotIn('--copy-engine-v2', authority['command'])
+                self.assertEqual(next(item['value'] for item in authority['properties']
+                                      if item['name'] == 'TIMEOUT'), 240)
+                return rows
+
             for profile, inventory in inventories.items():
                 with self.subTest(profile=profile):
-                    explicit = {row['name'] for row in inventory['tests']
-                                if any(value.startswith('--copy-profile=') for value in row.get('command', []))}
-                    self.assertEqual(explicit, {broker, storage, gateway})
-                    authority = next(row for row in inventory['tests'] if row['name'] == 'workspace-authority')
-                    self.assertNotIn('--copy-engine-v2', authority['command'])
-                    self.assertEqual(next(item['value'] for item in authority['properties']
-                                          if item['name'] == 'TIMEOUT'), 240)
+                    validate(inventory, profile)
+                    for defect in ('missing', 'duplicate', 'wrong-profile', 'after-separator'):
+                        changed = copy.deepcopy(inventory)
+                        row = next(item for item in changed['tests'] if item['name'] == 'workspace-authority')
+                        command = row['command']
+                        index = command.index('--copy-profile='+profile)
+                        if defect == 'missing':
+                            command.pop(index)
+                        elif defect == 'duplicate':
+                            command.insert(index+1, '--copy-profile='+profile)
+                        elif defect == 'wrong-profile':
+                            command[index] = '--copy-profile=Debug' if profile == 'ASan-UBSan' else '--copy-profile=ASan-UBSan'
+                        else:
+                            command.pop(index)
+                            command.append('--copy-profile='+profile)
+                        with self.subTest(defect=defect), self.assertRaises(AssertionError):
+                            validate(changed, profile)
 
-    return unittest.defaultTestLoader.loadTestsFromTestCase(ConfiguredLaunchTests)
+        def test_original_238_registration_metadata_is_preserved(self):
+            def layout(inventory):
+                adapter = next(value for row in inventory['tests'] for value in row.get('command', [])
+                               if value.endswith('/tools/with_adapter_resources.py'))
+                source = Path(adapter).parent.parent
+                build = Path(next(item['value'] for row in inventory['tests']
+                                  for item in row.get('properties', [])
+                                  if item['name'] == 'WORKING_DIRECTORY'))
+                self.assertTrue(source.is_absolute() and build.is_absolute())
+                # CMake hashes its production inputs and build settings, then writes
+                # this exact identity to build_id.hpp and its systemd unit names.
+                header = (build/'build_id.hpp').read_text()
+                match = re.fullmatch(r'#pragma once\n#define SPATIAL_BUILD_ID "sha256:([0-9a-f]{64})"\n', header)
+                self.assertIsNotNone(match, f'Invalid generated build identity: {build}')
+                return source, build, match.group(1)
+
+            def commands(build):
+                result = {}
+                for line in (build/'CTestTestfile.cmake').read_text().splitlines():
+                    if not line.lstrip().startswith('add_test('):
+                        continue
+                    match = re.fullmatch(r'\s*add_test\(\[=\[([^]]+)\]=\]\s+(.*?)\)\s*', line)
+                    self.assertIsNotNone(match, f'Unsupported generated registration: {line}')
+                    name = match.group(1)
+                    self.assertNotIn(name, result, f'Duplicate generated registration: {name}')
+                    result[name] = shlex.split(match.group(2))
+                return result
+
+            def normalize_paths(value, source, build):
+                if isinstance(value, str):
+                    for root, marker in sorted(((str(source), '<SOURCE>'), (str(build), '<BUILD>')),
+                                               key=lambda item: len(item[0]), reverse=True):
+                        # Replace only complete known path roots, including roots in
+                        # PYTHONPATH assignments and JSON arguments.
+                        value = re.sub(r'(?<![A-Za-z0-9_./-])' + re.escape(root) + r'(?=$|[/:";\]])',
+                                       marker, value)
+                    return value
+                if isinstance(value, list):
+                    return [normalize_paths(item, source, build) for item in value]
+                if isinstance(value, dict):
+                    return {key: normalize_paths(item, source, build) for key, item in value.items()}
+                return value
+
+            def normalize_command(command, lane_layout):
+                source, build, expected_hash = lane_layout
+                normalized = []
+                for token in command:
+                    if token.startswith('--unit='):
+                        self.assertRegex(token, r'^--unit=spatial-[a-z0-9-]+-' + expected_hash + r'$',
+                                         'Unit build identity differs from generated build_id.hpp')
+                        token = token[:-len(expected_hash)] + '<BUILD_ID>'
+                    normalized.append(normalize_paths(token, source, build))
+                return normalized
+
+            def validate(old_inventory, new_inventory, old_commands, new_commands,
+                         old_layout, new_layout, profile):
+                old_names = [row['name'] for row in old_inventory['tests']]
+                new_names = [row['name'] for row in new_inventory['tests']]
+                self.assertEqual(len(old_names), 238)
+                self.assertEqual(len(set(old_names)), 238)
+                self.assertEqual(new_names, old_names)
+                self.assertEqual(set(old_commands), set(old_names))
+                self.assertEqual(set(new_commands), set(new_names))
+                adapter_count = 0
+                for old_row, new_row in zip(old_inventory['tests'], new_inventory['tests']):
+                    name = old_row['name']
+                    expected = list(old_commands[name])
+                    adapters = [index for index, value in enumerate(expected)
+                                if value.endswith('/tools/with_adapter_resources.py')]
+                    if adapters:
+                        adapter_count += 1
+                        self.assertEqual(len(adapters), 1, name)
+                        index = adapters[0]
+                        flag = '--copy-profile='+profile
+                        if expected[index+1:index+2] == [flag]:
+                            self.assertEqual(expected[index+2:index+3], ['--'], name)
+                        else:
+                            self.assertEqual(expected[index+1:index+2], ['--'], name)
+                            expected.insert(index+1, flag)
+                    self.assertEqual(normalize_command(new_commands[name], new_layout),
+                                     normalize_command(expected, old_layout), name)
+                    self.assertEqual(normalize_paths(new_row['properties'], *new_layout[:2]),
+                                     normalize_paths(old_row['properties'], *old_layout[:2]), name)
+                self.assertEqual(adapter_count, 56)
+
+            for profile, old_inventory in baseline_inventories.items():
+                with self.subTest(profile=profile):
+                    new_inventory = inventories[profile]
+                    old_layout, new_layout = layout(old_inventory), layout(new_inventory)
+                    old_commands, new_commands = commands(old_layout[1]), commands(new_layout[1])
+                    validate(old_inventory, new_inventory, old_commands, new_commands,
+                             old_layout, new_layout, profile)
+                    unit_name = next(name for name, command in new_commands.items()
+                                     if any(token.startswith('--unit=') for token in command))
+                    unit_index = next(index for index, token in enumerate(new_commands[unit_name])
+                                      if token.startswith('--unit='))
+                    omitted_name = next(row['name'] for row in new_inventory['tests'] if 'command' not in row)
+                    for defect in ('random-unit-hash', 'old-unit-hash', 'unit-prefix',
+                                   'omitted-executable', 'extra-argument', 'missing-argument',
+                                   'stale-build-root', 'timeout', 'registration-name'):
+                        changed_commands = copy.deepcopy(new_commands)
+                        changed_inventory = copy.deepcopy(new_inventory)
+                        if defect in ('random-unit-hash', 'old-unit-hash', 'unit-prefix'):
+                            token = changed_commands[unit_name][unit_index]
+                            if defect == 'unit-prefix':
+                                token = token.replace('--unit=spatial-', '--unit=spatial-changed-', 1)
+                            else:
+                                wrong_hash = old_layout[2] if defect == 'old-unit-hash' else '0'*64
+                                self.assertNotEqual(wrong_hash, new_layout[2])
+                                token = token[:-64] + wrong_hash
+                            changed_commands[unit_name][unit_index] = token
+                        elif defect == 'omitted-executable':
+                            changed_commands[omitted_name][0] += '-changed'
+                        elif defect == 'extra-argument':
+                            changed_commands[omitted_name].append('--unexpected')
+                        elif defect == 'missing-argument':
+                            changed_commands[omitted_name].pop()
+                        elif defect == 'stale-build-root':
+                            changed_commands[omitted_name][0] = changed_commands[omitted_name][0].replace(
+                                str(new_layout[1]), str(old_layout[1]))
+                        elif defect == 'timeout':
+                            row = next(row for row in changed_inventory['tests'] if row['name'] == 'workspace-authority')
+                            next(item for item in row['properties'] if item['name'] == 'TIMEOUT')['value'] += 1
+                        else:
+                            changed_inventory['tests'][0]['name'] += '-changed'
+                        with self.subTest(defect=defect), self.assertRaises(AssertionError):
+                            validate(old_inventory, changed_inventory, old_commands, changed_commands,
+                                     old_layout, new_layout, profile)
+
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(ConfiguredLaunchTests)
+    if baseline_inventories is None:
+        suite = unittest.TestSuite(test for test in suite
+                                  if test._testMethodName != 'test_original_238_registration_metadata_is_preserved')
+    return suite
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug-inventory', type=Path)
     parser.add_argument('--san-inventory', type=Path)
+    parser.add_argument('--baseline-debug-inventory', type=Path)
+    parser.add_argument('--baseline-san-inventory', type=Path)
     args = parser.parse_args()
     if bool(args.debug_inventory) != bool(args.san_inventory):
         parser.error('Provide both actual configured inventories together')
+    if bool(args.baseline_debug_inventory) != bool(args.baseline_san_inventory):
+        parser.error('Provide both baseline inventories together')
+    if args.baseline_debug_inventory and not args.debug_inventory:
+        parser.error('Baseline comparison requires both new configured inventories')
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(ObservationTimingTests)
     if args.debug_inventory:
-        suite.addTests(configured_launch_suite({
+        inventories = {
             'Debug': json.loads(args.debug_inventory.read_text()),
-            'ASan-UBSan': json.loads(args.san_inventory.read_text())}))
+            'ASan-UBSan': json.loads(args.san_inventory.read_text())}
+        baselines = None
+        if args.baseline_debug_inventory:
+            baselines = {
+                'Debug': json.loads(args.baseline_debug_inventory.read_text()),
+                'ASan-UBSan': json.loads(args.baseline_san_inventory.read_text())}
+        suite.addTests(configured_launch_suite(inventories, baselines))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     raise SystemExit(not result.wasSuccessful())

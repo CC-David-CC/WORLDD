@@ -306,7 +306,7 @@ def audit_profile(gate, root, provenance, report, profile, expected_manifest=Non
         set(gate.REQUIRED) | set(report['required_tests']), set(dedicated))
     expected_commands = [('inventory', ['ctest', '--test-dir', str(root / 'build' / profile), '--show-only=json-v1'])]
     expected_commands += [(name, argv) for name, argv, timeout in gate.profile_stage_commands(
-        root / 'source', root / 'build' / profile, root / 'production-off' / profile, target, set(dedicated))]
+        root / 'source', root / 'build' / profile, root / 'production-off' / profile, target, set(dedicated), profile=profile)]
     require([(c['name'], c.get('command')) for c in commands] == expected_commands, 'profile actual stage argv differs')
     for name in COMMANDS[1:]:
         text = raw_file(target / (name + '.log')).decode(errors='replace')

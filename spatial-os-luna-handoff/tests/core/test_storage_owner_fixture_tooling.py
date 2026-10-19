@@ -206,78 +206,88 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             self.assertEqual('--setenv='+name+'='+value in command, name != 'HOST_PRIVATE_KEY')
 
     def test_explicit_storage_uses_exact_runtime_devices_and_rejects_mismatch(self):
+        from process_scope_pb2 import ProcessScopeBudget
         function = provisioned_resource_function()
         volume = self.root/'volumes'/'focus'/'mount'
         volume.mkdir(parents=True)
         record = volume.parent/'runtime.pb'
         record.write_bytes(b'fixture')
 
-        def message(**fields):
-            value = types.SimpleNamespace(**fields)
-            value.HasField = lambda name: hasattr(value, name) and getattr(value, name) is not None
+        def budget(memory, processes, cpu):
+            value = ProcessScopeBudget(memory_bytes=memory, swap_bytes=0,
+                processes=processes, cpu_microseconds=cpu)
+            value.io.add(major=7, minor=14, read_bytes_per_second=64*1024*1024,
+                         write_bytes_per_second=16*1024*1024)
+            value.io.add(major=259, minor=0, read_bytes_per_second=64*1024*1024,
+                         write_bytes_per_second=16*1024*1024)
             return value
 
-        def budget(devices=((7, 14), (259, 0))):
-            return message(memory_bytes=256*1024*1024,
-                io=[types.SimpleNamespace(major=major, minor=minor) for major, minor in devices])
+        def make_runtime(manager_memory):
+            runtime = broker.StorageVolumeRuntime(protocol_version=1,
+                volume_root=str(volume), require_confinement=True)
+            runtime.resources.protocol_version = 2
+            runtime.resources.broker_budget.CopyFrom(budget(1024*2**20, 128, 400000))
+            runtime.resources.manager_budget.CopyFrom(budget(manager_memory, 32, 200000))
+            policy = runtime.resources.default_policy
+            policy.total.CopyFrom(budget(512*2**20, 64, 200000))
+            policy.actor_default.CopyFrom(budget(256*2**20, 32, 100000))
+            for name in ('development', 'read-only'):
+                policy.profiles.add(name=name).maximum.CopyFrom(budget(128*2**20, 16, 100000))
+            runtime.storage_owner.CopyFrom(storage.StorageOwnerLaunchConfig(
+                protocol_version=1, owner_configuration=str(self.root/'owner.pb'),
+                volume_root=str(volume), budget=budget(128*2**20, 16, 100000)))
+            return runtime
 
-        def make_runtime():
-            resources = message(protocol_version=2, broker_budget=budget(), manager_budget=budget(),
-                default_policy=message(total=budget(), actor_default=budget(),
-                    profiles=[message(maximum=budget())]))
-            owner = message(budget=budget())
-            return message(protocol_version=1, volume_root=str(volume), require_confinement=True,
-                resources=resources, storage_owner=owner)
-
-        runtime = make_runtime()
-        module = types.SimpleNamespace(StorageVolumeRuntime=types.SimpleNamespace(
-            FromString=lambda data: runtime))
+        module = types.SimpleNamespace(StorageVolumeRuntime=broker.StorageVolumeRuntime)
         original_lstat = Path.lstat
         metadata = types.SimpleNamespace(st_uid=0, st_mode=0o100644)
         def lstat(path, *args, **kwargs):
             result = original_lstat(path, *args, **kwargs)
             return metadata if path == record else result
 
-        with patch.object(Path, 'lstat', lstat):
-            actual, device = function(volume, 'Debug', module)
-        self.assertIs(actual, runtime.resources)
-        self.assertEqual(device, '7:14')
+        for profile, manager_memory in (('Debug', 256*2**20), ('ASan-UBSan', 512*2**20)):
+            runtime = make_runtime(manager_memory)
+            expected_resources = runtime.resources.SerializeToString(deterministic=True)
+            record.write_bytes(runtime.SerializeToString(deterministic=True))
+            with self.subTest(profile=profile), patch.object(Path, 'lstat', lstat):
+                actual, device = function(volume, profile, module)
+            self.assertEqual(device, '7:14')
+            self.assertEqual(actual.SerializeToString(deterministic=True), expected_resources)
 
+        runtime = make_runtime(256*2**20)
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
         for uid, mode in ((1000, 0o100644), (0, 0o100664), (0, 0o120777)):
-            runtime = make_runtime()
-            module.StorageVolumeRuntime.FromString = lambda data, runtime=runtime: runtime
             metadata.st_uid, metadata.st_mode = uid, mode
             with self.subTest(uid=uid, mode=oct(mode)), patch.object(Path, 'lstat', lstat):
                 with self.assertRaisesRegex(RuntimeError, 'root-owned protected regular file'):
                     function(volume, 'Debug', module)
 
         metadata.st_uid, metadata.st_mode = 0, 0o100644
-        runtime = make_runtime()
-        runtime.HasField = lambda name: name != 'resources'
-        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        runtime.ClearField('resources')
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'no provisioned resource budgets'):
             function(volume, 'Debug', module)
 
-        runtime = make_runtime()
-        runtime.resources.HasField = lambda name: name != 'manager_budget'
-        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        runtime = make_runtime(256*2**20)
+        runtime.resources.ClearField('manager_budget')
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'incomplete resource budgets'):
             function(volume, 'Debug', module)
 
-        runtime = make_runtime()
-        runtime.resources.manager_budget.io = []
-        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        runtime = make_runtime(256*2**20)
+        runtime.resources.manager_budget.ClearField('io')
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'device set'):
             function(volume, 'Debug', module)
 
-        runtime = make_runtime()
-        runtime.resources.default_policy.total.io = [types.SimpleNamespace(major=7, minor=99)]
-        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        runtime = make_runtime(256*2**20)
+        runtime.resources.default_policy.total.io[0].minor = 99
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'device set'):
             function(volume, 'Debug', module)
 
-        runtime = make_runtime()
-        module.StorageVolumeRuntime.FromString = lambda data: runtime
+        runtime = make_runtime(256*2**20)
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'does not match the selected resource profile'):
             function(volume, 'ASan-UBSan', module)
 
