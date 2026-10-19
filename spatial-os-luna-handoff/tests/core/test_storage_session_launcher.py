@@ -101,6 +101,19 @@ class StorageLauncherTests(unittest.TestCase):
    success=interleaved+'\nRan 7 tests in 1.234s\n\nOK\n'
    (run/'stderr.log').write_text(success+epilogue)
    self.assertTrue(launcher.inspect_logs(root)['unittest_ok'])
+   minute_epilogue=epilogue.replace('Service runtime: 1.5s','Service runtime: 1min 30.072s')
+   (run/'stderr.log').write_text(success+minute_epilogue)
+   self.assertTrue(launcher.inspect_logs(root)['unittest_ok'])
+   mixed=[]
+   for index,name in enumerate(launcher.M):
+    mixed.append(name+' (__main__.NativeStorageSessionTests.'+name+') ... '+('ERROR' if index<3 else 'ok'))
+   mixed_text='\n'.join(mixed)+'\n'
+   (run/'stderr.log').write_text(mixed_text+'======\n'
+    'Ran 7 tests in 1.234s\n\nFAILED (errors=3)\n'
+    '======\nERROR: one\nTraceback: fixture failure\n')
+   mixed_result=launcher.inspect_logs(root)
+   self.assertFalse(mixed_result['unittest_ok'])
+   self.assertEqual(mixed_result['passed_methods'],list(launcher.M[3:]))
    for tail in (epilogue.replace('status=0','status=1'),epilogue.replace('result: success','result: exit-code'),epilogue+'unexpected output\n'):
     (run/'stderr.log').write_text(success+tail)
     self.assertFalse(launcher.inspect_logs(root)['unittest_ok'])
