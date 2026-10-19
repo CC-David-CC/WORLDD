@@ -1,0 +1,18 @@
+# M08 native participant fixture lifetime repair
+
+Status: source draft, UNQUALIFIED. Base: `07991d839bf839c4e95022dedbceb5535f19ddaa`.
+Branch: `m08/native-fixture-lifetime-repair-20261019`.
+
+The live sb16 Debug core log records `AttributeError: NativeBroker has no attribute closed` in CTest #150 `workspace-participant-native` and #151 `workspace-participant-settlement`. The custom NativeBroker constructor follows `LeaseBroker` into `test_application_access.Broker.__init__`, which does not initialize the base BrokerProcess close-state fields. Its resource-wrapper close path delegates to `test_workspace_authority.BrokerProcess.close`, which expects the complete lifecycle state initialized by `initialize_broker_lifecycle`.
+
+The fixture now invokes that shared initializer before starting LeaseBroker setup. If setup raises, it uses the base close path and preserves the original exception while attaching any cleanup failure. The regression injects an initialization failure after allocating the stream and log, then checks complete cleanup and repeated close safety.
+
+CTest #154 `application-observation` is a separate failure. `test_application_scope_filters_other_live_application` launches a second process and receives `RESOURCE_EXHAUSTED: Workspace or actor resource capacity is reserved`. This does not match the NativeBroker close traceback and is outside this fixture repair. Other runtime errors remain separate until diagnosed.
+
+Selected runtime checks for primary review, all pending while the full gate owns the test hosts:
+
+- `workspace-participant-native`: initialization-failure cleanup, repeated close, and its existing native participant cases.
+- `workspace-participant-settlement`: native settlement teardown callers.
+- Debug and ASan-UBSan on sb16 and sb16-2, using the registered resource wrappers.
+
+The live failure log is `/home/dflanag3/spatial-artifacts/deployments/m08-07991d8-gate/runtime/evidence/m08-07991d8-sb16-full-local-01/Debug/core.log`. This worker performed read-only inspection only on test hosts. No test or build ran on ROG.
