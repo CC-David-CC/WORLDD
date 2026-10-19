@@ -44,7 +44,8 @@ cp -- "$task" "$run/task.txt" || exit 65
 } > "$run/launch.txt" || exit 65
 codex_binary=${SPATIAL_CODEX_BIN:-"$HOME/.local/bin/codex"}
 "$codex_binary" exec -m "$model" -c 'model_reasoning_effort=medium' \
-    --sandbox workspace-write --json -o "$run/message.txt" - \
+    --sandbox workspace-write --add-dir "$artifact_root" --json \
+    -o "$run/message.txt" - \
     < "$run/task.txt" > "$run/worker.jsonl" 2> "$run/stderr.txt"
 result=$?
 exit "$result"

@@ -11,7 +11,8 @@ Keep the Spatial-M1 objective intact. A component checkpoint is not a milestone 
 
 ## Assign ownership before starting
 
-Use middle-child and a5500 for coding and builds under the current host allocation.
+Use middle-child and rog-ally-x for coding and builds under the current host allocation.
+Do not use a5500. Follow root AGENTS.md if the host allocation changes.
 Use sb16 and sb16-2 for runtime verification. Do not install Codex there.
 Keep box-git limited to repository administration. Keep inference on its designated hosts.
 
@@ -31,6 +32,32 @@ Verify installed file hashes after updates. Existing workers receive changed ins
 Start with Luna medium. Escalate a failed implementation with concrete review findings.
 Do not escalate merely because a worker is slow.
 
+## ROG to test-host SSH
+
+Use these explicit SSH options for ROG-to-test-host control and SCP transfers:
+
+```text
+-i /home/dflanag3/.ssh/spatial_testboxes_ed25519
+-o UserKnownHostsFile=/home/dflanag3/.ssh/spatial_testboxes_known_hosts
+-o BatchMode=yes
+```
+
+Use `dflanag3@10.0.7.49` for sb16 and `dflanag3@10.0.7.94` for sb16-2.
+Pass each option as a separate subprocess argument.
+Default SSH identities have repeatedly failed while this configured key worked.
+A default-key rejection does not prove that access is unavailable.
+Retry with the recorded options before reporting an access blocker.
+Preserve the failing command and its stderr without printing private key contents.
+Transfer artifacts directly between authorized LAN hosts. Do not relay them through the controller.
+
+SSH passes its remote command through a shell. A local subprocess argument list does not quote remote shell syntax.
+For remote checks with multiple commands, send a Python script to `ssh HOST python3 -` through stdin.
+Run target programs with subprocess argument lists inside that remote script.
+Do not concatenate unquoted pipelines, regular expressions, or shell separators into SSH arguments.
+Measure hostname, machine identity, filesystem UUID, and disk usage in the same remote process.
+Reject results that disagree with the assigned host or filesystem before using them for cleanup.
+Preserve the control script and stderr when an audit contradicts the recorded host inventory.
+
 ## Launch and observe
 
 Configure the normal build before a long compile. Record missing dependencies and their installation logs.
@@ -41,13 +68,24 @@ For a long build, poll the original tool session. Do not submit the same build a
 Use an output-specific flock for bundle packaging too. Two archive writers can corrupt the same output.
 Write archives to a unique temporary path. Validate them before atomically replacing the final artifact.
 Check packaging scripts are nonempty and invoke their intended entrypoint before launch.
+Check paths and hashes of final validation helpers before starting expensive packaging stages.
 After packaging, compare archived source hashes with the corrected checkout. Exit zero alone cannot detect a no-op packager.
+Write payload checksum paths relative to the payload root. Exclude only the root inventory file, not every matching basename.
+Extract the package under a different path and verify complete file coverage before handoff. Include runtime configuration reached through inherited fixture setup.
 Record each executable's CMake target and output path separately. A library target can share the executable's output name.
 Build the executable target after its linked library changes. Verify claimed rebuilt ELF hashes against the previous package.
 Freeze packages by removing write permission. Preserve execute permission on binaries and directories.
 Target preflight must check executable permission and expected modes. A successful ldd check does not prove executability.
+Keep CTest bookkeeping outside frozen payloads.
+Verify the runtime user can create and write Testing/Temporary under the selected CTest directory.
+Preserve a setup refusal separately from an executed test failure.
 
 Use a persistent tmux session and a unique run directory for each attempt.
+Launch terminating jobs directly through tmux with exec. An idle interactive shell prevents pane-process retirement after command completion.
+Pass the tmux shell command as one argument when launching a saved script through Python.
+Use `subprocess.run(['tmux', 'new-session', '-d', '-s', session, 'exec bash ' + shlex.quote(str(launcher))], check=True)`.
+Do not pass `exec`, `bash`, and the launcher path as separate tmux arguments.
+Check that the canonical runner created its receipts. A successful tmux call alone does not prove job startup.
 For builds and test commands, use `bash scripts/run-command.sh CHECKOUT NEW_RUN_DIR COMMAND ARG...` inside tmux.
 Resolve that script from the installed skill. Pass arguments directly; do not construct shell code around exit-status variables.
 Invoke the runner through bash, including when flock launches it. Do not rely on executable permission.
@@ -55,6 +93,10 @@ Test hosts have no installed Codex skills. Give them a verified external runner 
 Keep NEW_RUN_DIR outside CHECKOUT. For artifact-only jobs, use a dedicated staging directory as CHECKOUT, not its artifact parent.
 Check those resolved paths and the exact runner invocation before starting tmux. Preserve any prelaunch refusal without claiming a test ran.
 Read command.exit for the command result and wrapper.exit for the launcher result. COMPLETE means returned, not passed.
+While CTest runs, its parent gate can report running with no blockers after individual tests fail.
+Scan the complete current core log for completed CTest failures, timeouts, and skips before reporting status.
+A recent tail can hide earlier failures. Keep known failures separate from current progress and later passing tests.
+An empty blocker list does not prove that the running stage has no failures.
 An interrupted wrapper may leave its child running. A missing command.exit remains unknown; inspect the exact child before retrying.
 Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
 Invoke the installed script with bash. File transfer may not preserve its executable bit.
@@ -68,6 +110,7 @@ Keep the exact task, launch script, model, base commit, stdout, stderr, and fina
 Write the exit code even when the worker fails. Avoid set -e around the worker command.
 Transfer multiline scripts as files. Do not embed nested Python and shell scripts in PowerShell command strings.
 Use LF line endings for remote scripts.
+Check transferred shell scripts for CR bytes and run bash -n before launching tmux.
 When editing Linux source from Windows, preserve existing line endings or write new lines explicitly as LF.
 Fail scripted replacements unless their required match counts agree with the inspected source.
 Verify the resulting code before building or formatting.
@@ -80,6 +123,7 @@ Inspect tmux and the specific child process before restarting work.
 An observation timeout is not process failure. Recheck the same handle.
 If exec_command returns session_id without exit_code, poll that session before dependent operations.
 Wait for scp to finish before hashing its destination. A partial-file hash does not prove transfer corruption.
+Verify an existing immutable transfer destination before skipping it. Do not overwrite a matching read-only file on a shared receiver.
 An empty or malformed exit record is not exit zero. Preserve the launcher and report unknown exit status.
 Use terminal worker events and process state to establish completion when the launcher record is defective.
 A queued correction must wait for the prior writer to exit and its terminal record to exist.
@@ -179,12 +223,19 @@ Use `git ls-tree` or `git show COMMIT:PATH`. A merge commit's displayed diff can
 Apply needed fixes only after the worker stops. Record the resulting source and rebuild affected artifacts.
 Do not silently combine new fixture source with old binaries. Record and review any test-only overlay explicitly.
 Verify artifact hashes after transfer to each test host.
+Read root-created inputs with the actual caller's permissions before launch. Use sudo reads or pinned readable copies when required.
+Verify artifact-only deployment identity through provenance, receipts, and source hashes. Test-host packages do not require a Git checkout.
 Match reused XLibre receipt extension_sources to the candidate's patch, overlay, and protocol hashes.
 Verify the actual server binaries and wrapper targets. An older passing server may lack a newly required capability.
 Launch the qualified server wrapper when its receipt supplies patched graphics libraries or environment variables.
 Matching the raw Xvfb hash does not verify that graphics dependency closure. Check the wrapper and library hashes too.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
+For focused M08 closures, preserve full-gate setup wrappers and CTest metadata; see [focused qualification setup](references/focused-m08-qualification-setup.md).
+When copying CTest metadata, preserve each registration's original working directory explicitly.
+CTest derives implicit WORKING_DIRECTORY from the metadata location, so copying can change execution behavior.
+Compare the full relocated inventory, including working directories, before executing tests.
+Validate a new metadata-copy launcher without test execution before using it for runtime evidence.
 Compare translated launcher variables with the selected qualified lane before launch, including sanitizer options and graphics extensions.
 Before transferring a package to another authorized host, inspect host restrictions in its driver, preflight, installer, and verifier.
 Check the selected host and its qualified runtime wrapper through that complete launch path.
@@ -223,12 +274,15 @@ Separate error detection time from bounded cleanup time. A later nonzero exit al
 When builds fail on missing packages, fix and record normal dependencies before rebuilding.
 After adding CMake targets, run an explicit configure before requesting those targets from an existing Makefile build.
 When transport quoting corrupts scripts, transfer script files instead of adding another escaping layer.
+Use SSH with Python code on stdin for nested fleet probes. Pass subprocess arguments as lists.
+Do not diagnose missing files or mounts from a failed quoted remote command. Repeat through the checked transport first.
 Windows OpenSSH joins remote command arguments into shell text. PowerShell argument quotes may not survive that step.
 Use separate `rg -e PATTERN` arguments for simple searches. Do not send an unquoted regex containing `|`.
 Transfer an LF script for commands containing quoted spaces, pipelines, Python code, or tmux format strings with `#`.
 If a search waits on stdin, inspect and stop its exact owned process before retrying through a script.
 When two branches change the same API, merge once and test the combined API before adding more dependent work.
 Keep improvements specific to observed failures. Do not create unrelated approval or compliance procedures.
+For fleet cleanup, read [references/artifact-cleanup.md](references/artifact-cleanup.md).
 
 ## Source and artifact separation
 
