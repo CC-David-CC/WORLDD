@@ -631,42 +631,28 @@ class GateWiringTests(unittest.TestCase):
         self.assertIs(captured['copy_worker_helpers'], True)
         self.assertEqual(captured['required_tests'], sorted(gate.m07.M07_REQUIRED | gate.M08_REQUIRED))
 
-    def test_m08_refuses_partial_profile_and_collector_modes_before_gate(self):
-        import argparse
-        import m08_deployed_gate as gate
-        base = dict(deployment=Path('/tmp/deployment'), attempt='attempt',
-                    native_controller='native', real_world='world', recovery='recovery',
-                    host_session='session', held_input='held')
-        invalid = [
-            dict(selected_profiles=['ASan-UBSan']),
-            dict(selected_profiles=['Debug']),
-            dict(collector_continuation=Path('/tmp/continuation.json')),
-            dict(collector_continuation_sha256='a'*64),
-        ]
-        for extra in invalid:
-            arguments=argparse.Namespace(**(base | extra))
-            with self.subTest(extra=extra), \
-                 mock.patch.object(gate,'require_deployment_inventory') as inventory, \
-                 mock.patch.object(gate.m06,'gate') as run_gate, \
-                 mock.patch.object(gate,'require_storage_lane_configuration') as storage, \
-                 self.assertRaisesRegex(RuntimeError,'M08 run-local requires both ordered profiles|M08 collector continuation is unsupported'):
-                gate.run_local(arguments)
-            inventory.assert_not_called();run_gate.assert_not_called();storage.assert_not_called()
-
-    def test_m08_accepts_explicit_full_ordered_profile_selection(self):
+    def test_m08_forwards_legacy_profile_and_collector_metadata(self):
         import argparse
         import m08_deployed_gate as gate
         arguments=argparse.Namespace(
             deployment=Path('/tmp/deployment'), attempt='attempt',
             native_controller='native', real_world='world', recovery='recovery',
-            host_session='session', held_input='held', selected_profiles=list(gate.m06.PROFILES))
+            host_session='session', held_input='held', selected_profiles=['Debug'],
+            collector_continuation=Path('/tmp/continuation.json'),
+            collector_continuation_sha256='a'*64)
         captured={}
+        storage_profiles=[]
         with mock.patch.object(gate,'require_deployment_inventory'), \
-             mock.patch.object(gate,'require_storage_lane_configuration',return_value={}), \
-             mock.patch.object(gate.m06,'gate',side_effect=lambda value: captured.update(vars(value)) or 0):
+             mock.patch.object(gate,'require_storage_lane_configuration',
+                               side_effect=lambda profiles=None: storage_profiles.append(tuple(profiles)) or {}), \
+             mock.patch.object(gate.m06,'gate',
+                               side_effect=lambda value: captured.update(vars(value)) or 0):
             self.assertEqual(gate.run_local(arguments),0)
-        self.assertEqual(captured['selected_profiles'],list(gate.m06.PROFILES))
-
+        self.assertEqual(storage_profiles,[('Debug',)])
+        self.assertEqual(captured['selected_profiles'],['Debug'])
+        self.assertEqual(captured['collector_continuation'],Path('/tmp/continuation.json'))
+        self.assertEqual(captured['collector_continuation_sha256'],'a'*64)
+        self.assertIs(captured['copy_worker_helpers'],True)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
