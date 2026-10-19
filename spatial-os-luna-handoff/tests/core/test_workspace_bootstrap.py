@@ -17,6 +17,7 @@ class BootstrapWorkspaceFixture(world_bootstrap.BootstrapWorldFixture):
     launch_process = existing.WorkspaceAuthorityTests.launch_process
     wait_job = existing.WorkspaceAuthorityTests.wait_job
     revoke_grant = existing.WorkspaceAuthorityTests.revoke_grant
+    make_broker = existing.WorkspaceAuthorityTests.make_broker
 
     def setUp(self):
         super().setUp();self.brokers=[]
