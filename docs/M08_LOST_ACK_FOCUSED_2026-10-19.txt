@@ -1,33 +1,56 @@
-M08 lost-publication acknowledgment focused result
+M08 lost-publication acknowledgment focused status - 2026-10-19
 
-M08 remains UNQUALIFIED. The full M08 gate has not started.
+Status: FOCUSED PASS. M08 remains UNQUALIFIED.
+The full M08 gate has not started.
 
-Candidate fixture: f2323c7d927960b43e39bde21be3e70e4d481218.
-Production binaries: f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
-The fixture-only private-directory repair is reviewed but not integrated.
-Its registered directory suite passed 12 cases. Related tooling passed 28 cases.
+Tested fixture: 6d6389d89ce937231126db791e13c348e55fec43.
+Integrated checkpoint: 9802611a87ced7141abf28ca28abcd98b9c29688.
+The integrated spatial-os-luna-handoff subtree exactly matches the tested fixture.
+Production binaries remain f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
+No production parent-identity guard, deadline, or crash assertion changed.
 
-Both hosts executed workspace-copy-lost-publication-ack in Debug.
-sb16 failed in 11.39 seconds. sb16-2 failed in 12.43 seconds.
-Both retained the unchanged 450-second CTest timeout.
-The private evidence-directory guard passed.
-The test failed during supervised broker/world setup, before publication recovery.
-The initial system.hello encountered BrokenPipe after the child exited.
-Broker diagnostics rejected a retained Git-worker parent identity.
-The stored parent was adapter/authority-HASH.
-The expected broker parent was adapter/lostack-broker-HASH.
-The actual parent was the adapter scope.
-A second BrokenPipe occurred during teardown.
-Do not classify this as a publication-reconciliation failure without further evidence.
-Do not disable the parent-identity security check.
+Results
+sb16 Debug: PASS, 23.421 seconds.
+sb16-2 Debug: PASS, 23.470 seconds.
+sb16 ASan/UBSan: PASS, 32.3239 seconds.
+sb16-2 ASan/UBSan: PASS, 34.0529 seconds.
+Each lane executed the complete lost-publication-ACK method.
+All lanes had zero skips and zero sanitizer findings.
+All helper lifecycles confirmed restoration and empty child process groups.
+Both runtime and helper locks were free afterward.
+The source retained exactly 1,202 files with no bytecode-cache contamination.
 
-Both helper lifecycles confirmed restoration and no cleanup errors.
-Both runtime and helper locks were free after termination.
-ASan/UBSan was not launched because Debug failed.
-The next task traces fixture scope setup against the production parent contract.
+Independent witness review confirmed broker death before receipt release.
+The test verified exact publication receipts and unchanged authorization binding.
+It rejected duplicate publication and preserved the expected uncertain request result.
+The adapter-contract suite passed 22 unit cases before runtime launch.
+The earlier private-evidence regression passed 12 cases and 28 related tooling checks.
+These focused application sanitizer runs use the approved Debug X server.
+They do not provide sanitizer X server coverage for the full gate.
 
-Evidence on ROG:
-/home/dflanag3/spatial-artifacts/m08-private-evidence-lostack-focused-20261019
-Retained results are under retained-results/sb16 and retained-results/sb16-2.
-Primary terminal review is primary-terminal-summary.json.
-The original failure evidence remains on both test hosts.
+Repairs
+Both copy runners now create private cases/scopes evidence directories.
+The lost-ACK method initializes the existing retained-parent fixture before bootstrap.
+Other fault tests retain their original fixture selection.
+The runtime driver now supports read-only preflight before execution.
+Privileged storage verification explicitly disables Python bytecode generation.
+Full source-pin directory/mode fields are validated before launching a test.
+
+Preserved earlier failures
+The private-directory failure occurred before broker launch.
+The subsequent parent mismatch occurred during bootstrap-to-supervised replacement.
+Neither failure reached the injected publication-ACK recovery scenario.
+Setup refusals and bytecode cleanup records remain externally retained.
+
+Evidence on ROG
+/home/dflanag3/spatial-artifacts/m08-lostack-stable-focused-20261019
+Primary review: primary-four-lane-review.json.
+Debug witness review: primary-debug-witness-review.json.
+Integration equivalence: integration/tree-equivalence.json.
+Profile receipts and detailed evidence also remain on both test hosts.
+
+Next
+Finish the remaining selected focused regressions on both hosts and profiles.
+Reassess earlier results against their exact source and fixture changes.
+Then freeze, package, deploy, and run the complete M08 gate on both hosts.
+Complete all required cross-host checks before claiming M08 qualification.
