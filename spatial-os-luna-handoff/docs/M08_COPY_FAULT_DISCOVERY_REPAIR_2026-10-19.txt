@@ -1,0 +1,11 @@
+M08 copy-fault fixture discovery repair
+
+The frozen 2026-10-19 Debug gate run failed CTest 118-122 before installing helpers. The discovery tool counted every test returned by load_tests and required exactly five. That hook returns five WorkspaceCopyFaultTests plus five StorageBrokerConstructorFailureTests.
+
+The discovery tool now reads the explicit fault-method tuple from load_tests. It validates exactly five unique methods of the intended test class. It validates all constructor unit cases separately and rejects missing, duplicate, extra, or unexpected suite entries. Its JSON keeps the wrapper-facing methods list at five and reports auxiliary_methods separately. Service startup, test execution, generated binding location checks, and binding hashes retain their existing behavior.
+
+The constructor units already have an independent CTest registration in spatial-os-luna-handoff/CMakeLists.txt: workspace-copy-storage-broker-constructor-failures invokes test_workspace_copy_faults.py with StorageBrokerConstructorFailureTests. That class currently defines five methods. CTest invokes the class directly, so the complete class remains covered outside the five per-fault wrappers. No CMake registration or fault assertion changed.
+
+Regression cases were added to the existing workspace-copy-worker-helpers-tooling CTest source, tools/test_copy_fixture_profiles.py. They cover five fault cases plus auxiliary units, missing and duplicate fault entries, an extra unexpected fault method, missing auxiliary coverage, and an unexpected suite type. The dedicated CTest inventory was not expanded.
+
+Scope: AST/source changes only. No Python unit test, host CLI, build, runtime, helper installation, or acceptance test was executed on ROG. The requested actual inspect CLI and five Debug plus five sanitizer wrapper runs on sb16 and sb16-2 remain pending primary-lane release. Services-started and methods-executed guards remain in the CLI output contract. This is an unqualified repair checkpoint.
