@@ -1,0 +1,64 @@
+M08 full-gate repair focused plan
+
+Status: UNQUALIFIED. Record this selection before execution.
+Frozen candidate 07991d839bf839c4e95022dedbceb5535f19ddaa remains unchanged.
+The current Debug gate has confirmed failures on both qualification hosts.
+No repaired runtime check has run yet.
+
+Repair source
+The storage adapter extracts StorageOwnerLaunchConfig from StorageVolumeRuntime.
+The inspector separates five fault scenarios from separately registered constructor cases.
+The I/O closure repair remains under source review.
+Native fixture lifecycle and revocation failures have separate diagnosis owners.
+Do not attribute those failures to the first three defects without evidence.
+
+Execution order
+Wait for the current gate and helper restoration to finish.
+Verify terminal receipts, exact child retirement, and released runtime and helper locks.
+Preserve the complete failed logs and their candidate pins.
+Use a new combined repair source tree and explicit overlay manifest.
+Keep the frozen deployment unchanged.
+Record unchanged binary hashes when testing Python-only fixture overlays.
+Rebuild if any compiled input changes.
+
+Focused tooling
+Run storage-owner-fixture-tooling with the selected generated bindings.
+Check exact typed payload extraction and preservation of both I/O devices.
+Check invalid configuration refusal before process launch and endpoint closure.
+Run workspace-copy-fixture-profiles with real generated resource messages.
+Check every nested budget, explicit workspace policies, and unchanged non-I/O fields.
+Check differing volume loop devices and preserved backing-device closure.
+Run the real fault inspector against each generated-binding profile.
+Require the exact five fault methods and complete auxiliary constructor methods.
+Require services_started=false, methods_executed=0, and checked binding hashes.
+
+Focused runtime
+Run workspace-file-action-broker under the actual ambient gate storage configuration.
+Run workspace-file-action-storage-owner-btrfs under that same configuration.
+Run the complete 13-method workspace-copy-engine registration.
+Run each of the five workspace-copy fault registrations.
+Run workspace-copy-storage-broker-constructor-failures.
+Run the standalone supervised 12-case recovery group as a positive control.
+Do not replace the ambient-config reproduction with the standalone control.
+Use the declared CMake launch environments and profile resource budgets.
+Run Debug and ASan/UBSan on sb16 and sb16-2.
+Check exact assertions, cleanup receipts, surviving source processes, and sanitizer output.
+Report setup failures separately from executed behavioral failures.
+
+Additional failures
+The authority and scoped-fence failures need source-backed diagnosis before test selection.
+Preserve revocation timing, identity, authority, and process-continuity requirements.
+Do not accept an arbitrary refusal instead of the required checked revocation result.
+The native participant and settlement failures reference missing NativeBroker lifecycle state.
+Review all custom broker constructors and shared close callers.
+Add initialization-failure and repeated-close regressions where the lifecycle contract requires them.
+Application-observation also failed; its root cause remains unconfirmed.
+Record selected caller regressions before executing these repairs.
+
+Qualification
+After the focused combined candidate passes, freeze the complete source and artifact closure.
+Run the full required local Debug and sanitizer gates on both hosts.
+Run all required cross-host cases and independent receipt reconciliation.
+A failed Debug stage does not establish sanitizer coverage.
+Focused passes do not qualify M08.
+M09 drafts remain separate until M08 integration and qualification permit advancement.
