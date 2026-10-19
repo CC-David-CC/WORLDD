@@ -1,0 +1,9 @@
+M08 storage-contention rejection evidence (UNQUALIFIED)
+
+This checkpoint changes one test file and this note. Production code, schemas, budgets, assertions, registrations, and deadlines remain unchanged.
+
+A failed writer launch now triggers one bounded snapshot before teardown. It captures the fixture broker cgroup and up to 64 descendants, through depth four. It records device and inode, process counts, memory limits and events, and process limits and events. It also records configured broker, manager, workspace, actor-default, and application budgets. Production reservation counters remain marked unobserved. Diagnostic errors are logged separately. The original assertion is re-raised.
+
+The fixture writes JSON to `SPATIAL_SECURITY_EVIDENCE/resource-rejection-<test-method>.json` with mode 0600. A compact stderr line identifies the evidence path and snapshot bounds. The output excludes PIDs, actor keys, credentials, requests, and broker error text.
+
+This evidence will distinguish actual cgroup pressure from broker admission accounting. The current SAN setup failures remain unresolved. This checkpoint does not qualify a fix. Keep resource caps and the six-second barrier deadline unchanged. Treat the earlier Debug pass and SAN failures as separate results.
