@@ -1,0 +1,22 @@
+M08 broker cleanup journal close ordering (2026-10-19)
+
+Status: UNQUALIFIED source change. Build and runtime checks remain unrun by this worker.
+
+Cause
+
+BrokerCopyCleanupParticipant::pre_prune called finish_cleanup before inspecting retained and active Git-worker parent records. finish_cleanup stops the journal worker. The later read or CAS clear then failed with ?File operation journal is stopping?.
+
+Repair
+
+The participant now finishes the pinned journal after all record reads and mutations. Every normal true or false return after opening the pinned journal performs deadline and pin verification around explicit finish. A finish failure throws before stable broker-root retirement can be authorized. Existing identity checks, exact parent-record compare-and-swap, and uncertainty refusal remain unchanged. Exceptions before normal completion still fail closed and rely on owned journal teardown.
+
+Coverage added
+
+The callback-controls fixture exercises a successful clean-child retirement with a bound active Git parent. It checks the parent directory and broker root are removed, the journal row is absent, and reopening the pinned journal succeeds. The uncertainty fixture checks the broker root and active parent row remain, while reopening the pinned journal succeeds. The identity-mismatch fixture keeps its journal alive through the owned scope?s exception-unwind cleanup, so a failed assertion cannot cause teardown ordering to mask the original error.
+
+Required focused checks
+
+- Existing CTest `broker-copy-preprune-cleanup` / `controls-plus-15` (Debug and sanitizer) covers callback controls, active-parent retirement, refusal, uncertainty, and close/reopen behavior.
+- Existing CTest `broker-copy-preprune-deadline-multirow` remains relevant to bounded cleanup and deadline behavior.
+
+The primary Debug and sanitizer builds at commit 4362575 failed while compiling the new fixture because one `GitWorkerParentRecord` name lacked the `spatial::` qualification. No runtime command ran. This follow-up corrects that qualification. The primary owns rebuild and runtime validation. Receipts: `~/spatial-artifacts/m08-journal-close-order-4362575-20261019/build-debug-01` and `build-sanitizer-01`.
