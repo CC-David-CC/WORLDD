@@ -993,6 +993,58 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(world.management('process.wait', id=process_id, timeout_seconds=5), {'exit_code':0})
         self.assertTrue((self.project/'credential-race-done').exists())
 
+    def test_unrelated_revocation_refuses_inflight_fence_then_allows_retry_and_preserves_process(self):
+        self.enroll_second()
+        barrier = {}
+        def revoke_unrelated_status():
+            started = time.monotonic()
+            deadline = started + 2
+            operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
+                target=issuer.IdentityReference(kind=issuer.CREDENTIAL_TARGET,
+                                                id=self.second_record.credential_id),
+                expected_security_revision=0, reason='unrelated fence cancellation regression'))
+            result = self.execute(self.owner_peer, self.challenge(self.owner_peer, operation))
+            self.assertTrue(result.HasField('identity_status'), result)
+            self.assertFalse(result.identity_status.actor_revoked, result)
+            self.assertTrue(result.identity_status.credential_revoked, result)
+            revision = result.identity_status.security_revision
+            diagnostic = self.wait_for_broker_revocation_consumed(revision, log_offset, deadline, relay)
+            barrier.update(revision=revision, diagnostic=diagnostic,
+                           elapsed_seconds=time.monotonic()-started)
+        relay = world_authority.RelayingIssuer(self, revoke_unrelated_status,
+                                                wait_for_revocation_event=False)
+        world = self.workspace(issuer_port=relay.port)
+        peer = world.peers[0]
+        code = ("from pathlib import Path\nimport time\n"
+                "Path('unrelated-race-ready').touch()\n"
+                "while not Path('unrelated-race-release').exists():time.sleep(.01)\n"
+                "Path('unrelated-race-done').touch()")
+        self.select(peer)
+        process = self.launch_process(peer, code, operation='unrelated-race-process')
+        self.until(lambda:(self.project/'unrelated-race-ready').exists(), bool)
+        process_id = process.process_id
+        process_pid, process_start_ticks, command_line = self.process_pid_for_code(code)
+        principal = self.principal()
+        before_reply = self.broker.request(authorization_fence=broker.AuthorizationFenceRequest(principal=principal))
+        self.assertTrue(before_reply.HasField('authorization_fence'), before_reply)
+        self.owner_peer = self.connect()
+        log_offset = Path(self.broker.log.name).stat().st_size
+        relay.armed.set()
+        first_reply, retry_reply = self.fence_with_checked_credential_retry(principal)
+        self.assertIsNotNone(retry_reply, f'Expected unrelated in-flight cancellation refusal: {first_reply!r}')
+        self.assertEqual(first_reply.error.message, FENCE_REVOCATION_MESSAGE, first_reply)
+        self.assertTrue(retry_reply.HasField('authorization_fence'), retry_reply)
+        self.assertTrue(relay.delivered.is_set())
+        self.assertFalse(relay.errors, relay.errors)
+        self.assertIn('diagnostic', barrier)
+        self.assertLess(barrier['elapsed_seconds'], 2, barrier)
+        self.assertIn(process_pid, self.descendants(), 'Unrelated revocation stopped the authorized process')
+        self.assertEqual(WorldProcess.process_start_ticks(process_pid), process_start_ticks)
+        self.assertEqual(Path(f'/proc/{process_pid}/cmdline').read_bytes(), command_line)
+        (self.project/'unrelated-race-release').touch()
+        self.assertEqual(world.management('process.wait', id=process_id, timeout_seconds=5), {'exit_code':0})
+        self.assertTrue((self.project/'unrelated-race-done').exists())
+
     def test_revoked_ancestor_without_world_session_stops_process(self):
         self.enroll_second(); world = self.workspace(); peer = world.peers[1]
         self.grant_second(world, [grant.WORKSPACE_ACCESS,*PROJECT])

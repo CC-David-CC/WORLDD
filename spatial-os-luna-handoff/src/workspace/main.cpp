@@ -133,34 +133,9 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
 }
 spatial::workspace::v1::Reply revocation_result(const spatial::workspace::v1::Request& request,
         spatial::workspace::v1::Reply reply, std::uint64_t cancellation,
-        spatial::ExecutionStore& store, spatial::WorkspaceAuthority* authority,
-        spatial::ControlLeases& controls, const std::string& owner = {},
-        const std::string& native_server = {}, bool during_effect = false) {
+        spatial::WorkspaceAuthority* authority) {
     if (!authority || reply.has_error() || cancellation == authority->cancellation_sequence() ||
             request.has_management() || request.has_control_release() || request.has_file_action()) return reply;
-    const spatial::authority::v1::ActorRef* actor = nullptr;
-    bool observation = false;
-    if (request.has_access()) { actor = &request.access().principal(); observation = true; }
-    else if (request.has_scoped_authority_check()) { actor = &request.scoped_authority_check().principal(); observation = true; }
-    else if (request.has_authorization_fence()) { actor = &request.authorization_fence().principal(); observation = true; }
-    else if (request.has_application_access()) { actor = &request.application_access().principal(); observation = true; }
-    else if (request.has_grants()) { actor = &request.grants().principal(); observation = true; }
-    if (observation && actor) {
-        if (actor->issuer_id().size() == 32 && actor->actor_id().size() == 32) {
-            try { (void)authority->authorization_fence(*actor); }
-            catch (const spatial::WorldError& error) {
-                if (error.code == spatial::wire::UNAUTHORIZED) {
-                    reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
-                    reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
-                    reply.mutable_error()->set_message("Requester identity was revoked during broker observation");
-                    return reply;
-                }
-                throw;
-            }
-        }
-        // Read-only observations can be safely repeated against the settled authority state.
-        return dispatch_broker(request, store, authority, controls, owner, native_server, during_effect);
-    }
     reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
     reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
@@ -367,8 +342,7 @@ int main(int argc, char** argv) {
                 const auto cancellation = authority ? authority->cancellation_sequence() : 0;
                 auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server, true);
                 enforce();
-                return revocation_result(request, std::move(reply), cancellation, store, authority.get(), controls,
-                                         owner, native_server, true);
+                return revocation_result(request, std::move(reply), cancellation, authority.get());
             });
         };
         store.set_observer([&] {
@@ -418,8 +392,7 @@ int main(int argc, char** argv) {
                         reply = dispatch_broker(request, store, authority.get(), controls, {}, {}, during_copy);
                     }
                     enforce();
-                    reply = revocation_result(request, std::move(reply), cancellation, store, authority.get(), controls,
-                                              {}, {}, during_copy);
+                    reply = revocation_result(request, std::move(reply), cancellation, authority.get());
                     input.erase(0, length+4); input_started = Clock::now();
                     enqueue(reply);
                 }
@@ -445,8 +418,7 @@ int main(int argc, char** argv) {
                 const auto cancellation = authority ? authority->cancellation_sequence() : 0;
                 auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
                 enforce();
-                return revocation_result(request, std::move(reply), cancellation, store, authority.get(), controls,
-                                         owner, native_server);
+                return revocation_result(request, std::move(reply), cancellation, authority.get());
             });
             pump_root(false);
             const auto now = Clock::now();
