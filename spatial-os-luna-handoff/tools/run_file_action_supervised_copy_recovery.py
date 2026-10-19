@@ -192,6 +192,7 @@ def main():
     volume_root=Path('/var/lib/spatial/volumes')
     capacity['volume_filesystem']=capacity_plan(build, os.statvfs(volume_root).f_bavail*os.statvfs(volume_root).f_frsize)
     evidence.mkdir(mode=0o700)
+    (evidence/'cases').mkdir(mode=0o700)
     report=dict(qualification='UNQUALIFIED',selected_methods=1,
         selected_case=selected_case,runtime_status='running',commands=[],capacity=capacity,
         python_fixture_sources=report_sources,native_wrapper=dict(path=str(native_wrapper),sha256=digest(native_wrapper)))
