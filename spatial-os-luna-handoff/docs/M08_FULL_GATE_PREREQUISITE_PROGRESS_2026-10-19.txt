@@ -1,0 +1,50 @@
+M08 full-gate prerequisite progress - 2026-10-19
+
+M08 remains UNQUALIFIED. This is preparation evidence, not runtime qualification.
+
+BUILD_TESTING=OFF
+
+Both production spatial-host-session targets built from clean f109697a0cc9a021dd0bc3b884aef8ffe4c8a637 on ROG.
+Each used Ninja, CMAKE_BUILD_TYPE=Debug, BUILD_TESTING=OFF, and parallelism two.
+SPATIAL_SANITIZERS was OFF for Debug and ON for ASan-UBSan.
+Canonical configure, build, and static audit receipts returned zero in both profiles.
+Primary review rehashed both executables and all 21 generated Python files per profile.
+Required host-session, actor-transition, and actor-controller bindings are present.
+The transitive generated Python binding closure is complete.
+Dynamic dependencies resolve. Ninja command flags match the sanitizer profiles.
+No native executable, startup check, or CTest suite ran for these builds.
+All five production-off startup checks remain UNRUN on both test hosts.
+
+Debug executable SHA256: 780ec90cc53495e2c8ec61df80cf0fcc3f2070660122fcf403406db0f22bc53e.
+Sanitizer executable SHA256: afc3305979d0d5e68756279fa00294be05da5e245b77ccb18ae105d751961382.
+ROG artifact root: /home/dflanag3/spatial-artifacts/m08-f109697-production-off-20261019.
+Compile summary SHA256: 2d1a4ef4c9772c4f5cecd94a34586eb8dc4a6bc27d2c5016da01e988c68a9b4f.
+Retain build/{Debug,ASan-UBSan}, scripts, receipts, and compile-summary.json until packaged replacements are verified.
+
+XACE runtime reuse audit
+
+Read-only inspection verified all four host/profile rows on sb16 and sb16-2.
+The audit compared the complete base lock and all 20 locked patch/overlay sources.
+Each matched its existing X server receipt.
+Wrapper targets, Xvfb bytes, EGL vendor/library closure, and installed protected helpers also matched.
+No XLibre rebuild is required from this evidence alone.
+The audited source HEAD was 4a2fc87b1f7dcae61b08036dd8293f70f3f1807b.
+The draft runtime manifest must be repinned and revalidated after the final candidate freezes.
+Do not relabel the existing draft as a future candidate without verification.
+
+ROG audit root: /home/dflanag3/spatial-artifacts/m08-current-xace-closure-audit-20261019.
+Audit SHA256: 38ca3f2f364ce37472f219eb756876fe9a7358fd7dd0d895f7dfd67c52dfd41a.
+Draft manifest SHA256: aae9d6a1d989fdd8c30aa06e0493380292bc0340f4103a16e56ce54658ec5a34.
+The draft preserves distinct Debug and ASan-UBSan X server wrappers.
+The earlier focused package used the Debug wrapper for both application profiles.
+Those focused sanitizer results do not prove X server sanitizer coverage.
+Full-gate deployment must preserve the audited per-profile wrappers and graphics dependencies.
+
+Remaining preparation
+
+Review and qualify the forced-stop parent-recovery regression correction.
+Complete the remaining combined focused Debug and sanitizer checks on both hosts.
+Provision fresh distinct StorageOwner volumes and protected configurations for each host/profile.
+Prepare and verify the complete gate deployment layout and final candidate source pin.
+Run all required local stages, cross-host matrices, native witnesses, and reconciliation.
+Keep unrun requirements separate from focused passing evidence.
