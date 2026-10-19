@@ -1202,6 +1202,43 @@ def _validated_configure_env(path):
         raise RuntimeError("configure-env map contains unsupported or empty values")
     return value
 
+SUPPORTED_CMAKE_GENERATORS = frozenset(("Ninja", "Unix Makefiles"))
+
+
+def configure_generator_for_build(build, source=ROOT):
+    """Use a cache's supported generator only when it belongs to this source tree."""
+    cache = Path(build) / "CMakeCache.txt"
+    if not cache.exists():
+        return "Ninja"
+    if not cache.is_file():
+        raise RuntimeError("CMake cache path is not a regular file: " + str(cache))
+    values = {"CMAKE_GENERATOR": [], "CMAKE_HOME_DIRECTORY": []}
+    for line in cache.read_text(encoding="utf-8").splitlines():
+        for name in values:
+            if line.startswith(name) and (len(line) == len(name) or line[len(name)] != "_"):
+                match = re.fullmatch(re.escape(name) + r":([^=]+)=(.*)", line)
+                if not match or not match.group(1).strip():
+                    raise RuntimeError("Malformed " + name + " entry in " + str(cache))
+                values[name].append(match.group(2))
+    for name, found in values.items():
+        if len(found) != 1 or not found[0]:
+            raise RuntimeError("Expected exactly one " + name + " entry in " + str(cache))
+    generator = values["CMAKE_GENERATOR"][0]
+    if generator not in SUPPORTED_CMAKE_GENERATORS:
+        raise RuntimeError("Unsupported cached CMake generator: " + generator)
+    configured_source = Path(values["CMAKE_HOME_DIRECTORY"][0])
+    if not configured_source.is_absolute():
+        raise RuntimeError("Cached CMAKE_HOME_DIRECTORY must be absolute")
+    try:
+        cached_source = configured_source.resolve(strict=True)
+        expected_source = Path(source).resolve(strict=True)
+    except OSError as error:
+        raise RuntimeError("Cached CMAKE_HOME_DIRECTORY is not an existing source path") from error
+    if cached_source != expected_source:
+        raise RuntimeError("Cached CMAKE_HOME_DIRECTORY does not match the configured source root")
+    return generator
+
+
 def prepare(a):
     import fcntl
     actual_host = socket.gethostname()
@@ -1221,8 +1258,14 @@ def prepare(a):
     configure_env = _validated_configure_env(getattr(a, "configure_env", None))
     attempt = a.attempt or f"m06-{commit[:12]}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{uuid.uuid4().hex[:8]}"
     dest = a.output.resolve() / attempt
-    dest.mkdir(parents=True, exist_ok=False)
     build_root = dest / "build"
+    build_paths = cache_paths["build"] if cache_paths else {profile: build_root / profile for profile in PROFILES}
+    production_paths = cache_paths["production-off"] if cache_paths else {
+        profile: dest / "production-off" / profile for profile in PROFILES}
+    build_generators = {profile: configure_generator_for_build(build_paths[profile]) for profile in PROFILES}
+    production_generators = {profile: configure_generator_for_build(production_paths[profile])
+                             for profile in PROFILES}
+    dest.mkdir(parents=True, exist_ok=False)
     cache_lock_handles = []
     if cache_paths:
         for cache in sorted((path for rows in cache_paths.values() for path in rows.values()), key=str):
@@ -1250,7 +1293,7 @@ def prepare(a):
             env.update(configure_env)
             for key in EVIDENCE_KEYS:
                 env[key] = str(evidence / key.lower())
-            config = ["cmake", "-S", str(ROOT), "-B", str(build), "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug",
+            config = ["cmake", "-S", str(ROOT), "-B", str(build), "-G", build_generators[profile], "-DCMAKE_BUILD_TYPE=Debug",
                       "-DBUILD_TESTING=ON", "-DSPATIAL_INPUT_TESTS=ON",
                       "-DSPATIAL_SANITIZERS=" + ("ON" if profile == "ASan-UBSan" else "OFF")]
             lock_path = Path(str(build) + ".lock")
@@ -1317,7 +1360,7 @@ def prepare(a):
                 if lock is not None:
                     fcntl.flock(lock, fcntl.LOCK_EX)
                 for label, command in (
-                    ('configure-production-off', ['cmake', '-S', str(ROOT), '-B', str(production), '-G', 'Ninja',
+                    ('configure-production-off', ['cmake', '-S', str(ROOT), '-B', str(production), '-G', production_generators[profile],
                      '-DCMAKE_BUILD_TYPE=Debug', '-DBUILD_TESTING=OFF', '-DSPATIAL_SANITIZERS=' + ('ON' if profile == 'ASan-UBSan' else 'OFF')]),
                     ('build-production-off', ['cmake', '--build', str(production), '--parallel', '2'])):
                     result, seconds = run(command, cwd=ROOT, log=dest / (profile + '-' + label + '.log'), timeout=3600)
