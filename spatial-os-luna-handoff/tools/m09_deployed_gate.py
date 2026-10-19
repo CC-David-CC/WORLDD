@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
+import socket
+import subprocess
 import sys
+import uuid
 
 HERE = Path(__file__).resolve()
 M08_PATH = HERE.with_name("m08_deployed_gate.py")
@@ -98,7 +103,7 @@ M09_CASES = {
 
 }
 M09_HARNESS_TESTS = tuple(
-    "tests.harness.test_m09_deployed_gate.M09DeployedGateTests." + name
+    "tests.m09_harness.test_m09_deployed_gate.M09DeployedGateTests." + name
     for name in (
         "test_case_manifest_has_seven_named_cases_and_no_duplicate_selectors",
         "test_case_source_inventory_fails_closed_for_missing_future_witness",
@@ -106,21 +111,92 @@ M09_HARNESS_TESTS = tuple(
         "test_required_inventory_rejects_missing_skip_and_duplicate_registration",
         "test_wrong_candidate_refuses_before_m06_gate_launch",
         "test_valid_preflight_forwards_all_m08_and_m09_requirements",
-        "test_harness_expectations_append_without_changing_m08_baseline",
+        "test_separate_m09_harness_inventory_rejects_missing_duplicate_skip_and_wrong_count",
         "test_m09_suite_manifest_is_additive_to_m08",
     )
 )
 
 
-def expected_harness_tests():
-    """Preserve M08's exact 89 IDs and append this module's exact IDs."""
-    inherited = tuple(m08.load_harness_test_inventory())
-    result = inherited + M09_HARNESS_TESTS
-    if len(inherited) != 89 or len(set(inherited)) != 89:
-        raise RuntimeError("M09 refuses an altered M08 89-test harness baseline")
-    if len(result) != 97 or len(set(result)) != 97:
-        raise RuntimeError("M09 additive harness inventory must contain 89 inherited and 8 unique M09 IDs")
-    return tuple(sorted(result))
+def expected_m09_harness_tests():
+    expected = tuple(sorted(M09_HARNESS_TESTS))
+    if (len(expected) != 8 or len(set(expected)) != 8
+            or any(not name.startswith("tests.m09_harness.") for name in expected)):
+        raise RuntimeError("M09 harness inventory must contain eight unique dedicated test IDs")
+    return expected
+
+
+def validate_m09_harness_output(output, exit_code):
+    expected = expected_m09_harness_tests()
+    pattern = re.compile(r"(?m)^(\S+) \(([^)]+)\) \.\.\. ([^\r\n]+)$")
+    rows = [(match.group(2), match.group(1), match.group(3).strip())
+            for match in pattern.finditer(output)]
+    reported = [row[0] for row in rows]
+    counts = {name: reported.count(name) for name in set(reported)}
+    duplicates = sorted(name for name, count in counts.items() if count > 1)
+    skipped = sorted(name for name, _short, status in rows if status.startswith("skipped"))
+    summary = re.search(r"Ran (\d+) tests in .*\n\nOK(?:\n|$)", output)
+    valid = (exit_code == 0 and summary is not None and int(summary.group(1)) == 8
+             and len(rows) == 8 and not duplicates and not skipped
+             and all(status == "ok" and short == name.rsplit(".", 1)[-1]
+                     for name, short, status in rows)
+             and set(reported) == set(expected))
+    result = dict(valid=valid, expected=expected, reported=reported,
+                  missing=sorted(set(expected) - set(reported)),
+                  unexpected=sorted(set(reported) - set(expected)),
+                  duplicates=duplicates, skipped=skipped, exit_code=exit_code)
+    if not valid:
+        raise RuntimeError("M09 dedicated harness inventory failed: " + json.dumps(result, sort_keys=True))
+    return result
+
+
+def run_m09_harness(source, deployment, candidate):
+    host = socket.gethostname().split(".")[0]
+    if host not in m06.TEST_HOSTS:
+        raise RuntimeError("M09 dedicated harness may run only on sb16 or sb16-2")
+    source = Path(source).resolve(strict=True)
+    deployment = Path(deployment).resolve(strict=True)
+    root = deployment / "evidence" / "m09-harness"
+    if root.is_symlink() or root.resolve().is_relative_to(source):
+        raise RuntimeError("M09 harness evidence must remain outside deployed source")
+    root.mkdir(parents=True, exist_ok=True)
+    attempt = candidate[:12] + "-" + uuid.uuid4().hex[:12]
+    output = root / attempt
+    output.mkdir(parents=False, exist_ok=False)
+    command = [sys.executable, "-B", "-m", "unittest",
+               "tests.m09_harness.test_m09_deployed_gate", "-v"]
+    environment = os.environ.copy()
+    pythonpath = [str(source)]
+    if environment.get("PYTHONPATH"):
+        pythonpath.append(environment["PYTHONPATH"])
+    environment["PYTHONPATH"] = os.pathsep.join(pythonpath)
+    try:
+        result = subprocess.run(command, cwd=source, env=environment, text=True,
+                                capture_output=True, timeout=180)
+        text = result.stdout + result.stderr
+        (output / "m09-harness.log").write_text(text, encoding="utf-8", newline="\n")
+        inventory = validate_m09_harness_output(text, result.returncode)
+        status = "passed_unqualified"
+        exit_code = result.returncode
+    except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+        text = str(error)
+        log = output / "m09-harness.log"
+        if not log.exists():
+            log.write_text(text + "\n", encoding="utf-8", newline="\n")
+        inventory = dict(valid=False, error=repr(error))
+        status = "failed_or_incomplete"
+        exit_code = getattr(locals().get("result"), "returncode", None)
+    log_path = output / "m09-harness.log"
+    receipt = dict(schema=1, status=status, qualification="UNQUALIFIED",
+                   candidate=candidate, host=host, command=command,
+                   source=str(source), log=str(log_path),
+                   log_sha256=hashlib.sha256(log_path.read_bytes()).hexdigest(),
+                   inventory=inventory, exit_code=exit_code, phase_complete=False)
+    receipt_path = output / "m09-harness.json"
+    receipt["receipt_path"] = str(receipt_path)
+    receipt_path.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8", newline="\n")
+    if status != "passed_unqualified":
+        raise RuntimeError("M09 dedicated harness failed; inspect " + str(receipt_path))
+    return receipt
 
 
 def _case_selectors():
@@ -204,8 +280,10 @@ def require_deployment_inventory(deployment, candidate):
 
 def run_local(a):
     # Candidate and M09-specific gates are checked before M06 launches work.
-    require_deployment_inventory(a.deployment, a.candidate)
+    checked = require_deployment_inventory(a.deployment, a.candidate)
     m08.require_deployment_inventory(a.deployment)
+    m09_harness_receipt = run_m09_harness(checked["source"], a.deployment, a.candidate)
+    print("M09 dedicated harness receipt: " + m09_harness_receipt["receipt_path"])
     selected_profiles = getattr(a, "selected_profiles", None)
     storage_lane_by_profile = m08.require_storage_lane_configuration(
         profiles=m06.PROFILES if selected_profiles is None else tuple(selected_profiles))
@@ -220,7 +298,7 @@ def run_local(a):
         collector_continuation_sha256=getattr(a, "collector_continuation_sha256", None),
         required_tests=sorted(REQUIRED),
         dedicated_crosshost=sorted(m08.M08_DEDICATED_CROSSHOST),
-        expected_harness_tests=expected_harness_tests(),
+        expected_harness_tests=m08.load_harness_test_inventory(),
         storage_expected_results=sorted(m08.M08_STORAGE_EXPECTED_RESULTS),
     )
     return m06.gate(forwarded)

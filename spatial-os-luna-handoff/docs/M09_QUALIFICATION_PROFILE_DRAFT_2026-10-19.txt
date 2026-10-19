@@ -82,11 +82,13 @@ Gap: these broker/world tests do not independently witness native application pi
 
 Harness inventory
 
-M09 keeps M08's exact 89 unittest IDs intact. It appends eight exact test IDs from tests.harness.test_m09_deployed_gate. Duplicate, missing, unexpected, or skipped IDs are rejected by the inherited M06 harness validator. The separate M09 source-case manifest remains independent of the M08 harness manifest and acceptance lock.
+M08's global harness remains exactly 89 unittest IDs. The existing M08 discovery meta-test recursively inspects tests/harness and must keep passing. M09's eight harness regressions live in the separate tests/m09_harness package. The M09 wrapper invokes that package with an explicit unittest command and validates its exact eight IDs, duplicates, exit status, summary count, and skip states. It saves the dedicated run log and receipt under deployment/evidence/m09-harness, outside the deployed source tree. The cumulative M06 run receives the unchanged M08 89-ID inventory. The M09 source-case manifest remains independent of both harness inventories and acceptance.lock.json.
 
 Candidate and evidence rules
 
 Run only from the frozen deployment. The caller must pass the full candidate SHA. Provenance and the verified deployment receipt must both match it. Both build-profile inventories must pass before the M06 gate starts. The gate forwards M08's complete required inventory plus the five M09 registrations to the same M06 cumulative runner.
+
+Scope correction after primary review: the M09 harness uses tests/m09_harness because tests/harness is covered by the frozen M08 exact-discovery meta-test. This keeps M08's actual 89-test discovery valid and gives M09 a separate invocation.
 
 The local profile does not alter acceptance.lock.json, existing M08 files, CMake registrations, production source, or dedicated cross-host cases. It is an additive draft. The candidate remains UNQUALIFIED until primary review, native witness integration, frozen combined source, and full required gates on sb16 and sb16-2.
 
@@ -96,6 +98,8 @@ Status at this source pin
 - Exact M09 case selectors currently resolved: all listed existing methods except the dialog/popup/foreign-hint group witness.
 - M08 cumulative dependency: UNQUALIFIED.
 - M09 focused runtime: UNRUN.
+- Dedicated M09 harness command from the deployed source root on each test host:
+    python3 -B -m unittest tests.m09_harness.test_m09_deployed_gate -v
 - Focused Debug command on each test host after deployment:
   `ctest --test-dir "$DEPLOYMENT/build/Debug" --output-on-failure -R '^(application-control-lease|application-observation|native-surface_identity|native-world_surface_groups|world-application-control)$'`
 - Focused ASan-UBSan command on each test host after deployment:

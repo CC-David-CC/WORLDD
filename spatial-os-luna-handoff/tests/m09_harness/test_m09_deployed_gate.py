@@ -104,26 +104,48 @@ class M09DeployedGateTests(unittest.TestCase):
                                  "SPATIAL_TEST_STORAGE_LAUNCH_CONFIG": "/policy/" + profile,
                                  "SPATIAL_TEST_STORAGE_COPY_QUOTA_BYTES": gate.m08.STORAGE_COPY_QUOTA_BYTES}
                        for profile in gate.m06.PROFILES}
-            with patch.object(gate.m08, "require_storage_lane_configuration", return_value=storage), \
+            with patch.object(gate, "run_m09_harness", return_value={"status": "passed_unqualified", "receipt_path": "/evidence/m09.json"}) as m09_harness, \
+                 patch.object(gate.m08, "require_storage_lane_configuration", return_value=storage), \
                  patch.object(gate.m06, "gate", return_value=0) as launch:
                 self.assertEqual(gate.run_local(self.args(root, candidate)), 0)
+            m09_harness.assert_called_once()
             forwarded = launch.call_args.args[0]
             self.assertEqual(set(forwarded.required_tests), gate.REQUIRED)
             self.assertEqual(set(forwarded.dedicated_crosshost), gate.m08.M08_DEDICATED_CROSSHOST)
-            self.assertEqual(tuple(forwarded.expected_harness_tests), gate.expected_harness_tests())
+            self.assertEqual(tuple(forwarded.expected_harness_tests), gate.m08.load_harness_test_inventory())
             self.assertEqual(forwarded.storage_lane_by_profile, storage)
             self.assertTrue(gate.m08.REQUIRED.issubset(set(forwarded.required_tests)))
 
-    def test_harness_expectations_append_without_changing_m08_baseline(self):
-        inherited = gate.m08.load_harness_test_inventory()
-        additions = gate.expected_harness_tests()
-        self.assertEqual(len(inherited), 89)
-        self.assertEqual(len(additions), 97)
-        self.assertTrue(set(inherited).issubset(additions))
-        self.assertEqual(set(additions) - set(inherited), set(gate.M09_HARNESS_TESTS))
-        self.assertEqual(gate.m08.load_harness_test_inventory(), inherited)
+    def test_separate_m09_harness_inventory_rejects_missing_duplicate_skip_and_wrong_count(self):
+        expected = gate.expected_m09_harness_tests()
+        self.assertEqual(len(gate.m08.load_harness_test_inventory()), 89)
+        self.assertEqual(len(expected), 8)
+        self.assertFalse(set(expected) & set(gate.m08.load_harness_test_inventory()))
+
+        def output(ids, status_by_id=None, count=None):
+            status_by_id = status_by_id or {}
+            rows = [f"{name.rsplit('.', 1)[-1]} ({name}) ... {status_by_id.get(name, 'ok')}"
+                    for name in ids]
+            total = len(ids) if count is None else count
+            return "\n".join(rows + ["", f"Ran {total} tests in 0.001s", "", "OK", ""])
+
+        text = output(expected)
+        self.assertTrue(gate.validate_m09_harness_output(text, 0)["valid"])
+        for invalid in (
+                output(expected[:-1]),
+                output(expected[:-1] + [expected[0], expected[0]]),
+                output(expected[:-1] + ["tests.harness.unexpected.Case.test_extra"]),
+                output(expected, {expected[0]: "skipped 'fixture missing'"}),
+                output(expected, count=7)):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(RuntimeError, "inventory failed"):
+                    gate.validate_m09_harness_output(invalid, 0)
+        with self.assertRaisesRegex(RuntimeError, "inventory failed"):
+            gate.validate_m09_harness_output(text, 1)
 
     def test_m09_suite_manifest_is_additive_to_m08(self):
+        self.assertEqual(Path(__file__).parent.name, "m09_harness")
+        self.assertTrue(all(name.startswith("tests.m09_harness.") for name in gate.M09_HARNESS_TESTS))
         self.assertEqual(gate.M09_REQUIRED, {
             "application-control-lease", "application-observation",
             "world-application-control", "native-surface_identity",
