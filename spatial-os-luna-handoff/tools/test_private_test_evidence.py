@@ -9,7 +9,7 @@ import sys
 import tempfile
 import unittest
 
-from with_private_test_evidence import create_private_evidence, resolve_root
+from with_private_test_evidence import create_private_evidence, create_private_evidence_children, resolve_root
 
 
 class PrivateEvidenceSetupTests(unittest.TestCase):
@@ -86,6 +86,80 @@ class PrivateEvidenceSetupTests(unittest.TestCase):
             passed_path = Path(result.stdout.strip())
             self.assertTrue(passed_path.is_relative_to(evidence_root.resolve()))
             self.assertEqual(stat.S_IMODE(passed_path.stat().st_mode), 0o700)
+
+
+class PrivateEvidenceParentsTests(unittest.TestCase):
+    def make_parent(self, path: Path) -> Path:
+        path.mkdir(mode=0o700)
+        path.chmod(0o700)
+        return path
+
+    def test_fresh_case_and_scope_roots_stay_private_under_umasks_022_and_077(self):
+        for mask in (0o022, 0o077):
+            previous = os.umask(mask)
+            try:
+                with tempfile.TemporaryDirectory() as temp:
+                    parent = self.make_parent(Path(temp) / 'owned-evidence')
+                    unrelated = parent / 'unrelated'
+                    unrelated.mkdir(mode=0o700)
+                    cases, scopes = create_private_evidence_children(parent)
+                    self.assertEqual((cases, scopes), (parent / 'cases', parent / 'scopes'))
+                    for child in (cases, scopes):
+                        info = child.lstat()
+                        self.assertTrue(stat.S_ISDIR(info.st_mode))
+                        self.assertEqual(info.st_uid, os.getuid())
+                        self.assertEqual(stat.S_IMODE(info.st_mode), 0o700)
+                    self.assertTrue(unrelated.is_dir())
+                    self.assertEqual(stat.S_IMODE(unrelated.stat().st_mode), 0o700)
+            finally:
+                os.umask(previous)
+
+    def test_existing_child_refuses_before_mutating_sibling_or_existing_mode(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = self.make_parent(Path(temp) / 'owned-evidence')
+            scopes = parent / 'scopes'
+            scopes.mkdir(mode=0o711)
+            scopes.chmod(0o711)
+            with self.assertRaisesRegex(FileExistsError, 'child already exists'):
+                create_private_evidence_children(parent)
+            self.assertFalse((parent / 'cases').exists())
+            self.assertEqual(stat.S_IMODE(scopes.stat().st_mode), 0o711)
+
+    def test_symlink_child_refuses_without_following_or_mutating_target(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            parent = self.make_parent(base / 'owned-evidence')
+            target = base / 'target'
+            target.mkdir(mode=0o700)
+            (parent / 'scopes').symlink_to(target, target_is_directory=True)
+            with self.assertRaisesRegex(FileExistsError, 'child already exists'):
+                create_private_evidence_children(parent)
+            self.assertFalse((parent / 'cases').exists())
+            self.assertTrue((parent / 'scopes').is_symlink())
+            self.assertEqual(list(target.iterdir()), [])
+
+    def test_public_parent_is_rejected_without_chmod_or_children(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp) / 'owned-evidence'
+            parent.mkdir(mode=0o755)
+            parent.chmod(0o755)
+            with self.assertRaisesRegex(RuntimeError, 'owned mode-0700'):
+                create_private_evidence_children(parent)
+            self.assertEqual(stat.S_IMODE(parent.stat().st_mode), 0o755)
+            self.assertFalse((parent / 'cases').exists())
+            self.assertFalse((parent / 'scopes').exists())
+
+    def test_symlink_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            parent = self.make_parent(base / 'owned-evidence')
+            alias = base / 'alias'
+            alias.symlink_to(parent, target_is_directory=True)
+            with self.assertRaisesRegex(RuntimeError, 'owned mode-0700'):
+                create_private_evidence_children(alias)
+            self.assertFalse((parent / 'cases').exists())
+            self.assertFalse((parent / 'scopes').exists())
+
 
 
 if __name__ == '__main__':

@@ -47,6 +47,19 @@ def create_private_evidence(root: Path, *, script: Path, cwd: Path) -> Path:
     return evidence
 
 
+def create_private_evidence_children(evidence: Path) -> tuple[Path, Path]:
+    """Create fresh protected cases/scopes roots beneath an owned evidence directory."""
+    evidence = Path(evidence)
+    info = evidence.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700:
+        raise RuntimeError('evidence parent must be an owned mode-0700 directory')
+    children = (evidence / 'cases', evidence / 'scopes')
+    if any(os.path.lexists(child) for child in children):
+        raise FileExistsError('evidence child already exists')
+    for child in children:
+        child.mkdir(mode=0o700)
+    return children
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', help='writable evidence parent; defaults to SPATIAL_SECURITY_EVIDENCE')

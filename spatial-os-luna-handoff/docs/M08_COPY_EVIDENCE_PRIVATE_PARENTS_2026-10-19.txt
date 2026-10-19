@@ -1,0 +1,30 @@
+M08 copy fixture private evidence parents
+
+The two supervised copy runners create a private UUID evidence directory. They
+pass its missing cases and scopes children to the test process. The fixture
+used parents=True and created those ancestors with mode 0755 under umask 022.
+The native privacy guard correctly rejected that mode before broker launch.
+
+Both runners now call create_private_evidence_children after making the fresh
+mode-0700 UUID directory. The helper validates that parent. It refuses existing
+children without changing them. It creates cases and scopes with mode 0700.
+The native privacy assertion is unchanged.
+
+Five behavioral cases were added to registered tools/test_private_test_evidence.py.
+They cover umasks 022/077, existing children, public parents, child symlinks,
+and symlink parents. The existing profile and image-cleanup suites also ran.
+
+Retained checks: python3 -B tools/test_private_test_evidence.py passed 12 tests.
+The profile runner passed 28 tests with existing Debug generated bindings on
+PYTHONPATH. The complete commands and receipts are under
+/home/dflanag3/spatial-artifacts/m08-copy-evidence-private-parents-20261019/runs/.
+
+One earlier discovery run passed 12 tests but selected the extra
+test_copy_fault_evidence.py. Its receipt remains in runs/tooling-01.
+
+The first profile attempt lacked generated broker protobuf bindings and stopped
+at import before tests. Its setup failure remains in runs/profiles-01. The passing
+rerun used bindings from the same 5f3 source pin and is in runs/profiles-02.
+
+Native lost-publication-ack Debug/SAN checks on both hosts remain pending primary
+review and launch. Prior combined38 failures remain preserved.
