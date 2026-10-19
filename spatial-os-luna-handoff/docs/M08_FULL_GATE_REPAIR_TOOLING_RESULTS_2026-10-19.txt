@@ -1,0 +1,37 @@
+M08 repair tooling results
+
+Status: UNQUALIFIED. These checks do not execute instrumented production binaries.
+Host: sb16. Source: 225ee4e2a46ba496705b2926d3cf443d6254b660.
+Bindings: frozen079 deployment, Debug and ASan-UBSan profiles.
+Schemas did not change. The frozen payload was not modified.
+Runtime evidence: /home/dflanag3/spatial-artifacts/m08-focused-tooling-225ee4e-20261019.
+Canonical run: runs/tooling-01. command.exit=1, wrapper.exit=1, COMPLETE.
+
+Four commands passed. Four commands failed.
+Observation resource fixture: three unit cases passed with each binding profile.
+Fault inspector: exact five fault methods and five auxiliary methods passed with each profile.
+The inspector reported no service startup and zero executed fixture methods.
+Storage-owner fixture: 14 unit cases ran per profile, with one error in each run.
+Its manually constructed stop-failure stub omitted the new owner-launch-path state field.
+Copy fixture profiles: 26 unit cases ran per profile, with two errors in each run.
+Two positive closure tests passed tuple rows instead of actual generated I/O entries.
+Their negative cases also needed generated invalid device sets to exercise the intended checks.
+
+Corrections
+Initialize the manually constructed storage stop fixture's owner launch path to None.
+Use generated protobuf I/O containers for both positive closure tests.
+Use representable empty, duplicate, zero-read, and zero-write closures for refusal tests.
+Preserve all validation, lifecycle cleanup, and authority assertions.
+Rerun all four tooling commands with both profiles after these fixture corrections.
+Run the same checks on sb16-2 after its active gate and helper restoration finish.
+
+A setup refusal occurred before the first tooling launch.
+The archive guard did not accept tarfile's normalized source root directory name.
+The corrected guard permits exactly that root directory and its descendants.
+File hashes and traversal protections remain required.
+No test executed during that setup refusal.
+
+Remaining runtime work
+Rebuild the changed workspaced executable before authority or native runtime regressions.
+Git, adapter startup, native session startup, and the storage-contention timing failure have separate diagnoses.
+Do not launch a full gate until the combined focused runtime checks pass.

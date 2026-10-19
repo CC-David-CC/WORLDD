@@ -150,14 +150,15 @@ class CopyFixtureProfileTests(unittest.TestCase):
     def test_resource_io_closure_rebinds_every_nested_budget(self):
         ambient=[(7,21,48,12),(259,0,20,10)]
         own_volume=[(7,22,64,16),(259,0,64,16)]
+        own_devices=_fixture_budget(own_volume).io
         resource=_fixture_resource(ambient)
         budgets=process_scope_budgets(resource)
         before={id(item):_non_io_budget_state(item) for item in budgets}
         workspace_budget=resource.workspaces[0].total
         workspace_rates=[(48,12),(20,10)]
         self.assertEqual(len(budgets),14)
-        self.assertEqual(validate_resource_io_closure(_fixture_resource(own_volume),own_volume),14)
-        self.assertEqual(set_resource_io_closure(resource,own_volume),14)
+        self.assertEqual(validate_resource_io_closure(_fixture_resource(own_volume),own_devices),14)
+        self.assertEqual(set_resource_io_closure(resource,own_devices),14)
         expected={(major,minor) for major,minor,_,_ in own_volume}
         self.assertEqual({(item.major,item.minor) for item in workspace_budget.io},expected)
         self.assertEqual([(item.read_bytes_per_second,item.write_bytes_per_second)
@@ -169,15 +170,16 @@ class CopyFixtureProfileTests(unittest.TestCase):
                 value.write_bytes_per_second) for value in item.io},
                 {(7,22):(48,12),(259,0):(20,10)})
         with self.assertRaisesRegex(ValueError,'fixture volume I/O device set'):
-            validate_resource_io_closure(resource,ambient)
+            validate_resource_io_closure(resource,_fixture_budget(ambient).io)
 
     def test_resource_io_closure_accepts_generic_single_device_fixture_config(self):
         ambient=[(259,0,32,12)]
         own_volume=[(7,22,64,16),(259,0,64,16)]
+        own_devices=_fixture_budget(own_volume).io
         resource=_fixture_resource(ambient)
         budgets=process_scope_budgets(resource)
         before={id(item):_non_io_budget_state(item) for item in budgets}
-        self.assertEqual(set_resource_io_closure(resource,own_volume),14)
+        self.assertEqual(set_resource_io_closure(resource,own_devices),14)
         expected={(major,minor) for major,minor,_,_ in own_volume}
         for item in process_scope_budgets(resource):
             self.assertEqual({(value.major,value.minor) for value in item.io},expected)
@@ -187,8 +189,8 @@ class CopyFixtureProfileTests(unittest.TestCase):
 
     def test_resource_io_closure_rejects_bad_device_sets_without_mutation(self):
         ambient=[(7,21,48,12),(259,0,20,10)]
-        invalid=([],[(7,-1,64,16)],[(7,22,64,16),(7,22,32,8)],
-                 [(7,22,0,16)],[(2**32,1,64,16)])
+        invalid=([],_fixture_budget([(7,22,64,16),(7,22,32,8)]).io,
+                 _fixture_budget([(7,22,0,16)]).io,_fixture_budget([(7,22,64,0)]).io)
         for devices in invalid:
             with self.subTest(devices=devices):
                 resource=_fixture_resource(ambient)

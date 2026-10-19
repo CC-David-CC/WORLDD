@@ -359,6 +359,7 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
     def test_failed_owner_stop_closes_all_handles_and_records_unit(self):
         owner = self.cls.__new__(self.cls)
         child = Child(); owner.storage_owner = child
+        owner.storage_owner_launch_path = None
         owner.storage_unit = 'spatial-storage-owner-exact.service'
         owner.storage_cleanup_confirmed = None
         owner.storage_cleanup_path = self.root/'cleanup.txt'
