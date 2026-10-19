@@ -1,4 +1,4 @@
-M08 native storage profile repair: UNQUALIFIED
+M08 native storage profile repair: FOCUSED-PASS; M08 UNQUALIFIED
 
 Base: 5861ac01b2a654034480b5463480db6efc069956.
 Both sanitizer launches refused before test bodies. The adapter selected Debug
@@ -11,6 +11,47 @@ Focused checks selected before execution:
 - Evaluate actual CMake registration arguments in Debug and ASan-UBSan modes.
 Both hosts passed all six methods. Canonical command and wrapper exits were zero.
 Evidence: /home/dflanag3/spatial-artifacts/m08-native-storage-profile-repair-20261019/hosts/HOST/runs/unit
-Native sanitizer rerun: UNRUN at this checkpoint.
+Native sanitizer rerun: seven PASS on sb16 and seven PASS on sb16-2.
+The sb16 unittest summary records 89.470 seconds. The sb16-2 summary records 97.624 seconds.
+Nine saved-output parser and physical-device mapping checks passed first on each host.
+Native, outer launcher, parser, and offline verifier receipts all record command.exit=0,
+wrapper.exit=0, and COMPLETE. Preserved logs contain no ASan, LeakSanitizer, or UBSan findings.
+The SAN adapter profile is explicit. Both runs verified a 512 MiB manager budget.
+
+Runtime staging was an explicit mixed-source overlay. It was not a uniform d6 source tree.
+The baseline is source48 plus the three fixture5861 runtime helpers.
+Exact d6d817bb33d0d9cafe818f31c3a0d89c0bf18b9e CMake and resource-unit overlays were added.
+The native seven-test body stayed unchanged at SHA-256:
+a7ab1b94f326ae877d5301885b11b5d832448d86f7e58910422690b34d2c520a.
+Focused CTest metadata selected session-storage-owner and forwarded --copy-profile=ASan-UBSan.
+It preserved the original test working directory. This was not generated full qualification metadata.
+Production ELFs remained packaged812bcb6 with the reviewed supervisor39 override.
+No build ran. Host manifests pin all 1166 source files and 160 runtime/graphics inputs.
+
+A separate offline verifier checked actual seven-test success, canonical argv, full source pins,
+recursive scalar and I/O budgets, physical backing-parent mapping, and every fixture cleanup proof.
+It then removed seven exact detached and unmounted volume.img files on each host.
+All fourteen image paths are absent. Logs, setup receipts, and image identity records remain.
+Logical removed bytes per host: 3758096384.
+Recorded allocated image bytes before removal: sb16 176209920; sb16-2 176177152.
+No storage-owner unit remained active. Refusal-case images were not removed.
+
+Current evidence on ROG and both test hosts:
+/home/dflanag3/spatial-artifacts/m08-storage-session-io-fixture-repair-20261019/native7-overlay/profile-corrected-d6d817bb
+The evidence-index.json lists exact host paths, cleanup receipts, results, and source/runtime pins.
+Native receipts: hosts/HOST/runs/ASan-UBSan and hosts/HOST/launcher-runs/ASan-UBSan.
+Offline receipts: hosts/HOST/offline-verification/ASan-UBSan-profiled6.
+Parser receipts: hosts/HOST/offline-verification/parser-profiled6.
+The old Debug proofs and old sanitizer startup-refusal exit-eight evidence remain unchanged.
+Driver SHA-256: 58825faa0e38ed6bc36723562e0a0b6d8540d21d8d08fcbc80d9c7afe028a21d.
+Verifier SHA-256: 0a5816b4f83e515df474974776f079fdb01156bf30af199b80fc63cf36340b80.
+Frozen plan SHA-256: 20e9fab1aee62e52d71b8288239ae88f13914d5926e208dd6666aff63a773d5c.
+Result summaries: sb16 1a49180f9e1b501eb8d2c1cd69bc3b0e696f46ebb233403e797d77ede5511de8;
+sb16-2 5d417028d5dd1b16e1f7b3f0de35c8fc43bde8cf03e24e43e64d3d2ff78ddf76.
+
+Passed: fourteen native SAN cases and eighteen artifact-verifier regressions.
+Failed: zero in this rerun. Historical startup refusals remain preserved separately.
+Blocked: none for this focused rerun. Skipped: zero.
+Unrun: full M08 qualification and the other adapter registration runtimes.
 Other adapter registrations remain outside this bounded repair.
 Full M08 qualification remains pending. No product authorization policy changed.
