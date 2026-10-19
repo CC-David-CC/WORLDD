@@ -13,9 +13,10 @@ from unittest.mock import patch
 from inspect_workspace_copy_fault_fixture import validate_discovered_tests
 import broker_pb2 as broker
 import process_scope_pb2 as process_scope
-from copy_fixture_profiles import (consume_profile, manager_memory_mib, instrumentation_preflight,
-    process_scope_budgets, set_resource_io_closure, validate_resource_io_closure,
-    configure_copy_fixture_application_profiles, COPY_BINARIES)
+from copy_fixture_profiles import (consume_profile, manager_memory_mib, broker_memory_mib,
+    build_adapter_resources, bind_definition_resource_devices, require_exact_provisioned_resources,
+    instrumentation_preflight, process_scope_budgets, set_resource_io_closure,
+    validate_resource_io_closure, configure_copy_fixture_application_profiles, COPY_BINARIES)
 from copy_fixture_image_cleanup import (
     cleanup_engine_group, cleanup_file_action_group, cleanup_passed_fixture_images,
     engine_group_passed, file_action_group_passed, require_group_capacity, run_after_capacity_preflight,
@@ -218,6 +219,60 @@ class CopyFixtureProfileTests(unittest.TestCase):
             unchanged,profile=consume_profile(arguments,'--copy-profile=')
         self.assertEqual(unchanged,arguments);self.assertEqual(profile,'Debug')
         self.assertEqual(manager_memory_mib(profile),256)
+
+    def test_adapter_broker_headroom_and_fallback_budgets_follow_profile(self):
+        mib=2**20
+        for profile,manager,broker_limit in (('Debug',256,1024),('ASan-UBSan',512,1280)):
+            with self.subTest(profile=profile):
+                self.assertEqual(manager_memory_mib(profile),manager)
+                self.assertEqual(broker_memory_mib(profile),broker_limit)
+                funded=(manager+256+128+128)
+                self.assertEqual(broker_limit-funded,256)
+                self.assertGreater(broker_memory_mib(profile),funded)
+                config=build_adapter_resources(profile,259,7,broker,process_scope)
+                self.assertEqual(config.broker_budget.memory_bytes,broker_limit*mib)
+                self.assertEqual(config.broker_budget.processes,128)
+                self.assertEqual(config.broker_budget.cpu_microseconds,400000)
+                self.assertEqual(config.manager_budget.memory_bytes,manager*mib)
+                policy=config.default_policy
+                self.assertEqual(policy.total.memory_bytes,512*mib)
+                self.assertEqual(policy.actor_default.memory_bytes,256*mib)
+                self.assertEqual({p.name:p.maximum.memory_bytes for p in policy.profiles},
+                                 {'development':128*mib,'read-only':128*mib})
+                self.assertEqual(len(process_scope_budgets(config)),6)
+                for budget in process_scope_budgets(config):
+                    self.assertEqual(budget.swap_bytes,0)
+                    self.assertEqual([(x.major,x.minor,x.read_bytes_per_second,x.write_bytes_per_second)
+                                      for x in budget.io],[(259,7,64*mib,16*mib)])
+        with self.assertRaises(ValueError):broker_memory_mib('unknown')
+        with self.assertRaises(ValueError):build_adapter_resources('Debug',-1,7,broker,process_scope)
+
+    def test_provisioned_resource_match_uses_exact_pinned_custom_policy(self):
+        mib=2**20
+        pinned=build_adapter_resources('Debug',1,0,broker,process_scope)
+        for budget in process_scope_budgets(pinned):budget.ClearField('io')
+        pinned.broker_budget.memory_bytes=1408*mib
+        devices=process_scope.ProcessScopeBudget()
+        devices.io.add(major=259,minor=8,read_bytes_per_second=32*mib,
+                       write_bytes_per_second=8*mib)
+        devices.io.add(major=259,minor=7,read_bytes_per_second=64*mib,
+                       write_bytes_per_second=16*mib)
+        actual=bind_definition_resource_devices(pinned,devices.io)
+        self.assertEqual(require_exact_provisioned_resources(actual,pinned,devices.io),actual)
+        self.assertEqual(actual.broker_budget.memory_bytes,1408*mib)
+        self.assertEqual([(item.major,item.minor) for item in actual.broker_budget.io],
+                         [(259,7),(259,8)])
+        altered=type(actual)();altered.CopyFrom(actual)
+        altered.default_policy.profiles[0].maximum.memory_bytes+=mib
+        with self.assertRaisesRegex(ValueError,'differ from pinned'):
+            require_exact_provisioned_resources(altered,pinned,devices.io)
+        mismatched=process_scope.ProcessScopeBudget()
+        mismatched.io.add(major=259,minor=8,read_bytes_per_second=64*mib,
+                          write_bytes_per_second=16*mib)
+        with self.assertRaisesRegex(ValueError,'differ from pinned'):
+            require_exact_provisioned_resources(actual,pinned,mismatched.io)
+        with self.assertRaisesRegex(ValueError,'must not prebind'):
+            bind_definition_resource_devices(actual,devices.io)
 
     def test_unknown_duplicate_and_misplaced_profiles_are_rejected(self):
         for arguments in (['--profile=SAN'],['--profile='],
