@@ -376,6 +376,7 @@ struct ExecutionStore::Impl {
     bool copy_authority_reconcile_pending = false;
     std::string copy_expiry_cursor;
     bool git_parent_recovery_complete = false;
+    bool git_effect_recovery_pending = false;
     FileEngineEntry& file_engine(const wire::WorkspaceReply& workspace,
                                  const wire::WorktreeReply& registered) {
         const auto id=registered.id();
@@ -791,13 +792,9 @@ struct ExecutionStore::Impl {
         sql(db.get(), "UPDATE processes SET state='uncertain' WHERE state IN ('pending','running')");
         // A partial clone has no reliable completion witness. Preserve it for explicit repair.
         sql(db.get(), "UPDATE repositories SET state='uncertain' WHERE state='pending'");
-        std::vector<std::string> pending;
-        { Query q(db.get(), "SELECT id FROM operations WHERE state='pending'"); while (q.step() == SQLITE_ROW) pending.push_back(q.text(0)); }
-        for (const auto& id : pending) reconcile(id);
-        pending.clear();
-        { Query q(db.get(), "SELECT id FROM removals WHERE state='pending'"); while (q.step() == SQLITE_ROW) pending.push_back(q.text(0)); }
-        for (const auto& id : pending) reconcile_removal(id);
-        sync_path(state, true); sync_path(state.parent_path(), true);
+        git_effect_recovery_pending = true;
+        if (!resources) reconcile_pending_git_effects();
+        else { sync_path(state, true); sync_path(state.parent_path(), true); }
     }
     std::filesystem::path allocate(const char* collection, const char* suffix = "") {
         Query q(db.get(), "SELECT lower(hex(randomblob(16)))"); q.step();
@@ -999,6 +996,17 @@ struct ExecutionStore::Impl {
                 std::find(entries.begin(), entries.end(), "worktree " + (retired / "staging/project").string()) == entries.end();
         } catch (const std::exception&) { complete = false; }
         removal_state(id, record.id(), complete);
+    }
+    void reconcile_pending_git_effects() {
+        if (!git_effect_recovery_pending) return;
+        std::vector<std::string> pending;
+        { Query q(db.get(), "SELECT id FROM operations WHERE state='pending'"); while (q.step() == SQLITE_ROW) pending.push_back(q.text(0)); }
+        for (const auto& id : pending) reconcile(id);
+        pending.clear();
+        { Query q(db.get(), "SELECT id FROM removals WHERE state='pending'"); while (q.step() == SQLITE_ROW) pending.push_back(q.text(0)); }
+        for (const auto& id : pending) reconcile_removal(id);
+        sync_path(state, true); sync_path(state.parent_path(), true);
+        git_effect_recovery_pending = false;
     }
 };
 
@@ -2143,6 +2151,7 @@ void ExecutionStore::set_resources(WorkspaceResources* resources) {
     }
     impl_->recover_git_worker_parent_before_dispatch();
     resources->finish_initialization();
+    impl_->reconcile_pending_git_effects();
 }
 void ExecutionStore::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
 void ExecutionStore::stop_all() {

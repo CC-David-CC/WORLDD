@@ -2,6 +2,8 @@
 import os
 import io
 import fcntl
+import hashlib
+import json
 import broker_pb2 as broker_pb
 from pathlib import Path
 import select
@@ -34,12 +36,81 @@ class WorkspaceGitTests(unittest.TestCase):
         self.state = self.root / 'runtime'
         self.repo = GitRepo(self.root)
         self.client = None
+        self.runtime_broker_sha256 = None
         self.start()
+
+    def _preserve_failed_start_stderr(self):
+        if self.client is None:
+            return
+        source = Path(self.client._stderr.name)
+        self.client.stop()
+        evidence_root = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if not evidence_root:
+            raise RuntimeError('SPATIAL_SECURITY_EVIDENCE is required to retain failed broker stderr')
+        directory = Path(evidence_root) / 'workspace-git-start-failure'
+        directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if directory.stat().st_mode & 0o077:
+            raise RuntimeError(f'Broker stderr evidence directory is not private: {directory}')
+        attempt = uuid.uuid4().hex
+        stem = f'{self._testMethodName}-{attempt}'
+        payload = source.read_bytes() if source.is_file() else b''
+        digest = hashlib.sha256(payload).hexdigest()
+        stderr_path = directory / f'{stem}-broker-stderr.log'
+        fd = os.open(stderr_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'wb') as output:
+            output.write(payload)
+            output.flush()
+            os.fsync(output.fileno())
+        metadata = {
+            'test': self._testMethodName,
+            'attempt_id': attempt,
+            'stderr_path': str(stderr_path),
+            'stderr_bytes': len(payload),
+            'stderr_sha256': digest,
+            'host_executable': str(Path(HOST).resolve()),
+            'broker_executable': str(Path(BROKER).resolve()),
+        }
+        meta_path = directory / f'{stem}-metadata.json'
+        fd = os.open(meta_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'w', encoding='utf-8') as output:
+            json.dump(metadata, output, sort_keys=True)
+            output.write('\n')
+            output.flush()
+            os.fsync(output.fileno())
+        print(f"PRESERVED_BROKER_STDERR {stderr_path} sha256={digest} bytes={len(payload)}")
 
     def start(self):
         self.client = Client([HOST], self.state, self.root / 'logs', timeout=65)
         self.addCleanup(self.client.stop)
-        self.client.call('system.hello')
+        try:
+            self.client.call('system.hello')
+            host_exe = Path(f'/proc/{self.client.proc.pid}/exe').resolve()
+            broker_exe = Path(BROKER).resolve()
+            self.assertEqual(host_exe, Path(HOST).resolve(), 'Runtime host must be the selected new-prefix executable')
+            identities = self.call('runtime.identities')
+            broker_pid = identities['workspaced_pid']
+            worldd_pid = identities['worldd_pid']
+            actual_broker = Path(f'/proc/{broker_pid}/exe')
+            actual_worldd = Path(f'/proc/{worldd_pid}/exe').resolve()
+            self.assertEqual(actual_broker.resolve(), broker_exe,
+                             'Platform worker must launch the selected workspaced sibling')
+            self.assertEqual(actual_worldd.parent, broker_exe.parent,
+                             'worldd must come from the same runtime prefix as workspaced')
+            actual_sha256 = hashlib.sha256(actual_broker.read_bytes()).hexdigest()
+            selected_sha256 = hashlib.sha256(broker_exe.read_bytes()).hexdigest()
+            self.assertEqual(actual_sha256, selected_sha256, 'Running workspaced bytes differ from the selected binary')
+            if self.runtime_broker_sha256 is None:
+                self.runtime_broker_sha256 = actual_sha256
+            else:
+                self.assertEqual(actual_sha256, self.runtime_broker_sha256,
+                                 'Restarted workspaced binary identity changed')
+        except Exception as failure:
+            try:
+                self._preserve_failed_start_stderr()
+            except Exception as retain_error:
+                if hasattr(failure, 'add_note'):
+                    failure.add_note(f'Failed to preserve broker stderr: {retain_error!r}')
+            raise
 
     def call(self, method, **args):
         timeout = 300 if method == 'git.repo.import' else 65
@@ -365,6 +436,40 @@ class WorkspaceGitTests(unittest.TestCase):
 
     def allow_removal_ready(self):
         with self.registry() as db: db.execute('DROP TRIGGER deny_removal_ready')
+
+    def assert_git_worker_parent_bound(self):
+        journal = self.state / 'execution' / 'file-operations' / 'file-operations.db'
+        self.assertTrue(journal.is_file(), f'File-operation journal must already exist: {journal}')
+        with sqlite3.connect(journal.as_uri() + '?mode=ro', uri=True) as db:
+            row = db.execute("SELECT state,root_device,root_inode,boot_id,identity,root_path FROM git_worker_parent").fetchone()
+        self.assertIsNotNone(row, 'Recovered Git effects must use a journaled worker parent')
+        self.assertEqual(row[0], 2, 'Git worker parent must be durably bound')
+        self.assertGreater(row[1], 0); self.assertGreater(row[2], 0)
+        self.assertTrue(row[3]); self.assertTrue(row[4]); self.assertTrue(Path(row[5]).is_absolute())
+
+    def test_pending_create_and_removal_recover_after_git_parent_binding(self):
+        backing = self.imported()
+        self.deny_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        record, receipt = self.pending_work()
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+        self.allow_ready(); self.client.stop(crash=True); self.start()
+        self.assert_git_worker_parent_bound()
+        recovered = self.create()
+        self.assertEqual(recovered['path'], record.path)
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
+        self.assertEqual(receipt.read_bytes(), record.SerializeToString())
+
+        self.deny_removal_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        retired = self.retirement()
+        self.assertFalse(Path(record.path).exists()); self.assertTrue((retired/'complete').is_file())
+        self.allow_removal_ready(); self.client.stop(crash=True); self.start()
+        self.assert_git_worker_parent_bound()
+        self.assertEqual(self.remove(), {'removed': True})
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'ready')
+        self.assertEqual((retired/'data/project/README.txt').read_text(), 'base\n')
+        self.assertEqual(self.repo.run('worktree','list','--porcelain',cwd=backing['path']).count('worktree '),1)
 
     def test_completed_removal_is_reconciled_after_failed_acknowledgment(self):
         self.imported(); work = self.create(); self.deny_removal_ready()
