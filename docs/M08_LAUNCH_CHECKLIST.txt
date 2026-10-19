@@ -72,3 +72,6 @@ Receipts: a two-byte file containing 0\n was mistaken for exit code 2.
 Metadata: relocation can silently change an implicit CTest working directory.
 Imports: profile checks need generated protobuf bindings on the recorded import path.
 Archive modes: shared Git archives may include group-write bits before explicit freezing.
+Directory inventories: compare paths from one declared root. Include the archive top directory explicitly.
+Test-host launchers: use the deployed external runner. Test boxes have no Codex skill installation.
+Graphics wrappers: pin per-host wrapper hashes when host-specific library paths differ.
