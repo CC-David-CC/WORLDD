@@ -48,3 +48,34 @@ Provision fresh distinct StorageOwner volumes and protected configurations for e
 Prepare and verify the complete gate deployment layout and final candidate source pin.
 Run all required local stages, cross-host matrices, native witnesses, and reconciliation.
 Keep unrun requirements separate from focused passing evidence.
+
+Additional focused runtime findings
+
+Storage contention ran against frozen f109 source and binaries on both hosts.
+Debug passed all 25 cases on each host: three native cases and 22 unit cases.
+The sanitizer profile passed 22 unit cases but failed all three native cases on each host.
+Each native failure occurred while launching writers, before the contention barrier.
+The broker returned RESOURCE_EXHAUSTED: Broker envelope capacity is reserved or occupied.
+This is not evidence of the earlier six-second barrier failure.
+Do not widen the six-second oracle or 180-second CTest timeout.
+Logical resource reservation arithmetic is under separate review.
+Evidence on both hosts: spatial-artifacts/m08-storage-contention-focused-f109697-20261019.
+Both jobs returned command/wrapper exit 8. Helpers were restored to absence.
+
+The reviewed recovery test overlay d48f64e9b2d7d3d1fe76e165408ff4230ad3d1ec ran separately.
+Its archive SHA256 is ed7d2b0b4c67c501e288dbb4197f030050af37f373bc8b5747588dff7a671e32.
+All 1191 archived source files were hash-verified on each host.
+Production source, schemas, server inputs, and CMake matched frozen f109.
+No binaries were rebuilt or silently substituted for this test-only overlay.
+The full 14-case authority-handoff regression ran in Debug on each host.
+Thirteen cases passed and one failed on each host. Sanitizer was unrun.
+The new failure occurs before restart: the fixture observed no activation rows.
+The recovery helper incorrectly required a nonempty activation history.
+Review must establish actual registration, authorization, and fence state before changing that assumption.
+Exact parent identity, stopped process scope, independent client, and durable record checks preceded the failure.
+The patch remains UNQUALIFIED and is not integrated.
+Snapshots and supervisor logs were retained before teardown under Debug/spatial_security_evidence.
+Evidence on both hosts: spatial-artifacts/m08-handoff-recovery-focused-20261019.
+Both jobs returned command/wrapper exit 8. Helpers were restored to absence.
+ROG concise failure receipt: spatial-artifacts/m08-handoff-recovery-focused-20261019/both-hosts-failure-01.json.
+These focused findings do not qualify M08 or resolve the earlier intermittent barrier miss.
