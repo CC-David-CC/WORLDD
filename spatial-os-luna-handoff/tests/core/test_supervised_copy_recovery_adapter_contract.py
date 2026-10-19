@@ -14,8 +14,8 @@ import sys
 
 import launch_pb2 as launch
 import issuer_pb2 as issuer
-from supervised_copy_broker_recovery import (finish_checked_retirement, require_candidate_supervisor_denial,
-    wait_for_active_generation)
+from supervised_copy_broker_recovery import (finish_checked_retirement, require_broker_identity_observation,
+    require_candidate_supervisor_denial, wait_for_active_generation)
 
 NATIVE = Path(__file__).resolve().parents[1]/'native'
 sys.path.insert(0, str(NATIVE))
@@ -164,6 +164,22 @@ class AdapterContractTests(unittest.TestCase):
                     if timeout == .025:
                         self.assertEqual(len(clock.sleeps), 3)
                         self.assertAlmostEqual(clock.sleeps[-1], .005)
+
+    def test_privileged_broker_identity_requires_exact_live_pidfd_identity(self):
+        identity = dict(pid=27182, start_ticks=9384, executable='/usr/libexec/workspaced')
+        observed = dict(pid=27182, ppid=27100, starttime=9384, exe='/usr/libexec/workspaced')
+        require_broker_identity_observation(identity, observed, 27100, False)
+        cases = (
+            ('pid', dict(observed, pid=27183), 27100, False),
+            ('executable', dict(observed, exe='/tmp/other'), 27100, False),
+            ('starttime', dict(observed, starttime=9385), 27100, False),
+            ('parent pid', dict(observed, ppid=27101), 27100, False),
+            ('readable pidfd', observed, 27100, True),
+        )
+        for name, candidate, parent, readable in cases:
+            with self.subTest(field=name):
+                with self.assertRaises(AssertionError):
+                    require_broker_identity_observation(identity, candidate, parent, readable)
 
     def lifecycle(self, *, stage=launch.OWNED_SCOPES_STOPPED, control_closed=False):
         events = []
