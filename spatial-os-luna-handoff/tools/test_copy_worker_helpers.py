@@ -17,6 +17,7 @@ from unittest import mock
 TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS))
 import with_copy_worker_helpers as lifecycle
+import m06_deployed_gate as m06
 
 
 class CandidateSelectionTests(unittest.TestCase):
@@ -84,6 +85,69 @@ class CandidateSelectionTests(unittest.TestCase):
             self.assertEqual(raised.exception.code, 0)
             payload = json.loads(output.getvalue())
             self.assertEqual(payload['matches'], [{'pid': 321, 'executable': str(target) + suffix}])
+
+
+class CMakeGeneratorCacheTests(unittest.TestCase):
+    def write_cache(self, build, source, lines):
+        build.mkdir(parents=True, exist_ok=True)
+        (build / "CMakeCache.txt").write_text("\n".join(lines) + "\n")
+
+    def valid_lines(self, generator, source):
+        return ["CMAKE_GENERATOR:INTERNAL=" + generator,
+                "CMAKE_HOME_DIRECTORY:INTERNAL=" + str(source)]
+
+    def test_existing_supported_generators_match_canonical_source_and_fresh_defaults_ninja(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source"
+            source.mkdir()
+            self.assertEqual(m06.configure_generator_for_build(root / "fresh", source), "Ninja")
+            alias = root / "source-alias"
+            alias.symlink_to(source, target_is_directory=True)
+            for generator, cached_source in (("Ninja", source), ("Unix Makefiles", alias)):
+                with self.subTest(generator=generator):
+                    build = root / ("build-" + generator.replace(" ", "-"))
+                    self.write_cache(build, source, self.valid_lines(generator, cached_source))
+                    self.assertEqual(m06.configure_generator_for_build(build, source), generator)
+
+    def test_existing_cache_rejects_unknown_duplicate_malformed_and_wrong_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source"
+            other = root / "other"
+            source.mkdir(); other.mkdir()
+            cases = (
+                ("unknown", ["CMAKE_GENERATOR:INTERNAL=Ninja Multi-Config",
+                             "CMAKE_HOME_DIRECTORY:INTERNAL=" + str(source)], "Unsupported cached"),
+                ("duplicate-generator", self.valid_lines("Ninja", source) +
+                 ["CMAKE_GENERATOR:INTERNAL=Unix Makefiles"], "exactly one CMAKE_GENERATOR"),
+                ("duplicate-source", self.valid_lines("Ninja", source) +
+                 ["CMAKE_HOME_DIRECTORY:INTERNAL=" + str(source)], "exactly one CMAKE_HOME_DIRECTORY"),
+                ("malformed", ["CMAKE_GENERATOR:INTERNAL", "CMAKE_HOME_DIRECTORY:INTERNAL=" + str(source)],
+                 "Malformed CMAKE_GENERATOR"),
+                ("wrong-source", self.valid_lines("Ninja", other), "does not match"),
+                ("missing-source", ["CMAKE_GENERATOR:INTERNAL=Ninja"], "exactly one CMAKE_HOME_DIRECTORY"),
+                ("relative-source", self.valid_lines("Ninja", Path(os.path.relpath(source, Path.cwd()))),
+                 "CMAKE_HOME_DIRECTORY must be absolute"),
+            )
+            for name, lines, message in cases:
+                with self.subTest(name=name):
+                    build = root / name
+                    self.write_cache(build, source, lines)
+                    with self.assertRaisesRegex(RuntimeError, message):
+                        m06.configure_generator_for_build(build, source)
+
+    def test_build_and_production_off_select_generators_independently(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source"
+            source.mkdir()
+            build = root / "all-targets" / "Debug"
+            production = root / "production-off" / "Debug"
+            self.write_cache(build, source, self.valid_lines("Unix Makefiles", source))
+            self.write_cache(production, source, self.valid_lines("Ninja", source))
+            self.assertEqual(m06.configure_generator_for_build(build, source), "Unix Makefiles")
+            self.assertEqual(m06.configure_generator_for_build(production, source), "Ninja")
 
 
 class ProcessInspectorTests(unittest.TestCase):
