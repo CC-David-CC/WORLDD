@@ -16,6 +16,7 @@ import uuid
 # File-based preflight importers need the adjacent, frozen profile helper too.
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from copy_fixture_profiles import consume_profile, instrumentation_preflight
+from with_private_test_evidence import create_private_evidence_children
 
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -45,7 +46,9 @@ def main():
     assert build.is_dir() and source.is_dir() and not evidence.exists()
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
     assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
-    evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
+    evidence.mkdir(mode=0o700)
+    create_private_evidence_children(evidence)
+    backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
     report=dict(qualification='UNQUALIFIED',selected_methods=1,
         selected_case=selected_case,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')

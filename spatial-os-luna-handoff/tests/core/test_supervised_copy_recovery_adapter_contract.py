@@ -25,6 +25,7 @@ NATIVE = Path(__file__).resolve().parents[1]/'native'
 sys.path.insert(0, str(NATIVE))
 from supervised_delegation_parent import cleanup_owned_parents, execution_key, verify_pinned_directory
 from copy_fault_supervised_world import enforce_fixture_generation_policy, fixture_version
+from test_workspace_copy_faults import initialize_lost_ack_supervisors
 
 
 class AdapterContractTests(unittest.TestCase):
@@ -347,6 +348,21 @@ class AdapterContractTests(unittest.TestCase):
         self.assertEqual(isolated_os.environ['SPATIAL_TEST_COPY_PREPARED_NOTIFY'], '/fixture-root/ready')
         self.assertEqual(isolated_os.environ['SPATIAL_TEST_COPY_RECOVERY_DESTINATION_SYNC_FAIL'], '1')
         self.assertNotIn('SPATIAL_TEST_UNRELATED_SENTINEL', isolated_os.environ)
+
+    def test_lost_ack_initializer_sets_v2_before_context_and_preserves_default(self):
+        selected=SimpleNamespace()
+        observed=[]
+        def context_factory(fixture):
+            version=fixture_version(fixture)
+            observed.append(version)
+            return SimpleNamespace(fixture_version=version)
+        owner=initialize_lost_ack_supervisors(selected,context_factory)
+        self.assertEqual(observed,[2])
+        self.assertEqual(owner.fixture_version,2)
+        self.assertEqual(fixture_version(selected),2)
+        unrelated=SimpleNamespace()
+        self.assertEqual(fixture_version(unrelated),1)
+        self.assertFalse(hasattr(unrelated,'supervised_copy_recovery_fixture_version'))
 
     def test_fixture_defaults_to_original_v1_active_generation_guard(self):
         self.assertEqual(fixture_version(self), 1)
