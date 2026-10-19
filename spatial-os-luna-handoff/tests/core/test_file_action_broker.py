@@ -16,10 +16,11 @@ import test_workspace_copy_engine as engine
 import test_workspace_copy_faults as copy_faults
 sys.path.insert(0, str(engine.SOURCE / 'tests/native'))
 from supervised_copy_broker_recovery import (
-    SupervisedCopyBrokerRecovery, finish_checked_retirement, wait_for_active_generation)
+    SupervisedCopyBrokerRecovery, wait_for_active_generation)
 import broker_pb2 as broker
 import grants_pb2 as grant
 import issuer_pb2 as issuer
+import launch_pb2 as launch
 import cabinet_pb2 as cabinet
 import file_actions_pb2 as files
 import file_copy_job_journal_pb2 as copy_journal
@@ -1424,6 +1425,82 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
             os.close(descriptor)
             gate['pidfd']=None
 
+    def _startup_refusal_issuer_rows(self,participant):
+        orders={'authority_activation':'generation','authority_fence':'generation',
+                'authority_retirement':'generation','authority_obligation':'revision',
+                'authority_launch_authorization':'authorization_id'}
+        with closing(sqlite3.connect('file:'+str(self.state/'identity.db')+'?mode=ro',
+                                    uri=True,timeout=.5)) as database:
+            return {table:database.execute('SELECT * FROM '+table+
+                ' WHERE participant_id=? ORDER BY '+order,(participant,)).fetchall()
+                for table,order in orders.items()}
+
+    def _finish_unactivated_startup_refusal(self,candidate,issuer_before):
+        import json
+        from harness.copy_fault_evidence import durable_write
+        resources=candidate.resources;handle=resources.handle
+        self.assertIsNone(handle.retirement)
+        candidate.close()
+        self.assertEqual(candidate.owner.poll(),0,'Storage owner must finish actual EOF cleanup')
+        self.assertTrue(resources.closed)
+        self.assertEqual(handle.proc.wait(timeout=15),2,'Startup refusal must retain supervisor failure')
+        self.assertTrue(handle.child_dead,'Actual candidate death must be witnessed')
+        try:
+            if handle.terminal is None:handle.terminal=handle.receive()
+            reply=handle.terminal
+            self.assertTrue(reply.HasField('error'),reply)
+            self.assertEqual(reply.error.message,'Authority child exited before relay completion')
+            self.assertTrue(reply.error.HasField('cleanup_record'),reply)
+            record=reply.error.cleanup_record
+            self.assertEqual(record,handle.record(),'Terminal cleanup must match the durable journal')
+            durable_write(handle.evidence/'cleanup.pb',record.SerializeToString(deterministic=True))
+            self.assertEqual(handle.initial.view.record.stage,launch.START_ATTEMPTED)
+            self.assertEqual(record.stage,launch.OWNED_SCOPES_STOPPED)
+            self.assertEqual(record.binding,handle.binding)
+            for name in ('process','native','authorization'):
+                self.assertEqual(getattr(record,name),getattr(handle.initial.view.record,name))
+            self.assertEqual(record.process_stopped.identity,record.process)
+            self.assertEqual(record.native_stopped.identity,record.native)
+            self.assertFalse(resources.root.exists(),'Checked local cleanup must remove only its own scope')
+            self.assertFalse(record.HasField('fence'),'Unactivated authorization cannot prove a failed-generation fence')
+            self.assertIsNone(handle.retirement)
+            self.assertFalse((handle.evidence/'retirement.pb').exists())
+            authorization=record.authorization
+            self.assertTrue(record.HasField('authorization'))
+            self.assertEqual(authorization.generation,0)
+            self.assertEqual(authorization.request.service.registration,handle.supervision.registration)
+            self.assertEqual(authorization.request.service.service_incarnation,handle.binding.service_incarnation)
+            self.assertEqual(authorization.request.launch_id,record.process.launch_id)
+            self.assertEqual(authorization.request.previous_generation,handle.previous_generation)
+            self.assertEqual(authorization.request.supervision_revision,handle.supervision.revision)
+            self.assertEqual(authorization.supervisor_public_key,handle.public)
+            issuer_after=self._startup_refusal_issuer_rows(handle.binding.participant_id)
+            # Preserve issuer facts before TemporaryDirectory teardown. Local
+            # cleanup does not release this authorization or prove issuer retirement.
+            snapshot={phase:{table:[[value.hex() if isinstance(value,bytes) else value for value in row]
+                for row in rows] for table,rows in state.items()}
+                for phase,state in (('before',issuer_before),('after',issuer_after))}
+            durable_write(handle.evidence/'unactivated-issuer-state.json',
+                          (json.dumps(snapshot,sort_keys=True,indent=2)+'\n').encode())
+            authorizations='authority_launch_authorization'
+            for table in issuer_before:
+                if table!=authorizations:
+                    self.assertEqual(issuer_after[table],issuer_before[table],
+                                     'Unactivated refusal changed '+table)
+            rows=issuer_after[authorizations]
+            self.assertEqual([row for row in rows if row[0]!=authorization.authorization_id],
+                             issuer_before[authorizations],'Prior launch authorizations changed')
+            retained=[row for row in rows if row[0]==authorization.authorization_id]
+            self.assertEqual(len(retained),1,'Exact unconsumed authorization must remain retained')
+            row=retained[0]
+            self.assertEqual(row[:4],(authorization.authorization_id,handle.binding.participant_id,
+                                     handle.binding.service_incarnation,record.process.launch_id))
+            self.assertEqual(issuer.AuthorityLaunchBegin.FromString(row[4]),authorization.request)
+            self.assertEqual(row[5:],(handle.public,0))
+        finally:
+            handle.close_control()
+            handle.preserve()
+
     def _prepared_generation_restart(self,old,recovery,worker_scope,stage_root,job_id,case,gate):
         # Stop the actual orphan worker without removing its journaled cgroup.
         # Construct the precise prepared crash boundary while workspaced is dead.
@@ -1517,10 +1594,12 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
             # Checked retirement was genuine. The foreign root cannot verify
             # the retained parent of this still-RUNNING job.
             with closing(sqlite3.connect(database)) as db:
-                running_bytes=db.execute(
-                    'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
-                    ('one',job_id)).fetchone()[0]
+                running_row=db.execute(
+                    'SELECT state,updated_at,record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
+                    ('one',job_id)).fetchone()
             self.assertEqual(retired_record.state,copy_journal.FILE_COPY_JOB_JOURNAL_RUNNING)
+            self.assertEqual(running_row[0],copy_journal.FILE_COPY_JOB_JOURNAL_RUNNING)
+            issuer_before=self._startup_refusal_issuer_rows(recovery.handle.binding.participant_id)
             candidate_log=self.root/('copy-fault-broker-'+str(len(self.brokers))+'.log')
             candidate=recovery.restart(type(old))
             self.broker=candidate
@@ -1533,12 +1612,9 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
             candidate.log.flush()
             self.assertIn(b'Active copy parent identity cannot be verified',
                           candidate_log.read_bytes())
-            cleanup,retirement=finish_checked_retirement(
-                self,candidate,candidate.resources,candidate.resources.handle)
-            self.assertTrue(cleanup.HasField('fence'))
-            self.assertIsNotNone(retirement)
-            self.assertFalse(candidate.resources.root.exists(),
-                             'failed candidate generation must retire its own scope')
+            # START_ATTEMPTED does not prove activation. This candidate exits
+            # before consuming its authorization; verify local cleanup separately.
+            self._finish_unactivated_startup_refusal(candidate,issuer_before)
             self.assertEqual((old_root.stat().st_dev,old_root.stat().st_ino),foreign_identity[0])
             self.assertEqual((worker_scope.stat().st_dev,worker_scope.stat().st_ino),foreign_identity[1])
             self.assertTrue(stage.exists(),'failed startup must retain prepared staging')
@@ -1551,9 +1627,9 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
             self.assertFalse((self.project/'sigkill-copy').exists())
             with closing(sqlite3.connect(database)) as db:
                 self.assertEqual(db.execute(
-                    'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
-                    ('one',job_id)).fetchone()[0],running_bytes,
-                    'startup refusal must not fabricate a terminal receipt')
+                    'SELECT state,updated_at,record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
+                    ('one',job_id)).fetchone(),running_row,
+                    'startup refusal must preserve the complete RUNNING journal row')
             return
         published=case in ('published','sync_failure')
         if published:output.rename(self.project/'sigkill-copy')
