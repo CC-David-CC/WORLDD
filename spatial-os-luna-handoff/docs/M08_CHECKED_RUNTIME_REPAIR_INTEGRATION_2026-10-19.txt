@@ -4,7 +4,7 @@ Status: UNQUALIFIED. This branch is a test candidate, not milestone completion.
 Base: 64b03bdf0c22f31cef476ac4c9f41388fb3c641a.
 Ownership repair: 49fc48851cad6d805f42bce543ef0971fafe9cfc.
 Restart-order repair: 6a80a416a240fbdadac69621b737a61eab3903f8.
-The checked cleanup-bootstrap and root-retirement repair awaits its reviewed checkpoint.
+Cleanup/bootstrap repair: 4b6aa653543f834b404c21a4aa19b98528b268b4.
 Do not modify frozen079 deployments or the retained64b diagnostic package.
 
 Verified focused evidence
@@ -48,3 +48,13 @@ sb16 diagnostic: /home/dflanag3/spatial-artifacts/m08-session-storage-diagnostic
 sb16-2 ownership: /home/dflanag3/spatial-artifacts/m08-storage-ownership-focused-126d928-20261019
 Git restart diagnosis: /home/dflanag3/spatial-artifacts/m08-git-restart-diagnostic-7cb728c-20261019
 The last run actually used079 via the host sibling executable. Read provenance-correction.json.
+
+Primary cleanup-regression setup correction
+The uncertain-copy regression installs its deferred callback before process start.
+It waits for the retained child to exit successfully before enabling child controllers.
+ProcessScope::enable_children intentionally accepts only unstarted scopes.
+This fixture writes the real empty cgroup control after the retained child exits.
+It binds the pinned file-operation journal after seeding the uncertain job.
+Production callback and controller guards remain unchanged. Runtime is UNRUN.
+Truncated EOF, unknown exit, post-callback verification failure, and cleanup failure
+still require explicit retained-root runtime evidence before qualification.

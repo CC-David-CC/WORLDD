@@ -876,13 +876,21 @@ void callback_controls(const std::filesystem::path& delegated){
     const std::string name="authority-broker-"+std::string(32,'4');
     auto owned=ProcessScope::prepare_owned(delegated,name);
     const auto owned_path=delegated/name;
+    auto participant=BrokerCopyCleanupParticipant::deferred(*owned);
     AuthorityProcessLaunch child_request;child_request.set_executable("/bin/true");
     const int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"uncertain retirement child null");
     owned->start(child_request,{child_null,child_null,child_null});close(child_null);
     const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"uncertain retirement child pidfd");
     pollfd child_done{child_handle,POLLIN,0};const int child_ready=poll(&child_done,1,5000);close(child_handle);
     check(child_ready==1&&(child_done.revents&POLLIN),"uncertain retirement child did not exit");
-    owned->enable_children();
+    // enable_children() intentionally requires an unstarted scope. This fixture
+    // enables the real cgroup controls only after its retained child has exited.
+    {
+      std::ofstream controllers(owned_path/"cgroup.subtree_control");
+      check(bool(controllers),"uncertain retirement subtree control open failed");
+      controllers<<"+cpu +memory +pids +io\n";controllers.close();
+      check(!controllers.fail(),"uncertain retirement child controllers were not enabled");
+    }
     const auto ids=create_descendants(owned_path,true);
     auto job=record(state,owned->identity(),ids,false);
     seed(state,owned->identity(),owned_path,ids,job);
@@ -891,7 +899,7 @@ void callback_controls(const std::filesystem::path& delegated){
     uncertain_receipt->set_job_id(job.job_id());uncertain_receipt->set_state(FileCopyJobReceipt::UNCERTAIN);
     uncertain_receipt->set_detail("retained root regression");
     FileOperationJournal journal(state.path);journal.update_copy_job(job,{});
-    auto participant=BrokerCopyCleanupParticipant::install(*owned,state.fd);
+    participant->bind(FileOperationJournal::pin_existing(state.fd));
     owned->stop();
     struct stat retained{};
     check(lstat(owned_path.c_str(),&retained)==0&&retained.st_dev==static_cast<dev_t>(owned->identity().device())&&
