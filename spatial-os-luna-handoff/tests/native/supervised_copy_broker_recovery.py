@@ -13,6 +13,21 @@ from harness.issuer_launch_denial import (describe_issuer_trace,
     require_active_generation_denial_trace)
 from harness.issuer_relay import IssuerRelay
 import issuer_pb2 as issuer
+from proc_identity import inspect_process_identity
+
+
+def require_broker_identity_observation(identity, observed, supervisor_pid, pidfd_readable):
+    if pidfd_readable is not False:
+        raise AssertionError('Broker pidfd became readable during privileged identity inspection')
+    expected = {
+        'pid': identity['pid'],
+        'ppid': supervisor_pid,
+        'starttime': int(identity['start_ticks']),
+        'exe': identity['executable'],
+    }
+    if not isinstance(observed, dict) or any(observed.get(key) != value for key, value in expected.items()):
+        raise AssertionError('Privileged broker identity does not match retained process identity')
+
 
 def finish_checked_retirement(fixture, broker, resources, handle):
     """Close supervised resources, validate the retained failure proof, then retire once."""
@@ -200,13 +215,16 @@ class SupervisedCopyBrokerRecovery:
         pid = self.identity['pid']
         self.fixture.assertEqual(self.handle.pid, pid)
         self.fixture.assertEqual(self.fixture.start_time(pid), self.identity['start_ticks'])
-        self.fixture.assertEqual(os.readlink('/proc/' + str(pid) + '/exe'), self.identity['executable'])
-        self.fixture.assertEqual(self.identity['start_ticks'], self.fixture.start_time(pid))
         self.fixture.assertIsNotNone(self.handle.pidfd, "Retained broker pidfd is required")
         descriptor = os.dup(self.handle.pidfd)
         try:
             self.fixture.assertEqual(select.select([descriptor], [], [], 0)[0], [],
-                                     'Broker exited before SIGKILL')
+                                     'Broker exited before privileged identity inspection')
+            observed = inspect_process_identity(pid)
+            self.fixture.assertEqual(self.fixture.start_time(pid), self.identity['start_ticks'])
+            pidfd_readable = bool(select.select([descriptor], [], [], 0)[0])
+            require_broker_identity_observation(self.identity, observed, self.handle.proc.pid,
+                                                pidfd_readable)
             signal.pidfd_send_signal(descriptor, signal.SIGKILL)
             deadline = time.monotonic() + timeout_seconds
             while not select.select([descriptor], [], [], max(0, deadline - time.monotonic()))[0]:
