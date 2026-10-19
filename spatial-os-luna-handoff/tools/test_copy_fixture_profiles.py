@@ -10,14 +10,102 @@ import stat
 import tempfile
 import unittest
 from unittest.mock import patch
-from copy_fixture_profiles import consume_profile, manager_memory_mib, instrumentation_preflight, COPY_BINARIES
+import broker_pb2 as broker
+import process_scope_pb2 as process_scope
+from copy_fixture_profiles import (consume_profile, manager_memory_mib, instrumentation_preflight,
+    process_scope_budgets, set_resource_io_closure, validate_resource_io_closure, COPY_BINARIES)
 from copy_fixture_image_cleanup import (
     cleanup_engine_group, cleanup_file_action_group, cleanup_passed_fixture_images,
     engine_group_passed, file_action_group_passed, require_group_capacity, run_after_capacity_preflight,
     validate_candidate_facts, verify_previous_cleanup, _atomic,
 )
 
+def _fixture_budget(devices, offset=0):
+    budget=process_scope.ProcessScopeBudget(memory_bytes=128*2**20+offset,
+        swap_bytes=offset,processes=8+offset,cpu_microseconds=25000+offset)
+    for major,minor,read,write in devices:
+        budget.io.add(major=major,minor=minor,read_bytes_per_second=read,
+                      write_bytes_per_second=write)
+    return budget
+
+def _fixture_policy(policy, devices, offset, workspace=''):
+    policy.workspace=workspace
+    policy.total.CopyFrom(_fixture_budget(devices,offset))
+    policy.actor_default.CopyFrom(_fixture_budget(devices,offset+1))
+    policy.actors.add(fixture_actor='fixture-actor',
+        maximum=_fixture_budget(devices,offset+2))
+    policy.profiles.add(name='fixture-app',maximum=_fixture_budget(devices,offset+3))
+    return policy
+
+def _fixture_resource(devices):
+    resource=broker.BrokerResourceConfig(protocol_version=2,delegated_cgroup='/fixture/delegated')
+    resource.broker_budget.CopyFrom(_fixture_budget(devices,10))
+    resource.manager_budget.CopyFrom(_fixture_budget(devices,20))
+    _fixture_policy(resource.default_policy,devices,30)
+    _fixture_policy(resource.workspaces.add(),devices,40,'explicit-workspace')
+    copy_profile=resource.copy_profiles.add(name='fixture-copy',revision=1)
+    _fixture_policy(copy_profile.policy,devices,50,'copy-workspace')
+    return resource
+
+def _non_io_budget_state(budget):
+    copied=type(budget)();copied.CopyFrom(budget);copied.ClearField('io')
+    return copied.SerializeToString(deterministic=True)
+
 class CopyFixtureProfileTests(unittest.TestCase):
+    def test_resource_io_closure_rebinds_every_nested_budget(self):
+        ambient=[(7,21,48,12),(259,0,20,10)]
+        own_volume=[(7,22,64,16),(259,0,64,16)]
+        resource=_fixture_resource(ambient)
+        budgets=process_scope_budgets(resource)
+        before={id(item):_non_io_budget_state(item) for item in budgets}
+        workspace_budget=resource.workspaces[0].total
+        workspace_rates=[(48,12),(20,10)]
+        self.assertEqual(len(budgets),14)
+        self.assertEqual(validate_resource_io_closure(_fixture_resource(own_volume),own_volume),14)
+        self.assertEqual(set_resource_io_closure(resource,own_volume),14)
+        expected={(major,minor) for major,minor,_,_ in own_volume}
+        self.assertEqual({(item.major,item.minor) for item in workspace_budget.io},expected)
+        self.assertEqual([(item.read_bytes_per_second,item.write_bytes_per_second)
+                          for item in workspace_budget.io],workspace_rates)
+        for item in process_scope_budgets(resource):
+            self.assertEqual(_non_io_budget_state(item),before[id(item)])
+            self.assertEqual({(value.major,value.minor) for value in item.io},expected)
+            self.assertEqual({(value.major,value.minor):(value.read_bytes_per_second,
+                value.write_bytes_per_second) for value in item.io},
+                {(7,22):(48,12),(259,0):(20,10)})
+        with self.assertRaisesRegex(ValueError,'fixture volume I/O device set'):
+            validate_resource_io_closure(resource,ambient)
+
+    def test_resource_io_closure_accepts_generic_single_device_fixture_config(self):
+        ambient=[(259,0,32,12)]
+        own_volume=[(7,22,64,16),(259,0,64,16)]
+        resource=_fixture_resource(ambient)
+        budgets=process_scope_budgets(resource)
+        before={id(item):_non_io_budget_state(item) for item in budgets}
+        self.assertEqual(set_resource_io_closure(resource,own_volume),14)
+        expected={(major,minor) for major,minor,_,_ in own_volume}
+        for item in process_scope_budgets(resource):
+            self.assertEqual({(value.major,value.minor) for value in item.io},expected)
+            self.assertEqual(_non_io_budget_state(item),before[id(item)])
+            self.assertTrue(all(value.read_bytes_per_second<=32 and
+                                value.write_bytes_per_second<=12 for value in item.io))
+
+    def test_resource_io_closure_rejects_bad_device_sets_without_mutation(self):
+        ambient=[(7,21,48,12),(259,0,20,10)]
+        invalid=([],[(7,-1,64,16)],[(7,22,64,16),(7,22,32,8)],
+                 [(7,22,0,16)],[(2**32,1,64,16)])
+        for devices in invalid:
+            with self.subTest(devices=devices):
+                resource=_fixture_resource(ambient)
+                before=[[(item.major,item.minor,item.read_bytes_per_second,
+                          item.write_bytes_per_second) for item in budget.io]
+                        for budget in process_scope_budgets(resource)]
+                with self.assertRaises(ValueError):set_resource_io_closure(resource,devices)
+                after=[[(item.major,item.minor,item.read_bytes_per_second,
+                         item.write_bytes_per_second) for item in budget.io]
+                       for budget in process_scope_budgets(resource)]
+                self.assertEqual(after,before)
+
     def test_explicit_profiles_preserve_arguments_and_budget(self):
         original=['runner','BUILD','SOURCE','EVIDENCE','test_exact']
         for profile,limit in [('Debug',256),('ASan-UBSan',512)]:
