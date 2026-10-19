@@ -1,6 +1,9 @@
 """Native broker obligations wait for release of real control reservations."""
 import os
+import socket
+import types
 import unittest
+from unittest.mock import patch
 import broker_pb2 as broker
 import grants_pb2 as grants
 import security_pb2 as security
@@ -8,9 +11,66 @@ from test_workspace_participant import WorkspaceParticipantFixture,BrokerProcess
 import test_application_control_lease as control
 
 class NativeBroker(control.LeaseBroker):
+    def __init__(self, fixture, config, native_config=None, control_transport=None):
+        workspace = control.access.workspace
+        workspace.initialize_broker_lifecycle(
+            self, fixture, f'broker-{len(fixture.brokers)}.log')
+        try:
+            super().__init__(fixture, config, native_config, control_transport)
+        except BaseException as error:
+            try:
+                workspace.BrokerProcess.close(self)
+            except BaseException as cleanup:
+                error.add_note('Partial native broker cleanup: '+repr(cleanup))
+            raise
+
     close=BrokerProcess.close
 
 class WorkspaceParticipantNativeTests(WorkspaceParticipantFixture):
+    def test_native_broker_partial_initialization_closes_full_lifecycle(self):
+        fixture = types.SimpleNamespace(root=self.root/'native-lifecycle', brokers=[])
+        fixture.root.mkdir()
+        created = []
+        peers = []
+
+        def fail_after_partial_setup(instance, fixture, config, native_config=None, control_transport=None):
+            self.assertFalse(instance.closed)
+            self.assertIsNone(instance.resources)
+            self.assertIsNone(instance.proc)
+            self.assertIsNone(instance.owner_log)
+            self.assertIsNone(instance.storage_owner)
+            self.assertIsNone(getattr(instance, 'storage_owner_launch_path', None))
+            self.assertIsNone(instance.storage_owner_log)
+            self.assertIsNone(instance.storage_control)
+            self.assertIsNone(instance.storage_gate_write)
+            self.assertIsNone(instance.storage_unit)
+            self.assertIsNone(instance.storage_cleanup_confirmed)
+            self.assertEqual(instance.channels, [])
+            self.assertEqual(instance.log_path, fixture.root/'broker-0.log')
+            instance.stream, peer = socket.socketpair()
+            peers.append(peer)
+            instance.log_path.parent.mkdir(exist_ok=True)
+            instance.log = instance.log_path.open('wb')
+            instance.path = instance.log_path
+            instance.fixture = fixture
+            created.append(instance)
+            raise RuntimeError('injected native broker initialization failure')
+
+        with patch.object(control.LeaseBroker, '__init__', fail_after_partial_setup):
+            with self.assertRaisesRegex(RuntimeError, 'injected native broker initialization failure'):
+                NativeBroker(fixture, self.root/'broker.textproto')
+
+        self.assertEqual(len(created), 1)
+        item = created[0]
+        self.assertTrue(item.closed)
+        self.assertEqual(item.stream.fileno(), -1)
+        self.assertTrue(item.log.closed)
+        item.close()
+        control.access.workspace.BrokerProcess.close(item)
+        self.assertTrue(item.closed)
+        for peer in peers:
+            peer.close()
+
     def workspace_terms(self,*args,**kwargs):
         kwargs.setdefault('rights',[*control.access.workspace.RIGHTS,grants.APPLICATION_OBSERVE,grants.APPLICATION_CONTROL])
         return super().workspace_terms(*args,**kwargs)
