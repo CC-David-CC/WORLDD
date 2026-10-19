@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import select
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -261,9 +262,13 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         total = 0
         truncated_line = False
         stderr_error = None
+        full_stderr_path = target/'revocation-broker-stderr.log'
+        full_stderr_error = None
         if log_path is not None:
             try:
-                with log_path.open('rb') as source:
+                shutil.copyfile(log_path, full_stderr_path)
+                full_stderr_path.chmod(0o600)
+                with full_stderr_path.open('rb') as source:
                     while True:
                         chunk = source.readline(4096)
                         if not chunk:
@@ -280,8 +285,10 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
                             truncated_line = True
             except OSError as error:
                 stderr_error = errno.errorcode.get(error.errno, 'os_error')
+                full_stderr_error = stderr_error
         else:
             stderr_error = 'not_available'
+            full_stderr_error = stderr_error
         evidence = dict(
             phase='before_fixture_cleanup',
             services_at_workload_start=at_start,
@@ -290,7 +297,9 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             stderr=dict(bytes=total, sha256=digest.hexdigest() if total else None,
                         retained_relevant_bytes=len(relevant),
                         relevant_file='revocation-authority-diags.log',
-                        read_error=stderr_error))
+                        full_file=full_stderr_path.name if full_stderr_error is None and log_path is not None else None,
+                        full_file_mode='0600' if full_stderr_error is None and log_path is not None else None,
+                        full_file_error=full_stderr_error, read_error=stderr_error))
         try:
             (target/'revocation-authority-diags.log').write_bytes(relevant)
             (target/'revocation-lifecycle.json').write_text(json.dumps(evidence, indent=2)+'\n')
