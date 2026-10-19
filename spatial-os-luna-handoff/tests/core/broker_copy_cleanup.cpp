@@ -727,6 +727,49 @@ void root_replacement_control(const std::filesystem::path& delegated){
   std::cout<<"root_replacement_exact_identity_no_prune=PASS old_inode="<<original.inode()<<" replacement_inode="<<replacement.inode()<<" child_inode="<<descendant.inode()<<'\n';
 }
 
+void retirement_ack_failure_retry(const std::filesystem::path& delegated){
+  const std::string name="authority-broker-"+std::string(32,'5');
+  auto owned=ProcessScope::prepare_owned(delegated,name);
+  const auto owned_path=delegated/name;
+  const auto original=owned->identity();
+  unsigned retirement_callbacks=0,drained_callbacks=0;
+  owned->set_pre_prune_cleanup_with_retirement([&](const auto& tree) {
+    ++retirement_callbacks;
+    check(tree.child_exited_successfully(),"retry retirement callback lost clean child proof");
+    return retirement_callbacks==1;
+  });
+  AuthorityProcessLaunch child_request;child_request.set_executable("/bin/true");
+  const int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"ack retry child null");
+  owned->start(child_request,{child_null,child_null,child_null});close(child_null);
+  const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"ack retry child pidfd");
+  pollfd child_done{child_handle,POLLIN,0};const int child_ready=poll(&child_done,1,5000);close(child_handle);
+  check(child_ready==1&&(child_done.revents&POLLIN),"ack retry child did not exit before cleanup");
+  bool planned_ack_failure=false;
+  try {
+    owned->stop([&](const auto& acknowledged) {
+      ++drained_callbacks;
+      check(acknowledged.SerializeAsString()==original.SerializeAsString(),"drain acknowledgment identity changed");
+      throw std::runtime_error("planned drain acknowledgment failure");
+    });
+  } catch(const std::exception& error) {
+    planned_ack_failure=std::string(error.what())=="planned drain acknowledgment failure";
+  }
+  check(planned_ack_failure,"planned final drain acknowledgment failure was not propagated");
+  struct stat after_failure{};
+  check(lstat(owned_path.c_str(),&after_failure)==0&&S_ISDIR(after_failure.st_mode)&&
+      after_failure.st_dev==static_cast<dev_t>(original.device())&&
+      after_failure.st_ino==static_cast<ino_t>(original.inode()),
+      "failed drain acknowledgment removed or replaced stable broker root");
+  owned->stop();
+  struct stat after_retry{};
+  check(retirement_callbacks==2&&drained_callbacks==1&&
+      lstat(owned_path.c_str(),&after_retry)==0&&S_ISDIR(after_retry.st_mode)&&
+      after_retry.st_dev==static_cast<dev_t>(original.device())&&
+      after_retry.st_ino==static_cast<ino_t>(original.inode()),
+      "retry cached retirement authorization or changed stable broker root");
+  check(std::filesystem::remove(owned_path),"explicit acknowledgment retry fixture teardown failed");
+}
+
 void callback_controls(const std::filesystem::path& delegated){
   static_assert(!std::is_constructible_v<spatial::supervisor::OwnedDrainedTree,int,const ProcessScopeIdentity&>);
   auto root=ProcessScope::prepare(delegated);const auto path=delegated/root->identity().scope_name();bool first=true,called=false;
@@ -841,6 +884,7 @@ void callback_controls(const std::filesystem::path& delegated){
   check(!run_owned_retirement(std::string(32,'1'),0,true),"clean child and authorized cleanup did not retire stable root");
   check(run_owned_retirement(std::string(32,'2'),0,false),"cleanup refusal retired stable broker root");
   check(!run_owned_retirement(std::string(32,'2'),0,true),"checked retry did not retire stable broker root");
+  retirement_ack_failure_retry(delegated);
   {
     State state;
     const std::string name="authority-broker-"+std::string(32,'3');
@@ -1619,6 +1663,9 @@ int main(int argc,char** argv){try{
   check(argc==2||only_mode||mode_set,"expected delegated cgroup root");
   const std::filesystem::path root=argv[1];
   if(only_mode){
+    if(std::strcmp(argv[3],"retirement-ack-retry")==0){
+      retirement_ack_failure_retry(root);std::cout<<"BROKER_COPY_CLEANUP_SELECTED_PASS\n";return 0;
+    }
     check(std::strcmp(argv[3],"deadline-multirow")==0,"unsupported isolated participant mode");
     participant_case(root,argv[3]);std::cout<<"BROKER_COPY_CLEANUP_SELECTED_PASS\n";return 0;
   }

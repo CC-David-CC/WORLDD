@@ -1145,8 +1145,8 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
         check_deadline(deadline,"Authority scope cleanup deadline exceeded");
         if (scope_ >= 0) remove_empty_children(scope_,0,deadline);
         check_deadline(deadline,"Authority scope cleanup deadline exceeded");
-        if (retirement_authorized && retained_scope_) retained_scope_ = false;
-        if (!identity_.scope_name().empty() && !retained_scope_) {
+        const bool remove_scope = !retained_scope_ || retirement_authorized;
+        if (!identity_.scope_name().empty() && remove_scope) {
             struct stat named{};
             check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
                   "Cannot find owned scope for removal");
@@ -1163,6 +1163,7 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
             check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             check(unlinkat(parent_, identity_.scope_name().c_str(), AT_REMOVEDIR) == 0, "Cannot remove owned scope");
             removed_=true;
+            retained_scope_=false;
             check_deadline(deadline,"Authority scope cleanup deadline exceeded");
         }
         removed_ = true;

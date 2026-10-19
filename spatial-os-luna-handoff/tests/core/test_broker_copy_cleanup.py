@@ -14,7 +14,7 @@ if len(sys.argv)>1 and sys.argv[1] in ('--only-participant-mode','--participant-
     if len(sys.argv)<2:
         raise SystemExit(selector+' requires a value')
     value=sys.argv.pop(1)
-    if selector=='--only-participant-mode' and value!='deadline-multirow':
+    if selector=='--only-participant-mode' and value not in ('deadline-multirow','retirement-ack-retry'):
         raise SystemExit('unsupported isolated participant mode: '+value)
     if selector=='--participant-mode-set' and value!='controls-plus-15':
         raise SystemExit('unsupported participant mode set: '+value)
