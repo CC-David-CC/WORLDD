@@ -389,7 +389,9 @@ class WorkspaceGitTests(unittest.TestCase):
         with self.registry() as db: db.execute('DROP TRIGGER deny_removal_ready')
 
     def assert_git_worker_parent_bound(self):
-        with self.registry() as db:
+        journal = self.state / 'execution' / 'file-operations' / 'file-operations.db'
+        self.assertTrue(journal.is_file(), f'File-operation journal must already exist: {journal}')
+        with sqlite3.connect(journal.as_uri() + '?mode=ro', uri=True) as db:
             row = db.execute("SELECT state,root_device,root_inode,boot_id,identity,root_path FROM git_worker_parent").fetchone()
         self.assertIsNotNone(row, 'Recovered Git effects must use a journaled worker parent')
         self.assertEqual(row[0], 2, 'Git worker parent must be durably bound')
