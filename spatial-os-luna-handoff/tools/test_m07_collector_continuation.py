@@ -44,13 +44,19 @@ class Controls(unittest.TestCase):
 
     def test_stage_argv_and_deadlines(self):
         source, build, production, target = map(Path, ('/source','/build','/production','/target'))
-        rows = g.profile_stage_commands(source, build, production, target, {'geometry-native-crosshost','workspace-geometry-native-crosshost'})
+        rows = g.profile_stage_commands(source, build, production, target, {'geometry-native-crosshost','workspace-geometry-native-crosshost'}, profile='Debug')
         self.assertEqual([r[0] for r in rows], list(c.COMMANDS[1:]))
         self.assertEqual([r[2] for r in rows], [120,180,14400,300,600])
+        sanitizer_rows = g.profile_stage_commands(source, build, production, target,
+            {'geometry-native-crosshost','workspace-geometry-native-crosshost'}, profile='ASan-UBSan')
+        self.assertIn('--copy-profile=ASan-UBSan', sanitizer_rows[3][1])
+        with self.assertRaisesRegex(ValueError, 'explicit configured profile'):
+            g.profile_stage_commands(source, build, production, target,
+                {'geometry-native-crosshost','workspace-geometry-native-crosshost'})
         self.assertEqual(rows[0][1], g.startup_packaging_command(source, production/'spatial-host-session', production/'python'))
         self.assertEqual(rows[1][1], ['python3','-m','unittest','discover','-s','tests/harness','-t','.','-v'])
         self.assertEqual(rows[2][1], ['ctest','--test-dir','/build','--parallel','1','-V','-E',g.ctest_exclusion_expression({'geometry-native-crosshost','workspace-geometry-native-crosshost'}),'--output-junit','/target/core.xml'])
-        self.assertEqual(rows[3][1], ['python3','tools/with_resource_delegate.py','--native','--','python3','tools/with_adapter_resources.py','--','python3','tools/with_test_display.py','--','python3','tools/gate.py','--through','P10','--sut',json.dumps(['/build/spatial-test-host']),'--report','/target/P10.json'])
+        self.assertEqual(rows[3][1], ['python3','tools/with_resource_delegate.py','--native','--','python3','tools/with_adapter_resources.py','--copy-profile=Debug','--','python3','tools/with_test_display.py','--','python3','tools/gate.py','--through','P10','--sut',json.dumps(['/build/spatial-test-host']),'--report','/target/P10.json'])
         self.assertEqual(rows[4][1], ['sudo','-n','python3','tests/native/test_storage_git_integration.py','--production-owner','/build','/target/bounded-storage-git'])
 
     def test_environment_and_stage_policy_unchanged(self):
@@ -260,7 +266,7 @@ class ProfileAuditControls(unittest.TestCase):
         registrations={name:{'path':str(self.root/'storage'/name)} for name in g.STORAGE_LOCAL_EVIDENCE_TESTS}
         augmentation=dict(tests=list(g.STORAGE_LOCAL_EVIDENCE_TESTS),profile={'registrations':registrations},destinations={name:row['path'] for name,row in registrations.items()})
         (target/'metadata-relocation.json').write_text(json.dumps({'storage_local_evidence_augmentation':augmentation}))
-        expected=[('inventory',['ctest','--test-dir',str(self.root/'build'/'Debug'),'--show-only=json-v1'])]+[(name,argv) for name,argv,_ in g.profile_stage_commands(source,self.root/'build'/'Debug',self.root/'production-off'/'Debug',target,set(names[:2]))]
+        expected=[('inventory',['ctest','--test-dir',str(self.root/'build'/'Debug'),'--show-only=json-v1'])]+[(name,argv) for name,argv,_ in g.profile_stage_commands(source,self.root/'build'/'Debug',self.root/'production-off'/'Debug',target,set(names[:2]),profile='Debug')]
         commands=[dict(name=name,command=argv,exit_code=0,assertions_passed=True) for name,argv in expected]
         commands[2]['expected_51']=True
         commands[3].update(junit_cases=197,all_registered_present=True,failed_or_skipped=False)

@@ -395,7 +395,7 @@ class GateWiringTests(unittest.TestCase):
         production = Path('/tmp/production-off')
         target = Path('/tmp/attempt/Debug')
         dedicated = gate.DEDICATED_CROSSHOST
-        default = gate.profile_stage_commands(source, build, production, target, dedicated)
+        default = gate.profile_stage_commands(source, build, production, target, dedicated, profile='Debug')
         core = next(command for name, command, _ in default if name == 'core')
         self.assertEqual(core, ['ctest', '--test-dir', str(build), '--parallel', '1', '-V', '-E',
                                 gate.ctest_exclusion_expression(dedicated), '--output-junit', str(target / 'core.xml')])
@@ -419,6 +419,8 @@ class GateWiringTests(unittest.TestCase):
         self.assertEqual(recovery[-1], str(target / 'core-self-managed.xml'))
         self.assertEqual(next(command for name, command, _ in default if name == 'harness'),
                          next(command for name, command, _ in enabled if name == 'harness'))
+        self.assertIn('--copy-profile=Debug', next(command for name, command, _ in default if name == 'P10'))
+        self.assertIn('--copy-profile=ASan-UBSan', next(command for name, command, _ in enabled if name == 'P10'))
 
     def test_supervised_recovery_partition_executes_without_nested_lock_timeout(self):
         import m06_deployed_gate as gate

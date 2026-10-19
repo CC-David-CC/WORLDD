@@ -1,0 +1,16 @@
+M08 adapter resource profile registration
+2026-10-19
+
+CTest adapter fixtures now receive the configured lane explicitly. Debug builds
+pass --copy-profile=Debug. Sanitizer builds pass --copy-profile=ASan-UBSan.
+The flag follows with_adapter_resources.py and precedes its -- separator.
+
+The M06 stage builder requires a profile and forwards it to the P10 adapter
+preflight. This makes sanitizer manager budgets explicit. It preserves existing
+resource limits, storage bindings, device checks, registration names, properties,
+timeouts, and test arguments.
+
+The configured Debug and sanitizer inventories each contain 238 registrations.
+Their 56 adapter-wrapped commands carry exactly one matching profile flag.
+Baseline command comparison reads generated CTestTestfile.cmake so it includes
+targets omitted from configure-only CTest JSON because they are not built.

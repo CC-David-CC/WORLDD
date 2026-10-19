@@ -1560,6 +1560,8 @@ def merge_core_junit_files(paths, destination):
 
 def profile_stage_commands(source, build, production, target, dedicated_crosshost, *,
                           copy_worker_helpers=False, profile=None):
+    if profile not in PROFILES:
+        raise ValueError("P10 adapter resources require an explicit configured profile")
     nested_helper_tests = "|".join(COPY_HELPER_NESTED_CTESTS)
     core_exclusions = ctest_exclusion_expression(dedicated_crosshost)
     if copy_worker_helpers:
@@ -1578,7 +1580,7 @@ def profile_stage_commands(source, build, production, target, dedicated_crosshos
         ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
         ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
         ("core", core_command, 14400),
-        ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
+        ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--copy-profile=" + profile, "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
         ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
     ]
     if copy_worker_helpers:
