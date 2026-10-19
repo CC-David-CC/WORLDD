@@ -1,0 +1,11 @@
+M08 Git restart reconciliation ordering ? 2026-10-19
+
+Pending worktree creation and removal records were reconciled from ExecutionStore::Impl construction. The production entrypoint had already created WorkspaceResources, but it called ExecutionStore::set_resources only after construction. Reconciliation invoked administrative Git, which created a worker parent before FileOperationJournal was bound. The next bind rejected that unjournaled parent with `Git worker journal must bind before worker parent creation`.
+
+When a resource boundary is present, store construction now leaves pending Git effects untouched and syncs the initialized state directories. `set_resources` binds the file journal, registers persisted copy policies, recovers the exact retained Git worker parent, and finishes resource initialization. It then reconciles pending worktree operations and removals. Git workers therefore cannot exist before durable parent binding and parent recovery. Calls without resources keep the previous constructor reconciliation path. Migration still returns before normal recovery, and seed mode still receives the same no-resource behavior.
+
+Reconciliation retains the existing evidence rules. Worktree creation becomes ready only when its durable receipt and actual Git worktree match. Otherwise it remains uncertain. Removal becomes ready only when the retained completion marker, copied project/metadata, retirement ref, and unregistered staging worktree agree. Otherwise it remains uncertain. Recovery checks effects; it does not replay Git mutations.
+
+The new focused regression `WorkspaceGitTests.test_pending_create_and_removal_recover_after_git_parent_binding` exercises both pending effect types across real broker restarts and asserts the parent journal is durably bound after each startup. Existing regressions `test_real_git_exit_precedes_ready_ack_and_reconciles_without_replay`, `test_missing_or_corrupt_receipt_after_real_crash_stays_uncertain`, and `test_unwitnessed_removal_remains_uncertain_and_never_replays` continue to cover ambiguity and no-replay behavior.
+
+This checkpoint is unqualified. The regression and native workspace-git wrapper remain unrun pending primary review. No acceptance oracle or wire contract changed.

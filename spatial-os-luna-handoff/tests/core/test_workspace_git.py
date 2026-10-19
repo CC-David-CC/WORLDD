@@ -366,6 +366,38 @@ class WorkspaceGitTests(unittest.TestCase):
     def allow_removal_ready(self):
         with self.registry() as db: db.execute('DROP TRIGGER deny_removal_ready')
 
+    def assert_git_worker_parent_bound(self):
+        with self.registry() as db:
+            row = db.execute("SELECT state,root_device,root_inode,boot_id,identity,root_path FROM git_worker_parent").fetchone()
+        self.assertIsNotNone(row, 'Recovered Git effects must use a journaled worker parent')
+        self.assertEqual(row[0], 2, 'Git worker parent must be durably bound')
+        self.assertGreater(row[1], 0); self.assertGreater(row[2], 0)
+        self.assertTrue(row[3]); self.assertTrue(row[4]); self.assertTrue(Path(row[5]).is_absolute())
+
+    def test_pending_create_and_removal_recover_after_git_parent_binding(self):
+        backing = self.imported()
+        self.deny_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        record, receipt = self.pending_work()
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+        self.allow_ready(); self.client.stop(crash=True); self.start()
+        self.assert_git_worker_parent_bound()
+        recovered = self.create()
+        self.assertEqual(recovered['path'], record.path)
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
+        self.assertEqual(receipt.read_bytes(), record.SerializeToString())
+
+        self.deny_removal_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        retired = self.retirement()
+        self.assertFalse(Path(record.path).exists()); self.assertTrue((retired/'complete').is_file())
+        self.allow_removal_ready(); self.client.stop(crash=True); self.start()
+        self.assert_git_worker_parent_bound()
+        self.assertEqual(self.remove(), {'removed': True})
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'ready')
+        self.assertEqual((retired/'data/project/README.txt').read_text(), 'base\n')
+        self.assertEqual(self.repo.run('worktree','list','--porcelain',cwd=backing['path']).count('worktree '),1)
+
     def test_completed_removal_is_reconciled_after_failed_acknowledgment(self):
         self.imported(); work = self.create(); self.deny_removal_ready()
         self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
