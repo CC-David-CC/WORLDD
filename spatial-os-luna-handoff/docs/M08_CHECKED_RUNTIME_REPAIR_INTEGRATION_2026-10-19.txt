@@ -1,0 +1,50 @@
+M08 checked runtime repair integration
+
+Status: UNQUALIFIED. This branch is a test candidate, not milestone completion.
+Base: 64b03bdf0c22f31cef476ac4c9f41388fb3c641a.
+Ownership repair: 49fc48851cad6d805f42bce543ef0971fafe9cfc.
+Restart-order repair: 6a80a416a240fbdadac69621b737a61eab3903f8.
+The checked cleanup-bootstrap and root-retirement repair awaits its reviewed checkpoint.
+Do not modify frozen079 deployments or the retained64b diagnostic package.
+
+Verified focused evidence
+Both hosts passed the earlier fixture-tooling checks. Those were not native sanitizer runs.
+The ownership helper passed three tooling cases on sb16-2.
+A native fresh-volume witness confirmed UID1000, GID0, mode0700, and matching fd/path identity.
+That native test then failed because direct launch omitted the required cleanup bootstrap.
+Its remount path remains UNRUN.
+The sb16 storage-contention suite passed on64b in41.12seconds.
+It ran25 Python tests: three runtime scenarios and22 utility cases.
+Its canonical command and wrapper exited0. Cleanup confirmed mount and loop removal.
+The earlier079 intermittent storage-contention failure remains unresolved.
+
+Focused combined selection, recorded before execution
+Run provision-storage-root-owner-tooling for root ownership and fail-closed mount checks.
+Run workspace-git for initialization, pending-effect reconciliation, and no replay.
+Verify actual live broker executable path and bytes before accepting repaired-runtime evidence.
+Run adapter-resources for invalid-delegation side effects, clean shutdown, and restart.
+Run broker-copy-preprune-cleanup for cleanup identity, uncertainty, exit status, and retry.
+Run broker-copy-preprune-deadline-multirow for bounded cleanup with many journal rows.
+Run authority-broker-handoff and authority-broker-handoff-regressions for native cleanup and issuer boundaries.
+Run operator-storage for create, remount, persistent Git, and fail-closed recovery.
+Run host-actor-controller-native for the reproduced retained-parent startup failure.
+Run workspace-authority and workspace-authorization-fence-scoped for the checked revocation repair.
+Run the registered unrelated-revocation fence regression as an independent-grant control.
+Run the five workspace-copy fault scenarios and supervised recovery group.
+These exercise copy containment and recovery across the changed cleanup boundary.
+Use exact registered CTest commands, environment, resource wrappers, and approved storage configuration.
+Require nonzero test counts and preserve failures before fixture cleanup.
+
+Run focused Debug and ASan/UBSan runtime checks on both required hosts.
+A Python run with sanitizer-generated bindings does not establish native sanitizer coverage.
+After focused passes, freeze the complete candidate and executable closure.
+Then run the full required local gates on both hosts and required cross-host checks.
+Any source change requires reassessing affected evidence.
+M08, M09, and Spatial-M1 qualification are not established by this document.
+
+External evidence
+ROG integration receipts: /home/dflanag3/spatial-artifacts/m08-checked-runtime-repair-integration-20261019
+sb16 diagnostic: /home/dflanag3/spatial-artifacts/m08-session-storage-diagnostic-64b03bd-sb16
+sb16-2 ownership: /home/dflanag3/spatial-artifacts/m08-storage-ownership-focused-126d928-20261019
+Git restart diagnosis: /home/dflanag3/spatial-artifacts/m08-git-restart-diagnostic-7cb728c-20261019
+The last run actually used079 via the host sibling executable. Read provenance-correction.json.
