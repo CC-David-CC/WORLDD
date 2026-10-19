@@ -27,7 +27,7 @@ import grants_pb2 as grants
 import issuer_pb2 as issuer
 import storage_pb2 as storage
 from harness.git_fixture import GitRepo
-from harness.resource_broker import ResourceBroker
+from harness.resource_broker import ResourceBroker, resource_environment, supervised_test_launch
 from harness.issuer_progress import IssuerLifetimeWitness
 from harness.wire import frame
 import test_workspace_authority as fixtures

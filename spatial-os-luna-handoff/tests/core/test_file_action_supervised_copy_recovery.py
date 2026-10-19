@@ -3,7 +3,9 @@
 Run only through the declared native test-host CTest lane.
 """
 import hashlib
+import json
 import os
+from pathlib import Path
 import select
 import sqlite3
 import threading
@@ -61,8 +63,24 @@ class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
             self.assertLess(time.monotonic(), deadline, 'Copy job did not reach a terminal state')
             time.sleep(.02)
 
+    def _record_boundary_hook_configuration(self, phase, hook_environment):
+        selected = {name: value for name, value in engine.resource_environment(hook_environment).items()
+                    if name.startswith('SPATIAL_TEST_COPY_')}
+        for name in ('SPATIAL_TEST_COPY_PREPARED_NOTIFY', 'SPATIAL_TEST_COPY_POST_RENAME_BARRIER'):
+            if name in selected:
+                hook_path = Path(selected[name])
+                if not hook_path.is_absolute():
+                    hook_path = self.root / hook_path
+                self.assertTrue(hook_path.resolve().is_relative_to(self.root.resolve()),
+                                'Boundary hook path must remain inside the fixture root')
+        path = self.copy_evidence / 'supervised-copy-hook-configuration.json'
+        events = json.loads(path.read_text()) if path.exists() else []
+        events.append(dict(phase=phase, hooks=selected))
+        path.write_text(json.dumps(events, sort_keys=True, indent=2) + '\n')
+
     def _start_boundary_copy(self, source_name, destination_name, boundary_environment, ready_path):
         with patch.dict(os.environ, boundary_environment):
+            self._record_boundary_hook_configuration('initial-broker', os.environ)
             self.workspace(attach_world=False)
         old = self.broker
         bootstrap = next((item for item in self.brokers if getattr(item, 'bootstrap_delegation', False)), None)
@@ -160,10 +178,10 @@ class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
     def _restart_boundary_copy(self, context, sync_failure=False):
         old = context['old']
         recovery = context['recovery']
-        if sync_failure:
-            with patch.dict(os.environ, {'SPATIAL_TEST_COPY_RECOVERY_DESTINATION_SYNC_FAIL': '1'}):
-                replacement = recovery.restart(type(old))
-        else:
+        restart_hooks = ({'SPATIAL_TEST_COPY_RECOVERY_DESTINATION_SYNC_FAIL': '1'}
+                         if sync_failure else {})
+        with patch.dict(os.environ, restart_hooks):
+            self._record_boundary_hook_configuration('replacement-broker', os.environ)
             replacement = recovery.restart(type(old))
         self.broker = replacement
         self.assertEqual(replacement.fixture.execution, old.fixture.execution)

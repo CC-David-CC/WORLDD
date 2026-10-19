@@ -2,6 +2,7 @@
 
 These controls launch no project process. Runtime checks still belong on test hosts.
 """
+import ast
 import hashlib
 import importlib.util
 from pathlib import Path
@@ -12,9 +13,11 @@ from unittest.mock import Mock, call, patch
 import os
 import socket
 import sys
+import types
 
 import launch_pb2 as launch
 import issuer_pb2 as issuer
+from harness.resource_broker import supervised_test_launch
 from supervised_copy_broker_recovery import (finish_checked_retirement, require_broker_identity_observation,
     require_candidate_supervisor_denial, wait_for_active_generation)
 
@@ -296,6 +299,54 @@ class AdapterContractTests(unittest.TestCase):
                          {'message', 'cleanup_record'})
 
 
+
+    def test_supervised_fixture_bootstrap_serializes_only_selected_copy_hooks(self):
+        environment = {
+            'SPATIAL_TEST_COPY_PREPARED_NOTIFY': '/fixture-root/ready',
+            'SPATIAL_TEST_COPY_RECOVERY_DESTINATION_SYNC_FAIL': '1',
+            'SPATIAL_TEST_UNRELATED_SENTINEL': 'must-not-cross',
+        }
+        executable, arguments = supervised_test_launch(
+            '/build/workspaced', ['--state-dir', '/fixture/state'], environment)
+        self.assertEqual(executable, '/usr/bin/python3')
+        self.assertEqual(arguments[0], '-c')
+        code = arguments[1]
+        calls = [node for node in ast.walk(ast.parse(code)) if isinstance(node, ast.Call)]
+        update = next(node for node in calls if isinstance(node.func, ast.Attribute) and
+                      isinstance(node.func.value, ast.Attribute) and
+                      isinstance(node.func.value.value, ast.Name) and
+                      node.func.value.value.id == 'os' and node.func.value.attr == 'environ' and
+                      node.func.attr == 'update')
+        execv = next(node for node in calls if isinstance(node.func, ast.Attribute) and
+                     isinstance(node.func.value, ast.Name) and node.func.value.id == 'os' and
+                     node.func.attr == 'execv')
+        self.assertEqual(ast.literal_eval(update.args[0]), {
+            'SPATIAL_TEST_COPY_PREPARED_NOTIFY': '/fixture-root/ready',
+            'SPATIAL_TEST_COPY_RECOVERY_DESTINATION_SYNC_FAIL': '1',
+        })
+        self.assertEqual(ast.literal_eval(execv.args[0]), '/build/workspaced')
+        forwarded = execv.args[1]
+        self.assertEqual(ast.literal_eval(forwarded.elts[0]), '/build/workspaced')
+        self.assertIsInstance(forwarded.elts[1], ast.Starred)
+        self.assertEqual(ast.unparse(forwarded.elts[1].value), 'sys.argv[1:]')
+        self.assertEqual(arguments[2:], ['--state-dir', '/fixture/state'])
+        self.assertNotIn('must-not-cross', code)
+
+        resolved_authority = '/fixture/private/authority.textproto'
+        logical_arguments = ['--state-dir', '/fixture/state', '--authority-config', resolved_authority]
+        appended_arguments = ['--resource-config-fd', '143', '--cleanup-bootstrap-fd', '144']
+        isolated_os = types.ModuleType('os')
+        isolated_os.environ = {'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'}
+        isolated_os.execv = Mock()
+        isolated_sys = types.ModuleType('sys')
+        isolated_sys.argv = ['-c', *logical_arguments, *appended_arguments]
+        with patch.dict(sys.modules, {'os': isolated_os, 'sys': isolated_sys}):
+            exec(compile(code, '<supervised-fixture-bootstrap>', 'exec'), {})
+        isolated_os.execv.assert_called_once_with('/build/workspaced', [
+            '/build/workspaced', *logical_arguments, *appended_arguments])
+        self.assertEqual(isolated_os.environ['SPATIAL_TEST_COPY_PREPARED_NOTIFY'], '/fixture-root/ready')
+        self.assertEqual(isolated_os.environ['SPATIAL_TEST_COPY_RECOVERY_DESTINATION_SYNC_FAIL'], '1')
+        self.assertNotIn('SPATIAL_TEST_UNRELATED_SENTINEL', isolated_os.environ)
 
     def test_fixture_defaults_to_original_v1_active_generation_guard(self):
         self.assertEqual(fixture_version(self), 1)

@@ -193,7 +193,7 @@ class LostAckSupervisors:
 
 class SupervisedHandle:
     def __init__(self,owner,role,config,config_type,executable,arguments,inherited,log,
-                 stdin=subprocess.PIPE,stdout=subprocess.PIPE,resources=None):
+                 stdin=subprocess.PIPE,stdout=subprocess.PIPE,resources=None,fixture_environment=None):
         self.owner=owner;self.fixture=owner.fixture;self.role=role;self.proc=None;self.control=None
         self.pidfd=None;self.identity=None;self.initial=None;self.terminal=None;self.retirement=None
         self.pending_sockets=[];self.pending_fds=[];self.cgroup=None;self.closed=False;self.diagnostic_errors=[]
@@ -306,6 +306,12 @@ class SupervisedHandle:
             specification.broker_resource_target_fd=143;specification.broker_native_target_fd=142
             self.resource_template=engine.broker.BrokerResourceConfig();self.resource_template.CopyFrom(resources)
             (self.evidence/'resource-template.pb').write_bytes(resources.SerializeToString())
+        if fixture_environment is not None:
+            launch_executable, launch_arguments = engine.supervised_test_launch(
+                executable, arguments, fixture_environment)
+            specification.launch.executable = launch_executable
+            del specification.launch.arguments[:]
+            specification.launch.arguments.extend(launch_arguments)
         self.specification=specification
         path=self.private/'supervisor.textproto';path.write_text(engine.text_format.MessageToString(specification));path.chmod(0o600)
         native=owner.native
@@ -576,10 +582,18 @@ class SupervisedBrokerResources:
         fixture.assertEqual(template.resources.delegated_cgroup,'')
         storage=socket.socket(fileno=os.dup(extra_fds['--storage-fd']))
         try:
+            evidence_root=Path(os.environ['SPATIAL_SECURITY_EVIDENCE']).resolve()
+            fixture.assertEqual(evidence_root,fixture.copy_evidence.parent.resolve(),
+                'Supervised broker diagnostic evidence must use this fixture evidence root')
+            evidence_status=evidence_root.stat()
+            fixture.assertEqual(evidence_status.st_uid,os.getuid())
+            fixture.assertEqual(evidence_status.st_mode & 0o077,0)
+            broker_arguments=['--state-dir',command[command.index('--state-dir')+1],
+                '--authority-config','@AUTHORITY@','--storage-fd','130','--native-security-fd','142']
             self.handle=SupervisedHandle(context(fixture),'broker',config_path,engine.broker.WorkspaceAuthorityConfig,
-                executable,['--state-dir',command[command.index('--state-dir')+1],'--authority-config','@AUTHORITY@',
-                    '--storage-fd','130','--native-security-fd','142'],[(storage,130)],log,
-                stdin=channel,stdout=channel,resources=template.resources)
+                executable,broker_arguments,[(storage,130)],log,
+                stdin=channel,stdout=channel,resources=template.resources,
+                fixture_environment=dict(os.environ))
         finally:storage.close()
         self.process=self.handle.proc;self.pid=self.handle.pid;self.root=self.handle.scope
 

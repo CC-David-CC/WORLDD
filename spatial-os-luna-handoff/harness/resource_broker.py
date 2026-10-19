@@ -28,6 +28,18 @@ def resource_environment(environ):
     return {name: environ[name] for name in _RESOURCE_ENVIRONMENT if name in environ}
 
 
+def supervised_test_launch(executable, arguments, environ):
+    """Wrap a fixture broker with only the resource test environment allowlist."""
+    selected = resource_environment(environ)
+    if 'SPATIAL_SECURITY_EVIDENCE' in environ:
+        selected['SPATIAL_SECURITY_EVIDENCE'] = environ['SPATIAL_SECURITY_EVIDENCE']
+    path = str(executable)
+    code = ('import os,sys;'
+            f'os.environ.update({selected!r});'
+            f'os.execv({path!r},[{path!r},*sys.argv[1:]])')
+    return '/usr/bin/python3', ['-c', code, *list(arguments)]
+
+
 class RetainedBrokerChild:
     """Actual pidfd and retained production exit status. The scope owner stays separate."""
     def __init__(self, resources):
