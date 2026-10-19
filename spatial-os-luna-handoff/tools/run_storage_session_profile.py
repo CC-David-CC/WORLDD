@@ -128,7 +128,7 @@ def inspect_logs(out):
   matches=[(index,row) for index,row in enumerate(headers) if row.group(1)==method and re.fullmatch(r'(?:__main__\.)?NativeStorageSessionTests(?:\.'+re.escape(method)+r')?',row.group(2))]
   if len(matches)!=1:continue
   index,row=matches[0];end=headers[index+1].start() if index+1<len(headers) else len(logs)
-  body=logs[row.end():end].split('\n----------------------------------------------------------------------',1)[0].strip()
+  body=re.split(r'^-{6,}\s*$|^Ran \d+ tests? in ',logs[row.end():end],maxsplit=1,flags=re.M)[0].strip()
   if body=='ok' or body.splitlines()[-1:] == ['ok']:passed.append(method)
  diagnostics=[]
  pattern=re.compile(r'ERROR: (?:AddressSanitizer|LeakSanitizer)|SUMMARY: (?:AddressSanitizer|UndefinedBehaviorSanitizer)|AddressSanitizer:DEADLYSIGNAL|runtime error:')

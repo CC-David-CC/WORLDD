@@ -32,3 +32,11 @@ Both failed runs restored the original helper hash and left no live owned proces
 Evidence: each host spatial-artifacts/m08-storage-session-profile-runtime-20261018/debug-native-01.
 Corrected fixture runtime and its sanitizer checks remain UNRUN at this checkpoint.
 The launcher verifies the complete frozen fixture source manifest before host mutation.
+
+Parser correction, focused attempt 04
+Seven launcher controls passed on each host (sb16: 0.181s; sb16-2: 0.281s).
+The parser now bounds the final method at the unittest summary without requiring a dashed separator.
+Both command and wrapper receipts are zero and COMPLETE.
+Evidence: /home/dflanag3/spatial-artifacts/m08-storage-session-profile-runtime-20261018/launcher-seven-04 on each host.
+The fixture-storage-setup-03 snapshot remains frozen. The reviewed launcher overlay has SHA256 464ffacea7c9caba3a4da73a172703bcc48d3b04190f11812edb94439a4b2688.
+Native Debug retry and sanitizer checks remain UNRUN. M08 remains UNQUALIFIED.
