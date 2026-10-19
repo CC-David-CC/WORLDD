@@ -15,7 +15,8 @@ from unittest.mock import patch
 import test_workspace_copy_engine as engine
 import test_workspace_copy_faults as copy_faults
 sys.path.insert(0, str(engine.SOURCE / 'tests/native'))
-from supervised_copy_broker_recovery import SupervisedCopyBrokerRecovery, wait_for_active_generation
+from supervised_copy_broker_recovery import (
+    SupervisedCopyBrokerRecovery, finish_checked_retirement, wait_for_active_generation)
 import broker_pb2 as broker
 import grants_pb2 as grant
 import issuer_pb2 as issuer
@@ -1066,6 +1067,7 @@ def load_tests(loader, tests, pattern):
         'test_file_action_missing_scope_without_proof_retains_uncertainty',
         'test_file_action_replaced_scope_without_proof_preserves_evidence',
         'test_file_action_replaced_scope_with_old_proof_stays_uncertain',
+        'test_file_action_active_replaced_parent_refuses_startup',
         'test_file_action_completed_worker_drain_proof_survives_prepublication_crash',
         'test_file_action_completed_worker_proof_reconciles_published_crash',
     }
@@ -1145,6 +1147,9 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
         'test_file_action_replaced_scope_with_old_proof_stays_uncertain': dict(
             actor_state_bytes=32*2**20, workspace_bytes=160*2**20,
             source_workspace_one_bytes=224*2**20, source_workspace_two_bytes=64*2**20),
+        'test_file_action_active_replaced_parent_refuses_startup': dict(
+            actor_state_bytes=32*2**20, workspace_bytes=160*2**20,
+            source_workspace_one_bytes=224*2**20, source_workspace_two_bytes=64*2**20),
     }
 
     def provision(self,operation):
@@ -1214,6 +1219,9 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
 
     def test_file_action_replaced_scope_with_old_proof_stays_uncertain(self):
         self._copy_job_sigkill_restart(False,'replaced_scope_with_proof')
+
+    def test_file_action_active_replaced_parent_refuses_startup(self):
+        self._copy_job_sigkill_restart(False,'active_replaced_parent')
 
     def test_file_action_completed_worker_drain_proof_survives_prepublication_crash(self):
         self._completed_worker_proof_restart(False)
@@ -1285,7 +1293,7 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
         self.assertFalse((self.project/'.spatial-copy-staging'/os.fsdecode(before.staging_name)).exists())
 
     def _copy_job_sigkill_restart(self, retain_uncertain, prepared_case=None):
-        self.workspace(attach_world=False, pair=retain_uncertain or prepared_case in ('missing_scope','replaced_scope','replaced_scope_with_proof'))
+        self.workspace(attach_world=False, pair=retain_uncertain or prepared_case in ('missing_scope','replaced_scope','replaced_scope_with_proof','active_replaced_parent'))
         old=self.broker
         self.assertIsNotNone(old.resources,'generation regression requires production resource delegation')
         recovery=SupervisedCopyBrokerRecovery(self,old,self.authority_config)
@@ -1468,8 +1476,24 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
                      retired_record.SerializeToString(deterministic=True),'one',job_id))
                 db.commit()
                 self.assertFalse(retired_record.HasField('drained_process_scope'))
-        foreign_identity=None
+        terminal_bytes=None
         if case in ('replaced_scope','replaced_scope_with_proof'):
+            # Replaced-parent quarantine requires a valid terminal receipt.
+            # A nonterminal job must instead fail startup before dispatch.
+            retired_record.state=copy_journal.FILE_COPY_JOB_JOURNAL_UNCERTAIN
+            retired_record.updated_at_unix_ms+=1
+            retired_record.terminal_receipt.CopyFrom(files.FileCopyJobReceipt(
+                job_id=job_id,state=files.FileCopyJobReceipt.UNCERTAIN,
+                detail='retained crash uncertainty',
+                bytes_copied=retired_record.bytes_progress,
+                entries_copied=retired_record.entries_progress))
+            terminal_bytes=retired_record.SerializeToString(deterministic=True)
+            with closing(sqlite3.connect(database)) as db:
+                db.execute('UPDATE file_copy_jobs SET state=?,updated_at=?,record=? WHERE workspace=? AND job_id=?',
+                    (retired_record.state,retired_record.updated_at_unix_ms,terminal_bytes,'one',job_id))
+                db.commit()
+        foreign_identity=None
+        if case in ('replaced_scope','replaced_scope_with_proof','active_replaced_parent'):
             # This object is created only after checked retirement. It is a new foreign
             # occupant at the stale journal path, never the old worker scope.
             old_root.mkdir()
@@ -1489,6 +1513,48 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
             self.addCleanup(self._remove_owned_foreign_cgroups,old_root,worker_parent,worker_scope,foreign_identity)
         elif case == 'missing_scope':
             self.assertFalse(worker_scope.exists())
+        if case == 'active_replaced_parent':
+            # Checked retirement was genuine. The foreign root cannot verify
+            # the retained parent of this still-RUNNING job.
+            with closing(sqlite3.connect(database)) as db:
+                running_bytes=db.execute(
+                    'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
+                    ('one',job_id)).fetchone()[0]
+            self.assertEqual(retired_record.state,copy_journal.FILE_COPY_JOB_JOURNAL_RUNNING)
+            candidate_log=self.root/('copy-fault-broker-'+str(len(self.brokers))+'.log')
+            candidate=recovery.restart(type(old))
+            self.broker=candidate
+            self.assertNotEqual(candidate.resources.root,old_root)
+            descriptor=candidate.resources.handle.pidfd
+            deadline=time.monotonic()+10
+            while not select.select([descriptor],[],[],max(0,deadline-time.monotonic()))[0]:
+                self.assertLess(time.monotonic(),deadline,
+                                'nonterminal parent conflict did not stop the candidate broker')
+            candidate.log.flush()
+            self.assertIn(b'Active copy parent identity cannot be verified',
+                          candidate_log.read_bytes())
+            cleanup,retirement=finish_checked_retirement(
+                self,candidate,candidate.resources,candidate.resources.handle)
+            self.assertTrue(cleanup.HasField('fence'))
+            self.assertIsNotNone(retirement)
+            self.assertFalse(candidate.resources.root.exists(),
+                             'failed candidate generation must retire its own scope')
+            self.assertEqual((old_root.stat().st_dev,old_root.stat().st_ino),foreign_identity[0])
+            self.assertEqual((worker_scope.stat().st_dev,worker_scope.stat().st_ino),foreign_identity[1])
+            self.assertTrue(stage.exists(),'failed startup must retain prepared staging')
+            retained=output.stat()
+            self.assertEqual((retained.st_dev,retained.st_ino),
+                             (retired_record.prepared_result.output.device,
+                              retired_record.prepared_result.output.inode))
+            self.assertEqual((output/'payload').read_bytes(),b'prepared')
+            self.assertEqual(prepared_bytes,retired_record.prepared_result.SerializeToString(deterministic=True))
+            self.assertFalse((self.project/'sigkill-copy').exists())
+            with closing(sqlite3.connect(database)) as db:
+                self.assertEqual(db.execute(
+                    'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
+                    ('one',job_id)).fetchone()[0],running_bytes,
+                    'startup refusal must not fabricate a terminal receipt')
+            return
         published=case in ('published','sync_failure')
         if published:output.rename(self.project/'sigkill-copy')
         from unittest.mock import patch
@@ -1517,10 +1583,22 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
             self.assertEqual((current_worker.st_dev,current_worker.st_ino),foreign_identity[1],
                              'recovery must preserve the exact post-retirement foreign worker cgroup')
         self.assertEqual(stage.exists(),case in ('sync_failure','missing_scope','replaced_scope','replaced_scope_with_proof'))
+        if case in ('replaced_scope','replaced_scope_with_proof'):
+            retained=output.stat()
+            self.assertEqual((retained.st_dev,retained.st_ino),
+                             (retired_record.prepared_result.output.device,
+                              retired_record.prepared_result.output.inode))
+            self.assertEqual((output/'payload').read_bytes(),b'prepared')
         with closing(sqlite3.connect(database)) as db:
             recovered=copy_journal.FileCopyJobJournalRecord.FromString(db.execute(
                 'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',('one',job_id)).fetchone()[0])
         self.assertEqual(recovered.prepared_result.SerializeToString(deterministic=True),prepared_bytes)
+        if terminal_bytes is not None:
+            with closing(sqlite3.connect(database)) as db:
+                self.assertEqual(db.execute(
+                    'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
+                    ('one',job_id)).fetchone()[0],terminal_bytes,
+                    'quarantine must preserve the complete durable terminal record')
         self.assertGreaterEqual(recovered.updated_at_unix_ms,record.updated_at_unix_ms)
         if case in ('missing_scope','replaced_scope','replaced_scope_with_proof'):
             self.assertEqual(recovered.state,copy_journal.FILE_COPY_JOB_JOURNAL_UNCERTAIN)
@@ -1585,18 +1663,19 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
         for generation in range(3):
             # Poll forces startup completion before checking its effects.
             poll=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
-            self.assertTrue(poll.file_action.HasField('copy_job'),poll)
-            self.assertEqual(poll.file_action.copy_job.SerializeToString(deterministic=True),
-                             record.terminal_receipt.SerializeToString(deterministic=True))
+            self.expect_file_error(poll,files.FileActionError.UNCERTAIN)
+            self.assertEqual(poll.file_action.error.detail,
+                'copy recovery disposition quarantines this worktree; saved evidence retained')
             self.assertFalse((self.project/'sigkill-copy').exists())
             foreign=self.principal();foreign.actor_id=bytes([0x77])*32
             denied=self.broker.request(file_action=cabinet.FileActionRequest(protocol_version=1,
                 operation_id=uuid.uuid4().bytes,workspace_id='one',principal=foreign,
                 copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id)))
             self.expect_file_error(denied,files.FileActionError.UNAUTHORIZED)
-            if generation:
-                blocked=self.action(browse=files.FileBrowse(page_size=8))
-                self.expect_file_error(blocked,files.FileActionError.STALE_HANDLE)
+            blocked=self.action(browse=files.FileBrowse(page_size=8))
+            self.expect_file_error(blocked,files.FileActionError.UNCERTAIN)
+            self.assertEqual(blocked.file_action.error.detail,
+                'copy recovery disposition quarantines this worktree; saved evidence retained')
             self.assertFalse(worker_scope.exists(),'exact same-boot live scope must stop before dispatch')
             self.assertEqual(marker.read_bytes(),b'preserve exact staged evidence')
             self.assertEqual((marker.stat().st_dev,marker.stat().st_ino),
@@ -1619,10 +1698,11 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
                           'import time;from pathlib import Path;time.sleep(.3);Path("app-alive-'+str(generation)+'").write_text("alive")'])))
             self.assertTrue(launched.HasField('launched'),launched)
             still_uncertain=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
-            self.assertEqual(still_uncertain.file_action.copy_job.SerializeToString(deterministic=True),
-                             record.terminal_receipt.SerializeToString(deterministic=True))
-            if generation:
-                self.expect_file_error(self.action(browse=files.FileBrowse(page_size=8)),files.FileActionError.STALE_HANDLE)
+            self.expect_file_error(still_uncertain,files.FileActionError.UNCERTAIN)
+            self.assertEqual(still_uncertain.file_action.error.detail,
+                'copy recovery disposition quarantines this worktree; saved evidence retained')
+            self.expect_file_error(self.action(browse=files.FileBrowse(page_size=8)),
+                                   files.FileActionError.UNCERTAIN)
             self.broker.call('git.status',worktree='tree-two')
             def independent_action(**fields):
                 return self.broker.request(file_action=cabinet.FileActionRequest(protocol_version=1,
