@@ -1,0 +1,74 @@
+M08 reusable launch checklist
+
+Purpose
+Use this checklist before each new qualification candidate or changed launcher.
+Reuse verified evidence when its source, inputs, host, and relevant conditions remain unchanged.
+Do not rerun every preflight after every small source edit.
+A prelaunch PASS permits execution. It does not qualify M08.
+
+Record
+Candidate commit:
+Production binary source commit:
+Test-only source overlay and reviewed impact:
+Package and manifest hashes:
+Host and profile:
+Selected suites and expected case counts:
+External run directory and tmux session:
+Reviewer and evidence paths:
+
+Source and artifacts
+[ ] Verify the frozen source pin and complete file inventory against Git.
+[ ] Verify executable bits, read-only payload modes, and required empty cache directories.
+[ ] Verify transfer bytes directly between LAN hosts. Do not relay bulk data through the controller.
+[ ] Verify the actual binary, wrapper, dependency closure, and instrumentation for each profile.
+[ ] Record any excluded coverage. App sanitizers do not prove X server sanitizer coverage.
+
+Host and storage
+[ ] Verify hostname, machine ID, filesystem UUID, free space, and projected output size.
+[ ] Verify the six reviewed headroom storage inputs and selected runtime configuration.
+[ ] Run the read-only storage verifier with the actual caller permissions.
+[ ] Verify required mounts, fixture ownership, resource budgets, and session services.
+[ ] Verify evidence parents and cases/scopes are private, owned directories.
+[ ] Refuse existing or symlink evidence children. Do not repair unknown paths with chmod.
+[ ] Verify runtime and helper locks are free. Inspect live processes before any retry.
+
+Test registration and deadlines
+[ ] Compare relocated CTest argv, properties, working directories, and registered names.
+[ ] Confirm exact selected names, expected counts, and explicit Debug/SAN fixture profiles.
+[ ] Confirm required protobuf bindings and transitive fixture imports are available.
+[ ] Distinguish product deadlines, individual test timeouts, and total batch duration.
+[ ] Record timeout headroom from actual timings. Diagnose timeout versus assertion failure.
+[ ] Preserve locked acceptance checks and product deadlines.
+
+Launch and observation
+[ ] Verify the canonical runner hash and fresh external output directories.
+[ ] Validate saved launch scripts and explicit child exit propagation.
+[ ] Launch through persistent tmux with the assigned runtime lock.
+[ ] Confirm the actual child started and canonical receipts were created.
+[ ] Scan complete logs for failures, skips, and sanitizer findings during execution.
+[ ] Parse receipt contents. File length and COMPLETE are not exit status.
+[ ] Confirm helper restoration and child retirement before another runtime job.
+
+Results
+[ ] Match terminal case counts to the selected inventory.
+[ ] Report PASS, FAIL, setup refusal, skipped, pending, and unrun separately.
+[ ] Preserve unresolved failure evidence with source pins and hashes.
+[ ] Review results before integration. Push coherent checkpoints to box-git.
+[ ] Run the complete phase gate on both hosts before claiming M08 qualification.
+
+Checklist maintenance
+After a setup failure, preserve the failing command and evidence.
+Identify the missing invariant and add its smallest reusable check here.
+Add a regression test when the failure is reproducible.
+Attach the check to the existing launcher when automation is practical.
+Do not add unrelated checks or a second launch framework.
+Revalidate only affected evidence after a change. Explain any reuse.
+
+Known failures incorporated on 2026-10-19
+Private evidence: missing intermediate directories inherited mode 0755 under umask 022.
+Packaging: declared bytecode-cache directories were absent or omitted when empty.
+Storage: obsolete verifier and definitions disagreed with reviewed headroom fixtures.
+Receipts: a two-byte file containing 0\n was mistaken for exit code 2.
+Metadata: relocation can silently change an implicit CTest working directory.
+Imports: profile checks need generated protobuf bindings on the recorded import path.
+Archive modes: shared Git archives may include group-write bits before explicit freezing.
