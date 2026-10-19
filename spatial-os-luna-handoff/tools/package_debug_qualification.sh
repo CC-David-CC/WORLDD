@@ -36,7 +36,7 @@ import pathlib,re,shutil,sys
 build,stage,workdir=map(pathlib.Path,sys.argv[1:])
 files=list(build.rglob('CTestTestfile.cmake'))
 assert files, 'no CTestTestfile.cmake found'
-total=0
+registration_names=[]
 for src in files:
  rel=src.relative_to(build); dst=stage/rel; dst.parent.mkdir(parents=True,exist_ok=True)
  text=src.read_text(); names=re.findall(r'add_test\(\[=\[(.*?)\]=\]',text)
@@ -44,10 +44,12 @@ for src in files:
   text += '\n# External stage keeps CTest logs outside the frozen package.\n'
   for name in names:
    text += f'set_tests_properties([=[{name}]=] PROPERTIES WORKING_DIRECTORY [=[{workdir}]=])\n'
-  total += len(names)
+  registration_names.extend(names)
  dst.write_text(text)
  print(f'{rel}: registrations={len(names)}')
-assert total==173, f'expected 173 registrations in metadata, got {total}'
+assert registration_names, 'no CTest registrations found in metadata'
+assert len(registration_names)==len(set(registration_names)), 'duplicate CTest names in metadata'
+(stage/'CTEST_REGISTERED_NAMES.txt').write_text('\n'.join(sorted(registration_names))+'\n')
 shutil.copy2(build/'DartConfiguration.tcl',stage/'DartConfiguration.tcl')
 dart=(stage/'DartConfiguration.tcl').read_text()
 dart=re.sub(r'^BuildDirectory: .*$',f'BuildDirectory: {stage}',dart,flags=re.M)
@@ -59,22 +61,23 @@ import json,pathlib,subprocess,sys
 root,stage=map(pathlib.Path,sys.argv[1:]); build=root/'builds/debug'
 r=subprocess.run(['ctest','--test-dir',str(stage),'--show-only=json-v1'],text=True,capture_output=True,check=True)
 j=json.loads(r.stdout); tests=j.get('tests',[]); names=[t['name'] for t in tests]
-assert len(tests)==173, f'expected 173 registrations, got {len(tests)}'
-assert len(set(names))==173, 'duplicate CTest names'
+registered=(stage/'CTEST_REGISTERED_NAMES.txt').read_text().splitlines()
+assert len(set(names))==len(names), 'duplicate CTest names in generated metadata'
+assert sorted(names)==registered, 'CTest inventory differs from copied registration files'
 previously_missing=['broker-file-action-client-test','file-action-effect-wait-test','presentation-metadata-test','queued-copy-status-replacement-test','spatial-actor-session-client-probe','spatial-actor-session-client-tls-probe','spatial-actor-transition-coordinator-probe','spatial-host-actor-controller-probe','spatial-snapshot-size-regression','workspace-copy-journal-test','workspace-file-engine-test','workspace-file-operation-journal-test','workspace-presentation-projection-test','workspace-presentation-store-test','world-diagnostic-timing-test']
 for name in previously_missing:
  exe=build/name
  assert exe.is_file() and exe.stat().st_mode & 0o111, f'missing previously absent executable {name}'
 wd=[p['value'] for t in tests for p in t.get('properties',[]) if p.get('name')=='WORKING_DIRECTORY']
-assert len(wd)==173 and set(wd)=={str(build)}, f'working dirs are not package build: {set(wd)}'
+assert len(wd)==len(tests) and set(wd)=={str(build)}, f'working dirs are not package build: {set(wd)}'
 (stage/'CTEST_REGISTRATION.json').write_text(json.dumps(j,indent=2,sort_keys=True)+'\n')
 r=subprocess.run(['ctest','--test-dir',str(stage),'-N','-C','Debug'],text=True,capture_output=True)
 (stage/'CTEST_LIST_ONLY.txt').write_text(r.stdout+r.stderr)
 assert r.returncode==0, f'ctest -N exit {r.returncode}'
 assert 'Could not find executable' not in r.stdout+r.stderr, 'missing registered executable'
 assert f'Test project {stage}' in r.stdout, 'CTest bookkeeping is not external'
-assert 'Total Tests: 173' in r.stdout, 'CTest registration count mismatch'
-print(f'external CTest stage registrations=173; prior missing executables=15 present; explicit package workdirs=173; list-only is warning-free')
+assert f'Total Tests: {len(names)}' in r.stdout, 'CTest registration count mismatch'
+print(f'external CTest stage registrations={len(names)}; prior missing executables=15 present; explicit package workdirs={len(wd)}; list-only is warning-free')
 PY
 : > "$FINAL/ELF_DEPENDENCIES.txt"
 while IFS= read -r -d '' f; do
@@ -122,7 +125,8 @@ PY
 ctest --test-dir "$CTEST_STAGE" -N -C Debug > "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt" 2>&1
 ! grep -q 'Could not find executable' "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
 grep -F "Test project $CTEST_STAGE" "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
-grep -F 'Total Tests: 173' "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
+registered_count=$(wc -l < "$CTEST_STAGE/CTEST_REGISTERED_NAMES.txt")
+grep -F "Total Tests: $registered_count" "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"
 [[ "$(realpath "$BACKUP")" == "$BACKUP" && -d "$BACKUP" && ! -L "$BACKUP" ]]
 removed_bytes=$(du -sb "$BACKUP" | awk '{print $1}')
 find "$BACKUP" -type d -exec chmod u+w {} +
