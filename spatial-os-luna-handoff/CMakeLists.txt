@@ -1338,10 +1338,6 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_observation_resource_fixture.py")
     set_tests_properties(observation-resource-fixture-tooling PROPERTIES TIMEOUT 30
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
-    add_test(NAME observation-resource-fixture-tooling COMMAND "${Python3_EXECUTABLE}" -B
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_observation_resource_fixture.py")
-    set_tests_properties(observation-resource-fixture-tooling PROPERTIES TIMEOUT 30
-        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-copy-worker-helpers-tooling COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_copy_worker_helpers.py")
     set_tests_properties(workspace-copy-worker-helpers-tooling PROPERTIES TIMEOUT 30)
