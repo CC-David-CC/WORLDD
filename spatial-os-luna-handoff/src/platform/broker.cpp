@@ -4,6 +4,9 @@
 #include "authority/store.hpp"
 #include "workspace/resources.hpp"
 #include "supervisor/storage_launch.hpp"
+#include "supervisor/broker_cleanup_bootstrap.hpp"
+#include "workspace/broker_copy_cleanup.hpp"
+#include "workspace/file_operation_journal.hpp"
 #include "identity/tls_support.hpp"
 #include <google/protobuf/text_format.h>
 #include <set>
@@ -305,6 +308,7 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         validate_resource_config(config.resources());
         if (config.require_confinement() && (!config.has_storage_owner() || fixture_faults || config.resources().protocol_version() != 2))
             throw std::invalid_argument("Production broker launch requires aggregate resources and storage ownership without fixture faults");
+        supervisor::ProcessScope::preflight_owned_parent(config.delegated_cgroup());
         if (config.has_storage_owner()) supervisor::validate_storage_launch(config.storage_owner(), state);
         identity::tls_detail::Fd storage_owner, storage_child;
         if (config.has_storage_owner()) {
@@ -321,6 +325,17 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0)
             throw std::runtime_error("Cannot create broker channel");
         identity::tls_detail::Fd parent(pair[0]), child(pair[1]);
+        identity::tls_detail::Fd cleanup_parent, cleanup_child;
+        {
+            int cleanup[2];
+            if (socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, cleanup) != 0)
+                throw std::runtime_error("Cannot create broker cleanup bootstrap channel");
+            cleanup_parent.reset(cleanup[0]); cleanup_child.reset(cleanup[1]);
+            const int enabled = 1;
+            for (const int fd : cleanup)
+                if (setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &enabled, sizeof(enabled)) != 0)
+                    throw std::runtime_error("Cannot require cleanup bootstrap sender credentials");
+        }
         std::filesystem::create_directories(state);
         instance_lock_ = std::make_unique<BrokerInstanceLock>(state, config.delegated_cgroup());
         scope_ = supervisor::ProcessScope::prepare_owned(config.delegated_cgroup(), instance_lock_->scope_name());
@@ -337,13 +352,24 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
             request.add_arguments("--storage-fd"); request.add_arguments("4"); request.add_inherited_fds(4);
             inherited.push_back(storage_child.value);
         }
+        request.add_arguments("--direct-cleanup-bootstrap-fd"); request.add_arguments("5");
+        request.add_inherited_fds(5); inherited.push_back(cleanup_child.value);
+        cleanup_participant_ = BrokerCopyCleanupParticipant::deferred(*scope_);
         scope_->start(request, {child.value, child.value, STDERR_FILENO}, inherited);
         pid_ = scope_->direct_child_pid();
         identity::tls_detail::Fd retained(scope_->duplicate_child_pidfd());
-        storage_child.reset();
+        storage_child.reset(); cleanup_child.reset();
         if (config.has_storage_owner())
             storage_ = std::make_unique<supervisor::StorageOwnerLaunch>(config.storage_owner(), state,
                 storage_owner.value, retained.value, STDERR_FILENO);
+        const auto deadline = supervisor::BrokerCleanupBootstrap::deadline_after(std::chrono::seconds(10));
+        auto received = supervisor::BrokerCleanupBootstrap::receive_request(cleanup_parent.value, pid_, getuid(), deadline);
+        if (received.frame.kind() != supervisor::v1::BrokerCleanupBootstrapFrame::BIND_REQUEST)
+            throw std::runtime_error("Unexpected direct broker cleanup bootstrap message");
+        supervisor::BrokerCleanupBootstrap::validate_state_root(received.descriptor, state);
+        cleanup_participant_->bind(FileOperationJournal::pin_existing(received.descriptor));
+        supervisor::BrokerCleanupBootstrap::send_ack(cleanup_parent.value, received.frame.correlation_id(), deadline);
+        cleanup_parent.reset();
         pidfd_ = std::exchange(retained.value, -1);
         channel_ = std::exchange(parent.value, -1);
         return;

@@ -642,6 +642,12 @@ void AuthorityLaunch::set_pre_prune_cleanup(std::function<void(const OwnedDraine
         "Pre-prune cleanup requires the exact prepared launch scope");
     impl_->process->set_pre_prune_cleanup(std::move(callback));
 }
+void AuthorityLaunch::set_pre_prune_cleanup_with_retirement(
+    std::function<bool(const OwnedDrainedTree&)> callback) {
+    require(impl_->process && !impl_->started && impl_->record.stage() == v1::PREPARED && !impl_->stopping,
+        "Retiring pre-prune cleanup requires the exact prepared launch scope");
+    impl_->process->set_pre_prune_cleanup_with_retirement(std::move(callback));
+}
 pid_t AuthorityLaunch::direct_child_pid() const {
     require(impl_->started && impl_->process && !impl_->stopping,
         "Direct child identity requires a live started launch");

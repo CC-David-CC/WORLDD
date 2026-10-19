@@ -22,20 +22,24 @@ public:
     bool execution_may_have_run() const { return execution_may_have_run_; }
     // True only when the trusted startup child reported a complete pre-exec errno.
     bool trusted_preexec_failure() const { return trusted_preexec_failure_; }
+    // True only when the retained direct child was reaped with exit status zero.
+    bool child_exited_successfully() const { return child_exited_successfully_; }
     OwnedDrainedTree(const OwnedDrainedTree&) = delete;
     OwnedDrainedTree& operator=(const OwnedDrainedTree&) = delete;
 private:
     friend class ProcessScope;
     OwnedDrainedTree(int directory, const v1::ProcessScopeIdentity& identity,
                      std::chrono::steady_clock::time_point deadline, bool execution_may_have_run,
-                     bool trusted_preexec_failure)
+                     bool trusted_preexec_failure, bool child_exited_successfully)
         : directory_(directory), identity_(identity), deadline_(deadline),
-          execution_may_have_run_(execution_may_have_run), trusted_preexec_failure_(trusted_preexec_failure) {}
+          execution_may_have_run_(execution_may_have_run), trusted_preexec_failure_(trusted_preexec_failure),
+          child_exited_successfully_(child_exited_successfully) {}
     int directory_;
     const v1::ProcessScopeIdentity& identity_;
     std::chrono::steady_clock::time_point deadline_;
     const bool execution_may_have_run_;
     const bool trusted_preexec_failure_;
+    const bool child_exited_successfully_;
 };
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
@@ -45,6 +49,9 @@ public:
     // Reuses one named direct child owned by a durable broker identity.
     static std::unique_ptr<ProcessScope> prepare_owned(const std::filesystem::path& delegated_root,
         const std::string& scope_name);
+    // Read-only validation before callers create durable state or acquire ownership locks.
+    // prepare_owned repeats these checks on its pinned descriptor to close races.
+    static void preflight_owned_parent(const std::filesystem::path& delegated_root);
     // Create one exact caller-reserved child cgroup. The name must be unique under
     // delegated_root and is validated as a single path component.
     static std::unique_ptr<ProcessScope> prepare_named(const std::filesystem::path& delegated_root,
@@ -91,6 +98,9 @@ public:
     void thaw_payload();
     // Install once before launch. Failure preserves descendants and suppresses the stop receipt.
     void set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback);
+    // Authorize stable-root retirement only after the participant completes its checks.
+    // A false result preserves retained roots; non-retained scopes still prune normally.
+    void set_pre_prune_cleanup_with_retirement(std::function<bool(const OwnedDrainedTree&)> callback);
     void request_stop();
     v1::ProcessScopeStopped complete_stop(std::chrono::steady_clock::time_point deadline,
         const std::function<void(const v1::ProcessScopeIdentity&)>& drained = {});
@@ -113,6 +123,8 @@ private:
     // Set only after a complete positive errno record and EOF from the private startup gate.
     bool trusted_preexec_failure_ = false;
     std::function<void(const OwnedDrainedTree&)> pre_prune_cleanup_;
+    std::function<bool(const OwnedDrainedTree&)> pre_prune_cleanup_with_retirement_;
+    bool child_exited_successfully_ = false;
     v1::ProcessScopeIdentity identity_;
 };
 }

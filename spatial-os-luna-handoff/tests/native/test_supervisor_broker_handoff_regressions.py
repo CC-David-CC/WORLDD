@@ -5,6 +5,7 @@ from pathlib import Path
 import select
 import signal
 import shutil
+import sqlite3
 import subprocess
 import time
 import unittest
@@ -172,6 +173,14 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertEqual(survivor.inspect().credential_id, independent.id)
         record = self.checked_cleanup()
         self.assertEqual(record.native, initial.native)
+        journal_path = self.root/'execution/file-operations/file-operations.db'
+        self.assertTrue(journal_path.is_file())
+        journal = sqlite3.connect(f'file:{journal_path}?mode=ro', uri=True)
+        try:
+            self.assertEqual(journal.execute('SELECT count(*) FROM git_worker_parent').fetchone()[0], 0)
+            self.assertEqual(journal.execute('SELECT count(*) FROM retained_git_worker_parents').fetchone()[0], 0)
+        finally:
+            journal.close()
         self.assertFalse(reply.view.HasField('ready'))
         for path in self.journal.iterdir():
             self.assertNotIn(self.cookie, path.read_bytes())
