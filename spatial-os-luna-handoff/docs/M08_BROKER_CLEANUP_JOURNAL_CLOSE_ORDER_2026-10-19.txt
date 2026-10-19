@@ -1,10 +1,10 @@
 M08 broker cleanup journal close ordering (2026-10-19)
 
-Status: UNQUALIFIED source change. Build and runtime checks remain unrun by this worker.
+Status: Focused controls passed. M08 remains UNQUALIFIED.
 
 Cause
 
-BrokerCopyCleanupParticipant::pre_prune called finish_cleanup before inspecting retained and active Git-worker parent records. finish_cleanup stops the journal worker. The later read or CAS clear then failed with ?File operation journal is stopping?.
+BrokerCopyCleanupParticipant::pre_prune called finish_cleanup before inspecting retained and active Git-worker parent records. finish_cleanup stops the journal worker. The later read or CAS clear then failed with "File operation journal is stopping".
 
 Repair
 
@@ -12,7 +12,7 @@ The participant now finishes the pinned journal after all record reads and mutat
 
 Coverage added
 
-The callback-controls fixture exercises a successful clean-child retirement with a bound active Git parent. It checks the parent directory and broker root are removed, the journal row is absent, and reopening the pinned journal succeeds. The uncertainty fixture checks the broker root and active parent row remain, while reopening the pinned journal succeeds. The identity-mismatch fixture keeps its journal alive through the owned scope?s exception-unwind cleanup, so a failed assertion cannot cause teardown ordering to mask the original error.
+The callback-controls fixture exercises a successful clean-child retirement with a bound active Git parent. It checks the parent directory and broker root are removed, the journal row is absent, and reopening the pinned journal succeeds. The uncertainty fixture checks the broker root and active parent row remain, while reopening the pinned journal succeeds. The identity-mismatch fixture keeps its journal alive through the owned scope's exception-unwind cleanup, so a failed assertion cannot cause teardown ordering to mask the original error.
 
 Required focused checks
 
@@ -20,3 +20,22 @@ Required focused checks
 - Existing CTest `broker-copy-preprune-deadline-multirow` remains relevant to bounded cleanup and deadline behavior.
 
 The primary Debug and sanitizer builds at commit 4362575 failed while compiling the new fixture because one `GitWorkerParentRecord` name lacked the `spatial::` qualification. No runtime command ran. This follow-up corrects that qualification. The primary owns rebuild and runtime validation. Receipts: `~/spatial-artifacts/m08-journal-close-order-4362575-20261019/build-debug-01` and `build-sanitizer-01`.
+
+Primary verification at f109697a0cc9a021dd0bc3b884aef8ffe4c8a637
+
+Both focused target builds and both full-profile relinks passed.
+Controls-plus-15 passed in Debug and ASan/UBSan on sb16 and sb16-2.
+All four command and wrapper exit codes were zero.
+No sanitizer findings appeared. Resource units are inactive; runtime locks are free.
+Btrfs alias coverage and deadline-multirow remain unrun in this batch.
+
+ROG evidence root:
+/home/dflanag3/spatial-artifacts/m08-journal-close-order-4362575-20261019.
+Result ledger: focused-results.json.
+Ledger SHA256: 109ba5744be76247928b21025ef027e46f961a76a72ec14ecca67d50a055677d.
+Test-host roots:
+/home/dflanag3/spatial-artifacts/m08-journal-close-f109697-HOST-debug-20261019/runs/controls-debug-01.
+/home/dflanag3/spatial-artifacts/m08-journal-close-f109697-HOST-san-20261019/runs/controls-sanitizer-01.
+
+The source is integrated on the reviewed repair branch.
+Combined runtime regressions and the full M08 gate remain pending.
