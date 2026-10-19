@@ -194,18 +194,59 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         return [dict(generation=generation, service_incarnation=incarnation.hex(), active=active)
                 for generation, incarnation, active in rows]
 
+    def checked_launch_authorization(self, record):
+        self.assertEqual(record.binding.issuer_id, self.binding.issuer_id)
+        self.assertEqual(record.binding.participant_id, self.binding.participant_id)
+        self.assertEqual(record.binding.registered_revision, self.binding.registered_revision)
+        self.assertEqual(record.binding.supervised, self.binding.supervised)
+        self.assertEqual(record.binding.issuer_id, self.issuer.info.issuer_id)
+        self.assertEqual(record.binding.participant_id, self.issuer.registration.participant.id)
+        self.assertEqual(record.binding.registered_revision, self.issuer.registration.registered_revision)
+        self.assertTrue(record.HasField('authorization'), record)
+        approval = record.authorization
+        request = approval.request
+        self.assertEqual(request.service.issuer_id, record.binding.issuer_id)
+        self.assertEqual(request.service.registration, self.issuer.registration)
+        self.assertEqual(request.service.service_incarnation, record.binding.service_incarnation)
+        self.assertEqual(request.launch_id, record.process.launch_id)
+        self.assertEqual(approval.supervisor_public_key, self.issuer.supervisor_public)
+        with sqlite3.connect(f'file:{self.issuer.state/"identity.db"}?mode=ro', uri=True) as journal:
+            rows = journal.execute('SELECT participant_id,service_incarnation,launch_id,request,supervisor_public_key,generation '
+                                   'FROM authority_launch_authorization WHERE authorization_id=?',
+                                   (approval.authorization_id,)).fetchall()
+        self.assertEqual(len(rows), 1, rows)
+        participant, incarnation, launch_id, encoded_request, public_key, generation = rows[0]
+        self.assertEqual(participant, record.binding.participant_id)
+        self.assertEqual(incarnation, record.binding.service_incarnation)
+        self.assertEqual(launch_id, record.process.launch_id)
+        self.assertEqual(identity.AuthorityLaunchBegin.FromString(encoded_request), request)
+        self.assertEqual(public_key, approval.supervisor_public_key)
+        return generation
+
     def recovery_broker_config(self, previous):
+        authorization_generation = self.checked_launch_authorization(previous)
         activations = self.participant_activation_evidence()
-        self.assertTrue(activations, 'The stopped broker must have activated before recovery')
         self.assertTrue(all(row['active'] == 0 for row in activations), activations)
-        previous_generation = max(row['generation'] for row in activations)
-        self.assertTrue(previous.HasField('fence'), previous)
-        self.assertEqual(previous.fence.generation, previous_generation, activations)
-        self.assertEqual(activations[-1]['service_incarnation'], previous.binding.service_incarnation.hex(), activations)
-        self.assertEqual(previous.fence.registration, self.issuer.registration)
-        self.assertEqual(previous.fence.service_incarnation, previous.binding.service_incarnation)
-        self.assertEqual(previous.fence.launch_id, previous.process.launch_id)
-        self.assertEqual(previous.fence.authorization_id, previous.authorization.authorization_id)
+        previous_generation = max((row['generation'] for row in activations), default=0)
+        launched = [row for row in activations
+                    if row['service_incarnation'] == previous.binding.service_incarnation.hex()]
+        if launched:
+            self.assertEqual(len(launched), 1, activations)
+            self.assertEqual(launched[0]['generation'], previous_generation, activations)
+            self.assertEqual(authorization_generation, previous_generation, activations)
+            self.assertEqual(previous_generation, previous.authorization.request.previous_generation + 1)
+            self.assertTrue(previous.HasField('fence'), previous)
+            self.assertEqual(previous.fence.generation, previous_generation, activations)
+            self.assertEqual(previous.fence.registration, self.issuer.registration)
+            self.assertEqual(previous.fence.service_incarnation, previous.binding.service_incarnation)
+            self.assertEqual(previous.fence.launch_id, previous.process.launch_id)
+            self.assertEqual(previous.fence.authorization_id, previous.authorization.authorization_id)
+        else:
+            # Management-only workspaced never submits an activation command.
+            # Prove the exact issuer authorization remains unconsumed before permitting no activation.
+            self.assertEqual(authorization_generation, 0, activations)
+            self.assertFalse(previous.HasField('fence'), previous)
+            self.assertEqual(previous.authorization.request.previous_generation, previous_generation, activations)
         config = self.broker_config()
         journal = self.root/'recovery-supervisor-journal'
         journal.mkdir(mode=0o700)
@@ -229,7 +270,8 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
     def preserve_parent_recovery_failure(self):
         evidence = {}
         for name, observe in [('parents', self.parent_journal_evidence),
-                              ('activations', self.participant_activation_evidence)]:
+                              ('activations', self.participant_activation_evidence),
+                              ('initial_authorization_generation', lambda: self.checked_launch_authorization(self.read_record()))]:
             try:
                 evidence[name] = observe()
             except Exception as error:
@@ -246,6 +288,7 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
             if time.monotonic() >= deadline:
                 raise TimeoutError('Failure snapshot deadline')
         for name, path in [('file-operations', self.root/'execution/file-operations/file-operations.db'),
+                           ('issuer-identity', self.issuer.state/'identity.db'),
                            ('initial-launch', self.journal/'launch.db'),
                            ('recovery-launch', self.root/'recovery-supervisor-journal/launch.db')]:
             if path.is_file():
@@ -311,6 +354,7 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
 
         # The next authorized incarnation reopens the same execution state.
         # Production startup must retire the exact missing-root generation.
+        before_recovery_activations = self.participant_activation_evidence()
         recovery_config, recovery_journal = self.recovery_broker_config(record)
         self.assertEqual(Path(recovery_config.delegated_cgroup), self.cgroup)
         state_index = list(recovery_config.launch.arguments).index('--state-dir')
@@ -332,10 +376,10 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertTrue(recovery_evidence['exists'], recovery_evidence)
         self.assertEqual(recovery_evidence['active'], [], recovery_evidence)
         self.assertEqual(recovery_evidence['retained'], [], recovery_evidence)
-        activations = self.participant_activation_evidence()
-        self.assertEqual(activations[-1], dict(generation=recovery_config.authorization.previous_generation + 1,
-                         service_incarnation=recovery_config.binding.service_incarnation.hex(), active=1), activations)
-        self.assertEqual([row for row in activations if row['active']], [activations[-1]], activations)
+        # This fixture's hello/management path does not configure workspace authority.
+        self.assertEqual(self.participant_activation_evidence(), before_recovery_activations)
+        self.assertEqual(self.checked_launch_authorization(recovered_record), 0)
+        self.assertFalse(recovered_record.HasField('fence'))
         self.assertEqual(survivor.inspect().credential_id, independent.id)
         recovery_stop = self.control(recovery_channel, stop=launch.AuthorityLaunchQuery())
         self.assertTrue(recovery_stop.HasField('view'), recovery_stop)
@@ -347,8 +391,11 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertEqual(saved_record, recovery_stop.view.record)
         self.assertEqual(saved_record.process_stopped.identity, recovered_record.process)
         self.assertEqual(saved_record.native_stopped.identity, recovered_record.native)
-        self.assertEqual(saved_record.fence.generation, recovery_config.authorization.previous_generation + 1)
-        self.assertEqual(saved_record.fence.service_incarnation, recovery_config.binding.service_incarnation)
+        self.assertEqual(saved_record.binding, recovery_config.binding)
+        self.assertEqual(saved_record.authorization, recovered_record.authorization)
+        self.assertEqual(self.checked_launch_authorization(saved_record), 0)
+        self.assertEqual(self.participant_activation_evidence(), before_recovery_activations)
+        self.assertFalse(saved_record.HasField('fence'))
         self.assertFalse((self.cgroup/saved_record.process.scope_name).exists())
         self.assertEqual(self.parent_journal_evidence()['active'], [])
         self.assertEqual(self.parent_journal_evidence()['retained'], [])
