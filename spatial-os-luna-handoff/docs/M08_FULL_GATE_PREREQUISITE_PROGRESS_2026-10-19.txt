@@ -2,6 +2,34 @@ M08 full-gate prerequisite progress - 2026-10-19
 
 M08 remains UNQUALIFIED. This is preparation evidence, not runtime qualification.
 
+Current reviewed status after authority repair
+
+This section supersedes the historical authority failure status below.
+The authority fixture repair is integrated at 7db29e33342c61e4d5cb25e2d0b31cc3c362b10a.
+The full 39-method authority group passed on both hosts in Debug and ASan-UBSan.
+All four canonical command and wrapper receipts returned zero.
+No skips or sanitizer findings occurred. Helper restoration passed.
+Elapsed Debug/sanitizer seconds: sb16 121.663/163.306; sb16-2 157.552/213.695.
+These are 156 focused executions. They do not replace the combined or full gate.
+Binary source remains f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
+Fixture base is ebc4c6055965404295cbb20eb48fb1a934032e8c.
+Test overlay is 03f1f67c783d63e37e963f74fe5282d45b601faf.
+The focused X server is Debug in both application profiles.
+Host and ROG evidence root: /home/dflanag3/spatial-artifacts/m08-authority-credential-focused-20261019.
+Primary review: primary-full39-review.json. Host receipts: runs/authority-full-01.
+
+Candidate 7db29e3 packaging attempts 01 and 02 both failed with command/wrapper exit two.
+All build stages in attempt 02 passed, including both production-off profiles.
+Packaging omitted required empty Python cache output directories from the staged closure.
+The cache-directory fix remains separate and under review. It is not integrated yet.
+The full static tooling run also found a scenario-rejection diagnostic assertion mismatch.
+Its baseline reproduction and narrow test correction are pending review.
+Preserve failed packaging receipts at /home/dflanag3/spatial-artifacts/m08-final-gate-preparation-20261019/runs.
+
+The combined 38-group regression driver is under review. No combined run has started.
+The full new M08 evaluation remains UNRUN. M08 remains UNQUALIFIED.
+Next: verify tooling repairs, integrate, freeze, verify the complete package, and run required gates.
+
 Latest reviewed focused results
 
 Both hosts passed the full 14-method handoff group in Debug and ASan-UBSan.
