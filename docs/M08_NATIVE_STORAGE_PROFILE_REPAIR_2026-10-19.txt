@@ -1,0 +1,16 @@
+M08 native storage profile repair: UNQUALIFIED
+
+Base: 5861ac01b2a654034480b5463480db6efc069956.
+Both sanitizer launches refused before test bodies. The adapter selected Debug
+because three CTest registrations omitted its explicit resource profile.
+Forward the existing CMake profile to session-storage-owner,
+session-storage-contention, and operator-storage. Keep all budget checks.
+
+Focused checks selected before execution:
+- Preserve the five inherited I/O binding and protobuf budget checks.
+- Evaluate actual CMake registration arguments in Debug and ASan-UBSan modes.
+Both hosts passed all six methods. Canonical command and wrapper exits were zero.
+Evidence: /home/dflanag3/spatial-artifacts/m08-native-storage-profile-repair-20261019/hosts/HOST/runs/unit
+Native sanitizer rerun: UNRUN at this checkpoint.
+Other adapter registrations remain outside this bounded repair.
+Full M08 qualification remains pending. No product authorization policy changed.

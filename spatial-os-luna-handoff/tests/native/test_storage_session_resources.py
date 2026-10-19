@@ -1,5 +1,9 @@
 """Focused regressions for inherited storage-fixture I/O bindings."""
 import unittest
+from pathlib import Path
+import re
+import subprocess
+import tempfile
 from types import SimpleNamespace
 from storage_session_resources import add_loop_binding
 import broker_pb2 as broker
@@ -101,6 +105,38 @@ class StorageSessionResourceTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "already bound"):
             add_loop_binding(prebound, BUDGET, (8, 16), (7, 3))
 
+
+
+class StorageSessionRegistrationTests(unittest.TestCase):
+    def test_native_storage_registrations_forward_both_build_profiles(self):
+        cmake = (Path(__file__).resolve().parents[2] / 'CMakeLists.txt').read_text()
+        selector = re.search(r'    set\(m08_file_action_copy_profile "Debug"\).*?    endif\(\)', cmake, re.S)
+        self.assertIsNotNone(selector)
+        names = ('session-storage-owner', 'session-storage-contention', 'operator-storage')
+        blocks = []
+        for name in names:
+            match = re.search(r'    add_test\(NAME ' + re.escape(name) + r'\b.*?\)\n', cmake, re.S)
+            self.assertIsNotNone(match, name)
+            blocks.append(match.group())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for enabled, profile in (('OFF', 'Debug'), ('ON', 'ASan-UBSan')):
+                with self.subTest(profile=profile):
+                    output = root / (enabled + '.args')
+                    script = root / (enabled + '.cmake')
+                    script.write_text('set(SPATIAL_SANITIZERS ' + enabled + ')\n'
+                        + 'set(CMAKE_CURRENT_SOURCE_DIR /source)\n'
+                        + 'set(Python3_EXECUTABLE /usr/bin/python3)\n'
+                        + 'function(add_test)\nfile(APPEND "' + str(output) + '" "${ARGV}\\n")\nendfunction()\n'
+                        + selector.group() + '\n' + ''.join(blocks))
+                    subprocess.run(['cmake', '-P', str(script)], check=True, capture_output=True, text=True)
+                    lines = output.read_text().splitlines()
+                    self.assertEqual(len(lines), len(names))
+                    for name, line in zip(names, lines):
+                        args = line.split(';')
+                        self.assertEqual(args[1], name)
+                        index = args.index('/source/tools/with_adapter_resources.py')
+                        self.assertEqual(args[index + 1:index + 3], ['--copy-profile=' + profile, '--'])
 
 if __name__ == "__main__":
     unittest.main()

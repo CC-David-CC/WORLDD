@@ -2175,19 +2175,19 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python")
     add_test(NAME session-storage-owner COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --copy-profile=${m08_file_action_copy_profile} --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_storage_session.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     add_test(NAME session-storage-contention COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --copy-profile=${m08_file_action_copy_profile} --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_storage_contention.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     add_test(NAME operator-storage COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --copy-profile=${m08_file_action_copy_profile} --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_operator_storage.py"
         "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     set_tests_properties(operator-storage PROPERTIES TIMEOUT 180
