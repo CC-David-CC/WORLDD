@@ -1,0 +1,34 @@
+# M08 native session startup failure diagnosis (2026-10-19)
+
+Status: diagnostic instrumentation draft; UNQUALIFIED. `src/workspace/store.cpp` now emits protected stderr evidence only when the existing unmatched-parent rejection throws. No validation predicates or wire errors changed. No tests, builds, or host runtime actions were run; primary review is pending.
+
+## Evidence
+
+The source pin is candidate `07991d839bf839c4e95022dedbceb5535f19ddaa` (`07991d8`). The retained sb16 Debug prefix is `/home/dflanag3/spatial-artifacts/m08-next-gate-build-prep-20261019/fullgate-sb16-Debug-core-prefix-1104.log`, SHA-256 `2bb82269b0e18a8063d730a79bf077ddf579021d9a1cb1ab81aab9cf7f421997`. Its sidecar marks the file as `LIVE_PREFIX_NOT_TERMINAL`.
+
+Test #201 `host-actor-controller-native` fails in `test_native_a_b_a_denial_and_retained_process_identities`. The fixture reaches `start_coordinator()`, then gets EOF while reading the initial `AuthorityLaunchReply` (`test_authority_supervisor.py:115-120`; caller `test_session_world.py:138`). The saved coordinator evidence says `workspaced: Git worker parent identity cannot be verified`, followed by supervisor child exit and cleanup uncertainty. The bootstrap broker log says `Git worker exited with status 1`.
+
+Test #202 `host-session-production-native` has the same workspace error in the captured presentation-constructor failure log. Its first recorded error is `test_partial_start_retained_internal_entry_checked_cleanup`: the expected launch journal cannot be opened because startup did not create it. Most following `(protocol_version=1, request_id=UINT64_MAX)` mismatches are cascades. `src/supervisor/host_session_main.cpp:268-271` emits that maximum-ID reply as the terminal cleanup reply on startup failure. The fixture helper at `test_host_session_production.py:214-229` expects an ordinary request reply with ID 1. A separate presentation cleanup text assertion also sees the earlier workspace startup failure.
+
+The common production path is: world/session startup launches `workspaced`; `ExecutionStore` begins recovery; `recover_git_worker_parent_before_dispatch()` rejects a retained Git worker parent; the child exits; the supervisor closes the reply channel. In `src/workspace/store.cpp:480-515`, the check validates the retained parent path and, for a current-boot existing path, its device and inode. All these failures collapse to `Git worker parent identity cannot be verified` when no copy-job record matches that parent.
+
+`WorkspaceResources::Impl::initialize()` sets its root from the broker's exact delegated cgroup (`src/workspace/resources.cpp:310-324`). Git worker parent reservations persist the root path and cgroup identity (`resources.cpp:234-260`). The store check at `store.cpp:504-507` can reject a parent for path shape, unreadability, or a current-boot device/inode mismatch. The preserved log does not show which predicate fired or the recorded/current values. Therefore the evidence proves a durable-parent recovery refusal, but does not yet prove a bad comparison or a genuinely stale/replaced cgroup.
+
+## Narrow repair proposal
+
+The draft now records the first failed predicate, escaped stored/expected/actual parent paths, path shape, `lstat` errno and identity, and stored/current boot and cgroup identities. It uses the existing single `lstat` result. It logs only on the existing unmatched-parent failure path, then throws the same `WorldError`. It adds no probes on success and follows the original left-to-right short-circuit order. Escaping keeps control bytes from forging log lines. The evidence remains on protected stderr.
+
+After primary review, inspect the actual emitted values before changing validation. If a legitimate parent path is rejected by a bad relationship check, correct only that relationship and retain boot, device, inode, and durable job binding checks. If the identity is stale or mismatched, repair fixture state ownership or recovery while keeping the record fail-closed. Do not change acceptance assertions.
+
+The `storage broker launch witness: Broker state directory ownership is invalid` report from test #218 is a separate launch path and is not tied to this failure by the available evidence. Test #217's revocation timing overrun is also separate. The later #210-#212 and #219 reply EOFs are consistent with the shared native session startup cluster, but need their own captured child error checked before calling them the same root cause.
+
+## Focused validation after a reviewed repair
+
+1. Add a regression for the specific retained-parent predicate and its fail-closed counterpart. Use the real resource protobuf and cgroup fixture. Assert that an unsafe identity still refuses startup.
+2. Run #201 `host-actor-controller-native` and #202 `host-session-production-native` on sb16 and sb16-2. Preserve child logs. Confirm ordinary initial replies carry request ID 1 and failure paths keep the explicit terminal cleanup reply.
+3. Run affected callers #210 `session-resources`, #211 `session-operator-revocation`, #212 `session-application`, and #219 `session-dependent-cleanup` on both hosts. Add other supervisor EOF cases only where their child logs confirm this same startup refusal.
+4. Run focused process/lifetime sanitizers for the shared supervisor and workspace startup path. Keep #217 timing and #218 storage ownership as separate checks.
+
+Selected checks after review: #201 and #202 on both hosts reproduce native startup; affected #210-#212 and #219 callers check the shared supervisor path. Add a forged retained-parent case with wrong parent shape and another with same-boot device/inode mismatch; both must keep the existing refusal and wire error. Verify accepted parent recovery still succeeds.
+
+All runtime, build, and test checks remain pending. The sb16 gate completed; sb16-2 still owns its full-gate lane. Primary review is required before build or runtime checks.

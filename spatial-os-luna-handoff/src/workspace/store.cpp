@@ -500,18 +500,60 @@ struct ExecutionStore::Impl {
             const std::filesystem::path path(parent.root_path);
             struct stat info{};
             const bool exists=lstat(path.c_str(),&info)==0;
-            const bool unreadable=!exists && errno!=ENOENT;
-            if(!path.is_absolute() || path.lexically_normal()!=path || path.parent_path()!=current_root.parent_path() ||
-               unreadable || (parent.boot_id==boot && exists &&
-                 (static_cast<std::uint64_t>(info.st_dev)!=parent.root_device ||
-                  static_cast<std::uint64_t>(info.st_ino)!=parent.root_inode))) {
+            const int path_errno=exists?0:errno;
+            const bool unreadable=!exists && path_errno!=ENOENT;
+            const char* unsafe_reason=nullptr;
+            if((!path.is_absolute() && (unsafe_reason="stored-path-not-absolute",true)) ||
+               (path.lexically_normal()!=path && (unsafe_reason="stored-path-not-normalized",true)) ||
+               (path.parent_path()!=current_root.parent_path() && (unsafe_reason="stored-parent-mismatch",true)) ||
+               (unreadable && (unsafe_reason="stored-path-lstat-error",true)) ||
+               (parent.boot_id==boot && exists &&
+                 ((static_cast<std::uint64_t>(info.st_dev)!=parent.root_device &&
+                   (unsafe_reason="stored-device-mismatch",true)) ||
+                  (static_cast<std::uint64_t>(info.st_ino)!=parent.root_inode &&
+                   (unsafe_reason="stored-inode-mismatch",true))))) {
                 bool affected=false;
                 for(const auto& record:records) if(matches(parent,record)) {
                     if(record.state()!=workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN)
                         throw WorldError(wire::UNAVAILABLE,"Active copy parent identity cannot be verified");
                     invalid_file_worktrees.insert(record.worktree_id());affected=true;
                 }
-                if(!affected) throw WorldError(wire::UNAVAILABLE,"Git worker parent identity cannot be verified");
+                if(!affected) {
+                    try {
+                        auto escaped=[](std::string_view value) {
+                            static constexpr char hex[]="0123456789abcdef";
+                            std::string result;
+                            result.reserve(value.size());
+                            for(const unsigned char byte:value) {
+                                if(byte>=0x20 && byte<=0x7e && byte!='\\' && byte!='"') result.push_back(static_cast<char>(byte));
+                                else { result.append("\\x");result.push_back(hex[byte>>4]);result.push_back(hex[byte&0x0f]); }
+                            }
+                            return result;
+                        };
+                        const auto actual_parent=path.parent_path();
+                        std::cerr<<"workspaced: retained Git worker parent rejected reason="
+                            <<(unsafe_reason?unsafe_reason:"unknown")
+                            <<" stored_path=\""<<escaped(parent.root_path)<<"\""
+                            <<" expected_parent=\""<<escaped(current_root.parent_path().string())<<"\""
+                            <<" actual_parent=\""<<escaped(actual_parent.string())<<"\""
+                            <<" absolute="<<path.is_absolute()
+                            <<" normalized="<<(path.lexically_normal()==path)
+                            <<" exists="<<exists
+                            <<" path_errno="<<path_errno
+                            <<" stored_boot_id=\""<<escaped(parent.boot_id)<<"\""
+                            <<" current_boot_id=\""<<escaped(boot)<<"\""
+                            <<" stored_device="<<parent.root_device
+                            <<" stored_inode="<<parent.root_inode
+                            <<" current_device="<<current_identity.first
+                            <<" current_inode="<<current_identity.second;
+                        if(exists) std::cerr<<" lstat_device="<<static_cast<std::uint64_t>(info.st_dev)
+                            <<" lstat_inode="<<static_cast<std::uint64_t>(info.st_ino);
+                        std::cerr<<'\n';
+                    } catch(...) {
+                        // Diagnostics must not replace the existing fail-closed result.
+                    }
+                    throw WorldError(wire::UNAVAILABLE,"Git worker parent identity cannot be verified");
+                }
                 unsafe_parents.insert(parent.identity_bytes);
             }
         }
