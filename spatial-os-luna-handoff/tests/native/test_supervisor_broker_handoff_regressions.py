@@ -7,6 +7,7 @@ import signal
 import shutil
 import sqlite3
 import subprocess
+import sys
 import time
 import unittest
 from unittest.mock import patch
@@ -16,6 +17,7 @@ import test_supervisor_broker_handoff as baseline
 import test_native_launch as native_launch
 import broker_pb2 as broker
 import launch_pb2 as launch
+import issuer_pb2 as identity
 import process_scope_pb2 as process
 import security_pb2 as security
 from harness.git_fixture import GitRepo
@@ -157,9 +159,164 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertNotEqual(bytes.fromhex(observed['cookie']), self.cookie)
         return application, observed, client
 
+    def parent_journal_evidence(self):
+        journal_path = self.root/'execution/file-operations/file-operations.db'
+        if not journal_path.is_file():
+            return {'journal_path': str(journal_path), 'exists': False, 'active': [], 'retained': []}
+        with sqlite3.connect(f'file:{journal_path}?mode=ro', uri=True) as journal:
+            active = journal.execute('SELECT state,root_device,root_inode,boot_id,identity,root_path FROM git_worker_parent').fetchall()
+            retained = journal.execute('SELECT state,root_device,root_inode,boot_id,identity,root_path FROM retained_git_worker_parents ORDER BY root_device,root_inode,boot_id,identity,root_path').fetchall()
+        def stat_identity(path):
+            try:
+                observed = path.lstat()
+                return [observed.st_dev, observed.st_ino]
+            except FileNotFoundError:
+                return None
+        def describe(row):
+            worker = process.ProcessScopeIdentity.FromString(row[4])
+            root = Path(row[5])
+            worker_parent = root/'spatial-git-workers'
+            population_path = worker_parent/'cgroup.procs'
+            return {'state': row[0], 'root_device': row[1], 'root_inode': row[2],
+                    'boot_id': row[3], 'root_path': row[5], 'root_stat': stat_identity(root),
+                    'worker_scope': worker.scope_name, 'worker_device': worker.device,
+                    'worker_inode': worker.inode, 'worker_boot_id': worker.boot_id,
+                    'worker_launch_id_bytes': len(worker.launch_id), 'worker_identity_hex': row[4].hex(),
+                    'worker_stat': stat_identity(worker_parent),
+                    'population': population_path.read_text().split() if population_path.is_file() else None}
+        return {'journal_path': str(journal_path), 'exists': True,
+                'active': [describe(row) for row in active], 'retained': [describe(row) for row in retained]}
+
+    def participant_activation_evidence(self):
+        with sqlite3.connect(f'file:{self.issuer.state/"identity.db"}?mode=ro', uri=True) as journal:
+            rows = journal.execute('SELECT generation,service_incarnation,active FROM authority_activation '
+                                   'WHERE participant_id=? ORDER BY generation', (self.binding.participant_id,)).fetchall()
+        return [dict(generation=generation, service_incarnation=incarnation.hex(), active=active)
+                for generation, incarnation, active in rows]
+
+    def checked_launch_authorization(self, record):
+        self.assertEqual(record.binding.issuer_id, self.binding.issuer_id)
+        self.assertEqual(record.binding.participant_id, self.binding.participant_id)
+        self.assertEqual(record.binding.registered_revision, self.binding.registered_revision)
+        self.assertEqual(record.binding.supervised, self.binding.supervised)
+        self.assertEqual(record.binding.issuer_id, self.issuer.info.issuer_id)
+        self.assertEqual(record.binding.participant_id, self.issuer.registration.participant.id)
+        self.assertEqual(record.binding.registered_revision, self.issuer.registration.registered_revision)
+        self.assertTrue(record.HasField('authorization'), record)
+        approval = record.authorization
+        request = approval.request
+        self.assertEqual(request.service.issuer_id, record.binding.issuer_id)
+        self.assertEqual(request.service.registration, self.issuer.registration)
+        self.assertEqual(request.service.service_incarnation, record.binding.service_incarnation)
+        self.assertEqual(request.launch_id, record.process.launch_id)
+        self.assertEqual(approval.supervisor_public_key, self.issuer.supervisor_public)
+        with sqlite3.connect(f'file:{self.issuer.state/"identity.db"}?mode=ro', uri=True) as journal:
+            rows = journal.execute('SELECT participant_id,service_incarnation,launch_id,request,supervisor_public_key,generation '
+                                   'FROM authority_launch_authorization WHERE authorization_id=?',
+                                   (approval.authorization_id,)).fetchall()
+        self.assertEqual(len(rows), 1, rows)
+        participant, incarnation, launch_id, encoded_request, public_key, generation = rows[0]
+        self.assertEqual(participant, record.binding.participant_id)
+        self.assertEqual(incarnation, record.binding.service_incarnation)
+        self.assertEqual(launch_id, record.process.launch_id)
+        self.assertEqual(identity.AuthorityLaunchBegin.FromString(encoded_request), request)
+        self.assertEqual(public_key, approval.supervisor_public_key)
+        return generation
+
+    def recovery_broker_config(self, previous):
+        authorization_generation = self.checked_launch_authorization(previous)
+        activations = self.participant_activation_evidence()
+        self.assertTrue(all(row['active'] == 0 for row in activations), activations)
+        previous_generation = max((row['generation'] for row in activations), default=0)
+        launched = [row for row in activations
+                    if row['service_incarnation'] == previous.binding.service_incarnation.hex()]
+        if launched:
+            self.assertEqual(len(launched), 1, activations)
+            self.assertEqual(launched[0]['generation'], previous_generation, activations)
+            self.assertEqual(authorization_generation, previous_generation, activations)
+            self.assertEqual(previous_generation, previous.authorization.request.previous_generation + 1)
+            self.assertTrue(previous.HasField('fence'), previous)
+            self.assertEqual(previous.fence.generation, previous_generation, activations)
+            self.assertEqual(previous.fence.registration, self.issuer.registration)
+            self.assertEqual(previous.fence.service_incarnation, previous.binding.service_incarnation)
+            self.assertEqual(previous.fence.launch_id, previous.process.launch_id)
+            self.assertEqual(previous.fence.authorization_id, previous.authorization.authorization_id)
+        else:
+            # Management-only workspaced never submits an activation command.
+            # Prove the exact issuer authorization remains unconsumed before permitting no activation.
+            self.assertEqual(authorization_generation, 0, activations)
+            self.assertFalse(previous.HasField('fence'), previous)
+            self.assertEqual(previous.authorization.request.previous_generation, previous_generation, activations)
+        config = self.broker_config()
+        journal = self.root/'recovery-supervisor-journal'
+        journal.mkdir(mode=0o700)
+        config.journal_directory = str(journal)
+        config.child_participant_config = str(self.root/'recovery-supervised-child.textproto')
+        config.binding.CopyFrom(previous.binding)
+        config.binding.service_incarnation = os.urandom(32)
+        self.assertNotEqual(config.binding.service_incarnation, previous.binding.service_incarnation)
+        runtime = text_format.Parse(Path(config.participant.runtime_config).read_text(),
+                                    identity.AuthorityParticipantRuntimeConfig())
+        self.assertEqual(runtime.participant_id, config.binding.participant_id)
+        self.assertEqual(runtime.registered_revision, config.binding.registered_revision)
+        runtime.service_incarnation = config.binding.service_incarnation
+        runtime_path = self.root/'recovery-runtime.textproto'
+        runtime_path.write_text(text_format.MessageToString(runtime))
+        runtime_path.chmod(0o600)
+        config.participant.runtime_config = str(runtime_path)
+        config.authorization.previous_generation = previous_generation
+        return config, journal
+
+    def preserve_parent_recovery_failure(self):
+        evidence = {}
+        for name, observe in [('parents', self.parent_journal_evidence),
+                              ('activations', self.participant_activation_evidence),
+                              ('initial_authorization_generation', lambda: self.checked_launch_authorization(self.read_record()))]:
+            try:
+                evidence[name] = observe()
+            except Exception as error:
+                evidence[name] = {'diagnostic_error': repr(error)}
+        print('Forced-stop recovery failure: ' + json.dumps(evidence, sort_keys=True), file=sys.stderr, flush=True)
+        base = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if not base:
+            return
+        destination = Path(base)/('forced-stop-parent-recovery-' + str(time.monotonic_ns()))
+        destination.mkdir(parents=True, mode=0o700)
+        (destination/'parent-evidence.json').write_text(json.dumps(evidence, sort_keys=True, indent=2) + '\n')
+        deadline = time.monotonic() + 5
+        def check_deadline(status, remaining, total):
+            if time.monotonic() >= deadline:
+                raise TimeoutError('Failure snapshot deadline')
+        for name, path in [('file-operations', self.root/'execution/file-operations/file-operations.db'),
+                           ('issuer-identity', self.issuer.state/'identity.db'),
+                           ('initial-launch', self.journal/'launch.db'),
+                           ('recovery-launch', self.root/'recovery-supervisor-journal/launch.db')]:
+            if path.is_file():
+                with sqlite3.connect(f'file:{path}?mode=ro', uri=True) as source:
+                    with sqlite3.connect(destination/(name + '.db')) as snapshot:
+                        source.backup(snapshot, pages=128, progress=check_deadline, sleep=.005)
+        for path in self.root.glob('supervisor-*.log'):
+            shutil.copyfile(path, destination/path.name)
+
     def test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope(self):
+        try:
+            self.check_forced_stop_parent_recovery()
+        except Exception:
+            try:
+                self.preserve_parent_recovery_failure()
+            except Exception as error:
+                print('Forced-stop recovery diagnostic failure: ' + repr(error), file=sys.stderr, flush=True)
+            raise
+
+    def check_forced_stop_parent_recovery(self):
         proc, channel, initial, _, pin = self.started_broker()
         _, observed, client = self.create_application()
+        running_evidence = self.parent_journal_evidence()
+        self.assertEqual(len(running_evidence['active']), 1, running_evidence)
+        running_parent = running_evidence['active'][0]
+        self.assertEqual(running_parent['root_stat'], [initial.process.device, initial.process.inode], running_evidence)
+        self.assertEqual(running_parent['worker_stat'],
+                         [running_parent['worker_device'], running_parent['worker_inode']], running_evidence)
         independent = self.supervisor.issue(workspace=b'independent', application=b'witness')
         survivor = self.connect(independent.cookie)
         self.assertEqual(select.select([pin], [], [], 0)[0], [])
@@ -171,20 +328,82 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         with self.assertRaises(native_launch.native.Denied):
             self.connect(bytes.fromhex(observed['cookie']))
         self.assertEqual(survivor.inspect().credential_id, independent.id)
+        parent_evidence = self.parent_journal_evidence()
         record = self.checked_cleanup()
-        self.assertEqual(record.native, initial.native)
-        journal_path = self.root/'execution/file-operations/file-operations.db'
-        self.assertTrue(journal_path.is_file())
-        journal = sqlite3.connect(f'file:{journal_path}?mode=ro', uri=True)
-        try:
-            self.assertEqual(journal.execute('SELECT count(*) FROM git_worker_parent').fetchone()[0], 0)
-            self.assertEqual(journal.execute('SELECT count(*) FROM retained_git_worker_parents').fetchone()[0], 0)
-        finally:
-            journal.close()
+        self.assertEqual(record, reply.view.record)
+        self.assertEqual(record.native, initial.native, parent_evidence)
+        self.assertEqual(record.process, initial.process, parent_evidence)
+        self.assertEqual(len(parent_evidence['active']), 1, parent_evidence)
+        parent = parent_evidence['active'][0]
+        self.assertEqual(parent['state'], 2, parent_evidence)
+        self.assertEqual((parent['root_device'], parent['root_inode'], parent['boot_id']),
+                         (record.process.device, record.process.inode, record.process.boot_id), parent_evidence)
+        self.assertEqual(parent['root_path'], str(self.cgroup/record.process.scope_name), parent_evidence)
+        self.assertEqual(parent['worker_scope'], 'spatial-git-workers', parent_evidence)
+        self.assertGreater(parent['worker_device'], 0, parent_evidence)
+        self.assertGreater(parent['worker_inode'], 0, parent_evidence)
+        self.assertEqual(parent['worker_boot_id'], parent['boot_id'], parent_evidence)
+        self.assertEqual(parent['worker_launch_id_bytes'], 32, parent_evidence)
+        for field in ('state', 'root_device', 'root_inode', 'boot_id', 'root_path', 'worker_identity_hex'):
+            self.assertEqual(parent[field], running_parent[field], (field, running_evidence, parent_evidence))
+        self.assertIsNone(parent['root_stat'], parent_evidence)
+        self.assertIsNone(parent['worker_stat'], parent_evidence)
+        self.assertIsNone(parent['population'], parent_evidence)
+        self.assertEqual(parent_evidence['retained'], [], parent_evidence)
         self.assertFalse(reply.view.HasField('ready'))
-        for path in self.journal.iterdir():
-            self.assertNotIn(self.cookie, path.read_bytes())
-            self.assertNotIn(bytes.fromhex(observed['cookie']), path.read_bytes())
+
+        # The next authorized incarnation reopens the same execution state.
+        # Production startup must retire the exact missing-root generation.
+        before_recovery_activations = self.participant_activation_evidence()
+        recovery_config, recovery_journal = self.recovery_broker_config(record)
+        self.assertEqual(Path(recovery_config.delegated_cgroup), self.cgroup)
+        state_index = list(recovery_config.launch.arguments).index('--state-dir')
+        self.assertEqual(Path(recovery_config.launch.arguments[state_index + 1]), self.broker.state)
+        recovered, recovery_channel = self.supervisor_process(recovery_config, start_server=False)
+        recovered_start = self.message(recovery_channel, launch.AuthorityLaunchReply)
+        self.assertTrue(recovered_start.HasField('view'), (recovered_start, parent_evidence))
+        recovered_record = recovered_start.view.record
+        self.assertEqual(recovered_record.stage, launch.START_ATTEMPTED, parent_evidence)
+        self.assertEqual(recovered_record.binding, recovery_config.binding)
+        self.assertEqual(recovered_record.authorization.request.previous_generation, recovery_config.authorization.previous_generation)
+        self.assertEqual(recovered_record.authorization.request.service.registration, self.issuer.registration)
+        self.assertEqual(recovered_record.authorization.request.service.service_incarnation, recovery_config.binding.service_incarnation)
+        self.assertEqual(recovered_record.authorization.request.launch_id, recovered_record.process.launch_id)
+        self.assertNotEqual(recovered_record.process.launch_id, record.process.launch_id)
+        recovered_hello = BrokerPipe(self, recovered).call('system.hello')
+        self.assertEqual(recovered_hello['implementation'], 'production', parent_evidence)
+        recovery_evidence = self.parent_journal_evidence()
+        self.assertTrue(recovery_evidence['exists'], recovery_evidence)
+        self.assertEqual(recovery_evidence['active'], [], recovery_evidence)
+        self.assertEqual(recovery_evidence['retained'], [], recovery_evidence)
+        # This fixture's hello/management path does not configure workspace authority.
+        self.assertEqual(self.participant_activation_evidence(), before_recovery_activations)
+        self.assertEqual(self.checked_launch_authorization(recovered_record), 0)
+        self.assertFalse(recovered_record.HasField('fence'))
+        self.assertEqual(survivor.inspect().credential_id, independent.id)
+        recovery_stop = self.control(recovery_channel, stop=launch.AuthorityLaunchQuery())
+        self.assertTrue(recovery_stop.HasField('view'), recovery_stop)
+        self.assertEqual(recovery_stop.view.record.stage, launch.OWNED_SCOPES_STOPPED)
+        self.assertEqual(recovered.wait(timeout=5), 0)
+        with sqlite3.connect(f'file:{recovery_journal/"launch.db"}?mode=ro', uri=True) as journal:
+            saved_record = launch.AuthorityLaunchRecord.FromString(
+                journal.execute('SELECT record FROM launch WHERE singleton=1').fetchone()[0])
+        self.assertEqual(saved_record, recovery_stop.view.record)
+        self.assertEqual(saved_record.process_stopped.identity, recovered_record.process)
+        self.assertEqual(saved_record.native_stopped.identity, recovered_record.native)
+        self.assertEqual(saved_record.binding, recovery_config.binding)
+        self.assertEqual(saved_record.authorization, recovered_record.authorization)
+        self.assertEqual(self.checked_launch_authorization(saved_record), 0)
+        self.assertEqual(self.participant_activation_evidence(), before_recovery_activations)
+        self.assertFalse(saved_record.HasField('fence'))
+        self.assertFalse((self.cgroup/saved_record.process.scope_name).exists())
+        self.assertEqual(self.parent_journal_evidence()['active'], [])
+        self.assertEqual(self.parent_journal_evidence()['retained'], [])
+        self.assertEqual(survivor.inspect().credential_id, independent.id)
+        for directory in (self.journal, recovery_journal):
+            for path in directory.iterdir():
+                self.assertNotIn(self.cookie, path.read_bytes())
+                self.assertNotIn(bytes.fromhex(observed['cookie']), path.read_bytes())
 
     def test_broker_death_preserves_issuer_state_and_revokes_native_descendants(self):
         proc, channel, _, child_pid, pin = self.started_broker()

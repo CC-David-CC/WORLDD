@@ -1,0 +1,128 @@
+# Forced-stop Git parent recovery regression correction
+Date: 2026-10-19
+Status: UNQUALIFIED. Native runtime checks remain UNRUN for this test overlay.
+Current repair base: d48f64e9b2d7d3d1fe76e165408ff4230ad3d1ec.
+Original draft base: 40b92a08b37dbf189a25929d505df140e24ea568.
+Work branch: m08/handoff-recovery-escalated-20261019.
+Host: rog-ally-x.
+Checkout: /home/dflanag3/src/m08-handoff-recovery-escalated-20261019.
+Owned files: this note and tests/native/test_supervisor_broker_handoff_regressions.py.
+Integration order: review this repair after the draft base, then deploy the reviewed test overlay.
+
+## Corrected oracle
+
+The affected regression explicitly asks the supervisor to stop.
+ProcessScope::request_stop() writes cgroup.kill and sends SIGKILL to its child.
+OWNED_SCOPES_STOPPED proves checked process and native-scope cleanup.
+It does not prove successful child exit or reconciliation of external Git effects.
+
+BrokerCopyCleanupParticipant::pre_prune() preserves journal evidence after unsuccessful child exit.
+Keep its child_exited_successfully() guard.
+AuthorityLaunch::prepare() uses ProcessScope::prepare() without retained-scope mode.
+ProcessScope::complete_stop() therefore removes this fixture's drained outer scope even when the callback returns false.
+The bound active git_worker_parent row can refer to that exact missing root.
+Retained production scopes use a different lifetime rule.
+The earlier read-only diagnosis incorrectly described this caller's outer scope as preserved.
+
+The immediate empty-table assertion conflated supervisor cleanup with successful broker exit.
+This explicit oracle correction requires exact recovery evidence first, then eventual empty active and retained tables.
+It changes this added regression only.
+No production code, locked acceptance test, acceptance lock, timeout, or normative contract changes.
+All 14 test methods remain in the regression inventory.
+
+The test records the running parent before forced stop.
+It checks actual root and worker device/inode values against durable identities.
+After stop, it checks the same root tuple, path, and complete serialized worker identity.
+It requires one bound active row, no retained rows, and absent physical root and worker directories.
+The independent native client must survive the forced stop.
+
+A fresh production supervisor then starts workspaced against the same execution directory and delegated cgroup parent.
+Recovery keeps the participant, issuer, registered revision, and execution state.
+It uses a new service incarnation in both binding and participant runtime configuration.
+Authorization uses the participant's maximum durable activation generation, or zero when none exists.
+Every existing activation must be inactive before recovery.
+The exact issuer authorization row must match participant, incarnation, launch, request, and supervisor public key.
+The record must also match the known issuer and registered participant identity.
+An activated prior launch requires its consumed authorization and exact checked fence.
+Its activation generation must equal the current maximum and its request's previous generation plus one.
+A never-activated prior launch instead requires an unconsumed authorization, no fence, and a request matching the current maximum.
+These are separate checked states. An empty filtered query alone does not authorize recovery.
+The new launch record must bind its authorization to the new incarnation and process launch identity.
+After real broker hello, startup recovery must leave both parent tables empty.
+This fixture's management-only recovery must preserve activation history and leave its new authorization unconsumed.
+The independent native client must also survive recovery and the second checked stop.
+
+A failure captures parent rows, activation metadata, consistent SQLite snapshots, and supervisor logs before fixture teardown.
+Snapshots use read-only source connections and an external SPATIAL_SECURITY_EVIDENCE directory.
+They now include identity.db and the initial authorization's checked consumed-generation value.
+The test never deletes rows or mutates production databases directly.
+
+## Source references
+
+src/supervisor/process_scope.cpp: request_stop(), complete_stop(), and remove_scope selection.
+src/supervisor/launch.cpp: AuthorityLaunch::prepare().
+src/workspace/broker_copy_cleanup.cpp: BrokerCopyCleanupParticipant::pre_prune().
+src/workspace/resources.cpp: ensure_git_group(), bind_git_worker_journal(), finish_initialization().
+src/workspace/store.cpp: recover_git_worker_parent_before_dispatch() and set_resources().
+src/identity/issuer.cpp: authorize_launch() and authority_activate().
+src/identity/participant_runtime.cpp: quiesce_for_supervisor_stop().
+src/supervisor/launch.cpp: prepare_explicit_stop().
+src/workspace/main.cpp: management dispatch and optional --authority-config construction.
+
+## Native failure and corrected activation assumption
+
+The d48 overlay ran the full 14-case Debug group on both hosts.
+Each host passed 13 cases and failed this case at the assertion requiring nonempty activation history.
+Both command and wrapper exited 8. Helpers returned to their prior absent state.
+Sanitizer execution did not start.
+Evidence remains on each host under /home/dflanag3/spatial-artifacts/m08-handoff-recovery-focused-20261019.
+Receipts: runs/handoff-recovery-01.
+Snapshots: Debug/spatial_security_evidence/forced-stop-parent-recovery-*.
+
+Both saved launch records name the expected fixture participant and registration.
+They contain an authorization with previous_generation=0, local generation=0, and no fence.
+Both parent JSON files report no activation rows and the expected exact missing-root parent record.
+The first failure snapshot omitted identity.db, so it cannot prove the issuer row's consumed generation retrospectively.
+The corrected test checks that row live and includes it in future failure snapshots.
+
+This fixture launches workspaced without --authority-config.
+Its hello, Git, workspace management, and fixture-actor application launch paths do not submit AuthorityActivate.
+The supervisor authenticates and authorizes a participant, but authorization alone does not activate it.
+ParticipantRuntime reports never_sent when no activation command started.
+prepare_explicit_stop() permits that exact disposition without an issuer fence.
+Issuer::authorize_launch() accepts previous_generation=0 when the participant has no activation history.
+An activated generation still requires strict inactive-generation and fence checks.
+
+The d48 correction incorrectly assumed both application launch and recovery hello create activations.
+This repair removes those unsupported assumptions and checks the actual authorization lifecycle explicitly.
+It preserves all parent identity, eventual empty-table, native cleanup, and independent survivor assertions.
+
+## Checks and evidence
+
+Selected before execution: AST/syntax, unchanged 14-method inventory, and pure Python helper checks with real generated bindings.
+The checks use synthetic SQLite and mocks. They run no production executable, native probe, CTest, or world on ROG.
+They cover the actual zero-activation branch and consumed inactive fenced generations.
+They replay both saved native launch records against synthetic matching issuer rows.
+They also reject active generations, wrong participant filtering, missing or mismatched authorizations,
+consumed authorization without activation, unexpected fences, stale previous generations, and missing or wrong activated-generation fences.
+They check consistent runtime/binding incarnation, same execution arguments, read-only evidence, and issuer database failure snapshots.
+Generated bindings: /home/dflanag3/spatial-artifacts/m08-diagnostic-build-a5dea9e-20261019/build/Debug/python.
+External evidence root: /home/dflanag3/spatial-artifacts/m08-handoff-recovery-escalated-20261019.
+Current selection: selected-checks-v2.txt. Current helper: helper-smoke-v2.py.
+The original helper's registration-name failure and earlier passing receipts remain separate.
+Current smoke and checkpoint results are recorded in HANDOFF-v2.md and source-pins-v2.json externally.
+
+Required next runtime: authority-broker-handoff-regressions on sb16 and sb16-2, Debug then ASan/UBSan.
+Use frozen f109 production binaries with a separately reviewed and hash-verified Python test overlay.
+Preserve the registered delegation wrappers, copy-worker lifecycle wrapper, working directories, and timeout.
+No binary rebuild is needed for these two maintained file changes.
+Native checks remain UNRUN for this revised source. Full M08 and Spatial-M1 gates remain pending.
+
+## Missing coverage
+
+No end-to-end uncertain-copy-effect case is added.
+The current fixture lacks a supported injection path at that effect boundary.
+Existing C++ cleanup cases do not replace native supervisor uncertainty coverage.
+No graceful EOF retirement control is added.
+The explicit stop path kills the child, and this fixture exposes no supported graceful broker shutdown request.
+A separate shutdown contract requires independent review before that coverage can be claimed.
