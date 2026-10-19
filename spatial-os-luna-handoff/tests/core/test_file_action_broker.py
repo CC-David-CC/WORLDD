@@ -1,6 +1,7 @@
 from pathlib import Path
 from contextlib import closing
 import os
+import subprocess
 import select
 import signal
 import stat
@@ -14,6 +15,8 @@ from unittest.mock import patch
 
 import test_workspace_copy_engine as engine
 import test_workspace_copy_faults as copy_faults
+sys.path.insert(0, str(engine.SOURCE / 'tools'))
+from copy_fixture_image_cleanup import cleanup_file_action_group, run_after_capacity_preflight
 sys.path.insert(0, str(engine.SOURCE / 'tests/native'))
 from supervised_copy_broker_recovery import (
     SupervisedCopyBrokerRecovery, wait_for_active_generation)
@@ -1815,6 +1818,33 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
                 self.assertNotEqual(self.broker.resources.root,current.resources.root,
                                     'each repeated restart must use a distinct resource root')
 
+def _iter_test_cases(test):
+    if isinstance(test, unittest.TestSuite):
+        for item in test:
+            yield from _iter_test_cases(item)
+    else:
+        yield test
+
+
+class PassedFixtureImageCleanupRunner(unittest.TextTestRunner):
+    def run(self, test):
+        cases = list(_iter_test_cases(test))
+        image_cases = [case for case in cases if isinstance(case, engine.WorkspaceCopyEngineTests)]
+        if image_cases:
+            evidence_root = Path(os.environ["SPATIAL_SECURITY_EVIDENCE"])
+            evidence_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+            capacity, result = run_after_capacity_preflight(
+                evidence_root, len(image_cases), lambda: super(PassedFixtureImageCleanupRunner, self).run(test))
+            print("FIXTURE IMAGE CAPACITY PREFLIGHT: " + repr(capacity), flush=True)
+        else:
+            result = super().run(test)
+        summary = cleanup_file_action_group(
+            result, cases, engine.WorkspaceCopyEngineTests, engine.BUILD / 'python',
+            runner=subprocess.run)
+        if summary['status'] == 'removed':
+            print('PASS-ONLY FIXTURE IMAGE CLEANUP: ' + repr(summary), flush=True)
+        return result
+
+
 if __name__ == '__main__':
-    import unittest
-    unittest.main(verbosity=2)
+    unittest.main(verbosity=2, testRunner=PassedFixtureImageCleanupRunner)

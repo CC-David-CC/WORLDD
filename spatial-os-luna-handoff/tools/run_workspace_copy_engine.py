@@ -16,6 +16,7 @@ import uuid
 # File-based preflight importers need the adjacent, frozen profile helper too.
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from copy_fixture_profiles import consume_profile, instrumentation_preflight
+from copy_fixture_image_cleanup import cleanup_engine_group, engine_group_passed, require_group_capacity, verify_previous_cleanup
 
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -83,9 +84,9 @@ def main(*,fixture_spec=None):
         assert selected_case in allowed,'Method is outside the existing copy fixture selection'
     assert build.is_dir() and source.is_dir() and not evidence.exists()
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
-    assert os.statvfs(evidence.parent).f_bavail*os.statvfs(evidence.parent).f_frsize>8*2**30
+    capacity=require_group_capacity(evidence.parent,1 if selected_case else fixture_count)
     evidence.mkdir(mode=0o700);backups=evidence/'helper-backups';backups.mkdir(mode=0o700)
-    report=dict(qualification=qualification,selected_methods=1 if selected_case else fixture_count,
+    report=dict(qualification=qualification,capacity_preflight=capacity,selected_methods=1 if selected_case else fixture_count,
         selected_case=selected_case,runtime_status='running',helpers={},commands=[])
     def save():(evidence/'review.json').write_text(json.dumps(report,sort_keys=True,indent=2)+'\n')
     def root_command(arguments,timeout=30):
@@ -225,6 +226,11 @@ def main(*,fixture_spec=None):
                 assert re.fullmatch(r'm07-engine-[0-9a-f]{16}',name)
                 entry=Path('/var/lib/spatial/volumes')/name
                 assert record['entry']==str(entry) and record['volume']==str(entry/'mount')
+                if record.get('image_cleanup'):
+                    proof=verify_previous_cleanup(inventory,build/'python')
+                    item.update(confirmed=True,state='verified-already-removed',receipt=proof)
+                    save()
+                    continue
                 command=[sys.executable,'-B',str(source/'tools/provision_storage.py'),'unmount','--bindings-dir',str(build/'python'),'--name',name,'--apply']
                 item['recovery_command']=['sudo','-n',*command];save()
                 if not entry.exists():item.update(confirmed=True,state='not-created');continue
@@ -259,6 +265,17 @@ def main(*,fixture_spec=None):
         for signum,handler in previous.items():signal.signal(signum,handler)
         assert all(item['restored'] for item in restoration),'Helper restoration is incomplete; inspect exact recovery commands in review.json'
         assert all(item['confirmed'] for item in recovery),'Volume cleanup is incomplete; inspect exact recovery commands in review.json'
+        if fixture_spec is None and engine_group_passed(report,completed_status,recovery,restoration):
+            receipts=sorted((evidence/'cases').glob('*/volume.json'))
+            try:
+                report['image_cleanup']=cleanup_engine_group(receipts,build/'python',evidence/'cases',
+                    report=report,completed_status=completed_status,recovery=recovery,
+                    restoration=restoration,runner=subprocess.run)
+            except BaseException as error:
+                report['image_cleanup']={'status':'incomplete','failure':repr(error)}
+                save()
+                raise
+            save()
     print(json.dumps(report,sort_keys=True),flush=True)
 
 if __name__=='__main__':main()
