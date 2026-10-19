@@ -148,7 +148,7 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
 
     def test_wrong_typed_runtime_fails_before_probe_launch(self):
         runtime_path, volume, runtime, lstat = self.storage_runtime()
-        runtime_path.write_bytes(storage.StorageOwnerLaunchConfig(protocol_version=1).SerializeToString())
+        runtime_path.write_bytes(runtime.storage_owner.SerializeToString())
         owner = self.cls.__new__(self.cls)
         owner.log_path = self.root/'broker-0.log'
         owner.pid = os.getpid()
@@ -166,9 +166,9 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         with patch.object(Path, 'lstat', lstat):
             with self.assertRaisesRegex(RuntimeError, 'contain StorageVolumeRuntime'):
                 owner.storage_owner_launch_payload(self.root/'missing.pb', volume)
-        runtime_path.write_bytes(storage.StorageOwnerLaunchConfig(protocol_version=1).SerializeToString())
+        runtime_path.write_bytes(runtime.storage_owner.SerializeToString())
         with patch.object(Path, 'lstat', lstat):
-            with self.assertRaisesRegex(RuntimeError, 'contain StorageVolumeRuntime'):
+            with self.assertRaisesRegex(RuntimeError, 'SETUP FAILURE'):
                 owner.storage_owner_launch_payload(runtime_path, volume)
         runtime_path.write_bytes(runtime.SerializeToString())
         cases = (
