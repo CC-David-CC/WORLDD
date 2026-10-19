@@ -29,6 +29,9 @@ import storage_pb2 as storage
 from harness.git_fixture import GitRepo
 from harness.resource_broker import ResourceBroker, resource_environment, supervised_test_launch
 from harness.issuer_progress import IssuerLifetimeWitness
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'tools'))
+from copy_fixture_profiles import (set_resource_io_closure, validate_resource_io_closure,
+    configure_copy_fixture_application_profiles)
 from harness.wire import frame
 import test_workspace_authority as fixtures
 
@@ -181,20 +184,41 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         inventory.write_text(json.dumps(record,indent=2)+'\n')
         self.owner_configuration.write_bytes(self.operator_run(['cat',self.entry/'owner.pb']))
         self.owner_configuration.chmod(0o600)
+        runtime_path=self.entry/'runtime.pb'
+        runtime_info=runtime_path.lstat()
+        self.assertTrue(stat.S_ISREG(runtime_info.st_mode) and runtime_info.st_uid==0 and
+                        not runtime_info.st_mode&0o022 and runtime_path.resolve(strict=True)==runtime_path,
+                        'Fixture runtime record must be a canonical protected root-owned file')
+        runtime=broker.StorageVolumeRuntime.FromString(runtime_path.read_bytes())
+        owner=storage.StorageOwnerConfig.FromString(self.owner_configuration.read_bytes())
+        self.assertEqual(runtime.protocol_version,1)
+        self.assertTrue(runtime.require_confinement)
+        self.assertEqual(runtime.volume_root,str(self.execution_override))
+        self.assertEqual(runtime.storage_owner.volume_root,str(self.execution_override))
+        owner_path=Path(runtime.storage_owner.owner_configuration)
+        self.assertEqual(owner_path,self.entry/'owner.pb')
+        owner_info=self.operator_run(['stat','-c','%u:%a:%F',owner_path]).decode().strip().split(':',2)
+        self.assertEqual(owner_info[0],'0')
+        self.assertFalse(int(owner_info[1],8)&0o022)
+        self.assertEqual(owner_info[2],'regular file')
+        self.assertEqual(owner.volume_root,str(self.execution_override))
+        self.assertEqual(len(owner.filesystem_id),16)
+        inspected=json.loads(self.provision('inspect'))
+        self.assertEqual(inspected['status'],'verified')
+        self.assertEqual(inspected['volume'],str(self.execution_override))
+        self.assertEqual(inspected['filesystem_id'],uuid.UUID(bytes=owner.filesystem_id).hex)
+        self.assertEqual(inspected['filesystem_id'],created['filesystem_id'])
+        self.assertEqual(inspected['loop'],created['loop'])
+        fixture_devices=tuple(runtime.storage_owner.budget.io)
+        fixture_budget_count=validate_resource_io_closure(runtime.resources,fixture_devices)
         resource=broker.BrokerProcessConfig()
         text_format.Parse(Path(os.environ['SPATIAL_TEST_BROKER_CONFIG']).read_text(),resource)
-        device=Path(subprocess.run(['findmnt','-n','-o','SOURCE','--target',str(self.execution_override)],
-            capture_output=True,text=True,check=True).stdout.strip()).stat()
-        major,minor=os.major(device.st_rdev),os.minor(device.st_rdev)
-        for budget in (resource.resources.broker_budget,resource.resources.manager_budget,
-                       resource.resources.default_policy.total,resource.resources.default_policy.actor_default,
-                       *(profile.maximum for profile in resource.resources.default_policy.profiles)):
-            if not any(item.major==major and item.minor==minor for item in budget.io):
-                budget.io.add(major=major,minor=minor,read_bytes_per_second=64*2**20,write_bytes_per_second=16*2**20)
-        for name in ('copy-source','copy-app'):
-            application=resource.resources.default_policy.profiles.add(name=name)
-            application.maximum.CopyFrom(resource.resources.default_policy.profiles[0].maximum)
-            application.maximum.memory_bytes=64*2**20;application.maximum.processes=8;application.maximum.cpu_microseconds=25000
+        ambient_workspace_devices=[dict(workspace=policy.workspace,
+            devices=sorted({(item.major,item.minor) for budget in
+                [policy.total,policy.actor_default,*(actor.maximum for actor in policy.actors),
+                 *(profile.maximum for profile in policy.profiles)] for item in budget.io}))
+            for policy in resource.resources.workspaces]
+        configure_copy_fixture_application_profiles(resource.resources,'one')
         copy_profile=resource.resources.copy_profiles.add(name='copy-limited',revision=1)
         copy_profile.policy.CopyFrom(resource.resources.default_policy)
         assigned=next(item for item in copy_profile.policy.profiles if item.name=='development')
@@ -203,6 +227,22 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         copy_profile.policy.total.memory_bytes=256*2**20;copy_profile.policy.total.processes=32
         copy_profile.policy.actor_default.memory_bytes=128*2**20;copy_profile.policy.actor_default.processes=16
         copy_profile.policy.ClearField('actors')
+        rebound_budget_count=set_resource_io_closure(resource.resources,fixture_devices)
+        self.assertGreater(rebound_budget_count,0)
+        inventory=self.copy_evidence/'volume.json';record=json.loads(inventory.read_text())
+        record['resource_io_binding']=dict(runtime=str(runtime_path),volume_root=runtime.volume_root,
+            owner_configuration=runtime.storage_owner.owner_configuration,
+            filesystem_id=inspected['filesystem_id'],fixture_devices=sorted(
+                {(item.major,item.minor) for item in fixture_devices}),
+            fixture_runtime_budget_count=fixture_budget_count,
+            ambient_explicit_workspace_devices=ambient_workspace_devices,
+            rebound_budget_count=rebound_budget_count,
+            final_explicit_workspace_devices=[dict(workspace=policy.workspace,devices=sorted(
+                {(item.major,item.minor) for budget in
+                    [policy.total,policy.actor_default,*(actor.maximum for actor in policy.actors),
+                     *(profile.maximum for profile in policy.profiles)] for item in budget.io}))
+                for policy in resource.resources.workspaces])
+        inventory.write_text(json.dumps(record,indent=2)+'\n')
         self.copy_resource_config=self.root/'copy-resources.textproto'
         self.copy_resource_config.write_text(text_format.MessageToString(resource));self.copy_resource_config.chmod(0o600)
         self.patcher=patch.object(fixtures,'BrokerProcess',StorageBrokerProcess)

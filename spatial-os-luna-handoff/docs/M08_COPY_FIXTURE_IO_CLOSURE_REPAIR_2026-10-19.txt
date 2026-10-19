@@ -1,0 +1,31 @@
+M08 copy fixture I/O closure repair (2026-10-19)
+
+Cause
+
+The legacy file-action fixture creates a private storage volume, then loads the full-gate ambient broker resource configuration. It previously added the fixture device only to selected aggregate and default-policy budgets. Explicit workspace policies retained ambient devices, so the broker rejected the policy before startup: Resource policies must cover the same I/O devices. BrokenPipe and stable-delegation-parent failures are cascades.
+
+Repair
+
+Read the protected StorageVolumeRuntime and nested owner configuration for the created fixture volume. Verify volume root, filesystem identity, mount inspection, and loop receipt. Use the owner budget's complete loop and backing-device closure to rebind every nested ProcessScopeBudget. Preserve non-I/O fields and cap existing I/O rates by fixture owner limits. Reject empty, invalid, or duplicate closure entries before mutation. Do not change production budget intersection or acceptance oracles.
+
+Selected verification plan (not run; M08 runtime remains owned by primary)
+
+1. python3 tools/test_copy_fixture_profiles.py checks recursive closure rebinding, preservation of non-I/O fields, generic one-device focused-config compatibility, and invalid closure rejection.
+2. On both sb16 and sb16-2, run standalone SupervisedLegacyFileActionRecoveryTests.test_* (12 cases) in Debug and ASan-UBSan against combined reviewed source.
+3. On both test hosts, run CTest workspace-file-action-broker (full-gate core #14) with the exact full-gate SPATIAL_TEST_STORAGE_VOLUME, SPATIAL_TEST_STORAGE_LAUNCH_CONFIG, SPATIAL_TEST_STORAGE_COPY_QUOTA_BYTES, broker-config, and IO-device context. Preserve first broker/supervisor stderr and per-case native volume evidence.
+4. After combined source review, run core #15 and related workspace authority/copy integration regressions on both hosts. Keep results distinct; do not infer phase-gate passage.
+
+All runtime checks remain UNRUN pending primary release of the M08 hosts. The existing focused 48-check result is prior evidence, not validation of this repair.
+
+Primary review corrections
+The owner metadata check now uses colon-delimited stat fields.
+The previous whitespace split separated the words regular file and always failed.
+The fixture now declares copy-source and copy-app in the selected explicit workspace policy too.
+Default-only configuration keeps the existing fixture behavior.
+The added profiles retain the development profile I/O and swap fields.
+Their existing fixture limits remain 64 MiB, eight processes, and 25000 CPU microseconds.
+Setup refuses a development ceiling below those limits before changing either policy.
+Other workspace policies and all existing profiles remain unchanged.
+Generated-message regressions cover both policy shapes and refusal without partial mutation.
+The selected engine and fault checks must exercise these profiles under the ambient gate configuration.
+These corrections passed AST and diff checks. Runtime verification remains UNRUN.
