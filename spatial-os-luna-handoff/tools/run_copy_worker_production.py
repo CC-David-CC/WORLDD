@@ -225,6 +225,9 @@ def main():
         receipts = [line[len(prefix):] for line in stdout.splitlines() if line.startswith(prefix)]
         assert len(receipts) == 1, 'missing or ambiguous root fixture receipt'
         record = json.loads(receipts[0])
+        if exit_code != 0:
+            raise RuntimeError('Privileged copy fixture failed (exit=' + str(exit_code) +
+                               '); retained diagnostics: ' + str(parent / 'stderr.log'))
         validate_receipt(record)
         assert exit_code == 0 and cancellation is None
         summary.update(validated=True, production_witnesses=6, malformed_owner_fd_checks=1, restart_recovery_checks=1)

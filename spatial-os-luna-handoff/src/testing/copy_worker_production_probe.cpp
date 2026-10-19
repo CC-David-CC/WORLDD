@@ -245,8 +245,10 @@ int main(int argc,char** argv) {
         }
         if(mode=="symlink") {
             try { (void)spatial::copy_registered_snapshot_to_staging(storage,resources,intent); }
-            catch (const spatial::WorldError& error) {
-                require(error.code==spatial::wire::INVALID_ARGUMENT,"symlink rejection did not report the typed helper cause");
+            catch (const spatial::CopyWorkerError& error) {
+                require(error.code==spatial::CopyWorkerError::Code::invalid_argument&&
+                    std::string(error.what())=="Copy source contains a symbolic link",
+                    "symlink rejection did not report the typed helper cause");
                 pb::StorageCopyStageInspect inspect; inspect.set_operation_id(intent.operation_id()); inspect.set_request_digest(intent.request_digest());
                 const auto receipt=storage.inspect_copy_stage(inspect);
                 require(receipt.state()==pb::StorageCopyStageReceipt::UNCERTAIN,"malicious tree did not remain explicitly uncertain");

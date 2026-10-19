@@ -41,6 +41,7 @@ class RealActorTransitionTests(WorldIdentityFixture):
     principal = workspace_fixture.WorkspaceAuthorityTests.principal
     terms = workspace_fixture.WorkspaceAuthorityTests.terms
     workspace_terms = workspace_fixture.WorkspaceAuthorityTests.workspace_terms
+    make_broker = workspace_fixture.WorkspaceAuthorityTests.make_broker
     workspace = workspace_fixture.WorkspaceAuthorityTests.workspace
     own = workspace_fixture.WorkspaceAuthorityTests.own
     revoke_grant = workspace_fixture.WorkspaceAuthorityTests.revoke_grant
