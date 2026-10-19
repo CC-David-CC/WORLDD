@@ -2,6 +2,7 @@
 import os
 import io
 import fcntl
+import hashlib
 import broker_pb2 as broker_pb
 from pathlib import Path
 import select
@@ -34,12 +35,33 @@ class WorkspaceGitTests(unittest.TestCase):
         self.state = self.root / 'runtime'
         self.repo = GitRepo(self.root)
         self.client = None
+        self.runtime_broker_sha256 = None
         self.start()
 
     def start(self):
         self.client = Client([HOST], self.state, self.root / 'logs', timeout=65)
         self.addCleanup(self.client.stop)
         self.client.call('system.hello')
+        host_exe = Path(f'/proc/{self.client.proc.pid}/exe').resolve()
+        broker_exe = Path(BROKER).resolve()
+        self.assertEqual(host_exe, Path(HOST).resolve(), 'Runtime host must be the selected new-prefix executable')
+        identities = self.call('runtime.identities')
+        broker_pid = identities['workspaced_pid']
+        worldd_pid = identities['worldd_pid']
+        actual_broker = Path(f'/proc/{broker_pid}/exe')
+        actual_worldd = Path(f'/proc/{worldd_pid}/exe').resolve()
+        self.assertEqual(actual_broker.resolve(), broker_exe,
+                         'Platform worker must launch the selected workspaced sibling')
+        self.assertEqual(actual_worldd.parent, broker_exe.parent,
+                         'worldd must come from the same runtime prefix as workspaced')
+        actual_sha256 = hashlib.sha256(actual_broker.read_bytes()).hexdigest()
+        selected_sha256 = hashlib.sha256(broker_exe.read_bytes()).hexdigest()
+        self.assertEqual(actual_sha256, selected_sha256, 'Running workspaced bytes differ from the selected binary')
+        if self.runtime_broker_sha256 is None:
+            self.runtime_broker_sha256 = actual_sha256
+        else:
+            self.assertEqual(actual_sha256, self.runtime_broker_sha256,
+                             'Restarted workspaced binary identity changed')
 
     def call(self, method, **args):
         timeout = 300 if method == 'git.repo.import' else 65
