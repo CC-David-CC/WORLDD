@@ -13,7 +13,8 @@ from unittest.mock import patch
 import broker_pb2 as broker
 import process_scope_pb2 as process_scope
 from copy_fixture_profiles import (consume_profile, manager_memory_mib, instrumentation_preflight,
-    process_scope_budgets, set_resource_io_closure, validate_resource_io_closure, COPY_BINARIES)
+    process_scope_budgets, set_resource_io_closure, validate_resource_io_closure,
+    configure_copy_fixture_application_profiles, COPY_BINARIES)
 from copy_fixture_image_cleanup import (
     cleanup_engine_group, cleanup_file_action_group, cleanup_passed_fixture_images,
     engine_group_passed, file_action_group_passed, require_group_capacity, run_after_capacity_preflight,
@@ -52,6 +53,52 @@ def _non_io_budget_state(budget):
     return copied.SerializeToString(deterministic=True)
 
 class CopyFixtureProfileTests(unittest.TestCase):
+    def test_copy_application_profiles_cover_selected_explicit_workspace(self):
+        devices=[(7,22,64,16),(259,0,32,8)]
+        for explicit in (False,True):
+            with self.subTest(explicit=explicit):
+                resource=_fixture_resource(devices)
+                resource.default_policy.profiles[0].name='development'
+                resource.workspaces[0].profiles[0].name='development'
+                unrelated=resource.workspaces.add(workspace='unrelated')
+                unrelated.CopyFrom(resource.workspaces[0]);unrelated.workspace='unrelated'
+                untouched=unrelated.SerializeToString(deterministic=True)
+                if not explicit:
+                    del resource.workspaces[0]
+                before=type(resource)();before.CopyFrom(resource)
+                expected=2 if explicit else 1
+                self.assertEqual(configure_copy_fixture_application_profiles(resource,'explicit-workspace'),expected)
+                policies=[resource.default_policy,*[policy for policy in resource.workspaces
+                            if policy.workspace=='explicit-workspace']]
+                for policy in policies:
+                    self.assertEqual([profile.name for profile in policy.profiles],
+                                     ['development','copy-source','copy-app'])
+                    for profile in policy.profiles[1:]:
+                        maximum=profile.maximum
+                        self.assertEqual((maximum.memory_bytes,maximum.processes,maximum.cpu_microseconds),
+                                         (64*2**20,8,25000))
+                        inherited=type(maximum)();inherited.CopyFrom(policy.profiles[0].maximum)
+                        inherited.memory_bytes=64*2**20;inherited.processes=8;inherited.cpu_microseconds=25000
+                        self.assertEqual(maximum.SerializeToString(deterministic=True),
+                                         inherited.SerializeToString(deterministic=True))
+                    del policy.profiles[1:]
+                self.assertEqual(resource.SerializeToString(deterministic=True),before.SerializeToString(deterministic=True))
+                self.assertEqual(resource.workspaces[-1].SerializeToString(deterministic=True),untouched)
+
+    def test_copy_application_profile_setup_refuses_without_partial_mutation(self):
+        for invalid in ('missing','duplicate','undersized'):
+            resource=_fixture_resource([(7,22,64,16)])
+            resource.default_policy.profiles[0].name='development'
+            selected=resource.workspaces[0]
+            selected.profiles[0].name='development'
+            if invalid=='missing':selected.ClearField('profiles')
+            elif invalid=='duplicate':selected.profiles.add(name='copy-source')
+            else:selected.profiles[0].maximum.memory_bytes=1
+            before=resource.SerializeToString(deterministic=True)
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):
+                configure_copy_fixture_application_profiles(resource,'explicit-workspace')
+            self.assertEqual(resource.SerializeToString(deterministic=True),before)
+
     def test_resource_io_closure_rebinds_every_nested_budget(self):
         ambient=[(7,21,48,12),(259,0,20,10)]
         own_volume=[(7,22,64,16),(259,0,64,16)]

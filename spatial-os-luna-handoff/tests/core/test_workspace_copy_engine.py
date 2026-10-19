@@ -30,7 +30,8 @@ from harness.git_fixture import GitRepo
 from harness.resource_broker import ResourceBroker, resource_environment, supervised_test_launch
 from harness.issuer_progress import IssuerLifetimeWitness
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'tools'))
-from copy_fixture_profiles import set_resource_io_closure, validate_resource_io_closure
+from copy_fixture_profiles import (set_resource_io_closure, validate_resource_io_closure,
+    configure_copy_fixture_application_profiles)
 from harness.wire import frame
 import test_workspace_authority as fixtures
 
@@ -196,10 +197,10 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         self.assertEqual(runtime.storage_owner.volume_root,str(self.execution_override))
         owner_path=Path(runtime.storage_owner.owner_configuration)
         self.assertEqual(owner_path,self.entry/'owner.pb')
-        owner_info=self.operator_run(['stat','-c','%F %u %a',owner_path]).decode().split()
-        self.assertEqual(owner_info[0],'regular file')
-        self.assertEqual(owner_info[1],'0')
-        self.assertFalse(int(owner_info[2],8)&0o022)
+        owner_info=self.operator_run(['stat','-c','%u:%a:%F',owner_path]).decode().strip().split(':',2)
+        self.assertEqual(owner_info[0],'0')
+        self.assertFalse(int(owner_info[1],8)&0o022)
+        self.assertEqual(owner_info[2],'regular file')
         self.assertEqual(owner.volume_root,str(self.execution_override))
         self.assertEqual(len(owner.filesystem_id),16)
         inspected=json.loads(self.provision('inspect'))
@@ -217,10 +218,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
                 [policy.total,policy.actor_default,*(actor.maximum for actor in policy.actors),
                  *(profile.maximum for profile in policy.profiles)] for item in budget.io}))
             for policy in resource.resources.workspaces]
-        for name in ('copy-source','copy-app'):
-            application=resource.resources.default_policy.profiles.add(name=name)
-            application.maximum.CopyFrom(resource.resources.default_policy.profiles[0].maximum)
-            application.maximum.memory_bytes=64*2**20;application.maximum.processes=8;application.maximum.cpu_microseconds=25000
+        configure_copy_fixture_application_profiles(resource.resources,'one')
         copy_profile=resource.resources.copy_profiles.add(name='copy-limited',revision=1)
         copy_profile.policy.CopyFrom(resource.resources.default_policy)
         assigned=next(item for item in copy_profile.policy.profiles if item.name=='development')

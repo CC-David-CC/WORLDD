@@ -135,3 +135,26 @@ def set_resource_io_closure(resource, fixture_devices):
             budget.io.add(major=major, minor=minor,
                           read_bytes_per_second=read, write_bytes_per_second=write)
     return len(rewrites)
+
+
+def configure_copy_fixture_application_profiles(resource, workspace):
+    """Declare bounded copy applications in the policies selected by this fixture."""
+    policies=[resource.default_policy,*[policy for policy in resource.workspaces
+                                      if policy.workspace==workspace]]
+    pending=[]
+    for policy in policies:
+        baseline=next((profile for profile in policy.profiles if profile.name=='development'),None)
+        if baseline is None:
+            raise ValueError('Copy fixture policy requires a development application profile')
+        if any(profile.name in ('copy-source','copy-app') for profile in policy.profiles):
+            raise ValueError('Copy fixture application profiles already exist')
+        if (baseline.maximum.memory_bytes<64*2**20 or baseline.maximum.processes<8 or
+                baseline.maximum.cpu_microseconds<25000):
+            raise ValueError('Copy fixture applications exceed the configured development profile')
+        maximum=type(baseline.maximum)();maximum.CopyFrom(baseline.maximum)
+        maximum.memory_bytes=64*2**20;maximum.processes=8;maximum.cpu_microseconds=25000
+        pending.append((policy,maximum))
+    for policy,maximum in pending:
+        for name in ('copy-source','copy-app'):
+            policy.profiles.add(name=name).maximum.CopyFrom(maximum)
+    return len(pending)
