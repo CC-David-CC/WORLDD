@@ -814,6 +814,100 @@ void callback_controls(const std::filesystem::path& delegated){
   for(auto at=deep.rbegin();at!=deep.rend();++at)std::filesystem::remove(*at);
   std::filesystem::create_directory(retry_path/"changed-between-attempts");
   retry->stop();check(observations==2,"successful callback was cached across failed prune");
+  const auto run_owned_retirement=[&](const std::string& suffix,int exit_code,bool permit_retirement) {
+    const auto name=std::string("authority-broker-")+suffix;
+    auto owned=ProcessScope::prepare_owned(delegated,name);
+    const auto owned_path=delegated/name;
+    bool observed=false;
+    owned->set_pre_prune_cleanup_with_retirement([&](const auto& tree) {
+      observed=true;
+      const bool clean=tree.child_exited_successfully();
+      check(clean==(exit_code==0),"retirement callback received the wrong direct-child exit proof");
+      return permit_retirement&&clean;
+    });
+    AuthorityProcessLaunch child_request;child_request.set_executable("/bin/sh");
+    child_request.add_arguments("-c");child_request.add_arguments("exit "+std::to_string(exit_code));
+    const int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"retirement child null");
+    owned->start(child_request,{child_null,child_null,child_null});close(child_null);
+    const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"retirement child pidfd");
+    pollfd child_done{child_handle,POLLIN,0};
+    const int child_ready=poll(&child_done,1,5000);close(child_handle);
+    check(child_ready==1&&(child_done.revents&POLLIN),"retirement child did not exit before cleanup request");
+    owned->stop();
+    check(observed,"retirement callback did not observe reaped child");
+    return std::filesystem::exists(owned_path);
+  };
+  check(run_owned_retirement(std::string(32,'1'),17,true),"nonzero child exit retired stable broker root");
+  check(!run_owned_retirement(std::string(32,'1'),0,true),"clean child and authorized cleanup did not retire stable root");
+  check(run_owned_retirement(std::string(32,'2'),0,false),"cleanup refusal retired stable broker root");
+  check(!run_owned_retirement(std::string(32,'2'),0,true),"checked retry did not retire stable broker root");
+  {
+    State state;
+    const std::string name="authority-broker-"+std::string(32,'3');
+    auto owned=ProcessScope::prepare_owned(delegated,name);
+    const auto owned_path=delegated/name;
+    auto prior_parent=ProcessScope::prepare_named(owned_path,"spatial-git-workers");
+    const auto prior_identity=prior_parent->identity();prior_parent->stop();
+    FileOperationJournal journal(state.path);
+    const auto root_path=std::filesystem::canonical(owned_path);
+    journal.reserve_git_worker_parent(owned->identity().device(),owned->identity().inode(),root_path.string(),owned->identity().boot_id(),{});
+    journal.bind_git_worker_parent(owned->identity().device(),owned->identity().inode(),root_path.string(),owned->identity().boot_id(),prior_identity.SerializeAsString(),{});
+    auto participant=BrokerCopyCleanupParticipant::install(*owned,state.fd);
+    check(std::filesystem::create_directory(owned_path/"spatial-git-workers"),"replacement Git parent setup failed");
+    AuthorityProcessLaunch child_request;child_request.set_executable("/bin/true");
+    const int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"identity-mismatch child null");
+    owned->start(child_request,{child_null,child_null,child_null});close(child_null);
+    const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"identity-mismatch child pidfd");
+    pollfd child_done{child_handle,POLLIN,0};const int child_ready=poll(&child_done,1,5000);close(child_handle);
+    check(child_ready==1&&(child_done.revents&POLLIN),"identity-mismatch child did not exit");
+    const auto before=owned->identity();
+    bool identity_rejected=false;
+    try { owned->stop(); }
+    catch(const std::exception& error) { identity_rejected=std::string(error.what()).find("Recovered Git worker parent identity changed")!=std::string::npos; }
+    check(identity_rejected,"replaced Git parent identity was accepted for root retirement");
+    struct stat retained{};
+    check(lstat(owned_path.c_str(),&retained)==0&&retained.st_dev==static_cast<dev_t>(before.device())&&
+        retained.st_ino==static_cast<ino_t>(before.inode()),"identity mismatch retired or replaced stable broker root");
+    check(std::filesystem::remove(owned_path/"spatial-git-workers"),"mismatched empty Git parent cleanup failed");
+    owned->stop();check(!std::filesystem::exists(owned_path),"exact CAS retry did not retire repaired stable root");
+  }
+  {
+    State state;
+    const std::string name="authority-broker-"+std::string(32,'4');
+    auto owned=ProcessScope::prepare_owned(delegated,name);
+    const auto owned_path=delegated/name;
+    AuthorityProcessLaunch child_request;child_request.set_executable("/bin/true");
+    const int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"uncertain retirement child null");
+    owned->start(child_request,{child_null,child_null,child_null});close(child_null);
+    const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"uncertain retirement child pidfd");
+    pollfd child_done{child_handle,POLLIN,0};const int child_ready=poll(&child_done,1,5000);close(child_handle);
+    check(child_ready==1&&(child_done.revents&POLLIN),"uncertain retirement child did not exit");
+    owned->enable_children();
+    const auto ids=create_descendants(owned_path,true);
+    auto job=record(state,owned->identity(),ids,false);
+    seed(state,owned->identity(),owned_path,ids,job);
+    job.set_state(FILE_COPY_JOB_JOURNAL_UNCERTAIN);job.set_updated_at_unix_ms(2);
+    auto* uncertain_receipt=job.mutable_terminal_receipt();
+    uncertain_receipt->set_job_id(job.job_id());uncertain_receipt->set_state(FileCopyJobReceipt::UNCERTAIN);
+    uncertain_receipt->set_detail("retained root regression");
+    FileOperationJournal journal(state.path);journal.update_copy_job(job,{});
+    auto participant=BrokerCopyCleanupParticipant::install(*owned,state.fd);
+    owned->stop();
+    struct stat retained{};
+    check(lstat(owned_path.c_str(),&retained)==0&&retained.st_dev==static_cast<dev_t>(owned->identity().device())&&
+        retained.st_ino==static_cast<ino_t>(owned->identity().inode()),"uncertain copy job retired the stable broker root");
+    const auto active=journal.find_git_worker_parent({});
+    check(active.state==spatial::GitWorkerParentRecord::State::bound&&active.root_device==owned->identity().device()&&
+        active.root_inode==owned->identity().inode()&&active.root_path==std::filesystem::canonical(owned_path).string(),
+        "uncertain copy job cleared its active Git parent binding");
+    const auto saved=journal.scope_cleanup_outcome(job.workspace_id(),job.job_id(),{});
+    check(saved&&saved->kind()==FileCopyScopeCleanupOutcome::IMMUTABLE_UNCERTAINTY,
+        "uncertain copy job lost its immutable cleanup evidence");
+    const auto worker_path=owned_path/"spatial-git-workers"/ids.worker.scope_name();
+    struct stat worker{};check(lstat(worker_path.c_str(),&worker)<0&&errno==ENOENT,
+        "uncertain copy worker remained live after checked drain");
+    check(std::filesystem::remove(owned_path),"isolated retained-root fixture teardown failed");
+  }
   root_replacement_control(delegated);
   std::cout<<"callback_order_failure_retry_destructor=PASS\n";
 }

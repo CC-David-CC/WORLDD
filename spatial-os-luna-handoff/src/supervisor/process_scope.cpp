@@ -374,6 +374,18 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
                                                   const v1::ProcessScopeBudget* budget) {
     return prepare_impl(root, budget, {}, false);
 }
+void ProcessScope::preflight_owned_parent(const std::filesystem::path& root) {
+    Fd directory(open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+    check(directory.value >= 0, "Cannot open delegated cgroup");
+    struct statfs fs{}; struct stat parent{}, above{};
+    check(fstatfs(directory.value, &fs) == 0 && fstat(directory.value, &parent) == 0,
+          "Cannot inspect delegated cgroup");
+    Fd upper(openat(directory.value, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
+    check(upper.value >= 0 && fstat(upper.value, &above) == 0, "Cannot inspect cgroup parent");
+    valid(fs.f_type == CGROUP2_SUPER_MAGIC && parent.st_uid == geteuid() &&
+          !(parent.st_dev == above.st_dev && parent.st_ino == above.st_ino), "Expected owned delegated cgroup v2 directory");
+    valid(contents(directory.value, "cgroup.type") == "domain\n", "Expected domain cgroup");
+}
 std::unique_ptr<ProcessScope> ProcessScope::prepare_owned(const std::filesystem::path& root, const std::string& scope_name) {
     valid(scope_name.size() == 49 && scope_name.starts_with("authority-broker-") &&
           scope_name.substr(17).find_first_not_of("0123456789abcdef") == std::string::npos,
@@ -1040,9 +1052,17 @@ void ProcessScope::throttle_memory(std::uint64_t bytes) {
     valid(contents(scope_, "memory.high") == value, "Memory throttle was not applied");
 }
 void ProcessScope::set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback) {
-    valid(!started_ && !stop_requested_ && !removed_ && !pre_prune_cleanup_ && bool(callback),
+    valid(!started_ && !stop_requested_ && !removed_ && !pre_prune_cleanup_ &&
+          !pre_prune_cleanup_with_retirement_ && bool(callback),
           "Pre-prune cleanup requires unstarted retained scope ownership");
     pre_prune_cleanup_ = std::move(callback);
+}
+void ProcessScope::set_pre_prune_cleanup_with_retirement(
+    std::function<bool(const OwnedDrainedTree&)> callback) {
+    valid(!started_ && !stop_requested_ && !removed_ && !pre_prune_cleanup_ &&
+          !pre_prune_cleanup_with_retirement_ && bool(callback),
+          "Retiring pre-prune cleanup requires unstarted retained scope ownership");
+    pre_prune_cleanup_with_retirement_ = std::move(callback);
 }
 void ProcessScope::request_stop() {
     std::exception_ptr failure;
@@ -1082,11 +1102,16 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
             int status; const auto waited = waitpid(child_, &status, WNOHANG);
             if (waited < 0 && errno == EINTR) { check_deadline(deadline,"Authority child reap deadline exceeded"); continue; }
             check(waited >= 0, "Cannot reap authority child");
-            if (waited == child_) { reaped_ = true; check_deadline(deadline,"Authority child reap deadline exceeded"); break; }
+            if (waited == child_) {
+                reaped_ = true;
+                child_exited_successfully_ = WIFEXITED(status) && WEXITSTATUS(status) == 0;
+                check_deadline(deadline,"Authority child reap deadline exceeded"); break;
+            }
             check_deadline(deadline,"Authority child reap deadline exceeded");
             tick_until(deadline);
         }
-        if (scope_ >= 0 && pre_prune_cleanup_) {
+        bool retirement_authorized = false;
+        if (scope_ >= 0 && (pre_prune_cleanup_ || pre_prune_cleanup_with_retirement_)) {
             const auto verify = [this,deadline] {
                 check_deadline(deadline,"Authority scope cleanup deadline exceeded");
                 struct stat held{}, named{};
@@ -1107,14 +1132,20 @@ v1::ProcessScopeStopped ProcessScope::complete_stop(Clock::time_point deadline,
                 check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             };
             verify();
-            const OwnedDrainedTree tree(scope_, identity_,deadline,execution_may_have_run_,trusted_preexec_failure_);
-            pre_prune_cleanup_(tree);
+            const OwnedDrainedTree tree(scope_, identity_,deadline,execution_may_have_run_,
+                                        trusted_preexec_failure_,child_exited_successfully_);
+            if (pre_prune_cleanup_with_retirement_) {
+                retirement_authorized = pre_prune_cleanup_with_retirement_(tree);
+            } else {
+                pre_prune_cleanup_(tree);
+            }
             check_deadline(deadline,"Authority scope cleanup deadline exceeded");
             verify();
         }
         check_deadline(deadline,"Authority scope cleanup deadline exceeded");
         if (scope_ >= 0) remove_empty_children(scope_,0,deadline);
         check_deadline(deadline,"Authority scope cleanup deadline exceeded");
+        if (retirement_authorized && retained_scope_) retained_scope_ = false;
         if (!identity_.scope_name().empty() && !retained_scope_) {
             struct stat named{};
             check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,

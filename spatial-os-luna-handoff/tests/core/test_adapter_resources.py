@@ -63,11 +63,27 @@ class AdapterResourceTests(ProcessTests):
         process = self.launch("import pathlib,time\npathlib.Path('ready').touch()\nwhile True:time.sleep(.01)")
         self.until(lambda: (self.project/'ready').exists())
         root = self.group(self.call('runtime.identities')['workspaced_pid']).parent
+        root_identity = (root.stat().st_dev, root.stat().st_ino)
         descendants = self.descendants(); self.assertTrue(descendants)
         self.client.proc.stdin.close()
         self.assertEqual(self.client.proc.wait(timeout=5), 0)
         self.assertFalse(root.exists())
         self.assertTrue(self.gone(descendants))
+
+        # Reopen the same execution journal. The broker must bind a fresh root
+        # generation after checked retirement of the old Git parent.
+        self.client = Client([HOST], self.state, self.root/'logs', extra_env={
+            'SPATIAL_TEST_BROKER_CONFIG': os.environ['SPATIAL_TEST_BROKER_CONFIG']})
+        self.addCleanup(self.client.stop)
+        self.assertEqual(self.client.call('system.hello')['implementation'], 'production')
+        new_root = self.group(self.client.call('runtime.identities')['workspaced_pid']).parent
+        self.assertTrue(new_root.exists())
+        self.assertNotEqual((new_root.stat().st_dev, new_root.stat().st_ino), root_identity)
+        new_descendants = self.descendants(); self.assertTrue(new_descendants)
+        self.client.proc.stdin.close()
+        self.assertEqual(self.client.proc.wait(timeout=5), 0)
+        self.assertFalse(new_root.exists())
+        self.assertTrue(self.gone(new_descendants))
 
 
 if __name__ == '__main__':

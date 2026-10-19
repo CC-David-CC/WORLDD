@@ -1,4 +1,5 @@
 #include "workspace/broker_copy_cleanup.hpp"
+#include "core/protocol.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -24,7 +25,16 @@ std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::defe
       "Deferred copy cleanup requires the prepared owned broker launch");
   auto participant=std::shared_ptr<BrokerCopyCleanupParticipant>(
       new BrokerCopyCleanupParticipant(record.process()));
-  owned_broker.set_pre_prune_cleanup([participant](const auto& tree){participant->pre_prune(tree);});
+  owned_broker.set_pre_prune_cleanup_with_retirement(
+      [participant](const auto& tree){return participant->pre_prune(tree);});
+  return participant;
+}
+std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::deferred(
+    supervisor::ProcessScope& owned_broker) {
+  auto participant=std::shared_ptr<BrokerCopyCleanupParticipant>(
+      new BrokerCopyCleanupParticipant(owned_broker.identity()));
+  owned_broker.set_pre_prune_cleanup_with_retirement(
+      [participant](const auto& tree){return participant->pre_prune(tree);});
   return participant;
 }
 std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::install(
@@ -32,7 +42,8 @@ std::shared_ptr<BrokerCopyCleanupParticipant> BrokerCopyCleanupParticipant::inst
   auto participant=std::shared_ptr<BrokerCopyCleanupParticipant>(
       new BrokerCopyCleanupParticipant(owned_broker.identity()));
   participant->bind(FileOperationJournal::pin_existing(execution_directory_fd));
-  owned_broker.set_pre_prune_cleanup([participant](const auto& tree){participant->pre_prune(tree);});
+  owned_broker.set_pre_prune_cleanup_with_retirement(
+      [participant](const auto& tree){return participant->pre_prune(tree);});
   return participant;
 }
 void BrokerCopyCleanupParticipant::bind(PinnedFileOperationJournal journal) {
@@ -44,7 +55,7 @@ const workspace::v1::FileCopyCleanupJournalBinding& BrokerCopyCleanupParticipant
   require(journal_.has_value(),"Broker copy cleanup journal is not bound");
   return journal_->binding();
 }
-void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree& tree) {
+bool BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree& tree) {
   const auto deadline=tree.deadline();
   const auto check_deadline=[&] { if(std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("Copy cleanup deadline expired"); };
   check_deadline();
@@ -53,7 +64,7 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   if(!journal_) {
     require(!tree.execution_may_have_run() || tree.trusted_preexec_failure(),
         "Unbound broker cleanup cannot produce a stop receipt after execution may have run");
-    return; // Exact root with either no dispatch or a trusted pre-exec failure.
+    return false; // No pinned journal means stable-root retirement is not proven.
   }
   journal_->verify(deadline);
   auto journal=FileOperationJournal::open_existing(*journal_,deadline);
@@ -65,10 +76,12 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   const auto active=journal->find_git_worker_parent({});
   check_deadline();
   if(active.state!=GitWorkerParentRecord::State::absent) parents.push_back(active);
+  bool unresolved=false;
   for(auto job:journal->recovery_copy_jobs_all({})) {
     check_deadline();
     if(job.broker_root_device()!=broker_.device() || job.broker_root_inode()!=broker_.inode() ||
         job.broker_root_boot_id()!=broker_.boot_id()) continue;
+    if(job.state()==workspace::v1::FILE_COPY_JOB_JOURNAL_UNCERTAIN) unresolved=true;
     journal_->verify(deadline);
     journal_->verify_workspace_binding(job,deadline);
     check_deadline();
@@ -79,11 +92,12 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
           saved->broker_root().SerializeAsString()==broker_.SerializeAsString() &&
           saved->job_identity_sha256()==FileOperationJournal::copy_job_identity_sha256(job),
           "Saved cleanup disposition belongs to another execution or root");
-      if(saved->kind()!=Outcome::RESERVED_SCOPE_RECONCILED) continue;
+      if(saved->kind()!=Outcome::RESERVED_SCOPE_RECONCILED) { unresolved=true; continue; }
       // A previously checked reservation may have lost its empty parent during pruning.
     }
     const auto outcome=[&](Outcome::Kind kind,bool uncertain) {
       check_deadline();
+      if(uncertain) unresolved=true;
       Outcome value;value.set_format_version(1);*value.mutable_journal()=journal_->binding(deadline);
       *value.mutable_broker_root()=broker_;value.set_workspace_id(job.workspace_id());
       value.set_worktree_id(job.worktree_id());value.set_job_id(job.job_id());
@@ -162,5 +176,48 @@ void BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   journal->finish_cleanup();
   check_deadline();
   journal_->verify(deadline);
+  if(unresolved || !tree.child_exited_successfully()) return false;
+
+  struct stat root_stat{};
+  require(fstat(tree.directory_fd(),&root_stat)==0 &&
+      static_cast<std::uint64_t>(root_stat.st_dev)==broker_.device() &&
+      static_cast<std::uint64_t>(root_stat.st_ino)==broker_.inode(),
+      "Stable broker root identity changed before retirement");
+  require(root_path.is_absolute() && root_path.lexically_normal()==root_path,
+      "Stable broker root path is not canonical");
+  for(const auto& parent:journal->retained_git_worker_parents({})) {
+    check_deadline();
+    if(parent.root_path==root_path.string() ||
+       (parent.root_device==broker_.device() && parent.root_inode==broker_.inode() &&
+        parent.boot_id==broker_.boot_id())) return false;
+  }
+  const auto current=journal->find_git_worker_parent({});
+  check_deadline();
+  if(current.state!=GitWorkerParentRecord::State::absent) {
+    if(current.root_device!=broker_.device() || current.root_inode!=broker_.inode() ||
+       current.boot_id!=broker_.boot_id() || current.root_path!=root_path.string()) return false;
+    if(current.state==GitWorkerParentRecord::State::reserved) {
+      supervisor::ProcessScope::remove_reserved_git_parent(root_path,current.root_device,
+          current.root_inode,current.boot_id,"spatial-git-workers");
+    } else {
+      supervisor::v1::ProcessScopeIdentity identity;
+      require(identity.ParseFromString(current.identity_bytes),"Stable Git parent identity is malformed");
+      validate_message(identity);
+      require(identity.scope_name()=="spatial-git-workers" && identity.device()>0 && identity.inode()>0 &&
+          identity.boot_id()==current.boot_id,
+          "Stable Git parent identity does not match its journal row");
+      supervisor::ProcessScope::remove_recovered_git_parent(root_path,current.root_device,
+          current.root_inode,identity);
+    }
+    check_deadline();
+    journal->clear_git_worker_parent(current,{});
+    check_deadline();
+  } else {
+    supervisor::ProcessScope::remove_unjournaled_empty_git_parent(root_path,
+        broker_.device(),broker_.inode());
+    check_deadline();
+  }
+  journal_->verify(deadline);
+  return true;
 }
 }

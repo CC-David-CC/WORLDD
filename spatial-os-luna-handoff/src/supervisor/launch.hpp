@@ -25,6 +25,7 @@ public:
         bool allow_test_security_evidence = false);
     // Private launch wiring installs cleanup while the exact process scope is prepared.
     void set_pre_prune_cleanup(std::function<void(const OwnedDrainedTree&)> callback);
+    void set_pre_prune_cleanup_with_retirement(std::function<bool(const OwnedDrainedTree&)> callback);
     // Live direct child only. This PID authenticates the private bootstrap packet.
     pid_t direct_child_pid() const;
     // The coordinator retains the real service connection; callers cannot supply its identity.

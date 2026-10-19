@@ -1,0 +1,15 @@
+M08 broker cleanup and retained-root retirement draft
+
+This checkpoint adds the sealed cleanup-bootstrap path for direct resource-configured BrokerProcess launches. The child binds the existing pinned file-operation journal through a credential-checked Unix seqpacket request. Bootstrap acknowledgement proves only journal binding; BrokerClient hello remains the startup readiness check.
+
+For a retained broker root, cleanup now requires a reaped direct child with exit status zero, successful copy-job reconciliation, exact journal compare-and-swap, and guarded removal of the exact empty Git worker parent. Any uncertainty, identity mismatch, nonzero or unknown exit, or cleanup error keeps the root for recovery. Existing non-retained scopes retain their pruning behavior. Invalid delegated-cgroup parent checks run before broker state or lock creation; prepare_owned repeats pinned validation.
+
+Selected regressions and evidence:
+- ROG Debug build of spatial-core, workspaced, and broker-copy-cleanup-test completed successfully.
+- Python AST parsing passed for the edited Python regression files.
+- git diff --check passed.
+- Runtime tests are UNRUN. sb16 and sb16-2 own runtime qualification.
+- Added callback-retirement tests cover deterministic clean and nonzero child exits, callback refusal and retry, cleanup exception, root identity replacement, and production uncertain-copy retention of root, active Git-parent binding, and immutable uncertainty evidence.
+- Added adapter clean-close/restart and native journal-retirement assertions. These runtime regressions remain UNRUN.
+
+Remaining requested negative coverage is incomplete: the production participant path still needs explicit regression cases for truncated EOF, unknown exit status, post-callback verification failure, and cleanup failure while preserving the retained root. The direct production bootstrap and combined journal-bind ordering path also require focused runtime verification with the independent store-ordering repair. This is an UNQUALIFIED source checkpoint, not milestone qualification.

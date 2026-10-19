@@ -148,6 +148,7 @@ int main(int argc, char** argv) {
         unsigned migration = 0; bool fixture_faults = false, production = false;
         int native_fd = -1, resource_fd = -1, storage_fd = -1;
         int control_fd = -1, control_peer = -1, cleanup_bootstrap_fd = -1;
+        bool direct_cleanup_bootstrap = false;
         std::unique_ptr<int, void(*)(int*)> cleanup_bootstrap_guard(&cleanup_bootstrap_fd,
             +[](int* fd){ if (*fd >= 0) close(*fd); });
         for (int i = 1; i < argc; ++i) {
@@ -164,7 +165,8 @@ int main(int argc, char** argv) {
                 const std::string value(argv[++i]); std::size_t used = 0; storage_fd = std::stoi(value, &used);
                 if (used != value.size() || storage_fd < 3) throw std::invalid_argument("Invalid storage owner descriptor");
             }
-            else if (argument == "--cleanup-bootstrap-fd" && cleanup_bootstrap_fd < 0 && i+1 < argc) {
+            else if ((argument == "--cleanup-bootstrap-fd" || argument == "--direct-cleanup-bootstrap-fd") && cleanup_bootstrap_fd < 0 && i+1 < argc) {
+                direct_cleanup_bootstrap = argument == "--direct-cleanup-bootstrap-fd";
                 const std::string value(argv[++i]); std::size_t used = 0;
                 cleanup_bootstrap_fd = std::stoi(value, &used);
                 if (used != value.size() || cleanup_bootstrap_fd < 3)
@@ -198,8 +200,10 @@ int main(int argc, char** argv) {
         if (production && (resource_fd < 0 || storage_fd < 0 || cleanup_bootstrap_fd < 0 ||
             fixture_faults || migration || !seed.empty()))
             throw std::invalid_argument("Production broker requires sealed resources, storage ownership, and cleanup bootstrap");
-        if (cleanup_bootstrap_fd >= 0 && (resource_fd < 0 || native_fd < 0 || migration || !seed.empty()))
-            throw std::invalid_argument("Cleanup bootstrap requires sealed supervised broker launch inputs");
+        if (cleanup_bootstrap_fd >= 0 && (resource_fd < 0 || migration || !seed.empty() ||
+            (direct_cleanup_bootstrap ? (native_fd >= 0 || control_fd >= 0)
+                                     : native_fd < 0)))
+            throw std::invalid_argument("Cleanup bootstrap requires sealed broker launch inputs");
         if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
         if (resource_fd >= 0 && (resource_fd == native_fd || resource_fd == control_fd))
