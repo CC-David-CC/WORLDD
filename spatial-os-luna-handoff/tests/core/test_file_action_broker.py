@@ -1096,17 +1096,18 @@ class _LegacyFileActionRecoveryHelpers:
         source_handle=next(item.handle for item in page.file_action.directory.entries if item.name==name.encode())
         return root_handle,source_handle
 
-    def _poll_copy_to_terminal(self, job_id, timeout=30):
+    def _poll_copy_to_terminal(self, job_id, timeout=COPY_JOB_OBSERVATION_SECONDS):
         deadline=time.monotonic()+timeout
         while True:
-            reply=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
+            reply=poll_copy_job_before_deadline(
+                lambda:self.action(copy_job=files.FileCopyJob(
+                    command=files.FileCopyJob.POLL,job_id=job_id)),deadline)
             self.assertTrue(reply.file_action.HasField('copy_job'),reply)
             receipt=reply.file_action.copy_job
             if receipt.state in (files.FileCopyJobReceipt.COMPLETE, files.FileCopyJobReceipt.FAILED,
                                  files.FileCopyJobReceipt.CANCELLED, files.FileCopyJobReceipt.CONFLICT,
                                  files.FileCopyJobReceipt.UNCERTAIN):
                 return receipt
-            self.assertLess(time.monotonic(),deadline,'copy job did not reach a terminal state')
             time.sleep(.02)
 
 
@@ -1497,10 +1498,16 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
         self.assertNotEqual(self.broker.resources.root,old_root,
                             'replacement broker must use a distinct resource root')
         result=self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL,job_id=job_id))
-        self.assertTrue(result.file_action.HasField('copy_job'),result)
-        expected=(files.FileCopyJobReceipt.UNCERTAIN if case in ('sync_failure','missing_scope','replaced_scope','replaced_scope_with_proof') else
-                  files.FileCopyJobReceipt.COMPLETE if published else files.FileCopyJobReceipt.CANCELLED)
-        self.assertEqual(result.file_action.copy_job.state,expected,result)
+        quarantined=case in ('missing_scope','replaced_scope','replaced_scope_with_proof')
+        if quarantined:
+            self.expect_file_error(result,files.FileActionError.UNCERTAIN)
+            self.assertEqual(result.file_action.error.detail,
+                'copy recovery disposition quarantines this worktree; saved evidence retained')
+        else:
+            self.assertTrue(result.file_action.HasField('copy_job'),result)
+            expected=(files.FileCopyJobReceipt.UNCERTAIN if case=='sync_failure' else
+                      files.FileCopyJobReceipt.COMPLETE if published else files.FileCopyJobReceipt.CANCELLED)
+            self.assertEqual(result.file_action.copy_job.state,expected,result)
         self.assertEqual((self.project/'sigkill-copy').exists(),published)
         self.assertEqual(worker_scope.exists(),case in ('replaced_scope','replaced_scope_with_proof'))
         if foreign_identity is not None:
@@ -1516,8 +1523,12 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
         self.assertEqual(recovered.prepared_result.SerializeToString(deterministic=True),prepared_bytes)
         self.assertGreaterEqual(recovered.updated_at_unix_ms,record.updated_at_unix_ms)
         if case in ('missing_scope','replaced_scope','replaced_scope_with_proof'):
+            self.assertEqual(recovered.state,copy_journal.FILE_COPY_JOB_JOURNAL_UNCERTAIN)
             self.assertEqual(recovered.HasField('drained_process_scope'),case=='replaced_scope_with_proof')
-            self.expect_file_error(self.action(browse=files.FileBrowse(page_size=8)),files.FileActionError.STALE_HANDLE)
+            quarantined_browse=self.action(browse=files.FileBrowse(page_size=8))
+            self.expect_file_error(quarantined_browse,files.FileActionError.UNCERTAIN)
+            self.assertEqual(quarantined_browse.file_action.error.detail,
+                'copy recovery disposition quarantines this worktree; saved evidence retained')
             self.broker.call('git.status',worktree='tree-two')
         else:
             self.assertEqual(recovered.drained_process_scope,recovered.process_scope)

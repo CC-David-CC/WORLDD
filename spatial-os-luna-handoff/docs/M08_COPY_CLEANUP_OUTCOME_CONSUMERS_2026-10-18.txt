@@ -232,3 +232,29 @@ The earlier three failed attempts and packaging/compile refusals remain retained
 This is a component Debug pass. Consumer sanitizer and Btrfs checks remain UNRUN.
 The Store caller remains UNBUILT until bootstrap and consumers are combined.
 Full M08 qualification and the eleven native restart scenarios remain pending.
+
+
+2026-10-19 source-only fixture oracle and observation update
+
+The normative quarantine contract above says conflicting cleanup outcomes quarantine
+the worktree, so copy POLL and START replay cannot return cached receipts. The
+supervised missing-scope and replacement cases now assert the UNCERTAIN error and
+its retained-evidence detail for POLL and browse. They also assert a durable
+UNCERTAIN journal state, retained prepared bytes and staging, no publication, and
+foreign inode preservation where applicable. This aligns the fixture with the
+existing contract. It does not change runtime behavior or locked acceptance tests.
+
+A diagnostic-only v2 run used the unchanged test body and runtime with an external
+observer at source checkpoint daa077e93e4bf7c9783920e047229fdaeca5f42c and runtime
+812bcb6c8c801f346b50b4f8921119cb587b56b7. Its post-recovery 64 MiB copy completed
+in 67.660 seconds on sb16 and 56.630 seconds on sb16-2 (terminal receipt state 3).
+The event receipts remain at
+`/home/dflanag3/spatial-artifacts/m08-legacy-recovery-focused-daa077e-20261019/cases-observation-diagnostic-02/test_file_action_copy_job_sigkill_restart_reconciles_retained_scope/events.jsonl`
+on both hosts. The observed times exceeded the migrated helper's 30-second bound.
+The helper now uses the existing 300-second COPY_JOB_OBSERVATION_SECONDS bound and
+poll_copy_job_before_deadline before and after each poll. The existing
+`tests/core/test_copy_progress_timing.py` covers late replies, exact-deadline
+rejection, and absolute (nonrenewing) progress observation. This changes only
+fixture observation time. It leaves production copy/control deadlines and the
+ordinary direct-test helper's 30-second bound unchanged. The diagnostic runs are
+not acceptance evidence; no source test or build has run for this update.
