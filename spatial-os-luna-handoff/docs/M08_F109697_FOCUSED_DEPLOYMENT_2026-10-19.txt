@@ -195,3 +195,26 @@ The cleanup participant deliberately retains Git parent metadata after unsuccess
 The handoff regression repair must verify immediate retention and eventual production recovery.
 Do not remove the child-success guard or erase recovery metadata to make the assertion pass.
 The isolated repair branch remains unqualified until reviewed runtime checks pass.
+
+Separate Btrfs alias attempt 02: FOCUSED PASS
+
+Debug and ASan/UBSan passed on both hosts with unchanged 60-second inner cap.
+The driver now uses the exact registered controls-plus-15 selection and matching runtime working directory.
+The alias controls remain enabled. The separate deadline-multirow registration remains outside this variant.
+Source and both executable hashes remain pinned to f109697.
+Driver SHA256: 18f5e7589a994a0da3bf318432e3c7b029d21375228f346026b6b40b1ba3e096.
+Both profiles emitted the alias PASS and controls-plus-15 PASS markers.
+No alias UNRUN marker or sanitizer diagnostics were found.
+Command and wrapper exit codes were zero on both hosts.
+All four profile results and lifecycle hashes were independently checked.
+sb16 elapsed: Debug 52.16 seconds; sanitizer 54.07 seconds.
+sb16-2 elapsed: Debug 42.42 seconds; sanitizer 45.47 seconds.
+Both temporary filesystems were unmounted. Their verified loop devices were detached.
+Both successful attempt-02 images were removed after verification.
+Attempt-01 failed default-scope evidence remains preserved.
+
+Host receipts: runs/f109-btrfs-alias-02 under the previously recorded host-specific Btrfs artifact roots.
+Host lifecycle and profile logs: btrfs-private-fixture-02 under those roots.
+ROG concise result: spatial-artifacts/m08-f109697-btrfs-alias-driver-20261019/both-hosts-result-02.json.
+This verifies the required Btrfs alias variant. It does not qualify M08.
+The authority-handoff recovery regression repair and remaining combined matrix are pending.
