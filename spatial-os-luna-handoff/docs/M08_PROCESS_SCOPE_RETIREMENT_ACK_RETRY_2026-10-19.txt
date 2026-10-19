@@ -14,4 +14,17 @@ A retained broker scope remains retained until the exact scope directory is succ
 
 The regression-only commit `2817efc09bc31eb571146ca10a4fc3a3243c535b` reproduced the defect on sb16-2 against production base `5440113d27edd57cfa45baec8a786468e1be6430`. The isolated test failed with `retry cached retirement authorization or changed stable broker root` after 0.030 seconds. The canonical run is `/home/dflanag3/spatial-artifacts/m08-ack-retirement-bad-2817-sb16-2-20261019/runs/baseline-01`; its broker cleanup ELF SHA256 was `3b561a4e807ae61c2b32e3708fb5181de0ed830abff85cf33972c5da6379fe1d`.
 
-The corrected source and regression have not been built or run. Focused Debug and sanitizer checks remain pending primary review and execution.
+Focused verification at fdc02bc8d80d8b99d15ed30062909255c17fb874:
+- Debug isolated retirement-ack-retry passed on sb16-2. One test ran in 0.022 seconds.
+- ASan/UBSan isolated retirement-ack-retry passed on sb16 and sb16-2. No sanitizer findings appeared.
+- Both profiles compiled and all targets relinked at integrated source 2f2f26bb592902edf10176e26da322001b14e31e.
+- Broader sanitizer controls-plus-15 failed on both hosts. The probe exited 2 with "File operation journal is stopping". The isolated repair remains valid; broader cleanup qualification is incomplete.
+- Btrfs alias coverage and the separate deadline-multirow case remain unrun in these focused attempts.
+
+Artifacts:
+- ROG build receipts: /home/dflanag3/spatial-artifacts/m08-retirement-ack-fixed-fdc02bc-20261019.
+- sb16-2 Debug: /home/dflanag3/spatial-artifacts/m08-ack-retirement-fixed-fdc02bc-sb16-2-20261019/runs/fixed-01.
+- Sanitizer per-host roots: /home/dflanag3/spatial-artifacts/m08-ack-retirement-fixed-fdc02bc-HOST-san-20261019. Each contains runs/sanitizer-01 and runs/controls-01.
+- Debug probe SHA256: dfdb20df5d44ad236013f994f555a05e0763053c64f82cd1c063a94ec678ec60.
+
+The broader failure is under diagnosis. Do not treat these focused results as M08 qualification.
