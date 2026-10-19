@@ -9,7 +9,8 @@ import signal
 import time
 import hashlib
 import launch_pb2 as launch
-from harness.issuer_launch_denial import require_active_generation_denial_trace
+from harness.issuer_launch_denial import (describe_issuer_trace,
+    require_active_generation_denial_trace)
 from harness.issuer_relay import IssuerRelay
 import issuer_pb2 as issuer
 
@@ -150,9 +151,15 @@ class SupervisedCopyBrokerRecovery:
                                 'Rejected candidate must include its checked cleanup record')
         candidate_cleanup = candidate.initial.error.cleanup_record
         self.fixture.assertEqual(candidate_cleanup.binding.participant_id, participant)
-        require_active_generation_denial_trace(issuer_relay.observations, participant,
-            candidate_cleanup.binding.service_incarnation, candidate_cleanup.process.launch_id,
-            self.handle.supervision.revision, self.handle.public, self.handle.supervision.registration.issuer_id)
+        try:
+            require_active_generation_denial_trace(issuer_relay.observations, participant,
+                candidate_cleanup.binding.service_incarnation, candidate_cleanup.process.launch_id,
+                self.handle.supervision.revision, self.handle.public,
+                self.handle.supervision.registration.issuer_id)
+        except Exception as error:
+            detail = str(error) if isinstance(error, AssertionError) else type(error).__name__
+            raise AssertionError(detail + '; ' +
+                describe_issuer_trace(issuer_relay.observations)) from error
         require_candidate_supervisor_denial(self.fixture, candidate.initial)
         self.fixture.assertEqual(issuer_relay.connections, 1, 'Candidate issuer relay must have one TLS client')
         self.fixture.assertFalse(issuer_relay.errors, issuer_relay.errors)
