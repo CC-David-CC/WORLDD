@@ -1,0 +1,47 @@
+M08 observation fixture reservation repair (2026-10-19)
+
+Cause
+
+The observation fixture retains its bootstrap application and launches two
+native witness applications. It raised default_policy.actor_default to cover
+three applications, but production WorkspaceResources::prepare selects an
+explicit workspace policy when one matches the launch request. Full-gate
+workspace one has a 256 MiB / 32-process actor default. Each application
+profile permits 128 MiB / 16 processes, so the third application exceeds the
+selected actor reservation. The later observation, control, and pixel failures
+are the same setup defect.
+
+Repair
+
+Fund the selected explicit workspace policy for the fixture's three same-actor
+application reservations. Fall back to the default policy when no explicit
+workspace entry matches. Calculate only memory, swap, and process headroom,
+the dimensions Group::fits reserves. Refuse insufficient workspace or broker
+headroom before changing either actor field. Preserve all other policy fields,
+application maxima, unrelated workspaces, and the broker and manager envelopes.
+No production resource policy is changed.
+
+Focused validation plan (not run; M08 runtime remains owned by primary)
+
+1. CTest observation-resource-fixture-tooling: generated protobuf regression
+   checks default-policy fallback, explicit workspace selection, unrelated
+   policy and profile preservation, and refusal before mutation when workspace
+   memory capacity is too small.
+2. Re-run the exact failed callers on both sb16 and sb16-2 in Debug and
+   ASan-UBSan: core #154 application-observation test_application_scope_filters_other_live_application;
+   core #155 world-application-control test_independent_applications_allow_simultaneous_actors;
+   core #156 actor-pixels test_other_application_scope_does_not_export_its_pixels.
+3. Run application-access test_launch_authority_does_not_imply_observation_or_control
+   and test_workspace_policy_limits_recorded_application_authority on both
+   hosts, plus the full application-access CTest. These protect neighboring
+   launch, profile, and authority behavior.
+4. Run the full application-observation, world-application-control, and
+   actor-pixels CTest suites after the targeted callers pass. Keep these
+   results separate from the full M08 gate.
+
+All runtime and test checks above remain UNRUN pending primary's release.
+The preserved full-gate failure evidence is under
+spatial-artifacts/m08-next-gate-build-prep-20261019 on ROG. Existing full-gate
+workspace headroom is 512 MiB / 64 processes; broker headroom after manager
+reservation is 768 MiB / 96 processes. Three profile maxima require 384 MiB /
+48 processes. Swap requirements are zero. No CPU or I/O aggregation is assumed.
