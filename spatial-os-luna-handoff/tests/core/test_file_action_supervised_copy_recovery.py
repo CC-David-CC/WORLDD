@@ -4,6 +4,7 @@ Run only through the declared native test-host CTest lane.
 """
 import hashlib
 import os
+import select
 import sqlite3
 import threading
 from contextlib import closing
@@ -85,27 +86,59 @@ class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
         errors = []
         def poll_boundary():
             try:
-                self.action(copy_job=files.FileCopyJob(command=files.FileCopyJob.POLL, job_id=job_id))
+                while True:
+                    result = self.action(copy_job=files.FileCopyJob(
+                        command=files.FileCopyJob.POLL, job_id=job_id))
+                    if not result.file_action.HasField('copy_job'):
+                        errors.append('poll-response-missing-copy-job')
+                        return
+                    state = result.file_action.copy_job.state
+                    if state in (files.FileCopyJobReceipt.QUEUED,
+                                 files.FileCopyJobReceipt.RUNNING):
+                        time.sleep(.01)
+                        continue
+                    errors.append('unexpected-terminal-state:%s' % state)
+                    return
             except (EOFError, OSError):
                 errors.append('transport-closed')
             except BaseException as error:
                 errors.append(repr(error))
+
         poll_thread = threading.Thread(target=poll_boundary, daemon=True)
         poll_thread.start()
-        deadline = time.monotonic() + 10
-        while not ready_path.exists():
-            self.assertLess(time.monotonic(), deadline, 'Production copy boundary was not reached')
-            time.sleep(.005)
-        # Kill immediately. The legacy prepared hook remains a five-second
-        # notify-and-wait boundary for compatibility with its existing oracle.
-        recovery.kill_actual_broker()
-        cleanup, retirement = recovery.checked_cleanup_and_retire()
-        self.assertTrue(cleanup.HasField('fence'))
-        self.assertEqual(retirement.request.cleanup_sha256,
-                         hashlib.sha256(cleanup.SerializeToString(deterministic=True)).digest())
-        poll_thread.join(5)
-        self.assertFalse(poll_thread.is_alive(), 'Blocked production poll did not close after SIGKILL')
-        self.assertEqual(errors, ['transport-closed'])
+        try:
+            deadline = time.monotonic() + 10
+            while not ready_path.exists():
+                if errors:
+                    self.fail('Production copy poll stopped before its boundary: %r' % errors)
+                self.assertLess(time.monotonic(), deadline,
+                                'Production copy boundary was not reached')
+                time.sleep(.005)
+            # Kill immediately. The legacy prepared hook remains a five-second
+            # notify-and-wait boundary for compatibility with its existing oracle.
+            recovery.kill_actual_broker()
+            cleanup, retirement = recovery.checked_cleanup_and_retire()
+            self.assertTrue(cleanup.HasField('fence'))
+            self.assertEqual(retirement.request.cleanup_sha256,
+                             hashlib.sha256(cleanup.SerializeToString(deterministic=True)).digest())
+            poll_thread.join(5)
+            self.assertFalse(poll_thread.is_alive(),
+                             'Blocked production poll did not close after SIGKILL')
+            self.assertEqual(errors, ['transport-closed'])
+        except BaseException:
+            try:
+                # A timeout or premature result must not leave this generation
+                # alive while its poll thread waits on the production boundary.
+                if recovery.death_observed_monotonic_ns is None:
+                    exited = bool(select.select([recovery.handle.pidfd], [], [], 0)[0])
+                    if not exited:
+                        recovery.kill_actual_broker()
+                        recovery.checked_cleanup_and_retire()
+            finally:
+                poll_thread.join(5)
+                if poll_thread.is_alive():
+                    raise AssertionError('Production poll thread survived bounded broker cleanup')
+            raise
         with closing(sqlite3.connect('file:'+str(journal)+'?mode=ro', uri=True, timeout=.5)) as db:
             before = copy_journal.FileCopyJobJournalRecord.FromString(db.execute(
                 'SELECT record FROM file_copy_jobs WHERE workspace=? AND job_id=?', ('one', job_id)).fetchone()[0])
