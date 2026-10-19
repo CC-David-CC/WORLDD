@@ -1,5 +1,7 @@
-M06 qualification accepted on 2026-10-14. M01-M06 are qualified. M07-M16 remain pending.
-Read evidence/m06-gate-2026-10-14/M06-final-review.txt for exact evidence and scope.
+M07 qualification accepted on 2026-10-16. M01-M07 are qualified. M08-M16 remain pending.
+Read ../../docs/M07_QUALIFIED_2026-10-16.txt for the qualified source, evidence, and scope.
+The active M08 branch descends from the M07 production candidate, not its final qualification commit.
+The restored qualification summary records that separate branch. It does not qualify M08.
 Older status entries below are historical. Spatial-M1 and physical acceptance remain incomplete.
 
 # Full project milestones and evidence

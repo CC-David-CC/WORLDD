@@ -1,3 +1,16 @@
+## 2026-10-19: M07 qualification record reconciled; M08 remains unqualified
+
+M01-M07 are qualified. M08-M16 and final Spatial-M1 acceptance remain pending.
+The M07 qualification commit is 2f37499ce8dfd519638a524e7ff3a279d9cf04f4.
+Read ../docs/M07_QUALIFIED_2026-10-16.txt for its frozen source and reviewed evidence.
+The active M08 lineage contains the frozen M07 production candidate, not the final qualification commit.
+This status correction restores its concise record without importing old test overlays or runtime outputs.
+The 2026-10-19 audit matched both hosts' local and after-crosshost review hashes.
+It also verified the published m07/qualified-20261016 GitHub ref.
+The audit did not reopen historical a5500 artifacts or rerun qualification.
+M08 focused repair results remain in docs/M08_FULL_GATE_PREREQUISITE_PROGRESS_2026-10-19.txt.
+The new full M08 gate remains UNRUN. Historical entries below retain their original status.
+
 ## 2026-10-18: M08 revocation fixture reconnect candidate
 
 M08 remains UNQUALIFIED. The primary sanitizer failure in
