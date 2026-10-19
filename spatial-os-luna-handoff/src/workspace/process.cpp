@@ -143,6 +143,8 @@ void ensure_copy_staging_root(int project_fd) {
     int filesystem_error = 0;
     int project_subvolume_error = 0;
     int staging_subvolume_error = 0;
+    int project_subvolume_result = -1;
+    int staging_subvolume_result = -1;
     std::uint64_t project_tree = 0;
     std::uint64_t staging_tree = 0;
     if (valid) {
@@ -151,13 +153,13 @@ void ensure_copy_staging_root(int project_fd) {
         } else {
             if (static_cast<unsigned long>(filesystem.f_type) == BTRFS_SUPER_MAGIC) {
                 btrfs_ioctl_get_subvol_info_args project_info{}, stage_info{};
-                const int project_result = ioctl(project_read, BTRFS_IOC_GET_SUBVOL_INFO, &project_info);
-                if (project_result < 0) project_subvolume_error = errno;
-                const int staging_result = ioctl(staging, BTRFS_IOC_GET_SUBVOL_INFO, &stage_info);
-                if (staging_result < 0) staging_subvolume_error = errno;
-                project_tree = project_result == 0 ? project_info.treeid : 0;
-                staging_tree = staging_result == 0 ? stage_info.treeid : 0;
-                same_subvolume = project_result == 0 && staging_result == 0 &&
+                project_subvolume_result = ioctl(project_read, BTRFS_IOC_GET_SUBVOL_INFO, &project_info);
+                if (project_subvolume_result < 0) project_subvolume_error = errno;
+                staging_subvolume_result = ioctl(staging, BTRFS_IOC_GET_SUBVOL_INFO, &stage_info);
+                if (staging_subvolume_result < 0) staging_subvolume_error = errno;
+                project_tree = project_subvolume_result >= 0 ? project_info.treeid : 0;
+                staging_tree = staging_subvolume_result >= 0 ? stage_info.treeid : 0;
+                same_subvolume = project_subvolume_result >= 0 && staging_subvolume_result >= 0 &&
                     project_tree != 0 && project_tree == staging_tree;
             } else {
                 same_subvolume = stage.st_dev == project.st_dev;
@@ -182,6 +184,8 @@ void ensure_copy_staging_root(int project_fd) {
                << ",stage_stat_errno=" << stage_stat_error
                << ",fstatfs_errno=" << filesystem_error
                << ",fs_type=" << std::hex << static_cast<unsigned long>(filesystem.f_type) << std::dec
+               << ",project_subvolume_result=" << project_subvolume_result
+               << ",stage_subvolume_result=" << staging_subvolume_result
                << ",project_subvolume_errno=" << project_subvolume_error
                << ",stage_subvolume_errno=" << staging_subvolume_error
                << ",project_tree=" << project_tree << ",stage_tree=" << staging_tree << ")";
