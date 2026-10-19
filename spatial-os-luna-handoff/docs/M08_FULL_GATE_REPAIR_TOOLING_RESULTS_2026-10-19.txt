@@ -7,7 +7,7 @@ Schemas did not change. The frozen payload was not modified.
 Runtime evidence: /home/dflanag3/spatial-artifacts/m08-focused-tooling-225ee4e-20261019.
 Canonical run: runs/tooling-01. command.exit=1, wrapper.exit=1, COMPLETE.
 
-Four commands passed. Four commands failed.
+Initial run: four commands passed. Four commands failed.
 Observation resource fixture: three unit cases passed with each binding profile.
 Fault inspector: exact five fault methods and five auxiliary methods passed with each profile.
 The inspector reported no service startup and zero executed fixture methods.
@@ -35,3 +35,16 @@ Remaining runtime work
 Rebuild the changed workspaced executable before authority or native runtime regressions.
 Git, adapter startup, native session startup, and the storage-contention timing failure have separate diagnoses.
 Do not launch a full gate until the combined focused runtime checks pass.
+
+Corrected sb16 rerun
+Source: e17c64977a9b278e87d7a36f6fda7afaed6048da.
+Evidence: /home/dflanag3/spatial-artifacts/m08-focused-tooling-e17c649-20261019.
+Canonical run: runs/tooling-01. command.exit=0, wrapper.exit=0, COMPLETE.
+All eight commands passed.
+Storage-owner fixture: 14 cases passed with each generated-binding profile.
+Copy fixture profiles: 26 cases passed with each generated-binding profile.
+Observation resource fixture: three cases passed with each generated-binding profile.
+Total: 86 unit-test executions and two successful actual fault-inspector commands.
+This does not establish instrumented C++ runtime coverage.
+Both-host runtime qualification and the sb16-2 tooling run remain pending.
+Retained results SHA-256: d2995f172ff224ca4b9280661728f0f8d500b382a0079d6e73a32ad3f1758920
