@@ -1,0 +1,105 @@
+M09 QUALIFICATION PROFILE DRAFT
+Status: UNQUALIFIED_M09_DRAFT
+Date: 2026-10-19
+Base source: 4f0aa15dffdadbcdedd809bcfe43335bc25f99f3
+Base branch: m09/control-contract-draft-20261019
+M08 qualification: UNQUALIFIED
+
+Purpose
+
+This additive profile wraps the frozen M08 local gate. It preserves the M08 cumulative Debug and ASan-UBSan, harness, locked acceptance, native, cross-host, and source-pin checks. It adds explicit CTest registration and source-case preflight for M09. It does not make M09 qualified by finding implementations or tests in source.
+
+Required focused CTest registrations
+
+The deployed Debug and ASan-UBSan CTest inventories must each contain these exact, enabled, non-skippable registrations:
+
+- application-control-lease
+- application-observation
+- world-application-control
+- native-surface_identity
+- native-world_surface_groups
+
+The full M08 required inventory remains required. Duplicate CTest names fail closed. Missing or disabled registrations fail closed. The existing M08 dedicated cross-host exclusions remain unchanged.
+
+M09 focused source-case manifest
+
+The gate checks that each exact unittest method selector below exists exactly once in the frozen deployment source. The cumulative M08 CTest run then executes the full named suites. Missing methods block preflight. The profile does not reinterpret a source method as passed runtime evidence.
+
+1. application-group-identity
+
+- tests.native.test_world_surface_groups.WorldSurfaceGroupTests.test_dialog_popup_group_control_and_foreign_hint_use_connection_identity  -  missing at this base; blocks M09 preflight.
+- tests.native.test_world_surface_groups.WorldSurfaceGroupTests.test_same_application_connections_can_form_relationship
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_popup_uses_same_application_reservation
+
+Gap: current source does not prove a dialog and popup in one group across multiple application X connections while rejecting a foreign transient hint and a second actor's control.
+
+2. independent-controllers
+
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors
+
+3. balanced-transfer
+
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_actor_revocation_releases_native_input
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_observation_revocation_cancels_control
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_unmapped_capture_releases_reservation
+- tests.core.test_application_control_lease.ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation
+- tests.native.test_world_surface_groups.WorldSurfaceGroupTests.test_destroyed_parent_releases_descendant_input
+
+Gap: no single independent witness covers all held input classes and all transfer causes, then proves cancellation completes before the next controller's first event.
+
+4. generation-fence
+
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels
+- tests.native.test_surface_identity.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner
+- tests.native.test_surface_identity.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation
+
+Gap: no focused test replaces the target during broker authorization and proves no event reaches the replacement.
+
+5. observation-control-authority-separation
+
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_observation_does_not_grant_control
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application
+- tests.core.test_application_observation.ApplicationObservationTests.test_observe_does_not_enable_input_control
+
+6. revocation-and-process-survival
+
+- tests.core.test_world_application_control.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution
+- tests.core.test_application_control_lease.ApplicationControlLeaseTests.test_workspace_access_revocation_releases_control_without_stopping_execution
+- tests.core.test_application_observation.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process
+
+Gap: paired revocation of controller observation and control, followed by reauthorization to another actor, lacks one end-to-end focused witness.
+
+7. observation-race
+
+- tests.core.test_application_observation.ApplicationObservationTests.test_post_render_revocation_returns_fenced_denial_without_observation
+- tests.core.test_application_observation.ApplicationObservationTests.test_revocation_while_observation_reply_is_queued_closes_channel
+- tests.core.test_application_observation.ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata
+
+Gap: these broker/world tests do not independently witness native application pixels after revocation.
+
+Harness inventory
+
+M09 keeps M08's exact 89 unittest IDs intact. It appends eight exact test IDs from tests.harness.test_m09_deployed_gate. Duplicate, missing, unexpected, or skipped IDs are rejected by the inherited M06 harness validator. The separate M09 source-case manifest remains independent of the M08 harness manifest and acceptance lock.
+
+Candidate and evidence rules
+
+Run only from the frozen deployment. The caller must pass the full candidate SHA. Provenance and the verified deployment receipt must both match it. Both build-profile inventories must pass before the M06 gate starts. The gate forwards M08's complete required inventory plus the five M09 registrations to the same M06 cumulative runner.
+
+The local profile does not alter acceptance.lock.json, existing M08 files, CMake registrations, production source, or dedicated cross-host cases. It is an additive draft. The candidate remains UNQUALIFIED until primary review, native witness integration, frozen combined source, and full required gates on sb16 and sb16-2.
+
+Status at this source pin
+
+- Existing source suites present: the five listed CTest suites.
+- Exact M09 case selectors currently resolved: all listed existing methods except the dialog/popup/foreign-hint group witness.
+- M08 cumulative dependency: UNQUALIFIED.
+- M09 focused runtime: UNRUN.
+- Focused Debug command on each test host after deployment:
+  `ctest --test-dir "$DEPLOYMENT/build/Debug" --output-on-failure -R '^(application-control-lease|application-observation|native-surface_identity|native-world_surface_groups|world-application-control)$'`
+- Focused ASan-UBSan command on each test host after deployment:
+  `ctest --test-dir "$DEPLOYMENT/build/ASan-UBSan" --output-on-failure -R '^(application-control-lease|application-observation|native-surface_identity|native-world_surface_groups|world-application-control)$'`
+- Required both-host full cumulative gates: UNRUN.
+- Native application-group acceptance: BLOCKED pending reviewed group witness.
+- The other focused-case gaps above require additional witnesses before claiming full M09 contract coverage.
