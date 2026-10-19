@@ -135,6 +135,17 @@ class WorldSurfaceGroupTests(unittest.TestCase):
         self.assertIsNone(result, 'Application could not set its own window type')
         self.call('runtime.fence')
 
+    def configure_probe_geometry(self, target, x, y, width, height):
+        probe, surface, owner = target
+        payload = owner.pack('IH2xIIII', probe.xid, 15, x, y, width, height)
+        self.assertIsNone(owner.operation(12, payload), 'Application could not configure its own window')
+        geometry = self.until(probe.geometry,
+                              lambda value: (value['x'], value['y'], value['width'], value['height']) ==
+                              (x, y, width, height))
+        current = self.until(lambda: self.call('surface.get', id=surface['id']),
+                             lambda value: value['pixels'] == [width, height])
+        return current
+
     def application_identity(self, client, opcode, xid, request_id):
         request = inp.Request(protocol_version=1, request_id=request_id,
                               inspect=inp.Inspect(xid=xid)).SerializeToString()
@@ -150,12 +161,25 @@ class WorldSurfaceGroupTests(unittest.TestCase):
         main = self.probe(position=(0, 0, -2))
         dialog = self.probe(position=(2, 0, -2))
         popup = self.probe(position=(-2, 0, -2))
+
+        inspector = self.connect(self.supervisor.issue(sec.COMPOSITOR, b'', b'').cookie)
+        root_geometry, _ = inspector.operation(14, inspector.pack('I', inspector.root), reply=True)
+        screen_width, screen_height = struct.unpack_from(inspector.endian+'HH', root_geometry, 16)
+        self.assertGreaterEqual(screen_width, 5, 'Native witness needs room for three distinct X regions')
+        pixel_width = screen_width // 4
+        pixel_height = min(pixel_width, screen_height)
+        gap = max(1, pixel_width // 2)
+        x_positions = (0, pixel_width+gap, 2*(pixel_width+gap))
+        for target, x in zip((main, dialog, popup), x_positions):
+            self.configure_probe_geometry(target, x, 0, pixel_width, pixel_height)
+
+        self.call('surface.place', id=main[1]['id'], room=self.room,
+                  pose=pose((0, 0, -2)), size=[0.5, 0.5])
         self.set_window_type(dialog, b'_NET_WM_WINDOW_TYPE_DIALOG')
         self.set_window_type(popup, b'_NET_WM_WINDOW_TYPE_POPUP_MENU')
         self.assertTrue(self.relation(dialog, main)['mapped'])
         self.assertTrue(self.relation(popup, main)['mapped'])
 
-        inspector = self.connect(self.supervisor.issue(sec.COMPOSITOR, b'', b'').cookie)
         name = b'SPATIAL-INPUT'
         extension, _ = inspector.operation(98, inspector.pack('HH', len(name), 0)+name, reply=True)
         self.assertTrue(extension[8], 'Missing native spatial input extension')
@@ -173,13 +197,23 @@ class WorldSurfaceGroupTests(unittest.TestCase):
         foreign_identity = self.application_identity(inspector, opcode, foreign[0].xid, 4)
         self.assertEqual((foreign_identity.workspace, foreign_identity.application), (b'one', b'terminal'))
         self.hidden(foreign, main)
-        for target in (dialog, popup):
-            surface = self.call('surface.get', id=target[1]['id'])
-            self.assertTrue(surface['mapped'])
-            self.assertEqual(surface['parent_id'], main[1]['id'])
+        group_surfaces = [self.call('surface.get', id=target[1]['id'])
+                          for target in (main, dialog, popup)]
+        self.assertTrue(all(surface['mapped'] for surface in group_surfaces))
+        self.assertFalse(group_surfaces[0].get('parent_id'))
+        self.assertEqual(group_surfaces[1]['parent_id'], main[1]['id'])
+        self.assertEqual(group_surfaces[2]['parent_id'], main[1]['id'])
+        expected_step = (pixel_width+gap) * 0.5 / pixel_width
+        self.assertGreater(expected_step, 0.5, 'Grouped surfaces must have disjoint reachable regions')
+        for index, surface in enumerate(group_surfaces):
+            self.assertAlmostEqual(surface['pose']['p'][0]-group_surfaces[0]['pose']['p'][0],
+                                   index*expected_step)
 
         owner = self.actor('a')
         contender = self.actor('b')
+        for target, surface in zip((main, dialog, popup), group_surfaces):
+            self.assertEqual(self.act(owner, 'aim', direction=surface['pose']['p'])['hit']['id'],
+                             target[1]['id'], 'Each native window must have its own reachable hit region')
         self.focus(owner, main)
         for target in (dialog, popup):
             point = self.call('surface.get', id=target[1]['id'])['pose']['p']
@@ -188,8 +222,13 @@ class WorldSurfaceGroupTests(unittest.TestCase):
                 self.act(contender, 'pointer', button=1, pressed=True)
             self.assertEqual(caught.exception.code, 'BUSY')
 
-        independent = self.probe(application=b'calculator', position=(6, 0, -2))
-        self.focus(contender, independent, (6, 0, -2))
+        independent = self.probe(application=b'calculator', position=(2, 0, -2))
+        self.call('surface.place', id=independent[1]['id'], room=self.room,
+                  pose=pose((2, 0, -2)), size=[0.5, 0.5])
+        self.assertEqual(self.act(contender, 'aim', direction=(2, 0, -2))['hit']['id'],
+                         independent[1]['id'])
+        self.act(contender, 'pointer', button=1, pressed=True)
+        self.act(contender, 'pointer', button=1, pressed=False)
         owner_state = self.call('actor.inspect', token=owner['token'])
         contender_state = self.call('actor.inspect', token=contender['token'])
         self.assertEqual(owner_state['focus']['id'], main[1]['id'])
