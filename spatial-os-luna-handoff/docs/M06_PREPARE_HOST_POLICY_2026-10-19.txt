@@ -1,0 +1,11 @@
+M06 prepare host policy - 2026-10-19
+
+The prepare command accepts only the normalized exact hostnames middle-child and
+ROG-Ally-X-RC72LA. ROG records the builder label rog-ally-x. Case and surrounding
+whitespace are normalized; hostname suffixes and wildcard matches are not accepted.
+
+The test hosts remain sb16 and sb16-2. They are runtime qualification hosts, not
+prepare/build hosts. a5500/G164 is not an approved development host.
+
+Focused tooling coverage lives in tests/harness/test_m08_deployed_gate.py inside
+an existing test method. This keeps the locked 89-test harness inventory unchanged.

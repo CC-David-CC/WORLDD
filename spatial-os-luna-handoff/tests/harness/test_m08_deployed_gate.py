@@ -273,6 +273,22 @@ class M08InventoryGateTests(unittest.TestCase):
                     gate.require_inventory(rows)
 
     def test_storage_lane_missing_or_invalid_configuration_refuses_before_gate(self):
+        # M06 prepare host policy uses exact normalized aliases; runtime hosts stay disallowed.
+        host_for = gate.m06.coding_host_for
+        self.assertEqual(host_for("middle-child"), "middle-child")
+        self.assertEqual(host_for("  ROG-Ally-X-RC72LA  "), "rog-ally-x")
+        self.assertIsNone(host_for("middle-child.example"))
+        self.assertIsNone(host_for("rog-ally-x-rc72la-extra"))
+        for denied in ("a5500", "G164", "sb16", "sb16-2", "unrelated-host"):
+            with self.subTest(host=denied):
+                self.assertIsNone(host_for(denied))
+        for denied in ("middle-child.example", "ROG-Ally-X-RC72LA.example", "unrelated-host"):
+            with self.subTest(prepare_host=denied):
+                with patch.object(gate.m06.socket, "gethostname", return_value=denied):
+                    with patch.object(gate.m06, "source_pin") as source_pin:
+                        with self.assertRaisesRegex(RuntimeError, "preparation is allowed only"):
+                            gate.m06.prepare(SimpleNamespace())
+                        source_pin.assert_not_called()
         with self.assertRaisesRegex(RuntimeError, "SPATIAL_TEST_STORAGE_VOLUME_DEBUG"):
             gate.require_storage_lane_configuration({})
         with tempfile.TemporaryDirectory() as temp:

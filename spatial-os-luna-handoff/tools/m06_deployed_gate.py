@@ -27,7 +27,12 @@ import traceback
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-CODING_HOSTS = {"G164": "a5500", "a5500": "a5500", "middle-child": "middle-child"}
+CODING_HOSTS = {"middle-child": "middle-child", "rog-ally-x-rc72la": "rog-ally-x"}
+
+def coding_host_for(actual_host: str) -> str | None:
+    """Return a development builder label for an explicitly approved hostname."""
+    return CODING_HOSTS.get(actual_host.strip().casefold())
+
 TEST_HOSTS = {"sb16", "sb16-2"}
 M07_FROZEN_CONTINUATION_CANDIDATE = '1e58e65dec132a0a16f004ca4527034dca081f77'
 EVIDENCE_KEYS = ("SPATIAL_SECURITY_EVIDENCE", "SPATIAL_SCOPE_EVIDENCE", "SPATIAL_RENDER_EVIDENCE")
@@ -1199,10 +1204,10 @@ def _validated_configure_env(path):
 
 def prepare(a):
     import fcntl
-    actual_host = socket.gethostname().split(".")[0]
-    host = CODING_HOSTS.get(actual_host)
+    actual_host = socket.gethostname()
+    host = coding_host_for(actual_host)
     if host is None:
-        raise RuntimeError("preparation is allowed only on a5500 (G164) or middle-child")
+        raise RuntimeError("preparation is allowed only on middle-child or ROG-Ally-X-RC72LA")
     commit, files, locked = source_pin()
     if a.candidate != commit:
         raise RuntimeError(f"candidate mismatch: expected {a.candidate}, checkout is {commit}")
