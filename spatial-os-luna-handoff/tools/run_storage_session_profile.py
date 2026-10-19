@@ -2,12 +2,13 @@
 import argparse,fcntl,hashlib,json,os,pwd,re,signal,socket,stat,subprocess,sys,time,uuid
 from pathlib import Path
 BASE='731106ee55c4238deac6bd7daacb380caaf58ef983041a89040355e2c549966e'
-TEST='d379fcc65c0a127a1ed4f639b3eb8c38134474bf9ce53d4be22de885e94ea2e0'
+TEST='25237c0a754693884812e8e2ccca53cc3d840575fbc2b25eeddf034e62e1efa3'
+PACKAGED_TEST='d379fcc65c0a127a1ed4f639b3eb8c38134474bf9ce53d4be22de885e94ea2e0'
 BOOT='c8e575549593d38d2c80e47cfe496aee1d36f67ac05b228f3651741ba1233c6d'
 RUNNER='7053d5ffe05e7050b035d6b715b794dd742b68ee29b9198a703979391323f537'
 D='/home/dflanag3/spatial-artifacts/m08-copy-cleanup-native-repair-runtime-20261018'
 S='/home/dflanag3/spatial-artifacts/m08-copy-cleanup-native-asan-ubsan-1a1da1f-runtime-20261018'
-SRC=D+'/fixture-overlays/fixture-1c7547b2-01/spatial-os-luna-handoff'
+SRC=D+'/fixture-overlays/fixture-storage-setup-02/spatial-os-luna-handoff'
 P={
 'debug':dict(payload=D+'/payload/m08-copy-cleanup-native-debug-final-v7',pre=D+'/launchers/native-preflight-v7.primary.py',pre_sha='98acae10d517b39e4321506aed6c9f95ddc3c3eecf9f66727a1228fef262dd38',inv='deb8b74914d9e12491b84fdc972467a8d59afdffc410d6a651b50c6326460b4e',owner='47698e26f1b6ce032ec27a98bc8023ce434b42b34b120c1f9fa40c4e892cac0b',size=13842120,runner=D+'/launchers/run-command.sh'),
 'san':dict(payload=S+'/payload/m08-copy-cleanup-native-asan-ubsan-1a1da1f-v1',pre=S+'/launchers/native-preflight-v1-san.primary.py',pre_sha='307910c3a9a0775304ab21a7ee5aa65e70e81a43714743dd06bfe7052670ced2',inv='49f9d68dfb8ff9936bf7a7cc0ce67a43917a197739778e140dddc0188d0603c7',owner='f2414d86a92b555c3c8d73541d43cc87ea40c7a28401e2cb2447042f4310db7e',size=67002872,runner=S+'/launchers/run-command.sh')}
@@ -147,8 +148,30 @@ def validate_debug(record,host):
      or record.get('source')!=SRC or record.get('fixture_sha256')!=TEST or record.get('launcher_sha256')!=h(__file__)
      or record.get('inventory_sha256')!=P['debug']['inv'] or not successful(record)):
   raise Refusal('SAN needs same-host reviewed Debug pass with complete cleanup')
+def verify_fixture_source(overlay,expected_sha,commit):
+ manifest=overlay/'manifest.json'
+ if h(manifest)!=expected_sha:raise Refusal('source manifest mismatch')
+ record=json.loads(manifest.read_text())
+ if record.get('source_commit')!=commit:raise Refusal('fixture commit mismatch')
+ seen=set()
+ for row in record['files']:
+  rel=row['path']
+  if not isinstance(rel,str) or Path(rel).is_absolute() or '..' in Path(rel).parts or rel in seen:raise Refusal('unsafe source inventory path')
+  seen.add(rel);path=overlay/rel
+  if path.is_symlink() or not path.is_file() or path.stat().st_mode&0o222:raise Refusal('fixture source is not frozen')
+  data=path.read_bytes()
+  if hashlib.sha256(data).hexdigest()!=row['sha256'] or len(data)!=row['bytes']:raise Refusal('fixture source bytes mismatch')
+  if hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()!=row['git_oid']:raise Refusal('fixture Git blob mismatch')
+ actual=set()
+ for path in overlay.rglob('*'):
+  if path.is_symlink() or path.stat().st_mode&0o222:raise Refusal('fixture contains writable path or symlink')
+  if path.is_file() and path!=manifest:actual.add(path.relative_to(overlay).as_posix())
+ if actual!=seen or overlay.stat().st_mode&0o222:raise Refusal('fixture source coverage mismatch')
+
+
 def verify(a,p,host):
  payload=Path(p['payload']).resolve(strict=True);src=Path(SRC).resolve(strict=True)
+ verify_fixture_source(src.parent,a.source_manifest_sha256,a.fixture_commit)
  pre=Path(p['pre']).resolve(strict=True);runner=Path(p['runner']).resolve(strict=True);receipt=a.preflight_receipt.resolve(strict=True)
  if h(pre)!=p['pre_sha'] or h(receipt)!=a.preflight_sha256:raise Refusal('preflight script or receipt hash mismatch')
  x=json.loads(receipt.read_text())
@@ -158,9 +181,9 @@ def verify(a,p,host):
  if h(payload/'inventory.json')!=p['inv'] or h(runner)!=RUNNER:raise Refusal('inventory/canonical runner hash mismatch')
  if h(owner)!=p['owner'] or owner.stat().st_size!=p['size'] or not os.access(owner,os.X_OK):raise Refusal('owner profile ELF mismatch')
  if not (b/'python').is_dir():raise Refusal('generated Python bindings missing')
- if h(src/'tests/native/test_storage_session.py')!=TEST or h(pack/'tests/native/test_storage_session.py')!=TEST:raise Refusal('fixture test source hash mismatch')
+ if h(src/'tests/native/test_storage_session.py')!=TEST or h(pack/'tests/native/test_storage_session.py')!=PACKAGED_TEST:raise Refusal('fixture test source hash mismatch')
  if h(src/'tools/bootstrap_storage.py')!=BOOT or h(pack/'tools/bootstrap_storage.py')!=BOOT:raise Refusal('bootstrap source hash mismatch')
- for rel in ('tests/native/storage_session_volume.py','tests/native/storage_session_paths.py','tools/with_resource_delegate.py','tools/with_adapter_resources.py'):
+ for rel in ('tools/with_resource_delegate.py','tools/with_adapter_resources.py'):
   if h(src/rel)!=h(pack/rel):raise Refusal('fixture source/package mismatch: '+rel)
  for n in B:
   if not os.access(b/n,os.X_OK):raise Refusal('registered helper missing: '+n)
@@ -216,12 +239,13 @@ def restore_original(src,profile_sha,backup,baseline,out):
 
 def main():
  global ACTIVE,INTERRUPTED
- ap=argparse.ArgumentParser();ap.add_argument('--profile',choices=P,required=True);ap.add_argument('--preflight-receipt',type=Path,required=True);ap.add_argument('--preflight-sha256',required=True);ap.add_argument('--run-dir',type=Path,required=True);ap.add_argument('--debug-result',type=Path);a=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--profile',choices=P,required=True);ap.add_argument('--preflight-receipt',type=Path,required=True);ap.add_argument('--preflight-sha256',required=True);ap.add_argument('--run-dir',type=Path,required=True);ap.add_argument('--debug-result',type=Path);ap.add_argument('--source-manifest-sha256',required=True);ap.add_argument('--fixture-commit',required=True);a=ap.parse_args()
  host=socket.gethostname().split('.')[0]
  if host not in ('sb16','sb16-2') or os.getuid()!=pwd.getpwnam('dflanag3').pw_uid or os.getuid()!=1000:raise Refusal('only dflanag3 UID 1000 on test hosts')
  if a.profile=='san':
   if not a.debug_result:raise Refusal('SAN requires Debug result')
-  validate_debug(json.loads(a.debug_result.read_text()),host)
+  debug=json.loads(a.debug_result.read_text());validate_debug(debug,host)
+  if debug.get('fixture_commit')!=a.fixture_commit or debug.get('source_manifest_sha256')!=a.source_manifest_sha256:raise Refusal('SAN fixture identity differs from Debug')
  p=P[a.profile]
  payload,src,b,owner,runner,receipt,pre,server=verify(a,p,host)
  graphics=pre['xace'].get('wrapper_environment',{})
@@ -232,7 +256,7 @@ def main():
  out.mkdir(mode=0o700,parents=True);evidence=out/'spatial_security_evidence';evidence.mkdir(mode=0o700)
  cmd=registration(src,b,server,evidence,graphics)
  direct=['bash',str(runner),str(b),str(out/'canonical-run'),'timeout','--signal=TERM','--kill-after=20s','180s',*cmd]
- result=dict(status='UNRUN',host=host,profile=a.profile,source=SRC,fixture_sha256=TEST,launcher_sha256=h(__file__),inventory_sha256=p['inv'],errors=[])
+ result=dict(status='UNRUN',host=host,profile=a.profile,source=SRC,fixture_sha256=TEST,launcher_sha256=h(__file__),inventory_sha256=p['inv'],fixture_commit=a.fixture_commit,source_manifest_sha256=a.source_manifest_sha256,errors=[])
  save(out/'test-plan.json',dict(**result,methods=list(M),runner_argv=direct,preflight=str(receipt),preflight_sha256=a.preflight_sha256,purpose='Seven session-storage-owner controls; require terminal assertions, no sanitizer diagnostics, process/volume cleanup and exact helper restoration. Not M08 qualification.'))
  fd=os.open(L,os.O_CREAT|os.O_RDWR,0o600)
  try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)

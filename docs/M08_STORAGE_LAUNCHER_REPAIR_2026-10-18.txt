@@ -20,3 +20,15 @@ Durations: sb16 0.182s; sb16-2 0.283s. No skipped tests.
 These controls do not qualify the native seven-method storage suite.
 Next: reviewed profile preflight, temporary helper installation, Debug storage suite,
 then ASan/UBSan only after all Debug evidence and restoration pass on the same host.
+
+Native Debug attempt 01 executed on both hosts and FAILED: five setup failures and two errors.
+The path validator rejected five current method names. The two older method names
+reached bootstrap, which rejected the root-owned Btrfs metadata directory.
+BrokerInstanceLock requires the broker UID before the storage owner starts.
+The fixture now provisions that exact UID and private mode using a pinned directory FD.
+Production ownership checks remain unchanged. Five exact method names join the path allowlist.
+Two new metadata controls exercise every actual method name and reject an unregistered name.
+Both failed runs restored the original helper hash and left no live owned processes.
+Evidence: each host spatial-artifacts/m08-storage-session-profile-runtime-20261018/debug-native-01.
+Corrected fixture runtime and its sanitizer checks remain UNRUN at this checkpoint.
+The launcher verifies the complete frozen fixture source manifest before host mutation.

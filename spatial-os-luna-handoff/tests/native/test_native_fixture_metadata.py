@@ -43,6 +43,33 @@ class NativeFixtureMetadataTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
+    def test_all_registered_storage_session_method_roots_are_accepted(self):
+        import ast
+        tree = ast.parse(Path(__file__).with_name('test_storage_session.py').read_text())
+        suite = next(node for node in tree.body if isinstance(node, ast.ClassDef)
+                     and node.name == 'NativeStorageSessionTests')
+        methods = [node.name for node in suite.body if isinstance(node, ast.FunctionDef)
+                   and node.name.startswith('test_')]
+        self.assertEqual(len(methods), 7)
+        temporary, evidence, root = self._fixture_root()
+        try:
+            for method in methods:
+                current = evidence / method
+                current.mkdir(mode=0o700)
+                self.assertEqual(validate_fixture_root('sb16', evidence, current, os.getuid()), current)
+        finally:
+            temporary.cleanup()
+
+    def test_unregistered_cleanup_method_root_is_rejected(self):
+        temporary, evidence, root = self._fixture_root()
+        try:
+            wrong = evidence / 'test_cleanup_unregistered_method'
+            root.rename(wrong)
+            with self.assertRaisesRegex(ValueError, 'test method name'):
+                validate_fixture_root('sb16', evidence, wrong, os.getuid())
+        finally:
+            temporary.cleanup()
+
     def test_evidence_root_outside_artifact_namespace_is_rejected(self):
         with tempfile.TemporaryDirectory(prefix="native-fixture-escape-") as directory:
             evidence = Path(directory) / "spatial_security_evidence"

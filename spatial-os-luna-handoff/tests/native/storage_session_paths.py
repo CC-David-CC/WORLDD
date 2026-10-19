@@ -7,6 +7,13 @@ ARTIFACT_ROOT = Path("/home/dflanag3/spatial-artifacts")
 ALLOWED_HOSTS = {"sb16", "sb16-2"}
 EVIDENCE_ROOT_NAME = "spatial_security_evidence"
 METHOD_ROOT = re.compile(r"test_native_storage_[A-Za-z0-9_]+\Z")
+ADDITIONAL_METHOD_ROOTS = frozenset({
+    "test_cold_start_cleanup_binding_smoke",
+    "test_failed_cleanup_retains_owner_for_explicit_retry",
+    "test_cleanup_parent_disconnect_preserves_pending_without_receipt",
+    "test_pending_supervisor_signal_exits_without_receipt_or_retirement",
+    "test_cleanup_retry_exhaustion_stays_pending_and_rejects_stop",
+})
 
 
 def _reject_symlink_components(path: Path) -> None:
@@ -45,7 +52,7 @@ def validate_fixture_root(hostname: str, evidence_root: str | Path,
         raise ValueError("evidence root must be spatial_security_evidence")
     if root.parent != evidence:
         raise ValueError("fixture method root must be a direct child of the evidence root")
-    if not METHOD_ROOT.fullmatch(root.name):
+    if not METHOD_ROOT.fullmatch(root.name) and root.name not in ADDITIONAL_METHOD_ROOTS:
         raise ValueError("fixture root must use the native storage test method name")
     if raw_evidence != evidence or raw_root != root:
         raise ValueError("fixture paths must be canonical")
