@@ -259,11 +259,14 @@ struct WorkspaceAuthority::Impl {
         issuer_exchange_in_progress = true;
         struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{issuer_exchange_in_progress};
         request.set_protocol_version(1); id::IssuerReply reply;
+        const auto since_previous_exchange_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            Clock::now() - last_exchange).count();
         try { reply = client->call(std::move(request)); }
         catch (const std::exception&) {
             if (!diagnostic_issuer_failure_logged) {
                 diagnostic_issuer_failure_logged = true;
-                try { std::cerr << "Workspace issuer exchange failed; " << client->failure_diagnostic() << '\n'; }
+                try { std::cerr << "Workspace issuer exchange failed; since_previous_exchange_ms="
+                    << since_previous_exchange_ms << ' ' << client->failure_diagnostic() << '\n'; }
                 catch (...) { /* Diagnostics must not change authority failure behavior. */ }
             }
             fail(); throw WorldError(wire::UNAVAILABLE, "Workspace issuer connection failed");
