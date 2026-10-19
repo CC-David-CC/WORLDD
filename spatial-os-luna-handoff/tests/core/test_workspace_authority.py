@@ -1128,6 +1128,12 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(world.management('process.wait', id=process_id, timeout_seconds=5), {'exit_code':0})
         self.assertTrue((self.project/'credential-race-done').exists())
 
+    def test_enrollment_credential_id_comes_from_nested_actor_credential_payload(self):
+        self.enroll_second()
+        signed_claims = issuer.ActorCredential.FromString(self.second_record.credential.content.payload)
+        self.assertEqual(signed_claims, self.second)
+        self.assertEqual(signed_claims.credential_id, self.second.credential_id)
+
     def test_unrelated_revocation_refuses_inflight_fence_then_allows_retry_and_preserves_process(self):
         self.enroll_second()
         barrier = {}
@@ -1136,7 +1142,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             deadline = started + 2
             operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
                 target=issuer.IdentityReference(kind=issuer.CREDENTIAL_TARGET,
-                                                id=self.second_record.credential_id),
+                                                id=self.second.credential_id),
                 expected_security_revision=0, reason='unrelated fence cancellation regression'))
             result = self.execute(self.owner_peer, self.challenge(self.owner_peer, operation))
             self.assertTrue(result.HasField('identity_status'), result)
