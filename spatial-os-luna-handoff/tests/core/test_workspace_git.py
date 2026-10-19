@@ -3,6 +3,7 @@ import os
 import io
 import fcntl
 import hashlib
+import json
 import broker_pb2 as broker_pb
 from pathlib import Path
 import select
@@ -38,30 +39,78 @@ class WorkspaceGitTests(unittest.TestCase):
         self.runtime_broker_sha256 = None
         self.start()
 
+    def _preserve_failed_start_stderr(self):
+        if self.client is None:
+            return
+        source = Path(self.client._stderr.name)
+        self.client.stop()
+        evidence_root = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if not evidence_root:
+            raise RuntimeError('SPATIAL_SECURITY_EVIDENCE is required to retain failed broker stderr')
+        directory = Path(evidence_root) / 'workspace-git-start-failure'
+        directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if directory.stat().st_mode & 0o077:
+            raise RuntimeError(f'Broker stderr evidence directory is not private: {directory}')
+        attempt = uuid.uuid4().hex
+        stem = f'{self._testMethodName}-{attempt}'
+        payload = source.read_bytes() if source.is_file() else b''
+        digest = hashlib.sha256(payload).hexdigest()
+        stderr_path = directory / f'{stem}-broker-stderr.log'
+        fd = os.open(stderr_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'wb') as output:
+            output.write(payload)
+            output.flush()
+            os.fsync(output.fileno())
+        metadata = {
+            'test': self._testMethodName,
+            'attempt_id': attempt,
+            'stderr_path': str(stderr_path),
+            'stderr_bytes': len(payload),
+            'stderr_sha256': digest,
+            'host_executable': str(Path(HOST).resolve()),
+            'broker_executable': str(Path(BROKER).resolve()),
+        }
+        meta_path = directory / f'{stem}-metadata.json'
+        fd = os.open(meta_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'w', encoding='utf-8') as output:
+            json.dump(metadata, output, sort_keys=True)
+            output.write('\n')
+            output.flush()
+            os.fsync(output.fileno())
+        print(f"PRESERVED_BROKER_STDERR {stderr_path} sha256={digest} bytes={len(payload)}")
+
     def start(self):
         self.client = Client([HOST], self.state, self.root / 'logs', timeout=65)
         self.addCleanup(self.client.stop)
-        self.client.call('system.hello')
-        host_exe = Path(f'/proc/{self.client.proc.pid}/exe').resolve()
-        broker_exe = Path(BROKER).resolve()
-        self.assertEqual(host_exe, Path(HOST).resolve(), 'Runtime host must be the selected new-prefix executable')
-        identities = self.call('runtime.identities')
-        broker_pid = identities['workspaced_pid']
-        worldd_pid = identities['worldd_pid']
-        actual_broker = Path(f'/proc/{broker_pid}/exe')
-        actual_worldd = Path(f'/proc/{worldd_pid}/exe').resolve()
-        self.assertEqual(actual_broker.resolve(), broker_exe,
-                         'Platform worker must launch the selected workspaced sibling')
-        self.assertEqual(actual_worldd.parent, broker_exe.parent,
-                         'worldd must come from the same runtime prefix as workspaced')
-        actual_sha256 = hashlib.sha256(actual_broker.read_bytes()).hexdigest()
-        selected_sha256 = hashlib.sha256(broker_exe.read_bytes()).hexdigest()
-        self.assertEqual(actual_sha256, selected_sha256, 'Running workspaced bytes differ from the selected binary')
-        if self.runtime_broker_sha256 is None:
-            self.runtime_broker_sha256 = actual_sha256
-        else:
-            self.assertEqual(actual_sha256, self.runtime_broker_sha256,
-                             'Restarted workspaced binary identity changed')
+        try:
+            self.client.call('system.hello')
+            host_exe = Path(f'/proc/{self.client.proc.pid}/exe').resolve()
+            broker_exe = Path(BROKER).resolve()
+            self.assertEqual(host_exe, Path(HOST).resolve(), 'Runtime host must be the selected new-prefix executable')
+            identities = self.call('runtime.identities')
+            broker_pid = identities['workspaced_pid']
+            worldd_pid = identities['worldd_pid']
+            actual_broker = Path(f'/proc/{broker_pid}/exe')
+            actual_worldd = Path(f'/proc/{worldd_pid}/exe').resolve()
+            self.assertEqual(actual_broker.resolve(), broker_exe,
+                             'Platform worker must launch the selected workspaced sibling')
+            self.assertEqual(actual_worldd.parent, broker_exe.parent,
+                             'worldd must come from the same runtime prefix as workspaced')
+            actual_sha256 = hashlib.sha256(actual_broker.read_bytes()).hexdigest()
+            selected_sha256 = hashlib.sha256(broker_exe.read_bytes()).hexdigest()
+            self.assertEqual(actual_sha256, selected_sha256, 'Running workspaced bytes differ from the selected binary')
+            if self.runtime_broker_sha256 is None:
+                self.runtime_broker_sha256 = actual_sha256
+            else:
+                self.assertEqual(actual_sha256, self.runtime_broker_sha256,
+                                 'Restarted workspaced binary identity changed')
+        except Exception as failure:
+            try:
+                self._preserve_failed_start_stderr()
+            except Exception as retain_error:
+                if hasattr(failure, 'add_note'):
+                    failure.add_note(f'Failed to preserve broker stderr: {retain_error!r}')
+            raise
 
     def call(self, method, **args):
         timeout = 300 if method == 'git.repo.import' else 65
