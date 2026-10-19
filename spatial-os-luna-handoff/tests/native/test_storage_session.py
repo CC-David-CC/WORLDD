@@ -15,6 +15,7 @@ import sys
 import unittest
 from google.protobuf import text_format
 import test_session_application as existing
+import proc_identity
 import broker_pb2 as broker
 import core_pb2 as core
 import launch_pb2 as launch
@@ -164,18 +165,44 @@ class NativeStorageSessionTests(existing.SessionApplicationTests):
 
     def retain_supervisor_pidfd(self):
         children = Path(f'/proc/{self.coordinator.pid}/task/{self.coordinator.pid}/children').read_text().split()
+        expected_exe = str((self.build/'spatial-authority-supervisor').resolve(strict=True))
+        pins = []
         supervisors = []
-        for value in children:
-            pid = int(value)
-            try:
-                name = Path(f'/proc/{pid}/exe').resolve().name
-            except FileNotFoundError:
-                continue
-            if name == 'spatial-authority-supervisor':
-                supervisors.append(pid)
-        self.assertEqual(len(supervisors), 1, children)
-        pid = supervisors[0]
-        return pid, os.pidfd_open(pid)
+        try:
+            for value in children:
+                pid = int(value)
+                try:
+                    pin = os.pidfd_open(pid)
+                except ProcessLookupError:
+                    continue
+                pins.append(pin)
+                if select.select([pin], [], [], 0)[0]:
+                    continue
+                try:
+                    identity = proc_identity.inspect_process_identity(pid)
+                except ProcessLookupError:
+                    if select.select([pin], [], [], 0)[0]:
+                        continue
+                    raise RuntimeError('pinned child is absent from proc during identity inspection')
+                if select.select([pin], [], [], 0)[0]:
+                    continue
+                if identity['ppid'] != self.coordinator.pid:
+                    continue
+                if identity['exe'] == expected_exe:
+                    supervisors.append((pid, pin))
+            self.assertEqual(len(supervisors), 1, children)
+            pid, selected = supervisors[0]
+            for pin in pins:
+                if pin != selected:
+                    os.close(pin)
+            return pid, selected
+        except BaseException:
+            for pin in pins:
+                try:
+                    os.close(pin)
+                except OSError:
+                    pass
+            raise
 
     def prepare_locked_cleanup(self):
         self.held_application()

@@ -128,7 +128,7 @@ def inspect_logs(out):
   matches=[(index,row) for index,row in enumerate(headers) if row.group(1)==method and re.fullmatch(r'(?:__main__\.)?NativeStorageSessionTests(?:\.'+re.escape(method)+r')?',row.group(2))]
   if len(matches)!=1:continue
   index,row=matches[0];end=headers[index+1].start() if index+1<len(headers) else len(logs)
-  body=re.split(r'^-{6,}\s*$|^Ran \d+ tests? in ',logs[row.end():end],maxsplit=1,flags=re.M)[0].strip()
+  body=re.split(r'^(?:-|=){6,}\s*$|^Ran \d+ tests? in ',logs[row.end():end],maxsplit=1,flags=re.M)[0].strip()
   if body=='ok' or body.splitlines()[-1:] == ['ok']:passed.append(method)
  diagnostics=[]
  pattern=re.compile(r'ERROR: (?:AddressSanitizer|LeakSanitizer)|SUMMARY: (?:AddressSanitizer|UndefinedBehaviorSanitizer)|AddressSanitizer:DEADLYSIGNAL|runtime error:')
@@ -137,7 +137,7 @@ def inspect_logs(out):
    if pattern.search(line):diagnostics.append(dict(path=str(path),line=number,text=line[:600]))
  summary=re.search(r'^Ran 7 tests in [\d.]+s\n\nOK\n',logs,re.M)
  epilogue=(r'Finished with result: success\nMain processes terminated with: code=exited/status=0\n'
-  r'Service runtime: [\d.]+s\nCPU time consumed: [\d.]+s\n'
+  r'Service runtime: (?:[\d.]+s|\d+min [\d.]+s)\nCPU time consumed: [\d.]+s\n'
   r'Memory peak: [\d.]+(?:B|K|M|G|T)\nMemory swap peak: [\d.]+(?:B|K|M|G|T)\n*')
  summary_ok=bool(summary and len(re.findall(r'^Ran \d+ tests? in ',logs,re.M))==1
   and (logs[summary.end():].strip()=='' or re.fullmatch(epilogue,logs[summary.end():])))

@@ -2166,6 +2166,9 @@ if(BUILD_TESTING)
     add_test(NAME storage-session-launcher-contract COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_session_launcher.py")
     set_tests_properties(storage-session-launcher-contract PROPERTIES TIMEOUT 30)
+    add_test(NAME proc-identity-observer-contract COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_proc_identity.py")
+    set_tests_properties(proc-identity-observer-contract PROPERTIES TIMEOUT 30)
     add_test(NAME session-storage-owner COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
