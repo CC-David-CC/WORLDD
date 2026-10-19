@@ -21,6 +21,8 @@ import launch_pb2 as launch
 
 
 class NativeStorageSessionTests(existing.SessionApplicationTests):
+    bootstrap_in_session_delegate = True
+
     def setUp(self):
         super().setUp()
         assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')

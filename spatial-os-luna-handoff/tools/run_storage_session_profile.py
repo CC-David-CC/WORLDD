@@ -2,13 +2,13 @@
 import argparse,fcntl,hashlib,json,os,pwd,re,signal,socket,stat,subprocess,sys,time,uuid
 from pathlib import Path
 BASE='731106ee55c4238deac6bd7daacb380caaf58ef983041a89040355e2c549966e'
-TEST='25237c0a754693884812e8e2ccca53cc3d840575fbc2b25eeddf034e62e1efa3'
+TEST='2b4c3d38cfcad303824053a82a210b793169fb93e3e6ce91aa3d686e373714e0'
 PACKAGED_TEST='d379fcc65c0a127a1ed4f639b3eb8c38134474bf9ce53d4be22de885e94ea2e0'
 BOOT='c8e575549593d38d2c80e47cfe496aee1d36f67ac05b228f3651741ba1233c6d'
 RUNNER='7053d5ffe05e7050b035d6b715b794dd742b68ee29b9198a703979391323f537'
 D='/home/dflanag3/spatial-artifacts/m08-copy-cleanup-native-repair-runtime-20261018'
 S='/home/dflanag3/spatial-artifacts/m08-copy-cleanup-native-asan-ubsan-1a1da1f-runtime-20261018'
-SRC=D+'/fixture-overlays/fixture-storage-setup-03/spatial-os-luna-handoff'
+SRC=D+'/fixture-overlays/fixture-storage-setup-06/spatial-os-luna-handoff'
 P={
 'debug':dict(payload=D+'/payload/m08-copy-cleanup-native-debug-final-v7',pre=D+'/launchers/native-preflight-v7.primary.py',pre_sha='98acae10d517b39e4321506aed6c9f95ddc3c3eecf9f66727a1228fef262dd38',inv='deb8b74914d9e12491b84fdc972467a8d59afdffc410d6a651b50c6326460b4e',owner='47698e26f1b6ce032ec27a98bc8023ce434b42b34b120c1f9fa40c4e892cac0b',size=13842120,runner=D+'/launchers/run-command.sh'),
 'san':dict(payload=S+'/payload/m08-copy-cleanup-native-asan-ubsan-1a1da1f-v1',pre=S+'/launchers/native-preflight-v1-san.primary.py',pre_sha='307910c3a9a0775304ab21a7ee5aa65e70e81a43714743dd06bfe7052670ced2',inv='49f9d68dfb8ff9936bf7a7cc0ce67a43917a197739778e140dddc0188d0603c7',owner='f2414d86a92b555c3c8d73541d43cc87ea40c7a28401e2cb2447042f4310db7e',size=67002872,runner=S+'/launchers/run-command.sh')}

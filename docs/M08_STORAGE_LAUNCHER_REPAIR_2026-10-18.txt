@@ -57,3 +57,13 @@ It rejects unsuccessful status and unexpected trailing output.
 Source SHA256: 80b1565f3addb6f6e04d12bab49224df290fa5ec795e2dd5857410fad13826dd.
 Evidence: launcher-seven-05 beside the prior run on each host.
 Native storage remains FAILED. M08 remains UNQUALIFIED.
+
+Prepared native retry 03
+Storage sessions now opt into one common bootstrap and session delegation parent.
+The private bootstrap template changes only its outer delegated_cgroup.
+The nested resource policy remains unbound. Production identity checks are unchanged.
+Other session fixtures keep their current behavior.
+Selected regression: all seven native storage methods on both hosts.
+Run Debug first. Run sanitizer only after that host's complete Debug pass.
+Required checks include retained owner, cleanup retry, disconnect, signal, exhaustion, and owner loss.
+These checks remain UNRUN at this checkpoint.
