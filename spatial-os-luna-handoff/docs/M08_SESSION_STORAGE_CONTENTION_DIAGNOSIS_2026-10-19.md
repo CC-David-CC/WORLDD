@@ -1,0 +1,45 @@
+# M08 #217 session storage contention diagnosis
+
+Status: read-only diagnosis on branch `m08/session-storage-diagnosis-20261019`, based on frozen source `07991d839bf839c4e95022dedbceb5535f19ddaa`. No test, build, runtime, or test-host mutation ran. No production file changed. The existing M08 failure evidence remains at its original paths.
+
+## Failure and provenance
+
+CTest #217 `session-storage-contention` failed on sb16 in `test_native_storage_actor_revocation_during_bounded_git_import`. The assertion is `until()`'s six-second deadline in `tests/native/test_session_application.py:204-210`, called from `tests/native/test_storage_contention.py:658`. It received monotonic `707206.127524035` after deadline `707206.10224329`, a 25.281 ms overrun. CTest recorded 25 tests in 47.285 seconds and one failure. The same test name is absent from sb16-2's retained Debug core log; this is not a second-host pass.
+
+The full trace is `/home/dflanag3/spatial-artifacts/deployments/m08-07991d8-gate/runtime/evidence/m08-07991d8-sb16-full-local-01/Debug/core.log`, lines 9233-9250 and 9275-9338. SHA-256: `bddfbd55ea2f4c6f46b2d2325a8bd15e1f844e0f1a292e6cff8a469b4297589c`.
+
+The retained test measurements are under `/home/dflanag3/spatial-artifacts/m06-gate-storage/sb16/8327cba3a9dd24047f086a69/Debug/session-storage-contention/spatial_security_evidence/`. `contention.json` SHA-256 is `d0bf27c170bc35a2197cd06998ea4e46da0669e04c5b86ed7331d5f8d2c9631f`; `revocation-lifecycle.json` is `c3b04f076b52bba8798f6666b28eae7b0b23f3edd0df5553cea5d81289dce5f6`; `revocation-authority-diags.log` is `fe7134f317506eb102ccd83084dffb6405cdb27247164cc21e0bfd74f587e7f1`.
+
+The read-only host audit identified sb16 by machine ID `9c7e90a3ce6b4f86b2d46cef6445f0d1` and root filesystem UUID `ca3e65b8-12e8-43e5-be30-be72bc719991`. sb16-2 was `ef0d64d758f64b8aa7924d97a9a2b300`, UUID `ce2c2bdf-76df-4226-840d-af3c8966d632`. The deployed test and eight examined production source files have matching SHA-256 values on both hosts. They match this frozen worktree.
+
+## What the timing shows
+
+The import request began at monotonic `707193.345191197`; Git was first observed at `707193.989165438`. Actor revocation committed at `707194.115623196`. Both private participant feeds delivered revision 1 by `707194.118`, and both authorities observed it by `707194.126`. All nine retained application PIDs exited within `0.235826` seconds while Git was still running. The test's 2-second process-exit bound passed.
+
+The workspaced main process was sampled in Btrfs `fdatasync` (`btrfs_sync_file` -> `btrfs_wait_ordered_range` -> `folio_wait_writeback`) while the import was active. The imported repository is 80 MiB. The fixture limits workspace writes to 16 MiB/s. `ExecutionStore::import_repository()` runs synchronously through clone, `sync_tree`, and `sync_path` (`src/workspace/store.cpp:987-1021`). This supports a long main-thread storage wait during final import durability.
+
+The successful import reply arrived at `707200.102037538`. The final barrier wait started at `707200.102239223`; its deadline was therefore approximately `707206.102239223`. The final barrier query began at `707206.107850694`, already 5.611 ms late, and returned incomplete at `707206.123907858`. The assertion fired at `707206.127524035`; `final_barrier_failed` was recorded 40.7 microseconds later. The last 160 recorded final-phase reads all reported revision 1, `pending_count=2`, and `applied_revisions=[0,0]`. The measurement file includes 204 total barrier reads, each individually completed in about 16-28 ms.
+
+This is a real barrier failure, not a cleanup-only failure: at the last issuer response neither registered service had acknowledged revision 1. The 25 ms overrun is the polling boundary. `until()` invokes the read before checking its deadline, then sleeps 10 ms, so it can start a poll after the deadline. `issuer_operation()` records and saves measurements after measuring the issuer request; that work also lies inside the outer six-second loop. The assertion occurs before fixture cleanup. Later cleanup did not create the recorded timestamps.
+
+The lifecycle witness shows unchanged PIDs and start ticks for `worldd`, `workspaced`, and the coordinator before fixture cleanup. Thus the participant barrier did not remain pending because those services restarted. Actor process enforcement did work, but the authority acknowledgement path did not.
+
+## Production path and likely defect
+
+`workspaced` dispatches `git.repo.import` synchronously (`src/workspace/main.cpp:40`). Its regular loop calls `authority->settle()` only after broker dispatch returns (`main.cpp:430-475`). The import's storage observer calls `enforce()` and can poll authority, reconcile actors, and cancel controls, but it does not call `settle()` (`main.cpp:338-376`). `WorkspaceAuthority::settle()` submits the applied-revision command only after effects settle and while authority remains healthy (`src/workspace/authority.cpp:204-245`).
+
+The diagnostic timeline records `world/cancellation_settled` at `707198.820693995`, but no `ack_queued` or `ack_result_consumed` for either participant. It records `workspace/settle_wait_broken` at `707200.101895599`, immediately before the import reply. This places the workspace authority in a broken state before the barrier polling began. The lifecycle capture omits the full broker stderr and the concrete `IssuerClient::failure_diagnostic()`, so it does not prove why `broken` became true.
+
+A strong source-backed candidate is a stale issuer connection after the blocking sync. `WorkspaceAuthority::keepalive()` normally requests INFO every second (`src/workspace/authority.cpp:186-203`). Main-thread Btrfs sync can prevent that keepalive for longer than the fixture's three-second issuer idle timeout. `IssuerClient::call()` poisons its connection permanently after a transport failure (`src/identity/issuer_client.cpp:738-757`), and `WorkspaceAuthority::exchange()` then marks authority broken (`authority.cpp:255-274`). The timing and `settle_wait_broken` stage fit this path, but the retained logs do not show the error category; treat it as the leading hypothesis, not a proven exception.
+
+The polling assertion also has a boundary defect: it starts one final issuer query after its deadline. That explains the 25 ms late detection, but it does not explain the incomplete state; the last response still showed both obligations pending. Do not increase the six-second limit or accept a late complete barrier as a substitute for fixing the production path.
+
+## Proposed fix and regression
+
+First capture the missing failure category on the next focused run: include `IssuerClient::failure_diagnostic()` and the broker's actual stderr alongside participant stages. Keep the existing six-second completion contract. If the error confirms an expired issuer stream, recover only the non-mutating INFO keepalive by establishing a fresh authenticated connection; do not retry consequential authority requests after an ambiguous send. Separately, keep revocation polling and acknowledgement progress available during long import durability waits. Move blocking `sync_tree`/`sync_path` work off the broker authority loop or make it resumable with bounded progress points that run reconciliation, control cancellation, and participant settlement. Preserve the order required by `settle()`: observe the revocation, complete actor and effect reconciliation, cancel controls, then submit the applied revision.
+
+Keep `test_native_storage_actor_revocation_during_bounded_git_import` unchanged as the integration regression. It already checks that actor-owned processes exit while Git remains live, that the import completes, and that the issuer barrier completes. Retain its current deadlines. Add an explicit assertion in any future focused instrumentation that both world and workspace registrations advance to the revoked revision; record ack queue, request, reply, and barrier timestamps. If the failure category confirms idle expiry, add a narrow `IssuerClient` regression for an idle-closed TLS connection and safe INFO reconnection, while verifying that a sent mutating request is never automatically replayed.
+
+## Unrun checks
+
+No build, test, CTest, runtime, or mutation ran. The primary gate remains live. Production implementation must wait for primary review and must avoid the active Git/import and session-startup ownership lanes. After review, reproduce only the focused Debug and SAN `session-storage-contention` case on both hosts, preserving the six-second barrier assertion and existing process-exit bound. Refresh the binary package after any source change, then reassess the full gate evidence.
