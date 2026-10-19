@@ -285,11 +285,13 @@ class SupervisedHandle:
             fixture.assertEqual(enabled_controllers,required_controllers,
                 'Supervisor delegation parent did not enable every required controller: expected '+
                 repr(sorted(required_controllers))+', observed '+repr(sorted(enabled_controllers)))
+        issuer_client_config=getattr(fixture,'_supervised_copy_issuer_client_config_override',
+                                     runtime.issuer_client_config)
         specification=launch.AuthoritySupervisorConfig(protocol_version=1,journal_directory=str(self.journal),
             delegated_cgroup=str(self.cgroup),binding=self.binding,
             participant=launch.AuthorityParticipantAttach(runtime_config=str(attach),
                 domains=self.supervision.registration.participant.domains),
-            authorization=launch.AuthorityLaunchAuthorize(issuer_client_config=runtime.issuer_client_config,
+            authorization=launch.AuthorityLaunchAuthorize(issuer_client_config=issuer_client_config,
                 private_key_path=str(self.key),supervision_revision=self.supervision.revision,
                 previous_generation=self.previous_generation),
             launch=process_scope.AuthorityProcessLaunch(executable=str(executable),arguments=arguments,

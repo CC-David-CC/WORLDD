@@ -95,6 +95,8 @@ def main():
         'tests/native/native_display_geometry.py',
         'harness/copy_fault_evidence.py',
         'harness/issuer_progress.py',
+        'harness/issuer_relay.py',
+        'harness/issuer_launch_denial.py',
         'harness/wire.py',
         'tools/copy_fixture_profiles.py',
         'tools/inspect_file_action_supervised_copy_recovery.py',

@@ -2,10 +2,7 @@
 import json
 import os
 from pathlib import Path
-import socket
 import sqlite3
-import ssl
-import struct
 import threading
 import time
 import unittest
@@ -14,75 +11,9 @@ import test_authority_supervisor as existing
 import issuer_pb2 as identity
 import launch_pb2 as launch
 import process_scope_pb2 as process
-from harness.wire import frame
 
 
-class IssuerRelay:
-    """Forward actual issuer requests and replies. Never manufacture authority state."""
-    def __init__(self, test, after_reply):
-        self.test = test; self.after_reply = after_reply
-        self.stop = threading.Event(); self.errors = []; self.operations = []
-        self.connections = 0; self.stream = None; self.closed = False
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.minimum_version = context.maximum_version = ssl.TLSVersion.TLSv1_3
-        context.load_cert_chain(str(test.issuer.server_cert), str(test.issuer.server_key))
-        context.load_verify_locations(str(test.issuer.service_cert)); context.verify_mode = ssl.CERT_REQUIRED
-        self.context = context
-        self.listener = socket.socket(); self.listener.bind(('127.0.0.1', 0)); self.listener.listen(4)
-        self.listener.settimeout(.1); self.port = self.listener.getsockname()[1]
-        self.thread = threading.Thread(target=self.run, daemon=True); self.thread.start()
-        test.addCleanup(self.close)
-
-    def drop(self):
-        if self.stream:
-            try: self.stream.shutdown(socket.SHUT_RDWR)
-            except OSError: pass
-
-    def close(self):
-        if self.closed: return
-        self.closed = True; self.stop.set()
-        self.listener.setblocking(False)
-        while True:
-            try: pending, _ = self.listener.accept()
-            except BlockingIOError: break
-            self.connections += 1; pending.close()
-        self.listener.close(); self.drop(); self.thread.join(3)
-        if self.thread.is_alive(): raise AssertionError('Issuer relay did not stop')
-        if self.errors: raise self.errors[0]
-
-    def run(self):
-        upstream = None
-        try:
-            while not self.stop.is_set():
-                try: raw, _ = self.listener.accept(); break
-                except socket.timeout: continue
-            else: return
-            self.connections += 1; raw.settimeout(4); self.stream = raw
-            self.stream = self.context.wrap_socket(raw, server_side=True)
-            upstream = self.test.issuer.connect()
-            def exact(size):
-                data = b''
-                while len(data) < size:
-                    part = self.stream.recv(size - len(data))
-                    if not part: raise EOFError()
-                    data += part
-                return data
-            while not self.stop.is_set():
-                size = struct.unpack('!I', exact(4))[0]
-                if size > 1048576: raise AssertionError('Excessive relay request')
-                request = identity.IssuerRequest.FromString(exact(size)); sequence = request.request_id
-                self.operations.append(request.WhichOneof('operation'))
-                reply = upstream.request(request); reply.request_id = sequence
-                if self.after_reply(self, request, reply):
-                    self.stream.sendall(frame(reply))
-        except (OSError, EOFError):
-            pass
-        except BaseException as error:
-            self.errors.append(error)
-        finally:
-            if self.stream: self.stream.close()
-            if upstream: upstream.close()
-
+from harness.issuer_relay import IssuerRelay
 
 class ApprovalInterruptionTests(existing.AuthoritySupervisorTests):
     def logs(self):
@@ -111,7 +42,7 @@ class ApprovalInterruptionTests(existing.AuthoritySupervisorTests):
                 relay.stop.wait(4)
                 return False
             return True
-        self.participant_relay = IssuerRelay(self, participant_reply)
+        self.participant_relay = IssuerRelay(self, self.issuer, participant_reply)
         def approval_reply(relay, request, reply):
             if not request.HasField('authority_launch_complete'): return True
             self.assertTrue(reply.HasField('authority_launch_authorization'), reply)
@@ -126,7 +57,7 @@ class ApprovalInterruptionTests(existing.AuthoritySupervisorTests):
             self.until(self.logs, lambda text: 'stage=revocations cause=' + cause in text,
                 'Participant did not record the injected interruption')
             return True
-        self.approval_relay = IssuerRelay(self, approval_reply)
+        self.approval_relay = IssuerRelay(self, self.issuer, approval_reply)
         config = self.config()
         runtime = identity.AuthorityParticipantRuntimeConfig()
         text_format.Parse(Path(config.participant.runtime_config).read_text(), runtime)
@@ -219,7 +150,7 @@ class ApprovalInterruptionTests(existing.AuthoritySupervisorTests):
                 relay.stop.wait(4)
                 return False
             return True
-        relay = IssuerRelay(self, participant_reply)
+        relay = IssuerRelay(self, self.issuer, participant_reply)
         config = self.config()
         runtime = identity.AuthorityParticipantRuntimeConfig()
         text_format.Parse(Path(config.participant.runtime_config).read_text(), runtime)

@@ -960,6 +960,10 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(authority-approval-interruption PROPERTIES TIMEOUT 120)
+    add_test(NAME authority-launch-denial-trace-contract COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_issuer_launch_denial_trace.py")
+    set_tests_properties(authority-launch-denial-trace-contract PROPERTIES TIMEOUT 30
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME authority-broker-handoff COMMAND systemd-run --user --wait --pipe --collect
         --unit=spatial-broker-handoff-${build_hash} --property=Delegate=yes
         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
@@ -1397,6 +1401,9 @@ if(BUILD_TESTING)
             tests/core/test_issuer_client.py
             tests/native/copy_fault_supervised_world.py
             tests/native/supervised_copy_broker_recovery.py
+            harness/issuer_relay.py
+            harness/issuer_launch_denial.py
+            tests/core/test_issuer_launch_denial_trace.py
             tests/native/supervised_delegation_parent.py
             tests/native/storage_owner_copy_fault_relay.py
             tests/native/test_security_identity.py

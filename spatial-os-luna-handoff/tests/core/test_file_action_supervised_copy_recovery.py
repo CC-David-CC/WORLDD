@@ -73,7 +73,7 @@ class SupervisedFileActionCopyRecoveryTests(engine.WorkspaceCopyEngineTests):
         recovery = SupervisedCopyBrokerRecovery(self, old, self.authority_config)
         wait_for_active_generation(self, recovery.handle)
         denial = recovery.reject_live_replacement_at_issuer(type(old))
-        self.assertEqual(denial.message, 'Service already has an active generation')
+        self.assertEqual(denial.message, 'Issuer did not approve the retained participant connection')
         source = self.project / 'supervised-sigkill-source'
         source.mkdir()
         payload = bytes(range(256)) * 64

@@ -9,6 +9,8 @@ import signal
 import time
 import hashlib
 import launch_pb2 as launch
+from harness.issuer_launch_denial import require_active_generation_denial_trace
+from harness.issuer_relay import IssuerRelay
 import issuer_pb2 as issuer
 
 def finish_checked_retirement(fixture, broker, resources, handle):
@@ -51,9 +53,11 @@ def launch_journal_bytes(directory):
             if (directory/name).exists()}
 
 
-def require_active_generation_denial(fixture, reply):
+def require_candidate_supervisor_denial(fixture, reply):
     fixture.assertTrue(reply.HasField('error'), reply)
-    fixture.assertEqual(reply.error.message, 'Service already has an active generation', reply)
+    fixture.assertEqual(reply.error.message, 'Issuer did not approve the retained participant connection', reply)
+    fixture.assertTrue(reply.error.HasField('cleanup_record'), 'Rejected candidate lacks checked cleanup')
+    fixture.assertEqual(reply.error.cleanup_record.stage, launch.OWNED_SCOPES_STOPPED)
 
 
 def wait_for_active_generation(fixture, handle, timeout_seconds=5):
@@ -123,19 +127,35 @@ class SupervisedCopyBrokerRecovery:
             self.fixture.assertEqual(runtime.participant_id, participant)
             return self.handle.key, self.handle.public, self.handle.supervision, self.handle.previous_generation
 
+        issuer_relay = IssuerRelay(owner.fixture, owner.fixture)
+        prior_override = getattr(owner.fixture, '_supervised_copy_issuer_client_config_override', None)
         owner.service = reuse_authenticated_supervisor
         try:
+            owner.fixture._supervised_copy_issuer_client_config_override = str(
+                owner.fixture.config_file(issuer_relay.port))
             with self.fixture.assertRaises(AssertionError):
                 constructor(self.fixture, self.execution, self.authority_config)
         finally:
             owner.service = original_service
+            if prior_override is None:
+                del owner.fixture._supervised_copy_issuer_client_config_override
+            else:
+                owner.fixture._supervised_copy_issuer_client_config_override = prior_override
+            issuer_relay.close()
         candidate = owner.handles[-1]
         self.fixture.assertIsNot(candidate, self.handle)
         self.fixture.assertIsNotNone(candidate.initial)
         self.fixture.assertTrue(candidate.initial.HasField('error'), candidate.initial)
-        require_active_generation_denial(self.fixture, candidate.initial)
         self.fixture.assertTrue(candidate.initial.error.HasField('cleanup_record'),
-                                'Issuer denial must include the checked cleanup record')
+                                'Rejected candidate must include its checked cleanup record')
+        candidate_cleanup = candidate.initial.error.cleanup_record
+        self.fixture.assertEqual(candidate_cleanup.binding.participant_id, participant)
+        require_active_generation_denial_trace(issuer_relay.observations, participant,
+            candidate_cleanup.binding.service_incarnation, candidate_cleanup.process.launch_id,
+            self.handle.supervision.revision, self.handle.public, self.handle.supervision.registration.issuer_id)
+        require_candidate_supervisor_denial(self.fixture, candidate.initial)
+        self.fixture.assertEqual(issuer_relay.connections, 1, 'Candidate issuer relay must have one TLS client')
+        self.fixture.assertFalse(issuer_relay.errors, issuer_relay.errors)
         cleanup = candidate.initial.error.cleanup_record
         self.fixture.assertEqual(cleanup, candidate.record(),
                                  'Cleanup receipt must match the durable launch row')

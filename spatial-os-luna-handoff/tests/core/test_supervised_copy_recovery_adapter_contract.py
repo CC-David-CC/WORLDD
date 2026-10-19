@@ -14,7 +14,7 @@ import sys
 
 import launch_pb2 as launch
 import issuer_pb2 as issuer
-from supervised_copy_broker_recovery import (finish_checked_retirement, require_active_generation_denial,
+from supervised_copy_broker_recovery import (finish_checked_retirement, require_candidate_supervisor_denial,
     wait_for_active_generation)
 
 NATIVE = Path(__file__).resolve().parents[1]/'native'
@@ -134,13 +134,13 @@ class AdapterContractTests(unittest.TestCase):
         handle.proc.poll.return_value = 9
         handle.pidfd_poll.return_value = ([handle.pidfd], [], [])
         handle.initial = launch.AuthorityLaunchReply(protocol_version=1)
-        handle.initial.error.message = 'Service already has an active generation'
+        handle.initial.error.message = 'Issuer did not approve the retained participant connection'
         with patch('supervised_copy_broker_recovery.time.sleep',
                    side_effect=RuntimeError('Startup error attempted to wait')):
             with self.assertRaisesRegex(AssertionError,
-                    'Supervisor startup failed.*Service already has an active generation'):
+                    'Supervisor startup failed.*Issuer did not approve the retained participant connection'):
                 wait_for_active_generation(self, handle)
-        self.assertEqual(handle.initial.error.message, 'Service already has an active generation')
+        self.assertEqual(handle.initial.error.message, 'Issuer did not approve the retained participant connection')
         self.assertEqual(handle.proc.poll.call_count, 1)
         self.assertEqual(handle.pidfd_poll.call_count, 1)
 
@@ -252,15 +252,25 @@ class AdapterContractTests(unittest.TestCase):
 
     def test_wrong_generation_denial_and_view_are_not_activation_denials(self):
         reply = launch.AuthorityLaunchReply(protocol_version=1)
-        reply.error.message = 'Service already has an active generation'
-        require_active_generation_denial(self, reply)
-        for message in ('Previous participant generation is still active', 'Malformed launch'):
+        reply.error.message = 'Issuer did not approve the retained participant connection'
+        reply.error.cleanup_record.stage = launch.OWNED_SCOPES_STOPPED
+        require_candidate_supervisor_denial(self, reply)
+        for message in ('Service already has an active generation',
+                        'Previous participant generation is still active', 'Malformed launch'):
             reply.error.message = message
             with self.assertRaises(AssertionError):
-                require_active_generation_denial(self, reply)
+                require_candidate_supervisor_denial(self, reply)
+        reply.error.message = 'Issuer did not approve the retained participant connection'
+        reply.error.ClearField('cleanup_record')
+        with self.assertRaises(AssertionError):
+            require_candidate_supervisor_denial(self, reply)
+        reply.error.cleanup_record.stage = launch.START_ATTEMPTED
+        with self.assertRaises(AssertionError):
+            require_candidate_supervisor_denial(self, reply)
+        reply.error.cleanup_record.stage = launch.OWNED_SCOPES_STOPPED
         reply.view.record.SetInParent()
         with self.assertRaises(AssertionError):
-            require_active_generation_denial(self, reply)
+            require_candidate_supervisor_denial(self, reply)
         self.assertEqual(set(launch.AuthorityLaunchError.DESCRIPTOR.fields_by_name),
                          {'message', 'cleanup_record'})
 
