@@ -12,6 +12,7 @@ from harness.oracles import pose
 from harness.probe import Probe
 from harness.rpc import Client, RpcError
 import security_pb2 as sec
+import input_pb2 as inp
 import test_surface_identity as native
 
 
@@ -120,6 +121,79 @@ class WorldSurfaceGroupTests(unittest.TestCase):
     def key_events(self, target):
         self.call('runtime.fence')
         return [event['pressed'] for event in target[0].input_events() if event['event'] == 'key']
+
+    def atom(self, client, name):
+        head, _ = client.operation(16, client.pack('HH', len(name), 0)+name, reply=True)
+        return struct.unpack_from('<I', head, 8)[0]
+
+    def set_window_type(self, target, name):
+        probe, _, owner = target
+        prop = self.atom(owner, b'_NET_WM_WINDOW_TYPE')
+        atom_type = self.atom(owner, b'ATOM')
+        value = self.atom(owner, name)
+        result = owner.operation(18, owner.pack('IIIB3xII', probe.xid, prop, atom_type, 32, 1, value))
+        self.assertIsNone(result, 'Application could not set its own window type')
+        self.call('runtime.fence')
+
+    def application_identity(self, client, opcode, xid, request_id):
+        request = inp.Request(protocol_version=1, request_id=request_id,
+                              inspect=inp.Inspect(xid=xid)).SerializeToString()
+        head, body = client.operation(opcode, client.pack('I', len(request))+request, reply=True)
+        size = struct.unpack_from('<I', head, 8)[0]
+        reply = inp.Reply.FromString(body[:size])
+        self.assertEqual(reply.request_id, request_id)
+        self.assertEqual(reply.code, inp.OK, reply)
+        self.assertTrue(reply.HasField('application_identity'), 'Missing server-owned application identity')
+        return reply.application_identity
+
+    def test_dialog_popup_group_control_and_foreign_hint_use_connection_identity(self):
+        main = self.probe(position=(0, 0, -2))
+        dialog = self.probe(position=(2, 0, -2))
+        popup = self.probe(position=(-2, 0, -2))
+        self.set_window_type(dialog, b'_NET_WM_WINDOW_TYPE_DIALOG')
+        self.set_window_type(popup, b'_NET_WM_WINDOW_TYPE_POPUP_MENU')
+        self.assertTrue(self.relation(dialog, main)['mapped'])
+        self.assertTrue(self.relation(popup, main)['mapped'])
+
+        inspector = self.connect(self.supervisor.issue(sec.COMPOSITOR, b'', b'').cookie)
+        name = b'SPATIAL-INPUT'
+        extension, _ = inspector.operation(98, inspector.pack('HH', len(name), 0)+name, reply=True)
+        self.assertTrue(extension[8], 'Missing native spatial input extension')
+        opcode = extension[9]
+        identities = [self.application_identity(inspector, opcode, item[0].xid, index)
+                      for index, item in enumerate((main, dialog, popup), start=1)]
+        group = identities[0]
+        for identity in identities:
+            self.assertEqual((identity.server_id, identity.workspace, identity.application),
+                             (group.server_id, b'one', b'editor'))
+        self.assertEqual(len({identity.connection_id for identity in identities}), 3,
+                         'The main, dialog, and popup must use distinct authenticated X connections')
+
+        foreign = self.probe(application=b'terminal', position=(4, 0, -2))
+        foreign_identity = self.application_identity(inspector, opcode, foreign[0].xid, 4)
+        self.assertEqual((foreign_identity.workspace, foreign_identity.application), (b'one', b'terminal'))
+        self.hidden(foreign, main)
+        for target in (dialog, popup):
+            surface = self.call('surface.get', id=target[1]['id'])
+            self.assertTrue(surface['mapped'])
+            self.assertEqual(surface['parent_id'], main[1]['id'])
+
+        owner = self.actor('a')
+        contender = self.actor('b')
+        self.focus(owner, main)
+        for target in (dialog, popup):
+            point = self.call('surface.get', id=target[1]['id'])['pose']['p']
+            self.assertEqual(self.act(contender, 'aim', direction=point)['hit']['id'], target[1]['id'])
+            with self.assertRaises(RpcError) as caught:
+                self.act(contender, 'pointer', button=1, pressed=True)
+            self.assertEqual(caught.exception.code, 'BUSY')
+
+        independent = self.probe(application=b'calculator', position=(6, 0, -2))
+        self.focus(contender, independent, (6, 0, -2))
+        owner_state = self.call('actor.inspect', token=owner['token'])
+        contender_state = self.call('actor.inspect', token=contender['token'])
+        self.assertEqual(owner_state['focus']['id'], main[1]['id'])
+        self.assertEqual(contender_state['focus']['id'], independent[1]['id'])
 
     def test_cross_workspace_hint_cannot_inherit_placement(self):
         parent = self.probe(); child = self.probe(workspace=b'two')
