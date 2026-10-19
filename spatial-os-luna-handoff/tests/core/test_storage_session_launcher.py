@@ -96,6 +96,14 @@ class StorageLauncherTests(unittest.TestCase):
    interleaved='\n'.join(name+' (__main__.NativeStorageSessionTests.'+name+') ... Healthy issuer timing {}\nok' for name in launcher.M)
    (run/'stderr.log').write_text(interleaved+'\nRan 7 tests in 1.234s\n\nOK\n')
    result=launcher.inspect_logs(root);self.assertTrue(result['unittest_ok']);self.assertEqual(result['passed_methods'],list(launcher.M))
+   epilogue=('Finished with result: success\nMain processes terminated with: code=exited/status=0\n'
+    'Service runtime: 1.5s\nCPU time consumed: 0.5s\nMemory peak: 2.7M\nMemory swap peak: 0B\n\n')
+   success=interleaved+'\nRan 7 tests in 1.234s\n\nOK\n'
+   (run/'stderr.log').write_text(success+epilogue)
+   self.assertTrue(launcher.inspect_logs(root)['unittest_ok'])
+   for tail in (epilogue.replace('status=0','status=1'),epilogue.replace('result: success','result: exit-code'),epilogue+'unexpected output\n'):
+    (run/'stderr.log').write_text(success+tail)
+    self.assertFalse(launcher.inspect_logs(root)['unittest_ok'])
    (run/'stderr.log').write_text(methods+'\nRan 7 tests in 1.234s\n\nFAILED (errors=1)\n')
    self.assertFalse(launcher.inspect_logs(root)['unittest_ok'])
    (run/'stderr.log').write_text('OK from setup only\n')

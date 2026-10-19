@@ -135,7 +135,13 @@ def inspect_logs(out):
  for path in out.rglob('*.log'):
   for number,line in enumerate(path.read_text(errors='replace').splitlines(),1):
    if pattern.search(line):diagnostics.append(dict(path=str(path),line=number,text=line[:600]))
- return dict(passed_methods=passed,unittest_ok=bool(re.search(r'Ran 7 tests in [\d.]+s\s+OK\s*$',logs)),sanitizer_findings=diagnostics)
+ summary=re.search(r'^Ran 7 tests in [\d.]+s\n\nOK\n',logs,re.M)
+ epilogue=(r'Finished with result: success\nMain processes terminated with: code=exited/status=0\n'
+  r'Service runtime: [\d.]+s\nCPU time consumed: [\d.]+s\n'
+  r'Memory peak: [\d.]+(?:B|K|M|G|T)\nMemory swap peak: [\d.]+(?:B|K|M|G|T)\n*')
+ summary_ok=bool(summary and len(re.findall(r'^Ran \d+ tests? in ',logs,re.M))==1
+  and (logs[summary.end():].strip()=='' or re.fullmatch(epilogue,logs[summary.end():])))
+ return dict(passed_methods=passed,unittest_ok=summary_ok,sanitizer_findings=diagnostics)
 
 def successful(result):
  return (result.get('test_exit')==0 and result.get('command_exit')=='0' and result.get('wrapper_exit')=='0'

@@ -40,3 +40,20 @@ Both command and wrapper receipts are zero and COMPLETE.
 Evidence: /home/dflanag3/spatial-artifacts/m08-storage-session-profile-runtime-20261018/launcher-seven-04 on each host.
 The fixture-storage-setup-03 snapshot remains frozen. The reviewed launcher overlay has SHA256 464ffacea7c9caba3a4da73a172703bcc48d3b04190f11812edb94439a4b2688.
 Native Debug retry and sanitizer checks remain UNRUN. M08 remains UNQUALIFIED.
+
+Native Debug attempt 02
+All seven methods failed during coordinator startup on both hosts.
+The broker reports: Git worker parent identity cannot be verified.
+The earlier method allowlist and directory ownership failures are resolved.
+This run did not reach the storage behavioral assertions.
+Both runs cleaned all volumes and descriptors, stopped owned services, and restored the original helper.
+No sanitizer run followed this failed Debug attempt.
+Evidence: debug-native-02 beside the prior run on each host.
+
+Launcher controls attempt 05
+Seven controls passed on each host (0.186s and 0.287s).
+The parser accepts the observed successful systemd epilogue.
+It rejects unsuccessful status and unexpected trailing output.
+Source SHA256: 80b1565f3addb6f6e04d12bab49224df290fa5ec795e2dd5857410fad13826dd.
+Evidence: launcher-seven-05 beside the prior run on each host.
+Native storage remains FAILED. M08 remains UNQUALIFIED.
