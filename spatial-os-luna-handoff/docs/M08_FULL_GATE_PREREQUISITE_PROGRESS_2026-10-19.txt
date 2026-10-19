@@ -79,3 +79,32 @@ Evidence on both hosts: spatial-artifacts/m08-handoff-recovery-focused-20261019.
 Both jobs returned command/wrapper exit 8. Helpers were restored to absence.
 ROG concise failure receipt: spatial-artifacts/m08-handoff-recovery-focused-20261019/both-hosts-failure-01.json.
 These focused findings do not qualify M08 or resolve the earlier intermittent barrier miss.
+
+Recovery correction 9b22: Debug PASS, sanitizer setup failure
+
+Reviewed overlay: 9b22ab8a4be0bcad543d45910290cbdc91fd9e7d.
+Archive SHA256: d707dc8de01c0830daf0073eeb51d629536241fe1c7e3474bd89ef10b6331080.
+Both hosts verified all 1191 source files against that archive.
+Production sources, schemas, server inputs, and CMake remain identical to frozen f109 for this overlay.
+The corrected test verifies exact unconsumed authorization for the management-only fixture.
+It preserves stricter generation/fence checks for an activated launch.
+It also preserves exact parent identity, eventual empty tables, native cleanup, and independent-client survival.
+
+The full 14-method Debug group passed on both hosts.
+Elapsed: sb16 12.54 seconds; sb16-2 16.23 seconds.
+The sanitizer CTest failed before running any method on either host.
+with_adapter_resources selected its default Debug resource profile.
+The ambient sanitizer StorageOwner configuration requires a different manager budget.
+The existing guard rejected that mismatch before child launch.
+The registered command lacks an explicit resource profile for this wrapper.
+This is a setup failure, not a sanitizer finding or a passed sanitizer check.
+Do not remove the budget guard or unset required security configuration.
+The shared registration/environment boundary is under source review before retry.
+
+Both outer jobs are terminal with command/wrapper exit 8.
+Helper cleanup is confirmed and prior helper absence restored.
+Host evidence root: spatial-artifacts/m08-handoff-recovery-focused-20261019-02.
+Receipts: runs/handoff-recovery-02.
+Profile results and CTest logs remain under Debug and ASan-UBSan.
+The test branch remains UNQUALIFIED and is not integrated.
+Remaining combined checks and the full M08 gate remain pending.
