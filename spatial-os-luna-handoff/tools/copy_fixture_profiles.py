@@ -24,6 +24,66 @@ def manager_memory_mib(profile):
         raise ValueError('Unsupported explicit copy resource profile: ' + profile)
     return 512 if profile == 'ASan-UBSan' else 256
 
+
+STORAGE_GIT_PARENT_MIB = 256
+STORAGE_HELD_APPLICATION_MIB = 128
+STORAGE_NEXT_WRITER_APPLICATION_MIB = 128
+STORAGE_BROKER_OVERHEAD_MIB = 256
+
+
+def broker_memory_mib(profile):
+    """Fund the manager, standing Git parent, held and next app, and overhead."""
+    return (manager_memory_mib(profile) + STORAGE_GIT_PARENT_MIB +
+            STORAGE_HELD_APPLICATION_MIB + STORAGE_NEXT_WRITER_APPLICATION_MIB +
+            STORAGE_BROKER_OVERHEAD_MIB)
+
+
+def build_adapter_resources(profile, major, minor, broker_module, process_module):
+    """Build the adapter fallback with the shared profile headroom and fixed policy."""
+    manager_memory = manager_memory_mib(profile)
+    broker_memory = broker_memory_mib(profile)
+    if (not isinstance(major, int) or not 0 <= major < 2**32 or
+            not isinstance(minor, int) or not 0 <= minor < 2**32):
+        raise ValueError('Adapter I/O device identity is invalid')
+    mib = 2**20
+
+    def budget(memory, processes, cpu):
+        return process_module.ProcessScopeBudget(
+            memory_bytes=memory*mib, swap_bytes=0, processes=processes,
+            cpu_microseconds=cpu, io=[dict(major=major, minor=minor,
+                read_bytes_per_second=64*mib, write_bytes_per_second=16*mib)])
+
+    return broker_module.BrokerResourceConfig(protocol_version=2,
+        broker_budget=budget(broker_memory, 128, 400000),
+        manager_budget=budget(manager_memory, 32, 200000),
+        default_policy=broker_module.WorkspaceResourcePolicy(total=budget(512, 64, 200000),
+            actor_default=budget(256, 32, 100000), profiles=[
+                broker_module.ApplicationResourceProfile(name=name, maximum=budget(128, 16, 100000))
+                for name in ('development', 'read-only')]))
+
+
+def bind_definition_resource_devices(resources, devices):
+    """Copy definition budgets and bind the provisioned, pinned device limits."""
+    expected = type(resources)()
+    expected.CopyFrom(resources)
+    device_limits = _checked_io_devices(devices, description='Pinned storage owner budget')
+    budgets = process_scope_budgets(expected)
+    if any(budget.io for budget in budgets):
+        raise ValueError('Pinned storage definition must not prebind runtime I/O devices')
+    for budget in budgets:
+        for (major, minor), read, write in device_limits:
+            budget.io.add(major=major, minor=minor,
+                          read_bytes_per_second=read, write_bytes_per_second=write)
+    return expected
+
+
+def require_exact_provisioned_resources(actual, pinned_definition_resources, owner_devices):
+    """Require runtime resources to equal pinned budgets plus provisioned device binding."""
+    expected = bind_definition_resource_devices(pinned_definition_resources, owner_devices)
+    if actual != expected:
+        raise ValueError('Runtime resources differ from pinned storage definition and device binding')
+    return expected
+
 def instrumentation_preflight(build, profile, *, additional_binaries=()):
     manager_memory_mib(profile)
     result = dict(profile=profile, manager_memory_bytes=manager_memory_mib(profile)*2**20,

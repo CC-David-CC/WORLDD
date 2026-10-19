@@ -9,7 +9,7 @@ import sys
 import tempfile
 import time
 import uuid
-from copy_fixture_profiles import consume_profile, manager_memory_mib
+from copy_fixture_profiles import consume_profile, manager_memory_mib, build_adapter_resources
 from google.protobuf import text_format
 import broker_pb2 as broker
 import process_scope_pb2 as process
@@ -77,21 +77,11 @@ try:
         if (device/'partition').exists(): device = device.parent
         major, minor = map(int, (device/'dev').read_text().split(':'))
         mib = 1024 * 1024
-        def budget(memory, processes, cpu):
-            return process.ProcessScopeBudget(memory_bytes=memory*mib, swap_bytes=0, processes=processes,
-                cpu_microseconds=cpu, io=[dict(major=major, minor=minor,
-                    read_bytes_per_second=64*mib, write_bytes_per_second=16*mib)])
         storage_volume = os.environ.get('SPATIAL_TEST_STORAGE_VOLUME')
         if storage_volume:
             resources, io_device = provisioned_storage_resources(storage_volume, resource_profile, broker)
         else:
-            resources = broker.BrokerResourceConfig(protocol_version=2,
-                broker_budget=budget(1024, 128, 400000),
-                manager_budget=budget(manager_memory_mib(resource_profile), 32, 200000),
-                default_policy=broker.WorkspaceResourcePolicy(total=budget(512, 64, 200000),
-                    actor_default=budget(256, 32, 100000), profiles=[
-                        broker.ApplicationResourceProfile(name=name, maximum=budget(128, 16, 100000))
-                        for name in ('development', 'read-only')]))
+            resources = build_adapter_resources(resource_profile, major, minor, broker, process)
             io_device = f'{major}:{minor}'
         config = broker.BrokerProcessConfig(protocol_version=1, delegated_cgroup=str(scope), resources=resources)
         path = directory/'broker.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
