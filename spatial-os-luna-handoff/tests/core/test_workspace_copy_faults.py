@@ -31,6 +31,12 @@ FAULT_RELAY=engine.SOURCE/'tests/native/storage_owner_copy_fault_relay.py'
 SUPERVISED_BROKER_KILL=engine.SOURCE/'tests/native/operator_kill_supervised_broker.py'
 
 
+def initialize_lost_ack_supervisors(fixture, context_factory):
+    """Opt this one crash-recovery case into its stable supervisor before brokers start."""
+    fixture.supervised_copy_recovery_fixture_version=2
+    return context_factory(fixture)
+
+
 def is_revoked_copy_status_denial(code,message,*,unauthorized,forbidden):
     """Match only source-defined typed denials after independently proven revocation."""
     return (code,message) in {
@@ -952,6 +958,10 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
 
     def test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish(self):
         self.copy_fault_mode='drop-publication-ack'
+        sys.path.insert(0,str(engine.SOURCE/'tests/native'))
+        from copy_fault_supervised_world import context
+        supervisors=initialize_lost_ack_supervisors(self,context)
+        self.assertEqual(supervisors.fixture_version,2)
         expected_broker_executable=str(engine.fixtures.BROKER)
         with engine.fixtures.BROKER.open('rb') as executable_file:
             expected_broker_sha256=hashlib.file_digest(executable_file,'sha256').hexdigest()
@@ -988,7 +998,6 @@ class WorkspaceCopyFaultTests(engine.WorkspaceCopyEngineTests):
             if probe.poll() is None:
                 probe.terminate();probe.wait(timeout=5)
         # Crash recovery needs a pre-bound real supervisor, not a fresh identity or a pre-crash close.
-        sys.path.insert(0,str(engine.SOURCE/'tests/native'))
         from copy_fault_supervised_world import SupervisedCopyFaultWorld
         with patch.object(engine.fixtures.world_authority,'WorldProcess',SupervisedCopyFaultWorld):
             world=self.workspace(roots=lambda:self.copy_roots(True),registry=True)

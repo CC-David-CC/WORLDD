@@ -1,0 +1,44 @@
+M08 lost-ACK stable supervisor fixture repair - 2026-10-19
+
+Diagnosis
+
+The Debug lost-publication-ACK selector failed on sb16 and sb16-2 before
+recovery assertions. Retained broker stderr reported a rejected Git worker
+parent with reason `stored-parent-mismatch`. The stored parent ended in
+`adapter/authority-<id>` while the first supervised broker expected
+`adapter/lostack-broker-<id>`. The actual adapter parent was `adapter`.
+
+The rejection comes from `src/workspace/store.cpp`'s retained-parent path
+validation. It protects recovery from a parent path outside the current broker
+root's expected parent. That identity check remains unchanged.
+
+`tests/native/copy_fault_supervised_world.py` defaults its supervised recovery
+fixture to version 1. Version 1 creates a distinct random cgroup for each
+supervised role. Existing version 2 clients set the fixture version before
+initial broker startup and initialize the supervisor context eagerly.
+The lost-ACK fault case set only `copy_fault_mode`. It created the supervisor
+context after the bootstrap broker had started. The bootstrap-to-supervised
+broker replacement therefore selected a different parent before fault injection.
+
+Repair
+
+The lost-ACK method now initializes the registered supervisor context in
+version 2 before `self.workspace()` can start the initial broker. The same
+context pins and reuses the execution parent for bootstrap and recovery. Other
+fault tests retain the default version 1. Crash ordering, recovery identity,
+publication receipt, retry, and no-duplicate-publication assertions remain
+unchanged.
+
+Selected checks recorded before execution
+
+- `workspace-copy-supervised-recovery-adapter-contract`: PASS, 22 tests.
+  The behavioral check confirms the initializer sets version 2 before context
+  construction, while an unrelated fixture still defaults to version 1. The
+  canonical receipt is `/home/dflanag3/spatial-artifacts/m08-lostack-stable-focused-20261019/runs/adapter-contract-01`
+  (`command.exit=0`, `wrapper.exit=0`). It launches no project process.
+- `WorkspaceCopyFaultTests.test_lost_publication_ack_restart_reconciles_exact_receipt_without_duplicate_publish`:
+  rerun on both qualification hosts in Debug and ASan-UBSan. This is pending
+  primary coordination; this source worker does not launch native tests.
+
+The source worker may run only the existing adapter-contract tooling test on
+ROG. Native Debug and sanitizer checks remain pending on sb16 and sb16-2.
