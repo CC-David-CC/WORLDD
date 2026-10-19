@@ -1,0 +1,56 @@
+M08 combined repair deployment checkpoint
+
+Status: UNQUALIFIED. Packages are extracted and verified on both test hosts.
+The combined runtime matrix and full M08 gate have not started.
+
+Built source: f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
+Both full Debug and ASan/UBSan builds passed.
+The reviewed integration branch includes this source and later result documents.
+
+Focused cleanup controls passed on both hosts in both profiles.
+The preceding baseline failed with "File operation journal is stopping".
+The correction completes all journal reads and updates before verified shutdown.
+The separate retirement acknowledgment regression also passed in both profiles on both hosts.
+Btrfs alias and deadline-multirow checks remain pending for this candidate.
+
+Fixture utility suite: 26 tests passed on each host.
+The actual fault inspector passed for both binding profiles on both hosts.
+It found five fault scenarios and five constructor cases.
+It started no services and executed no test methods.
+Those checks used source06a and frozen079 bindings; all36 schemas were verified unchanged.
+They do not replace native copy fault tests.
+
+Packages contain81 ELF executables,36 generated Python bindings, and238 CTest registrations per profile.
+Debug archive bytes:496788606.
+Debug SHA256:31b0d06138de550f725b4b6e2506d7186a74d09e3085c4d8bc757f5cb1684d94.
+Sanitizer archive bytes:1233807926.
+Sanitizer SHA256:8f17e67abd1de0597d93b06056bbe49ec0b67f426f8afccccba6a63d7af46ae7.
+Both source archives SHA256:290fc8f4a61e46c7a020026f518b2381269855300e3e911afdda12225493ecf6.
+
+ROG package roots:
+/home/dflanag3/spatial-artifacts/m08-checked-runtime-f109697-debug-bundle-20261019.
+/home/dflanag3/spatial-artifacts/m08-checked-runtime-f109697-sanitizer-bundle-20261019.
+Each package passed separate-path extraction and complete byte/mode verification.
+The Debug packager console retains an obsolete "BAD BASELINE" status label.
+Its manifest and provenance correctly identify this focused repair candidate.
+
+Both test-host deployment roots:
+/home/dflanag3/spatial-artifacts/deployments/m08-f109697-focused-candidate.
+Transfers ran directly from ROG over LAN. No bulk data crossed the controller.
+The first extraction checker assumed the wrong archived manifest filenames.
+It stopped before runtime deployment. Its failure remains in runs/extract-01.
+The corrected checker used manifest.json and manifest.sha256.
+It verified all payload bytes and modes without downloading again.
+Both runs/extract-02 command and wrapper exit codes were zero.
+See transfer-result.json and extraction-result.json on each host.
+
+Next actions:
+1. Review and relocate CTest metadata into separate writable CTest directories.
+2. Preserve exact registered wrappers, environments, timeouts, and native fixtures.
+3. Verify runtime executables, dependencies, evidence paths, and host storage bindings.
+4. Run the combined focused Debug and sanitizer matrix on both hosts.
+5. Freeze and run the full M08 gate only after affected checks pass.
+
+The earlier intermittent storage-contention barrier miss remains unresolved.
+Do not widen its deadline or infer resolution from the passing frozen079 reproduction.
+M09 drafts remain separate. M08 remains unqualified.
