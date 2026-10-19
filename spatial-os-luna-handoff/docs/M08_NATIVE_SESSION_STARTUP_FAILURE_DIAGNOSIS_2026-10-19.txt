@@ -1,6 +1,6 @@
 # M08 native session startup failure diagnosis (2026-10-19)
 
-Status: source-backed diagnosis proposal; UNQUALIFIED. No source or test files changed. No tests, builds, or host runtime actions were run for this diagnosis.
+Status: diagnostic instrumentation draft; UNQUALIFIED. `src/workspace/store.cpp` now emits protected stderr evidence only when the existing unmatched-parent rejection throws. No validation predicates or wire errors changed. No tests, builds, or host runtime actions were run; primary review is pending.
 
 ## Evidence
 
@@ -16,9 +16,9 @@ The common production path is: world/session startup launches `workspaced`; `Exe
 
 ## Narrow repair proposal
 
-First expose the failed predicate in bounded diagnostic evidence. Record a reason code and the recorded/current root device, inode, boot ID, and normalized path relationship. Keep paths local to the existing protected test evidence. Do not relax the checks or discard the retained record.
+The draft now records the first failed predicate, escaped stored/expected/actual parent paths, path shape, `lstat` errno and identity, and stored/current boot and cgroup identities. It uses the existing single `lstat` result. It logs only on the existing unmatched-parent failure path, then throws the same `WorldError`. It adds no probes on success and follows the original left-to-right short-circuit order. Escaping keeps control bytes from forging log lines. The evidence remains on protected stderr.
 
-Then compare those values with the exact delegated cgroup topology used by the host fixture. If a legitimate parent path is being rejected by an incorrect relationship check, correct only that relationship and retain boot, device, inode, and durable job binding checks. If the identity is genuinely stale or mismatched, repair fixture state ownership or recovery handling so the unsafe record remains fail-closed without aborting unrelated fresh startup. Do not change acceptance assertions.
+After primary review, inspect the actual emitted values before changing validation. If a legitimate parent path is rejected by a bad relationship check, correct only that relationship and retain boot, device, inode, and durable job binding checks. If the identity is stale or mismatched, repair fixture state ownership or recovery while keeping the record fail-closed. Do not change acceptance assertions.
 
 The `storage broker launch witness: Broker state directory ownership is invalid` report from test #218 is a separate launch path and is not tied to this failure by the available evidence. Test #217's revocation timing overrun is also separate. The later #210-#212 and #219 reply EOFs are consistent with the shared native session startup cluster, but need their own captured child error checked before calling them the same root cause.
 
@@ -29,4 +29,6 @@ The `storage broker launch witness: Broker state directory ownership is invalid`
 3. Run affected callers #210 `session-resources`, #211 `session-operator-revocation`, #212 `session-application`, and #219 `session-dependent-cleanup` on both hosts. Add other supervisor EOF cases only where their child logs confirm this same startup refusal.
 4. Run focused process/lifetime sanitizers for the shared supervisor and workspace startup path. Keep #217 timing and #218 storage ownership as separate checks.
 
-All runtime, build, and test checks remain pending. The live full gate owns both host lanes.
+Selected checks after review: #201 and #202 on both hosts reproduce native startup; affected #210-#212 and #219 callers check the shared supervisor path. Add a forged retained-parent case with wrong parent shape and another with same-boot device/inode mismatch; both must keep the existing refusal and wire error. Verify accepted parent recovery still succeeds.
+
+All runtime, build, and test checks remain pending. The sb16 gate completed; sb16-2 still owns its full-gate lane. Primary review is required before build or runtime checks.
