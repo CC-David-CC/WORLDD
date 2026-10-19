@@ -4,8 +4,10 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import select
 import shutil
 import signal
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -404,9 +406,206 @@ class GateWiringTests(unittest.TestCase):
                                       '--build', str(build), '--profile', 'ASan-UBSan'])
         self.assertEqual(wrapped[6], '--evidence')
         self.assertEqual(wrapped[8], '--')
-        self.assertEqual(wrapped[9:], core)
+        nested = '|'.join(gate.COPY_HELPER_NESTED_CTESTS)
+        dedicated_pattern = gate.ctest_exclusion_expression(dedicated).removeprefix('^').removesuffix('$')
+        protected_core = ['ctest', '--test-dir', str(build), '--parallel', '1', '-V', '-E',
+                          f'^({dedicated_pattern}|{nested})$',
+                          '--output-junit', str(target / 'core-protected.xml')]
+        self.assertEqual(wrapped[9:], protected_core)
+        recovery = next(command for name, command, _ in enabled
+                        if name == 'core-supervised-copy-recovery')
+        self.assertEqual(recovery[0:7], ['ctest', '--test-dir', str(build), '--parallel', '1', '-V', '-R'])
+        self.assertEqual(recovery[7], '^(' + nested + ')$')
+        self.assertEqual(recovery[-1], str(target / 'core-self-managed.xml'))
         self.assertEqual(next(command for name, command, _ in default if name == 'harness'),
                          next(command for name, command, _ in enabled if name == 'harness'))
+
+    def test_supervised_recovery_partition_executes_without_nested_lock_timeout(self):
+        import m06_deployed_gate as gate
+        source = Path(__file__).resolve().parents[1]
+        build = Path('/tmp/profile-build')
+        target = Path('/tmp/attempt/Debug')
+        stages = gate.profile_stage_commands(source, build, Path('/tmp/off'), target,
+                                             gate.DEDICATED_CROSSHOST, copy_worker_helpers=True,
+                                             profile='Debug')
+        outer_stage = next(command for name, command, _ in stages if name == 'core')
+        recovery_stage = next(command for name, command, _ in stages
+                              if name == 'core-supervised-copy-recovery')
+        nested = tuple(gate.COPY_HELPER_NESTED_CTESTS)
+        names = ('ordinary-core-a', 'ordinary-core-b', *nested)
+        cmake = (source / 'CMakeLists.txt').read_text()
+        runner = (source / 'tools/run_file_action_supervised_copy_recovery.py').read_text()
+        self.assertIn('add_test(NAME workspace-copy-supervised-sigkill-recovery', cmake)
+        for case_name in ('prepared-worker-proof', 'published-prepared', 'published-sync-failure'):
+            self.assertIn('add_supervised_copy_recovery_case(' + case_name, cmake)
+        self.assertIn('tools/run_file_action_supervised_copy_recovery.py', cmake)
+        self.assertIn('tools/with_copy_worker_helpers.py', runner)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            lock = root / 'helper.lock'
+            marker = root / 'invocations.txt'
+            child = root / 'nested_helper.py'
+            fake_ctest = root / 'fake_ctest.py'
+            fake_outer = root / 'fake_outer.py'
+            child.write_text(
+                'import fcntl,os,sys\n'
+                'fd=os.open(sys.argv[1], os.O_RDWR|os.O_CREAT, 0o600)\n'
+                'fcntl.flock(fd, fcntl.LOCK_EX)\n'
+                'with open(sys.argv[2], "a") as stream: stream.write(sys.argv[3]+"\\n")\n'
+                'os.close(fd)\n')
+            fake_ctest.write_text(
+                'import json,os,re,subprocess,sys\n'
+                'names=json.loads(os.environ["FAKE_CTEST_NAMES"])\n'
+                'nested=set(json.loads(os.environ["FAKE_CTEST_NESTED"]))\n'
+                'argv=sys.argv[1:]\n'
+                'selected=names\n'
+                'if "-R" in argv: selected=[n for n in names if re.search(argv[argv.index("-R")+1], n)]\n'
+                'if "-E" in argv: selected=[n for n in selected if not re.search(argv[argv.index("-E")+1], n)]\n'
+                'for name in selected:\n'
+                ' if name in nested:\n'
+                '  try: subprocess.run([sys.executable,os.environ["FAKE_NESTED_HELPER"],os.environ["FAKE_LOCK"],os.environ["FAKE_MARKER"],name],check=True,timeout=.75)\n'
+                '  except subprocess.TimeoutExpired:\n'
+                '   open(os.environ["FAKE_MARKER"],"a").write("timeout:"+name+"\\n"); sys.exit(73)\n'
+                ' else: open(os.environ["FAKE_MARKER"],"a").write(name+"\\n")\n')
+            fake_outer.write_text(
+                'import fcntl,os,subprocess,sys\n'
+                'fd=os.open(sys.argv[1],os.O_RDWR|os.O_CREAT,0o600)\n'
+                'fcntl.flock(fd,fcntl.LOCK_EX)\n'
+                'result=subprocess.run(sys.argv[3:])\n'
+                'os.close(fd)\n'
+                'sys.exit(result.returncode)\n')
+            environment = os.environ.copy()
+            environment.update({
+                'FAKE_CTEST_NAMES': json.dumps(names),
+                'FAKE_CTEST_NESTED': json.dumps(nested),
+                'FAKE_NESTED_HELPER': str(child),
+                'FAKE_LOCK': str(lock),
+                'FAKE_MARKER': str(marker),
+            })
+
+            def ctest_args(command):
+                position = command.index('ctest')
+                return command[position + 1:]
+
+            protected_args = ctest_args(outer_stage)
+            normal_outer = [sys.executable, str(fake_outer), str(lock), '--',
+                            sys.executable, str(fake_ctest), *protected_args]
+            result = subprocess.run(normal_outer, env=environment, capture_output=True, text=True,
+                                    timeout=5, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            selected_args = recovery_stage[1:]
+            recovery = subprocess.run([sys.executable, str(fake_ctest), *selected_args],
+                                      env=environment, capture_output=True, text=True,
+                                      timeout=5, check=False)
+            self.assertEqual(recovery.returncode, 0, recovery.stderr)
+            self.assertEqual(set(marker.read_text().splitlines()), set(names))
+            self.assertEqual(len(marker.read_text().splitlines()), len(names))
+
+            marker.write_text('')
+            legacy_args = list(protected_args)
+            legacy_args[legacy_args.index('-E') + 1] = gate.ctest_exclusion_expression(gate.DEDICATED_CROSSHOST)
+            legacy_outer = [sys.executable, str(fake_outer), str(lock), '--',
+                            sys.executable, str(fake_ctest), *legacy_args]
+            legacy = subprocess.run(legacy_outer, env=environment, capture_output=True, text=True,
+                                    timeout=5, check=False)
+            self.assertEqual(legacy.returncode, 73)
+            self.assertIn('timeout:' + nested[0], marker.read_text())
+
+    def test_split_junit_inventory_requires_all_231_cases_once_and_merges_core_xml(self):
+        import xml.etree.ElementTree as ET
+        import m06_deployed_gate as gate
+        names = [f'local-core-{index:03d}' for index in range(231)]
+        managed = set(names[-4:])
+        protected_cases = [ET.Element('testcase', name=name) for name in names[:-4]]
+        managed_cases = [ET.Element('testcase', name=name) for name in names[-4:]]
+        summary = gate.validate_core_junit_partitions(protected_cases, managed_cases, names, managed)
+        self.assertEqual(summary, {
+            'protected_junit_cases': 227, 'self_managed_junit_cases': 4, 'junit_cases': 231,
+            'all_registered_present': True, 'failed_or_skipped': False})
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            protected_xml = root / 'protected.xml'
+            managed_xml = root / 'managed.xml'
+            combined_xml = root / 'core.xml'
+            for path, cases in ((protected_xml, protected_cases), (managed_xml, managed_cases)):
+                suite = ET.Element('testsuite')
+                suite.extend(cases)
+                ET.ElementTree(suite).write(path, encoding='utf-8', xml_declaration=True)
+            totals = gate.merge_core_junit_files((protected_xml, managed_xml), combined_xml)
+            combined_names = [case.attrib['name'] for case in ET.parse(combined_xml).getroot().iter('testcase')]
+            receipt = gate.attach_split_core_junit_receipt({'exit_code': 0}, summary, totals)
+            self.assertEqual(totals['tests'], 231)
+            self.assertEqual(len(combined_names), 231)
+            self.assertEqual(len(set(combined_names)), 231)
+            self.assertEqual(set(combined_names), set(names))
+            self.assertEqual(receipt['junit_cases'], len(names))
+            self.assertEqual(receipt['protected_junit_cases'], 227)
+            self.assertEqual(receipt['self_managed_junit_cases'], 4)
+            self.assertEqual(receipt['junit_case_sources']['combined']['path'], 'core.xml')
+            self.assertTrue(receipt['all_registered_present'])
+            self.assertFalse(receipt['failed_or_skipped'])
+
+    def test_split_junit_rejects_missing_duplicate_unexpected_failure_and_skip(self):
+        import xml.etree.ElementTree as ET
+        import m06_deployed_gate as gate
+        names = [f'local-core-{index:03d}' for index in range(231)]
+        managed_names = names[-4:]
+        protected_cases = [ET.Element('testcase', name=name) for name in names[:-4]]
+        managed_cases = [ET.Element('testcase', name=name) for name in managed_names]
+        missing_protected = gate.validate_core_junit_partitions(
+            protected_cases[1:], managed_cases, names, managed_names)
+        missing_managed = gate.validate_core_junit_partitions(
+            protected_cases, managed_cases[1:], names, managed_names)
+        self.assertFalse(missing_protected['all_registered_present'])
+        self.assertFalse(missing_managed['all_registered_present'])
+        duplicate = gate.validate_core_junit_partitions(
+            protected_cases + [protected_cases[0]], managed_cases, names, managed_names)
+        self.assertFalse(duplicate['all_registered_present'])
+        unexpected_cases = list(protected_cases)
+        unexpected_cases[0] = ET.Element('testcase', name='unexpected-core-test')
+        unexpected = gate.validate_core_junit_partitions(
+            unexpected_cases, managed_cases, names, managed_names)
+        self.assertFalse(unexpected['all_registered_present'])
+        for tag in ('failure', 'skipped'):
+            cases = list(protected_cases)
+            cases[0] = ET.Element('testcase', name=names[0])
+            cases[0].append(ET.Element(tag))
+            rejected = gate.validate_core_junit_partitions(cases, managed_cases, names, managed_names)
+            self.assertTrue(rejected['all_registered_present'])
+            self.assertTrue(rejected['failed_or_skipped'])
+
+    def test_independent_helper_lifecycle_invocations_remain_serialized(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            runtime = Path(temporary) / str(os.getuid())
+            runtime.mkdir(mode=0o700)
+            code = (
+                'import os,pathlib,sys,time; import with_copy_worker_helpers as h; '
+                'h.LOCK_ROOT=pathlib.Path(sys.argv[1]); fd=h._acquire_lock(); '
+                'print(time.monotonic_ns(),flush=True); time.sleep(.35); os.close(fd)'
+            )
+            env = os.environ.copy()
+            env['PYTHONPATH'] = str(TOOLS)
+            first = subprocess.Popen([sys.executable, '-c', code, temporary], env=env,
+                                     stdout=subprocess.PIPE, text=True)
+            second = None
+            try:
+                ready, _, _ = select.select([first.stdout], [], [], 3)
+                self.assertTrue(ready, 'first lifecycle invocation did not acquire the lock')
+                first_started = int(first.stdout.readline().strip())
+                second = subprocess.Popen([sys.executable, '-c', code, temporary], env=env,
+                                          stdout=subprocess.PIPE, text=True)
+                ready, _, _ = select.select([second.stdout], [], [], 3)
+                self.assertTrue(ready, 'second lifecycle invocation remained blocked')
+                second_started = int(second.stdout.readline().strip())
+                self.assertEqual(first.wait(timeout=3), 0)
+                self.assertEqual(second.wait(timeout=3), 0)
+                self.assertGreaterEqual(second_started - first_started, 250_000_000)
+            finally:
+                for child in (first, second):
+                    if child is not None and child.poll() is None:
+                        child.terminate()
+                        child.wait(timeout=3)
 
     def test_preflight_only_cli_requires_no_child_command(self):
         with mock.patch.object(lifecycle, 'run_with_helpers', return_value=0) as run:
@@ -422,7 +621,7 @@ class GateWiringTests(unittest.TestCase):
         arguments = argparse.Namespace(
             deployment=Path('/tmp/deployment'), attempt='attempt',
             native_controller='native', real_world='world', recovery='recovery',
-            host_session='session', held_input='held',
+            host_session='session', held_input='held', selected_profiles=None,
         )
         captured = {}
         with mock.patch.object(gate, 'require_deployment_inventory'), \
@@ -431,6 +630,42 @@ class GateWiringTests(unittest.TestCase):
             self.assertEqual(gate.run_local(arguments), 0)
         self.assertIs(captured['copy_worker_helpers'], True)
         self.assertEqual(captured['required_tests'], sorted(gate.m07.M07_REQUIRED | gate.M08_REQUIRED))
+
+    def test_m08_refuses_partial_profile_and_collector_modes_before_gate(self):
+        import argparse
+        import m08_deployed_gate as gate
+        base = dict(deployment=Path('/tmp/deployment'), attempt='attempt',
+                    native_controller='native', real_world='world', recovery='recovery',
+                    host_session='session', held_input='held')
+        invalid = [
+            dict(selected_profiles=['ASan-UBSan']),
+            dict(selected_profiles=['Debug']),
+            dict(collector_continuation=Path('/tmp/continuation.json')),
+            dict(collector_continuation_sha256='a'*64),
+        ]
+        for extra in invalid:
+            arguments=argparse.Namespace(**(base | extra))
+            with self.subTest(extra=extra), \
+                 mock.patch.object(gate,'require_deployment_inventory') as inventory, \
+                 mock.patch.object(gate.m06,'gate') as run_gate, \
+                 mock.patch.object(gate,'require_storage_lane_configuration') as storage, \
+                 self.assertRaisesRegex(RuntimeError,'M08 run-local requires both ordered profiles|M08 collector continuation is unsupported'):
+                gate.run_local(arguments)
+            inventory.assert_not_called();run_gate.assert_not_called();storage.assert_not_called()
+
+    def test_m08_accepts_explicit_full_ordered_profile_selection(self):
+        import argparse
+        import m08_deployed_gate as gate
+        arguments=argparse.Namespace(
+            deployment=Path('/tmp/deployment'), attempt='attempt',
+            native_controller='native', real_world='world', recovery='recovery',
+            host_session='session', held_input='held', selected_profiles=list(gate.m06.PROFILES))
+        captured={}
+        with mock.patch.object(gate,'require_deployment_inventory'), \
+             mock.patch.object(gate,'require_storage_lane_configuration',return_value={}), \
+             mock.patch.object(gate.m06,'gate',side_effect=lambda value: captured.update(vars(value)) or 0):
+            self.assertEqual(gate.run_local(arguments),0)
+        self.assertEqual(captured['selected_profiles'],list(gate.m06.PROFILES))
 
 
 if __name__ == '__main__':

@@ -227,11 +227,16 @@ def require_deployment_inventory(deployment):
 
 
 def run_local(a):
+    selected_profiles = getattr(a, "selected_profiles", None)
+    if selected_profiles is not None and tuple(selected_profiles) != tuple(m06.PROFILES):
+        raise RuntimeError("M08 run-local requires both ordered profiles; partial-profile continuation is unsupported")
+    if (getattr(a, "collector_continuation", None) is not None
+            or getattr(a, "collector_continuation_sha256", None) is not None):
+        raise RuntimeError("M08 collector continuation is unsupported; run the full two-profile local gate")
     # Check the deployed package inventory before m06.gate can launch a stage.
     # m06.gate then verifies host, deployment receipt, source/runtime pins, and
     # repeats required-inventory validation against the deployed CTest metadata.
     require_deployment_inventory(a.deployment)
-    selected_profiles = getattr(a, "selected_profiles", None)
     storage_lane_by_profile = require_storage_lane_configuration(
         profiles=m06.PROFILES if selected_profiles is None else tuple(selected_profiles))
     ns = argparse.Namespace(

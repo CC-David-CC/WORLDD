@@ -49,6 +49,12 @@ STORAGE_LOCAL_EVIDENCE_TESTS = ("session-storage-owner", "session-storage-conten
 M06_STORAGE_SCENARIO_RESULTS = frozenset({
     "large_import_retirement", "application_and_actor_quota", "read_only", "sibling_survival", "restart"})
 M08_STORAGE_SCENARIO_ADDITIONS = frozenset({"production_application_copy_stage_mask"})
+COPY_HELPER_NESTED_CTESTS = (
+    "workspace-copy-supervised-sigkill-recovery",
+    "workspace-copy-supervised-prepared-worker-proof-recovery",
+    "workspace-copy-supervised-published-prepared-recovery",
+    "workspace-copy-supervised-published-sync-failure-recovery",
+)
 STORAGE_FIXTURE_UID = 0
 STORAGE_EVIDENCE_ROOT = Path("/home/dflanag3/spatial-artifacts/m06-gate-storage")
 STORAGE_ATTEMPT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
@@ -1486,23 +1492,96 @@ def profile_environment(environment, source, build, target):
     return env
 
 
+def validate_core_junit_partitions(protected_cases, self_managed_cases, expected_names,
+                                   self_managed_names=()):
+    """Validate both exact CTest partitions and retain their observed counts."""
+    expected_values = list(expected_names)
+    expected = set(expected_values)
+    self_managed_expected = set(self_managed_names)
+    if len(expected) != len(expected_values) or not self_managed_expected.issubset(expected):
+        raise ValueError("CTest expected inventory is duplicated or has an invalid self-managed partition")
+    protected_expected = expected - self_managed_expected
+    protected_names = [case.attrib.get("name") for case in protected_cases]
+    self_managed_names_seen = [case.attrib.get("name") for case in self_managed_cases]
+    protected_unique = len(protected_names) == len(set(protected_names))
+    self_managed_unique = len(self_managed_names_seen) == len(set(self_managed_names_seen))
+    protected_exact = protected_unique and set(protected_names) == protected_expected
+    self_managed_exact = self_managed_unique and set(self_managed_names_seen) == self_managed_expected
+    cases = [*protected_cases, *self_managed_cases]
+    return {
+        "protected_junit_cases": len(protected_cases),
+        "self_managed_junit_cases": len(self_managed_cases),
+        "junit_cases": len(cases),
+        "all_registered_present": protected_exact and self_managed_exact,
+        "failed_or_skipped": any(case.find(tag) is not None
+                                  for case in cases for tag in ("failure", "error", "skipped")),
+    }
+
+
+def attach_split_core_junit_receipt(core, summary, merge_totals):
+    """Preserve aggregate compatibility and expose each observed JUnit partition."""
+    core.update(summary)
+    core["junit_partition_schema"] = 1
+    core["junit_case_sources"] = {
+        "protected": {"path": "core-protected.xml", "cases": summary["protected_junit_cases"]},
+        "self_managed": {"path": "core-self-managed.xml", "cases": summary["self_managed_junit_cases"]},
+        "combined": {"path": "core.xml", "cases": summary["junit_cases"]},
+    }
+    core["junit_merge_totals"] = merge_totals
+    return core
+
+
+def merge_core_junit_files(paths, destination):
+    """Write a combined JUnit document while preserving each raw CTest file."""
+    import xml.etree.ElementTree as ET
+    merged = ET.Element("testsuites")
+    totals = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
+    for path in paths:
+        root = ET.parse(path).getroot()
+        suites = list(root) if root.tag == "testsuites" else [root]
+        if not suites or any(suite.tag != "testsuite" for suite in suites):
+            raise RuntimeError("CTest JUnit source has an unsupported suite structure: " + str(path))
+        for suite in suites:
+            merged.append(suite)
+        cases = list(root.iter("testcase"))
+        totals["tests"] += len(cases)
+        totals["failures"] += sum(case.find("failure") is not None for case in cases)
+        totals["errors"] += sum(case.find("error") is not None for case in cases)
+        totals["skipped"] += sum(case.find("skipped") is not None for case in cases)
+    merged.attrib.update({key: str(value) for key, value in totals.items()})
+    ET.ElementTree(merged).write(destination, encoding="utf-8", xml_declaration=True)
+    return totals
+
+
 def profile_stage_commands(source, build, production, target, dedicated_crosshost, *,
                           copy_worker_helpers=False, profile=None):
+    nested_helper_tests = "|".join(COPY_HELPER_NESTED_CTESTS)
+    core_exclusions = ctest_exclusion_expression(dedicated_crosshost)
+    if copy_worker_helpers:
+        dedicated_pattern = core_exclusions.removeprefix("^").removesuffix("$")
+        core_exclusions = f"^({dedicated_pattern}|{nested_helper_tests})$"
+    core_junit_path = "core-protected.xml" if copy_worker_helpers else "core.xml"
     core_command = ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-E",
-                    ctest_exclusion_expression(dedicated_crosshost), "--output-junit", str(target / "core.xml")]
+                    core_exclusions, "--output-junit", str(target / core_junit_path)]
     if copy_worker_helpers:
         if profile not in PROFILES:
             raise ValueError("Copy helper lifecycle requires an explicit build profile")
         core_command = ["python3", str(source / "tools/with_copy_worker_helpers.py"),
                         "--build", str(build), "--profile", profile,
                         "--evidence", str(target / "copy-worker-helper-lifecycle"), "--", *core_command]
-    return [
+    commands = [
         ('production-off-startup', startup_packaging_command(source, production / 'spatial-host-session', production / 'python'), 120),
         ("harness", ["python3", "-m", "unittest", "discover", "-s", "tests/harness", "-t", ".", "-v"], 180),
         ("core", core_command, 14400),
         ("P10", ["python3", "tools/with_resource_delegate.py", "--native", "--", "python3", "tools/with_adapter_resources.py", "--", "python3", "tools/with_test_display.py", "--", "python3", "tools/gate.py", "--through", "P10", "--sut", json.dumps([str(build / "spatial-test-host")]), "--report", str(target / "P10.json")], 300),
         ("bounded-storage-git", ["sudo", "-n", "python3", "tests/native/test_storage_git_integration.py", "--production-owner", str(build), str(target / "bounded-storage-git")], 600),
     ]
+    if copy_worker_helpers:
+        supervised_command = ["ctest", "--test-dir", str(build), "--parallel", "1", "-V", "-R",
+                              f"^({nested_helper_tests})$", "--output-junit",
+                              str(target / "core-self-managed.xml")]
+        commands.insert(3, ("core-supervised-copy-recovery", supervised_command, 14400))
+    return commands
 
 
 def gate(a):
@@ -1571,6 +1650,8 @@ def gate(a):
                   bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={},
                   required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost))
     report['selected_profiles'] = list(selected)
+    if getattr(a, "copy_worker_helpers", False):
+        report['copy_worker_helpers'] = True
     if getattr(a, "expected_harness_tests", None) is not None:
         report['expected_harness_tests'] = expected_harness_tests
     if getattr(a, "storage_expected_results", None) is not None:
@@ -1680,13 +1761,18 @@ def gate(a):
                 if label == "harness":
                     text = (target / "harness.log").read_text(errors="replace")
                     item.update(validate_harness_test_inventory(text, expected_harness_tests))
-                if label == "core":
+                if label in ("core", "core-supervised-copy-recovery"):
                     try:
                         import xml.etree.ElementTree as ET
-                        cases = list(ET.parse(target / "core.xml").getroot().iter("testcase"))
-                        item["junit_cases"] = len(cases)
-                        item["all_registered_present"] = len({c.attrib.get("name") for c in cases}) == len(local_names) and {c.attrib.get("name") for c in cases} == set(local_names)
-                        item["failed_or_skipped"] = any(c.find(x) is not None for c in cases for x in ("failure", "error", "skipped"))
+                        split = getattr(a, "copy_worker_helpers", False)
+                        if label == "core":
+                            xml_path = target / ("core-protected.xml" if split else "core.xml")
+                            expected_names = set(local_names) - set(COPY_HELPER_NESTED_CTESTS) if split else set(local_names)
+                        else:
+                            xml_path = target / "core-self-managed.xml"
+                            expected_names = set(COPY_HELPER_NESTED_CTESTS)
+                        cases = list(ET.parse(xml_path).getroot().iter("testcase"))
+                        item.update(validate_core_junit_partitions(cases, [], expected_names))
                     except Exception as ex: item["assertion_error"] = repr(ex)
                 if label == "P10" and (target / "P10.json").exists():
                     acceptance = json.loads((target / "P10.json").read_text())
@@ -1703,7 +1789,14 @@ def gate(a):
                     if expected_harness_tests is None:
                         raise RuntimeError("harness inventory is not exactly 51 passing tests")
                     raise RuntimeError("harness test inventory differs from its required contract")
-                if label == "core" and (item.get("junit_cases") != len(local_names) or not item.get("all_registered_present") or item.get("failed_or_skipped")): raise RuntimeError("CTest full-suite JUnit assertion failed")
+                if label in ("core", "core-supervised-copy-recovery"):
+                    expected_count = (len(local_names) - len(COPY_HELPER_NESTED_CTESTS)
+                                      if label == "core" and getattr(a, "copy_worker_helpers", False)
+                                      else len(COPY_HELPER_NESTED_CTESTS)
+                                      if label == "core-supervised-copy-recovery" else len(local_names))
+                    if (item.get("junit_cases") != expected_count or not item.get("all_registered_present")
+                            or item.get("failed_or_skipped")):
+                        raise RuntimeError("CTest full-suite JUnit assertion failed")
                 if label == "P10" and not (item.get("acceptance", {}).get("status") == "passed" and item["acceptance"].get("selected") == item["acceptance"].get("executed") == item["acceptance"].get("total_baseline") == 151 and item["acceptance"].get("not_selected") == 0 and not item["acceptance"].get("diagnostic_only") and item["acceptance"].get("through") == "P10" and item.get("acceptance_rows_valid")): raise RuntimeError("locked P10 inventory assertion failed")
                 if label == "bounded-storage-git":
                     review = target / "bounded-storage-git/review.json"
@@ -1723,6 +1816,24 @@ def gate(a):
                     if not scope or Path(scope).exists() or os.path.ismount(target / "bounded-storage-git/volume"):
                         raise RuntimeError("storage owner scope or mount remains")
                 row["commands"][-1]["assertions_passed"] = True
+                write_json(report_path, report)
+            if getattr(a, "copy_worker_helpers", False):
+                import xml.etree.ElementTree as ET
+                core = next(item for item in row["commands"] if item["name"] == "core")
+                nested = next(item for item in row["commands"] if item["name"] == "core-supervised-copy-recovery")
+                protected_path = target / "core-protected.xml"
+                self_managed_path = target / "core-self-managed.xml"
+                protected_cases = list(ET.parse(protected_path).getroot().iter("testcase"))
+                self_managed_cases = list(ET.parse(self_managed_path).getroot().iter("testcase"))
+                combined = validate_core_junit_partitions(
+                    protected_cases, self_managed_cases, local_names, COPY_HELPER_NESTED_CTESTS)
+                merge_totals = merge_core_junit_files(
+                    (protected_path, self_managed_path), target / "core.xml")
+                attach_split_core_junit_receipt(core, combined, merge_totals)
+                if (combined["junit_cases"] != len(local_names)
+                        or not combined["all_registered_present"] or combined["failed_or_skipped"]
+                        or merge_totals["tests"] != len(local_names)):
+                    raise RuntimeError("Combined CTest full-suite JUnit assertion failed")
                 write_json(report_path, report)
             storage_receipt = scan_storage_evidence(storage_evidence)
             target_logs = list(target.rglob("*.log"))
