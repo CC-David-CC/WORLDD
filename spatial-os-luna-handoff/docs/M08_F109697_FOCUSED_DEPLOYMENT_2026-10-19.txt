@@ -1,6 +1,6 @@
 M08 combined repair deployment checkpoint
 
-Status: UNQUALIFIED. Combined focused Debug tests are running on both hosts.
+Status: UNQUALIFIED. Focused attempt 02 failed on both hosts.
 The full M08 gate has not started.
 
 Built source: f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
@@ -144,3 +144,26 @@ Validation receipt: ROG spatial-artifacts/m08-skill-coordination-repair-20261019
 This skill-only change does not change the frozen f109 runtime candidate.
 
 M08 remains UNQUALIFIED. The full M08 gate has not started.
+
+Attempt 02 terminal result
+
+Both hosts returned command exit 8 and wrapper exit 8.
+Seven Debug groups passed. One Debug group failed.
+Thirty selected Debug groups and all 38 sanitizer groups remain unrun per host.
+The file-action group passed all 43 internal cases on both hosts.
+Elapsed: sb16 509.74 seconds; sb16-2 494.77 seconds.
+The mounted-Btrfs file-action group also passed on both hosts.
+The basic authority-handoff group passed on both hosts.
+
+The authority-handoff regression group failed one of 14 internal cases on each host.
+Failure: test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope.
+Location: tests/native/test_supervisor_broker_handoff_regressions.py line 180.
+After supervised stop, git_worker_parent contained one row instead of zero.
+The preceding native process stop and independent-client checks passed before that assertion.
+This does not prove complete Git worker retirement.
+Root cause remains under source review. Do not weaken the empty-journal assertion.
+Both lifecycle records restored the two helpers to their previous absent state.
+The failed batch evidence remains unchanged under runs/combined-focused-02.
+ROG compact preservation: spatial-artifacts/m08-f109697-focused-deployment-20261019/focused-failure-02.json.
+No production source changed during this batch.
+Full M08 qualification remains unrun for the candidate.
