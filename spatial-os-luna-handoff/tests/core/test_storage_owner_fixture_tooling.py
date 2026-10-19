@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import select
 import socket
+import broker_pb2 as broker
+import storage_pb2 as storage
 import struct
 import subprocess
 import tempfile
@@ -26,6 +28,7 @@ def fixture_class():
     node = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'BrokerProcess')
     namespace = dict(os=os, Path=Path, socket=socket, struct=struct, select=select,
                      subprocess=subprocess, time=time, threading=threading,
+                     stat=__import__('stat'), broker=broker,
                      BROKER=Path('/fixture/workspaced'), WORLD=Path('/fixture/worldd'),
                      ResourceBroker=None)
     # Execute the fixture's real lifecycle initializer with its synthetic class.
@@ -80,8 +83,105 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         self.fixture = types.SimpleNamespace(root=self.root, brokers=[])
         self.cls = fixture_class()
 
+    def storage_runtime(self):
+        volume = self.root/'volume'
+        volume.mkdir(exist_ok=True)
+        runtime_path = self.root/'runtime.pb'
+        owner_config = self.root/'owner.pb'
+        owner_config.write_bytes(b'private policy')
+        owner = storage.StorageOwnerLaunchConfig(protocol_version=1,
+            owner_configuration=str(owner_config), volume_root=str(volume))
+        owner.budget.memory_bytes = 16*os.sysconf('SC_PAGE_SIZE')
+        owner.budget.swap_bytes = 0
+        owner.budget.processes = 2
+        owner.budget.cpu_microseconds = 1000
+        owner.budget.io.add(major=7, minor=14,
+            read_bytes_per_second=64*1024*1024, write_bytes_per_second=16*1024*1024)
+        runtime = broker.StorageVolumeRuntime(protocol_version=1, volume_root=str(volume),
+            require_confinement=True)
+        runtime.storage_owner.CopyFrom(owner)
+        runtime_path.write_bytes(runtime.SerializeToString())
+        original_lstat = Path.lstat
+        def protected_lstat(path, *args, **kwargs):
+            if path == runtime_path:
+                return types.SimpleNamespace(st_uid=0, st_mode=0o100644)
+            if path == owner_config:
+                return types.SimpleNamespace(st_uid=0, st_nlink=1, st_mode=0o100600)
+            if path in owner_config.parents:
+                return types.SimpleNamespace(st_uid=0, st_mode=0o40700)
+            return original_lstat(path, *args, **kwargs)
+        return runtime_path, volume, runtime, protected_lstat
+
     def descriptors(self):
         return set(os.listdir('/proc/self/fd'))
+
+    def test_runtime_wrapper_extracts_unchanged_typed_owner_configuration(self):
+        runtime_path, volume, runtime, lstat = self.storage_runtime()
+        owner = self.cls.__new__(self.cls)
+        with patch.object(Path, 'lstat', lstat):
+            payload = owner.storage_owner_launch_payload(runtime_path, volume)
+        self.assertEqual(payload, runtime.storage_owner.SerializeToString())
+        self.assertEqual(storage.StorageOwnerLaunchConfig.FromString(payload), runtime.storage_owner)
+        self.assertEqual(runtime.storage_owner.volume_root, str(volume))
+        self.assertEqual(runtime.storage_owner.budget.io[0].major, 7)
+        self.assertEqual(runtime.storage_owner.budget.io[0].minor, 14)
+        owner.log_path = self.root/'broker-0.log'
+        owner.storage_owner_launch_path = None
+        with patch.object(Path, 'lstat', lstat):
+            private = owner.private_storage_owner_launch_file(runtime_path, volume)
+        self.assertEqual(private.read_bytes(), payload)
+        self.assertEqual(private.stat().st_mode & 0o777, 0o600)
+        owner.pid = os.getpid()
+        evidence = self.root/'security-evidence'; evidence.mkdir(mode=0o700)
+        with patch.dict(os.environ, {'SPATIAL_SECURITY_EVIDENCE':str(evidence)}):
+            retained = Path(owner.retain_storage_owner_launch_file())
+        self.assertEqual(retained.read_bytes(), payload)
+        self.assertEqual(retained.stat().st_mode & 0o777, 0o600)
+        self.assertTrue(private.exists(), 'Private config remains available until probe cleanup')
+        private.unlink()
+
+    def test_wrong_typed_runtime_fails_before_probe_launch(self):
+        runtime_path, volume, runtime, lstat = self.storage_runtime()
+        runtime_path.write_bytes(storage.StorageOwnerLaunchConfig(protocol_version=1).SerializeToString())
+        owner = self.cls.__new__(self.cls)
+        owner.log_path = self.root/'broker-0.log'
+        owner.pid = os.getpid()
+        owner.storage_owner_launch_path = None
+        endpoint, peer = socket.socketpair(); self.addCleanup(peer.close)
+        with patch.object(Path, 'lstat', lstat), patch.object(subprocess, 'Popen') as launch:
+            with self.assertRaisesRegex(RuntimeError, 'contain StorageVolumeRuntime'):
+                owner.start_storage_owner('/probe', runtime_path, volume, endpoint)
+        launch.assert_not_called()
+        self.assertEqual(endpoint.fileno(), -1)
+
+    def test_runtime_wrapper_rejects_wrong_type_and_invalid_owner_contract(self):
+        runtime_path, volume, runtime, lstat = self.storage_runtime()
+        owner = self.cls.__new__(self.cls)
+        with patch.object(Path, 'lstat', lstat):
+            with self.assertRaisesRegex(RuntimeError, 'contain StorageVolumeRuntime'):
+                owner.storage_owner_launch_payload(self.root/'missing.pb', volume)
+        runtime_path.write_bytes(storage.StorageOwnerLaunchConfig(protocol_version=1).SerializeToString())
+        with patch.object(Path, 'lstat', lstat):
+            with self.assertRaisesRegex(RuntimeError, 'contain StorageVolumeRuntime'):
+                owner.storage_owner_launch_payload(runtime_path, volume)
+        runtime_path.write_bytes(runtime.SerializeToString())
+        cases = (
+            ('runtime-version', lambda runtime: setattr(runtime, 'protocol_version', 2), 'runtime protocol version'),
+            ('runtime-root', lambda runtime: setattr(runtime, 'volume_root', str(self.root/'other')), 'runtime volume root'),
+            ('confinement', lambda runtime: setattr(runtime, 'require_confinement', False), 'require confinement'),
+            ('owner-missing', lambda runtime: runtime.ClearField('storage_owner'), 'no StorageOwner launch config'),
+            ('owner-version', lambda runtime: setattr(runtime.storage_owner, 'protocol_version', 2), 'launch protocol version'),
+            ('owner-root', lambda runtime: setattr(runtime.storage_owner, 'volume_root', str(self.root/'other')), 'StorageOwner volume root'),
+            ('owner-path', lambda runtime: setattr(runtime.storage_owner, 'owner_configuration', str(self.root/'owner policy.pb')), 'canonical absolute path'),
+            ('budget-missing', lambda runtime: runtime.storage_owner.ClearField('budget'), 'budget is missing'),
+        )
+        for label, mutate, message in cases:
+            runtime_path, volume, runtime, lstat = self.storage_runtime()
+            mutate(runtime)
+            runtime_path.write_bytes(runtime.SerializeToString())
+            with self.subTest(label=label), patch.object(Path, 'lstat', lstat):
+                with self.assertRaisesRegex(RuntimeError, message):
+                    owner.storage_owner_launch_payload(runtime_path, volume)
 
     def test_resource_environment_forwards_copy_deadline_and_keeps_allowlist(self):
         source = {'SPATIAL_TEST_COPY_DEADLINE_MS': '50', 'UNRELATED_SECRET': 'must-not-pass'}
@@ -243,7 +343,8 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         before = self.descriptors()
         with patch.object(subprocess, 'Popen', side_effect=OSError('launch refused')):
             with self.assertRaisesRegex(OSError, 'launch refused'):
-                owner.start_storage_owner('/probe', '/config', endpoint)
+                with patch.object(self.cls, 'private_storage_owner_launch_file', return_value=Path('/config')):
+                    owner.start_storage_owner('/probe', '/config', self.root, endpoint)
         self.assertEqual(endpoint.fileno(), -1)
         # start_storage_owner transfers its log to constructor cleanup.
         owner.storage_owner_log.close()

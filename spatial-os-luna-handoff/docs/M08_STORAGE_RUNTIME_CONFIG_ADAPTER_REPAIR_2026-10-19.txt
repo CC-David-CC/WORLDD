@@ -1,0 +1,18 @@
+# M08 StorageOwner runtime-config adapter repair
+
+Status: source draft, UNQUALIFIED. Base: `07991d839bf839c4e95022dedbceb5535f19ddaa`.
+Branch: `m08/fullgate-storage-config-repair-20261019`.
+
+The full-gate StorageOwner case passed its `StorageVolumeRuntime` record directly to `spatial-storage-launch-probe`, which parses a `StorageOwnerLaunchConfig`. Both hosts rejected the wrapper before StorageOwner startup. The probe returned 2; the test then reported EOF and cleanup reported BrokenPipe. This is a fixture adapter mismatch, not an OOM finding.
+
+The shared `BrokerProcess` fixture now receives the selected volume explicitly. It reads `runtime.pb` as `StorageVolumeRuntime`, validates its version, confinement, canonical volume binding, nested owner version, protected owner policy path, and budget-message presence. The native probe remains responsible for budget ranges and device-policy validation. It serializes the existing nested `storage_owner` message unchanged to a private mode-0600 fixture file. The file stays available until probe exit. Failure cleanup retains a private copy with the configured security evidence. Gate environment paths and protobuf contracts do not change.
+
+The adapter follows `tests/native/test_operator_storage.py`, which already reads `runtime.pb` as `StorageVolumeRuntime` and uses its nested `storage_owner` message. CMake already registers `storage-owner-fixture-tooling`; the CTest invocation now sets PYTHONPATH to the generated binding directory so its regression uses real protobuf messages.
+
+Selected checks for primary review:
+
+- `storage-owner-fixture-tooling` covers exact nested-message forwarding using generated bindings, wrong-wrapper rejection, private-file mode, channel closure on setup failure, and fail-closed version/root/confinement/owner/budget-presence checks.
+- `test_storage_owner_authenticated_btrfs_copy_and_quota_rejection` runs in Debug and ASan-UBSan on sb16 and sb16-2. It checks real Btrfs copy and 96 MiB quota rejection.
+- The full shared `workspace-file-action-broker` and memory/resource wrapper regressions remain selected by the M08 gate.
+
+No tests or builds ran on ROG. Only source inspection and Python AST parsing are permitted for this worker. Runtime evidence remains pending on both test hosts and both profiles. The underlying both-host failure logs and config provenance are recorded in `/home/dflanag3/spatial-artifacts/m08-next-gate-build-prep-20261019/ART/fullgate-storage-owner-diagnosis.json` (SHA256 `41e1e69b3a621e2ff62d8f8972130552fd1a8b8bb697d1f9b39b6735851894e2`).

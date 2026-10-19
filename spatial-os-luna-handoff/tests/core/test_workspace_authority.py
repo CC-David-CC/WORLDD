@@ -5,6 +5,7 @@ import socket
 import struct
 import select
 import sqlite3
+import stat
 import subprocess
 import time
 import threading
@@ -75,6 +76,7 @@ def initialize_broker_lifecycle(process, fixture, log_name):
     process.storage_control = process.storage_gate_write = None
     process.storage_unit = None
     process.storage_cleanup_confirmed = None
+    process.storage_owner_launch_path = None
     process.channels = []
     process.closed = False
     process.log_path = fixture.root/log_name
@@ -117,7 +119,8 @@ class BrokerProcess:
                 os.close(gate_read); gate_read = None
             child.close(); child = None
             if storage_options is not None:
-                self.start_storage_owner(WORLD.parent/'spatial-storage-launch-probe', storage_launch, owner_channel)
+                self.start_storage_owner(WORLD.parent/'spatial-storage-launch-probe', storage_launch,
+                                         storage_volume, owner_channel)
                 owner_channel = None
                 if os.write(self.storage_gate_write, b'!') != 1:
                     raise OSError('Incomplete broker startup gate write')
@@ -142,12 +145,123 @@ class BrokerProcess:
             if self.storage_gate_write is not None:
                 os.close(self.storage_gate_write); self.storage_gate_write = None
 
-    def start_storage_owner(self, probe, launch_config, owner_channel):
+    def storage_owner_launch_payload(self, launch_config, storage_volume):
+        """Extract the typed owner launch config from the provisioned runtime envelope."""
+        runtime_path = Path(launch_config)
+        volume = Path(storage_volume)
+        def refuse(reason):
+            raise RuntimeError('SETUP FAILURE: invalid StorageOwner runtime configuration: '+reason)
         try:
+            if not runtime_path.is_absolute() or runtime_path.resolve(strict=True) != runtime_path:
+                refuse('runtime.pb must be a canonical absolute path')
+            runtime_metadata = runtime_path.lstat()
+            if (runtime_metadata.st_uid != 0 or runtime_metadata.st_mode & 0o022 or
+                    not stat.S_ISREG(runtime_metadata.st_mode)):
+                refuse('runtime.pb must be a root-owned protected regular file')
+            if not volume.is_absolute() or volume.resolve(strict=True) != volume:
+                refuse('selected storage volume must be canonical')
+            runtime = broker.StorageVolumeRuntime.FromString(runtime_path.read_bytes())
+        except RuntimeError:
+            raise
+        except Exception as error:
+            raise RuntimeError('SETUP FAILURE: launch config must contain StorageVolumeRuntime') from error
+        if runtime.protocol_version != 1:
+            refuse('unsupported runtime protocol version')
+        if (Path(runtime.volume_root) != volume or
+                Path(runtime.volume_root).resolve(strict=True) != volume):
+            refuse('runtime volume root does not match the selected storage volume')
+        if not runtime.require_confinement:
+            refuse('runtime must require confinement')
+        if not runtime.HasField('storage_owner'):
+            refuse('runtime has no StorageOwner launch config')
+        owner = runtime.storage_owner
+        if owner.protocol_version != 1:
+            refuse('unsupported StorageOwner launch protocol version')
+        if (Path(owner.volume_root) != volume or
+                Path(owner.volume_root).resolve(strict=True) != volume):
+            refuse('StorageOwner volume root does not match the selected storage volume')
+        owner_configuration = Path(owner.owner_configuration)
+        try:
+            if (not owner_configuration.is_absolute() or
+                    owner_configuration.resolve(strict=True) != owner_configuration):
+                refuse('owner configuration must be a canonical absolute path')
+            owner_metadata = owner_configuration.lstat()
+            if (owner_metadata.st_uid != 0 or owner_metadata.st_nlink != 1 or
+                    owner_metadata.st_mode & 0o077 or not stat.S_ISREG(owner_metadata.st_mode)):
+                refuse('owner configuration must be a root-owned protected regular file')
+            for parent in owner_configuration.parents:
+                metadata = parent.lstat()
+                if (metadata.st_uid != 0 or metadata.st_mode & 0o022 or
+                        not stat.S_ISDIR(metadata.st_mode)):
+                    refuse('owner configuration has an unprotected parent directory')
+        except RuntimeError:
+            raise
+        except Exception as error:
+            raise RuntimeError('SETUP FAILURE: owner configuration is unavailable or unprotected') from error
+        if not owner.HasField('budget'):
+            refuse('StorageOwner budget is missing')
+        return owner.SerializeToString()
+
+    def private_storage_owner_launch_file(self, launch_config, storage_volume):
+        payload = self.storage_owner_launch_payload(launch_config, storage_volume)
+        path = self.log_path.parent/f'{self.log_path.stem}.storage-owner-launch.pb'
+        descriptor = os.open(path, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC, 0o600)
+        try:
+            os.fchmod(descriptor, 0o600)
+            view = memoryview(payload)
+            while view:
+                written = os.write(descriptor, view)
+                if written <= 0: raise OSError('Incomplete private StorageOwner config write')
+                view = view[written:]
+            os.fsync(descriptor)
+        except BaseException:
+            os.close(descriptor)
+            try: path.unlink()
+            except OSError: pass
+            raise
+        else:
+            os.close(descriptor)
+        self.storage_owner_launch_path = path
+        return path
+
+    def retain_storage_owner_launch_file(self):
+        path = self.storage_owner_launch_path
+        if path is None or not path.exists(): return None
+        evidence = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if not evidence: return None
+        directory = Path(evidence)
+        if not directory.is_absolute() or not directory.is_dir() or directory.is_symlink():
+            raise RuntimeError('Cannot retain private StorageOwner config under the evidence directory')
+        target = directory/f'{self.log_path.stem}-storage-owner-launch-{self.pid}.pb'
+        descriptor = os.open(target, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC, 0o600)
+        try:
+            os.fchmod(descriptor, 0o600)
+            with path.open('rb') as source:
+                while True:
+                    chunk = source.read(65536)
+                    if not chunk: break
+                    view = memoryview(chunk)
+                    while view:
+                        written = os.write(descriptor, view)
+                        if written <= 0: raise OSError('Incomplete private StorageOwner evidence copy')
+                        view = view[written:]
+            os.fsync(descriptor)
+        except BaseException:
+            os.close(descriptor)
+            try: target.unlink()
+            except OSError: pass
+            raise
+        else:
+            os.close(descriptor)
+        return str(target)
+
+    def start_storage_owner(self, probe, launch_config, storage_volume, owner_channel):
+        try:
+            private_config = self.private_storage_owner_launch_file(launch_config, storage_volume)
             pidfd = os.pidfd_open(self.pid)
             try:
                 self.storage_owner_log = (self.log_path.parent/f'broker-storage-owner-{self.pid}.log').open('wb')
-                self.storage_owner = subprocess.Popen([str(probe), str(launch_config),
+                self.storage_owner = subprocess.Popen([str(probe), str(private_config),
                     str(owner_channel.fileno()), str(pidfd)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                     stderr=self.storage_owner_log, pass_fds=(owner_channel.fileno(),pidfd), bufsize=0)
             finally:
@@ -215,9 +329,30 @@ class BrokerProcess:
             self.storage_owner = None
         if self.storage_control is not None: attempt(self.storage_control.close)
         if self.storage_owner_log is not None: attempt(self.storage_owner_log.close)
+        launch_config_evidence = None
+        launch_config_copied = False
+        if self.storage_owner_launch_path is not None:
+            owner_alive = owner is not None and owner.poll() is None
+            if errors:
+                try:
+                    launch_config_evidence = self.retain_storage_owner_launch_file()
+                    launch_config_copied = (launch_config_evidence is not None and
+                        Path(launch_config_evidence) != self.storage_owner_launch_path)
+                except BaseException as error:
+                    errors.append(error)
+                if launch_config_evidence is None:
+                    launch_config_evidence = str(self.storage_owner_launch_path)
+            if not owner_alive and (not errors or launch_config_copied):
+                try: self.storage_owner_launch_path.unlink()
+                except FileNotFoundError: pass
+                except OSError as error: errors.append(error)
+            elif owner_alive:
+                launch_config_evidence = str(self.storage_owner_launch_path)
         if errors:
             evidence = ('unit='+str(self.storage_unit)+'\nchecked_cleanup_confirmed='+
                         str(self.storage_cleanup_confirmed)+'\nerrors='+repr([str(e) for e in errors])+'\n')
+            if launch_config_evidence:
+                evidence += 'owner_launch_config_evidence='+launch_config_evidence+'\n'
             log_name = getattr(self.storage_owner_log, 'name', None)
             if isinstance(log_name, (str, bytes, os.PathLike)):
                 try:
