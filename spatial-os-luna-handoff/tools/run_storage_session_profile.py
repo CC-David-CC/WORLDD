@@ -193,7 +193,8 @@ def verify(a,p,host):
  if not (b/'python').is_dir():raise Refusal('generated Python bindings missing')
  if h(src/'tests/native/test_storage_session.py')!=TEST or h(pack/'tests/native/test_storage_session.py')!=PACKAGED_TEST:raise Refusal('fixture test source hash mismatch')
  if h(src/'tools/bootstrap_storage.py')!=BOOT or h(pack/'tools/bootstrap_storage.py')!=BOOT:raise Refusal('bootstrap source hash mismatch')
- for rel in ('tools/with_resource_delegate.py','tools/with_adapter_resources.py'):
+ for rel in ('tools/with_resource_delegate.py','tools/with_adapter_resources.py',
+             'tests/native/storage_session_resources.py'):
   if h(src/rel)!=h(pack/rel):raise Refusal('fixture source/package mismatch: '+rel)
  for n in B:
   if not os.access(b/n,os.X_OK):raise Refusal('registered helper missing: '+n)

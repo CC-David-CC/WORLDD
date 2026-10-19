@@ -10,6 +10,7 @@ import sys
 import uuid
 from google.protobuf import text_format
 from storage_session_paths import validate_fixture_root
+from storage_session_resources import add_loop_binding
 
 assert os.getuid() == 0 and socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
 operation, build, requested_root, requested_evidence_root = sys.argv[1:5]
@@ -93,18 +94,8 @@ if operation == 'prepare':
         loop_device = (os.major(number), os.minor(number))
         assert backing_device != loop_device
 
-        def add_loop(message):
-            if message.DESCRIPTOR.full_name == process.ProcessScopeBudget.DESCRIPTOR.full_name:
-                existing = [io for io in message.io if (io.major, io.minor) == backing_device]
-                assert len(existing) == 1 and len(message.io) == 1
-                io = message.io.add(); io.CopyFrom(existing[0]); io.major, io.minor = loop_device
-            else:
-                for field, value in message.ListFields():
-                    if field.message_type is not None:
-                        if field.label == field.LABEL_REPEATED:
-                            for child in value: add_loop(child)
-                        else: add_loop(value)
-        add_loop(config.resources)
+        add_loop_binding(config.resources, process.ProcessScopeBudget.DESCRIPTOR.full_name,
+                         backing_device, loop_device)
         launch = config.storage_owner
         launch.protocol_version = 1; launch.owner_configuration = str(policy); launch.volume_root = str(volume)
         launch.budget.CopyFrom(process.ProcessScopeBudget(memory_bytes=256*mib, swap_bytes=0,
