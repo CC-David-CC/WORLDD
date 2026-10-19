@@ -915,7 +915,7 @@ void callback_controls(const std::filesystem::path& delegated){
     check(!std::filesystem::exists(owned_path),"clean-child active Git-parent retirement kept the broker root");
     {
       auto reopened=FileOperationJournal::open_existing(FileOperationJournal::pin_existing(state.fd));
-      check(reopened->find_git_worker_parent({}).state==GitWorkerParentRecord::State::absent,
+      check(reopened->find_git_worker_parent({}).state==spatial::GitWorkerParentRecord::State::absent,
           "successful retirement left the active Git parent journal row");
     }
   }

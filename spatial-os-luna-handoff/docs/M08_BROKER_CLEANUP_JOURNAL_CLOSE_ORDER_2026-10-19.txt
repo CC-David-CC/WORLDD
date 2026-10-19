@@ -19,4 +19,4 @@ Required focused checks
 - Existing CTest `broker-copy-preprune-cleanup` / `controls-plus-15` (Debug and sanitizer) covers callback controls, active-parent retirement, refusal, uncertainty, and close/reopen behavior.
 - Existing CTest `broker-copy-preprune-deadline-multirow` remains relevant to bounded cleanup and deadline behavior.
 
-No build, CTest, or runtime command was run for this checkpoint. Primary owns validation.
+The primary Debug and sanitizer builds at commit 4362575 failed while compiling the new fixture because one `GitWorkerParentRecord` name lacked the `spatial::` qualification. No runtime command ran. This follow-up corrects that qualification. The primary owns rebuild and runtime validation. Receipts: `~/spatial-artifacts/m08-journal-close-order-4362575-20261019/build-debug-01` and `build-sanitizer-01`.
