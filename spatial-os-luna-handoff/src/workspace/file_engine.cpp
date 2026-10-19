@@ -1793,6 +1793,30 @@ struct FileEngine::Impl {
           fail(pb::FileActionError::UNCERTAIN, "copy publication outcome is uncertain");
         }
         effects = true;
+#if defined(SPATIAL_TEST_COPY_RECOVERY_FAULTS)
+        // Hold the real published inode before either directory sync. The
+        // harness kills this broker at the ready marker or releases it explicitly.
+        if(const char* raw=std::getenv("SPATIAL_TEST_COPY_POST_RENAME_BARRIER");raw && raw[0]=='/') {
+          const std::string directory(raw);
+          Fd ready(open((directory+"/ready").c_str(),O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600));
+          if(ready.v<0 || write(ready.v,"1",1)!=1 || fsync(ready.v)!=0)
+            throw std::runtime_error("cannot record post-rename copy barrier");
+          const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(30);
+          bool released=false;
+          while(std::chrono::steady_clock::now()<deadline) {
+            Fd release(open((directory+"/release").c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW));
+            if(release.v>=0) {
+              struct stat release_stat{};
+              if(fstat(release.v,&release_stat)<0 || !S_ISREG(release_stat.st_mode))
+                throw std::runtime_error("post-rename copy barrier release is not a regular file");
+              released=true;break;
+            }
+            if(errno!=ENOENT) throw std::runtime_error("cannot inspect post-rename copy barrier release");
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+          }
+          if(!released) throw std::runtime_error("post-rename copy barrier timed out");
+        }
+#endif
         auto sync_stage = io_step(r, authz::FILE_COPY, true, effects, [&] { return fsync(job.staging_directory.v); });
         auto sync_destination = io_step(r, authz::FILE_COPY, true, effects, [&] { return sync_stage.value == 0 ? fsync(job.destination_parent.v) : -1; });
         if (sync_stage.value < 0 || sync_destination.value < 0)

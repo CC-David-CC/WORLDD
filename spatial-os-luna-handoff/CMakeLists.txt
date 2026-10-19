@@ -1390,6 +1390,21 @@ if(BUILD_TESTING)
         test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal ${copy_fixture_profile_arguments})
     set_tests_properties(workspace-copy-supervised-sigkill-recovery PROPERTIES TIMEOUT 1080 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core:${CMAKE_CURRENT_SOURCE_DIR}/tests/native:${CMAKE_CURRENT_SOURCE_DIR}/tools")
+    function(add_supervised_copy_recovery_case case_name selector)
+        add_test(NAME workspace-copy-supervised-${case_name}-recovery COMMAND "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_file_action_supervised_copy_recovery.py"
+            "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
+            ${selector} ${copy_fixture_profile_arguments})
+        set_tests_properties(workspace-copy-supervised-${case_name}-recovery PROPERTIES
+            TIMEOUT 1080 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core:${CMAKE_CURRENT_SOURCE_DIR}/tests/native:${CMAKE_CURRENT_SOURCE_DIR}/tools")
+    endfunction()
+    add_supervised_copy_recovery_case(prepared-worker-proof
+        test_prepared_worker_proof_survives_supervised_prepublication_crash)
+    add_supervised_copy_recovery_case(published-prepared
+        test_published_prepared_supervised_restart_syncs_before_complete)
+    add_supervised_copy_recovery_case(published-sync-failure
+        test_published_prepared_sync_failure_stays_uncertain_after_supervised_restart)
     add_custom_target(workspace-copy-supervised-recovery-fixture
         DEPENDS workspace-copy-fault-fixture copy-job-journal-python-protobuf
         SOURCES tests/core/test_supervised_copy_recovery_adapter_contract.py
@@ -1403,6 +1418,7 @@ if(BUILD_TESTING)
             tests/native/supervised_copy_broker_recovery.py
             harness/issuer_relay.py
             harness/issuer_launch_denial.py
+            harness/resource_broker.py
             tests/core/test_issuer_launch_denial_trace.py
             tests/native/supervised_delegation_parent.py
             tests/native/storage_owner_copy_fault_relay.py

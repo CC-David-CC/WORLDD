@@ -19,6 +19,12 @@ from copy_fixture_profiles import consume_profile, instrumentation_preflight
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 HELPER_LIFECYCLE_SHA256 = "128128ad18ca42d6629716279b3468a6681847bb86b0c2141eae35ce3b19b249"
+SUPERVISED_COPY_CASES = frozenset((
+    'test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal',
+    'test_prepared_worker_proof_survives_supervised_prepublication_crash',
+    'test_published_prepared_supervised_restart_syncs_before_complete',
+    'test_published_prepared_sync_failure_stays_uncertain_after_supervised_restart',
+))
 
 
 def runtime_command(build, source, profile, selected_case, evidence):
@@ -95,6 +101,7 @@ def main():
         'tests/native/native_display_geometry.py',
         'harness/copy_fault_evidence.py',
         'harness/issuer_progress.py',
+        'harness/resource_broker.py',
         'harness/issuer_relay.py',
         'harness/issuer_launch_denial.py',
         'harness/wire.py',
@@ -125,7 +132,7 @@ def main():
         return result.stdout
     sys.path.insert(0,str(build/'python'))
     try:
-        extra=('spatial-authority-supervisor',) if selected_case=='test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal' else ()
+        extra=('spatial-authority-supervisor',) if selected_case in SUPERVISED_COPY_CASES else ()
         report['resource_profile'] = instrumentation_preflight(build, resource_profile,additional_binaries=extra);save()
         if extra:
             closure=subprocess.run([sys.executable,'-B',str(source/'tools/inspect_workspace_copy_supervisor_closure.py'),
@@ -150,8 +157,7 @@ def main():
         report['fixture_discovery_exit']=discovery.returncode;save()
         if discovery.returncode:
             raise RuntimeError('Copy fixture import/discovery failed before helper installation: '+discovery.stderr[-16000:])
-        discovered=json.loads(discovery.stdout);assert len(discovered['methods'])==1
-        if selected_case:assert selected_case in discovered['methods']
+        discovered=json.loads(discovery.stdout);assert selected_case in discovered['methods']
         assert not discovered['services_started'] and discovered['methods_executed']==0
         report['fixture_discovery']=discovered;save()
         command=runtime_command(build,source,resource_profile,selected_case,evidence)
