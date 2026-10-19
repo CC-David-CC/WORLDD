@@ -68,6 +68,7 @@ struct WorkspaceAuthority::Impl {
     bool ready = false, broken = false, changed = true, closing = false, released = false;
     bool polling = false, issuer_exchange_in_progress = false;
     bool diagnostic_service_failure_logged = false;
+    bool diagnostic_issuer_failure_logged = false;
     std::string diagnostic_gate_stage;
     std::uint64_t diagnostic_gate_revision = 0;
     Clock::time_point last_exchange = Clock::now();
@@ -259,7 +260,14 @@ struct WorkspaceAuthority::Impl {
         struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{issuer_exchange_in_progress};
         request.set_protocol_version(1); id::IssuerReply reply;
         try { reply = client->call(std::move(request)); }
-        catch (const std::exception&) { fail(); throw WorldError(wire::UNAVAILABLE, "Workspace issuer connection failed"); }
+        catch (const std::exception&) {
+            if (!diagnostic_issuer_failure_logged) {
+                diagnostic_issuer_failure_logged = true;
+                try { std::cerr << "Workspace issuer exchange failed; " << client->failure_diagnostic() << '\n'; }
+                catch (...) { /* Diagnostics must not change authority failure behavior. */ }
+            }
+            fail(); throw WorldError(wire::UNAVAILABLE, "Workspace issuer connection failed");
+        }
         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
         last_exchange = Clock::now();
         // Revocation during a delayed reply cancels this operation, not actor-owned execution.
