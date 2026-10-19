@@ -11,6 +11,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from copy_fixture_profiles import consume_profile, manager_memory_mib, instrumentation_preflight, COPY_BINARIES
+from inspect_workspace_copy_fault_fixture import validate_discovered_tests
 from copy_fixture_image_cleanup import (
     cleanup_engine_group, cleanup_file_action_group, cleanup_passed_fixture_images,
     engine_group_passed, file_action_group_passed, require_group_capacity, run_after_capacity_preflight,
@@ -18,6 +19,53 @@ from copy_fixture_image_cleanup import (
 )
 
 class CopyFixtureProfileTests(unittest.TestCase):
+    def fixture_module(self):
+        methods=('test_fault_a','test_fault_b','test_fault_c','test_fault_d','test_fault_e')
+        def noop(self):pass
+        fault_type=type('WorkspaceCopyFaultTests',(unittest.TestCase,),{name:noop for name in methods})
+        auxiliary_names=('test_constructor_a','test_constructor_b')
+        auxiliary_type=type('StorageBrokerConstructorFailureTests',(unittest.TestCase,),
+                            {name:noop for name in auxiliary_names})
+        return SimpleNamespace(WorkspaceCopyFaultTests=fault_type,
+            StorageBrokerConstructorFailureTests=auxiliary_type),methods,auxiliary_names
+
+    def test_fault_discovery_separates_five_faults_from_auxiliary_unit_cases(self):
+        module,faults,auxiliary=self.fixture_module()
+        suite=unittest.TestSuite([module.WorkspaceCopyFaultTests(name) for name in faults]+
+            [module.StorageBrokerConstructorFailureTests(name) for name in auxiliary])
+        self.assertEqual(validate_discovered_tests(suite,module,faults,auxiliary),(list(faults),list(auxiliary)))
+
+    def test_fault_discovery_rejects_missing_duplicate_or_extra_fault_cases(self):
+        module,faults,auxiliary=self.fixture_module()
+        valid_aux=[module.StorageBrokerConstructorFailureTests(name) for name in auxiliary]
+        invalid_suites=(
+            unittest.TestSuite([module.WorkspaceCopyFaultTests(name) for name in faults[:-1]]+valid_aux),
+            unittest.TestSuite([module.WorkspaceCopyFaultTests(name) for name in faults[:-1]]+
+                [module.WorkspaceCopyFaultTests(faults[0])]+valid_aux),
+            unittest.TestSuite([module.WorkspaceCopyFaultTests(name) for name in faults]+
+                [module.WorkspaceCopyFaultTests('test_fault_a')]+valid_aux),
+        )
+        for suite in invalid_suites:
+            with self.subTest(cases=suite.countTestCases()),self.assertRaises(AssertionError):
+                validate_discovered_tests(suite,module,faults,auxiliary)
+
+        def extra_fault(self):pass
+        module.WorkspaceCopyFaultTests.test_fault_unexpected=extra_fault
+        unexpected=unittest.TestSuite([module.WorkspaceCopyFaultTests(name) for name in faults]+
+            [module.WorkspaceCopyFaultTests('test_fault_unexpected')]+valid_aux)
+        with self.assertRaises(AssertionError):
+            validate_discovered_tests(unexpected,module,faults,auxiliary)
+
+    def test_fault_discovery_rejects_missing_or_unknown_auxiliary_cases(self):
+        module,faults,auxiliary=self.fixture_module()
+        fault_cases=[module.WorkspaceCopyFaultTests(name) for name in faults]
+        missing=unittest.TestSuite(fault_cases+[module.StorageBrokerConstructorFailureTests(auxiliary[0])])
+        extra=unittest.TestSuite(fault_cases+[module.StorageBrokerConstructorFailureTests(name) for name in auxiliary]+
+            [unittest.FunctionTestCase(lambda:None)])
+        for suite in (missing,extra):
+            with self.subTest(cases=suite.countTestCases()),self.assertRaises(AssertionError):
+                validate_discovered_tests(suite,module,faults,auxiliary)
+
     def test_explicit_profiles_preserve_arguments_and_budget(self):
         original=['runner','BUILD','SOURCE','EVIDENCE','test_exact']
         for profile,limit in [('Debug',256),('ASan-UBSan',512)]:
