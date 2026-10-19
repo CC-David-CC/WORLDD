@@ -69,6 +69,13 @@ bool BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   journal_->verify(deadline);
   auto journal=FileOperationJournal::open_existing(*journal_,deadline);
   check_deadline();
+  const auto finish_journal=[&] {
+    check_deadline();
+    journal_->verify(deadline);
+    journal->finish_cleanup();
+    check_deadline();
+    journal_->verify(deadline);
+  };
   const auto root_path=std::filesystem::read_symlink("/proc/self/fd/"+std::to_string(tree.directory_fd()));
   const auto parent_path=std::filesystem::path("/proc/self/fd/"+std::to_string(tree.directory_fd()))/"spatial-git-workers";
   auto parents=journal->retained_git_worker_parents({});
@@ -173,10 +180,10 @@ bool BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
   }
   check_deadline();
   journal_->verify(deadline);
-  journal->finish_cleanup();
-  check_deadline();
-  journal_->verify(deadline);
-  if(unresolved || !tree.child_exited_successfully()) return false;
+  if(unresolved || !tree.child_exited_successfully()) {
+    finish_journal();
+    return false;
+  }
 
   struct stat root_stat{};
   require(fstat(tree.directory_fd(),&root_stat)==0 &&
@@ -189,13 +196,19 @@ bool BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
     check_deadline();
     if(parent.root_path==root_path.string() ||
        (parent.root_device==broker_.device() && parent.root_inode==broker_.inode() &&
-        parent.boot_id==broker_.boot_id())) return false;
+        parent.boot_id==broker_.boot_id())) {
+      finish_journal();
+      return false;
+    }
   }
   const auto current=journal->find_git_worker_parent({});
   check_deadline();
   if(current.state!=GitWorkerParentRecord::State::absent) {
     if(current.root_device!=broker_.device() || current.root_inode!=broker_.inode() ||
-       current.boot_id!=broker_.boot_id() || current.root_path!=root_path.string()) return false;
+       current.boot_id!=broker_.boot_id() || current.root_path!=root_path.string()) {
+      finish_journal();
+      return false;
+    }
     if(current.state==GitWorkerParentRecord::State::reserved) {
       supervisor::ProcessScope::remove_reserved_git_parent(root_path,current.root_device,
           current.root_inode,current.boot_id,"spatial-git-workers");
@@ -218,6 +231,7 @@ bool BrokerCopyCleanupParticipant::pre_prune(const supervisor::OwnedDrainedTree&
     check_deadline();
   }
   journal_->verify(deadline);
+  finish_journal();
   return true;
 }
 }

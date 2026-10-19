@@ -887,12 +887,46 @@ void callback_controls(const std::filesystem::path& delegated){
   retirement_ack_failure_retry(delegated);
   {
     State state;
+    FileOperationJournal journal(state.path);
+    const std::string name="authority-broker-"+std::string(32,'5');
+    auto owned=ProcessScope::prepare_owned(delegated,name);
+    const auto owned_path=delegated/name;
+    auto participant=BrokerCopyCleanupParticipant::deferred(*owned);
+    AuthorityProcessLaunch child_request;child_request.set_executable("/bin/true");
+    const int child_null=open("/dev/null",O_RDWR|O_CLOEXEC);check(child_null>=0,"active-parent retirement child null");
+    owned->start(child_request,{child_null,child_null,child_null});close(child_null);
+    const int child_handle=owned->duplicate_child_pidfd();check(child_handle>=0,"active-parent retirement child pidfd");
+    pollfd child_done{child_handle,POLLIN,0};const int child_ready=poll(&child_done,1,5000);close(child_handle);
+    check(child_ready==1&&(child_done.revents&POLLIN),"active-parent retirement child did not exit");
+    // Enable child controllers only after the broker's direct child has exited.
+    {
+      std::ofstream controllers(owned_path/"cgroup.subtree_control");
+      check(bool(controllers),"active-parent retirement subtree control open failed");
+      controllers<<"+cpu +memory +pids +io\n";controllers.close();
+      check(!controllers.fail(),"active-parent retirement child controllers were not enabled");
+    }
+    const auto parent=create_descendants(owned_path,false);
+    const auto root_path=std::filesystem::canonical(owned_path);
+    journal.reserve_git_worker_parent(owned->identity().device(),owned->identity().inode(),root_path.string(),owned->identity().boot_id(),{});
+    journal.bind_git_worker_parent(owned->identity().device(),owned->identity().inode(),root_path.string(),owned->identity().boot_id(),parent.parent.SerializeAsString(),{});
+    participant->bind(FileOperationJournal::pin_existing(state.fd));
+    owned->stop();
+    check(!std::filesystem::exists(owned_path/"spatial-git-workers"),"clean-child retirement left its active Git parent");
+    check(!std::filesystem::exists(owned_path),"clean-child active Git-parent retirement kept the broker root");
+    {
+      auto reopened=FileOperationJournal::open_existing(FileOperationJournal::pin_existing(state.fd));
+      check(reopened->find_git_worker_parent({}).state==GitWorkerParentRecord::State::absent,
+          "successful retirement left the active Git parent journal row");
+    }
+  }
+  {
+    State state;
+    FileOperationJournal journal(state.path);
     const std::string name="authority-broker-"+std::string(32,'3');
     auto owned=ProcessScope::prepare_owned(delegated,name);
     const auto owned_path=delegated/name;
     auto prior_parent=ProcessScope::prepare_named(owned_path,"spatial-git-workers");
     const auto prior_identity=prior_parent->identity();prior_parent->stop();
-    FileOperationJournal journal(state.path);
     const auto root_path=std::filesystem::canonical(owned_path);
     journal.reserve_git_worker_parent(owned->identity().device(),owned->identity().inode(),root_path.string(),owned->identity().boot_id(),{});
     journal.bind_git_worker_parent(owned->identity().device(),owned->identity().inode(),root_path.string(),owned->identity().boot_id(),prior_identity.SerializeAsString(),{});
@@ -917,6 +951,7 @@ void callback_controls(const std::filesystem::path& delegated){
   }
   {
     State state;
+    FileOperationJournal journal(state.path);
     const std::string name="authority-broker-"+std::string(32,'4');
     auto owned=ProcessScope::prepare_owned(delegated,name);
     const auto owned_path=delegated/name;
@@ -942,7 +977,7 @@ void callback_controls(const std::filesystem::path& delegated){
     auto* uncertain_receipt=job.mutable_terminal_receipt();
     uncertain_receipt->set_job_id(job.job_id());uncertain_receipt->set_state(FileCopyJobReceipt::UNCERTAIN);
     uncertain_receipt->set_detail("retained root regression");
-    FileOperationJournal journal(state.path);journal.update_copy_job(job,{});
+    journal.update_copy_job(job,{});
     participant->bind(FileOperationJournal::pin_existing(state.fd));
     owned->stop();
     struct stat retained{};
@@ -952,6 +987,14 @@ void callback_controls(const std::filesystem::path& delegated){
     check(active.state==spatial::GitWorkerParentRecord::State::bound&&active.root_device==owned->identity().device()&&
         active.root_inode==owned->identity().inode()&&active.root_path==std::filesystem::canonical(owned_path).string(),
         "uncertain copy job cleared its active Git parent binding");
+    {
+      auto reopened=FileOperationJournal::open_existing(FileOperationJournal::pin_existing(state.fd));
+      const auto still_bound=reopened->find_git_worker_parent({});
+      check(still_bound.state==spatial::GitWorkerParentRecord::State::bound&&
+          still_bound.root_device==active.root_device&&still_bound.root_inode==active.root_inode&&
+          still_bound.identity_bytes==active.identity_bytes,
+          "uncertain refusal did not close its journal while preserving the active parent");
+    }
     const auto saved=journal.scope_cleanup_outcome(job.workspace_id(),job.job_id(),{});
     check(saved&&saved->kind()==FileCopyScopeCleanupOutcome::IMMUTABLE_UNCERTAINTY,
         "uncertain copy job lost its immutable cleanup evidence");
