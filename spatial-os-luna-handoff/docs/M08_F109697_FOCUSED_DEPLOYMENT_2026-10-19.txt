@@ -1,7 +1,7 @@
 M08 combined repair deployment checkpoint
 
-Status: UNQUALIFIED. Packages are extracted and verified on both test hosts.
-The combined runtime matrix and full M08 gate have not started.
+Status: UNQUALIFIED. Combined focused Debug tests are running on both hosts.
+The full M08 gate has not started.
 
 Built source: f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
 Both full Debug and ASan/UBSan builds passed.
@@ -17,13 +17,13 @@ Fixture utility suite: 26 tests passed on each host.
 The actual fault inspector passed for both binding profiles on both hosts.
 It found five fault scenarios and five constructor cases.
 It started no services and executed no test methods.
-Those checks used source06a and frozen079 bindings; all36 schemas were verified unchanged.
+Those checks used source 06a and frozen 079 bindings; all 36 schemas were verified unchanged.
 They do not replace native copy fault tests.
 
-Packages contain81 ELF executables,36 generated Python bindings, and238 CTest registrations per profile.
-Debug archive bytes:496788606.
+Packages contain 81 ELF executables, 36 generated Python bindings, and 238 CTest registrations per profile.
+Debug archive bytes: 496788606.
 Debug SHA256:31b0d06138de550f725b4b6e2506d7186a74d09e3085c4d8bc757f5cb1684d94.
-Sanitizer archive bytes:1233807926.
+Sanitizer archive bytes: 1233807926.
 Sanitizer SHA256:8f17e67abd1de0597d93b06056bbe49ec0b67f426f8afccccba6a63d7af46ae7.
 Both source archives SHA256:290fc8f4a61e46c7a020026f518b2381269855300e3e911afdda12225493ecf6.
 
@@ -52,5 +52,46 @@ Next actions:
 5. Freeze and run the full M08 gate only after affected checks pass.
 
 The earlier intermittent storage-contention barrier miss remains unresolved.
-Do not widen its deadline or infer resolution from the passing frozen079 reproduction.
+Do not widen its deadline or infer resolution from the passing frozen 079 reproduction.
 M09 drafts remain separate. M08 remains unqualified.
+
+Runtime launch update
+
+Both profiles passed dependency checks on both hosts.
+Each profile checked 81 ELF dependencies and 14 actual instrumentation bindings.
+Relocation verification matched 238 unique test registrations per profile on both hosts.
+All command arguments and properties matched after explicit path and host-binding changes.
+CTest writes into a separate writable metadata directory.
+Test working directories remain the immutable runtime profile roots.
+Approved X server wrappers remain those recorded by the frozen 079 gate.
+Both host wrappers retain their recorded distinct hashes.
+
+Relocation attempt 01 found zero tests because Dart BuildDirectory targeted the payload.
+The discovery guard stopped before runtime execution.
+Attempt 02 restored discovery but its expected-value checker omitted systemd --setenv bindings.
+An independent escalated review approved the exact correction for both binding forms.
+Attempt 03 passed all 238 command/property comparisons for both profiles on both hosts.
+No production code, test timeout, or test oracle changed in these corrections.
+
+The combined batch selected 38 CTest groups before launch.
+Both hosts run in parallel. Each host runs Debug before sanitizer.
+The batch stops after a failed group, skip, or incomplete result.
+At this checkpoint, the first four Debug groups passed on each host.
+The supervised file-action recovery group is running.
+Sanitizer batch and all later groups remain pending.
+These partial results do not qualify M08.
+
+Both hosts retain tmux session m08-f109-combined-focused.
+Canonical receipts and complete output:
+/home/dflanag3/spatial-artifacts/deployments/m08-f109697-focused-candidate/runs/combined-focused-01.
+Per-profile JUnit output:
+/home/dflanag3/spatial-artifacts/deployments/m08-f109697-focused-candidate/focused/PROFILE/results.xml.
+Live progress record: focused-progress.json in the deployment root.
+Selection record: control/focused-selection.json in the deployment root.
+Launch script: launch-combined-focused.sh in the deployment root.
+Read terminal receipts and process state before any retry.
+Do not restart a live or merely slow test batch.
+
+Btrfs alias coverage still requires its separate private-Btrfs variant.
+The Debug deadline-multirow case passed on both hosts in this batch.
+The earlier storage-contention failure remains unresolved until combined candidate verification.
