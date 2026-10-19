@@ -1,0 +1,14 @@
+M08 supervised copy result-parser repair
+Status: UNQUALIFIED. Full M08 gate not started.
+
+The runner now validates the selected method despite interleaved issuer diagnostics.
+It checks the actual unittest stderr and the successful systemd epilogue.
+It scans all retained service logs separately for sanitizer failures.
+Missing child process cleanup evidence fails closed.
+No production behavior or acceptance assertion changed.
+
+Positive and negative parser and cleanup controls passed on sb16 and sb16-2.
+Both canonical command and wrapper exits are zero.
+Evidence: m08-copy-cleanup-native-repair-runtime-20261018/runs/22-runner-parser-controls on each host.
+Source SHA256: 2a5b710da8d512a1893c8765104fcd49a3635ef5b8241a12c53db279071b6883.
+The real supervised SIGKILL test remains UNRUN on this corrected source.

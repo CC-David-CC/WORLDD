@@ -72,6 +72,76 @@ def validate_selector(source, selected_case):
         raise ValueError('Method is outside the supervised copy fixture selection')
 
 
+
+def validate_unittest_result(output, selected_case, expected_count):
+    if expected_count != 1:
+        raise RuntimeError('This launcher requires exactly one selected method')
+    summaries=list(re.finditer(r'(?m)^Ran \d+ tests? in [0-9]+(?:\.[0-9]+)?s$',output))
+    if len(summaries)!=1:
+        raise RuntimeError('Selected fixture unittest summary missing or duplicated')
+    summary=summaries[0]
+    terminal=output[summary.start():]
+    epilogue=(r'Ran 1 tests? in [0-9]+(?:\.[0-9]+)?s\n\nOK\n+'
+        r'Finished with result: success\n'
+        r'Main processes terminated with: code=exited/status=0\n'
+        r'Service runtime: [0-9]+(?:\.[0-9]+)?s\n'
+        r'CPU time consumed: [0-9]+(?:\.[0-9]+)?s\n'
+        r'Memory peak: [0-9]+(?:\.[0-9]+)?(?:B|K|M|G|T)\n'
+        r'Memory swap peak: [0-9]+(?:\.[0-9]+)?(?:B|K|M|G|T)\n*')
+    if not re.fullmatch(epilogue,terminal):
+        raise RuntimeError('Selected fixture did not end in the recognized successful systemd result')
+    body=output[:summary.start()]
+    separators=list(re.finditer(r'(?m)^-{10,}$',body))
+    if len(separators)!=1:
+        raise RuntimeError('Selected fixture unittest separator missing or duplicated')
+    body=body[:separators[0].start()]
+    headers=list(re.finditer(r'(?m)^(test_[A-Za-z0-9_]+) \(([^)]+)\) \.\.\.',body))
+    if len(headers)!=1 or headers[0].group(1)!=selected_case:
+        raise RuntimeError('Selected fixture method header missing or duplicated')
+    header=headers[0]
+    if not re.fullmatch(r'(?:__main__\.)?SupervisedFileActionCopyRecoveryTests(?:\.'+re.escape(selected_case)+r')?',header.group(2)):
+        raise RuntimeError('Unexpected fixture class')
+    result=body[header.end():].strip()
+    if result.splitlines()[-1:]!=['ok'] or re.search(r'(?m)^\s*(?:FAIL|ERROR)(?:\b|$)',result):
+        raise RuntimeError('Selected fixture method result is not exactly successful')
+    return True
+
+
+def validate_helper_cleanup(helper_report):
+    if not isinstance(helper_report,dict):
+        raise RuntimeError('Helper lifecycle receipt is missing or malformed')
+    child=helper_report.get('child_process')
+    if helper_report.get('cleanup_status')!='confirmed':
+        raise RuntimeError('Helper cleanup is unconfirmed')
+    if not isinstance(child,dict) or child.get('process_group_empty') is not True:
+        raise RuntimeError('Owned child retirement is missing or unconfirmed')
+    return True
+
+
+def validate_runner_controls():
+    method='test_sigkill_checked_retirement_and_restart_reconcile_same_copy_journal'
+    positive=(method+' (__main__.SupervisedFileActionCopyRecoveryTests.'+method+') ... ok\n'
+        '\n----------------------------------------------------------------------\nRan 1 test in 11.375s\n\nOK\n\n'
+        'Finished with result: success\nMain processes terminated with: code=exited/status=0\n'
+        'Service runtime: 11.693s\nCPU time consumed: 1.657s\nMemory peak: 2.5M\nMemory swap peak: 0B\n\n')
+    validate_unittest_result(positive,method,1)
+    interleaved=positive.replace('... ok\n','... Healthy issuer timing {}\nhelper progress\nok\n',1).replace('OK\n\nFinished','OK\nFinished')
+    validate_unittest_result(interleaved,method,1)
+    for bad in (positive.replace('Finished with result: success','Finished with result: exit-code',1),
+                positive.replace('Ran 1 test in','Ran 2 tests in',1),
+                positive.replace('... ok\n','... not ok\n',1), positive+'unexpected output\n',
+                positive.replace('status=0','status=1'), positive.replace('OK\n\nFinished','FAILED\n\nFinished')):
+        try: validate_unittest_result(bad,method,1)
+        except RuntimeError: pass
+        else: raise RuntimeError('Unittest parser accepted a failure control')
+    validate_helper_cleanup({'cleanup_status':'confirmed','child_process':{'process_group_empty':True}})
+    for bad in ({'cleanup_status':'confirmed','child_process':{}},
+                {'cleanup_status':'confirmed','child_process':{'process_group_empty':False}},
+                {'cleanup_status':'unconfirmed','child_process':{'process_group_empty':True}}):
+        try: validate_helper_cleanup(bad)
+        except RuntimeError: pass
+        else: raise RuntimeError('Helper cleanup control accepted missing or failed cleanup')
+
 def main():
     sys.argv[:], resource_profile = consume_profile(sys.argv)
     assert len(sys.argv)==5,'An exact single-case selector is required'
@@ -84,6 +154,7 @@ def main():
     assert native_wrapper.is_file() and os.access(native_wrapper,os.X_OK)
     selected_case=sys.argv[4]
     validate_selector(source,selected_case)
+    validate_runner_controls()
     assert build.is_dir() and source.is_dir() and not evidence.exists()
     assert evidence.parent.is_dir() and evidence.is_relative_to(Path.home()/'spatial-artifacts')
     python_fixture_sources=(
@@ -206,9 +277,7 @@ def main():
         assert len(volumes)==report['selected_methods'] and all(json.loads(path.read_text())['cleanup']=='unmounted' for path in volumes)
         assert not any(marker in output for marker in ('AddressSanitizer','LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:'))
         assert status==0,output[-16000:]
-        assert re.search(r'Ran '+str(report['selected_methods'])+r' tests? in ',output) and '\nOK' in output,output[-16000:]
-        named_result=r'^'+re.escape(selected_case)+r' \((?:__main__\.)?SupervisedFileActionCopyRecoveryTests(?:\.'+re.escape(selected_case)+r')?\) \.\.\. ok$'
-        assert len(re.findall(named_result,output,re.MULTILINE))==1,'Selected method lacks its actual named unittest PASS: '+selected_case
+        validate_unittest_result((evidence/'stderr.log').read_text(errors='replace'),selected_case,report['selected_methods'])
         report['verified_named_method']=selected_case
         report['runtime_status']='focused-pass-unqualified'
     except BaseException as error:
@@ -222,8 +291,7 @@ def main():
             helper_report=json.loads(lifecycle.read_text())
             report['helper_lifecycle']=helper_report
             save()
-            assert helper_report['cleanup_status']=='confirmed', 'Helper cleanup is unconfirmed'
-            assert helper_report.get('child_process',{}).get('process_group_empty',True), 'Owned child retirement is unconfirmed'
+            validate_helper_cleanup(helper_report)
         elif child is not None:
             raise RuntimeError('Missing helper lifecycle receipt; refuse volume recovery')
         # This launcher lives outside the delegated unit. Recover only exact volumes
