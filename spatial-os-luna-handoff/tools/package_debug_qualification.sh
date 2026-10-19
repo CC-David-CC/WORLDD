@@ -1,15 +1,30 @@
 #!/usr/bin/env bash
-# Build and freeze a complete Debug package. Keep CTest bookkeeping external.
-# Usage: package_debug_qualification.sh SOURCE_CHECKOUT PACKAGE_DIR ARCHIVE CTEST_STAGE
+# Build and freeze a complete qualification package for one reviewed profile.
+# Usage: package_debug_qualification.sh SOURCE_CHECKOUT PROFILE PACKAGE_DIR ARCHIVE CTEST_STAGE
 set -Eeuo pipefail
-if (( $# != 4 )); then
-  echo "usage: $0 SOURCE_CHECKOUT PACKAGE_DIR ARCHIVE CTEST_STAGE" >&2
+if (( $# != 5 )); then
+  echo "usage: $0 SOURCE_CHECKOUT PROFILE PACKAGE_DIR ARCHIVE CTEST_STAGE" >&2
   exit 64
 fi
+PROFILE=$2
+case "$PROFILE" in
+  Debug)
+    BUILD_DIR_NAME=debug
+    SANITIZERS=OFF
+    ;;
+  ASan-UBSan)
+    BUILD_DIR_NAME=asan-ubsan
+    SANITIZERS=ON
+    ;;
+  *)
+    echo "unsupported profile: $PROFILE (expected Debug or ASan-UBSan)" >&2
+    exit 64
+    ;;
+esac
 SRC=$(realpath "$1")
-FINAL=$(realpath -m "$2")
-ARCHIVE=$(realpath -m "$3")
-CTEST_STAGE=$(realpath -m "$4")
+FINAL=$(realpath -m "$3")
+ARCHIVE=$(realpath -m "$4")
+CTEST_STAGE=$(realpath -m "$5")
 [[ -d "$SRC/.git" || -f "$SRC/.git" ]] || { echo "source is not a Git checkout" >&2; exit 66; }
 for path in "$FINAL" "$ARCHIVE" "$CTEST_STAGE"; do
   [[ "$path" != "$SRC" && "$path" != "$SRC/"* ]] || { echo "output must be outside source checkout" >&2; exit 65; }
@@ -24,10 +39,12 @@ FREE_KB=$(df -Pk "$(dirname "$FINAL")" | awk 'NR==2 {print $4}')
 mkdir -p "$FINAL/source" "$FINAL/builds"
 git -C "$SRC" archive "$COMMIT" | tar -x -C "$FINAL/source"
 PROJECT="$FINAL/source/spatial-os-luna-handoff"
-BUILD="$FINAL/builds/debug"
+BUILD="$FINAL/builds/$BUILD_DIR_NAME"
 [[ -f "$PROJECT/CMakeLists.txt" ]] || { echo "packaged project CMakeLists.txt missing" >&2; exit 66; }
-printf 'source_commit=%s\npackage_path=%s\nbuild_path=%s\nctest_stage=%s\n' "$COMMIT" "$FINAL" "$BUILD" "$CTEST_STAGE" | tee "$FINAL/SOURCE_PIN.txt"
-cmake -S "$PROJECT" -B "$BUILD" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSPATIAL_SANITIZERS=OFF
+printf 'source_commit=%s\nbuild_profile=%s\nspatial_sanitizers=%s\ngenerator=Ninja\npackage_path=%s\nbuild_path=%s\nctest_stage=%s\n' \
+  "$COMMIT" "$PROFILE" "$SANITIZERS" "$FINAL" "$BUILD" "$CTEST_STAGE" | tee "$FINAL/SOURCE_PIN.txt"
+cmake -G Ninja -S "$PROJECT" -B "$BUILD" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON \
+  -DSPATIAL_INPUT_TESTS=ON -DSPATIAL_SANITIZERS="$SANITIZERS"
 cmake --build "$BUILD" --parallel 2
 # Copy CTest registration files into an external writable stage.
 mkdir -p "$CTEST_STAGE"
@@ -56,14 +73,40 @@ dart=re.sub(r'^BuildDirectory: .*$',f'BuildDirectory: {stage}',dart,flags=re.M)
 dart=re.sub(r'^SourceDirectory: .*$',f'SourceDirectory: {build.parent.parent}/source/spatial-os-luna-handoff',dart,flags=re.M)
 (stage/'DartConfiguration.tcl').write_text(dart)
 PY
-python3 - "$FINAL" "$CTEST_STAGE" <<'PY'
-import json,pathlib,subprocess,sys
-root,stage=map(pathlib.Path,sys.argv[1:]); build=root/'builds/debug'
+python3 - "$FINAL" "$CTEST_STAGE" "$BUILD_DIR_NAME" <<'PY'
+import json,pathlib,re,subprocess,sys
+root,stage=map(pathlib.Path,sys.argv[1:3]); build=root/'builds'/sys.argv[3]
 r=subprocess.run(['ctest','--test-dir',str(stage),'--show-only=json-v1'],text=True,capture_output=True,check=True)
 j=json.loads(r.stdout); tests=j.get('tests',[]); names=[t['name'] for t in tests]
 registered=(stage/'CTEST_REGISTERED_NAMES.txt').read_text().splitlines()
 assert len(set(names))==len(names), 'duplicate CTest names in generated metadata'
 assert sorted(names)==registered, 'CTest inventory differs from copied registration files'
+cmake=(root/'source/spatial-os-luna-handoff/CMakeLists.txt').read_text().splitlines()
+starts=[i for i,line in enumerate(cmake) if line.strip()=='if(SPATIAL_INPUT_TESTS)']
+assert len(starts)==1, f'expected one SPATIAL_INPUT_TESTS block, found {len(starts)}'
+depth=0; end=None
+for i in range(starts[0],len(cmake)):
+ line=cmake[i].strip()
+ if line.startswith('if('): depth+=1
+ if line=='endif()':
+  depth-=1
+  if depth==0: end=i; break
+assert end is not None, 'SPATIAL_INPUT_TESTS block is not closed'
+input_block='\n'.join(cmake[starts[0]:end+1])
+input_names=re.findall(r'add_test\(\s*NAME\s+([^\s)]+)',input_block)
+identity_suites=re.search(r'foreach\(identity_suite\s+([^)]*)\)',input_block)
+assert input_names, 'no tests found in SPATIAL_INPUT_TESTS block'
+expanded_input_names=[]
+variable_marker=chr(36)+'{identity_suite}'
+for name in input_names:
+ if variable_marker in name:
+  assert identity_suites, 'identity suite registration has no matching foreach'
+  expanded_input_names.extend(name.replace(variable_marker,suite) for suite in identity_suites.group(1).split())
+ else:
+  assert chr(36) not in name, f'unexpanded test name: {name}'
+  expanded_input_names.append(name)
+missing_input=sorted(set(expanded_input_names)-set(names))
+assert not missing_input, f'SPATIAL_INPUT_TESTS registrations missing from package: {missing_input}'
 previously_missing=['broker-file-action-client-test','file-action-effect-wait-test','presentation-metadata-test','queued-copy-status-replacement-test','spatial-actor-session-client-probe','spatial-actor-session-client-tls-probe','spatial-actor-transition-coordinator-probe','spatial-host-actor-controller-probe','spatial-snapshot-size-regression','workspace-copy-journal-test','workspace-file-engine-test','workspace-file-operation-journal-test','workspace-presentation-projection-test','workspace-presentation-store-test','world-diagnostic-timing-test']
 for name in previously_missing:
  exe=build/name
@@ -77,7 +120,7 @@ assert r.returncode==0, f'ctest -N exit {r.returncode}'
 assert 'Could not find executable' not in r.stdout+r.stderr, 'missing registered executable'
 assert f'Test project {stage}' in r.stdout, 'CTest bookkeeping is not external'
 assert f'Total Tests: {len(names)}' in r.stdout, 'CTest registration count mismatch'
-print(f'external CTest stage registrations={len(names)}; prior missing executables=15 present; explicit package workdirs={len(wd)}; list-only is warning-free')
+print(f'external CTest stage registrations={len(names)}; SPATIAL_INPUT_TESTS registrations={len(expanded_input_names)} present; prior missing executables=15 present; explicit package workdirs={len(wd)}; list-only is warning-free')
 PY
 : > "$FINAL/ELF_DEPENDENCIES.txt"
 while IFS= read -r -d '' f; do
@@ -91,10 +134,10 @@ python3 "$PROJECT/tools/clean_package_ctest_bookkeeping.py" "$FINAL" "$BUILD"
 ( cd "$FINAL/source" && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$FINAL/SOURCE_MANIFEST.sha256"
 ( cd "$BUILD" && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$FINAL/BUILD_MANIFEST.sha256"
 ( cd "$FINAL" && find . -type f ! -name PACKAGE_MANIFEST.sha256 -print0 | sort -z | xargs -0 sha256sum ) > "$FINAL/PACKAGE_MANIFEST.sha256"
-python3 - "$FINAL" <<'PY'
+python3 - "$FINAL" "$BUILD_DIR_NAME" <<'PY'
 import hashlib,pathlib,sys
-p=pathlib.Path(sys.argv[1])
-for name,base in [('SOURCE_MANIFEST.sha256',p/'source'),('BUILD_MANIFEST.sha256',p/'builds/debug'),('PACKAGE_MANIFEST.sha256',p)]:
+p=pathlib.Path(sys.argv[1]); build_dir=sys.argv[2]
+for name,base in [('SOURCE_MANIFEST.sha256',p/'source'),('BUILD_MANIFEST.sha256',p/'builds'/build_dir),('PACKAGE_MANIFEST.sha256',p)]:
  for line in (p/name).read_text().splitlines():
   if not line: continue
   d,rel=line.split('  ',1); f=base/rel.removeprefix('./')
@@ -112,10 +155,10 @@ BACKUP="$FINAL.pre-extraction-verify"
 mv -- "$FINAL" "$BACKUP"
 tar -xzf "$ARCHIVE" -C "$(dirname "$FINAL")"
 sha256sum -c "$ARCHIVE.sha256"
-python3 - "$FINAL" <<'PY'
+python3 - "$FINAL" "$BUILD_DIR_NAME" <<'PY'
 import hashlib,pathlib,sys
-p=pathlib.Path(sys.argv[1])
-for name,base in [('SOURCE_MANIFEST.sha256',p/'source'),('BUILD_MANIFEST.sha256',p/'builds/debug'),('PACKAGE_MANIFEST.sha256',p)]:
+p=pathlib.Path(sys.argv[1]); build_dir=sys.argv[2]
+for name,base in [('SOURCE_MANIFEST.sha256',p/'source'),('BUILD_MANIFEST.sha256',p/'builds'/build_dir),('PACKAGE_MANIFEST.sha256',p)]:
  for line in (p/name).read_text().splitlines():
   if not line: continue
   d,rel=line.split('  ',1); f=base/rel.removeprefix('./')
