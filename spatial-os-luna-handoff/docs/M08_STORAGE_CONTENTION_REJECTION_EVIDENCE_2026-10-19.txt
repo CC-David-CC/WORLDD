@@ -7,3 +7,13 @@ A failed writer launch now triggers one bounded snapshot before teardown. It cap
 The fixture writes JSON to `SPATIAL_SECURITY_EVIDENCE/resource-rejection-<test-method>.json` with mode 0600. A compact stderr line identifies the evidence path and snapshot bounds. The output excludes PIDs, actor keys, credentials, requests, and broker error text.
 
 This evidence will distinguish actual cgroup pressure from broker admission accounting. The current SAN setup failures remain unresolved. This checkpoint does not qualify a fix. Keep resource caps and the six-second barrier deadline unchanged. Treat the earlier Debug pass and SAN failures as separate results.
+
+The first native diagnostic attempt failed to collect counters on both hosts.
+The collector referenced WORKSPACE without importing that identifier.
+Its diagnostic-error handler preserved the original three native RESOURCE_EXHAUSTED failures.
+No resource cause can be inferred from that attempt.
+The correction reads the workspace identifier from the fixture's defining module.
+A primary smoke invokes the actual collector method with real protobuf budgets and synthetic cgroup files.
+It verifies numeric output, the 0600 evidence file, and the explicit unobserved reservation marker.
+Evidence: ROG spatial-artifacts/m08-storage-contention-rejection-evidence-20261019/primary-callsite-validation-01.
+Native validation of this correction remains pending.

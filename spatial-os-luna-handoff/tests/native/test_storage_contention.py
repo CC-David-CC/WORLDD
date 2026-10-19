@@ -490,7 +490,7 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             request_id=request_id,
             operation_id=operation_id,
             error_type=type(error).__name__,
-            resource_limits=_fixture_resource_limits(self.configuration, WORKSPACE, requested_profile),
+            resource_limits=_fixture_resource_limits(self.configuration, existing.existing.WORKSPACE, requested_profile),
             production_held_reservation_counters='UNOBSERVED',
             cgroups=_snapshot_fixture_resource_cgroups(broker_root),
         )
