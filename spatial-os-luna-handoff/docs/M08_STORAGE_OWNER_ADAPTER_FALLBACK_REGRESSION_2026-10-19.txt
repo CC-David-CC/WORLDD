@@ -1,0 +1,12 @@
+M08 adapter fallback regression (UNQUALIFIED)
+
+The old check asserted that the adapter contained particular constructor text. The adapter now delegates fallback construction to `build_adapter_resources`, so the text assertion failed despite the shared builder contract.
+
+The replacement test executes the adapter's actual `storage_volume` else branch. It supplies the shared builder and real generated broker/process protobuf modules. It checks Debug and ASan-UBSan resource profiles, broker and manager memory, swap, process and CPU ceilings, workspace and actor budgets, application profiles, and the selected I/O device on every budget.
+
+Selected checks before execution:
+
+- `StorageOwnerFixtureToolingTests`: 14 methods in `tests/core/test_storage_owner_fixture_tooling.py`. This covers the actual adapter fallback and nearby storage-owner setup/cleanup contracts.
+- `CopyFixtureProfileTests`: 17 methods in `tools/test_copy_fixture_profiles.py`. This covers the shared helper's profile selection, budgets, IO binding, and existing callers.
+
+Run each selector with generated bindings from the pinned Debug build. These are host-independent Python tooling checks. Native and full-gate runtime checks remain pending.
