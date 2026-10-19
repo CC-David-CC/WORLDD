@@ -1,0 +1,87 @@
+M09 CONTROL CONTRACT DRAFT
+Status: UNQUALIFIED_M09_DRAFT
+M08 status: UNQUALIFIED
+Date: 2026-10-19
+
+Purpose
+
+This draft maps the root M09 requirements to the frozen production source. It does not change locked tests or acceptance contracts. It records source evidence, not test execution or milestone qualification.
+
+Normative scope
+
+M09 requires one controller per application group, authorized observers, and concurrent controllers for independent applications. A transfer must release held input before granting control. Stale surface generations must fail. Observation and control revocation must take effect immediately. Read-only authority must not control a writable application. Revoking a controller must not stop application execution when execution authority remains valid.
+
+Source pin
+
+ROG checkout: /home/dflanag3/src/m09-control-contract-draft-20261019
+Branch: m09/control-contract-draft-20261019
+Base: 07991d839bf839c4e95022dedbceb5535f19ddaa
+This worktree was clean before this new document. M08 remains unqualified in CURRENT_STATE.md.
+
+Source-backed implementation findings
+
+Application identity and group membership
+
+- The patched X server reports an application identity only to a privileged compositor connection. It derives workspace and application labels from the owning X connection, and includes server and connection identities. See server/xlibre/spatialsecurity.c:299-311.
+- The native inspect request returns the identity and native window generation. Enforced mode rejects an application window without an identity. See server/xlibre/spatialinput.c:490-501 and src/x11/surfaces.cpp:146-176.
+- World grouping uses the tuple (server_id, workspace, application). It intentionally omits connection_id so one application can use multiple X connections. Diagnostic development mode falls back to transient ancestry. See src/world/surfaces.cpp:84-116.
+- The world rejects cross-application parent relationships. See src/world/surfaces.cpp:8-17 and :57-65.
+- Existing source tests cover same-application connections, workspace/application separation, child attribution, and popup control. A dialog-specific acceptance case is not identified. See tests/native/test_surface_identity.py and tests/core/test_world_application_control.py:test_popup_uses_same_application_reservation.
+- Classification: implementation PRESENT for enforced application identity and grouping; dialog-specific acceptance evidence UNCERTAIN.
+
+Control acquisition, sharing, and handoff
+
+- Actor input resolves the current surface to an ApplicationRef and asks the broker for a lease. The broker checks application control authority before storing one reservation per ApplicationRef. A second actor receives BUSY until release. See src/world/actors.cpp:891-926 and src/workspace/control.cpp:29-59.
+- Independent ApplicationRefs use separate reservations. The local world lease map also keys ownership by the resolved application group. See src/world/actors.cpp:1047-1069 and src/workspace/control.cpp:39-47.
+- Before release, worldd sends native cancellation and confirms focus, held keys, and held buttons are empty. It then queues and sends control_release. See src/world/actors.cpp:847-889.
+- Source tests cover one controller, independent applications, popup ownership, unfocus handoff, and cancellation before reservation release. See tests/core/test_world_application_control.py:140-149, :180-190, :215-227 and tests/core/test_application_control_lease.py:114-121, :141-145.
+- Classification: implementation PRESENT. Test execution at this source pin is UNRUN in this audit.
+
+Generation rejection and native routing
+
+- World surface handles reject unmapped or changed compositor generations. Authorization rechecks identity, mapping, room, and generation after the broker wait. See src/world/surfaces.cpp:84-110 and src/world/actors.cpp:917-925.
+- The native input router passes the server generation to XLibre. XLibre resolves the live window and compares its current generation before pointer, motion, and key routing. See src/x11/input_router.cpp:61-66, :114-131 and server/xlibre/spatialinput.c:182-189, :519-520, :547-548, :564.
+- Existing tests cover resize, remap, reused XIDs, and stale aim. See tests/core/test_world_application_control.py:228-233 and tests/native/test_surface_identity.py:64-92.
+- Classification: implementation PRESENT. Combined stale-generation acceptance under app-group transfer remains UNRUN here.
+
+Separate observation and control authority
+
+- Workspace authority computes observation and control as separate application-scoped rights. See src/workspace/authority.cpp:481-489.
+- A broker access result grants control only when observation and control rights both pass and the actor's effective workspace rights cover the application's stored execution rights. This denies a read-only actor control over a writable application. See src/workspace/store.cpp:1787-1839.
+- Actor observation filters surfaces through application observation decisions and revalidates authorization fences after rendering. See src/world/actors.cpp:1101-1147 and :1262-1318.
+- Streaming observation checks authority before each output write. See src/world/identity_sessions.cpp:968-984.
+- Source tests explicitly cover read-only denial, observation without control, observation revocation, post-render revocation, and queued observation revocation. See tests/core/test_world_application_control.py:125-138, :158-161 and tests/core/test_application_observation.py:203-260.
+- Classification: implementation PRESENT in source. Runtime results are not asserted by this draft.
+
+Revocation and continued application execution
+
+- Workspace authority changes call ControlLeases::tick, which revokes the lease and emits an event while retaining the group reservation. It does not terminate the process. See src/workspace/main.cpp:330-348 and src/workspace/control.cpp:109-120.
+- BrokerClient validates and records revocation events. Worldd notices inactive leases, cancels native input, then releases the broker reservation. The server loop calls flush_input while servicing and waiting. See src/platform/broker.cpp:446-462, :479-487, :795-802; src/world/actors.cpp:871-889, :928-948; src/world/server.cpp:43-64.
+- Process execution is checked separately against the process's stored rights. Store reconciliation removes a job only when those execution rights are no longer valid. See src/workspace/store.cpp:1841-1885 and :1978-1984.
+- Source tests cover idle control revocation with continued execution, observation revocation, actor revocation, and process-wait overlap. See tests/core/test_world_application_control.py:151-165, :249-280 and tests/core/test_application_control_lease.py:135-145, :182-214.
+- Classification: separation and focused source cases PRESENT. Do not infer the full M09 gate from these cases.
+
+Acceptance status and remaining evidence
+
+No M09-specific locked gate or qualification profile was found in this checkout. Relevant existing suites span broker leases, world actor control, native identity, native surface groups, and application observation. Their presence does not show that the complete suite passed at this source pin. M08 remains UNQUALIFIED, so the M09 candidate cannot claim qualified dependency evidence.
+
+The source supports popup grouping; it does not establish a dialog-specific witness. The proposed M09 gate should explicitly exercise a dialog and popup across distinct application X connections, plus same-app and cross-app ownership. Preserve existing locked tests. Any new gate registration must be additive and reviewed.
+
+Focused M09 acceptance cases to freeze after review
+
+1. Group membership: create main, dialog, and popup windows from multiple X connections bearing one application identity. They share one control reservation. A second actor requesting this group receives BUSY. Different application groups remain independent. Cross-workspace and cross-application transient hints do not merge groups.
+2. Independent controllers: two actors control two applications concurrently. A second actor cannot control the first application's group until native cancellation completes and the prior release is acknowledged.
+3. Balanced transfer: hold a modifier, key, button, focus, and drag capture. Trigger voluntary transfer, actor revocation, observation revocation, controller disconnect, and surface destruction. Independently witness every release before the next controller's first event.
+4. Generation fence: resize, unmap/remap, destroy/reuse an XID, and replace an application surface during broker authorization. No input may reach the replacement through an old handle.
+5. Authority separation: observation-only actors cannot control. Read-only actors cannot control writable applications. Verify allowed read-only control and authorized observers as positive controls.
+6. Revocation and execution: revoke only the controller's observation/control while the process retains its own execution rights. Confirm input release, no more observation pixels, live responsive application, and successful later control by another authorized actor. Separately revoke process execution rights and confirm the process is stopped.
+7. Observation race: revoke observation before rendering, after rendering, and while a local observation output is queued. The actor receives no post-revocation pixels or stale metadata. Remote application streaming remains out of scope.
+
+This draft records no executed tests and changes no locked acceptance files. Record actual source pins, both-host results, and unrun cases at the M09 phase gate.
+
+Bounded implementation ownership proposal
+
+- Acceptance inventory and phase profile: future owner may add a new M09 profile and gate document, with additive registration in the dedicated gate files. Keep locked test oracles and acceptance.lock.json unchanged. Document and review any required contract change explicitly.
+- Dialog/popup integration witness: future owner may extend tests/native/test_world_surface_groups.py and tests/core/test_world_application_control.py, plus their existing test registration. Avoid changes to production group identity unless a reproduced failure identifies a defect.
+- Revocation observation witness: future owner may extend tests/core/test_application_observation.py and its native streaming coverage. Keep output-witness ownership separate from control-lease production ownership.
+- Production repair ownership remains unassigned. Assign only after a concrete failing M09 invariant identifies a production file and caller.
