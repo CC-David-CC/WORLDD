@@ -97,6 +97,8 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         owner.budget.cpu_microseconds = 1000
         owner.budget.io.add(major=7, minor=14,
             read_bytes_per_second=64*1024*1024, write_bytes_per_second=16*1024*1024)
+        owner.budget.io.add(major=259, minor=0,
+            read_bytes_per_second=32*1024*1024, write_bytes_per_second=8*1024*1024)
         runtime = broker.StorageVolumeRuntime(protocol_version=1, volume_root=str(volume),
             require_confinement=True)
         runtime.storage_owner.CopyFrom(owner)
@@ -125,6 +127,10 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         self.assertEqual(runtime.storage_owner.volume_root, str(volume))
         self.assertEqual(runtime.storage_owner.budget.io[0].major, 7)
         self.assertEqual(runtime.storage_owner.budget.io[0].minor, 14)
+        self.assertEqual(list(runtime.storage_owner.budget.io),
+                         list(storage.StorageOwnerLaunchConfig.FromString(payload).budget.io))
+        self.assertEqual(runtime.storage_owner.budget.io[1].major, 259)
+        self.assertEqual(runtime.storage_owner.budget.io[1].minor, 0)
         owner.log_path = self.root/'broker-0.log'
         owner.storage_owner_launch_path = None
         with patch.object(Path, 'lstat', lstat):
@@ -149,7 +155,7 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         owner.storage_owner_launch_path = None
         endpoint, peer = socket.socketpair(); self.addCleanup(peer.close)
         with patch.object(Path, 'lstat', lstat), patch.object(subprocess, 'Popen') as launch:
-            with self.assertRaisesRegex(RuntimeError, 'contain StorageVolumeRuntime'):
+            with self.assertRaisesRegex(RuntimeError, 'SETUP FAILURE'):
                 owner.start_storage_owner('/probe', runtime_path, volume, endpoint)
         launch.assert_not_called()
         self.assertEqual(endpoint.fileno(), -1)
@@ -172,7 +178,7 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             ('owner-missing', lambda runtime: runtime.ClearField('storage_owner'), 'no StorageOwner launch config'),
             ('owner-version', lambda runtime: setattr(runtime.storage_owner, 'protocol_version', 2), 'launch protocol version'),
             ('owner-root', lambda runtime: setattr(runtime.storage_owner, 'volume_root', str(self.root/'other')), 'StorageOwner volume root'),
-            ('owner-path', lambda runtime: setattr(runtime.storage_owner, 'owner_configuration', str(self.root/'owner policy.pb')), 'canonical absolute path'),
+            ('owner-path', lambda runtime: setattr(runtime.storage_owner, 'owner_configuration', 'owner.pb'), 'canonical absolute path'),
             ('budget-missing', lambda runtime: runtime.storage_owner.ClearField('budget'), 'budget is missing'),
         )
         for label, mutate, message in cases:
