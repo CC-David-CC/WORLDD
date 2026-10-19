@@ -2147,6 +2147,9 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-application PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME storage-session-launcher-contract COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_session_launcher.py")
+    set_tests_properties(storage-session-launcher-contract PROPERTIES TIMEOUT 30)
     add_test(NAME session-storage-owner COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --

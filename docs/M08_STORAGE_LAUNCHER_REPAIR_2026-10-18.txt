@@ -1,0 +1,22 @@
+M08 storage-session launcher repair
+Status: FOCUSED launcher controls passed. Native storage suite UNRUN. M08 UNQUALIFIED.
+Base: 6fb4f77a8de01afab74d2ec5aa0e794369b71863.
+Primary replaced the rejected v2 launcher with a maintained source tool.
+Signal handling retains the active process. Cleanup checks children after parent exit.
+The tool validates actual descriptor and volume receipts.
+It requires exact unittest outcomes, command/wrapper exits, no sanitizer findings,
+retired processes, stopped services, and verified original-helper restoration.
+Unknown cleanup prevents helper replacement and further qualification.
+The graphics environment enters the delegated test command explicitly.
+No production binaries, public messages, or locked acceptance tests changed.
+
+Selected controls and purpose were recorded before execution.
+Seven controls passed on each host: incomplete evidence, Debug identity, orphan child,
+signal routing, failed restoration, graphics propagation, and unittest/log parsing.
+Evidence on sb16 and sb16-2:
+/home/dflanag3/spatial-artifacts/m08-storage-launcher-contract-20261018/run-01
+Both command.exit and wrapper.exit are zero. Both tmux panes retired with zero.
+Durations: sb16 0.182s; sb16-2 0.283s. No skipped tests.
+These controls do not qualify the native seven-method storage suite.
+Next: reviewed profile preflight, temporary helper installation, Debug storage suite,
+then ASan/UBSan only after all Debug evidence and restoration pass on the same host.
