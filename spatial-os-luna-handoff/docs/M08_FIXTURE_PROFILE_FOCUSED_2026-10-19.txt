@@ -1,0 +1,22 @@
+M08 fixture-profile focused results
+
+Source: 06a696b72f4a4ca5325d3bdbd43fbf79d7027697.
+Selected check: workspace-copy-fixture-profiles.
+Purpose: test fault discovery, nested I/O budgets, application profiles, and safe cleanup decisions.
+
+sb16: 26 Python unit tests passed in 0.360 seconds.
+sb16-2: 26 Python unit tests passed in 0.327 seconds.
+Both canonical command and wrapper exit codes were zero.
+No tests were skipped.
+
+The test used the frozen079 generated Python bindings.
+All 36 tracked .proto schemas are unchanged between079 and this source.
+These are utility checks. They do not prove native faults or M08 qualification.
+Native copy faults, the actual inspector CLI, and combined runtime checks remain pending.
+
+Artifacts on each test host:
+/home/dflanag3/spatial-artifacts/m08-fixture-profile-focused-06a696b-20261019/runs/profiles-01.
+Source archive SHA256: c280a77ba9582043692d5e0f4a90e249df5f7b57d0507d642374c1561c50b43a.
+ROG result ledger:
+/home/dflanag3/spatial-artifacts/m08-fixture-profile-focused-06a696b-20261019/results.json.
+Ledger SHA256: 14550b780ddbe070cefabcf62800a873e62f16316a38ec5fdc13a18410765500.
