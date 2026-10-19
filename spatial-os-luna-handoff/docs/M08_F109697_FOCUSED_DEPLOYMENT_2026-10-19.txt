@@ -167,3 +167,31 @@ The failed batch evidence remains unchanged under runs/combined-focused-02.
 ROG compact preservation: spatial-artifacts/m08-f109697-focused-deployment-20261019/focused-failure-02.json.
 No production source changed during this batch.
 Full M08 qualification remains unrun for the candidate.
+
+Separate Btrfs alias attempt 01
+
+The reviewed external driver ran on both hosts after batch 02 was terminal.
+Driver SHA256: 8daa6e05e56021eb55ca12ccce79dedabdbd110b9db403f3db7e91a6a948ebdb.
+Both Debug invocations failed at the unchanged 60-second Python probe timeout.
+Sanitizer was not launched on either host.
+The driver selected the default combined probe, including the large multirow case.
+Current CTest separates controls-plus-15 from deadline-multirow.
+Review of the selected scope is underway. Do not raise the timeout.
+This failed default-scope run does not prove the Btrfs alias requirement.
+Both fixtures were unmounted and their exact loop devices detached.
+No cleanup errors were reported. Their failed images and logs remain retained.
+
+Each host artifact root:
+/home/dflanag3/spatial-artifacts/m08-f109697-btrfs-alias-driver-20261019-HOST.
+Receipts: runs/f109-btrfs-alias-01.
+Evidence: btrfs-private-fixture-01/lifecycle.json and Debug-stdout.log/Debug-stderr.log.
+The initial controller launch syntax error occurred before any runtime launch.
+A corrected LF launcher passed bash syntax and started the recorded jobs.
+No source, test oracle, or timeout changed.
+
+Separate source review confirmed that forced ProcessScope stop uses SIGKILL.
+A supervisor stop receipt does not establish a normal broker exit.
+The cleanup participant deliberately retains Git parent metadata after unsuccessful child exit.
+The handoff regression repair must verify immediate retention and eventual production recovery.
+Do not remove the child-success guard or erase recovery metadata to make the assertion pass.
+The isolated repair branch remains unqualified until reviewed runtime checks pass.
