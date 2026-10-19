@@ -37,6 +37,10 @@ TEST_HOSTS = {"sb16", "sb16-2"}
 M07_FROZEN_CONTINUATION_CANDIDATE = '1e58e65dec132a0a16f004ca4527034dca081f77'
 EVIDENCE_KEYS = ("SPATIAL_SECURITY_EVIDENCE", "SPATIAL_SCOPE_EVIDENCE", "SPATIAL_RENDER_EVIDENCE")
 PROFILES = ("Debug", "ASan-UBSan")
+PYTHON_CACHE_DIRECTORY_NAMES = frozenset({
+    "pycache-actor-cabinet-gateway",
+    "pycache-actor-cabinet-gateway-instrumentation",
+})
 REQUIRED = {
     "native-parent-metadata", "native-topology-pixels", "native-device-administration",
     "native-global-isolation", "native-application-launch", "authority-supervisor",
@@ -225,13 +229,124 @@ def stream_archive_hashes(bundle: Path):
     return files
 
 
-def extract_verified_bundle(bundle: Path, out: Path, expected_files):
-    """Validate, hash, and stage archive files in one sequential gzip-tar pass."""
+def _validate_archive_output_directory(relative):
+    path = Path(relative)
+    if (path.is_absolute() or len(path.parts) != 3 or path.parts[0] != 'build'
+            or path.parts[1] not in PROFILES or path.parts[2] not in PYTHON_CACHE_DIRECTORY_NAMES
+            or '..' in path.parts or '.' in path.parts):
+        raise RuntimeError('unsafe declared runtime output directory: ' + str(relative))
+    return path
+
+
+def _validate_runtime_directory_relative(relative):
+    path = Path(relative)
+    if (path.is_absolute() or len(path.parts) != 1 or path.name not in PYTHON_CACHE_DIRECTORY_NAMES
+            or '..' in path.parts or '.' in path.parts):
+        raise RuntimeError('unsafe declared runtime output directory: ' + str(relative))
+    return path
+
+
+def _canonical_existing_directory(path, label):
+    path = Path(path)
+    absolute = Path(os.path.abspath(path))
+    if path.is_symlink():
+        raise RuntimeError(label + ' cannot be a symlink: ' + str(path))
+    if '..' in path.parts or '.' in path.parts or not path.is_dir():
+        raise RuntimeError(label + ' must be an existing canonical directory: ' + str(path))
+    if path.resolve(strict=True) != absolute:
+        raise RuntimeError(label + ' must not resolve through a symlink: ' + str(path))
+    return absolute
+
+
+def ensure_inventory_runtime_directories(inventory, source: Path, build: Path, output_roots=()):
+    """Create only the two exact CTest-declared Python cache output roots."""
+    source_root = _canonical_existing_directory(source, 'CTest source root')
+    build_root = _canonical_existing_directory(build, 'CTest build root')
+    excluded = tuple(Path(root).absolute() for root in output_roots)
+    values = []
+    def visit(value):
+        if isinstance(value, dict):
+            if value.get('name') == 'ENVIRONMENT':
+                env = value.get('value', [])
+                values.extend(env if isinstance(env, list) else [env])
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+    visit(inventory)
+    found = set()
+    for environment in values:
+        if not isinstance(environment, str):
+            raise RuntimeError('CTest ENVIRONMENT entry must be text')
+        if os.name == 'nt':
+            environment = environment.replace('\\', '/')
+        for assignment in environment.split(';'):
+            prefix = 'PYTHONPYCACHEPREFIX='
+            if not assignment.startswith(prefix):
+                continue
+            raw_path = assignment[len(prefix):]
+            if not raw_path:
+                raise RuntimeError('PYTHONPYCACHEPREFIX must name a declared output directory')
+            candidate = Path(raw_path)
+            if not candidate.is_absolute() or '..' in candidate.parts or '.' in candidate.parts:
+                raise RuntimeError('PYTHONPYCACHEPREFIX must be an absolute safe path: ' + raw_path)
+            if candidate.name not in PYTHON_CACHE_DIRECTORY_NAMES:
+                raise RuntimeError('PYTHONPYCACHEPREFIX basename is not allowlisted: ' + str(candidate))
+            candidate = Path(os.path.abspath(candidate))
+            if candidate.is_symlink():
+                raise RuntimeError('PYTHONPYCACHEPREFIX cannot be a symlink: ' + str(candidate))
+            if candidate.parent != build_root:
+                location = 'source root' if candidate == source_root or source_root in candidate.parents else 'outside build root'
+                raise RuntimeError('PYTHONPYCACHEPREFIX must be a direct child of the build root (' + location + '): ' + str(candidate))
+            if any(candidate == item or item in candidate.parents for item in excluded):
+                raise RuntimeError('PYTHONPYCACHEPREFIX overlaps an evidence/output root: ' + str(candidate))
+            if candidate.exists() and not candidate.is_dir():
+                raise RuntimeError('PYTHONPYCACHEPREFIX is not a directory: ' + str(candidate))
+            candidate.mkdir(mode=0o700, exist_ok=True)
+            found.add(candidate.name)
+    return sorted(found)
+
+
+def ensure_runtime_directories(root: Path, directories, require_empty=False):
+    validated_directories = [_validate_runtime_directory_relative(item) for item in directories]
+    root = Path(root)
+    if '..' in root.parts or '.' in root.parts:
+        raise RuntimeError('runtime root contains traversal components: ' + str(root))
+    absolute = Path(os.path.abspath(root))
+    existing = absolute
+    while not existing.exists() and not existing.is_symlink():
+        parent = existing.parent
+        if parent == existing:
+            raise RuntimeError('runtime root has no existing canonical parent: ' + str(root))
+        existing = parent
+    if existing.is_symlink() or existing.resolve(strict=True) != Path(os.path.abspath(existing)):
+        raise RuntimeError('runtime root resolves through a symlink: ' + str(root))
+    root = absolute
+    root.mkdir(parents=True, exist_ok=True)
+    if not root.is_dir() or root.is_symlink() or root.resolve(strict=True) != root:
+        raise RuntimeError('runtime root is not a canonical directory: ' + str(root))
+    for rel in validated_directories:
+        target = root / rel
+        if target.is_symlink():
+            raise RuntimeError('runtime output directory cannot be a symlink: ' + str(target))
+        if target.exists() and not target.is_dir():
+            raise RuntimeError('runtime output path is not a directory: ' + str(target))
+        target.mkdir(mode=0o700, exist_ok=True)
+        if require_empty and any(target.iterdir()):
+            raise RuntimeError('runtime output directory must be empty before execution: ' + str(target))
+
+
+def extract_verified_bundle(bundle: Path, out: Path, expected_files, expected_directories=()):
+    """Validate a bundle's pinned files and declared empty output directories."""
     if out.is_symlink() or not out.is_dir() or any(out.iterdir()):
         raise RuntimeError('bundle destination must be a fresh empty directory')
+    expected_directories = set(expected_directories)
+    for name in expected_directories:
+        _validate_archive_output_directory(name)
     stage = out / ('.m06-extract-' + uuid.uuid4().hex)
     stage.mkdir(mode=0o700)
-    files, directories = {}, []
+    files, directories, observed_directories = {}, [], set()
     try:
         root = stage.resolve(strict=True)
         with gzip.open(bundle, 'rb') as compressed:
@@ -244,6 +359,10 @@ def extract_verified_bundle(bundle: Path, out: Path, expected_files):
                     if root not in resolved.parents:
                         raise RuntimeError('unsafe bundle path: ' + member.name)
                     if member.isdir():
+                        if member.name in observed_directories:
+                            raise RuntimeError('duplicate archive directory: ' + member.name)
+                        _validate_archive_output_directory(member.name)
+                        observed_directories.add(member.name)
                         target.mkdir(parents=True, exist_ok=True, mode=0o700)
                         directories.append((target, member.mode & 0o777))
                         continue
@@ -260,6 +379,8 @@ def extract_verified_bundle(bundle: Path, out: Path, expected_files):
                 pass
         if files != expected_files:
             raise RuntimeError('archive file manifest mismatch')
+        if observed_directories != expected_directories:
+            raise RuntimeError('archive directory manifest mismatch')
         for directory, mode in reversed(directories):
             os.chmod(directory, mode)
         for child in stage.iterdir():
@@ -975,7 +1096,7 @@ def stage_environment(environment, label, production, source, target=None):
     return selected
 
 
-def copy_runtime_closure(source, destination, hashes):
+def copy_runtime_closure(source, destination, hashes, directories=()):
     for rel, expected in hashes.items():
         original = source / rel
         if sha(original) != expected:
@@ -985,6 +1106,7 @@ def copy_runtime_closure(source, destination, hashes):
         shutil.copy2(original, target)
         if sha(target) != expected:
             raise RuntimeError('runtime closure copy mismatch: ' + rel)
+    ensure_runtime_directories(destination, directories, require_empty=True)
 
 
 def add_startup_bindings(build, inventory, bindings):
@@ -1327,6 +1449,8 @@ def prepare(a):
             if source_pin() != (commit, files, locked):
                 raise RuntimeError("source pin changed during build")
             inventory = json.loads((logdir / "inventory.log").read_text())["tests"]
+            runtime_directories = ensure_inventory_runtime_directories(
+                inventory, ROOT, build, (evidence, xserver_placeholder))
             inventory_inputs = verify_inventory_paths(inventory, ROOT, build, (evidence, xserver_placeholder))
             generated = {str(p.relative_to(build)): sha(p) for p in (build / "python").rglob("*") if p.is_file()}
             closure = generated_closure(build)
@@ -1345,6 +1469,7 @@ def prepare(a):
                 executables=executables, generated_python_sha256=generated,
                 generated_binding_imports=closure, ldd_dependencies=dependencies,
                 runtime_files={rel: sha(build / rel) for rel in sorted(keep)},
+                runtime_directories=runtime_directories,
                 ctest_metadata={str(p.relative_to(build)): sha(p) for p in ctest_metadata(build)})
             write_json(dest / "provenance.json", rec)
         if source_pin() != (commit, files, locked):
@@ -1383,11 +1508,18 @@ def prepare(a):
             copy_runtime_closure(production_source, staged_off / profile,
                                  rec['production_off'][profile]['runtime_files'])
             build = cache_paths['build'][profile] if cache_paths else build_root / profile
-            copy_runtime_closure(build, staged_build / profile, rec['profiles'][profile]['runtime_files'])
+            copy_runtime_closure(build, staged_build / profile, rec['profiles'][profile]['runtime_files'],
+                                 rec['profiles'][profile].get('runtime_directories', ()))
             verify_inventory_paths(map_inventory(rec['profiles'][profile]['inventory'],
                 [(str(build), str(staged_build / profile))]), ROOT, staged_build / profile,
                 (Path(rec['profiles'][profile]['evidence_root']), Path(rec['profiles'][profile]['xserver_placeholder'])))
         rec["status"] = "bundle_ready_needs_external_provisioning"
+        rec['archive_directories'] = sorted(
+            str(Path('build') / profile / relative)
+            for profile in PROFILES
+            for relative in rec['profiles'][profile].get('runtime_directories', ()))
+        for name in rec['archive_directories']:
+            _validate_archive_output_directory(name)
         write_json(dest / "provenance.json", rec)
         with tarfile.open(dest / "m06-artifacts.tar.gz", "w:gz") as tar:
             for name, path in (("source", ROOT), ("build", staged_build), ("production-off", staged_off), ("provenance.json", dest / "provenance.json")):
@@ -1401,10 +1533,14 @@ def prepare(a):
                             tar.add(member, arcname=str(Path(name) / member.relative_to(path)), recursive=False)
                 else:
                     tar.add(path, arcname=name, recursive=False)
+            for name in rec['archive_directories']:
+                parts = Path(name).parts
+                tar.add(staged_build / parts[1] / parts[2], arcname=name, recursive=False)
         # Manifest is out of band because it also hashes provenance.json.
         rec["archive_files"] = stream_archive_hashes(dest / "m06-artifacts.tar.gz")
         rec["bundle_sha256"] = sha(dest / "m06-artifacts.tar.gz")
-        write_json(dest / "archive-manifest.json", {"bundle_sha256": rec["bundle_sha256"], "files": rec["archive_files"]})
+        write_json(dest / "archive-manifest.json", {"bundle_sha256": rec["bundle_sha256"],
+            "files": rec["archive_files"], "directories": rec['archive_directories']})
         write_json(dest / "provenance.json", rec)
         return 0
     except BaseException as exc:
@@ -1426,10 +1562,17 @@ def verify_bundle(a):
     external = json.loads(a.archive_manifest.read_text())
     if external.get("bundle_sha256") != a.sha256 or not external.get("files"):
         raise RuntimeError("out-of-band archive manifest mismatch")
+    directories = external.get('directories', [])
+    if not isinstance(directories, list) or len(directories) != len(set(directories)):
+        raise RuntimeError('out-of-band archive directory manifest invalid')
+    for name in directories:
+        _validate_archive_output_directory(name)
     out = a.destination.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    extract_verified_bundle(bundle, out, external["files"])
+    extract_verified_bundle(bundle, out, external["files"], directories)
     rec = json.loads((out / "provenance.json").read_text())
+    if sorted(directories) != sorted(rec.get('archive_directories', [])):
+        raise RuntimeError('archive/provenance directory manifest mismatch')
     if rec.get("candidate") != rec["runtime_manifest"].get("candidate"):
         raise RuntimeError("runtime candidate mismatch")
     for name, expected in rec["source_sha256"].items():
@@ -1446,6 +1589,7 @@ def verify_bundle(a):
         for rel, expected in row["runtime_files"].items():
             if sha(build / rel) != expected:
                 raise RuntimeError("bundled runtime file transfer mismatch: " + rel)
+        ensure_runtime_directories(build, row.get('runtime_directories', ()), require_empty=True)
         wrapper = rec["runtime_manifest"]["hosts"][host][profile]["xace_wrapper"]["path"]
         mapping = [(row["build"], str(build)), (rec["source_root"], str(out / "source")),
                    (row["xserver_placeholder"], wrapper)]
@@ -1741,6 +1885,7 @@ def gate(a):
                 if rel not in rec["profiles"][profile]["ctest_metadata"] and sha(build / rel) != expected:
                     raise RuntimeError(profile + " runtime file hash mismatch: " + rel)
             prepared = rec["profiles"][profile]
+            ensure_runtime_directories(build, prepared.get('runtime_directories', ()), require_empty=False)
             for rel, expected in receipt['metadata_baseline'][profile].items():
                 original = root / 'ctest-original' / profile / rel
                 if sha(original) != expected:

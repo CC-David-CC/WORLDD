@@ -799,6 +799,87 @@ class GateStaticTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'unsupported storage evidence CTest metadata row'):
             gate.relocate_storage_evidence_metadata(build, Path(old), targets)
 
+    def test_declared_python_cache_directories_are_empty_runtime_outputs(self):
+        source = self.root / 'source'
+        build = self.root / 'build'
+        source.mkdir()
+        build.mkdir()
+        cache_name = 'pycache-actor-cabinet-gateway'
+        cache = build / cache_name
+        inventory = [dict(properties=[dict(name='ENVIRONMENT',
+            value=['PYTHONPYCACHEPREFIX=' + str(cache)])])]
+        directories = gate.ensure_inventory_runtime_directories(inventory, source, build)
+        self.assertEqual(directories, [cache_name])
+        self.assertTrue(cache.is_dir())
+        self.assertEqual(gate.verify_inventory_paths(inventory, source, build), set())
+        ignored = [dict(command=['--note', str(build / cache_name)])]
+        self.assertEqual(gate.ensure_inventory_runtime_directories(ignored, source, build), [])
+
+        cache.joinpath('stale.pyc').write_bytes(b'old cache data')
+        destination = self.root / 'staged-build'
+        gate.copy_runtime_closure(build, destination, {}, directories)
+        staged_cache = destination / cache_name
+        self.assertTrue(staged_cache.is_dir())
+        self.assertEqual(list(staged_cache.iterdir()), [])
+        self.assertEqual(cache.joinpath('stale.pyc').read_bytes(), b'old cache data')
+        gate.ensure_runtime_directories(build, directories)
+        self.assertEqual(cache.joinpath('stale.pyc').read_bytes(), b'old cache data')
+
+    def test_declared_python_cache_archive_roundtrip_preserves_empty_directory(self):
+        bundle = self.root / 'cache-dir.tar.gz'
+        cache_name = 'pycache-actor-cabinet-gateway-instrumentation'
+        rel = 'build/Debug/' + cache_name
+        with tarfile.open(bundle, 'w:gz') as archive:
+            info = tarfile.TarInfo(rel)
+            info.type = tarfile.DIRTYPE
+            info.mode = 0o700
+            archive.addfile(info)
+        out = self._empty_dir('cache-dir-out')
+        files = gate.stream_archive_hashes(bundle)
+        self.assertEqual(files, {})
+        gate.extract_verified_bundle(bundle, out, files, [rel])
+        target = out / rel
+        self.assertTrue(target.is_dir())
+        self.assertEqual(list(target.iterdir()), [])
+        with self.assertRaisesRegex(RuntimeError, 'directory manifest mismatch'):
+            gate.extract_verified_bundle(bundle, self._empty_dir('cache-dir-missing-out'), files, [])
+
+    def test_declared_python_cache_directory_rejects_unsafe_roots_and_links(self):
+        source = self.root / 'source'
+        build = self.root / 'build'
+        source.mkdir()
+        build.mkdir()
+        name = 'pycache-actor-cabinet-gateway'
+        def inventory(path):
+            return [dict(properties=[dict(name='ENVIRONMENT', value=['PYTHONPYCACHEPREFIX=' + str(path)])])]
+        with self.assertRaisesRegex(RuntimeError, 'build root'):
+            gate.ensure_inventory_runtime_directories(inventory(source / name), source, build)
+        with self.assertRaisesRegex(RuntimeError, 'direct child'):
+            gate.ensure_inventory_runtime_directories(inventory(build / 'nested' / name), source, build)
+        with self.assertRaisesRegex(RuntimeError, 'direct child'):
+            gate.ensure_inventory_runtime_directories(inventory(self.root / name), source, build)
+        with self.assertRaisesRegex(RuntimeError, 'basename is not allowlisted'):
+            gate.ensure_inventory_runtime_directories(
+                inventory(build / 'pycache-unreviewed'), source, build)
+        with self.assertRaisesRegex(RuntimeError, 'safe path'):
+            gate.ensure_inventory_runtime_directories(inventory(build / '..' / 'source' / name), source, build)
+        outside = self.root / 'outside'
+        outside.mkdir()
+        (build / name).symlink_to(outside, target_is_directory=True)
+        with self.assertRaisesRegex(RuntimeError, 'symlink'):
+            gate.ensure_inventory_runtime_directories(inventory(build / name), source, build)
+
+        real_build = self.root / 'real-build'
+        real_build.mkdir()
+        build_link = self.root / 'build-link'
+        build_link.symlink_to(real_build, target_is_directory=True)
+        linked_inventory = inventory(build_link / name)
+        with self.assertRaisesRegex(RuntimeError, 'symlink'):
+            gate.ensure_inventory_runtime_directories(linked_inventory, source, build_link)
+        with self.assertRaisesRegex(RuntimeError, 'symlink'):
+            gate.ensure_runtime_directories(build_link, [name])
+        self.assertFalse((real_build / name).exists())
+
     def test_output_paths_exempt_inputs_required(self):
         source = self.root / 'source'
         build = self.root / 'build'
