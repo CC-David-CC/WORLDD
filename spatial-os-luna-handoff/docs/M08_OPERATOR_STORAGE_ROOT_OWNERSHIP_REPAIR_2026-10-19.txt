@@ -1,0 +1,11 @@
+M08 operator-storage root ownership repair ? 2026-10-19
+
+The storage-owner broker opens the Btrfs volume root as its effective UID. The operator provisioner now assigns only the already-verified top-level mounted directory to the broker UID recorded in the protected volume definition. It preserves the directory GID and sets mode 0700. It uses an O_NOFOLLOW directory descriptor and checks the path inode before and after the update.
+
+The ownership step runs after the persistent image inode, filesystem UUID, exact loop source, Btrfs type, and rw/nodev/nosuid/subvolid=5 mount checks. It verifies that mount identity again while the descriptor remains open. It accepts an initial root-owned directory or the recorded broker UID. Any other owner fails closed. The same verified step runs for create and remount, so remount enforces the persisted broker identity without changing the image, UUID, or subvolume.
+
+Regression coverage adds a safe temporary-directory test for UID/GID/mode and descriptor identity, a symlink refusal, and a wrong-mount refusal before mutation. The native operator-storage test writes an fd-backed prelaunch witness before each broker start and checks UID, mode, and path identity. The selected native recovery test covers fresh create and remount persistence.
+
+Evidence motivating the repair: sb16-2 prelaunch witness at `/home/dflanag3/spatial-artifacts/m08-operator-storage-owner-witness-07e4373-sb16-2-01/diagnosis.json`, SHA256 `81fc20c3d7ddba071bce5c2dc0d9b3ddd6a2ff348a7fd3e17776a14642b17b39`. It recorded root UID/GID 0:0, mode 0755, and requested broker UID 1000 on the exact mounted Btrfs root. The probe refused startup with `Broker state directory ownership is invalid`.
+
+This checkpoint is unqualified. Focused tests and host runtime checks remain pending primary review. The host witness is diagnostic evidence, not a qualification result.

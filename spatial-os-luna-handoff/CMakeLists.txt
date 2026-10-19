@@ -638,6 +638,10 @@ if(BUILD_TESTING)
     add_test(NAME storage-owner-fixture-tooling COMMAND Python3::Interpreter -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_owner_fixture_tooling.py")
     set_tests_properties(storage-owner-fixture-tooling PROPERTIES TIMEOUT 30 ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python")
+    add_test(NAME provision-storage-root-owner-tooling COMMAND Python3::Interpreter -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_provision_storage_root_owner.py")
+    set_tests_properties(provision-storage-root-owner-tooling PROPERTIES TIMEOUT 30
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-copy-staging-mask COMMAND Python3::Interpreter -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_copy_staging_mask.py")
     set_tests_properties(workspace-copy-staging-mask PROPERTIES TIMEOUT 30)
