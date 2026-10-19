@@ -5,6 +5,7 @@ import copy
 import importlib.util
 import json
 import re
+import shlex
 from pathlib import Path
 import sys
 import unittest
@@ -273,70 +274,133 @@ def configured_launch_suite(inventories, baseline_inventories=None):
                             validate(changed, profile)
 
         def test_original_238_registration_metadata_is_preserved(self):
+            def layout(inventory):
+                adapter = next(value for row in inventory['tests'] for value in row.get('command', [])
+                               if value.endswith('/tools/with_adapter_resources.py'))
+                source = Path(adapter).parent.parent
+                build = Path(next(item['value'] for row in inventory['tests']
+                                  for item in row.get('properties', [])
+                                  if item['name'] == 'WORKING_DIRECTORY'))
+                self.assertTrue(source.is_absolute() and build.is_absolute())
+                # CMake hashes its production inputs and build settings, then writes
+                # this exact identity to build_id.hpp and its systemd unit names.
+                header = (build/'build_id.hpp').read_text()
+                match = re.fullmatch(r'#pragma once\n#define SPATIAL_BUILD_ID "sha256:([0-9a-f]{64})"\n', header)
+                self.assertIsNotNone(match, f'Invalid generated build identity: {build}')
+                return source, build, match.group(1)
 
-            def normalize(value, old_source, old_build, new_source, new_build):
+            def commands(build):
+                result = {}
+                for line in (build/'CTestTestfile.cmake').read_text().splitlines():
+                    if not line.lstrip().startswith('add_test('):
+                        continue
+                    match = re.fullmatch(r'\s*add_test\(\[=\[([^]]+)\]=\]\s+(.*?)\)\s*', line)
+                    self.assertIsNotNone(match, f'Unsupported generated registration: {line}')
+                    name = match.group(1)
+                    self.assertNotIn(name, result, f'Duplicate generated registration: {name}')
+                    result[name] = shlex.split(match.group(2))
+                return result
+
+            def normalize_paths(value, source, build):
                 if isinstance(value, str):
-                    value = value.replace(str(old_source), '<SOURCE>').replace(str(new_source), '<SOURCE>').replace(str(old_build), '<BUILD>').replace(str(new_build), '<BUILD>')
-                    return re.sub(r'(--unit=[^\"]+-)[0-9a-f]{64}', r'\1<UNIT_HASH>', value)
+                    for root, marker in sorted(((str(source), '<SOURCE>'), (str(build), '<BUILD>')),
+                                               key=lambda item: len(item[0]), reverse=True):
+                        # Replace only complete known path roots, including roots in
+                        # PYTHONPATH assignments and JSON arguments.
+                        value = re.sub(r'(?<![A-Za-z0-9_./-])' + re.escape(root) + r'(?=$|[/:";\]])',
+                                       marker, value)
+                    return value
                 if isinstance(value, list):
-                    return [normalize(item, old_source, old_build, new_source, new_build) for item in value]
+                    return [normalize_paths(item, source, build) for item in value]
                 if isinstance(value, dict):
-                    return {key: normalize(item, old_source, old_build, new_source, new_build) for key, item in value.items()}
+                    return {key: normalize_paths(item, source, build) for key, item in value.items()}
                 return value
+
+            def normalize_command(command, lane_layout):
+                source, build, expected_hash = lane_layout
+                normalized = []
+                for token in command:
+                    if token.startswith('--unit='):
+                        self.assertRegex(token, r'^--unit=spatial-[a-z0-9-]+-' + expected_hash + r'$',
+                                         'Unit build identity differs from generated build_id.hpp')
+                        token = token[:-len(expected_hash)] + '<BUILD_ID>'
+                    normalized.append(normalize_paths(token, source, build))
+                return normalized
+
+            def validate(old_inventory, new_inventory, old_commands, new_commands,
+                         old_layout, new_layout, profile):
+                old_names = [row['name'] for row in old_inventory['tests']]
+                new_names = [row['name'] for row in new_inventory['tests']]
+                self.assertEqual(len(old_names), 238)
+                self.assertEqual(len(set(old_names)), 238)
+                self.assertEqual(new_names, old_names)
+                self.assertEqual(set(old_commands), set(old_names))
+                self.assertEqual(set(new_commands), set(new_names))
+                adapter_count = 0
+                for old_row, new_row in zip(old_inventory['tests'], new_inventory['tests']):
+                    name = old_row['name']
+                    expected = list(old_commands[name])
+                    adapters = [index for index, value in enumerate(expected)
+                                if value.endswith('/tools/with_adapter_resources.py')]
+                    if adapters:
+                        adapter_count += 1
+                        self.assertEqual(len(adapters), 1, name)
+                        index = adapters[0]
+                        flag = '--copy-profile='+profile
+                        if expected[index+1:index+2] == [flag]:
+                            self.assertEqual(expected[index+2:index+3], ['--'], name)
+                        else:
+                            self.assertEqual(expected[index+1:index+2], ['--'], name)
+                            expected.insert(index+1, flag)
+                    self.assertEqual(normalize_command(new_commands[name], new_layout),
+                                     normalize_command(expected, old_layout), name)
+                    self.assertEqual(normalize_paths(new_row['properties'], *new_layout[:2]),
+                                     normalize_paths(old_row['properties'], *old_layout[:2]), name)
+                self.assertEqual(adapter_count, 56)
 
             for profile, old_inventory in baseline_inventories.items():
                 with self.subTest(profile=profile):
                     new_inventory = inventories[profile]
-                    self.assertEqual(len(old_inventory['tests']), 238)
-                    self.assertEqual([row['name'] for row in new_inventory['tests']],
-                                     [row['name'] for row in old_inventory['tests']])
-                    old_rows = {row['name']: row for row in old_inventory['tests']}
-                    new_rows = {row['name']: row for row in new_inventory['tests']}
-                    old_adapter = next(value for row in old_inventory['tests'] for value in row.get('command', [])
-                                       if value.endswith('/tools/with_adapter_resources.py'))
-                    old_source = Path(old_adapter).parent.parent
-                    old_build = Path(next(item['value'] for row in old_inventory['tests']
-                                          for item in row.get('properties', [])
-                                          if item['name'] == 'WORKING_DIRECTORY'))
-                    new_build = Path(next(item['value'] for row in new_inventory['tests']
-                                          for item in row.get('properties', [])
-                                          if item['name'] == 'WORKING_DIRECTORY'))
-                    new_adapter = next(value for row in new_inventory['tests'] for value in row.get('command', [])
-                                       if value.endswith('/tools/with_adapter_resources.py'))
-                    new_source = Path(new_adapter).parent.parent
-                    old_ctest = old_build / 'CTestTestfile.cmake'
-                    new_ctest = new_build / 'CTestTestfile.cmake'
-                    def add_test_lines(path):
-                        rows = {}
-                        for line in path.read_text().splitlines():
-                            match = re.match(r'\s*add_test\(\[=\[([^]]+)\]=\]', line)
-                            if match:
-                                rows[match.group(1)] = line
-                        return rows
-                    old_lines = add_test_lines(old_ctest)
-                    new_lines = add_test_lines(new_ctest)
-                    self.assertEqual(set(old_lines), set(old_rows))
-                    self.assertEqual(set(new_lines), set(new_rows))
-                    for name, old_row in old_rows.items():
-                        new_row = new_rows[name]
-                        expected_command = normalize(old_row['command'], old_source, old_build, new_source, new_build)
-                        adapters = [index for index, value in enumerate(expected_command)
-                                    if value.endswith('/tools/with_adapter_resources.py')]
-                        if adapters:
-                            self.assertEqual(len(adapters), 1, name)
-                            index = adapters[0]
-                            flag = '--copy-profile='+profile
-                            if expected_command[index+1:index+2] != [flag]:
-                                self.assertEqual(expected_command[index+1:index+2], ['--'], name)
-                                expected_command.insert(index+1, flag)
-                        self.assertEqual(normalize(new_lines[name], old_source, old_build, new_source, new_build),
-                                         normalize(old_lines[name], old_source, old_build, new_source, new_build)
-                                         .replace('with_adapter_resources.py\" \"--\"',
-                                                  'with_adapter_resources.py\" \"--copy-profile='+profile+'\" \"--\"')
-                                         if adapters and '--copy-profile='+profile not in old_lines[name] else
-                                         normalize(old_lines[name], old_source, old_build, new_source, new_build), name)
-                        self.assertEqual(normalize(new_row['properties'], old_source, old_build, new_source, new_build),
-                                         normalize(old_row['properties'], old_source, old_build, new_source, new_build), name)
+                    old_layout, new_layout = layout(old_inventory), layout(new_inventory)
+                    old_commands, new_commands = commands(old_layout[1]), commands(new_layout[1])
+                    validate(old_inventory, new_inventory, old_commands, new_commands,
+                             old_layout, new_layout, profile)
+                    unit_name = next(name for name, command in new_commands.items()
+                                     if any(token.startswith('--unit=') for token in command))
+                    unit_index = next(index for index, token in enumerate(new_commands[unit_name])
+                                      if token.startswith('--unit='))
+                    omitted_name = next(row['name'] for row in new_inventory['tests'] if 'command' not in row)
+                    for defect in ('random-unit-hash', 'old-unit-hash', 'unit-prefix',
+                                   'omitted-executable', 'extra-argument', 'missing-argument',
+                                   'stale-build-root', 'timeout', 'registration-name'):
+                        changed_commands = copy.deepcopy(new_commands)
+                        changed_inventory = copy.deepcopy(new_inventory)
+                        if defect in ('random-unit-hash', 'old-unit-hash', 'unit-prefix'):
+                            token = changed_commands[unit_name][unit_index]
+                            if defect == 'unit-prefix':
+                                token = token.replace('--unit=spatial-', '--unit=spatial-changed-', 1)
+                            else:
+                                wrong_hash = old_layout[2] if defect == 'old-unit-hash' else '0'*64
+                                self.assertNotEqual(wrong_hash, new_layout[2])
+                                token = token[:-64] + wrong_hash
+                            changed_commands[unit_name][unit_index] = token
+                        elif defect == 'omitted-executable':
+                            changed_commands[omitted_name][0] += '-changed'
+                        elif defect == 'extra-argument':
+                            changed_commands[omitted_name].append('--unexpected')
+                        elif defect == 'missing-argument':
+                            changed_commands[omitted_name].pop()
+                        elif defect == 'stale-build-root':
+                            changed_commands[omitted_name][0] = changed_commands[omitted_name][0].replace(
+                                str(new_layout[1]), str(old_layout[1]))
+                        elif defect == 'timeout':
+                            row = next(row for row in changed_inventory['tests'] if row['name'] == 'workspace-authority')
+                            next(item for item in row['properties'] if item['name'] == 'TIMEOUT')['value'] += 1
+                        else:
+                            changed_inventory['tests'][0]['name'] += '-changed'
+                        with self.subTest(defect=defect), self.assertRaises(AssertionError):
+                            validate(old_inventory, changed_inventory, old_commands, changed_commands,
+                                     old_layout, new_layout, profile)
 
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(ConfiguredLaunchTests)
     if baseline_inventories is None:

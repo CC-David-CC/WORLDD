@@ -1,16 +1,68 @@
 M08 adapter resource profile registration
 2026-10-19
 
-CTest adapter fixtures now receive the configured lane explicitly. Debug builds
-pass --copy-profile=Debug. Sanitizer builds pass --copy-profile=ASan-UBSan.
+Status: UNQUALIFIED. Native qualification remains pending.
+Profile registration base: 8e38048e332014af3f912b3f1ad3380bbabe3ec6.
+Comparator repair branch: m08/exact-profile-inventory-unit-identity-20261019.
+Owned repair files: tests/core/test_copy_progress_timing.py and this note.
+
+CTest adapter fixtures receive the configured lane explicitly.
+Debug builds pass --copy-profile=Debug.
+Sanitizer builds pass --copy-profile=ASan-UBSan.
 The flag follows with_adapter_resources.py and precedes its -- separator.
+The M06 stage builder requires a profile and forwards it to the P10 adapter.
+The collector audit also forwards its validated current profile.
+The correction selects the existing Debug/SAN policies explicitly.
+It does not rewrite provisioned budget messages, storage bindings, or device checks.
+Registration names, timeouts, and acceptance counts remain unchanged.
+The separate SAN broker headroom proposal is outside this comparator repair.
 
-The M06 stage builder requires a profile and forwards it to the P10 adapter
-preflight. This makes sanitizer manager budgets explicit. It preserves existing
-resource limits, storage bindings, device checks, registration names, properties,
-timeouts, and test arguments.
+Both configured inventories contain 238 registrations and 56 adapter commands.
+Every adapter command carries exactly one matching profile flag.
+Baseline comparison reads all generated CTestTestfile.cmake commands.
+This includes the 21 executable commands omitted from configure-only JSON.
+It checks ordered names, complete command arguments, and all properties.
+Only known source/build path roots and the required adapter flag may relocate.
+Other command tokens and properties must match exactly.
 
-The configured Debug and sanitizer inventories each contain 238 registrations.
-Their 56 adapter-wrapped commands carry exactly one matching profile flag.
-Baseline command comparison reads generated CTestTestfile.cmake so it includes
-targets omitted from configure-only CTest JSON because they are not built.
+CMakeLists.txt:408-419 hashes sorted production inputs and build settings.
+CMake writes that identity to build_id.hpp and uses it in systemd unit names.
+The comparator reads each configuration's exact generated header identity.
+It validates each complete unit argument against that configuration's hash.
+Only that validated suffix is normalized before comparing unchanged unit prefixes.
+It never replaces arbitrary 64-digit unit hashes.
+An incorrect unit hash must fail the same validator as a real inventory.
+Negative controls also reject the old lane hash, altered unit prefixes,
+changed unbuilt executables, extra/missing arguments, stale build paths,
+changed timeouts, and changed registration names.
+
+Selected before execution: existing 17-method configured inventory/timing check,
+existing six-method basic timing check, syntax/diff review, and source data guard.
+Both tooling checks passed without skips.
+Each returned canonical command.exit=0, wrapper.exit=0, and COMPLETE.
+The 17-method check used both actual profiles and both original baseline inventories.
+Its metadata control rejected nine mutations per profile through the same validator.
+The basic timing check passed all six original deadline controls unchanged.
+Generated f109 Python bindings were supplied; no production executable was run.
+
+Retained repair evidence:
+/home/dflanag3/spatial-artifacts/m08-exact-profile-inventory-unit-identity-20261019.
+Command receipts and complete logs: inventory-17 and timing-6.
+Selection: selected-checks.txt. Source and input hashes: source-pins.json.
+
+Primary independently retained stable 8e tooling receipts:
+/home/dflanag3/spatial-artifacts/m08-profile-tooling-primary-20261019.
+storage-owner:14/14 passed; collector-continuation:22/22 passed;
+copy-helpers:27/27 passed. No skips; all canonical exits were zero.
+This repair inspected those logs and receipts without rerunning those suites.
+Their implementation and test files are unchanged by this repair.
+Earlier worker test output was streamed without retained logs.
+Use the retained primary and repair receipts for verification.
+
+No configure, build, native test, provisioning, or runtime change ran in this repair.
+Native tests remain UNRUN for the final combined candidate.
+The CMake registration change affects source-derived build identity.
+Freeze the combined candidate before refreshing Debug, sanitizer, and production-off binaries.
+Preserve frozen f109 packages and prior failure evidence.
+Run required native checks on both sb16 and sb16-2 before qualification.
+No M08 or Spatial-M1 completion is claimed.
