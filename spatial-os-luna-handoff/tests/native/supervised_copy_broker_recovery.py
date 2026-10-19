@@ -37,7 +37,7 @@ def finish_checked_retirement(fixture, broker, resources, handle):
     fixture.assertTrue(resources.closed)
     if handle.proc is not None and handle.proc.returncode != 0:
         fixture.assertIsNotNone(handle.control, 'Failed supervisor control reply must stay available')
-        fixture.assertFalse(handle.control.closed, 'Resource close discarded failed cleanup reply')
+        fixture.assertGreaterEqual(handle.control.fileno(), 0, 'Resource close discarded failed cleanup reply')
     record = handle.failed_cleanup()
     fixture.assertEqual(record.binding, handle.binding)
     fixture.assertEqual(record.process, handle.initial.view.record.process)

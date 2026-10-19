@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock, call, patch
 import os
+import socket
 import sys
 
 import launch_pb2 as launch
@@ -199,9 +200,13 @@ class AdapterContractTests(unittest.TestCase):
         record.fence.authorization_id = b'authorization'
         initial = launch.AuthorityLaunchReply(protocol_version=1)
         initial.view.record.CopyFrom(record)
+        control, peer = socket.socketpair()
+        self.addCleanup(control.close)
+        self.addCleanup(peer.close)
+        if control_closed:
+            control.close()
         handle = SimpleNamespace(binding=record.binding, initial=initial,
-            proc=SimpleNamespace(returncode=2), control=SimpleNamespace(closed=control_closed),
-            retirement=None)
+            proc=SimpleNamespace(returncode=2), control=control, retirement=None)
         def cleanup():
             events.append('cleanup')
             return record
