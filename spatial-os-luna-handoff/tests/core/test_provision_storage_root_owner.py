@@ -34,6 +34,7 @@ class ProvisionStorageRootOwnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)/'real-volume'
             root.mkdir()
+            root.chmod(0o755)
             alias = Path(temporary)/'volume-link'
             alias.symlink_to(root, target_is_directory=True)
             checked = []
