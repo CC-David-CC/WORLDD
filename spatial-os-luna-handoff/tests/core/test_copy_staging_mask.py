@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import tempfile
 import unittest
@@ -24,8 +23,10 @@ class CopyStagingNamespaceTests(unittest.TestCase):
         self.assertLess(mask_ro, project_alias)
         self.assertIn('"--remount-ro", "/"', source)
 
-        bwrap = shutil.which("bwrap")
-        self.assertIsNotNone(bwrap, "required bwrap executable is unavailable")
+        # Production uses this AppArmor-authorized entry point for user/net namespaces.
+        bwrap = Path("/usr/local/libexec/spatial-bwrap")
+        self.assertTrue(bwrap.is_file() and os.access(bwrap, os.X_OK),
+                        "production spatial-bwrap launcher is unavailable")
         payload = b"broker-verified-payload-that-must-not-be-tampered"
         with tempfile.TemporaryDirectory(prefix="spatial-copy-live-stage-") as temporary:
             project = Path(temporary) / "project"

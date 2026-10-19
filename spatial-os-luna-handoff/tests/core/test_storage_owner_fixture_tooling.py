@@ -21,12 +21,15 @@ SOURCE = Path(__file__).resolve().parents[2]
 def fixture_class():
     path = SOURCE/'tests/core/test_workspace_authority.py'
     tree = ast.parse(path.read_text())
+    lifecycle = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and
+                     n.name == 'initialize_broker_lifecycle')
     node = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'BrokerProcess')
     namespace = dict(os=os, Path=Path, socket=socket, struct=struct, select=select,
                      subprocess=subprocess, time=time, threading=threading,
                      BROKER=Path('/fixture/workspaced'), WORLD=Path('/fixture/worldd'),
                      ResourceBroker=None)
-    exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), 'exec'), namespace)
+    # Execute the fixture's real lifecycle initializer with its synthetic class.
+    exec(compile(ast.Module(body=[lifecycle, node], type_ignores=[]), str(path), 'exec'), namespace)
     return namespace['BrokerProcess']
 
 
