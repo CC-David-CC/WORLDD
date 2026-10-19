@@ -1,0 +1,36 @@
+# Forced-stop Git parent recovery regression correction
+Date: 2026-10-19
+Status: source-only, UNQUALIFIED. The runtime regression was not run.
+Source base: 7325fbab08ddec762bffccd853c5f62ee00d56f8.
+Work branch: m08/handoff-parent-retirement-contract-20261019.
+
+## Corrected oracle
+
+The native regression test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope explicitly asks the supervisor to stop. ProcessScope::request_stop() kills the child with cgroup.kill and SIGKILL. The supervisor can still return OWNED_SCOPES_STOPPED after confirming process drain. That receipt does not establish that workspaced exited normally or reconciled external Git effects.
+
+The source path is ProcessScope::request_stop() in src/supervisor/process_scope.cpp, ProcessScope::complete_stop() in the same file, and BrokerCopyCleanupParticipant::pre_prune() in src/workspace/broker_copy_cleanup.cpp. AuthorityLaunch::prepare() uses the non-retained ProcessScope::prepare(root) caller in src/supervisor/launch.cpp. WorkspaceResources binds the journal root to that exact owned scope in src/workspace/resources.cpp.
+
+The cleanup participant returns false when the child did not exit normally. It must preserve the bound git_worker_parent row as startup recovery evidence. The fixture's outer supervisor process scope is created through ProcessScope::prepare() without retained-scope mode. Its directory is removed after drain. The active row can therefore point to that now-missing, exact root. This caller differs from retained broker scopes whose directories remain available.
+
+The old immediate zero-row assertion conflated a stopped supervisor scope with a successful broker exit. It required dropping the recovery record before production recovery. The correction keeps the active bound row until a fresh production broker reopens the same execution state.
+
+The regression now records row state, root device and inode, boot ID, root path, worker-scope identity, physical root existence, worker-parent existence, population, and retained-history rows before fixture teardown. It checks that the active record is bound to the stopped launch's exact process identity, the physical root and worker scope are absent, and no unrelated retained-history record exists.
+
+It then starts a fresh supervised production broker with the same execution state and the same delegated cgroup parent. It calls the real broker hello path. Startup recovery must clear both active and retained parent rows before serving. The test checks both tables after that startup. The existing stop-stage and independent native-client survival assertions remain.
+
+## Limits
+
+This test does not add an end-to-end uncertain-copy-effect case. The current supervisor handoff fixture has no supported way to inject a broker copy effect at the uncertain point. Existing broker-copy-preprune-cleanup C++ cases exercise uncertain cleanup records, but they do not replace native supervisor recovery coverage. That integration case remains missing.
+
+No graceful EOF retirement positive control is added. The supervisor's explicit stop path uses SIGKILL; the current external broker transport exposes no supported graceful-shutdown request that proves a normal child exit. A separate production shutdown contract would be required before testing that path.
+
+This correction changes the regression oracle. It does not weaken Spatial-M1 acceptance. No locked acceptance test or production behavior changed.
+
+## Selected runtime checks
+
+The test belongs to CTest group authority-broker-handoff-regressions. After rebuilding and packaging this source, run the registered CTest command on each required host, first Debug and then ASan/UBSan:
+
+    ctest --test-dir <rebuilt-debug-build-dir> --output-on-failure -R '^authority-broker-handoff-regressions$'
+    ctest --test-dir <rebuilt-asan-ubsan-build-dir> --output-on-failure -R '^authority-broker-handoff-regressions$'
+
+Run both commands on sb16 and sb16-2. CTest supplies the registered resource-delegation wrappers, adapter resource profile, test server, and evidence directory. Preserve each host and profile's receipts. These runtime checks and all full-gate checks remain UNRUN.

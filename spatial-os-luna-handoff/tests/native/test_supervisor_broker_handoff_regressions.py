@@ -16,6 +16,7 @@ import test_supervisor_broker_handoff as baseline
 import test_native_launch as native_launch
 import broker_pb2 as broker
 import launch_pb2 as launch
+import issuer_pb2 as identity
 import process_scope_pb2 as process
 import security_pb2 as security
 from harness.git_fixture import GitRepo
@@ -157,6 +158,53 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertNotEqual(bytes.fromhex(observed['cookie']), self.cookie)
         return application, observed, client
 
+    def parent_journal_evidence(self):
+        journal_path = self.root/'execution/file-operations/file-operations.db'
+        if not journal_path.is_file():
+            return {'journal_path': str(journal_path), 'exists': False, 'active': [], 'retained': []}
+        with sqlite3.connect(f'file:{journal_path}?mode=ro', uri=True) as journal:
+            active = journal.execute('SELECT state,root_device,root_inode,boot_id,identity,root_path FROM git_worker_parent').fetchall()
+            retained = journal.execute('SELECT state,root_device,root_inode,boot_id,identity,root_path FROM retained_git_worker_parents ORDER BY root_device,root_inode,boot_id,identity,root_path').fetchall()
+        def describe(row):
+            identity = process.ProcessScopeIdentity.FromString(row[4])
+            root = Path(row[5])
+            worker_parent = root/'spatial-git-workers'
+            population_path = worker_parent/'cgroup.procs'
+            return {'state': row[0], 'root_device': row[1], 'root_inode': row[2],
+                    'boot_id': row[3], 'root_path': row[5], 'root_exists': root.exists(),
+                    'worker_scope': identity.scope_name(), 'worker_device': identity.device(),
+                    'worker_inode': identity.inode(), 'worker_boot_id': identity.boot_id(),
+                    'worker_launch_id_bytes': len(identity.launch_id()),
+                    'worker_parent_exists': worker_parent.exists(),
+                    'population': population_path.read_text().split() if population_path.is_file() else None}
+        return {'journal_path': str(journal_path), 'exists': True,
+                'active': [describe(row) for row in active], 'retained': [describe(row) for row in retained]}
+
+    def checked_cleanup_with_parent_evidence(self):
+        evidence = self.parent_journal_evidence()
+        try:
+            record = self.checked_cleanup()
+        except AssertionError as error:
+            self.fail(f'{error}; pre-cleanup parent journal evidence={evidence!r}')
+        return record, evidence
+
+    def recovery_broker_config(self, previous):
+        config = self.broker_config()
+        journal = self.root/'recovery-supervisor-journal'
+        journal.mkdir(mode=0o700)
+        config.journal_directory = str(journal)
+        config.child_participant_config = str(self.root/'recovery-supervised-child.textproto')
+        config.binding.service_incarnation = os.urandom(32)
+        runtime = identity.AuthorityParticipantRuntimeConfig()
+        text_format.Parse(Path(config.participant.runtime_config).read_text(), runtime)
+        runtime.service_incarnation = config.binding.service_incarnation
+        runtime_path = self.root/'recovery-runtime.textproto'
+        runtime_path.write_text(text_format.MessageToString(runtime))
+        runtime_path.chmod(0o600)
+        config.participant.runtime_config = str(runtime_path)
+        config.authorization.previous_generation = previous.authorization.request.previous_generation
+        return config, journal
+
     def test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope(self):
         proc, channel, initial, _, pin = self.started_broker()
         _, observed, client = self.create_application()
@@ -171,17 +219,52 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         with self.assertRaises(native_launch.native.Denied):
             self.connect(bytes.fromhex(observed['cookie']))
         self.assertEqual(survivor.inspect().credential_id, independent.id)
-        record = self.checked_cleanup()
-        self.assertEqual(record.native, initial.native)
+        record, parent_evidence = self.checked_cleanup_with_parent_evidence()
         journal_path = self.root/'execution/file-operations/file-operations.db'
-        self.assertTrue(journal_path.is_file())
-        journal = sqlite3.connect(f'file:{journal_path}?mode=ro', uri=True)
-        try:
-            self.assertEqual(journal.execute('SELECT count(*) FROM git_worker_parent').fetchone()[0], 0)
-            self.assertEqual(journal.execute('SELECT count(*) FROM retained_git_worker_parents').fetchone()[0], 0)
-        finally:
-            journal.close()
+        self.assertEqual(record.native, initial.native, parent_evidence)
+        self.assertEqual(len(parent_evidence['active']), 1, parent_evidence)
+        parent = parent_evidence['active'][0]
+        self.assertEqual(parent['state'], 2, parent_evidence)
+        self.assertEqual((parent['root_device'], parent['root_inode'], parent['boot_id']),
+                         (record.process.device, record.process.inode, record.process.boot_id), parent_evidence)
+        self.assertEqual(parent['root_path'], str(self.cgroup/record.process.scope_name), parent_evidence)
+        self.assertFalse(parent['root_exists'], parent_evidence)
+        self.assertEqual(parent['worker_scope'], 'spatial-git-workers', parent_evidence)
+        self.assertGreater(parent['worker_device'], 0, parent_evidence)
+        self.assertGreater(parent['worker_inode'], 0, parent_evidence)
+        self.assertEqual(parent['worker_boot_id'], parent['boot_id'], parent_evidence)
+        self.assertEqual(parent['worker_launch_id_bytes'], 32, parent_evidence)
+        self.assertFalse(parent['worker_parent_exists'], parent_evidence)
+        self.assertIsNone(parent['population'], parent_evidence)
+        self.assertEqual(parent_evidence['retained'], [], parent_evidence)
         self.assertFalse(reply.view.HasField('ready'))
+
+        # A fresh production broker reopens the same execution state. Its startup
+        # recovery must retire this exact missing-root generation before serving.
+        recovery_config, recovery_journal = self.recovery_broker_config(initial)
+        recovered, recovery_channel = self.supervisor_process(recovery_config, start_server=False)
+        recovered_start = self.message(recovery_channel, launch.AuthorityLaunchReply)
+        self.assertTrue(recovered_start.HasField('view'), (recovered_start, parent_evidence))
+        self.assertEqual(recovered_start.view.record.stage, launch.START_ATTEMPTED, parent_evidence)
+        recovered_pipe = BrokerPipe(self, recovered)
+        try:
+            recovered_hello = recovered_pipe.call('system.hello')
+        except Exception as error:
+            self.fail(f'Production recovery broker did not serve hello: {error}; before={parent_evidence!r}; after={self.parent_journal_evidence()!r}')
+        self.assertEqual(recovered_hello['implementation'], 'production', parent_evidence)
+        recovery_evidence = self.parent_journal_evidence()
+        with sqlite3.connect(f'file:{journal_path}?mode=ro', uri=True) as journal:
+            self.assertEqual(journal.execute('SELECT count(*) FROM git_worker_parent').fetchone()[0], 0, recovery_evidence)
+            self.assertEqual(journal.execute('SELECT count(*) FROM retained_git_worker_parents').fetchone()[0], 0, recovery_evidence)
+        recovery_stop = self.control(recovery_channel, stop=launch.AuthorityLaunchQuery())
+        self.assertTrue(recovery_stop.HasField('view'), recovery_stop)
+        self.assertEqual(recovery_stop.view.record.stage, launch.OWNED_SCOPES_STOPPED)
+        self.assertEqual(recovered.wait(timeout=5), 0)
+        with sqlite3.connect(f'file:{recovery_journal/"launch.db"}?mode=ro', uri=True) as journal:
+            saved_record = launch.AuthorityLaunchRecord.FromString(
+                journal.execute('SELECT record FROM launch WHERE singleton=1').fetchone()[0])
+        self.assertEqual(saved_record.stage, launch.OWNED_SCOPES_STOPPED)
+        self.assertFalse((self.cgroup/saved_record.process.scope_name).exists())
         for path in self.journal.iterdir():
             self.assertNotIn(self.cookie, path.read_bytes())
             self.assertNotIn(bytes.fromhex(observed['cookie']), path.read_bytes())
