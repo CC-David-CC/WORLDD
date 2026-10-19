@@ -1204,7 +1204,7 @@ def _validated_configure_env(path):
 
 def prepare(a):
     import fcntl
-    actual_host = socket.gethostname().split(".")[0]
+    actual_host = socket.gethostname()
     host = coding_host_for(actual_host)
     if host is None:
         raise RuntimeError("preparation is allowed only on middle-child or ROG-Ally-X-RC72LA")

@@ -282,6 +282,13 @@ class M08InventoryGateTests(unittest.TestCase):
         for denied in ("a5500", "G164", "sb16", "sb16-2", "unrelated-host"):
             with self.subTest(host=denied):
                 self.assertIsNone(host_for(denied))
+        for denied in ("middle-child.example", "ROG-Ally-X-RC72LA.example", "unrelated-host"):
+            with self.subTest(prepare_host=denied):
+                with patch.object(gate.m06.socket, "gethostname", return_value=denied):
+                    with patch.object(gate.m06, "source_pin") as source_pin:
+                        with self.assertRaisesRegex(RuntimeError, "preparation is allowed only"):
+                            gate.m06.prepare(SimpleNamespace())
+                        source_pin.assert_not_called()
         with self.assertRaisesRegex(RuntimeError, "SPATIAL_TEST_STORAGE_VOLUME_DEBUG"):
             gate.require_storage_lane_configuration({})
         with tempfile.TemporaryDirectory() as temp:
