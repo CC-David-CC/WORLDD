@@ -1,5 +1,13 @@
 # M08 production coverage gaps from current source review
 
+Current status, 2026-10-19: this report describes historical source44c2bf2.
+Source8672cb0 now contains cabinet file-authority projection, positive actor operation paths, and a dedicated registered native cabinet witness.
+See tests/core/test_actor_cabinet_gateway.py and tests/core/test_cabinet_native_crosshost.py.
+The authorized owner performs the positive operation cases through the actor endpoint.
+These cases do not prove a separately delegated peer succeeds with every individual right.
+Source coverage does not establish qualification. The full candidate gate and cross-host reconciliation remain pending.
+The historical findings below remain for provenance; do not treat them as current implementation blockers.
+
 Review date: 2026-10-18
 Current integrated source reviewed read-only: branch `m08/gateway-storage-integration-20261018`, commit `44c2bf26336769cb65680edefd46fcd95ae2d5c9`. The copy-job lifecycle branch remains separate and dirty; its changes are not treated as integrated evidence.
 

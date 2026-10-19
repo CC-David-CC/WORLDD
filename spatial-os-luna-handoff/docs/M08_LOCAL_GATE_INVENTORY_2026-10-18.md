@@ -8,7 +8,7 @@ M08 requires file-engine, file-operation journal, broker client/action, actor ca
 
 This is only a local gate runner. It does not issue a milestone pass receipt. Native cabinet geometry/privacy evidence and required cross-host evidence still need independent qualification review. Existing generic geometry tests do not establish cabinet-specific visibility or metadata privacy unless their locked witnesses directly exercise that path.
 
-The current source still needs primary review for three production coverage gaps: (1) cabinet absence without file authority, empty representation for granted empty storage, and locked metadata privacy are not all proved end to end; (2) the live actor gateway test group covers browse/read/create but does not yet prove every operation through actor-to-broker delivery; (3) no distinct cabinet-specific native geometry/pixel witness is registered. The file engine's direct tests do not close the actor-path gap.
+Source review on 2026-10-19 supersedes the earlier three-gap note. The actor gateway tests now cover cabinet placement authority, empty storage, locked presentation, and positive actor-to-broker file operations. The dedicated workspace-cabinet-native-crosshost registration exercises cabinet pixels, privacy, and persistent placement. Positive operation cases use an authorized owner; they do not establish separately delegated peer success for each right. Full frozen-candidate host/profile/direction evidence and independent cross-host reconciliation remain required. Registered coverage is not runtime qualification.
 
 ## Helper-protected core CTest partition
 
