@@ -1,0 +1,33 @@
+M08 lost-publication acknowledgment focused result
+
+M08 remains UNQUALIFIED. The full M08 gate has not started.
+
+Candidate fixture: f2323c7d927960b43e39bde21be3e70e4d481218.
+Production binaries: f109697a0cc9a021dd0bc3b884aef8ffe4c8a637.
+The fixture-only private-directory repair is reviewed but not integrated.
+Its registered directory suite passed 12 cases. Related tooling passed 28 cases.
+
+Both hosts executed workspace-copy-lost-publication-ack in Debug.
+sb16 failed in 11.39 seconds. sb16-2 failed in 12.43 seconds.
+Both retained the unchanged 450-second CTest timeout.
+The private evidence-directory guard passed.
+The test failed during supervised broker/world setup, before publication recovery.
+The initial system.hello encountered BrokenPipe after the child exited.
+Broker diagnostics rejected a retained Git-worker parent identity.
+The stored parent was adapter/authority-HASH.
+The expected broker parent was adapter/lostack-broker-HASH.
+The actual parent was the adapter scope.
+A second BrokenPipe occurred during teardown.
+Do not classify this as a publication-reconciliation failure without further evidence.
+Do not disable the parent-identity security check.
+
+Both helper lifecycles confirmed restoration and no cleanup errors.
+Both runtime and helper locks were free after termination.
+ASan/UBSan was not launched because Debug failed.
+The next task traces fixture scope setup against the production parent contract.
+
+Evidence on ROG:
+/home/dflanag3/spatial-artifacts/m08-private-evidence-lostack-focused-20261019
+Retained results are under retained-results/sb16 and retained-results/sb16-2.
+Primary terminal review is primary-terminal-summary.json.
+The original failure evidence remains on both test hosts.
