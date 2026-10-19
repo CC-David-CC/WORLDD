@@ -8,7 +8,7 @@ BOOT='c8e575549593d38d2c80e47cfe496aee1d36f67ac05b228f3651741ba1233c6d'
 RUNNER='7053d5ffe05e7050b035d6b715b794dd742b68ee29b9198a703979391323f537'
 D='/home/dflanag3/spatial-artifacts/m08-copy-cleanup-native-repair-runtime-20261018'
 S='/home/dflanag3/spatial-artifacts/m08-copy-cleanup-native-asan-ubsan-1a1da1f-runtime-20261018'
-SRC=D+'/fixture-overlays/fixture-storage-setup-02/spatial-os-luna-handoff'
+SRC=D+'/fixture-overlays/fixture-storage-setup-03/spatial-os-luna-handoff'
 P={
 'debug':dict(payload=D+'/payload/m08-copy-cleanup-native-debug-final-v7',pre=D+'/launchers/native-preflight-v7.primary.py',pre_sha='98acae10d517b39e4321506aed6c9f95ddc3c3eecf9f66727a1228fef262dd38',inv='deb8b74914d9e12491b84fdc972467a8d59afdffc410d6a651b50c6326460b4e',owner='47698e26f1b6ce032ec27a98bc8023ce434b42b34b120c1f9fa40c4e892cac0b',size=13842120,runner=D+'/launchers/run-command.sh'),
 'san':dict(payload=S+'/payload/m08-copy-cleanup-native-asan-ubsan-1a1da1f-v1',pre=S+'/launchers/native-preflight-v1-san.primary.py',pre_sha='307910c3a9a0775304ab21a7ee5aa65e70e81a43714743dd06bfe7052670ced2',inv='49f9d68dfb8ff9936bf7a7cc0ce67a43917a197739778e140dddc0188d0603c7',owner='f2414d86a92b555c3c8d73541d43cc87ea40c7a28401e2cb2447042f4310db7e',size=67002872,runner=S+'/launchers/run-command.sh')}
@@ -123,9 +123,13 @@ def inspect_logs(out):
  cr=out/'canonical-run'
  logs=''.join((cr/name).read_text(errors='replace') for name in ('stdout.log','stderr.log'))
  passed=[]
+ headers=list(re.finditer(r'^(test_[A-Za-z0-9_]+) \(([^)]+)\) \.\.\. ',logs,re.M))
  for method in M:
-  pattern=r'^'+re.escape(method)+r' \((?:__main__\.)?NativeStorageSessionTests(?:\.'+re.escape(method)+r')?\) \.\.\. ok$'
-  if len(re.findall(pattern,logs,re.M))==1:passed.append(method)
+  matches=[(index,row) for index,row in enumerate(headers) if row.group(1)==method and re.fullmatch(r'(?:__main__\.)?NativeStorageSessionTests(?:\.'+re.escape(method)+r')?',row.group(2))]
+  if len(matches)!=1:continue
+  index,row=matches[0];end=headers[index+1].start() if index+1<len(headers) else len(logs)
+  body=logs[row.end():end].split('\n----------------------------------------------------------------------',1)[0].strip()
+  if body=='ok' or body.splitlines()[-1:] == ['ok']:passed.append(method)
  diagnostics=[]
  pattern=re.compile(r'ERROR: (?:AddressSanitizer|LeakSanitizer)|SUMMARY: (?:AddressSanitizer|UndefinedBehaviorSanitizer)|AddressSanitizer:DEADLYSIGNAL|runtime error:')
  for path in out.rglob('*.log'):
