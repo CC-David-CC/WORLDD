@@ -8,6 +8,7 @@ import select
 import socket
 import broker_pb2 as broker
 import storage_pb2 as storage
+import process_scope_pb2 as process_scope
 import struct
 import subprocess
 import tempfile
@@ -73,6 +74,24 @@ def provisioned_resource_function():
                      manager_memory_mib=lambda profile: {'Debug':256,'ASan-UBSan':512}[profile])
     exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), 'exec'), namespace)
     return namespace['provisioned_storage_resources']
+
+
+def ordinary_adapter_fallback(profile, major, minor):
+    """Execute the adapter's real no-volume branch with generated protobuf modules."""
+    adapter_path = SOURCE/'tools/with_adapter_resources.py'
+    tree = ast.parse(adapter_path.read_text())
+    fallback = next(node for node in ast.walk(tree) if isinstance(node, ast.If) and
+                    isinstance(node.test, ast.Name) and node.test.id == 'storage_volume')
+    helper_path = SOURCE/'tools/copy_fixture_profiles.py'
+    spec = importlib.util.spec_from_file_location('copy_fixture_profiles_under_test', helper_path)
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    namespace = dict(resource_profile=profile, major=major, minor=minor,
+                     broker=broker, process=process_scope,
+                     build_adapter_resources=helper.build_adapter_resources)
+    exec(compile(ast.Module(body=fallback.orelse, type_ignores=[]),
+                 str(adapter_path), 'exec'), namespace)
+    return namespace['resources'], namespace['io_device']
 
 
 class StorageOwnerFixtureToolingTests(unittest.TestCase):
@@ -292,14 +311,53 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             function(volume, 'ASan-UBSan', module)
 
     def test_ordinary_adapter_fallback_keeps_host_budget_and_device(self):
-        tree = ast.parse((SOURCE/'tools/with_adapter_resources.py').read_text())
-        branch = next(node for node in ast.walk(tree) if isinstance(node, ast.If) and
-                      isinstance(node.test, ast.Name) and node.test.id == 'storage_volume')
-        fallback = ast.unparse(branch.orelse)
-        self.assertIn('broker.BrokerResourceConfig(protocol_version=2,', fallback)
-        self.assertIn('budget(1024, 128, 400000)', fallback)
-        self.assertIn('budget(manager_memory_mib(resource_profile), 32, 200000)', fallback)
-        self.assertIn("io_device = f'{major}:{minor}'", fallback)
+        mib = 2**20
+        major, minor = 259, 7
+        for profile, manager_mib, broker_mib in (
+                ('Debug', 256, 1024), ('ASan-UBSan', 512, 1280)):
+            with self.subTest(profile=profile):
+                resources, io_device = ordinary_adapter_fallback(profile, major, minor)
+                self.assertIsInstance(resources, broker.BrokerResourceConfig)
+                self.assertEqual(resources.protocol_version, 2)
+                self.assertEqual(io_device, f'{major}:{minor}')
+                self.assertEqual((resources.broker_budget.memory_bytes,
+                                  resources.broker_budget.swap_bytes,
+                                  resources.broker_budget.processes,
+                                  resources.broker_budget.cpu_microseconds),
+                                 (broker_mib*mib, 0, 128, 400000))
+                self.assertEqual((resources.manager_budget.memory_bytes,
+                                  resources.manager_budget.swap_bytes,
+                                  resources.manager_budget.processes,
+                                  resources.manager_budget.cpu_microseconds),
+                                 (manager_mib*mib, 0, 32, 200000))
+                policy = resources.default_policy
+                self.assertEqual((policy.total.memory_bytes, policy.total.swap_bytes,
+                                  policy.total.processes, policy.total.cpu_microseconds),
+                                 (512*mib, 0, 64, 200000))
+                self.assertEqual((policy.actor_default.memory_bytes,
+                                  policy.actor_default.swap_bytes,
+                                  policy.actor_default.processes,
+                                  policy.actor_default.cpu_microseconds),
+                                 (256*mib, 0, 32, 100000))
+                self.assertEqual({item.name: item.maximum.memory_bytes
+                                  for item in policy.profiles},
+                                 {'development': 128*mib, 'read-only': 128*mib})
+                for application in policy.profiles:
+                    self.assertEqual((application.maximum.memory_bytes,
+                                      application.maximum.swap_bytes,
+                                      application.maximum.processes,
+                                      application.maximum.cpu_microseconds),
+                                     (128*mib, 0, 16, 100000))
+                budgets = [resources.broker_budget, resources.manager_budget,
+                           policy.total, policy.actor_default,
+                           *(item.maximum for item in policy.profiles)]
+                expected_io = [(major, minor, 64*mib, 16*mib)]
+                for budget in budgets:
+                    self.assertEqual(budget.swap_bytes, 0)
+                    self.assertEqual([(item.major, item.minor,
+                                       item.read_bytes_per_second,
+                                       item.write_bytes_per_second)
+                                      for item in budget.io], expected_io)
 
     def test_normal_constructor_ignores_storage_environment(self):
         child = Child()
