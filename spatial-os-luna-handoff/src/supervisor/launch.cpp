@@ -647,7 +647,7 @@ pid_t AuthorityLaunch::direct_child_pid() const {
         "Direct child identity requires a live started launch");
     return impl_->process->direct_child_pid();
 }
-void AuthorityLaunch::prepare_explicit_stop() {
+void AuthorityLaunch::prepare_explicit_stop(bool fence_active) {
     require(impl_->started && impl_->process && impl_->native &&
         (impl_->record.stage() == v1::START_ATTEMPTED || impl_->record.stage() == v1::CLEANUP_PENDING),
         "Explicit stop requires retained live launch ownership");
@@ -691,8 +691,10 @@ void AuthorityLaunch::prepare_explicit_stop() {
     case identity::ParticipantRuntime::StopDisposition::released:
         return;
     case identity::ParticipantRuntime::StopDisposition::active:
+        if (fence_active) fence();
+        return;
     case identity::ParticipantRuntime::StopDisposition::unknown:
-        // Unknown outcomes use the existing strict issuer fence. A rejected fence leaves cleanup pending.
+        // Unknown outcomes always use the existing strict issuer fence. A rejected fence leaves cleanup pending.
         fence();
         return;
     }

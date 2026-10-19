@@ -46,8 +46,8 @@ public:
     v1::AuthorityLaunchRecord stop();
     // Stop local scopes while preserving CLEANUP_PENDING when issuer outcome is unresolved.
     void stop_pending();
-    // Quiesce the retained issuer sender, then fence only an active or ambiguous generation.
-    void prepare_explicit_stop();
+    // Quiesce the issuer sender; fence ambiguous outcomes and optionally active generations.
+    void prepare_explicit_stop(bool fence_active = true);
     // Fence the exact authorized generation. This does not retire issuer obligations.
     v1::AuthorityLaunchRecord fence();
     // Exceptional shutdown only. Checked graceful release needs no fence.

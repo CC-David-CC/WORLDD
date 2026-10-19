@@ -492,7 +492,7 @@ int main(int argc, char** argv) {
                             cleanup_pending = true;
                             if (!unexpected_failure && !child_completed) {
                                 try {
-                                    if (request.has_stop()) launch->prepare_explicit_stop();
+                                    if (request.has_stop()) launch->prepare_explicit_stop(bool(cleanup_participant));
                                     else launch->fence();
                                 } catch (const std::exception& error) {
                                     if (request.has_stop()) {
@@ -557,26 +557,10 @@ int main(int argc, char** argv) {
                 management->flush(); tick();
             } catch (const std::exception& error) {
                 if (exit_pending_on_signal()) return 2;
-                if (management && management->descriptor() >= 0) {
+                if (cleanup_pending && management && management->descriptor() >= 0) {
                     pollfd event{management->descriptor(), POLLHUP | POLLERR | POLLRDHUP, 0};
                     const int ready = poll(&event, 1, 0);
                     if (ready > 0 && (event.revents & (POLLHUP | POLLERR | POLLRDHUP))) {
-                        if (!cleanup_pending) {
-                            cleanup_pending = true;
-                            // Management loss cannot resolve whether the issuer accepted activation.
-                            // Stop the locally owned scopes without fencing or acknowledging that generation.
-                            try {
-                                auto receipt = cleanup_once();
-                                if (receipt && storage_start_cleanup_confirmed) {
-                                    std::cerr << "Management parent disconnected; owned scopes stopped; issuer outcome remains unresolved\n";
-                                    std::cerr.flush();
-                                    return 2;
-                                }
-                                std::cerr << "Management parent disconnected; cleanup remains pending\n";
-                            } catch (const std::exception& cleanup) {
-                                std::cerr << "Management parent disconnected; cleanup remains pending: " << cleanup.what() << '\n';
-                            }
-                        }
                         std::cerr << "Management parent disconnected while cleanup may be pending; preserving unresolved evidence\n";
                         std::cerr.flush();
                         return 2; // Do not promote an already-pending cleanup record to a terminal receipt.
@@ -596,6 +580,13 @@ int main(int argc, char** argv) {
                         if (receipt && storage_start_cleanup_confirmed) return finish_unexpected(*receipt, pending_failure);
                     } catch (const std::exception& cleanup) {
                         std::cerr << "authority supervisor cleanup pending: " << cleanup.what() << '\n';
+                        if (!cleanup_participant) {
+                            pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
+                            reply.mutable_error()->set_message(pending_failure + "; cleanup remains pending: " + cleanup.what());
+                            try { management->send(reply.SerializeAsString()); drain(*management); }
+                            catch (...) { /* The durable journal retains the unresolved cleanup state. */ }
+                            return 2; // No broker cleanup journal can complete this local-only shutdown.
+                        }
                     }
                     if (cleanup_attempts >= kMaximumCleanupAttempts ||
                         Clock::now() - cleanup_started + kMinimumAttemptBudget > kCleanupWindow) {
