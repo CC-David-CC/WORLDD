@@ -1,0 +1,31 @@
+M08 passed fixture image cleanup: FOCUSED-PASS; milestone UNQUALIFIED
+
+Reviewed source:27a243981fcb224c42c5fd764f0dc4fe4b1dfa0b.
+Eighteen pure methods passed on each qualification host.
+Actual Debug caller smokes passed on each host:
+- Engine raw-runtime-schema rejection: sb16 9.149s; sb16-2 10.105s.
+- Supervised startup-refusal recovery: sb16 13.248s; sb16-2 13.851s.
+All inner and outer canonical command/wrapper receipts were zero and COMPLETE.
+Each caller removed one exact 512MiB fixture image after successful teardown.
+Root verification confirmed image absence and retained metadata.
+Subsequent verify_previous_cleanup returned verified-already-removed.
+Both temporary copy helpers returned to their recorded absence baseline.
+
+Exact full Git source archive was used for the smokes, not a mixed source tree.
+Production binaries remained812bcb6 with the authentic supervisor39 override.
+These focused checks do not qualify the complete integrated candidate.
+The twelve-case recovery batch in Debug and ASan/UBSan remains pending.
+The complete M08 gate and cross-host reconciliation remain pending.
+
+External evidence on test hosts:
+/home/dflanag3/spatial-artifacts/m08-cleanup-smoke-20261019/escalated-27a24398/hosts/HOST
+Primary independent summary on ROG:
+/home/dflanag3/spatial-artifacts/m08-passed-fixture-image-cleanup-20261019/native-smoke-primary-result.json
+Driver SHA256:1d4fe28387e02d8297071d638bf370a54223e2c76ff63a313853954cf0ed0502.
+
+A separate real-helper check removed two older qualified refusal images per host.
+Recovery verification passed. Measured reclaimed space:1073729536bytes per host.
+Only already-passing images were selected. Failed-run images stayed untouched.
+The first attempt refused a group-writable overall evidence root before deletion.
+The successful retry used each existing private per-profile evidence root.
+Receipt: m08-passed-fixture-image-cleanup-20261019/qualified-refusal-prune-primary-result.json.
