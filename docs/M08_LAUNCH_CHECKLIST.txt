@@ -75,3 +75,6 @@ Archive modes: shared Git archives may include group-write bits before explicit 
 Directory inventories: compare paths from one declared root. Include the archive top directory explicitly.
 Test-host launchers: use the deployed external runner. Test boxes have no Codex skill installation.
 Graphics wrappers: pin per-host wrapper hashes when host-specific library paths differ.
+Supervised recovery: initialize the retained delegation parent before bootstrap and preserve it across broker generations.
+Privileged Python preflights: pass -B explicitly. Sudo can discard the caller bytecode environment setting.
+Execute the runtime driver preflight-only mode before tmux launch. Require complete source-pin file, directory, and mode fields.
