@@ -55,7 +55,7 @@ The earlier intermittent storage-contention barrier miss remains unresolved.
 Do not widen its deadline or infer resolution from the passing frozen 079 reproduction.
 M09 drafts remain separate. M08 remains unqualified.
 
-Runtime launch update
+Runtime launch update: historical attempt 01
 
 Both profiles passed dependency checks on both hosts.
 Each profile checked 81 ELF dependencies and 14 actual instrumentation bindings.
@@ -95,3 +95,52 @@ Do not restart a live or merely slow test batch.
 Btrfs alias coverage still requires its separate private-Btrfs variant.
 The Debug deadline-multirow case passed on both hosts in this batch.
 The earlier storage-contention failure remains unresolved until combined candidate verification.
+Corrected focused batch: attempt 02
+
+Attempt 01 ended with command and wrapper exit 8 on both hosts.
+Each host passed four CTest groups before workspace-file-action-broker failed.
+That group ran 43 internal cases: 25 failed, one errored, and 17 passed per host.
+Later selected groups and the sanitizer profile were unrun.
+Preserved evidence: runs/combined-focused-01 and focused-failure-01.json.
+
+The focused launcher omitted the full-gate copy-helper lifecycle wrapper.
+The required root-owned copy workers were absent on both hosts.
+Production correctly rejected copy startup with unavailable trusted worker binaries.
+No copy_job was returned. Later assertions then failed or observed uncertain state.
+This explains a setup defect. It does not yet prove every failure resolved.
+
+Two targeted existing cases passed on both hosts with the required wrapper:
+FileActionBrokerRegressionTests.test_file_action_copy_job_regular_file_bytes_and_stable_poll.
+SupervisedLegacyFileActionRecoveryTests.test_file_action_copy_job_sigkill_restart_reconciles_retained_scope.
+The original registered command, environment, working directory, and timeout were retained.
+Only the case selector changed for this diagnostic.
+Both helper lifecycle records confirm child exit zero and restored prior helper absence.
+Evidence: helper-readiness-02/result.json and runs/helper-readiness-02.
+
+Attempt 02 is live on both hosts in tmux m08-f109-combined-focused-02.
+Its driver uses the existing with_copy_worker_helpers.py around each profile.
+None of the four self-managed nested CTests is in this selected batch.
+The runtime lock covers installation, CTest execution, and helper restoration.
+Fresh relocated metadata again passed all 238 registration comparisons per profile.
+No production code, oracle, or timeout changed for this retry.
+At this checkpoint, four groups passed on each host. File-action testing continues.
+Sanitizer remains pending. No terminal batch result exists yet.
+
+Current receipts: runs/combined-focused-02.
+Current progress: focused-progress-02.json.
+Current selection: control/focused-selection-v2.json.
+Current driver: control/run-focused-v2.py.
+Current JUnit: focused-02/PROFILE/results.xml.
+Current helper lifecycle: focused-02/PROFILE/copy-worker-helper-lifecycle/lifecycle.json.
+Current metadata: ctest/combined-focused-02/PROFILE.
+Current evidence: evidence/combined-focused-02/PROFILE/spatial_security_evidence.
+These paths are relative to each host deployment root recorded above.
+
+Coordination repair bad69c3418ffadaecac8c0b3e500a520f152c87e is integrated and box-git verified.
+It records full-gate wrapper preservation and corrects stale host instructions.
+Skill validation, bash syntax, and mocked success/failure launcher checks passed.
+Matching installed skill files were hash-verified on ROG and the controller.
+Validation receipt: ROG spatial-artifacts/m08-skill-coordination-repair-20261019/primary-validation-01.
+This skill-only change does not change the frozen f109 runtime candidate.
+
+M08 remains UNQUALIFIED. The full M08 gate has not started.
