@@ -58,3 +58,29 @@ It binds the pinned file-operation journal after seeding the uncertain job.
 Production callback and controller guards remain unchanged. Runtime is UNRUN.
 Truncated EOF, unknown exit, post-callback verification failure, and cleanup failure
 still require explicit retained-root runtime evidence before qualification.
+
+Focused restart results and combined build
+The sb16-2 restart subset passed five tests in16.034seconds.
+Canonical command.exit=0, wrapper.exit=0, terminal-status=COMPLETE.
+The subset used source6a80a416a240fbdadac69621b737a61eab3903f8.
+Only workspaced was replaced; all other executables remained079 in the new prefix.
+Each startup checked the actual host, worldd, and broker executable paths.
+It hashed the running broker and selected file across restarts.
+The source-ordering repair has focused Debug evidence. It is not sanitizer-qualified.
+The runtime wrapper confirmed scope removal without unexpected population.
+The service was inactive/not-found, and the runtime lock was free.
+Two earlier attempts failed before the canonical runner or any test executed.
+Attempt01 referenced the builder script path. Attempt02 lacked the private evidence directory.
+Primary corrected those setup paths and launched attempt03 successfully.
+sb16-2 raw root: /home/dflanag3/spatial-artifacts/m08-git-restart-reconciliation-6a80a416-sb16-2-debug-20261019
+Result manifest: focused-results.json
+Manifest SHA256: 4926bbc4f67261b3e1f68e74b215e4e2799910f15005f88a855064c3fbd03356
+
+The combined5440113d27edd57cfa45baec8a786468e1be6430 Debug build passed onROG.
+Configure and complete build both recorded canonical0/0 COMPLETE receipts.
+The build reported151 distinct completed targets. No runtime tests ran onROG.
+Build root: /home/dflanag3/spatial-artifacts/m08-diagnostic-build-a5dea9e-20261019
+Run: runs/full-build-5440113-20261019T1221Z
+The same544 source sanitizer configuration passed. Its build started successfully.
+Sanitizer runtime checks and the complete M08 gate remainUNRUN.
+Sanitizer build receipts: /home/dflanag3/spatial-artifacts/m08-checked-runtime-5440113-sanitizer-build-20261019
