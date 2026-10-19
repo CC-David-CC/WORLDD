@@ -537,7 +537,7 @@ class GateStaticTests(unittest.TestCase):
         self._allow_root_owned_fixture_probes()
         review['results']['restart']['passed'] = False
         (root / 'review.json').write_text(json.dumps(review))
-        with self.assertRaisesRegex(RuntimeError, 'review or cleanup receipt'):
+        with self.assertRaisesRegex(RuntimeError, 'storage-owner scenario receipt contains a failed result'):
             gate.artifact_evidence_manifest(target)
         review['results']['restart']['passed'] = True
         (root / 'review.json').write_text(json.dumps(review))

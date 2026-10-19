@@ -1,0 +1,25 @@
+M08 Python cache directory closure - 2026-10-19
+
+Status: UNQUALIFIED tooling repair. Base: 7db29e33342c61e4d5cb25e2d0b31cc3c362b10a.
+
+Failure evidence
+
+Full-candidate prepare attempt 01 failed inventory verification because the original build tree lacked the declared Python cache directory. The operator created the exact empty cache directory to allow prepare attempt 02 to proceed. Attempt 02 completed its build stages, then failed while verifying staged runtime closure because the empty directory was not copied into the package:
+
+/home/dflanag3/spatial-artifacts/m08-final-gate-preparation-20261019/packages/m08-7db29e3-full-candidate-02/runtime-build/Debug/pycache-actor-cabinet-gateway
+
+CTest declares this path through PYTHONPYCACHEPREFIX. The file manifest did not represent the empty directory, so staging and archive creation lost a required build-tree path. No production runtime tests ran in either prepare attempt.
+
+Repair
+
+The gate recognizes only PYTHONPYCACHEPREFIX assignments in CTest ENVIRONMENT properties. It permits the two source-declared direct build children: pycache-actor-cabinet-gateway and pycache-actor-cabinet-gateway-instrumentation. It rejects other names, source/outside paths, traversal components, and symlinked roots before creating anything.
+
+The package records these paths separately from file hashes. Staging creates fresh empty directories and never copies cache contents. The archive carries explicit directory members and an out-of-band directory list. Extraction checks that list against both the archive and provenance. Initial package/extraction checks require emptiness. Later gate checks allow existing cache files and do not clean them, so retries preserve prior state.
+
+Validation
+
+The canonical cache-focused tooling receipt passed three cache-directory tests, two archive integrity tests, and one production-off runtime-staging test. AST compilation and git diff --check passed. The first sb16 full-suite attempt was refused before launch because its run directory was inside the fixture checkout. A later attempt used a fabricated empty receipt and failed setup validation; neither attempt executed the suite validly.
+
+An audited receipt and the existing sb16 authority-credential source fixture were then used with a run directory outside the checkout. The full static suite ran 61 tests and reported one failure: a pre-existing stale expected error in an artifact-manifest test. The test sets a scenario result to failed, and the implementation correctly rejects it with storage-owner scenario receipt contains a failed result; the old expectation checked a different cleanup error. The separate cleanup-failure control remains in the suite. This correction is isolated in a follow-up test-only commit; after it, the same unmodified sb16 suite passed 61/61.
+
+Full candidate prepare, deployment, native tests, CTest, full M08 gate, and cross-host qualification remain unrun. This source change requires a new candidate source pin and package attempt. Do not relabel the old package.
