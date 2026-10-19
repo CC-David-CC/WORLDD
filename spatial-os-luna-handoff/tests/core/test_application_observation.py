@@ -7,6 +7,8 @@ import socket
 import struct
 import threading
 import unittest
+import sys
+from pathlib import Path
 from unittest.mock import patch
 from google.protobuf import text_format
 import core_pb2 as core
@@ -17,6 +19,8 @@ import security_pb2 as security
 from harness.oracles import pose
 from harness.wire import frame
 import test_application_access as access
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'tools'))
+from observation_resource_fixture import fund_actor_application_reservations
 from test_world_identity import WorldIdentityFixture, WorldProcess
 from test_world_authority import WorldAuthorityTests
 from test_workspace_authority import WorkspaceAuthorityTests as Workspace
@@ -86,10 +90,8 @@ class ApplicationObservationTests(WorldIdentityFixture):
         if configuration:
             resources=text_format.Parse(access.Path(configuration).read_text(),pb.BrokerProcessConfig())
             # This fixture retains its bootstrap application beside two independent native witnesses.
-            # Keep each profile limit unchanged. Explicitly fund three actor-owned application reservations.
-            policy=resources.resources.default_policy
-            policy.actor_default.memory_bytes=3*policy.profiles[0].maximum.memory_bytes
-            policy.actor_default.processes=3*policy.profiles[0].maximum.processes
+            # Fund the policy selected for workspace one; preserve each application profile limit.
+            fund_actor_application_reservations(resources.resources,'one',applications=3)
             path=self.root/'observation-resources.textproto'
             path.write_text(text_format.MessageToString(resources));path.chmod(0o600)
             self.enterContext(patch.dict(os.environ,SPATIAL_TEST_BROKER_CONFIG=str(path)))
