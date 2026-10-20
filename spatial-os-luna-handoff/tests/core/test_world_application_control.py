@@ -116,6 +116,107 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         if inspect:
             value=self.actor_state();self.assertFalse(value.held_keys);self.assertFalse(value.held_buttons);self.assertFalse(value.HasField('focus'))
 
+    def m09_hold_native_input(self,app):
+        self.until(lambda:self.probe_events(app),lambda rows:any(r.get('event')=='focus' and r.get('focused') for r in rows))
+        before=len(self.probe_events(app))
+        self.send_key_event('Shift_L',True);self.send_key_event('a',True)
+        self.actor_aim(x=.05,z=-1)
+        rows=self.until(lambda:self.probe_events(app),lambda rows:
+            any(r.get('event')=='key' and r.get('pressed') and r.get('keysym') in (ord('a'),ord('A')) for r in rows[before:]) and
+            any(r.get('event')=='motion' for r in rows[before:]))
+        presses=[r for r in rows[before:] if r.get('event')=='key' and r.get('pressed')]
+        codes={r['keycode'] for r in presses if r.get('keysym') in (ord('a'),ord('A'),0xffe1)}
+        self.assertEqual(len(codes),2,presses)
+        self.assertTrue(any(r.get('event')=='button' and r.get('pressed') and r.get('button')==1 for r in rows[:before]))
+        return before,codes
+
+    def m09_assert_native_release(self,app,before,codes,inspect=True):
+        def balanced(rows):
+            tail=rows[before:]
+            released={r.get('keycode') for r in tail if r.get('event')=='key' and not r.get('pressed')}
+            return (codes <= released and
+                any(r.get('event')=='button' and r.get('button')==1 and not r.get('pressed') for r in tail) and
+                any(r.get('event')=='focus' and not r.get('focused') for r in tail))
+        rows=self.until(lambda:self.probe_events(app),balanced)
+        tail=rows[before:]
+        key_releases={r.get('keycode') for r in tail if r.get('event')=='key' and not r.get('pressed')}
+        self.assertTrue(codes <= key_releases,tail)
+        self.assertTrue(any(r.get('event')=='button' and r.get('button')==1 and not r.get('pressed') for r in tail),tail)
+        self.assertTrue(any(r.get('event')=='focus' and not r.get('focused') for r in tail),tail)
+        if inspect:
+            state=self.actor_state()
+            self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons);self.assertFalse(state.HasField('focus'))
+        released_indexes=[index for index,row in enumerate(rows[before:],before)
+            if (row.get('event')=='key' and not row.get('pressed') and row.get('keycode') in codes) or
+               (row.get('event')=='button' and row.get('button')==1 and not row.get('pressed')) or
+               (row.get('event')=='focus' and not row.get('focused'))]
+        self.assertTrue(released_indexes,tail)
+        return max(released_indexes)
+
+    def m09_peer_first_native_event(self,app,peer,before,codes,x=0,z=-1):
+        self.actor_aim(peer,x=x,z=z)
+        result=peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        if result.HasField('error'):
+            self.assertEqual(result.error.code,core.BUSY,result)
+            # BUSY proves this request did not acquire the surface group.
+            self.m09_assert_native_release(app,before,codes,inspect=False)
+            result=peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        self.assertTrue(result.HasField('action'),result)
+        rows=self.until(lambda:self.probe_events(app),lambda rows:
+            any(r.get('event')=='button' and r.get('button')==1 and r.get('pressed') for r in rows[before:]))
+        peer_press=next(index for index,row in enumerate(rows[before:],before)
+            if row.get('event')=='button' and row.get('button')==1 and row.get('pressed'))
+        releases=[index for index,row in enumerate(rows[before:],before)
+            if (row.get('event')=='key' and not row.get('pressed') and row.get('keycode') in codes) or
+               (row.get('event')=='button' and row.get('button')==1 and not row.get('pressed')) or
+               (row.get('event')=='focus' and not row.get('focused'))]
+        self.assertEqual(len({rows[index].get('keycode') for index in releases
+            if rows[index].get('event')=='key'}),len(codes),rows[before:])
+        self.assertTrue(any(rows[index].get('event')=='button' for index in releases),rows[before:])
+        self.assertTrue(any(rows[index].get('event')=='focus' for index in releases),rows[before:])
+        self.assertTrue(all(index<peer_press for index in releases),rows[before:])
+        self.send_key_event('b',True,peer);self.send_key_event('b',False,peer);self.actor_pointer(False,peer)
+        rows=self.until(lambda:self.probe_events(app),lambda rows:
+            any(r.get('event')=='key' and r.get('pressed') and r.get('text_hex')=='62' for r in rows[before:]))
+        self.assertTrue(any(r.get('event')=='button' and r.get('pressed') and r.get('button')==1 for r in rows[before:]))
+        return rows
+
+    def m09_release_probe(self,app):
+        (self.data(app)/'release').touch()
+        result=self.world_process.management('process.wait',id=app.application.decode(),timeout_seconds=5)
+        self.assertEqual(result['exit_code'],0)
+
+    def m09_run_balanced_transfer(self,trigger):
+        app,surface,observe,control=self.begin_control();before,codes=self.m09_hold_native_input(app)
+        self.addCleanup(self.m09_release_probe,app)
+        log_boundary=len(self.probe_events(app))
+        if trigger=='voluntary':self.control_action(self.viewer,unfocus=core.ActorStopRequest())
+        elif trigger=='disconnect':self.viewer.close()
+        elif trigger=='revoke':self.revoke_grant(self.peer,control)
+        elif trigger in ('unmap','destroy'):
+            self.probe_command(app,trigger)
+            self.until(lambda:self.probe_events(app),lambda rows:
+                any(r.get('event')==trigger and r.get('xid')==next(r['xid'] for r in rows if r.get('event')=='ready')
+                    for r in rows[before:]))
+        else:raise AssertionError('unknown M09 transfer trigger')
+        if trigger in ('disconnect','revoke'):
+            # These paths must make progress without a harness wait for release.
+            self.m09_peer_first_native_event(app,self.peer,log_boundary,codes)
+            self.m09_assert_native_release(app,before,codes,inspect=False)
+        elif trigger=='destroy':
+            self.m09_assert_native_release(app,before,codes,inspect=False)
+            self.probe_command(app,'sync')
+            other,other_surface=self.probe((.6,0,-2))
+            self.addCleanup(self.m09_release_probe,other)
+            self.actor_aim(self.peer,x=.6,z=-2)
+            self.actor_pointer(True,self.peer)
+            self.until(lambda:self.probe_events(other),lambda rows:
+                any(r.get('event')=='button' and r.get('button')==1 and r.get('pressed') for r in rows))
+        else:
+            if trigger=='unmap':self.probe_command(app,'map')
+            self.m09_peer_first_native_event(app,self.peer,log_boundary,codes)
+            self.m09_assert_native_release(app,before,codes)
+
     def test_authorized_native_input_without_workspace_selection(self):
         app,surface,observe,control=self.begin_control();self.assertFalse(self.actor_state().workspace)
         self.actor_pointer(False);self.send_key_event('a',True);self.send_key_event('a',False)
@@ -237,6 +338,21 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.probe_command(app,'unmap');self.until(lambda:self.actor_state(),lambda s:not s.held_keys and not s.held_buttons and not s.HasField('focus'))
         self.probe_command(app,'map');self.actor_aim(self.peer);self.actor_pointer(True,self.peer)
         self.assertTrue(self.actor_state(self.peer).held_buttons)
+
+    def test_m09_voluntary_release_balances_input_before_peer_event(self):
+        self.m09_run_balanced_transfer('voluntary')
+
+    def test_m09_disconnect_balances_input_before_peer_event(self):
+        self.m09_run_balanced_transfer('disconnect')
+
+    def test_m09_authority_revocation_balances_input_before_peer_event(self):
+        self.m09_run_balanced_transfer('revoke')
+
+    def test_m09_unmap_balances_input_before_peer_event(self):
+        self.m09_run_balanced_transfer('unmap')
+
+    def test_m09_destroy_releases_input_and_preserves_probe(self):
+        self.m09_run_balanced_transfer('destroy')
 
     def revoke_viewer_identity(self,kind):
         target=self.second.actor_id if kind==issuer.ACTOR_TARGET else self.second.credential_id

@@ -1,0 +1,79 @@
+# M09 balanced input witness
+
+Status: SOURCE-ONLY DRAFT. M08 remains UNQUALIFIED. Runtime is UNRUN.
+Branch: `m09/balanced-input-witness-20261020`.
+Base: `50b6da599a135cc823a547b5845564a5ddc66f8f`.
+Owned files: this note and `tests/core/test_world_application_control.py`.
+No host, build, service, test, commit, or push operation occurred.
+
+## Selectors and intended evidence
+
+- `WorldApplicationControlTests.test_m09_voluntary_release_balances_input_before_peer_event`
+- `WorldApplicationControlTests.test_m09_disconnect_balances_input_before_peer_event`
+- `WorldApplicationControlTests.test_m09_authority_revocation_balances_input_before_peer_event`
+- `WorldApplicationControlTests.test_m09_unmap_balances_input_before_peer_event`
+- `WorldApplicationControlTests.test_m09_destroy_releases_input_and_preserves_probe` (INCOMPLETE for same-group transfer ordering)
+
+The first four cases hold Shift, `a`, button 1, focus, and motion while the button is held.
+They submit the peer's pointer request before waiting for native release events.
+They use one native log boundary captured before the cancellation trigger.
+They require old key releases, button release, and FocusOut before the peer's native button press.
+They then send and release `b`, release the peer button, and retain the probe cleanup marker.
+The fixture inspects balanced held key and button state where the controller session remains available.
+Disconnect and grant-revocation do not wait for release before submitting peer control.
+Only a typed `BUSY` permits one retry, after native release; successful or uncertain effects are never retried.
+
+The destroy case checks releases in the original probe log and sends a positive event to a second app.
+That event uses another application and another log, so it does not prove same-group reacquisition or cross-log ordering.
+This draft creates no same-application survivor before destroying its main window.
+The probe supports popup creation in native/xprobe.c:149-154.
+A future witness must validate a surviving popup and its actor-reachable placement.
+Same-group destroy transfer coverage is INCOMPLETE; do not count this as satisfying that requirement.
+
+## Review corrections
+
+The former helper waited for native releases before submitting peer input.
+It then captured `peer_before` after release, making its ordering comparison tautological.
+The former destroy branch sent peer input to a different application.
+Those separate logs do not establish same-group transfer ordering.
+The corrected cases use an existing confined probe and real actor-control path.
+They do not mock production routing or modify production or probe sources.
+The native witness provides key, button, motion, focus, unmap, and destroy events.
+It exposes no direct pointer-capture state. Held button plus motion is a drag proxy only.
+Capture introspection remains unavailable.
+The fixture's synchronous actor calls may themselves return after cancellation; disconnect and revocation ordering remains a runtime claim to verify.
+
+## Runtime plan and limits
+
+After M08 releases both qualification hosts, run these five selectors in Debug and ASan-UBSan on sb16 and sb16-2.
+Use the registered `world-application-control` environment and existing native probe.
+Keep the 240-second CTest timeout and existing 4/5-second helper limits unchanged.
+Timeout capacity under the combined matrix is UNMEASURED for focused runtime.
+Do not infer it from current limits or increase deadlines speculatively.
+
+Before runtime, primary should review the actor-control request path, typed error mapping, and exact native event ordering.
+Also confirm whether the probe can faithfully expose a surviving same-application surface after main-window destruction.
+If not, retain destroy coverage as INCOMPLETE.
+
+## Checks and status
+
+- AST syntax inspection: PASS (source parse only).
+- `git diff --check`: PASS (source whitespace only).
+- Focused runtime selectors: UNRUN by assignment.
+- Debug and ASan-UBSan runtime: UNRUN.
+- Host qualification: UNRUN.
+- M09 qualification: NOT ESTABLISHED.
+- M08: UNQUALIFIED.
+- Same-group destroy transfer: INCOMPLETE.
+- Direct capture-state evidence: UNSUPPORTED by current probe.
+
+## Primary source review
+
+The first ordering draft was rejected. The second draft removes its pre-handoff release wait.
+Primary checked the changed test code and parsed all 30 class test methods.
+The five new selectors are unique. Source whitespace checks pass.
+Actors::authorize_input acquires control before send_input.
+ControlLeases::acquire reports BUSY before creating a new reservation.
+This supports retrying the specific rejected request once after release.
+Runtime ordering, destruction behavior, and timeout capacity remain UNRUN or UNMEASURED.
+This checkpoint is an incomplete M09 source draft, not an integrated or qualified result.
