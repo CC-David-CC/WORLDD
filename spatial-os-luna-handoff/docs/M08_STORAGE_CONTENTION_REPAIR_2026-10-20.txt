@@ -1,0 +1,54 @@
+# M08 storage-contention repair investigation (UNQUALIFIED)
+
+Branch: `m08/storage-contention-repair-20261020`
+
+Base: `5d4a032623f7e09b9c157041960ddc837be43975`
+
+Status: source and retained-evidence diagnosis only. No product code changed. No build or runtime test ran here.
+
+## Evidence integrity and result
+
+The retained bundle is `/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/failure-sb16-5d4a032-01`. Its `manifest.json` SHA-256 is `6883e6c2a62c89dbdf0461b56c943851d8c4828c7e5b8a4253717227017f8a45`. Every file listed by that manifest was checked against both recorded size and SHA-256. The terminal summary at `/home/dflanag3/spatial-artifacts/m08-bootstrap-fullgate-20261020/sb16-debug-core-failure-summary-01.json` matches SHA-256 `f14889b051b31f8d99471dcf48a3fb4eb77e300b51bd0152296e5d8244beac4a`.
+
+The failure is `test_native_storage_actor_revocation_during_bounded_git_import` inside `session-storage-contention`. Debug reported 230/231 groups passed on sb16. The failing assertion is the six-second barrier loop in `test_session_application.py:204-210`, called by `test_storage_contention.py:818`. It is not a CTest 180-second timeout. The test later asserts that all nine application pidfds exit within two seconds at lines 768-836. Evidence records only five exits. The barrier assertion masked that second failure.
+
+## Proven cause and remaining uncertainty
+
+The failure bundle proves a workspace issuer transport loss. Broker stderr records `issuer_eof`, phase `reply_header`, elapsed `0 ms`, and `since_previous_exchange_ms=3469`. The configured issuer idle timeout is 3000 ms. `WorkspaceAuthority::keepalive()` marked authority unavailable after that EOF. The workspace then logged `settle_wait_broken` at the same revision, so it could not submit an applied-revision acknowledgement. World and workspace both received revision 1 within about 6 ms. The world logged cancellation settled about 3.4 seconds later. No `ack_queued` event appears.
+
+The sample proves a gap longer than the issuer idle limit and proves that the client treated the resulting EOF as permanent authority failure. It does not yet prove why no keepalive was exchanged during that gap. Do not attribute the loss to the test's six-second deadline or to a service restart. The lifecycle witness shows the same worldd, workspaced, and coordinator PIDs and start ticks before cleanup.
+
+The previous diagnosis at `M08_SESSION_STORAGE_CONTENTION_DIAGNOSIS_2026-10-19.md` suspected synchronous Btrfs sync on the broker loop. That diagnosis used an older source base. At this candidate, `ExecutionStore::filesystem_effect()` runs filesystem sync in `std::async` and calls its observer while waiting (`src/workspace/store.cpp:652-658`). Import routes `sync_tree()` through that wrapper (`store.cpp:1037-1069`). The syscall snapshot nevertheless reports the workspaced PID in `fdatasync` / Btrfs `wait_log_commit`. That conflicts with the current source path. The retained snapshot does not include a thread ID or source operation identity. Resolve this attribution before claiming that import sync blocked the broker thread.
+
+The second host provides a direct witness for the process-stop failure. Its manifest SHA-256 is `2d670c7c9fc03f17c31deb3c47a9f9f1c2907e63d69fc8616b7f958526c15f86`; all eleven listed files match their recorded sizes and hashes. The test captured PIDs `778796-778800` and `778818-778821`. Seven of nine exited within 2.0096 seconds. Broker stderr identifies `pid=778818`, `namespace_pid=778819`, and scope `authority-729553e7638425938be086fd433c08f30cdc45c04c83ac5e81ddaa39f333e7ad`. That scope remained populated and its child unreaped after 2.000642 seconds. `stop_or_exit()` then called `_exit(2)`. The lifecycle witness confirms workspaced exited before fixture cleanup, and the import reply is `Broker authority channel closed`. The retained output does not include a per-PID exit table, so the two logged PIDs are a strong identification of the two still-live witnesses, not a complete per-PID status record.
+
+On sb16, `contention.json` records nine sorted PIDs and only the aggregate exit count: five exited within two seconds. It lacks per-PID cgroup, scope, and exit-time mapping. The four surviving PID values and scopes cannot be recovered. No `application stop unconfirmed` line appears in the retained sb16 broker stderr. The hosts therefore show distinct manifestations: sb16 kept services alive, completed import, then remained fail-closed with both acknowledgements pending; sb16-2 failed one application scope drain, exited workspaced, and returned an import transport error.
+
+Current source shows the cancellation path: the filesystem observer calls `enforce()`; authority changes call `ExecutionStore::reconcile_authority()` (`src/workspace/main.cpp:348-364`). That function erases revoked jobs serially (`src/workspace/store.cpp:1891-1937`). Each `ApplicationProcess` destructor stops and waits for its scope (`src/workspace/process.cpp:407-466`); `ProcessScope::request_stop()` writes `cgroup.kill`, while `complete_stop()` waits for an empty scope and reaps the child (`src/supervisor/process_scope.cpp:1067-1111`). A failed drain makes `stop_or_exit()` terminate the broker. Serial stop-and-drain also delays stop requests to later jobs.
+
+A likely explanation for the sb16 `fdatasync` is process-state persistence in that same reconciliation loop. The execution database uses `PRAGMA synchronous=EXTRA` and `journal_mode=DELETE` (`store.cpp:710-714`). Each `UPDATE processes SET state='revoked'` is an autocommit statement (`store.cpp:1935-1936`). It can synchronously commit through `fdatasync` on the authority thread. This is a strong source-backed explanation for an authority thread in Btrfs `fdatasync` while revocation is reconciled, and for delayed issuer service during a write-limited import. It remains unproven because the captured `/proc` snapshot lacks fd9's target and a thread ID. The sb16-2 workspaced snapshot was in `poll`, so the fdatasync sample cannot be generalized across both hosts.
+
+A control path exists during filesystem effects: the store observer runs while its async filesystem worker waits (`store.cpp:652-658`). Scope-wide kill also exists. The gap is that revocation reconciliation performs stop and durable state work serially on the authority path. A process blocked in uninterruptible I/O may still resist SIGKILL; neither bundle retains that process's kernel stack or `/proc/<pid>/fd` targets. Do not claim a specific I/O wait for PID 778818 or for sb16's four unexited processes.
+
+## Narrow investigation and proposed scope
+
+Proposed narrow production scope, pending primary review: split actor-revocation cancellation from draining. First deny new actions, collect all affected applications, and issue `request_stop()` to every scope. Persist their state changes in one checked durable transaction. Then drain the requested scopes while continuing issuer and control servicing. Keep the participant acknowledgement pending until every process scope is empty and durable reconciliation is complete. A failed commit or populated scope must remain unacknowledged and fail closed. Preserve checked issuer transport, actor-revocation semantics, credential-revocation process survival, and independent grants. Do not raise the issuer idle timeout or any fixture/test deadline. No contract or locked-test edits are proposed.
+
+The source seam is `WorkspaceAuthority::tick()/keepalive()` and the import observer path in `src/workspace/main.cpp`, `src/workspace/store.cpp`, `src/workspace/process.*`, and `src/supervisor/process_scope.*`. Review SQLite transaction behavior and scope identity handling before coding. A diagnostic-only overlay may be needed to retain per-PID scope IDs, `/proc/<pid>/fd` targets, task stacks, and exit timestamps. Do not change product code until primary approves the repair shape.
+
+## Focused regression plan (recorded before execution)
+
+Run these registered groups on sb16 and sb16-2, first Debug and then ASan/UBSan, using the normal resource wrappers and production binaries:
+
+- `session-storage-contention`: covers actor revocation during bounded Git import, actor revocation under writes, and credential revocation while writes continue. The import case must retain its existing six-second barrier and two-second process-exit bounds.
+- `workspace-participant-races`: checks participant acknowledgements under delayed replies and confirms that process exit precedes acknowledgement.
+- `workspace-participant-native` and `workspace-participant-settlement`: checks the native participant lifecycle and settlement callers.
+- `workspace-authorization-fence-credential` and `workspace-authorization-fence-unrelated-revocation`: checks that credential loss preserves valid process execution and unrelated revocation preserves independent authority.
+
+Required assertions in the combined regression: all nine source application pidfds exit within the existing two-second limit while Git remains active; both participants receive revision 1 and acknowledge it; the barrier completes; credential revocation preserves all authorized processes and writer progress; worldd, workspaced, and coordinator retain their process identities through the witness. Preserve per-PID scope mapping and exit timestamps in any next failure evidence. Capture the stopped process's cgroup, pidfd status, `/proc/<pid>/fd` targets, and kernel task stack before teardown. Capture the broker thread ID and fd targets when the broker is sampled in `fdatasync`. These diagnostics distinguish delayed SQLite commit from process I/O waits without changing runtime behavior. These checks have not run for this investigation.
+
+## Previous attempts and qualification
+
+`M08_STORAGE_CONTENTION_FOCUSED_RESULTS_2026-10-20.txt` records earlier focused Debug and sanitizer passes, plus one near-deadline timeout. Those results predate this failure and do not qualify this candidate. `M08_STORAGE_CONTENTION_REJECTION_EVIDENCE_2026-10-19.txt` concerns a separate resource-rejection diagnostic and does not establish this cause. The bootstrap-race correction at the base remains intact. `workspace-participant-races`, `workspace-participant-native`, `workspace-participant-settlement`, and `session-storage-contention` have not run for this repair branch.
+
+This note is an unqualified diagnosis. No runtime evidence, phase gate, or M08 acceptance requirement is marked passed by this investigation.
