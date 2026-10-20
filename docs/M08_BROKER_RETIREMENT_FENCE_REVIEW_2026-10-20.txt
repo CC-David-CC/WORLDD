@@ -1,0 +1,94 @@
+M08 broker retirement fence review — 2026-10-20
+
+Status
+
+The sb16 full-gate failure is a stale scenario setup, not evidence of a
+production fencing defect. The preserved result reports 8/9 cases passed;
+`test_unfenced_shutdown_cannot_claim_failed_generation_retirement` failed
+because cleanup had a fence. Its setup called `pin_broker()`, marked the world
+stopped, then requested ordinary broker stop. Evidence:
+`/home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/fullgate-session-broker-retirement-sb16-failure-01.json`.
+
+Source trace
+
+`supervisor/main.cpp` calls `prepare_explicit_stop(bool(cleanup_participant))`
+for ordinary stop. Broker startup installs `BrokerCopyCleanupParticipant`
+(`platform/broker.cpp`); the broker cleanup journal is bound before serving
+requests. In `launch.cpp`, explicit stop quiesces the authenticated participant
+and verifies the exact issuer, registration, connection, service incarnation,
+and owned generation. An active result invokes `fence()` when the cleanup
+participant is installed. `fence()` checks the configured signing key against
+the authorized public key, completes the issuer challenge, validates the
+returned fence against the launch record, then persists it. The subsequent
+scope cleanup runs the copy-cleanup participant against its pinned journal and
+owned drained tree. The returned cleanup therefore legitimately has a fence.
+The test's `world_stopped` flag cannot make broker cleanup unfenced.
+
+The independent crash path remains distinct. `SessionBrokerCleanupTests`
+checks process and native cleanup receipts, exact binding to the original
+launch, and a still-active issuer generation. Retirement validates the exact
+retained cleanup bytes and authenticated issuer receipt. The positive
+`test_actual_broker_retirement_preserves_other_generation_and_exact_retry`
+also checks issuer activation/retirement rows, survivor identity, and exact
+retry behavior. No source evidence indicates false fence claims or incorrect
+retirement in these paths.
+
+Test correction
+
+The failing selector now starts from actual broker crash cleanup and its
+genuine fenced record. It serializes a canonical record with only `fence`
+removed, temporarily stores those bytes in the existing launch journal, and
+calls the ordinary authenticated retirement request. The production
+`SessionBroker::retire` boundary rejects the record because it differs from
+the exact cleanup receipt retained by the live coordinator. The test checks
+that issuer activation and retirement rows remain unchanged and that the
+journal retains the exact tampered bytes. A `finally` block restores the
+original serialized cleanup bytes before checking the positive genuine
+retirement/retry path and fixture cleanup.
+
+This preserves the invariant that missing-fence evidence cannot authorize
+retirement through the production path. It does not directly enter
+`AuthorityLaunch::ensure_retirement_fence` with a missing fence: the live
+coordinator retains the original receipt and rejects earlier on exact journal
+mismatch. No alternate server or validation bypass is introduced. Direct
+coverage of that lower-level deferred-fence rejection remains a gap for a
+future recovered-journal test that uses an existing production recovery path.
+
+Selectors for the focused native runtime review:
+
+- `BrokerRetirementTests.test_missing_fence_in_retained_cleanup_cannot_authorize_retirement`
+- `BrokerRetirementTests.test_actual_broker_retirement_preserves_other_generation_and_exact_retry`
+- `BrokerRetirementTests.test_live_and_unchecked_broker_cannot_retire`
+- `BrokerRetirementTests.test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement`
+- `BrokerRetirementTests.test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged`
+- `BrokerRetirementTests.test_issuer_write_failure_rolls_back_and_retry_completes`
+- `BrokerRetirementTests.test_local_commit_failure_recovers_original_committed_issuer_receipt`
+- `BrokerRetirementTests.test_saved_receipt_tampering_is_rejected_and_reopen_cannot_launch`
+- `BrokerRetirementTests.test_supervisor_death_without_checked_cleanup_cannot_retire`
+
+Run `session-broker-retirement` on sb16 and sb16-2 in Debug and ASan/UBSan
+after the old gates retire. Preserve the full-gate setup wrappers and CTest
+metadata. Runtime and builds are UNRUN for this source-only assignment.
+
+Source checks
+
+- Python AST parse of `tests/native/test_broker_retirement.py`: PASS.
+- `git diff --check`: PASS.
+- Runtime, build, host, cleanup, commit, and push actions: UNRUN / not performed.
+
+Changed files are limited to this note and `tests/native/test_broker_retirement.py`.
+No production, locked acceptance, schema, CMake, timeout, or other fixture file changed.
+
+Primary review
+
+Primary traced the authenticated fence and exact retained-cleanup checks in production.
+The repaired case is named test_missing_fence_in_retained_cleanup_cannot_authorize_retirement.
+The old name is retained above only to identify the original failing evidence.
+The new name describes missing-fence evidence, not a normal stop that no longer remains unfenced.
+Eight other native retirement cases and the nine-case total remain unchanged.
+The test restores original bytes in finally and then proves valid retirement still succeeds.
+It keeps explicit journal-mismatch rejection rather than accepting an arbitrary exception.
+The exact lower-level deferred-fence guard remains an explicitly unrun coverage limit.
+No production, deadline, budget, schema, or locked acceptance change was needed.
+This source correction is accepted for focused runtime verification, not as a runtime PASS.
+The note was moved to the assigned root docs path after worker retirement.

@@ -112,17 +112,29 @@ class BrokerRetirementTests(existing.SessionBrokerCleanupTests):
         self.assertEqual(self.issuer_rows(), before)
         self.checked(); self.completed(self.retired()); self.finish()
 
-    def test_unfenced_shutdown_cannot_claim_failed_generation_retirement(self):
-        self.pin_broker(); self.world_stopped = True
-        cleanup = self.request(stop_broker=launch.AuthorityLaunchQuery()).cleanup
-        self.assertEqual(cleanup.stage, launch.OWNED_SCOPES_STOPPED)
-        self.assertFalse(cleanup.HasField('fence'))
+    def test_missing_fence_in_retained_cleanup_cannot_authorize_retirement(self):
+        # Normal explicit stop fences an active copy-cleanup participant before
+        # draining its owned scope. Remove the fence only from retained evidence
+        # to exercise the production journal/retained-receipt boundary.
+        self.crash(); self.checked()
+        self.assertTrue(self.cleanup.HasField('fence'))
         before = self.issuer_rows()
-        rejected = self.request(expect_error=True, retire_broker=launch.AuthorityLaunchQuery())
-        self.assertIn('issuer fence', rejected.error.message)
-        self.assertEqual(self.issuer_rows(), before)
-        self.assertEqual(self.local(), (1, cleanup.SerializeToString()))
-        self.finish()
+        unfenced = launch.AuthorityLaunchRecord(); unfenced.CopyFrom(self.cleanup)
+        unfenced.ClearField('fence')
+        unfenced_bytes = unfenced.SerializeToString()
+        self.assertNotEqual(unfenced_bytes, self.cleanup_bytes)
+        with sqlite3.connect(self.database()) as db:
+            db.execute('UPDATE launch SET record=?', (unfenced_bytes,))
+        try:
+            rejected = self.request(expect_error=True, retire_broker=launch.AuthorityLaunchQuery())
+            self.assertIn('journal differs', rejected.error.message)
+            self.assertEqual(self.issuer_rows(), before)
+            self.assertEqual(self.local(), (1, unfenced_bytes))
+        finally:
+            with sqlite3.connect(self.database()) as db:
+                db.execute('UPDATE launch SET record=?', (self.cleanup_bytes,))
+        self.assertEqual(self.local(), (1, self.cleanup_bytes))
+        self.completed(self.retired()); self.finish()
 
     def test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement(self):
         self.crash(); self.checked(); before = self.issuer_rows()
