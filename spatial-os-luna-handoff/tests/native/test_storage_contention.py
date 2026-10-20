@@ -410,6 +410,9 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             services_at_workload_start=at_start,
             services_before_cleanup=before_cleanup,
             identity_matches_workload_start=identity_matches,
+            application_handles_before_import=getattr(self, '_application_handle_identities', []),
+            application_exit_observations=self.measurements.get('application_exit_observations', []),
+            broker_kernel_wait=self.measurements.get('broker_kernel_wait'),
             stderr=dict(bytes=total, sha256=digest.hexdigest() if total else None,
                         retained_relevant_bytes=len(relevant),
                         relevant_file='revocation-authority-diags.log',
@@ -674,18 +677,94 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self.assertTrue(reply.HasField('authority_barrier'),reply)
         return reply.authority_barrier
 
+    @staticmethod
+    def _proc_observation(path, *, limit=4096):
+        try:
+            value = path.read_text()
+            return dict(state='observed', value=value[:limit], truncated=len(value) > limit)
+        except OSError as error:
+            return dict(state='unavailable', errno=errno.errorcode.get(error.errno, 'OS_ERROR'))
+
+    def _application_process_identity(self, pid, pidfd):
+        proc = Path('/proc') / str(pid)
+        result = dict(pid=pid, pidfd=pidfd, sample_monotonic_ns=time.monotonic_ns())
+        stat = self._proc_observation(proc/'stat')
+        result['stat'] = stat
+        if stat['state'] == 'observed':
+            try:
+                fields = stat['value'][stat['value'].rfind(')') + 2:].split()
+                result['state'] = fields[0]
+                result['start_ticks'] = int(fields[19])
+            except (IndexError, ValueError):
+                result['stat_parse'] = 'malformed'
+        for name in ('comm', 'cgroup', 'status'):
+            result[name] = self._proc_observation(proc/name, limit=8192)
+        try:
+            result['exe'] = dict(state='observed', value=os.readlink(proc/'exe')[:4096])
+        except OSError as error:
+            result['exe'] = dict(state='unavailable', errno=errno.errorcode.get(error.errno, 'OS_ERROR'))
+        namespaces = {}
+        for name in ('pid', 'mnt', 'user', 'cgroup', 'net', 'ipc', 'uts', 'time'):
+            try:
+                namespaces[name] = dict(state='observed', value=os.readlink(proc/'ns'/name)[:128])
+            except OSError as error:
+                namespaces[name] = dict(state='unavailable', errno=errno.errorcode.get(error.errno, 'OS_ERROR'))
+        result['namespaces'] = namespaces
+        status = result['status']
+        if status['state'] == 'observed':
+            result['nspid'] = next((line.split()[1:] for line in status['value'].splitlines()
+                                    if line.startswith('NSpid:')), None)
+        if pidfd is not None:
+            result['pidfd_ready'] = bool(select.select([pidfd], [], [], 0)[0])
+        return result
+
     def pins(self, group):
         pids={int(pid) for path in [group,*(p for p in group.rglob('*') if p.is_dir())]
               for pid in (path/'cgroup.procs').read_text().split()}
         pids.discard(self.world_ids.workspaced_pid)
         # Before administrative work starts, the other populated groups are application scopes.
-        app_pids=pids
-        self.assertTrue(app_pids,dict(all_pids=sorted(pids)))
-        pins=[os.pidfd_open(pid) for pid in sorted(app_pids)]
-        for pin in pins:self.addCleanup(os.close,pin)
-        self.measurements['application_pids']=sorted(app_pids)
+        app_pids=sorted(pids)
+        self.assertTrue(app_pids,dict(all_pids=app_pids))
+        pins=[]
+        identities=[]
+        for pid in app_pids:
+            before = self._application_process_identity(pid, None)
+            try:
+                pin = os.pidfd_open(pid)
+            except OSError as error:
+                identities.append(dict(pid=pid, pidfd_state='unavailable',
+                                       errno=errno.errorcode.get(error.errno, 'OS_ERROR'), before=before))
+                self.measurements['application_handles_before_import'] = identities
+                self.save_measurements()
+                raise
+            pins.append(pin)
+            self.addCleanup(os.close, pin)
+            after = self._application_process_identity(pid, pin)
+            before_ticks=before.get('start_ticks')
+            after_ticks=after.get('start_ticks')
+            identities.append(dict(pid=pid, pidfd=pin, pidfd_state='retained', before=before, after=after,
+                                   start_ticks_match=(before_ticks == after_ticks if before_ticks is not None and
+                                                      after_ticks is not None else None)))
+        self._application_pidfds = pins
+        self._application_handle_identities = identities
+        self.measurements['application_pids']=app_pids
+        self.measurements['application_handles_capture_phase']='before_git_import'
+        self.measurements['application_handles_before_import'] = identities
+        self.save_measurements()
         self.assertEqual(select.select(pins,[],[],0)[0],[])
         return pins
+
+    def _application_exit_observations(self, exited_fds, sample_ns):
+        exited = set(exited_fds)
+        records = []
+        for identity in getattr(self, '_application_handle_identities', []):
+            pin = identity['pidfd']
+            ready = pin in exited
+            records.append(dict(pid=identity['pid'], pidfd=pin,
+                                exit_state='exited' if ready else 'live_at_sample',
+                                sample_monotonic_ns=sample_ns,
+                                identity=identity.get('after', {})))
+        return records
 
     def finish_checked(self):
         stopped=self.request(stop_world=self.owner).cleanup
@@ -766,14 +845,18 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         started_ns=time.monotonic_ns()
         started=time.monotonic()
         exited=select.select(pins,[],[],2)[0]
+        exit_sample_ns=time.monotonic_ns()
         # Select may report the first exit. Check each retained handle within the same bound.
         while len(exited)<len(pins) and time.monotonic()-started<2:
-            time.sleep(.01);exited=select.select(pins,[],[],0)[0]
+            time.sleep(.01);exited=select.select(pins,[],[],0)[0];exit_sample_ns=time.monotonic_ns()
         elapsed_seconds=time.monotonic()-started
         git_still_running=git_running()
         pending_reply=not bool(select.select([self.coordinator.stdout],[],[],0)[0])
+        exit_observations=self._application_exit_observations(exited,exit_sample_ns)
+        self.measurements['application_exit_observations']=exit_observations
         self.measurements['exit_during_git']=dict(seconds=elapsed_seconds,exited=len(exited),expected=len(pins),
-            git_still_running=git_still_running,pending_reply=pending_reply)
+            git_still_running=git_still_running,pending_reply=pending_reply,
+            handles=exit_observations)
         self.record_ack_timeline(
             'application_exit_sample',
             essential=True,
@@ -784,13 +867,152 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             git_process_count=len(git_still_running),
             pending_reply=pending_reply,
         )
-        self.measurements['broker_wait_channel']=Path('/proc/'+str(self.world_ids.workspaced_pid)+'/wchan').read_text()
-        inspect=("import json,os,sys;from pathlib import Path;"
-            "p=Path('/proc')/sys.argv[1];assert (p/'exe').resolve()==Path(sys.argv[2]).resolve();"
-            "print(json.dumps({name:(p/name).read_text() for name in ['wchan','syscall','stack']}))")
-        snapshot=subprocess.run(['sudo','-n',sys.executable,'-c',inspect,str(self.world_ids.workspaced_pid),
-            str(self.build/'workspaced')],capture_output=True,text=True,timeout=5)
-        self.measurements['broker_kernel_wait']=dict(exit_code=snapshot.returncode,stdout=snapshot.stdout,stderr=snapshot.stderr)
+        inspect = r'''import json, os, sys
+from pathlib import Path
+MAX_OUTPUT = 262144
+MAX_PROCESSES = 12
+MAX_THREADS = 32
+MAX_FDS_PER_PROCESS = 24
+MAX_TEXT = 1024
+class CappedStderr:
+    def __init__(self): self.remaining = 8192
+    def write(self, value):
+        kept = value[:self.remaining]
+        self.remaining -= len(kept)
+        return len(value)
+    def flush(self): pass
+sys.stderr = CappedStderr()
+broker_pid = int(sys.argv[1])
+expected_exe = str(Path(sys.argv[2]).resolve())
+applications = json.loads(sys.argv[3])
+records = [{'pid': broker_pid, 'role': 'workspaced', 'expected_exe': expected_exe}]
+records.extend({'pid': item['pid'], 'role': 'application', 'start_ticks': item.get('start_ticks'),
+                'pidfd': item.get('pidfd')} for item in applications if len(records) < MAX_PROCESSES)
+
+def read(path, limit=MAX_TEXT):
+    try:
+        value = Path(path).read_text()
+        return {'state': 'observed', 'value': value[:limit], 'truncated': len(value) > limit}
+    except OSError as error:
+        return {'state': 'unavailable', 'errno': getattr(error, 'errno', None),
+                'error': type(error).__name__}
+
+def link(path):
+    try:
+        value = os.readlink(path)
+        return {'state': 'observed', 'value': value[:512], 'truncated': len(value) > 512}
+    except OSError as error:
+        return {'state': 'unavailable', 'errno': getattr(error, 'errno', None),
+                'error': type(error).__name__}
+
+def start_ticks(stat_text):
+    try:
+        return int(stat_text[stat_text.rfind(')') + 2:].split()[19])
+    except (IndexError, ValueError):
+        return None
+
+result = {'status': 'complete', 'truncated': False, 'processes': [], 'thread_count': 0}
+thread_budget = MAX_THREADS
+for item in records:
+    pid = item['pid']
+    proc = Path('/proc') / str(pid)
+    exe = link(proc/'exe')
+    stat = read(proc/'stat')
+    row = {'pid': pid, 'pidfd': item.get('pidfd'), 'role': item['role'], 'exe': exe, 'stat': stat,
+           'start_ticks': start_ticks(stat.get('value', '')) if stat['state'] == 'observed' else None,
+           'cgroup': read(proc/'cgroup', 8192)}
+    if item['role'] == 'workspaced' and exe.get('value') != expected_exe:
+        row['identity_state'] = 'executable_mismatch'
+        result['processes'].append(row)
+        continue
+    if item['role'] == 'application' and item.get('start_ticks') is not None and row['start_ticks'] != item['start_ticks']:
+        row['identity_state'] = 'retired_or_pid_reused'
+        result['processes'].append(row)
+        continue
+    row['identity_state'] = 'matched'
+    try:
+        tids = sorted((int(path.name) for path in (proc/'task').iterdir() if path.name.isdigit()))
+    except OSError as error:
+        tids = []
+        row['thread_list_error'] = {'state':'unavailable','errno':getattr(error,'errno',None),
+                                    'error':type(error).__name__}
+    threads = []
+    for tid in tids[:thread_budget]:
+        task = proc/'task'/str(tid)
+        syscall = read(task/'syscall', 512)
+        thread = {'tid': tid, 'stat': read(task/'stat'), 'wchan': read(task/'wchan', 128),
+                  'syscall': syscall, 'stack': read(task/'stack', 1024)}
+        if syscall['state'] == 'observed':
+            parts = syscall['value'].split()
+            if parts:
+                try: thread['syscall_number'] = int(parts[0], 0)
+                except ValueError: thread['syscall_number'] = None
+                if len(parts) > 1:
+                    try: thread['first_argument'] = int(parts[1], 0)
+                    except ValueError: thread['first_argument'] = None
+                fdatasync_nr = {'x86_64': 75, 'aarch64': 83}.get(os.uname().machine)
+                if fdatasync_nr is not None and thread.get('syscall_number') == fdatasync_nr:
+                    thread['fdatasync_fd'] = thread.get('first_argument')
+        threads.append(thread)
+    thread_budget -= len(threads)
+    if len(tids) > len(threads): result['truncated'] = True
+    row['threads'] = threads
+    try:
+        fd_paths = sorted((path for path in (proc/'fd').iterdir() if path.name.isdigit()), key=lambda path:int(path.name))
+    except OSError as error:
+        fd_paths = []
+        row['fd_list_error'] = {'state':'unavailable','errno':getattr(error,'errno',None),
+                                 'error':type(error).__name__}
+    fd_by_number = {int(path.name):path for path in fd_paths}
+    active_numbers = {thread.get('fdatasync_fd') for thread in threads if isinstance(thread.get('fdatasync_fd'), int)}
+    selected_numbers = list(dict.fromkeys([int(path.name) for path in fd_paths[:MAX_FDS_PER_PROCESS]] +
+                                          sorted(number for number in active_numbers if number in fd_by_number)))
+    fds = [{'fd':number, **link(fd_by_number[number])} for number in selected_numbers]
+    if len(fd_paths) > len(fds): result['truncated'] = True
+    row['fds'] = fds
+    active = [thread.get('fdatasync_fd') for thread in threads if 'fdatasync_fd' in thread]
+    row['fdatasync_targets'] = [{'fd': fd, 'target': next((entry for entry in fds if entry['fd'] == fd),
+                                                          {'state':'not_captured'})} for fd in active]
+    result['processes'].append(row)
+    result['thread_count'] += len(threads)
+
+encoded = json.dumps(result, separators=(',', ':'))
+while len(encoded.encode()) > MAX_OUTPUT and result['processes']:
+    result['truncated'] = True
+    last = result['processes'][-1]
+    if last.get('fds'):
+        last['fds'].pop()
+    elif last.get('threads'):
+        last['threads'].pop()
+        result['thread_count'] -= 1
+    else:
+        removed = result['processes'].pop()
+        result['thread_count'] -= len(removed.get('threads', []))
+    encoded = json.dumps(result, separators=(',', ':'))
+if len(encoded.encode()) > MAX_OUTPUT:
+    encoded = json.dumps({'status':'output_limit','truncated':True,'process_count':len(records)})
+print(encoded)
+'''
+        affected = [item for item in getattr(self, '_application_handle_identities', [])
+                    if item.get('pidfd') is not None and
+                    not select.select([item['pidfd']], [], [], 0)[0]]
+        snapshot_args = ['sudo','-n',sys.executable,'-c',inspect,str(self.world_ids.workspaced_pid),
+                         str(self.build/'workspaced'),json.dumps([
+                             dict(pid=item['pid'],pidfd=item['pidfd'],
+                                  start_ticks=item.get('after',{}).get('start_ticks')) for item in affected])]
+        try:
+            snapshot=subprocess.run(snapshot_args,capture_output=True,text=True,timeout=5)
+            self.measurements['broker_kernel_wait']=dict(exit_code=snapshot.returncode,stdout=snapshot.stdout[:262144],
+                                                          stderr=snapshot.stderr[:8192],
+                                                          affected_pids=[item['pid'] for item in affected],
+                                                          output_truncated=len(snapshot.stdout)>262144 or len(snapshot.stderr)>8192)
+        except subprocess.TimeoutExpired as error:
+            def output_text(value, limit):
+                if isinstance(value, bytes): value=value.decode(errors='replace')
+                return (value or '')[:limit]
+            self.measurements['broker_kernel_wait']=dict(state='timeout',timeout_seconds=5,
+                stdout=output_text(error.stdout,262144),stderr=output_text(error.stderr,8192),
+                affected_pids=[item['pid'] for item in affected])
         self.save_measurements()
         # Drain the real pending operation before reporting its independent lifetime assertion.
         deadline=time.monotonic()+305
