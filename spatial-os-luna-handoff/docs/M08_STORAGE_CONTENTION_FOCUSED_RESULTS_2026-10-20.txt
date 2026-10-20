@@ -1,0 +1,72 @@
+M08 focused SAN and Debug storage contention - 2026-10-20
+
+Status
+
+The focused session-storage-contention CTest passed on both required test hosts in Debug and ASan/UBSan.
+This is focused evidence only. M08 remains unqualified, and the full gate has not started.
+
+Test scope and inputs
+
+CTest #227 ran 25 methods per execution: three native storage-contention cases and 22 utility cases.
+The registered command and test source stayed unchanged.
+The test source SHA-256 was c0702e68e658c3402552a9a0a33a5e21371208b12522d4de0afa8df06b869c50 on both hosts.
+The Debug package source pin was 74d6b6ea9be43c9231969c870b27e0c3e747b938.
+The ASan/UBSan package source pin was 136b7eb250d1b5ac04a31ec43a624bf2e1f7e5df.
+A diff between those pins contains test, tooling, and documentation changes only. It contains no production source changes.
+The test ran with ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 and UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 in sanitizer runs.
+No sanitizer findings or skipped tests appeared in the passing runs.
+
+The CTest package had empty SPATIAL_SECURITY_EVIDENCE and SPATIAL_TEST_XSERVER values from its original configuration.
+Each run used a fresh external copy of the CTest stage. Only those two CTest environment values and its build-directory receipt were set.
+The storage volume, runtime configuration, and 96 MiB copy quota were passed to the registered CTest process.
+The passing runs used the project-built Xvfb. They did not use Ubuntu's stock Xvfb.
+
+Project Xvfb provenance
+
+Xvfb was built on ROG from the pinned XLibre commit f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+The build applied the current locked patches and passed the X server build and upstream unit checks.
+Build receipt: /home/dflanag3/spatial-artifacts/m08-adapter-storage-headroom-20261020/xserver-build/source/spatial-os-luna-handoff/local/server-build-20261020/run.json.
+Xvfb patch-set key: 24653f6b961a77f03f321b64343200ef0d227e1b52e39ff83cda48d9934788e2.
+Xvfb SHA-256: 056d78891ed7e8ac29abe450fcc31fcac4bb5bfcb21e731559d94f8d4c6b25ce.
+The same binary hash was verified on both test hosts.
+
+Results
+
+Debug passed once per host:
+- sb16: 25/25 methods; CTest 1/1; 43.29 seconds.
+- sb16-2: 25/25 methods; CTest 1/1; 49.35 seconds.
+
+ASan/UBSan passed on sb16 once and on sb16-2 twice:
+- sb16 run 04: 25/25 methods; CTest 1/1; 51.09 seconds.
+- sb16-2 run 05: 25/25 methods; CTest 1/1; 56.94 seconds.
+- sb16-2 run 06: 25/25 methods; CTest 1/1; 55.23 seconds.
+
+The first correctly configured sb16-2 sanitizer run, run 04, had 24 passes and one timeout.
+The final transaction barrier completed 3.6 milliseconds after the test's unchanged six-second deadline.
+The same host passed the full group on runs 05 and 06. The timeout was intermittent; retain it as an observed timing risk.
+No locked timeout or acceptance assertion was changed.
+
+The initial setup attempts are retained for diagnosis.
+They exposed missing evidence-path configuration and use of the stock Xvfb, which rejects the project's -spatial-security-fd option.
+Those were test-launch configuration failures. The successful runs corrected the per-run CTest environment and used the pinned project Xvfb.
+
+Host fixtures
+
+Both hosts now have distinct mounted Btrfs fixtures for each profile.
+Debug fixture names are m08-adapter-debug1024-20261020-sb16 and m08-adapter-debug1024-20261020-sb16-2.
+Sanitizer fixture names are m08-adapter-san1280-20261020-sb16 and m08-adapter-san1280-20261020-sb16-2.
+Each image is 512 MiB. Debug broker and manager budgets are 1024 MiB and 256 MiB.
+Sanitizer broker and manager budgets are 1280 MiB and 512 MiB.
+Each fixture uses a 96 MiB workspace-copy quota. Both fixtures were mounted and verified as Btrfs roots.
+Keep these four active fixtures for M08 qualification. Remove them only after a verified replacement or after M08 completes.
+
+Evidence root
+
+All raw CTest output, CTest stages, receipts, security evidence, and provisioning evidence are outside Git under:
+/home/dflanag3/spatial-artifacts/m08-adapter-storage-headroom-20261020.
+
+Next
+
+Review the complete 38-group regression driver and finish its focused Debug and sanitizer checks on both hosts.
+Freeze and package one source-consistent candidate. Run the full required local gates, then the cross-host and native M08 checks.
+Do not treat these focused storage-contention passes as M08 qualification.
