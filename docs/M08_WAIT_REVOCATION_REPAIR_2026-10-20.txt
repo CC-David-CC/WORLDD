@@ -1,0 +1,117 @@
+CURRENT GATE-CANDIDATE PREPARATION
+Recorded: 2026-10-20T23:46:13.420138+00:00
+This section supersedes earlier status and next-action instructions below.
+M08 remains UNQUALIFIED. The full M08 gate is NOT RUNNING.
+Candidate branch: m08/observer-fullgate-candidate-20261020.
+Production source and tests remain byte-identical to tested source 3fd7475752912f0e86d9abea441979d5d8277489.
+This candidate combines reviewed documentation only. It does not add runtime changes.
+
+Both hosts passed the Debug and ASan-UBSan repair regression batches.
+Each batch passed seventeen methods. The four batches total sixty-eight method executions.
+Both hosts also passed the six related Debug suites, with 148 methods per host.
+All six completed batches passed final audits: no failures, skips, sanitizer findings, or audit errors.
+Helpers were restored. Process identities retired. Inputs remained unchanged.
+Evidence: R/primary-observer-focused-launch-control-01/*-primary-audit-01.json.
+
+Debug storage pairs are active on both hosts.
+Observe R/focused-repair-attempts/HOST/3fd-focused-01/Debug/storage.
+Do not relaunch reserved attempts. Inspect canonical receipts and actual process identities.
+Sanitizer related suites and sanitizer storage pairs remain UNRUN.
+Run all remaining selected suites on each host before full-gate launch.
+Keep session-storage-owner immediately before session-storage-contention.
+
+Full Testing compilation passed and received primary review.
+Each profile has 81 ELFs and all 238 CTest commands.
+All 55 behavior settings, build IDs, and original 44 ELF hashes remain unchanged.
+Evidence: R/observer-full-target-build-01/primary-review-01.json.
+Separate BUILD_TESTING=OFF compilation passed and received primary review.
+Each production profile has 24 ELFs and matches 49 applicable production cache settings.
+Startup runtime checks remain UNRUN for this candidate.
+Evidence: R/observer-production-off-build-02/primary-review-01.json.
+
+Prepare the candidate package on ROG while focused runtime checks continue.
+Verify all nested source, tests, fixtures, schemas, and locked tests match the tested bytes.
+Regenerate provenance for the candidate commit. Do not reuse an old candidate's approval.
+Review the new package, deployments, host provisioning, and readiness before full-gate launch.
+M01-M07 retain historical qualification. M09 remains separate and unqualified.
+
+HISTORICAL REPAIR EVIDENCE AND PROCEDURES
+
+M08 WAIT AND REVOCATION REPAIR
+Updated: 2026-10-20T23:19:30Z
+Status: M08 UNQUALIFIED. Full gate NOT RUNNING.
+Artifact root R: /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
+
+The b680 repair passed the focused Debug storage pair on both hosts.
+Each host passed seven storage-owner methods and twenty-five contention methods.
+This evidence totals sixty-four methods. It does not cover the observer regression.
+
+The fa450 Debug process and participant batch passed all sixteen methods on sb16.
+On sb16-2, fifteen passed and one failed during injected SQL rollback.
+One process row remained revoked. The test expected both rows to remain running.
+This exposed a separate defect in the observer failure path.
+
+Source repair
+
+Source: 3fd7475752912f0e86d9abea441979d5d8277489.
+Branch: m08/observer-rollback-repair-20261020. BOX-GIT VERIFIED.
+Primary reviewed two files: workspace/store.cpp and test_workspace_participant.py.
+The old ExecutionStore::wait catch path could autocommit one revoked row.
+ApplicationProcess::wait reported FORBIDDEN while reap borrowed that process.
+The repair lets the wait unwind, consumes current authority changes, then reconciles the complete batch.
+It adds a 48-line real blocked-wait regression. It preserves the seven existing participant methods.
+
+Primary approved Debug and ASan-UBSan builds.
+Both profiles retained 55 configuration keys and 238 CTest registrations.
+Each profile rebuilt 44 ELF files. The ten selected CTest contracts stayed unchanged.
+Build review: R/primary-observer-build-review-01.json.
+Source review: R/observer-rollback-diagnosis-01/primary-source-review-01.json.
+Focused Debug regressions and final audits passed on both hosts. Remaining suite coverage is pending.
+
+Negative-control evidence
+
+The mutation removes only both main-loop store.check_authority_reconciliation() calls.
+It uses baseline runtime b680 and fixture source fa450.
+Primary reviewed the Debug run on sb16 as a valid negative control.
+Seven participant methods executed. Six passed. One failed at the intended negative-control assertion.
+The canonical command.exit and wrapper.exit were both 8. Terminal status was COMPLETE.
+The observer barrier reported (1,0,True) instead of (1,1,False) at line 201.
+There were no unexpected failures or skips. Sanitizer findings and input changes were absent.
+Helpers were restored. Driver and child processes retired.
+Audit: R/primary-fence-negative-launch-control-05/primary-runtime-audit.json.
+This validates the test's intended missing-fence detection. It does not qualify the repair.
+The mutation must never be integrated.
+
+Current work
+
+Both focused preparations passed with command/wrapper exits 0/0 and COMPLETE status.
+Primary approved both ready records for runtime.
+sb16 ready SHA256: d11b0efb0b3d41aebb05bcad484615f3f328f53e38f3279c5d0b3b34ba29f604.
+sb16-2 ready SHA256: 1b96b121b39d2d856527c743076cadb9a793edd4c472dd3e3883744adc1b99d1.
+Both hosts passed Debug process-termination and workspace-participant assertions.
+Each host passed seventeen methods: nine termination and eight participant methods.
+sb16 primary audit passed: command/wrapper 0/0 COMPLETE, no skips, findings, or audit errors.
+Its inputs stayed unchanged. Helpers were restored. Process identities retired.
+Audit: R/primary-observer-focused-launch-control-01/sb16-debug-regressions-primary-audit-01.json.
+sb16-2 primary audit also passed: 0/0 COMPLETE, no skips, findings, or audit errors.
+Its helpers were restored, processes retired, and inputs stayed unchanged.
+Audit: R/primary-observer-focused-launch-control-01/sb16-2-debug-regressions-primary-audit-01.json.
+The Debug batch totals thirty-four passed methods across both hosts.
+sb16 ASan-UBSan regressions passed all seventeen assertions. Its final input-integrity audit remains pending.
+sb16-2 ASan-UBSan regressions launched at 23:19:26Z and are verifying inputs.
+Next action: observe existing jobs. Do not relaunch them.
+Review both completed sanitizer runs before starting the remaining focused groups.
+Then run the remaining six related suites and two storage suites on both hosts in Debug and ASan-UBSan.
+Run session-storage-owner immediately before session-storage-contention.
+Use reviewed control05 and each host's same attempt, input, and ready SHA.
+Use the pinned launcher, canonical tmux wrappers, and unique outer run directories.
+Before any retry, inspect the reserved attempt and exact process identity.
+The launcher and receipts record the full argv at R/primary-observer-focused-launch-control-01/target-focused-launch-01.py.
+The full M08 gate remains NOT RUNNING. M08 remains UNQUALIFIED.
+
+Observe the active sanitizer jobs. Do not relaunch them.
+Keep session-storage-owner immediately before session-storage-contention.
+Preserve declared commands, environments, wrappers, timeouts, and working directories.
+Inspect the expected assertion, sanitizer diagnostics, helper restoration, process retirement, and input pins.
+Record failed, passed, blocked, pending, and unrun results separately.
+Do not claim full M08 completion from these focused checks.

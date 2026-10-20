@@ -1,0 +1,39 @@
+M08 NOT VALIDATED
+Updated: 2026-10-20T23:46:13.420138+00:00
+
+This branch is an unqualified full-gate candidate.
+M08 has not passed its complete qualification gate.
+Do not treat this checkpoint as a qualified release.
+
+Reviewed code includes:
+- Storage stop and reconciliation repair b6803d38ff006537f8efd1ce106f931aedc6d7b5.
+- Protobuf fixture correction fa450c427196e876d88f91f138ffb1639667b491.
+- Wait-path rollback repair 3fd7475752912f0e86d9abea441979d5d8277489.
+- The separate missing-fence negative control detected its intended security failure.
+
+Verified runtime evidence:
+- Both hosts passed seventeen repair methods in Debug and ASan-UBSan: sixty-eight method executions.
+- Both hosts passed 148 related Debug methods each.
+- Final audits confirmed cleanup, helper restoration, process retirement, and unchanged inputs.
+- Full Testing builds passed: 81 ELFs and 238 registered commands per profile.
+- Separate BUILD_TESTING=OFF builds passed: 24 ELFs per profile.
+Build success does not establish runtime qualification.
+
+Still required:
+- Finish active Debug storage checks on both hosts.
+- Run remaining related and storage sanitizer checks on both hosts.
+- Review the new package, deployments, runtime provisioning, and launch readiness.
+- Pass the complete required M08 gate on both hosts and required cross-host checks.
+
+The candidate changes only root documentation relative to tested source 3fd7475752912f0e86d9abea441979d5d8277489.
+Deployed production source, tests, schemas, fixtures, and locked acceptance remain unchanged.
+The full M08 gate is NOT RUNNING as of this checkpoint.
+
+M01-M07 retain historical qualification.
+M09 work remains separate and unqualified.
+This publication does not claim Spatial-M1 completion.
+
+Current notes:
+docs/M08_WAIT_REVOCATION_REPAIR_2026-10-20.txt
+docs/M08_REPAIR_EXECUTION_HANDOFF_2026-10-20.txt
+docs/M08_FULL_GATE_LAUNCH_CHECKLIST_2026-10-20.txt
