@@ -1,0 +1,66 @@
+M08 COPY REVOCATION CHECKER CONTRACT FIX
+Date: 2026-10-20
+Status: source-only correction; AST PASS; runtime UNRUN.
+
+Source proof
+
+The classifier in spatial-os-luna-handoff/tests/core/test_workspace_copy_faults.py
+accepts FORBIDDEN with "Workspace authority changed during the request" for
+active requester authority cancellation. It accepts UNAUTHORIZED with
+"Workspace actor identity was revoked during the request" for confirmed
+identity revocation. It retains exact credential, inactive identity, channel,
+world-session, and copy-status denials. It does not accept the former blanket
+message.
+
+workspace/main.cpp emits those same two exact code and message pairs after
+checking requester state. Active requesters receive FORBIDDEN. Revoked
+requesters receive UNAUTHORIZED. Unknown validation state receives UNAVAILABLE.
+
+Before and after
+
+The pure checker previously expected UNAUTHORIZED with "Issuer revocation
+invalidated the in-flight broker result" as an existing layer denial. That
+pair was removed by the reviewed classification correction. The checker now
+rejects that retired message under both authentication codes and arbitrary
+codes. It also rejects trailing-space and lowercase variants.
+
+The checker now positively accepts each source-defined typed pair and rejects
+each pair with the other code. It retains the existing world-session
+cancellation fence positive control for both codes and every unrelated exact
+denial control. Arbitrary-code, unknown, malformed, and error-message
+rejection controls remain in place.
+
+This corrects a stale pure fixture to match the reviewed contract. It does not
+broaden the production classifier or turn rejection into acceptance. The
+real copy-actor-revocation scenario retains its independently proven
+revocation, explicit error-only response, no published response payload,
+durable abort, empty destination, no publication record, process continuity,
+and successful authorized actor probe assertions.
+
+Changed files
+
+- spatial-os-luna-handoff/tools/test_workspace_copy_revocation_denial.py
+- docs/M08_COPY_REVOCATION_CHECKER_CONTRACT_FIX_2026-10-20.txt
+
+Verification selection
+
+The selected checker is workspace-copy-revocation-denial. Its controls cover
+the exact denial contract and ensure unrelated denial behavior stays strict.
+The related real copy-actor-revocation integration regression checks the
+production broker path, no publication, durable abort, and process recovery.
+Run both checks in Debug and ASan/UBSan on sb16 and sb16-2 after the active
+batches retire. Those four host/profile combinations remain required for the
+revised checker. Runtime verification is UNRUN in this assignment. No runtime
+result is claimed from source inspection.
+
+Primary source review
+
+Primary reviewed both changed files after the worker retired.
+The classifier and production message implementation remain unchanged.
+Primary added malformed variants and arbitrary-code controls for both new messages.
+Both valid code/message pairs remain exact. Their mismatched codes must fail.
+The checker still has three table-driven test methods.
+A search across active source, tests, and tools found no other stale positive expectation.
+The retired message remains only as a negative control in the corrected checker.
+No locked acceptance, gate, profile, deadline, or budget changed.
+Target runtime checks remain UNRUN for this task checkpoint.

@@ -22,7 +22,7 @@ class CopyRevocationDenialTests(unittest.TestCase):
                 self.assertTrue(self.accepted(code,'World session changed during operation'))
 
     def test_existing_layer_denials_keep_their_exact_codes(self):
-        reasons=('Issuer revocation invalidated the in-flight broker result','Actor credential is revoked',
+        reasons=('Actor credential is revoked',
                  'Actor identity is inactive','Channel has no authenticated actor','World session was revoked')
         for message in reasons:
             with self.subTest(message=message):
@@ -30,6 +30,16 @@ class CopyRevocationDenialTests(unittest.TestCase):
                 self.assertFalse(self.accepted(FORBIDDEN,message))
         self.assertTrue(self.accepted(FORBIDDEN,'Workspace copy status authority is denied'))
         self.assertFalse(self.accepted(UNAUTHORIZED,'Workspace copy status authority is denied'))
+
+        typed_denials=(
+            (FORBIDDEN,'Workspace authority changed during the request'),
+            (UNAUTHORIZED,'Workspace actor identity was revoked during the request'),
+        )
+        for code,message in typed_denials:
+            with self.subTest(code=code,message=message):
+                self.assertTrue(self.accepted(code,message))
+                other_code=UNAUTHORIZED if code==FORBIDDEN else FORBIDDEN
+                self.assertFalse(self.accepted(other_code,message))
 
     def test_arbitrary_codes_and_changed_messages_are_rejected(self):
         message='World session changed during operation'
@@ -41,5 +51,24 @@ class CopyRevocationDenialTests(unittest.TestCase):
             for text in ('',message+' ',message.lower(),'World session operation failed',
                          'World identity service is disabled','Unexpected actor denial'):
                 with self.subTest(code=code,message=text):self.assertFalse(self.accepted(code,text))
+
+        retired='Issuer revocation invalidated the in-flight broker result'
+        for code in (UNAUTHORIZED,FORBIDDEN):
+            for text in (retired,retired+' ',retired.lower()):
+                with self.subTest(code=code,message=text):self.assertFalse(self.accepted(code,text))
+        for code in range(0,40):
+            if code not in (UNAUTHORIZED,FORBIDDEN):
+                with self.subTest(code=code,message=retired):self.assertFalse(self.accepted(code,retired))
+
+        typed_messages=('Workspace authority changed during the request',
+                        'Workspace actor identity was revoked during the request')
+        for message in typed_messages:
+            for code in range(0,40):
+                if code not in (UNAUTHORIZED,FORBIDDEN):
+                    with self.subTest(code=code,message=message):self.assertFalse(self.accepted(code,message))
+            for code in (UNAUTHORIZED,FORBIDDEN):
+                for text in (message+' ',message.lower()):
+                    with self.subTest(code=code,message=text):self.assertFalse(self.accepted(code,text))
+
 
 if __name__=='__main__':unittest.main(verbosity=2)
