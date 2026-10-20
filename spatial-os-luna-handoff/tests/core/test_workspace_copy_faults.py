@@ -41,13 +41,14 @@ def is_revoked_copy_status_denial(code,message,*,unauthorized,forbidden):
     """Match only source-defined typed denials after independently proven revocation."""
     return (code,message) in {
         (forbidden,'Workspace copy status authority is denied'),
-        (unauthorized,'Issuer revocation invalidated the in-flight broker result'),
+        (forbidden,'Workspace authority changed during the request'),
+        (unauthorized,'Workspace actor identity was revoked during the request'),
         (unauthorized,'Actor credential is revoked'),
         (unauthorized,'Actor identity is inactive'),
         (unauthorized,'Channel has no authenticated actor'),
         (unauthorized,'World session was revoked'),
-        # identity_sessions.cpp841-846 preserves an underlying FORBIDDEN denial,
-        # or uses UNAUTHORIZED when cancellation supersedes a successful result.
+        # The world keeps authority-loss denials separate from authenticated
+        # requester identity revocation while discarding stale success payloads.
         (unauthorized,'World session changed during operation'),
         (forbidden,'World session changed during operation'),
     }

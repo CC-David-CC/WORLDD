@@ -1,0 +1,70 @@
+M08 REVOCATION ERROR CONTRACT REVIEW
+Date: 2026-10-20
+Status: PRIMARY REVIEWED EXPECTATION CORRECTION; runtime UNRUN; M08 UNQUALIFIED.
+
+Scope and reason
+
+The production repair distinguishes live actor authority from revoked actor identity.
+A broker ActorRef contains issuer and actor identifiers. It contains no credential.
+Credential invalidation belongs to the authenticated world-session boundary.
+The broker must not label a valid actor's identity revoked merely because any revocation occurred.
+
+The existing docs/CONTRACT.md:90 requires UNAUTHORIZED for unknown or revoked actor tokens.
+It requires FORBIDDEN for a missing grant. The root AGENTS.md also separates identity and authority.
+The cabinet pre-dispatch ancestor race requires FORBIDDEN and a usable requester session.
+The presentation ancestor race requires FORBIDDEN or UNAVAILABLE, with no protected observation.
+Those two failing expectations remain unchanged.
+
+Three legacy fence controls used the former blanket code/message.
+This change corrects their expected classification while retaining strict refusal and safety assertions.
+It is explicitly versioned separately from the production repair.
+It does not broaden an error allowlist to arbitrary failures or turn failures into skips.
+
+Exact test changes
+
+In tests/core/test_workspace_authority.py:
+- fence_with_checked_credential_retry now requires FORBIDDEN for a cancelled read by a still-active actor.
+- FENCE_REVOCATION_MESSAGE now matches the precise active-actor authority-change message.
+- test_credential_revocation_during_fence_returns_checked_refusal_and_preserves_process retains its deterministic race.
+  Its first response must have no authorization_fence and must be FORBIDDEN.
+- test_unrelated_revocation_refuses_inflight_fence_then_allows_retry_and_preserves_process uses the same strict helper.
+- test_credential_revocation_preserves_valid_workspace_process uses that helper only when a pending read was refused.
+- test_scoped_authority_denies_after_issuer_actor_revocation keeps UNAUTHORIZED.
+  Its exact message now identifies actor revocation rather than generic cancellation.
+
+All original request identity, fresh-authority, incarnation, epoch, timing, process PID,
+start ticks, argv, and successful application completion checks remain present.
+Fresh fence reads are explicit fixture requests. Production does not retry or replay effects.
+
+In tests/core/test_workspace_copy_faults.py:
+- Replace the obsolete blanket broker-denial message with the two exact source-defined typed denials.
+- A live actor's cancelled authority result is FORBIDDEN.
+- A confirmed revoked actor's result is UNAUTHORIZED.
+- Keep every other existing strict credential/session/copy denial and the independent revocation proof.
+- Do not accept UNAVAILABLE, INTERNAL_ERROR, arbitrary text, or an unrelated failure as a revocation result.
+The real scenario must still verify durable cancellation, no publication, and original process continuity.
+
+Counterexamples retained
+
+Genuine actor revocation must remain UNAUTHORIZED.
+Genuine requesting credential revocation must invalidate its world session with UNAUTHORIZED.
+Unrelated credential revocation must preserve a fresh independently authorized request.
+Issuer loss must fail closed as UNAVAILABLE.
+Post-effect uncertainty must retain its journal identity and UNCERTAIN result.
+The added real-broker and cabinet regressions require error-only payloads and preserve those distinctions.
+
+Selected verification
+
+After the active full batches retire, run workspace-authority and the changed broker/cabinet suites.
+Run the copy-revocation scenario and its recovery checks with the full registered fixture wrappers.
+Run Debug and ASan-UBSan on sb16 and sb16-2.
+Keep both originally failing selectors and their expected codes unchanged.
+Keep the mandatory full M08 gate and cross-host qualification pending.
+
+Integrity and results
+
+No locked acceptance test, independent oracle, schema, deadline, or resource policy changed.
+acceptance.lock.json remains byte-identical to the original50b6da5 candidate.
+Its SHA-256 is 00aece0d7e44844b8d838e3e269c970dd485631da64c19f3819678b98cb25609.
+Python AST parsing and source whitespace checks pass.
+All runtime behavior and the corrected expectations remain UNRUN until focused verification.

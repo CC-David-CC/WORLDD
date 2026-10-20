@@ -30,7 +30,7 @@ WRITE = [grant.FILE_CREATE, grant.FILE_EDIT, grant.FILE_RENAME, grant.FILE_MOVE,
 PROJECT = [grant.FILE_BROWSE, grant.FILE_READ, *WRITE, grant.PROCESS_EXECUTE]
 RIGHTS = [grant.WORKSPACE_ACCESS, *PROJECT, grant.POLICY_ADMINISTER]
 POLICY = ['workspace.select', 'files.read', 'files.write', 'process.launch']
-FENCE_REVOCATION_MESSAGE = 'Issuer revocation invalidated the in-flight broker result'
+FENCE_REVOCATION_MESSAGE = 'Workspace authority changed during the request'
 
 
 class BrokerChannel:
@@ -628,7 +628,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             self.assertFalse(first.HasField('error'), first)
             return first, None
         self.assertTrue(first.HasField('error'), f'Authorization fence reply has no typed outcome: {first!r}')
-        self.assertEqual(first.error.code, core.UNAUTHORIZED, first)
+        self.assertEqual(first.error.code, core.FORBIDDEN, first)
         self.assertEqual(first.error.message, FENCE_REVOCATION_MESSAGE, first)
         retry = self.broker.request(authorization_fence=request)
         self.assertGreater(retry.request_id, first.request_id, f'Fence retry reused its request ID: {first!r}; {retry!r}')
@@ -930,7 +930,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         if in_flight.HasField('error'):
             self.assertEqual(in_flight.error.code, core.UNAUTHORIZED)
             self.assertEqual(in_flight.error.message,
-                'Issuer revocation invalidated the in-flight broker result')
+                'Workspace actor identity was revoked during the request')
             self.assertFalse(in_flight.HasField('scoped_authority_check'))
         else:
             self.assertTrue(in_flight.HasField('scoped_authority_check'), in_flight)
@@ -1102,7 +1102,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertIsNotNone(retry_reply, f'Expected the deterministic in-flight refusal; got {first_reply!r}')
         self.assertFalse(first_reply.HasField('authorization_fence'), first_reply)
         self.assertTrue(first_reply.HasField('error'), first_reply)
-        self.assertEqual(first_reply.error.code, core.UNAUTHORIZED, first_reply)
+        self.assertEqual(first_reply.error.code, core.FORBIDDEN, first_reply)
         self.assertEqual(first_reply.error.message, FENCE_REVOCATION_MESSAGE, first_reply)
         self.assertTrue(retry_reply.HasField('authorization_fence'), retry_reply)
         self.assertFalse(retry_reply.HasField('error'), retry_reply)
