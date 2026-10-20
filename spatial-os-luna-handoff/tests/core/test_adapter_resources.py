@@ -87,6 +87,8 @@ class AdapterResourceTests(ProcessTests):
             'SPATIAL_TEST_BROKER_CONFIG': os.environ['SPATIAL_TEST_BROKER_CONFIG']})
         self.addCleanup(self.client.stop)
         self.assertEqual(self.client.call('system.hello')['implementation'], 'production')
+        self.a = self.actor('a')
+        self.assertEqual(self.selected(self.a), 'one')
         new_root = self.group(self.client.call('runtime.identities')['workspaced_pid']).parent
         self.assertTrue(new_root.exists())
         self.assertNotEqual((new_root.stat().st_dev, new_root.stat().st_ino), root_identity)

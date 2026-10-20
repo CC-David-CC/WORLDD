@@ -16,3 +16,15 @@ Both focused profiles pass on both required hosts. Clean shutdown must remove th
 The test timeout must exceed the bounded orderly shutdown sequence. Production wait loops must use absolute steady-clock deadlines and must not restart their full timeout after EINTR.
 
 This is a focused test plan. It does not qualify M08 or replace the full M08 phase gate.
+Debug attempt 01 evidence
+
+Source package commit: 74d6b6ea9be43c9231969c870b27e0c3e747b938.
+The package inventory and deployment checks passed on both hosts. CTest ran five adapter-resource cases on each host. The first four passed. The restart case failed on both hosts with UNAUTHORIZED: Invalid actor session.
+
+Both logs are external:
+- sb16: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-01.
+- sb16-2: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-01.
+
+The test closed its first Client, created a new Client, then reused the old actor token. Reopen actor a through the new Client and assert that its workspace selection is still one before launching the restarted application. This checks the intended session renewal and persisted workspace context.
+
+The wrapper also reported that systemd could not stop the transient unit after --collect had already unloaded it. Its final unit query returned not-found, and the adapter wrapper reported scope_removed=true. The CTest failure came from the stale actor token. Recheck wrapper cleanup on the next pass.

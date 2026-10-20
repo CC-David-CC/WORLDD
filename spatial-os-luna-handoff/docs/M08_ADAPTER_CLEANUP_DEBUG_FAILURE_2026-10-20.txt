@@ -1,0 +1,10 @@
+M08 adapter focused Debug failure
+Date: 2026-10-20
+
+The pinned Debug package 74d6b6ea9be43c9231969c870b27e0c3e747b938 passed package integrity checks and deployed to both qualification hosts. CTest ran all five adapter-resource test methods on sb16 and sb16-2. Four passed. The restart test failed on both hosts.
+
+Failure: test_clean_channel_close_removes_the_retained_broker_tree reopened the RPC Client but used the actor token from the closed Client. The server correctly returned UNAUTHORIZED: Invalid actor session. The test must open actor a through the new Client and verify that its selected workspace remains one before launching a process.
+
+Evidence: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-01 on each host. Both runs exited 8 from CTest. No sanitizer run or full M08 gate has run.
+
+The outer test wrapper also attempted to stop a transient systemd unit after --collect had removed it. The unit query returned not-found; the inner adapter wrapper confirmed scope_removed=true. Recheck this cleanup report after correcting the actor session.
