@@ -1,0 +1,41 @@
+# M09 next increment review - 2026-10-20
+
+Status: SOURCE REVIEW ONLY. No tests or builds ran. M09 and M08 qualification remain UNRUN.
+Review branch: m09/next-increment-review-20261020
+Base: abc3f979f637f2e10232d36a21b658f9e74a4e73
+Worktree: /home/dflanag3/src/m09-next-increment-review-20261020
+Prepared checkout: /home/dflanag3/src/m09-balanced-input-witness-20261020, branch m09/balanced-input-witness-20261020, same base. Original worktree preserved.
+
+## Verified source and limits
+
+The five selectors are in spatial-os-luna-handoff/tests/core/test_world_application_control.py:342-355. The first four cover voluntary release, disconnect, control-grant revocation, and unmap. They submit peer input before waiting and compare native releases with a pre-trigger log boundary (:133-182, :189-220). The helper retries only on typed BUSY (:156-177). This is a valid source-level witness design; runtime ordering and cancellation latency are UNRUN.
+
+Destroy coverage is incomplete. Its branch waits for release, creates a different application, then sends input there (:206-218). It does not prove same-application group reacquisition through a surviving popup. The probe supports popup creation (src/testing/native/xprobe.c:149-154, also cited by the M09 draft). No direct pointer-capture state exists; held button plus motion is a proxy.
+
+Production keeps one reservation per application and returns BUSY while another actor owns it (src/workspace/control.cpp:29-57). Actors::authorize_input releases a different app lease before acquiring, permits same-app acquisition, then refreshes surfaces and rejects changed generation, mapping, room, or application (src/world/actors.cpp:891-935). refresh_native drops invalid focus/group state (:951-976). This review did not runtime-verify these paths.
+
+Existing adjacent coverage:
+
+- test_resized_aim_rejects_stale_pixels expects STALE_TARGET before button input after resize (tests/core/test_world_application_control.py:329-334). surfaces.cpp:145-187 refreshes native generations; input_router.cpp:64-66,117-126 validates and stamps targets. XID destroy/reuse is not independently named here.
+- test_observation_revocation_cancels_control checks native release (:259-262). test_observe_revocation_removes_metadata_but_preserves_process checks metadata removal and process continuity (test_application_observation.py:208-212). A post-render authority race is checked at :224-242.
+- Pixel revocation covers disappearance while preserving the process and revocation during render or queued writes (test_actor_pixels.py:90-100,165-207,249-305). These tests are UNRUN for this candidate and do not prove native release-before-peer-event for identity or observation revocation.
+- Identity revocation and cancellation during broker/renderer waits have existing checks (test_world_application_control.py:365-420). They check release and no replay. New ordered witnesses cover workspace control-grant revocation, not identity or observation revocation.
+
+## Next bounded implementation increment
+
+Complete the destroy witness in test_world_application_control.py if existing fixtures permit it: create a popup in the original app, hold native input on the main surface, destroy the main surface, submit peer action to the surviving popup before waiting, and require all release events before its first accepted event. Confirm the popup remains in the original application group and actor's current room. If fixture semantics cannot express this, document the limitation and keep destroy incomplete. Do not claim direct capture evidence.
+
+Then add one ordered revocation-continuity witness for observation-grant or actor identity revocation. Use the real actor and native probe. Submit peer input before waiting, use a pre-trigger log boundary, and prove release-before-accepted-event. Avoid duplicating pixel-only race checks. After M08 releases both qualification hosts, record selectors and intent, then run affected world application control, application observation, and actor pixel regressions in focused Debug and ASan/UBSan on both hosts. This review implies no test result.
+
+## Gate dependencies
+
+M08 candidate 0b4cc5f659d32d5ff1104557315b0905983bb39d is frozen with 16 focused CTest passes; full M08 qualification remains UNRUN. M09 runtime work waits until sb16 and sb16-2 are released. This assignment allowed ROG for development/source review only; no build or runtime job ran here.
+
+The milestone table defines M09 as application-group control, including one controller per group, observers, independent applications, balanced release, stale-generation denial, and immediate observation/control revocation (docs/MILESTONES.md:153). I found no M09-specific full gate inventory in the maintained plan. The exact milestone qualification matrix is pending primary review. Do not assume that every final Spatial-M1 requirement belongs to the M09 gate.
+
+Spatial-M1 has a separate cumulative gate. Its mandatory profile is tasks/spatial-m1.json (docs/MILESTONES.md:44); it includes full Debug, sanitizer, harness, acceptance, cross-host, native, physical-input, recovery, and performance checks. M09 evidence does not establish that gate or LOCAL_READY. Report passed, failed, blocked, pending, and unrun separately.
+
+## Review result
+
+Verified from source structure only: four ordered balance witnesses and one incomplete destroy witness exist. Production paths contain reservation release, generation refresh, and authority fencing. No runtime behavior is established.
+UNRUN: all five new selectors, Debug and sanitizer execution, both-host qualification, same-app destroy/reacquisition, direct capture observation, M09 full-gate inventory and execution, and the cumulative Spatial-M1 gate.
