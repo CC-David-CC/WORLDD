@@ -1,0 +1,55 @@
+M08 native control suite deadline repair
+Date: 2026-10-20
+Status: source-only implementation; runtime unrun on this branch.
+
+Observed trigger
+
+The diagnostic run recorded all 25 world-application-control cases passing in
+243.296445789 seconds. It reported no failures, errors, skips, or sanitizer
+findings. The longest individual method took 10.698763063 seconds. The helper
+confirmed cleanup and child retirement, with 1,650 final pins and no errors.
+The command and wrapper exited 0; the launcher was no longer live.
+
+Evidence is diagnostic, not qualification: sb16 passed all 15 related sanitizer groups.
+On sb16-2, 14 groups passed and the control group timed out at 240.04 seconds
+with 24 of 25 methods reported. An isolated final case passed in 9.5637895
+seconds. The timed complete diagnostic later finished all 25 cases in
+243.296445789 seconds. These observations support cumulative outer-budget
+exhaustion. They do not qualify the changed registration or the runtime.
+
+Recorded evidence on ROG:
+  /home/dflanag3/spatial-artifacts/m08-gate-repairs-20261020-round01/
+  world-control-timing-primary-observation-01.json
+  report SHA-256: 6b766cfb14c2da973053b8084ba7a0e8b88de99ecc7ec0a219d1afff7a3f672b
+  timings SHA-256: ffe430868a6df480244f5ec2571a016a02d2adc24ab74c957248e06d6f7da8c8
+  log SHA-256: b40090760a8bdbb1ddd0e5f819e46d7e67379af80842f8e49c55242f0866ad8c
+
+Change
+
+The delegate gains an optional bounded runtime-seconds value for native,
+non-copy jobs. It accepts an integer from 1 through 900 and validates before
+starting systemd. Boolean values and other types are rejected by the builder.
+Legacy limits remain 120 seconds for non-native, 240 seconds for native, and
+900 seconds for native copy-engine jobs. Resource limits and environment
+allowlisting remain unchanged.
+
+Only world-application-control requests 600 seconds in the delegate and sets
+CTest TIMEOUT to 660 seconds. The extra 60 seconds allows service cleanup.
+Actor operation deadlines, other registrations, harness identifiers, locked
+acceptance data, schemas, and production actor behavior are unchanged.
+
+Selected future checks
+
+Run storage-owner-fixture-tooling and copy-progress-timing-tooling on both
+Debug and ASan-UBSan profiles, on sb16 and sb16-2. These cover the helper's
+legacy defaults and nearby command callers. Run all 25 control-group cases on
+both profiles and both hosts. Run the full gate after candidate freeze.
+These runtime checks are pending. This source-only task did not execute them.
+
+Primary review
+
+The remote Luna review worker retired with exit zero before final source review.
+The primary reviewed all four changed files and the accepted CLI regression mock.
+Oversized decimal CLI values now refuse cleanly before subprocess execution.
+The regression includes that invalid input. Runtime checks remain UNRUN.
+This checkpoint is for a combined test candidate, not milestone integration.

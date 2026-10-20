@@ -209,6 +209,115 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, message):
                     owner.storage_owner_launch_payload(runtime_path, volume)
 
+    def test_delegate_legacy_runtime_defaults_are_unchanged(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_defaults', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        cases = ((False, False, '120'), (True, False, '240'), (True, True, '900'))
+        for native, copy_engine_v2, expected in cases:
+            with self.subTest(native=native, copy_engine_v2=copy_engine_v2):
+                command = module.build_service_command(unit='fixture', username='fixture',
+                    native=native, copy_engine_v2=copy_engine_v2,
+                    working_directory=self.root, environment={}, argv=['true'])
+                expected_command = [
+                    'sudo', '-n', 'systemd-run', '--unit=fixture', '--wait', '--pipe',
+                    '--collect', '--service-type=exec', '--uid=fixture',
+                    '--working-directory='+str(self.root), '-p', 'Delegate=cpu memory pids io',
+                    '-p', 'DelegateSubgroup=manager',
+                    '-p', 'MemoryMax='+('1536M' if native else '512M'), '-p', 'MemorySwapMax=0',
+                    '-p', 'TasksMax='+('256' if native else '128'),
+                    '-p', 'CPUQuota='+('400%' if native else '200%'),
+                    '-p', 'RuntimeMaxSec='+expected, '-p', 'TimeoutStopSec=5s', '--', 'true',
+                ]
+                self.assertEqual(command, expected_command)
+
+    def test_delegate_explicit_runtime_changes_only_runtime_property(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_override', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        defaults = module.build_service_command(unit='fixture', username='fixture', native=True,
+            copy_engine_v2=False, working_directory=self.root, environment={}, argv=['true'])
+        bounded = module.build_service_command(unit='fixture', username='fixture', native=True,
+            copy_engine_v2=False, working_directory=self.root, environment={}, argv=['true'],
+            runtime_seconds=600)
+        self.assertEqual([item for item in bounded if not item.startswith('RuntimeMaxSec=')],
+                         [item for item in defaults if not item.startswith('RuntimeMaxSec=')])
+        self.assertIn('RuntimeMaxSec=600', bounded)
+        self.assertIn('CPUQuota=400%', bounded)
+        self.assertIn('MemoryMax=1536M', bounded)
+        self.assertIn('MemorySwapMax=0', bounded)
+        self.assertIn('TasksMax=256', bounded)
+
+    def test_delegate_runtime_override_rejects_invalid_profile_type_and_range(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_invalid', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        base = dict(unit='fixture', username='fixture', working_directory=self.root,
+                    environment={}, argv=['true'])
+        cases = (
+            ({'native':False,'copy_engine_v2':False,'runtime_seconds':600}, 'native non-copy'),
+            ({'native':True,'copy_engine_v2':True,'runtime_seconds':600}, 'native non-copy'),
+            ({'native':1,'copy_engine_v2':False,'runtime_seconds':600}, 'native non-copy'),
+            ({'native':True,'copy_engine_v2':0,'runtime_seconds':600}, 'native non-copy'),
+            ({'native':True,'copy_engine_v2':False,'runtime_seconds':True}, 'integer'),
+            ({'native':True,'copy_engine_v2':False,'runtime_seconds':1.5}, 'integer'),
+            ({'native':True,'copy_engine_v2':False,'runtime_seconds':'600'}, 'integer'),
+            ({'native':True,'copy_engine_v2':False,'runtime_seconds':0}, 'integer'),
+            ({'native':True,'copy_engine_v2':False,'runtime_seconds':901}, 'integer'),
+        )
+        for options, message in cases:
+            with self.subTest(options=options), self.assertRaisesRegex(ValueError, message):
+                module.build_service_command(**base, **options)
+
+    def test_delegate_cli_invalid_runtime_refuses_before_subprocess(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_cli', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        cases = (
+            (['--native','--runtime-seconds'], 'requires an integer'),
+            (['--native','--runtime-seconds','abc','--','true'], 'requires an integer'),
+            (['--native','--runtime-seconds','9'*5000,'--','true'], 'requires an integer'),
+            (['--native','--runtime-seconds','+600','--','true'], 'requires an integer'),
+            (['--native','--runtime-seconds','6_00','--','true'], 'requires an integer'),
+            (['--native','--runtime-seconds','0','--','true'], 'requires an integer'),
+            (['--native','--runtime-seconds','901','--','true'], 'requires an integer'),
+            (['--runtime-seconds','600','--','true'], 'native non-copy'),
+            (['--native','--copy-engine-v2','--runtime-seconds','600','--','true'], 'native non-copy'),
+        )
+        for arguments, message in cases:
+            with self.subTest(arguments=arguments), \
+                 patch.object(module.socket, 'gethostname', return_value='sb16'), \
+                 patch.object(module.os, 'getuid', return_value=1000), \
+                 patch.object(module.subprocess, 'run') as launch:
+                with self.assertRaisesRegex(SystemExit, message):
+                    module.main(arguments)
+                launch.assert_not_called()
+
+    def test_delegate_cli_runtime_override_preserves_legacy_forms(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_cli_valid', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        cases = (
+            (['--native','--runtime-seconds','600','--','true'], 'RuntimeMaxSec=600'),
+            (['--native','--','true'], 'RuntimeMaxSec=240'),
+            (['--native','--copy-engine-v2','--','true'], 'RuntimeMaxSec=900'),
+            (['--','true'], 'RuntimeMaxSec=120'),
+        )
+        for arguments, expected_runtime in cases:
+            with self.subTest(arguments=arguments), \
+                 patch.object(module.socket, 'gethostname', return_value='sb16'), \
+                 patch.object(module.os, 'getuid', return_value=1000), \
+                 patch.object(module.pwd, 'getpwuid', return_value=type('User', (), {'pw_name':'fixture'})()), \
+                 patch.object(module.subprocess, 'run') as launch:
+                launch.side_effect = [
+                    subprocess.CompletedProcess([], 0),
+                    subprocess.CompletedProcess([], 0, stdout='ActiveState=inactive\nLoadState=loaded\n'),
+                ]
+                self.assertEqual(module.main(arguments), 0)
+                command = launch.call_args_list[0].args[0]
+                self.assertIn(expected_runtime, command)
+                self.assertEqual(command[-2:], ['--', 'true'])
+
     def test_resource_environment_forwards_copy_deadline_and_keeps_allowlist(self):
         source = {'SPATIAL_TEST_COPY_DEADLINE_MS': '50', 'UNRELATED_SECRET': 'must-not-pass'}
         self.assertEqual(resource_environment_function()(source),

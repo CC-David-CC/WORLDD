@@ -1678,11 +1678,11 @@ if(BUILD_TESTING)
         set_tests_properties(application-observation PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME world-application-control COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native --runtime-seconds 600 -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_application_control.py" $<TARGET_FILE:identityd>
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
-        set_tests_properties(world-application-control PROPERTIES TIMEOUT 240
+        set_tests_properties(world-application-control PROPERTIES TIMEOUT 660
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME actor-pixels COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
