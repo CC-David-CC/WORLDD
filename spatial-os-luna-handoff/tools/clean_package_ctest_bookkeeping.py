@@ -39,9 +39,12 @@ def walk_without_following(root):
 def main(final_arg, build_arg):
     final = checked_root(final_arg)
     build = checked_root(build_arg)
-    expected_build = os.path.join(final, "builds", "debug")
-    if build != expected_build:
-        fail(f"BUILD must be the exact package path {expected_build}")
+    expected_builds = {
+        os.path.join(final, "builds", "debug"),
+        os.path.join(final, "builds", "asan-ubsan"),
+    }
+    if build not in expected_builds:
+        fail(f"BUILD must be one of the exact supported package paths: {sorted(expected_builds)}")
 
     testing = os.path.join(build, "Testing")
     if os.path.lexists(testing):

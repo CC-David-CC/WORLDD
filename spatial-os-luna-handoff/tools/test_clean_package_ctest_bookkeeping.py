@@ -16,16 +16,47 @@ class PackageCTestGuardTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(prefix="package-ctest-guard-")
         self.final = pathlib.Path(self.temp.name) / "package"
         self.build = self.final / "builds" / "debug"
+        self.asan_build = self.final / "builds" / "asan-ubsan"
         self.build.mkdir(parents=True)
+        self.asan_build.mkdir(parents=True)
 
     def tearDown(self):
         self.temp.cleanup()
 
-    def run_guard(self):
+    def run_guard(self, build=None):
         return subprocess.run(
-            ["python3", str(HELPER), str(self.final), str(self.build)],
+            ["python3", str(HELPER), str(self.final), str(build or self.build)],
             text=True, capture_output=True, check=False,
         )
+
+    def test_accepts_both_supported_profile_build_paths(self):
+        for build in (self.build, self.asan_build):
+            with self.subTest(build=build.name):
+                nested = build / "Testing" / "Temporary" / "empty"
+                nested.mkdir(parents=True)
+                result = self.run_guard(build)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertFalse((build / "Testing").exists())
+
+    def test_rejects_unrelated_build_path_before_cleanup(self):
+        (self.build / "Testing" / "Temporary").mkdir(parents=True)
+        unrelated = self.final / "builds" / "debug-real"
+        unrelated.mkdir()
+        result = self.run_guard(unrelated)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("exact supported package paths", result.stderr)
+        self.assertTrue((self.build / "Testing" / "Temporary").is_dir())
+
+    def test_rejects_symlinked_supported_profile_component(self):
+        outside = self.final / "outside-build"
+        (outside / "Testing" / "Temporary").mkdir(parents=True)
+        symlink_build = self.final / "builds" / "asan-ubsan"
+        symlink_build.rmdir()
+        symlink_build.symlink_to(outside, target_is_directory=True)
+        result = self.run_guard(symlink_build)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("root must be a real directory", result.stderr)
+        self.assertTrue((outside / "Testing" / "Temporary").is_dir())
 
     def test_removes_only_empty_nested_ctest_directories(self):
         nested = self.build / "Testing" / "Temporary" / "empty"
