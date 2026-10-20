@@ -748,7 +748,11 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
         self._application_pidfds = pins
         self._application_handle_identities = identities
         self.measurements['application_pids']=app_pids
-        self.measurements['application_handles_capture_phase']='before_git_import'
+        self.measurements['application_handles_capture_phase']=(
+            'before_git_import'
+            if self._testMethodName == 'test_native_storage_actor_revocation_during_bounded_git_import'
+            else 'before_revocation'
+        )
         self.measurements['application_handles_before_import'] = identities
         self.save_measurements()
         self.assertEqual(select.select(pins,[],[],0)[0],[])
@@ -874,13 +878,17 @@ MAX_PROCESSES = 12
 MAX_THREADS = 32
 MAX_FDS_PER_PROCESS = 24
 MAX_TEXT = 1024
+original_stderr = sys.stderr
 class CappedStderr:
     def __init__(self): self.remaining = 8192
     def write(self, value):
         kept = value[:self.remaining]
-        self.remaining -= len(kept)
+        self.remaining = max(0, self.remaining - len(kept))
+        if kept:
+            original_stderr.write(kept)
+            original_stderr.flush()
         return len(value)
-    def flush(self): pass
+    def flush(self): original_stderr.flush()
 sys.stderr = CappedStderr()
 broker_pid = int(sys.argv[1])
 expected_exe = str(Path(sys.argv[2]).resolve())
@@ -965,8 +973,10 @@ for item in records:
                                  'error':type(error).__name__}
     fd_by_number = {int(path.name):path for path in fd_paths}
     active_numbers = {thread.get('fdatasync_fd') for thread in threads if isinstance(thread.get('fdatasync_fd'), int)}
-    selected_numbers = list(dict.fromkeys([int(path.name) for path in fd_paths[:MAX_FDS_PER_PROCESS]] +
-                                          sorted(number for number in active_numbers if number in fd_by_number)))
+    prioritized_numbers = sorted(number for number in active_numbers if number in fd_by_number)
+    other_numbers = sorted(number for number in fd_by_number if number not in active_numbers)
+    ordered_numbers = prioritized_numbers + other_numbers
+    selected_numbers = ordered_numbers[:MAX_FDS_PER_PROCESS]
     fds = [{'fd':number, **link(fd_by_number[number])} for number in selected_numbers]
     if len(fd_paths) > len(fds): result['truncated'] = True
     row['fds'] = fds
