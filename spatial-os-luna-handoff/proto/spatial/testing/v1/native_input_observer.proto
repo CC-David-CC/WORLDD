@@ -1,0 +1,71 @@
+syntax = "proto3";
+package spatial.testing.v1;
+
+message NativeInputObservationRecord {
+  uint32 protocol_version = 1; bytes session_id = 2; bytes arm_id = 3;
+  uint64 stream_sequence = 4;
+  uint64 native_session = 8; // Process-local helper serial, trusted channel required.
+  oneof payload { Arm arm = 5; ObserverPress observer_press = 6; ProbeReceiptBatch probe_receipts = 7; }
+}
+message ActorDeviceIdentity {
+  enum SeatRole { SEAT_ROLE_UNSPECIFIED = 0; MASTER = 1; SLAVE = 2; }
+  enum DeviceKind { DEVICE_KIND_UNSPECIFIED = 0; POINTER = 1; KEYBOARD = 2; }
+  SeatRole seat_role = 1; DeviceKind kind = 2; uint32 device_id = 3; uint64 object_epoch = 4;
+  uint32 paired_or_attached = 5;
+}
+// Copied authenticated ApplicationIdentity fields. No credential material.
+message ApplicationLabel {
+  bytes workspace = 1; bytes application = 2;
+}
+// object_epoch is the nonzero native helper object-private epoch.
+// Epochs are scoped to the enclosing observer session, never object addresses.
+message ClientIdentity {
+  uint32 client_id = 1; uint64 object_epoch = 2; ApplicationLabel application_label = 3;
+}
+message WindowIdentity {
+  uint32 window_id = 1; uint64 object_epoch = 2;
+  ApplicationLabel application_label = 3; uint64 spatial_generation = 4;
+}
+message Arm {
+  bytes actor_id = 1; repeated ActorDeviceIdentity old_actor_devices = 2;
+  ClientIdentity expected_recipient = 3; WindowIdentity expected_window = 4;
+  ActorDeviceIdentity expected_peer_device = 5; ActorDeviceIdentity expected_peer_source = 6;
+  uint64 arm_monotonic_ns = 7; uint64 deadline_monotonic_ns = 8;
+  uint32 expected_xi2_event_type = 9; uint32 expected_detail = 10;
+  uint64 prearm_receipt_watermark = 11;
+  bytes issuer_id = 12; bytes peer_actor_id = 13; bytes peer_issuer_id = 14;
+  repeated ActorDeviceIdentity peer_actor_devices = 15;
+  // The trusted supervisor supplies these pins after authenticated actor actions.
+  // Four distinct native roles per actor; disjoint sets across the actors.
+  // Arming requires idle native replay/frozen state and an active observer.
+}
+// Complete native down bitmap only. No focus/grab/capture cancellation evidence.
+message NativeDeviceState {
+  enum BitmapKind { BITMAP_KIND_UNSPECIFIED = 0; KEY_CLASS_DOWN = 1; BUTTON_CLASS_DOWN = 2; }
+  ActorDeviceIdentity identity = 1; uint32 bitmap_bits = 2; bytes down_bitmap = 3;
+  bool state_complete = 4; BitmapKind bitmap_kind = 5;
+}
+message EventIdentity {
+  ClientIdentity recipient = 1; WindowIdentity window = 2;
+  ActorDeviceIdentity device = 3; ActorDeviceIdentity source = 4;
+  uint32 xi2_event_type = 5; uint32 detail = 6; uint32 event_time_ms = 7;
+  bool synthetic = 8;
+}
+message ObserverPress {
+  uint64 observer_ordinal = 1; EventIdentity event = 2;
+  repeated NativeDeviceState old_actor_state = 3; bool snapshot_complete = 4;
+  bool overflow = 5; bool disconnected = 6; uint64 callback_monotonic_ns = 7;
+}
+message ProbeReceiptContext {
+  uint64 recipient_object_epoch = 1; uint64 window_object_epoch = 2;
+  uint64 device_object_epoch = 3; uint64 source_object_epoch = 4;
+}
+message ProbeReceipt {
+  uint64 receipt_ordinal = 1; uint32 event_type = 2; uint32 deviceid = 3;
+  uint32 sourceid = 4; uint32 xid = 5; uint32 detail = 6; uint32 time = 7;
+  bool synthetic = 8;
+}
+message ProbeReceiptBatch {
+  ProbeReceiptContext context = 1; repeated ProbeReceipt receipts = 2;
+  bool overflow = 3; bool disconnected = 4;
+}
