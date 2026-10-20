@@ -1,0 +1,210 @@
+M08 CROSS-HOST EXECUTION HANDOFF
+Date: 2026-10-20
+Status: UNQUALIFIED. Cross-host execution is BLOCKED pending successor local gates.
+
+Purpose and current blocker
+===========================
+
+The frozen candidate is 50b6da599a135cc823a547b5845564a5ddc66f8f. Its Debug
+core gate has two failed registrations on both hosts:
+
+  workspace-presentation-actor
+  workspace-actor-cabinet-gateway
+
+The initial triage above is not the final failure list. Later Debug checks
+also exposed identity-key fixture modes and component broker shutdown failures.
+Read the latest canonical repair notes before choosing a successor.
+The gates continue collecting later failures. Their completion is not a pass.
+
+ROOT below means:
+  /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01
+This candidate cannot qualify after these failed receipts. Do not start any
+cross-host or other runtime workload while either gate is live. Read-only
+monitoring of the existing runs is allowed. Do not disturb, replace, or edit
+their candidate, launch, receipts, logs, or evidence.
+
+Current canonical notes:
+
+  /home/dflanag3/src/m08-reader-bound-review-20261020/docs/M08_FULL_GATE_REPAIR_PLAN_2026-10-20.txt
+  /home/dflanag3/src/m08-reader-bound-review-20261020/docs/M08_RUNNING_GATE_HANDOFF_2026-10-20.txt
+
+The exact local report paths are:
+
+  /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/deployed-50b6da5-01/evidence/m08-full-50b6da5-sb16-01/run.json
+  /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/deployed-50b6da5-01/evidence/m08-full-50b6da5-sb16-2-01/run.json
+
+Wrapper receipts are under ROOT/fullgate-HOST-50b6da5-01/, not REPORT_PARENT:
+
+  command.exit
+  wrapper.exit
+  terminal-status.txt
+
+For each host, require COMPLETE terminal status, zero command and wrapper
+exits, retired processes, complete Debug and ASan-UBSan logs and JUnit,
+successful cleanup, final candidate artifacts, and released locks. The current
+failed Debug receipts already block cross-host work. A future successor needs
+new candidate and deployment pins, report paths, attempt names, and evidence
+directories. Never reuse or overwrite this attempt's evidence.
+
+Read-only monitoring may use the saved command in the running-gate handoff.
+Do not infer completion from an empty live log or from process absence alone.
+Preserve every failure and record failed, passed, skipped, blocked, and unrun
+stages separately.
+
+Canonical source contracts
+==========================
+
+M06 owns `crosshost-handoff --plan PLAN`. It runs on sb16 after both successor
+local gates pass and release their locks. `_validate_plan(plan, plan_path)`
+exists at `tools/m06_deployed_gate.py:2187`. It validates candidate, exact
+directions, profiles, six case labels, fixture selector, deployment and local
+receipt pins, new output path, and native manifests. It can prevalidate a
+complete plan before expensive execution. There is no standalone CLI for that
+function. Do not invent a new runner. The executable CLI is at lines 2880-2892.
+
+M07 owns `workspace-crosshost` and `reconcile`.
+`_role_map(path, local_host, direction)` at
+`tools/m07_deployed_gate.py:120` is a pure role validator. It validates the
+eight role names, nonempty values, authority host, observer, and absolute
+paths. It does not validate deployment provenance or runtime results.
+`run_workspace_crosshost` performs those runtime checks at line 278.
+M08 owns cabinet dispatch and final reconciliation in
+`tools/m08_deployed_gate.py:254-345`.
+
+M06 executes six semantic case labels for EACH profile: twelve semantic
+executions total. It then performs four native-geometry runs. Each run
+validates nine native cases, for 36 native-case executions total. Do not run
+the native runner separately. Later, run four workspace-geometry cells and
+four cabinet cells. Keep semantic executions, native runs, workspace cells,
+and cabinet cells as distinct evidence and indexes.
+
+The canonical M07 reconciler opens every receipt and `test_log` absolute path
+on its coordinator (`tools/m07_deployed_gate.py:408-480`). Collect
+sb16-2-authority outputs directly to the coordinator on sb16. Preserve original
+bytes and make each absolute path resolve to its original meaning there. Use
+unique host and direction roots in newly planned paths. Create only missing,
+non-colliding directories. Verify SHA-256 before interpreting any collected
+file. Never rewrite receipts or logs to hide collection defects. Keep source
+and evidence transfers on Linux; do not route them through Windows. Keep the
+geometry and cabinet result indexes separate.
+
+The existing `tools/execute_workspace_crosshost_serial.py` and
+`tools/m07_collector_crosshost_plan.py` are present. They hardcode historical
+M07 roots, continuation inputs, and pins. Do not reuse either blindly or claim
+that no collector exists. Prepare and review successor-specific inputs.
+
+Prelaunch plan and retained runtime paths
+=========================================
+
+The old `crosshost-prelaunch-plan-50b6da5.json` is a static prerequisite
+record, not an executable plan. It remains UNRUN as an execution plan. All
+eight role templates also remain UNRUN. Do not use their old paths or hashes
+as successor evidence. After both successor local
+gates pass, calculate raw SHA-256 values from the final local report bytes.
+Fill a newly named external schema-1 plan with the exact candidate, runner,
+directions, profiles, six semantic labels, production fixture selector,
+deployment paths and raw provenance/receipt hashes, local report paths and
+raw hashes, new evidence output, and both native host manifests per profile.
+Use actual local report hashes; do not use placeholders or old reports.
+
+Before M06 execution, call its existing `_validate_plan(plan, plan_path)`
+against the complete plan. Review that validation result and each pinned input.
+Then use the canonical `crosshost-handoff --plan` command. It creates
+`plan.json` and `reconciliation.json`. Expected status is
+`passed_needs_primary_review`; `phase_complete` remains false.
+
+The M06 validator requires one shared final deployment path and exact
+source/build/profile layouts. Verify the older-dated runtime XSERVER paths
+through `provenance.runtime_manifest.hosts[host][profile].xace_wrapper` and
+its source/runtime closure. These paths deliberately retain verified XACE
+binaries and wrappers. Age alone does not make them stale source.
+
+M06 local reports must be `local_passed_crosshost_pending` with
+`phase_complete: false`. Both profile rows must pass. Each core command must
+have exit code zero, all registrations present, and no failure or skip.
+Check the profile inventories beside each report. Require registered tests
+and the dedicated-test exclusions before planning.
+
+Workspace and cabinet matrices
+==============================
+
+After M06 passes, use the canonical deployed M07/M08 runners. Validate each
+role map and deployment pin first. Use new, unique external evidence paths for
+every cell. Run one cell at a time per authority host:
+
+  Debug       sb16-to-sb16-2
+  Debug       sb16-2-to-sb16
+  ASan-UBSan  sb16-to-sb16-2
+  ASan-UBSan  sb16-2-to-sb16
+
+Run the four geometry cells with:
+
+  python3 tools/m07_deployed_gate.py workspace-crosshost --deployment DEPLOYMENT --candidate CANDIDATE --profile PROFILE --direction DIRECTION --roles ROLE_JSON --m06-plan M06_PLAN_JSON --output NEW_CELL_DIR --test-name workspace-geometry-native-crosshost
+
+Run the four cabinet cells with:
+
+  python3 tools/m08_deployed_gate.py workspace-cabinet-crosshost --deployment DEPLOYMENT --candidate CANDIDATE --profile PROFILE --direction DIRECTION --roles ROLE_JSON --m06-plan M06_PLAN_JSON --output NEW_CELL_DIR
+
+Use the canonical commands on the authority host named first in DIRECTION.
+Do not overlap same-host stages or reconciliation. Record each resulting
+`workspace-crosshost-receipt.json` path in its matrix index. M07 and M08
+require a complete four-cell matrix for their distinct test names.
+
+Before final M08 reconciliation, collect each receipt and its referenced log
+to the sb16 coordinator without changing bytes or paths. Verify raw hashes,
+then confirm the absolute paths resolve locally. Reconcile the geometry index
+and cabinet index separately with:
+
+  python3 tools/m08_deployed_gate.py reconcile-cabinet-crosshost --candidate CANDIDATE --m06-reconciliation M06_RECONCILIATION/reconciliation.json --workspace-geometry-results GEOMETRY_INDEX.json --cabinet-crosshost-results CABINET_INDEX.json --output NEW_M08_RECONCILIATION_DIR
+
+Expected status is `passed_needs_primary_review`, qualification remains
+UNQUALIFIED, and `phase_complete` remains false. This does not qualify M08.
+
+Storage and profile constraint: unresolved
+===========================================
+
+Do not authorize cross-host execution until the successor's ASan-UBSan
+storage/profile path is resolved and reviewed. Do not lower profile minima or
+weaken security configuration.
+
+Source inspection found these concrete constraints:
+
+  * `m07.run_workspace_crosshost` copies the caller environment and does not
+    call M08's `apply_storage_profile_env`.
+  * `with_adapter_resources.py` reads generic `SPATIAL_TEST_STORAGE_VOLUME`.
+    It selects Debug unless invoked with `--copy-profile=PROFILE`.
+  * The CMake workspace-geometry registration wraps the outer adapter with the
+    configured profile argument. Its nested `LocalNativeObserver` in
+    `test_workspace_geometry_native_crosshost.py` invokes
+    `with_adapter_resources.py` without `--copy-profile`; that wrapper defaults
+    to Debug and inherits the environment.
+  * The deployment's M08 profile storage variables are profile-specific, but
+    the cross-host runner does not map them into the generic variable.
+
+Therefore the ASan outer adapter and nested native observer do not have a
+source-proven matching ASan storage configuration. Do not invent an environment
+variable or assume the Debug volume is safe for the nested observer. Review
+the registered CMake command, both resource wrappers, delegated environment,
+and actual fixture consumption. Then specify a safe profile-specific setup
+that satisfies existing resource budgets and security checks. Record any
+remaining constraint before execution. No workload may be used to validate
+this setup until the contract is resolved.
+
+Evidence and gate discipline
+============================
+
+For every stage preserve source and deployment pins, complete logs and JUnit,
+raw receipts, cleanup evidence, terminal process retirement, helper state, and
+lock state. M06 rechecks artifacts before and after its work. Investigate any
+changed artifact or incomplete cleanup. Never restart into an existing output
+directory. Preserve failures and use new attempts for all successors.
+
+Source contract validation: PASS. Static source inspection reviewed the
+M06/M07/M08 validators, execution paths, runtime wrapper provenance checks,
+collector assumptions, and storage/profile propagation described above.
+This is not runtime evidence.
+
+Commands, tests, host access, semantic executions, native runs, workspace and
+cabinet cells, reconciliation, and cross-host qualification: UNRUN. M08 stays
+UNQUALIFIED until successor local gates pass, the storage/profile constraint
+is resolved, cross-host evidence is complete, and primary review accepts it.
