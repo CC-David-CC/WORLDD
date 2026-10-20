@@ -32,7 +32,10 @@ def receive(read, ready, message):
         while len(data) < size:
             if not select.select([ready], [], [], max(0,deadline-time.monotonic()))[0]:
                 raise AssertionError('World response deadline expired')
-            part = read(size-len(data))
+            try:
+                part = read(size-len(data))
+            except (BlockingIOError, InterruptedError):
+                continue
             if not part: raise EOFError('worldd closed the channel')
             data += part
         return data
@@ -577,6 +580,26 @@ class WorldIdentityTests(WorldIdentityFixture):
         world,peer,probe=self.held();peer.stream.sendall(struct.pack('!I',1048577))
         self.released(world,probe)
         self.assertEqual(peer.stream.recv(1),b'')
+
+
+class ReceiveTests(unittest.TestCase):
+    def test_receive_retries_would_block_after_readiness(self):
+        reader, writer = socket.socketpair()
+        self.addCleanup(reader.close)
+        self.addCleanup(writer.close)
+        writer.sendall(struct.pack('!I', 0))
+        reads = 0
+
+        def read(size):
+            nonlocal reads
+            reads += 1
+            if reads == 1:
+                raise BlockingIOError(11, 'simulated readiness race')
+            return reader.recv(size)
+
+        reply = receive(read, reader, session.WorldSessionReply)
+        self.assertEqual(reply, session.WorldSessionReply())
+        self.assertEqual(reads, 2)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)
