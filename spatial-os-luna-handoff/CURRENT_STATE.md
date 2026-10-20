@@ -10,8 +10,9 @@ Production startup checks passed before and after the package permission correct
 The final audit also verified file hashes, native XACE dependencies, fresh storage, and SSH.
 It caught and corrected group-write modes and a missing launch-plan handoff.
 Those setup failures remain recorded. Product source did not change.
-The canonical full local gate is ready to launch on both hosts.
-Its runtime results and the later cross-host matrices remain UNRUN.
+The canonical full local gate is running on both hosts.
+Both Debug startup and 89-test harness groups passed. Protected core tests are running.
+The full local results and later cross-host matrices remain pending.
 Read ../docs/M08_FULL_GATE_LAUNCH_CHECKLIST_2026-10-20.txt for exact checks and evidence.
 
 ## 2026-10-20: Copy fixture reply ownership repaired; full M08 gate pending

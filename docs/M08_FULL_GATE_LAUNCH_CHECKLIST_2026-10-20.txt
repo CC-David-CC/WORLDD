@@ -135,7 +135,7 @@ CHECKLIST
    Start the full local gate on both hosts only after this review passes.
 
 RUNTIME RESULTS STILL REQUIRED
-Full local gate: UNRUN on the complete frozen candidate.
+Full local gate: RUNNING on both hosts with the complete frozen candidate.
 Cross-host matrices: UNRUN on the complete frozen candidate.
 Full M08 reconciliation and qualification: UNRUN.
 M09 through M16 and final Spatial-M1 qualification remain outstanding.
@@ -261,5 +261,25 @@ All 20 production startup checks passed again after that correction.
 Each host verified the prior 318 command-output receipts without changes.
 Both deployed source trees and package files match the frozen candidate.
 Current free space is about 70 GiB on sb16 and 68 GiB on sb16-2.
-The full local runtime gate is ready for launch. M08 remains UNQUALIFIED.
+The full local runtime gate has started on both hosts. M08 remains UNQUALIFIED.
 The primary readiness record pins both final reports and both launch scripts.
+
+FULL LOCAL GATE LAUNCH VERIFIED
+Both canonical run.json records report running on the frozen candidate.
+Both select Debug and ASan-UBSan. Neither reports phase completion.
+Both Debug inventory checks passed. Each Debug startup group passed all five checks.
+Both Debug harness groups passed all 89 tests with no skip or missing case.
+Both hosts entered the protected core tests. No early failure marker was found.
+These observations do not prove that later tests pass.
+
+sb16 attempt: m08-full-50b6da5-sb16-01.
+sb16-2 attempt: m08-full-50b6da5-sb16-2-01.
+Reports: deployed-50b6da5-01/evidence/ATTEMPT/run.json under the evidence root.
+Tmux sessions: m08-full-local-50b6da5-sb16 and m08-full-local-50b6da5-sb16-2.
+Wrappers: fullgate-sb16-50b6da5-01 and fullgate-sb16-2-50b6da5-01.
+Do not start competing helper, storage, or runtime tests while these gates hold locks.
+Read the full current core.log before claiming there are no failures.
+Require terminal local_passed_crosshost_pending reports before cross-host execution.
+Keep the two cross-host result indexes separate and reconcile all required matrices.
+M08 qualification remains pending the complete runtime evidence and review.
+Launch note recorded at 2026-10-20T09:25:57.975151+00:00.
