@@ -48,15 +48,17 @@ cmake -G Ninja -S "$PROJECT" -B "$BUILD" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTIN
 cmake --build "$BUILD" --parallel 2
 # Copy CTest registration files into an external writable stage.
 mkdir -p "$CTEST_STAGE"
-python3 - "$BUILD" "$CTEST_STAGE" "$BUILD" <<'PY'
+python3 - "$BUILD" "$CTEST_STAGE" "$BUILD" "$PROJECT/tools" <<'PY'
 import pathlib,re,shutil,sys
-build,stage,workdir=map(pathlib.Path,sys.argv[1:])
+build,stage,workdir=map(pathlib.Path,sys.argv[1:4])
+sys.path.insert(0,sys.argv[4])
+from package_qualification_inventory import registration_names_from_text
 files=list(build.rglob('CTestTestfile.cmake'))
 assert files, 'no CTestTestfile.cmake found'
 registration_names=[]
 for src in files:
  rel=src.relative_to(build); dst=stage/rel; dst.parent.mkdir(parents=True,exist_ok=True)
- text=src.read_text(); names=re.findall(r'add_test\(\[=\[(.*?)\]=\]',text)
+ text=src.read_text(); names=registration_names_from_text(text, str(src))
  if names:
   text += '\n# External stage keeps CTest logs outside the frozen package.\n'
   for name in names:
@@ -73,46 +75,20 @@ dart=re.sub(r'^BuildDirectory: .*$',f'BuildDirectory: {stage}',dart,flags=re.M)
 dart=re.sub(r'^SourceDirectory: .*$',f'SourceDirectory: {build.parent.parent}/source/spatial-os-luna-handoff',dart,flags=re.M)
 (stage/'DartConfiguration.tcl').write_text(dart)
 PY
-python3 - "$FINAL" "$CTEST_STAGE" "$BUILD_DIR_NAME" <<'PY'
+python3 - "$FINAL" "$CTEST_STAGE" "$BUILD_DIR_NAME" "$PROJECT/tools" <<'PY'
 import json,pathlib,re,subprocess,sys
 root,stage=map(pathlib.Path,sys.argv[1:3]); build=root/'builds'/sys.argv[3]
+sys.path.insert(0,sys.argv[4])
+from package_qualification_inventory import validate_inventory
 r=subprocess.run(['ctest','--test-dir',str(stage),'--show-only=json-v1'],text=True,capture_output=True,check=True)
 j=json.loads(r.stdout); tests=j.get('tests',[]); names=[t['name'] for t in tests]
 registered=(stage/'CTEST_REGISTERED_NAMES.txt').read_text().splitlines()
-assert len(set(names))==len(names), 'duplicate CTest names in generated metadata'
-assert sorted(names)==registered, 'CTest inventory differs from copied registration files'
-cmake=(root/'source/spatial-os-luna-handoff/CMakeLists.txt').read_text().splitlines()
-starts=[i for i,line in enumerate(cmake) if line.strip()=='if(SPATIAL_INPUT_TESTS)']
-assert len(starts)==1, f'expected one SPATIAL_INPUT_TESTS block, found {len(starts)}'
-depth=0; end=None
-for i in range(starts[0],len(cmake)):
- line=cmake[i].strip()
- if line.startswith('if('): depth+=1
- if line=='endif()':
-  depth-=1
-  if depth==0: end=i; break
-assert end is not None, 'SPATIAL_INPUT_TESTS block is not closed'
-input_block='\n'.join(cmake[starts[0]:end+1])
-input_names=re.findall(r'add_test\(\s*NAME\s+([^\s)]+)',input_block)
-identity_suites=re.search(r'foreach\(identity_suite\s+([^)]*)\)',input_block)
-assert input_names, 'no tests found in SPATIAL_INPUT_TESTS block'
-expanded_input_names=[]
-variable_marker=chr(36)+'{identity_suite}'
-for name in input_names:
- if variable_marker in name:
-  assert identity_suites, 'identity suite registration has no matching foreach'
-  expanded_input_names.extend(name.replace(variable_marker,suite) for suite in identity_suites.group(1).split())
- else:
-  assert chr(36) not in name, f'unexpanded test name: {name}'
-  expanded_input_names.append(name)
-missing_input=sorted(set(expanded_input_names)-set(names))
-assert not missing_input, f'SPATIAL_INPUT_TESTS registrations missing from package: {missing_input}'
+cmake=(root/'source/spatial-os-luna-handoff/CMakeLists.txt').read_text()
+inventory=validate_inventory(registered, j, cmake, build)
 previously_missing=['broker-file-action-client-test','file-action-effect-wait-test','presentation-metadata-test','queued-copy-status-replacement-test','spatial-actor-session-client-probe','spatial-actor-session-client-tls-probe','spatial-actor-transition-coordinator-probe','spatial-host-actor-controller-probe','spatial-snapshot-size-regression','workspace-copy-journal-test','workspace-file-engine-test','workspace-file-operation-journal-test','workspace-presentation-projection-test','workspace-presentation-store-test','world-diagnostic-timing-test']
 for name in previously_missing:
  exe=build/name
  assert exe.is_file() and exe.stat().st_mode & 0o111, f'missing previously absent executable {name}'
-wd=[p['value'] for t in tests for p in t.get('properties',[]) if p.get('name')=='WORKING_DIRECTORY']
-assert len(wd)==len(tests) and set(wd)=={str(build)}, f'working dirs are not package build: {set(wd)}'
 (stage/'CTEST_REGISTRATION.json').write_text(json.dumps(j,indent=2,sort_keys=True)+'\n')
 r=subprocess.run(['ctest','--test-dir',str(stage),'-N','-C','Debug'],text=True,capture_output=True)
 (stage/'CTEST_LIST_ONLY.txt').write_text(r.stdout+r.stderr)
@@ -120,7 +96,7 @@ assert r.returncode==0, f'ctest -N exit {r.returncode}'
 assert 'Could not find executable' not in r.stdout+r.stderr, 'missing registered executable'
 assert f'Test project {stage}' in r.stdout, 'CTest bookkeeping is not external'
 assert f'Total Tests: {len(names)}' in r.stdout, 'CTest registration count mismatch'
-print(f'external CTest stage registrations={len(names)}; SPATIAL_INPUT_TESTS registrations={len(expanded_input_names)} present; prior missing executables=15 present; explicit package workdirs={len(wd)}; list-only is warning-free')
+print(f'external CTest stage registrations={inventory["registered_count"]}; SPATIAL_INPUT_TESTS registrations={inventory["input_count"]} present; prior missing executables=15 present; explicit package workdirs={inventory["working_directory_count"]}; list-only is warning-free')
 PY
 : > "$FINAL/ELF_DEPENDENCIES.txt"
 while IFS= read -r -d '' f; do
@@ -155,15 +131,22 @@ BACKUP="$FINAL.pre-extraction-verify"
 mv -- "$FINAL" "$BACKUP"
 tar -xzf "$ARCHIVE" -C "$(dirname "$FINAL")"
 sha256sum -c "$ARCHIVE.sha256"
-python3 - "$FINAL" "$BUILD_DIR_NAME" <<'PY'
-import hashlib,pathlib,sys
-p=pathlib.Path(sys.argv[1]); build_dir=sys.argv[2]
+python3 - "$FINAL" "$BUILD_DIR_NAME" "$CTEST_STAGE" "$PROJECT/tools" <<'PY'
+import hashlib,json,pathlib,sys
+p=pathlib.Path(sys.argv[1]); build_dir=sys.argv[2]; stage=pathlib.Path(sys.argv[3])
+sys.path.insert(0,sys.argv[4])
+from package_qualification_inventory import validate_inventory
 for name,base in [('SOURCE_MANIFEST.sha256',p/'source'),('BUILD_MANIFEST.sha256',p/'builds'/build_dir),('PACKAGE_MANIFEST.sha256',p)]:
  for line in (p/name).read_text().splitlines():
   if not line: continue
   d,rel=line.split('  ',1); f=base/rel.removeprefix('./')
   assert f.is_file() and hashlib.sha256(f.read_bytes()).hexdigest()==d, f'{name}: {rel}'
 assert not any(x.name=='Testing' for x in p.rglob('*')), 'CTest bookkeeping entered extracted package'
+registered=(stage/'CTEST_REGISTERED_NAMES.txt').read_text().splitlines()
+registration=json.loads((stage/'CTEST_REGISTRATION.json').read_text())
+cmake=(p/'source/spatial-os-luna-handoff/CMakeLists.txt').read_text()
+inventory=validate_inventory(registered, registration, cmake, p/'builds'/build_dir)
+print(f'extracted package inventory registrations={inventory["registered_count"]}; input registrations={inventory["input_count"]}; workdirs={inventory["working_directory_count"]}')
 PY
 ctest --test-dir "$CTEST_STAGE" -N -C Debug > "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt" 2>&1
 ! grep -q 'Could not find executable' "$CTEST_STAGE/CTEST_LIST_ONLY_AFTER_EXTRACT.txt"

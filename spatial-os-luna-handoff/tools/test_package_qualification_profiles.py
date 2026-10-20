@@ -3,48 +3,19 @@ import ast
 import pathlib
 import re
 import subprocess
+import sys
 import tempfile
 import unittest
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from package_qualification_inventory import (
+    input_tests, registration_names_from_text, validate_inventory,
+)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PACKAGE_SCRIPT = ROOT / "tools/package_debug_qualification.sh"
 CMAKE_FILE = ROOT / "CMakeLists.txt"
 
-
-def input_tests(cmake_text):
-    lines = cmake_text.splitlines()
-    starts = [i for i, line in enumerate(lines) if line.strip() == "if(SPATIAL_INPUT_TESTS)"]
-    if len(starts) != 1:
-        raise AssertionError(f"expected one SPATIAL_INPUT_TESTS block, found {len(starts)}")
-    depth = 0
-    end = None
-    for i in range(starts[0], len(lines)):
-        line = lines[i].strip()
-        if line.startswith("if("):
-            depth += 1
-        if line == "endif()":
-            depth -= 1
-            if depth == 0:
-                end = i
-                break
-    if end is None:
-        raise AssertionError("SPATIAL_INPUT_TESTS block is not closed")
-    block = "\n".join(lines[starts[0]:end + 1])
-    names = re.findall(r"add_test\(\s*NAME\s+([^\s)]+)", block)
-    identity_suites = re.search(r"foreach\(identity_suite\s+([^)]*)\)", block)
-    marker = chr(36) + "{identity_suite}"
-    expanded = set()
-    for name in names:
-        if marker in name:
-            if not identity_suites:
-                raise AssertionError("identity test registration has no foreach")
-            expanded.update(name.replace(marker, suite)
-                           for suite in identity_suites.group(1).split())
-        else:
-            if chr(36) in name:
-                raise AssertionError(f"unexpanded test name: {name}")
-            expanded.add(name)
-    return expanded
 
 
 class PackageQualificationProfileTests(unittest.TestCase):
@@ -109,8 +80,87 @@ class PackageQualificationProfileTests(unittest.TestCase):
             "actor-pixels",
             "native-actor-input",
         }.issubset(registered))
-        self.assertIn("missing_input=sorted(set(expanded_input_names)-set(names))", self.script)
-        self.assertIn("SPATIAL_INPUT_TESTS registrations missing from package", self.script)
+        self.assertIn("validate_inventory(registered, j, cmake, build)", self.script)
+        self.assertIn("registered_count=$(wc -l <", self.script)
+        self.assertIn("registration_names_from_text(text, str(src))", self.script)
+
+    def test_dynamic_inventory_matches_copied_metadata_and_json(self):
+        identity_name = chr(36) + "{identity_suite}"
+        cmake = (
+            "if(SPATIAL_INPUT_TESTS)\n"
+            "foreach(identity_suite basic tls)\n"
+            " add_test(NAME identity-" + identity_name + " COMMAND identity-test)\n"
+            " add_test(NAME physical-input COMMAND input-test)\n"
+            "endif()\n"
+        )
+        registrations = [
+            "identity-basic", "identity-tls", "physical-input", "world-smoke",
+        ]
+        files = [
+            "add_test([=[identity-basic]=] identity-basic)\n"
+            "add_test([=[physical-input]=] physical-input)\n",
+            "add_test([=[identity-tls]=] identity-tls)\n"
+            "add_test([=[world-smoke]=] world-smoke)\n",
+        ]
+        copied = []
+        for index, content in enumerate(files):
+            copied.extend(registration_names_from_text(
+                content, f"CTestTestfile-{index}.cmake"))
+        ctest_json = {"tests": [
+            {"name": name, "properties": [
+                {"name": "WORKING_DIRECTORY", "value": "/pkg/build"},
+            ]}
+            for name in registrations
+        ]}
+        result = validate_inventory(
+            copied, ctest_json, cmake, pathlib.Path("/pkg/build"))
+        self.assertEqual(result, {
+            "registered_count": 4,
+            "input_count": 3,
+            "working_directory_count": 4,
+        })
+
+    def test_inventory_rejects_registration_json_input_and_workdir_mismatches(self):
+        cmake = (
+            "if(SPATIAL_INPUT_TESTS)\n"
+            " add_test(NAME required-input COMMAND input-test)\n"
+            "endif()\n"
+        )
+        valid = ["required-input", "other-test"]
+        good_json = {"tests": [
+            {"name": name, "properties": [
+                {"name": "WORKING_DIRECTORY", "value": "/pkg/build"},
+            ]}
+            for name in valid
+        ]}
+        with self.assertRaisesRegex(AssertionError, "differs from copied"):
+            validate_inventory(valid[:1], good_json, cmake, pathlib.Path("/pkg/build"))
+        missing_input_json = {"tests": [
+            {"name": "other-test", "properties": [
+                {"name": "WORKING_DIRECTORY", "value": "/pkg/build"},
+            ]}
+        ]}
+        with self.assertRaisesRegex(AssertionError, "missing from package"):
+            validate_inventory(
+                ["other-test"], missing_input_json, cmake, pathlib.Path("/pkg/build"))
+        bad_workdir = {"tests": [
+            {"name": name, "properties": [
+                {"name": "WORKING_DIRECTORY", "value": "/wrong"},
+            ]}
+            for name in valid
+        ]}
+        with self.assertRaisesRegex(AssertionError, "working dirs"):
+            validate_inventory(valid, bad_workdir, cmake, pathlib.Path("/pkg/build"))
+        with self.assertRaisesRegex(AssertionError, "duplicate"):
+            validate_inventory(valid + [valid[0]], good_json, cmake, pathlib.Path("/pkg/build"))
+
+    def test_registration_parser_rejects_duplicate_names_per_file(self):
+        metadata = (
+            "add_test([=[same]=] one)\n"
+            "add_test([=[same]=] two)\n"
+        )
+        with self.assertRaisesRegex(AssertionError, "duplicate"):
+            registration_names_from_text(metadata, "duplicate.CTestTestfile.cmake")
 
 
 if __name__ == "__main__":
