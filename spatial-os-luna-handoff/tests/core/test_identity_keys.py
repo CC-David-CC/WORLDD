@@ -69,6 +69,7 @@ class IdentityKeyTests(unittest.TestCase):
         return DOMAIN+struct.pack('!II', content.purpose, len(content.payload))+content.payload
 
     def test_distinct_keys_persist_with_private_permissions_and_external_public_keys(self):
+        self.assertEqual(stat.S_IMODE(self.root.stat().st_mode), 0o700)
         first, second = self.generate(), self.generate(self.root/'agent.pem')
         self.assertEqual(len(first), 32); self.assertNotEqual(first, second)
         self.assertEqual(self.ok('public', self.key).public_key.ed25519, first)
@@ -102,7 +103,10 @@ class IdentityKeyTests(unittest.TestCase):
 
     def test_shared_or_symlinked_key_directory_is_rejected(self):
         unsafe = self.root/'shared'; unsafe.mkdir(mode=0o755)
+        unsafe.chmod(0o755)
+        self.assertEqual(stat.S_IMODE(unsafe.stat().st_mode), 0o755)
         self.error(13, 'generate', unsafe/'key.pem')  # FORBIDDEN
+        self.assertFalse((unsafe/'key.pem').exists())
         private = self.root/'private'; private.mkdir(mode=0o700)
         alias = self.root/'alias'; alias.symlink_to(private, target_is_directory=True)
         self.error(13, 'generate', alias/'key.pem')

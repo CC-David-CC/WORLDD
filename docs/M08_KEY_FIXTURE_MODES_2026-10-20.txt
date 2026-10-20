@@ -1,0 +1,50 @@
+M08 identity-key fixture mode correction — 2026-10-20
+
+Status: source-only handoff; runtime UNRUN. This does not qualify M08.
+
+Source pin: branch m08/key-fixture-modes-20261020, base
+50b6da599a135cc823a547b5845564a5ddc66f8f. The observed candidate was built
+from that pin. Failure evidence:
+/home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/fullgate-identity-keys-sb16-failure-01.json
+The referenced sb16 Debug core log snapshot has SHA-256
+4ce32602a1c48fde73e71d8d370378b2562d7366eab742b9daa9f8b59f237b42.
+
+Observed: IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected
+failed at line 105. It expected FORBIDDEN, but generation succeeded. The full
+gate inherited umask 077. mkdir(mode=0o755) therefore created mode 0700.
+Production src/identity/keys.cpp accepts an owned private 0700 directory.
+This is a faulty negative-test fixture, not a production security defect.
+
+Invariant: generation rejects a directory with group/other permissions and
+creates no key after rejection. The symlinked directory remains rejected.
+The test explicitly chmods the unsafe directory to 0755, asserts its actual
+mode with stat.S_IMODE, and checks the rejected path has no key. Its temporary
+root is asserted to be private mode 0700 and remains the positive control for
+successful key generation. No global umask mutation is used. The other mkdir
+calls create a symlink target and a key-path directory; neither relies on the
+declared mode for a negative directory-permission assertion.
+
+Changed files are limited to:
+- spatial-os-luna-handoff/tests/core/test_identity_keys.py
+- docs/M08_KEY_FIXTURE_MODES_2026-10-20.txt
+
+No production source, locked acceptance file, launch permissions, or gate
+umask changed. acceptance.lock.json does not include this core test. The
+existing 16-case identity-keys suite remains the regression; discovery and
+existing expectations remain unchanged.
+
+Selected runtime regression, after the current gate retires: run the registered
+identity-keys CTest under both inherited umasks (022 and 077), on sb16 and
+sb16-2, in Debug and ASan. Use the deployed qualified runner and source pin.
+For each host/profile, run the identity-keys registration with
+`umask 022` then `umask 077` in the launcher environment. Record the exact
+CTest command, binary path, launcher environment, source pin, and receipts.
+Purpose: prove both ordinary and restrictive inherited umasks preserve all
+16 existing cases, including private-directory generation and shared/symlink
+rejection. Do not run until the active gate retires.
+
+Current checks: Python AST parse and source diff review only. They do not prove
+functional behavior. Runtime checks are UNRUN. Build and test suites are UNRUN.
+Primary source review accepted this fixture correction for focused verification.
+Next safe action: run four host/profile combinations under both umasks after
+gate retirement: eight suite executions and 128 existing case executions.
