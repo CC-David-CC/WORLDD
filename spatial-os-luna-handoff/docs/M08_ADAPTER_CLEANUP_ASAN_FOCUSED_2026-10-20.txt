@@ -1,0 +1,70 @@
+M08 adapter cleanup ASan/UBSan focused result
+Date: 2026-10-20
+Status: FOCUSED-PASS. M08 remains UNQUALIFIED.
+
+Purpose
+
+The adapter test checks broker-channel cleanup and worker restart.
+It also checks process-scope cleanup and abrupt supervisor-death retention.
+It targets WorldWorker shutdown, broker EOF, process cleanup, and restart behavior.
+
+Candidate and package
+
+The runtime package uses source commit 136b7eb250d1b5ac04a31ec43a624bf2e1f7e5df.
+The current branch head was 6456db8c58eb0ba0b24fad24fa58b269e3dbabb7 during testing.
+That later commit changed documentation only. No production source changed after the package pin.
+The package profile is ASan-UBSan with SPATIAL_SANITIZERS=ON.
+The archive SHA-256 is dacde77511dc97f73a677ac0b2fd33d71145705c6468ea8668536bf0bd99af0f.
+The source manifest SHA-256 is dbcacadcca2783b9ac43670ad6d2d3e55b14baec81618c954f4817cef024e304.
+The build manifest SHA-256 is 1d35c6f1b41c7253bd3553f7f958116aeb0d3a4e715b6f3ab379143de828de46.
+The package manifest SHA-256 is a1f5baedbb845c934abb46f27ee6707b52a1ff43b2953b752c6de86ea5025e07.
+Both hosts verified 1,409 source entries, 448 build entries, and 1,861 package entries.
+Both hosts verified ASan and UBSan dependencies for spatial-test-host, workspaced, and worldd.
+
+Selected test
+
+The selected CTest registration was adapter-resources, test 203 of 238.
+The command was:
+
+ctest --test-dir /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/asan-ctest-stage-v2 --output-on-failure -R '^adapter-resources$'
+
+The registered test ran through with_resource_delegate.py and with_adapter_resources.py.
+Its runtime profile was ASan-UBSan.
+The CTest stage selected exactly one registration before launch.
+No other CTest registration ran in this focused check.
+
+Results
+
+| Host | CTest result | Runtime | Command exit | Wrapper exit | Scope removed | Unexpected population | Sanitizer findings |
+|---|---:|---:|---:|---:|---|---|---|
+| sb16 | 1 passed, 0 failed, 0 skipped | 10.02 s | 0 | 0 | Yes; path absent | No | None |
+| sb16-2 | 1 passed, 0 failed, 0 skipped | 13.85 s | 0 | 0 | Yes; path absent | No | None |
+
+Both systemd units finished with LoadState=not-found and ActiveState=inactive.
+Both stderr logs are empty. The CTest logs contain no ASan or UBSan diagnostics.
+The adapter reported exit_code=0, scope_removed=true, and unexpected_population=false on both hosts.
+
+Setup history
+
+Deployment attempt 01 stopped before testing. SSH shell quoting ran the manifest check outside the package directory.
+Deployment attempt 02 stopped before testing. The verifier used incorrect working directories for relative manifest paths.
+The package contents were intact. The corrected verifier used source, build, and package roots separately.
+Deployment attempt 03 passed both host preflights. The test launch completed on both hosts.
+These were setup failures. They were not product test failures.
+
+Evidence and storage
+
+ROG deployment logs are under /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/deploy-asan-adapter-20261020-01, -02, and -03.
+ROG launch evidence is under /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/launch-asan-adapter-20261020-01.
+Each host retains its preflight JSON, command receipts, CTest log, and sanitizer log.
+Each host retains the unpacked package and CTest stage under /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020.
+The tests passed before cleanup.
+The verified compressed archive was removed from ROG and both test hosts.
+Each removal freed 1,252,641,085 file bytes. The unpacked package remains available on each host.
+Each removal receipt records the exact path, hash, and observed free-space change.
+
+Remaining work
+
+This result closes only the focused adapter ASan/UBSan check.
+It does not qualify M08. The complete M08 gate remains UNRUN.
+The remaining focused regressions, combined matrix, full Debug and sanitizer gates, cross-host checks, native checks, and recovery checks remain pending.

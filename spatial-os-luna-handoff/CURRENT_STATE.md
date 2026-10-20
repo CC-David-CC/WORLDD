@@ -1,3 +1,14 @@
+## 2026-10-20: ASan adapter-focused check passes; M08 remains UNQUALIFIED
+
+The adapter-resources CTest passed under ASan-UBSan on both required hosts.
+The package uses source commit 136b7eb250d1b5ac04a31ec43a624bf2e1f7e5df.
+Both hosts verified all package manifests and selected one of 238 CTest registrations.
+Both command and wrapper exits were zero. Both adapter scopes were removed.
+No unexpected process remained. No sanitizer finding occurred.
+No other CTest registration ran in this focused check.
+Read docs/M08_ADAPTER_CLEANUP_ASAN_FOCUSED_2026-10-20.txt for evidence paths and remaining work.
+The full M08 gate and remaining M08 checks are still pending.
+
 ## 2026-10-19: M07 qualification record reconciled; M08 remains unqualified
 
 M01-M07 are qualified. M08-M16 and final Spatial-M1 acceptance remain pending.

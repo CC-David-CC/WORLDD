@@ -45,4 +45,22 @@ Success logs and overlay manifests:
 - sb16: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-05.
 - sb16-2: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-05.
 
-Next run the same group under ASan/UBSan on both hosts. Neither result qualifies M08. The full M08 gate remains pending.
+The ASan/UBSan follow-up now passes on both hosts. Neither focused result qualifies M08. The full M08 gate remains pending.
+
+
+ASan/UBSan attempt 01 results
+
+The package is pinned to source commit 136b7eb250d1b5ac04a31ec43a624bf2e1f7e5df.
+Its archive SHA-256 is dacde77511dc97f73a677ac0b2fd33d71145705c6468ea8668536bf0bd99af0f.
+Both hosts verified 1,409 source, 448 build, and 1,861 package manifest entries.
+Both selected exactly one CTest registration: adapter-resources.
+
+sb16 passed 1/1 in 10.02 seconds. Command and wrapper exits were zero.
+sb16-2 passed 1/1 in 13.85 seconds. Command and wrapper exits were zero.
+Both adapter scopes were removed and absent after each test.
+Neither run left an unexpected process or produced sanitizer diagnostics.
+Both stderr logs are empty. No test was skipped.
+
+This focused pass does not qualify M08. All other CTest registrations remain unrun.
+See M08_ADAPTER_CLEANUP_ASAN_FOCUSED_2026-10-20.txt for package hashes and evidence paths.
+Setup attempts 01 and 02 stopped before runtime tests. Their causes and logs are recorded in that result.
