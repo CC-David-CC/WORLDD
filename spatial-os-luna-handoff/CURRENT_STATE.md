@@ -1,3 +1,19 @@
+## 2026-10-20: Complete M08 launch checklist passed on both hosts
+
+M01-M07 remain qualified. M08 remains UNQUALIFIED.
+The frozen candidate is 50b6da599a135cc823a547b5845564a5ddc66f8f.
+All 56 focused workspace-copy executions passed on both hosts and profiles.
+The canonical package and all four builds passed preparation and deployment verification.
+All 24 setup checklist items passed on sb16 and sb16-2.
+This includes 952 test registrations, 356 harness executions, and 28 fixture-tooling groups.
+Production startup checks passed before and after the package permission correction.
+The final audit also verified file hashes, native XACE dependencies, fresh storage, and SSH.
+It caught and corrected group-write modes and a missing launch-plan handoff.
+Those setup failures remain recorded. Product source did not change.
+The canonical full local gate is ready to launch on both hosts.
+Its runtime results and the later cross-host matrices remain UNRUN.
+Read ../docs/M08_FULL_GATE_LAUNCH_CHECKLIST_2026-10-20.txt for exact checks and evidence.
+
 ## 2026-10-20: Copy fixture reply ownership repaired; full M08 gate pending
 
 The copy fixture shared its broker reply endpoint with worldd.
