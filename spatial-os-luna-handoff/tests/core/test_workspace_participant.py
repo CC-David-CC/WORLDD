@@ -198,8 +198,10 @@ class WorkspaceParticipantTests(WorkspaceParticipantFixture):
         deadline=time.monotonic()+8
         while True:
             pending=self.barrier()
-            self.assertEqual((pending.applied_revision,pending.pending_count,pending.complete),(0,1,False),
+            self.assertEqual((pending.participant_count,pending.pending_count,pending.complete),(1,1,False),
                              'Observer failure was caught by dispatch and later acknowledged')
+            self.assertEqual(len(pending.obligations),1,pending)
+            self.assertEqual((pending.obligations[0].applied_revision,pending.obligations[0].complete),(0,False))
             if item.proc.poll() is not None:break
             self.assertLess(time.monotonic(),deadline,'Broker did not fail closed after observer persistence failure')
             time.sleep(.01)
@@ -212,7 +214,9 @@ class WorkspaceParticipantTests(WorkspaceParticipantFixture):
             self.assertEqual(set(db.execute("SELECT id,state FROM processes")),
                              {(value,'running') for value in applications},'Batch failure did not roll back every row')
         final=self.barrier()
-        self.assertEqual((final.applied_revision,final.pending_count,final.complete),(0,1,False))
+        self.assertEqual((final.participant_count,final.pending_count,final.complete),(1,1,False))
+        self.assertEqual(len(final.obligations),1,final)
+        self.assertEqual((final.obligations[0].applied_revision,final.obligations[0].complete),(0,False))
         self.assertEqual(self.activations(),[(1,0,1)])
         release();item.close()
 
