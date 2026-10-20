@@ -1,7 +1,8 @@
 /* Independent X11 drawing/input witness. No production Spatial OS headers.
  * Build with -DSPATIAL_HAVE_XI2 for the required multi-actor tests.
  * stdin commands: sync N; paint N R G B; quadrants N; resize N W H;
- *                map N; unmap N; geometry N; popup N W H; destroy N; quit N.
+ *                map N; unmap N; geometry N; popup N W H; survivor N W H;
+ *                destroy N; quit N.
  * All observations are JSON lines on stdout. Keep stderr separate.
  */
 #define _POSIX_C_SOURCE 200809L
@@ -23,6 +24,7 @@
 static Display *dpy;
 static Window win;
 static GC gc;
+static const char *probe_id;
 static int width=320, height=240, live=1, use_xi=0;
 #ifdef SPATIAL_HAVE_XI2
 static int xi_opcode=-1;
@@ -152,6 +154,14 @@ static void command(char *line) {
         XSetTransientForHint(dpy,popup,win);select_events(popup);XMapWindow(dpy,popup);
         rect(popup,0,0,(unsigned)a,(unsigned)b,color_rgb(255,255,0));
         printf("{\"event\":\"popup\",\"seq\":%u,\"xid\":%lu,\"parent_xid\":%lu}\n",seq,popup,win);
+    } else if(!strcmp(op,"survivor") && fields>=4 && a>0 && b>0) {
+        XSetWindowAttributes attr;memset(&attr,0,sizeof attr);attr.override_redirect=True;
+        Window popup=XCreateWindow(dpy,DefaultRootWindow(dpy),30,40,(unsigned)a,(unsigned)b,0,CopyFromParent,InputOutput,CopyFromParent,CWOverrideRedirect,&attr);
+        Atom prop=XInternAtom(dpy,"_SPATIAL_PROBE_ID",False),utf8=XInternAtom(dpy,"UTF8_STRING",False);
+        char child_id[256];snprintf(child_id,sizeof child_id,"%s-survivor",probe_id);
+        XChangeProperty(dpy,popup,prop,utf8,8,PropModeReplace,(const unsigned char*)child_id,(int)strlen(child_id));
+        select_events(popup);XMapWindow(dpy,popup);rect(popup,0,0,(unsigned)a,(unsigned)b,color_rgb(255,255,0));
+        printf("{\"event\":\"survivor\",\"seq\":%u,\"xid\":%lu,\"probe_id\":\"%s\"}\n",seq,popup,child_id);
     } else if(strcmp(op,"sync")) {fprintf(stderr,"unsupported/invalid probe command: %s\n",line);exit(6);}
     XSync(dpy,False);
     while(XPending(dpy)){XEvent e;XNextEvent(dpy,&e);event(&e);}
@@ -168,6 +178,7 @@ int main(int argc,char **argv) {
         else {fprintf(stderr,"unknown argument %s\n",argv[i]);return 2;}
     }
     for(const char *p=id;*p;p++) if(!((*p>='a'&&*p<='z')||(*p>='A'&&*p<='Z')||(*p>='0'&&*p<='9')||*p=='-'||*p=='_')){fprintf(stderr,"probe id must be ASCII identifier\n");return 2;}
+    probe_id=id;
     setvbuf(stdout,NULL,_IOLBF,0);
     dpy=XOpenDisplay(NULL);if(!dpy){fprintf(stderr,"cannot open DISPLAY\n");return 2;}
     XSetErrorHandler(xerror);

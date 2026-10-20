@@ -1,0 +1,112 @@
+M09 destroy reacquisition and pending native release witness
+
+Status: PRIMARY SOURCE-REVIEWED CHECKPOINT. Runtime qualification remains UNRUN.
+All runtime checks, including new negative controls, remain UNRUN.
+M09 and Spatial-M1 remain unqualified.
+
+Ownership and provenance
+
+Host: rog-ally-x. No runtime, builds, or jobs used sb16 or sb16-2.
+Worktree: /home/dflanag3/src/m09-destroy-native-evidence-20261020
+Branch: m09/destroy-native-evidence-20261020
+Base: 85771be81795310eab8f08b4401baf883576cd86
+Owned files, relative to spatial-os-luna-handoff:
+- native/xprobe.c
+- tests/core/test_world_application_control.py
+- acceptance.lock.json
+- docs/M09_DESTROY_REACQUISITION_PENDING_2026-10-20.txt
+No persistent job or tmux session was needed for short source checks.
+Artifacts: /home/dflanag3/spatial-artifacts/m09-destroy-native-evidence-20261020
+
+The Luna checkout was read only. Its base matches this worktree.
+Source: /home/dflanag3/src/m09-balanced-destroy-revocation-20261020
+Copied xprobe SHA256: 3f1bb789a524ebcfe0cdcb9209a421f474677597d3f55f63bbc8d49cffa054f8
+Copied test SHA256: 0d182997d6c1b28757061525098f7660082b85b966ee8fd85a83027d645e7ddb
+The external manifest and original diff preserve those input bytes and changes.
+This increment changes the copied test. It does not alter Luna's checkout.
+
+Review finding and bounded result
+
+Luna's optional release list could be empty. all(...) then passed without evidence.
+WorldSessionInspect held state is broker logical state. It is not X device state.
+The revised destroy case claims only same-application reacquisition and process continuity.
+It removes optional release ordering entirely. Logical-state waits only schedule a BUSY retry.
+It preserves both strict legacy destroy release assertions and their existing helper.
+It creates a surviving root popup using the original application's X connection.
+A pre-destroy peer press must return BUSY. This is the group-reservation negative control.
+After destruction, peer input must reach that popup and include the expected unshifted key.
+The application must remain mapped in the same room and respond through the same process.
+None of these observations proves old native keys or buttons were released before transfer.
+The separate observation-revocation case retains mandatory native releases before peer input.
+
+Independent native witness assessment
+
+Existing native_device() uses privileged self.native.supervisor and XIGetClientPointer.
+server/xlibre/spatialinput.c open_seat() creates actor-specific master and slave devices.
+Its device_access() already permits privileged observation. Confined enumeration must remain denied.
+Application client pointers are rebound during cancellation and transfer.
+An independent observer must pin the old actor's devices while that actor still controls.
+A post-transfer application-device query can silently inspect the wrong actor or fallback devices.
+
+NativeClient.request() rejects asynchronous events. It is a synchronous reply client.
+A separate authenticated event connection would need independent framing and lifecycle checks.
+More critically, send_input() passes POINTER_NORAW for button and motion input.
+A root XI raw-event listener alone therefore cannot prove button release.
+A logical status response or empty optional release list cannot fill that gap.
+
+The ordered native release witness remains pending. Do not mark destroy balanced coverage complete.
+A candidate design needs actual X device key/button state plus a causal transfer boundary.
+A post-transfer snapshot cannot prove ordering. A pre-transfer wait serializes the requested race.
+Investigate Xserver DeviceEventCallback, or an equivalent actual delivered-input callback.
+Start at send_input(), mieqProcessDeviceEvent(), and the DIX device-event callback registration.
+A privileged test observer should snapshot the old actor's actual DeviceInt key/button state
+at the first accepted peer event. Correlate exact old and new actor master/slave identities.
+Keep this pending design separate from production. No Xserver patch belongs to this increment.
+It must read actual device state independently of SeatRec bookkeeping and world actor state.
+Do not add generic device enumeration authority to confined applications.
+Required negative controls must independently retain a held key and a held button.
+Each must make the witness fail even when logical state clears and peer input succeeds.
+The witness must also reject missing observations and a mismatched actor-device identity.
+This source-only increment does not implement or qualify that observer.
+
+Selected checks, recorded before execution
+
+Source checks on ROG: Python AST parsing; C syntax with and without SPATIAL_HAVE_XI2;
+external probe compilation in both profiles;
+git diff --check; repository_data_guard.py; lock and original-method preservation comparison.
+These check syntax and source integrity. They provide no runtime release evidence.
+
+After primary releases sb16 and sb16-2, run focused Debug and ASan/UBSan on both hosts:
+- test_m09_destroy_reacquires_same_application_survivor
+- test_m09_observation_revocation_balances_input_before_peer_event
+- Existing five test_m09 selectors, including strict test_m09_destroy_releases_input_and_preserves_probe
+- test_observation_revocation_cancels_control and related application observation/pixel revocation regressions
+All remain UNRUN here. The strict destroy case may expose an unresolved evidence limitation.
+Do not weaken it or report it as passed from the new reacquisition result.
+Full M09 gate selection and execution remain pending primary review.
+
+Proposed lock change
+
+Old native/xprobe.c pin: 8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da
+Proposed pin: 3f1bb789a524ebcfe0cdcb9209a421f474677597d3f55f63bbc8d49cffa054f8
+Only this fixture hash and an explicitly proposed notice change are intended.
+Preserve all 151 IDs, all assertions, every other lock field, and all unrelated hashes.
+The primary approved this additive fixture-pin change as an UNQUALIFIED source checkpoint.
+Runtime qualification and the independent native witness remain pending.
+
+Source check results
+
+PASS: AST parsing, original-method preservation, and all locked acceptance-file bytes.
+PASS: C syntax and external probe compilation, with XI2 and without XI2.
+Both binaries linked outside Git. Neither binary was executed.
+PASS: diff whitespace and repository data guard, including this proposed document.
+Source-check receipts: source-check-run-01/command.exit and wrapper.exit are both zero.
+Its stderr.log is empty. Exact commands and compiler profiles are in stdout.log.
+Final metadata receipts: final-review-run-01/command.exit and wrapper.exit.
+The external cleaned-source.diff includes the complete four-file proposal.
+The external final-source-sha256.json pins every owned source file.
+No runtime checks ran. No focused or full milestone gate passed here.
+The primary reviewed this four-file source increment and approved its explicit fixture-pin migration.
+This UNQUALIFIED checkpoint preserves the source through box-git. It does not establish integration or runtime acceptance.
+The checked Git receipts record the checkpoint commit and verified destination ref externally.
+Next task: investigate the privileged DeviceEventCallback witness before claiming balanced destroy coverage.

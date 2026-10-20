@@ -73,6 +73,17 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
             output.write(' '.join(map(str,[name,self.sequence,*args]))+'\n')
         return self.until(lambda:self.probe_events(app),lambda rows:any(r.get('event')=='ack' and r.get('seq')==self.sequence for r in rows))
 
+    def m09_create_survivor(self,app):
+        rows=self.probe_command(app,'survivor',160,120)
+        created=next(r for r in rows if r.get('event')=='survivor')
+        value=self.until(lambda:self.world_process.management('surface.find',probe_id=created['probe_id']),
+                         lambda result:result['surface'] is not None)['surface']
+        position=(.8,0,-2)
+        self.world_process.management('surface.place',id=value['id'],room=self.world_info['entry_room'],
+                                      pose=pose(position),size=[.6,.6])
+        self.assertTrue(self.world_process.management('surface.get',id=value['id'])['mapped'])
+        return value,position
+
     def native_device(self,app):
         # Independent supervisor observation. Confined clients cannot enumerate XI devices.
         window=next(r['xid'] for r in self.probe_events(app) if r.get('event')=='ready')
@@ -153,8 +164,8 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertTrue(released_indexes,tail)
         return max(released_indexes)
 
-    def m09_peer_first_native_event(self,app,peer,before,codes,x=0,z=-1):
-        self.actor_aim(peer,x=x,z=z)
+    def m09_peer_first_native_event(self,app,peer,before,codes,x=0,z=-1,aim=True):
+        if aim:self.actor_aim(peer,x=x,z=z)
         result=peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
         if result.HasField('error'):
             self.assertEqual(result.error.code,core.BUSY,result)
@@ -353,6 +364,59 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
 
     def test_m09_destroy_releases_input_and_preserves_probe(self):
         self.m09_run_balanced_transfer('destroy')
+
+    def test_m09_destroy_reacquires_same_application_survivor(self):
+        app,main,observe,control=self.begin_control()
+        self.addCleanup(self.m09_release_probe,app)
+        survivor,position=self.m09_create_survivor(app)
+        hit=self.actor_aim(self.peer,x=position[0],y=position[1],z=position[2]).hit
+        self.assertEqual(hit.id,survivor['id'])
+        self.denied(self.peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.BUSY)
+        self.m09_hold_native_input(app)
+        log_boundary=len(self.probe_events(app))
+        self.probe_command(app,'destroy')
+        self.until(lambda:self.probe_events(app),
+                   lambda rows:any(r.get('event')=='destroy' and r.get('xid')==main['xid'] for r in rows))
+        # Reuse the peer's pre-destroy aim. The pointer request itself reaches cancellation first.
+        result=self.peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        if result.HasField('error'):
+            self.assertEqual(result.error.code,core.BUSY,result)
+            # This logical-state wait schedules the retry. It proves no native device-state invariant.
+            self.until(lambda:self.actor_state(),lambda value:
+                not value.held_keys and not value.held_buttons and not value.HasField('focus'))
+            result=self.peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        self.assertTrue(result.HasField('action'),result)
+        rows=self.until(lambda:self.probe_events(app),lambda events:any(
+            r.get('event')=='button' and r.get('pressed') and r.get('xid')==survivor['xid']
+            for r in events[log_boundary:]))
+        # Reacquisition and process continuity only. Destroyed-window releases can be absent.
+        # Neither this peer press nor logical actor state proves old native devices were released.
+        self.send_key_event('b',True,self.peer);self.send_key_event('b',False,self.peer)
+        self.actor_pointer(False,self.peer)
+        rows=self.until(lambda:self.probe_events(app),lambda events:any(
+            r.get('event')=='key' and r.get('pressed') and r.get('text_hex')=='62' and r.get('xid')==survivor['xid']
+            for r in events[log_boundary:]))
+        current=self.world_process.management('surface.get',id=survivor['id'])
+        self.assertTrue(current['mapped']);self.assertEqual(current['room'],self.world_info['entry_room'])
+        self.assertEqual(self.world_process.management('surface.find',probe_id=next(
+            r['probe_id'] for r in rows if r.get('event')=='survivor'))['surface']['id'],survivor['id'])
+        self.probe_command(app,'sync') # The application process remains responsive after main-window destruction.
+        state=self.actor_state()
+        self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons);self.assertFalse(state.HasField('focus'))
+
+    def test_m09_observation_revocation_balances_input_before_peer_event(self):
+        app,surface,observe,control=self.begin_control()
+        self.addCleanup(self.m09_release_probe,app)
+        before,codes=self.m09_hold_native_input(app)
+        self.actor_aim(self.peer)
+        log_boundary=len(self.probe_events(app))
+        self.revoke_grant(self.peer,observe)
+        self.m09_peer_first_native_event(app,self.peer,log_boundary,codes,aim=False)
+        self.m09_assert_native_release(app,before,codes,inspect=False)
+        self.assertNotIn(surface['id'],self.visible(self.viewer))
+        self.assertIn(surface['id'],self.visible(self.peer))
+        self.assertTrue(self.world_process.management('surface.get',id=surface['id'])['mapped'])
+        self.probe_command(app,'sync') # Observation loss leaves the application process running.
 
     def revoke_viewer_identity(self,kind):
         target=self.second.actor_id if kind==issuer.ACTOR_TARGET else self.second.credential_id
