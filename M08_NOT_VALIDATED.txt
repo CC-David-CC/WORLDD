@@ -1,0 +1,35 @@
+M08 NOT VALIDATED
+
+This branch is an unqualified development checkpoint.
+M08 has not passed its complete qualification gate.
+Do not treat this checkpoint as a qualified M08 release.
+
+Included:
+- Production repair b6803d38ff006537f8efd1ce106f931aedc6d7b5.
+- Python fixture correction fa450c427196e876d88f91f138ffb1639667b491.
+- Current launch checklist, handoff notes, and preserved failure references.
+
+Verified on 2026-10-20:
+- Debug and ASan/UBSan repair builds passed.
+- Focused host preparation passed on sb16 and sb16-2.
+- The Debug storage sequence passed on both hosts: sixty-four test-method executions.
+- Storage-run cleanup, helper restoration, and unchanged input hashes passed.
+- All nine process-termination methods passed on sb16.
+
+Still required:
+- Rerun the corrected workspace-participant fixture.
+- Prove the observer regression rejects the controlled missing-fence variant.
+- Finish remaining focused Debug and sanitizer checks on both hosts.
+- Integrate and freeze a coherent full-gate candidate.
+- Pass the complete required M08 gate on both hosts and required cross-host checks.
+
+One earlier regression run failed because the new test accessed a nonexistent Protobuf field.
+The fixture correction fixes that access. Its runtime result is still pending.
+
+M01-M07 retain their historical qualification.
+M09 work remains separate and unqualified.
+This publication does not claim Spatial-M1 completion.
+
+Details:
+docs/M08_FULL_GATE_LAUNCH_CHECKLIST_2026-10-20.txt
+docs/M08_REPAIR_EXECUTION_HANDOFF_2026-10-20.txt

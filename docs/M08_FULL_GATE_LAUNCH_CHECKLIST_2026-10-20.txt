@@ -1,285 +1,813 @@
-M08 FULL GATE LAUNCH CHECKLIST
-Updated: 2026-10-20. Qualification: UNQUALIFIED.
+M08 PREPARATION AND LAUNCH CHECKLIST
+Updated: 2026-10-20
+Status: M08 UNQUALIFIED.
 
-Candidate: 50b6da599a135cc823a547b5845564a5ddc66f8f.
-Coordination branch: m08/reader-bound-review-20261020 on box-git.
-Build host: rog-ally-x. Test hosts: sb16 and sb16-2.
-Evidence root on these hosts:
-/home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01
+LATEST STORAGE REPAIR CHECKPOINT
+Recorded: 2026-10-20T22:02:06.160673+00:00
+This section supersedes the historical action instructions below.
+M08 remains UNQUALIFIED. M01-M07 retain their historical qualification.
+The full gate is not running. Focused repaired runtime checks have started.
 
-LAUNCH RULE
-Do not start the full gate while a required setup item is PENDING or FAILED.
-Record a receipt for each check. Record the host and build profile.
-Check every registered test against the final deployed package.
-Do not change the frozen source or weaken assertions to pass this checklist.
-A setup pass proves readiness. It does not prove that a runtime test passes.
-Keep Debug, ASan-UBSan, native, recovery, and cross-host results separate.
-Do not mark M08 qualified until the complete gate passes and is reviewed.
+Primary rejected draft e785e5bbd64832d95b36303a51b53c0f21e757be.
+It skipped copy-only revocation and lacked a convincing observer-failure regression.
+The rejected checkpoint remains on m08/storage-contention-repair-20261020.
 
-CHECKLIST
-01 VERIFIED - Freeze and back up the reviewed candidate.
-   Candidate checkout is clean. Code and review notes are on box-git.
-   Keep the frozen build checkout separate from the notes checkout.
-02 VERIFIED - Reproduce the reply-channel defect before accepting its repair.
-   Old transport fails the new ownership check on sb16-2.
-   Repaired ownership and live-copy checks pass on both hosts and profiles.
-03 VERIFIED - Run the full focused workspace-copy group.
-   Four groups pass. Each group runs 14 cases. Total: 56 executions.
-   Both helper restorations and all 14 temporary-volume recoveries pass per group.
-   These diagnostic runs use explicit overlays and older binary source pins.
-   They do not qualify the new complete candidate package.
-04 VERIFIED - Identify the actual test machines and usable SSH routes.
-   sb16 machine ID: 9c7e90a3ce6b4f86b2d46cef6445f0d1.
-   sb16-2 machine ID: ef0d64d758f64b8aa7924d97a9a2b300.
-   Direct ROG-to-test-host SSH uses the dedicated test-box key and trust file.
-   Recheck machine identity before deployment. Do not use aliased local environments.
-05 VERIFIED - Keep artifact transfers off the Windows controller.
-   Use direct ROG-to-sb16 and ROG-to-sb16-2 transfers.
-   Retain only source notes and concise status on the controller.
-06 VERIFIED - Build with the supported preparation command.
-   Use m07_deployed_gate.py prepare for the complete inherited M08 package.
-   Use the frozen Git source as CMAKE_HOME_DIRECTORY.
-   Do not substitute the earlier generic packages or copied CMake caches.
-07 VERIFIED - Complete all four build profiles and verify their receipts.
-   BUILD_TESTING=ON: Debug and ASan-UBSan.
-   BUILD_TESTING=OFF: Debug and ASan-UBSan.
-   Require successful configure, build, generated-binding, and dependency checks.
-08 VERIFIED - Check the source test inventory.
-   Each profile contains 238 registrations and all 76 mandatory registrations.
-   No registered test declares a CTest skip property.
-   The harness contains exactly 89 test IDs.
-09 VERIFIED - Check every deployed registration individually.
-   Verify command executable, source/build inputs, working directory, and metadata.
-   Verify relocation against the prepared inventory. Record each test by name.
-   Repeat on both profiles of both test hosts. Expect 952 registration checks.
-10 VERIFIED - Verify every generated fixture and binding in the final package.
-   Verify concrete files and hashes, not only successful build-target commands.
-   Check these seven artifact targets in both profiles:
-   workspace-copy-engine-fixture; workspace-copy-fault-fixture;
-   workspace-execution-v7-migration-artifacts;
-   identity-participant-domain-addition-artifacts;
-   workspace-presentation-actor-fixture;
-   workspace-presentation-shared-representation-fixture;
-   workspace-geometry-native-crosshost-fixture.
-   Import the complete generated Python closure. Verify the production client.
-11 VERIFIED - Verify the complete package and transfer receipts.
-   Require prepare status bundle_ready_needs_external_provisioning.
-   Verify m06-artifacts.tar.gz and the external archive manifest.
-   Verify source, runtime files, native dependencies, and production-off files.
-   Run verify-deploy on each actual test host with a fresh destination.
-   Require each deployment receipt to report verified for both profiles.
-12 VERIFIED - Verify retained native XACE runtime dependencies.
-   Both profiles on both hosts pass verify_runtime.
-   This checks XLibre receipts, server bytes, overlays, EGL files, and helper ownership.
-   Repeat through final package deployment verification.
-13 VERIFIED - Provision four fresh StorageOwner fixtures.
-   Use distinct Debug and ASan-UBSan volume identities on each host.
-   Each volume is 512 MiB. Workspace one has the required 96 MiB copy quota.
-   Debug broker/manager budgets are 1 GiB/256 MiB.
-   ASan-UBSan broker/manager budgets are 1.25 GiB/512 MiB.
-   Only volume names differ from the previously reviewed headroom definitions.
-14 VERIFIED - Validate fresh storage mounts and configuration.
-   Match the real backing filesystem and canonical root-owned configuration paths.
-   Require top-level Btrfs, inode 256, tree ID 5, one device, and compression off.
-   Verify each mounted root is empty. Save filesystem IDs and config hashes.
-   Keep all six per-profile storage environment variables explicit.
-15 VERIFIED - Check available disk, memory, inodes, and process limits before launch.
-   Include the final package, extraction, active logs, and temporary fixture images.
-   Preserve unresolved failure evidence. Remove only verified superseded outputs.
-16 VERIFIED - Check gate and helper locks before deployment.
-   Both hosts passed nonblocking lock checks. Recheck before the full launch.
-   Confirm no competing test process owns a shared fixture or helper installation.
-   Use nonblocking lock checks. Never remove a lock to force a launch.
-17 VERIFIED - Run helper instrumentation and ownership preflight on final binaries.
-   Use with_copy_worker_helpers.py --preflight-only for every host/profile.
-   Verify Debug helpers are Debug. Verify sanitizer helpers have instrumentation.
-   Require root-owned immutable bootstrap helpers and a saved recovery plan.
-18 VERIFIED - Check writable evidence directories and fresh attempt paths.
-   Check paths under the actual test UID and under the delegated runtime context.
-   Preserve the SSH recovery route. Keep evidence outside source and build inputs.
-   Do not reuse a failed attempt path or accept stale result files.
-19 VERIFIED - Check the exact launch environment and native suite mapping.
-   Use both profiles in order. Supply the six checked storage variables.
-   Clear stale display, library, and test-selection environment values.
-   native-controller and held-input: host-actor-controller-native.
-   real-world: actor-transition-real-world.
-   recovery: actor-transition-recovery.
-   host-session: host-session-production-native.
-20 VERIFIED - Review every timeout and the complete stage command list.
-   Copy groups took 340.671 to 438.816 seconds. The inner service limit is 900 seconds.
-   The copy CTest limit is 1080 seconds. Core stage limits are 14400 seconds.
-   Two short core registrations lack individual timeouts. The outer core limit still applies.
-   Their names are process-scope-recovery-validation and world-diagnostic-timing.
-   Keep the frozen limits. Record measured headroom for repaired copy fixtures.
-   Check nested wrapper, service, CTest, and outer stage limits together.
-   Do not label a timeout as a product defect without its failure evidence.
-21 VERIFIED - Verify core partitioning and required result inventories.
-   Protected and self-managed copy suites must be disjoint and exhaustive.
-   Dedicated cross-host registrations must remain separate from local CTest.
-   Preserve the exact 89 harness IDs and all six StorageOwner result names.
-22 VERIFIED - Verify launch wrappers and recovery reporting.
-   Use tmux and the checked run-command wrapper. Save exact argv and source pins.
-   Capture command exit, wrapper exit, stdout, stderr, and terminal status.
-   Retain helper restoration, service cleanup, mounts, and process-group evidence.
-23 VERIFIED - Prepare static cross-host prerequisites and role templates.
-   Eight role maps pass the source validator. Direct peer SSH reaches the correct machine IDs.
-   Final executable plans and receipt indexes require actual passing local results.
-   Their absence before local execution is expected. Verify them before the cross-host stage.
-   Required groups: geometry-native-crosshost;
-   workspace-geometry-native-crosshost; workspace-cabinet-native-crosshost.
-   Check both directions and both profiles. Verify direct peer SSH and fixture inputs.
-   Run after local gates release their locks. Never count their exclusion as a pass.
-24 VERIFIED - Perform the final primary launch review.
-   Require all setup receipts. Record the final checklist and exact launch commands.
-   Recheck source and package pins. Confirm no source changed during preparation.
-   Start the full local gate on both hosts only after this review passes.
+Corrected source: b6803d38ff006537f8efd1ce106f931aedc6d7b5.
+Branch: m08/storage-stop-review-20261020. BOX-GIT VERIFIED.
+ROG worktree: /home/dflanag3/src/m08-storage-stop-review-20261020.
+Primary reviewed all ten changed files and approved targeted compilation.
+Review: R/primary-escalated-source-review-01.json.
+SHA256: 9c9d56129f3f5933f724794abad83777f2eb655ba9946cf6aaf59ed4b41b9d14.
+R: /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
 
-RUNTIME RESULTS STILL REQUIRED
-Full local gate: RUNNING on both hosts with the complete frozen candidate.
-Cross-host matrices: UNRUN on the complete frozen candidate.
-Full M08 reconciliation and qualification: UNRUN.
-M09 through M16 and final Spatial-M1 qualification remain outstanding.
+The correction requests every application stop before any application drain.
+Native credential cleanup and copy cancellation follow application drains.
+Copy-only revocation still runs when no application rows need revocation.
+A retained reconciliation failure prevents later applied acknowledgements.
+One transaction updates the revoked application rows after confirmed cleanup.
+The original two-second stop deadline and acceptance limits remain unchanged.
 
-CURRENT EVIDENCE
-Focused copy group status: transport-fullcopy-batch-status.json on each test host.
-Focused group receipts: evidence-full-copy-debug-fixed-v2-01 and ASan equivalent.
-Build preparation: prepared/m08-50b6da5-fullgate-prepare-01/provenance.json on ROG.
-Fresh storage plan: fullgate-storage-plan-50b6da5.json on ROG.
-Fresh storage receipts: fullgate-storage-verified-50b6da5.json on each test host.
-Native runtime audit: runtime-storage-read-sb16.stdout and sb16-2 equivalent on ROG.
-Primary packaging corrections: gate-deployment-primary-review-02.txt on ROG.
+New tests pin a real Git import, drain two real applications, and inject a SQL update failure.
+They require rollback, actual broker failure, dead process handles, and an unapplied issuer barrier.
+A positive import control proves the request can succeed.
+Copy-only regressions now retain independent worker process handles.
+The repeated-stop regression checks that retries retain the first deadline.
+These tests require focused runtime qualification. The first outcome is recorded below.
 
-PROCESS CORRECTIONS
-Use one canonical package for the full exam. Do not mix diagnostic package pins.
-Check paths after deployment, not only before packaging.
-Treat missing receipts as pending. Do not infer completion from a running tmux session.
-Keep optional or future acceptance outside M08 qualification claims.
-Add each reproduced setup failure and its regression check to this checklist.
+Build receipts: R/escalated-build-01.
+Driver01 stopped after successful Debug compilation because native test registrations were missing.
+The new CMake cache omitted SPATIAL_INPUT_TESTS=ON, which the frozen full-gate cache requires.
+Keep driver01 failure receipts. This was a setup failure; no runtime test ran.
+Driver02 restores that option and uses new configure and compile receipts.
+Debug and ASan-UBSan configure and compile passed with command/wrapper exits 0/0.
+Both inventories contain all nine selected registrations and match the frozen build options.
+The build driver retired. Primary independently verified the compiled file hashes.
+Review: R/primary-escalated-build-review-01.json.
+SHA256: c3b2f62252786ed9a32b60fc572058de534f1970bff758a3e14f9f6789d2f47f.
+Build only changed executables and their recorded dependency closure.
+Preserve the frozen 5d4 package and failure evidence.
 
-SELECTED SETUP REGRESSIONS
-Run these seven fixture-tooling groups on both hosts and both profiles.
-- copy-progress-timing-tooling
-- storage-owner-fixture-tooling
-- provision-storage-root-owner-tooling
-- workspace-copy-fixture-profiles
-- observation-resource-fixture-tooling
-- workspace-copy-worker-helpers-tooling
-- geometry-native-fixture-regressions
-Also run five production startup checks and 89 harness checks per host/profile.
-These checks validate the launcher and its fixtures before the full exam.
-The full gate must still run its complete required suites.
+Next validation steps:
+- Verify both build results and the exact source commit.
+- Compare behavior-affecting CMake options with the frozen gate cache, including SPATIAL_INPUT_TESTS=ON.
+- Require all nine selected CTest registrations in each profile before packaging.
+- Use real neighboring executables so fixtures launch the repaired broker.
+- Preserve CTest commands, working directories, wrappers, and sanitizer variables.
+- Review fresh payload paths and hashes before direct LAN deployment.
+- Prove the observer regression rejects a controlled missing-fence counterexample.
+- Run the selected regressions on both hosts in Debug and ASan-UBSan.
+- Repeat session-storage-owner immediately before session-storage-contention.
+- Verify helper restoration, process retirement, and unchanged frozen input pins.
+- Freeze a new full-gate candidate only after review and focused checks pass.
 
-ADDITIONAL READINESS EVIDENCE
-prelaunch-system-sb16.json and prelaunch-system-sb16-2.json on ROG:
-- Passwordless sudo, exact machine identities, peer SSH, locks, and user writes pass.
-- Available disk before deployment: 82.4 GiB on sb16; 79.9 GiB on sb16-2.
-- Available memory: about 13.5 GiB on each host.
-- Temporary copy images were removed after all four successful groups.
-crosshost-prelaunch-plan-50b6da5.json records the eight workspace role templates.
-The M06 geometry matrix requires four runs. Its semantic fixture requires six cases.
-Workspace geometry and cabinets each require another four runs.
-No cross-host runtime result is inferred from a valid template.
+The component repair note records nine selected registrations and their purpose.
+The prior thirteen-name inventory is preparation material, not the final test selection.
+Focused input packaging, direct LAN transfer, and ELF dependency checks passed on both hosts.
+Input manifest SHA256: 2f32b671046257563e13b132ac2f532e919dc96a892f8c4770014b1bf55deebd.
+The payload contains the corrected source and two replacement executables per profile.
+The focused driver copies the remaining declared runtime closure from the preserved 5d4 package.
+This explicit overlay is UNQUALIFIED. It does not replace a coherent full-gate package.
 
-Canonical prepare finished successfully. Command and wrapper exits are both zero.
-Bundle bytes: 1985433840.
-Bundle SHA256: 3667aabdc03dce8466492393a451ddd9e3cc002d90fe7b1f623d7031e6d56ca3.
-Both transfers and canonical verify-deploy runs passed. Both deployment receipts report verified.
+Preparation attempt b680-focused-01 stopped before any runtime test or runtime copy.
+Both canonical command/wrapper exits were 1/1. Both owned panes retired.
+The driver incorrectly required graphics-library paths to be regular files.
+Qualified libraries such as libgbm.so.1 use legitimate symbolic links.
+Keep source and payload files strict. Permit links only for declared external runtime dependencies.
+Record each requested path, its resolved regular target, and its expected hash.
+Recheck the resolution and content before and after execution.
+Add a setup regression for link retargeting and changed target bytes.
+Both hosts' storage configurations and all six profile variables passed independent verification.
+Failure evidence: R/primary-focused-launch-control-01/prepare-failure-HOST-01.json.
+No application rebuild is required for these launcher corrections.
+The runtime-link correction passed seven targeted setup regressions.
 
-This checklist expands docs/M08_LAUNCH_CHECKLIST.txt for the frozen candidate.
-The earlier standalone diagnostic driver is not the full-gate launcher.
-The full gate uses canonical prepare, verify-deploy, and m08_deployed_gate.py run-local.
-The external audit runs checks and captures evidence. It does not replace that launcher.
+Preparation attempt b680-focused-02 then rejected the deployed sanitizer CTest metadata.
+Its comparison used the pre-deployment hash despite recorded path substitutions.
+The actual file equals the original deployed copy and its pinned deployment receipt.
+Use receipt.metadata_baseline before applying any later full-gate metadata relocation.
+Require unchanged metadata filenames and compare complete selected CTest contracts.
+Evidence: R/primary-focused-launch-control-02/metadata-audit-HOST.json.
+Both second attempts ended 1/1 before runtime or payload copying.
 
-COMPLETE SETUP AUDIT RESULTS
-Both hosts passed prelaunch in Debug and ASan-UBSan.
-- 952 individual registration checks passed. Each command and input was inspected.
-- 20 production startup checks passed.
-- 356 harness test executions passed.
-- 28 fixture-tooling group executions passed.
-- All generated bindings imported from the expected deployed paths.
-- All packaged ELF dependencies resolved on the actual test hosts.
-- Native XACE, root helpers, instrumentation, and storage configuration passed.
-- Delegated evidence writes passed. The delegated services retired cleanly.
-- No skip or ignored failure was accepted in these setup checks.
-Each host retained 318 command receipts with output hashes.
-These setup results do not replace the full runtime gate.
+Current driver: R/focused-repair-control-04/focused-repair.py.
+SHA256: 1eb22df4bc3ced77c806fb309ac3025922332fa9487521f5dd9646b48290f4d4.
+Its narrow correction preserves source hashes, runtime resolution checks, and acceptance limits.
+Preparation attempt b680-focused-03 passed on both hosts with canonical exits 0/0.
+Primary independently checked all eighteen selected contracts per host.
+Each payload contains 1,456 regular files and retains 2,732 input pins.
+The payload manifest is identical on both hosts:
+ becc411f6a5ddebfd313767ef6586935657d81238820c96963c748f033915a0f.
+Ready hashes:
+ sb16: 99fa40e7ac7fde51b95d1a8550ed6a64374128f52a45fb437f308f23a11e4987.
+ sb16-2: 8ef353a5f3119b035c701d04017bec0cce0b3c4ad4982cc3218923d615e78bf4.
 
-PERMISSION REGRESSION FOUND BEFORE LAUNCH
-The bundle retained group-write permission from its source and build files.
-The final primary review rejected those modes before starting the full gate.
-The correction removes only group/other write bits from pinned deployment inputs.
-It preserves file bytes, owner access, and execute permission.
-It does not change installed root helpers or fresh StorageOwner fixtures.
-Each host verified 1580 files and 110 directories after the correction.
-The correction changed 1580 file modes and 31 directory modes per host.
-Keep owner write permission needed by canonical CTest metadata relocation.
-Keep the frozen source commit and hash checks as the candidate boundary.
-Check package modes before deployment acceptance on each future launch.
-Repeat startup, command/input validation, hashes, and permissions after a mode repair.
-Do not rebuild unchanged source merely to repair deployed file modes.
+The first Debug regression batch ran on sb16.
+Process termination passed all nine methods in 3.16 seconds.
+Workspace participation passed six methods and errored in one new method.
+The new method accessed applied_revision on AuthorityBarrierStatus.
+That field belongs to each AuthorityBarrierObligation.
+This is a test defect. It does not establish the production failure-handling result.
+Keep the intended barrier, process-drain, rollback, and fail-closed assertions.
+Check every new Protobuf field access against the generated descriptor before launch.
+The same known-bad method was not repeated on sb16-2.
+Canonical exits were 8/8. The driver recorded no audit errors or changed inputs.
+Helper restoration and child retirement were confirmed. There were no skips.
+Failure evidence: R/primary-focused-launch-control-03/sb16-regressions-failure-01.
 
-ADDITIONAL EXACT RECEIPTS
-On each test host, relative to the evidence root:
-- deployed-50b6da5-01/deployment-receipt.json
-- prelaunch-50b6da5-01/prelaunch.json
-- prelaunch-50b6da5-01/test-by-test.json
-- prelaunch-50b6da5-01/binary-dependencies.json
-- prelaunch-50b6da5-01/binding-imports.json
-- deployment-permission-normalization-50b6da5.json
-- final-prelaunch-50b6da5-02/primary-review.json
-The first permission rejection is retained on ROG in primary-review-sb16.stderr
-and primary-review-sb16-2.stderr.
+The independent Debug storage pair passed on both hosts.
+Each host passed seven storage-owner methods and twenty-five contention methods.
+Total: sixty-four test-method executions, no skips, and no runtime audit errors.
+Both canonical command/wrapper exits were 0/0. All owned driver and child processes retired.
+Helper restoration was confirmed. All pinned inputs remained unchanged.
+Audits: R/primary-focused-launch-control-03/HOST-storage-final-audit-01.json.
+It runs session-storage-owner immediately before session-storage-contention.
+These tests do not execute the defective new workspace-participant method.
+Their order, limits, wrappers, and frozen source remain unchanged.
+Fixture correction: fa450c427196e876d88f91f138ffb1639667b491, BOX-GIT VERIFIED.
+Primary reviewed the Python-only correction. No production binary or schema changed.
+It checks the barrier counts and the applied revision of its one obligation.
+The corrected method rerun and missing-fence counterexample remain pending.
+The full gate, sanitizer runtime, and later selected checks remain pending.
 
-FULL LOCAL LAUNCH PLAN
-Use fullgate-launch-plan-50b6da5.json after final primary review.
-Use fullgate-launch-50b6da5.py with an explicit clean environment and umask 0077.
-Each host runs both profiles through the canonical M08 run-local command.
-Both hosts run concurrently. Each host runs its profiles in the required order.
-The per-profile local partition is 231 protected and four self-managed copy suites.
-Three dedicated cross-host registrations remain outside that local partition.
-Run the cross-host matrices after both local gates pass and release their locks.
-A started process or an empty blocker list does not mean a gate passed.
-Read complete stage logs and the terminal command and wrapper exit receipts.
+GitHub checkpoint authorized on 2026-10-20:
+Publish branch m08/unvalidated-checkpoint-20261020 through box-git.
+This branch combines the reviewed repair, fixture correction, and maintained notes.
+M08_NOT_VALIDATED.txt states the current validation limits.
+M08 remains UNQUALIFIED. Publication does not replace the required full gate.
 
-LAUNCH HANDOFF REGRESSION
-The first final audit completed both profile checks but could not read its launch plan.
-The controller had not transferred that plan before the audit used it.
-Preserve the first audit as a setup failure. Do not overwrite its receipt.
-Transfer every launch input before any audit or launcher tries to read it.
-Verify each transferred file by its planned SHA256.
-Repeat the final audit in a fresh directory after this handoff correction.
-The correction changes no product source or acceptance assertion.
-Use pinned ROG routes: 10.0.7.49 for sb16 and 10.0.7.94 for sb16-2.
-The ROG sb16-2 alias currently resolves to an address that rejects the pinned host key.
-SSH between the test hosts passes with their existing peer aliases.
+CURRENT ATTEMPTS
 
-FINAL PRIMARY REVIEW: PASSED
-Both final-prelaunch-50b6da5-02 runs returned command exit 0 and wrapper exit 0.
-All 24 setup checklist items are verified. No setup item remains pending.
-The repeat verified all 952 registration commands and inputs after the mode correction.
-All 20 production startup checks passed again after that correction.
-Each host verified the prior 318 command-output receipts without changes.
-Both deployed source trees and package files match the frozen candidate.
-Current free space is about 70 GiB on sb16 and 68 GiB on sb16-2.
-The full local runtime gate has started on both hosts. M08 remains UNQUALIFIED.
-The primary readiness record pins both final reports and both launch scripts.
+Previous failed full-gate candidate:
+ 0b4cc5f659d32d5ff1104557315b0905983bb39d
+Current coherent package and deployed candidate:
+ 5d4a032623f7e09b9c157041960ddc837be43975
 
-FULL LOCAL GATE LAUNCH VERIFIED
-Both canonical run.json records report running on the frozen candidate.
-Both select Debug and ASan-UBSan. Neither reports phase completion.
-Both Debug inventory checks passed. Each Debug startup group passed all five checks.
-Both Debug harness groups passed all 89 tests with no skip or missing case.
-Both hosts entered the protected core tests. No early failure marker was found.
-These observations do not prove that later tests pass.
+Both original full attempts finished Debug with230 passed groups, one failed group, and no skips.
+The failed group is workspace-bootstrap-races.
+Both original gates and wrappers retired.
+Primary verified helper restoration, free locks, and unchanged source/runtime pins.
+Later full-gate stages and the sanitizer profile did not run.
 
-sb16 attempt: m08-full-50b6da5-sb16-01.
-sb16-2 attempt: m08-full-50b6da5-sb16-2-01.
-Reports: deployed-50b6da5-01/evidence/ATTEMPT/run.json under the evidence root.
-Tmux sessions: m08-full-local-50b6da5-sb16 and m08-full-local-50b6da5-sb16-2.
-Wrappers: fullgate-sb16-50b6da5-01 and fullgate-sb16-2-50b6da5-01.
-Do not start competing helper, storage, or runtime tests while these gates hold locks.
-Read the full current core.log before claiming there are no failures.
-Require terminal local_passed_crosshost_pending reports before cross-host execution.
-Keep the two cross-host result indexes separate and reconcile all required matrices.
-M08 qualification remains pending the complete runtime evidence and review.
-Launch note recorded at 2026-10-20T09:25:57.975151+00:00.
+The corrected focused diagnostic passed on both hosts in Debug and ASan/UBSan.
+It completed12 suite executions and112 test methods without skips or sanitizer findings.
+Primary independently audited retirement, helper restoration, runtime pins, and16 no-write denial artifacts.
+It used the explicit5d4 test overlay with unchanged0b binaries.
+This diagnostic cannot qualify M08.
+The coherent5d4 package passed its canonical build, archive audit, and primary review.
+Canonical deployment and permission normalization passed on both hosts.
+Both deployment command and wrapper receipts are 0. Owned deployment processes retired.
+The current full attempts failed Debug storage contention on both hosts. See the dated status below.
+Deployment verification is not runtime qualification.
+Never transfer an old VERIFIED status to another candidate or attempt.
+
+CURRENT PREPARATION STATUS
+Recorded: 2026-10-20T20:56:07Z
+
+VERIFIED: corrected focused bootstrap checks, 112 methods across both hosts and profiles.
+VERIFIED: coherent package builds, archive coverage, immutable modes, and primary package review.
+VERIFIED: both canonical deployments and independent discovery observations.
+VERIFIED: renderer regressions, 21 checks per host, 42 total.
+VERIFIED: real package-specific rendering and all 18 frozen preparation files.
+VERIFIED: old0b binary retirement preserved source and unresolved failure evidence.
+VERIFIED: recovered 11,159,904,256 bytes on sb16 and 11,159,883,776 bytes on sb16-2.
+FAILED SETUP: first setup controller rejected a mistyped capacity threshold before running any stage.
+VERIFIED: both hosts reject that old configuration and accept the corrected configuration.
+VERIFIED: fresh storage provisioning completed on both hosts with command/wrapper exits 0/0.
+VERIFIED: bookkeeping, preparation audit, and final receipt review completed on both hosts.
+VERIFIED:28 fixture-tooling executions,20 startup checks,356 harness executions,952 registration inspections.
+VERIFIED: both actual tmux permission probes create0700 directories and0600 files under umask0077.
+VERIFIED: primary audited638 command-log hashes per host, terminal0/0 receipts, and actual process retirement.
+VERIFIED: final launch check-only passed on both hosts using the exact reviewed command and six storage variables.
+FAILED: both canonical full M08 local gates stopped after Debug core returned status 8.
+Each host passed 230 of 231 protected Debug groups. Neither host skipped a group.
+Each host passed startup and 89 harness checks.
+The failed group is session-storage-contention on both hosts.
+VERIFIED: workspace-bootstrap-races passed in 39.02 seconds on sb16 and 49.98 seconds on sb16-2.
+VERIFIED: both original wrapper and gate processes retired. Canonical command/wrapper receipts are 1/1.
+UNRUN: later local stages, sanitizer profiles, and cross-host qualification.
+No sanitizer diagnostic appeared in the completed Debug logs. This is not sanitizer-profile coverage.
+CORRECTED OBSERVATION: monitor v03 missed CTest failure markers without whitespace after the dotted test name.
+Monitor v04 detects those markers, flags unparsed completion lines, and cross-checks available JUnit.
+Current log and JUnit records agree on one failure per host.
+VERIFIED: failed-attempt helper restoration, actual retirement, source/runtime pins, and free shared locks.
+VERIFIED: diagnostic overlay56a77f6 passed one Debug contention group on each host,25 methods each.
+VERIFIED: all nine application handles exited in0.566 seconds and0.284 seconds. Both imports and barriers completed.
+VERIFIED: both focused wrappers retired with0/0 receipts and unchanged1377 readiness pins.
+FAILED: adjacent owner/contention Debug repeat on sb16. Owner passed; contention failed one of 25 methods.
+PASSED: the same two-group repeat on sb16-2. It passed all 32 methods.
+Both wrappers completed and restored helpers. Both retained all 1377 readiness pins.
+The repeat preserved full-gate order, original test limits, and production binaries.
+sb16 stopped five of nine retained processes by two seconds. All four survivors belonged to the writer application.
+Its broker waited in directory fdatasync while that writer waited in fsync. The Git process was still present.
+The issuer channel closed after 3566 milliseconds without exchange. The full six-second barrier wait then failed.
+This is an unresolved production failure. Earlier intermittent focused passes do not clear it.
+IN PROGRESS: signal every revoked application before any completion wait or durable row update.
+Keep the current stop deadline, cleanup proofs, and durable acknowledgment fence. Review and test the correction.
+VERIFIED: existing peer SSH routes reach the expected physical hosts, users, and filesystems.
+VERIFIED: direct peer SCP passed both directions with matching bytes and hashes. Probe files were removed.
+FAILED REVIEW: cross-host draft02 has incomplete evidence guards and mismatched rendered-plan command paths.
+VERIFIED: draft03 passed24 source/configuration controls and primary source review.
+VERIFIED: both frozen deployment receipts were copied directly to ROG with exact bytes and pinned hashes.
+PENDING: terminal local report collection, actual cross-host rendering, and final runtime launch review.
+PENDING: remaining local stages and cross-host qualification. M08 remains UNQUALIFIED.
+
+Keep these statuses separate from the reusable unchecked instructions below.
+Record each prevention result for the exact candidate and attempt.
+Do not inherit a historical PASS or count source review as an executed regression.
+Read current receipts before reporting progress. These statuses describe the recorded observation.
+
+CURRENT EVIDENCE ROOTS
+
+Original full attempts:
+ /home/dflanag3/spatial-artifacts/m08-gate-repairs-20261020-round01
+Reviewed focused runner:
+ /home/dflanag3/spatial-artifacts/m08-bootstrap-focused-runner-repair-20261020
+Coherent package and primary review:
+ /home/dflanag3/spatial-artifacts/m08-bootstrap-package-build-20261020
+Current deployment and preparation:
+ /home/dflanag3/spatial-artifacts/m08-bootstrap-fullgate-20261020
+
+Read docs/M08_REPAIR_EXECUTION_HANDOFF_2026-10-20.txt for exact job handles.
+Read docs/M08_EXISTING_FAILURE_REPAIR_PLAN_2026-10-20.txt for the repair sequence.
+Historical versions of this checklist remain in Git. Their approvals are historical.
+
+MANDATORY LAUNCH RECORD
+
+Create a new checklist result for each attempt, host, and profile.
+Record the exact candidate, package, scripts, inputs, selected tests, environment, and receipt hashes.
+Use VERIFIED, FAILED, PENDING, UNRUN, or NOT_APPLICABLE with a reason.
+Missing evidence means PENDING. A process start never means PASS.
+Do not launch with a failed or pending required preparation item.
+Record each new failure below before another attempt.
+Preserve its original command, stderr, receipts, source pin, and exact input.
+Add a regression or an explicit verification that detects the same cause.
+Bind each applicable failure ID to its preventive check and current evidence.
+Record the responsible owner and the remaining action for each unresolved item.
+Use NOT_APPLICABLE only with a concrete reason.
+Test malformed inputs before using a changed preparation tool on live deployment data.
+Preserve the valid-input control. A tool that rejects everything has not passed.
+For rejection controls, require the intended error. An unrelated exception is not proof of the required guard.
+Require exact reviewed script bytes and configuration at execution.
+A syntax check does not prove correct schema handling, process observation, or runtime behavior.
+
+RETRY RULE FOR KNOWN FAILURES
+
+Use this file as the current detailed checklist.
+Use M08_LAUNCH_CHECKLIST.txt as its short entry point.
+Review F01-F38 before each new attempt.
+For each applicable item, record its check, exact command, expected result, evidence path, and evidence hash.
+Name the host, profile, candidate, and launcher revision.
+Record VERIFIED only after reviewing the result.
+Preserve the original failing input and run it against the corrected mechanism when practical.
+Require an authorized valid-input control alongside each rejection control.
+If the exact failure cannot be replayed, record the limitation and an equivalent detection check.
+An unresolved required check blocks that launch.
+Reused evidence needs an explicit source-and-input comparison.
+Revalidate only affected checks. Keep the complete phase gate mandatory.
+Attach reusable checks to the existing launcher when practical.
+Do not create another launch framework for this checklist.
+
+For each new failure, record:
+ Failure ID and failed invariant:
+ Setup, product, observation, or cleanup failure:
+ Candidate, host, profile, command, and exact input:
+ Original evidence path and hash:
+ Cause and correction:
+ Prevention check and expected result:
+ Actual result and replacement evidence:
+ Owner, unresolved limitations, and next safe action:
+
+These are preparation requirements, not a claim that every regression is automated.
+Update this register before retrying. Never skip an assertion to obtain PASS.
+
+01. SOURCE AND BUILD
+
+[ ] Use the reviewed clean source commit on ROG.
+[ ] Keep development, notes, and frozen build checkouts separate.
+[ ] Keep M09 source outside the frozen M08 candidate.
+[ ] Run repository_data_guard.py before each checkpoint.
+[ ] Exclude generated logs, databases, images, packages, and builds from Git.
+[ ] Check capacity and projected output before checkouts, builds, extraction, or transfers.
+[ ] Use CMake caches whose CMAKE_HOME_DIRECTORY matches the selected source root.
+[ ] Build every affected executable after its linked source or library changes.
+[ ] Generate bindings during the build. Verify actual generated files and their dependency closure.
+[ ] Require successful Debug and ASan-UBSan testing builds and production-off builds for a full candidate.
+[ ] Use m07_deployed_gate.py prepare and canonical verify-deploy.
+[ ] Use m08_deployed_gate.py run-local for the complete local exam.
+[ ] Do not relabel an old package as a new source build.
+[ ] Distinguish archived provenance from builder provenance updated after archive creation.
+[ ] Check advisory readiness fields against actual tool contracts and later primary approvals.
+
+02. ACTUAL HOSTS AND TRANSFERS
+
+[ ] Verify hostname, machine identity, root filesystem UUID, user, and passwordless sudo.
+    sb16:10.0.7.49
+    machine ID:9c7e90a3ce6b4f86b2d46cef6445f0d1
+    root UUID:ca3e65b8-12e8-43e5-be30-be72bc719991
+    sb16-2:10.0.7.94
+    machine ID:ef0d64d758f64b8aa7924d97a9a2b300
+    root UUID:ce2c2bdf-76df-4226-840d-af3c8966d632
+[ ] Use the dedicated test-box SSH identity and known-hosts file from the coordination skill.
+[ ] Reject aliases or routes that reach another machine or environment.
+[ ] Transfer directly between authorized Linux hosts. Never relay packages through the Windows controller.
+[ ] Transfer every launch input before any audit tries to read it.
+[ ] Verify destination bytes, owners, permissions, canonical paths, and executable bits after transfer.
+[ ] Reject unexpected existing destinations. Verify matching immutable copies before skipping them.
+
+03. PACKAGE, PERMISSIONS, AND DEPENDENCIES
+
+[ ] Verify complete archive coverage, source pins, runtime files, native wrappers, and production-off files.
+[ ] Verify required empty cache directories as well as regular files.
+[ ] Compare directory inventories from one declared root. Include the archive top directory explicitly.
+[ ] Check generated protobuf imports and transitive fixture helpers under the actual runtime environment.
+[ ] Verify each host/profile deployment receipt and external XACE runtime closure.
+[ ] Check root helper ownership, hash, mode, and profile instrumentation.
+[ ] Reject writable-by-group or writable-by-others control inputs.
+[ ] Preserve executable bits and owner access during reviewed mode normalization.
+[ ] Pin exact file hashes before changing modes. Never normalize unknown files indiscriminately.
+[ ] Check frozen package modes on the builder and destination. Do not accept a worker's freeze claim without stat results.
+[ ] Validate receipts against their actual producer schemas. Hash embedded provenance separately when no receipt field exists.
+[ ] Verify the actual launch wrapper and patched graphics libraries, not only the raw Xvfb binary.
+[ ] Confirm every required launch plan, manifest, helper, and generated binding is readable by its actual caller.
+
+04. CTEST INVENTORY AND SHADOW METADATA
+
+[ ] Check every final registration's argv, source/build inputs, environment, timeout, and working directory.
+[ ] Full M08 expects238 registrations per profile,76 mandatory registrations, and89 exact harness IDs.
+[ ] Preserve231 protected core groups, four self-managed copy recovery groups, and three dedicated cross-host groups.
+[ ] Reject disabled tests, skip properties, missing names, duplicate names, and changed assertions.
+[ ] Verify ctest-original against deployment-receipt.json metadata_baseline.
+[ ] Verify entered-profile build metadata against its actual metadata-relocation.json after hashes.
+[ ] Pin the relocation receipt independently after the prior gate retires.
+[ ] Verify unentered-profile metadata against its unchanged baseline.
+[ ] Do not require success-only artifact_sha256 fields from an attempt that failed before writing them.
+[ ] Use external writable CTest bookkeeping. Preserve original explicit WORKING_DIRECTORY values.
+[ ] Compare the complete relocated inventory against the prepared inventory.
+[ ] Apply deployment/evidence relocation first, then the explicit test overlay.
+    m06.map_inventory applies replacements once. It never rewrites an inserted destination.
+[ ] Verify baseline CTest metadata is already deployment-relocated before translating its evidence paths.
+[ ] A diagnostic overlay may change only the reviewed registration and its exact test argv.
+[ ] Validate a lone copied Python test's sibling imports through the pinned deployed source directory.
+[ ] Hash the exact inventory file used later. Do not hash raw JSON and bind a differently serialized file.
+[ ] Run actual nonexecuting target preflight on both profiles before application tests.
+[ ] Preserve failed preflight receipts. Confirm prior processes retired before retrying.
+
+05. ENVIRONMENT, FIXTURES, AND RESOURCE LIMITS
+
+[ ] Derive an allowlisted clean environment through canonical profile_environment.
+[ ] Record ASAN_OPTIONS, UBSAN_OPTIONS, Python bindings, probe, native wrapper, and evidence paths.
+[ ] Remove stale display, library, storage, and test-selection variables.
+[ ] Preserve each registration's production resource and adapter wrappers.
+[ ] For a full gate, provide six validated profile-specific storage variables.
+[ ] Provision unique Debug and sanitizer StorageOwner lanes per host when the selected test path requires them.
+[ ] Verify filesystem identity, Btrfs root, compression, root-owned configuration, quota, and emptiness.
+[ ] Never relabel consumed fixtures as fresh.
+[ ] Match the storage verifier and definitions to the candidate's actual fixture contract.
+[ ] Apply storage postflight only to selected suites that consume that storage lane.
+[ ] Mark storage provisioning NOT_APPLICABLE when selected focused tests have no storage consumer.
+[ ] Preserve Debug broker/manager1GiB/256MiB and sanitizer broker/manager1.25GiB/512MiB profiles where required.
+[ ] Review service, CTest, adapter, worker, and outer limits together.
+[ ] Keep measured world-application-control service600s and CTest660s limits.
+[ ] Check measured copy budgets against their service and CTest limits.
+[ ] Do not increase an unrelated deadline without evidence.
+[ ] Observation intervals and soft timing warnings must not kill a live cleanup wrapper.
+
+06. RETIREMENT, LOCKS, AND EVIDENCE DIRECTORIES
+
+[ ] Verify exact old gate, wrapper, and owned-child process identities retired.
+[ ] Check actual process groups and relevant service cleanup, not just terminal receipts.
+[ ] Check all three shared locks: spatial-m06-gate, spatial-copy-worker-helpers, and spatial-m08-runtime.
+[ ] Verify lock type, owner, and inode identity. Never delete locks to force progress.
+[ ] Release observation locks before helpers acquire their own locks.
+[ ] Verify previous helper states were restored.
+[ ] Separate expected UNRUN-profile audit rows from actual cleanup failures.
+[ ] Apply retirement prerequisites independently per host. Hosts may proceed in parallel.
+[ ] Serialize native jobs and profiles within each host.
+[ ] Hold the global gate lock over focused execution and cleanup.
+[ ] Let the copy-helper wrapper own its helper lock. Do not deadlock it with an external holder.
+[ ] Use fresh attempt directories and distinct shadow-metadata and runtime evidence leaves.
+[ ] Verify private evidence paths under the actual delegated caller.
+[ ] Use unique diagnostic filenames across cases in one process.
+[ ] A prepared shadow directory must not be recreated as the fresh runtime directory.
+[ ] Verify original source, metadata, logs, and receipts remain unchanged.
+
+07. LAUNCH APPROVAL AND COLLECTION
+
+[ ] Primary review exact frozen launcher, plan, payload, inventory, and helper bytes.
+[ ] Validate the complete orchestration script and all configuration bindings before target mutation.
+[ ] Use the same configuration validator in preflight and execution. Do not duplicate only selected checks.
+[ ] Derive byte thresholds from named units. Compare exact actual configuration values with execution constants.
+[ ] Verify both the valid configuration and the retained malformed configuration before the next launch.
+[ ] Pass structured configuration to a saved script. Do not repeatedly replace placeholder tokens.
+[ ] Match archive and profile schemas to the canonical producer before rendering launch plans.
+[ ] Bind source approval separately from prior retirement approval.
+[ ] Recheck source/runtime pins, old PIDs, free locks, and capacity immediately before launch.
+[ ] Launch in tmux through the verified canonical run-command.sh copy.
+[ ] Check positional argv: bash RUNNER CHECKOUT NEW_RUN_DIR COMMAND ARG...
+[ ] Pass NEW_RUN_DIR once. Confirm COMMAND names the intended executable.
+[ ] Keep outer stdout and stderr. Early wrapper errors may occur before stage receipts exist.
+[ ] Run the runtime driver's actual preflight-only mode before tmux launch.
+[ ] Require its complete source-pin file, directory, and mode fields.
+[ ] Pass -B explicitly to privileged Python preparation commands. Verify frozen source remains unchanged.
+[ ] Set umask0077 inside the command tmux executes. A submitting process cannot change an existing tmux server.
+[ ] Verify actual created directory and file modes through the same tmux entry before launch.
+[ ] Keep the canonical runner unchanged. Use the pinned private-exec entry for the umask boundary.
+[ ] Record exact argv, child PID, heartbeat, logs, and source pins.
+[ ] Save launch helpers as standalone files. Pass structured configuration through JSON or argv.
+[ ] Validate the exact helper bytes before transfer. Reject incomplete substitutions and undefined control bindings.
+[ ] Verify launch output freshness before mutation. Resume partial staging only after exact hash checks.
+[ ] Require actual process identity checks when a short-lived child escapes PID sampling.
+[ ] Distinguish a retained dead tmux pane from a live pane or owned process.
+[ ] Attach stage entries to the report before starting observation.
+[ ] Use reviewed graceful supervision and confirmed child retirement before restoring helpers.
+[ ] Do not use a timeout that SIGKILLs the cleanup wrapper.
+[ ] Do not catch successful SystemExit(0) as a launcher error.
+[ ] Require exact unique JUnit cases, expected Python methods, and complete summaries.
+[ ] Scan complete current logs for completed failures, skips, timeouts, and sanitizer findings.
+[ ] Ignore quoted timeout arguments when classifying completed test failures.
+[ ] Read command.exit, wrapper.exit, helper lifecycle, and actual process state.
+[ ] Parse exit-record contents as integers. File length and COMPLETE never supply the exit status.
+[ ] Treat missing, empty, or malformed exit records as unknown.
+[ ] A live parent with blockers=[] can contain earlier failed tests.
+[ ] A retained dead tmux pane is not a live process.
+[ ] Report setup refusals separately from executed product failures.
+
+08. CURRENT BOOTSTRAP REPAIR CHECKS
+
+[ ] Run workspace-bootstrap-races:all10 methods.
+[ ] Run world-bootstrap-races:all6 methods.
+[ ] Run workspace-bootstrap:all12 methods.
+[ ] Repeat all three on both hosts in Debug and ASan-UBSan.
+    Expect12 host/profile/suite executions and112 Python method executions.
+[ ] Check actual parent-revocation denial and complete reply evidence.
+[ ] Require unchanged authority, grant_record, bootstrap_binding, and bootstrap_receipt rows and counts.
+[ ] Preserve stricter revoked-recipient checks and successful authorized bootstrap controls.
+[ ] Require unique bounded private diagnostic artifacts for all four race cases.
+[ ] Reject any new grant or mutation. Do not accept an error code alone as proof of no side effects.
+[ ] Require no unexpected skips, no sanitizer findings, and confirmed helper restoration.
+[ ] Record explicit overlay5d4 and binary0b diagnostic provenance.
+[ ] A focused pass does not qualify M08.
+
+09. FULL-GATE AND CROSS-HOST REQUIREMENTS
+
+[ ] After focused success, freeze one coherent corrected candidate and package.
+[ ] Reassess affected evidence after every source or build-input change.
+[ ] Run complete required Debug and sanitizer local gates on both hosts.
+[ ] Include required harness, startup, acceptance, storage, and recovery groups.
+[ ] Initialize the supervised recovery fixture's delegation parent before bootstrap.
+[ ] Preserve that parent across broker generations. Validate each intended fault trigger and its authorized control.
+[ ] Require the locked151-case P10 acceptance inventory where the phase contract requires it.
+[ ] Preserve world-application-control native-controller and held-input mapping.
+[ ] Preserve actor-transition-real-world, actor-transition-recovery, and host-session-production-native mapping.
+[ ] Run geometry-native-crosshost, workspace-geometry-native-crosshost, and workspace-cabinet-native-crosshost.
+[ ] Check both directions and both profiles after local jobs release their locks.
+[ ] Validate concrete peer roles and exact independent result indexes before reconciliation.
+[ ] Report passed, failed, blocked, skipped, and unrun requirements separately.
+[ ] Qualify and publish only after every required result passes primary review.
+
+REQUIRED PREPARATION INVENTORIES
+
+[ ] Inspect all952 registrations across two hosts and two profiles after final deployment.
+[ ] Run these seven fixture-tooling groups on both hosts and profiles:
+    copy-progress-timing-tooling
+    storage-owner-fixture-tooling
+    provision-storage-root-owner-tooling
+    workspace-copy-fixture-profiles
+    observation-resource-fixture-tooling
+    workspace-copy-worker-helpers-tooling
+    geometry-native-fixture-regressions
+[ ] Require28 fixture-tooling executions,20 production startup checks, and356 exact harness executions.
+[ ] Verify these generated artifact targets and their actual packaged files in both profiles:
+    workspace-copy-engine-fixture
+    workspace-copy-fault-fixture
+    workspace-execution-v7-migration-artifacts
+    identity-participant-domain-addition-artifacts
+    workspace-presentation-actor-fixture
+    workspace-presentation-shared-representation-fixture
+    workspace-geometry-native-crosshost-fixture
+[ ] Validate all eight configure-time geometry keys against their baked provenance values.
+[ ] Bind concrete reviewed peer roles before cross-host execution.
+[ ] Preserve each terminal report tree at its original absolute path when copying to ROG.
+[ ] Preserve numeric ownership, private modes, sparse images, and exact retirement-marker symlink bytes.
+[ ] Recheck complete artifact manifests with the frozen validators before rendering actual cross-host inputs.
+[ ] Do not mistake accepted configure-time placeholders for live endpoints.
+[ ] After a permission repair, recheck destination modes, startup, inputs, and hashes.
+[ ] Do not rebuild unchanged source solely to repair reviewed destination file modes.
+
+KNOWN FAILURE REGISTER
+
+F01 Wrong host aliases or SSH identities.
+ Prevention:explicit IP, key, trust file, machine ID, and filesystem UUID checks.
+ Check runtime paths on their owning host. Do not test remote manifest paths against the builder filesystem.
+ Evidence:package input preflight02 rejected test-host paths on ROG; corrected preflight03 passed.
+F02 Missing launch plan at final audit.
+ Prevention:complete transfer inventory before reading inputs; hash every destination.
+ Derive staging paths from the approved index. Verify every referenced file before launching tmux.
+ Evidence:old-payload-pinned-dryrun-01 preserved the initial missing-pin-path refusal before any guard ran.
+ Final review found historical focused-report paths ending01; successful reports ended04.
+ Use actual retained primary-summary pins. Keep historical0b evidence separate from new5d execution.
+ The exact0b-to5d source delta changes only the bootstrap-race test and its note.
+ Primary reassessed the old deadline regression as supporting evidence. The new full gate reruns all four groups.
+F03 Group-writable package inputs or SCP manifest mode0664.
+ Prevention:post-transfer permission checks and exact pinned mode-normalization regressions.
+ Also verify builder modes before transfer.
+ Apply the declared type-specific mode policy. Executable helpers remain0555; data files remain0444.
+ Do not reject valid executable helpers merely because data files use0444.
+ Evidence:primary-package-review-refusal-01.json caught writable prepared inputs on5d4.
+ primary-package-freeze-01.json records0444 files,0555 directory, and unchanged package hashes.
+ Canonical deployment and normalization then passed on both hosts.
+ These receipts are under the current package and deployment evidence roots.
+F04 Unwritable frozen CTest bookkeeping or changed implicit working directories.
+ Prevention:external bookkeeping, delegated write probe, explicit original WORKING_DIRECTORY.
+F05 Reusing spent storage fixtures or inherited storage environment.
+ Prevention:unique required lanes, validated six-key full-gate environment, clear irrelevant variables.
+F06 Wrong nested timeout or resource envelope.
+ Prevention:inspect actual service/CTest/adapter limits and measured durations per profile.
+F07 Successful source checks mistaken for runtime coverage.
+ Prevention:source checks, target preflight, focused behavior, and complete gate remain separate.
+F08 Current gate failure hidden by a recent passing tail or blockers=[].
+ Prevention:anchored complete-log scan and exact JUnit inventory before reporting.
+F09 Retrying while old processes or helper users remain alive.
+ Prevention:exact PID/group/service retirement, helper restoration, and lock checks.
+F10 Diagnostic filename collision inside one test process.
+ Prevention:secure unique filenames; run every artifact-producing method.
+F11 Bootstrap denial asserted before no-write checks.
+ Prevention:complete row/count comparison before denial classification; retain actual reply.
+F12 Requiring missing success-only receipts after a failed Debug core.
+ Prevention:use actual failed-stage receipt shape; independently pin final Debug relocation.
+F13 Comparing modified Debug metadata with its original baseline.
+ Prevention:baseline backup check plus primary-pinned entered-profile after-hash check.
+F14 Lone overlay test cannot import sibling fixtures or points at a ROG worktree.
+ Prevention:pinned shim imports exact deployed source/tests/core.
+F15 Inventory hash differs from the file later consumed.
+ Prevention:write canonical inventory artifact first; hash those exact bytes.
+F16 Recreating an existing shadow directory as fresh runtime evidence.
+ Prevention:separate fresh paths and inspect partial prior outputs before retrying.
+ The canonical runner creates its log container. Require fresh build, payload, and result leaves inside it.
+ Do not reject that log container merely because the runner already created it.
+ Evidence:package preflight01 rejected its runner-created root; corrected preflight03 validated fresh leaves.
+F17 Single-pass mapping never applies the overlay.
+ Prevention:explicit two-stage mapping and exactly one registration/argv rewrite.
+ Evidence:sb16 v1 preflight FAILED before tests; v2 target preflight passed on both hosts/profiles.
+F18 Helper wrapper killed by an outer subprocess timeout.
+ Prevention:reviewed observation/signal forwarding and confirmed retirement before restoration.
+F19 Successful SystemExit reported as an error.
+ Prevention:exit outside Exception handling; verify success has no fabricated stderr failure.
+F20 Unsafe-directory negative fixture hidden by an inherited restrictive umask.
+ Prevention:set and verify the intended unsafe mode explicitly; preserve positive private-directory controls.
+F21 Reply ownership or clean EOF confused with complete broker retirement.
+ Prevention:exact owned-child identity, journal consistency, sibling survival, and cleanup regressions.
+ The old retirement negative fixture incorrectly assumed that normal checked shutdown remained unfenced.
+ Use a genuine retained cleanup journal. Remove its fence in controlled state and verify unchanged issuer retirement state.
+ Restore the original journal and require genuine fenced retirement to succeed.
+ This checks journal mismatch rejection. Direct coverage of the deeper fence guard remains unproven.
+ Evidence:the repaired-subset summary records all nine session-broker-retirement cases across both hosts and profiles.
+
+F22 Standalone CTest metadata expands an assumed CMake variable to an empty path.
+ Prevention:use pinned explicit paths; inspect final argv, environment, and working directories with CTest inventory.
+ Evidence:M09 fixture primary01 refused before execution; primary02 used explicit paths.
+F23 A worker changes a script after publishing its review hash.
+ Prevention:freeze handed-off files; use a new filename for every later revision.
+ Recheck exact hashes before authorization and execution. A mismatch invalidates the pending review.
+ Copy hashes exactly from approved machine-generated records. Do not reconstruct or manually transcribe them.
+ Validate 64 lowercase hexadecimal characters before any launch operation.
+ Caught input error:the real-render precheck rejected a mistyped primary discovery-review SHA before launching.
+ Evidence:current preparation root/prelaunch-render-control-01/precheck-refusal-01.json.
+ Evidence SHA256:a311fc4a5ed8adc3874e16f7aeb029608b9105ad6bdc51f965df653ce61a1734.
+ This was a caught control-input error. It was not a renderer or product execution failure.
+ Evidence:cleanup v2 changed after handoff; primary refused before authorizing any deletion and reviewed the new bytes.
+
+F24 Nested orchestration quoting or incomplete placeholder substitution.
+ Prevention:use a saved Python script with structured configuration and explicit argv.
+ Validate all referenced bindings before any target mutation.
+ Evidence:cleanup orchestration01 stopped with NameError before target access.
+ Corrected orchestration02 launched both hosts; all nine approved paths completed with receipts 0/0.
+ Keep the failed control attempt separate from cleanup and product-test results.
+ Recurrence:renderer-tooling-control-run-01 failed before any regression test launched.
+ Its nested selection.write_text string produced an unterminated-string SyntaxError.
+ Failed orchestrator SHA256:ec57ae9b082eb6013564d689294b6df0b10610a7bc686662c6fc0374bb2f6ac4.
+ Failure log SHA256:4096220b61246f13a43f01ccd3962099c98aea6d26ba69a530089904f5476549.
+ Evidence:current preparation root/renderer-tooling-control-run-01.
+ Correction:use one saved target helper with JSON data. Do not generate another Python source string.
+ Require primary review, exact destination hashes, and successful target tooling receipts before closing this item.
+ Standalone helper v02 executed the reviewed tooling regressions successfully on both hosts.
+ Both command/wrapper receipts are 0/0. All 21 checks passed per host; no matching owned processes remain.
+ Retained tmux panes are dead, which the reviewed observer now distinguishes from live processes.
+ Primary receipt:current preparation root/primary-renderer-tooling-review-01.json.
+ SHA256:e4793b2f38d3995704490eb028b3073748aca0c6ce821e05699e1697ef6eec8d.
+ This closed the reproduced tooling-launch failure before full-gate execution. See current status for the active gates.
+ Further controls:verify runner positional arguments and retain early wrapper stdout/stderr.
+ setup-control-sourcecheck-01 duplicated NEW_RUN_DIR and exited126 before checking source.
+ Corrected sourcecheck-02 passed; a later observer NameError did not change that terminal result.
+ Inspect original receipts and actual processes after an observer error. Do not restart a completed command.
+ Quote each remote search pattern as one argv value and restrict its search root.
+ An unquoted pipe in a search launched an unintended home-directory scan; its exact processes were retired.
+ Another observer failed before target access because JavaScript replacement strings interpret dollar-apostrophe tokens.
+ Use literal concatenation or a replacement callback when inserting script text. Validate the final script before SSH.
+ Evidence:fullgate-launch-control-01/observer-generation-failure-01.py.txt.
+ The corrected observer parsed the complete current core logs on both hosts. Neither running gate was interrupted.
+F25 Prelaunch renderer assumptions disagree with canonical manifest and profile schemas.
+ Prevention:read producer and consumer contracts before validating or transforming inputs.
+ Do not require undeclared manifest fields or treat profile mappings as lists.
+ Recompute every derived package, definition, helper, and discovery pin from final inputs.
+ Syntax and template-hash checks do not prove that a renderer can produce valid plans.
+ Evidence:v02 source review found impossible schema checks.
+ Frozen renderer v04 now matches the canonical package schema and uses private frozen template copies.
+ Renderer SHA256:d63f924b59d6382eb6addb1a09be735608e05c957dd1f12a7708fe5465bff49e.
+ Regression SHA256:f59a62ec33232d0cdfadb524ac2761470e040c690034f17aea0bec7838cc995f.
+ All 21 renderer-tooling checks passed on each host, 42 total.
+ Cases cover valid schemas, unsafe modes, stale candidate/package/source hashes, exact substitutions,
+ malformed or duplicate discovery data, wrong host/filesystem/payload values, and derived package pins.
+ Primary reviewed exact results, source hashes, terminal receipts, and actual process retirement.
+ Real package rendering passed. Primary verified all18 resulting files and exact substitutions.
+ Evidence:primary-preparation-input-review-01.json. Later primary-preparation-final-review-01 verified both completed preparation audits.
+ The old-payload guard v03 also required a nonexistent embedded-provenance receipt field.
+ Primary refused that draft before deletion. v04 hashes the separate canonical provenance file.
+ Actual-schema and positive-control checks remain mandatory before any destructive operation.
+ No v02 renderer plans were emitted or deployed.
+ The corrected old-payload guard completed all four removals after successful pinned dry runs.
+ Primary verified retained failure evidence and exact recovered bytes in primary-retirement-verification-01.json.
+ Cross-host preparation caught another instance of this schema and evidence-validation failure.
+ Draft01 used wrong M06 plan keys and an extra key in the M07 role map.
+ Draft02 fixed those schemas, but its peer guards could accept absent hashes or duplicate hosts.
+ Its command draft also named a different plan path from the renderer output.
+ The renderer imported mutable validators without checking their recorded source hashes.
+ Primary rejected both drafts before runtime. Preserve their manifests and review records.
+ Review02:current preparation root/crosshost-readiness-primary-review-02.json.
+ SHA256:3175f8b7d0035443697c98cdb938943dfba3ecda2c458d6ee9ad5a6bed72439c.
+ Required prevention:verify actual evidence bytes, exact distinct hosts, and nonempty SHA-256 fields.
+ Check source and destination byte counts, hashes, routes, identities, and cleanup results.
+ Verify validator source hashes before importing them.
+ Generate command vectors from the exact emitted plan and role paths.
+ Run a complete valid schema-only render in an isolated directory.
+ Reject each malformed control for its intended reason.
+ Keep synthetic validation receipts separate from actual launch inputs.
+ Actual plans require both terminal local gates, retired processes, and available runtime locks.
+ Draft03 passed24 source/configuration controls:two positive cases and22 intended refusals.
+ Primary reviewed the renderer, its controls, and all100 artifact-manifest entries.
+ Eight role files and ten command schemas passed the frozen consumer checks.
+ Canonical command/wrapper exits were0/0. Owned validation processes retired.
+ Actual rendering still refuses pending local receipts and has emitted no real launch plan.
+ Review03:current preparation root/crosshost-readiness-primary-review-03.json.
+ SHA256:513e7ec85c8fd2bb3b3af2c58b64ca5e7107969b760785e986e5403653f0d741.
+ Runtime staging, local terminal audit, and cross-host qualification remain pending.
+ Peer identity evidence:current preparation root/peer-readonly-precheck-01/result.json.
+ SHA256:af36edf41c45b7934ebc15a00f1c4401e01654bdf3bd6026df3ebb00b6de998a.
+ Peer SCP evidence:current preparation root/peer-scp-control-01/result.json.
+ SHA256:5d822950f4843425e8949ae54c50cac52b5269fc79b5db4e1c6322823955cf20.
+ Primary verified101-byte and103-byte transfers, mode0600, and removal of all four probe files.
+ These transport checks do not qualify cross-host world behavior.
+
+F26 Configuration constants disagree with the execution validator.
+ Cause:minimum_free_bytes was35434670592;33*1024**3 is35433480192.
+ Both setup-outer-HOST-01 attempts stopped before storage, bookkeeping, or product tests.
+ The launch precheck inspected capacity but omitted the controller configuration equality check.
+ Prevention:derive the threshold; reuse validate_configuration in launch preflight and controller execution.
+ Keep the original rejected configuration as a negative control.
+ Require the corrected actual configuration to pass before any stage starts.
+ Controller v03 SHA256:550b7557e7978be5b13bf85837dd059ee56dcecb2607c2453d5d7b6dc856d5f3.
+ Launcher v02 SHA256:f4276239b2b91f0fd3865f9042689929d7cb33a39b54803c43b1f01050071ca2.
+ Evidence:current preparation root/setup-capacity-repair-01.
+ Both target primary-launch-HOST-02.json records show the negative and positive controls passed.
+ All four subsequent preparation stages completed on both hosts with command/wrapper exits0/0.
+ This resolves the reproduced setup mismatch. It does not qualify M08.
+
+F27 A submitting process changes umask, but an existing tmux server retains its own mask.
+ Source review caught this before full-gate launch. The canonical runner contains no umask command.
+ Prevention:execute a pinned private-exec.sh inside tmux. It sets0077 before exec of the unchanged runner.
+ Verify the entry hash, owner, mode, and bash syntax.
+ Run an actual tmux probe. Require0700 directories,0600 files,zero exits, and retired probe processes.
+ Both test hosts passed that probe. Both final check-only validations passed.
+ Entry SHA256:6377ed32f2c682f7d6a5ca8ff2ffd39290027c0447c428f53f400e01b2a6b854.
+ Probe review:current preparation root/fullgate-launch-control-01/primary-umask-regression-review.json.
+ Probe review SHA256:4df8585ca4a7da1dced944fdeb985563e0712ec81bc1dcffb2c43e6efaf3074d.
+ Readiness02 supersedes readiness01. No full gate used readiness01.
+
+F28 Permission loss misclassified as actor identity revocation.
+ Failed groups:workspace-presentation-actor and workspace-actor-cabinet-gateway.
+ Prevention:distinguish delegated permission loss from actor, credential, and issuer identity failures.
+ Require no protected payload or unauthorized file effect. Preserve independent grants and authorized processes.
+ Recheck observation, queued results, authority callers, and copy-fault behavior after changes to this boundary.
+ Historical focused evidence:M08_REPAIRED_SUBSET_RESULTS_2026-10-20.txt, candidate652a6b7992125649f068e5c0d1ce87876dd996f6.
+ Do not transfer those results to a changed candidate without reviewing the exact delta.
+ Two unforced dispatch windows remain coverage gaps until directly exercised.
+
+F29 A source checker expects an obsolete storage-profile selector.
+ Failed group:session-storage-device-bindings.
+ Prevention:read the maintained CMake selector and execute both real profile branches.
+ Verify exact Debug and ASan-UBSan forwarding, including the negative control.
+ Preserve storage ownership, contention, device-binding, and confinement assertions.
+ Historical focused evidence:M08_REPAIRED_SUBSET_RESULTS_2026-10-20.txt records six methods per host/profile.
+ Review the checker against its producer whenever that contract changes.
+
+F30 Required empty cache directories omitted from the package.
+ Prevention:inventory required directories separately from regular files.
+ Verify them after extraction at a different path and under the runtime caller.
+ Check generated protobuf imports and transitive fixture dependencies before launch.
+ Keep production-off import checks where production entrypoints use those bindings.
+ Historical cause:M08_LAUNCH_CHECKLIST.txt, known failures recorded on2026-10-19.
+ A successful executable build alone does not close this item.
+
+F31 Exit-record byte length mistaken for the exit code.
+ Historical example:a two-byte file containing zero and a newline was reported as exit2.
+ Prevention:parse the complete record contents. Require a valid integer and preserve the raw record.
+ Missing, empty, or malformed records mean unknown.
+ Check both command and wrapper results, then verify process retirement.
+ Historical cause:M08_LAUNCH_CHECKLIST.txt, known failures recorded on2026-10-19.
+
+F32 Directory inventories use different roots or omit the archive top directory.
+ Prevention:declare one comparison root and include the top directory explicitly.
+ Compare relative paths, types, required modes, and complete file coverage after extraction.
+ Exclude only the declared inventory file. Do not exclude every matching basename.
+ Historical cause:M08_LAUNCH_CHECKLIST.txt, known failures recorded on2026-10-19.
+
+F33 Supervised recovery starts without its retained delegation parent.
+ Prevention:initialize the parent before bootstrap and preserve it across broker generations.
+ Check the recovery fixture's real preflight before launching its runtime driver.
+ Verify each fault reaches the intended crash or revocation boundary.
+ An earlier bootstrap rejection does not exercise that boundary.
+ Preserve the complete source-pin file, directory, and mode fields required by the driver.
+ Historical cause:canonical M08_LAUNCH_CHECKLIST.txt, known failures recorded on2026-10-19.
+
+F34 Sudo removes the inherited Python bytecode setting.
+ Prevention:pass -B explicitly to each privileged Python preparation command.
+ Verify frozen source inventories after the command.
+ Do not depend solely on PYTHONDONTWRITEBYTECODE surviving privilege changes.
+ Historical cause:canonical M08_LAUNCH_CHECKLIST.txt, known failures recorded on2026-10-19.
+
+F35 Relocated evidence invalidates absolute retirement-marker targets.
+ Source inspection caught this before terminal report transfer.
+ The pinned validator compares each marker with its current parent/never-created path.
+ Prevention:mirror each host report at its exact original absolute path on ROG.
+ Preserve original link bytes. Do not rewrite links, receipts, or their hashes.
+ Preserve numeric ownership and private modes for the reviewed root-owned storage exclusions.
+ Copy real sparse images. Do not substitute invented empty images.
+ Recheck the full manifest, typed links, and exclusions after transfer.
+ Plan:current preparation root/crosshost-terminal-collection-plan-01.json.
+ SHA256:2af4e09bf872dae36fb3222e2272790e98c731dbe5d0009deb3fd9ceb9db462e.
+ Terminal report collection remains UNRUN. This is a reviewed prevention plan, not a runtime pass.
+
+F36 A metadata-transfer size limit rejects valid deployment receipts.
+ The first read refused sb16 before creating a destination.
+ Its131072-byte limit was below the138929-byte and138930-byte source files.
+ Prevention:measure the source metadata first. Bind exact byte counts and pinned SHA-256 values.
+ Require stable source identity before and after reading.
+ The corrected direct transfers preserved exact bytes and passed both pinned hash checks.
+ Original refusal:current preparation root/crosshost-deployment-stage-control-01/refusal-01.json.
+ Successful receipt:current preparation root/crosshost-deployment-receipt-stage-01.json.
+ SHA256:c2ae130c879bf63283c1d27c7627f5a7a6cd4e67663515836634a603d752b7e0.
+ No product test or cross-host runtime ran during this transfer.
+
+F37 A progress parser misses compact CTest failure lines.
+ CTest printed a dotted test name immediately followed by ***Failed.
+ The old progress regex required whitespace at that boundary.
+ Canonical CTest and the gate correctly failed. Only the interim progress report missed it.
+ Prevention:accept zero whitespace before status and exercise Passed, Failed, Timeout, and Not Run examples.
+ Reject an unparsed completion line. Cross-check terminal counts with JUnit and command.exit.
+ Corrected monitor:current preparation root/fullgate-launch-control-01/stage-progress-v04.py.
+ SHA256:f2f61bc4b3809f3649e04f51b26022799e8b9da39b76e3d3af99ea415c6de823.
+ Four parser controls and one non-result control passed.
+ Both actual terminal logs and JUnit now report 230 passes and one failure.
+ Retain the original v03 observations as incorrect partial reports.
+
+F38 Revocation during Git import leaves process scopes or acknowledgments unresolved.
+ Candidate:5d4a032623f7e09b9c157041960ddc837be43975. Profile:Debug. Hosts:sb16 and sb16-2.
+ Failed group:session-storage-contention. Failed method:test_native_storage_actor_revocation_during_bounded_git_import.
+ sb16 retained only 5 of 9 exited application handles within the existing two-second limit.
+ Its issuer session reached EOF after keepalive starvation. The final six-second barrier retained two pending participants.
+ sb16-2 retained only 7 of 9 exited handles. Its broker exited after an application scope failed to drain.
+ Its import reply reported Broker authority channel closed.
+ Neither failure is the outer 180-second CTest timeout.
+ Source already moves sync_tree work into an asynchronous worker.
+ Main-thread SQLite commits and serial process draining remain diagnosis targets.
+ Do not treat a longer fixture timeout as a production repair.
+ Retained ROG root:/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
+ sb16 bundle:failure-sb16-5d4a032-01. Manifest SHA256:6883e6c2a62c89dbdf0461b56c943851d8c4828c7e5b8a4253717227017f8a45.
+ sb16-2 bundle:failure-sb16-2-5d4a032-01. Manifest SHA256:2d670c7c9fc03f17c31deb3c47a9f9f1c2907e63d69fc8616b7f958526c15f86.
+ Prevention remains PENDING. Record each retained PID, scope, exit result, and relevant blocking thread before fixture cleanup.
+ Review the production correction before running focused Debug and sanitizer checks on both hosts.
+ Require all application exits, live required services, successful import completion, and a complete authority barrier.
+ Preserve actor-revocation, credential-revocation, bootstrap-race, and durable-issuer controls.
+ First diagnostic-only Debug repeat passed on both hosts with all nine retained handles exited.
+ It does not reproduce or resolve the original failure.
+ Repeat the immediate full-gate predecessor, session-storage-owner, before contention in fresh evidence directories.
+ Keep both original registrations, wrappers, timeouts, and working directories.
+ A pending reply does not prove the Git worker is still alive. Read the retained Git-PID sample.
+ Global snapshot truncation does not imply an active fd target was omitted. Inspect its explicit target record.
+ sb16 recorded fd27 as the fixture volume directory. SQLite caller attribution remains unproven.
+ Corrected first-repeat audit:retained ROG root/diagnostic-audit-summary-05.json.
+ SHA256:abb7159e365259a239a8f1c8f5cf996bb1ba202d79e6df172460128ea654b676.
+ The adjacent-group repeat reproduced the failure on sb16. Both groups passed on sb16-2.
+ sb16 retained four writer processes, a live Git process, and a broker directory-fdatasync wait.
+ Its barrier exhausted all six seconds after issuer EOF. The final assertion was not merely ten milliseconds late.
+ The proposed correction requests every revoked stop before waits, then commits revoked rows together.
+ Do not claim this resolves all kernel I/O, native cleanup, or issuer-service delays before runtime verification.
+ Run a fresh full gate after the combined candidate is reviewed and frozen.
+
+FAILURE REVIEW RULE
+
+For each new failure, add its exact invariant, input, source pin, evidence location, and detection check.
+Fix the reusable mechanism where practical.
+A checklist entry alone is not a regression pass.
+Verify the prevention on the intended hosts and profiles.
+Never erase a failed attempt or silently change locked acceptance.

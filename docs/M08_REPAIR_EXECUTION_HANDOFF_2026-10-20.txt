@@ -1,0 +1,978 @@
+M08 EXECUTION HANDOFF
+Updated: 2026-10-20
+Status: M08 UNQUALIFIED. Focused runtime checks have started.
+
+LATEST STORAGE REPAIR CHECKPOINT
+Recorded: 2026-10-20T22:02:06.162479+00:00
+This section supersedes the historical action instructions below.
+M08 remains UNQUALIFIED. M01-M07 retain their historical qualification.
+The full gate is not running. Focused repaired runtime checks have started.
+
+Primary rejected draft e785e5bbd64832d95b36303a51b53c0f21e757be.
+It skipped copy-only revocation and lacked a convincing observer-failure regression.
+The rejected checkpoint remains on m08/storage-contention-repair-20261020.
+
+Corrected source: b6803d38ff006537f8efd1ce106f931aedc6d7b5.
+Branch: m08/storage-stop-review-20261020. BOX-GIT VERIFIED.
+ROG worktree: /home/dflanag3/src/m08-storage-stop-review-20261020.
+Primary reviewed all ten changed files and approved targeted compilation.
+Review: R/primary-escalated-source-review-01.json.
+SHA256: 9c9d56129f3f5933f724794abad83777f2eb655ba9946cf6aaf59ed4b41b9d14.
+R: /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
+
+The correction requests every application stop before any application drain.
+Native credential cleanup and copy cancellation follow application drains.
+Copy-only revocation still runs when no application rows need revocation.
+A retained reconciliation failure prevents later applied acknowledgements.
+One transaction updates the revoked application rows after confirmed cleanup.
+The original two-second stop deadline and acceptance limits remain unchanged.
+
+New tests pin a real Git import, drain two real applications, and inject a SQL update failure.
+They require rollback, actual broker failure, dead process handles, and an unapplied issuer barrier.
+A positive import control proves the request can succeed.
+Copy-only regressions now retain independent worker process handles.
+The repeated-stop regression checks that retries retain the first deadline.
+These tests require focused runtime qualification. The first outcome is recorded below.
+
+Build receipts: R/escalated-build-01.
+Driver01 stopped after successful Debug compilation because native test registrations were missing.
+The new CMake cache omitted SPATIAL_INPUT_TESTS=ON, which the frozen full-gate cache requires.
+Keep driver01 failure receipts. This was a setup failure; no runtime test ran.
+Driver02 restores that option and uses new configure and compile receipts.
+Debug and ASan-UBSan configure and compile passed with command/wrapper exits 0/0.
+Both inventories contain all nine selected registrations and match the frozen build options.
+The build driver retired. Primary independently verified the compiled file hashes.
+Review: R/primary-escalated-build-review-01.json.
+SHA256: c3b2f62252786ed9a32b60fc572058de534f1970bff758a3e14f9f6789d2f47f.
+Build only changed executables and their recorded dependency closure.
+Preserve the frozen 5d4 package and failure evidence.
+
+Next validation steps:
+- Verify both build results and the exact source commit.
+- Compare behavior-affecting CMake options with the frozen gate cache, including SPATIAL_INPUT_TESTS=ON.
+- Require all nine selected CTest registrations in each profile before packaging.
+- Use real neighboring executables so fixtures launch the repaired broker.
+- Preserve CTest commands, working directories, wrappers, and sanitizer variables.
+- Review fresh payload paths and hashes before direct LAN deployment.
+- Prove the observer regression rejects a controlled missing-fence counterexample.
+- Run the selected regressions on both hosts in Debug and ASan-UBSan.
+- Repeat session-storage-owner immediately before session-storage-contention.
+- Verify helper restoration, process retirement, and unchanged frozen input pins.
+- Freeze a new full-gate candidate only after review and focused checks pass.
+
+The component repair note records nine selected registrations and their purpose.
+The prior thirteen-name inventory is preparation material, not the final test selection.
+Focused input packaging, direct LAN transfer, and ELF dependency checks passed on both hosts.
+Input manifest SHA256: 2f32b671046257563e13b132ac2f532e919dc96a892f8c4770014b1bf55deebd.
+The payload contains the corrected source and two replacement executables per profile.
+The focused driver copies the remaining declared runtime closure from the preserved 5d4 package.
+This explicit overlay is UNQUALIFIED. It does not replace a coherent full-gate package.
+
+Preparation attempt b680-focused-01 stopped before any runtime test or runtime copy.
+Both canonical command/wrapper exits were 1/1. Both owned panes retired.
+The driver incorrectly required graphics-library paths to be regular files.
+Qualified libraries such as libgbm.so.1 use legitimate symbolic links.
+Keep source and payload files strict. Permit links only for declared external runtime dependencies.
+Record each requested path, its resolved regular target, and its expected hash.
+Recheck the resolution and content before and after execution.
+Add a setup regression for link retargeting and changed target bytes.
+Both hosts' storage configurations and all six profile variables passed independent verification.
+Failure evidence: R/primary-focused-launch-control-01/prepare-failure-HOST-01.json.
+No application rebuild is required for these launcher corrections.
+The runtime-link correction passed seven targeted setup regressions.
+
+Preparation attempt b680-focused-02 then rejected the deployed sanitizer CTest metadata.
+Its comparison used the pre-deployment hash despite recorded path substitutions.
+The actual file equals the original deployed copy and its pinned deployment receipt.
+Use receipt.metadata_baseline before applying any later full-gate metadata relocation.
+Require unchanged metadata filenames and compare complete selected CTest contracts.
+Evidence: R/primary-focused-launch-control-02/metadata-audit-HOST.json.
+Both second attempts ended 1/1 before runtime or payload copying.
+
+Current driver: R/focused-repair-control-04/focused-repair.py.
+SHA256: 1eb22df4bc3ced77c806fb309ac3025922332fa9487521f5dd9646b48290f4d4.
+Its narrow correction preserves source hashes, runtime resolution checks, and acceptance limits.
+Preparation attempt b680-focused-03 passed on both hosts with canonical exits 0/0.
+Primary independently checked all eighteen selected contracts per host.
+Each payload contains 1,456 regular files and retains 2,732 input pins.
+The payload manifest is identical on both hosts:
+ becc411f6a5ddebfd313767ef6586935657d81238820c96963c748f033915a0f.
+Ready hashes:
+ sb16: 99fa40e7ac7fde51b95d1a8550ed6a64374128f52a45fb437f308f23a11e4987.
+ sb16-2: 8ef353a5f3119b035c701d04017bec0cce0b3c4ad4982cc3218923d615e78bf4.
+
+The first Debug regression batch ran on sb16.
+Process termination passed all nine methods in 3.16 seconds.
+Workspace participation passed six methods and errored in one new method.
+The new method accessed applied_revision on AuthorityBarrierStatus.
+That field belongs to each AuthorityBarrierObligation.
+This is a test defect. It does not establish the production failure-handling result.
+Keep the intended barrier, process-drain, rollback, and fail-closed assertions.
+Check every new Protobuf field access against the generated descriptor before launch.
+The same known-bad method was not repeated on sb16-2.
+Canonical exits were 8/8. The driver recorded no audit errors or changed inputs.
+Helper restoration and child retirement were confirmed. There were no skips.
+Failure evidence: R/primary-focused-launch-control-03/sb16-regressions-failure-01.
+
+The independent Debug storage pair passed on both hosts.
+Each host passed seven storage-owner methods and twenty-five contention methods.
+Total: sixty-four test-method executions, no skips, and no runtime audit errors.
+Both canonical command/wrapper exits were 0/0. All owned driver and child processes retired.
+Helper restoration was confirmed. All pinned inputs remained unchanged.
+Audits: R/primary-focused-launch-control-03/HOST-storage-final-audit-01.json.
+It runs session-storage-owner immediately before session-storage-contention.
+These tests do not execute the defective new workspace-participant method.
+Their order, limits, wrappers, and frozen source remain unchanged.
+Fixture correction: fa450c427196e876d88f91f138ffb1639667b491, BOX-GIT VERIFIED.
+Primary reviewed the Python-only correction. No production binary or schema changed.
+It checks the barrier counts and the applied revision of its one obligation.
+The corrected method rerun and missing-fence counterexample remain pending.
+The full gate, sanitizer runtime, and later selected checks remain pending.
+
+GitHub checkpoint authorized on 2026-10-20:
+Publish branch m08/unvalidated-checkpoint-20261020 through box-git.
+This branch combines the reviewed repair, fixture correction, and maintained notes.
+M08_NOT_VALIDATED.txt states the current validation limits.
+M08 remains UNQUALIFIED. Publication does not replace the required full gate.
+
+
+CURRENT VERIFIED DEPLOYMENT AND PREPARATION STATUS
+Recorded: 2026-10-20T20:56:07Z
+
+This section supersedes all historical action sections below.
+M08 remains UNQUALIFIED. Both corrected full attempts failed the Debug storage-contention group.
+M01-M07 remain historically qualified. M09 remains separate and unqualified.
+
+Candidate:5d4a032623f7e09b9c157041960ddc837be43975.
+All four canonical builds passed: testing and production-off, Debug and ASan-UBSan.
+Archive bytes:1,985,543,753. Expanded regular-file bytes:11,171,333,388.
+Archive SHA256:ff1d5005adb2ac87c1e6f72441515b4ad6c341d699f12d1172b0190995f5303b.
+Embedded provenance SHA256:9f8d738d582be6614faeac87ad05dcef9e533a12772ad908839e61d4ecb7f5db.
+Final builder provenance SHA256:7103e2adfaa491938dacad61e81a8b76116218fdfdae154626d543697d14c8d0.
+Builder provenance adds archive_files and bundle_sha256 after archive creation.
+Package primary review SHA256:937f0e7063267e50688442a49820010fa5ba03a9778ca96f91590fc019067bf3.
+Package evidence:/home/dflanag3/spatial-artifacts/m08-bootstrap-package-build-20261020.
+
+Preparation root T:/home/dflanag3/spatial-artifacts/m08-bootstrap-fullgate-20261020.
+Deployment D:T/deployed-5d4a032-01 on each test host.
+Both direct ROG transfers, canonical deployment, and permission normalization passed.
+Both deployment command/wrapper receipts are0/0; actual owned processes retired.
+sb16 deployment receipt SHA256:5ffd7e3bae786f4efa461f45f8d1bef5ed01f0dbc5088461e333073843a3b398.
+sb16-2 deployment receipt SHA256:bf5ae226c20092b937e8896962f3c2e84b3dab2015578563e34e6e872e800ac7.
+Actual discovery manifest SHA256:15c12fa0caa28d01dda08626ec5654cffc8214e33f76b9b44f2ce69de3cc6a76.
+Primary independently verified all12 discovery entries before any new CTest invocation.
+Discovery review SHA256:91aea1c85bbc01b7a0ff243133e9e09c7dc1780e9c7569361e97710f2a0af32a.
+
+Renderer v04 passed21 regressions per host,42 total.
+Primary checked original results, terminal receipts, exact source hashes, and actual retirement.
+Renderer tooling review:T/primary-renderer-tooling-review-01.json.
+SHA256:e4793b2f38d3995704490eb028b3073748aca0c6ce821e05699e1697ef6eec8d.
+Real rendering completed with canonical receipts0/0.
+Primary reviewed all18 frozen files in T/prelaunch-01.
+Input manifest SHA256:2bfff67cae9148901f578bd39bd76a6b7a44ff93856a89ff1e5829f46c395321.
+Primary input review:T/primary-preparation-input-review-01.json.
+SHA256:e9ea97dc021ed11a257bf0e6896d02c5122e91dd15edc74ac2406957c1436704.
+Helpers are0555, data files0444, and directories0555.
+Exact helper/definition changes preserve budgets and production behavior.
+
+Old0b binary retirement is complete on both hosts.
+Four approved build/production-off removals passed after pinned dry runs.
+Keep old source, receipts, ctest-original, Testing links and targets, unresolved logs, and external native dependencies.
+Recovered bytes:11,159,904,256 on sb16;11,159,883,776 on sb16-2.
+Measured free bytes after cleanup:44,480,942,080 and43,822,497,792 respectively.
+Primary retirement review:T/primary-retirement-verification-01.json.
+SHA256:f633a3188e00d3a4c2f0e17b4893ad50c186999dc0d325d7d15005cc4ae9e33f.
+Earlier cleanup recovered23,302,123,520 and20,588,625,920 bytes from nine obsolete leaves.
+
+The first preparation controller failed before any stage.
+Both T/setup-outer-HOST-01 runners report command/wrapper exits1/1.
+Reason:the configuration threshold did not equal33*1024**3.
+No storage or bookkeeping side effect occurred in that failed attempt.
+The bad value was35434670592; the correct value is35433480192.
+The controller guard worked. Primary launch review had omitted that exact configuration check.
+Retain these original logs and configurations.
+
+Narrow repair:
+- Controller v03 extracts the existing configuration validator for shared use before launch and execution.
+- Configuration02 derives the threshold exactly. Other configuration fields and stage argv remain unchanged.
+- Both hosts reject old configuration01 and accept configuration02.
+- Outer runner logs preserve failures before per-stage receipts exist.
+- All three shared locks are checked without retaining locks required by helpers.
+Controller:T/setup-control-01/prepare-m08-host-v03.py on each test host.
+SHA256:550b7557e7978be5b13bf85837dd059ee56dcecb2607c2453d5d7b6dc856d5f3.
+Reviewed repair and original observations:T/setup-capacity-repair-01.
+Target primary records:T/setup-control-01/primary-launch-HOST-02.json.
+
+Completed preparation jobs:
+- sb16 tmux:m08-prepare-5d4-sb16-02. Outer wrapper PID769571.
+- sb16-2 tmux:m08-prepare-5d4-sb16-2-02. Outer wrapper PID666894.
+- Outer receipts:T/setup-outer-HOST-02.
+- Configs:T/setup-control-01/config-HOST-02.json.
+- Controller records:T/setup-control-01/controller-result-HOST-01.json.
+- Stage receipts:T/setup-control-01/run-receipts/HOST-01/STAGE.
+- Stages:storage,bookkeeping,prelaunch-audit,final-review.
+All four stages completed on both hosts with command/wrapper exits0/0 and empty stderr.
+Primary verified638 command-log hashes per host, final receipts, and actual process retirement.
+Passed totals:28 fixture-tooling executions,20 startup checks,356 harness executions.
+All952 registrations were inspected. No command failed. No skips or sanitizer findings were reported.
+Evidence:T/primary-preparation-final-review-01/sb16.json and sb16-2.json.
+SHA256:26673875945e6e6e24e26ce61ebda256a2735b2133dc4c24a55d14c633e223c5 and
+ba606226021e38e89d6185f32761ab0864318d53e46315640da9f79a7d4ec6bf.
+Do not restart these completed jobs.
+Check exact actual process identity; PID values alone may be reused.
+
+Reviewed full-gate launch:
+- Launcher:T/fullgate-launch-control-01/launch-fullgate-v02.py.
+- Launcher SHA256:481e83b8649b6033f1d51c2d908725aafef9d084574ccd665e5731a1ba256c66.
+- Private entry:T/fullgate-launch-control-01/private-exec.sh.
+- Entry SHA256:6377ed32f2c682f7d6a5ca8ff2ffd39290027c0447c428f53f400e01b2a6b854.
+- Readiness:T/fullgate-primary-readiness-5d4a032-02.json.
+- Readiness SHA256:b298db67b171224887edc530bb46228bccaf05d8b3be8721f6977f359307a8ea.
+Readiness01 is withdrawn. Source review caught a tmux umask inheritance defect before any full gate.
+The new entry sets0077 within tmux, before the unchanged canonical runner.
+Both actual tmux probes passed with0700 directories and0600 files; probe processes retired.
+Both final check-only runs passed. Exact reviewed source, inputs, storage, metadata links, locks, and capacity matched.
+The launcher supplies six verified profile-specific storage variables in a clean environment.
+It holds only the distinct preparation mutex through flock. The canonical gate owns its own required locks.
+There is no short outer timeout.
+
+Historical four-group evidence remains0b build evidence.
+The draft incorrectly named report attempt01; the successful reports used04.
+Retained primary summary SHA256:f022121e43f1ace7f52d44d746ad28a31be4c37cf87c7887978cf2d56ca2dc03.
+Primary reassessed this as supporting evidence for unchanged deadline behavior.
+The exact0b-to5d diff changes only the bootstrap-race test and its note.
+No fresh5d four-group prepass is claimed. The canonical full gate reruns all four registrations.
+
+Failed full gates started2026-10-20T18:56:07Z:
+- sb16 tmux:m08-full-local-5d4a032-sb16.
+  Wrapper PID772408,start ticks82173011. Gate PID772446,start ticks82173015.
+- sb16-2 tmux:m08-full-local-5d4a032-sb16-2.
+  Wrapper PID669722,start ticks82164228. Gate PID669761,start ticks82164233.
+- Wrapper receipts:T/fullgate-HOST-5d4a032-01.
+- Gate result:D/evidence/m08-full-5d4a032-HOST-01/run.json.
+- Current core log:D/evidence/m08-full-5d4a032-HOST-01/Debug/core.log.
+- Launch observations:T/fullgate-launch-control-01.
+Both gates passed inventory,startup,and89 harness checks in Debug.
+At 20:24:02Z, both gates had failed and their original gate/wrapper processes had retired.
+Each host completed 231 protected Debug groups: 230 passed, one failed, and zero skipped.
+Both canonical command and wrapper receipts are 1/1.
+The failed group is session-storage-contention.
+The previously failing workspace-bootstrap-races group passed on both hosts.
+Its elapsed times were 39.02 seconds on sb16 and 49.98 seconds on sb16-2.
+Later recovery, P10, storage, sanitizer, acceptance, and cross-host stages remain UNRUN.
+The failed phase does not qualify M08.
+
+The import-and-revocation method failed differently on the two hosts.
+sb16 kept both services alive but lost its issuer session before acknowledging revocation.
+Its six-second final barrier wait expired with two pending participants.
+sb16-2 terminated workspaced after a two-second application-scope drain failure.
+Its import request returned Broker authority channel closed.
+The retained two-second lifetime witnesses show 5/9 and 7/9 application handles exited, respectively.
+Increasing the final barrier wait would not repair either process-lifetime violation.
+Current sync_tree already runs asynchronously. Synchronous SQLite updates and serial draining need diagnosis.
+The exact blocking fd and each retained process scope need stronger evidence on sb16.
+
+Diagnosis checkpoint:7187ec759fb1f27cf7608dcb661d03821c56f413, UNQUALIFIED.
+Worker branch:m08/storage-contention-repair-20261020.
+Worker checkout:/home/dflanag3/src/m08-storage-contention-repair-20261020.
+Owned note:spatial-os-luna-handoff/docs/M08_STORAGE_CONTENTION_REPAIR_2026-10-20.txt.
+Reviewed diagnostic overlay:56a77f6fdfd61328d4ff7e2ab29d1989bc8883c6, BOX-GIT VERIFIED, UNQUALIFIED.
+The primary authorized the bounded all-stop-requests-first production repair after reproducing the adjacent-group failure.
+The production repair is assigned on the worker branch. Corrected builds and runtime checks remain unverified.
+Retained ROG failure root:/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
+Both retained failure bundles were copied directly from the test hosts to ROG with verified bytes.
+sb16 manifest SHA256:6883e6c2a62c89dbdf0461b56c943851d8c4828c7e5b8a4253717227017f8a45.
+sb16-2 manifest SHA256:2d670c7c9fc03f17c31deb3c47a9f9f1c2907e63d69fc8616b7f958526c15f86.
+
+The failed-attempt retirement audit is complete.
+Original processes retired. Remaining tmux entries are dead panes.
+Helpers returned to prior absence. No helper users or owned resource groups remain.
+All four shared locks were free. All source, runtime, and entered metadata pins matched.
+Retirement audit:postrun-primary-prep-01/postrun-primary-summary-04.json under the retained failure root.
+SHA256:698224d7e66a2e02b7eb41031f823fe74a531e092e2a4a7587206830191746c4.
+
+The first diagnostic-only Debug repeat passed on both hosts.
+It preserved the original test workload, assertions, 180-second registration, resource wrappers, and working directory.
+Each host executed one CTest group and 25 Python methods. No methods skipped.
+Elapsed times:48.17 seconds on sb16;50.12 seconds on sb16-2.
+All nine retained application handles exited within0.566 seconds and0.284 seconds, respectively.
+The import reply remained pending. No Git PID remained at that exit sample.
+Both imports and authority barriers later completed.
+The sb16 broker snapshot resolved fdatasync fd27 to the fixture volume directory.
+This identifies a directory sync. It does not prove the SQLite caller or the earlier failed fd9 target.
+The sb16-2 snapshot showed nanosleep, futex, and poll waits.
+Both snapshots are bounded and report truncation.
+All1377 readiness pins remained unchanged on each host. Canonical exits are0/0. Cleanup is confirmed.
+Corrected audit:diagnostic-audit-summary-05.json.
+SHA256:abb7159e365259a239a8f1c8f5cf996bb1ba202d79e6df172460128ea654b676.
+Earlier audit04 wrongly inferred a live Git process and omitted the recorded fd target. Preserve it as superseded.
+Direct-copy bundles:diagnostic-evidence-sb16-01 and diagnostic-evidence-sb16-2-01.
+Manifest SHA256 values:4c9398021ca8011e09fde385fa6932939421189ed25a8b955467ce92c2327df0;
+316c32c86d8e8810545dc1848a6ec18a967d722f0deb979730ae007e86b8fa2b.
+These intermittent passes do not resolve either full-gate failure.
+
+The adjacent-group diagnostic completed on both hosts.
+It ran session-storage-owner immediately before session-storage-contention, matching the failing full-gate order.
+sb16: owner PASS in 81.67 seconds; contention FAIL in 52.33 seconds. Canonical command/wrapper exits:8/8.
+sb16-2: owner PASS in 88.26 seconds; contention PASS in 49.21 seconds. Canonical exits:0/0.
+Owner ran seven methods. Contention ran 25 methods with one failure on sb16 and none on sb16-2.
+No methods skipped. Both helpers retired and prior helper absence was restored.
+All 1377 readiness pins matched on both hosts. Failure evidence remains retained.
+It retains the same production binaries and diagnostic overlay.
+Reviewed driver:focused-diagnostic-control-02/focused-diagnostic.py under the retained failure root.
+SHA256:faf4a628642d2be62c5d678715bab6c012ba7683461920f88192559fb0610396.
+Both preparations discovered exactly two registrations with preserved commands, properties, and working directories.
+Result:focused-storage-pair-HOST-01/run.json. Canonical outer:run-storage-pair-HOST-01.
+sb16 helper PID896906,start ticks82824679. sb16-2 helper PID792732,start ticks82815946.
+The pair's compact facts are focused-diagnostic-control-02/HOST-primary-case-facts.json.
+sb16: five of nine processes exited by 2.003 seconds.
+The four survivors were writer application PIDs899576-899579, all in scope authority-d772ba24deec7208f80a9732b698164af167854ea3895cf18ad6dd92af9c6cb6.
+The broker PID899501 waited in fdatasync(fd32), targeting the fixture volume directory.
+The writer PID899579 waited in fsync(fd3), in Btrfs wait_log_commit.
+Git PID899586 remained present, and the import reply remained pending.
+The workspace issuer exchange failed with EOF after 3566 milliseconds without exchange.
+Import later succeeded. The authority barrier then waited the full six seconds and failed with two unapplied participants.
+The final assertion's ten-millisecond polling overshoot was not the cause.
+sb16-2: all nine processes exited in 0.247 seconds.
+No Git PID remained at its sample, although the reply remained pending.
+Import and barrier completed with applied revision1 on both participants.
+Its later settle_wait_broken line occurred after applied revision1 during cleanup.
+Do not confuse that cleanup line with sb16's unapplied failure.
+Both runs confirmed owned process, resource-group, and volume cleanup.
+Verified pair audit:pair-audit-summary-02.json, SHA256:9b03705b7774faebc29259470706114ee389444f759c9758cf5433c30d656d94.
+Direct-copy manifests verified 25 sb16 files and 27 sb16-2 files.
+sb16:pair-evidence-sb16-01/manifest-02.json, SHA256:1ea11058c58d9ca3d28525a36a10a5554c00248536a5a20c3de008a1f9801398.
+sb16-2:pair-evidence-sb16-2-01/manifest-02.json, SHA256:87101578973805fe4fd6ca5cff6df5020eb0d2839f6b48614e0221ea4975108d.
+
+The source-only repair design is production-repair-design-20261020-01.txt under the retained failure root.
+Reviewed version SHA256:9e344b861dcb9c6f1fdad73fdc29a8ed3b6f80d45b0c27e9eb1861858dc9bfa3.
+The selected smaller repair keeps application, native-channel, and SQLite ownership on the broker thread.
+Collect affected applications. Request all stops before any completion wait or durable row update.
+Anchor the existing deadline to the first request. Complete scope and native cleanup before one checked transaction.
+A failed stop, cleanup, or commit must not produce an applied-revision acknowledgment.
+The import observer runs outside that handler's pending-row and ready-row transactions.
+Review other affected observer callers before implementation acceptance.
+The directory descriptor identifies the sync target, but does not directly prove the SQLite caller.
+Synchronous cleanup and persistence remain possible issuer-service delays. The focused checks must determine whether more work is necessary.
+Do not move whole application objects to generic threads; native credentials share broker-owned state.
+
+The v03 progress reader missed compact dotted-name/***Failed lines.
+The canonical gate correctly failed. Earlier no-failure progress statements were incomplete.
+Use T/fullgate-launch-control-01/stage-progress-v04.py for subsequent observation.
+SHA256:f2f61bc4b3809f3649e04f51b26022799e8b9da39b76e3d3af99ea415c6de823.
+It covers compact failure markers, flags unknown completion lines, and cross-checks JUnit.
+Its actual terminal observation is stage-progress-v04-20261020T202402.json.
+Do not change the frozen payload or reuse its failed evidence directory.
+
+One read-only observer-generation command failed before target access.
+JavaScript interpreted a dollar-apostrophe token inside replacement text and corrupted the Python source.
+Use literal concatenation or a replacement callback for JavaScript edits containing dollar characters.
+Validate every replacement count and parse the complete script before writing or sending it.
+Both gate processes continued unchanged. Failed observer source remains in fullgate-launch-control-01.
+
+Next:
+1. Review the bounded production correction and its regressions. Preserve revocation and acknowledgment contracts.
+2. Verify application ownership, failure cleanup, deadline anchoring, and every affected transaction path.
+3. Build the corrected Debug and ASan/UBSan executables and verify their source pins.
+4. Pass focused storage-contention, affected authority, and bootstrap checks on both hosts and required profiles.
+5. Freeze a coherent replacement and run fresh full local gates on both hosts.
+6. Run cross-host geometry, workspace geometry, and cabinet checks after both local gates pass.
+7. Reconcile all required results and perform primary review before qualification.
+Postrun CTest metadata must match metadata-relocation.after. Do not compare entered metadata with its pristine prelaunch state.
+
+The detailed preparation checklist now records 38 known failure patterns or caught preparation defects.
+It includes older packaging, receipt-parsing, revocation, storage-checker, recovery-parent, and privileged-Python failures.
+The short M08_LAUNCH_CHECKLIST.txt points to that maintained checklist.
+Each retry needs a check, command, expected result, evidence path, and hash for every applicable failure.
+Preserve the original failing input. Verify the correction and its valid-input control before retrying.
+Reuse prior evidence only after reviewing the exact source and input delta.
+A checklist entry alone is not a passed regression.
+This documentation update changes no gate source, package, launcher, or acceptance assertion.
+
+CURRENT CROSS-HOST PREPARATION
+
+Existing peer SSH aliases passed actual identity checks in both directions.
+Direct peer SCP passed both directions. Source and destination bytes and SHA-256 values matched.
+The101-byte and103-byte probe files used mode0600. All four probe files were removed.
+Identity receipt:T/peer-readonly-precheck-01/result.json.
+SHA256:af36edf41c45b7934ebc15a00f1c4401e01654bdf3bd6026df3ebb00b6de998a.
+SCP receipt:T/peer-scp-control-01/result.json.
+SHA256:5d822950f4843425e8949ae54c50cac52b5269fc79b5db4e1c6322823955cf20.
+
+Cross-host draft01 failed source review on consumer schemas.
+Draft02 corrected schemas and passed nonlaunch validator checks.
+Primary review still rejected its incomplete peer evidence guards and incorrect command paths.
+Its202 manifest entries were independently verified before review.
+Review:T/crosshost-readiness-primary-review-02.json.
+SHA256:3175f8b7d0035443697c98cdb938943dfba3ecda2c458d6ee9ad5a6bed72439c.
+These are preparation defects. No cross-host runtime has launched.
+The existing full local gates remain unchanged.
+
+A bounded escalated repair owns only the readiness note and external preparation tools.
+Host:rog-ally-x.
+Branch:m08/crosshost-renderer-review-20261020.
+Checkout:/home/dflanag3/src/m08-crosshost-renderer-review-20261020.
+Base:9c5fcefb2c105a7520715f587193120caf315e1b.
+Draft03 checkpoint:aa3f31faf05a1c7555730502f6d059b3b416c783, BOX-GIT VERIFIED.
+Primary accepted its source/configuration checks, not runtime launch.
+Passed:24 controls, including two positive cases and22 intended refusals.
+All100 manifest files matched their exact bytes and hashes.
+Canonical validator command/wrapper exits were0/0; owned processes retired.
+Review:T/crosshost-readiness-primary-review-03.json.
+SHA256:513e7ec85c8fd2bb3b3af2c58b64ca5e7107969b760785e986e5403653f0d741.
+Manifest:T/crosshost-readiness-draft-03/artifact-manifest.json.
+SHA256:d7328685a3d3b1e8e22ea0dadb3c4f94a51367d229caf58885748c7a847d4ae5.
+Renderer SHA256:1ae10da651499613882022e695c31f10e721e3b6f7a3224de3d95ee5f0b7bfec.
+Actual output rendered-final-01 does not exist. The actual terminal receipt pins remain null.
+Synthetic materialization remains marked NEVER_LAUNCH.
+Stage only the reviewed runner and real rendered inputs. Never transfer the synthetic fixture tree.
+Keep real terminal local report hashes pending until both gates finish.
+Run cross-host work serially across the shared hosts after final local review and lock release.
+Use two profiles and two directions for each native geometry, workspace geometry, and cabinet group.
+The M06 handoff owns its semantic and native geometry stages. Do not launch its native runner separately.
+
+Frozen deployment receipt mirrors are now staged under T/crosshost-readiness-draft-03/deployment-receipts/HOST.
+The direct SSH reads verified physical host identity, source stability, exact byte counts, and pinned hashes.
+Stage receipt:T/crosshost-deployment-receipt-stage-01.json.
+SHA256:c2ae130c879bf63283c1d27c7627f5a7a6cd4e67663515836634a603d752b7e0.
+The first size-bound refusal occurred before destination creation. Its source and diagnosis remain preserved.
+It did not affect either running gate.
+
+Terminal collection plan:T/crosshost-terminal-collection-plan-01.json.
+SHA256:2af4e09bf872dae36fb3222e2272790e98c731dbe5d0009deb3fd9ceb9db462e.
+Collection remains UNRUN. Both gates must finish and pass primary terminal review first.
+The ROG destination must equal D/evidence/m08-full-5d4a032-HOST-01.
+Do not use the shorter mirror directories suggested in local-receipts.PENDING.json.
+The frozen validator binds absolute retirement-marker target bytes to the evidence parent.
+Preserve exact symlinks, file bytes, numeric ownership, private modes, and sparse images.
+Use direct Linux transfers. Measure source size and destination capacity before copying.
+Run the frozen validators against the complete copied trees.
+Write a new actual receipt index with verified hashes. Preserve the original pending index unchanged.
+Do not fabricate storage-exclusion files or infer PASS from source review.
+
+M09 preparation continues on separate branches.
+The Python parser and descriptor collector passed33 methods per host,66 total.
+Native capture helpers compiled but remain unlinked and unexecuted.
+Serializer584ed4e17426a4a8cb9eed1f4ad462bb68d23bbd passed primary source and compilation review.
+Its C/Python interoperability and native execution remain UNRUN.
+A separate worker now adds default-off build/startup/reset linkage.
+The ordered revocation witness now has a source-reviewed privileged independent XI2 observer.
+Primary also caught device-record padding and duplicate-event position bugs before runtime.
+Reviewed repair:2d19e6a34d231d4a46b800153a109e22452c561b, BOX-GIT VERIFIED.
+All17 wire cases and both ordered native scenarios remain UNRUN.
+Review:/home/dflanag3/spatial-artifacts/m09-revocation-xi2-review-20261020/primary-source-review-04.json.
+SHA256:3db5d613b056aa85e70ba2b3847f51dd68760d6b696c52130fc2c5ce4d4f3bf6.
+Ordinary application clients remain unable to use XInputExtension.
+Read M09_PREPARATION_STATUS_2026-10-20.txt for exact pins and remaining work.
+No M09 source changes enter the running M08 candidate.
+
+HISTORICAL ACTION RECORDS FOLLOW
+Read these for provenance only. They do not describe active job state.
+
+CURRENT ACTIONS DURING CORRECTED PACKAGE BUILD
+Recorded: 2026-10-20T17:47:25Z
+
+This section supersedes older current-action sections.
+M08 remains UNQUALIFIED. No new full gate has started.
+All four corrected5d4 builds passed: Debug and ASan-UBSan, testing and production-off.
+The canonical prepare process is still assembling the archive.
+ROG tmux: m08-5d4-package-prepare-01.
+Prepare PID:1009720. Runner PID:1009678. Outer flock PID:1009673.
+Always verify actual process identity and receipts before reporting progress or retrying.
+Output root:
+ /home/dflanag3/spatial-artifacts/m08-bootstrap-package-build-20261020
+Runner receipts:prepare-run-01.
+Prepared attempt:prepared/m08-5d4a032-fullgate-prepare-01.
+Source:5d4a032623f7e09b9c157041960ddc837be43975.
+Archive is incomplete until canonical receipts and primary archive audit pass.
+
+The next test-host root is:
+ /home/dflanag3/spatial-artifacts/m08-bootstrap-fullgate-20261020
+The planned deployment is deployed-5d4a032-01 beneath that root.
+A separate worker prepares pinned prelaunch helpers. No target setup is authorized by that draft.
+After package review, deploy through canonical verify-deploy.
+Collect actual host discovery metadata before generating final pinned setup inputs.
+Run the complete preparation checklist before the full gate.
+
+Capacity cleanup is approved for nine exact obsolete payload leaves.
+Approval index:
+ /home/dflanag3/spatial-artifacts/m08-capacity-next-gate-20261020/primary-approved-main-01/index.json
+Index SHA256:a935d4c9f05debd954b31ba19f576f55776e1ffe6cd1035edec9cb4ec1206427.
+Frozen guard SHA256:1b9f8ae8ba9520531fa564eecfd411870141ce6acb7348840cedc163a89c677e.
+Cleanup results were pending when this section was written.
+Preserve current0b deployment, native dependencies, source, receipts, logs, and listed Testing subtrees.
+Review actual free space after cleanup. Next package plus retained32GiB test reserve may need more capacity.
+If required, retire old0b build payloads only AFTER the replacement5d package is verified.
+Preserve old0b failure evidence and source/provenance records.
+
+M09 progress remains separate.
+Checkpoint:f5d74140a344f0451826a4e6a4fbee73e81e974b.
+Branch:m09/observer-fixture-integration-20261020.
+Two Python observer suites passed33 methods on each host,66 total, without skips.
+Primary checked original logs, exact cases, source/generated hashes, and process retirement.
+The collector test required two message-regex corrections. Descriptor cleanup and flag assertions remain intact.
+Native observer integration, authenticated provenance, real release checks, and the full M09 gate remain UNRUN.
+Evidence root:
+ /home/dflanag3/spatial-artifacts/m09-observer-fixture-integration-20261020
+Primary result:primary-unit-result-audit-03.json.
+The preparation checklist now records23 known failure patterns.
+
+CURRENT ACTIONS AFTER FOCUSED PASS:2026-10-20T17:17Z
+
+This section supersedes dated status and next-action sections below.
+Both original0b full gates are terminal FAILED.
+Each completed230 protected Debug groups successfully and failed workspace-bootstrap-races.
+Both original gates, wrappers, and owned groups retired. Helpers restored and locks released.
+
+The corrected mixed diagnostic now passed on both hosts in Debug and ASan-UBSan.
+Primary independently audited12 suite executions and112 methods.
+No skips or sanitizer findings occurred.
+All16 retained denial artifacts show unchanged authority rows and counts[1,1,0].
+The exact parent profile-read denial is FORBIDDEN with message:
+ Workspace authority changed during the request
+Recipient credential denials remain UNAUTHORIZED.
+Read docs/M08_BOOTSTRAP_FOCUSED_RESULT_2026-10-20.txt for scope and evidence.
+This establishes focused repair behavior, not full M08 qualification.
+
+The reusable preparation checklist now records21 known failure patterns.
+It preserves the full required fixture, generated-target, startup, harness, and registration inventories.
+Checklist checkpoint920db090837daae58b7dc52afd0abcc414dc23fa is BOX-GIT VERIFIED.
+
+A bounded Luna worker is assigned the next canonical full-package preparation.
+Source:5d4a032623f7e09b9c157041960ddc837be43975.
+Clean build worktree:/home/dflanag3/src/m08-bootstrap-source-5d4a032-20261020.
+External output root:/home/dflanag3/spatial-artifacts/m08-bootstrap-package-build-20261020.
+Actual build startup must be verified from its tmux process and canonical receipts.
+No new full gate has started.
+Do not deploy the next package until primary reviews its source, closure, archive, and provenance.
+Keep all M09 work separate.
+
+Reviewed M09 native capture source is BOX-GIT VERIFIED:
+ bf2d8e0fece8b16afc6e41f828bffebcbfbcd30d
+ branch m09/native-observer-capture-20261020
+It remains unlinked. All native callback behavior and qualification remain UNRUN.
+
+NEXT SAFE ACTION
+Observe the actual package worker and review its exact generated inputs.
+Verify completed package receipts and extracted coverage before deployment.
+Apply the updated preparation checklist to each new host/profile attempt.
+Start the complete M08 local gate only after final primary readiness review.
+
+CURRENT POSITION
+
+M01-M07 remain qualified according to retained milestone records.
+Candidate: 0b4cc5f659d32d5ff1104557315b0905983bb39d.
+Candidate branch: m08/native-control-gate-candidate-20261020.
+ROG candidate checkout: /home/dflanag3/src/m08-gate-repairs-candidate-20261020.
+The candidate remains frozen and unchanged during operational runner repairs.
+The candidate branch and reviewed repair commits are on box-git.
+M09 remains separate and unqualified.
+
+Use ROG for development and orchestration.
+Use sb16 and sb16-2 for native qualification.
+Do not use middle-child or a5500.
+Do not run coding agents, development builds, or development worktrees on the test hosts.
+Use direct Linux-to-Linux transfers. Never relay bulk packages through Windows.
+
+SSH from ROG uses:
+ -i /home/dflanag3/.ssh/spatial_testboxes_ed25519
+ -o UserKnownHostsFile=/home/dflanag3/.ssh/spatial_testboxes_known_hosts
+ -o BatchMode=yes
+sb16: dflanag3@10.0.7.49
+sb16-2: dflanag3@10.0.7.94
+Read the coordination skill before assigning or restarting work.
+
+ARTIFACT ROOT
+
+All relative artifact paths below use this root on ROG and the respective test host:
+ /home/dflanag3/spatial-artifacts/m08-gate-repairs-20261020-round01
+
+PASSED FOCUSED REPAIR MATRIX
+
+Primary audit: focused-native-deadline04-primary-results-01.json.
+All 16 CTest executions passed across both hosts and both profiles.
+The four groups per profile are storage-owner-fixture-tooling,
+copy-progress-timing-tooling, world-application-control, and native-actor-input.
+Each profile ran all 25 world-control methods and 19 fixture methods.
+Five fixture methods cover the new delegate API and CLI.
+No skips or sanitizer findings occurred.
+Both command and wrapper receipts are zero on both hosts.
+Helpers restored and actual children retired.
+The primary independently rehashed 1630 final files per host.
+
+sb16 report: focused-native-deadline-0b4cc5f-sb16-04/run.json
+SHA256: 4890fadfc6bd678f91586dab10f2873a8b4a993dc9a88fb909bbac1c671b12ea
+sb16-2 report: focused-native-deadline-0b4cc5f-sb16-2-04/run.json
+SHA256: 6c91af7e573844d5457a2a0eb60560a3f48be3932b1409a4c297bcccd315d2f1
+Runner07 SHA256: c9a2877615d9052cb5442adbc424228fd389c7c781fa0d1c012516e27a7b8c4c
+
+These focused passes do not qualify M08.
+Earlier failed attempts remain failed. Do not relabel them.
+
+COMPLETED PRELAUNCH AND THE RETAINED SETUP FAILURE
+
+Original host setup roots: fullgate-prelaunch-0b4cc5f-HOST-01.
+Original wrappers: fullgate-prelaunch-0b4cc5f-HOST-01-wrapper.
+Stages 0 and 1 passed on both hosts.
+Stage 0 created fresh Debug and sanitizer storage fixtures.
+Stage 1 passed both profiles, with 319 successful audit commands per host.
+It verified 238 registrations per profile, 76 mandatory checks, 89 harness IDs,
+seven tooling groups, five production startup checks, and native dependencies.
+
+Stage 2 refused before creating bookkeeping or archiving discovery logs.
+SCP copied bootstrap-discovery-manifest.json as mode0664.
+Its owner and bytes matched. The strict permission guard correctly rejected group-write.
+Primary missed the transferred-file mode check.
+Both original wrappers returned 1/1. Original pane PIDs625601 and525053 retired.
+Their failure receipts and logs remain unchanged.
+
+Read-only continuation evidence:
+ prelaunch-setup01-readonly-refusal-audit-01
+It verified the exact original discovery trees, all helper hashes, and all audit output pins.
+All four newly mounted storage volumes remained empty.
+The bookkeeping root remained absent.
+Reusing these unchanged successful stages does not convert the failed setup attempt into PASS.
+
+COMPLETED FINALIZATION
+
+Controller03 adds an explicit finalization operation.
+It preserves original source, logs, receipts, fixture identities, and audit results.
+It verifies those inputs before removing022 from exact hash-pinned control files.
+It preserves file bytes, inodes, and all other mode bits.
+It then runs only bookkeeping03 and finalreview03.
+It does not reprovision or rerun completed audit stages.
+
+Eight disposable normalization regressions passed on each host.
+They include the exact0664 manifest failure and the actual helper guard.
+Wrong hashes, symlinks, hardlinks, noncanonical paths, setuid files, and FIFOs refuse.
+Readonly files and unrelated executable/sticky bits remain intact.
+Regression evidence: controller03-control-normalization-regressions-01.
+Manifest SHA256: fb69f82dc58fa550e524d675c8f8aa1593d98b3bdad650b5415a7019f6de9142.
+
+Controller: fullgate-controller-0b4cc5f-draft-03/controller.py
+SHA256: 72355c2f8ac1406dbaf2ca92f4e9568b5e64b199664e10ab7c3c7f2536e19055
+Common SHA256: 47be647322fe9cfa26c3ba280ceafc8bbac3b36ea5c5ce1082319a4c6894c605
+Host job SHA256: 28a36367959ea584e36ce805cf53b31d347051d00511d1446ff40914d84d346e
+Launch snippet SHA256: 4ae7e70bf055b6ec43b422747c07fc0be9433353368b090784c41850c3ddafef
+
+Finalization approval: fullgate-prelaunch-primary-finalization-approval-0b4cc5f-01.json
+SHA256: 62e82856fd531e9ac9d82b875b48af1c05074392fb4fbb45c3b66383a1cf3fdc
+ROG wrapper: fullgate-finalize-controller-wrapper-0b4cc5f-03.
+The controller submitted both host jobs and returned0/0.
+Submission does not prove host-job completion.
+
+Host tmux: m08-fullgate-finalize-0b4cc5f-HOST.
+Host roots: fullgate-prelaunch-finalize-0b4cc5f-HOST-01.
+Host wrappers: fullgate-prelaunch-finalize-0b4cc5f-HOST-01-wrapper.
+Finalization panes628367 and527813 retired.
+Both continuation stages and both wrapper receipts passed with zero exits.
+Original discovery logs are archived and external Testing links are created.
+The independent primary readiness audit also passed on both hosts.
+Readiness evidence: fullgate-readiness-primary-audit-results-01.json.
+Readiness wrapper: fullgate-readiness-primary-audit-wrapper-01, receipts0/0.
+Host saved job: control/fullgate-0b4cc5f-01/finalize-job.py.
+Final review is written in the fresh finalization root.
+Original setup01/final-primary-review.json remains unrun.
+Bookkeeping uses ctest-bookkeeping-0b4cc5f-01.
+
+Read the exact original job before any retry.
+An observation timeout does not establish process failure.
+Require actual process retirement in addition to terminal receipts.
+Never overwrite existing job files or output directories.
+
+CURRENT FULL-GATE LAUNCH
+
+Primary readiness approval: fullgate-primary-readiness-0b4cc5f-01.json.
+SHA256: 5c6df4cfcc7f7d13aed8d2545358d191097cc26b3c49f5c1ab94bf9dd0d066af.
+Controller source remains reviewed controller03.
+ROG launch-controller wrapper: fullgate-launch-controller-wrapper-0b4cc5f-03.
+ROG tmux: m08-fullgate-launch-controller-0b4cc5f-03.
+The controller submitted both hosts and returned0/0.
+Actual canonical m08_deployed_gate.py run-local processes and initial reports are verified.
+sb16 canonical PID:628916. Wrapper pane PID:628881.
+sb16-2 canonical PID:528359. Wrapper pane PID:528323.
+Startup evidence: fullgate-start-primary-observation-02.json.
+Startup logscan02 found14/231 completed passes on each host.
+Startup observation UTC: 2026-10-20T15:36:49.710888+00:00.
+No completed CTest failures or sanitizer diagnostics were found by scoped logscan02.
+These are early observations, not final results.
+
+NEXT SAFE ACTION
+
+1. Observe both existing canonical processes and their exact gate reports.
+2. Scan complete current stage logs for completed failures, skips, timeouts, and sanitizer findings.
+3. Preserve jobs and evidence if an observation command times out.
+4. Monitor the complete current logs for failures, skips, timeouts, and sanitizer findings.
+5. Require terminal local gate results and correct cleanup before cross-host checks.
+6. Run required cross-host checks in both directions and both profiles.
+7. Reconcile and qualify only after every required check passes.
+8. Push reviewed qualification to box-git and the authorized GitHub project.
+
+The gate command remains m08_deployed_gate.py run-local.
+The controller supplies all required native flags and the six profile-specific storage variables.
+Hosts run in parallel. Profiles remain sequential within each host.
+Do not substitute an M07 gate or a focused lane.
+
+Host full-gate tmux: m08-fullgate-launch-0b4cc5f-HOST.
+Full-gate attempt names: m08-full-0b4cc5f-HOST-01.
+Expected reports: deployed-0b4cc5f-01/evidence/ATTEMPT/run.json.
+Expected wrappers: fullgate-HOST-0b4cc5f-01.
+A live parent with an empty blocker list does not prove its earlier tests passed.
+The report may have no completed stage rows while core tests are already executing.
+Read complete core.log files for current completed-test counts.
+Logscan01 had an overescaped pattern and flagged quoted Timeout arguments.
+Those matches were observer false positives. Scoped logscan02 binds completed CTest result lines.
+Do not restart a job after an observation timeout.
+
+Do not call prelaunch setup_complete after the gate mutates operational metadata or uses fixtures.
+Verify post-gate source/runtime pins and Testing-link identity through the correct gate receipt contracts.
+
+PACKAGE PINS
+
+Prepared package: prepared/m08-0b4cc5f-gate-prepare-01.
+Deployed payload: deployed-0b4cc5f-01.
+Bundle SHA256: f95cfb6a73bf9559c04451f6d8cf9477d3cc06084a31c85f8609de0ebc832cbd
+Archive manifest SHA256: 10bf7d8994d4eb61861289df72fa88535ff47a5a7602e980865799a0ef823f30
+Archived provenance SHA256: 7d9b35ad7ef9034d2f08de66a48e95b4431a327030f9105ad1190e2c62ab0634
+Final builder provenance SHA256: 90da07301d8bba56bd252d9ec25a09cefa69279090609cc1d6da925171aa6dc0
+Use archived provenance on deployed hosts. The builder adds archive fields after packing.
+
+STORAGE CLEANUP
+
+Verified duplicate incoming archives previously recovered3970922708 bytes per host.
+The exact obsolete old production-off payload was removed only on sb16-2.
+Measured recovered space:2713485312 bytes.
+Final evidence: old-production-off-primary-final-cleanup-01.json.
+Old source,27 generated caches, provenance, receipt, ctest-original, and unresolved evidence remain.
+Do not delete retained failure evidence until its replacement and summary are sufficient.
+Measure capacity before each new large output.
+Keep current artifacts outside Git. Do not archive obsolete reproducible logs merely because storage exists.
+
+KNOWN LIMITATIONS AND M09
+
+Two unforced revocation dispatch windows and the deeper fence guard lack direct subset witnesses.
+Check relevance against the required qualification contract.
+Do not claim direct coverage from neighboring passing cases.
+
+M09 reviewed planning document is on box-git at85771be81795310eab8f08b4401baf883576cd86.
+Branch: m09/next-increment-review-20261020.
+Luna's separate source draft remains uncommitted and unqualified.
+Its destroy case currently proves reacquisition, not complete independent native balanced-release evidence.
+Broker actor state is not independent X server device-state evidence.
+The cleaned source-only witness checkpoint is b51adf7fdc3f6da8525d39822b908e5aafea23c9 on box-git.
+Branch: m09/destroy-native-evidence-20261020.
+It preserves strict legacy assertions and documents the pending independent native proof.
+A separate bounded worker is designing that native witness.
+All new M09 runtime checks remain UNRUN.
+Do not merge M09 into the frozen M08 candidate.
+
+LATEST OBSERVATION AND NEXT REPAIR WORK
+
+Observation04 verified both canonical PIDs alive, with28/231 Debug core passes per host.
+The complete scanned core logs contained no completed CTest or method failures.
+The geometry count-limit method passed on both hosts.
+The source pin remains unchanged. No full-gate completion is claimed.
+Read docs/M08_EXISTING_FAILURE_REPAIR_PLAN_2026-10-20.txt for the repair sequence.
+M09 witness design2adb49c115aa3877e44e3666caa719e6258f8ff9 is reviewed and on box-git.
+Its implementation, independent native-state proof, and runtime remain pending.
+A separate Luna worker owns the new observer fixture contract, reader, and regression sources.
+It cannot use the occupied test boxes or change deployed M08.
+
+CURRENT FULL-GATE FAILURE: BOOTSTRAP RACE
+
+Observation07 confirmed both canonical gate processes alive.
+sb16 had111 completed Debug core passes and one failed registration.
+sb16-2 had98 completed Debug core passes and the same failed registration.
+Registration99, workspace-bootstrap-races, failed on both hosts.
+Its failing method is test_parent_actor_revoked_during_broker_profile_read_creates_no_grant.
+It received FORBIDDEN13 where the assertion allowed only UNAUTHORIZED12 or UNAVAILABLE26.
+The other nine methods in that registration passed on both hosts.
+This is an executed test failure, not a setup refusal or timeout.
+
+Retained evidence under the existing artifact root:
+ fullgate-live-primary-observation-07.json
+ bootstrap-race-failure-primary-evidence-01.json
+
+Do not claim that no grant was created from this failure alone.
+The failing code assertion prevented the later database-count assertion from running.
+The complete reply message and resulting database counts still need focused diagnostic evidence.
+Source review must distinguish invalid requester identity from lost parent delegation or world admission.
+The sibling world bootstrap test already handles parent-only FORBIDDEN with stronger typed-report checks.
+Do not copy that allowance blindly into workspace tests or change production to mask the distinction.
+
+A Luna worker owns the isolated source repair:
+ Branch m08/bootstrap-race-repair-20261020.
+ ROG worktree /home/dflanag3/src/m08-bootstrap-race-repair-20261020.
+ Base0b4cc5f659d32d5ff1104557315b0905983bb39d.
+ It must preserve no-write, identity, and independent-authority assertions.
+ It cannot mutate the running candidate or use occupied test-host fixtures.
+
+Let the existing jobs collect remaining Debug core results and retire through canonical cleanup.
+Their current known failure prevents qualification even if later tests pass.
+Require source review and exact focused Debug/sanitizer checks before another full frozen-candidate attempt.
+Sanitizer and cross-host results for this full attempt remain UNRUN at this observation.
+
+
+REVIEWED BOOTSTRAP RACE CANDIDATE: RUNTIME STILL UNRUN
+
+Candidate5d4a032623f7e09b9c157041960ddc837be43975 is verified on box-git.
+Branch: m08/bootstrap-race-repair-20261020.
+ROG checkout: /home/dflanag3/src/m08-bootstrap-race-repair-20261020.
+Its parent is frozen running candidate0b4cc5f659d32d5ff1104557315b0905983bb39d.
+It changes only the workspace-bootstrap-races test and its maintained repair note.
+Production sources, schemas, executable behavior, and locked acceptance remain unchanged.
+
+The corrected test snapshots all four authority tables before and after the operation.
+It checks unchanged rows and counts before classifying the denial.
+Parent revocation may return FORBIDDEN; revoked recipient credentials still cannot.
+A bounded private artifact retains the complete protobuf reply and actual counts.
+Primary corrected a diagnostic filename collision with secure unique temporary-file creation.
+The full ten-method registration must run to exercise all four artifact-producing cases.
+AST, pyflakes, locked hashes, and whitespace source checks passed with canonical receipts0/0.
+No behavioral check on this candidate has run. Exact error message/emitter remains unconfirmed.
+Read spatial-os-luna-handoff/docs/M08_BOOTSTRAP_RACE_REPAIR_2026-10-20.txt on that branch.
+
+Observation09 at2026-10-20T16:20:17Z confirmed both original gate processes alive.
+sb16 had146 Debug core passes, one failed registration, and render-runtime running.
+sb16-2 had123 Debug core passes, one failed registration, and workspace-authority running.
+Both retain the same registration99 failure. No additional completed failure was found.
+Later passes cannot erase that failed result.
+
+NEXT BOUNDED ACTION
+
+A Luna worker prepares the small focused diagnostic runner on ROG.
+Worktree: /home/dflanag3/src/m08-bootstrap-focused-preparation-20261020.
+Branch: m08/bootstrap-focused-preparation-20261020.
+Base:5d4a032623f7e09b9c157041960ddc837be43975.
+Review the runner before any provisioning, target writes, or runtime launch.
+Preserve the frozen0b source and CTest metadata.
+Require actual gate retirement and verified cleanup on each host before its native focused rerun.
+Select workspace-bootstrap-races, world-bootstrap-races, and workspace-bootstrap in both profiles and on both hosts.
+Preserve explicit overlay-test and binary provenance if using unchanged0b executables diagnostically.
+Such overlay runs cannot qualify full M08 or replace one frozen full-gate candidate.
+
+SEPARATE M09 SOURCE CHECKPOINTS
+
+Native epoch and four-device snapshot helpers are reviewed and on box-git:
+df74792b32ebc5e5f5be2b8193231abfa4d8b37f, branch m09/native-observer-epochs-20261020.
+Both Debug and sanitizer objects compiled against real pinned configured XACE headers.
+The helpers remain unlinked. All native lifecycle and retained-input controls remain UNRUN.
+Optional XI2 probe receipts are on branch m09/xi2-probe-receipts-20261020 at9b24f170a04351115c5e0eb19352eb330591248d.
+Their runtime remains UNRUN.
+
+Two Luna observer-reader drafts were rejected for concrete proof and identity defects.
+The separate stronger-agent repair is ready for primary review, not accepted or committed:
+ /home/dflanag3/src/m09-observer-contract-reviewed-20261020.
+Its four-file patch and source-check receipts are external under the matching artifact directory.
+It has20 UNRUN behavioral test methods. It provides no live observer or collector yet.
+The M09 inventory validator remains uncommitted in /home/dflanag3/src/m09-gate-inventory-20261020.
+Keep M09 changes separate. Integrate additive changes onto qualified M08 later; never replace M08 with the older M09 tree.
+
+CURRENT REPAIR COORDINATION: 2026-10-20T16:40Z
+
+Observation15 confirms both original canonical gate processes remain alive.
+sb16 has211 Debug core passes and one failure; session-resources is running.
+sb16-2 has181 passes and the same failure; world-identity is running.
+No additional completed failure appeared in the complete current core logs.
+The reviewed current repair plan is BOX-GIT VERIFIED at1ffa638c06e9cb00e1c701c6681cdd3ba476df04.
+
+The focused preparation worker must correct two reviewed scheduling mistakes.
+Gate retirement and cleanup are per-host prerequisites, not a requirement that both hosts finish first.
+Hosts may run focused checks in parallel after their respective prerequisites pass.
+A failed Debug attempt leaves sanitizer metadata UNRUN.
+Do not require that failed attempt's whole postrun audit to PASS before diagnosing its repair.
+Require terminal failed receipts, actual process retirement, free locks, unchanged pins,
+and helper restoration for the stage that actually ran.
+Do not invent a global cleanup receipt or ignore a real helper cleanup failure.
+The focused worker is preparing an executable guarded launcher; runtime remains UNRUN.
+
+Separate M09 source checkpoints are reviewed and BOX-GIT VERIFIED:
+ e86ff72e71f970db2647d764ae5250e1c83ba817
+ branch m09/observer-contract-reviewed-20261020
+ Complete bounded protobuf artifact parser and21 behavioral regression sources.
+ Source generation/import/lint/compilation passed. All21 behavior methods remain UNRUN.
+ Live collector, server callback, native serialization, provenance, and native qualification remain missing.
+
+ e02e9368a77d7da4c300a0eb2d0cabf4242bc05e
+ branch m09/native-observer-focus-state-20261020
+ Native grab/focus/freeze facts and one bounded pending-queue scan.
+ More than1024 total queue records invalidates collection, including unrelated records.
+ Debug and sanitizer objects compiled against actual pinned headers.
+ The helpers remain unlinked and every native control remains UNRUN.
+ Snapshot success means complete collection, never balanced release.
+
+A bounded Luna worker implements the missing finite-artifact descriptor collector separately:
+ branch m09/observer-collector-20261020
+ worktree /home/dflanag3/src/m09-observer-collector-20261020
+ base e86ff72e71f970db2647d764ae5250e1c83ba817
+ Only collector, its regression source, and its maintained note are owned.
+ ROG source checks only; no SB access or behavioral execution.
+ Require total monotonic deadline, bounded bytes, and explicit artifact completion.
+ Three frames on an open descriptor do not establish completion.
+No M09 checkpoint changes the frozen M08 candidate or qualifies either milestone.
+
+SB16 DEBUG ATTEMPT TERMINAL: 2026-10-20T16:51Z
+
+sb16 completed all231 protected Debug core registrations.
+Result:230 passed, one failed, zero skipped.
+The sole failure remains workspace-bootstrap-races, registration99.
+Debug core elapsed4483.964 seconds. This attempt is FAILED, not qualified.
+The four self-managed recovery groups, later gate stages, and sanitizer profile did not run.
+
+Canonical PID628916 and wrapper PID628881 have retired.
+Wrapper command.exit and wrapper.exit are1/1, preserving the failed attempt.
+Copy-helper child group629091 is gone.
+Both protected helpers returned to their previous absent state.
+Both global gate and copy-helper locks were observed free.
+Source, runtime, production-off, original metadata, and entered Debug metadata hashes were independently checked.
+Both external runtime profile inventories passed verification.
+
+Retirement evidence on ROG:
+ /home/dflanag3/spatial-artifacts/m08-bootstrap-focused-preparation-20261020/primary-sb16-retirement-approval-01.json
+Its status RETIRED_DIAGNOSTIC_READY is a retirement approval only.
+It does not approve the current launcher or grant a runtime PASS.
+Debug metadata-relocation SHA:
+ 76e4fc8376e992e702500fe53e75417eeb0402e0c7b76adccf150ac0f2704224
+Final gate report SHA:
+ d43ce8cdbbbba8dfbc0545b4834a41034d06819f50ed979276f9a7c4ceb943d7
+Prior helper lifecycle SHA:
+ dc324f5e18ff6a3e2e7852f6ff6893d8a5bb76c1fa3a9f4e26542f147c580333
+The two postrun invariant rows describe unentered sanitizer metadata and storage evidence.
+They are expected UNRUN states, not Debug helper cleanup failures.
+
+The focused launcher is still under source review.
+Review found post-gate metadata, sibling-import, environment, process-supervision,
+evidence-directory, receipt-field, exact-JUnit, sanitizer-scan, and locking defects.
+Do not launch a draft because its AST or pyflakes check passes.
+The draft shim must import D/source/tests/core, never a ROG development-worktree path.
+No selected bootstrap suite uses StorageOwner copy options.
+Fresh storage volumes are not required merely to run these focused CTest registrations.
+Remove unrelated storage variables and preserve canonical resource/profile settings.
+
+Latest separate M09 collector checkpoint:
+ 59d63baabcc2a30860ab3df9ff196ff013c69291
+ branch m09/observer-collector-20261020
+ BOX-GIT VERIFIED;12 collector methods and21 parser methods remain UNRUN.
+Primary fixed huge-FD rejection and strengthened ownership regressions.
+Source checks passed. This collector supplies no native producer or provenance.
+
+The former collector worker now prepares the next M08 package plan:
+ branch m08/bootstrap-package-plan-20261020
+ worktree /home/dflanag3/src/m08-bootstrap-package-plan-20261020
+ base5d4a032623f7e09b9c157041960ddc837be43975
+ Source-only inspection and an exact future build/package plan.
+ No builds, packaging, transfers, or test-host access are authorized by that task.
+
+A separate native capture worker uses:
+ branch m09/native-observer-capture-20261020
+ worktree /home/dflanag3/src/m09-native-observer-capture-20261020
+ basee02e9368a77d7da4c300a0eb2d0cabf4242bc05e
+ Its uncommitted EventCallback capture draft requires primary review.
+ All callback execution, native controls, serialization, and phase checks remain UNRUN.
+
+NEXT SAFE ACTION
+Finish primary review of the focused runner and its exact frozen payload.
+Prepare and inspect sb16 shadow metadata without running tests.
+Bind the exact inventory and reviewed launcher hashes in a separate launch approval.
+Then run the three focused groups in Debug and ASan/UBSan with canonical receipts.
+Verify sb16-2 retirement independently before its diagnostic lane.
