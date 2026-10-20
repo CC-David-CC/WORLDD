@@ -110,7 +110,11 @@ class StorageSessionResourceTests(unittest.TestCase):
 class StorageSessionRegistrationTests(unittest.TestCase):
     def test_native_storage_registrations_forward_both_build_profiles(self):
         cmake = (Path(__file__).resolve().parents[2] / 'CMakeLists.txt').read_text()
-        selector = re.search(r'    set\(m08_file_action_copy_profile "Debug"\).*?    endif\(\)', cmake, re.S)
+        selector = re.search(
+            r'if\(SPATIAL_SANITIZERS\)\s*'
+            r'set\((?P<profile>\w+) "ASan-UBSan"\)\s*'
+            r'else\(\)\s*set\((?P=profile) "Debug"\)\s*endif\(\)\s*'
+            r'set\((?P<argument>\w+) "--copy-profile=\$\{(?P=profile)\}"\)', cmake)
         self.assertIsNotNone(selector)
         names = ('session-storage-owner', 'session-storage-contention', 'operator-storage')
         blocks = []
