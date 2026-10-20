@@ -1,10 +1,73 @@
 M08 EXECUTION HANDOFF
 Updated: 2026-10-20
-Status: M08 UNQUALIFIED. Focused runtime checks have started.
+Status: M08 UNQUALIFIED. Debug regressions and audits passed on both hosts. Sanitizer jobs are active.
 
-LATEST STORAGE REPAIR CHECKPOINT
+LATEST OBSERVER-ROLLBACK REPAIR CHECKPOINT
+Recorded: 2026-10-20T23:19:30Z
+This section supersedes the earlier action instructions below.
+M08 remains UNQUALIFIED. The complete full gate is NOT RUNNING.
+Focused Debug regression assertions passed. Full selected runtime coverage remains incomplete.
+
+The earlier b680 Debug storage pair passed on both hosts.
+Each host passed seven storage-owner and twenty-five contention methods.
+That evidence totals sixty-four methods and does not cover the observer regression.
+
+The fa450 Debug process and participant batch passed all sixteen methods on sb16.
+On sb16-2, fifteen passed and the SQL rollback method failed.
+After an injected database error, one process row remained revoked.
+The test expected both rows to remain running. This exposed a separate rollback defect.
+
+Corrected source: 3fd7475752912f0e86d9abea441979d5d8277489.
+Branch: m08/observer-rollback-repair-20261020. BOX-GIT VERIFIED.
+Primary approved the two-file source change and the focused builds.
+Source review: R/observer-rollback-diagnosis-01/primary-source-review-01.json.
+Build review: R/primary-observer-build-review-01.json.
+Debug and ASan-UBSan builds passed. Each profile retained 55 config keys and 238 registrations.
+Each profile rebuilt 44 ELF files. The ten selected test contracts remain unchanged.
+These build results do not prove runtime behavior.
+
+The defect occurs when ApplicationProcess::wait reports FORBIDDEN during reap.
+The old ExecutionStore::wait catch path autocommitted one revoked row outside the batch.
+The repair waits for the borrowed wait to unwind, consumes authority changes, then reconciles the complete batch.
+It adds a real blocked-wait regression and preserves the seven existing participant methods.
+
+A primary-reviewed negative control removed only the two main-loop safety-fence calls.
+Seven participant methods executed. Six passed. One failed at the intended negative-control assertion.
+Canonical command.exit=8 and wrapper.exit=8. Terminal status was COMPLETE.
+The assertion rejected premature issuer completion at test_workspace_participant.py:201.
+Helpers were restored. Driver and child retired. Inputs remained unchanged.
+Negative-control audit: R/primary-fence-negative-launch-control-05/primary-runtime-audit.json.
+This proves the regression detects the intended missing-fence condition.
+It does not qualify the 3fd repair or M08.
+
+Both focused preparations passed with command/wrapper exits 0/0 and COMPLETE status.
+Primary approved both ready records for runtime.
+sb16 ready SHA256: d11b0efb0b3d41aebb05bcad484615f3f328f53e38f3279c5d0b3b34ba29f604.
+sb16-2 ready SHA256: 1b96b121b39d2d856527c743076cadb9a793edd4c472dd3e3883744adc1b99d1.
+Both hosts passed Debug process-termination and workspace-participant assertions.
+Each host passed seventeen methods: nine termination and eight participant methods.
+sb16 primary audit passed: 0/0 COMPLETE, no skips, findings, or audit errors.
+Inputs stayed unchanged. Helpers were restored. Process identities retired.
+Audit: R/primary-observer-focused-launch-control-01/sb16-debug-regressions-primary-audit-01.json.
+sb16-2 primary audit also passed: 0/0 COMPLETE, no skips, findings, or audit errors.
+Its helpers were restored, processes retired, and inputs stayed unchanged.
+Audit: R/primary-observer-focused-launch-control-01/sb16-2-debug-regressions-primary-audit-01.json.
+The Debug batch totals thirty-four passed methods across both hosts.
+sb16 ASan-UBSan regressions passed all seventeen assertions. Its final input-integrity audit remains pending.
+sb16-2 ASan-UBSan regressions launched at 23:19:26Z and are verifying inputs.
+Next safe action: observe existing jobs. Do not relaunch them.
+Review both completed sanitizer runs before starting the remaining focused groups.
+Then run the remaining six related suites and two storage suites on both hosts in Debug and ASan-UBSan.
+Keep session-storage-owner immediately before session-storage-contention.
+Use reviewed control05 with the same attempt, input, and host ready SHA.
+Use the pinned launcher and canonical tmux wrappers with unique outer directories.
+Before any retry, inspect the reserved attempt and exact process identity.
+The full argv is recorded by R/primary-observer-focused-launch-control-01/target-focused-launch-01.py.
+Do not call M08 qualified unless the complete required gate passes and receives review.
+
+HISTORICAL B680 STORAGE REPAIR CHECKPOINT
 Recorded: 2026-10-20T22:02:06.162479+00:00
-This section supersedes the historical action instructions below.
+This records the 22:02Z status. See the newer observer-rollback checkpoint above.
 M08 remains UNQUALIFIED. M01-M07 retain their historical qualification.
 The full gate is not running. Focused repaired runtime checks have started.
 

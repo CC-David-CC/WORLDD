@@ -2,9 +2,20 @@ M08 PREPARATION AND LAUNCH CHECKLIST
 Updated: 2026-10-20
 Status: M08 UNQUALIFIED.
 
-LATEST STORAGE REPAIR CHECKPOINT
+LATEST OBSERVER-ROLLBACK STATUS
+Recorded: 2026-10-20T23:19:30Z
+M08 remains UNQUALIFIED. The complete full gate is NOT RUNNING.
+The 3fd source review and Debug/SAN builds passed. Both preparations passed 0/0 COMPLETE.
+Primary approved both ready records. Both hosts passed Debug regression assertions: seventeen methods each.
+Both Debug audits passed. Helpers were restored, processes retired, and inputs stayed unchanged.
+sb16 sanitizer assertions passed; its final audit remains pending.
+sb16-2 sanitizer regressions launched at 23:19:26Z. Observe existing jobs; do not relaunch.
+A separate sb16 negative control detected premature issuer completion at line 201.
+See the execution handoff and repair note for source pins and evidence.
+
+HISTORICAL B680 STORAGE REPAIR CHECKPOINT
 Recorded: 2026-10-20T22:02:06.160673+00:00
-This section supersedes the historical action instructions below.
+This records the 22:02Z status. See the newer observer-rollback checkpoint above.
 M08 remains UNQUALIFIED. M01-M07 retain their historical qualification.
 The full gate is not running. Focused repaired runtime checks have started.
 
@@ -811,3 +822,31 @@ Fix the reusable mechanism where practical.
 A checklist entry alone is not a regression pass.
 Verify the prevention on the intended hosts and profiles.
 Never erase a failed attempt or silently change locked acceptance.
+
+F39 Verify inherited APIs and real metadata before host preparation.
+Import the pinned helper from the actual preparation environment.
+Check every called function and signature against its owning module.
+Run CTest --show-only=json-v1 on serialized metadata and compare the complete contract.
+Reject source, command, timeout, or environment mutations before transfer.
+Preserve each failed preparation attempt and its review findings.
+Evidence: R/fence-negative-control-01 through fence-negative-control-05.
+
+F40 Preserve exact build configuration and contract identity.
+Configure with the proven four-option argv, then verify all 55 behavior-affecting cache keys.
+Do not pass cache values back as strings when CMake expects typed compiler entries.
+A generated systemd build-ID suffix may vary; the declared CTest contracts must remain exact.
+Resolve file arguments with a canonical parent plus regular-file validation when the helper accepts directories only.
+Evidence: R/primary-observer-build-review-01.json and R/fence-negative-control-05/primary-review-05.json.
+
+F41 Relocate only declared test environment paths.
+Preserve SPATIAL_XPROBE when relocating the Debug environment, along with PYTHONPATH and fresh evidence roots.
+Call storage environment validation through its owning m06 module.
+Start helper-lifecycle evidence paths absent; the pinned wrapper creates them.
+Check the complete environment dictionary after relocation.
+Evidence: R/fence-negative-control-05/static-review-02/imported-api-audit.json.
+
+F42 Verify tmux process retirement directly.
+A tmux session can remain after its pane process exits.
+Check pane_dead and the recorded PID/start identity before retrying or reporting completion.
+Require canonical runner receipts and inspect command and wrapper exits separately.
+Evidence: retain each attempt's launch and terminal records under the current artifact root.
