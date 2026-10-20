@@ -359,6 +359,7 @@ int main(int argc, char** argv) {
             // Reconciliation and reaping can destroy credentials and lose their native cleanup reply.
             // Check that result before this iteration can acknowledge issuer revocation.
             if (native) native->check();
+            store.check_authority_reconciliation();
         };
         if (storage) storage->set_observer([&] {
             enforce();

@@ -648,6 +648,14 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
         active_workers &= copy_worker_pids()
         self.assertTrue(active_workers, 'copy worker must remain active immediately before revocation')
 
+        # This is copy-only revocation. No application row can drive reconciliation.
+        with closing(sqlite3.connect(self.execution/'execution.db')) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM processes WHERE state IN ('running','revoked')").fetchone()[0],0)
+        worker_fds=[]
+        for pid in active_workers:
+            descriptor=os.pidfd_open(int(pid));self.addCleanup(os.close,descriptor)
+            worker_fds.append(descriptor)
+        self.assertEqual(select.select(worker_fds,[],[],0)[0],[])
         # Revoke while the worker is active. Do not poll or cancel the job afterward.
         self.revoke(kind=issuer.ACTOR_TARGET)
         deadline=time.monotonic()+8
@@ -659,6 +667,8 @@ class FileActionBrokerRegressionTests(WorkspaceAuthorityTests):
             time.sleep(0.02)
         self.assertFalse(copy_worker_pids() & active_workers,
                          'revocation must stop the copy worker without another request')
+        self.assertEqual(len(select.select(worker_fds,[],[],0)[0]),len(worker_fds),
+                         'copy-only revocation left an independently pinned worker alive')
         self.assertFalse((self.project/'revoked-copy').exists(),
                          'revoked copy must never publish its staged output')
         self.assertEqual(list(stage_root.iterdir()), [],

@@ -1927,11 +1927,6 @@ void ExecutionStore::reconcile_authority() try {
             if ((record.rights & effective) != record.rights) revoked.push_back(record.id);
         } catch (...) { remember(reconciliation_failure); }
     }
-    if (revoked.empty()) {
-        if (reconciliation_failure) std::rethrow_exception(reconciliation_failure);
-        return;
-    }
-
     std::vector<std::pair<std::string, ApplicationProcess*>> jobs;
     for (const auto& id : revoked) {
         const auto found = impl_->jobs.find(id);
@@ -1994,7 +1989,7 @@ void ExecutionStore::reconcile_authority() try {
 
     // Persist the complete application batch atomically. No applied-revision
     // acknowledgment can pass enforce() until this checked commit returns.
-    {
+    if (!revoked.empty()) {
         Transaction transaction(impl_->db.get());
         for (const auto& id : revoked) {
             Query q(impl_->db.get(), "UPDATE processes SET state='revoked' WHERE id=? AND state='running'");

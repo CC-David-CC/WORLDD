@@ -1,33 +1,113 @@
-# M08 storage contention repair checkpoint
+# M08 storage contention repair
 
-Status: UNQUALIFIED. Runtime and build checks are UNRUN. Primary review rejected this draft; do not integrate it.
+Status: UNQUALIFIED. Corrected source awaits primary review. Builds and runtime remain UNRUN.
+Branch: m08/storage-stop-review-20261020.
+Base: e785e5bbd64832d95b36303a51b53c0f21e757be, the preserved rejected draft.
+Production baseline: 5d4a032623f7e09b9c157041960ddc837be43975.
 
-## Finding
+## Retained finding
 
-The paired retained diagnostic shows that revocation delivery and reconciliation reach the broker quickly. The reproduced sb16 failure had all five processes belonging to the held application exit, while four writer-scope processes remained alive at the existing two-second sample. Those four were bwrap, namespace leader, app-init, and Python writer; only Python was in the payload cgroup.
+The paired diagnostic shows quick revocation delivery and broker reconciliation.
+On sb16, the first application's five processes exited before the two-second sample.
+The writer application's four processes remained alive at 2.003 seconds.
+Broker fdatasync descriptor 32 named the fixture volume directory.
+The Python writer was in Btrfs wait_log_commit.
+This does not identify SQLite as the caller of that sync.
+Git import later succeeded, but the issuer barrier retained two unapplied obligations.
+The paired sb16-2 run exited all nine processes in 0.247 seconds and completed its barrier.
+Issuer idle limits and acceptance deadlines remain unchanged.
 
-The broker thread then observed fdatasync on a directory descriptor whose target was the fixture volume directory. A writer process also remained in Btrfs wait_log_commit. This does not identify the sync as SQLite database persistence. The paired sb16-2 run passed the same barrier. See external pair audit SHA 9b03705b7774faebc29259470706114ee389444f759c9758cf5433c30d656d94.
+Evidence root: /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
+Primary rejection: primary-production-review-01.json.
+SHA256: 3a2312c030d8d7a371f0f2c84fe4fd243dd99969e3f2115e921528a5c049d36f.
+Paired audit: pair-audit-summary-02.json.
+SHA256: 9b03705b7774faebc29259470706114ee389444f759c9758cf5433c30d656d94.
+The original gate, diagnostic overlay, and failed draft remain preserved.
 
-The repair therefore addresses a proven ordering defect: the old loop erased each revoked application and synchronously waited before requesting stop for the next application. Writer activity could continue while an earlier application drained. The patch requests stop for every known revoked application before any per-application wait, then drains all using one deadline fixed at the first batch request. It does not claim to cure a long kernel sync or native cleanup latency.
+## Production ordering and failure fence
 
-## Changes
+Gather valid revoked application rows before stopping their real in-memory jobs.
+Request every cgroup, namespace, and direct-child stop before any application wait.
+Keep the first batch request's existing two-second absolute deadline.
+A request failure does not suppress other signal or drain attempts.
+Complete all drains before destroying native credentials on the broker owner thread.
+Then reconcile file-copy jobs, including copy-only revocations with no revoked applications.
+Preserve file_action_dispatch_active and copy_authority_reconcile_pending.
+Finally, update the revoked application rows in one checked transaction.
+Skip only that transaction when the application batch is empty.
+Missing jobs retain existing startup and recovery semantics.
+Application constructor rows remain pending until their jobs enter the owner map.
 
-ApplicationProcess now exposes owner-thread request and completion phases. Existing stop() still composes them for other callers. The first deadline is retained across retries. Request failures are remembered while all owned stop mechanisms are attempted. Completion is attempted for every process even after another completion fails.
+Retain the first reconciliation failure in ExecutionStore for its complete lifetime.
+Every main enforce call checks that failure before and after its work.
+Dispatch can translate an observer exception into a reply.
+The later enforce still fails before an applied acknowledgement can be queued.
+Main SQLite remains NOMUTEX and stays on its sole owner thread.
+No application object, native channel, or SQLite operation moves to a worker thread.
+Import's pending and ready transactions continue to exclude Git waits.
+No locked test, schema, or acceptance contract changes.
 
-Authority reconciliation collects valid revoked rows, sends stop requests to every associated in-memory job, then completes all jobs on the broker owner thread. It preserves the existing no-job row behavior for startup/recovery windows. Native credential cleanup and the existing file-copy cancellation run after all app drains, so neither delays the shared app stop deadline. One transaction updates all revoked rows and verifies every expected row transition. Reconciliation failures remain latched on the owner thread. Every later main-loop enforce call checks that latch before settlement or dispatch work, so a caught request error cannot lead to a later applied-revision acknowledgement.
+## Regression stages
 
-A process termination regression was added for repeated stop requests with an existing cgroup permission fault. It checks that retries do not reset the original two-second deadline. The new tests were not executed. Primary review found that the issuer-barrier regression does not force a Git/filesystem observer inside request dispatch and can observe the pre-work pending state, so it does not prove that no later acknowledgement occurs.
+The repeated-stop test denies real cgroup.kill writes and signal syscalls.
+It repeats a request 1.5 seconds later and checks the original two-second deadline.
+Completion and destructor must report unconfirmed cleanup without resetting that deadline.
+Existing termination cases and assertions remain intact.
 
-Primary review also found a copy-only regression: the early return when no application rows are revoked skips the moved file-copy reconciliation block. A workspace with active copy jobs and no running/revoked applications would not cancel those jobs. Preserve file_action_dispatch_active and pending-reconcile semantics while correcting the ordering.
+The new participant regression starts an otherwise valid real Git import.
+A FIFO in its source repository's include config pins the real Git reader.
+A positive control releases the FIFO and completes import before the failure case.
+The failure case holds Git while its production wait observer receives actor revocation.
+Two confined application trees have independent pidfd witnesses.
+A SQLite trigger aborts the second revoked-row update after the first row changes.
+The transaction must roll back both rows after both application trees drain.
+The test samples the issuer barrier through actual workspaced exit code 2.
+It requires applied revision 0, one pending obligation, and retained active generation.
+It also requires Git and all witnessed application processes to have exited.
+RetainedBrokerChild reports workspaced's exit, independently of the scope-owner wrapper.
+FIFO behavior and these runtime claims remain UNRUN until test-host qualification.
 
-## Checks
+The existing file-action copy revocation regression now explicitly proves copy-only state.
+It requires zero running or revoked application rows before revocation.
+It independently pins active copy workers with pidfds and requires their exit.
+Its original workload, no-followup-request rule, staging cleanup, and journal checks remain intact.
+Both immediate and owner-reconnect variants use those assertions.
 
-Selected before execution: `process-termination` for deadline and fail-closed cleanup; `workspace-participant` for a real revoked-process row-update trigger and issuer barrier fencing; `session-storage-contention` for the unchanged contention barrier and revocation contract; `workspace-git` for real import and persistence interaction. Run Debug and ASan/UBSan on sb16 and sb16-2 after primary source review. These runtime checks remain UNRUN.
+## Focused selection recorded before runtime
 
-ROG is compile-only for this assignment. Build only `workspaced` and `spatial-process-termination-probe` in new external Debug and ASan/UBSan build directories, with -j2 and preserved runner receipts. No executable or test will run on ROG.
+Run these registrations on sb16 and sb16-2 in Debug and ASan-UBSan:
+- process-termination: real stop, error, retry deadline, and destructor behavior.
+- workspace-participant: observer persistence failure, rollback, process exit, and barrier fencing.
+- workspace-participant-races: delayed authority replies and participant identity races.
+- workspace-participant-native: owner-thread native credential and lease cleanup.
+- workspace-participant-settlement: lost native cleanup reply cannot acknowledge revocation.
+- workspace-file-action-broker: copy-only cancellation and active-dispatch defer callers.
+- workspace-git: real import transactions and persistence behavior.
+- session-storage-owner then session-storage-contention: preserved failing order and durable issuer cases.
 
-## Limits and review points
+Start with the new regressions before the related combined scenarios.
+The durable issuer case already exists in session-storage-contention.
+Do not report that case as new coverage.
+Use declared full-gate wrappers, helper setup, profiles, storage variables, and working directories.
+Read COPY_HELPER_NESTED_CTESTS from tools/m06_deployed_gate.py each run.
+The earlier 13-name setup inventory is not this final focused selection.
+For a counterexample, primary may separately disable only the sticky check in a frozen mutation.
+The pinned observer regression must reject that mutation before its result is trusted.
+Runtime execution and mutation approval belong to primary.
 
-The fdatasync target remains unattributed; do not label it a database file. Synchronous scope drain, native credential revocation, and SQLite commit may still exceed the existing acknowledgement or process-exit bounds. A second asynchronous ownership design may be needed if focused runtime evidence demonstrates this.
+## Compile-only handoff
 
-Malformed or unreadable running rows cannot safely be classified as revoked. They must keep reconciliation failed and prevent acknowledgement. Valid rows already observed should still receive cancellation and drain attempts. A missing in-memory job retains existing durable-row handling; no new invariant is imposed.\n
+ROG may configure, inspect registration, and compile. Runtime checks are forbidden there.
+Build workspaced and spatial-process-termination-probe with their real dependency closure.
+Use new external Debug and ASan-UBSan directories and at most two compiler jobs.
+Preserve canonical tmux runner command.exit, wrapper.exit, terminal state, and source hashes.
+Primary reviews every changed file before compile approval and runtime deployment.
+No build or runtime PASS is claimed by this source checkpoint.
+
+## Limits
+
+This repair removes serial stop-before-next-signal ordering.
+It does not bound all synchronous kernel, native, or persistence stalls.
+A failed drain or native cleanup remains fail closed.
+Full M08 Debug, sanitizer, cross-host, native, recovery, and performance qualification remains pending.
+Focused success cannot qualify M08 or Spatial-M1.
