@@ -412,34 +412,57 @@ void ApplicationProcess::stop_or_exit() noexcept {
         _exit(2);
     }
 }
-void ApplicationProcess::stop() {
+void ApplicationProcess::request_stop(Clock::time_point deadline) {
     if (pid_ <= 0) return;
-    const auto started = Clock::now();
-    const auto deadline = started + std::chrono::seconds(2);
-    std::exception_ptr failure;
-    const char* failure_operation = nullptr;
-    std::exception_ptr completion_failure;
-    const auto attempt = [&failure, &failure_operation](const char* label, auto&& action) {
+    if (stop_request_started_) {
+        stop_deadline_ = std::min(stop_deadline_, deadline);
+        if (stop_request_failure_) std::rethrow_exception(stop_request_failure_);
+        return;
+    }
+    stop_request_started_ = true;
+    stop_started_ = Clock::now();
+    stop_deadline_ = deadline;
+    const auto attempt = [this](const char* label, auto&& action) {
         try { action(); }
         catch (...) {
-            if (!failure) { failure = std::current_exception(); failure_operation = label; }
+            if (!stop_request_failure_) {
+                stop_request_failure_ = std::current_exception();
+                stop_request_failure_operation_ = label;
+            }
         }
     };
-    // Issue every owned termination request before entering any process wait.
+    // Request every owned termination mechanism before any process wait.
     attempt("owned scope termination request", [this] { resources_->scope().request_stop(); });
     const auto signal_fd = [](int fd) {
         if (syscall(SYS_pidfd_send_signal, fd, SIGKILL, nullptr, 0) < 0 && errno != ESRCH)
             throw std::runtime_error("Cannot signal application boundary");
     };
-    if (namespace_pidfd_ >= 0) attempt("namespace leader signal", [this, &signal_fd] { signal_fd(namespace_pidfd_); });
-    if (pidfd_ >= 0) attempt("application child signal", [this, &signal_fd] { signal_fd(pidfd_); });
-    else attempt("application child signal", [this] {
-        if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) throw std::runtime_error("Cannot signal unreaped application boundary");
-    });
-
+    if (namespace_pidfd_ >= 0)
+        attempt("namespace leader signal", [this, &signal_fd] { signal_fd(namespace_pidfd_); });
+    if (pidfd_ >= 0)
+        attempt("application child signal", [this, &signal_fd] { signal_fd(pidfd_); });
+    else
+        attempt("application child signal", [this] {
+            if (kill(pid_, SIGKILL) < 0 && errno != ESRCH)
+                throw std::runtime_error("Cannot signal unreaped application boundary");
+        });
+    if (stop_request_failure_) std::rethrow_exception(stop_request_failure_);
+}
+void ApplicationProcess::complete_stop(Clock::time_point deadline) {
+    if (pid_ <= 0) return;
+    if (!stop_request_started_) {
+        try { request_stop(deadline); }
+        catch (...) { /* Preserve the request failure while still proving scope drain. */ }
+    } else {
+        stop_deadline_ = std::min(stop_deadline_, deadline);
+    }
+    const auto effective_deadline = stop_deadline_;
+    std::exception_ptr failure = stop_request_failure_;
+    const char* failure_operation = stop_request_failure_operation_;
+    std::exception_ptr completion_failure;
     int poll_result = 0, poll_revents = 0, poll_error = 0;
     bool namespace_exited = namespace_pidfd_ < 0, namespace_wait_failed = false, namespace_deadline_expired = false;
-    if (namespace_pidfd_ >= 0) {
+    if (namespace_pidfd_ >= 0 && !failure) {
         while (!namespace_exited && !failure) {
             pollfd state{namespace_pidfd_, POLLIN, 0};
             poll_result = poll(&state, 1, 10);
@@ -450,20 +473,20 @@ void ApplicationProcess::stop() {
                 namespace_exited = true; break;
             }
             if (poll_result < 0 && poll_error == EINTR) {
-                if (Clock::now() < deadline) continue;
+                if (Clock::now() < effective_deadline) continue;
                 namespace_wait_failed = true;
                 namespace_deadline_expired = true;
                 break;
             }
-            if (poll_result < 0 || poll_result > 0 || Clock::now() >= deadline) {
+            if (poll_result < 0 || poll_result > 0 || Clock::now() >= effective_deadline) {
                 namespace_wait_failed = true;
-                if (poll_result == 0 && Clock::now() >= deadline) namespace_deadline_expired = true;
+                if (poll_result == 0 && Clock::now() >= effective_deadline) namespace_deadline_expired = true;
                 break;
             }
         }
     }
     // Scope emptiness and direct-child reap remain mandatory after namespace-wait errors.
-    try { resources_->scope().complete_stop(deadline); }
+    try { resources_->scope().complete_stop(effective_deadline); }
     catch (...) {
         completion_failure = std::current_exception();
         if (!failure && !namespace_wait_failed) {
@@ -474,7 +497,7 @@ void ApplicationProcess::stop() {
     const bool stop_failed = static_cast<bool>(failure) || static_cast<bool>(completion_failure) ||
                              namespace_wait_failed || !namespace_exited;
     if (stop_failed) {
-        const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - started).count();
+        const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - stop_started_).count();
         try {
             const auto& owned = resources_->scope().identity();
             std::cerr << "application stop unconfirmed pid=" << pid_ << " namespace_pid=" << namespace_pid_
@@ -518,6 +541,17 @@ void ApplicationProcess::stop() {
     if (pidfd_ >= 0) close(pidfd_);
     pidfd_ = -1; pid_ = -1;
 }
+void ApplicationProcess::stop() {
+    if (pid_ <= 0) return;
+    const auto deadline = stop_request_started_ ? stop_deadline_ : Clock::now() + std::chrono::seconds(2);
+    std::exception_ptr failure;
+    try { request_stop(deadline); }
+    catch (...) { failure = std::current_exception(); }
+    try { complete_stop(deadline); }
+    catch (...) { if (!failure) failure = std::current_exception(); }
+    if (failure) std::rethrow_exception(failure);
+}
+
 void ApplicationProcess::read_all(char* bytes, std::size_t length, Clock::time_point deadline) {
     std::size_t used = 0;
     while (used < length) {

@@ -346,6 +346,7 @@ int main(int argc, char** argv) {
         std::function<void()> copy_progress;
         bool advancing_copy = false, dispatching_root = false;
         const auto enforce = [&] {
+            store.check_authority_reconciliation();
             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
             if (storage) storage->check_alive();
             if (native) native->check();

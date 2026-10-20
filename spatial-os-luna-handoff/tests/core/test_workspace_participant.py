@@ -121,6 +121,26 @@ class WorkspaceParticipantTests(WorkspaceParticipantFixture):
         completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)
         self.assertEqual(len(poll.poll(0)),count,'Issuer completion preceded independently witnessed process exit')
         item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(self.activations(),[(1,1,0)])
+    def test_failed_revoked_row_commit_keeps_issuer_barrier_pending(self):
+        relay=HeldRevocationRelay(self);item=self.start_broker(relay);item.call('system.hello')
+        poll,count=self.launch_application()
+        with sqlite3.connect(self.execution/'execution.db') as db:
+            db.execute("CREATE TRIGGER fail_revoked_process BEFORE UPDATE OF state ON processes "
+                       "WHEN NEW.state='revoked' BEGIN SELECT RAISE(ABORT,'revocation persistence fault'); END")
+        self.revoke_now();self.assertTrue(relay.held.wait(.3))
+        self.assertEqual((self.activations(),self.barrier().complete), ([(1,0,1)],False))
+        relay.release.set();self.assertTrue(relay.delivered.wait(.5))
+        self.until(lambda:poll.poll(0),bool)
+        pending=self.until(self.barrier,lambda value:not value.complete)
+        self.assertEqual((pending.applied_revision,pending.pending_count),(0,1))
+        # A request dispatched after the failed reconcile must still hit the
+        # sticky owner-thread fence. The trigger leaves the running row intact.
+        with self.assertRaises(AssertionError):item.call('system.hello')
+        with sqlite3.connect(self.execution/'execution.db') as db:
+            self.assertEqual(db.execute("SELECT state FROM processes WHERE id=?",(self.application,)).fetchone(),('running',))
+        self.assertEqual(self.activations(),[(1,0,1)])
+        item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(len(poll.poll(0)),count)
+
     def test_credential_revocation_preserves_actor_owned_execution(self):
         item=self.start_broker();item.call('system.hello');poll,count=self.launch_application();self.revoke_now(issuer.CREDENTIAL_TARGET)
         completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)

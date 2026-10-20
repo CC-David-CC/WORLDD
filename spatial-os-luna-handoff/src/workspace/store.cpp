@@ -30,6 +30,7 @@
 #include <fstream>
 #include <iostream>
 #include <future>
+#include <exception>
 #include <map>
 #include <cmath>
 #include <cstdlib>
@@ -374,6 +375,7 @@ struct ExecutionStore::Impl {
     std::map<std::string,std::unique_ptr<FileEngineEntry>> file_engines;
     bool file_action_dispatch_active = false;
     bool copy_authority_reconcile_pending = false;
+    std::exception_ptr authority_reconciliation_failure;
     std::string copy_expiry_cursor;
     bool git_parent_recovery_complete = false;
     bool git_effect_recovery_pending = false;
@@ -1888,54 +1890,132 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         throw WorldError(wire::UNAVAILABLE, "Authorization changed during application access evaluation");
     return reply;
 }
-void ExecutionStore::reconcile_authority() {
+void ExecutionStore::reconcile_authority() try {
     if (!impl_->authority) return;
+    std::exception_ptr reconciliation_failure;
+    std::exception_ptr process_failure;
+    const auto remember = [](std::exception_ptr& slot) {
+        if (!slot) slot = std::current_exception();
+    };
+    struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };
+    std::vector<Running> records;
+    try {
+        Query q(impl_->db.get(), "SELECT id,payload,rights,workspace,actor FROM processes WHERE state='running'");
+        for (;;) {
+            int step = SQLITE_ERROR;
+            try { step = q.step(); }
+            catch (...) { remember(reconciliation_failure); break; }
+            if (step != SQLITE_ROW) break;
+            try {
+                Running record; record.id = q.text(0);
+                if (!record.request.ParseFromString(q.text(1)) || record.request.workspace() != q.text(3) || record.request.actor() != q.text(4))
+                    throw WorldError(wire::STORAGE_ERROR, "Stored process authority is invalid");
+                validate_message(record.request);
+                const auto mask = sqlite3_column_int64(q.value, 2);
+                if (mask < 0 || (mask & ~30)) throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
+                record.rights = static_cast<unsigned>(mask); records.push_back(std::move(record));
+            } catch (...) { remember(reconciliation_failure); }
+        }
+    } catch (...) { remember(reconciliation_failure); }
+    std::vector<std::string> revoked;
+    for (const auto& record : records) {
+        if (!record.request.has_principal()) continue;
+        try {
+            workspace::v1::AccessRequest request; request.set_workspace(record.request.workspace()); request.set_actor(record.request.actor());
+            *request.mutable_principal() = record.request.principal();
+            const auto effective = rights_mask(access(request, false).rights());
+            if ((record.rights & effective) != record.rights) revoked.push_back(record.id);
+        } catch (...) { remember(reconciliation_failure); }
+    }
+    if (revoked.empty()) {
+        if (reconciliation_failure) std::rethrow_exception(reconciliation_failure);
+        return;
+    }
+
+    std::vector<std::pair<std::string, ApplicationProcess*>> jobs;
+    for (const auto& id : revoked) {
+        const auto found = impl_->jobs.find(id);
+        // Preserve the existing behavior for a durable running row without an
+        // in-memory job. Startup recovery marks such rows uncertain before serving.
+        if (found != impl_->jobs.end()) jobs.emplace_back(id, found->second.get());
+    }
+
+    // Use one deadline rooted at the first batch stop request. Request every
+    // scope and pidfd signal before entering any per-application wait.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    for (const auto& [id, process] : jobs) {
+        (void)id;
+        try { process->request_stop(deadline); }
+        catch (...) { remember(process_failure); }
+    }
+    // A failed request for one application must not suppress drain attempts for
+    // any other application. Each completion uses the same absolute deadline.
+    for (const auto& [id, process] : jobs) {
+        (void)id;
+        try { process->complete_stop(deadline); }
+        catch (...) { remember(process_failure); }
+    }
+
+    // Destruction performs owner-thread native credential revocation. Every
+    // application scope has already received its stop request and drain attempt.
+    for (const auto& [id, process] : jobs) {
+        (void)process;
+        impl_->jobs.erase(id);
+    }
+    if (impl_->native) {
+        try { impl_->native->check(); }
+        catch (...) { remember(process_failure); }
+    }
     if (impl_->file_action_dispatch_active) {
         impl_->copy_authority_reconcile_pending = true;
     } else {
-        // Authority watcher updates arrive on this broker thread. Cancel file-copy
-        // workers here, without waiting for their owners to issue another request.
+        // Application scopes are drained first, so slow copy cleanup cannot
+        // consume their shared absolute termination deadline.
         for (const auto& [worktree, entry] : impl_->file_engines) {
             (void)worktree;
             if (!entry || !entry->engine) continue;
             const auto workspace = entry->workspace;
             const auto component = entry->worktree;
-            entry->engine->reconcile_copy_job_authority([this, workspace, component](const std::string& encoded) {
-                auth::ActorRef principal;
-                if (!principal.ParseFromString(encoded)) return false;
-                workspace::v1::ScopedAuthorityCheckRequest check;
-                check.set_workspace(workspace);
-                *check.mutable_principal() = std::move(principal);
-                check.set_right(auth::FILE_COPY);
-                check.add_components(component);
-                return scoped_authority_check(check, false).allowed();
-            });
+            try {
+                entry->engine->reconcile_copy_job_authority([this, workspace, component](const std::string& encoded) {
+                    auth::ActorRef principal;
+                    if (!principal.ParseFromString(encoded)) return false;
+                    workspace::v1::ScopedAuthorityCheckRequest check;
+                    check.set_workspace(workspace);
+                    *check.mutable_principal() = std::move(principal);
+                    check.set_right(auth::FILE_COPY);
+                    check.add_components(component);
+                    return scoped_authority_check(check, false).allowed();
+                });
+            } catch (...) { remember(reconciliation_failure); }
         }
     }
-    struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };
-    std::vector<Running> records;
+    if (process_failure) std::rethrow_exception(process_failure);
+
+    // Persist the complete application batch atomically. No applied-revision
+    // acknowledgment can pass enforce() until this checked commit returns.
     {
-        Query q(impl_->db.get(), "SELECT id,payload,rights,workspace,actor FROM processes WHERE state='running'");
-        while (q.step() == SQLITE_ROW) {
-            Running record; record.id = q.text(0);
-            if (!record.request.ParseFromString(q.text(1)) || record.request.workspace() != q.text(3) || record.request.actor() != q.text(4))
-                throw WorldError(wire::STORAGE_ERROR, "Stored process authority is invalid");
-            validate_message(record.request);
-            const auto mask = sqlite3_column_int64(q.value, 2);
-            if (mask < 0 || (mask & ~30)) throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
-            record.rights = static_cast<unsigned>(mask); records.push_back(std::move(record));
+        Transaction transaction(impl_->db.get());
+        for (const auto& id : revoked) {
+            Query q(impl_->db.get(), "UPDATE processes SET state='revoked' WHERE id=? AND state='running'");
+            q.text(1, id); q.step();
+            if (sqlite3_changes(impl_->db.get()) != 1)
+                throw WorldError(wire::STORAGE_ERROR, "Revoked process state changed during authority reconciliation");
         }
+        transaction.commit();
     }
-    for (const auto& record : records) {
-        if (!record.request.has_principal()) continue;
-        workspace::v1::AccessRequest request; request.set_workspace(record.request.workspace()); request.set_actor(record.request.actor());
-        *request.mutable_principal() = record.request.principal();
-        const auto effective = rights_mask(access(request, false).rights());
-        if ((record.rights & effective) == record.rights) continue;
-        impl_->jobs.erase(record.id);
-        Query q(impl_->db.get(), "UPDATE processes SET state='revoked' WHERE id=?"); q.text(1, record.id); q.step();
-    }
+    if (reconciliation_failure) std::rethrow_exception(reconciliation_failure);
+} catch (...) {
+    if (!impl_->authority_reconciliation_failure)
+        impl_->authority_reconciliation_failure = std::current_exception();
+    throw;
 }
+
+void ExecutionStore::check_authority_reconciliation() const {
+    if (impl_->authority_reconciliation_failure)
+        std::rethrow_exception(impl_->authority_reconciliation_failure);
+}
+
 wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchRequest& request) {
     valid_text(request.workspace()); valid_text(request.actor());
     if(impl_->copy_barriers.contains(request.workspace()))

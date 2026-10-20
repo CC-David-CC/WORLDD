@@ -3,6 +3,7 @@
 #include "workspace/resources.hpp"
 #include "core/protocol.hpp"
 #include <cerrno>
+#include <chrono>
 #include <cstddef>
 #include <linux/audit.h>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include <linux/seccomp.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
+#include <thread>
 #include <unistd.h>
 
 // Thin fixture: call the real boundary, then make the kernel reject selected cleanup calls.
@@ -53,7 +55,7 @@ int main(int argc,char** argv) {
     try {
         if (argc != 6) throw std::invalid_argument("Expected project, repository, state, fault mode, and resource configuration");
         const std::string mode=argv[4];
-        if (mode!="normal" && mode!="deny-wait" && mode!="deny-signal" && mode!="destructor-deny-wait" && mode!="destructor-deny-signal" && mode!="deny-namespace-poll" && mode!="wait-exit")
+        if (mode!="normal" && mode!="deny-wait" && mode!="deny-signal" && mode!="destructor-deny-wait" && mode!="destructor-deny-signal" && mode!="deny-namespace-poll" && mode!="wait-exit" && mode!="repeat-request-deadline")
             throw std::invalid_argument("Invalid fixture fault");
         std::string bytes;
         if (!spatial::read_frame(std::cin,bytes)) throw std::runtime_error("Missing launch request");
@@ -77,6 +79,20 @@ int main(int argc,char** argv) {
         if (mode=="deny-signal" || mode=="destructor-deny-signal") { deny(SYS_pidfd_send_signal);deny(SYS_kill); }
         if (mode=="deny-namespace-poll") deny_single_fd_poll();
         if (mode.starts_with("destructor-")) return 0;
+        if (mode=="repeat-request-deadline") {
+            deny(SYS_pidfd_send_signal); deny(SYS_kill);
+            const auto first_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+            try { process.request_stop(first_deadline); } catch (const std::exception&) {}
+            std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+            try { process.request_stop(std::chrono::steady_clock::now()+std::chrono::seconds(2)); }
+            catch (const std::exception&) {}
+            try { process.complete_stop(std::chrono::steady_clock::now()+std::chrono::seconds(2)); }
+            catch (const std::exception& error) {
+                std::cerr << "repeat request deadline cleanup unconfirmed: " << error.what() << '\n';
+                return 0; // The production destructor must retain the first deadline and fail closed.
+            }
+            throw std::runtime_error("Repeated stop request extended a failed cleanup deadline");
+        }
         try {
             if (mode=="wait-exit" && !process.wait(2.0))
                 throw std::runtime_error("Application did not exit before the fixture deadline");

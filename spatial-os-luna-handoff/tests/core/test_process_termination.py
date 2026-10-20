@@ -86,6 +86,24 @@ class ProcessTerminationTests(unittest.TestCase):
             for child in children:
                 fd=os.pidfd_open(child);self.addCleanup(os.close,fd);found.append(fd);todo.append(child)
         return found
+    def test_repeated_stop_request_does_not_reset_first_deadline(self):
+        proc=self.run_boundary('repeat-request-deadline',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
+        log=(self.root/'probe.log').read_text()
+        marker='termination fixture scope='
+        self.assertIn(marker,log)
+        scope_name=log.split(marker,1)[1].split()[0]
+        matches=[path for path in self.cgroup.rglob(scope_name) if path.is_dir()]
+        self.assertEqual(len(matches),1,'Could not identify the real application scope')
+        (matches[0]/'cgroup.kill').chmod(0o400)
+        proc.stdin.write(frame(core.ActorStopRequest()));proc.stdin.flush()
+        started=time.monotonic()
+        result=proc.wait(timeout=4)
+        elapsed=time.monotonic()-started
+        self.assertEqual(result,2)
+        self.assertGreaterEqual(elapsed,1.7,'The original absolute cleanup deadline was not exercised')
+        self.assertLess(elapsed,2.8,'A repeated request or destructor reset the two-second cleanup deadline')
+        self.assertIn('repeat request deadline cleanup unconfirmed:',(self.root/'probe.log').read_text())
+
     def test_wait_error_cannot_be_reported_as_confirmed_stop(self):
         proc=self.run_boundary('deny-wait',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
         self.assertEqual(self.stop(proc),2)

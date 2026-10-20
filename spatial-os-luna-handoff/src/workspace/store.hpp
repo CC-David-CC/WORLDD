@@ -48,6 +48,7 @@ public:
     // Duplicate the canonical state root retained under the execution lock.
     int duplicate_state_directory_fd() const;
     void reconcile_authority();
+    void check_authority_reconciliation() const;
     void reap();
     void advance_workspace_copies();
     bool expire_one_workspace_copy();
