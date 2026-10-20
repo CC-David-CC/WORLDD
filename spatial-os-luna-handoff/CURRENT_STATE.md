@@ -1,3 +1,13 @@
+## 2026-10-20: Copy fixture reply ownership repaired; full M08 gate pending
+
+The copy fixture shared its broker reply endpoint with worldd.
+The repair uses the existing private channel and serialized broker exchange.
+The new regression rejects the old topology and passes with the repair.
+Ownership and live-copy checks pass on both hosts in Debug and ASan-UBSan.
+The complete copy groups and consistent package builds are running.
+M08 remains UNQUALIFIED. The full M08 gate has not started.
+Read ../docs/M08_COPY_REPLY_CHANNEL_REPAIR_2026-10-20.txt for source pins, evidence, and next actions.
+
 ## 2026-10-20: ASan adapter-focused check passes; M08 remains UNQUALIFIED
 
 The adapter-resources CTest passed under ASan-UBSan on both required hosts.

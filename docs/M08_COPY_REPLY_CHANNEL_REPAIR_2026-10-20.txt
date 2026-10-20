@@ -1,0 +1,104 @@
+M08 copy reply ownership repair - 2026-10-20
+Status: FOCUSED CHECKS PASS; M08 remains UNQUALIFIED.
+
+Code checkpoint: 50b6da599a135cc823a547b5845564a5ddc66f8f
+Box-git branch: m08/reader-bound-review-20261020
+Frozen package branch: m08/frozen-transport-candidate-20261020
+Frozen package checkout: /home/dflanag3/src/m08-transport-gate-candidate-50b6da5-20261020
+External evidence root on ROG and both test hosts: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01
+
+Confirmed fixture defect
+StorageBrokerProcess opted out of the private world-channel relay.
+WorldProcess passed the Python management socket itself to worldd.
+BrokerClient set O_NONBLOCK on the inherited open file description.
+The parent socket therefore became nonblocking too.
+Python and worldd could consume replies from the same endpoint.
+The Python RLock cannot serialize an independent reader in worldd.
+The original ASan failure recorded EAGAIN in Python and an unexpected broker reply in worldd.
+The world log SHA256 is 6ff07839f5e2aea9660844d9c8de68a97b58ed36f537e9031729059b77eb08da.
+The original evidence remains on sb16-2 under:
+/home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/security-evidence-workspace-copy-ASan-sb16-2-01/workspace-copy-engine-7e759f43da20403eb87cb25dd6a98481
+
+Repair
+Use the existing private world channel for StorageBrokerProcess.
+Serialize both request paths through BrokerProcess.exchange.
+Preserve all original reply-correlation, BUSY, no-effect, and copy assertions.
+Bound transient read retries by the existing five-second absolute deadline.
+Keep custom transport opt-outs outside this narrow change.
+The fixture relay supports one active world for unsolicited control delivery.
+This change does not redesign production transport or promise notification replay.
+
+Regression and review
+Added a real-world startup regression for independent descriptor flags.
+It checks actor selection and direct broker requests while worldd remains alive.
+The old opt-out fails deterministically: parent O_NONBLOCK becomes 2048.
+The corrected case passes on both hosts in both profiles.
+Keep the 13 original copy cases. The new ownership case increases the group to 14.
+Updated the runner, discovery checks, and quota-diagnostic inventory assertions together.
+An initial tooling run found one missed 13-case assertion. The corrected rerun passed.
+No locked acceptance assertion was removed or weakened.
+
+Completed focused results
+Two reader regressions and four quota-diagnostic tooling tests passed on each host.
+Total: 12 helper/tooling executions passed on the corrected fixture source.
+One deliberate old-transport control failed at the required descriptor assertion on sb16-2.
+Initial inventory runs had one failure per host. Their logs remain in quota-tooling-01.
+Corrected inventory runs are in quota-tooling-02.
+All eight focused integration executions below passed.
+Both helper restoration and volume recovery were verified for each.
+The wrapper also checked retained service logs for sanitizer findings.
+- sb16 / ownership-asan-fixed-v2-01: PASS in 7.891 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-ownership-asan-fixed-v2-01/workspace-copy-engine-ec91c6ebd716440abaa8801425d3cc3c/review.json
+  SHA256: 17b0a8a737ca80d38bfd5327550996e943f09b67e78f44c35e5417026f3d0315
+- sb16 / live-copy-asan-fixed-v2-01: PASS in 57.999 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-live-copy-asan-fixed-v2-01/workspace-copy-engine-77d25617c5f14f3bbbf3b082adeb3081/review.json
+  SHA256: 058ea780b04a6e24f87ebfa495e852b4089ad1a7d4b39b8357da0a9ad7762d9d
+- sb16 / ownership-debug-fixed-v2-01: PASS in 6.684 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-ownership-debug-fixed-v2-01/workspace-copy-engine-6afd5fd883a54b5db04727535093a707/review.json
+  SHA256: 048448cb480a3e18ee7590a4cd34984f3a3e5d5d96c00b42ce27b927fb9146d0
+- sb16 / live-copy-debug-fixed-v2-01: PASS in 51.876 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-live-copy-debug-fixed-v2-01/workspace-copy-engine-48260ece480d4b1f82c193d3437ecf13/review.json
+  SHA256: 6319c2b9ff56fe7faeae3422c995956079e6fa250164358e5852537883e07082
+- sb16-2 / ownership-asan-fixed-v2-01: PASS in 8.464 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-ownership-asan-fixed-v2-01/workspace-copy-engine-4ac42d8391f845bfb293f742a5ef8f6d/review.json
+  SHA256: 005c8c7625a651219ea717b73c244761104405f936d193a2f9896e64f60e71fe
+- sb16-2 / live-copy-asan-fixed-v2-01: PASS in 70.623 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-live-copy-asan-fixed-v2-01/workspace-copy-engine-5457d7b13fca448795116d99d3ca5047/review.json
+  SHA256: aedbd3df10ef00764e52253bf5f7080c11180a594b74bcc48f1f0a48662e15a8
+- sb16-2 / ownership-debug-fixed-v2-01: PASS in 6.787 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-ownership-debug-fixed-v2-01/workspace-copy-engine-bbe4a15194874975b6a5b4904324852a/review.json
+  SHA256: 84141e76e013d9e6fe6f84dbc97db31147d2694cfccc8af275a6282724ea69c1
+- sb16-2 / live-copy-debug-fixed-v2-01: PASS in 59.105 seconds.
+  Report: /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/evidence-live-copy-debug-fixed-v2-01/workspace-copy-engine-8b7a2dd4badc44628083e04456b633c7/review.json
+  SHA256: 8802f9375eb9ad7f5d6e151d4811c789f18115730e8d2ad4bf67377e6056ca23
+
+Evidence limits
+These focused runs use explicit source-only diagnostic overlays.
+Debug binaries retain package pin 74d6b6ea9be43c9231969c870b27e0c3e747b938.
+ASan binaries retain package pin 136b7eb250d1b5ac04a31ec43a624bf2e1f7e5df.
+Overlay receipts pin every source file and archive hash.
+These results do not qualify the final package or the full M08 gate.
+
+Running work at this checkpoint
+Each host runs the complete 14-case copy group in Debug, then ASan-UBSan.
+Tmux sessions: m08-copy-regressions-sb16-01 and m08-copy-regressions-sb16-2-01.
+Read transport-fullcopy-batch-status.json and each command.exit/wrapper.exit.
+The last inspection found seven completed Debug cases per host and no failures.
+ASan full-copy groups remain queued until Debug passes.
+ROG builds both complete qualification packages from frozen source 50b6da599a135cc823a547b5845564a5ddc66f8f.
+Tmux sessions: m08-package-debug-50b6da5 and m08-package-asan-50b6da5.
+Read package-50b6da5-plan.json and package-50b6da5-{debug,asan}-01 receipts.
+Both builds passed configuration and entered compilation. They have not finished.
+Test hosts had approximately 83 GiB and 81 GiB free before these runs.
+ROG had approximately 699 GiB free before both package builds.
+
+Next actions
+Observe the existing handles. Do not launch duplicate builds or test groups.
+Review all 14-case results, cleanup records, and sanitizer diagnostics.
+Verify completed packages, inventories, manifests, and source pins.
+Use the existing M08 deployment and gate paths with matching native XACE runtime artifacts.
+Verify both StorageOwner profile configurations on each test host.
+Launch the full M08 gate only after those prerequisites pass.
+Run and reconcile the required separate geometry and cabinet cross-host matrices.
+M01-M07 remain qualified. M08-M16 and final Spatial-M1 acceptance remain pending.
+All bulk source-overlay transfers used ROG-to-test-host SSH. The controller relayed no package.
