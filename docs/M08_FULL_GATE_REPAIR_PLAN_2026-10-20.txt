@@ -1,0 +1,215 @@
+M08 FULL GATE REPAIR PLAN
+Date: 2026-10-20
+Status: PLANNED. No production repair or repaired runtime pass is claimed.
+Candidate under test: 50b6da599a135cc823a547b5845564a5ddc66f8f
+
+OBJECTIVE
+
+Correct the observed revocation failures without weakening authority checks.
+Preserve the distinction between identity loss, permission loss, and unavailable authority.
+Pass focused checks before starting another full M08 gate.
+Keep M09 source preparation separate.
+
+CONFIRMED FAILURES
+
+Both failures occurred in Debug on both physical test hosts.
+
+1. workspace-presentation-actor
+   Class: WorkspacePresentationActorTests
+   Method: test_two_workspace_scene_fence_rejects_later_binding_revocation
+   File: spatial-os-luna-handoff/tests/core/test_workspace_presentation_actor.py:385
+   Failed assertion: line 414.
+   Actual: UNAUTHORIZED (12).
+   Required: FORBIDDEN (13) or UNAVAILABLE (26).
+   Five cases ran. One failed on each host.
+
+2. workspace-actor-cabinet-gateway
+   Class: ActorCabinetGatewayTests
+   Method: test_actor_cabinet_gateway_revocation_during_observation_is_clean_rejection
+   File: spatial-os-luna-handoff/tests/core/test_actor_cabinet_gateway.py:898
+   Failed assertion: line 957.
+   Actual: UNAUTHORIZED (12).
+   Required: FORBIDDEN (13).
+   Message: Issuer revocation invalidated the in-flight broker result.
+   Twenty-four cases ran. One failed on each host.
+
+The cabinet diagnostics confirm the intended pre-dispatch observation race.
+The watch event arrived. Both relay error counts were zero.
+The failure precedes the file-absence and session-survival assertions.
+Those later properties remain unverified in this failed execution.
+Neither result proves that unauthorized data or a file effect escaped.
+Neither result establishes complete safe behavior after rejection.
+
+EVIDENCE
+
+Root on ROG and both test hosts:
+  /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01
+
+Canonical logs on their respective hosts:
+  deployed-50b6da5-01/evidence/m08-full-50b6da5-sb16-01/Debug/core.log
+  deployed-50b6da5-01/evidence/m08-full-50b6da5-sb16-2-01/Debug/core.log
+
+Preserved initial snapshots on ROG:
+  initial-fullgate-failures-sb16-01.json
+  initial-fullgate-failures-sb16-2-01.json
+
+These snapshots identify the observed log length and its SHA-256.
+The original logs continue growing until their batches finish.
+Pin the final reports and logs after terminal completion.
+
+SOURCE FINDINGS AND LIMITS
+
+src/workspace/main.cpp:134 implements revocation_result.
+It compares a saved cancellation sequence with the authority's current sequence.
+It clears an otherwise successful reply when that sequence changes.
+It then returns UNAUTHORIZED without identifying which principal changed.
+The same helper serves three broker dispatch paths.
+
+src/workspace/authority.cpp increments the sequence for every issuer revocation event.
+Authority-service failure also changes it.
+A global sequence change therefore does not prove that the requester lost its identity.
+The cabinet error message directly identifies this replacement path.
+The presentation error code is consistent with this path.
+Its current assertion omits the message, so confirm its exact path before claiming one proven cause.
+
+Fixture identity trace:
+  test_world_identity.py:341 defaults revoke() to self.identity.
+  WorldIdentityFixture setup creates that first enrolled actor.
+  test_world_authority.py:114 enroll_second() creates a separate actor.
+  The presentation request authenticates that second actor.
+  The test revokes the first actor, whose authority supports delegated rights.
+  It does not explicitly revoke the requesting second actor.
+  The cabinet test revokes a separate delegating ancestor.
+  Its adjacent requester-revocation test explicitly revokes the requester.
+
+The initial worker review incorrectly called the presentation case self-revocation.
+Primary review corrected that inference from the fixture setup and enrollment helpers.
+Do not change the existing assertion based on that incorrect inference.
+
+src/world/actors.cpp:82 propagates UNAUTHORIZED from workspace_check.
+It treats FORBIDDEN and UNAVAILABLE as unavailable workspace decisions.
+Later scene checks can reject invalid observation authority.
+src/world/identity_sessions.cpp:1024 separately handles a cancelled actor session.
+It can preserve an existing error code.
+Changing the broker code alone can therefore affect genuine requester-revocation behavior.
+
+REPAIR CONTRACT
+
+For a valid requester whose required delegated authority disappears:
+  Reject the operation with the required permission result.
+  Preserve independent identity and grants.
+  Return no protected scene metadata or pixels.
+  Do not dispatch the cabinet filesystem operation.
+
+For a requester whose actor identity or credential is revoked:
+  Reject with UNAUTHORIZED at the actor-session boundary.
+  Invalidate that session and cancel its held input.
+  Preserve independently authorized application execution.
+
+For authority failure or a result that cannot be safely validated:
+  Fail closed with the operation's existing unavailable/uncertain contract.
+  Do not label an arbitrary requester revoked without evidence.
+
+For effects that might already have occurred:
+  Preserve the journal and existing UNCERTAIN result.
+  Do not replay the request.
+  Keep core.ErrorCode separate from nested FileActionError.
+
+For unrelated revocation:
+  Preserve existing fences.
+  A fresh request with independent authority must still work.
+  Do not add automatic replay or stale-success preservation to this repair.
+
+IMPLEMENTATION SEQUENCE
+
+1. Let both existing core batches finish and record all failures.
+   Keep their candidate, logs, and receipts unchanged.
+   Add any later failure to the triage list before selecting another full gate.
+
+2. Complete the narrow identity and error-path review.
+   Confirm the principal carried by each failing broker request.
+   Confirm the presentation failure's exact error message and origin.
+   Trace requester cancellation through identity_sessions.cpp.
+   Review all three revocation_result callers and existing queued-reply guards.
+   Preserve the existing file-action, management, and control-release exceptions unless evidence requires a change.
+
+3. Implement one bounded repair on a new branch from the frozen candidate.
+   Separate stale-result fencing from requester-authentication classification.
+   Prefer existing principal, authority, and session state.
+   Add only the minimal query or context needed to classify the result correctly.
+   Do not introduce a general revocation history or grant-tracking redesign.
+   Do not globally replace UNAUTHORIZED with FORBIDDEN.
+   Do not return stale successes after cancellation.
+   Do not change XLibre, storage budgets, copy architecture, or deadlines for this defect.
+
+4. Add the missing regressions with the correction.
+   Keep both existing failing cases and their expected results.
+   Require complete assertions for no file effect, no protected observation, and valid-session survival.
+   Add a requester-credential control if existing cases cover only actor revocation.
+   Cover each affected broker dispatch path.
+   Retain genuine issuer-failure, independent-authority, and uncertain-effect controls.
+   Record any coverage gap instead of claiming it passed.
+
+5. Review before compilation and deployment.
+   Review every changed file and affected caller.
+   Run static checks and repository_data_guard.
+   Compile required Debug and ASan-UBSan targets on ROG.
+   Use separate external build directories and modest parallelism.
+   Package matching source, binaries, dependencies, and manifests.
+   Deploy to new paths after the current test jobs retire.
+
+6. Run focused checks first.
+   Start with the two failed selectors and the adjacent requester-revocation control.
+   Use the registered resource wrappers, native XACE runtime, and exact profile environment.
+   Preserve native positive controls and the full rejection assertions.
+   Then run the related authority, observation, transport, and effect-boundary checks below.
+   Run the reviewed focused matrix on both hosts in Debug and ASan-UBSan.
+   Do not overlap these runs with the current full gates.
+
+7. Freeze a successor after every focused requirement passes.
+   Review final logs, sanitizer output, cleanup, and source pins.
+   Rebuild and repackage any changed inputs.
+   Recheck the full launch checklist against the successor.
+   Run the complete M08 local gate on both hosts with new attempt names.
+   Run cross-host matrices after both local gates pass.
+   Complete primary evidence review before declaring M08 qualified.
+
+SELECTED FOCUSED CHECKS
+
+Keep the following exact selectors:
+
+  WorkspacePresentationActorTests.test_two_workspace_scene_fence_rejects_later_binding_revocation
+  ActorCabinetGatewayTests.test_actor_cabinet_gateway_revocation_during_observation_is_clean_rejection
+  ActorCabinetGatewayTests.test_actor_cabinet_gateway_requester_revocation_during_observation_invalidates_session
+  ActorCabinetGatewayTests.test_actor_cabinet_gateway_revocation_after_effect_suppresses_metadata
+  ActorCabinetGatewayTests.test_actor_cabinet_gateway_revocation_in_final_post_operation_window_is_uncertain
+  BrokerIssuerProgressTests.test_broker_actor_revocation_cancels_control_while_info_is_pending
+  BrokerIssuerProgressTests.test_broker_actual_issuer_exit_fails_closed_while_info_is_pending
+
+After those selectors pass, run their complete registered suites.
+Also select affected callers from these registrations:
+
+  workspace-authority: principal validity, scoped rights, and independent grants.
+  application-observation: observation denial and metadata/pixel suppression.
+  world-application-control: cancellation, handoff, and process survival.
+  queued-copy-status-replacement: queued denial and reply identity.
+  workspace-file-action-broker: uncertain effects and durable recovery.
+
+Confirm exact registrations and wrapper requirements from the successor inventory.
+Use a reviewed selector runner when a suite ignores ordinary unittest -k selection.
+Do not remove its setup wrappers or write metadata inside frozen source.
+Record the final selected matrix before execution.
+
+EXIT CRITERIA
+
+Both original failures pass with unchanged expectations.
+Valid requester sessions survive ancestor authority loss where the contract permits it.
+Revoked requester sessions remain invalid.
+No forbidden file effect, metadata, pixels, or stale input crosses the boundary.
+Uncertain effects retain their journal identity and never replay.
+Both hosts pass the focused Debug and sanitizer matrix.
+The new complete local and cross-host M08 gate passes primary review.
+
+No reliable completion ETA exists until the correction passes focused runtime checks.
+The earlier 4-6 hour estimate covered a clean gate without repairs.
+It is not a promise that this failed attempt can finish qualification.

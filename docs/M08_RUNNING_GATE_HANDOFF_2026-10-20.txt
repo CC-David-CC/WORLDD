@@ -1,0 +1,196 @@
+M08 RUNNING GATE HANDOFF
+Date: 2026-10-20
+Status: M08 UNQUALIFIED. Existing full local runs contain failures.
+
+READ FIRST
+
+Read AGENTS.md and the spatial-worker-coordination skill.
+Read M08_FULL_GATE_REPAIR_PLAN_2026-10-20.txt beside this file.
+Use this note for monitoring and handoff. It does not authorize a duplicate test launch.
+Keep the current test source and deployment unchanged.
+Let the existing core batches collect their remaining results.
+The canonical gate stops later stages when the core batch returns failure.
+Do not mark sanitizer, acceptance, storage, or cross-host stages passed unless their receipts exist.
+
+CURRENT POSITION
+
+M01-M07 are qualified. M08-M16 and final Spatial-M1 qualification remain pending.
+M08 covers real cabinet operations, file operations, copy recovery, and their authority boundaries.
+The current candidate is:
+  50b6da599a135cc823a547b5845564a5ddc66f8f
+
+Both full local gates started at approximately 2026-10-20 09:23:38 UTC.
+At 09:57:31 UTC, both hosts had completed 112 of 231 Debug core registrations.
+Each host had two failed registrations. Completed does not mean passed.
+Both Debug production-startup and 89-test harness stages passed.
+Both CTest processes were alive. Both final wrapper exits were still absent.
+Read current evidence before reporting a newer status.
+
+Known failed registrations on BOTH hosts:
+  workspace-presentation-actor
+  workspace-actor-cabinet-gateway
+
+Both failures concern revocation error classification.
+The operation received UNAUTHORIZED instead of the required permission or availability error.
+The cabinet failure occurred before its no-side-effect and session-survival assertions.
+Do not claim those later assertions passed.
+Read the repair plan for exact cases, evidence, and the proposed investigation.
+
+MONITOR WITHOUT DISTURBING THE RUN
+
+From the Windows steering terminal, run this single command:
+
+  ssh -o BatchMode=yes -o ConnectTimeout=8 dflanag3@rog-ally-x python3 -B /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01/monitor-full-local-gates-50b6da5.py
+
+The saved monitor SHA-256 is:
+  61f47d7e9ba78229799c0e53f3872ad9bf012bf07af442f8e32333e47eb60c7c
+
+The monitor reads both reports, complete current core logs, exact tmux jobs, and process descendants.
+It reports CTest failures, timeouts, skips, and sanitizer markers.
+It writes small observation records on ROG.
+Poll approximately every two minutes during routine observation.
+Inspect an error promptly. Avoid continuously polling a long-running test.
+Use the observed timestamp in each status update.
+Report new failures separately from failures already recorded.
+
+Interpret the output as follows:
+
+  running + no final exits:
+    Inspect failure_markers. Continue monitoring the same jobs.
+  running + empty blockers:
+    This does not establish success. Earlier CTest failures can already exist.
+  observation error or SSH timeout:
+    Preserve stderr. Recheck the same job with the recorded SSH route.
+    Do not launch a replacement.
+  command.exit or wrapper.exit missing:
+    Completion is unknown. Inspect the exact recorded process.
+  terminal-status COMPLETE:
+    The wrapper returned. Read both exit codes and the canonical run report.
+  nonzero exit, failure, skip, or sanitizer diagnostic:
+    Keep M08 unqualified. Preserve evidence and assign the smallest repair.
+  both reports local_passed_crosshost_pending:
+    Verify all profiles, cleanup, source pins, and released locks.
+    Only then prepare the cross-host stage.
+
+EXACT HOSTS AND PATHS
+
+Use ROG for source work, compilation, and orchestration.
+Use sb16 and sb16-2 for tests and native runtime only.
+Do not use middle-child or a5500.
+Use box-git only for source coordination.
+Keep XACE as the active server baseline.
+Do not run model inference or coding agents on either test host.
+
+ROG-to-test-host SSH requires these separate arguments:
+  -i /home/dflanag3/.ssh/spatial_testboxes_ed25519
+  -o UserKnownHostsFile=/home/dflanag3/.ssh/spatial_testboxes_known_hosts
+  -o BatchMode=yes
+  -o ConnectTimeout=8
+
+Destinations:
+  sb16:   dflanag3@10.0.7.49
+  sb16-2: dflanag3@10.0.7.94
+
+Use the explicit addresses. The ROG sb16-2 alias previously resolved to another address.
+Never disable host-key verification to bypass a route failure.
+Verify hostname, machine identity, and filesystem identity before any cleanup.
+
+The following artifact root exists on ROG and both test hosts:
+  /home/dflanag3/spatial-artifacts/m08-unified-candidate-20261020-round01
+
+Relative paths below use that root:
+
+  Deployment:
+    deployed-50b6da5-01
+  sb16 report:
+    deployed-50b6da5-01/evidence/m08-full-50b6da5-sb16-01/run.json
+  sb16-2 report:
+    deployed-50b6da5-01/evidence/m08-full-50b6da5-sb16-2-01/run.json
+  Core logs:
+    REPORT_PARENT/Debug/core.log
+    REPORT_PARENT/ASan-UBSan/core.log, only when that stage actually starts
+  sb16 wrapper receipts:
+    fullgate-sb16-50b6da5-01
+  sb16-2 wrapper receipts:
+    fullgate-sb16-2-50b6da5-01
+  tmux sessions:
+    m08-full-local-50b6da5-sb16
+    m08-full-local-50b6da5-sb16-2
+  Initial failure snapshots on ROG:
+    initial-fullgate-failures-sb16-01.json
+    initial-fullgate-failures-sb16-2-01.json
+
+Wrapper receipt files are command.exit, wrapper.exit, and terminal-status.txt.
+They are outside the report directory. Never create or repair these receipts manually.
+PIDs can be reused. Inspect current descendants instead of trusting an old PID.
+
+WHAT TO WATCH
+
+Keep the two known failures visible in every status summary until resolved.
+Read the complete core log. A recent tail can hide earlier failures.
+Watch for new assertion failures, timeouts, unexpected skips, and sanitizer diagnostics.
+Separate an assertion failure from an observation-command failure.
+A brief process D state during storage writes does not prove a hang.
+Compare log progress and elapsed time with the registered test deadline.
+Do not raise a deadline or bypass a test just to obtain PASS.
+Do not delete live volumes, retained XACE libraries, current evidence, or frozen packages.
+Do not run another native test alongside these gates.
+Transfer retained artifacts directly between Linux hosts.
+Use the Windows host for commands and concise source notes, never bulk artifact transfer.
+
+AFTER THE CURRENT BATCH RETURNS
+
+1. Collect both terminal reports and complete CTest summaries.
+2. Confirm wrapper exits and process retirement.
+3. Preserve the failing source pin, test commands, logs, and required fixtures.
+4. Record every failed, passed, skipped, blocked, and unrun stage.
+5. Follow the separate repair plan on a new source branch.
+6. Run focused repaired cases and related authority checks on both hosts and profiles.
+7. Freeze and deploy a reviewed successor only after those checks pass.
+8. Start the complete M08 gate with new attempt names and evidence directories.
+9. Run cross-host checks only after both new local gates pass.
+
+The current failed attempt cannot qualify M08.
+A repair does not turn its old failed receipts into passing receipts.
+
+CROSS-HOST PREPARATION IS NOT A LAUNCH AUTHORIZATION
+
+The separate m08/crosshost-handoff-20261020 worktree contains an uncommitted draft.
+Its primary review is incomplete. Do not execute its draft commands yet.
+Correct its case counts, storage-profile propagation, and remote evidence collection first.
+The canonical M06 stage runs six semantic cases per profile: twelve executions.
+It also runs four native geometry cells, each with nine native cases.
+The later workspace geometry and cabinet matrices require four cells each.
+The reconciler reads receipt and test-log paths on its coordinator.
+Collect remote-authority evidence directly over LAN and verify its original bytes.
+Do not reuse historical M07 collector scripts with their old hard-coded paths.
+Current M08 failures block this entire stage.
+
+PARALLEL SOURCE WORK
+
+M08 source diagnosis:
+  Branch: m08/revocation-result-diagnosis-20261020
+  ROG checkout: /home/dflanag3/src/m08-revocation-result-diagnosis-20261020
+  Worker run: workers/m08-revocation-result-diagnosis-01
+  Owned file: docs/M08_REVOCATION_RESULT_REVIEW_2026-10-20.txt
+  Worker finished. Primary review found an incorrect requester-identity inference.
+  Primary corrected the review and the repair plan.
+  Reviewed diagnosis checkpoint: aa33955804b19e63cc1e6bb8cd53e9f604e18513
+  Box-git verified. No production repair is implemented.
+
+M09 input witness:
+  Branch: m09/balanced-input-witness-20261020
+  ROG checkout: /home/dflanag3/src/m09-balanced-input-witness-20261020
+  Worker run: workers/m09-balanced-input-witness-review02
+  tmux: m09-balanced-input-witness-review02-20261020
+  Owned files: spatial-os-luna-handoff/tests/core/test_world_application_control.py
+               spatial-os-luna-handoff/docs/M09_BALANCED_INPUT_WITNESS_2026-10-20.txt
+  Worker finished. Primary reviewed the revised source and its limitations.
+  Draft checkpoint: abc3f979f637f2e10232d36a21b658f9e74a4e73
+  Box-git verified. Runtime remains UNRUN. This source remains separate from M08.
+  Same-group destruction coverage and direct capture evidence remain incomplete.
+  Recheck worker ownership before a successor edits these files.
+
+Read M09_PREPARATION_STATUS_2026-10-20.txt for the remaining M09 work.
+Read M08_FULL_GATE_LAUNCH_CHECKLIST_2026-10-20.txt for completed setup evidence.
+Setup passed. The current failures are executed test failures, not an unstarted gate.

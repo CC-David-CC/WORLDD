@@ -1,0 +1,114 @@
+M09 PREPARATION STATUS
+Date: 2026-10-20
+Status: PLAN WRITTEN; IMPLEMENTATION WITNESSES INCOMPLETE; RUNTIME UNRUN.
+
+PURPOSE
+
+M09 qualifies application-group control, observation, input handoff, and revocation.
+One controller owns an application's main window, dialogs, menus, and popups.
+Other authorized actors can observe.
+Different applications can have different controllers.
+Transfer must release old input before the next controller's input.
+Authority loss must stop unauthorized control without unnecessarily terminating the application.
+
+EXISTING PLANNING
+
+Read these maintained drafts:
+  M09_CONTROL_CONTRACT_DRAFT_2026-10-19.txt
+  M09_QUALIFICATION_PROFILE_DRAFT_2026-10-19.txt
+  M09_DRAFT_READINESS_AUDIT_2026-10-19.txt
+
+Their historical M08 status describes their creation time.
+The newer M08 gate is running and has failures.
+These drafts do not establish current M08 or M09 qualification.
+
+Existing ROG source pins:
+
+  Control contract:
+    m09/control-contract-draft-20261019
+    4f0aa15dffdadbcdedd809bcfe43335bc25f99f3
+  Gate profile and separate eight-case M09 harness:
+    m09/gate-profile-draft-20261019
+    2e1bebc2476bdb0141277c40107f2cc90d81fc6d
+  Native dialog/popup/group witness:
+    m09/native-group-witness-draft-20261019
+    a10128a70f7a166f04e653c914c61ab485fe74a6
+  Readiness audit:
+    m09/draft-readiness-audit-20261019
+    c12743c20ff8b411da4c64b5e78ba726a86925b9
+
+Verify each actual branch and commit before using it.
+These drafts have older bases. Do not replace the qualified M08 source with an older draft tree.
+Transplant only reviewed M09 changes onto the eventual qualified M08 base.
+
+WORK ALREADY PREPARED
+
+The control contract and seven requirement groups are documented.
+The additive gate draft preserves M08's existing 89-case harness.
+It adds a separate eight-case M09 harness.
+The native group witness has a source draft.
+The runtime already contains control, observation, and revocation primitives.
+Source presence does not prove those primitives satisfy every M09 scenario.
+
+Additional input-transfer tests have a reviewed source checkpoint on:
+  Host: rog-ally-x
+  Checkout: /home/dflanag3/src/m09-balanced-input-witness-20261020
+  Branch: m09/balanced-input-witness-20261020
+  Base: 50b6da599a135cc823a547b5845564a5ddc66f8f
+  Draft checkpoint: abc3f979f637f2e10232d36a21b658f9e74a4e73
+  Box-git: verified. Integration: pending. Runtime: UNRUN.
+
+The first draft added five selectors for voluntary release, disconnect, revocation, unmap, and destroy.
+Primary review found a weak ordering witness.
+The test waited for native release before requesting the next controller.
+That arrangement can conceal an early lease-release defect.
+A reviewed successor now requests handoff before waiting for release.
+Four selectors compare old releases and new input in the actual native event stream.
+The fifth checks destruction and process survival, but lacks same-group reacquisition evidence.
+Primary checked request ordering, typed BUSY handling, syntax, and the changed files.
+All five runtime selectors remain UNRUN.
+
+REMAINING CODE AND CHECKS
+
+1. Complete and review the input-transfer witness.
+   Hold a modifier, key, button, focus, and drag motion.
+   Prove old releases precede the next controller's actual input.
+   Keep destruction limitations explicit when the original target no longer exists.
+   A different application's event does not prove same-group reacquisition.
+
+2. Add a target-generation race witness.
+   Replace or remap a target during broker authorization.
+   Prove stale input cannot reach the replacement.
+   Keep an authorized positive control.
+
+3. Add a combined revocation and process-survival witness.
+   Revoke observation and control.
+   Prove protected native pixels stop.
+   Grant another actor valid control and prove the authorized application remains alive.
+
+4. Review the native dialog/popup witness against the current source.
+   Preserve connection identity and foreign-hint rejection.
+   Preserve independent application control.
+
+5. Update the additive gate manifest after the new selectors exist.
+   Require the missing witnesses explicitly.
+   Preserve locked acceptance tests and the inherited M08 harness inventory.
+   Check source-only preflight and actual runtime as separate stages.
+
+6. Integrate onto the qualified M08 source.
+   Resolve shared-fixture changes deliberately.
+   Run focused Debug and ASan-UBSan checks on both hosts.
+   Fix reproduced production defects.
+   Then freeze and run the complete M09 qualification gate.
+
+SAFE WORK WHILE M08 RUNS
+
+ROG workers may review and write isolated M09 source and test drafts.
+Keep each task bounded and give each worker its own branch and worktree.
+Review exact changes before checkpointing them to box-git.
+Do not run M09 runtime checks on busy M08 hosts.
+Do not alter M08's frozen deployment or harness inventory.
+Keep XACE active. CallbackList remains deferred.
+
+Planning defines the work. It does not mean M09 is ready for its full exam.
+Current M08 failures take priority over M09 integration and qualification.

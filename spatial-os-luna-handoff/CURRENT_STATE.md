@@ -1,3 +1,22 @@
+## 2026-10-20: Full M08 Debug gate exposes two revocation-result failures
+
+M01-M07 remain qualified. M08 remains UNQUALIFIED.
+Both full local gates started from candidate 50b6da599a135cc823a547b5845564a5ddc66f8f.
+Both passed Debug production startup and the 89-test harness.
+Both Debug core batches failed workspace-presentation-actor and workspace-actor-cabinet-gateway.
+Each failure returned UNAUTHORIZED instead of the required permission or availability result.
+The cabinet message identifies the broker's global cancellation-result rewrite.
+The presentation failure's precise error path still needs confirmation.
+The requesting actor differs from the revoked authority ancestor in these fixtures.
+The first worker review misidentified the presentation actor. Primary source review corrected it.
+Do not weaken the expected results or globally remap authentication errors.
+The batches remain running to collect further failures. Their later stages remain pending or unrun.
+The failed attempt cannot qualify M08. Preserve its source and evidence.
+Read ../docs/M08_FULL_GATE_REPAIR_PLAN_2026-10-20.txt for the bounded repair and focused matrix.
+Read ../docs/M08_RUNNING_GATE_HANDOFF_2026-10-20.txt for monitoring commands and exact live-job paths.
+M09 source preparation continues separately. Its tests remain unqualified and unrun.
+Read ../docs/M09_PREPARATION_STATUS_2026-10-20.txt for the remaining witnesses and integration order.
+
 ## 2026-10-20: Complete M08 launch checklist passed on both hosts
 
 M01-M07 remain qualified. M08 remains UNQUALIFIED.
