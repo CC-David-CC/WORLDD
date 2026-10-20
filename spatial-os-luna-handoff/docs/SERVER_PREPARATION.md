@@ -2,7 +2,8 @@
 
 ## Source and build
 
-The project now builds a pinned XLibre server on sb16 and sb16-2.
+The project builds pinned XLibre source on middle-child or ROG Ally X.
+The built server runs on sb16 and sb16-2 for qualification.
 The source lock is server/base.lock.json.
 
 | Component | Release | Commit |

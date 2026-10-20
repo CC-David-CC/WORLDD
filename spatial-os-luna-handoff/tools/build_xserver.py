@@ -23,9 +23,9 @@ def main():
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true', help='Instrument the native server with ASan and UBSan')
     args = parser.parse_args()
-    host = socket.gethostname().split('.')[0]
-    if host not in ('sb16', 'sb16-2'):
-        parser.error('X server builds are restricted to sb16 and sb16-2')
+    host = socket.gethostname().split('.')[0].casefold()
+    if host not in ('middle-child', 'rog-ally-x-rc72la'):
+        parser.error('X server builds are restricted to middle-child and ROG Ally X')
     evidence = (ROOT / args.evidence_dir).resolve()
     evidence.mkdir(parents=True, exist_ok=False)
     lock_path = ROOT / 'server/base.lock.json'
