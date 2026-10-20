@@ -9,7 +9,8 @@ import sys
 import tempfile
 import time
 import uuid
-from copy_fixture_profiles import consume_profile, manager_memory_mib, build_adapter_resources
+from copy_fixture_profiles import (consume_profile, manager_memory_mib, broker_memory_mib,
+                                    build_adapter_resources)
 from google.protobuf import text_format
 import broker_pb2 as broker
 import process_scope_pb2 as process
@@ -39,6 +40,9 @@ def provisioned_storage_resources(volume, resource_profile, broker_module):
     if not policy.HasField('total') or not policy.HasField('actor_default') or any(
             not profile.HasField('maximum') for profile in policy.profiles):
         raise RuntimeError('Storage runtime record has incomplete resource budgets')
+    minimum_broker_memory = broker_memory_mib(resource_profile) * 1024 * 1024
+    if resources.broker_budget.memory_bytes < minimum_broker_memory:
+        raise RuntimeError('Storage runtime broker budget is below the selected resource profile minimum')
     expected_memory = manager_memory_mib(resource_profile) * 1024 * 1024
     if resources.manager_budget.memory_bytes != expected_memory:
         raise RuntimeError('Storage runtime manager budget does not match the selected resource profile')

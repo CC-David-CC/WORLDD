@@ -71,7 +71,8 @@ def provisioned_resource_function():
     node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and
                 n.name == 'provisioned_storage_resources')
     namespace = dict(Path=Path, RuntimeError=RuntimeError, stat=__import__('stat'),
-                     manager_memory_mib=lambda profile: {'Debug':256,'ASan-UBSan':512}[profile])
+                     manager_memory_mib=lambda profile: {'Debug':256,'ASan-UBSan':512}[profile],
+                     broker_memory_mib=lambda profile: {'Debug':1024,'ASan-UBSan':1280}[profile])
     exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), 'exec'), namespace)
     return namespace['provisioned_storage_resources']
 
@@ -241,11 +242,11 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
                          write_bytes_per_second=16*1024*1024)
             return value
 
-        def make_runtime(manager_memory):
+        def make_runtime(manager_memory, broker_memory=1024*2**20):
             runtime = broker.StorageVolumeRuntime(protocol_version=1,
                 volume_root=str(volume), require_confinement=True)
             runtime.resources.protocol_version = 2
-            runtime.resources.broker_budget.CopyFrom(budget(1024*2**20, 128, 400000))
+            runtime.resources.broker_budget.CopyFrom(budget(broker_memory, 128, 400000))
             runtime.resources.manager_budget.CopyFrom(budget(manager_memory, 32, 200000))
             policy = runtime.resources.default_policy
             policy.total.CopyFrom(budget(512*2**20, 64, 200000))
@@ -264,12 +265,26 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             result = original_lstat(path, *args, **kwargs)
             return metadata if path == record else result
 
-        for profile, manager_memory in (('Debug', 256*2**20), ('ASan-UBSan', 512*2**20)):
-            runtime = make_runtime(manager_memory)
+        runtime = make_runtime(256*2**20)
+        expected_resources = runtime.resources.SerializeToString(deterministic=True)
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
+        with self.subTest(profile='Debug', broker_mib=1024), patch.object(Path, 'lstat', lstat):
+            actual, device = function(volume, 'Debug', module)
+        self.assertEqual(device, '7:14')
+        self.assertEqual(actual.SerializeToString(deterministic=True), expected_resources)
+
+        runtime = make_runtime(512*2**20, broker_memory=1024*2**20)
+        record.write_bytes(runtime.SerializeToString(deterministic=True))
+        with self.subTest(profile='ASan-UBSan', broker_mib=1024), patch.object(Path, 'lstat', lstat):
+            with self.assertRaisesRegex(RuntimeError, 'broker budget is below.*profile minimum'):
+                function(volume, 'ASan-UBSan', module)
+
+        for broker_mib in (1280, 1536):
+            runtime = make_runtime(512*2**20, broker_memory=broker_mib*2**20)
             expected_resources = runtime.resources.SerializeToString(deterministic=True)
             record.write_bytes(runtime.SerializeToString(deterministic=True))
-            with self.subTest(profile=profile), patch.object(Path, 'lstat', lstat):
-                actual, device = function(volume, profile, module)
+            with self.subTest(profile='ASan-UBSan', broker_mib=broker_mib), patch.object(Path, 'lstat', lstat):
+                actual, device = function(volume, 'ASan-UBSan', module)
             self.assertEqual(device, '7:14')
             self.assertEqual(actual.SerializeToString(deterministic=True), expected_resources)
 
@@ -305,7 +320,7 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'device set'):
             function(volume, 'Debug', module)
 
-        runtime = make_runtime(256*2**20)
+        runtime = make_runtime(256*2**20, broker_memory=1280*2**20)
         record.write_bytes(runtime.SerializeToString(deterministic=True))
         with patch.object(Path, 'lstat', lstat), self.assertRaisesRegex(RuntimeError, 'does not match the selected resource profile'):
             function(volume, 'ASan-UBSan', module)
