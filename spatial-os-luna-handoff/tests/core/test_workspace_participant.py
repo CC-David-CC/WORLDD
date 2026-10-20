@@ -220,6 +220,54 @@ class WorkspaceParticipantTests(WorkspaceParticipantFixture):
         self.assertEqual(self.activations(),[(1,0,1)])
         release();item.close()
 
+    def test_failed_revoked_row_commit_during_blocked_wait_rolls_back_every_application(self):
+        relay=HeldRevocationRelay(self);item=self.start_broker(relay);item.call('system.hello')
+        self.launch_application('first-run');first=self.application
+        poll,count=self.launch_application('second-run',minimum_pids=10)
+        applications={first,self.application}
+        self.assertGreaterEqual(count,10,'Both independent application trees must be witnessed')
+        with sqlite3.connect(self.execution/'execution.db') as db:
+            self.assertEqual(set(db.execute("SELECT id,state FROM processes")),
+                             {(value,'running') for value in applications})
+            db.execute("CREATE TRIGGER fail_revoked_process BEFORE UPDATE OF state ON processes "
+                       "WHEN NEW.state='revoked' AND "
+                       "(SELECT count(*) FROM processes WHERE state='revoked')=1 "
+                       "BEGIN SELECT RAISE(ABORT,'revocation persistence fault'); END")
+        item.sequence+=1
+        request=make_request('process.wait',dict(id=first,timeout_seconds=5));request.request_id=item.sequence
+        item.stream.sendall(frame(broker.Request(protocol_version=1,request_id=item.sequence,management=request)))
+        # This bounded production trace precedes the borrowed ApplicationProcess wait.
+        # Only revoke after the real request has entered that wait, with no completed reply.
+        self.until(lambda:Path(item.log.name).read_text(),lambda value:'stage=process_wait_enter ' in value)
+        self.assertFalse(select.select([item.stream],[],[],0)[0],'Blocked wait returned before revocation')
+        self.assertEqual(poll.poll(0),[],'Application exited before the blocked-wait revocation')
+        self.revoke_now();self.assertTrue(relay.held.wait(.3))
+        self.assertEqual((self.activations(),self.barrier().complete), ([(1,0,1)],False))
+        relay.release.set();self.assertTrue(relay.delivered.wait(.5))
+        deadline=time.monotonic()+8
+        while True:
+            pending=self.barrier()
+            self.assertEqual((pending.participant_count,pending.pending_count,pending.complete),(1,1,False))
+            self.assertEqual(len(pending.obligations),1,pending)
+            self.assertEqual((pending.obligations[0].applied_revision,pending.obligations[0].complete),(0,False))
+            if item.proc.poll() is not None:break
+            self.assertLess(time.monotonic(),deadline,'Broker did not fail closed after wait persistence failure')
+            time.sleep(.01)
+        self.assertEqual(item.proc.returncode,2)
+        self.assertEqual(len(poll.poll(0)),count,'Failure preceded independently witnessed application drain')
+        output=Path(item.log.name).read_text()
+        self.assertIn('stage=process_wait_revoked ',output,'Revocation missed the borrowed wait authority callback')
+        self.assertIn('Execution registry write or read failed',output)
+        with sqlite3.connect(self.execution/'execution.db') as db:
+            self.assertEqual(set(db.execute("SELECT id,state FROM processes")),
+                             {(value,'running') for value in applications},'Wait bypassed batch rollback')
+        final=self.barrier()
+        self.assertEqual((final.participant_count,final.pending_count,final.complete),(1,1,False))
+        self.assertEqual(len(final.obligations),1,final)
+        self.assertEqual((final.obligations[0].applied_revision,final.obligations[0].complete),(0,False))
+        self.assertEqual(self.activations(),[(1,0,1)])
+        item.close()
+
     def test_credential_revocation_preserves_actor_owned_execution(self):
         item=self.start_broker();item.call('system.hello');poll,count=self.launch_application();self.revoke_now(issuer.CREDENTIAL_TARGET)
         completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)

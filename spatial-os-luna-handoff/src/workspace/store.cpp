@@ -38,9 +38,18 @@
 #include <utility>
 
 namespace spatial {
+namespace identity {
+void participant_diagnostic(std::string_view, std::string_view, std::string_view,
+                            std::uint64_t, std::uint64_t, std::uint64_t, bool);
+}
 namespace {
 namespace copy = workspace::copy::v1;
 namespace auth = authority::v1;
+void process_wait_diagnostic(std::string_view stage) noexcept {
+    // Observation only. Use the existing bounded trace without changing wait failures.
+    try { identity::participant_diagnostic("workspace", stage, {}, 0, 0, 0, false); }
+    catch (...) {}
+}
 void require(bool value, const char* message) { if (!value) throw std::invalid_argument(message); }
 workspace::v1::StorageObject storage_object(workspace::v1::StorageObject::Kind kind, const std::filesystem::path& path) {
     workspace::v1::StorageObject object; object.set_kind(kind);
@@ -2193,8 +2202,18 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
     const auto found = impl_->jobs.find(request.id());
     if (found == impl_->jobs.end()) throw WorldError(wire::UNAVAILABLE, "No live supervisor owns this process");
     std::optional<int> result;
+    if (request.timeout_seconds() > 0) process_wait_diagnostic("process_wait_enter");
     try { result = found->second->wait(request.timeout_seconds()); }
     catch (const WorldError& error) {
+        if (error.code == wire::FORBIDDEN && impl_->authority) {
+            // The borrowed wait has unwound. Preserve every job and running row
+            // until the complete authority batch has stopped and committed.
+            process_wait_diagnostic("process_wait_revoked");
+            // Match enforce(): callbacks must not reconcile this same change again.
+            impl_->authority->consume_changes();
+            reconcile_authority();
+            throw WorldError(wire::UNAVAILABLE, "Process execution is revoked or completion is uncertain");
+        }
         impl_->jobs.erase(found);
         Query q(impl_->db.get(), "UPDATE processes SET state=? WHERE id=?");
         q.text(1, error.code == wire::FORBIDDEN ? "revoked" : "uncertain"); q.text(2, request.id()); q.step();
