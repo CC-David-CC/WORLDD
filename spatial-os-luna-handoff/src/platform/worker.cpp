@@ -17,6 +17,18 @@
 namespace spatial {
 namespace {
 using Clock = std::chrono::steady_clock;
+int poll_until(pollfd& descriptor, std::chrono::milliseconds timeout) {
+    const auto deadline = Clock::now() + timeout;
+    while (true) {
+        const auto remaining = deadline - Clock::now();
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(remaining).count();
+        if (std::chrono::milliseconds(milliseconds) < remaining) ++milliseconds;
+        const int timeout_ms = milliseconds <= 0 ? 0 : static_cast<int>(milliseconds);
+        const int ready = poll(&descriptor, 1, timeout_ms);
+        if (ready < 0 && errno == EINTR) continue;
+        return ready;
+    }
+}
 std::chrono::seconds request_timeout(const std::string& frame) {
     if (frame.size() < 4) throw std::runtime_error("Truncated protobuf request");
     wire::Request request;
@@ -112,7 +124,6 @@ WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::fil
         _exit(127);
     }
     close(input[0]); close(output[1]);
-    broker_->release_channel();
     if (pid_ < 0) { close(input[1]); close(output[0]); throw std::runtime_error("Cannot fork world authority"); }
     input_ = input[1]; output_ = output[0];
     try {
@@ -126,12 +137,33 @@ WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::fil
 }
 WorldWorker::~WorldWorker() {
     if (input_ >= 0) close(input_);
+    if (!world_stopped_ && pid_ > 0 && pidfd_ >= 0) {
+        pollfd child{pidfd_, POLLIN, 0};
+        const int ready = poll_until(child, std::chrono::seconds(2));
+        if (ready <= 0) kill(pid_, SIGKILL);
+        while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
+    }
+    if (output_ >= 0) close(output_);
+    if (pidfd_ >= 0) close(pidfd_);
+}
+void WorldWorker::finish() {
+    if (world_stopped_ || pid_ <= 0 || pidfd_ < 0 || input_ < 0 || output_ < 0)
+        throw std::logic_error("World worker finish requires a live orderly session");
+    close(input_); input_ = -1;
     pollfd child{pidfd_, POLLIN, 0};
-    int ready;
-    do { ready = poll(&child, 1, 2000); } while (ready < 0 && errno == EINTR);
-    if (ready <= 0) kill(pid_, SIGKILL);
-    while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
-    close(output_); close(pidfd_);
+    const int ready = poll_until(child, std::chrono::seconds(2));
+    if (ready <= 0 || !(child.revents & POLLIN))
+        throw std::runtime_error("World authority did not stop after clean supervisor EOF");
+    int status = 0;
+    pid_t waited;
+    do { waited = waitpid(pid_, &status, 0); } while (waited < 0 && errno == EINTR);
+    if (waited != pid_ || !WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        throw std::runtime_error("World authority failed during clean supervisor shutdown");
+    world_stopped_ = true;
+    pid_ = -1;
+    close(output_); output_ = -1;
+    close(pidfd_); pidfd_ = -1;
+    broker_->finish();
 }
 void WorldWorker::proxy() {
     // The worker inherited blocking stdio before these parent-side flags change.

@@ -14,6 +14,7 @@
 #include <array>
 #include <algorithm>
 #include <cerrno>
+#include <chrono>
 #include <csignal>
 #include <cstring>
 #include <fcntl.h>
@@ -36,6 +37,18 @@
 
 namespace spatial {
 namespace {
+int poll_until(pollfd& descriptor, std::chrono::milliseconds timeout) {
+    const auto deadline = std::chrono::steady_clock::now() + timeout;
+    while (true) {
+        const auto remaining = deadline - std::chrono::steady_clock::now();
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(remaining).count();
+        if (std::chrono::milliseconds(milliseconds) < remaining) ++milliseconds;
+        const int timeout_ms = milliseconds <= 0 ? 0 : static_cast<int>(milliseconds);
+        const int ready = poll(&descriptor, 1, timeout_ms);
+        if (ready < 0 && errno == EINTR) continue;
+        return ready;
+    }
+}
 bool bootstrap_id(const std::string& id) { return !id.empty() && id.size() <= 128 && id.find('\0') == std::string::npos; }
 bool bootstrap_terms(const authority::v1::GrantTerms& terms, const std::string& workspace) {
     try { authority::validate_permissions(terms); }
@@ -398,8 +411,8 @@ void BrokerProcess::release_channel() { if (channel_ >= 0) { close(channel_); ch
 void BrokerProcess::finish() {
     if (!scope_ || channel_ < 0 || stopped_) throw std::logic_error("Broker finish requires retained scope and channel ownership");
     if (shutdown(channel_, SHUT_WR) != 0) throw std::runtime_error("Cannot finish broker management input");
-    pollfd child{pidfd_, POLLIN, 0}; int ready;
-    do { ready = poll(&child, 1, 5000); } while (ready < 0 && errno == EINTR);
+    pollfd child{pidfd_, POLLIN, 0};
+    const int ready = poll_until(child, std::chrono::seconds(5));
     if (ready <= 0 || !scope_->exited_successfully()) throw std::runtime_error("Broker did not exit successfully after management EOF");
     scope_->stop(); stopped_ = true; scope_.reset();
     release_channel(); close(pidfd_); pidfd_ = -1;
@@ -408,8 +421,8 @@ void BrokerProcess::finish() {
 BrokerProcess::~BrokerProcess() {
     if (stopped_) return;
     release_channel();
-    pollfd fd{pidfd_, POLLIN, 0}; int ready;
-    do { ready = poll(&fd, 1, 1000); } while (ready < 0 && errno == EINTR);
+    pollfd fd{pidfd_, POLLIN, 0};
+    const int ready = poll_until(fd, std::chrono::seconds(1));
     if (scope_) {
         // The scope owns reaping and checked descendant cleanup.
         scope_.reset(); close(pidfd_);

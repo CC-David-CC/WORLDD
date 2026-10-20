@@ -1,0 +1,18 @@
+M08 adapter cleanup focused test plan
+Date: 2026-10-20
+Branch: m08/adapter-cleanup-diagnosis-20261019
+
+Purpose
+Validate the retained broker channel and orderly cleanup added to WorldWorker. The change affects supervisor shutdown, broker EOF, process-scope cleanup, and restart behavior.
+
+Selected checks
+1. Build the Debug profile on ROG in an external build directory. Deploy the resulting package to sb16 and sb16-2. Run only the adapter-resources CTest group on each host. This checks clean channel close, broker-tree removal, restart, process cleanup, and abrupt supervisor death retention.
+2. Build the ASan/UBSan profile on ROG in a separate external build directory. Deploy it to sb16 and sb16-2. Run the same adapter-resources group on each host to catch lifetime and process-cleanup errors.
+3. Preserve each host's command, exit status, source pin, package checksum, and concise log summary outside Git.
+
+Acceptance
+Both focused profiles pass on both required hosts. Clean shutdown must remove the retained broker tree. Restart must accept a new application. Abrupt supervisor death must retain the broker-owned tree while stopping the test process descendants. No sanitizer finding is allowed.
+
+The test timeout must exceed the bounded orderly shutdown sequence. Production wait loops must use absolute steady-clock deadlines and must not restart their full timeout after EINTR.
+
+This is a focused test plan. It does not qualify M08 or replace the full M08 phase gate.

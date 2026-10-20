@@ -59,6 +59,17 @@ class AdapterResourceTests(ProcessTests):
         self.assertFalse((state/'execution').exists())
         self.assertIn('Expected owned delegated cgroup v2 directory', next(logs.glob('stderr-*.log')).read_text())
 
+    def test_abrupt_supervisor_death_retains_the_broker_tree(self):
+        process = self.launch("import pathlib,time\npathlib.Path('ready').touch()\nwhile True:time.sleep(.01)")
+        self.until(lambda: (self.project/'ready').exists())
+        root = self.group(self.call('runtime.identities')['workspaced_pid']).parent
+        root_identity = (root.stat().st_dev, root.stat().st_ino)
+        descendants = self.descendants(); self.assertTrue(descendants)
+        self.client.stop(crash=True)
+        self.assertTrue(root.exists())
+        self.assertEqual((root.stat().st_dev, root.stat().st_ino), root_identity)
+        self.until(lambda: self.gone(descendants))
+
     def test_clean_channel_close_removes_the_retained_broker_tree(self):
         process = self.launch("import pathlib,time\npathlib.Path('ready').touch()\nwhile True:time.sleep(.01)")
         self.until(lambda: (self.project/'ready').exists())
@@ -66,7 +77,7 @@ class AdapterResourceTests(ProcessTests):
         root_identity = (root.stat().st_dev, root.stat().st_ino)
         descendants = self.descendants(); self.assertTrue(descendants)
         self.client.proc.stdin.close()
-        self.assertEqual(self.client.proc.wait(timeout=5), 0)
+        self.assertEqual(self.client.proc.wait(timeout=12), 0)
         self.assertFalse(root.exists())
         self.assertTrue(self.gone(descendants))
 
@@ -79,11 +90,13 @@ class AdapterResourceTests(ProcessTests):
         new_root = self.group(self.client.call('runtime.identities')['workspaced_pid']).parent
         self.assertTrue(new_root.exists())
         self.assertNotEqual((new_root.stat().st_dev, new_root.stat().st_ino), root_identity)
+        self.launch("import pathlib,time\npathlib.Path('restarted-ready').touch()\nwhile True:time.sleep(.01)")
+        self.until(lambda: (self.project/'restarted-ready').exists())
         new_descendants = self.descendants(); self.assertTrue(new_descendants)
         self.client.proc.stdin.close()
-        self.assertEqual(self.client.proc.wait(timeout=5), 0)
+        self.assertEqual(self.client.proc.wait(timeout=12), 0)
         self.assertFalse(new_root.exists())
-        self.assertTrue(self.gone(new_descendants))
+        self.until(lambda: self.gone(new_descendants))
 
 
 if __name__ == '__main__':

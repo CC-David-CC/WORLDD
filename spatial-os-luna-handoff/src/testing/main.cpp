@@ -12,6 +12,7 @@ int main(int argc, char** argv) {
         const char* broker_resources = std::getenv("SPATIAL_TEST_BROKER_CONFIG");
         spatial::WorldWorker worker(executable, argv[2], broker_resources ? broker_resources : "");
         worker.proxy();
+        worker.finish();
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "spatial-test-host: " << error.what() << '\n'; return 2;
