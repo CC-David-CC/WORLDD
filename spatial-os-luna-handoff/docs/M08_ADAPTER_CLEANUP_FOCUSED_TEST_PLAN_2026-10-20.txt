@@ -34,3 +34,15 @@ Debug attempt 02 overlay evidence
 The actor-session correction reached all five tests on both hosts. Four passed. The restart case then failed with OPERATION_CONFLICT because it reused the default launch operation ID from the first broker generation. Give the restarted launch a fresh operation ID. The overlay omitted only test adapter imports and used the two unchanged helper modules from the pinned package source.
 
 Logs: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-03 on each host.
+
+Debug attempt 03 overlay evidence
+
+The corrected test passed on both hosts. CTest reported 1/1 passed on each host. The inner adapter suite ran five tests and reported OK. The adapter cgroup scope was removed, no unexpected process population remained, and the transient service returned success.
+
+This used an explicit test-only overlay because the Debug binary package was pinned to commit 74d6b6ea9be43c9231969c870b27e0c3e747b938. The test_adapter_resources.py overlay came from commit 57944047a84cd15c21aaa01ebd8c074b2662af8d, SHA-256 c907222c713f1f46cdd0c2e96fd3c83240d8061565b24d2a40ec66e0e69aaada. The unchanged test_processes.py and test_workspaces.py helpers came from package commit 74d6b6ea9be43c9231969c870b27e0c3e747b938. The package tree stayed unchanged. Only the adapter-resources command path changed in the external CTest stage.
+
+Success logs and overlay manifests:
+- sb16: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-05.
+- sb16-2: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-05.
+
+Next run the same group under ASan/UBSan on both hosts. Neither result qualifies M08. The full M08 gate remains pending.

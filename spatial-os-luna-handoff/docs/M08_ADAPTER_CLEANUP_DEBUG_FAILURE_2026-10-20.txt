@@ -12,3 +12,7 @@ The outer test wrapper also attempted to stop a transient systemd unit after --c
 Follow-up attempt: the test reopened actor a and verified workspace selection one. This resolved the invalid-session error. The next failure was OPERATION_CONFLICT because the restarted process reused the operation ID launch from the first broker generation. A unique restart-after-clean operation ID is now required.
 
 Attempt 02 logs: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-03 on both hosts. Four of five cases passed. No sanitizer or full M08 gate has run.
+
+Final focused Debug result: PASS on sb16 and sb16-2 after reopening the actor session and using a unique operation ID for the restarted process. Each host reported CTest 1/1 passed and the inner unittest suite Ran 5 tests, OK. The adapter scope was removed with no unexpected population. The successful wrapper returned zero; the not-found final systemd unit state is expected after --collect.
+
+The passing run used a test-only overlay from commit 57944047a84cd15c21aaa01ebd8c074b2662af8d with SHA-256 c907222c713f1f46cdd0c2e96fd3c83240d8061565b24d2a40ec66e0e69aaada. The production binary package remains pinned to 74d6b6ea9be43c9231969c870b27e0c3e747b938. See runs/adapter-resources-debug-overlay-05 and runs/adapter-resources-debug-overlay-04 on each host for results and overlay provenance. ASan/UBSan and the full M08 gate remain unrun.
