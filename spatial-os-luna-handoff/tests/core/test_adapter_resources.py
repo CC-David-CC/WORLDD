@@ -92,7 +92,7 @@ class AdapterResourceTests(ProcessTests):
         new_root = self.group(self.client.call('runtime.identities')['workspaced_pid']).parent
         self.assertTrue(new_root.exists())
         self.assertNotEqual((new_root.stat().st_dev, new_root.stat().st_ino), root_identity)
-        self.launch("import pathlib,time\npathlib.Path('restarted-ready').touch()\nwhile True:time.sleep(.01)")
+        self.launch("import pathlib,time\npathlib.Path('restarted-ready').touch()\nwhile True:time.sleep(.01)", operation='restart-after-clean')
         self.until(lambda: (self.project/'restarted-ready').exists())
         new_descendants = self.descendants(); self.assertTrue(new_descendants)
         self.client.proc.stdin.close()

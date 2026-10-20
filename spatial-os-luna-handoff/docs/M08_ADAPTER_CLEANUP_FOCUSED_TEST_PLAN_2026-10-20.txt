@@ -28,3 +28,9 @@ Both logs are external:
 The test closed its first Client, created a new Client, then reused the old actor token. Reopen actor a through the new Client and assert that its workspace selection is still one before launching the restarted application. This checks the intended session renewal and persisted workspace context.
 
 The wrapper also reported that systemd could not stop the transient unit after --collect had already unloaded it. Its final unit query returned not-found, and the adapter wrapper reported scope_removed=true. The CTest failure came from the stale actor token. Recheck wrapper cleanup on the next pass.
+
+Debug attempt 02 overlay evidence
+
+The actor-session correction reached all five tests on both hosts. Four passed. The restart case then failed with OPERATION_CONFLICT because it reused the default launch operation ID from the first broker generation. Give the restarted launch a fresh operation ID. The overlay omitted only test adapter imports and used the two unchanged helper modules from the pinned package source.
+
+Logs: /home/dflanag3/spatial-artifacts/m08-adapter-cleanup-timeout-fix-20261020/runs/adapter-resources-debug-overlay-03 on each host.
