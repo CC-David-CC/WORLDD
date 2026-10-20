@@ -1,3 +1,17 @@
+## 2026-10-20: Reviewed combined M08 repair source prepared for compilation
+
+M01-M07 remain qualified. M08 remains UNQUALIFIED.
+The preserved50b6da5 Debug batches found authority classification and owned broker shutdown defects.
+They also found an umask-dependent key fixture and an obsolete CMake selector check.
+The combined source corrects those issues and adds real broker and native lifetime regressions.
+Primary reviewed the changed production files, fixture callers, and explicit expectation corrections.
+No repaired runtime result or sanitizer pass is claimed.
+Compilation and focused verification remain pending at this source checkpoint.
+Read ../docs/M08_GATE_REPAIR_PROGRESS_2026-10-20.txt for selection, source pins, limits, and next steps.
+Read this current section first. Search historical entries for an exact defect or source pin when needed.
+Keep the original failed deployments and their evidence unchanged.
+M09 source preparation remains separate and unqualified.
+
 ## 2026-10-20: Full M08 Debug gate exposes two revocation-result failures
 
 M01-M07 remain qualified. M08 remains UNQUALIFIED.

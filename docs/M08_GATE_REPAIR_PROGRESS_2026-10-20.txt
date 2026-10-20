@@ -1,0 +1,88 @@
+M08 GATE REPAIR PROGRESS
+Date: 2026-10-20
+Status: REVIEWED SOURCE CANDIDATE; all repaired runtime checks UNRUN.
+
+M01-M07 remain qualified. M08 remains UNQUALIFIED.
+The earlier50b6da5 full Debug batches remain preserved on both test hosts.
+Their logs expose four underlying issues across several registrations:
+- Blanket broker revocation errors confuse live requester permission loss with identity invalidation.
+- The key-directory rejection fixture depended on the inherited umask.
+- Owned unscoped component brokers cannot finish because a ProcessScope was required unconditionally.
+- A storage-profile registration test searches for an obsolete CMake selector.
+Input and protocol cleanup failures share the observed broker-finish error.
+The final old-batch reports must still determine all failed and unrun stages.
+
+Combined reviewed changes
+
+The candidate includes the principal-aware broker fence and typed session identity cancellation.
+It adds five real-broker wire regressions and an authenticated credential-revocation cabinet race.
+It supports checked clean EOF for the existing owned direct-child broker path.
+It preserves strict scoped cleanup and checks actual child exit before success.
+It adds real clean-EOF and owned-broker failure witnesses.
+The key fixture explicitly sets its unsafe permissions and keeps its rejection oracle.
+The storage checker executes the maintained CMake profile selector for both profiles.
+
+Reviewed task checkpoints on box-git:
+- 0ce44a42b65deac82461f9350ac68c028d1ae8fc: authority classification and real regressions.
+- 20d2d3987557f123f0765c6cfdb83ed4731ca9ce: owned broker clean EOF and native witnesses.
+- 95a1e066da9834dfce7eede90bda06271dfed77c: exact key-directory fixture permissions.
+- 75bab63a1f833687504cddabd3e8b2a8d417e4b3: corrected cross-host handoff and profile constraint.
+
+Read M08_REVOCATION_ERROR_CONTRACT_REVIEW_2026-10-20.txt for explicit legacy expectation corrections.
+Read M08_REVOCATION_CLASSIFICATION_REPAIR_2026-10-20.txt for two unforced dispatch windows.
+Those windows are coverage limits. They have no runtime PASS claim.
+Locked acceptance, independent oracles, schemas, production resource budgets, and deadlines remain unchanged.
+M09 is separate at abc3f979f637f2e10232d36a21b658f9e74a4e73 and remains UNQUALIFIED.
+
+Selected focused verification, recorded before execution
+
+Run identity-keys under inherited umasks022 and077 on both hosts and both profiles.
+Keep private helper setup outside each child umask override.
+Require16cases each: eight suite executions and128case executions.
+Do not change process umask inside the multithreaded test process.
+
+Then select these exact registrations with their declared wrappers and environment:
+- workspace-presentation-actor: original scene revocation failure.
+- workspace-actor-cabinet-gateway: original gateway race, requester actor/credential controls, and uncertain effects.
+- workspace-authority: precise fence refusal, fresh independent authority, and real process continuity.
+- broker-issuer-progress: ten registered real wire/progress scenarios.
+- surface-runtime: surface behavior and actual owned world/broker retirement.
+- native-actor-input: native input with successful checked cleanup.
+- core-protocol: valid/error framing with correct process shutdown status.
+- session-storage-device-bindings: both resource profiles and preserved device bindings.
+- application-observation and world-application-control: affected authority and session callers.
+- queued-copy-status-replacement: queued denial identity and payload removal.
+- workspace-file-action-broker: durable effects, copy cancellation, and recovery callers.
+- adapter-resources and workspace-copy-storage-broker-constructor-failures: scoped ownership and startup failure cleanup.
+- host-session-production-native and render-runtime: production scoped lifetime and renderer integration.
+- session-storage-owner, session-storage-contention, and operator-storage: real storage/profile callers.
+
+Run Debug and ASan-UBSan on sb16 and sb16-2 after their current jobs retire.
+Use the full-gate copy-helper wrapper around protected CTest subsets.
+Keep the four self-managed nested copy registrations outside that wrapper.
+Record actual selected registrations, JUnit, method summaries, errors, sanitizers, and cleanup.
+A source or fixture change requires reassessment of affected evidence.
+Focused checks never substitute for the complete M08 local and cross-host gate.
+
+Build and artifact plan
+
+Use ROG for compilation. Test hosts receive artifacts and fixtures only.
+Use the canonical m07_deployed_gate.py prepare entrypoint with the M08 candidate's source.
+Build Debug and ASan-UBSan with BUILD_TESTING=ON and OFF.
+Use new external build paths and two compiler jobs.
+Keep the verified retained XACE runtime manifest and unchanged extension-source pins.
+Bind a newly written manifest to the exact frozen candidate commit.
+Keep the source clean and unchanged while preparation runs.
+Use a unique tmux session and wrapper run directory.
+The new artifact root is /home/dflanag3/spatial-artifacts/m08-gate-repairs-20261020-round01.
+All source, build, launch, and runtime pins will be recorded in its manifests.
+
+Next steps
+
+Compile and package the reviewed frozen source.
+Let both previous core batches finish and audit their final failure lists and cleanup.
+Deploy the successor through direct checked Linux-to-Linux transfers.
+Run focused repairs first, then the related combined matrix.
+Resolve remaining cross-host profile/setup and evidence-collection constraints before its launch.
+Freeze a fully reviewed passing candidate and execute the complete M08 gate.
+Do not claim M08 qualified until both hosts, cross-host matrices, and primary review pass.
