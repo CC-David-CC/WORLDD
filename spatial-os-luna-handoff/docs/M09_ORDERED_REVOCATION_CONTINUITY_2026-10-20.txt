@@ -1,0 +1,25 @@
+# M09 ordered revocation continuity
+
+Status: UNQUALIFIED SOURCE IMPLEMENTATION. Runtime checks remain UNRUN.
+Host: rog-ally-x. Worktree: /home/dflanag3/src/m09-ordered-revocation-continuity-20261020.
+Branch: m09/ordered-revocation-continuity-20261020. Base: b51adf7fdc3f6da8525d39822b908e5aafea23c9.
+Owned files: tests/core/test_world_application_control.py and this note.
+External artifacts: /home/dflanag3/spatial-artifacts/m09-ordered-revocation-continuity-20261020.
+
+## Selected validation
+
+The selected scenarios and assertions were recorded before editing in selected-validation-v02.txt. The strengthened observation-grant case and added actor-identity revocation case hold Shift, a, button 1, and motion. They preserve the existing core-mode probe and its log boundary.
+
+A separate supervisor-authenticated NativeClient selects XI2 events on the probe window. It queries the actual master-device inventory, obtains the probe client pointer for the selected window, and verifies its paired master keyboard before input begins. It checks XISelectEvents through a following reply-bearing request. The bounded event reader validates GenericEvent framing, XI extension opcode, event window, event class, master device, and source device.
+
+The tests first observe the original pointer press and held key presses. They pin each key's source ID and the original pointer source. After revocation, they submit the peer pointer request before waiting for release. They compare XI2 delivery order and require every old key and button release before the peer's first accepted button press. Each old release must retain its pinned master and source identities. The peer event must use the same selected window and a valid pointer master with a distinct source identity; conflicting event attribution fails. The independent confined C probe remains in core mode and supplies separate application input and process-continuity evidence.
+
+The observation case checks that the revoked observer no longer sees the surface and receives FORBIDDEN for control. The actor case checks UNAUTHORIZED for session inspection, observation, and control. The peer retains its independent grants. Both cases require the surface to remain mapped and the original process to answer its sync command.
+
+## Contracts and evidence limits
+
+Production contracts inspected include application control leases, observation authority, actor identity revocation, and the existing raw NativeClient/XI protocol support. Application clients remain denied XInputExtension. The new XI2 observer is a privileged test witness, not application access and not a production API.
+
+XI2 event ordering does not prove complete server focus, grab, or internal down-state cancellation. Focus events and drag motion remain observable proxies. No direct focus/grab/capture query exists in this fixture. That separate native-observer dependency remains incomplete.
+
+No behavior or runtime checks ran on ROG. Fixture, unit, native, Debug, sanitizer, and qualification checks remain UNRUN. sb16 and sb16-2 were not accessed. This checkpoint is unqualified and does not complete M09 or Spatial-M1.

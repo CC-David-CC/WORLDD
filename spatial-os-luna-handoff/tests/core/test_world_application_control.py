@@ -19,6 +19,62 @@ from harness.wire import frame, make_request
 from test_world_identity import receive
 
 
+class NativeXI2Observer:
+    XI_SELECT_EVENTS=46
+    GENERIC_EVENT=35
+    EVENT_NAMES={2:'key',3:'key',4:'button',5:'button',6:'motion'}
+    def __init__(self,client,window,opcode,keyboard,pointer,keyboards,pointers):
+        self.client=client;self.window=window;self.opcode=opcode
+        self.keyboard=keyboard;self.pointer=pointer;self.keyboards=set(keyboards);self.pointers=set(pointers);self.events=[];self.closed=False
+        mask=bytearray(8)
+        for kind in (2,3,4,5,6,9,10):mask[kind//8]|=1<<(kind%8)
+        client.send(opcode,struct.pack('<IHHHH',window,1,0,1,2)+bytes(mask),minor=self.XI_SELECT_EVENTS)
+        client.request(43)
+        client.stream.setblocking(False)
+    def close(self):
+        if not self.closed:self.closed=True;self.client.close()
+    def _exact(self,size,deadline):
+        result=bytearray()
+        while len(result)<size:
+            remaining=deadline-time.monotonic()
+            if remaining<=0 or not select.select([self.client.stream],[],[],remaining)[0]:raise AssertionError('XI2 event deadline expired during packet read')
+            try:chunk=self.client.stream.recv(size-len(result))
+            except BlockingIOError:continue
+            if not chunk:raise AssertionError('XI2 observer connection closed')
+            result.extend(chunk)
+        return bytes(result)
+    def _packet(self,deadline):
+        header=self._exact(32,deadline)
+        if header[0]!=self.GENERIC_EVENT or header[1]!=self.opcode:raise AssertionError('Unexpected XI2 observer packet '+repr(header[:12]))
+        size=struct.unpack_from('<I',header,4)[0]*4
+        if size>65536:raise AssertionError('Excessive XI2 packet')
+        packet=header+self._exact(size,deadline);kind=struct.unpack_from('<H',packet,8)[0]
+        if kind not in self.EVENT_NAMES:return None
+        if len(packet)<56:raise AssertionError('Truncated XI2 device event')
+        window=struct.unpack_from('<I',packet,24)[0];device=struct.unpack_from('<H',packet,10)[0]
+        detail=struct.unpack_from('<I',packet,16)[0]
+        blen,vlen=struct.unpack_from('<HH',packet,48);off=52+4*(blen+vlen)
+        if off+2>len(packet):raise AssertionError('Truncated XI2 source id')
+        source=struct.unpack_from('<H',packet,off)[0]
+        if window!=self.window:raise AssertionError('Wrong XI2 event window')
+        allowed=self.keyboards if kind in (2,3) else self.pointers
+        if device not in allowed or source<=0:raise AssertionError('XI2 event device/source mismatch')
+        return {'kind':self.EVENT_NAMES[kind],'type':kind,'pressed':kind in (2,4),
+                'window':window,'device':device,'source':source,'detail':detail}
+    def drain(self,timeout=.05):
+        end=time.monotonic()+timeout
+        while select.select([self.client.stream],[],[],0)[0]:
+            event=self._packet(end)
+            if event is not None:self.events.append(event)
+        return list(self.events)
+    def read_until(self,predicate,timeout):
+        end=time.monotonic()+timeout
+        while not predicate(self.events):
+            event=self._packet(end)
+            if event is not None:self.events.append(event)
+        return list(self.events)
+
+
 class DirectBroker:
     def __init__(self, broker):self.stream=broker.stream;self.proc=broker.proc
     def close(self):pass
@@ -31,9 +87,10 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
 
     def probe(self,position=(0,0,-2),profile='development'):
         self.probe_number+=1;name='controlled-'+str(self.probe_number)
+        argv=['/project/probe','--id',name]
         code=("import subprocess,time\nfrom pathlib import Path\n"
               "out=open('/state/data/probe.jsonl','w')\n"
-              f"p=subprocess.Popen(['/project/probe','--id',{name!r}],stdin=subprocess.PIPE,stdout=out,stderr=out)\n"
+              f"p=subprocess.Popen({argv!r},stdin=subprocess.PIPE,stdout=out,stderr=out)\n"
               "sent=0\n"
               "while not Path('/state/data/release').exists():\n"
               " if p.poll() is not None:raise SystemExit(p.returncode or 1)\n"
@@ -164,7 +221,83 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertTrue(released_indexes,tail)
         return max(released_indexes)
 
-    def m09_peer_first_native_event(self,app,peer,before,codes,x=0,z=-1,aim=True):
+    def m09_start_xi2_observer(self,app):
+        ready=next(r for r in self.probe_events(app) if r.get('event')=='ready')
+        window=ready['xid'];self.assertGreater(window,0)
+        client=self.native.connect(self.native.cookie);name=b'XInputExtension'
+        ext,_=client.request(98,struct.pack('<HH',len(name),0)+name);self.assertTrue(ext[8])
+        opcode=ext[9];root=self.native.supervisor
+        info_head,info=root.request(opcode,struct.pack('<HH',1,0),minor=48)
+        self.assertTrue(info_head[8])
+        count=struct.unpack_from('<H',info_head,8)[0];devices={}
+        offset=0
+        for _ in range(count):
+            device,use,attachment,classes,nlen,enabled=struct.unpack_from('<HHHHHBB',info,offset)
+            devices[device]=(use,attachment);offset+=12+nlen+((-nlen)%4)
+            for _class in range(classes):
+                class_len=struct.unpack_from('<H',info,offset+2)[0]
+                if class_len<2:raise AssertionError('Invalid XIQueryDevice class length')
+                offset+=class_len*4
+        pointer=self.native_device(app)
+        self.assertEqual(devices.get(pointer,(None,None))[0],1,devices)
+        keyboards=[d for d,(use,attachment) in devices.items() if use==2 and attachment in [pid for pid,(kind,_) in devices.items() if kind==1]]
+        pointers=[d for d,(use,_) in devices.items() if use==1]
+        paired=[d for d,(use,attachment) in devices.items() if use==2 and attachment==pointer]
+        self.assertEqual(len(paired),1,devices)
+        keyboard=paired[0]
+        observer=NativeXI2Observer(client,window,opcode,keyboard,pointer,keyboards,pointers)
+        return observer,{'window':window,'keyboard':keyboard,'pointer':pointer,'keyboards':keyboards,'pointers':pointers}
+    def m09_begin_observed_control(self):
+        self.setup_world();app,surface=self.probe()
+        observe,control=self.grant_control(app)
+        self.actor_aim();observer,attribution=self.m09_start_xi2_observer(app)
+        self.addCleanup(observer.close);self.addCleanup(self.m09_release_probe,app)
+        self.actor_pointer(True)
+        self.until(lambda:self.probe_events(app),lambda rows:any(r.get('event')=='button' and r.get('pressed') for r in rows))
+        initial=observer.read_until(lambda es:any(e['kind']=='button' and e['pressed'] and e['detail']==1 for e in es),3.0)
+        presses=[e for e in initial if e['kind']=='button' and e['pressed'] and e['detail']==1]
+        self.assertTrue(presses)
+        self.assertTrue(all(e['device']==attribution['pointer'] and e['window']==attribution['window'] for e in presses),presses)
+        attribution['pointer_source']=presses[-1]['source'];return app,surface,observe,control,observer,attribution
+    def m09_wait_xi2_key_presses(self,observer,codes,attribution):
+        events=observer.read_until(lambda:
+            {e['detail'] for e in observer.events if e['kind']=='key' and e['pressed']}>=codes,3.0)
+        presses=[e for e in events if e['kind']=='key' and e['pressed'] and e['detail'] in codes]
+        self.assertEqual({e['detail'] for e in presses},codes,presses)
+        sources={}
+        for event in presses:
+            self.assertEqual(event['device'],attribution['keyboard'])
+            self.assertEqual(event['window'],attribution['window'])
+            sources.setdefault(event['detail'],set()).add(event['source'])
+        self.assertTrue(all(len(v)==1 and next(iter(v))>0 for v in sources.values()),presses)
+        attribution['key_sources']={key:next(iter(value)) for key,value in sources.items()}
+        attribution['boundary']=len(events)
+    def m09_assert_xi2_order(self,observer,attribution,events,codes):
+        tail=events[attribution['boundary']:]
+        releases=[e for e in tail if (e['kind']=='key' and not e['pressed'] and e['detail'] in codes) or
+                  (e['kind']=='button' and not e['pressed'] and e['detail']==1)]
+        peer=[e for e in tail if e['kind']=='button' and e['pressed'] and e['detail']==1]
+        self.assertTrue(releases,tail);self.assertTrue(peer,tail);first_peer=tail.index(peer[0])
+        self.assertTrue(all(tail.index(e)<first_peer for e in releases),tail)
+        observed={}
+        for event in releases:
+            self.assertEqual(event['window'],attribution['window'])
+            if event['kind']=='key':
+                self.assertEqual(event['device'],attribution['keyboard'])
+                observed.setdefault(event['detail'],set()).add(event['source'])
+            else:
+                self.assertEqual(event['device'],attribution['pointer'])
+                self.assertEqual(event['source'],attribution['pointer_source'])
+        self.assertEqual(set(observed),codes,tail)
+        for key,sources in observed.items():self.assertEqual(sources,{attribution['key_sources'][key]},tail)
+        event=peer[0]
+        self.assertEqual(event['window'],attribution['window'])
+        self.assertIn(event['device'],attribution['pointers'])
+        self.assertNotEqual(event['device'],attribution['pointer'])
+        self.assertGreater(event['source'],0)
+        self.assertNotEqual(event['source'],attribution['pointer_source'])
+
+    def m09_peer_first_native_event(self,app,peer,before,codes,x=0,z=-1,aim=True,observer=None,attribution=None):
         if aim:self.actor_aim(peer,x=x,z=z)
         result=peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
         if result.HasField('error'):
@@ -186,6 +319,9 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertTrue(any(rows[index].get('event')=='button' for index in releases),rows[before:])
         self.assertTrue(any(rows[index].get('event')=='focus' for index in releases),rows[before:])
         self.assertTrue(all(index<peer_press for index in releases),rows[before:])
+        if observer is not None:
+            observed=observer.read_until(lambda es:any(e['kind']=='button' and e['pressed'] and e['detail']==1 for e in es[attribution['boundary']:]),timeout=3.0)
+            self.m09_assert_xi2_order(observer,attribution,observed,codes)
         self.send_key_event('b',True,peer);self.send_key_event('b',False,peer);self.actor_pointer(False,peer)
         rows=self.until(lambda:self.probe_events(app),lambda rows:
             any(r.get('event')=='key' and r.get('pressed') and r.get('text_hex')=='62' for r in rows[before:]))
@@ -405,18 +541,34 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons);self.assertFalse(state.HasField('focus'))
 
     def test_m09_observation_revocation_balances_input_before_peer_event(self):
-        app,surface,observe,control=self.begin_control()
-        self.addCleanup(self.m09_release_probe,app)
+        app,surface,observe,control,observer,attribution=self.m09_begin_observed_control()
         before,codes=self.m09_hold_native_input(app)
+        self.m09_wait_xi2_key_presses(observer,codes,attribution)
         self.actor_aim(self.peer)
         log_boundary=len(self.probe_events(app))
         self.revoke_grant(self.peer,observe)
-        self.m09_peer_first_native_event(app,self.peer,log_boundary,codes,aim=False)
+        self.m09_peer_first_native_event(app,self.peer,log_boundary,codes,aim=False,observer=observer,attribution=attribution)
         self.m09_assert_native_release(app,before,codes,inspect=False)
         self.assertNotIn(surface['id'],self.visible(self.viewer))
         self.assertIn(surface['id'],self.visible(self.peer))
+        self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.FORBIDDEN)
         self.assertTrue(self.world_process.management('surface.get',id=surface['id'])['mapped'])
         self.probe_command(app,'sync') # Observation loss leaves the application process running.
+
+    def test_m09_actor_revocation_balances_input_before_peer_event(self):
+        app,surface,observe,control,observer,attribution=self.m09_begin_observed_control()
+        before,codes=self.m09_hold_native_input(app)
+        self.m09_wait_xi2_key_presses(observer,codes,attribution)
+        self.actor_aim(self.peer)
+        log_boundary=len(self.probe_events(app))
+        self.revoke_viewer_identity(issuer.ACTOR_TARGET)
+        self.m09_peer_first_native_event(app,self.peer,log_boundary,codes,aim=False,observer=observer,attribution=attribution)
+        self.m09_assert_native_release(app,before,codes,inspect=False)
+        self.denied(self.viewer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
+        self.denied(self.viewer.act(observe=core.ActorObserveRequest(width=128,height=128)),core.UNAUTHORIZED)
+        self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.UNAUTHORIZED)
+        self.assertTrue(self.world_process.management('surface.get',id=surface['id'])['mapped'])
+        self.probe_command(app,'sync') # Actor revocation leaves valid application execution running.
 
     def revoke_viewer_identity(self,kind):
         target=self.second.actor_id if kind==issuer.ACTOR_TARGET else self.second.credential_id
