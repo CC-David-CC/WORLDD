@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 import signal
+import select
 import sys
 import tempfile
 import time
@@ -532,6 +533,45 @@ class SurfaceRuntimeTests(unittest.TestCase):
         self.assertNotIn('Sanitizer', stderr)
         self.assertNotIn('runtime error:', stderr)
         probe.command('paint', 17, 53, 91)  # The independent application remains usable.
+
+    def owned_runtime_handles(self):
+        identities = self.call('runtime.identities')
+        handles = {}
+        for name in ('worldd_pid', 'workspaced_pid'):
+            self.assertGreater(identities[name], 1)
+            handle = os.pidfd_open(identities[name])
+            self.addCleanup(os.close, handle)
+            handles[name] = handle
+        return handles
+
+    def assert_owned_runtime_exited(self, handles):
+        poller = select.poll()
+        for handle in handles.values():
+            poller.register(handle, select.POLLIN)
+        ready = dict(poller.poll(1000))
+        self.assertEqual(set(ready), set(handles.values()),
+                         'world and broker process handles must both report exit')
+        for events in ready.values():
+            self.assertTrue(events & select.POLLIN, ready)
+            self.assertFalse(events & (select.POLLERR | select.POLLNVAL), ready)
+
+    def test_owned_world_and_broker_exit_cleanly_after_supervisor_eof(self):
+        self.start()
+        handles = self.owned_runtime_handles()
+        self.client.proc.stdin.close()
+        self.assertEqual(self.client.proc.wait(timeout=8), 0)
+        self.assert_owned_runtime_exited(handles)
+
+    def test_owned_broker_failure_is_not_successful_supervisor_eof(self):
+        self.start()
+        handles = self.owned_runtime_handles()
+        signal.pidfd_send_signal(handles['workspaced_pid'], signal.SIGKILL)
+        self.client.proc.stdin.close()
+        self.assertEqual(self.client.proc.wait(timeout=8), 2)
+        self.assert_owned_runtime_exited(handles)
+        logs = list((self.root / 'logs').glob('stderr-*.log'))
+        self.assertEqual(len(logs), 1)
+        self.assertIn('spatial-test-host:', logs[0].read_text())
 
 
 if __name__ == '__main__':

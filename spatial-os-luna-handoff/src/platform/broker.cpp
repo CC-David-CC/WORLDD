@@ -409,12 +409,42 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
 }
 void BrokerProcess::release_channel() { if (channel_ >= 0) { close(channel_); channel_ = -1; } }
 void BrokerProcess::finish() {
-    if (!scope_ || channel_ < 0 || stopped_) throw std::logic_error("Broker finish requires retained scope and channel ownership");
+    if (stopped_ || channel_ < 0 || pidfd_ < 0 || pid_ <= 1 ||
+        (scope_ && scope_->direct_child_pid() != pid_))
+        throw std::logic_error("Broker finish requires live owned process and channel handles");
     if (shutdown(channel_, SHUT_WR) != 0) throw std::runtime_error("Cannot finish broker management input");
     pollfd child{pidfd_, POLLIN, 0};
     const int ready = poll_until(child, std::chrono::seconds(5));
-    if (ready <= 0 || !scope_->exited_successfully()) throw std::runtime_error("Broker did not exit successfully after management EOF");
-    scope_->stop(); stopped_ = true; scope_.reset();
+    if (ready <= 0 || !(child.revents & POLLIN))
+        throw std::runtime_error("Broker did not exit after management EOF");
+    if (scope_) {
+        if (!scope_->exited_successfully())
+            throw std::runtime_error("Scoped broker failed after management EOF");
+        scope_->stop();
+        scope_.reset();
+    } else {
+        int status = 0;
+        pid_t waited;
+        do { waited = waitpid(pid_, &status, 0); } while (waited < 0 && errno == EINTR);
+        if (waited != pid_) {
+            // The child handle is no longer safely reapable. Retire local handles
+            // so destruction cannot signal a numeric PID that may have been reused.
+            stopped_ = true;
+            pid_ = -1;
+            release_channel();
+            close(pidfd_); pidfd_ = -1;
+            throw std::runtime_error("Cannot reap owned broker child after management EOF");
+        }
+        stopped_ = true;
+        pid_ = -1;
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+            release_channel();
+            close(pidfd_); pidfd_ = -1;
+            throw std::runtime_error("Owned broker failed after management EOF");
+        }
+    }
+    stopped_ = true;
+    pid_ = -1;
     release_channel(); close(pidfd_); pidfd_ = -1;
     if (storage_) storage_->stop();
 }
@@ -432,8 +462,15 @@ BrokerProcess::~BrokerProcess() {
         }
         return;
     }
-    if (ready <= 0) kill(pid_, SIGKILL);
-    while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
+    if (pid_ > 1 && ready <= 0) {
+        // An unreaped direct child still owns this PID. Signal through its pinned
+        // pidfd so a later numeric-PID reuse cannot receive cleanup signals.
+        if (pidfd_ >= 0) syscall(SYS_pidfd_send_signal, pidfd_, SIGKILL, nullptr, 0);
+    }
+    if (pid_ > 1) {
+        int status = 0;
+        while (waitpid(pid_, &status, 0) < 0 && errno == EINTR) {}
+    }
     close(pidfd_);
 }
 BrokerClient::BrokerClient(int inherited_channel, pid_t pid) : BrokerClient(inherited_channel, pid, -1, false) {}

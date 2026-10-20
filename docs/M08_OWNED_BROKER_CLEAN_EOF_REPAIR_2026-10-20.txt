@@ -1,0 +1,78 @@
+M08 owned broker clean EOF repair
+Date: 2026-10-20
+Branch: m08/owned-broker-clean-eof-20261020
+Base: 50b6da599a135cc823a547b5845564a5ddc66f8f
+Status: source-only primary review; runtime UNRUN; M08 remains unqualified.
+
+Observed failure and contract
+The frozen surface-runtime registration has 21 cleanup failures on each test host.
+The functional assertions reach cleanup, then spatial-test-host exits 2.
+Its stderr says Broker finish requires retained scope and channel ownership.
+The CMake registration supplies no SPATIAL_TEST_BROKER_CONFIG value.
+WorldWorker owns that component broker through the documented empty-config path.
+That path owns a forked workspaced child, management socket, and pidfd.
+It has no ProcessScope because it has no delegated resource configuration.
+WorldWorker requests broker finish after the world exits.
+The old scope-only guard threw before it could half-close the broker channel.
+The failure is missing support for this valid owned child path.
+The 21 existing cleanup exit-zero assertions remain unchanged.
+
+Changed behavior
+BrokerProcess::finish now validates the retained channel, pidfd, PID, and scoped child identity.
+It half-closes management input and polls the pinned pidfd for the existing five-second bound.
+For a ProcessScope launch, it still verifies successful child exit and calls strict scope stop.
+ProcessScope stop retains its checked descendant drain, cleanup callback, and scope removal.
+For an owned direct fork, finish calls waitpid on the exact unreaped child.
+It accepts only WIFEXITED with status zero, then closes its channel and pidfd once.
+Nonzero exit, signal exit, timeout, poll failure, invalid ownership, and repeat finish throw.
+If direct-child reaping fails, finish retires local identifiers before throwing.
+That prevents destruction from signaling a potentially reused numeric PID.
+The direct-child destructor now signals through the retained pidfd before reaping.
+The scoped destructor continues to delegate reaping and descendant cleanup to ProcessScope.
+Storage-owner stop remains after successful process retirement on the scoped path.
+
+Call-site classification
+The empty-config BrokerProcess path is used by WorldWorker in spatial-test-host.
+The surface-runtime CTest registration starts this component-test host without broker config.
+Production session and storage-owner launches supply a resource configuration.
+Those retain ProcessScope, resource policy, storage ownership, and strict cleanup.
+The direct path adds no production confinement bypass or launch flag.
+No actor routing, deadline, schema, CMake, or acceptance contract changed.
+
+Regression and selected runtime
+Added unittest selector:
+SurfaceRuntimeTests.test_owned_world_and_broker_exit_cleanly_after_supervisor_eof
+It captures pidfds for worldd and workspaced, closes the supervisor input, requires host exit zero,
+then requires both kernel process handles to become readable as exited.
+The pre-existing 21 cleanup exit-zero assertions are unchanged.
+Primary added test_owned_broker_failure_is_not_successful_supervisor_eof.
+It kills only the pinned owned broker, requires controlled host exit2, and checks both child pidfds.
+This witnesses end-to-end child failure propagation, not every low-level finish error branch.
+The positive test now registers each descriptor cleanup immediately.
+Both tests require POLLIN and reject invalid/error descriptor events.
+
+After full-gate retirement, run the surface-runtime CTest registration in Debug and ASan/UBSan
+on sb16 and sb16-2. Also select adapter-resources, workspace-copy-storage-broker-constructor-failures,
+host-session-production-native, render-runtime, and application-observation on both hosts.
+These cover scoped storage/broker launch, host-session cleanup, rendering, and observation callers.
+The full gates remain live and frozen. This assignment ran no build, test, native probe, or host access.
+
+Affected binary targets
+platform/broker.cpp is compiled into spatial-core and linked into worldd,
+workspaced, spatial-test-host, and spatial-storage-broker-launch-probe.
+The test source is consumed by the existing surface-runtime CTest registration.
+platform/worker.cpp, CMake, schemas, and generated files were not changed.
+
+Source review and limits
+AST/diff review must cover broker.cpp, broker.hpp, and test_surfaces.py.
+The direct success path has one waitpid and closes the retained descriptors once.
+The direct failure path never reports success and avoids a post-reap PID signal.
+The scoped path preserves ProcessScope's pinned identity and checked stop behavior.
+The destructor's one-second observation and the five-second finish bound are unchanged.
+No runtime result, sanitizer result, or binary behavior is established by source presence.
+Required Debug and ASan/UBSan runtime evidence on both hosts remains UNRUN.
+
+Primary review accepted the bounded owned-child finish correction for compilation.
+The handoff was moved to the assigned root docs path after the worker retired.
+All changed production code and test assertions were reviewed.
+Both new tests remain runtime UNRUN. Low-level forced timeout/reap-error coverage remains pending.

@@ -26,7 +26,7 @@ public:
     int channel() const { return channel_; }
     pid_t pid() const { return pid_; }
     void release_channel();
-    // Half-close management, verify the actual child's successful exit, then stop owned scopes.
+    // Half-close management and verify/reap the owned child. Scoped launches also drain the scope.
     void finish();
 private:
     // Destroy the scope before releasing the startup lock if construction unwinds.
