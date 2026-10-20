@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 import unittest
+from unittest.mock import patch
 from google.protobuf import text_format
 import core_pb2 as core
 import issuer_pb2 as pb
@@ -30,7 +31,8 @@ def receive(read, ready, message):
     def exact(size):
         data = b''
         while len(data) < size:
-            if not select.select([ready], [], [], max(0,deadline-time.monotonic()))[0]:
+            remaining = deadline-time.monotonic()
+            if remaining <= 0 or not select.select([ready], [], [], remaining)[0]:
                 raise AssertionError('World response deadline expired')
             try:
                 part = read(size-len(data))
@@ -69,8 +71,10 @@ class WorldProcess:
         if fixture_faults: command+=['--fixture-faults']
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
         workspace_channel = None; workspace_channel_owned = False; self.broker_channel = None
+        self.broker_workspace_fd = None
         if broker:
             workspace_channel, self.broker_channel, workspace_channel_owned = self.workspace_channel(broker)
+            self.broker_workspace_fd = workspace_channel.fileno()
             command += ['--workspace-fd', str(workspace_channel.fileno()), '--workspace-pid',
                         str(getattr(broker, 'pid', broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
@@ -600,6 +604,31 @@ class ReceiveTests(unittest.TestCase):
         reply = receive(read, reader, session.WorldSessionReply)
         self.assertEqual(reply, session.WorldSessionReply())
         self.assertEqual(reads, 2)
+
+    def test_receive_repeated_would_block_stops_at_absolute_deadline(self):
+        reader, writer = socket.socketpair()
+        self.addCleanup(reader.close)
+        self.addCleanup(writer.close)
+        clock = [0.0]
+        attempts = []
+
+        def monotonic():
+            value = clock[0]
+            clock[0] += 1.0
+            return value
+
+        def always_ready(*_args):
+            return ([reader], [], [])
+
+        def would_block(_size):
+            attempts.append(None)
+            raise BlockingIOError(11, 'simulated repeated readiness race')
+
+        with patch.object(time, 'monotonic', side_effect=monotonic), \
+             patch.object(select, 'select', side_effect=always_ready):
+            with self.assertRaisesRegex(AssertionError, 'World response deadline expired'):
+                receive(would_block, reader, session.WorldSessionReply)
+        self.assertEqual(len(attempts), 4)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

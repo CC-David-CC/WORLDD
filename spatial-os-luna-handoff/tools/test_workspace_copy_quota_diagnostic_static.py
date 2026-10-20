@@ -46,7 +46,7 @@ class QuotaDiagnosticStaticTests(unittest.TestCase):
     def test_diagnostic_labels_and_loader_cannot_be_a_gate_pass(self):
         module=ast.parse(RUNNER.read_text());main=next(node for node in module.body if isinstance(node,ast.FunctionDef) and node.name=='main')
         defaults=constants(main.body)
-        self.assertEqual(defaults['fixture_class'],'WorkspaceCopyEngineTests');self.assertEqual(defaults['fixture_count'],13)
+        self.assertEqual(defaults['fixture_class'],'WorkspaceCopyEngineTests');self.assertEqual(defaults['fixture_count'],14)
         self.assertEqual(defaults['completed_status'],'focused-pass')
         diagnostic=next(node for node in main.body if isinstance(node,ast.If) and ast.unparse(node.test)=='fixture_spec is not None')
         selected=constants(diagnostic.body)
@@ -66,7 +66,7 @@ class QuotaDiagnosticStaticTests(unittest.TestCase):
         self.assertEqual(insertion.value.elts[2].left.value,'SPATIAL_COPY_QUOTA_DIAGNOSTIC_MODE=')
         normal=loader_methods(SOURCE/'tests/core/test_workspace_copy_engine.py')
         separate=loader_methods(SOURCE/'tests/core/diagnose_workspace_copy_quota.py')
-        self.assertEqual(len(normal),13);self.assertEqual(len(set(normal)),13);self.assertNotIn(CONTROL,normal)
+        self.assertEqual(len(normal),14);self.assertEqual(len(set(normal)),14);self.assertNotIn(CONTROL,normal)
         self.assertEqual(set(separate),{CONTROL,POSITIVE,NEGATIVE});self.assertEqual(len(separate),3)
         self.assertIn(NEGATIVE,normal)
         self.assertEqual(selected['fixture_count'],3)

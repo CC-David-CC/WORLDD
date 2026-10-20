@@ -26,6 +26,7 @@ import copy_pb2 as copy
 import grants_pb2 as grants
 import issuer_pb2 as issuer
 import storage_pb2 as storage
+import fcntl
 from harness.git_fixture import GitRepo
 from harness.resource_broker import ResourceBroker, resource_environment, supervised_test_launch
 from harness.issuer_progress import IssuerLifetimeWitness
@@ -83,7 +84,8 @@ class StorageBrokerProcess(fixtures.BrokerProcess):
                 sys.executable,'-B','-c',code,*owner_command],
                 stdin=owner_end,stdout=subprocess.DEVNULL,stderr=self.storage_log)
             owner_end.close()
-            self.initialize_transport(world_channel_opt_in=False)
+            self.initialize_transport(world_channel_opt_in=True)
+            self.management_flags_at_transport_init=fcntl.fcntl(self.stream.fileno(),fcntl.F_GETFL)
             fixture.brokers.append(self)
         except BaseException as error:
             cleanup_errors=[]
@@ -148,6 +150,21 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         result=subprocess.run(['sudo','-n',*map(str,command)],capture_output=True,timeout=90)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
         return result.stdout
+    def test_storage_broker_world_uses_private_reply_channel(self):
+        world=self.workspace()
+        peer=world.peers[0]
+        self.assertIsInstance(self.broker,StorageBrokerProcess)
+        self.assertEqual(self.broker.management_flags_at_transport_init & os.O_NONBLOCK,0,
+            'Parent management socket was nonblocking before world startup')
+        self.assertEqual(fcntl.fcntl(self.broker.stream.fileno(),fcntl.F_GETFL) & os.O_NONBLOCK,0,
+            'World startup changed the parent management socket to nonblocking')
+        descriptor=world.broker_workspace_fd
+        with open(f'/proc/{world.proc.pid}/fdinfo/{descriptor}') as info:
+            child_flags=int(next(line.split()[1] for line in info if line.startswith('flags:')),8)
+        self.assertNotEqual(child_flags & os.O_NONBLOCK,0,
+            'worldd did not receive its own nonblocking broker endpoint')
+        self.select(peer)
+        self.assertTrue(self.broker.call('system.hello')['protocol'])
     def setUp(self):
         super().setUp()
         self.assertIn(socket.gethostname().split('.')[0],('sb16','sb16-2'))
@@ -1230,6 +1247,7 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
 
 def load_tests(loader,tests,pattern):
     return unittest.TestSuite(WorkspaceCopyEngineTests(name) for name in (
+        'test_storage_broker_world_uses_private_reply_channel',
         'test_begin_rejects_storage_id_filename_read_before_requested',
         'test_begin_root_read_reaches_durable_requested_and_exact_retry',
         'test_actor_copy_publishes_independent_dirty_git_and_preserves_source_process',

@@ -55,7 +55,7 @@ def main(*,fixture_spec=None):
     evidence=(Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])/('workspace-copy-engine-'+uuid.uuid4().hex)).resolve() if sys.argv[3]=='--evidence-from-env' else Path(sys.argv[3]).resolve()
     selected_case=sys.argv[4] if len(sys.argv)==5 else None
     fixture_name='test_workspace_copy_engine.py';discovery_name='inspect_workspace_copy_fixture.py'
-    fixture_class='WorkspaceCopyEngineTests';fixture_count=13;qualification='UNQUALIFIED'
+    fixture_class='WorkspaceCopyEngineTests';fixture_count=14;qualification='UNQUALIFIED'
     completed_status='focused-pass';runtime_bound=960
     if fixture_spec is not None:
         assert set(fixture_spec)=={'fixture','discovery','class','mode','runtime_bound'}
