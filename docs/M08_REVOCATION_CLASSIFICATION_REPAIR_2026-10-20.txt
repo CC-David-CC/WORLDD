@@ -1,0 +1,236 @@
+M08 REVOCATION RESULT CLASSIFICATION REPAIR
+Date: 2026-10-20
+Status: SOURCE INCREMENT FOR PRIMARY REVIEW. Runtime UNRUN. Qualification UNQUALIFIED.
+Coverage remains INCOMPLETE for the dispatch windows listed below.
+
+SOURCE PIN AND SCOPE
+
+Host assignment: ROG only. No remote host was contacted.
+Checkout: /home/dflanag3/src/m08-revocation-result-repair-20261020
+Branch: m08/revocation-result-repair-20261020
+Base and HEAD: 50b6da599a135cc823a547b5845564a5ddc66f8f
+The patch remains uncommitted. This handoff owns the seven source paths listed below.
+This document is the eighth owned path.
+No other files were changed.
+No builds, tests, runtime probes, cleanup, commits, pushes, or other agents ran.
+The live full M08 test batches and their frozen deployments remain untouched.
+No launcher-owned receipt was created.
+
+PRODUCTION REVIEW
+
+main.cpp::revocation_result retains the conservative cancellation fence.
+It clears successful stale replies and preserves protocol version and request ID.
+It classifies the request's typed principal from the broker envelope.
+Active cached actors receive FORBIDDEN after cancellation.
+Explicitly revoked cached actors receive UNAUTHORIZED.
+Unknown actors and broken, closing, or unready authority receive UNAVAILABLE.
+An issuer mismatch also fails closed as UNAVAILABLE at this replacement boundary.
+Ordinary validation and domain errors remain unchanged because existing error replies bypass replacement.
+The cache query does not fetch status, grant authority, retry, or replay an effect.
+
+Covered principal envelopes are access, launch, grants, delegate, revoke, scoped_authority_check,
+authorization_fence, application_access, control_acquire, workspace_copy_begin, workspace_copy_status,
+bootstrap_bind, bootstrap_revoke, and bootstrap_apply.
+Management, control_release, and file_action retain their original exceptions.
+No schema, CMake, resource policy, deadline, transport wrapper, or XLibre code changed.
+
+WorkspaceAuthority::requester_state reads existing ready/broken/closing, issuer, revoked, and active state.
+prepare_subjects validates real actor-status replies and populates the active cache.
+poll_authority records explicit actor revocations and increments cancellation_sequence for every revocation.
+fail also increments that sequence and invalidates cached activity.
+A sequence change alone does not identify a revoked requester.
+ActorRef identifies an issuer and actor. It does not identify a credential.
+An active actor cache entry cannot certify credential validity.
+
+IdentitySessions::poll_authority checks authenticated session claims against actor and credential revocations.
+Its disconnect call now records typed identity_revocation provenance.
+The existing diagnostic string remains unchanged.
+pump resets provenance immediately before each dispatch, preventing leakage across channel reuse.
+Nested ordinary cancellation cannot erase identity provenance during that dispatch.
+Identity cancellation overrides a successful reply or an authentication/permission error with UNAUTHORIZED.
+It preserves other domain error codes, including UNAVAILABLE and storage failures.
+The previous patch overwrote every domain error; this increment narrows that behavior.
+The generation comparison still gates replacement.
+Closed replies, self-revocation receipts, queued copy-status handling, and cancellation failures retain their guards.
+No cancellation changes execution authority or automatically terminates an independently authorized application.
+
+FileActionError and core.ErrorCode remain separate types.
+The shared classifier still excludes file_action replies.
+The existing file engine retains uncertain-effect journaling and no-replay behavior.
+World cancellation still clears invalidated success payloads, as before this repair.
+Post-effect UNCERTAIN and journal identity require their existing runtime gates.
+
+CORRECTED REQUESTER IDENTITY
+
+The presentation failure revokes self.identity while requesting as separately enrolled self.second.
+It is ancestor authority loss, not requester self-revocation.
+The original cabinet failure also revokes a separate ancestor.
+Their existing rejection expectations remain unchanged.
+The existing requester ACTOR_TARGET race retains its helper default and all original assertions.
+The additive CREDENTIAL_TARGET variant uses the same real issuer, world watch, broker watch, and actor path.
+It asserts UNAUTHORIZED, no file creation, and subsequent session denial.
+Both requester variants also check reply identity and an error-only outcome.
+
+IMPLEMENTED NEW REAL-BROKER SELECTORS
+
+Module: spatial-os-luna-handoff/tests/core/test_broker_issuer_progress.py
+All five selectors are explicitly registered in load_tests.
+The five original progress selectors remain registered without changed expectations.
+
+1. BrokerRevocationReplyTests.test_root_scoped_reply_unrelated_revocation_is_forbidden_then_fresh_authority_works
+Revoke the second actor's credential while the first actor's scoped request is dispatched.
+Require FORBIDDEN and no successful payload after watcher consumption.
+Require a fresh request with the first actor's independent authority to succeed.
+Old source should fail the FORBIDDEN assertion by returning blanket UNAUTHORIZED.
+
+2. BrokerRevocationReplyTests.test_root_scoped_reply_ancestor_revocation_preserves_independent_authority
+Give the second actor an independent root and a real grant delegated by the first actor.
+Revoke the first actor during the second actor's scoped request.
+Require FORBIDDEN, followed by successful use of the independent root.
+Old source should fail the FORBIDDEN assertion.
+The original cabinet and presentation cases still cover actual dependent-authority loss without this independent root.
+
+3. BrokerRevocationReplyTests.test_root_scoped_reply_requester_actor_revocation_is_unauthorized
+Revoke the second actor during its own scoped request.
+Require UNAUTHORIZED and no successful payload in that raced reply.
+Require fresh independent first-actor authority to remain usable.
+A fresh scoped query for the revoked actor returns an allowed=false decision under the existing scoped-check contract.
+This control should pass old source too. It guards against blanket conversion to FORBIDDEN.
+
+4. BrokerRevocationReplyTests.test_root_scoped_reply_actual_issuer_loss_after_dispatch_is_unavailable
+Stop the real owned issuer daemons only after decoding the dispatched actor-status request.
+Require confirmed daemon exit, matching reply identity, UNAVAILABLE, and no success payload.
+Require a fresh query to remain UNAVAILABLE.
+Retain exit2 and the unresolved participant-release diagnostic from real broker shutdown.
+This is an issuer-failure control that should also pass old source.
+It does not claim the unavailable branch replaced an otherwise-completed successful reply.
+
+5. BrokerPrivateRevocationReplyTests.test_private_application_access_reply_unrelated_revocation_suppresses_payload
+Use the existing real OwnedBroker and registered private ControlOwner channel.
+Revoke an unrelated actor during the owner's dispatched application_access request.
+Require FORBIDDEN with no application decisions, fence, or other success payload.
+Require fresh application_access to return observe=true and control=true on the same channel.
+Require the owner channel to remain unfenced.
+Retain the real payload PID, start ticks, argv, and successful process completion.
+Old source should fail the FORBIDDEN assertion.
+This fixture remains a configured coordinator component, not independent native input or cleanup evidence.
+
+RACE PROOF AND PAYLOAD ASSERTIONS
+
+These cases do not submit an ordinary request behind delayed idle INFO.
+RelayingIssuer triggers only after decoding a real actor_status request from the production broker.
+It invokes the revocation callback before forwarding that request to the real issuer.
+The callback waits for the broker's existing revocation_received diagnostic at the exact revision.
+The diagnostic must match the broker PID, role, target revision, and consumed revision.
+It also requires the real watcher relay's delivered flag.
+The observer callback validates the request actor ID and real actor-status reply.
+The status query therefore returns a current checked snapshot after cancellation, not a fabricated stale snapshot.
+
+The scoped handler can return a decision after requester revocation because it catches inactive-actor UNAUTHORIZED.
+It then returns allowed=false through the successful scoped reply envelope.
+Unrelated and independent-root cases otherwise return allowed=true.
+The outer shared fence must replace all these successful envelopes.
+The private application_access handler performs a permission refresh and a separate authorization-fence refresh.
+The private regression expects both actor-status replies; only the first triggers revocation.
+All new checks compare protocol/request identity and require error as the sole outcome on rejection.
+Root scoped cases preserve the project file bytes.
+The outage control preserves README.txt.
+Fresh calls are explicit test requests, never production retries.
+
+DISPATCH TRACE AND REMAINING COVERAGE
+
+main.cpp has three shared classifier call sites:
+- pump_root: root dispatch, dispatch_broker, enforce, revocation_result, enqueue.
+- Ordinary channels->serve: private owner dispatch, enforce, revocation_result.
+- serve_effect: private dispatch during an existing effect wait, enforce, revocation_result.
+The first four new selectors target pump_root.
+The new private selector targets ordinary channels->serve while no effect is active.
+WorkspaceAuthorityTests' ordinary world attachment relays to the root broker stream.
+That fixture relay alone does not prove production private-channel coverage.
+
+PENDING: deterministic nested serve_effect coverage.
+OwnedBroker provides private registration, but the existing scoped/access fixture has no effect-phase barrier.
+The phase must be held inside a real filesystem/Git wait that actually invokes store's observer.
+A queued request or idle INFO hold cannot certify that callback path.
+A primary-owned effect fixture and a witnessed effect-phase barrier must be selected before claiming this coverage.
+No alternate broker, classifier mirror, sleep-only race, or new production fault point was introduced.
+
+PENDING: unavailable-classifier substitution after an otherwise-successful completed dispatch.
+Real service failure during exchange raises UNAVAILABLE before the classifier.
+exchange checks broken state before returning, so the new outage test cannot reach success substitution.
+To force substitution, authority failure must occur after handler success but before enforce/classification finishes.
+The existing relay callbacks run inside issuer I/O, earlier than that window.
+A production-boundary fixture for that exact phase requires primary review outside this source-only increment.
+
+PENDING PRIMARY REVIEW: existing workspace-authority expectation conflict.
+WorkspaceAuthorityTests.test_credential_revocation_during_fence_returns_checked_refusal_and_preserves_process
+and WorkspaceAuthorityTests.test_unrelated_revocation_refuses_inflight_fence_then_allows_retry_and_preserves_process
+call fence_with_checked_credential_retry, which requires the old blanket UNAUTHORIZED code and literal message.
+The repaired active-actor broker fence intentionally returns FORBIDDEN instead.
+That file is outside this assignment. Its assertions were not edited.
+Primary must resolve this test/contract compatibility conflict explicitly before a broader runtime gate.
+Do not silently weaken locked acceptance oracles or retain false PASS expectations.
+
+STATIC CHECKS
+
+PASS: Python ast.parse for all three changed Python files. No modules were imported or executed.
+PASS: AST registration inventory verifies ten unique progress selectors, each defined in its registered class.
+That inventory contains five new selectors and the five retained original selectors.
+PASS: git diff --check.
+PASS: AST verifies the cabinet credential method and its whole-class load_tests registration.
+PASS: all seven handoff source hashes match current files. The handoff has no unexpected control bytes.
+Source review covered all seven changed production/test files and the three classifier callers.
+C++ compilation, runtime loading, fixture startup, and scheduling remain UNRUN.
+repository_data_guard was not run. No checkpoint or staging was attempted.
+
+SELECTED RUNTIME GATES FOR PRIMARY, ALL UNRUN
+
+Run all five new selectors above and the new requester credential selector:
+ActorCabinetGatewayTests.test_actor_cabinet_gateway_requester_credential_revocation_during_observation_invalidates_session
+
+Retain these existing selectors:
+WorkspacePresentationActorTests.test_two_workspace_scene_fence_rejects_later_binding_revocation
+ActorCabinetGatewayTests.test_actor_cabinet_gateway_revocation_during_observation_is_clean_rejection
+ActorCabinetGatewayTests.test_actor_cabinet_gateway_requester_revocation_during_observation_invalidates_session
+ActorCabinetGatewayTests.test_actor_cabinet_gateway_revocation_after_effect_suppresses_metadata
+ActorCabinetGatewayTests.test_actor_cabinet_gateway_revocation_in_final_post_operation_window_is_uncertain
+BrokerIssuerProgressTests.test_broker_actor_revocation_cancels_control_while_info_is_pending
+BrokerIssuerProgressTests.test_broker_actual_issuer_exit_fails_closed_while_info_is_pending
+
+The existing broker actor-revocation case already checks fresh unaffected-owner application_access and original process survival.
+Keep it as an independent-authority control.
+Then review affected workspace-authority, application-observation, world-application-control,
+queued-copy-status-replacement, and workspace-file-action-broker suites.
+Use their registered resource wrappers, qualified XACE, and exact profile environment.
+Primary runs focused Debug and ASan-UBSan checks on both sb16 and sb16-2 after the frozen batches retire.
+No focused result qualifies M08 or replaces the complete local and cross-host gate.
+
+NEXT SAFE TASK
+
+Primary reviews this uncommitted production-plus-regression increment and the two explicit coverage dependencies.
+Resolve the out-of-scope legacy fence expectations through the required contract review.
+Then primary selects the affected build targets and compiles the reviewed source on ROG.
+No build command or binary path was executed or qualified by this worker.
+
+SOURCE SHA-256 (EXCLUDES THIS HANDOFF)
+
+382e6218408651c292e9ecbe93b76133aa13a57c1c68e3e0ea1916430aa5123a  spatial-os-luna-handoff/src/workspace/main.cpp
+0c5104afd1d026135ecccaac25fc5157ac16c3d0ccf5ed4097a17f04b0fbd3bd  spatial-os-luna-handoff/src/workspace/authority.hpp
+14c67fbd858416aca5342855d8598a2307be3f1c2f0609aab0b97280e21148e7  spatial-os-luna-handoff/src/workspace/authority.cpp
+f421a2d8652932f29969ec91db852fea761a94b159b7c899206648f5268e0d10  spatial-os-luna-handoff/src/world/identity_sessions.cpp
+bd04398477296b81982cfec63b1ce784d543e151c098b3967b81d0b1157fe7d5  spatial-os-luna-handoff/tests/core/test_workspace_presentation_actor.py
+372d3caf9896d192ffc5b6f3d438dba7d3435a81bcad6b0124aa16f9b005e378  spatial-os-luna-handoff/tests/core/test_actor_cabinet_gateway.py
+e81d2756a4dd052a065c66ba8feb4ef3bd667aff39ab4a0a0ccbfe22c7a7f0b8  spatial-os-luna-handoff/tests/core/test_broker_issuer_progress.py
+
+PRIMARY SOURCE REVIEW
+
+Primary reviewed all seven changed source/test files and the real fixture callers.
+The actor cache is read on the existing broker authority thread without new issuer I/O.
+Identity cancellation provenance resets per dispatch and survives nested ordinary cancellation.
+Existing domain errors remain preserved.
+The six added runtime scenarios are accepted as source regressions pending execution.
+The two explicitly unforced dispatch windows remain coverage limits, not PASS claims.
+Legacy authority-fence and copy-denial fixture expectations will be corrected in a separate reviewed candidate commit.
+Those corrections retain strict refusal, request identity, fresh authorization, and real process continuity checks.
+No locked acceptance file, oracle, schema, deadline, or resource budget is changed.
+Compilation and all runtime checks remain UNRUN.

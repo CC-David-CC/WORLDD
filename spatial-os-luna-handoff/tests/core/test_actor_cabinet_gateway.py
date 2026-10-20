@@ -969,8 +969,14 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
                 release_broker_feed.set()
 
     def test_actor_cabinet_gateway_requester_revocation_during_observation_invalidates_session(self):
+        self._requester_revocation_during_observation(presentation.world_authority.issuer.ACTOR_TARGET)
+
+    def test_actor_cabinet_gateway_requester_credential_revocation_during_observation_invalidates_session(self):
+        self._requester_revocation_during_observation(presentation.world_authority.issuer.CREDENTIAL_TARGET)
+
+    def _requester_revocation_during_observation(self, target_kind):
         self.enroll_second()
-        race = {'ancestor': self.second}
+        race = {'ancestor': self.second, 'target_kind': target_kind}
         relay, release_broker_feed = self.world_grant_race(race)
         world = self.workspace(issuer_port=relay.port)
         owner = world.peers[0]
@@ -1027,7 +1033,10 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
             self.assertEqual(len(result_box), 1)
             denied = result_box[0]
             self.assertTrue(denied.HasField('error'), denied)
-            branch_evidence = (f'branch=requester_self_revocation status_seen={relay.status_seen} '
+            self.assertEqual(denied.protocol_version, 1, denied)
+            self.assertEqual(denied.request_id, peer.sequence, denied)
+            self.assertEqual(denied.WhichOneof('outcome'), 'error', denied)
+            branch_evidence = (f'branch=requester_self_revocation target_kind={target_kind} status_seen={relay.status_seen} '
                 f'observation_verified={observation_phase_seen.is_set()} '
                 f'watch_delivered={self.world_watch_relay.delivered.is_set()} '
                 f'world_watch_errors={len(self.world_watch_relay.errors)} '
@@ -1538,6 +1547,9 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
 for _name in dir(presentation.WorkspacePresentationActorTests):
     if _name.startswith('test_') and callable(getattr(presentation.WorkspacePresentationActorTests, _name)):
         setattr(ActorCabinetGatewayTests, _name, None)
+
+def load_tests(loader, tests, pattern):
+    return loader.loadTestsFromTestCase(ActorCabinetGatewayTests)
 
 if __name__ == '__main__':
     unittest.main()

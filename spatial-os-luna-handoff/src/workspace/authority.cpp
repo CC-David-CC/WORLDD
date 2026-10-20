@@ -579,6 +579,14 @@ void WorkspaceAuthority::tick() { impl_->tick(); }
 void WorkspaceAuthority::settle(bool effects_settled) { impl_->settle(effects_settled); }
 void WorkspaceAuthority::shutdown(const std::function<void()>& reconcile) { impl_->shutdown(reconcile); }
 std::uint64_t WorkspaceAuthority::cancellation_sequence() const { return impl_->cancellation_sequence; }
+WorkspaceAuthority::RequesterState WorkspaceAuthority::requester_state(const a::ActorRef& actor) const {
+    if (!impl_->ready || impl_->broken || impl_->closing || actor.issuer_id() != impl_->issuer)
+        return RequesterState::unavailable;
+    if (impl_->revoked.contains(actor.actor_id())) return RequesterState::revoked;
+    const auto found = impl_->active.find(actor.actor_id());
+    if (found == impl_->active.end()) return RequesterState::unavailable;
+    return found->second ? RequesterState::active : RequesterState::unavailable;
+}
 void WorkspaceAuthority::keepalive() { impl_->keepalive(); }
 bool WorkspaceAuthority::consume_changes() { const bool result = impl_->changed; impl_->changed = false; return result; }
 void WorkspaceAuthority::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }

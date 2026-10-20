@@ -10,6 +10,7 @@ struct ApplicationPermissions { unsigned rights = 0; bool observe = false, contr
 // Called only on the broker authority thread. Runtime callbacks perform no issuer I/O.
 class WorkspaceAuthority {
 public:
+    enum class RequesterState { active, revoked, unavailable };
     WorkspaceAuthority(const std::filesystem::path& config, ExecutionStore& store);
     ~WorkspaceAuthority();
     bool bound(const std::string& workspace) const;
@@ -31,6 +32,7 @@ public:
     void settle(bool effects_settled);
     void shutdown(const std::function<void()>& reconcile);
     std::uint64_t cancellation_sequence() const;
+    RequesterState requester_state(const authority::v1::ActorRef&) const;
     void keepalive();
     bool consume_changes();
     void set_observer(std::function<void()> observer);

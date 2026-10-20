@@ -1,6 +1,7 @@
-"""Real broker cancellation polling while its own action-issuer INFO is delayed.
+"""Real broker cancellation polling and in-dispatch reply classification races.
 
-The issuer participant watch and administrative actor connections stay direct.
+INFO cases keep the participant watch and administrative actor connections direct.
+Status races forward real issuer replies and witness consumed watcher revisions.
 ControlOwner uses the existing configured coordinator component fixture. It does
 not claim independent native input delivery or process/native cleanup receipts.
 """
@@ -17,6 +18,7 @@ from google.protobuf import text_format
 import broker_pb2 as broker
 import core_pb2 as core
 import issuer_pb2 as issuer
+import grants_pb2 as grant
 from harness.issuer_progress import DelayedInfoIssuer, IssuerLifetimeWitness
 from harness.wire import frame
 from test_world_identity import receive
@@ -24,6 +26,8 @@ from test_world_identity import WorldIdentityFixture
 import test_application_access as access
 import test_application_control_lease as leases
 import test_control_owner_channels as owners
+import test_workspace_authority as workspace
+import test_world_authority as world_authority
 
 
 class ProgressLeaseBroker(leases.LeaseBroker):
@@ -196,6 +200,231 @@ class BrokerIssuerProgressTests(BrokerProgressWitness, leases.ApplicationControl
         self.assertIsNotNone(self.broker.proc.poll())
 
 
+class BrokerRevocationReplyTests(workspace.WorkspaceAuthorityTests):
+    """Race real root-wire scoped decisions, after dispatch reaches actor_status."""
+
+    def checked_scoped_reply(self, principal):
+        self.broker.sequence += 1
+        request = broker.Request(protocol_version=1, request_id=self.broker.sequence,
+            scoped_authority_check=broker.ScopedAuthorityCheckRequest(
+                workspace='one', principal=principal, right=grant.FILE_READ))
+        reply = self.broker.exchange(request)
+        self.assertEqual(reply.protocol_version, request.protocol_version, reply)
+        self.assertEqual(reply.request_id, request.request_id, reply)
+        return reply
+
+    def assert_only_rejection(self, reply, code):
+        self.assertEqual(reply.WhichOneof('outcome'), 'error', reply)
+        self.assertEqual(reply.error.code, code, reply)
+        self.assertEqual({field.name for field, _ in reply.ListFields()},
+                         {'protocol_version', 'request_id', 'error'}, reply)
+
+    def scoped_revocation_race(self, target, kind):
+        self.enroll_second()
+        barrier = {}
+
+        def revoke_pending_status():
+            # RelayingIssuer invokes this only after decoding the actual
+            # dispatched actor_status request. INFO and queued bytes cannot arm it.
+            started = time.monotonic()
+            claims = self.identity if target == 'ancestor' else self.second
+            operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
+                target=issuer.IdentityReference(kind=kind,
+                    id=claims.credential_id if kind == issuer.CREDENTIAL_TARGET else claims.actor_id),
+                expected_security_revision=0, reason='root scoped reply classification regression'))
+            peer = self.connect()
+            try:
+                result = self.execute(peer, self.challenge(peer, operation))
+            finally:
+                peer.close()
+            self.assertTrue(result.HasField('identity_status'), result)
+            revision = result.identity_status.security_revision
+            barrier['consumed'] = self.wait_for_broker_revocation_consumed(
+                revision, log_offset, started+2, relay)
+
+        relay = world_authority.RelayingIssuer(self, revoke_pending_status,
+                                               wait_for_revocation_event=False)
+        # Both identities have independent roots. The ancestor case also adds a
+        # real delegated grant, so losing that ancestor leaves usable authority.
+        self.workspace(roots=lambda: [self.workspace_terms(), self.workspace_terms(self.second)],
+                       issuer_port=relay.port, attach_world=False)
+        self.addCleanup(self.broker.close)  # Retire participation before closing its relay.
+        if target == 'ancestor':
+            page = self.broker.request(grants=broker.GrantListRequest(
+                workspace='one', principal=self.principal())).grants
+            parent = next(record for record in page.grants if not record.parent_id)
+            delegated = self.broker.request(delegate=broker.GrantDelegateRequest(
+                workspace='one', principal=self.principal(), parent_id=parent.id,
+                terms=self.workspace_terms(self.second, rights=[grant.FILE_READ], depth=0),
+                expected_revision=page.revision))
+            self.assertTrue(delegated.HasField('grant'), delegated)
+        requester = self.principal(self.second if target != 'unrelated' else self.identity)
+        before = self.checked_scoped_reply(requester)
+        self.assertTrue(before.HasField('scoped_authority_check'), before)
+        self.assertTrue(before.scoped_authority_check.allowed, before)
+        project_before = {path.relative_to(self.project): path.read_bytes()
+                          for path in self.project.rglob('*') if path.is_file()}
+
+        def checked_status(request, reply):
+            if request.HasField('actor_status'):
+                self.assertIn(requester.actor_id, request.actor_status.actor_ids)
+                self.assertTrue(reply.HasField('actor_status'), reply)
+                self.assertEqual(relay.status_seen, 1)
+                barrier['status_returned'] = True
+
+        relay.before_reply = checked_status
+        log_offset = Path(self.broker.log.name).stat().st_size
+        relay.armed.set()
+        denied = self.checked_scoped_reply(requester)
+        self.assertTrue(relay.triggered.is_set(), 'Request never reached actor-status dispatch')
+        self.assertTrue(relay.delivered.is_set(), 'Real watch event was not forwarded')
+        self.assertIn('consumed', barrier, barrier)
+        self.assertTrue(barrier.get('status_returned'), barrier)
+        self.assertFalse(relay.errors, relay.errors)
+        expected = core.UNAUTHORIZED if target == 'requester' else core.FORBIDDEN
+        self.assert_only_rejection(denied, expected)
+        relay.before_reply = None
+        # A separate explicit request, never automatic replay, remains usable.
+        independent = self.principal() if target == 'requester' else requester
+        fresh = self.checked_scoped_reply(independent)
+        self.assertTrue(fresh.HasField('scoped_authority_check'), fresh)
+        self.assertTrue(fresh.scoped_authority_check.allowed, fresh)
+        self.assertGreater(fresh.request_id, denied.request_id)
+        if target == 'requester':
+            inactive = self.checked_scoped_reply(requester)
+            self.assertTrue(inactive.HasField('scoped_authority_check'), inactive)
+            self.assertFalse(inactive.scoped_authority_check.allowed, inactive)
+        self.assertEqual({path.relative_to(self.project): path.read_bytes()
+                          for path in self.project.rglob('*') if path.is_file()}, project_before)
+        self.broker.close()
+        diagnostic = Path(self.broker.log.name).read_text()
+        self.assertEqual(self.broker.proc.returncode, 0, diagnostic)
+        for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
+            self.assertNotIn(marker, diagnostic)
+
+    def test_root_scoped_reply_unrelated_revocation_is_forbidden_then_fresh_authority_works(self):
+        self.scoped_revocation_race('unrelated', issuer.CREDENTIAL_TARGET)
+
+    def test_root_scoped_reply_ancestor_revocation_preserves_independent_authority(self):
+        self.scoped_revocation_race('ancestor', issuer.ACTOR_TARGET)
+
+    def test_root_scoped_reply_requester_actor_revocation_is_unauthorized(self):
+        self.scoped_revocation_race('requester', issuer.ACTOR_TARGET)
+
+    def test_root_scoped_reply_actual_issuer_loss_after_dispatch_is_unavailable(self):
+        barrier = {}
+
+        def stop_pending_status():
+            barrier['dispatched'] = True
+            self.stop_daemons()
+            self.assertTrue(all(proc.poll() == 0 for proc, _ in self.daemons))
+            barrier['issuer_stopped'] = True
+
+        relay = world_authority.RelayingIssuer(self, stop_pending_status,
+                                               wait_for_revocation_event=False)
+        self.workspace(issuer_port=relay.port, attach_world=False)
+        self.addCleanup(self.broker.close)
+        principal = self.principal()
+        before = self.checked_scoped_reply(principal)
+        self.assertTrue(before.HasField('scoped_authority_check'), before)
+        self.assertTrue(before.scoped_authority_check.allowed, before)
+        project_readme = (self.project/'README.txt').read_bytes()
+        relay.armed.set()
+        denied = self.checked_scoped_reply(principal)
+        self.assertTrue(relay.triggered.is_set())
+        self.assertEqual(relay.status_seen, 1)
+        self.assertEqual(barrier, {'dispatched': True, 'issuer_stopped': True})
+        self.assertFalse(relay.errors, relay.errors)
+        self.assert_only_rejection(denied, core.UNAVAILABLE)
+        self.assert_only_rejection(self.checked_scoped_reply(principal), core.UNAVAILABLE)
+        self.assertEqual((self.project/'README.txt').read_bytes(), project_readme)
+        self.broker.close()
+        self.assertEqual(self.broker.proc.returncode, 2)
+        diagnostic = Path(self.broker.log.name).read_text()
+        self.assertIn('Workspace participant release remains unresolved', diagnostic)
+        for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
+            self.assertNotIn(marker, diagnostic)
+
+
+class BrokerPrivateRevocationReplyTests(owners.ControlOwnerTests):
+    payload_identity = BrokerProgressWitness.payload_identity
+    assert_payload_identity = BrokerProgressWitness.assert_payload_identity
+    assert_only_rejection = BrokerRevocationReplyTests.assert_only_rejection
+    wait_for_broker_revocation_consumed = workspace.WorkspaceAuthorityTests.wait_for_broker_revocation_consumed
+
+    def config_file(self, endpoint_port=None, **overrides):
+        relay = getattr(self, '_status_relay', None)
+        return super().config_file(endpoint_port=endpoint_port or (relay.port if relay else None), **overrides)
+
+    def setUp(self):
+        # Provision the relay before the real OwnedBroker reads its configuration.
+        WorldIdentityFixture.setUp(self)
+        self.brokers = []
+        self.sequence = self.admin_sequence = self.world_sequence = 0
+        self.addCleanup(self.close_brokers)
+        self._status_relay = world_authority.RelayingIssuer(self, self.revoke_pending_status,
+                                                           wait_for_revocation_event=False)
+        with patch.object(access, 'Broker', owners.OwnedBroker):
+            self.app = access.ApplicationAccessTests.setup_application(self)
+
+    def revoke_pending_status(self):
+        started = time.monotonic()
+        operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
+            target=issuer.IdentityReference(kind=issuer.ACTOR_TARGET, id=self.second.actor_id),
+            expected_security_revision=0, reason='private pending access reply regression'))
+        peer = self.connect()
+        try:
+            result = self.execute(peer, self.challenge(peer, operation))
+        finally:
+            peer.close()
+        self.assertTrue(result.HasField('identity_status'), result)
+        self.consumed = self.wait_for_broker_revocation_consumed(result.identity_status.security_revision,
+            self.log_offset, started+2, self._status_relay)
+
+    def test_private_application_access_reply_unrelated_revocation_suppresses_payload(self):
+        self.enroll_second()
+        owner, channel = self.register()
+        query = broker.ApplicationAccessRequest(principal=self.principal(), applications=[self.app])
+        before = self.request(channel, application_access=query)
+        self.assertTrue(before.HasField('application_access'), before)
+        self.assertEqual([(item.observe, item.control) for item in before.application_access.applications],
+                         [(True, True)])
+        identity = self.payload_identity()
+        command_line = Path('/proc', str(identity['pid']), 'cmdline').read_bytes()
+        observed = []
+
+        def checked_status(request, reply):
+            if request.HasField('actor_status'):
+                self.assertIn(self.principal().actor_id, request.actor_status.actor_ids)
+                self.assertTrue(reply.HasField('actor_status'), reply)
+                self.assertEqual(self._status_relay.status_seen, 1)
+                observed.append(request.request_id)
+
+        self._status_relay.before_reply = checked_status
+        self.log_offset = Path(self.broker.log.name).stat().st_size
+        self._status_relay.armed.set()
+        denied = self.request(channel, application_access=query)
+        self.assertTrue(self._status_relay.triggered.is_set())
+        self.assertTrue(self._status_relay.delivered.is_set())
+        self.assertTrue(self.consumed)
+        # application_access refreshes workspace permissions, then obtains its
+        # authorization fence. Only the first actor-status request triggers revocation.
+        self.assertEqual(len(observed), 2)
+        self.assertFalse(self._status_relay.errors, self._status_relay.errors)
+        self.assert_only_rejection(denied, core.FORBIDDEN)
+        self._status_relay.before_reply = None
+        self.assert_payload_identity(identity)
+        fresh = self.request(channel, application_access=query)
+        self.assertTrue(fresh.HasField('application_access'), fresh)
+        self.assertEqual([(item.observe, item.control) for item in fresh.application_access.applications],
+                         [(True, True)])
+        self.assertGreater(fresh.request_id, denied.request_id)
+        self.assertFalse(self.inspect(owner).channel_fenced)
+        self.assert_payload_identity(identity)
+        self.assertEqual(Path('/proc', str(identity['pid']), 'cmdline').read_bytes(), command_line)
+        self.finish_application(self.app)
+
+
 class BrokerOwnerLossIssuerProgressTests(BrokerProgressWitness, owners.ControlOwnerTests):
     def setUp(self):
         # ControlOwnerTests provisions its application in setUp. Create the relay
@@ -364,6 +593,15 @@ class BrokerOwnerLossIssuerProgressTests(BrokerProgressWitness, owners.ControlOw
 
 def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
+    for name in (
+        'test_root_scoped_reply_unrelated_revocation_is_forbidden_then_fresh_authority_works',
+        'test_root_scoped_reply_ancestor_revocation_preserves_independent_authority',
+        'test_root_scoped_reply_requester_actor_revocation_is_unauthorized',
+        'test_root_scoped_reply_actual_issuer_loss_after_dispatch_is_unavailable',
+    ):
+        suite.addTest(BrokerRevocationReplyTests(name))
+    suite.addTest(BrokerPrivateRevocationReplyTests(
+        'test_private_application_access_reply_unrelated_revocation_suppresses_payload'))
     suite.addTest(BrokerIssuerProgressTests("test_broker_actor_revocation_cancels_control_while_info_is_pending"))
     suite.addTest(BrokerIssuerProgressTests("test_broker_actual_issuer_exit_fails_closed_while_info_is_pending"))
     suite.addTest(BrokerOwnerLossIssuerProgressTests("test_broker_control_owner_loss_is_fenced_while_info_is_pending"))

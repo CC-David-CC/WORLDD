@@ -145,8 +145,11 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
         def verify_event(reply):
             self.assertEqual(len(reply.revocations.events), 1)
             target = reply.revocations.events[0].target
-            self.assertEqual(target.kind, world_authority.issuer.ACTOR_TARGET)
-            self.assertEqual(target.id, race['ancestor'].actor_id)
+            expected_kind = race.get('target_kind', world_authority.issuer.ACTOR_TARGET)
+            expected_id = (race['ancestor'].credential_id if expected_kind == world_authority.issuer.CREDENTIAL_TARGET
+                           else race['ancestor'].actor_id)
+            self.assertEqual(target.kind, expected_kind)
+            self.assertEqual(target.id, expected_id)
 
         def world_reply(request, reply):
             if reply.HasField('revocations') and reply.revocations.events:
@@ -159,7 +162,20 @@ class WorkspacePresentationActorTests(workspace_authority.WorkspaceAuthorityTest
                 self.assertTrue(release_broker_feed.wait(2), 'Deferred broker feed was not released')
 
         def revoke():
-            self.revoke_world_grant_ancestor(race['ancestor'])
+            if race.get('target_kind') == world_authority.issuer.CREDENTIAL_TARGET:
+                operation = world_authority.issuer.IssuerOperation(identity_revoke=world_authority.issuer.IdentityRevoke(
+                    target=world_authority.issuer.IdentityReference(kind=world_authority.issuer.CREDENTIAL_TARGET,
+                        id=race['ancestor'].credential_id), expected_security_revision=0,
+                    reason='presentation requester credential revocation regression'))
+                owner = self.connect()
+                try:
+                    reply = self.execute(owner, self.challenge(owner, operation))
+                finally:
+                    owner.close()
+                self.assertTrue(reply.HasField('identity_status'), reply)
+                self.assertTrue(reply.identity_status.credential_revoked)
+            else:
+                self.revoke_world_grant_ancestor(race['ancestor'])
             self.assertTrue(broker_feed_held.wait(.3), 'Real broker revocation feed was not held')
             self.assertTrue(self.world_watch_relay.delivered.wait(.3), 'Real world revocation feed was not forwarded')
             # Use the existing relay progress yield while worldd waits for the broker.

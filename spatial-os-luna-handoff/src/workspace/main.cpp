@@ -136,9 +136,40 @@ spatial::workspace::v1::Reply revocation_result(const spatial::workspace::v1::Re
         spatial::WorkspaceAuthority* authority) {
     if (!authority || reply.has_error() || cancellation == authority->cancellation_sequence() ||
             request.has_management() || request.has_control_release() || request.has_file_action()) return reply;
+    const spatial::authority::v1::ActorRef* requester = nullptr;
+    if (request.has_access() && request.access().has_principal()) requester = &request.access().principal();
+    else if (request.has_launch() && request.launch().has_principal()) requester = &request.launch().principal();
+    else if (request.has_grants() && request.grants().has_principal()) requester = &request.grants().principal();
+    else if (request.has_delegate() && request.delegate().has_principal()) requester = &request.delegate().principal();
+    else if (request.has_revoke() && request.revoke().has_principal()) requester = &request.revoke().principal();
+    else if (request.has_scoped_authority_check() && request.scoped_authority_check().has_principal())
+        requester = &request.scoped_authority_check().principal();
+    else if (request.has_authorization_fence() && request.authorization_fence().has_principal())
+        requester = &request.authorization_fence().principal();
+    else if (request.has_application_access() && request.application_access().has_principal())
+        requester = &request.application_access().principal();
+    else if (request.has_control_acquire() && request.control_acquire().has_principal())
+        requester = &request.control_acquire().principal();
+    else if (request.has_workspace_copy_begin() && request.workspace_copy_begin().has_principal())
+        requester = &request.workspace_copy_begin().principal();
+    else if (request.has_workspace_copy_status() && request.workspace_copy_status().has_principal())
+        requester = &request.workspace_copy_status().principal();
+    else if (request.has_bootstrap_bind() && request.bootstrap_bind().has_principal()) requester = &request.bootstrap_bind().principal();
+    else if (request.has_bootstrap_revoke() && request.bootstrap_revoke().has_principal()) requester = &request.bootstrap_revoke().principal();
+    else if (request.has_bootstrap_apply() && request.bootstrap_apply().has_principal()) requester = &request.bootstrap_apply().principal();
+    const auto state = requester ? authority->requester_state(*requester) :
+        spatial::WorkspaceAuthority::RequesterState::unavailable;
     reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
-    reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
-    reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
+    if (state == spatial::WorkspaceAuthority::RequesterState::active) {
+        reply.mutable_error()->set_code(spatial::wire::FORBIDDEN);
+        reply.mutable_error()->set_message("Workspace authority changed during the request");
+    } else if (state == spatial::WorkspaceAuthority::RequesterState::revoked) {
+        reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+        reply.mutable_error()->set_message("Workspace actor identity was revoked during the request");
+    } else {
+        reply.mutable_error()->set_code(spatial::wire::UNAVAILABLE);
+        reply.mutable_error()->set_message("Workspace authority could not validate the in-flight result");
+    }
     return reply;
 }
 }

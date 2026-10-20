@@ -58,6 +58,7 @@ struct Pending {
     std::string nonce, binding;
     Clock::time_point expires;
 };
+enum class CancellationCause { other, identity_revocation };
 std::uint64_t next_channel_diagnostic_id = 0;
 struct Channel {
     identity::tls_detail::Fd fd;
@@ -70,6 +71,7 @@ struct Channel {
     bool needs_observation = false;
     bool needs_geometry_observation = false;
     std::uint64_t cancellation_generation = 0;
+    CancellationCause cancellation_cause = CancellationCause::other;
     std::uint64_t active_request_id = 0, output_request_id = 0;
     bool in_dispatch = false, output_copy_status_request = false;
     bool output_revocation_denial = false;
@@ -201,9 +203,13 @@ struct IdentitySessions::Impl {
         }
         require(ready && !broken, "World authority participation is unavailable");
     }
-    void disconnect(Channel& channel, const char* reason = "unspecified") {
+    void disconnect(Channel& channel, const char* reason = "unspecified",
+                    CancellationCause cause = CancellationCause::other) {
         lifecycle_diagnostic(channel, reason);
         ++channel.cancellation_generation;
+        // Retain identity invalidation through nested cancellation in this dispatch.
+        if (cause == CancellationCause::identity_revocation)
+            channel.cancellation_cause = cause;
         const auto token = std::move(channel.token); channel.token.clear();
         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset();
         channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
@@ -368,7 +374,8 @@ struct IdentitySessions::Impl {
                     if ((!channel->token.empty() && affected(channel->claims)) ||
                             (channel->pending && affected(channel->pending->claims)) ||
                             (channel->prepared && affected(channel->prepared->claims)) ||
-                            (channel->completing && affected(*channel->completing))) disconnect(*channel, "credential_revocation");
+                            (channel->completing && affected(*channel->completing)))
+                        disconnect(*channel, "credential_revocation", CancellationCause::identity_revocation);
                 }
             }
             sync_authority();
@@ -1011,6 +1018,7 @@ struct IdentitySessions::Impl {
             if (channel.input.size() < length+4) continue;
             const auto bytes = channel.input.substr(4, length); channel.input.erase(0, length+4); channel.input_started = now;
             const auto cancellation = channel.cancellation_generation;
+            channel.cancellation_cause = CancellationCause::other;
             bool self_revocation_receipt = false;
             bool copy_status_request = false;
             pb::WorldSessionReply reply;
@@ -1024,7 +1032,10 @@ struct IdentitySessions::Impl {
             if (cancellation != channel.cancellation_generation && !reply.has_closed() &&
                     !(self_revocation_receipt && reply.has_grant())) {
                 const auto id = reply.request_id();
-                const auto code = reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED;
+                const bool identity_denial = channel.cancellation_cause == CancellationCause::identity_revocation &&
+                    (!reply.has_error() || reply.error().code() == wire::FORBIDDEN || reply.error().code() == wire::UNAUTHORIZED);
+                const auto code = identity_denial ?
+                    wire::UNAUTHORIZED : (reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED);
                 reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
                 reply.mutable_error()->set_code(code); reply.mutable_error()->set_message("World session changed during operation");
                 copy_status_denial = copy_status_request;
