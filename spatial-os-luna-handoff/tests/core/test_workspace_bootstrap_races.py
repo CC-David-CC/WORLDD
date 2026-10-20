@@ -1,6 +1,11 @@
 """Revocation during real broker issuer waits must prevent bootstrap mutations."""
+import json
+import os
 import sqlite3
+import stat
+import tempfile
 import unittest
+from pathlib import Path
 import core_pb2 as core
 import grants_pb2 as grant
 import issuer_pb2 as issuer
@@ -21,6 +26,12 @@ class WorkspaceBootstrapRaceTests(BootstrapWorkspaceFixture):
             return tuple(db.execute('SELECT count(*) FROM '+name).fetchone()[0]
                 for name in ('grant_record','bootstrap_binding','bootstrap_receipt'))
 
+    def snapshot(self):
+        tables=('authority','grant_record','bootstrap_binding','bootstrap_receipt')
+        with self.database() as db:
+            return {name:tuple(db.execute('SELECT * FROM '+name+' ORDER BY rowid'))
+                for name in tables}
+
     def revoke_identity(self, claims, parent=False):
         target=issuer.IdentityReference(kind=issuer.ACTOR_TARGET if parent else issuer.CREDENTIAL_TARGET,
             id=claims.actor_id if parent else claims.credential_id)
@@ -36,14 +47,70 @@ class WorkspaceBootstrapRaceTests(BootstrapWorkspaceFixture):
         world=self.workspace(issuer_port=relay.port);self.publish();self.binding(world)
         self.select_profile();actor=self.enroll_bootstrap();holder['actor']=actor;peer=world.peers[1]
         self.assertTrue(self.authenticate_bootstrap(peer,actor).HasField('opened'))
+        before=self.snapshot();counts_before=self.counts()
         relay.armed.set();result=self.apply(peer)
+        after=self.snapshot();counts_after=self.counts()
+        changed=[name for name in before if before[name]!=after[name]]
+        details=(f"reply_text={str(result)!r}; reply_wire_hex={result.SerializeToString().hex()}; "
+            f"counts_before={counts_before!r}; counts_after={counts_after!r}; "
+            f"changed_tables={changed!r}")
+        artifact={
+            'case':'workspace-parent-revocation-bootstrap-race' if parent else 'workspace-recipient-revocation-bootstrap-race',
+            'reply_text':str(result),
+            'reply_wire_hex':result.SerializeToString().hex(),
+            'counts_before':counts_before,
+            'counts_after':counts_after,
+            'changed_tables':changed,
+        }
+        payload=(json.dumps(artifact,sort_keys=True,separators=(',',':'))+'\n').encode()
+        if len(payload)>65536: raise AssertionError('bounded bootstrap race artifact exceeded 64 KiB')
+        evidence=Path(os.environ['SPATIAL_SECURITY_EVIDENCE']) if os.environ.get('SPATIAL_SECURITY_EVIDENCE') else self.root
+        metadata=evidence.lstat()
+        if (not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid!=os.getuid() or
+                stat.S_IMODE(metadata.st_mode)!=0o700):
+            raise AssertionError('bootstrap race evidence directory must be owned and mode 0700')
+        descriptor,artifact_name=tempfile.mkstemp(
+            prefix=f'workspace-bootstrap-race-{self._testMethodName}-',suffix='.json',dir=evidence)
+        artifact_path=Path(artifact_name)
+        try:
+            os.fchmod(descriptor,0o600)
+            view=memoryview(payload)
+            while view:
+                written=os.write(descriptor,view)
+                if written<=0: raise OSError('incomplete bootstrap race evidence write')
+                view=view[written:]
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+        details+=f"; diagnostic_artifact={artifact_path}"
+        print("bootstrap race evidence: "+details,flush=True)
+        self.assertTrue(relay.delivered.is_set(),details)
+        self.assertEqual(relay.remaining,0,details)
+        self.assertEqual(counts_before,(1,1,0),details)
+        self.assertEqual(counts_after,counts_before,details)
+        self.assertEqual(after,before,details)
         if result.HasField('error'):
-            self.assertIn(result.error.code,(core.UNAUTHORIZED,core.UNAVAILABLE))
+            accepted=(core.UNAUTHORIZED,core.UNAVAILABLE,core.FORBIDDEN) if parent else (
+                core.UNAUTHORIZED,core.UNAVAILABLE)
+            self.assertIn(result.error.code,accepted,details)
+            if result.error.code==core.FORBIDDEN:
+                # Only a revoked parent can invalidate this grant ancestry.
+                self.assertTrue(parent,details)
         else:
-            self.assertTrue(parent,result)
-            self.assertEqual(self.check_report(result.bootstrap).error.code,core.FORBIDDEN)
-        self.assertTrue(relay.delivered.is_set());self.assertEqual(relay.remaining,0)
-        self.assertEqual(self.counts(),(1,1,0))
+            self.assertTrue(parent,details)
+            report=result.bootstrap
+            self.assertEqual(report.issuer_id,self.info.issuer_id,details)
+            self.assertEqual(report.profile_id,'starter',details)
+            self.assertEqual(report.profile_revision,1,details)
+            self.assertEqual(report.domain.kind,grant.WORKSPACE,details)
+            self.assertEqual(report.domain.id,'one',details)
+            self.assertFalse(report.HasField('error'),details)
+            self.assertEqual(len(report.results),1,details)
+            denied=report.results[0]
+            self.assertEqual(denied.template_id,'project',details)
+            self.assertFalse(denied.HasField('grant'),details)
+            self.assertTrue(denied.HasField('error'),details)
+            self.assertEqual(denied.error.code,core.FORBIDDEN,details)
 
     def test_credential_revoked_during_broker_profile_read_creates_no_grant(self):self.apply_race('profile_read')
     def test_parent_actor_revoked_during_broker_profile_read_creates_no_grant(self):self.apply_race('profile_read',parent=True)

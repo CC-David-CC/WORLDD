@@ -1,0 +1,70 @@
+# M08 bootstrap race classification repair - 2026-10-20
+
+Status: source-backed test correction pending focused host reruns. No production code changes.
+
+## Selected focused qualification
+
+Record these selectors for the next approved candidate run on both sb16 and sb16-2, in Debug and ASan-UBSan:
+
+- tests.core.test_workspace_bootstrap_races.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_profile_read_creates_no_grant
+- tests.core.test_workspace_bootstrap_races.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_profile_read_creates_no_grant
+- tests.core.test_workspace_bootstrap_races.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_parent_read_creates_no_grant
+- tests.core.test_workspace_bootstrap_races.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_parent_read_creates_no_grant
+- tests.core.test_world_bootstrap_races.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt
+- tests.core.test_world_bootstrap_races.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt
+- tests.core.test_world_bootstrap_races.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt
+- tests.core.test_workspace_bootstrap_races.WorkspaceBootstrapRaceTests.test_parent_actor_revocation_during_reply_preserves_independent_process_grant
+
+The first four distinguish revoked parent authority from revoked recipient credentials across profile and ancestry reads. The next three retain world-entry parent and credential controls. The final selector verifies an independently granted running process survives parent revocation.
+
+The revised workspace race must capture the complete protobuf reply and before/after authority database rows before asserting the result code. It must preserve no-grant, no-binding, and no-receipt assertions. It launches no process; existing process-survival coverage remains required.
+
+## Current evidence and source classification
+
+The preserved CTest #99 logs fail the same selector on both hosts. They record result.error.code == FORBIDDEN at the helper's narrow assertion. That assertion aborts before database counts. The evidence does not contain the complete reply, error message, or table rows. No exact message-to-branch mapping can be established from those logs.
+
+The workspace fixture uses registered world admission and a separate workspace authority root (tests/core/test_workspace_authority.py:522-560). BootstrapWorkspaceFixture overrides own and bind with workspace-scoped operations (tests/core/test_workspace_bootstrap.py:12-50). Its inherited root_grant resolves through that workspace grant list. Revoking the root-holder actor invalidates the binding ancestry while the recipient credential can remain active. Store::active checks every ancestor's current identity (src/authority/store.cpp:248-263).
+
+Expected classification:
+- Recipient credential revocation: UNAUTHORIZED or UNAVAILABLE. FORBIDDEN remains rejected.
+- Parent actor revocation: UNAUTHORIZED, UNAVAILABLE, or parent-only FORBIDDEN. The FORBIDDEN may appear as a typed bootstrap-template denial or a top-level session error.
+- Exact message and reply shape for the observed top-level FORBIDDEN: UNCONFIRMED. The retained CTest output omits both.
+
+WorkspaceAuthority::apply_bootstrap at src/workspace/authority.cpp:544-576 catches non-identity per-template denials and records them in BootstrapReport.results; UNAUTHORIZED and UNAVAILABLE abort the operation. Store::active at src/authority/store.cpp:248-263 evaluates the full grant ancestry against current identities. Store::materialize_bootstrap checks that ancestry before commit. The world session routes workspace-scoped bootstrap requests through the broker at src/world/identity_sessions.cpp:840-887. WorldSessionReply.error and bootstrap are alternative members of the same outcome oneof at proto/spatial/identity/v1/world_session.proto:115-130. Final revocation routing at src/world/identity_sessions.cpp:1032-1040 may rewrite in-flight replies. Thus code 13 is appropriate only for a parent-revocation case; the exact message and whether it arose from broker ancestry or session routing remain unconfirmed until the next run captures the full reply.
+
+The sibling WorldBootstrapRaceTests path at tests/core/test_world_bootstrap_races.py:75-90 permits parent-only FORBIDDEN, checks the typed bootstrap denial, and proves zero receipt creation. Its credential-revocation controls exclude FORBIDDEN. This supports parent-only result classification. M08_GATEWAY_R14_UNQUALIFIED_CHECKPOINT.txt records a different ancestor-revocation observation request and does not establish this bootstrap-apply reply mapping.
+
+The revised workspace assertions allow FORBIDDEN only when the fixture revoked the parent actor. The credential-revocation tests remain negative controls and reject FORBIDDEN. Before classification assertions, the test writes complete protobuf text, serialized reply bytes, and before/after counts and changed-table names to a JSON artifact. The payload is capped at 64 KiB. The file uses mode 0600 in an owned mode-0700 directory. Set SPATIAL_SECURITY_EVIDENCE to a private retained directory for the focused rerun; otherwise the fixture-local artifact is temporary. The test snapshots the authority row and all grant, binding, and receipt rows before and after apply. A parent denial must leave that snapshot and the counts unchanged. The scenario starts no process; the selected independent-process regression remains separate.
+
+The source does not establish a production defect from this failure. The test rejected parent-only FORBIDDEN even though sibling bootstrap tests classify invalid parent authority separately from recipient revocation. The exact top-level error source is still open. No change widens FORBIDDEN acceptance for recipient credential revocation. The next focused host runs will retain the complete reply and actual table counts before assertions. They must confirm the exact message and reply fields before anyone claims a specific emitter.
+
+## Status
+
+- Both test hosts: same CTest #99 failure observed. Parent observation #08 at 2026-10-20 16:12:29Z recorded 118 passes on each host, with registration #120 running and a 450-second budget. Full-gate jobs continued at that observation.
+- Original failure evidence: /home/dflanag3/spatial-artifacts/m08-gate-repairs-20261020-round01/bootstrap-race-failure-primary-evidence-01.json.
+- Live full-gate observation: /home/dflanag3/spatial-artifacts/m08-gate-repairs-20261020-round01/fullgate-live-primary-observation-08.json.
+- Complete reply and pre/post database evidence from the failing run: MISSING.
+- Source inspection: complete for workspace bootstrap dispatch, grant ancestry, identity status, world-session reply mapping, and sibling classification.
+- ROG source-only checks: pyflakes, Python AST parse, and git diff --check PASS in tmux run m08-source-audit-09; exit 0 at /home/dflanag3/spatial-artifacts/m08-bootstrap-race-repair-20261020/source-audit-09/command.exit.
+- Revised selector execution, both-host Debug/SAN reruns, builds, and runtime checks: UNRUN.
+- Production changes, commits, and pushes: none.
+
+
+Primary review corrections and required regression scope
+
+The worker draft named artifacts only by PID.
+The inherited TLS/issuer fixture does not install per-case evidence leaves.
+Four apply-race methods can share one PID and one retained evidence directory.
+Exclusive creation would therefore fail after the first method.
+Primary changed artifact creation to tempfile.mkstemp with a method prefix and unique suffix.
+It retains exclusive creation, noninherited descriptors, mode0600, and the private parent requirement.
+The full ten-method workspace-bootstrap-races registration is required, not only the original failing method.
+That full run must retain distinct artifacts for all four apply-race cases.
+No such behavioral run has occurred yet.
+The earlier error/bootstrap same-oneof check was removed because it was unreachable.
+Actual before/after database rows and counts remain the independent no-mutation oracle.
+
+Primary source review completed for this diagnostic candidate.
+Primary-sourcecheck-01 passed AST, pyflakes, locked-file hashes, and whitespace with receipts0/0.
+Its actual tmux session retired. All behavioral checks remain UNRUN.
+This candidate cannot qualify M08 until the complete reply, unchanged rows, and related regressions pass on both hosts.
