@@ -347,19 +347,24 @@ for fd_name in os.listdir('/proc/self/fd'):
    roots.append(Path('/proc/self/fd')/fd_name); result['inherited_project_fds'].append([fd_name,target])
  except OSError: pass
 for index,root_path in enumerate(roots):
- stage=root_path/'.spatial-copy-staging'; witness={{'entries':None}}
+ stage=root_path/'.spatial-copy-staging'; probe=stage/f'probe-{{index}}'; moved=stage/f'moved-{{index}}'
+ marker=stage/'prepared-marker'; witness={{'entries':None,'probe_target':str(probe),
+  'unlink_target':str(marker),'rename_source':str(marker),'rename_target':str(moved)}}
  try: witness['entries']=sorted(os.listdir(stage))
  except OSError as error: witness['entries_error']=error.errno
  try: witness['read']=(stage/'prepared-marker').read_bytes().decode()
  except OSError as error: witness['read_errno']=error.errno
  try:
-  with (stage/f'probe-{{index}}').open('wb') as stream: stream.write(b'forbidden')
+  with probe.open('wb') as stream: stream.write(b'forbidden')
   witness['write_errno']=0
  except OSError as error: witness['write_errno']=error.errno
- try: os.unlink(stage/'prepared-marker'); witness['unlink_errno']=0
+ try: os.unlink(marker); witness['unlink_errno']=0
  except OSError as error: witness['unlink_errno']=error.errno
- try: os.rename(stage/'prepared-marker',stage/f'moved-{{index}}'); witness['rename_errno']=0
+ try: os.rename(marker,moved); witness['rename_errno']=0
  except OSError as error: witness['rename_errno']=error.errno
+ witness['probe_exists_after']=probe.exists()
+ witness['marker_visible_after']=marker.exists()
+ witness['moved_exists_after']=moved.exists()
  result['paths'][str(root_path)]=witness
 Path('/project/mask-witness.json').write_text(json.dumps(result))
 Path('/project/ordinary-write-after-mask').write_bytes(b'allowed')
@@ -369,9 +374,24 @@ Path('/project/ordinary-write-after-mask').write_bytes(b'allowed')
     import errno
     assert witness['inherited_project_fds']==[],witness
     assert witness['paths'] and all(item.get('entries')==[] and item.get('read_errno')==errno.ENOENT and
-        item.get('write_errno')==errno.EROFS and item.get('unlink_errno')==errno.ENOENT and
-        item.get('rename_errno')==errno.ENOENT for item in witness['paths'].values()),witness
-    assert marker.read_bytes()==b'broker-owned-stage' and not list(stage_root.glob('probe-*'))
+        item.get('write_errno')==errno.EROFS and item.get('unlink_errno')==errno.EROFS and
+        item.get('rename_errno')==errno.EROFS and item.get('probe_exists_after') is False and
+        item.get('marker_visible_after') is False and item.get('moved_exists_after') is False
+        for item in witness['paths'].values()),witness
+    for index,(alias,item) in enumerate(witness['paths'].items()):
+        alias_stage=Path(alias)/'.spatial-copy-staging'
+        assert item.get('probe_target')==str(alias_stage/f'probe-{index}'),(alias,item)
+        assert item.get('unlink_target')==str(alias_stage/'prepared-marker'),(alias,item)
+        assert item.get('rename_source')==str(alias_stage/'prepared-marker'),(alias,item)
+        assert item.get('rename_target')==str(alias_stage/f'moved-{index}'),(alias,item)
+        assert not (stage_root/f'probe-{index}').exists(),(alias,item)
+        assert not (stage_root/f'moved-{index}').exists(),(alias,item)
+    after_marker_stat=marker.stat()
+    assert marker.read_bytes()==b'broker-owned-stage'
+    assert (after_marker_stat.st_dev,after_marker_stat.st_ino,after_marker_stat.st_uid,
+            after_marker_stat.st_gid,after_marker_stat.st_mode)==(
+        marker_stat.st_dev,marker_stat.st_ino,marker_stat.st_uid,marker_stat.st_gid,marker_stat.st_mode)
+    assert sorted(path.name for path in stage_root.iterdir())==['prepared-marker']
     assert (Path(project.path)/'ordinary-write-after-mask').read_bytes()==b'allowed'
     record['results']['production_application_copy_stage_mask']=dict(passed=True,application=mask_app,
         witness=witness,project_subvolume_rootid=project_rootid,stage_subvolume_rootid=stage_rootid); save()

@@ -917,3 +917,10 @@ A tmux session can remain after its pane process exits.
 Check pane_dead and the recorded PID/start identity before retrying or reporting completion.
 Require canonical runner receipts and inspect command and wrapper exits separately.
 Evidence: retain each attempt's launch and terminal records under the current artifact root.
+
+F43 Execute the protected staging mutation witness before launch.
+Require hidden entries, a missing-read denial, denied write, unlink, and rename operations.
+Do not infer safe mutation from a missing-read errno; a read-only mount can report EROFS.
+Check marker identity, bytes, and path, plus every probe and rename destination, after denial.
+Reject any successful mutation. Do not treat an arbitrary error or zero errno as denial.
+Evidence: M08_READONLY_STAGING_MASK_ORACLE_REPAIR_2026-10-21.txt and the fresh native witness receipt.

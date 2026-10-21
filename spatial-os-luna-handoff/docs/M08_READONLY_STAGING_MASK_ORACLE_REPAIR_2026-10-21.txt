@@ -1,0 +1,33 @@
+M08 READ-ONLY STAGING MASK ORACLE REPAIR
+Recorded: 2026-10-21
+Branch: m08/readonly-staging-oracle-repair-20261020
+Base: 51bad46c51dbd05ec0e755765099b4f389337b29
+State: source edit, UNVALIDATED; primary review required before execution.
+
+Failure and evidence
+The sb16 Debug full gate failed at 2026-10-21T03:17Z after all 235 core groups and all 151 P10 acceptance groups passed. The native bounded-storage-git scenario failed at test_storage_git_integration.py lines 371-373. Original evidence remains untouched at:
+/home/dflanag3/spatial-artifacts/m08-git-budget-fullgate-20261020/deployed-51bad46c51db-01/evidence/m08-full-51bad46c51db-sb16-01/Debug/bounded-storage-git.log
+The witness reported three aliases: /project, the host-path symlink, and cwd. Each had entries=[], read_errno=2 (ENOENT), write_errno=30 (EROFS), unlink_errno=30 (EROFS), and rename_errno=30 (EROFS). inherited_project_fds=[] . This output does not show a staging leak and does not establish whole security qualification.
+
+Invariant correction
+Old assertion: require read ENOENT, write EROFS, unlink ENOENT, and rename ENOENT.
+Corrected assertion: preserve entries=[], read ENOENT, write EROFS, unlink EROFS, and rename EROFS for each alias. Require all attempted probe, unlink, and rename operations to leave their expected targets absent in the application view. Require the broker marker to retain its exact device, inode, owner, group, complete mode bits, bytes, and sole path after all failed mutations. Require the ordinary project write to succeed.
+
+Why the security invariant remains intact
+The production launch argv binds the real project at /project, overlays /project/.spatial-copy-staging with tmpfs, remounts that tmpfs read-only, then adds the host-path symlink and chdirs to /project. A read-only mount can reject unlink and rename with EROFS before lookup could produce ENOENT for the absent masked child. ENOENT for reads remains required. EROFS is the exact observed errno for the pinned Linux configuration. Mutation still must fail; successful mutation, arbitrary errors, and zero errno are rejected. Added target/destination and host marker checks prove no hidden side effect.
+
+Changed source
+- spatial-os-luna-handoff/tests/native/test_storage_git_integration.py: corrected the two observed errno assertions and added per-alias operation paths and post-operation visibility checks, host-side probe/destination absence checks, and marker stat/content/path integrity checks.
+- docs/M08_FULL_GATE_LAUNCH_CHECKLIST_2026-10-20.txt: added F43 prelaunch witness prevention.
+- New tracked note requested at docs/M08_READONLY_STAGING_MASK_ORACLE_REPAIR_2026-10-21.txt.
+
+Focused rerun after primary review
+Run this exact scenario on sb16 and sb16-2, once in Debug and once in ASan-UBSan, using the reviewed deployed build and the profile's existing bounded-storage-git target:
+sudo -n python3 tests/native/test_storage_git_integration.py --production-owner BUILD_DIR TARGET_DIR
+Replace BUILD_DIR and TARGET_DIR with the exact paths from that host/profile's reviewed gate record. Do not run until primary releases the source. Preserve canonical command/wrapper receipts and audit the resulting witness.
+
+Unrun and limitations
+No tests, builds, native runtime, world/broker/systemd/CTest, unittest, test-host contacts, or inference ran for this edit. No source changes are validated. The core CopyStagingNamespaceTests was inspected and left unchanged; its passed full-gate result does not cover native unlink/rename. The original failed evidence was not read or modified in this task. Do not claim whole security qualification. No helper or source-mirroring test was added. No production source, mount confinement, budgets, timeouts, registrations, or locked acceptance was changed. No commit or push was made.
+
+Primary review
+A stronger helper reviewed the observed errno contradiction and accepted strict EROFS for unlink and rename. The primary corrected its mode check to compare complete st_mode, including special and file-type bits. Runtime remains UNRUN. Linux v7.0 filename_unlinkat checks mount write access before child lookup. filename_renameat2 does the same before source lookup. Source: https://github.com/torvalds/linux/blob/v7.0/fs/namei.c . The measured host kernel is 7.0.0-38-generic; exact distribution patch bytes were not inspected.
