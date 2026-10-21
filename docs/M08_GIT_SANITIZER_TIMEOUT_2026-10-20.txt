@@ -72,3 +72,13 @@ NEXT ACTION
 Observe the existing sb16-2 diagnostic. Do not start a duplicate run.
 Review its complete result and process retirement before choosing the next repair or contract action.
 Keep M08 unqualified until the registered CTest suite and full gate pass review.
+
+TIMESTAMPED DRAFT - WORKSPACE-GIT CTEST BUDGET
+
+Draft timestamp: 2026-10-21 00:36:21 UTC
+
+The prior `workspace-git` CTest aggregate timeout is 180 seconds. This draft pairs an explicit 360-second native resource-service budget with a 420-second aggregate CTest timeout. The 60-second difference allows wrapper and process retirement after the service limit. It preserves test methods, assertions, and all other test properties.
+
+The primary timing audit receipt `R/sb16-2-san-git-timeout-diagnosis-01/primary-timing-audit-01.json` records the sb16-2 ASan-UBSan diagnostic as 56 exact methods, with unittest runtime 220.154 seconds and wrapper runtime 224.14851944393013 seconds. The diagnostic used the exact native `--runtime-seconds 360` override and completed successfully. The exact method set was verified. Results were 0/0 COMPLETE; helpers were restored and processes retired. `changed_inputs`, `audit_errors`, and `sanitizer_findings` were empty. This remains an unqualified diagnostic. The original registered CTest remains FAILED at its 180-second timeout; this draft does not turn that result into a pass.
+
+The explicit 360-second value applies only to this registered native invocation. Global wrapper defaults and resource caps stay unchanged. Production operation deadlines, test assertions, and cleanup requirements stay unchanged. The CMake edit affects the build-ID hash. Qualification needs a new candidate build and packages, plus checks of the updated registration on both hosts in Debug and ASan-UBSan. Run the full M08 gate at its phase gate. Do not rerun unrelated suites for this focused change. Do not alter acceptance locks.
