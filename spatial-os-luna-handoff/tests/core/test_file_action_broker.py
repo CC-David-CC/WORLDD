@@ -1461,8 +1461,11 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
         try:
             if handle.terminal is None:handle.terminal=handle.receive()
             reply=handle.terminal
+            durable_write(handle.evidence/'terminal-reply.pb',
+                          reply.SerializeToString(deterministic=True))
             self.assertTrue(reply.HasField('error'),reply)
-            self.assertEqual(reply.error.message,'Authority child exited before relay completion')
+            durable_write(handle.evidence/'terminal-diagnostic.txt',
+                          (reply.error.message+'\n').encode())
             self.assertTrue(reply.error.HasField('cleanup_record'),reply)
             record=reply.error.cleanup_record
             self.assertEqual(record,handle.record(),'Terminal cleanup must match the durable journal')
@@ -1510,6 +1513,7 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
                                      handle.binding.service_incarnation,record.process.launch_id))
             self.assertEqual(issuer.AuthorityLaunchBegin.FromString(row[4]),authorization.request)
             self.assertEqual(row[5:],(handle.public,0))
+            return reply.error.message
         finally:
             handle.close_control()
             handle.preserve()
@@ -1627,7 +1631,7 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
                           candidate_log.read_bytes())
             # START_ATTEMPTED does not prove activation. This candidate exits
             # before consuming its authorization; verify local cleanup separately.
-            self._finish_unactivated_startup_refusal(candidate,issuer_before)
+            terminal_diagnostic=self._finish_unactivated_startup_refusal(candidate,issuer_before)
             self.assertEqual((old_root.stat().st_dev,old_root.stat().st_ino),foreign_identity[0])
             self.assertEqual((worker_scope.stat().st_dev,worker_scope.stat().st_ino),foreign_identity[1])
             self.assertTrue(stage.exists(),'failed startup must retain prepared staging')
@@ -1643,6 +1647,10 @@ class SupervisedLegacyFileActionRecoveryTests(_LegacyFileActionRecoveryHelpers, 
                     'SELECT state,updated_at,record FROM file_copy_jobs WHERE workspace=? AND job_id=?',
                     ('one',job_id)).fetchone(),running_row,
                     'startup refusal must preserve the complete RUNNING journal row')
+            self.assertIn(terminal_diagnostic,(
+                'Authority child exited before relay completion',
+                'Private participant channel closed'),
+                'startup refusal must retain one recognized terminal diagnostic')
             return
         published=case in ('published','sync_failure')
         if published:output.rename(self.project/'sigkill-copy')

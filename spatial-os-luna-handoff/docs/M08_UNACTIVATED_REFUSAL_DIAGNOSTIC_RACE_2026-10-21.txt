@@ -1,0 +1,50 @@
+M08 unactivated refusal diagnostic race
+Date: 2026-10-21
+Status: source-only fixture correction; UNQUALIFIED
+
+Source and scope
+
+- Base: `c2bad0c37c14d6f76db853d11111651287192592`
+- Branch: `m08/unactivated-refusal-diagnostic-race-20261021`
+- Host: ROG Ally X (`rog-ally-x`)
+- Worktree: `/home/dflanag3/src/m08-unactivated-refusal-diagnostic-race-20261021`
+- Changed paths: `tests/core/test_file_action_broker.py` and this document
+- Runtime work: none. Focused runtime checks remain UNRUN for root to schedule after the active gates release both hosts.
+
+Contract clarification
+
+`acceptance.lock.json` contains 42 files. All 42 baseline file hashes matched before this change. `tests/core/test_file_action_broker.py` is not in the lock. No locked file, production source, protocol schema, or normative contract changed.
+
+`AuthorityLaunchError.message` is a diagnostic string. The lifecycle contracts require the exact broker refusal and typed cleanup, issuer, and retained-effect proofs. They do not require one ordering between child-exit observation and participant-channel EOF during this intentional pre-activation refusal. Both observed messages are valid diagnostics for this bounded race:
+
+- `Authority child exited before relay completion`
+- `Private participant channel closed`
+
+This clarification does not permit arbitrary errors or weaker behavior checks.
+
+Fixture correction
+
+The helper now serializes the actual terminal reply to external case evidence before any terminal-reply assertion. It also writes the diagnostic text when the typed error field exists. The assertion for the diagnostic moved to the end of the active-replaced-parent case, after all behavioral proofs. It accepts only the two exact diagnostics above.
+
+The regression preserves these checks:
+
+- The candidate broker log reports `Active copy parent identity cannot be verified`.
+- The candidate is not activated. The initial journal is `START_ATTEMPTED`; the returned cleanup record is `OWNED_SCOPES_STOPPED`.
+- The cleanup record equals the durable launch record and retains the exact process, native, authorization, and binding identities. Checked stopped identities match their owned scopes.
+- The unconsumed authorization remains at generation zero with the exact service registration, service incarnation, launch ID, prior generation, supervision revision, and supervisor key. Prior issuer rows remain unchanged. The case fabricates no fence or retirement.
+- The supervisor exits with status 2 after actual child death. The storage owner finishes EOF cleanup, and local resources close.
+- Foreign parent and worker cgroup identities remain untouched. Prepared staging, output inode, payload, and prepared receipt remain intact.
+- The complete `RUNNING` journal row remains unchanged. No destination is published.
+- Unexpected messages still fail, but only after these proofs and after the terminal reply has been retained externally.
+
+The test method names and selected 12-case legacy inventory are unchanged. The full `workspace-file-action-broker` registration still contains 43 methods. No tests were removed, renamed, skipped, or rerouted.
+
+Validation and qualification
+
+Static validation runs on ROG only: AST parsing for the changed test module, inventory and locked-hash comparison, diff review, whitespace check, and repository data guard. No runtime test, test-host write, signal, helper modification, or new test process was authorized or performed in this task. All runtime checks remain UNRUN. Root owns focused Debug and sanitizer execution on both hosts after the full gates release them.
+
+The original sb16-2 failure and passing sb16 comparison remain preserved under:
+
+`/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/combined-durability-followup-package-01/fullgate-active-parent-failure-01/`
+
+The exact terminal reply and diagnostic from a future run will be retained in that case's external evidence directory before the diagnostic allowlist is checked.
