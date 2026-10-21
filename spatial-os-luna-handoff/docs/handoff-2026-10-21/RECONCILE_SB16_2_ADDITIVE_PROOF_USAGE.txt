@@ -1,0 +1,37 @@
+PURPOSE
+
+reconcile_sb16_2_additive_proof.py is a candidate-specific, read-only evidence verifier.
+It does not publish a gate receipt or qualify M08. Its only output is an UNQUALIFIED
+proof file after all original, rerun, supplemental, raw-runner, and post-tail audit
+evidence is present and pinned.
+
+The original sb16-2 SAN CTest failure remains immutable: exit 8 with five failed
+protected registrations. The derived coverage combines 227 original SAN passes,
+five separately named native reruns, and four separate self-managed recovery tests.
+It never relabels the original CTest command as passed.
+
+CURRENT STATUS
+
+No valid tail evidence exists yet. Tail attempt 05 failed during setup. P10 and
+bounded-storage stages remain unrun. Do not invoke the proof CLI until a corrected
+actual tail run completes, primary creates the post-tail binding, and primary
+reviews the exact command.
+
+The verifier reads raw canonical runner receipts, output logs, CTest XML, P10
+report, and storage cleanup report at their recorded paths. Run it as an
+artifact-only job on sb16-2, where those pinned raw paths resolve. It does not
+launch tests, builds, deployments, or cleanup.
+
+COMMAND TEMPLATE (NOT READY TO RUN)
+
+  python3 -B reconcile_sb16_2_additive_proof.py \
+    --inputs-dir /home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/packaging-cache-repair-01/sb16-2-reconciliation-actual-inputs-01 \
+    --original-run /home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/deployed-01/evidence/m08-580834ceeda1-full-sb16-2-01/run.json \
+    --tail-result <actual-tail-output>/supplemental-result.json \
+    --tail-sha256 <actual-tail-result-sha256> \
+    --post-tail-binding <primary-reviewed-binding.json> \
+    --post-tail-binding-sha256 <binding-sha256> \
+    --output <new-file-under-candidate-artifact-root>/reconciliation-proof.json
+
+The verifier fails closed on missing or altered evidence. Its proof output remains
+UNQUALIFIED, preserves the original failed-run status, and does not qualify M08.
