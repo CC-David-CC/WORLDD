@@ -332,7 +332,7 @@ RETRY RULE FOR KNOWN FAILURES
 
 Use this file as the current detailed checklist.
 Use M08_LAUNCH_CHECKLIST.txt as its short entry point.
-Review F01-F38 before each new attempt.
+Review F01-F47 before each new attempt.
 For each applicable item, record its check, exact command, expected result, evidence path, and evidence hash.
 Name the host, profile, candidate, and launcher revision.
 Record VERIFIED only after reviewing the result.
@@ -436,6 +436,9 @@ Update this register before retrying. Never skip an assertion to obtain PASS.
 [ ] Record ASAN_OPTIONS, UBSAN_OPTIONS, Python bindings, probe, native wrapper, and evidence paths.
 [ ] Remove stale display, library, storage, and test-selection variables.
 [ ] Preserve each registration's production resource and adapter wrappers.
+[ ] Keep grant-list fixture requests within the production page cap of16. Check the expected reply variant before reading its payload.
+[ ] Run focused file-action CTest through tools/with_copy_worker_helpers.py with exact --build and --profile arguments. Store lifecycle evidence outside the checkout.
+[ ] Compare installed copy worker bytes and modes with the selected build. Verify child retirement and cleanup_status=confirmed before continuing.
 [ ] For a full gate, provide six validated profile-specific storage variables.
 [ ] Provision unique Debug and sanitizer StorageOwner lanes per host when the selected test path requires them.
 [ ] Verify filesystem identity, Btrfs root, compression, root-owned configuration, quota, and emptiness.
@@ -943,3 +946,13 @@ Recorded: 2026-10-21. The M08 gate remains UNQUALIFIED.
 The positive restart fixture previously deleted and recreated its delegated cgroup parent between broker incarnations. The broker correctly rejected the changed inode. The fixture now retains the parent and checks its real device, inode, and boot ID around both broker lifetimes. It also compares the replayed worktree-removal payload with fresh request correlation and checks the uncommitted sibling file after restart.
 
 This is source-only and UNVALIDATED. See spatial-os-luna-handoff/docs/M08_STORAGE_GIT_RESTART_FIXTURE_2026-10-21.txt for the observed refusal, preserved evidence path, exact existing negative-control result keys, and selected rerun matrix. Do not release binaries until review and the Debug and ASan-UBSan scenario passes on sb16 and sb16-2. F44 remains reserved for the separate SQLite production repair.
+
+F46 Grant pagination setup requested an unsupported page size.
+The additive `test_second_revocation_stops_other_actor_during_first_commit` fixture requested limit128. Production accepts at most16; zero selects16. The fixture read `.grants` before checking `HasField('grants')`. Both-host Debug stopped at the root-grant setup assertion before exercising second revocation.
+Classify this as a confirmed fixture setup error, not a production regression. Keep the exact-one-root-grant assertion. Check the response variant before reading the grant page.
+Source repair: 9e95eac2fe325825367db4d998db46be15a5d35a, UNQUALIFIED. Both-host corrected Debug reruns remain UNRUN. See spatial-os-luna-handoff/docs/M08_DURABILITY_GRANT_FIXTURE_REPAIR_2026-10-21.txt.
+
+F47 Focused file-action launch omitted the copy-helper lifecycle wrapper.
+The focused launcher bypassed `tools/with_copy_worker_helpers.py`. Both hosts lacked root-owned `/usr/local/libexec/spatial-copy-tree-worker` and `/usr/local/libexec/spatial-copy-finalize-worker`; `workspace-file-action-broker` failed in Debug on both hosts. This is a confirmed launcher setup error, not a confirmed production regression. The affected file-action group was stopped at its exact owned systemd unit on each host, and failure evidence was preserved. Parent CTest continued with remaining groups.
+The maintained full gate already wraps protected CTest with the lifecycle helper. Focused runners must reuse it with exact `--build` and `--profile` values and external lifecycle evidence. Compare installed helper bytes and modes with the selected profile. Verify child retirement and `cleanup_status=confirmed`. If a group fails, record and stop only its exact owned unit.
+All corrected reruns remain UNRUN. See the preserved primary per-host Debug failure and lifecycle receipts in the external focused-run evidence. Read spatial-os-luna-handoff/docs/M08_COPY_HELPER_PROFILE_LIFECYCLE_2026-10-18.md.
