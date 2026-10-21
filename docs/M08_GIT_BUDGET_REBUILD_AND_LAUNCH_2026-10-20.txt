@@ -1,0 +1,107 @@
+M08 Git budget repair and launch status
+Snapshot: 2026-10-21 01:03 UTC
+Qualification: M08 UNQUALIFIED. The replacement full M08 exam has not started.
+M01 through M07 remain historically qualified. M09 remains unqualified.
+
+SOURCE AND BACKUP
+
+Frozen candidate: 51bad46c51dbd05ec0e755765099b4f389337b29.
+Candidate branch: m08/git-budget-fullgate-candidate-20261020.
+The source candidate and budget task branch are BOX-GIT VERIFIED.
+This status note uses a separate branch. It does not change the frozen candidate.
+The GitHub unvalidated branch still contains the earlier 7d45 candidate at this snapshot.
+
+REPAIR AND EVIDENCE
+
+The original sb16-2 ASan/UBSan workspace-git registration timed out at 180.02 seconds.
+Its original result remains FAILED.
+A bounded diagnostic passed all 56 methods.
+Unittest took 220.154 seconds. The complete wrapper took 224.148519 seconds.
+The primary audit confirmed helper restoration, process retirement, unchanged inputs, and no sanitizer findings.
+The diagnostic is not registered CTest qualification.
+
+The reviewed CMake correction gives this native service 360 seconds.
+It gives this CTest group 420 seconds.
+The difference provides 60 seconds for wrapper and process retirement.
+Production deadlines, resource limits, test assertions, and acceptance locks remain unchanged.
+
+Four default-target builds passed on ROG:
+Debug and ASan/UBSan, each with testing enabled and disabled.
+Each testing build has 81 application ELFs. Each production build has 24.
+Only identityd, workspaced, and worldd changed ELF hashes through their source build ID.
+The other application ELF hashes remained unchanged.
+All 238 CTest registrations match the reviewed source delta.
+The 18 generated systemd service names changed their build-ID suffix as expected.
+These are compile and registration checks. Runtime qualification remains unrun.
+
+DEBUG BUILD ID
+sha256:0feb2071eb276d2d59fa6fdc6bf9a9aae55d59efb29e7a96554bc0ca06cd2003
+
+SANITIZER BUILD ID
+sha256:ab8276cd3f6b208c33598a3314f8cf98e7e456e7442236dcdd8105463953a747
+
+CURRENT JOBS
+
+ROG tmux m08-51bad-fullgate-package-01 runs the existing package preparation.
+ROG tmux m08-51bad-staging-workflow-01 observes that exact package process.
+It requires successful canonical completion before auditing and extracting the archive.
+Then it freezes the verified package and retains it on UUID-checked r730 storage.
+Then it transfers the package directly from ROG to each test host.
+The staging workflow launches target verify-deploy jobs. It does not launch runtime tests.
+Inspect live processes and canonical receipts before resuming or retrying.
+Never restart a job merely because an observation times out.
+
+SELECTED NEXT RUNTIME CHECKS
+
+Run only the actual workspace-git registration on sb16 and sb16-2.
+Run Debug and ASan/UBSan on each host.
+Require 56 methods and one passing CTest registration per profile.
+Require no skips, sanitizer findings, changed inputs, or unfinished helper cleanup.
+Stop the remaining profile after a failure.
+These four focused executions are unrun at this snapshot.
+Reassess unchanged prior focused evidence explicitly.
+Do not repeat the obsolete four-group prepass solely for this budget correction.
+The complete required M08 gate still runs on both hosts.
+Cross-host checks remain required after the local gates.
+
+CONTROLLER REVIEW FINDINGS
+
+Keep exact current CTest environment values during rebuild configuration.
+Package preparation explicitly rebinds those values to new package paths.
+Compare those exact substitutions. Do not replace environment variable names.
+The provenance configure-environment hash uses canonical JSON serialization.
+The input file has a separate byte hash.
+The registered Git suite is nonverbose. Count its real Ran 56 / OK summary.
+Do not require method-name lines that the registered suite does not emit.
+A failed result or audit must return a nonzero controller exit.
+Never continue another profile after uncertain helper cleanup.
+Use the production verify-deploy inventory mapping, including X server placeholder substitutions.
+
+SPACE
+
+The primary removed four verified-unused duplicate runtime payloads from sb16.
+It recovered 24,913,625,088 bytes.
+It preserved 3,552 source and evidence files.
+sb16 then had 36,771,987,456 free bytes.
+Keep the newly verified replacement before retiring other duplicate payloads.
+The full-gate preparer needs 33 GiB free.
+Storage provisioning retains 32 GiB after creating new volumes.
+
+EXTERNAL EVIDENCE ROOT
+
+R = /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020
+
+Build review: R/git-budget-build-driver-draft-01/primary-build-audit-v04-01.json
+Source receipts: R/git-suite-timeout-budget-primary-01
+Candidate receipt: R/git-budget-candidate-integration-01
+Original timeout and diagnostic: R/sb16-2-san-git-timeout-diagnosis-01
+Package: R/git-budget-fullgate-package-01
+Staging workflow and restart plan: R/git-budget-staging-workflow-01
+Reviewed Git runner: R/git-budget-git-focused-primary-03/workspace-git-focused-51bad-v04.py
+Cleanup receipt: R/git-budget-host-readiness-01/sb16-retirement-receipt-01.json
+
+NOT COMPLETE
+
+New registered Git checks, target setup, final readiness review, full local M08 gates,
+cross-host gates, and M08 qualification remain pending.
+No source or runtime finding has been reclassified as a pass.
