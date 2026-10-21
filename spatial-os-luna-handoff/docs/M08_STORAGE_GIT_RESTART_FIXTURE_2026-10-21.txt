@@ -1,0 +1,24 @@
+M08 STORAGE GIT RESTART FIXTURE REPAIR
+Recorded: 2026-10-21
+Branch: m08/storage-git-restart-fixture-20261021
+Base: b30bc508919e17420ffefe8f50a2ce3850303b61
+State: source edit only; primary review and focused rerun pending.
+
+Contradiction and invariant
+The prior positive restart fixture stopped its actor and owner, checked the delegated cgroup was empty, removed the delegated parent directory, and recreated that path before restarting the broker. The production broker correctly refused the replacement because its device and boot ID matched, but its inode changed.
+
+Observed refusal: stored-inode-mismatch. The retained Git worker parent had device 31 and inode 36973576. The replacement had device 31 and inode 36980538. Both used the same boot ID. The broker response ended at EOF. The original result and logs remain byte-for-byte at /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/m08-readonly-staging-oracle-repair-01/focused-sb16-debug-result-01; its manifest lists seven files.
+
+The positive fixture now retains the same delegated parent across broker incarnations. It records the real parent device, inode, and current boot ID before launch and asserts that identity before launch, after shutdown, after restart, and after the second shutdown. It keeps the empty-cgroup and no-child-directory assertions. It does not remove or recreate the parent between brokers.
+
+The restart path confirms workspace lookup, replays the same Git worktree-removal operation, compares the deterministic worktree-removal payload after checking its outcome, and confirms the uncommitted sibling file remains. The existing final cleanup may retire the parent only after broker shutdown.
+
+Negative controls and selected reruns
+Keep production identity checks unchanged. The existing native storage broker launch fixture records same_boot_parent_change_fails_closed and same_path_reformatted_filesystem_fails_closed in tests/native/test_storage_broker_launch.py. These are fixture result keys, not independently registered CTest IDs. Its source also checks the exact changed-parent refusal and same-path replacement filesystem refusal.
+
+After primary review, run the existing bounded-storage-git scenario on sb16 and sb16-2 in Debug and ASan-UBSan. Preserve the six prior staging, import, quota, read-only, and sibling assertions. Run the existing storage broker launch fixture on both profiles for the two refusal controls. Record exact commands, profile binaries, receipts, and outcomes before claiming a pass.
+
+No tests, builds, native runtime, worlds, brokers, systemd, CTest, host contacts, or inference ran for this edit. No runtime claim follows from this source change. Locked tests, production policy, timeouts, CMake, and other source files were not changed. No commit or push was made.
+
+Primary review correction
+Each management reply carries a different correlated request_id. Compare the operation payload, not the complete reply envelope. Require worktree_removed outcomes and removed=true on both replies. Require distinct request IDs and retain exchange() correlation checks. No runtime result follows from this correction.

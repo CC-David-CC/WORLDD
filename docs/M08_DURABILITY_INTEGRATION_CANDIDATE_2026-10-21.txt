@@ -1,0 +1,18 @@
+M08 DURABILITY INTEGRATION CANDIDATE
+State: UNQUALIFIED. Both previous candidate51 full gates failed.
+Base production repair: dfa4d8eabfc39c4b4346873d4b9ff0f2ae080395.
+Selected restart fixture: cf2a02c612771b1c1dd6f763f139bb187e43acc4.
+Focused native result summary: 2a80e46e022a4a18ae15905322b7b0f9e85e655a.
+The combined tree preserves staging-mask, parent-identity, and request-correlation assertions.
+The production repair preserves SQLite synchronous durability and existing issuer deadlines.
+Checklist F44 and F45 both apply. XACE remains the active baseline.
+No M09 or CallbackList changes are included.
+
+Required focused checks before a full retry
+Run all six workspace-revocation-durability scenarios on both hosts in Debug and ASan/UBSan.
+Run related participant, lease, application access, and observer-exception regressions.
+Reproduce native session-storage-contention with the corrected broker on both hosts and profiles.
+Complete existing parent/filesystem refusal controls and preserve cleanup receipts.
+Review actual failures before further changes. Do not relabel earlier evidence.
+Then run complete local Debug and sanitizer gates, followed by required cross-host qualification.
+M08 remains UNQUALIFIED until every required gate passes and the primary audit succeeds.

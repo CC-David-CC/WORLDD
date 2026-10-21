@@ -1,0 +1,51 @@
+M08 STORAGE AND RESTART FOCUSED RESULTS
+Recorded: 2026-10-21
+Status: FOCUSED PASS. M08 remains UNQUALIFIED.
+Fixture commit: cf2a02c612771b1c1dd6f763f139bb187e43acc4.
+Unchanged binary candidate: 51bad46c51dbd05ec0e755765099b4f389337b29.
+
+Results
+sb16 Debug passed in 128.779 seconds.
+sb16 ASan/UBSan passed in 129.172 seconds.
+sb16-2 Debug passed in 130.098 seconds.
+sb16-2 ASan/UBSan passed in 145.114 seconds.
+Each execution passed all six native result groups.
+They cover large import retirement, production staging concealment, actor/application quota,
+read-only access, sibling survival, and restart with the same delegated parent identity.
+All four command and wrapper exit codes were zero.
+All four cleanup results passed. Source and executable hashes remained unchanged.
+No sanitizer diagnostic was found in the inspected test and application logs.
+The profile executables link their expected sanitizer libraries.
+The separate installed root-owned StorageOwner helper was unchanged and separately pinned.
+These checks do not prove that installed helper was sanitizer-instrumented.
+
+Corrections
+The staging mask returns an empty read-only mount. Hidden files cannot be read or changed.
+Mutation rejection correctly requires EROFS. The underlying marker identity and bytes remain checked.
+The positive restart fixture preserves the delegated parent inode across broker incarnations.
+Replay compares the operation payload and validates fresh request correlation.
+Production security checks remain unchanged.
+
+Evidence
+ROG root: /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+Results: m08-storage-git-restart-fixture-01/four-profile-results-01/summary.json.
+sb16 manifest SHA256: 661b216af028414fc7751c5b6fb7a4f47473e00f5b80f43fa2726139d57aa1cf.
+sb16-2 manifest SHA256: 7a0e4920171d0221d9b87214a80d4f37f22e7757957d6be46ef73724a932a65f.
+Both test hosts retain the original failed full-gate results and unresolved SQLite failure evidence.
+The native command lines, logs, receipts, source pins, and result JSON remain external to Git.
+
+Cleanup
+Reviewed exact image/repository paths were removed only after the four replacement passes.
+Plans and receipts: m08-storage-git-restart-fixture-01/cleanup-resolved-fixtures-01/.
+sb16 recovered 8255655936 bytes and had 19.78 GiB free after cleanup.
+sb16-2 recovered 5503668224 bytes and had 23.83 GiB free after cleanup.
+Removed paths cover the current Debug/SAN fixture images and imported repositories.
+sb16 also removed the superseded failed focused restart image and repository.
+No current package, original gate evidence, or unresolved failure evidence was deleted.
+
+Unrun and remaining work
+The existing changed-parent and replacement-filesystem refusal controls remain unrun for this repair.
+Their fixture is tests/native/test_storage_broker_launch.py.
+The SQLite durability progress repair needs primary review and both-host runtime verification.
+A new combined source candidate must pass the complete local and cross-host M08 gates.
+The original candidate's failed full gates remain failed. No result is relabeled.

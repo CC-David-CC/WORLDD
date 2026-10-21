@@ -274,6 +274,12 @@ try:
     path = root/'resource.textproto'; path.write_text(text_format.MessageToString(resources)); os.chown(path,uid,gid)
     record.update(unit=unit, scope=str(scope), resources=text_format.MessageToString(resources)); save()
 
+    def delegated_parent_identity():
+        status = scope.stat()
+        return (status.st_dev, status.st_ino, Path('/proc/sys/kernel/random/boot_id').read_text().strip())
+
+    initial_parent_identity = delegated_parent_identity()
+
     source = fixture_source or root/'repository'
     def git(*args): return run(['git','-C',source,*args],actor=True,timeout=120)
     if not fixture_source:
@@ -296,6 +302,7 @@ try:
         git('add','--all'); git('-c','user.name=Storage witness','-c','user.email=witness@localhost','commit','-m','Large files')
         git('repack','-ad','--window=0','--depth=0','--threads=2')
     before = git('show-ref'); record['source_blobs'] = blobs; save()
+    assert delegated_parent_identity() == initial_parent_identity
     actor, owner = spawn('first')
     started = time.monotonic()
     repository = management('git_repo_import',core.RepositoryImportRequest(id='large',path=str(source)),timeout=305).repository
@@ -307,7 +314,10 @@ try:
     old_inode = (Path(tree.path)/'README').stat().st_ino
     operation = '../opaque/\nretirement'
     with (Path(tree.path)/'README').open('a') as held:
-        assert management('git_worktree_remove',core.WorktreeRemoveRequest(id='large-tree',operation_id=operation)).worktree_removed.removed
+        retirement_receipt = management('git_worktree_remove',core.WorktreeRemoveRequest(
+            id='large-tree',operation_id=operation))
+        assert retirement_receipt.WhichOneof('outcome') == 'worktree_removed', retirement_receipt
+        assert retirement_receipt.worktree_removed.removed
         with closing(sqlite3.connect(volume/'execution.db')) as database:
             retired = Path(database.execute('SELECT retired FROM removals WHERE id=?',(operation,)).fetchone()[0])
         retained = retired/'data/project/README'
@@ -436,14 +446,24 @@ Path('/state/witness.json').write_text(json.dumps(result))
     # The owner catalog, Git registry, quota groups, and uncommitted files survive restart.
     assert 'populated 0' in (scope/'cgroup.events').read_text()
     assert not any(path.is_dir() for path in scope.iterdir())
-    scope.rmdir()
-    run([sys.executable,'-c','from pathlib import Path; import sys; Path(sys.argv[1]).mkdir()',scope],actor=True)
+    assert delegated_parent_identity() == initial_parent_identity
     actor,owner = spawn('restart')
+    assert delegated_parent_identity() == initial_parent_identity
     assert management('workspace_get',core.WorkspaceIdRequest(id='workspace-a')).workspace.id == 'workspace-a'
-    assert management('git_worktree_remove',core.WorktreeRemoveRequest(id='large-tree',operation_id=operation)).worktree_removed.removed
+    replayed_retirement = management('git_worktree_remove',core.WorktreeRemoveRequest(
+        id='large-tree',operation_id=operation))
+    assert replayed_retirement.WhichOneof('outcome') == 'worktree_removed', replayed_retirement
+    assert replayed_retirement.request_id != retirement_receipt.request_id
+    assert replayed_retirement.worktree_removed.removed
+    assert replayed_retirement.worktree_removed.SerializeToString(deterministic=True) == \
+        retirement_receipt.worktree_removed.SerializeToString(deterministic=True), replayed_retirement
     assert (Path(sibling.path)/'survives').stat().st_size == 4*mib
     stop(actor,owner)
-    record['results']['restart'] = dict(passed=True); save()
+    assert delegated_parent_identity() == initial_parent_identity
+    record['results']['restart'] = dict(passed=True,
+        delegated_parent=dict(device=initial_parent_identity[0], inode=initial_parent_identity[1],
+                              boot_id=initial_parent_identity[2]),
+        git_remove_receipt_idempotent=True, sibling_file_survived=True); save()
     record['application_diagnostics'] = {}
     for path in (volume/'applications').glob('*/*'):
         if path.is_file() and path.name in ('setup.log','stdout','stderr'):
