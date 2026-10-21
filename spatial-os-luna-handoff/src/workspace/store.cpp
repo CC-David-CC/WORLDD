@@ -412,6 +412,7 @@ struct ExecutionStore::Impl {
     std::function<void()> observer;
     std::function<void()> durability_observer;
     std::function<void()> durability_reconcile;
+    std::function<bool(const std::string&)> durability_revoked_process;
     std::function<workspace::v1::ApplicationAccessReply(const workspace::v1::ApplicationAccessRequest&)> durability_access;
     std::string revocation_commit_gate;
     std::unique_ptr<FileOperationJournal> file_journal;
@@ -2065,10 +2066,12 @@ void ExecutionStore::reconcile_authority() try {
     // during the loan. Authority's cached checks use separate authority stores.
     std::set<std::string> stopped(revoked.begin(), revoked.end());
     std::set<std::string> pending(revoked.begin(), revoked.end());
+    std::set<std::string> confirmed_revoked(revoked.begin(), revoked.end());
     struct ClearProgress {
         Impl& impl;
-        ~ClearProgress() { impl.durability_reconcile = {}; impl.durability_access = {}; }
+        ~ClearProgress() { impl.durability_reconcile = {}; impl.durability_access = {}; impl.durability_revoked_process = {}; }
     } clear_progress{*impl_};
+    impl_->durability_revoked_process = [&](const std::string& id) { return confirmed_revoked.contains(id); };
     impl_->durability_access = [&](const workspace::v1::ApplicationAccessRequest& request) {
         const auto stamp = impl_->authority->fence_snapshot();
         workspace::v1::ApplicationAccessReply reply;
@@ -2114,11 +2117,15 @@ void ExecutionStore::reconcile_authority() try {
             if (job != impl_->jobs.end()) stops.emplace_back(record.id, job->second.get());
         }
         const auto limit = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        std::set<std::string> stop_requested;
         for (const auto& [id, process] : stops) {
-            (void)id; try { process->request_stop(limit); } catch (...) { remember(failure); }
+            try { process->request_stop(limit); stop_requested.insert(id); } catch (...) { remember(failure); }
         }
         for (const auto& [id, process] : stops) {
-            (void)id; try { process->complete_stop(limit); } catch (...) { remember(failure); }
+            try {
+                process->complete_stop(limit);
+                if (stop_requested.contains(id)) confirmed_revoked.insert(id);
+            } catch (...) { remember(failure); }
         }
         for (const auto& [id, process] : stops) { (void)process; impl_->jobs.erase(id); }
         if (impl_->native) { try { impl_->native->check(); } catch (...) { remember(failure); } }
@@ -2178,6 +2185,13 @@ void ExecutionStore::reconcile_authority() try {
 }
 
 bool ExecutionStore::authority_durability_pending() const { return impl_->db.lent; }
+bool ExecutionStore::authority_durability_process_revoked(const wire::ProcessWaitRequest& request) const {
+    valid_text(request.id());
+    require(request.has_timeout_seconds() && std::isfinite(request.timeout_seconds()) &&
+            request.timeout_seconds() >= 0 && request.timeout_seconds() <= 5,
+            "Process wait requires a timeout from zero to five seconds");
+    return impl_->db.lent && impl_->durability_revoked_process && impl_->durability_revoked_process(request.id());
+}
 void ExecutionStore::progress_authority_durability() {
     if (impl_->db.lent && impl_->durability_reconcile) impl_->durability_reconcile();
 }

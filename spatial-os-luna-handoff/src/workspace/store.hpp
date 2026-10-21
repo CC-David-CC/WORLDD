@@ -51,6 +51,7 @@ public:
     void check_authority_reconciliation() const;
     // Only this progress callback may run while the execution connection is lent.
     bool authority_durability_pending() const;
+    bool authority_durability_process_revoked(const wire::ProcessWaitRequest& request) const;
     void progress_authority_durability();
     void set_durability_observer(std::function<void()> observer);
     void reap();

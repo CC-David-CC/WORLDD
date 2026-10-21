@@ -69,6 +69,12 @@ class WorkspaceRevocationDurabilityTests(WorkspaceParticipantFixture):
         with sqlite3.connect(self.execution/'execution.db') as db:
             return dict(db.execute('SELECT id,state FROM processes'))
 
+    def wait_process(self, item, process_id):
+        request_id = item.sequence + 1
+        management = core.Request(protocol_version=1, request_id=request_id,
+            process_wait=core.ProcessWaitRequest(id=process_id, timeout_seconds=0))
+        return item.request(management=management)
+
     def test_gate_environment_is_ignored_without_fixture_faults(self):
         gate = self.root/'disabled-revocation-gate'
         gate.mkdir(mode=0o700)
@@ -170,6 +176,14 @@ class WorkspaceRevocationDurabilityTests(WorkspaceParticipantFixture):
         self.revoke_actor(self.second.actor_id, 0)
         self.until(lambda: (self.gate/'entered').exists(), bool)
         self.assertLess(len(poll.poll(0)), len(pids), 'Independent actor stopped before its revocation')
+        revoked_wait = self.wait_process(item, second_application)
+        self.assertTrue(revoked_wait.HasField('management'), revoked_wait)
+        self.assertEqual(revoked_wait.management.error.code, core.UNAVAILABLE, revoked_wait)
+        live_wait = self.wait_process(item, initial_application)
+        self.assertTrue(live_wait.HasField('error'), live_wait)
+        self.assertEqual(live_wait.error.code, core.BUSY, live_wait)
+        self.assertFalse(self.barrier().complete)
+        self.assertEqual(self.activations(), [(1, 0, 1)])
         before = item.request(authorization_fence=broker.AuthorizationFenceRequest(principal=self.principal()))
         self.assertTrue(before.HasField('authorization_fence'), before)
         self.revoke_actor(self.identity.actor_id, 1)

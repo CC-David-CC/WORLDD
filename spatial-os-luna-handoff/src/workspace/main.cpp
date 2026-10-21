@@ -75,8 +75,39 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         // Durability progress never enters a handler that can use execution SQLite.
         if (store.authority_durability_pending() && !request.has_authorization_fence() &&
                 !request.has_application_access() && !request.has_control_release() &&
-                !(request.has_management() && (request.management().has_hello() || request.management().has_runtime_identities())))
+                !(request.has_management() && (request.management().has_hello() || request.management().has_runtime_identities()))) {
+            if (request.has_management() && request.management().has_process_wait()) {
+                const auto& management_request = request.management();
+                const auto management_error = [&](wire::ErrorCode code, const std::string& message) {
+                    auto* management = reply.mutable_management();
+                    management->set_protocol_version(1);
+                    management->set_request_id(management_request.request_id());
+                    management->mutable_error()->set_code(code);
+                    management->mutable_error()->set_message(message);
+                };
+                if (management_request.request_id() != request.request_id())
+                    throw std::invalid_argument("Broker management identity mismatch");
+                try {
+                    spatial::validate_message(management_request);
+                    if (management_request.protocol_version() != 1)
+                        throw spatial::WorldError(wire::UNSUPPORTED_VERSION, "Unsupported broker protocol version");
+                    if (store.authority_durability_process_revoked(management_request.process_wait())) {
+                        management_error(wire::UNAVAILABLE, "Process execution is revoked or completion is uncertain");
+                        return reply;
+                    }
+                } catch (const spatial::WorldError& error) {
+                    management_error(error.code, error.what());
+                    return reply;
+                } catch (const std::invalid_argument& error) {
+                    management_error(wire::INVALID_ARGUMENT, error.what());
+                    return reply;
+                } catch (const std::exception&) {
+                    management_error(wire::INTERNAL_ERROR, "Broker management request failed internally");
+                    return reply;
+                }
+            }
             throw spatial::WorldError(wire::BUSY, "Execution durability is pending");
+        }
         // Transport validation precedes attribution on every private channel.
         if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
@@ -85,7 +116,8 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
                 !request.has_workspace_copy_status())
             throw spatial::WorldError(wire::BUSY, "Workspace effect is pending; retry execution after its checked result");
         if (request.has_management()) {
-            if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
+            if (request.management().request_id() != request.request_id())
+                throw std::invalid_argument("Broker management identity mismatch");
             *reply.mutable_management() = dispatch(request.management(), store);
         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
         else if (request.has_scoped_authority_check()) {

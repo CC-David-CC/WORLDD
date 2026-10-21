@@ -1,0 +1,44 @@
+M08 REVOKED PROCESS WAIT DURING DURABILITY REPAIR
+Status: UNQUALIFIED. Runtime checks and builds are UNRUN on this compile-only worker.
+Branch: m08/revoked-wait-durability-classification-20261021.
+Base: 8e013513bd6148022700557900aa9c31c5705ca7.
+Host: rog-ally-x. Primary owns review and runtime qualification.
+
+Observed regression
+The broker returns BUSY for every execution operation while the revoked-row SQLite connection is lent to its commit worker.
+The existing actor-revocation authority regression expects process.wait to report UNAVAILABLE after the process has stopped.
+The old test remains unchanged. The repair does not wait for commit or access the lent SQLite handle.
+
+Production behavior
+ExecutionStore exposes an owner-thread classification query only while authority durability is pending.
+The query validates the existing process.wait identifier and timeout contract.
+Its predicate reads the immutable running-process reconciliation snapshot and a local set of confirmed stopped IDs.
+The initial set contains the batch that completed stop and native revocation before the database loan.
+Later IDs enter the set only after stop request and completion both succeed during durability progress.
+The snapshot is cleared with the existing progress callbacks before its captured state is destroyed.
+
+The broker special-cases only a well-formed management process.wait whose process ID is confirmed revoked.
+It returns the existing nested management error envelope with UNAVAILABLE.
+Unknown and live process waits remain BUSY during the loan.
+No process.wait request is passed into the execution database while it is lent.
+Management request identity and nested protocol validation remain enforced.
+The existing busy guard remains in force for other execution operations.
+
+Regression coverage
+The additive held-commit test uses the existing two-actor durability scenario.
+It asserts UNAVAILABLE for the stopped and revoked actor's process.wait during the first held commit.
+It asserts BUSY for the independent still-live application's process.wait during the same loan.
+It also verifies issuer obligations remain pending before the commit is released.
+The existing actor-revocation acceptance test was not modified.
+
+Selected checks recorded before execution
+Static source review: dispatcher order, owner-thread snapshot lifetime, process-stop confirmation, nested response identity, and absence of SQLite use on the exception path.
+Diff review: explicit ownership scope and unchanged existing authority acceptance.
+Focused Python test: workspace-revocation-durability.
+Focused authority regression: test_actor_revocation_stops_execution_while_broker_is_idle.
+Build: external Debug workspaced target with the retained M08 configuration.
+
+Execution status
+No builds, Python imports, probes, runtime tests, or test-host operations were run on ROG.
+All selected tests and the build are UNRUN and require primary qualification on sb16 and sb16-2.
+This checkpoint does not qualify production stability or pass the M08 gate.
