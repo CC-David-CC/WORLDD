@@ -248,7 +248,7 @@ class BrokerDurabilityAcquirePrecedenceTests(BrokerIssuerProgressTests):
         gate = self.prepare_gated_application()
         primary_identity = self.payload_identity()
         self.enroll_second()
-        self.delegate([grant.WORKSPACE_ACCESS, *access.workspace.PROJECT, grant.PROCESS_EXECUTE,
+        self.delegate([grant.WORKSPACE_ACCESS, *access.workspace.PROJECT,
                        *leases.access.APP_RIGHTS])
         revoked_app = self.launch_application(claims=self.second)
         revoked_lease = self.acquire(revoked_app, self.second)
@@ -291,7 +291,7 @@ class BrokerDurabilityAcquirePrecedenceTests(BrokerIssuerProgressTests):
     def test_issuer_exit_while_commit_is_held_classifies_cached_requester(self):
         gate = self.prepare_gated_application()
         self.enroll_second()
-        self.delegate([grant.WORKSPACE_ACCESS, *access.workspace.PROJECT, grant.PROCESS_EXECUTE,
+        self.delegate([grant.WORKSPACE_ACCESS, *access.workspace.PROJECT,
                        *leases.access.APP_RIGHTS])
         primary_lease = self.acquire(self.app)
         revoked_app = self.launch_application(claims=self.second)

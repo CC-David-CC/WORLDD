@@ -1,0 +1,32 @@
+M08 issuer progress fixture grant repair
+Date: 2026-10-21
+Status: source checkpoint only; UNQUALIFIED
+
+The two new BrokerDurabilityAcquirePrecedenceTests failed during setup at
+self.delegate. Each list repeated PROCESS_EXECUTE because PROJECT already
+contains it. The broker correctly returned INVALID_ARGUMENT. Neither failure
+reached the held-commit assertions.
+
+Both lists now retain WORKSPACE_ACCESS, all PROJECT rights, and both
+application rights from APP_RIGHTS exactly once. Only fixture source changed.
+The two methods, 12-method registration, commit gate, process-continuity
+checks, release order, and assertions remain intact.
+
+The existing both-host Debug run passed ten of twelve selected methods. The
+two setup failures remain unrun after this source correction. This is not full
+qualification. Prior evidence remains at:
+/home/dflanag3/spatial-artifacts/m08-issuer-durability-precedence-repair-20261021/focused-primary-01/sb16-Debug-capture-01/focused-01/ctest.log
+/home/dflanag3/spatial-artifacts/m08-issuer-durability-precedence-repair-20261021/focused-primary-01/sb16-2-Debug-capture-01/focused-01/ctest.log
+
+Source-only validation used the existing Debug protobuf bindings. In-memory
+compile() passed. AST extraction verified that both repaired lists contain
+each intended generated enum value once. The existing suite registration
+still selects twelve runtime methods. The report and reproducible checker are
+in /home/dflanag3/spatial-artifacts/m08-issuer-fixture-grant-repair-20261021/.
+Runtime tests remain UNRUN.
+
+For a primary-owned diagnostic fixture overlay, place this changed file at
+spatial-os-luna-handoff/tests/core/test_broker_issuer_progress.py. The overlay
+is source-only and adds no production or locked acceptance changes. Preserve
+the existing 12-method selection and record the overlay source hash with any
+run. This checkpoint contains no runtime result.
