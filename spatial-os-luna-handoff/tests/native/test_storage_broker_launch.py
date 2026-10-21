@@ -48,7 +48,10 @@ policy_root.mkdir(mode=0o755); policy_root.chmod(0o755)
 record = dict(status='running', phase_complete=False, host=socket.gethostname(), results={}, commands=[],
               runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
 unit, delegate = None, None
+delegate_identity, broker_root_identity = None, None
 volume_info = {}; mounted_volumes = []; loop_devices = []; children = []; streams = []; owner_units = set()
+known_states = set()
+broker_root_interfaces = set()
 
 
 def save(): (root/'review.json').write_text(json.dumps(record, indent=2)+'\n')
@@ -131,28 +134,77 @@ def call(child, field, message):
 
 
 def owned_scope(state):
-    identity = (Path(state)/'.broker-instance-id').read_text()
+    state_path = Path(state)
+    assert stat.S_ISDIR(state_path.lstat().st_mode), f'Broker state path is not a real directory: {state_path}'
+    identity_path = state_path/'.broker-instance-id'
+    identity_info = identity_path.lstat()
+    assert stat.S_ISREG(identity_info.st_mode), f'Broker identity is not a real file: {identity_path}'
+    identity = identity_path.read_text()
     assert re.fullmatch(r'[a-f0-9]{32}', identity), identity
     return delegate/'broker-root'/('authority-broker-'+identity)
 
 
-def assert_owned_scopes_empty_for_state(state):
-    scope=owned_scope(state)
+def assert_pinned_directory(path, expected, description):
+    info = path.lstat()
+    assert stat.S_ISDIR(info.st_mode), f'{description} is not a real directory: {path}'
+    assert (info.st_dev, info.st_ino, info.st_uid) == expected, f'{description} identity changed: {path}'
+
+
+def assert_scope_empty_or_retired(scope):
+    assert delegate is not None and delegate_identity is not None and broker_root_identity is not None
+    broker_root = delegate/'broker-root'
+    assert scope.parent == broker_root and re.fullmatch(r'authority-broker-[a-f0-9]{32}', scope.name), scope
+    assert_pinned_directory(delegate, delegate_identity, 'Pinned delegated cgroup')
+    assert_pinned_directory(broker_root, broker_root_identity, 'Pinned broker cgroup root')
+    try:
+        scope_info = scope.lstat()
+    except FileNotFoundError:
+        # ProcessScope removes a retired broker root only after its drain proof.
+        # Parent and exact identity checks above keep absence from hiding a path swap.
+        return
+    assert stat.S_ISDIR(scope_info.st_mode) and scope_info.st_uid == uid, (
+        f'Owned cgroup scope is not a real directory owned by uid {uid}: {scope}')
     assert populated_value((scope/'cgroup.events').read_text()) == 0, scope
     assert not (scope/'cgroup.procs').read_text().strip(), scope
-    assert not any(path.is_dir() for path in scope.rglob('*')), scope
+    for entry in os.scandir(scope):
+        entry_info = entry.stat(follow_symlinks=False)
+        assert not stat.S_ISLNK(entry_info.st_mode), f'Symlink in owned cgroup scope: {entry.path}'
+        assert not stat.S_ISDIR(entry_info.st_mode), f'Child cgroup remains in owned scope: {entry.path}'
+
+
+def assert_owned_scopes_empty_for_state(state):
+    assert_scope_empty_or_retired(owned_scope(state))
 
 
 def assert_owned_scopes_empty():
-    for scope in (delegate/'broker-root').iterdir():
-        if not scope.is_dir(): continue
-        assert populated_value((scope/'cgroup.events').read_text()) == 0, scope
-        assert not (scope/'cgroup.procs').read_text().strip(), scope
-        assert not any(path.is_dir() for path in scope.rglob('*')), scope
+    assert delegate is not None and delegate_identity is not None and broker_root_identity is not None
+    expected_scopes = set()
+    for state in known_states:
+        identity_path = state/'.broker-instance-id'
+        try:
+            info = identity_path.lstat()
+        except FileNotFoundError:
+            continue
+        assert stat.S_ISREG(info.st_mode), f'Broker identity is not a real file: {identity_path}'
+        identity = identity_path.read_text()
+        assert re.fullmatch(r'[a-f0-9]{32}', identity), identity
+        expected_scopes.add('authority-broker-'+identity)
+    broker_root = delegate/'broker-root'
+    assert_pinned_directory(delegate, delegate_identity, 'Pinned delegated cgroup')
+    assert_pinned_directory(broker_root, broker_root_identity, 'Pinned broker cgroup root')
+    for entry in os.scandir(broker_root):
+        info = entry.stat(follow_symlinks=False)
+        assert not stat.S_ISLNK(info.st_mode), f'Symlink in broker cgroup root: {entry.path}'
+        if stat.S_ISDIR(info.st_mode):
+            assert entry.name in expected_scopes, f'Foreign broker scope path: {entry.path}'
+            assert_scope_empty_or_retired(Path(entry.path))
+        else:
+            assert stat.S_ISREG(info.st_mode) and entry.name in broker_root_interfaces, entry.path
 
 
 def spawn(label, wrong_uid=False, wrong_volume=False, owner_devices=None, state=None, delegated=None):
     state = Path(state) if state is not None else volume
+    known_states.add(state)
     policy = policy_root/(label+'.pb')
     policy.write_bytes(owner_policy_for(state, uid+1 if wrong_uid else uid).SerializeToString())
     configured_volume = root if wrong_volume else state
@@ -205,6 +257,21 @@ try:
     (delegate/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
     (delegate/'broker-root').mkdir(); os.chown(delegate/'broker-root',uid,gid)
     (delegate/'broker-root/cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
+    broker_root = delegate/'broker-root'
+    for entry in os.scandir(broker_root):
+        info = entry.stat(follow_symlinks=False)
+        assert not stat.S_ISLNK(info.st_mode), f'Symlink in initial broker cgroup root: {entry.path}'
+        assert not stat.S_ISDIR(info.st_mode), f'Child cgroup in initial broker cgroup root: {entry.path}'
+        assert stat.S_ISREG(info.st_mode), f'Non-file in initial broker cgroup root: {entry.path}'
+        # Capture this kernel's complete interface set. Systemd can delegate
+        # additional controllers, such as cpuset, beside the required four.
+        broker_root_interfaces.add(entry.name)
+    assert {'cgroup.subtree_control', 'cpu.max', 'memory.max', 'pids.max', 'io.max'} <= broker_root_interfaces, (
+        'Initial broker cgroup root is missing required kernel interfaces', sorted(broker_root_interfaces))
+    delegate_info = delegate.stat(follow_symlinks=False)
+    delegate_identity = (delegate_info.st_dev, delegate_info.st_ino, delegate_info.st_uid)
+    broker_root_info = (delegate/'broker-root').stat(follow_symlinks=False)
+    broker_root_identity = (broker_root_info.st_dev, broker_root_info.st_ino, broker_root_info.st_uid)
     backing = (Path('/sys/dev/block')/f'{os.major(root.stat().st_dev)}:{os.minor(root.stat().st_dev)}').resolve()
     if (backing/'partition').exists(): backing = backing.parent
     devices = {tuple(map(int,(backing/'dev').read_text().split(':')))}
@@ -413,7 +480,7 @@ try:
     assert replaced.wait(timeout=15)==2, replaced_log.read_text(errors='replace')
     replaced.stdout.close();children.remove(replaced)
     assert 'Broker state filesystem was replaced at its registered path' in replaced_log.read_text(errors='replace')
-    assert populated_value((replacement_scope/'cgroup.events').read_text()) == 0
+    assert_scope_empty_or_retired(replacement_scope)
     record['results']['same_path_reformatted_filesystem_fails_closed'] = dict(passed=True)
     # Cancel at the real readiness boundary after the service is active.
     owner_policy.broker_uid = uid

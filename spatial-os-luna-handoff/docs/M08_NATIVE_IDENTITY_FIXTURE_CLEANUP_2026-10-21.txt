@@ -1,0 +1,57 @@
+M08 native identity fixture cleanup repair - 2026-10-21
+
+Scope
+
+This source-only repair adjusts post-stop cgroup assertions in
+`tests/native/test_storage_broker_launch.py`. It does not change production
+code, locked tests, acceptance contracts, or deadlines.
+
+Failure and invariant
+
+The native storage broker fixture failed on both qualification hosts after a
+normal broker shutdown. `ProcessScope` retired its drained broker cgroup, so
+`assert_owned_scopes_empty_for_state` tried to read `cgroup.events` from a
+removed path. `ProcessScope::stop` removes a scope only after checking the
+pinned cgroup identity and confirming no processes remain. Its cleanup also
+removes empty child cgroups first.
+
+The fixture now accepts absence only for the exact broker identity read from
+the state's `.broker-instance-id`. Before that check, it verifies the pinned
+delegated cgroup and broker-root device/inode identities. Existing scopes
+must remain real directories with empty `cgroup.events`, empty `cgroup.procs`,
+and no symlinks or child cgroups. Permission and other I/O errors propagate.
+
+The fixture records the exact regular kernel-interface names in the new broker
+root after enabling controllers and before spawning any broker. It requires
+the enabled cpu, memory, pids, and io interfaces. The baseline rejects symlinks,
+child directories, and non-kernel names. Later scans accept regular files only
+from that captured set. They reject new entries, symlinks, malformed scope
+names, and foreign scope identities. The same-boot parent-change, legacy-registry,
+replacement-filesystem, crash/restart, peer-survival, and exact diagnostic
+assertions remain. Live-scope population checks remain strict.
+
+Source and evidence
+
+Base: `d8e085807ec7a312213f5776105f739b722345dd`
+Branch: `m08/native-identity-fixture-cleanup-20261021`
+Worktree: `/home/dflanag3/src/m08-native-identity-fixture-cleanup-20261021`
+Original failure logs were reported at:
+`/home/dflanag3/spatial-artifacts/m08-storage-parent-refusal-20261021/HOST/debug-run-01/stderr.log`
+The test hosts were not contacted during this repair.
+
+Checks and handoff
+
+Only Python AST parsing, source review, and `git diff --check` are permitted for
+this task. A primary review found that controller interface names such as
+`cpu.max` and `memory.max` must be captured explicitly; the fixture now keeps
+that exact initial filename set. The native fixture was not run or imported. Focused Debug and
+sanitizer runs on both hosts remain pending. The primary reviewer must inspect
+the changed helper and exact diff before any runtime qualification. Preserve
+the original failure evidence and rerun only the affected native case first.
+
+Primary review correction
+The baseline records all regular kernel interface filenames from the real cgroup directory.
+It does not restrict the initial set to four controller prefixes.
+Systemd can also delegate cpuset or other available controllers.
+The required CPU, memory, pids, and I/O files remain mandatory.
+Every later entry must match the pinned initial set or a known broker scope.
