@@ -12,17 +12,17 @@ It never relabels the original CTest command as passed.
 
 CURRENT STATUS
 
-No valid tail evidence exists yet. Tail attempt 05 failed during setup. P10 and
-bounded-storage stages remain unrun. Do not invoke the proof CLI until a corrected
-actual tail run completes, primary creates the post-tail binding, and primary
-reviews the exact command.
+Actual tail06 passed all three stages. The post-tail audit and binding also passed.
+Primary review pins those exact successful receipt hashes. Attempt05 remains failed.
+The verifier now rechecks all3157 supplemental artifacts and exact frozen command recipes.
+Run only after the whole-main verifier tests pass and primary confirms the transferred source hashes.
 
 The verifier reads raw canonical runner receipts, output logs, CTest XML, P10
 report, and storage cleanup report at their recorded paths. Run it as an
 artifact-only job on sb16-2, where those pinned raw paths resolve. It does not
 launch tests, builds, deployments, or cleanup.
 
-COMMAND TEMPLATE (NOT READY TO RUN)
+COMMAND TEMPLATE (USE THE REVIEWED EXACT HASHES)
 
   python3 -B reconcile_sb16_2_additive_proof.py \
     --inputs-dir /home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/packaging-cache-repair-01/sb16-2-reconciliation-actual-inputs-01 \

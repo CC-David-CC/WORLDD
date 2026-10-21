@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate additive sb16-2 evidence without publishing a gate receipt."""
 from __future__ import annotations
-import argparse, hashlib, json, pathlib, sys, xml.etree.ElementTree as ET
+import argparse, hashlib, importlib.util, json, pathlib, re, sys, xml.etree.ElementTree as ET
 
 CANDIDATE = "580834ceeda112da0a1cdcd37ca7b288db1512fc"
 HOST = "sb16-2"
@@ -22,6 +22,11 @@ INTEGRITY_SHA = "854c48a65bf1aafeedbd1e61ac5a2e3b84d393bb9c9a6f9bdce0081f6be417e
 TAIL_M06_SHA = "8feb2c142d0ffd37a35011be412d44066fb292d3e883462021c292c3882ee21d"
 TAIL_M08_SHA = "500f340e263a8784f7a616b5086daf26fd5dc104027b2dcd23b2aa80db75c2f1"
 RUNNER_SHA = "7053d5ffe05e7050b035d6b715b794dd742b68ee29b9198a703979391323f537"
+TAIL_SHA = "c21041a8bfa39e2ce6718b56267e002bbe24502652c1363e064d1632a5a32076"
+BINDING_SHA = "2bdc6e1eff67c551a7f06eeccb1bb9e8ab1c6da28b0de5001194c645d46f06d7"
+DEPLOYMENT_SHA = "5a2fbae3ea6595c05dcf8ffb2d766ad24b7d4d7210bbf33b0fd8d16022a0ed50"
+POST_TAIL_AUDIT_SHA = INTEGRITY_SHA
+SAN_RE = re.compile(r"AddressSanitizer:|LeakSanitizer:|UndefinedBehaviorSanitizer:|runtime error:")
 FAILURES = {"host-actor-controller-native", "host-session-production-native", "session-coordinator-retirement", "session-broker-retirement", "session-stopped-broker-dependency"}
 NATIVE_COUNTS = {"identity-tls": 25, "host-actor-controller-native": 1, "host-session-production-native": 26, "session-coordinator-retirement": 8, "session-broker-retirement": 9, "session-stopped-broker-dependency": 9}
 NESTED = {"workspace-copy-supervised-sigkill-recovery", "workspace-copy-supervised-prepared-worker-proof-recovery", "workspace-copy-supervised-published-prepared-recovery", "workspace-copy-supervised-published-sync-failure-recovery"}
@@ -62,11 +67,47 @@ def pinned(path, expected, label):
     need(sha(p) == expected, label + " SHA-256 mismatch")
     return p
 
+def stage_recipes(raw_root):
+    source = ROOT / "deployed-01/source"
+    path = source / "tools/m06_deployed_gate.py"
+    need(sha(path) == TAIL_M06_SHA, "frozen stage recipe source mismatch")
+    spec = importlib.util.spec_from_file_location("_combined_frozen_m06", path)
+    gate = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = gate
+    spec.loader.exec_module(gate)
+    rows = gate.profile_stage_commands(source, ROOT / "deployed-01/build/ASan-UBSan",
+            ROOT / "deployed-01/production-off/ASan-UBSan", raw_root,
+            sorted(gate.DEDICATED_CROSSHOST), copy_worker_helpers=True, profile="ASan-UBSan")
+    selected = {}
+    for name, argv, timeout in rows:
+        if name not in STAGES:
+            continue
+        frozen = list(argv)
+        if name == "bounded-storage-git":
+            need(argv[:3] == ["sudo", "-n", "python3"], "unexpected storage recipe")
+            argv = ["sudo", "-n", "env", "PYTHONDONTWRITEBYTECODE=1", "python3", "-B", *argv[3:]]
+        selected[name] = dict(argv=argv, frozen_recipe_argv=frozen, timeout_seconds=timeout, cwd=str(source))
+    need(set(selected) == set(STAGES), "frozen recipe inventory mismatch")
+    return gate, selected
+
 def validate_raw_stage_files(raw_root, tail, acceptance_lock):
     manifest = tail.get("supplemental_artifact_manifest", {}).get("sha256")
     need(isinstance(manifest, dict) and manifest, "tail raw artifact manifest missing")
+    gate, recipes = stage_recipes(raw_root)
+    logs_checked = 0
+    for key, expected in manifest.items():
+        relpath = pathlib.Path(key)
+        need(not relpath.is_absolute() and ".." not in relpath.parts, "unsafe raw artifact path")
+        path = raw_root / relpath
+        need(path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(raw_root), "missing or redirected raw artifact: " + key)
+        need(sha(path) == expected, "raw artifact hash mismatch: " + key)
+        if path.suffix == ".log":
+            need(not SAN_RE.search(path.read_text(errors="replace")), "raw sanitizer finding: " + key)
+            logs_checked += 1
     for name in STAGES:
         row = next((r for r in tail["supplemental_stages"] if r.get("name") == name), {})
+        for key, value in recipes[name].items():
+            need(row.get(key) == value, "raw stage differs from frozen recipe: " + name + ":" + key)
         runner = pathlib.Path(row.get("runner", ""))
         need(runner.parts[-2:] == ("canonical-runs", name), "tail runner path mismatch: " + name)
         rel = pathlib.PurePosixPath("canonical-runs") / name
@@ -79,6 +120,12 @@ def validate_raw_stage_files(raw_root, tail, acceptance_lock):
         need((raw_dir / "command.exit").read_text().strip() == "0" and (raw_dir / "wrapper.exit").read_text().strip() == "0" and (raw_dir / "terminal-status.txt").read_text().strip() == "COMPLETE", "raw canonical exits mismatch: " + name)
         argv = [x.decode() for x in (raw_dir / "argv.nul").read_bytes().split(bytes([0]))[:-1]]
         need(argv == row.get("argv"), "raw canonical argv mismatch: " + name)
+        text = (raw_dir / "stdout.log").read_text(errors="replace") + "\n" + (raw_dir / "stderr.log").read_text(errors="replace")
+        try:
+            gate.reject_inner_skips(text)
+            gate.reject_inner_failures(text)
+        except RuntimeError as exc:
+            raise ValueError("raw stage log failure: " + str(exc)) from exc
         logs = row.get("logs", {})
         need(sha(raw_dir / "stdout.log") == logs.get("stdout_sha256") and sha(raw_dir / "stderr.log") == logs.get("stderr_sha256"), "raw canonical log pin mismatch: " + name)
 
@@ -108,10 +155,11 @@ def validate_raw_stage_files(raw_root, tail, acceptance_lock):
     need(set(results) == STORAGE and all(isinstance(v, dict) and v.get("passed") is True for v in results.values()), "raw storage result inventory mismatch")
     need(storage.get("status") == "passed" and storage.get("mounted") is False and not storage.get("scope") is None and not pathlib.Path(scope).exists(), "raw storage cleanup status mismatch")
     need(all(storage.get(k, {}).get("exit_code") == 0 for k in ("service_stop", "unmount", "detach")) and "ActiveState=inactive" in storage.get("service_after", "") and len(owners) == 2 and all("ActiveState=inactive" in v for v in owners.values()), "raw storage cleanup mismatch")
-    return {"runner_files_checked": len(STAGES) * 6, "nested_cases": sorted(names), "p10_ids": len(ids), "storage_results": sorted(results)}
+    return {"manifest_files_checked": len(manifest), "logs_scanned": logs_checked, "sanitizer_findings": [], "frozen_recipes_match": True, "runner_files_checked": len(STAGES) * 6, "nested_cases": sorted(names), "p10_ids": len(ids), "storage_results": sorted(results)}
 
 def validate_tail(path, expected_sha, native_target, acceptance_lock):
     need(len(expected_sha) == 64 and all(c in "0123456789abcdef" for c in expected_sha), "tail SHA-256 is malformed")
+    need(expected_sha == TAIL_SHA, "tail is not the reviewed successful attempt")
     p = pinned(path, expected_sha, "SAN tail result")
     need(p == POST_TAIL, "tail result path mismatch")
     need(p.name == "supplemental-result.json", "tail result filename mismatch")
@@ -129,7 +177,7 @@ def validate_tail(path, expected_sha, native_target, acceptance_lock):
     need(isinstance(rows, list) and [r.get("name") for r in rows] == list(STAGES), "tail stage inventory mismatch")
     runners = [pathlib.Path(r.get("runner", "")).resolve(strict=True) for r in rows]
     raw_root = runners[0].parent.parent
-    need(ROOT in raw_root.parents and all(r.parent.parent == raw_root and r.name == name for r, name in zip(runners, STAGES)), "tail raw output roots differ or are outside candidate artifacts")
+    need(raw_root == POST_TAIL.parent / "ASan-UBSan" and all(r == raw_root / "canonical-runs" / name for r, name in zip(runners, STAGES)), "tail raw output root differs from reviewed sanitizer attempt")
     for row, name in zip(rows, STAGES):
         rec = row.get("runner_receipt", {})
         need(row.get("passed") is True and rec.get("launcher_exit") == 0 and rec.get("command.exit") == "0" and rec.get("wrapper.exit") == "0" and rec.get("terminal-status.txt") == "COMPLETE", "tail runner failed: " + name)
@@ -146,7 +194,7 @@ def validate_tail(path, expected_sha, native_target, acceptance_lock):
     need(d.get("source_closures_rechecked_after") is True, "tail closure audit missing")
     pins = d.get("pins_before", {})
     need(pins.get("provenance_sha256") == PROVENANCE_SHA and pins.get("source_gate_sha256") == TAIL_M06_SHA and pins.get("m08_gate_sha256") == TAIL_M08_SHA and pins.get("runner_sha256") == RUNNER_SHA, "tail frozen source/runner pins mismatch")
-    need(len(pins.get("deployment_receipt_sha256", "")) == 64, "tail deployment receipt pin missing")
+    need(pins.get("deployment_receipt_sha256") == DEPLOYMENT_SHA, "tail deployment receipt pin mismatch")
     raw = validate_raw_stage_files(raw_root, d, acceptance_lock)
     return {"path": str(p), "sha256": expected_sha, "stages": list(STAGES), "raw_evidence": raw, "qualification": "UNQUALIFIED"}
 
@@ -166,6 +214,8 @@ def build_proof(inputs_dir, original_path, tail_path, tail_sha, binding_path, bi
     san_commands = san.get("commands", [])
     need(san.get("status") in ("running", "failed") and [r.get("name") for r in san_commands] == ["inventory", "production-off-startup", "harness", "core"] and [r.get("exit_code") for r in san_commands] == [0, 0, 0, 8], "original ASan stage history mismatch")
     need(old.get("execution_error", {}).get("type") == "RuntimeError" and old.get("execution_error", {}).get("message") == "inner test reports a failed or errored case", "original SAN failure diagnostic mismatch")
+    san_harness = san_commands[2]
+    need(san_harness.get("reported_harness_count") == 89 and san_harness.get("harness_inventory_valid") is True and san_harness.get("assertions_passed") is True, "original SAN harness mismatch")
     dbg = old["profiles"]["Debug"]
     dc = {r["name"]: r for r in dbg["commands"]}
     debug_names = ["inventory", "production-off-startup", "harness", "core", "core-supervised-copy-recovery", "P10", "bounded-storage-git"]
@@ -224,6 +274,7 @@ def build_proof(inputs_dir, original_path, tail_path, tail_sha, binding_path, bi
     expected_lock_sha = read(provenance).get("source_sha256", {}).get("acceptance.lock.json")
     need(isinstance(expected_lock_sha, str) and sha(acceptance_lock) == expected_lock_sha, "locked acceptance inventory source mismatch")
     tail = validate_tail(tail_path, tail_sha, pins["native-replay.json"]["target_path"], acceptance_lock)
+    need(binding_sha == BINDING_SHA, "binding is not the reviewed post-tail result")
     binding = pinned(binding_path, binding_sha, "post-tail binding")
     need(binding == POST_TAIL_BINDING, "post-tail binding path mismatch")
     bind = read(binding)
@@ -233,6 +284,7 @@ def build_proof(inputs_dir, original_path, tail_path, tail_sha, binding_path, bi
     need(pathlib.Path(tail_path).resolve() == POST_TAIL and tail_bind == {"path": str(POST_TAIL), "sha256": tail_sha}, "post-tail binding tail mismatch")
     audit_bind = bind.get("audit", {})
     need(audit_bind.get("path") == str(POST_TAIL_AUDIT) and pathlib.Path(audit_bind.get("path", "")).resolve() == POST_TAIL_AUDIT, "post-tail audit path mismatch")
+    need(audit_bind.get("sha256") == POST_TAIL_AUDIT_SHA, "post-tail audit differs from reviewed hash")
     audit_path = pinned(audit_bind["path"], audit_bind.get("sha256", ""), "post-tail audit")
     audit = read(audit_path)
     need(audit.get("status") == "FOCUSED_PREPOST_ARTIFACT_AUDIT_PASSED" and audit.get("candidate") == CANDIDATE and audit.get("host") == HOST and audit.get("source_count") == 1222, "post-tail artifact audit mismatch")
@@ -254,6 +306,10 @@ def build_proof(inputs_dir, original_path, tail_path, tail_sha, binding_path, bi
         "original_failed_run": {"path": str(original_path), "sha256": ORIGINAL_SHA, "status": "failed", "original_san_core_exit": 8, "protected_cases": 232, "passed": 227, "failed_names": sorted(FAILURES), "skipped": 0},
         "derived_coverage": {"expected_local_names": 236, "original_san_passed_names": 227, "named_native_reruns": sorted(FAILURES), "self_managed_nested_names": sorted(NESTED), "unique_covered_names": 236},
         "evidence_sha256": {"san_inventory": sha(san_inv), "debug_inventory": sha(debug_inv), "san_core_junit": sha(junit), "provenance": sha(provenance), "native_replay": sha(native_path), "cabinet_replay": sha(cabinet_path), "post_native_integrity": sha(base / "post-native-integrity.json"), "post_tail_binding": sha(binding), "post_tail_integrity": sha(audit_path)},
+        "validation_status": "COMBINED_EVIDENCE_PASSED",
+        "profile_coverage": {"Debug": {"core": 236, "harness": 89, "locked_P10": 151, "bounded_storage_git": 6},
+                             "ASan-UBSan": {"core": 236, "harness": 89, "locked_P10": 151, "bounded_storage_git": 6}},
+        "cabinet_supplements": {"Debug": 3, "ASan-UBSan": 3},
         "tail": tail,
         "limitations": ["The preserved original ASan-UBSan CTest failed with exit 8.", "This proof combines separate original, named-rerun, and supplemental evidence.", "This is not a local gate receipt and does not qualify M08."]
     }
