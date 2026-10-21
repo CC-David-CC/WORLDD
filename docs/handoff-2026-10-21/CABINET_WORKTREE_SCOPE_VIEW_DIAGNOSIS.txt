@@ -1,0 +1,28 @@
+M08 cabinet worktree-scope supplemental failure diagnosis
+Date: 2026-10-21
+Status: source diagnosis with isolated fixture correction; no product edit; no target operation. Corrected method runtime check: UNRUN.
+
+Failure evidence
+
+The preserved sb16 supplemental Debug receipt is:
+/home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/packaging-cache-repair-01/sb16-cabinet-scoped-worktree-failure-01.json
+
+It records the single selected method failing at test_actor_cabinet_gateway.py:888 with StopIteration. The generator searched the observation's presentation_views for wrong_target.representation_id. The observation action existed; the target view did not. The receipt records prior supplemental cases separately. This diagnosis does not alter or replace that failure.
+
+Source path and cause
+
+The accepted 580 source is frozen at 580834ceeda112da0a1cdcd37ca7b288db1512fc. In tests/core/test_actor_cabinet_gateway.py, the test creates the denied workspace-two cabinet at x=3.2 (line 883), then expects its observed view (lines 886-890). The shared pose helper uses z=-2 (tests/core/test_workspace_presentation_actor.py:29-30).
+
+The normal observation request defaults to 512 by 512 pixels (src/world/actors.cpp:1262-1266). The conformance camera has vertical FOV pi/2 (config/conformance.textproto:8). In a square viewport, the horizontal clip coordinate for the cabinet center at x=3.2,z=-2 is f*x/(-z)=1.6, where f=1/tan(FOV/2)=1. The cabinet half-width is 0.09 world units (src/core/scene.cpp:281-284); its outer edge remains beyond clip coordinate 1. The fixture's default camera pose is the actor's pose (src/core/scene.cpp:130), and this test does not move that actor.
+
+The renderer clips projected geometry to [-1,1] (src/core/scene.cpp:344-353). The observation copies presentation metadata only for representation IDs with visible rendered samples (src/world/actors.cpp:1323-1345). Thus an off-view cabinet remains in authorized scene geometry but is absent from observation.presentation_views. The failure is consistent with rendering behavior and does not indicate a workspace-authority defect.
+
+Minimal assertion-preserving correction
+
+This worktree changes only the fixture placement from x=3.2 to x=1.2. At z=-2, this keeps the cabinet inside the view and within the configured interaction reach of 3. The cabinet remains clear of the workspace-one cabinet at x=0.8 and generic positive control at x=1.6: its projected box width is 0.18, and the generic box width is 0.2. Keep the locked-view, denied-use result, and no-file-created assertions unchanged. They are the intended authority regression.
+
+The test now collects matching observed views and requires exactly the wrong-target representation ID before indexing the view. The failure message identifies missing visible geometry. This precondition does not weaken the authority assertions or change renderer visibility. Confirm the fixture correction by rerunning this one selected method under the same recorded Debug wrappers on an authorized test host; this worker did not run it.
+
+Interpretation
+
+The confirmed cause is the test fixture's out-of-frustum placement. No evidence here establishes a product defect. Product-side observation intentionally omits metadata for geometry with no visible rendered samples. The existing failed report and candidate580 remain unchanged. This new branch carries a test-only fixture correction. Full qualification and supplemental evidence remain pending.
