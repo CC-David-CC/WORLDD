@@ -1,0 +1,74 @@
+M08 WORKSPACE-GIT ASAN-UBSAN TIMEOUT
+Updated: 2026-10-21T00:30Z
+
+STATUS
+
+M01-M07 retain historical qualification. M08 and M09 remain UNQUALIFIED.
+The full M08 gate has NOT STARTED.
+The tested production source is 3fd7475752912f0e86d9abea441979d5d8277489.
+Its nested source tree digest is 362fa2e5f31b7571751e38b60915a080fb4de9a6.
+The current documentation checkpoint changes no production source or test bytes.
+R means /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020.
+
+SELECTED TEST RESULTS
+
+sb16 passed all ten selected CTest registrations in Debug and ASan-UBSan.
+Primary audits confirmed 394 methods passed.
+sb16-2 passed all ten Debug registrations, with 197 methods.
+In ASan-UBSan, it passed regressions (17 methods), storage (32), and five related suites (92).
+Its workspace-git registration timed out at 180.02 seconds.
+That leaves 39 of 40 selected CTest executions passed and one timed out.
+732 test-method executions passed their assertions.
+The timed-out 56-method registration has no completed result.
+No ASan-UBSan finding was observed before the timeout.
+
+Workspace-git timings were 88.13 seconds on sb16 Debug and 170.86 seconds on sb16 ASan-UBSan.
+sb16-2 Debug took 120.04 seconds. Its ASan-UBSan registration reached the 180-second CTest limit.
+The CTest registration retains its 180-second timeout.
+Do not count the timeout as a passing test or change its contract silently.
+
+TIMEOUT AND RECOVERY
+
+The wrapper received EPERM while signaling owned process group 837307.
+Fail-closed cleanup refused to remove the candidate helpers.
+The canonical command and wrapper exited 125/125 with COMPLETE terminal status.
+Those exit codes record a completed failure, not a pass.
+Preserve the original failure evidence at R/sb16-2-san-git-timeout-diagnosis-01/initial-evidence/.
+Primary later verified that the exact transient unit was gone, the process group was empty,
+no process used the helpers, and both helper files were absent again.
+The recovery completed at 2026-10-21 00:23:17 UTC.
+Receipt: R/sb16-2-san-git-timeout-diagnosis-01/helper-recovery-02.json.
+Recovery resolves cleanup uncertainty. It does not convert the timeout into a pass.
+Use the read-only findings at R/san-git-timeout-readonly-review-01/findings-02.md.
+Do not use malformed findings.md.
+
+BOUNDED DIAGNOSTIC
+
+Primary launched a diagnostic on sb16-2 at 00:26:17 UTC.
+It uses verbose output for the same 56 methods and unchanged per-operation deadlines.
+It uses a 360-second native resource-service diagnostic limit.
+It does not change the CTest registration or qualify its 180-second timeout.
+Session: m08-3fd-san-git-timing-sb16-2-01.
+Outer run: R/run-san-git-timing-sb16-2-01.
+Expected report: R/san-git-timing-sb16-2-01/run.json.
+No diagnostic result is recorded yet.
+Primary will audit that result, then choose a reviewed suite-budget change or a production fix.
+A passing diagnostic would not satisfy the current 180-second CTest registration.
+
+PACKAGE AND DEPLOYMENT
+
+The 7d45 package audit and freeze passed.
+Archive SHA256: b1a8dcb5d214afec6fc8535f6e7ae275f599aed1964231b3209f72128be3a03d.
+Retained package: /mnt/data10tb/spatial-desktop/packages/current/m08-7d45d0786978-unqualified-20261020.
+sb16 transfer and official verify-deploy completed with canonical exits 0/0.
+Both runtime profiles verified. Primary deployment review remains pending.
+sb16-2 has no new deployment. No full gate has started.
+Old Debug and ASan-UBSan builds were removed after verification.
+Cleanup recovered about 9.4 GiB per host. Receipts: R/obsolete-adapter-build-retirement-audit-01/HOST-deletion-receipt-01.json.
+Source, manifests, and failure evidence remain retained.
+
+NEXT ACTION
+
+Observe the existing sb16-2 diagnostic. Do not start a duplicate run.
+Review its complete result and process retirement before choosing the next repair or contract action.
+Keep M08 unqualified until the registered CTest suite and full gate pass review.

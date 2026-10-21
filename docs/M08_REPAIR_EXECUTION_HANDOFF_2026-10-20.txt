@@ -1,3 +1,56 @@
+LATEST WORKSPACE-GIT SANITIZER TIMING CHECKPOINT
+Recorded: 2026-10-21T00:30Z
+This section supersedes earlier status and next-action instructions below.
+M01-M07 retain historical qualification. M08 and M09 remain UNQUALIFIED.
+The full M08 gate has NOT STARTED.
+
+Tested source remains 3fd7475752912f0e86d9abea441979d5d8277489.
+Nested source tree digest: 362fa2e5f31b7571751e38b60915a080fb4de9a6.
+The current documentation checkpoint changes no source or tests.
+
+sb16 passed all ten selected CTest registrations in Debug and ASan-UBSan.
+Primary audits confirmed 394 methods passed.
+sb16-2 passed all ten Debug registrations with 197 methods.
+Its ASan-UBSan regressions (17 methods), storage (32), and first five related suites (92) passed.
+Its workspace-git registration timed out at 180.02 seconds.
+Across selected executions, 39 of 40 passed and one timed out.
+732 test-method executions passed their assertions.
+The timed-out 56-method registration has no completed result.
+No sanitizer finding was observed in that timeout result.
+
+Workspace-git took 88.13 seconds on sb16 Debug and 170.86 seconds on sb16 ASan-UBSan.
+sb16-2 Debug took 120.04 seconds. Its ASan-UBSan run hit the registered 180-second CTest limit.
+The wrapper received EPERM while signaling owned process group 837307.
+Fail-closed cleanup refused helper removal. Canonical exits were 125/125; terminal status was COMPLETE.
+These exits record a completed failure, not a pass.
+Preserve the original evidence at R/sb16-2-san-git-timeout-diagnosis-01/initial-evidence/.
+Primary verified the transient unit was gone. The process group was empty.
+No helper users remained. Both helper files were absent after exact hash checks at 00:23:17 UTC.
+This recovery resolves cleanup uncertainty. It does not pass the timed-out registration.
+Use read-only findings-02 at R/san-git-timeout-readonly-review-01/findings-02.md.
+Do not use malformed findings.md.
+
+Primary launched the bounded 360-second native-service diagnostic on sb16-2 at 00:26:17 UTC.
+It retains the same 56 methods and per-operation deadlines.
+It does not qualify the registered 180-second CTest registration.
+Session: m08-3fd-san-git-timing-sb16-2-01.
+Outer run: R/run-san-git-timing-sb16-2-01.
+Report: R/san-git-timing-sb16-2-01/run.json. No result is recorded yet.
+Observe the existing diagnostic. Do not launch a duplicate.
+Primary will audit the result, then choose a reviewed suite-budget change or production fix.
+A passing diagnostic cannot satisfy the current CTest timeout.
+
+The 7d45 package audit and freeze passed.
+Archive SHA256: b1a8dcb5d214afec6fc8535f6e7ae275f599aed1964231b3209f72128be3a03d.
+Retained package: /mnt/data10tb/spatial-desktop/packages/current/m08-7d45d0786978-unqualified-20261020.
+sb16 transfer and official verify-deploy completed with canonical exits 0/0.
+Both runtime profiles verified. Primary deployment review remains pending.
+sb16-2 has no new deployment. No full gate has started.
+Cleanup removed verified old Debug and ASan-UBSan builds. Receipts: R/obsolete-adapter-build-retirement-audit-01/HOST-deletion-receipt-01.json.
+It recovered about 9.4 GiB per host. Source, manifests, and timeout evidence remain retained.
+
+See docs/M08_GIT_SANITIZER_TIMEOUT_2026-10-20.txt for the concise timing record.
+
 CURRENT GATE-CANDIDATE PREPARATION
 Recorded: 2026-10-20T23:46:13.420138+00:00
 This section supersedes earlier status and next-action instructions below.

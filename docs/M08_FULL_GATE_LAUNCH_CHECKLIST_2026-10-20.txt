@@ -1,3 +1,31 @@
+WORKSPACE-GIT AGGREGATE-TIMEOUT CHECK
+Recorded: 2026-10-21T00:30Z.
+The current M08 gate remains UNQUALIFIED and has NOT STARTED.
+This section adds preparation checks. It does not change acceptance or operation deadlines.
+
+Require completed selected checks on each host and each profile.
+Do not infer a passing batch from five passing registrations and one unfinished registration.
+Check the complete CTest log and final helper lifecycle, not only the parent status.
+
+For a timeout, preserve the exact registration, command, method count, and configured timeout.
+Record the last completed method when verbose output supplies one.
+Capture the exact service, process group, process identities, and installed helper identities.
+Prove retirement before restoring or removing helpers. Preserve the failed lifecycle receipt.
+Keep recovery success separate from test success.
+
+Use a separate, bounded diagnostic to distinguish a suite budget from an operation deadline.
+Preserve every method, assertion, sanitizer setting, resource policy, and operation deadline.
+Label an extended observation run UNQUALIFIED. It does not pass the original registration.
+Review and record any later CTest budget change as a source change.
+Reassess candidate, build, package, and gate evidence after that source change.
+Do not silently edit frozen test metadata or acceptance.lock.json.
+
+Current evidence: docs/M08_GIT_SANITIZER_TIMEOUT_2026-10-20.txt.
+The registered workspace-git timeout remains 180 seconds.
+The separate 360-second diagnostic remains pending.
+
+HISTORICAL CHECKLIST AND EVIDENCE
+
 CURRENT GATE-CANDIDATE PREPARATION
 Recorded: 2026-10-20T23:46:13.420138+00:00
 This section supersedes earlier status and next-action instructions below.
