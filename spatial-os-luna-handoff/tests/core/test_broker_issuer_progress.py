@@ -193,8 +193,18 @@ class BrokerIssuerProgressTests(BrokerProgressWitness, leases.ApplicationControl
         self.release(lease)
         result = self.broker.request(control_acquire=broker.ApplicationControlRequest(
             principal=self.principal(), application=app))
-        self.assertTrue(result.HasField("error"), result)
-        self.assertIn(result.error.code, (core.UNAVAILABLE, core.UNAUTHORIZED))
+        raw_reply = result.SerializeToString()
+        error = result.error if result.HasField("error") else None
+        self._progress["fresh_control_reply"] = dict(
+            protobuf_hex=raw_reply.hex(),
+            error_code=error.code if error is not None else None,
+            error_message=error.message if error is not None else None)
+        # Persist the exact protobuf before a rejection assertion can abort the method.
+        self.retain_progress()
+        self.assertTrue(result.HasField("error"),
+            "Fresh control acquire reply: " + text_format.MessageToString(result))
+        self.assertIn(result.error.code, (core.UNAVAILABLE, core.UNAUTHORIZED),
+            "Fresh control acquire reply: " + text_format.MessageToString(result))
         self._progress["denied_control_code"] = result.error.code
         self.broker.close()
         self.assertIsNotNone(self.broker.proc.poll())
