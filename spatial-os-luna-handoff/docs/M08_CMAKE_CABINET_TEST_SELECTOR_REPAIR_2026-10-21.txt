@@ -41,17 +41,31 @@ Selected before execution:
 - Run only CTest registration actor-cabinet-gateway-instrumentation.
 - Do not execute workspace-actor-cabinet-gateway or any application/runtime tests on ROG.
 
-The 28 Python-protobuf generation targets completed successfully in:
+The earlier all-bindings validation remains preserved at:
   /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/codegen-all-python-run-01
+It generated 28 Python-protobuf targets and passed the 15-method CTest, but
+masked the missing world-session prerequisite on the focused fixture target.
 
-Focused command:
-  ctest --test-dir /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/codegen-build -R '^actor-cabinet-gateway-instrumentation$' --output-on-failure
+Fresh dependency-closure validation used a new external build directory:
+  /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/fresh-fixture-build-01
+Configure command:
+  cmake -S /home/dflanag3/src/m08-cabinet-selector-repair-20261021/spatial-os-luna-handoff -B /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/fresh-fixture-build-01 -DBUILD_TESTING=ON
+Only build command:
+  cmake --build /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/fresh-fixture-build-01 --target actor-cabinet-gateway-instrumentation-fixture -j2
+It generated the fixture's Python binding closure, including core, file-actions,
+copy, security, grants, process-scope, native-scope, key, geometry-view,
+cabinet, storage, issuer, world-session, and broker bindings. No application
+or ELF target was built. `world-session-python-protobuf` supplies world_session_pb2.py;
+its declared dependencies provide its generated imports. The target command
+and canonical runner both exited 0, and its tmux pane closed with status 0.
 
-Result: 1/1 CTest registration passed; its unittest log reports 15/15 methods.
+Only CTest command:
+  ctest --test-dir /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/fresh-fixture-build-01 -R '^actor-cabinet-gateway-instrumentation$' --output-on-failure
+Result: 1/1 CTest registration passed; LastTest.log reports 15/15 methods.
 The discovery assertion found 28/28 local cabinet methods. The old filter
 matched 25 and omitted exactly the three named methods. No base presentation
-method was selected. The runner recorded command exit 0, wrapper exit 0, and
-a dead tmux pane with status 0. No application or service was started.
+method was selected. The CTest runner exited 0 and its tmux pane closed with
+status 0. No application or service was started.
 
 Failed setup attempts are preserved externally:
 - instrumentation-test-run-01: fresh bindings lacked world_session_pb2.
@@ -60,6 +74,12 @@ Failed setup attempts are preserved externally:
 - instrumentation-test-run-03: the legacy-filter simulation retained the
   imported module name instead of modeling script execution as __main__.
 The later codegen and regression correction addressed these setup issues.
+A primary review then found that the fixture target omitted the generated
+world_session_pb2.py import dependency. Earlier validation had masked this by
+generating all Python-protobuf targets. The fixture target now depends on
+world-session-python-protobuf, whose declared CMake prerequisites generate the
+transitive core, file-actions, geometry-view, issuer, grants, key, and security
+bindings. The fresh-target check below verifies this dependency closure.
 No application or runtime test failed.
 
 The three cabinet gateway methods themselves remain UNRUN on qualification
