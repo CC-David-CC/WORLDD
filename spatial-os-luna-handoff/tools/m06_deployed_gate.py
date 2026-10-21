@@ -71,6 +71,9 @@ GEOMETRY_CASES = [f"test_{i:02d}_" for i in range(1, 10)]
 SAN_RE = re.compile(r"AddressSanitizer|LeakSanitizer|UndefinedBehaviorSanitizer|runtime error:")
 INNER_SKIP_RE = re.compile(r'^(?:\d+: )?(?:OK|FAILED)\s*\([^\n)]*skipped\s*=|'
                           r'^(?:\d+: )?.*\.\.\. skipped(?:\s|$)|\[\s*SKIPPED\s*\]', re.M)
+INNER_FAILURE_RE = re.compile(
+    r'^[ \t]*(?:\d+:\s*)?(?:test\S*\s+\([^\n)]*\)\s+\.\.\.\s+(?:FAIL|ERROR)|'
+    r'(?:FAIL|ERROR):\s+\S.*|FAILED\s*\([^\n)]*(?:failures|errors)\s*=\s*[1-9][0-9]*[^\n)]*\))[ \t]*$', re.M)
 
 def sha(path: Path) -> str:
     h = hashlib.sha256()
@@ -1055,6 +1058,11 @@ def reject_inner_skips(output):
         raise RuntimeError('inner test reports a skipped case')
 
 
+def reject_inner_failures(output):
+    if INNER_FAILURE_RE.search(output):
+        raise RuntimeError('inner test reports a failed or errored case')
+
+
 def startup_packaging_command(source, executable, bindings):
     return ['python3', str(source / 'tests/core/test_host_session_startup.py'),
             str(executable), str(bindings)]
@@ -1951,6 +1959,7 @@ def gate(a):
                 row["commands"].append(item); write_json(report_path, report)
                 output = (target / (label + '.log')).read_text(errors='replace')
                 reject_inner_skips(output)
+                reject_inner_failures(output)
                 if label == 'production-off-startup' and not re.search(r'Ran 5 tests in .*\n\nOK(?:\n|$)', output):
                     raise RuntimeError('production-off startup must pass all five checks')
                 if label == "harness":

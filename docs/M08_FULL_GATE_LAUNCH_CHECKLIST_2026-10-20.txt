@@ -332,7 +332,7 @@ RETRY RULE FOR KNOWN FAILURES
 
 Use this file as the current detailed checklist.
 Use M08_LAUNCH_CHECKLIST.txt as its short entry point.
-Review F01-F47 before each new attempt.
+Review F01-F50 before each new attempt.
 For each applicable item, record its check, exact command, expected result, evidence path, and evidence hash.
 Name the host, profile, candidate, and launcher revision.
 Record VERIFIED only after reviewing the result.
@@ -426,6 +426,7 @@ Update this register before retrying. Never skip an assertion to obtain PASS.
 [ ] Verify baseline CTest metadata is already deployment-relocated before translating its evidence paths.
 [ ] A diagnostic overlay may change only the reviewed registration and its exact test argv.
 [ ] Validate a lone copied Python test's sibling imports through the pinned deployed source directory.
+[ ] Relocated fixture overlays must include the complete relative test import and runtime resource closure, or use a coherent prepared package. Validate imports before launching tests.
 [ ] Hash the exact inventory file used later. Do not hash raw JSON and bind a differently serialized file.
 [ ] Run actual nonexecuting target preflight on both profiles before application tests.
 [ ] Preserve failed preflight receipts. Confirm prior processes retired before retrying.
@@ -510,6 +511,9 @@ Update this register before retrying. Never skip an assertion to obtain PASS.
 [ ] Parse exit-record contents as integers. File length and COMPLETE never supply the exit status.
 [ ] Treat missing, empty, or malformed exit records as unknown.
 [ ] A live parent with blockers=[] can contain earlier failed tests.
+[ ] Audit inner unittest outcome records before accepting outer systemd or CTest Passed. Any inner FAIL invalidates the attempt.
+[ ] Any manual interruption invalidates the affected attempt, regardless of the outer exit. Preserve the exact owned-unit stop and lifecycle evidence.
+[ ] For actor-revocation process waits, preserve the required BUSY/UNAVAILABLE classification control. Do not loosen the test or add retry delays.
 [ ] A retained dead tmux pane is not a live process.
 [ ] Report setup refusals separately from executed product failures.
 
@@ -956,3 +960,20 @@ F47 Focused file-action launch omitted the copy-helper lifecycle wrapper.
 The focused launcher bypassed `tools/with_copy_worker_helpers.py`. Both hosts lacked root-owned `/usr/local/libexec/spatial-copy-tree-worker` and `/usr/local/libexec/spatial-copy-finalize-worker`; `workspace-file-action-broker` failed in Debug on both hosts. This is a confirmed launcher setup error, not a confirmed production regression. The affected file-action group was stopped at its exact owned systemd unit on each host, and failure evidence was preserved. Parent CTest continued with remaining groups.
 The maintained full gate already wraps protected CTest with the lifecycle helper. Focused runners must reuse it with exact `--build` and `--profile` values and external lifecycle evidence. Compare installed helper bytes and modes with the selected profile. Verify child retirement and `cleanup_status=confirmed`. If a group fails, record and stop only its exact owned unit.
 All corrected reruns remain UNRUN. See the preserved primary per-host Debug failure and lifecycle receipts in the external focused-run evidence. Read spatial-os-luna-handoff/docs/M08_COPY_HELPER_PROFILE_LIFECYCLE_2026-10-18.md.
+
+F48 Inner unittest failures were hidden by an outer Passed result.
+The primary intentionally stopped the exact file-action systemd unit after inner unittest FAIL records. Outer systemd/CTest then marked the group Passed. The whole attempt is INVALID. Reviewed guard `2dbef7b3977d9bf22164dba27e9d784871fd0762` adds the `reject_inner_failures` audit.
+Primary focused tooling ran the exact modified existing harness methods, two per host, on sb16 and sb16-2. It rejected an actual failed related transcript despite outer Passed and accepted an actual passing lease/access transcript. Both canonical commands returned 0/0 and their panes retired. Full-gate integration remains UNRUN.
+Require the inner-outcome audit before accepting a group. Any manual interruption invalidates the attempt regardless of outer exit. Preserve the exact stopped unit and evidence. At this entry's last observation, sanitizer was still running. The later terminal results are recorded below.
+
+F49 Actor revocation returned the wrong process-wait classification.
+On both-host Debug candidate e071, existing `test_actor_revocation_stops_execution_while_broker_is_idle` failed at `test_workspace_authority.py:1035`. After the process stopped, `process.wait` returned BUSY, `Execution durability is pending`, instead of required UNAVAILABLE. A separate production repair is in progress. Do not loosen this test, retry, or add a delay.
+Preserve a focused classification control that proves UNAVAILABLE follows the completed stop and BUSY is not returned. Keep the original two-host failures. This production repair and its rerun remain UNRUN.
+
+F50 External fixture overlay failed before importing the test module.
+The primary pagination-repair overlay lacked the relative native import closure. It failed importing `test_security_identity` before any test ran. sb16 Debug durability-run02 was a setup failure with zero methods. Helper lifecycle cleanup was confirmed, and source and ELF hashes stayed unchanged. The queued sb16-2 batch was canceled before any stage.
+Preserve this incident as setup failure; no fixture rerun passed. Before launching a relocated fixture, validate its complete relative test import and runtime resource closure, or use a coherent prepared package. The corrected fixture rerun remains UNRUN.
+
+CURRENT FOCUSED RESULTS (2026-10-21)
+The production source `e071fd565d13f7e93b2926ed86c935581f99d6e4` `session-storage-contention` scenario passed Debug and ASan-UBSan on both hosts: 25 methods per run, 100 method executions total. Core CTest elapsed times were sb16 Debug 47.45s and ASan-UBSan 50.46s; sb16-2 Debug 48.47s and ASan-UBSan 56.27s. Every canonical stage returned command/wrapper 0/0. Source and ELF hashes stayed unchanged. Metadata was restored. Copy-helper lifecycle cleanup was confirmed and the previous helper absence was restored. Scanned logs contained no sanitizer diagnostics. Both batch panes retired.
+The focused gate guard passed two methods per host, four total. It rejected the actual failed transcript despite outer Passed and accepted the actual passing lease/access transcript. These are focused checks. M08 remains UNQUALIFIED. The BUSY-versus-UNAVAILABLE failure and six-scenario full reruns remain pending.

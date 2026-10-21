@@ -133,6 +133,25 @@ class M08InventoryGateTests(unittest.TestCase):
         self.assertFalse(result["harness_inventory_valid"])
         self.assertEqual(result["skipped_harness_tests"], [expected[0]])
 
+        false_zero_outer = """test_bad (tests.test_inner.Case.test_bad) ... FAIL
+FAILED (failures=1)
+"""
+        prefixed_failure = "15: test_bad (tests.test_inner.Case.test_bad) ... FAIL\n"
+        prefixed_error = "15: ERROR: test_bad (tests.test_inner.Case.test_bad)\n"
+        failure_summary = "15: FAILED (failures=2, errors=1)\n"
+        abrupt_failure = "test_bad (tests.test_inner.Case.test_bad) ... ERROR\n"
+        passing = "test_ok (tests.test_inner.Case.test_ok) ... ok\n\nRan 1 test in 0.001s\n\nOK\n"
+        expected_error_prose = "Expected errors: 1; the fixture intentionally checks error reporting.\n"
+        rejected = (false_zero_outer, prefixed_failure, prefixed_error, failure_summary, abrupt_failure)
+        labels = ("falsezero outer log", "prefixed failure", "prefixed error", "failure summary",
+                  "no-summary abrupt stop")
+        for label, output in zip(labels, rejected):
+            with self.subTest(inner_outcome=label):
+                with self.assertRaisesRegex(RuntimeError, "failed or errored"):
+                    gate.m06.reject_inner_failures(output)
+        gate.m06.reject_inner_failures(passing)
+        gate.m06.reject_inner_failures(expected_error_prose)
+
     def test_m08_harness_manifest_matches_unittest_discovery_without_running_tests(self):
         suite = unittest.defaultTestLoader.discover("tests/harness", top_level_dir=".")
         def flatten(node):
