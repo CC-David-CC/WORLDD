@@ -1,0 +1,24 @@
+# Healthy issuer fixture overlay
+
+This helper runs an unchanged native test entrypoint with one explicitly pinned
+`healthy_issuer_setup` source overlay. It is a reviewed test-fixture loader. It does
+not modify product code, tests, or native entrypoints.
+
+Run it from the frozen candidate checkout with hashes obtained from reviewed files:
+
+```sh
+python3 -B docs/handoff-2026-10-21/with_healthy_issuer_fixture_overlay.py \
+  --overlay /path/to/healthy_issuer_setup.py --overlay-sha256 OVERLAY_SHA256 \
+  --entrypoint /path/to/tests/native/test_entrypoint.py --entrypoint-sha256 ENTRYPOINT_SHA256 \
+  -- ORIGINAL_ARG_1 ORIGINAL_ARG_2
+```
+
+The helper verifies both regular-file SHA-256 pins before executing the entrypoint.
+It preserves the supplied original arguments and native entrypoint directory import
+path. Its lazy import hook redirects only the exact module name
+`healthy_issuer_setup`; the native entrypoint executes before that module loads.
+All other imports follow Python's normal resolution rules.
+
+The helper reports the overlay and entrypoint pins on stderr. Capture that diagnostic
+with the test output and external command receipt. Use fresh external evidence paths.
+Never replace the frozen candidate's source or acceptance tests with the fixture.
