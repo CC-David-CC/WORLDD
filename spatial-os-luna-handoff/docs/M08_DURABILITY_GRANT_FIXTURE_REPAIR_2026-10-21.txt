@@ -1,0 +1,18 @@
+M08 DURABILITY GRANT FIXTURE REPAIR
+Date: 2026-10-21
+Status: UNQUALIFIED. Static checks only. Runtime checks remain UNRUN.
+Branch: m08/revocation-durability-fixture-page-limit-20261021
+Base: e071fd565d13f7e93b2926ed86c935581f99d6e4
+Host: ROG Ally X. Primary owns review, checkpoint integration, and runtime qualification.
+
+Observed setup error
+The additive test `test_second_revocation_stops_other_actor_during_first_commit` requested a grant page with limit 128. Production `src/authority/store.cpp` rejects limits above 16; zero selects the default 16. The fixture immediately read `.grants` without checking the reply variant. Both-host Debug runs failed at the one-root-grant assertion before exercising second-revocation behavior.
+
+Repair
+The fixture now requests the supported limit 16. It checks `HasField('grants')` before reading the page. It still asserts exactly one actual root grant. Delegation, both real application processes, issuer revocations, the no-ack interval, second-revocation stop, durable rows, and final activation assertions remain unchanged. No production policy, timeout, locked test, or pagination limit changed.
+
+Static verification
+The targeted module passed Python AST parsing. A scoped source check confirmed the supported limit, reply-variant guard, and one-root-grant assertion. `git diff --check` passed. Review also found no other unsupported grant-page limit in this test module. These checks do not establish runtime behavior.
+
+Runtime status and next checks
+No tests, probes, fixture imports, or runtime commands ran on ROG. Runtime status is UNRUN. After primary review and integration, rerun `test_second_revocation_stops_other_actor_during_first_commit` on sb16 and sb16-2 in Debug. The earlier run did not reach the second-revocation behavior. Then run the related revocation durability cases selected by the primary. Do not count this repair as M08 qualification.

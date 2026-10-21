@@ -143,8 +143,10 @@ class WorkspaceRevocationDurabilityTests(WorkspaceParticipantFixture):
             self.owner_peer.close()
             self.owner_peer = old_peer
         item = self.gated_broker()
-        page = item.request(grants=broker.GrantListRequest(
-            workspace='one', principal=self.principal(), limit=128)).grants
+        grant_reply = item.request(grants=broker.GrantListRequest(
+            workspace='one', principal=self.principal(), limit=16))
+        self.assertTrue(grant_reply.HasField('grants'), grant_reply)
+        page = grant_reply.grants
         self.assertEqual(len(page.grants), 1)
         delegated = item.request(delegate=broker.GrantDelegateRequest(
             workspace='one', principal=self.principal(), parent_id=page.grants[0].id,
