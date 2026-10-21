@@ -53,6 +53,12 @@ Readiness SHA256: 0c38646d3b5f532f3da64971eb31dde03fcb5e186466fb4a98d6e1234e55b7
 Use each host's existing canonical attempt. Do not launch a duplicate.
 Run required cross-host checks after the local gates.
 
+The dedicated cross-host fixture still lacks explicit nested adapter profile propagation.
+A separate worker is repairing that setup gap. No cross-host runtime has run.
+Do not reuse host-suffixed storage paths blindly on the peer.
+A reviewed same-path, distinct-volume setup or explicit per-host mapping is required.
+Reassess affected source and evidence after the repair. The current local gates remain unchanged.
+
 CONTROLLER FAILURES AND CORRECTIONS
 
 The original sb16-2 sanitizer Git run timed out at 180 seconds. Preserve it as FAILED.
