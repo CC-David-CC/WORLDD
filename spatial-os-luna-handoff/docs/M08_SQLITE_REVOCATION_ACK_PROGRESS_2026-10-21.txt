@@ -1,0 +1,106 @@
+M08 SQLITE REVOCATION ACKNOWLEDGMENT PROGRESS
+Status: UNQUALIFIED. Runtime checks remain UNRUN by this compile-only assignment.
+Branch: m08/sqlite-revocation-ack-progress-20261021.
+Base: b30bc508919e17420ffefe8f50a2ce3850303b61.
+Host: rog-ally-x. Primary owns review, checkpoints, integration, and qualification.
+
+Observed failure
+Candidate 51bad failed native storage actor revocation on sb16-2.
+All nine application handles exited within 0.536 seconds. Git import completed.
+The unchanged six-second barrier still had two pending participants and applied revision zero.
+The main broker thread waited in fdatasync on the exact execution.db-journal.
+Retained Btrfs frames included barrier_all_devices, write_all_supers, and btrfs_sync_log.
+Issuer EOF followed broker/worldd exchange gaps of 6352/6387 milliseconds.
+Do not infer successful revocation acknowledgment from process exit or successful Git import.
+Evidence: /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/failure-sb16-2-51bad-contention-01/retained.
+The retained manifest covers fifty metadata/log files and 739489 bytes.
+
+Production mechanism
+reconcile_authority still fences authority and stops every affected application before committing rows.
+Process stop requests share the existing two-second deadline. Native cleanup remains on the broker thread.
+The complete revoked-row transaction runs in one joined worker.
+BEGIN, UPDATE, COMMIT, statement destruction, and rollback have that worker as their exclusive owner.
+The worker captures only the SQLite pointer, immutable IDs, and an explicit test gate value.
+It never captures Store, authority, controls, TLS, jobs, or callback state.
+The NOMUTEX handle remains unchanged. Its main-thread accessor throws BUSY during the loan.
+A thread-safe SQLite library is now an explicit prerequisite.
+The loan rejects an active explicit transaction or unfinished writable statement before dispatch.
+
+Only durability progress runs while the connection is lent.
+Issuer tick and keepalive remain on the sole authority/TLS thread.
+The running snapshot captures launch authority, stored rights, and workspace policy before lending SQLite.
+Later revocations re-evaluate that snapshot through separate authority stores with refresh=false.
+The broker immediately requests every additional stop before draining any additional application.
+Additional revoked IDs enter a later checked transaction after the current worker completes.
+The queue is bounded by the original running snapshot. No new launch or mutation enters during the loan.
+
+Application access uses the snapshot, live job map, native server identity, and current authority grants.
+Fresh application-access requests prepare issuer status through the existing sole client.
+Cached control checks issue no issuer I/O and access no execution SQLite.
+Independent authorized controllers retain their leases. Revoked groups still require cancellation acknowledgment.
+Hello, runtime identity, authorization fence, application access, and control release remain available.
+Other execution requests return BUSY during durability progress.
+Administrative control-owner recovery remains independent of execution SQLite.
+Ordinary reap, copy advancement, and Store dispatch resume only after the loan ends.
+Nested servicing cannot borrow a channel already owned by another dispatch.
+
+Each progress step runs despite another step failing.
+The first observer error remains retained while issuer, cancellation, and safe transport progress continue.
+Worker completion precedes error propagation and restoration of ordinary database ownership.
+Transaction or progress failure enters the existing sticky reconciliation failure path.
+No applied acknowledgment is sent on that path.
+Authority changes remain unconsumed during the loan. The changed flag blocks acknowledgment afterward.
+Full authority and copy reconciliation runs before a later applied acknowledgment can proceed.
+No timeout, SQLite synchronous=EXTRA setting, XACE baseline, schema, or locked acceptance test changed.
+SQLite does not atomically cover processes, files, Git, or native effects.
+
+Ownership audit
+Import, worktree create/remove, launch, and recovery commit their intent transactions before observer-capable I/O.
+workspace_create and workspace_member can retain completed Transaction objects, with autocommit restored.
+Outer read statements can remain allocated but cannot execute or finalize during synchronous progress callbacks.
+Their lifetimes resume only after the joined worker returns.
+The pre-loan guards reject nested transactions and active write statements rather than assuming safety.
+ApplicationProcess request_stop/complete_stop and NativeLaunch revoke/check contain no Store observer callbacks.
+Stopped IDs are recorded before native cleanup. Callback state dies after joining and before snapshot destruction.
+No worker escapes reconcile_authority. Store shutdown cannot close SQLite underneath a pending worker.
+A kernel durability stall cannot be forcibly cancelled safely. Shutdown keeps ownership until it resolves.
+A crash retains the real journal. Existing startup recovery marks unreconciled running rows uncertain.
+Other synchronous execution-registry commits remain outside this narrow repair.
+
+Additive regression source
+The explicit fault requires BUILD_TESTING code and --fixture-faults.
+Normal broker entry ignores the environment gate. --production already refuses --fixture-faults.
+The gate validates a private owned directory and private owned FIFO without following their final symlinks.
+Its entered marker follows UPDATE and precedes real COMMIT.
+Release requests the actual commit. Failure rejects the actual COMMIT through a temporary SQLite commit hook.
+The worker clears the hook before returning the connection.
+No standalone mock Store or alternate world implementation participates.
+
+The workspace-revocation-durability registration selects six methods:
+1. Ignore the gate without explicit fixture mode.
+2. Hold commit for 6.2 seconds. Require safe responses, pending issuer obligations, then durable rows and acknowledgment.
+3. Reject real COMMIT. Require rollback, process exit, sticky failure, and no applied acknowledgment.
+4. Revoke another actor during the hold. Require immediate additional exits and two applied revisions after both transactions.
+5. Close broker input during the hold. Require safe ownership until commit and clean shutdown afterward.
+6. Keep an independent native application controller and its original lease while another actor's commit stalls.
+
+The registration uses the existing delegated/native wrappers and unchanged 180-second timeout.
+It is mandatory in the M08 profile. Existing harness identities and locked 151 acceptance cases remain unchanged.
+The environment allowlist and its existing test method now cover the explicit gate.
+The existing gate-inventory test method now requires this registration. No harness IDs were added.
+Inventory and result counts remain dynamic. Do not reuse historical 238-registration counts.
+
+Selected checks before execution
+Static: inspect all changed files, callback paths, Transaction scopes, Python syntax, and whitespace.
+Compile: external Debug workspaced target with retained Ninja flags, BUILD_TESTING ON, INPUT_TESTS ON, sanitizers OFF, -j2.
+Production-off compile and focused ASan/UBSan compilation remain UNRUN unless their receipts are added externally.
+Runtime: all six new methods; workspace-participant and participant-races; application-access and control-lease suites.
+Runtime: observer rollback regressions and native storage actor revocation during bounded Git import.
+Runtime: focused sanitizer lifetime, failure, shutdown, and new-revocation cases on both qualification hosts.
+All runtime, CTest, native, systemd, broker/world execution, and test-host contact remain UNRUN here.
+The complete M08 gate remains failed/unqualified until primary reviews and qualifies a new candidate.
+
+External receipts and source pins
+/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/primary-escalated-02.
+TASK_STATE.txt, RESTART.txt, HANDOFF.txt, source manifests, and compiler receipts provide exact status.
+Original Luna diagnosis remains untouched in m08-sqlite-revocation-ack-progress-01.

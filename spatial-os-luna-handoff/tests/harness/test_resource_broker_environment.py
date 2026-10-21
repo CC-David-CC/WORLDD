@@ -10,6 +10,7 @@ class ResourceBrokerEnvironmentTests(unittest.TestCase):
             'SPATIAL_TEST_FILE_JOURNAL_FAIL_FINISH_ONCE': '1',
             'SPATIAL_TEST_FILE_JOURNAL_FINISH_NOTIFY': '/tmp/notify',
             'SPATIAL_TEST_FILE_JOURNAL_FINISH_DELAY_MS': '700',
+            'SPATIAL_TEST_REVOCATION_COMMIT_GATE': '/tmp/private-commit-gate',
             'UNRELATED_SECRET': 'must-not-pass',
         }
         self.assertEqual(resource_environment(source), {
@@ -17,6 +18,7 @@ class ResourceBrokerEnvironmentTests(unittest.TestCase):
             'SPATIAL_TEST_FILE_JOURNAL_FAIL_FINISH_ONCE': '1',
             'SPATIAL_TEST_FILE_JOURNAL_FINISH_NOTIFY': '/tmp/notify',
             'SPATIAL_TEST_FILE_JOURNAL_FINISH_DELAY_MS': '700',
+            'SPATIAL_TEST_REVOCATION_COMMIT_GATE': '/tmp/private-commit-gate',
         })
 
 

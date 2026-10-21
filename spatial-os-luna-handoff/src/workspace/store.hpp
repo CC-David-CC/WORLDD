@@ -49,6 +49,10 @@ public:
     int duplicate_state_directory_fd() const;
     void reconcile_authority();
     void check_authority_reconciliation() const;
+    // Only this progress callback may run while the execution connection is lent.
+    bool authority_durability_pending() const;
+    void progress_authority_durability();
+    void set_durability_observer(std::function<void()> observer);
     void reap();
     void advance_workspace_copies();
     bool expire_one_workspace_copy();

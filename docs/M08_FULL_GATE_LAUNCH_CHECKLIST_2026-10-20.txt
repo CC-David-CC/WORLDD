@@ -924,3 +924,15 @@ Do not infer safe mutation from a missing-read errno; a read-only mount can repo
 Check marker identity, bytes, and path, plus every probe and rename destination, after denial.
 Reject any successful mutation. Do not treat an arbitrary error or zero errno as denial.
 Evidence: M08_READONLY_STAGING_MASK_ORACLE_REPAIR_2026-10-21.txt and the fresh native witness receipt.
+
+F44 Require issuer progress across revoked-row SQLite durability stalls.
+Candidate 51bad stopped all nine applications but failed the six-second issuer barrier on sb16-2.
+The exact wait was fdatasync on execution.db-journal in a Btrfs durability barrier.
+Review the exclusive joined transaction worker and execution-SQLite-free progress paths before integration.
+Require workspace-revocation-durability in the mandatory M08 inventory.
+Require all six additive scenarios, including unaffected native controllers, on both hosts and both profiles.
+Keep acknowledgments pending through commit and all deferred authority/copy cleanup.
+Require failure and pending-shutdown evidence. Preserve the original timeout and synchronous durability settings.
+Read spatial-os-luna-handoff/docs/M08_SQLITE_REVOCATION_ACK_PROGRESS_2026-10-21.txt.
+Runtime qualification remains UNRUN for this repair. Both full candidate51 gates remain failed.
+Do not infer qualification from compilation or from historical 238-registration counts.

@@ -19,6 +19,7 @@
 #include <poll.h>
 #include <sstream>
 #include <functional>
+#include <exception>
 
 namespace {
 spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::ExecutionStore& git) {
@@ -71,6 +72,11 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
     try {
         spatial::validate_message(request);
         if (request.protocol_version() != 1) throw spatial::WorldError(wire::UNSUPPORTED_VERSION, "Unsupported private broker protocol version");
+        // Durability progress never enters a handler that can use execution SQLite.
+        if (store.authority_durability_pending() && !request.has_authorization_fence() &&
+                !request.has_application_access() && !request.has_control_release() &&
+                !(request.has_management() && (request.management().has_hello() || request.management().has_runtime_identities())))
+            throw spatial::WorldError(wire::BUSY, "Execution durability is pending");
         // Transport validation precedes attribution on every private channel.
         if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
@@ -333,6 +339,7 @@ int main(int argc, char** argv) {
             spatial::WorkspaceAuthority* authority;
             spatial::ExecutionStore& store;
             ~ClearObserver() {
+                store.set_durability_observer({});
                 store.set_observer({});
                 if (authority) authority->set_observer([] {});
             }
@@ -340,12 +347,33 @@ int main(int argc, char** argv) {
         // Issuer and process waits call this on the same broker thread.
         // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
         if (authority) authority->set_observer([&] {
+            store.progress_authority_durability();
             controls.tick(); flush();
             if (channels) channels->administrative();
         });
         std::function<void()> copy_progress;
         bool advancing_copy = false, dispatching_root = false;
+        const auto durability_enforce = [&] {
+            std::exception_ptr failure;
+            const auto attempt = [&](const auto& action) {
+                try { action(); } catch (...) { if (!failure) failure = std::current_exception(); }
+            };
+            attempt([&] { if (authority) authority->tick(); });
+            // A failed wait observer must not suppress the independent keepalive step.
+            attempt([&] { if (authority) authority->keepalive(); });
+            attempt([&] { store.progress_authority_durability(); });
+            attempt([&] { controls.tick(); });
+            attempt([&] { if (storage) storage->check_alive(); });
+            attempt([&] { if (native) native->check(); });
+            if (failure) std::rethrow_exception(failure);
+            if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
+        };
         const auto enforce = [&] {
+            if (store.authority_durability_pending()) {
+                durability_enforce();
+                // Do not consume changes or settle. Copy cleanup runs after the loan.
+                return;
+            }
             store.check_authority_reconciliation();
             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
             if (storage) storage->check_alive();
@@ -437,6 +465,17 @@ int main(int argc, char** argv) {
             flush();
         };
         copy_progress = [&] { pump_root(true); };
+        store.set_durability_observer([&] {
+            std::exception_ptr failure;
+            const auto attempt = [&](const auto& action) {
+                try { action(); } catch (...) { if (!failure) failure = std::current_exception(); }
+            };
+            attempt(durability_enforce);
+            attempt(serve_effect);
+            attempt([&] { pump_root(false); });
+            attempt(flush);
+            if (failure) std::rethrow_exception(failure);
+        });
         for (;;) {
             store.expire_one_workspace_copy();
             enforce();
@@ -451,12 +490,19 @@ int main(int argc, char** argv) {
                 store.advance_workspace_copies();
             }
             enforce();
-            if (channels) channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
-                const auto cancellation = authority ? authority->cancellation_sequence() : 0;
-                auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
-                enforce();
-                return revocation_result(request, std::move(reply), cancellation, authority.get());
-            });
+            if (channels) {
+                struct Guard {
+                    bool& active;
+                    explicit Guard(bool& value) : active(value) { active = true; }
+                    ~Guard() { active = false; }
+                } guard(serving_effect);
+                channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
+                    const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+                    auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
+                    enforce();
+                    return revocation_result(request, std::move(reply), cancellation, authority.get());
+                });
+            }
             pump_root(false);
             const auto now = Clock::now();
             if ((!input.empty() && now-input_started > std::chrono::seconds(10)) ||

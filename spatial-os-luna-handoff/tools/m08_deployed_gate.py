@@ -24,6 +24,7 @@ m06 = m07.m06
 M08_REQUIRED = frozenset({
     "process-scope-recovery-validation",  # lifecycle-branch CMake addition
     "workspace-file-operation-journal",
+    "workspace-revocation-durability",
     "workspace-file-effect-observer-exception",
     "broker-file-action-client",
     "workspace-file-action-broker",

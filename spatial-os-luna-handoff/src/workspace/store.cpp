@@ -16,6 +16,7 @@
 #include "world/store.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -108,6 +109,51 @@ struct Query {
     }
 };
 void sql(sqlite3* db, const char* value) { check(sqlite3_exec(db, value, nullptr, nullptr, nullptr)); }
+// Main-thread access fails closed while a joined durability worker owns the handle.
+// The worker receives only the raw pointer and immutable batch values.
+struct ExecutionDatabase {
+    std::unique_ptr<sqlite3, decltype(&sqlite3_close)> handle{nullptr, sqlite3_close};
+    bool lent = false;
+    sqlite3* get() const {
+        if (lent) throw WorldError(wire::BUSY, "Execution durability is pending");
+        return handle.get();
+    }
+    void reset(sqlite3* value) { handle.reset(value); }
+};
+#if defined(SPATIAL_TEST_FILE_JOURNAL_FAULTS)
+// A test-build-only fault at the production revoked-row commit boundary.
+// The reader blocks in this worker, after UPDATE and before the real COMMIT.
+bool revocation_commit_fault(const std::string& path) {
+    if (path.empty()) return false;
+    File directory; directory.fd = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    require(directory.fd >= 0, "Cannot open revocation commit fault directory");
+    struct stat root{};
+    require(fstat(directory.fd, &root) == 0 && root.st_uid == geteuid() && (root.st_mode & 077) == 0,
+            "Revocation commit fault directory must be private and owned");
+    struct stat endpoint{};
+    require(fstatat(directory.fd, "release", &endpoint, AT_SYMLINK_NOFOLLOW) == 0 &&
+            S_ISFIFO(endpoint.st_mode) && endpoint.st_uid == geteuid() && (endpoint.st_mode & 077) == 0,
+            "Revocation commit fault endpoint must be private owned FIFO");
+    File release; release.fd = openat(directory.fd, "release", O_RDWR | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC);
+    require(release.fd >= 0, "Cannot open revocation commit fault release");
+    struct stat info{};
+    require(fstat(release.fd, &info) == 0 && S_ISFIFO(info.st_mode), "Revocation commit fault requires FIFO");
+    require(info.st_dev == endpoint.st_dev && info.st_ino == endpoint.st_ino,
+            "Revocation commit fault endpoint changed");
+    File entered; entered.fd = openat(directory.fd, "entered", O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0600);
+    require(entered.fd >= 0 && write(entered.fd, "1", 1) == 1, "Cannot publish revocation commit fault entry");
+    pollfd ready{release.fd, POLLIN, 0};
+    int result;
+    do { result = poll(&ready, 1, -1); } while (result < 0 && errno == EINTR);
+    require(result == 1 && (ready.revents & POLLIN), "Revocation commit fault wait failed");
+    char command = 0; ssize_t count;
+    do { count = read(release.fd, &command, 1); } while (count < 0 && errno == EINTR);
+    require(count == 1 && (command == '!' || command == 'x'), "Invalid revocation commit fault command");
+    return command == 'x';
+}
+#else
+bool revocation_commit_fault(const std::string&) { return false; }
+#endif
 struct Transaction {
     sqlite3* db; bool done = false;
     explicit Transaction(sqlite3* db) : db(db) { sql(db, "BEGIN IMMEDIATE"); }
@@ -340,7 +386,7 @@ struct ExecutionStore::Impl {
     const bool fixture_faults;
     bool exit_after_worktree = false;
     File lock;
-    std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
+    ExecutionDatabase db;
     std::unique_ptr<CopyJournal> copy_journal;
     std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
     struct CopyTask {
@@ -364,6 +410,10 @@ struct ExecutionStore::Impl {
     WorkspaceResources* resources = nullptr;
     StorageClient* storage = nullptr;
     std::function<void()> observer;
+    std::function<void()> durability_observer;
+    std::function<void()> durability_reconcile;
+    std::function<workspace::v1::ApplicationAccessReply(const workspace::v1::ApplicationAccessRequest&)> durability_access;
+    std::string revocation_commit_gate;
     std::unique_ptr<FileOperationJournal> file_journal;
     std::optional<PinnedFileOperationJournal> cleanup_pin;
     std::string file_engine_incarnation;
@@ -717,6 +767,11 @@ struct ExecutionStore::Impl {
             if(got<=0) throw WorldError(wire::UNAVAILABLE,"Cannot initialize file-engine incarnation");
             incarnation_at+=static_cast<std::size_t>(got);
         }
+#if defined(SPATIAL_TEST_FILE_JOURNAL_FAULTS)
+        if (const char* gate = fixture_faults ? std::getenv("SPATIAL_TEST_REVOCATION_COMMIT_GATE") : nullptr)
+            revocation_commit_gate = gate;
+#endif
+        require(sqlite3_threadsafe() != 0, "Execution durability requires a thread-safe SQLite build");
         sqlite3* connection = nullptr;
         const auto result = sqlite3_open_v2((state / "execution.db").c_str(), &connection,
             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
@@ -1025,8 +1080,8 @@ ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migr
                                StorageClient* storage, WorkspaceResources* resources)
     : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults, storage, resources)) { impl_->owner=this; }
 ExecutionStore::~ExecutionStore() = default;
-CopyJournal& ExecutionStore::copy_journal() { return *impl_->copy_journal; }
-const CopyJournal& ExecutionStore::copy_journal() const { return *impl_->copy_journal; }
+CopyJournal& ExecutionStore::copy_journal() { (void)impl_->db.get(); return *impl_->copy_journal; }
+const CopyJournal& ExecutionStore::copy_journal() const { (void)impl_->db.get(); return *impl_->copy_journal; }
 bool ExecutionStore::fixture_faults() const { return impl_->fixture_faults; }
 int ExecutionStore::duplicate_state_directory_fd() const {
     if (impl_->state_directory.fd < 0) throw std::runtime_error("Execution state directory is not pinned");
@@ -1858,6 +1913,14 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
         require(app.server_id().size() == 32, "Invalid native server identity");
         require(unique.insert(app.SerializeAsString()).second, "Duplicate application group");
     }
+    if (authority_durability_pending()) {
+        if (!impl_->durability_access)
+            throw WorldError(wire::BUSY, "Execution durability snapshot is unavailable");
+        // Fresh preparation uses authority stores and the single broker-owned TLS
+        // client. Nested cached lease checks use the same immutable execution view.
+        if (refresh) (void)impl_->authority->authorization_fence(principal);
+        return impl_->durability_access(request);
+    }
     // Prepare each workspace once. The complete batch uses current issuer status
     // and component-scoped grants, not a previous application's cached decision.
     std::set<std::string> prepared;
@@ -1906,7 +1969,7 @@ void ExecutionStore::reconcile_authority() try {
     const auto remember = [](std::exception_ptr& slot) {
         if (!slot) slot = std::current_exception();
     };
-    struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };
+    struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights, policy; };
     std::vector<Running> records;
     try {
         Query q(impl_->db.get(), "SELECT id,payload,rights,workspace,actor FROM processes WHERE state='running'");
@@ -1922,7 +1985,9 @@ void ExecutionStore::reconcile_authority() try {
                 validate_message(record.request);
                 const auto mask = sqlite3_column_int64(q.value, 2);
                 if (mask < 0 || (mask & ~30)) throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
-                record.rights = static_cast<unsigned>(mask); records.push_back(std::move(record));
+                record.rights = static_cast<unsigned>(mask);
+                record.policy = rights_mask(workspace_get(record.request.workspace()).policy());
+                records.push_back(std::move(record));
             } catch (...) { remember(reconciliation_failure); }
         }
     } catch (...) { remember(reconciliation_failure); }
@@ -1996,17 +2061,114 @@ void ExecutionStore::reconcile_authority() try {
     }
     if (process_failure) std::rethrow_exception(process_failure);
 
-    // Persist the complete application batch atomically. No applied-revision
-    // acknowledgment can pass enforce() until this checked commit returns.
-    if (!revoked.empty()) {
-        Transaction transaction(impl_->db.get());
-        for (const auto& id : revoked) {
-            Query q(impl_->db.get(), "UPDATE processes SET state='revoked' WHERE id=? AND state='running'");
-            q.text(1, id); q.step();
-            if (sqlite3_changes(impl_->db.get()) != 1)
-                throw WorldError(wire::STORAGE_ERROR, "Revoked process state changed during authority reconciliation");
+    // Snapshot policies before lending the connection. No mutation is admitted
+    // during the loan. Authority's cached checks use separate authority stores.
+    std::set<std::string> stopped(revoked.begin(), revoked.end());
+    std::set<std::string> pending(revoked.begin(), revoked.end());
+    struct ClearProgress {
+        Impl& impl;
+        ~ClearProgress() { impl.durability_reconcile = {}; impl.durability_access = {}; }
+    } clear_progress{*impl_};
+    impl_->durability_access = [&](const workspace::v1::ApplicationAccessRequest& request) {
+        const auto stamp = impl_->authority->fence_snapshot();
+        workspace::v1::ApplicationAccessReply reply;
+        reply.set_incarnation(stamp.incarnation()); reply.set_epoch(stamp.epoch());
+        for (const auto& app : request.applications()) {
+            auto* result = reply.add_applications(); *result->mutable_application() = app;
+            result->set_observe(false); result->set_control(false);
+            if (!impl_->native || impl_->native->server_id() != app.server_id() ||
+                    !impl_->jobs.contains(app.application()) || !impl_->authority->bound(app.workspace())) continue;
+            const auto record = std::find_if(records.begin(), records.end(), [&](const auto& value) {
+                return value.id == app.application() && value.request.workspace() == app.workspace();
+            });
+            if (record == records.end() || stopped.contains(record->id)) continue;
+            const unsigned required = (1u << wire::FILES_READ) | (1u << wire::PROCESS_LAUNCH);
+            if (record->rights != required && record->rights != (required | (1u << wire::FILES_WRITE)))
+                throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
+            const auto permission = impl_->authority->application_permissions(app, request.principal(), false);
+            const auto effective = permission.rights & record->policy;
+            if (!(effective & (1u << wire::WORKSPACE_SELECT))) continue;
+            result->set_observe(permission.observe);
+            result->set_control(permission.observe && permission.control &&
+                (effective & record->rights) == record->rights);
         }
-        transaction.commit();
+        const auto current = impl_->authority->fence_snapshot();
+        if (current.SerializeAsString() != stamp.SerializeAsString())
+            throw WorldError(wire::UNAVAILABLE, "Authorization changed during application access evaluation");
+        return reply;
+    };
+    impl_->durability_reconcile = [&] {
+        std::vector<std::pair<std::string, ApplicationProcess*>> stops;
+        std::exception_ptr failure;
+        for (const auto& record : records) {
+            if (!record.request.has_principal() || stopped.contains(record.id)) continue;
+            workspace::v1::AccessRequest request;
+            request.set_workspace(record.request.workspace()); request.set_actor(record.request.actor());
+            *request.mutable_principal() = record.request.principal();
+            unsigned effective = 0;
+            try { effective = impl_->authority->rights(request, false) & record.policy; }
+            catch (...) { remember(failure); }
+            if ((record.rights & effective) == record.rights) continue;
+            pending.insert(record.id); stopped.insert(record.id);
+            const auto job = impl_->jobs.find(record.id);
+            if (job != impl_->jobs.end()) stops.emplace_back(record.id, job->second.get());
+        }
+        const auto limit = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        for (const auto& [id, process] : stops) {
+            (void)id; try { process->request_stop(limit); } catch (...) { remember(failure); }
+        }
+        for (const auto& [id, process] : stops) {
+            (void)id; try { process->complete_stop(limit); } catch (...) { remember(failure); }
+        }
+        for (const auto& [id, process] : stops) { (void)process; impl_->jobs.erase(id); }
+        if (impl_->native) { try { impl_->native->check(); } catch (...) { remember(failure); } }
+        if (failure) std::rethrow_exception(failure);
+    };
+    // One worker runs at a time. All pending IDs belong to the running snapshot.
+    // Every statement and rollback belongs to that worker, including on failure.
+    while (!pending.empty()) {
+        std::vector<std::string> batch(pending.begin(), pending.end()); pending.clear();
+        auto* connection = impl_->db.get();
+        require(sqlite3_get_autocommit(connection) != 0, "Cannot lend an active execution transaction");
+        for (auto* statement = sqlite3_next_stmt(connection, nullptr); statement;
+                statement = sqlite3_next_stmt(connection, statement))
+            require(!sqlite3_stmt_busy(statement) || sqlite3_stmt_readonly(statement),
+                    "Cannot lend an active execution write statement");
+        auto gate = std::exchange(impl_->revocation_commit_gate, {});
+        struct Loan {
+            ExecutionDatabase& db;
+            explicit Loan(ExecutionDatabase& value) : db(value) { db.lent = true; }
+            ~Loan() { db.lent = false; }
+        } loan(impl_->db);
+        auto durability = std::async(std::launch::async, [connection, batch = std::move(batch), gate = std::move(gate)] {
+            Transaction transaction(connection);
+            for (const auto& id : batch) {
+                Query q(connection, "UPDATE processes SET state='revoked' WHERE id=? AND state='running'");
+                q.text(1, id); q.step();
+                if (sqlite3_changes(connection) != 1)
+                    throw WorldError(wire::STORAGE_ERROR, "Revoked process state changed during authority reconciliation");
+            }
+            // Reject the real sqlite3 COMMIT in the explicit test failure case.
+            // Clear the hook on this owner thread before handing the handle back.
+            struct ClearCommitHook {
+                sqlite3* db; bool installed = false;
+                ~ClearCommitHook() { if (installed) sqlite3_commit_hook(db, nullptr, nullptr); }
+            } hook{connection};
+            if (revocation_commit_fault(gate)) {
+                sqlite3_commit_hook(connection, +[](void*) { return 1; }, nullptr);
+                hook.installed = true;
+            }
+            transaction.commit();
+        });
+        std::exception_ptr progress_failure;
+        while (durability.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready) {
+            // Preserve progress even after a callback fails. Join before any unwind
+            // can destroy snapshots, close SQLite, or restore ordinary dispatch.
+            try { if (impl_->durability_observer) impl_->durability_observer(); }
+            catch (...) { remember(progress_failure); }
+        }
+        durability.get();
+        if (progress_failure) std::rethrow_exception(progress_failure);
     }
     if (reconciliation_failure) std::rethrow_exception(reconciliation_failure);
 } catch (...) {
@@ -2015,6 +2177,13 @@ void ExecutionStore::reconcile_authority() try {
     throw;
 }
 
+bool ExecutionStore::authority_durability_pending() const { return impl_->db.lent; }
+void ExecutionStore::progress_authority_durability() {
+    if (impl_->db.lent && impl_->durability_reconcile) impl_->durability_reconcile();
+}
+void ExecutionStore::set_durability_observer(std::function<void()> observer) {
+    impl_->durability_observer = std::move(observer);
+}
 void ExecutionStore::check_authority_reconciliation() const {
     if (impl_->authority_reconciliation_failure)
         std::rethrow_exception(impl_->authority_reconciliation_failure);

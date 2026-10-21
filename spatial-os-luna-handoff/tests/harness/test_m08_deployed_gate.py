@@ -251,6 +251,7 @@ class M08InventoryGateTests(unittest.TestCase):
         self.assertIn("actor-cabinet-gateway-instrumentation", gate.M08_REQUIRED)
         self.assertIn("broker-copy-preprune-cleanup", gate.M08_REQUIRED)
         self.assertIn("broker-copy-preprune-deadline-multirow", gate.M08_REQUIRED)
+        self.assertIn("workspace-revocation-durability", gate.M08_REQUIRED)
         for profile in gate.m06.PROFILES:
             for name in names:
                 with self.subTest(profile=profile, name=name):
