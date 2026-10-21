@@ -1,0 +1,15 @@
+M08 inner unittest failure guard
+State: source checkpoint only. Runtime and harness tests remain UNRUN.
+
+The deployed gate now rejects unittest failure evidence from each audited stage log.
+It detects completed FAIL and ERROR case lines, including CTest numeric prefixes.
+It detects unittest FAIL and ERROR records and nonzero failure/error summaries.
+The check runs beside the existing skip rejection during the actual log audit.
+It does not treat ordinary prose about expected errors as a test failure.
+
+The guard prevents a zero-exit outer wrapper from hiding failed inner unittest output.
+It also catches a failed case before an abrupt log without a final unittest summary.
+The harness regression cases cover those forms, prefixed outcomes, summaries,
+valid passing output, and innocuous error-related prose.
+
+This source checkpoint does not qualify M08. The primary-owned runtime recheck is pending.
