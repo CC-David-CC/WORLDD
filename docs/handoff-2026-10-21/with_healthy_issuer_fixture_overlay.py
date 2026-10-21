@@ -36,14 +36,36 @@ def _parser():
     return parser
 
 
+class _PinnedOverlayLoader(importlib.machinery.SourceFileLoader):
+    def __init__(self, fullname, overlay, expected_sha256):
+        super().__init__(fullname, str(overlay))
+        self.expected_sha256 = expected_sha256
+
+    def get_code(self, fullname):
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            descriptor = os.open(self.path, flags)
+            with os.fdopen(descriptor, "rb") as source_file:
+                if not stat.S_ISREG(os.fstat(source_file.fileno()).st_mode):
+                    raise ImportError("healthy issuer overlay is no longer a regular file")
+                source = source_file.read()
+        except OSError as exc:
+            raise ImportError(f"healthy issuer overlay source is unavailable: {exc}") from exc
+        digest = hashlib.sha256(source).hexdigest()
+        if digest != self.expected_sha256:
+            raise ImportError(f"healthy issuer overlay SHA-256 mismatch at import: expected {self.expected_sha256}, got {digest}")
+        return compile(source, self.path, "exec", dont_inherit=True)
+
+
 class _HealthyIssuerOverlayFinder(importlib.abc.MetaPathFinder):
-    def __init__(self, overlay):
+    def __init__(self, overlay, expected_sha256):
         self.overlay = overlay
+        self.expected_sha256 = expected_sha256
 
     def find_spec(self, fullname, path=None, target=None):
         if fullname != "healthy_issuer_setup":
             return None
-        loader = importlib.machinery.SourceFileLoader(fullname, str(self.overlay))
+        loader = _PinnedOverlayLoader(fullname, self.overlay, self.expected_sha256)
         return importlib.util.spec_from_file_location(fullname, self.overlay, loader=loader)
 
 
@@ -69,7 +91,7 @@ def main(argv=None):
         sys.path[0] = script_dir
     else:
         sys.path.insert(0, script_dir)
-    sys.meta_path.insert(0, _HealthyIssuerOverlayFinder(overlay))
+    sys.meta_path.insert(0, _HealthyIssuerOverlayFinder(overlay, overlay_digest))
     print(f"fixture_overlay_source={overlay}", file=sys.stderr)
     print(f"fixture_overlay_sha256={overlay_digest}", file=sys.stderr)
     print(f"fixture_entrypoint={entrypoint}", file=sys.stderr)

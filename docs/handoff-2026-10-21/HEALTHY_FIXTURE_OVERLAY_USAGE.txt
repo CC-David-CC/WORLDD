@@ -17,7 +17,9 @@ The helper verifies both regular-file SHA-256 pins before executing the entrypoi
 It preserves the supplied original arguments and native entrypoint directory import
 path. Its lazy import hook redirects only the exact module name
 `healthy_issuer_setup`; the native entrypoint executes before that module loads.
-All other imports follow Python's normal resolution rules.
+At import, the loader re-reads and hashes the regular overlay source, then compiles
+those exact bytes. It bypasses cached bytecode. All other imports follow Python's
+normal resolution rules.
 
 The helper reports the overlay and entrypoint pins on stderr. Capture that diagnostic
 with the test output and external command receipt. Use fresh external evidence paths.
