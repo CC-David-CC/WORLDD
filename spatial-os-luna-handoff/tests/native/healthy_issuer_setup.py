@@ -12,7 +12,7 @@ import time
 import issuer_pb2 as pb
 from harness.wire import frame
 from test_identity_issuer import BINARY
-from test_identity_tls import Peer
+from test_identity_tls import Peer, TlsFixture
 from test_supervisor_registry import SupervisorRegistryTests
 
 
@@ -81,7 +81,17 @@ class DeadlinePeer(Peer):
                             elapsed_since_last_success, self.idle_timeout_ms)
 
 
+HEALTHY_ISSUER_IDLE_TIMEOUT_MS = 15000
+
+
 class HealthySupervisorIssuer(SupervisorRegistryTests):
+    def ready(self):
+        # Healthy native fixtures run bounded local setup between issuer calls.
+        # Keep this longer lease scoped to this fixture; adversarial TLS tests
+        # retain TlsFixture's 3000 ms idle-expiry contract.
+        self.config.idle_timeout_ms = HEALTHY_ISSUER_IDLE_TIMEOUT_MS
+        return super().ready()
+
     def record_timing(self, operation, started, timeout, outcome,
                       elapsed_since_last_success=None, idle_timeout_ms=None):
         record = dict(operation=operation, elapsed_seconds=time.monotonic() - started,

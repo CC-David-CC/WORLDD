@@ -1,0 +1,33 @@
+M08 healthy issuer fixture idle budget (2026-10-21)
+
+Source pin
+
+Base: 580834ceeda112da0a1cdcd37ca7b288db1512fc. Worktree branch: m08/580-healthy-issuer-idle-budget-20261021. The separate keepalive comparison remains at a12ea7f7359438a33e11d04634c1ea760ee77f10 on m08/580-healthy-issuer-keepalive-20261021; this repair adds no background thread.
+
+Scope
+
+This source-only fixture repair gives HealthySupervisorIssuer a 15,000 ms server idle lease. It does not change production identityd configuration, the five-second client I/O deadline, or ordinary TlsFixture behavior. TlsFixture still defaults to 3,000 ms. Its idle-expiry regression remains adversarial coverage.
+
+Source basis
+
+- tests/native/test_host_actor_controller.py:101-119 runs worldd --state-dir with a 10-second subprocess timeout before the next issuer register call.
+- tests/native/test_host_actor_controller.py:80-83 bounds worldd --init-authority to 8 seconds after registration and bind.
+- tests/native/test_session_application.py:152-154 and :171-173 bound setup subprocesses to 8 seconds.
+- tests/core/test_identity_tls.py:59-65 defines the shared 3,000 ms default; :305-308 explicitly checks idle reclamation. This default must remain unchanged.
+- tests/native/healthy_issuer_setup.py:84 onward is used by healthy supervisor fixtures; ready() overrides only this subclass before inherited TlsFixture.ready() launches the issuer.
+
+The 15-second value covers the longest explicitly bounded single local setup operation (10 seconds) plus one existing five-second peer I/O budget. The inspected caller paths do not chain two operations longer than 10 seconds between requests. This is a healthy-test-fixture allowance, not a production liveness change or a retry policy. Source search found no current HealthySupervisorIssuer test that asserts a 3,000 ms idle expiry.
+
+Planned focused check, recorded before execution
+
+- test_healthy_issuer_setup_diagnostics.py::HealthyIssuerDiagnosticTests.test_healthy_ready_sets_15000ms_before_inherited_ready proves the healthy subclass applies the value before the inherited ready path can launch the issuer, without launching an issuer or world process.
+- The three existing synthetic diagnostic cases continue to check EOF capture, failure-preserving diagnostics, and secret filtering.
+- Ordinary/adversarial TLS 3,000 ms idle-expiry countercheck is assigned to primary on qualification hosts with the explicit source overlay. No such runtime check runs on ROG.
+
+Execution record
+
+The selected test was recorded in external run metadata before execution. The first runner attempt refused an existing run directory; no test ran. A second attempt lacked the saved generated protobuf directory and failed during import before test discovery. The corrected canonical run used the saved Debug Python bindings and passed all four synthetic cases in 0.001 seconds. Receipts and logs are retained under /home/dflanag3/spatial-artifacts/m08-healthy-issuer-idle-budget-20261021/synthetic-01 through synthetic-03. Synthetic-01 contains only the runner's prelaunch refusal.
+
+Status
+
+UNQUALIFIED source checkpoint. The failed Debug/SAN issuer cases and all qualification reruns remain owned by primary. No test-host operation, build, package, or runtime launch was performed for this repair.

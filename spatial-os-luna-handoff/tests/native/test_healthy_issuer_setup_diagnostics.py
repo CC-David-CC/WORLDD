@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve()
 sys.path.insert(0, str(SOURCE.parent))
@@ -19,6 +20,7 @@ finally:
 
 import core_pb2 as core
 import issuer_pb2 as pb
+from test_identity_tls import TlsFixture
 
 
 class EmptyStream:
@@ -47,6 +49,21 @@ class DeadDaemon:
 
 
 class HealthyIssuerDiagnosticTests(unittest.TestCase):
+    def test_healthy_ready_sets_15000ms_before_inherited_ready(self):
+        case = healthy.HealthySupervisorIssuer('runTest')
+        case.config = pb.IssuerTlsServerConfig(idle_timeout_ms=3000)
+        sentinel = object()
+        observed = []
+
+        def inherited_ready(fixture):
+            observed.append(fixture.config.idle_timeout_ms)
+            return sentinel
+
+        with patch.object(TlsFixture, 'ready', inherited_ready):
+            self.assertIs(case.ready(), sentinel)
+        self.assertEqual(observed, [healthy.HEALTHY_ISSUER_IDLE_TIMEOUT_MS])
+        self.assertEqual(healthy.HEALTHY_ISSUER_IDLE_TIMEOUT_MS, 15000)
+
     def test_eof_capture_keeps_stage_type_status_and_original_error(self):
         stream = EmptyStream()
         observations = []
@@ -132,8 +149,8 @@ class HealthyIssuerDiagnosticTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
-    if suite.countTestCases() != 3:
-        raise AssertionError('Expected exactly three synthetic diagnostic checks')
-    print('Discovered exactly 3 synthetic diagnostic checks', flush=True)
+    if suite.countTestCases() != 4:
+        raise AssertionError('Expected exactly four synthetic fixture checks')
+    print('Discovered exactly 4 synthetic fixture checks', flush=True)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     raise SystemExit(not result.wasSuccessful())
