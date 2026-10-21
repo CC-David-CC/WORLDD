@@ -72,6 +72,20 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
     try {
         spatial::validate_message(request);
         if (request.protocol_version() != 1) throw spatial::WorldError(wire::UNSUPPORTED_VERSION, "Unsupported private broker protocol version");
+        // During a lent execution-durability transaction, classify a fresh control
+        // request from cached authority state. This path performs no issuer or SQLite I/O.
+        if (store.authority_durability_pending() && request.has_control_acquire()) {
+            if (!owner.empty() && request.control_acquire().application().server_id() != native_server)
+                throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
+            if (authority && request.control_acquire().has_principal()) {
+                const auto state = authority->requester_state(request.control_acquire().principal());
+                if (state == spatial::WorkspaceAuthority::RequesterState::revoked)
+                    throw spatial::WorldError(wire::UNAUTHORIZED, "Workspace actor identity was revoked during the request");
+                if (state == spatial::WorkspaceAuthority::RequesterState::unavailable)
+                    throw spatial::WorldError(wire::UNAVAILABLE, "Workspace authority could not validate the in-flight result");
+            }
+            throw spatial::WorldError(wire::BUSY, "Execution durability is pending");
+        }
         // Durability progress never enters a handler that can use execution SQLite.
         if (store.authority_durability_pending() && !request.has_authorization_fence() &&
                 !request.has_application_access() && !request.has_control_release() &&

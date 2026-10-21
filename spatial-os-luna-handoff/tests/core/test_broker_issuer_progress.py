@@ -20,6 +20,7 @@ import core_pb2 as core
 import issuer_pb2 as issuer
 import grants_pb2 as grant
 from harness.issuer_progress import DelayedInfoIssuer, IssuerLifetimeWitness
+from harness.resource_broker import ResourceBroker
 from harness.wire import frame
 from test_world_identity import receive
 from test_world_identity import WorldIdentityFixture
@@ -208,6 +209,112 @@ class BrokerIssuerProgressTests(BrokerProgressWitness, leases.ApplicationControl
         self._progress["denied_control_code"] = result.error.code
         self.broker.close()
         self.assertIsNotNone(self.broker.proc.poll())
+
+class BrokerDurabilityAcquirePrecedenceTests(BrokerIssuerProgressTests):
+    def prepare_gated_application(self):
+        gate = self.root/'revocation-commit-gate'
+        gate.mkdir(mode=0o700)
+        os.mkfifo(gate/'release', 0o600)
+        self._commit_gate_released = False
+        self.assertTrue(os.environ.get('SPATIAL_TEST_BROKER_CONFIG'))
+
+        def launch(executable, command, *args, **kwargs):
+            return ResourceBroker(executable, [*command, '--fixture-faults'], *args, **kwargs)
+
+        with patch.dict(os.environ, SPATIAL_TEST_REVOCATION_COMMIT_GATE=str(gate)), patch.object(workspace, 'ResourceBroker', launch):
+            self.app = self.application()
+
+        def release_gate():
+            if self._commit_gate_released or not (gate/'entered').exists():
+                return
+            self.release_commit_gate()
+
+        # This cleanup runs before the broker-close cleanup registered during setup.
+        self.addCleanup(release_gate)
+        return gate
+
+    def revoke_second_actor(self):
+        peer = self.connect()
+        try:
+            operation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
+                target=issuer.IdentityReference(kind=issuer.ACTOR_TARGET, id=self.second.actor_id),
+                expected_security_revision=0, reason='control acquire precedence during durability loan'))
+            result = self.execute(peer, self.challenge(peer, operation))
+            self.assertTrue(result.HasField('identity_status'), result)
+        finally:
+            peer.close()
+
+    def test_control_acquire_classifies_revoked_and_active_actors_during_commit_loan(self):
+        gate = self.prepare_gated_application()
+        primary_identity = self.payload_identity()
+        self.enroll_second()
+        self.delegate([grant.WORKSPACE_ACCESS, *access.workspace.PROJECT, grant.PROCESS_EXECUTE,
+                       *leases.access.APP_RIGHTS])
+        revoked_app = self.launch_application(claims=self.second)
+        revoked_lease = self.acquire(revoked_app, self.second)
+        self.revoke_second_actor()
+        self.until(lambda: (gate/'entered').exists(), bool)
+        self.broker.event(revoked_lease)
+        self.assert_payload_identity(primary_identity)
+
+        denied = self.broker.request(control_acquire=broker.ApplicationControlRequest(
+            principal=self.principal(self.second), application=revoked_app))
+        self.assertTrue(denied.HasField('error'), denied)
+        self.assertEqual(denied.error.code, core.UNAUTHORIZED, denied)
+
+        active = self.broker.request(control_acquire=broker.ApplicationControlRequest(
+            principal=self.principal(), application=self.app))
+        self.assertTrue(active.HasField('error'), active)
+        self.assertEqual(active.error.code, core.BUSY, active)
+        self.assert_payload_identity(primary_identity)
+        self.release(revoked_lease, self.second)
+        self.assert_payload_identity(primary_identity)
+        self.assertFalse(self._info_relay.errors, self._info_relay.errors)
+        self.release_commit_gate()
+        self.broker.close()
+        self.assertEqual(self.broker.proc.returncode, 0, Path(self.broker.log.name).read_text())
+
+    def release_commit_gate(self):
+        gate = self.root/'revocation-commit-gate'
+        if self._commit_gate_released:
+            return
+        try:
+            fd = os.open(gate/'release', os.O_WRONLY | os.O_NONBLOCK)
+        except OSError:
+            self.fail('Durability worker did not wait at the real commit gate')
+        try:
+            self.assertEqual(os.write(fd, b'!'), 1)
+            self._commit_gate_released = True
+        finally:
+            os.close(fd)
+
+    def test_issuer_exit_while_commit_is_held_classifies_cached_requester(self):
+        gate = self.prepare_gated_application()
+        self.enroll_second()
+        self.delegate([grant.WORKSPACE_ACCESS, *access.workspace.PROJECT, grant.PROCESS_EXECUTE,
+                       *leases.access.APP_RIGHTS])
+        primary_lease = self.acquire(self.app)
+        revoked_app = self.launch_application(claims=self.second)
+        revoked_lease = self.acquire(revoked_app, self.second)
+        self.revoke_second_actor()
+        self.until(lambda: (gate/'entered').exists(), bool)
+        self.broker.event(revoked_lease)
+
+        self.stop_daemons()
+        self.assertTrue(all(proc.poll() == 0 for proc, _ in self.daemons))
+        self.expected_issuer_shutdown = True
+        started = time.monotonic()
+        self.broker.event(primary_lease)
+        self.assertLess(time.monotonic()-started, 1.5)
+        active = self.broker.request(control_acquire=broker.ApplicationControlRequest(
+            principal=self.principal(), application=self.app))
+        self.assertTrue(active.HasField('error'), active)
+        self.assertEqual(active.error.code, core.UNAVAILABLE, active)
+        self.release(revoked_lease, self.second)
+        self.release(primary_lease)
+        self.release_commit_gate()
+        self.broker.close()
+        self.assertEqual(self.broker.proc.returncode, 2, Path(self.broker.log.name).read_text())
 
 
 class BrokerRevocationReplyTests(workspace.WorkspaceAuthorityTests):
@@ -614,6 +721,10 @@ def load_tests(loader, tests, pattern):
         'test_private_application_access_reply_unrelated_revocation_suppresses_payload'))
     suite.addTest(BrokerIssuerProgressTests("test_broker_actor_revocation_cancels_control_while_info_is_pending"))
     suite.addTest(BrokerIssuerProgressTests("test_broker_actual_issuer_exit_fails_closed_while_info_is_pending"))
+    suite.addTest(BrokerDurabilityAcquirePrecedenceTests(
+        'test_control_acquire_classifies_revoked_and_active_actors_during_commit_loan'))
+    suite.addTest(BrokerDurabilityAcquirePrecedenceTests(
+        'test_issuer_exit_while_commit_is_held_classifies_cached_requester'))
     suite.addTest(BrokerOwnerLossIssuerProgressTests("test_broker_control_owner_loss_is_fenced_while_info_is_pending"))
     suite.addTest(BrokerOwnerLossIssuerProgressTests("test_broker_half_closed_owner_with_queued_request_is_fenced_during_info"))
     suite.addTest(BrokerOwnerLossIssuerProgressTests("test_broker_live_owner_queued_request_is_not_dispatched_during_info"))

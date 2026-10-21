@@ -1,0 +1,41 @@
+M08 issuer durability precedence repair
+Date: 2026-10-21
+Status: source checkpoint only; UNQUALIFIED
+
+A fresh control acquire during an execution durability loan uses the existing
+cached WorkspaceAuthority requester classifier. A revoked requester receives
+UNAUTHORIZED. An unavailable authority receives UNAVAILABLE. An active
+requester still receives BUSY. Missing principal or missing authority retains
+the existing BUSY result.
+
+The classifier reads cached state only. This path does not enter the SQLite
+handler or issue an issuer request while the execution connection is lent.
+Protocol validation and managed native-server ownership checks still precede
+the classification. Control release remains available during the loan.
+
+The broker regression uses the real ResourceBroker fixture and the
+SPATIAL_TEST_REVOCATION_COMMIT_GATE fault, enabled only with --fixture-faults.
+It revokes a real actor, waits for the actual commit worker to enter the gate,
+then checks revoked and independent active control acquires. It also checks
+that the revoked controller can acknowledge release while the gate remains
+held. The primary process identity is checked after revocation, during the
+held loan, and after release. A second selected method stops the real issuer daemons while the commit
+gate remains held and checks the active requester's unavailable result.
+
+The existing issuer-exit assertion and its accepted UNAVAILABLE or
+UNAUTHORIZED codes remain unchanged. No lock, schema, or acceptance contract
+changed.
+
+The prior registration selected 10 unique methods. This registration selects 12.
+
+Selected runtime methods:
+- BrokerIssuerProgressTests.test_broker_actual_issuer_exit_fails_closed_while_info_is_pending:
+  retain the existing real issuer-exit precedence requirement.
+- BrokerDurabilityAcquirePrecedenceTests.test_control_acquire_classifies_revoked_and_active_actors_during_commit_loan:
+  deterministically hold the real revocation commit; check UNAUTHORIZED,
+  BUSY for an active independent actor, and control release.
+- BrokerDurabilityAcquirePrecedenceTests.test_issuer_exit_while_commit_is_held_classifies_cached_requester:
+  check issuer loss while the real commit gate remains held.
+
+Runtime fixtures, Debug, sanitizers, and both-host checks are UNRUN on this
+coding host. Primary review and qualification remain required.
