@@ -1,0 +1,41 @@
+SB16-2 ADDITIVE LOCAL RECEIPT PUBLISHER
+Source checkpoint only. No receipt has been published by this code.
+
+Candidate: 580834ceeda112da0a1cdcd37ca7b288db1512fc
+Host: sb16-2
+Qualification remains UNQUALIFIED. phase_complete=false. gate_pass=false.
+
+Purpose
+The publisher creates one new receipt beside the original full run. It leaves the
+original failed run and its JUnit unchanged. The original SAN CTest exit remains 8.
+The new compatibility core row uses the real combined-verifier argv and exit 0.
+It marks that row as an additive union, not one CTest invocation.
+
+Preconditions checked by the publisher
+- The original run, proof, combined verifier, SAN tail, and post-tail binding match
+  their pinned paths and SHA-256 values.
+- The publisher re-runs the pinned evidence verifier in memory and compares its
+  complete output with the saved proof.
+- The combined canonical runner has the exact frozen argv, exit 0, wrapper exit 0,
+  COMPLETE terminal status, empty stderr, and exact unqualified summary.
+- The copied SAN bounded-storage subtree matches the supplemental tree by path,
+  type, mode, owner, and regular-file bytes. The publisher never copies it.
+- The SAN artifact manifest is recomputed. Debug commands and its artifact manifest are reused unchanged.
+- Pinned deployed M06 and M07 sources match deployment provenance.
+- The unchanged deployed M06 local receipt validator and cross-stage artifact
+  validator accept a temporary receipt before the publisher links the final file.
+
+The final receipt path is fixed. The publisher refuses if it already exists or falls
+outside the original attempt directory. It publishes only after all checks pass.
+
+Run only on sb16-2 after primary reviews the exact source and after the real storage
+copy receipt is accepted. Run under the existing M06 gate lock. Use
+PYTHONDONTWRITEBYTECODE=1 and python3 -B. Save argv, output, stderr, exit status,
+wrapper status, and terminal status in a new canonical runner directory.
+
+Then provide the new receipt path and SHA-256 explicitly to cross-host reconciliation.
+Do not point consumers at the original failed report. Do not edit deployment files,
+the original report, inventories, JUnit, or expected hashes.
+
+This source checkpoint has no runtime result. M08 remains UNQUALIFIED until separate
+cross-host validation and primary review complete.
