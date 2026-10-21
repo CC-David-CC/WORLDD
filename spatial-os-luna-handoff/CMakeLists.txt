@@ -855,7 +855,7 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_cabinet_gateway.py" $<TARGET_FILE:identityd>
-        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> -k actor_cabinet_)
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(workspace-actor-cabinet-gateway PROPERTIES TIMEOUT 300
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core;PYTHONDONTWRITEBYTECODE=1;PYTHONPYCACHEPREFIX=${CMAKE_CURRENT_BINARY_DIR}/pycache-actor-cabinet-gateway")
     add_test(NAME actor-cabinet-gateway-instrumentation COMMAND "${Python3_EXECUTABLE}" -B

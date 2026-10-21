@@ -1,0 +1,67 @@
+M08 cabinet CMake selector repair
+Status: SOURCE-ONLY / UNQUALIFIED / APPLICATION TESTS UNRUN
+Date: 2026-10-21
+
+Pin and scope
+-------------
+Base: 580834ceeda112da0a1cdcd37ca7b288db1512fc
+Branch: m08/cabinet-selector-repair-20261021
+Worktree: /home/dflanag3/src/m08-cabinet-selector-repair-20261021
+Host: ROG-Ally-X-RC72LA
+Owned source files:
+- spatial-os-luna-handoff/CMakeLists.txt
+- spatial-os-luna-handoff/tests/core/test_actor_cabinet_gateway_instrumentation.py
+- spatial-os-luna-handoff/docs/M08_CMAKE_CABINET_TEST_SELECTOR_REPAIR_2026-10-21.txt
+
+Repair
+------
+The CTest command for workspace-actor-cabinet-gateway passed
+-k actor_cabinet_ to unittest.main. The fixture's load_tests explicitly loads
+ActorCabinetGatewayTests and masks inherited presentation methods. Its 28
+locally defined cabinet methods include three names without that prefix:
+test_cabinet_view_move_and_use_authority_are_separate,
+test_cabinet_placement_requires_effective_file_authority, and
+test_registered_worktree_scope_controls_cabinet_placement_and_file_use.
+
+The filter selected only the 25 actor-prefixed methods when the file ran as
+__main__. The CMake registration now ends after the three executable arguments.
+It registers the fixture's complete intended local method set.
+
+The instrumentation regression imports the actual gateway module and runs its
+real unittest loader without invoking setup or launching an application. It
+checks all 28 local methods, preserves actor-prefixed methods, verifies the
+three formerly omitted cases, rejects inherited presentation methods, and
+simulates the old __main__ filter to prove it dropped exactly those three. It
+also verifies the CMake registration passes no filter or extra selector.
+
+Verification
+------------
+Selected before execution:
+- Generate CMake Python protobuf targets outside the worktree from this source.
+- Run only CTest registration actor-cabinet-gateway-instrumentation.
+- Do not execute workspace-actor-cabinet-gateway or any application/runtime tests on ROG.
+
+The 28 Python-protobuf generation targets completed successfully in:
+  /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/codegen-all-python-run-01
+
+Focused command:
+  ctest --test-dir /home/dflanag3/spatial-artifacts/m08-cabinet-selector-repair-20261021/codegen-build -R '^actor-cabinet-gateway-instrumentation$' --output-on-failure
+
+Result: 1/1 CTest registration passed; its unittest log reports 15/15 methods.
+The discovery assertion found 28/28 local cabinet methods. The old filter
+matched 25 and omitted exactly the three named methods. No base presentation
+method was selected. The runner recorded command exit 0, wrapper exit 0, and
+a dead tmux pane with status 0. No application or service was started.
+
+Failed setup attempts are preserved externally:
+- instrumentation-test-run-01: fresh bindings lacked world_session_pb2.
+- instrumentation-test-run-02: import-only discovery lacked placeholder argv for
+  legacy test modules that consume binary paths at import.
+- instrumentation-test-run-03: the legacy-filter simulation retained the
+  imported module name instead of modeling script execution as __main__.
+The later codegen and regression correction addressed these setup issues.
+No application or runtime test failed.
+
+The three cabinet gateway methods themselves remain UNRUN on qualification
+hosts. This checkpoint proves test discovery and registration only. It does
+not qualify M08 or alter its frozen source/package candidate.
