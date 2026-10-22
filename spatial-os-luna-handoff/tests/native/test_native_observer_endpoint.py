@@ -17,6 +17,13 @@ import test_actor_binding as binding
 
 
 class NativeObserverEndpointTests(binding.ActorBindingTests):
+    def setUp(self):
+        super().setUp()
+        if os.environ.get('SPATIAL_TEST_OBSERVER_XSERVER'):
+            self.enterContext(patch.dict(os.environ,{
+                'SPATIAL_TEST_XSERVER':os.environ['SPATIAL_TEST_OBSERVER_XSERVER'],
+                'SPATIAL_TEST_XSERVER_SHA256':os.environ['SPATIAL_TEST_OBSERVER_XSERVER_SHA256']}))
+
     def start_endpoint(self):
         parent, child = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
         parent.settimeout(3)
@@ -34,6 +41,65 @@ class NativeObserverEndpointTests(binding.ActorBindingTests):
         self.assertEqual(reply.WhichOneof('message'), 'hello', reply)
         self.hello = reply.hello
         return reply.hello
+
+    def output_endpoint(self,expect_ready=True,output_kind='pipe',with_control=True,duplicate=False):
+        parent,child=socket.socketpair(socket.AF_UNIX,socket.SOCK_SEQPACKET)
+        self.addCleanup(parent.close);parent.settimeout(3)
+        if output_kind=='file':
+            read_fd=None;write_fd=os.memfd_create('observer-output-wrong-class',os.MFD_CLOEXEC)
+        elif output_kind=='stream':
+            left,right=socket.socketpair();read_fd=left.detach();write_fd=right.detach()
+        else:read_fd,write_fd=os.pipe2(os.O_CLOEXEC)
+        if read_fd is not None:self.addCleanup(os.close,read_fd)
+        output_fd=read_fd if output_kind=='read-end' else write_fd
+        extra=('-spatial-observer-output-fd',str(output_fd)) if duplicate else ()
+        try:self.start(observer_fd=child.fileno() if with_control else None,
+            observer_output_fd=output_fd,expect_ready=expect_ready,extra_server_args=extra)
+        finally:child.close();os.close(write_fd)
+        self.endpoint=parent
+        if expect_ready:
+            raw=parent.recv(4097);reply=control.ObserverEndpointReplyV2.FromString(raw)
+            self.assertEqual(reply.WhichOneof('message'),'hello')
+        return read_fd,output_fd
+
+    def test_native_output_descriptor_is_cloexec_nonblocking_and_closes_on_control_eof(self):
+        read_fd,output_fd=self.output_endpoint()
+        link=Path(f'/proc/{self.server.pid}/fd/{output_fd}').readlink().as_posix()
+        self.assertEqual(link,f'pipe:[{os.fstat(read_fd).st_ino}]')
+        info=Path(f'/proc/{self.server.pid}/fdinfo/{output_fd}').read_text()
+        flags=next(int(line.split()[1],8) for line in info.splitlines() if line.startswith('flags:'))
+        self.assertTrue(flags&os.O_CLOEXEC);self.assertTrue(flags&os.O_NONBLOCK)
+        self.endpoint.close()
+        self.assertTrue(select.select([read_fd],[],[],3)[0])
+        self.assertEqual(os.read(read_fd,1),b'')
+        self.assertEqual(self.supervisor.inspect().role,binding.sec.SUPERVISOR)
+
+    def test_default_server_refuses_native_output_option(self):
+        binary=Path(os.environ['SPATIAL_TEST_DEFAULT_XSERVER'])
+        self.assertTrue(binary.is_absolute() and os.access(binary,os.X_OK))
+        with patch.dict(os.environ,{'SPATIAL_TEST_XSERVER':str(binary)}):
+            self.output_endpoint(expect_ready=False,with_control=False)
+        self.assertIn('requires an enabled qualification build',self.log_path.read_text())
+
+    def test_native_output_regular_file_is_refused(self):
+        self.output_endpoint(expect_ready=False,output_kind='file')
+        self.assertIn('requires a write-only anonymous FIFO',self.log_path.read_text())
+
+    def test_native_output_stream_socket_is_refused(self):
+        self.output_endpoint(expect_ready=False,output_kind='stream')
+        self.assertIn('requires a write-only anonymous FIFO',self.log_path.read_text())
+
+    def test_native_output_read_endpoint_is_refused(self):
+        self.output_endpoint(expect_ready=False,output_kind='read-end')
+        self.assertIn('requires a write-only anonymous FIFO',self.log_path.read_text())
+
+    def test_native_output_without_control_endpoint_is_refused(self):
+        self.output_endpoint(expect_ready=False,with_control=False)
+        self.assertIn('Cannot initialize native observer endpoint',self.log_path.read_text())
+
+    def test_native_output_duplicate_argument_is_refused(self):
+        self.output_endpoint(expect_ready=False,duplicate=True)
+        self.assertIn('requires one inherited descriptor',self.log_path.read_text())
 
     def test_actual_server_receives_parent_owned_cloexec_endpoint(self):
         hello = self.start_endpoint()

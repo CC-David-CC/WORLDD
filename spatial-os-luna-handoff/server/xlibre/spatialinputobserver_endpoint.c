@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/random.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <time.h>
@@ -20,6 +21,11 @@
 
 #define MAX_PACKET 4096u
 #define STARTUP_BUDGET_NS UINT64_C(10000000000)
+#define MAX_NATIVE_OUTPUT (3u * (4096u + 2u))
+static int output_fd = -1;
+static Bool output_configured, output_registered, output_started, output_complete;
+static uint8_t output_bytes[MAX_NATIVE_OUTPUT];
+static size_t output_length, output_offset;
 static int endpoint = -1;
 static Bool configured, registered, setup_seen, arm_seen, timer_running;
 static Spatial__Testing__V2__ObserverControlEnvelopeV2 *setup_control, *accepted_control;
@@ -44,6 +50,11 @@ static uint64_t monotonic_ns(void)
 
 static void close_endpoint(const char *reason)
 {
+    if (output_registered) RemoveNotifyFd(output_fd);
+    output_registered = FALSE;
+    if (output_fd >= 0) close(output_fd);
+    output_fd = -1; output_length = output_offset = 0;
+    memset(output_bytes, 0, sizeof(output_bytes));
     if (endpoint >= 0) {
         if (registered) RemoveNotifyFd(endpoint);
         registered = FALSE;
@@ -59,6 +70,69 @@ static void close_endpoint(const char *reason)
     setup_pins = NULL;
     setup_length = 0;
     memset(setup_bytes, 0, sizeof(setup_bytes));
+}
+
+void SpatialObserverEndpointOutputConfigureV2(const char *descriptor)
+{
+    char *end = NULL; struct stat status;
+    if (output_configured || !descriptor || !*descriptor)
+        FatalError("Spatial observer output requires one inherited descriptor\n");
+    output_configured = TRUE; errno = 0;
+    long value = strtol(descriptor, &end, 10);
+    if (errno || *end || value < 3 || value > INT_MAX)
+        FatalError("Invalid spatial observer output descriptor\n");
+    output_fd = (int)value;
+    int flags = fcntl(output_fd, F_GETFL);
+    if (fstat(output_fd, &status) || !S_ISFIFO(status.st_mode) || flags < 0 ||
+        (flags & O_ACCMODE) != O_WRONLY)
+        FatalError("Spatial observer output requires a write-only anonymous FIFO\n");
+    int descriptor_flags = fcntl(output_fd, F_GETFD);
+    if (descriptor_flags < 0 || fcntl(output_fd, F_SETFD, descriptor_flags | FD_CLOEXEC) < 0 ||
+        fcntl(output_fd, F_SETFL, flags | O_NONBLOCK) < 0)
+        FatalError("Cannot secure spatial observer output descriptor\n");
+}
+
+const Spatial__Testing__V2__ObserverArmV2 *SpatialObserverEndpointArmV2(void)
+{
+    if (endpoint < 0 || output_fd < 0 || output_started || !accepted_control ||
+        !accepted_control->arm || monotonic_ns() >= startup_deadline) return NULL;
+    return accepted_control->arm;
+}
+
+Bool SpatialObserverEndpointPinsCurrentV2(void)
+{
+    uint8_t fresh[MAX_PACKET]; size_t length = 0;
+    return SpatialObserverEndpointArmV2() && setup_control && setup_control->setup_request &&
+        SpatialInputObserverSetup(setup_control->setup_request, fresh, sizeof(fresh), &length) &&
+        length == setup_length && !memcmp(fresh, setup_bytes, length);
+}
+
+void SpatialObserverEndpointFailV2(const char *reason)
+{
+    close_endpoint(reason);
+}
+
+static void output_ready(int fd, int ready, void *data)
+{
+    (void)ready; (void)data;
+    uint64_t now = monotonic_ns();
+    if (!now || now >= startup_deadline) { close_endpoint("native output deadline"); return; }
+    ssize_t count = write(fd, output_bytes + output_offset, output_length - output_offset);
+    if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) return;
+    if (count <= 0) { close_endpoint("native output write failure"); return; }
+    output_offset += (size_t)count;
+    if (output_offset == output_length) { output_complete = TRUE; close_endpoint(NULL); }
+}
+
+Bool SpatialObserverEndpointOutputV2(const uint8_t *bytes, size_t length)
+{
+    if (!SpatialObserverEndpointArmV2() || !bytes || !length || length > sizeof(output_bytes)) return FALSE;
+    output_started = TRUE; output_length = length; output_offset = 0;
+    memcpy(output_bytes, bytes, length);
+    output_registered = SetNotifyFd(output_fd, output_ready, X_NOTIFY_WRITE, NULL);
+    if (!output_registered) { close_endpoint("native output notify registration"); return FALSE; }
+    output_ready(output_fd, X_NOTIFY_WRITE, NULL);
+    return output_complete || output_fd >= 0;
 }
 
 static CARD32 expired(OsTimerPtr timer, CARD32 now, void *data)
@@ -332,8 +406,8 @@ static void receive_packet(int fd, int ready, void *data)
 
 Bool SpatialObserverEndpointInit(void)
 {
-    if (!configured) return TRUE;
-    if (endpoint < 0 || registered || !SpatialSecurityEnabled() || !SpatialObserverLifetimeSession())
+    if (!configured) return !output_configured;
+    if (endpoint < 0 || (output_configured && (output_fd < 0 || output_fd == endpoint)) || registered || !SpatialSecurityEnabled() || !SpatialObserverLifetimeSession())
         return FALSE;
     size_t offset = 0;
     while (offset < sizeof(session_id)) {

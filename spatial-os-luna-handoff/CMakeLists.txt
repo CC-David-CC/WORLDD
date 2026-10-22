@@ -1729,13 +1729,21 @@ if(BUILD_TESTING)
         add_custom_target(world-input-witness-fixture DEPENDS worldd identityd spatial-issuer-client workspaced
             spatial-security-auth spatial-confined-xprobe spatial-xprobe spatial-process-scope-probe spatial-app-init spatial-presentation-probe spatial-storage-owner-service
             world-input-witness-python-protobuf broker-python-protobuf world-session-python-protobuf issuer-python-protobuf
-            key-python-protobuf grants-python-protobuf security-python-protobuf input-python-protobuf python-protobuf)
+            key-python-protobuf grants-python-protobuf security-python-protobuf input-python-protobuf python-protobuf
+            presentation-python-protobuf)
         add_test(NAME world-input-witness-bindings COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native --runtime-seconds 600 -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}" -B
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_input_witness.py" $<TARGET_FILE:identityd>
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(world-input-witness-bindings PROPERTIES TIMEOUT 660
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME world-native-input-witness-v2 COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native --runtime-seconds 600 -- "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_native_input_witness.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(world-native-input-witness-v2 PROPERTIES TIMEOUT 660
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME world-application-control COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native --runtime-seconds 600 -- "${Python3_EXECUTABLE}"

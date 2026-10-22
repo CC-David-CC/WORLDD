@@ -1,3 +1,45 @@
+## 2026-10-22: M09 native witness connected; focused native matrix passes
+
+M08 remains qualified. M09 remains UNQUALIFIED. Full M09 qualification remains pending.
+Both hosts passed eight real native witness methods in Debug and ASan-UBSan:32 executions.
+The shared compositor path joins authenticated actor identities to actual native input seats and independent XI2 receipts.
+Control revocation, observation revocation, voluntary unfocus, and stop pass the strict four-record witness.
+The native producer now owns serialized label storage through packing.
+XLibre cancellation clears focus on both the master and attached keyboard before removing context.
+Both hosts passed112 native boundary methods per profile:448 executions.
+The separate world authority repair passed146 methods per host/profile:584 executions.
+Both hosts completed109 related methods per profile:436 passing assertion executions.
+The sb16-2 sanitizer launcher timed out before collection; separate recovery validated its results and restored exact helper state.
+The original failed launcher record remains unchanged. Both dedicated eight-case M09 harnesses pass.
+Both hosts passed75 provenance checks and8 launcher-forwarding regressions.
+The final production-versus-observer boundary matrix passes after the reviewed fixture repeat correction.
+Native15 passes all8 native methods in both profiles on both hosts with confirmed cleanup.
+Full M09 source freeze, production closure preparation, and cumulative qualification remain pending.
+Earlier startup, serialization, focus, package-dependency, and fixture-budget failures remain preserved externally.
+Read docs/M09_NATIVE_WITNESS_CONNECTED_2026-10-22.txt for exact source, evidence, scope, and remaining gate work.
+Historical entries below retain their dated status.
+
+## 2026-10-22: M09 paused by David; native witness remains incomplete
+
+David requested a written handoff and pause. M08 remains qualified. M09 remains UNQUALIFIED.
+The sb16 broader matrix completed with one rejection-code failure in each profile.
+The sb16-2 Debug profile has the same failure. Its sanitizer profile was still running at pause.
+The preceding independent release-order and fresh C delivery checks passed.
+The native witness connection, transition capture, independent receipt assembly, and full qualification remain pending.
+Read [pause handoff](docs/M09_PAUSED_HANDOFF_2026-10-22.txt) before resuming.
+The idle-seat and relay repairs remain uncommitted. Preserve their checkout and frozen evidence.
+
+## 2026-10-22: Targeted M09 idle-seat repair checks pass; related matrix running
+
+The isolated old-binary test reproduced the worldd reacquisition defect on both hosts.
+The repair distinguishes retained identity from live input requiring authority.
+Both hosts passed the repaired reacquisition and focused-application-exit cases in Debug and ASan-UBSan.
+Nine relay transport regressions also passed. Cleanup was confirmed without sanitizer diagnostics.
+The six related registrations are running on both hosts. Their full results remain pending.
+M08 remains qualified. M09 remains UNQUALIFIED.
+Read [idle-seat repair](docs/M09_IDLE_SEAT_AUTHORITY_REPAIR_2026-10-22.txt) for exact evidence and remaining native witness work.
+Earlier entries retain their dated status.
+
 ## 2026-10-22: Authenticated M09 actor-to-device binding component passes on both hosts
 
 worldd now exports real authenticated actor/native-seat bindings through a private one-shot channel.

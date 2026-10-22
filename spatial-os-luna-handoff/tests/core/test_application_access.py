@@ -93,7 +93,7 @@ class ApplicationAccessTests(workspace.WorldIdentityFixture):
                 target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE']); target.mkdir(parents=True, exist_ok=True)
                 (target/(self._testMethodName+'-'+path.name)).write_text(text)
 
-    def setup_application(self, rights=ALL, native_enabled=True, policy=workspace.POLICY):
+    def setup_application(self, rights=ALL, native_enabled=True, policy=workspace.POLICY, native_observer_fd=None, native_observer_output_fd=None):
         self.execution = self.root/'execution'
         first = workspace.BrokerProcess(self, self.execution)
         repository = GitRepo(self.root)
@@ -117,7 +117,7 @@ class ApplicationAccessTests(workspace.WorldIdentityFixture):
             self.native = native.SecurityIdentityTests(methodName='runTest')
             self.native._testMethodName = self._testMethodName
             self.native.setUp(); self.addCleanup(self.native.doCleanups)
-            root = self.native.start()
+            root = self.native.start(observer_fd=native_observer_fd, observer_output_fd=native_observer_output_fd)
             self.server_id = root.inspect().server_id
             self.native_config = pb.NativeLaunchConfig(protocol_version=1, display_number=self.native.display,
                 broker_cookie=root.issue(security.BROKER, b'', b'').cookie, server_id=self.server_id,

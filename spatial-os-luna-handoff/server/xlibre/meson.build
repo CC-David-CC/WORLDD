@@ -43,7 +43,8 @@ if get_option('spatial_native_input_observer')
               'spatialinputobserver_capture.c',
               'spatialinputobserver_serialize.c',
               'spatialinputobserver_serialize_v2.c',
-              'spatialinputobserver_endpoint.c'),
+              'spatialinputobserver_endpoint.c',
+              'spatialinputobserver_transition_v2.c'),
         observer_proto, observer_v2_proto, observer_control_proto,
         include_directories: [inc, include_directories('.')],
         dependencies: [common_dep, spatial_input_dep])

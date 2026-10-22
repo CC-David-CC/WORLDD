@@ -1,0 +1,110 @@
+M09 NATIVE WITNESS CONNECTED
+Date:2026-10-22. M08 QUALIFIED. M09 UNQUALIFIED.
+
+Work branch:m09/worldd-observer-bindings-20261022 on rog-ally-x.
+Reviewed provenance parent:9bd0f7cf2e59dee71f9b718b8aa199de5de8477b.
+Native source remains an explicitly dirty, hash-frozen candidate until its reviewed checkpoint.
+Do not identify this evidence as full M09 qualification.
+
+Behavior:
+The launch owner joins two real issuer-authenticated worldd actors to actual native seats and devices.
+A private default-off XLibre endpoint validates its arm against current client, window, device, and generation pins.
+The server copies native state before cancellation, after releases, after context removal, and after peer binding.
+A separate XI2 receipt process records actual delivered releases and the peer's first press.
+The unchanged strict v2 oracle joins all four original records to independently trusted setup and worldd bindings.
+The same full witness runs through the production shared compositor and production RenderWorker query transport.
+No ordinary application receives XI2 access or a cross-workspace observation capability.
+
+Owning-layer repairs:
+The native serializer previously retained pointers into a temporary window-owner label.
+WireWindow now owns that backing storage until the complete message graph is packed.
+XLibre cancellation previously cleared only the master keyboard focus.
+The attached keyboard retained PointerRoot. Cancellation now explicitly clears both native focus classes.
+No Linux kernel patch or XACE baseline replacement was required.
+
+Focused results:
+Both required hosts passed eight native methods in Debug and ASan-UBSan:32 executions.
+Five methods produce complete native transition and independent receipt artifacts.
+The other three verify accepted authenticated arm, swapped-binding rejection, and changed-device-epoch rejection.
+Both hosts passed72 endpoint,25 actor-binding, and15 surface-identity methods per profile:448 executions.
+The earlier world authority repair passed146 methods per host/profile:584 executions.
+The accepted native and boundary receipts have confirmed cleanup and retired panes.
+No sanitizer findings were reported in these accepted runs.
+Both hosts completed109 related methods per profile:436 passing assertion executions.
+Three related invocations completed with zero command/wrapper exits.
+The sb16-2 sanitizer outer launcher expired at750seconds. Its four CTest suites completed successfully in781seconds.
+A separate zero-exit recovery verified the original results and restored the exact previous helper absence.
+The original launcher exit1 and pending lifecycle remain unchanged.
+Both dedicated eight-case M09 harnesses pass:16 executions.
+Both hosts pass75 provenance checks and8 launcher regressions.
+The final separated-runtime boundary selection passes72 endpoint,25 production actor, and8 observer-world methods per host/profile.
+Unchanged boundary passes are retained from native10/11; only the affected8 native methods rerun in native15.
+Native15 passes32 methods with confirmed cleanup and no sanitizer diagnostics.
+
+Evidence:
+Development artifact root on rog-ally-x:
+/home/dflanag3/spatial-artifacts/m09-native-transition-producer-20261022
+Exact native source pins:source-inputs-08.json and server/base.lock.json.
+Strict compile receipt:transition-build-08.json. Runtime remains restricted to the test hosts.
+Native generated-source proof:generation-proof-05.json, revalidated by generation-revalidation-08.json.
+Shared Python binding proof:shared-generated-source-proof-01.json.
+Both proofs compare two independent clean source/output generations with the candidate bytes.
+Observer payload07 SHA256:c16a46eace5378646c0e8566394efc378505f072227b80f2bd056befaedbe449.
+Its worldd executable closure reuses authority-repair-10/payload, whose handwritten production source matches this candidate.
+Test-only shared startup hooks and supplemental presentation_pb2.py are manifest-pinned in payload07.
+CMake now declares the presentation binding dependency for world-input-witness-fixture.
+
+Both-host native results:
+/home/dflanag3/spatial-artifacts/m09-native-transition-producer-20261022-native-07/evidence-01/result.json
+Native command and wrapper receipts:native-run-07/command.exit and native-run-07/wrapper.exit.
+Full logs:evidence-01/PROFILE/ctest/Testing/Temporary/LastTest.log.
+Original native artifacts and trusted arms:evidence-01/PROFILE/native.
+Both-host boundary results:
+/home/dflanag3/spatial-artifacts/m09-native-transition-producer-20261022-native-04/boundary-evidence-02/result.json
+Original passing Debug logs remain in boundary-evidence-01/Debug.
+A separate correction validates full logs because CTest truncated passing JUnit output before the method-count summary.
+The original parser-failure receipts remain unchanged. Passing Debug execution was not repeated for collection.
+
+Preserved failures:
+Native02:corrupted serialized grab-window application labels on both hosts.
+Native03:OLD_NATIVE_FOCUS_REMAINS on both hosts after label storage repair.
+Native05:sb16-2 sanitizer voluntary release reached the unchanged endpoint startup deadline.
+The fixture now removes a duplicate preliminary hold/release cycle.
+It resolves keycodes from the actual X server keyboard map and verifies independent prearm XI2 events.
+The endpoint startup limit and witness limits remain unchanged. Native07 passes on both hosts in both profiles.
+Native06:sb16 shared setup lacked presentation_pb2.py before any shared runtime query.
+The declared dependency and two-clean-generation proof repair that package omission.
+Earlier failed source, packages, logs, and canonical receipts remain external and unmodified.
+
+Remaining work:
+Review and checkpoint this coherent candidate as UNQUALIFIED. Integrate it onto the M09 qualified-M08 work branch.
+Freeze and build the full production closure, including observer-disabled Xorg/Xvfb and the private observer test server.
+Run the complete required M09 Debug, sanitizer, harness, acceptance, native, recovery, and cross-host gates.
+Keep failed and unrun requirements separate. Focused results alone do not qualify M09.
+Preserve M08 and its recovery paths. Publish reviewed M09 work after the qualification record is complete.
+
+Related matrix evidence:
+Both hosts retain native-08/related-evidence-02 beneath the native artifact parent named above.
+Each result uses20 world binding,47 application control,15 native surface-group, and27 world authority methods.
+The original sb16-2 sanitizer raw log and JUnit contain all four successful terminal summaries.
+Its separate recovery is native-08/related-recovery-01/lifecycle.json, with zero receipts in related-recovery-run-01.
+Recovery proved the recorded child process group empty and no helper users active.
+It removed only the two unchanged candidate helpers whose recorded previous state was absence.
+Future aggregate watchdogs derive from selected CTest budgets plus bounded cleanup allowance.
+Individual test, actor, native endpoint, and acceptance deadlines remain unchanged.
+
+Final focused closure and fixture regression:
+ROG focused-closeout-15.json joins both terminal result records and hashes all20 native artifacts.
+Each host retains native15/evidence-01/result.json beneath the artifact parent named above.
+Native15 command and wrapper receipts both return0. Both exact pane processes retired0.
+Native11 sb16-2 sanitizer captured authentic auto-repeat presses before PRE_CANCEL.
+The witness now configures only its held keys through a separate short-lived supervisor connection.
+It selects the old actor keyboard, resolves actual keycodes, verifies exact repeat bits, then closes before XI2 collection.
+One case holds keys beyond the normal repeat delay before starting the unchanged arm budget.
+The independent receipt connection keeps its own pointer and its original strict packet parser.
+No receipt filtering, oracle adjustment, native deadline change, or production repeat behavior change occurred.
+Both-host external structural counterexamples reject extra old-key presses before and after PRE_CANCEL.
+Native13 caller-query and native14 mapping-notification setup failures retain their original failed receipts.
+Independent review confirmed the final connection split. Native15 replaces those failed fixture attempts.
+The separately reviewed provenance contract is commit9bd0f7cf2e59dee71f9b718b8aa199de5de8477b.
+It preserves actual builder receipts and checks deployed bytes, host identities, default routing, and private observer routing.

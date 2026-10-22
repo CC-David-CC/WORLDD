@@ -1,0 +1,143 @@
+Historical record. David resumed implementation after this pause.
+Read CURRENT_STATE.md and M09_NATIVE_WITNESS_CONNECTED_2026-10-22.txt for current status.
+The original dated record below remains unchanged.
+
+M09 paused recovery handoff - 2026-10-22
+
+David requested: "write handoff. pause".
+Status: PAUSED BY USER. M08 remains QUALIFIED. M09 remains UNQUALIFIED.
+No native witness implementation was added during this final inspection.
+No new build, deployment, test run, commit, integration, or push was started.
+An existing sb16-2 test job was still running at the final observation. It was left intact.
+
+Source and ownership
+
+Coding host: rog-ally-x. Root is the sole writer of the active checkout.
+Checkout: /home/dflanag3/src/m09-worldd-observer-bindings-20261022.
+Branch: m09/worldd-observer-bindings-20261022.
+HEAD and last verified box-git task ref: 3694137d608a9cb353fb609eb5bd9eefeeeb241b.
+That commit contains the separately reviewed legacy witness correction.
+Its parent checkpoint 4087fbb23c879e129ff2852cda50bc5a98f29657 contains authenticated worldd bindings.
+Both checkpoints are UNQUALIFIED. They are not integrated into the M09 milestone branch.
+Their GitHub publication remains pending.
+M09 integration remains f2a749e354b992bec738b0f00712e37ed1c5a6a1.
+Qualified M08 remains unchanged at branch m08/qualified-20261022.
+Its recorded HEAD is 11227a48907d5bc8c9bc4e992633fafdb73a9a89.
+Do not reset, clean, or replace the dirty task checkout.
+
+Uncommitted work
+
+- src/world/actors.cpp: treat retained native identity separately from live input requiring authority.
+- tests/core/test_application_observation.py: multiplex unsolicited broker notices and correlated replies; bound teardown.
+- tests/core/test_world_application_control.py: focused application exit and retained-seat reacquisition coverage.
+- tests/core/test_m09_broker_relay_wire.py: nine socket-level relay regressions.
+- CURRENT_STATE.md and docs/M09_IDLE_SEAT_AUTHORITY_REPAIR_2026-10-22.txt: maintained progress records.
+These paths are relative to spatial-os-luna-handoff.
+The runtime and relay changes still require separate reviewed commits after their selected checks are resolved.
+The external pause-source-snapshot-09 directory preserves the dirty diff and exact dirty-file bytes.
+Its manifest records SHA256 values. This snapshot is outside Git.
+
+Results at pause
+
+The repaired idle-seat reacquisition and focused-application-exit smoke cases passed on both hosts in Debug and ASan-UBSan.
+The nine relay socket regressions passed on both hosts.
+Cleanup was confirmed. Those runs reported no sanitizer diagnostics.
+These focused passes do not qualify M09.
+
+The broader native08 matrix selects six suites, totaling 138 methods per host/profile:
+world-application-control39, world-input-witness-bindings20, presentation-input-bindings13,
+world-authority27, application-control-lease25, and native-actor-input14.
+
+sb16: Debug and ASan-UBSan both completed with one failed method each.
+Each completed profile ran 138 methods. The other 137 methods passed.
+The command and wrapper receipts are both 1. The tmux pane retired with exit 1.
+Cleanup was confirmed. No sanitizer diagnostic appeared in the audited complete logs.
+
+sb16-2: Debug completed with the same single failed method; the other 137 methods passed.
+Its ASan-UBSan profile was still running. The 25 lease and 20 binding methods had passed.
+Do not report its remaining sanitizer methods as passed.
+Its command and wrapper receipts were absent. The exact pane was live at PID 1723710.
+
+The sole observed failed method is:
+WorldApplicationControlTests.test_m09_observation_revocation_balances_input_before_peer_event.
+It fails at test_world_application_control.py:852.
+Expected FORBIDDEN (13); received STALE_TARGET (16), "Aimed geometry or visibility changed".
+The earlier independent XI2 release-order assertion and fresh C application delivery passed before this assertion.
+This is not evidence of a release-order failure.
+Whether the rejection ordering violates production semantics or the fixture expectation remains under review.
+Do not change the expected code, broaden accepted errors, or change production ordering without that review.
+The stronger helper paused with the contract review explicitly INCOMPLETE.
+It confirmed that the test revokes observation, then presses using a saved aim.
+visible() does not refresh that aim. actors.cpp:1090 checks input_target before authorization at :1106.
+input_target at :1038-1041 returns STALE_TARGET after authority-filtered visibility changes.
+CONTRACT line 90 requires missing-grant rejection before target checks.
+Its application to this application-scoped observation case still requires reconciliation.
+The helper made no recommendation to change the assertion. It ran no tests or source edits.
+The driver also reports exact_inventory=false, although all six inner counts match.
+Inspect that inventory result before accepting the matrix; do not silently ignore it.
+
+Authoritative evidence and live handle
+
+Development artifacts:
+/home/dflanag3/spatial-artifacts/m09-worldd-observer-bindings-20261022.
+The final read-only observations are sb16-pause-native-observation-09.json and sb16-2-pause-native-observation-09.json.
+They include full failure assertions, method counts, process state, and receipt observations.
+
+On both test hosts:
+Root: /home/dflanag3/spatial-artifacts/m09-worldd-observer-bindings-20261022-idle-relay-repair-08.
+Tmux session: m09-idle-relay-native-08.
+Receipts: native-run-08/command.exit and native-run-08/wrapper.exit.
+Results: evidence-01/result.json.
+Logs: evidence-01/{Debug,ASan-UBSan}/ctest/Testing/Temporary/LastTest.log or LastTest.log.tmp.
+Smokes: smoke-evidence-01/result.json and smoke-run-08 receipts.
+Relay checks: relay-wire-run-08.
+Read the exact process and receipts before restarting anything. Missing receipts do not establish failure.
+
+Frozen repaired binary package:
+world-bindings-payload-03.tar.gz, 269212233 bytes.
+SHA256 a09fba3f186ab77001820b714929a27a05b34225e364a7222d82c9d6cd39f8fc.
+Frozen test overlay:
+relay-correction-08.tar.gz, 2981134 bytes.
+SHA256 8f9edbe2f862ae1fbbedb680ae4d79d72a2de30824ef90889fe8441d49b9ab3c.
+Both packages reside in the development artifact directory above.
+Host binaries remain in the sibling m09-worldd-observer-bindings-20261022-idle-repair-06/payload directory.
+Do not edit frozen payloads or active driver scripts.
+Preserve baseline idle-seat FORBIDDEN failures and all original witness/relay failures.
+
+Native witness status
+
+The private authenticated worldd actor-to-native-seat binding component is implemented and component-tested.
+The native endpoint, setup, and arm validation are implemented and component-tested.
+The actual worldd-proof-to-native-arm connection is not implemented.
+The four actual native transition snapshots are not implemented.
+The first-peer output callback and independent XI2 receipt assembly are not implemented.
+The shared presentation query still needs an end-to-end native check.
+The current broader runs reuse verified M08 XACE graphics. They do not exercise a combined v2 native witness server.
+APP XInput access remains intentionally blocked. Do not enable APP XI2 to satisfy the privileged witness.
+Keep ordinary C core application receipts separate from the privileged XI2 recipient.
+Keep logical surface generation separate from native server surface generation.
+Never parse or hash text actor IDs into invented numeric identity.
+
+Resume order
+
+1. Read AGENTS.md, the coordination skill, CURRENT_STATE.md, and this handoff.
+2. Inspect the exact sb16-2 native08 pane and final receipts. Audit completed logs and cleanup.
+3. Obtain the bounded helper review of STALE_TARGET versus FORBIDDEN and inspect the inventory mismatch.
+4. Record the selected checks before any repair. Preserve original failures and add a meaningful regression.
+5. Resolve the reviewed failure at its owning layer. Version any test-contract correction separately.
+6. Review and checkpoint the runtime guard and relay repair separately. Run the data guard before every checkpoint.
+7. Connect real worldd bindings to actual native setup/arm under the existing bounded startup deadline.
+8. Capture PRE_CANCEL, POST_RELEASES_BEFORE_CONTEXT_CLEAR, POST_CANCEL, and POST_PEER_BIND from actual native state.
+9. Capture the first peer output attempt and separate XI2 receipts. Validate the unchanged four-record v2 stream.
+10. Exercise two actors and two applications, including dialogs, popups, revocation, transfer, and stale targets.
+11. Patch reproduced failures, run focused Debug/sanitizers on both hosts, then freeze and fully qualify M09.
+M09 is not almost qualified. Step 3 of the user's five-step plan remains incomplete.
+
+Host restrictions
+
+Build and code only on rog-ally-x or middle-child. Test only on sb16 and sb16-2.
+Use box-git only for Git. Never use a5500. Never run inference or coding agents on test hosts.
+ROG-to-test SSH uses spatial_testboxes_ed25519 and spatial_testboxes_known_hosts.
+LAN targets: dflanag3@10.0.7.49 and dflanag3@10.0.7.94.
+Transfer artifacts directly between LAN hosts. Do not relay them through the Windows controller.
+No cleanup or deletion occurred during the pause handoff.

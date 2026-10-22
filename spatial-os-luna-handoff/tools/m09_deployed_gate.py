@@ -33,6 +33,7 @@ M09_REQUIRED = frozenset({
     "native-world_surface_groups",
     "native-observer-endpoint",
     "world-input-witness-bindings",
+    "world-native-input-witness-v2",
 })
 REQUIRED = frozenset(m08.REQUIRED) | M09_REQUIRED
 M09_CASES = {
@@ -53,11 +54,16 @@ M09_CASES = {
         "status": "EXISTING_CASE",
     },
     "balanced-transfer": {
-        "suites": ("world-application-control", "application-control-lease", "native-observer-endpoint", "world-input-witness-bindings"),
+        "suites": ("world-application-control", "application-control-lease", "native-observer-endpoint", "world-input-witness-bindings", "world-native-input-witness-v2"),
         "tests": (
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_actual_server_receives_parent_owned_cloexec_endpoint",
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_setup_resolves_real_native_seats_and_distinct_owners",
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_live_arm_acknowledges_exact_command_without_changing_native_input",
+            "tests.core.test_world_native_input_witness.WorldNativeInputWitnessTests.test_observation_revocation_has_native_transition_and_independent_receipts",
+            "tests.core.test_world_native_input_witness.WorldNativeInputWitnessTests.test_control_revocation_has_native_transition_and_independent_receipts",
+            "tests.core.test_world_native_input_witness.WorldNativeInputWitnessTests.test_voluntary_unfocus_has_native_transition_and_independent_receipts",
+            "tests.core.test_world_native_input_witness.WorldNativeInputWitnessTests.test_stop_has_native_transition_and_independent_receipts",
+            "tests.core.test_world_native_input_witness.WorldNativeInputWitnessTests.test_shared_renderer_query_joins_real_actor_seats_and_native_receipts",
             "tests.core.test_world_input_witness.WorldInputWitnessTests.test_real_principals_activation_handles_and_native_devices_join",
             "tests.core.test_world_input_witness.WorldInputWitnessTests.test_unprimed_actor_is_not_given_a_native_seat",
             "tests.core.test_world_input_witness.WorldInputWitnessTests.test_revoked_control_authority_rejects_binding",

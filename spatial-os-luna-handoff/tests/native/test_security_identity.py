@@ -100,7 +100,7 @@ class SecurityIdentityTests(unittest.TestCase):
         self.root = Path(self.temp.name); self.cookie = os.urandom(32); self.clients = []
         self.addCleanup(lambda:[client.close() for client in reversed(self.clients)])
 
-    def start(self, bootstrap=None, sealed=True, expect_ready=True, observer_fd=None, extra_server_args=()):
+    def start(self, bootstrap=None, sealed=True, expect_ready=True, observer_fd=None, extra_server_args=(), observer_output_fd=None):
         geometry = screen_argument(self)
         binary = Path(os.environ['SPATIAL_TEST_XSERVER'])
         self.assertTrue(binary.is_absolute() and binary.name=='Xvfb' and os.access(binary,os.X_OK))
@@ -123,6 +123,9 @@ class SecurityIdentityTests(unittest.TestCase):
         if observer_fd is not None:
             argv += ['-spatial-observer-fd', str(observer_fd)]
             inherited += (observer_fd,)
+        if observer_output_fd is not None:
+            argv += ['-spatial-observer-output-fd', str(observer_output_fd)]
+            inherited += (observer_output_fd,)
         argv += list(extra_server_args)
         try: proc = subprocess.Popen(argv,stdout=log,stderr=log,pass_fds=inherited,env=env)
         finally: os.close(config); os.close(outgoing)

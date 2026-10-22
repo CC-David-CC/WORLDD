@@ -50,9 +50,10 @@ class M09DeployedGateTests(unittest.TestCase):
         return [{"name": name, "properties": []} for name in sorted(gate.REQUIRED)]
 
     def test_required_inventory_rejects_missing_skip_and_duplicate_registration(self):
-        inventory = [row for row in self.inventory() if row["name"] != "application-observation"]
-        with self.assertRaisesRegex(RuntimeError, "application-observation"):
-            gate.require_m09_inventory(inventory)
+        for missing in ("application-observation", "world-native-input-witness-v2"):
+            inventory = [row for row in self.inventory() if row["name"] != missing]
+            with self.assertRaisesRegex(RuntimeError, missing):
+                gate.require_m09_inventory(inventory)
         inventory = self.inventory()
         inventory[0]["properties"] = [{"name": "SKIP_RETURN_CODE", "value": "77"}]
         with self.assertRaisesRegex(RuntimeError, "can skip"):
@@ -149,7 +150,8 @@ class M09DeployedGateTests(unittest.TestCase):
         self.assertEqual(gate.M09_REQUIRED, {
             "application-control-lease", "application-observation",
             "world-application-control", "native-surface_identity",
-            "native-world_surface_groups", "native-observer-endpoint", "world-input-witness-bindings"})
+            "native-world_surface_groups", "native-observer-endpoint", "world-input-witness-bindings",
+            "world-native-input-witness-v2"})
         self.assertEqual(gate.REQUIRED, gate.m08.REQUIRED | gate.M09_REQUIRED)
 
 

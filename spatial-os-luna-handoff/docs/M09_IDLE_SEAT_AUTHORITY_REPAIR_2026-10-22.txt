@@ -1,0 +1,117 @@
+Historical record. David resumed implementation after this pause.
+Read CURRENT_STATE.md and M09_NATIVE_WITNESS_CONNECTED_2026-10-22.txt for current status.
+The original dated record below remains unchanged.
+
+Pause update: 2026-10-22
+David requested a handoff and pause. The broader run has a preserved rejection-code failure after the release-order checks.
+Read M09_PAUSED_HANDOFF_2026-10-22.txt for current results and live-handle recovery. Earlier progress below retains its dated state.
+
+M09 idle-seat authority repair - 2026-10-22
+
+Status: TARGETED REPAIR CHECKS PASS. RELATED MATRIX RUNNING. M09 remains UNQUALIFIED.
+M08 remains qualified and unchanged. This work is not integrated into the M09 milestone branch.
+Checkout: /home/dflanag3/src/m09-worldd-observer-bindings-20261022.
+Branch: m09/worldd-observer-bindings-20261022.
+Parent checkpoint:3694137d608a9cb353fb609eb5bd9eefeeeb241b, verified on box-git.
+External evidence: /home/dflanag3/spatial-artifacts/m09-worldd-observer-bindings-20261022.
+
+Reproduced production defect
+
+Two persistent actors retained native seats after releasing input and reservations.
+Authority refresh treated an idle native identity as active legacy input.
+World authority has no legacy interact grant for these authenticated application actors.
+Nested renderer wait callbacks repeatedly rearmed cancellation on the other idle seat.
+A successful fresh broker lease could then inherit a fabricated cancellation flag.
+The authorized action returned FORBIDDEN with Application control authority changed.
+
+A separate no-XI2 regression reproduced that exact failure on both hosts using old native-02 binaries.
+The broker relay held only a typed successful acquisition reply.
+Both actors had real distinct native pointers and no held input or focus before reacquisition.
+The first sorted actor deterministically exposed the callback rearming.
+The original baseline failures remain under each host's idle-baseline-01 artifact root.
+They prove reproduction, not product success.
+
+Owning production correction
+
+Actors::refresh_authority now distinguishes active context from retained identity.
+Focus, held keys/buttons, logical leases, and application leases still require authority.
+Idle identity alone creates no cancellation request.
+Application input requires observation and a present active broker lease.
+The legacy input path retains its interact check.
+The guard does not clear existing cancellation or closure flags.
+Navigation-stop and observation-clear checks still run before the idle guard.
+No Linux kernel, XLibre routing, XACE policy, actor contract, or locked acceptance changed.
+Primary and independent stronger-helper source reviews agree on this boundary.
+
+Preserved fixture transport defect
+
+The repaired acquisition first succeeded, but smoke06 failed during focused application exit.
+BrokerRelay forwarded one control_revoked notice and then stopped reading the real process.wait reply.
+The production client correctly consumed the notice and continued waiting.
+The later broker shutdown warning was aftermath, not proof of a production circular wait.
+Smoke06 remains failed with its original cleanup trace.
+
+The relay correction forwards notices while idle or during a request.
+Only an exact correlated reply consumes that request or invokes its hook/barrier.
+A held test barrier intentionally pauses forwarding until release.
+Frame reads use one absolute bounded deadline and allow prompt close cancellation.
+Pending EOF retires normally. Borrowed broker sockets remain owned by their original fixture.
+Nine real-socket regressions cover notice order, barriers, hooks, correlation, EOF, partial frames, and teardown.
+The new DirectBroker native case exits an application with keys/buttons held.
+No unfocus workaround hides that lifetime path.
+
+Actual targeted results
+
+Both repaired Debug and sanitizer profiles compiled and linked on ROG.
+The direct legacy test-host target also compiled in both profiles.
+All81 Debug and80 sanitizer generated artifacts retain exact coverage and bytes from the independent proof.
+No generator input changed. Read generated-source-revalidation-04.json.
+
+Each of sb16 and sb16-2 passed:
+- Nine socket relay regressions.
+- Debug: two native cases, idle-seat reacquisition and focused application exit.
+- ASan-UBSan: the same two native cases.
+Every final smoke command/wrapper exited0 and every final pane retired0.
+Helper cleanup was confirmed. No skip or sanitizer diagnostic occurred.
+Native smoke08 and smoke-evidence-01 preserve those results.
+The legacy fixture correction uses immutable relay overlay08 against the unchanged repaired binaries.
+Overlay07 had a source-review-caught call typo and ran no native test.
+
+Related matrix remains pending
+
+The exact six CTest registrations retain original commands, properties, working directories,
+resource wrappers, qualified storage lanes, native graphics closure, and helper lifecycle handling.
+They run on both hosts in Debug and ASan-UBSan:
+- world-application-control39.
+- world-input-witness-bindings20.
+- presentation-input-bindings13.
+- world-authority27.
+- application-control-lease25.
+- native-actor-input14.
+These138 methods per profile must receive terminal log, identity, skip, sanitizer, and cleanup audits.
+The running job is m09-idle-relay-native-08 on both required hosts.
+Do not restart it solely because an observation expires.
+
+Artifacts
+
+Repaired binary package: world-bindings-payload-03.tar.gz;269212233 bytes.
+SHA256:a09fba3f186ab77001820b714929a27a05b34225e364a7222d82c9d6cd39f8fc.
+Test-only overlay: relay-correction-08.tar.gz;2981134 bytes.
+SHA256:8f9edbe2f862ae1fbbedb680ae4d79d72a2de30824ef90889fe8441d49b9ab3c.
+Both archives passed complete extraction-round-trip inventory checks before deployment.
+Transfers ran directly from ROG to the test hosts. Controller orchestration relayed no artifact bytes.
+
+Each host retains m09-worldd-observer-bindings-20261022-idle-repair-06 for immutable binaries.
+The current source overlay and results use m09-worldd-observer-bindings-20261022-idle-relay-repair-08.
+Audit native-run-08 command.exit and wrapper.exit, evidence-01/result.json, JUnit, full native logs,
+and helper lifecycle receipts. Source and artifacts are pinned in ACTIVE_REPAIR_HANDOFF.json on ROG.
+
+Remaining full goal
+
+The related matrix, source checkpoints, and reviewed M09 integration remain pending.
+The shared query transport still needs an end-to-end native check.
+Real authenticated worldd bindings must join the native setup and arm.
+Native transition snapshots, pinned native state, first peer callback, independent receipts,
+and complete four-record v2 assembly remain required.
+The combined candidate still needs full M09 cumulative qualification on both required hosts.
+These targeted passes do not complete M09 or Spatial-M1.

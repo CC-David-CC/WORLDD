@@ -6,6 +6,11 @@
 #include "misc.h"
 #include "native_input_observer_control_v2.pb-c.h"
 void SpatialObserverEndpointConfigure(const char *descriptor);
+void SpatialObserverEndpointOutputConfigureV2(const char *descriptor);
+const Spatial__Testing__V2__ObserverArmV2 *SpatialObserverEndpointArmV2(void);
+Bool SpatialObserverEndpointOutputV2(const uint8_t *bytes, size_t length);
+void SpatialObserverEndpointFailV2(const char *reason);
+Bool SpatialObserverEndpointPinsCurrentV2(void);
 Bool SpatialObserverEndpointInit(void);
 void SpatialObserverEndpointReset(void);
 /* Read live server identities. Never trust client-supplied object epochs. */

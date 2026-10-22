@@ -31,6 +31,7 @@
 #include "spatialinputobserver_capture.h"
 #include "spatialinputobserver_endpoint.h"
 #include "spatialinputobserver_serialize_v2.h"
+#include "spatialinputobserver_transition_v2.h"
 #endif
 
 typedef Spatial__Input__V1__Request Request;
@@ -76,6 +77,9 @@ static SeatRec *seats;
 static uint64_t next_seat, next_generation;
 static Bool active;
 static void cancel(SeatRec *seat);
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+static void observer_transition(SeatRec *seat, unsigned phase);
+#endif
 
 static DeviceIntPtr application_pointer(ApplicationInput *application)
 {
@@ -279,6 +283,9 @@ static void send_input(SeatRec *seat, int type, unsigned detail)
 
 static void cancel(SeatRec *seat)
 {
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    observer_transition(seat, 1);
+#endif
     /* Release through the original device and target before clearing focus. */
     for (unsigned i = 1; i < 32; ++i)
         if (seat->buttons & (1u << i)) send_input(seat, ButtonRelease, i);
@@ -291,6 +298,11 @@ static void cancel(SeatRec *seat)
     if (seat->keyboard->deviceGrab.grab)
         seat->keyboard->deviceGrab.DeactivateGrab(seat->keyboard);
     SetInputFocus(serverClient, seat->keyboard, None, RevertToNone, CurrentTime, FALSE);
+    /* The attached keyboard owns focus state independently of its master. */
+    SetInputFocus(serverClient, seat->keyboard_slave, None, RevertToNone, CurrentTime, FALSE);
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    observer_transition(seat, 2);
+#endif
     if (seat->application) {
         ApplicationInput *application = seat->application;
         DeviceIntPtr devices[] = {seat->pointer_slave, seat->keyboard_slave, seat->pointer, seat->keyboard};
@@ -303,6 +315,9 @@ static void cancel(SeatRec *seat)
     }
     seat->target = seat->focus = None;
     seat->target_generation = seat->focus_generation = 0;
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    observer_transition(seat, 3);
+#endif
 }
 
 static int bind_application(SeatRec *seat, WindowPtr window)
@@ -329,6 +344,9 @@ static int bind_application(SeatRec *seat, WindowPtr window)
         dixSetPrivate(&devices[i]->devPrivates, &application_device_key, application);
     }
     rebind_application(application);
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    observer_transition(seat, 4);
+#endif
     return CODE(OK);
 }
 
@@ -662,6 +680,42 @@ static Bool observer_devices(SeatRec *seat, ObserverDevice wire[4], ObserverDevi
     return TRUE;
 }
 
+static Bool observer_seat(SeatRec *seat, ApplicationInput *application, SpatialObserverSeatStateV2 *state)
+{
+    if (!seat || !state || (seat->application && seat->application != application)) return FALSE;
+    memset(state, 0, sizeof(*state));
+    const int ids[4] = {seat->pointer->id, seat->pointer_slave->id, seat->keyboard->id, seat->keyboard_slave->id};
+    if (!SpatialObserverPinNativeClient(seat->owner->index, &state->owner) ||
+        !SpatialObserverPinDevices(ids, &state->devices)) return FALSE;
+    state->id = seat->id; state->target = seat->target; state->focus = seat->focus;
+    state->target_generation = seat->target_generation; state->focus_generation = seat->focus_generation;
+    memcpy(state->keys, seat->keys, sizeof(state->keys)); state->buttons = seat->buttons;
+    state->application = seat->application != NULL;
+    state->controller = seat->application && seat->application->controller ? seat->application->controller->id : 0;
+    return TRUE;
+}
+
+static void observer_transition(SeatRec *seat, unsigned phase)
+{
+    const Spatial__Testing__V2__ObserverArmV2 *arm = SpatialObserverEndpointArmV2();
+    if (!arm || !seat || (phase < 4 ? seat->id != arm->old_native_seat_id : seat->id != arm->peer_native_seat_id)) return;
+    SeatRec *old = NULL, *peer = NULL;
+    for (SeatRec *item = seats; item; item = item->next) {
+        if (item->id == arm->old_native_seat_id) old = item;
+        if (item->id == arm->peer_native_seat_id) peer = item;
+    }
+    WindowPtr window = live_window(arm->expected_window->xid, arm->expected_window->spatial_generation);
+    ClientPtr owner = window ? dixLookupXIDOwner(window->drawable.id) : NULL;
+    ApplicationInput *application = owner ? dixLookupPrivate(&owner->devPrivates, &application_key) : NULL;
+    SpatialObserverSeatStateV2 old_state, peer_state; SpatialObserverWindowPin target;
+    if (!application || !observer_seat(old, application, &old_state) ||
+        !observer_seat(peer, application, &peer_state) || !SpatialObserverPinWindow(window->drawable.id, &target)) {
+        SpatialObserverEndpointFailV2("native transition live identity missing"); return;
+    }
+    SpatialObserverTransitionCaptureV2(phase, &old_state, &peer_state, &target, generation(window),
+        application->controller ? application->controller->id : 0);
+}
+
 Bool SpatialInputObserverArm(const Spatial__Testing__V2__ObserverArmV2 *arm)
 {
     SeatRec *old = NULL, *peer = NULL;
@@ -785,6 +839,9 @@ Bool SpatialInputObserverSetup(const Spatial__Testing__V2__ObserverSetupRequestV
 }
 #endif
 
+#ifndef SPATIAL_NATIVE_INPUT_OBSERVER
+_X_NORETURN
+#endif
 void SpatialInputObserverConfigure(const char *descriptor)
 {
 #ifdef SPATIAL_NATIVE_INPUT_OBSERVER
@@ -795,11 +852,25 @@ void SpatialInputObserverConfigure(const char *descriptor)
 #endif
 }
 
+#ifndef SPATIAL_NATIVE_INPUT_OBSERVER
+_X_NORETURN
+#endif
+void SpatialInputObserverOutputConfigure(const char *descriptor)
+{
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverEndpointOutputConfigureV2(descriptor);
+#else
+    (void)descriptor;
+    FatalError("Spatial observer output requires an enabled qualification build\n");
+#endif
+}
+
 static void reset(ExtensionEntry *extension)
 {
     (void)extension;
 #ifdef SPATIAL_NATIVE_INPUT_OBSERVER
     SpatialObserverEndpointReset();
+    SpatialObserverTransitionShutdownV2();
     SpatialObserverCaptureShutdown();
     SpatialObserverLifetimeReset();
 #endif
@@ -839,6 +910,12 @@ void SpatialInputExtensionInit(void)
         SpatialObserverCaptureShutdown();
         SpatialObserverLifetimeReset();
         FatalError("Cannot initialize native input observer capture\n");
+    }
+    if (!SpatialObserverTransitionInitV2()) {
+        SpatialObserverTransitionShutdownV2();
+        SpatialObserverCaptureShutdown();
+        SpatialObserverLifetimeReset();
+        FatalError("Cannot initialize native observer transitions\n");
     }
     if (!SpatialObserverEndpointInit()) {
         SpatialObserverEndpointReset();
