@@ -182,10 +182,16 @@ void Actors::refresh_authority() {
         if (!actor.authority) continue;
         if (!granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
         if (!granted(actor, "observe")) actor.aim.Clear();
-        const bool control_lost = actor.application_control ?
-            (!granted(actor, "observe") || !broker_ || !broker_->control_active(*actor.application_control)) :
-            !granted(actor, "interact");
-        if (control_lost && (!actor.native.actor_id().empty() || actor.application_control)) {
+        // A retained native seat is identity, not active input authority.
+        // Reentrant wait callbacks must not rearm cancellation for idle seats.
+        const bool owns_input = actor.application_control || !actor.lease.empty() ||
+            actor.native.has_focus() || actor.native.held_keys_size() || actor.native.held_buttons_size();
+        if (!owns_input) continue;
+        const bool application_input = actor.application_input || actor.application_control.has_value();
+        const bool control_lost = application_input ?
+            (!granted(actor, "observe") || !broker_ || !actor.application_control ||
+             !broker_->control_active(*actor.application_control)) : !granted(actor, "interact");
+        if (control_lost) {
             actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
         }
     }
