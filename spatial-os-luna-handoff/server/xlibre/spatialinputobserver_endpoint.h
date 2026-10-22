@@ -9,6 +9,8 @@ void SpatialObserverEndpointConfigure(const char *descriptor);
 Bool SpatialObserverEndpointInit(void);
 void SpatialObserverEndpointReset(void);
 /* Read live server identities. Never trust client-supplied object epochs. */
+/* Read-only held-input precondition. No routing or authority changes. */
+Bool SpatialInputObserverArm(const Spatial__Testing__V2__ObserverArmV2 *arm);
 Bool SpatialInputObserverSetup(const Spatial__Testing__V2__ObserverSetupRequestV2 *request,
                               uint8_t *output, size_t capacity, size_t *length);
 #endif

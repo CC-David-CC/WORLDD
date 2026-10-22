@@ -662,6 +662,43 @@ static Bool observer_devices(SeatRec *seat, ObserverDevice wire[4], ObserverDevi
     return TRUE;
 }
 
+Bool SpatialInputObserverArm(const Spatial__Testing__V2__ObserverArmV2 *arm)
+{
+    SeatRec *old = NULL, *peer = NULL;
+    uint8_t keys[32] = {0};
+    uint32_t buttons = 0;
+    if (!arm || !arm->expected_window || arm->n_expected_held_keys > 31 ||
+        arm->n_expected_held_buttons > 29) return FALSE;
+    for (SeatRec *seat = seats; seat; seat = seat->next) {
+        if (seat->id == arm->old_native_seat_id) old = seat;
+        if (seat->id == arm->peer_native_seat_id) peer = seat;
+    }
+    if (!old || !peer || old == peer || old->owner != peer->owner ||
+        !old->application || old->application->controller != old ||
+        old->target != arm->expected_window->xid || old->focus != old->target ||
+        old->target_generation != arm->expected_window->spatial_generation ||
+        old->focus_generation != old->target_generation ||
+        !live_window(old->target, old->target_generation) ||
+        peer->application || peer->target || peer->focus || peer->buttons) return FALSE;
+    WindowPtr window = live_window(old->target, old->target_generation);
+    ClientPtr owner = dixLookupXIDOwner(window->drawable.id);
+    if (!owner || dixLookupPrivate(&owner->devPrivates, &application_key) != old->application)
+        return FALSE;
+    for (size_t i = 0; i < arm->n_expected_held_keys; ++i) {
+        unsigned code = arm->expected_held_keys[i];
+        if (code < 8 || code >= 256) return FALSE;
+        keys[code / 8] |= 1u << (code % 8);
+    }
+    for (size_t i = 0; i < arm->n_expected_held_buttons; ++i) {
+        unsigned button = arm->expected_held_buttons[i];
+        if (!button || button >= 32) return FALSE;
+        buttons |= 1u << button;
+    }
+    for (unsigned i = 0; i < sizeof(peer->keys); ++i)
+        if (peer->keys[i]) return FALSE;
+    return old->buttons == buttons && !memcmp(old->keys, keys, sizeof(keys));
+}
+
 Bool SpatialInputObserverSetup(const Spatial__Testing__V2__ObserverSetupRequestV2 *request,
                               uint8_t *output, size_t capacity, size_t *length)
 {

@@ -86,7 +86,7 @@
     "server/patches/0013-native-input-observer-build-args.patch": "78853a54c1512b9153d22ddfb68bd11f2bae2548213382aa8ce7561dcd6a5cab",
     "server/patches/0014-native-observer-xvfb-link-whole.patch": "3c1ccd66b20580737371fb963d27c3cf7ca7838dd9d819f5468ed8f5f2404aff",
     "server/patches/0015-native-observer-endpoint-argument.patch": "4d3cc019a4e28e7affe3701a3e32db6afa5253df15052778c754f0ceb43381a0",
-    "server/xlibre/spatialinput.c": "d37e0030f2a5212d7565c4bfff9a08b7465ecb41934eb09b42df71dbf0bf7a1e",
+    "server/xlibre/spatialinput.c": "88bd7ec392975fe127fe1cb0e2eb3cd15e415f58d9a34a41e3c4fc77104477ab",
     "server/xlibre/spatialinput.h": "7984cee6262933f5302bff6a577b4e5f8699f7680e3bb3f089beaf21569896f5",
     "server/xlibre/meson.build": "9ade538f460f209e15a521264d4600226571aaa4e1d68367a75c2c586782173b",
     "proto/spatial/input/v1/input.proto": "46c28e6ad46aecad10f515994d7e97b85426f5a66fb00dab241ce4876b209815",
@@ -102,11 +102,11 @@
     "server/xlibre/spatialinputobserver_serialize.c": "dfd6fb292f14f5d53c32eff411d567e1d14bb57a69fb1f56075eb47fef4472ef",
     "server/xlibre/spatialinputobserver_serialize.h": "3939c475d49ea91329880a85a37af6d4f79073e4de8503a2ede971cb490b4d41",
     "proto/spatial/testing/v1/native_input_observer.proto": "6e3a29a87f18a69efc65264480d15d847d7101767422a5969eb1a35029917722",
-    "server/xlibre/spatialinputobserver_endpoint.c": "1fdb6f6db6c23599c3c4057869d725d4d9a35de0e7c3629ab0d7731c441c5b7c",
-    "server/xlibre/spatialinputobserver_endpoint.h": "91ca2bfc7f5322c5529943109d15f3875aef06771d41dbcb4ac95d67ec8dde5e",
+    "server/xlibre/spatialinputobserver_endpoint.c": "d04dfa390037d813287aaccd88823bff4e098e2964680e27d7619d2f50c71233",
+    "server/xlibre/spatialinputobserver_endpoint.h": "c838819dcba1b7e445e13dd207f0520ca2b9aab1e3fa008c48e0bf3479fda2fb",
     "server/xlibre/spatialinputobserver_serialize_v2.c": "c8be6632ac4a83835a0471c5f9aba51174aaa877df143063b27aee83740f55c3",
     "server/xlibre/spatialinputobserver_serialize_v2.h": "356c26021153a5c099af719c77c34e56aa2efca439c83317aded3e266110b776",
     "proto/spatial/testing/v2/native_input_observer_v2.proto": "3be49622170f80b8aa12c5424522198d640e61e3b4e157ca481204b8126f37e3",
-    "proto/spatial/testing/v2/native_input_observer_control_v2.proto": "f6a49ed71ce5ecfcf79809d1a3ba0a4fb70590d8935383f58d13a3a046d76a43"
+    "proto/spatial/testing/v2/native_input_observer_control_v2.proto": "73a1dd59218a4c5c87113dbfc98fcbfe71da78d641315062d6899f0fae10c8d8"
   }
 }

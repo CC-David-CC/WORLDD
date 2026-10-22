@@ -1,0 +1,111 @@
+M09 native observer arm validation - 2026-10-22
+
+Status: FOCUSED ARM CHECKS PASS. M09 remains UNQUALIFIED.
+Goal: complete M09 application-group control qualification.
+Base: fa6705e07c2f986d1b27b62b17dfb7fb6441085f.
+Branch: m09/native-observer-arm-20261022.
+Development checkout: /home/dflanag3/src/m09-native-observer-arm-20261022.
+External development evidence: /home/dflanag3/spatial-artifacts/m09-native-observer-arm-20261022.
+The qualified M08 branch and production source remain unchanged.
+
+Implemented behavior
+
+The private parent-owned endpoint accepts one setup and then one bounded arm.
+Consumption latches before parsing and native resolution. Replay closes the private endpoint.
+Each packet retains parent credentials, descriptor rejection, canonical Protobuf checks, and byte limits.
+The server retains owned copies of the accepted setup, native pins, and arm.
+EOF, deadline, reset, and refusal release those copies and close the endpoint.
+The setup deadline can shorten the startup budget. Arming cannot extend it.
+
+Arming compares session, arm, application, presentation, window, client, and device identities.
+It re-resolves all native setup pins. Reused identifiers cannot inherit an earlier native epoch.
+The old seat must control the selected application with the expected target and focus generations.
+Its tracked keys and buttons must exactly match the arm. The peer seat must be idle.
+These checks read existing native state. They do not acquire or transfer application control.
+An evidence refusal leaves existing native application routing intact.
+
+Explicit additive testing-interface change
+
+ObserverEndpointReplyV2 adds arm_accepted at field 3, containing the exact accepted Arm command.
+This acknowledgment confirms checked arming only. It is not a transfer success record.
+Existing setup fields, v1 artifacts, the four-record v2 artifact, and locked actor schemas remain unchanged.
+acceptance.lock.json remains unchanged.
+The normal server build still excludes the observer implementation and refuses its startup option.
+The active security baseline remains XACE.
+
+Selected checks and actual results
+
+The assignment-and-test-plan.json recorded checks before execution.
+Both hosts reproduced the missing arm against preserved endpoint source fa6705e.
+The original baseline test failed at the expected one-shot setup refusal.
+Baseline result and command/wrapper receipts passed as a reproduction, not as product qualification.
+A baseline launcher first refused an invalid artifact layout before running tests.
+Its refusal is preserved. The corrected launcher uses separate payload and run directories.
+
+Three fresh native profiles compiled and linked on ROG: default Debug, observer Debug, observer ASan-UBSan.
+Four standalone -Werror compiles passed for the changed native C files in observer profiles.
+Six generated Python/C/H files matched two independent clean source/output generations.
+Both native build profiles matched those generated C/H bytes. The Python payload uses the matching generation.
+The generation-proof.json pins schema inputs, generator versions, and generated file hashes.
+
+The 207 pure methods passed: M08 harness 89, M09 harness 8, v1 parser 21, v1 collector 12,
+v2 parser 23, v2 collector 26, and v2 setup 28.
+Guard verification, M09 selector verification, Python syntax, and diff checks passed.
+
+Native results on each of sb16 and sb16-2:
+- Debug: endpoint/setup/arm 65 PASS; actor-binding 25 PASS; surface-identity 15 PASS.
+- ASan-UBSan: endpoint/setup/arm 65 PASS; actor-binding 25 PASS; surface-identity 15 PASS.
+The accepted combined evidence covers 420 method executions. No skips or sanitizer diagnostics occurred.
+GLX was disabled for this focused identity/input scope. Graphics qualification is UNRUN here.
+Every final native command and wrapper exited zero. All final test panes retired with exit zero.
+
+Preserved failure and fixture correction
+
+The first candidate ran 64 endpoint methods per host/profile. Each had one failure.
+The application sent ConfigureWindow while the compositor owned SubstructureRedirect.
+That request was redirected. It did not resize the window or change its native generation.
+The stale-target test therefore used a live target, and arming correctly accepted it.
+The correction performs the resize through the compositor and independently asserts a generation change.
+A new positive regression confirms redirected owner requests preserve the live arm target.
+No production binary changed after that failure. The correction is an explicit test-only overlay.
+Original failed logs and the immutable initial package remain preserved for diagnosis.
+
+Artifacts and provenance
+
+Candidate package: /home/dflanag3/spatial-artifacts/m09-native-observer-arm-20261022/native-payload-01.tar.gz.
+Package bytes: 19512357.
+Package SHA256: 508ef1a5aeea7e8db4a5810ac5d8f19ba52e16369ace1ae12731dc9152cae9c7.
+The extraction round trip verified complete file coverage and hashes before deployment.
+Artifact transfer ran directly from ROG to each test host.
+Each host verified the archive and payload hashes before native execution.
+The reused xprobe source is unchanged from fa6705e. Its executable hash is in the package manifest.
+
+On each test host, under /home/dflanag3/spatial-artifacts:
+- m09-native-observer-arm-20261022-baseline/payload/results/result.json records the missing behavior.
+- m09-native-observer-arm-20261022-native-01/native-results-01/result.json preserves initial failures and related passes.
+- m09-native-observer-arm-20261022-correction-02/results-02/result.json records both corrected 65-method passes.
+- Their run-01 or run-02 command.exit and wrapper.exit records preserve launcher results.
+The correction payload manifest pins the updated test module against the original candidate binaries.
+ROG primary-file-review-02.json pins reviewed source. fixture-correction-02.json explains the overlay.
+No normal desktop, world database, or host login configuration changed.
+
+Remaining qualification requirements
+
+These native-only tests use fixture principals to exercise field validation.
+They do not prove authenticated worldd actor identity. The server treats those identifiers as trusted-parent join data.
+worldd still needs an independent private binding path from authenticated ActorRef and actor instance to actual native seat.
+World actor entity IDs are text. The observer draft uses numeric correlation handles.
+Implement an explicit worldd-owned handle mapping. Never parse or hash text IDs into assumed identity.
+Keep the authenticated principal and world context in the independently supplied binding.
+A mapping is M09 witness integration work. No earlier milestone rollback is required by this source finding.
+
+The next source task must expose existing compositor actor-to-seat state through a private checked query.
+Use the actual router map, not application XI pointer inference or server-produced expected artifacts.
+The binding must be available after ordinary authorized actor priming. It must grant no additional application control.
+Then connect real PRE_CANCEL, POST_RELEASES_BEFORE_CONTEXT_CLEAR, POST_CANCEL, and POST_PEER_BIND snapshots.
+Capture the first native peer output attempt and obtain separate independent XI2 client receipts.
+Assemble and validate the unchanged four-record v2 evidence stream with independent expected bindings.
+Run the two-actor/two-application main/dialog/popup, revocation, and stale-target scenarios.
+Patch each reproduced defect at its owning layer, with regression evidence.
+Freeze the combined candidate and run the full required M09 Debug/sanitizer and cumulative qualification on both hosts.
+None of those remaining requirements is claimed complete by this checkpoint.

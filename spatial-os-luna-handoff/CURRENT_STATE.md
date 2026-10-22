@@ -1,3 +1,11 @@
+## 2026-10-22: M09 native observer arm preconditions pass focused checks
+
+The private endpoint now validates one arm against live native identities and held input.
+Both required hosts passed 65 endpoint/setup/arm methods in Debug and ASan-UBSan.
+Related actor-binding and surface-identity checks passed in both profiles.
+M09 remains UNQUALIFIED. Authenticated worldd bindings, transition capture, independent receipts, and full qualification remain pending.
+Read [native arming](docs/M09_NATIVE_OBSERVER_ARM_2026-10-22.txt) for evidence, the preserved fixture failure, and next work.
+
 ## 2026-10-22: Live M09 observer endpoint and native setup pass focused checks
 
 The private channel now reaches the actual XLibre server on sb16 and sb16-2.

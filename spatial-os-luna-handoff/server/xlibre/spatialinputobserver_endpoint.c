@@ -21,7 +21,12 @@
 #define MAX_PACKET 4096u
 #define STARTUP_BUDGET_NS UINT64_C(10000000000)
 static int endpoint = -1;
-static Bool configured, registered, setup_seen, timer_running;
+static Bool configured, registered, setup_seen, arm_seen, timer_running;
+static Spatial__Testing__V2__ObserverControlEnvelopeV2 *setup_control, *accepted_control;
+static Spatial__Testing__V2__ObserverEndpointReplyV2 *setup_pins;
+static uint64_t setup_monotonic_ns;
+static uint8_t setup_bytes[MAX_PACKET];
+static size_t setup_length;
 static struct ucred parent;
 static uint8_t session_id[16];
 static uint64_t startup_deadline;
@@ -47,6 +52,13 @@ static void close_endpoint(const char *reason)
         if (reason) ErrorF("Spatial observer endpoint rejected: %s\n", reason);
     }
     if (deadline_timer && !timer_running) TimerCancel(deadline_timer);
+    if (setup_control) spatial__testing__v2__observer_control_envelope_v2__free_unpacked(setup_control, NULL);
+    if (accepted_control) spatial__testing__v2__observer_control_envelope_v2__free_unpacked(accepted_control, NULL);
+    if (setup_pins) spatial__testing__v2__observer_endpoint_reply_v2__free_unpacked(setup_pins, NULL);
+    setup_control = accepted_control = NULL;
+    setup_pins = NULL;
+    setup_length = 0;
+    memset(setup_bytes, 0, sizeof(setup_bytes));
 }
 
 static CARD32 expired(OsTimerPtr timer, CARD32 now, void *data)
@@ -161,6 +173,90 @@ static Bool send_packet(const uint8_t *bytes, size_t size)
     return sent == (ssize_t)size;
 }
 
+static Bool same_message(const ProtobufCMessage *left, const ProtobufCMessage *right)
+{
+    uint8_t a[MAX_PACKET], b[MAX_PACKET];
+    if (!left || !right || left->descriptor != right->descriptor) return FALSE;
+    size_t size = protobuf_c_message_get_packed_size(left);
+    return size <= sizeof(a) && size == protobuf_c_message_get_packed_size(right) &&
+        protobuf_c_message_pack(left, a) == size && protobuf_c_message_pack(right, b) == size &&
+        !memcmp(a, b, size);
+}
+
+static Bool same_bytes(ProtobufCBinaryData left, ProtobufCBinaryData right)
+{
+    return left.len == right.len && (!left.len || !memcmp(left.data, right.data, left.len));
+}
+
+static Bool same_devices(size_t count, Spatial__Testing__V2__DeviceIdentity **devices,
+                         size_t expected_count, Spatial__Testing__V2__DeviceIdentity **expected)
+{
+    if (count != 4 || expected_count != 4) return FALSE;
+    for (size_t i = 0; i < count; ++i) {
+        unsigned matches = 0;
+        if (!devices[i]) return FALSE;
+        for (size_t j = 0; j < expected_count; ++j)
+            if (same_message(&devices[i]->base, &expected[j]->base)) ++matches;
+        if (matches != 1) return FALSE;
+        for (size_t j = 0; j < i; ++j)
+            if (devices[i]->device_id == devices[j]->device_id) return FALSE;
+    }
+    return TRUE;
+}
+
+static Bool valid_arm(const Spatial__Testing__V2__ObserverArmV2 *arm, uint64_t now)
+{
+    if (!arm || !setup_control || !setup_pins || !setup_pins->setup_reply) return FALSE;
+    const Spatial__Testing__V2__ObserverSetupReplyV2 *pins = setup_pins->setup_reply;
+    const Spatial__Testing__V2__ObserverSetupRequestV2 *request = setup_control->setup_request;
+    if (!same_bytes(arm->session_id, request->session_id) || !same_bytes(arm->arm_id, request->arm_id) ||
+        arm->arm_monotonic_ns < setup_monotonic_ns || arm->arm_monotonic_ns > now ||
+        arm->deadline_monotonic_ns != request->deadline_monotonic_ns ||
+        arm->deadline_monotonic_ns <= now ||
+        arm->deadline_monotonic_ns - arm->arm_monotonic_ns > STARTUP_BUDGET_NS ||
+        !arm->old_actor || !arm->peer_actor ||
+        arm->old_actor->issuer_id.len != 32 || arm->old_actor->actor_id.len != 32 ||
+        arm->peer_actor->issuer_id.len != 32 || arm->peer_actor->actor_id.len != 32 ||
+        same_message(&arm->old_actor->base, &arm->peer_actor->base) ||
+        !arm->old_world_actor_id || !arm->peer_world_actor_id ||
+        arm->old_world_actor_id == arm->peer_world_actor_id ||
+        arm->old_native_seat_id != pins->old_native_seat_id ||
+        arm->peer_native_seat_id != pins->peer_native_seat_id ||
+        arm->presentation_generation != request->presentation_generation ||
+        !arm->expected_application || !arm->expected_window || !arm->expected_seat_owner ||
+        !arm->expected_window_owner || !arm->expected_recipient || !arm->expected_grab_owner ||
+        !same_message(&arm->expected_application->base, &request->expected_application->base) ||
+        !same_message(&arm->expected_window->base, &pins->app_target->base) ||
+        !same_message(&arm->expected_seat_owner->base, &pins->compositor_seat_owner->base) ||
+        !same_message(&arm->expected_window_owner->base, &pins->app_target_owner->base) ||
+        !same_message(&arm->expected_recipient->base, &pins->probe_marker->privileged_owner->base) ||
+        !same_message(&arm->expected_grab_owner->base, &arm->expected_recipient->base) ||
+        !same_devices(arm->n_old_actor_devices, arm->old_actor_devices,
+                      pins->n_old_actor_devices, pins->old_actor_devices) ||
+        !same_devices(arm->n_peer_actor_devices, arm->peer_actor_devices,
+                      pins->n_peer_actor_devices, pins->peer_actor_devices) ||
+        arm->expected_xi2_event_type != 4 || !arm->expected_detail || arm->expected_detail >= 32 ||
+        arm->n_expected_held_keys < 2 || arm->n_expected_held_buttons < 1 ||
+        arm->n_expected_held_keys + arm->n_expected_held_buttons + 1 > 32) return FALSE;
+    Bool modifier = FALSE;
+    for (size_t i = 0; i < arm->n_expected_held_keys; ++i) {
+        uint32_t code = arm->expected_held_keys[i];
+        if (code < 8 || code >= 256 || (i && code <= arm->expected_held_keys[i - 1])) return FALSE;
+        if (code == arm->expected_modifier_keycode) modifier = TRUE;
+    }
+    for (size_t i = 0; i < arm->n_expected_held_buttons; ++i) {
+        uint32_t button = arm->expected_held_buttons[i];
+        if (!button || button >= 32 || (i && button <= arm->expected_held_buttons[i - 1])) return FALSE;
+    }
+    if (!modifier || !SpatialInputObserverArm(arm)) return FALSE;
+    /* Resolve all native pins again. Reused XIDs, device IDs and client slots
+     * must not inherit the previously acknowledged object's identity. */
+    uint8_t fresh[MAX_PACKET];
+    size_t length = 0;
+    return SpatialInputObserverSetup(request, fresh, sizeof(fresh), &length) &&
+        length == setup_length && !memcmp(fresh, setup_bytes, length);
+}
+
 static void receive_packet(int fd, int ready, void *data)
 {
     (void)ready; (void)data;
@@ -175,8 +271,10 @@ static void receive_packet(int fd, int ready, void *data)
     if (!authenticated(&message)) { close_endpoint("sender or ancillary data"); return; }
     uint64_t now = monotonic_ns();
     if (!now || now >= startup_deadline) { close_endpoint("deadline"); return; }
-    if (setup_seen) { close_endpoint("one-shot setup replay"); return; }
-    setup_seen = TRUE; /* Consume before parsing or live pin resolution. */
+    if (arm_seen) { close_endpoint("one-shot arm replay"); return; }
+    const Bool initial = !setup_seen;
+    if (initial) setup_seen = TRUE;
+    else arm_seen = TRUE; /* Consume before parsing or checking live pins. */
     Spatial__Testing__V2__ObserverControlEnvelopeV2 *envelope =
         spatial__testing__v2__observer_control_envelope_v2__unpack(NULL, (size_t)size, bytes);
     unsigned nodes = 0;
@@ -184,20 +282,52 @@ static void receive_packet(int fd, int ready, void *data)
         spatial__testing__v2__observer_control_envelope_v2__get_packed_size(envelope) == (size_t)size;
     if (valid) valid = spatial__testing__v2__observer_control_envelope_v2__pack(envelope, canonical) == (size_t)size &&
                       !memcmp(bytes, canonical, (size_t)size);
-    if (valid) valid = envelope->message_case ==
-        SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_SETUP_REQUEST;
-    if (valid) {
-        const Spatial__Testing__V2__ObserverSetupRequestV2 *request = envelope->setup_request;
+    const char *reason = initial ? "invalid setup or native pin" : "invalid arm or native pin";
+    if (valid && !initial && envelope->message_case ==
+        SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_SETUP_REQUEST) {
+        valid = FALSE;
+        reason = "one-shot setup replay";
+    }
+    if (valid && initial) {
+        valid = envelope->message_case == SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_SETUP_REQUEST;
+        const Spatial__Testing__V2__ObserverSetupRequestV2 *request = valid ? envelope->setup_request : NULL;
         valid = request && request->session_id.len == sizeof(session_id) &&
             !memcmp(request->session_id.data, session_id, sizeof(session_id)) &&
             request->arm_id.len == 16 && request->deadline_monotonic_ns > now &&
             request->deadline_monotonic_ns - now <= STARTUP_BUDGET_NS;
         size_t length = 0;
-        if (valid) valid = SpatialInputObserverSetup(request, output, sizeof(output), &length) &&
-                           send_packet(output, length);
+        if (valid) valid = SpatialInputObserverSetup(request, output, sizeof(output), &length);
+        if (valid) {
+            setup_pins = spatial__testing__v2__observer_endpoint_reply_v2__unpack(NULL, length, output);
+            valid = setup_pins && setup_pins->setup_reply;
+        }
+        if (valid) {
+            setup_monotonic_ns = now;
+            setup_control = envelope; envelope = NULL;
+            memcpy(setup_bytes, output, length); setup_length = length;
+            if (request->deadline_monotonic_ns < startup_deadline) startup_deadline = request->deadline_monotonic_ns;
+            uint64_t remaining_ms = (startup_deadline - now + UINT64_C(999999)) / UINT64_C(1000000);
+            valid = TimerSet(deadline_timer, 0, (CARD32)remaining_ms, expired, NULL) != NULL &&
+                send_packet(output, length);
+        }
+    } else if (valid) {
+        valid = envelope->message_case == SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_ARM &&
+            valid_arm(envelope->arm, now);
+        if (valid) {
+            Spatial__Testing__V2__Arm arm = SPATIAL__TESTING__V2__ARM__INIT;
+            Spatial__Testing__V2__ObserverEndpointReplyV2 reply = SPATIAL__TESTING__V2__OBSERVER_ENDPOINT_REPLY_V2__INIT;
+            arm.accepted_command = envelope->arm;
+            reply.message_case = SPATIAL__TESTING__V2__OBSERVER_ENDPOINT_REPLY_V2__MESSAGE_ARM_ACCEPTED;
+            reply.arm_accepted = &arm;
+            size_t length = spatial__testing__v2__observer_endpoint_reply_v2__get_packed_size(&reply);
+            valid = length <= sizeof(output) &&
+                spatial__testing__v2__observer_endpoint_reply_v2__pack(&reply, output) == length &&
+                send_packet(output, length);
+            if (valid) { accepted_control = envelope; envelope = NULL; }
+        }
     }
     if (envelope) spatial__testing__v2__observer_control_envelope_v2__free_unpacked(envelope, NULL);
-    if (!valid) close_endpoint("invalid setup or native pin");
+    if (!valid) close_endpoint(reason);
 }
 
 Bool SpatialObserverEndpointInit(void)

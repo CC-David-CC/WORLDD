@@ -52,5 +52,7 @@ message ObserverEndpointReplyV2 {
   oneof message {
     ObserverEndpointHelloV2 hello = 1;
     ObserverSetupReplyV2 setup_reply = 2;
+    // Acknowledges checked arming only. It does not prove a transition or receipt.
+    Arm arm_accepted = 3;
   }
 }

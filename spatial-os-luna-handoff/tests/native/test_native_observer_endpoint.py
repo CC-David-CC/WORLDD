@@ -113,6 +113,207 @@ class NativeObserverEndpointTests(binding.ActorBindingTests):
         self.assertIn(reason, self.log_path.read_text(errors='replace'))
         self.assertIsNone(self.server.poll())
 
+    def arm_context(self):
+        # These native-only fixtures exercise pin validation. Real worldd principal
+        # bindings remain a separate mandatory qualification requirement.
+        request = self.setup_context()
+        self.pins = self.send_setup(request)
+        self.call(button=binding.inp.Button(seat=self.seat.seat,
+                  target=self.target(self.window), x=4, y=5, button=1,
+                  pressed=True, focus=True))
+        self.key(38, True); self.key(50, True)
+        import native_input_observer_v2_pb2 as observer
+        arm = observer.ObserverArmV2(
+            session_id=request.session_id, arm_id=request.arm_id,
+            arm_monotonic_ns=time.monotonic_ns(), deadline_monotonic_ns=request.deadline_monotonic_ns,
+            old_world_actor_id=1, peer_world_actor_id=2,
+            old_native_seat_id=self.seat.seat, peer_native_seat_id=self.second.seat,
+            presentation_generation=request.presentation_generation,
+            expected_xi2_event_type=4, expected_detail=1,
+            expected_held_keys=[38, 50], expected_held_buttons=[1], expected_modifier_keycode=50)
+        arm.old_actor.issuer_id = arm.peer_actor.issuer_id = b'i' * 32
+        arm.old_actor.actor_id = b'o' * 32; arm.peer_actor.actor_id = b'p' * 32
+        arm.expected_application.CopyFrom(request.expected_application)
+        arm.expected_window.CopyFrom(self.pins.app_target)
+        arm.expected_window_owner.CopyFrom(self.pins.app_target_owner)
+        arm.expected_seat_owner.CopyFrom(self.pins.compositor_seat_owner)
+        arm.expected_recipient.CopyFrom(self.pins.probe_marker.privileged_owner)
+        arm.expected_grab_owner.CopyFrom(arm.expected_recipient)
+        arm.old_actor_devices.extend(self.pins.old_actor_devices)
+        arm.peer_actor_devices.extend(self.pins.peer_actor_devices)
+        return arm
+
+    def send_arm(self, arm, suffix=b''):
+        self.endpoint.sendall(control.ObserverControlEnvelopeV2(arm=arm).SerializeToString(deterministic=True) + suffix)
+
+    def invalid_arm(self, mutate):
+        arm = self.arm_context()
+        mutate(arm)
+        self.send_arm(arm)
+        self.assert_rejected('invalid arm or native pin')
+        # An evidence refusal cannot silently revoke the application's control.
+        self.assertTrue(self.held(self.owner, 38))
+        self.assertTrue(self.held(self.owner, 50))
+        self.cancel()
+
+    def test_live_arm_acknowledges_exact_command_without_changing_native_input(self):
+        arm = self.arm_context()
+        self.send_arm(arm)
+        raw = self.endpoint.recv(4097)
+        self.assertTrue(raw, self.log_path.read_text(errors='replace'))
+        reply = control.ObserverEndpointReplyV2.FromString(raw)
+        self.assertEqual(reply.WhichOneof('message'), 'arm_accepted', reply)
+        self.assertEqual(reply.arm_accepted.accepted_command, arm)
+        self.assertEqual(self.focus(self.owner), self.window)
+        self.assertTrue(self.held(self.owner, 38)); self.assertTrue(self.held(self.owner, 50))
+        status = self.call(status=binding.inp.Seat(id=self.seat.seat))
+        self.assertEqual(status.held_buttons, 1 << 1)
+        self.cancel()
+        self.click(self.second); self.key(38, True, self.second)
+        self.assertTrue(self.held(self.owner, 38)); self.cancel(self.second)
+
+    def test_arm_replay_closes_only_private_channel(self):
+        arm = self.arm_context(); self.send_arm(arm)
+        self.assertTrue(self.endpoint.recv(4097))
+        self.send_arm(arm); self.assert_rejected('one-shot arm replay')
+        self.assertTrue(self.held(self.owner, 38)); self.cancel()
+
+    def test_arm_wrong_session_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'session_id', os.urandom(16)))
+
+    def test_arm_wrong_arm_id_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'arm_id', os.urandom(16)))
+
+    def test_arm_actor_alias_rejects(self):
+        self.invalid_arm(lambda a: a.peer_actor.CopyFrom(a.old_actor))
+
+    def test_arm_short_principal_rejects(self):
+        self.invalid_arm(lambda a: setattr(a.old_actor, 'actor_id', b'short'))
+
+    def test_arm_world_actor_alias_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'peer_world_actor_id', a.old_world_actor_id))
+
+    def test_arm_zero_world_actor_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'old_world_actor_id', 0))
+
+    def test_arm_wrong_seat_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'old_native_seat_id', a.peer_native_seat_id))
+
+    def test_arm_wrong_application_rejects(self):
+        self.invalid_arm(lambda a: setattr(a.expected_application, 'application_id', b'wrong'))
+
+    def test_arm_wrong_presentation_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'presentation_generation', a.presentation_generation + 1))
+
+    def test_arm_wrong_window_epoch_rejects(self):
+        self.invalid_arm(lambda a: setattr(a.expected_window, 'native_object_epoch', a.expected_window.native_object_epoch + 1))
+
+    def test_arm_wrong_seat_owner_rejects(self):
+        self.invalid_arm(lambda a: a.expected_seat_owner.CopyFrom(a.expected_recipient))
+
+    def test_arm_wrong_window_owner_rejects(self):
+        self.invalid_arm(lambda a: a.expected_window_owner.CopyFrom(a.expected_recipient))
+
+    def test_arm_wrong_probe_rejects(self):
+        self.invalid_arm(lambda a: a.expected_recipient.CopyFrom(a.expected_seat_owner))
+
+    def test_arm_wrong_grab_owner_rejects(self):
+        self.invalid_arm(lambda a: a.expected_grab_owner.CopyFrom(a.expected_window_owner))
+
+    def test_arm_wrong_device_epoch_rejects(self):
+        self.invalid_arm(lambda a: setattr(a.old_actor_devices[0], 'native_object_epoch', a.old_actor_devices[0].native_object_epoch + 1))
+
+    def test_arm_wrong_attachment_rejects(self):
+        self.invalid_arm(lambda a: setattr(a.peer_actor_devices[1], 'paired_or_attached', a.old_actor_devices[0].device_id))
+
+    def test_arm_duplicate_device_rejects(self):
+        self.invalid_arm(lambda a: a.old_actor_devices[1].CopyFrom(a.old_actor_devices[0]))
+
+    def test_arm_missing_device_rejects(self):
+        self.invalid_arm(lambda a: a.peer_actor_devices.pop())
+
+    def test_arm_wrong_event_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'expected_xi2_event_type', 5))
+
+    def test_arm_out_of_range_peer_button_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'expected_detail', 32))
+
+    def test_arm_unsorted_keys_rejects(self):
+        self.invalid_arm(lambda a: a.expected_held_keys.reverse())
+
+    def test_arm_missing_modifier_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'expected_modifier_keycode', 39))
+
+    def test_arm_wrong_held_keys_rejects(self):
+        self.invalid_arm(lambda a: a.expected_held_keys.__setitem__(0, 39))
+
+    def test_arm_wrong_held_buttons_rejects(self):
+        self.invalid_arm(lambda a: a.expected_held_buttons.__setitem__(0, 2))
+
+    def test_arm_deadline_change_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'deadline_monotonic_ns', a.deadline_monotonic_ns + 1))
+
+    def test_arm_future_time_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'arm_monotonic_ns', a.deadline_monotonic_ns))
+
+    def test_arm_before_setup_time_rejects(self):
+        self.invalid_arm(lambda a: setattr(a, 'arm_monotonic_ns', 1))
+
+    def test_arm_unknown_fields_rejects(self):
+        arm = self.arm_context(); self.send_arm(arm, b'\x18\x01')
+        self.assert_rejected('invalid arm or native pin'); self.cancel()
+
+    def test_arm_retired_peer_seat_rejects(self):
+        arm = self.arm_context(); self.call(close=binding.inp.Seat(id=self.second.seat))
+        self.send_arm(arm); self.assert_rejected('invalid arm or native pin'); self.cancel()
+
+    def test_arm_resized_target_after_setup_rejects(self):
+        arm = self.arm_context()
+        # The compositor owns SubstructureRedirect. Its own configure request
+        # performs the resize; an application request would only be redirected.
+        self.assertIsNone(self.compositor.operation(12, self.compositor.pack('IHHI', self.window, 4, 0, 130)))
+        self.assertNotEqual(self.target(self.window).generation, arm.expected_window.spatial_generation)
+        self.send_arm(arm); self.assert_rejected('invalid arm or native pin')
+
+    def test_redirected_owner_resize_preserves_live_arm_target(self):
+        arm = self.arm_context()
+        self.assertIsNone(self.owner.operation(12, self.owner.pack('IHHI', self.window, 4, 0, 130)))
+        self.assertEqual(self.target(self.window).generation, arm.expected_window.spatial_generation)
+        self.send_arm(arm)
+        raw = self.endpoint.recv(4097)
+        self.assertTrue(raw, self.log_path.read_text(errors='replace'))
+        reply = control.ObserverEndpointReplyV2.FromString(raw)
+        self.assertEqual(reply.WhichOneof('message'), 'arm_accepted', reply)
+        self.assertEqual(reply.arm_accepted.accepted_command, arm)
+        self.cancel()
+
+    def test_arm_destroyed_target_after_setup_rejects(self):
+        arm = self.arm_context()
+        self.assertIsNone(self.owner.operation(4, self.owner.pack('I', self.window)))
+        self.send_arm(arm); self.assert_rejected('invalid arm or native pin')
+
+    def test_arm_closed_probe_marker_rejects(self):
+        arm = self.arm_context(); self.probe.close()
+        self.supervisor.inspect()
+        self.send_arm(arm); self.assert_rejected('invalid arm or native pin'); self.cancel()
+
+    def test_arm_native_key_release_after_setup_rejects(self):
+        arm = self.arm_context(); self.key(50, False)
+        self.send_arm(arm); self.assert_rejected('invalid arm or native pin'); self.cancel()
+
+    def test_arm_peer_already_controls_another_application_rejects(self):
+        arm = self.arm_context(); self.click(self.second, self.other_window)
+        self.send_arm(arm); self.assert_rejected('invalid arm or native pin')
+        self.cancel(); self.cancel(self.second)
+
+    def test_setup_deadline_expires_without_rearming_startup_budget(self):
+        request = self.setup_context()
+        request.deadline_monotonic_ns = time.monotonic_ns() + 250_000_000
+        self.send_setup(request)
+        start = time.monotonic()
+        self.assert_rejected('deadline')
+        self.assertLess(time.monotonic() - start, 1.5)
+
     def invalid_setup(self, mutate):
         request = self.setup_context()
         mutate(request)
