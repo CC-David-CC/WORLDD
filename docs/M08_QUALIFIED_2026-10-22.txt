@@ -1,0 +1,69 @@
+M08 QUALIFICATION ACCEPTED
+Date: 2026-10-22. Status: QUALIFIED_M08.
+M01-M08 are qualified. M09-M16 remain pending. Spatial-M1 and LOCAL_READY remain incomplete.
+
+Frozen production candidate: 580834ceeda112da0a1cdcd37ca7b288db1512fc.
+Reviewed fixture and qualification-tooling source: 6a0c83bfe292ac9d21699ddf67029449d6dc2e47.
+Generation-policy integration: 2c206e65fe37e073d6d98614d9fae2afcbbd4d3c.
+This qualification accepts the frozen product with explicitly pinned fixture/tooling overlays.
+Original failed reports and their exit receipts remain unchanged.
+
+Coverage accepted on sb16 and sb16-2, in Debug and ASan-UBSan:
+- 236 effective local registrations, 89 harness checks, 151 locked P10 cases, and six storage scenarios per host/profile.
+- Both semantic cross-host profiles passed all six planned cases.
+- Four native geometry cells passed nine tests each: 36 native test executions.
+- Four workspace geometry cells and four cabinet cells passed across both profiles and host directions.
+- All twelve supplemental cabinet method/profile/host executions passed independent raw-log review.
+- Two clean generations reproduced all 102 generated source files and matched the candidate.
+- Final source, generated bindings, executables, libraries, imports, and relocated CTest metadata passed integrity checks.
+- Final raw local audits checked 44,582 file hashes. The additive sanitizer proof rechecked 3,157 supplemental files and scanned 297 logs.
+- All final audit/reconciliation command and wrapper receipts were zero. Their panes retired with status zero.
+- Both gate locks are free. No process references the candidate deployment. Both runtime slots are released.
+
+Failure disposition and evidence limits:
+sb16-2 sanitizer coverage combines 227 original passes, five successful named reruns, and four recovery registrations.
+Its original failed CTest remains failed. A passing aggregate does not imply a successful original invocation.
+The first new workspace row failed setup because its borrowed workspace() omitted make_broker().
+Repair f9e425093e145288af88cc0a47ad838c3fe46109 adds that existing factory binding.
+Both behavioral factory regressions reproduce the old defect and pass after repair on both hosts.
+The subsequent native geometry test passed. Its gate then refused unrelated boundary-probe log requirements.
+Repair 6a0c83bfe292ac9d21699ddf67029449d6dc2e47 requires actual observer output instead.
+All sanitizer scanning and exact adapter/unit retirement checks remain enforced.
+The collector repair passed 67 static checks and 32 M08 harness methods.
+A separate successful collector receipt binds the retained passing test. Its original gate remains exit2.
+All remaining seven native workspace rows then passed normally. No passing runtime test was repeated solely for collection.
+Earlier fixture, launcher, and artifact failures remain preserved and linked by their maintained summaries.
+No locked acceptance test, production executable, schema, or XACE baseline changed for these final closures.
+
+Primary adoption decision SHA256:
+036c9fa884199ed9151a711b7378d1ba90a11e9a8735e7b007269533e92dcb32.
+Final M08 reconciliation SHA256:
+3b398f2fb2e53082c50fdc987bc3be528415755cdf56247fd73c0ec17b188ea5.
+Separate M06 artifact-policy correction SHA256:
+95ec78c89cafa5c3457340605c8bee159c5d9f75e41ab5b0991e77d5fb85267d.
+Original failed M06 report remains SHA256:
+431cde20b6205632c500e4b657805e8b7ecbfc43a24792bfdd8098d08860a00f.
+
+Durable qualification records:
+r730:/mnt/data10tb/spatial-desktop/manifests/m08-qualified-580834-20261022-01.
+The verified ext4 filesystem UUID is 82287fcb-81a5-4f04-a0d8-886549cf7f90.
+All 83 retained records matched their inventory. Total bytes: 4,963,903.
+Inventory SHA256: 42c8ede214cbb53e25d6e04cdf10a614ab7045dc8106da411bcbb8ecae47e771.
+The original immutable package remains under packages/current/m08-580834ceeda1-unqualified-20261021.
+That directory name records its original packaging state. This adoption record supplies its later qualification.
+Package SHA256: bd88d061358e1ecd010284fcad185cb70d235e6dfe985adc6d5fc07e7edc60d1.
+
+Original runtime evidence root on both hosts:
+/home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021.
+Current controllers, audits, and canonical receipts live under packaging-cache-repair-01/original-context-correction-01.
+Final native authority evidence is under crosshost-evidence-580834-factory-01.
+The exact reverse-host evidence was mirrored directly to sb16 with file coverage, byte hashes, and modes verified.
+The original host paths remain the validator inputs. Durable copies are byte-bound records, not substituted runtime contexts.
+
+Recovery:
+Keep normal Ubuntu login, SSH, and TTY routes. No login, boot, or session-default change occurred in this closure.
+Inspect the exact recorded tmux session and canonical receipts before any retry. Do not infer live process identity from an old PID.
+Do not rerun completed M08 suites merely to begin M09. Reassess only evidence affected by new source or configuration.
+Use docs/M09_HANDOFF_AND_REUSE_PLAN_2026-10-22.txt for the next milestone.
+David authorized GitHub publication after this qualification record on 2026-10-22.
+Publish clean source through box-git. Preserve existing history and keep generated evidence outside Git.

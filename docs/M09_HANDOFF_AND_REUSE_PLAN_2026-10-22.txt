@@ -1,0 +1,86 @@
+M09 HANDOFF AND CONTROL REUSE PLAN
+Date: 2026-10-22. M08 QUALIFIED. M09 UNQUALIFIED.
+
+Start from m08/qualified-20261022, whose maintained M08 summary records the frozen product and every reviewed overlay.
+Do not use an older M09 draft tree as the dependency baseline.
+Current source parent: 6a0c83bfe292ac9d21699ddf67029449d6dc2e47.
+Both sb16 and sb16-2 are released. Use them for runtime qualification only.
+Use ROG for this continuation's source review, integration, builds, and packaging.
+Keep XACE active. Do not resume the deferred CallbackList migration.
+
+M09 outcome:
+One actor controls one application's complete main-window, dialog, menu, and popup group.
+Other authorized actors may observe. Independent applications may have simultaneous controllers.
+Release old keys, buttons, modifiers, focus, and capture before a new controller's first accepted event.
+Reject stale surface generations. Revoke input and observation immediately.
+Preserve applications whose separate execution authority remains valid.
+Remote application streaming and remote application input remain outside M1 scope.
+
+Reuse the existing production path:
+Actor action -> worldd authority and target checks -> workspace broker application lease -> spatialwm/X11 routing -> XLibre native input.
+Keep humans and agents on this path. Do not add a privileged agent API or simulated X delivery.
+Linux processes, namespaces, filesystems, device interfaces, and existing XLibre window/input machinery remain the foundation.
+No reproduced M09 requirement currently establishes a need for a Linux kernel patch.
+
+Verified source map:
+spatial-os-luna-handoff/src/workspace/control.cpp owns application reservations and revocation retention.
+spatial-os-luna-handoff/src/world/actors.cpp:891 authorizes input and refreshes native targets before routing.
+spatial-os-luna-handoff/src/world/surfaces.cpp groups by server, workspace, and application identity.
+It supports one application using multiple X connections.
+spatial-os-luna-handoff/src/x11/input_router.cpp owns native targeting and routed input.
+spatial-os-luna-handoff/server/xlibre/spatialinput.c owns server input identities and routing enforcement.
+spatial-os-luna-handoff/server/xlibre/spatialsecurity.c retains the XACE security boundary.
+Source presence is not M09 qualification evidence.
+
+Patch selection after reproduction:
+Wrong grant, reservation, transfer state, or revoked lease: worldd or workspace broker.
+Wrong application grouping or parent association: world surface grouping.
+Wrong transform, target, or surface generation: world target validation and spatialwm's X11 input router.
+Wrong native device routing, input release, resource identity, or X-client isolation: existing XLibre extensions.
+Missing device events outside the spatial runtime: investigate the device adapter and driver.
+Consider a kernel patch only after an independent OS-level reproducer identifies a driver or kernel defect.
+Patch the owning boundary. Add its regression before integration. Preserve the first failure evidence.
+
+Work sequence:
+1. Review M09 draft commits and transplant accepted changes onto the qualified M08 baseline in an isolated worktree.
+2. Review and integrate the permanent cabinet selector correction before freezing the next milestone candidate.
+   Its recorded source pin is 6c4cce2c0c93260e7f1bfd06d5ee23b9eadde258. Reverify this ref and its tests before integration.
+   M08 covered the three omitted methods through twelve independent supplemental executions.
+3. Freeze the M09 contract-to-test map and additive harness inventory. Preserve the existing 89-case M08 harness and locked acceptance.
+4. Run one vertical slice with two actors, two confined applications, and real main/dialog/popup windows.
+5. Add voluntary transfer, disconnect, control-grant revocation, observation revocation, and actor-identity revocation.
+6. Exercise main-window destruction with a surviving same-application popup, resize, unmap/remap, and XID reuse.
+7. Prove observation-only denial and read-only denial for a writable application. Include successful authorized controls.
+8. Preserve process identity and responsiveness when only controller authority is revoked. Separately revoke execution and require termination.
+9. Exercise observation revocation before rendering, after rendering, and while output is queued.
+10. Run focused Debug and ASan-UBSan checks on both hosts. Run the complete M09 gate at the phase boundary.
+
+Witness requirements:
+Use an independent native application probe to verify actual delivered input.
+An X server callback proves an attempted output, not delivery.
+Record real native device identities. Do not compare core-event device zero with genuine XI2 identities.
+Submit the peer's action before waiting for old releases. Require every old release before the first accepted peer event.
+Correlate actor, application, surface generation, device, and event ordering.
+Do not claim direct capture evidence from held-button motion alone.
+Use genuine local application surfaces on both hosts. Shared-world checks do not authorize remote application streaming.
+Require exact helper/unit/cgroup cleanup, no skips, no sanitizer findings, and unchanged candidate hashes.
+
+Existing preparation to review, not adopt blindly:
+m09/gate-profile-draft-20261019: 2e1bebc2476bdb0141277c40107f2cc90d81fc6d.
+m09/native-group-witness-draft-20261019: a10128a70f7a166f04e653c914c61ab485fe74a6.
+m09/balanced-input-witness-20261020: abc3f979f637f2e10232d36a21b658f9e74a4e73.
+m09/balanced-destroy-revocation-20261020: 85771be81795310eab8f08b4401baf883576cd86.
+m09/ordered-revocation-continuity-20261020: da523be5e5870dac93b6a264d56dc38c945b950a.
+m09/observer-fixture-integration-20261020: f5d74140a344f0451826a4e6a4fbee73e81e974b.
+These local ref pins were inspected during M08 handoff. Verify box-git and current worktree state before reuse.
+Prior observer parser/descriptor checks are focused evidence. Native M09 qualification remains pending.
+
+Milestones after M09:
+M10 shared human and agent semantic actions.
+M11 provider-independent model operation.
+M12 a real model completing a bounded actor task.
+M13 restoration and explicit migrations.
+M14 visible native session and physical device acceptance.
+M15 performance and lifecycle soak.
+M16 reproducibility and recovery.
+Spatial-M1 still needs its complete cumulative acceptance gate. M09 does not establish LOCAL_READY.

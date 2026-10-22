@@ -1,3 +1,14 @@
+## 2026-10-22: M08 qualified; M09 is next
+
+M01-M08 are qualified. M09-M16 remain pending. Spatial-M1 and LOCAL_READY remain incomplete.
+The frozen production candidate is `580834ceeda112da0a1cdcd37ca7b288db1512fc`.
+The reviewed fixture and qualification-tooling parent is `6a0c83bfe292ac9d21699ddf67029449d6dc2e47`.
+Both required hosts passed final local evidence audits and native cross-host reconciliation.
+The qualification preserves original failures and records explicit additive evidence and fixture overlays.
+Read [M08 qualification](../docs/M08_QUALIFIED_2026-10-22.txt) for scope, hashes, and durable evidence.
+Read [M09 handoff](../docs/M09_HANDOFF_AND_REUSE_PLAN_2026-10-22.txt) before starting the next milestone.
+Older status entries below are historical.
+
 ## 2026-10-20: Reviewed combined M08 repair source prepared for compilation
 
 M01-M07 remain qualified. M08 remains UNQUALIFIED.
