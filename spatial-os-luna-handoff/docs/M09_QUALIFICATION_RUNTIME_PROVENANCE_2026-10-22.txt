@@ -1,0 +1,66 @@
+M09 QUALIFICATION RUNTIME PROVENANCE CORRECTION
+Date:2026-10-22. Status:SOURCE_REVIEWED_RUNTIME_CHECKS_PENDING. M09 UNQUALIFIED.
+
+Reproduced source contradiction:
+The current host policy requires development builds on middle-child or rog-ally-x.
+build_xserver.py records that actual builder in the original build receipt.
+verify_runtime previously required the receipt host to equal sb16 or sb16-2.
+That legacy requirement could not represent a truthful development-host build deployed to a test host.
+Independent read-only review confirmed the smallest correction and its required rejection cases.
+
+Additive runtime-manifest contract:
+A development-host receipt retains its original host, build paths, source pins, and command results.
+The per-test-host runtime row must declare deployment_host equal to the selected qualification host.
+Only coding_host_for's existing explicit development-host inventory is accepted.
+Historical same-host test-box receipts remain readable for their frozen evidence.
+Any supplied deployment_host must match, including legacy rows.
+Malformed builders, a5500, unknown hosts, and hostname lookalikes are rejected.
+The actual-host checks in deployment verification and gate execution remain unchanged.
+
+A deployed_binary entry may identify the relocated Xvfb path and SHA256.
+Its digest must equal the immutable build receipt's Xvfb digest and the actual deployed bytes.
+The reviewed wrapper must execute that deployed path.
+The original build path remains unchanged as provenance. It need not exist on the deployment host.
+Extension inventory, exact source lock, command exits, wrapper structure, and graphics closure remain checked.
+
+A qualification_observer row may provide a separate private test-server closure.
+It receives the same recursive runtime verification and requires a pinned deployed binary.
+Nested observer rows are rejected.
+Ordinary suites retain the production server wrapper, with its verified digest when available.
+Only the two native observer fixtures opt into the separately verified observer wrapper and digest.
+The default-server refusal check still executes the production server.
+Inherited observer selectors and stale server digests are discarded before applying verified profile inputs.
+No public actor, application, or agent capability changes.
+No locked acceptance file, required test, authorization check, or native oracle is weakened.
+
+Selected verification:
+Run all75 GateStaticTests, including the seven new provenance/environment methods, on both test hosts.
+Retain extension and wrapper tamper tests, legacy wrong-host rejection, and exact relocation inventory checks.
+Run72 native endpoint methods,25 production-server actor-binding methods, and8 real native witness methods per host/profile.
+Use Debug and ASan-UBSan. Preserve canonical receipts, exact method counts, cleanup, and original failures.
+These checks and full M09 qualification are pending at this record's creation.
+
+Implementation paths:
+tools/m06_deployed_gate.py
+tools/test_m06_deployed_gate_static.py
+tests/native/test_native_observer_endpoint.py
+tests/core/test_world_native_input_witness.py
+
+2026-10-22 runtime follow-up, still UNQUALIFIED:
+Both hosts passed75 provenance methods and8 forwarding regressions.
+The resource delegate now forwards the four verified default/observer wrapper and hash selectors.
+Native11 Debug passes105 methods on sb16-2. sb16 retains97 unchanged Debug passes and reruns8 successfully.
+Native11 sb16 sanitizer passes105 methods. sb16-2 sanitizer passes97 boundary methods, but two native witness cases fail.
+The sb16-2 full raw native artifacts show real held-key auto-repeat presses before cancellation.
+The strict unchanged oracle rejects those extra presses with RECEIPT_TIME_ORDER.
+Original failure logs, trusted arms, native records, cleanup, and nonzero receipts remain preserved.
+Native13 and14 reproduce fixture setup mistakes before successful witness collection.
+Native13 queried the application pointer instead of the caller. Native14 exposed legitimate MappingNotify on that caller.
+Read-only independent review selected a separate short-lived supervisor connection for repeat configuration.
+It selects the actual old actor keyboard, resolves its real keymap, and clears only the two held keys' repeat bits.
+It verifies the exact resulting bitmap and preserves global repeat mode and unrelated bits.
+The connection closes before the separate XI2 receipt client starts.
+The witness keeps every packet and event. No MappingNotify skip or receipt filter was added.
+The control-revocation regression exceeds the normal repeat delay before the unchanged arm budget begins.
+Native15 runs all8 methods on both hosts in Debug and ASan-UBSan. Results remain pending.
+External strict-oracle counterexamples retain the original old-key-press rejection.

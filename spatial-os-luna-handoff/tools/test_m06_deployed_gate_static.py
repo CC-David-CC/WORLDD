@@ -43,12 +43,14 @@ class GateStaticTests(unittest.TestCase):
         path.write_text(text, encoding='utf-8')
         return path
 
-    def runtime_fixture(self):
+    def runtime_fixture(self, builder=None, target=None):
         source = self.root / 'source'
         receipt = json.loads(receipt_input.read_text())
-        expected_host = receipt.get('host')
-        if expected_host not in ('sb16', 'sb16-2'):
-            raise RuntimeError('runtime fixture receipt must name an actual qualification host')
+        original_host = receipt.get('host')
+        expected_host = target or (original_host if original_host in gate.TEST_HOSTS else 'sb16')
+        receipt['host'] = builder or original_host
+        if expected_host not in gate.TEST_HOSTS:
+            raise RuntimeError('runtime fixture target must name an actual qualification host')
         for name in [*receipt['extension_sources'], 'server/base.lock.json']:
             target = source / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -68,6 +70,7 @@ class GateStaticTests(unittest.TestCase):
         entry = lambda path: dict(path=str(path), sha256=gate.sha(path))
         row = dict(server_receipt=entry(receipt_path), xace_wrapper=entry(wrapper),
                    egl_files=list(map(entry, [vendor, library])), installed_helpers=list(map(entry, helpers)))
+        if receipt['host'] not in gate.TEST_HOSTS:row['deployment_host']=expected_host
         runtime = dict(candidate='new-project-commit-with-identical-server-source',
                        required_egl_names=[vendor.name, library.name],
                        required_helper_names=[path.name for path in helpers],
@@ -330,11 +333,86 @@ class GateStaticTests(unittest.TestCase):
             gate.verify_runtime(runtime, expected_host, 'Debug', source)
 
     def test_runtime_receipt_rejects_the_other_qualification_host(self):
-        source, runtime, row, expected_host = self.runtime_fixture()
+        source, runtime, row, expected_host = self.runtime_fixture(builder='sb16',target='sb16')
         wrong_host = 'sb16-2' if expected_host == 'sb16' else 'sb16'
         wrong_runtime = dict(runtime, hosts={wrong_host: {'Debug': row}})
         with self.assertRaisesRegex(RuntimeError, 'server receipt host mismatch'):
             gate.verify_runtime(wrong_runtime, wrong_host, 'Debug', source)
+        row['deployment_host']=wrong_host
+        with self.assertRaisesRegex(RuntimeError,'server deployment host mismatch'):
+            gate.verify_runtime(runtime,expected_host,'Debug',source)
+
+    def rewrite_receipt(self,row,**changes):
+        path=Path(row['server_receipt']['path']);receipt=json.loads(path.read_text());receipt.update(changes)
+        path.write_text(json.dumps(receipt));row['server_receipt']['sha256']=gate.sha(path)
+
+    def test_development_builds_require_explicit_qualification_deployment(self):
+        for builder in ('middle-child','ROG-Ally-X-RC72LA'):
+            for host in sorted(gate.TEST_HOSTS):
+                with self.subTest(builder=builder,host=host):
+                    source,runtime,row,target=self.runtime_fixture(builder=builder,target=host)
+                    self.assertEqual(gate.verify_runtime(runtime,target,'Debug',source),row)
+
+    def test_development_receipt_rejects_missing_or_wrong_deployment_host(self):
+        source,runtime,row,target=self.runtime_fixture(builder='ROG-Ally-X-RC72LA')
+        for wrong in (None,'sb16-2','middle-child','a5500'):
+            with self.subTest(wrong=wrong):
+                if wrong is None:row.pop('deployment_host',None)
+                else:row['deployment_host']=wrong
+                with self.assertRaisesRegex(RuntimeError,'deployment host mismatch'):
+                    gate.verify_runtime(runtime,target,'Debug',source)
+
+    def test_development_receipt_rejects_unauthorized_builders_and_lookalikes(self):
+        for builder in ('a5500','rog-ally-x','rog-ally-x-rc72la.attacker','middle-child-other','unknown',123,[],{}):
+            source,runtime,row,target=self.runtime_fixture(builder='middle-child')
+            self.rewrite_receipt(row,host=builder)
+            with self.subTest(builder=builder),self.assertRaisesRegex(RuntimeError,'builder or deployment host mismatch'):
+                gate.verify_runtime(runtime,target,'Debug',source)
+
+    def test_relocated_server_preserves_original_build_path_and_matches_bytes(self):
+        source,runtime,row,target=self.runtime_fixture(builder='middle-child')
+        path=Path(row['server_receipt']['path']);receipt=json.loads(path.read_text())
+        original=receipt['binaries']['Xvfb'];original['path']='/original-build-host-only/hw/vfb/Xvfb'
+        self.rewrite_receipt(row,binaries=receipt['binaries'])
+        deployed=self.put('deployed/Xvfb','fixture binary, never executed')
+        row['deployed_binary']={'path':str(deployed),'sha256':gate.sha(deployed)}
+        wrapper=Path(row['xace_wrapper']['path']);wrapper.write_text(wrapper.read_text().replace(str(self.root/'runtime/Xvfb'),str(deployed)))
+        row['xace_wrapper']['sha256']=gate.sha(wrapper)
+        self.assertEqual(gate.verify_runtime(runtime,target,'Debug',source),row)
+        self.assertEqual(json.loads(path.read_text())['binaries']['Xvfb']['path'],original['path'])
+
+    def test_relocated_server_rejects_changed_bytes_even_with_updated_deployment_hash(self):
+        source,runtime,row,target=self.runtime_fixture(builder='middle-child')
+        deployed=self.put('deployed/Xvfb','different fixture executable')
+        row['deployed_binary']={'path':str(deployed),'sha256':gate.sha(deployed)}
+        with self.assertRaisesRegex(RuntimeError,'server binary receipt mismatch'):
+            gate.verify_runtime(runtime,target,'Debug',source)
+
+    def test_qualification_observer_runtime_is_independently_verified(self):
+        source,runtime,row,target=self.runtime_fixture(builder='middle-child')
+        observer=copy.deepcopy(row);receipt=json.loads(Path(row['server_receipt']['path']).read_text())
+        observer['deployed_binary']=copy.deepcopy(receipt['binaries']['Xvfb']);row['qualification_observer']=observer
+        self.assertEqual(gate.verify_runtime(runtime,target,'Debug',source),row)
+        observer['deployed_binary']['sha256']='0'*64
+        with self.assertRaisesRegex(RuntimeError,'server binary receipt mismatch'):
+            gate.verify_runtime(runtime,target,'Debug',source)
+
+    def test_runtime_environment_keeps_observer_separate_and_discards_unverified_inheritance(self):
+        row={'xace_wrapper':{'path':'/production/Xvfb'}}
+        environment={'SPATIAL_TEST_OBSERVER_XSERVER':'/unverified/Xvfb',
+            'SPATIAL_TEST_OBSERVER_XSERVER_SHA256':'unverified','SPATIAL_TEST_XSERVER_SHA256':'unverified'}
+        normal=gate.runtime_environment(environment,row)
+        self.assertEqual(normal['SPATIAL_TEST_XSERVER'],'/production/Xvfb')
+        self.assertEqual(normal['SPATIAL_TEST_DEFAULT_XSERVER'],'/production/Xvfb')
+        self.assertNotIn('SPATIAL_TEST_OBSERVER_XSERVER',normal)
+        self.assertNotIn('SPATIAL_TEST_XSERVER_SHA256',normal)
+        row['deployed_binary']={'sha256':'b'*64}
+        row['qualification_observer']={'xace_wrapper':{'path':'/observer/Xvfb'},'deployed_binary':{'sha256':'a'*64}}
+        observed=gate.runtime_environment(environment,row)
+        self.assertEqual(observed['SPATIAL_TEST_XSERVER'],'/production/Xvfb')
+        self.assertEqual(observed['SPATIAL_TEST_XSERVER_SHA256'],'b'*64)
+        self.assertEqual(observed['SPATIAL_TEST_OBSERVER_XSERVER'],'/observer/Xvfb')
+        self.assertEqual(observed['SPATIAL_TEST_OBSERVER_XSERVER_SHA256'],'a'*64)
 
     def test_full_inventory_relocation_is_single_pass(self):
         inventory = [dict(name='native', command=['/old/source/build/probe',

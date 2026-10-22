@@ -1453,6 +1453,13 @@ def runtime_files(runtime, host, profile):
     for entry in entries:
         if not isinstance(entry, dict) or not entry.get("path") or not re.fullmatch(r"[0-9a-f]{64}", entry.get("sha256", "")):
             raise RuntimeError(f"BLOCKED invalid runtime file entry for {host}/{profile}")
+    observer = row.get("qualification_observer")
+    if observer is not None:
+        if not isinstance(observer, dict) or "qualification_observer" in observer:
+            raise RuntimeError("invalid nested qualification observer runtime")
+        observer_runtime = dict(runtime, hosts={host: {profile: observer}})
+        _, observer_entries = runtime_files(observer_runtime, host, profile)
+        entries.extend(observer_entries)
     return row, entries
 
 def verify_helper_ownership(entries):
@@ -1473,8 +1480,15 @@ def verify_runtime(runtime, host, profile, source):
     receipt = json.loads(Path(row["server_receipt"]["path"]).read_text())
     if receipt.get("status") != "passed" or receipt.get("sanitizers") != (profile == "ASan-UBSan"):
         raise RuntimeError("server receipt status/profile mismatch")
-    if receipt.get("host") != host:
-        raise RuntimeError("server receipt host mismatch")
+    builder = receipt.get("host")
+    if "deployment_host" in row and row["deployment_host"] != host:
+        raise RuntimeError("server deployment host mismatch")
+    if isinstance(builder, str) and builder in TEST_HOSTS:
+        # Historical receipts retain their original same-host build provenance.
+        if builder != host:
+            raise RuntimeError("server receipt host mismatch")
+    elif not isinstance(builder, str) or coding_host_for(builder) is None or row.get("deployment_host") != host:
+        raise RuntimeError("server builder or deployment host mismatch")
     # Actual build_xserver.py receipts pin every project patch and overlay.
     # Reuse the compatible M06 XACE build only when those exact bytes still match.
     extensions = receipt.get("extension_sources", {})
@@ -1489,8 +1503,11 @@ def verify_runtime(runtime, host, profile, source):
             raise RuntimeError("server extension differs from candidate: " + name)
     if not receipt.get('commands') or any(command.get('exit_code') != 0 for command in receipt['commands']):
         raise RuntimeError("server build commands did not all succeed")
-    binary = receipt.get("binaries", {}).get("Xvfb")
-    if not binary or not Path(binary.get("path", "")).is_file() or sha(Path(binary["path"])) != binary.get("sha256"):
+    built_binary = receipt.get("binaries", {}).get("Xvfb")
+    binary = row.get("deployed_binary", built_binary)
+    if (not built_binary or not binary or binary.get("sha256") != built_binary.get("sha256")
+            or not Path(binary.get("path", "")).is_absolute()
+            or not Path(binary.get("path", "")).is_file() or sha(Path(binary["path"])) != binary.get("sha256")):
         raise RuntimeError("server binary receipt mismatch")
     wrapper_tree = ast.parse(Path(row['xace_wrapper']['path']).read_text())
     updates = [node for node in ast.walk(wrapper_tree) if isinstance(node, ast.Call)
@@ -1511,7 +1528,29 @@ def verify_runtime(runtime, host, profile, source):
     library = json.loads(Path(vendor).read_text())['ICD']['library_path']
     if library not in pinned_graphics:
         raise RuntimeError('wrapper EGL vendor library is not pinned')
+    if "qualification_observer" in row:
+        observer = row["qualification_observer"]
+        if not observer.get("deployed_binary"):
+            raise RuntimeError("qualification observer requires a pinned deployed binary")
+        verify_runtime(dict(runtime, hosts={host: {profile: observer}}), host, profile, source)
     return row
+
+
+def runtime_environment(environment, runtime):
+    """Use the production server by default; expose the checked private observer separately."""
+    env = environment.copy()
+    for key in ("SPATIAL_TEST_XSERVER_SHA256", "SPATIAL_TEST_OBSERVER_XSERVER", "SPATIAL_TEST_OBSERVER_XSERVER_SHA256"):
+        env.pop(key, None)
+    wrapper = runtime["xace_wrapper"]["path"]
+    env["SPATIAL_TEST_XSERVER"] = wrapper
+    env["SPATIAL_TEST_DEFAULT_XSERVER"] = wrapper
+    if "deployed_binary" in runtime:
+        env["SPATIAL_TEST_XSERVER_SHA256"] = runtime["deployed_binary"]["sha256"]
+    if "qualification_observer" in runtime:
+        observer = runtime["qualification_observer"]
+        env["SPATIAL_TEST_OBSERVER_XSERVER"] = observer["xace_wrapper"]["path"]
+        env["SPATIAL_TEST_OBSERVER_XSERVER_SHA256"] = observer["deployed_binary"]["sha256"]
+    return env
 
 
 def retained_files(build):
@@ -2170,7 +2209,7 @@ def gate(a):
                 env, profile, getattr(a, "storage_lane_by_profile", {}))
             profile_runtime = verify_runtime(manifest, host, profile, source)
             wrapper_path = Path(profile_runtime["xace_wrapper"]["path"])
-            env["SPATIAL_TEST_XSERVER"] = str(wrapper_path)
+            env = runtime_environment(env, profile_runtime)
             for rel, expected in rec["profiles"][profile]["executables"].items():
                 if is_runtime_bytecode(rel):
                     continue

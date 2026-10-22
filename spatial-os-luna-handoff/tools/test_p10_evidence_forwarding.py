@@ -108,6 +108,23 @@ class P10EvidenceForwardingTests(unittest.TestCase):
         self.assertIn('--setenv=PYTHONDONTWRITEBYTECODE=1', command)
         self.assertEqual(command[-3:], ['--', 'python3', 'test.py'])
 
+    def test_delegate_forwards_verified_production_and_private_observer_selectors(self):
+        production=str(self.root/'production server'/'Xvfb')
+        observer=str(self.root/'observer server'/'Xvfb')
+        runtime={'xace_wrapper':{'path':production},'deployed_binary':{'sha256':'a'*64},
+            'qualification_observer':{'xace_wrapper':{'path':observer},'deployed_binary':{'sha256':'b'*64}}}
+        environment=gate.runtime_environment({'UNRELATED_SECRET':'must-not-cross-systemd-boundary'},runtime)
+        command=delegate.build_service_command(unit='spatial-test.service',username='dflanag3',
+            native=True,copy_engine_v2=False,working_directory=self.source,
+            environment=environment,argv=['python3','native-witness.py'])
+        expected={'SPATIAL_TEST_XSERVER':production,'SPATIAL_TEST_XSERVER_SHA256':'a'*64,
+            'SPATIAL_TEST_DEFAULT_XSERVER':production,'SPATIAL_TEST_OBSERVER_XSERVER':observer,
+            'SPATIAL_TEST_OBSERVER_XSERVER_SHA256':'b'*64}
+        for name,value in expected.items():
+            self.assertEqual(command.count('--setenv='+name+'='+value),1,name)
+        self.assertFalse(any('UNRELATED_SECRET' in arg for arg in command))
+        self.assertEqual(command[-3:],['--','python3','native-witness.py'])
+
     def test_delegate_preserves_existing_service_limits(self):
         base = dict(unit='spatial-test.service', username='dflanag3',
                     working_directory=self.source, environment={}, argv=['true'])
