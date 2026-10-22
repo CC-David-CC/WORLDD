@@ -510,6 +510,19 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
             self.m09_peer_first_native_event(app,self.peer,log_boundary,codes)
             self.m09_assert_native_release(app,before,codes)
 
+    def test_focused_application_exit_releases_control_through_direct_broker(self):
+        app,surface,observe,control=self.begin_control()
+        self.send_key_event('a',True)
+        self.until(lambda:self.probe_events(app),lambda rows:any(
+            r.get('event')=='key' and r.get('pressed') for r in rows))
+        # Default setup uses DirectBroker. Keep input held until the real client exits.
+        self.assertIsInstance(self.relay,DirectBroker)
+        self.m09_release_probe(app)
+        self.until(lambda:self.actor_state(),lambda value:
+            not value.held_keys and not value.held_buttons and not value.HasField('focus'))
+        result=self.world_process.management('surface.find',probe_id='controlled-1')
+        self.assertIsNone(result['surface'])
+
     def test_two_idle_native_seats_reacquire_fresh_application_control(self):
         self.setup_world(control_acquire_barrier=True);app,surface=self.probe();self.grant_control(app)
         self.addCleanup(self.m09_release_probe,app)

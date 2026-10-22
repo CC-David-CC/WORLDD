@@ -4,8 +4,10 @@ import os
 import shutil
 import sqlite3
 import socket
+import select
 import struct
 import threading
+import time
 import unittest
 import sys
 from pathlib import Path
@@ -34,12 +36,18 @@ class BrokerRelay:
         self._barrier_lock=threading.Lock();self._hold_control_acquire=False
         self.control_acquire_reply_seen=threading.Event();self.control_acquire_entered=threading.Event()
         self.control_acquire_release=threading.Event();self._control_acquire_record=None
+        self._closed=threading.Event();self._closing=False
         self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
 
-    def read(self, stream, message):
+    def read(self, stream, message, timeout=10.0):
+        deadline=time.monotonic()+timeout
         def exact(n):
             result=b''
             while len(result)<n:
+                if self._closed.is_set():raise EOFError()
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise AssertionError('Relay frame deadline expired')
+                if not select.select([stream],[],[],min(.05,remaining))[0]:continue
                 part=stream.recv(n-len(result))
                 if not part: raise EOFError()
                 result+=part
@@ -63,10 +71,24 @@ class BrokerRelay:
 
     def run(self):
         try:
-            while True:
-                request=self.read(self.server,pb.Request)
-                self.broker.stream.sendall(frame(request))
+            pending=None
+            while not self._closed.is_set():
+                ready,_,_=select.select([self.server,self.broker.stream],[],[],.05)
+                if self.server in ready:
+                    request=self.read(self.server,pb.Request) # EOF also retires during an outstanding request.
+                    if pending is not None:raise AssertionError('Concurrent relay request')
+                    pending=request
+                    self.broker.stream.sendall(frame(pending))
+                if self.broker.stream not in ready:continue
                 reply=self.read(self.broker.stream,pb.Reply)
+                if reply.HasField('control_revoked'):
+                    if reply.protocol_version!=1 or reply.request_id!=0:
+                        raise AssertionError('Invalid relay revocation identity')
+                    self.server.sendall(frame(reply))
+                    continue
+                if pending is None or reply.protocol_version!=1 or reply.request_id!=pending.request_id:
+                    raise AssertionError('Mismatched relay response identity')
+                request=pending;pending=None
                 if request.HasField('control_acquire'):
                     lease=reply.control_lease if reply.HasField('control_lease') else None
                     correlated=bool(lease and reply.protocol_version==request.protocol_version==1 and
@@ -102,9 +124,12 @@ class BrokerRelay:
         except BaseException as error:self.errors.append(error)
 
     def close(self):
-        self.release_control_acquire()
-        self.server.shutdown(socket.SHUT_RDWR);self.stream.close();self.server.close()
+        if self._closing:return
+        self._closing=True;self._closed.set();self.release_control_acquire()
+        try:self.server.shutdown(socket.SHUT_RDWR)
+        except OSError:pass
         self.thread.join(5)
+        self.stream.close();self.server.close()
         if self.thread.is_alive():raise AssertionError('Broker relay did not stop')
         if self.errors:raise self.errors[0]
 
