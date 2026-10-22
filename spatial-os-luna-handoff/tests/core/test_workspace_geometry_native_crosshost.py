@@ -322,6 +322,7 @@ class WorkspaceGeometryNativeCrossHostTests(NativeCrossHostTests):
             rights = list(workspace_authority.RIGHTS) + [grants.WORKSPACE_PRESENTATION_ATTACH]
         return workspace_authority.WorkspaceAuthorityTests.workspace_terms(
             self, claims=claims, rights=rights, depth=depth, components=components, delegable=delegable)
+    make_broker = workspace_authority.WorkspaceAuthorityTests.make_broker
     workspace = workspace_authority.WorkspaceAuthorityTests.workspace
     launch_process = workspace_authority.WorkspaceAuthorityTests.launch_process
     wait_job = workspace_authority.WorkspaceAuthorityTests.wait_job

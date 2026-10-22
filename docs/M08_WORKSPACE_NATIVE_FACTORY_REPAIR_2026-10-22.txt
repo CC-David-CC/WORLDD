@@ -1,0 +1,40 @@
+M08 WORKSPACE NATIVE FIXTURE FACTORY REPAIR
+Date: 2026-10-22. Status: UNQUALIFIED. M08 and M09 remain unqualified.
+
+The separate artifact-policy correction passed original-context validation and primary review.
+Correction report SHA256: 95ec78c89cafa5c3457340605c8bee159c5d9f75e41ab5b0991e77d5fb85267d.
+The original failed report remains unchanged at SHA256 431cde20b6205632c500e4b657805e8b7ecbfc43a24792bfdd8098d08860a00f.
+Both local receipts, both semantic profiles, four native cells, and all 36 native tests validated.
+The correction binds actual maintained proof execution and both corrected artifact-check executions.
+
+The first remaining workspace row failed during setup on sb16 Debug.
+WorkspaceGeometryNativeCrossHostTests borrowed workspace() without make_broker().
+The fixture raised AttributeError before reaching its native workspace assertions.
+The gate then reported missing peer cleanup evidence. Seven subsequent rows remained unrun.
+The serial driver stopped. Its failed row and canonical 2/2 receipts remain preserved.
+The adapter scope was removed. No process referenced the candidate deployment after the failed row.
+
+Repair: borrow the existing WorkspaceAuthorityTests.make_broker implementation.
+This preserves configured broker factories and all existing native assertions.
+CabinetNativeWitnessTests inherits the repaired binding.
+Two behavioral regressions invoke the borrowed workspace() entrypoint with a stopping factory.
+Both reproduce the exact missing-helper error before the repair. Both pass afterward.
+A fresh normal Debug CMake configure passed. Its CTest JSON registers workspace-native-factory.
+The registration is additive for future candidates. Frozen inventories remain unchanged.
+No production source, executable, schema, or locked acceptance file changes.
+
+An initial regression launcher exposed imported native test classes to unittest discovery.
+They refused missing observer configuration before any world process launched on ROG.
+Module-qualified imports now limit discovery to the two host-independent regression methods.
+The original setup-error output remains separate from the successful two-method run.
+
+External evidence root on ROG:
+/home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/packaging-cache-repair-01/original-context-correction-01
+Key files: selected-checks.json, primary-review.json, factory-regression-results-02.json,
+factory-configure-run-01, factory-registration-check.json, workspace-progression-01/progress.json.
+Both hosts retain original-context-validation-run-01 and original-context-validation-01.
+sb16 retains m06-correction/reconciliation.json under that external evidence root.
+
+Next: review and pin an explicit fixture-only continuation against unchanged candidate 580834ceeda112da0a1cdcd37ca7b288db1512fc.
+Use fresh evidence paths. Run all eight workspace rows serially and stop on any failure.
+Record binary-source and fixture-source pins separately. Keep M08 unqualified until full review passes.
