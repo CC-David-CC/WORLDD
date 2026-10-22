@@ -1,0 +1,93 @@
+# M09 v2 native context pins
+
+Status: reviewed additive private source. Debug and ASan-UBSan object compilation passed. Full server build and native qualification remain UNRUN. The API remains incomplete.
+
+## Change
+
+The lifetime header adds separate v2-only value types and declarations. Existing v1 pins and snapshot behavior remain unchanged.
+
+SpatialObserverPinNativeClient records a live client index, observer session, client epoch, and actual security role. It classifies APP through SpatialSecuritySameApplication(client, client) and the namespace getter. It classifies privileged connections through SpatialSecurityPrivileged; SpatialSecurityInputController distinguishes COMPOSITOR from SUPERVISOR. It requires configured security and a running non-server client. APP labels are copied only for APP. Privileged selection scope is not copied as application identity.
+
+SpatialObserverSnapshotContextV2 accepts an existing device-set pin and trusted APP target-window pin. It resolves the target XID afresh and checks mapped/live state, owner pin, and window epoch. It samples active grabs and focus synchronously. It emits a focus or grab window identity only when its pointer equals that known-live target. It never dereferences an unknown focus, grab-window, or confine-window pointer. A non-null confine pointer is represented only when it equals the target.
+
+A grab owner is pinned independently from the target owner. Pinned DIX ActivateImplicitGrab sets resource to the event recipient's clientAsMask, sets window to the event target, and selects XI2 grabs for XI_ButtonPress (dix/events.c:2153-2197). XI2 delivery is attempted first and successful delivery stops propagation (dix/events.c:2888-2921). Therefore a privileged XI2 probe can own the active implicit grab on an APP-owned target. The helper does not require owner equality with target owner.
+
+For an active grab, the helper checks nonzero resource, exact device pointer identity, and exact target pointer identity. It derives the owner from the resource client-index bits using dixClientForXID, then validates that live client's security role and epoch. It does not call dixLookupResourceOwner: that helper requires a registered resource lookup (dix/dixutils.c:224-246), while active implicit grabs can carry a client mask and CreateGrab uses FakeClientID (dix/grabs.c:218-254). Passive grabs are separately registered with AddResource (dix/grabs.c:529-568).
+
+Incomplete input returns false with valid false and nonzero output sentinel bytes. No pointer escapes the synchronous call. No global grab registry or grab epoch was added. The v1 APP-only client helper remains unchanged.
+
+## Lifetime and ordering evidence
+
+Existing lifetime callbacks invalidate client epochs at retained/gone state (lifetime.c:46-54) and window epochs while the window resource is freeing (lifetime.c:56-64). Reset clears readiness before detaching callbacks (lifetime.c:66-75). Client shutdown releases active grabs before retained/gone callback (pinned dix/dispatch.c:3699-3762). Focus/window cleanup runs before window free (pinned dix/events.c:3031-3095, 5885-5935). Device teardown frees its active grab before the device (pinned dix/devices.c:1039-1049). Deactivate paths clear/free grabs (pinned dix/events.c:1664-1726, 1783-1822).
+
+The helper rejects calls from in_input_thread() and does not take input_lock. The input thread holds that lock around driver read callbacks (pinned os/inputthread.c:176-185). The main event queue releases it before DIX event processing (pinned mi/mieq.c:522-588). This supports a synchronous DIX-dispatch snapshot without adding lock recursion. Source inspection does not replace compile/runtime validation.
+
+## Invariants and limits
+
+- Returned identities are values scoped by the current observer session and object epochs.
+- Device identities are re-looked up and checked against existing device-set relationships.
+- The target is re-looked up by XID, then checked against its APP owner pin and window epoch.
+- Grab owner identity comes from the active grab resource's client index and live client slot. No GrabPtr, WindowPtr, or ClientPtr is retained.
+- Only target-window joins are accepted. A real OTHER focus is represented only when it equals the target; any other focus, grab window, or confine window is incomplete.
+- Sentinel focus values remain distinct. Absent focus class remains distinct.
+- Active-grab owner may be APP, SUPERVISOR, or COMPOSITOR. The window owner remains separately pinned APP.
+- No schema, decoder, serializer, capture, security policy, XACE callback, ordinary-client permission, or input behavior changed.
+- Build, tests, sanitizers, native fixture, and runtime checks: UNRUN.
+
+## Source pins and hashes
+
+Pinned XLibre source: /home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/xserver-source-v6, commit f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+
+SHA-256:
+- include/inputstr.h: 0349234e255d7873f29b0063f4a7681a405329e48bba5a5856c487572f94e6ab
+- dix/resource_priv.h: 4a94098cb232015ae769f7ccfd02b2f7d39b4cd71f98139a1eb76ee4a8def2fe
+- dix/events.c: de0bed4c512176ca01f47246e98950a06c26762bd0aa7d77bbce2f0304aae694
+- dix/dixutils.c: 32e7b7c11a6286e195f20e062a9acd01724c8b47e139d4b8b3b9f9590fc92ef1
+- dix/dispatch.c: 33447b7cdf1f28e95a32a91161a597df44b12aac2d872a52ec491f7dfe475ab0
+- dix/devices.c: fd73b86531e3bd074e315de66fa0c3005ec298ddceb103e414c30014f47357b9
+- os/inputthread.c: 3ad5dc7bc61019af0857fd1db0e5d390fc97cff30b2f9c1957fa715cc0602764
+- mi/mieq.c: 8a76c2a5d3bd5f9feb585f90ea08711fae002fc2f4306c56f7037bcc8f88f506
+- include/input.h: a4c124c988db0ac01728caaaf853365a54cb545c35c5d067f841903f1972efd6
+- checkout spatialsecurity.c: 366e3edcaded5e7de0f671e93b3da3b7834b87baf4f3049637e8ae9dde0c4a04
+- checkout spatialsecurity.h: 9fe985a4a1b3591c18f3c1122dadfe137eb8a4638542a6460699970c67d06310
+
+Changed checkout files:
+- server/xlibre/spatialinputobserver_lifetime.c: 67b18720826f412dfd4f5126cc2fe64676c5b2f00c23465a08aad45bee47bd60
+- server/xlibre/spatialinputobserver_lifetime.h: 6262ab7a8998c8e227f8e44594cd4d6dfec4fc00eb94fbb89b9053df47478a73
+
+Recompute after review or edits.
+
+## Next bounded task
+
+Primary review the role classification, DIX pointer joins, sentinel initialization, and compile compatibility. If accepted, assign a separate compile-focused task against pinned XLibre source, then a fixture integration task that proves probe role, target owner, and independent receipt. Keep native output-attempt evidence distinct from probe receipt evidence.
+
+## Primary object compilation
+
+Primary reviewed the complete C/header diff and the cited native call paths.
+The changed lifetime.c and lifetime.h compiled against the pinned DIX build environment in both profiles.
+The compiler used each profile's real retained compile_commands.json entry.
+All include paths were resolved against that original build directory.
+Source and output arguments pointed to the reviewed worktree and new external object paths.
+Retained source trees, build outputs, and full M08 artifacts were not modified.
+
+Both compiler exits were zero. Canonical command and wrapper exits were zero.
+The canonical tmux job retired with terminal-status COMPLETE.
+Each dependency manifest confirms the actual reviewed C/header bytes and 181 included files.
+Both objects contain the new context and native-client API symbols.
+The ASan-UBSan object has sanitizer references. The Debug object does not.
+This is object compilation, not a full X server link or native execution.
+The C/header source pins remained unchanged before and after compilation.
+
+Evidence root:
+/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/m09-observer-v2-context-pins-01/primary-object-compile-01
+Canonical receipts: run-01/
+Exact compiler arrays: compile-plan.json
+Per-profile results, included-header hashes, compiler output, and symbols remain there.
+
+Private native role values differ from wire/security Role values.
+The future v2 serializer must map APPLICATION1 to wire4, SUPERVISOR2 to wire1,
+and COMPOSITOR3 to wire3. Invalid or unknown roles must fail incomplete.
+No direct enum cast or C/Python interoperability result is claimed.
+
+Full server linking, v2 capture/transition sampling, serializer/transport, independent receipts,
+focused native tests, both-host Debug/SAN runtime, and M09 qualification remain UNRUN.

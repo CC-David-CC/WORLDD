@@ -1,0 +1,38 @@
+M09 bounded observer artifact collector
+Date: 2026-10-20
+Status: SOURCE ONLY. Unit, native, runtime, and host qualification remain UNRUN.
+
+Source pin and scope
+- Host: rog-ally-x. Worktree: /home/dflanag3/src/m09-observer-collector-20261020.
+- Branch: m09/observer-collector-20261020.
+- Base: e86ff72e71f970db2647d764ae5250e1c83ba817, verified as box-git branch m09/observer-contract-reviewed-20261020.
+- Owned additions: tests/native/input_state_observer_collector.py; tests/native/test_input_state_observer_collector.py; this note.
+- No production runtime, native server, schema, transport API, or observer integration changed.
+
+Collector contract
+The collector accepts an exact integer descriptor within Linux native signed-int bounds.
+Invalid types, negative values, and oversized values fail before ownership transfers.
+A supported descriptor transfers exclusive ownership on entry. It closes that descriptor on success and failure. It accepts only an already nonblocking FIFO or stream socket. It does not change shared descriptor flags. The caller must provide an exclusively owned descriptor with no competing reader or owner.
+
+A single absolute time.monotonic deadline, capped at ten seconds, covers all reads and the wait for EOF. The collector enforces the existing artifact byte ceiling while reading. Reaching exactly three framed records does not complete collection. The writer must close the stream before the deadline. At EOF, existing decode_records validates exactly three nonempty canonical protobuf frames and rejects truncation, malformed framing, extra frames, and trailing bytes.
+
+The collector returns immutable bytes. The existing decode_and_validate function remains responsible for expected session, arm, native-session, identity, and event checks. A collected fixture artifact is not proof of producer authenticity, server delivery, or native provenance.
+
+Regression cases authored, not executed
+- Exact three-record success after pipe EOF and stream-socket EOF.
+- Slow byte trickle cannot reset the total deadline.
+- A writer that keeps the descriptor open after record three fails.
+- Trailing bytes, extra records, partial varint, and partial payload fail.
+- Artifact cap, injected read faults, oversized FDs, blocking pipe/socket descriptors, invalid descriptor types, invalid deadlines, regular files, invalid FDs, and descriptor cleanup.
+
+Allowed source checks
+The assignment permits generated-binding checks, imports, AST parsing, pyflakes, and compile-only checks through the persistent tmux canonical runner. These checks do not execute the collector tests.
+
+UNRUN
+- All new unit regressions and existing parser tests.
+- Native producer, authenticated provenance, server-side observation, and runtime integration.
+- M09 qualification and the Spatial-M1 gate.
+- sb16 and sb16-2 checks. This assignment explicitly prohibited access to those hosts.
+
+Implementation status
+The base contains a bounded immutable-artifact parser and protobuf schema. It does not contain a live native producer or an integrated observer transport. M09 remains incomplete. This source checkpoint does not establish any runtime acceptance requirement.

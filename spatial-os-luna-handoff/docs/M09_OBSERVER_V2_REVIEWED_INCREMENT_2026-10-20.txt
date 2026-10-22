@@ -1,0 +1,69 @@
+M09 OBSERVER V2 REVIEWED SUBSYSTEM INCREMENT
+Date: 2026-10-20
+Status: UNQUALIFIED. Pure tooling49PASS. Native API and runtime remain incomplete.
+
+This branch combines reviewed observer components on an older M09 draft source base.
+It is not the M08 production candidate or a qualified M09 milestone branch.
+Do not replace the qualified M08 tree with this older source lineage.
+Transplant reviewed M09 changes onto the eventual qualified M08 base later.
+
+Reviewed component checkpoints on box-git:
+2cebba2d6acdc9257512a01119ea657f65b83d67: bounded stream collector and26pure transport methods.
+7f1f4ea79917f8eae326dc483b9e56264ed59099: role-aware v2 contract and23pure parser methods.
+266cfe54d382144af8b6a770db33fb557bfecd13: private native grab/focus context value pins.
+17cded2680c6bb5ef800f6c7a67432e541c51f00: native identity and lifetime source review.
+The combined branch starts at266cfe54 and applies the reviewed recipient and collector patches.
+No M08 deployment, runtime, gate, acceptance lock, XACE policy, or source candidate changed.
+
+Behavior
+
+The contract separates the APP target owner, privileged XI2 probe, and compositor seat owner.
+An explicit trusted grab-owner pin handles native implicit-grab ownership.
+XI2 may deliver before APP core events, so this witness cannot replace real APP input checks.
+The collector owns its private readable FD and enforces one absolute arm-bounded deadline.
+It rejects excess bytes, invalid descriptor classes, missing EOF, stale identity joins, and cleanup false success.
+The native helper returns value pins for actual grab owner, grab window, and native focus.
+It represents only safe joins to the freshly resolved APP target window.
+Its internal role enum needs explicit future mapping to wire roles.
+V1 behavior and acceptance locks remain unchanged.
+
+Focused checks
+
+Primary regenerated v1 and revised v2 Python bindings from this combined source.
+All49methods passed together:23finite-parser and26stream-collector methods.
+Failures0. Errors0. Skips0. Command and wrapper exits0. Terminal COMPLETE.
+The tmux job retired. Tracked source pins stayed unchanged during the run.
+The imported modules came from this worktree and fresh external generated bindings.
+
+Evidence root:
+/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/m09-observer-v2-reviewed-increment-01
+Selected checks: selected-checks.txt
+Exact focused driver: run-focused.py
+Canonical receipts: focused-run-01/
+Actual summary: result.json
+Source pins: source-pins.json
+Generated bindings remain external and are not committed.
+
+The native lifetime C/header compiled separately against the pinned DIX environment in both profiles.
+Each actual compiler command used redirected external output and the reviewed C/header bytes.
+Both objects expose the new API symbols. Only the sanitizer object has ASan references.
+That evidence is object compilation, not a full server link or native execution.
+See M09_OBSERVER_V2_CONTEXT_PINS_2026-10-20.txt for exact evidence and limits.
+
+Remaining work
+
+Implement the trusted native setup that supplies live client/device/window epochs before arming.
+Do not derive expected identities from the observation artifact under validation.
+Connect authenticated worldd actor-seat bindings through private inherited descriptors.
+Implement the default-off one-shot native arm and output transport with strict FD ownership.
+Sample actual SeatRec/ApplicationInput transitions at the cancellation and peer-bind seams.
+Add the v2 C serializer with explicit role mapping and actual C/Python interoperability checks.
+Implement the independent privileged XI2 receipt producer and a bounded stream coordinator.
+Resolve the actual keymap and hold a modifier plus a non-modifier key in native fixtures.
+Verify ordinary APP core input separately from the privileged XI2 observation path.
+Run focused native Debug/SAN checks on both hosts after the M08 gates release them.
+Review the complete M09 requirement set, integrate onto qualified M08, then freeze and qualify M09.
+
+Native producer, native transport/provenance, C/Python interoperation, independent receipts,
+actual XI2/grab behavior, physical input, model acceptance, and full M09 qualification remain UNRUN.
+M08 qualification remains independent and pending its complete local and cross-host gate.

@@ -1,0 +1,156 @@
+# M09 v2 native setup and arm interface plan
+
+Date: 2026-10-20
+Status: source-backed interface proposal only. No implementation, schema change, test, build, or native run occurred. M09 remains unqualified. M08's active full gates remain frozen and untouched.
+
+## Finding
+
+The bootstrap gap is real. The server owns the epochs needed to arm safely, but only its private helpers can create those pins. Worldd owns authenticated actor identity and actor-to-seat mapping. No current interface joins both domains before arm.
+
+The lifetime helpers pin devices, clients, and windows within XLibre. They do not expose a public request or FD writer. The capture API is private. It takes raw device IDs, recipient index, popup XID, button, and APP label, then resolves pins itself. Its current v1 path requires the recipient to be the APP popup owner (capture.c:84-120, 200-218). It cannot model a separate privileged XI2 observer.
+
+The v2 validator does not close this gap. Its Python fixture constructs all four expected artifact records in memory with fixed client, window, device, grab, and receipt values, then tests validation and encoding. It does not launch XLibre, worldd, or xprobe (tests/native/test_input_state_observer_v2.py:41-117, 141-175). The current v2 draft includes ObserverActorSeatBindingV2, but no writer supplies trusted bindings.
+
+The existing xprobe is an independent native process and can select XI2 events. It calls XOpenDisplay and selects XI2 events on its own window. Its event output is JSON on stdout. It has no v2 receipt writer, target-window XI2 selection command, or identity setup channel (native/xprobe.c:87-100, 117-130, 161-199). Existing test_input_extension launches it separately through Probe, but that helper gives it the display environment only; it passes no role-specific security credential (harness/probe.py:11-32; test_input_extension.py:114-125). Those tests do not establish the M09 v2 recipient/owner relationship. The new v2 fixture must independently launch a permitted SUPERVISOR or COMPOSITOR probe. It must keep the APP window owner and compositor seat owner separately identified.
+
+DIX provides a source-backed reason for that split. XI2 event delivery occurs before XI and core delivery and stops after successful delivery (pinned dix/events.c:2888-2921). ActivateImplicitGrab stores the event-recipient client mask as grab resource and the target as grab window for XI2 ButtonPress (pinned dix/events.c:2153-2197). Thus a privileged XI2 probe can own the active grab on an APP-owned window. Keep ordinary APP XInputExtension policy unchanged. Keep APP core input and privileged XI2 observation separate.
+
+## Existing native and worldd seams
+
+SPATIAL-INPUT has an internal SeatRec. It stores the compositor ClientPtr owner, monotonic seat id, four master/slave device pointers, target/focus XIDs and spatial generations, held input, and ApplicationInput pointer (server/xlibre/spatialinput.c:44-56). open_seat creates and attaches those four devices (392-428). The OPEN reply returns seat id and master pointer/keyboard IDs, but the private SeatRec remains the only exact join to the four device objects. The generic client cannot obtain observer epochs.
+
+SeatRec.owner is the authenticated compositor input connection, not the actor principal. SpatialInputAuthorizeClient distinguishes APP connections from non-APP connections and uses the compositor application device pair (123-163). controller() accepts SpatialSecurityInputController or the root WM redirect owner (196-205). bind_application checks target window owner, its ApplicationInput, and controller exclusivity (306-330). cancel emits releases, deactivates grabs, clears focus and app links, then clears target/focus (278-304). Do not treat these server identities as ActorRefs.
+
+Worldd has the other half. Actors::Actor stores a world entity and optional authenticated ActorRef principal (actors.hpp:55-78). Actors::open sets that principal from authenticated open context (actors.cpp:208-242). InputRouter receives actor_id and keeps a private actor-id-to-Seat map; it opens the native seat on first action and stores only the returned seat id (input_router.cpp:51-95; input_router.hpp:13-27). Actors routes native input using the authenticated actor's world entity id (actors.cpp:847-855, 1019-1025). The actor principal and native seat owner are separate authority domains. A binding writer must join them inside worldd while it has both values. It must reject missing principals. The current lazy seat creation is a concrete fixture gap: the peer seat does not exist until a peer input action, but the transfer witness must arm before that action. Before arming, a private fixture setup method must ensure both seats through the same compositor-owned SPATIAL-INPUT OPEN operation. It must not send input, focus a window, bind an application, or grant the actor a native client connection.
+
+The target's worldd identity and presentation generation come from the actor's authorized application/surface context. XInputRouter can resolve a SurfaceHandle to XID and server generation. The server must independently resolve the XID, APP owner, application label, observer window epoch, and spatialinput generation. Never infer ActorRef from an X client label or XID.
+
+## Proposed minimal private bootstrap protocol
+
+This is a draft-only correction to the unlocked v2 implementation design. It does not change the locked acceptance contract or the four-record artifact schema. Do not add fields to native_input_observer_v2.proto in this task. Review this proposal before defining control-message fields.
+
+Use a finite SetupRequest, SetupReply, then exactly one ObserverArmV2. Keep the setup exchange outside NativeInputObservationRecordV2. The setup reply is not an artifact frame and cannot stand in for native transition or probe receipt evidence.
+
+Use the existing arm-control pipe for two request frames: one SetupRequest followed by one ObserverArmV2. Add one dedicated setup-reply pipe from XLibre to the trusted supervisor. Keep the native-output and probe-output pipes separate. Do not reuse the artifact output pipe for setup pins. Use the existing worldd binding pipe for exactly two trusted ObserverActorSeatBindingV2 records.
+
+SetupRequest selectors should contain:
+- One run session id and arm id.
+- The two native seat ids obtained from trusted worldd bindings.
+- The expected APP target XID and the independently authenticated probe's own marker-window XID.
+- The expected application identity and absolute CLOCK_MONOTONIC deadline.
+
+The server resolves each seat id through the actual live SeatRec. It obtains all four device IDs and creates device epoch pins. It pins SeatRec.owner as a native compositor client. It resolves the APP target and checks its owner and application label. It resolves the probe marker window owner and classifies that live X client as SUPERVISOR or COMPOSITOR through existing security getters. It returns the live observer session, client/device/window epochs, native role enums, and exact selector joins in SetupReply. It does not arm capture, change focus, inject events, or return a transition snapshot.
+
+The supervisor validates SetupReply against independent inputs before it sends Arm:
+- Each ActorRef, world actor id, native seat id, application identity, and presentation generation must match the authenticated worldd binding records.
+- The target XID/application and spatial generation must match the current authorized worldd surface.
+- The target owner must be the expected live APP identity.
+- The seat owner must be the expected compositor input connection role.
+- The probe identity must match the separately launched probe's marker XID and its supervisor-controlled security role.
+- The native role-to-wire mapping must be exact: APP to APPLICATION, SUPERVISOR to SUPERVISOR, COMPOSITOR to COMPOSITOR. Reject BROKER and unknown roles for these pins. Copy an application label only for APP.
+- For the strict XI2 fixture, expected_recipient and expected_grab_owner must match the probe pin. expected_window_owner remains the separate APP target owner. expected_seat_owner remains the compositor seat owner.
+
+The trusted supervisor then constructs one ObserverArmV2. It copies the validated native pins into its existing expected device/client/window identity fields. It copies ActorRefs and world ids only from worldd bindings. It does not derive any expected value from an observation artifact. It sends the arm once, with the same run session, arm id, and unchanged deadline. XLibre re-resolves every native object and compares it with the SetupReply pins before calling a distinct v2 capture arm. A changed session, client epoch, device epoch, target epoch, generation, role, or owner rejects the arm before capture.
+
+The setup selector identifies the probe through a window the probe created, not through the target APP window. The probe must independently select the intended target window for XI2 delivery. Its receipt writer reports actual XI2 events from Xlib GenericEvents. A trusted setup context may provide validated ClientIdentity and WindowIdentity values to the probe's receipt wrapper, but the probe supplies event type, device/source, target, detail, event time, ordering, and monotonic receipt time from its own event loop. The supervisor must not synthesize missing events or transform native-output attempts into received events.
+
+The setup reply cannot be treated as evidence that the producer is truthful. Its role is limited to a prearm join: the supervisor compares the server's live pin values against independently held worldd actor/seat/application context, the supervisor's probe launch and role, and the target XID returned by the independent probe. The final artifact still requires the X server's transition/capture stream and the probe's separate actual XI2 receipt stream. The validator compares those streams against the independently retained context. No public X request, actor permission, credential, MAC, or SO_PEERCRED path is added.
+
+## Bounded framing, state, deadline, and cleanup
+
+Use a private protobuf control schema in a new file only after review. Do not mix setup-control messages into artifact oneofs. Keep each SetupRequest, SetupReply, and ObserverArmV2 payload at or below 4096 bytes. Reject noncanonical framing, wrong message type/order, partial EOF, over-limit lengths, extra bytes, duplicate messages, unknown state transitions, and unexpected pipe closure.
+
+The control pipe contains exactly two length-delimited frames: SetupRequest then ObserverArmV2. Its total is at most 8196 bytes with two-byte prefixes. SetupReply is one frame capped at 4096 payload bytes. Cap each worldd binding at 1024 bytes; the two-binding stream is at most 2052 bytes including two-byte prefixes. Keep the four artifact frames at 4096 bytes each, the receipt count at 32, and total artifact bytes at 16392 as the current v2 draft defines. SetupReply bytes never count as artifact bytes.
+
+Create one CLOCK_MONOTONIC absolute deadline before SetupRequest. Cap the entire setup, reply, arm, transfer, probe receipt, and artifact drain window at 10 seconds. Never restart the deadline for a partial read, partial write, EINTR, or EAGAIN. Stamp arm time immediately before the single arm write. The server checks the same absolute deadline when it parses messages, samples transitions, and flushes output. Use a monotonic wake source. TimerSet uses GetTimeInMillis; that function is monotonic only when MONOTONIC_CLOCK is compiled (pinned os/utils.c:213-240; WaitFor.c:294-341). Verify that build setting before relying on TimerSet for the deadline; otherwise use a CLOCK_MONOTONIC timerfd registered with SetNotifyFd. The supervisor enforces the deadline independently.
+
+The intended states are:
+- UNCONFIGURED: observer support is absent or all private FDs are absent. No observer output or behavior.
+- WAIT_SETUP: all valid descriptors are configured. Accept only one SetupRequest.
+- WAIT_ARM: SetupReply has been fully written. Accept only one matching ObserverArmV2.
+- ARMED: all setup pins are freshly revalidated and capture is armed. Sample the required transitions.
+- COMPLETE: XLibre has fully written and closed its native frames. The supervisor/coordinator marks the run complete only after the independent probe stream and final artifact drain also pass.
+- FAILED: latch the first error, emit no complete artifact, disarm, unregister watches, and close owned endpoints.
+- RESET: perform the same teardown from every active state. Treat reset as terminal for that server generation; a new process receives new private descriptors.
+
+Implement FD I/O without blocking server dispatch. Create nonblocking close-on-exec pipes in the supervisor and pass only selected descriptors to the exact server, worldd, probe, or coordinator. Parse numeric FD arguments only when every required FD is present. No FDs means runtime off; a partial, invalid, duplicate, or unusable set fails closed. Set FD_CLOEXEC immediately after parsing. CLOEXEC does not close descriptors across fork itself. The pinned server has a fork path in popen (os/utils.c:1048-1095); audit fork descendants and ensure all privileged pipe descriptors close on exec and are not deliberately duplicated. Do not place descriptors in application environments. The descriptor number in argv is not authority without the inherited open endpoint.
+
+Use SetNotifyFd(fd, callback, mask, data) and RemoveNotifyFd(fd). The exact callback type is NotifyFdProcPtr(int fd, int ready, void *data) (pinned include/os.h:110-118). SetNotifyFd registers with server_poll and returns false on allocation failure; RemoveNotifyFd removes the poll watch and frees its notification record but does not close the FD (os/connection.c:753-813). Handle X_NOTIFY_READ, X_NOTIFY_WRITE, and X_NOTIFY_ERROR (include/fd_notify.h:10-13). Read and write loops must preserve state across partial operations, retry EINTR, stop on EAGAIN/EWOULDBLOCK, and fail on EOF, EPIPE, other errors, or deadline. XLibre ignores SIGPIPE during connection initialization (os/connection.c:301-303), but still handle EPIPE. Keep one bounded input buffer and one bounded output buffer per private stream. Never block inside the callback.
+
+The poll callback runs from ospoll_wait in WaitForSomething before normal DIX request dispatch (WaitFor.c:188-229; ospoll.c:652-669). Keep it on the server dispatch thread. Do not acquire input_lock or re-enter DIX request processing. Guard callback reentrancy. Do not free callback state while its callback is still on-stack. Reset and shutdown must RemoveNotifyFd before close. Existing SPATIAL-INPUT extension reset calls capture shutdown and lifetime reset (spatialinput.c:612-623); server teardown invokes extension close-down before freeing resources (dix/main.c:299-310; extension.c:252-265). Add transport teardown before capture/lifetime reset.
+
+## Integration ownership and order
+
+1. Primary reviews this interface proposal and approves the private control messages. Do not touch M08 or locked tests.
+2. Bootstrap implementation, compile-only: add server-private transport state and SetupRequest/SetupReply/one-arm handling. Add a read-only SeatRec resolver in spatialinput.c because SeatRec is file-private. Add server startup FD options at the pinned ProcessCommandLine seam, default off. Reuse existing lifetime pin APIs. Do not implement the transition sampler, serializer, worldd writer, or probe receipts in this task.
+   Future files: server/xlibre/spatialinputobserver_transport.[ch], server/xlibre/spatialinputobserver_setup.[ch], a narrow server patch for os/utils.c option parsing, and a small spatialinput.c SeatRec resolver/reset hook.
+3. Worldd binding writer: expose a read-only seat-id accessor from XInputRouter and add a private M09 writer at the Actors boundary. Require both live Actors to have authenticated principals. Write exactly two bindings from Actor.principal, Actor.entity.id, authorized application/surface context, and XInputRouter seat ids. Do not accept these fields from app input or an artifact.
+   Future files: src/x11/input_router.hpp/.cpp and a new src/testing/native_observer_bindings.hpp/.cpp or equivalent test-only bridge. This bridge uses the authenticated Actors context to ensure seats, then packages Actor.principal, entity id, application/surface context, and router-owned seat ids. The test-only bridge first ensures both actor seats exist through the same native OPEN operation, then writes bindings from Actors.principal and the router-owned seat ids.
+4. Transition sampler: add v2-only hooks around cancel and bind_application. Capture PRE_CANCEL, after native releases but before context clear, POST_CANCEL, and POST_PEER_BIND at the actual server mutation boundary. Keep no-op behavior unless the private arm is active.
+   Future files: server/xlibre/spatialinputobserver_transition.[ch] plus narrow hooks in spatialinput.c.
+5. Serializer: map actual native client roles to the explicit v2 wire enum. Serialize trusted binding fields supplied by the coordinator and actual pins supplied by the server. Preserve v1 code and frames.
+   Future files: server/xlibre/spatialinputobserver_serialize.c/.h with a separate v2 entrypoint and the reviewed v2 generated bindings.
+6. Independent probe and coordinator: teach xprobe to select the target window via XI2 and write real event receipts to its own pipe. Launch it with a trusted SUPERVISOR or COMPOSITOR security identity. The coordinator validates SetupReply, constructs the one Arm, and joins original native and probe record bytes without inventing either source's facts.
+   Future files: native/xprobe.c, harness/probe.py if reused, tests/native/input_state_observer_v2.py, new tests/native/input_state_observer_supervisor.py, and focused CMake registrations.
+
+## Focused negative checks for the next implementation stages
+
+Bootstrap transport must reject no/partial descriptor sets, invalid FD numbers, malformed and overlong frames, truncated setup or arm, arm before setup reply, duplicate setup, duplicate arm, extra commands, stale run ids, setup/arm pin mismatch, stale session/client/device/window epochs, wrong seat owner, wrong APP target owner, wrong probe role, wrong target generation, reset during every state, pipe EOF, peer closure, EPIPE, and deadline expiry between fragments. It must handle partial reads/writes, EINTR, and EAGAIN without changing the absolute deadline. A default-off server with no observer FDs must remain behaviorally identical.
+
+The worldd binding writer must reject missing authenticated ActorRef, duplicate actors, wrong world actor id, wrong seat id, unauthorized application, stale presentation/surface generation, and a binding stream with extra or missing records. It must never serialize actor identity from spatialsecurity's X client application label.
+
+The XI2 probe path must prove that actual APP core input and the privileged XI2 probe are separate recipients. Reject an APP-role probe, wrong marker XID, wrong selection window, wrong role-to-wire mapping, wrong grab owner, missing release receipt, duplicate or reordered receipts, synthetic events, wrong source/device/window/detail, and probe EOF before the receipt batch. Leave XACE and ordinary APP XInputExtension denial unchanged.
+
+The coordinator must reject a setup reply that does not match independently supplied selectors before sending Arm. Reject missing producer frames, altered bytes, duplicate records, wrong four-frame order, identity joins sourced from the artifact itself, receipt overflow, and expiry during setup, arm, transition, or final drain. Verify failure cleanup closes every pipe and leaves no held input.
+
+## Contract status and next bounded task
+
+This is a plan-level revision to the unlocked v2 implementation draft: setup pins must be discovered and validated before arm through a distinct finite prearm exchange. No locked acceptance contract, schema file, permission, XACE policy, or public interface changed. Primary approval is required before implementing the proposed private control message schema.
+
+Next task: after primary approves this plan, assign a compile-only implementation of the server bootstrap state machine and read-only SeatRec resolver. Limit ownership to the new transport/setup modules, the private option patch, and the smallest required SpatialInput lifecycle hook. Require focused pure parsing/state checks for every bootstrap negative above. Keep worldd binding, transitions, serialization, independent receipt, and runtime fixture work for separate reviewed assignments.
+
+## Source pins and hashes
+
+Checkout: /home/dflanag3/src/m09-observer-v2-native-bootstrap-20261020
+Branch: m09/observer-v2-native-bootstrap-20261020
+Base: 133c317b9621e9d6e8cf5504071ff3a660b2b555
+Pinned XLibre tree: /home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/xserver-source-v6
+XLibre commit: f844d7a86c10fd5cc89083e7daf97b862b8ca1fd
+
+SHA-256 checkout sources:
+- server/xlibre/spatialinput.c: d59aefa90dd72a35d327dd8f6400bb28d7227f9090ea94c449ec61204a15c701
+- server/xlibre/spatialinputobserver_lifetime.c: 67b18720826f412dfd4f5126cc2fe64676c5b2f00c23465a08aad45bee47bd60
+- server/xlibre/spatialinputobserver_lifetime.h: 6262ab7a8998c8e227f8e44594cd4d6dfec4fc00eb94fbb89b9053df47478a73
+- server/xlibre/spatialinputobserver_capture.c: 22adbf0ddd081242a7e72c9fa531c0322eb2f029d885ffec0e58a732cbdc6eec
+- server/xlibre/spatialinputobserver_capture.h: 7a53423b7d730fab7263571ed1ba31b3d61bd12ceb158d76b0b29e53728bfd23
+- server/xlibre/spatialinputobserver_serialize.c: dfd6fb292f14f5d53c32eff411d567e1d14bb57a69fb1f56075eb47fef4472ef
+- server/xlibre/spatialinputobserver_serialize.h: 3939c475d49ea91329880a85a37af6d4f79073e4de8503a2ede971cb490b4d41
+- src/x11/input_router.cpp: 6dd0e9045d54b4b03ed1f0d22fb42731c0a730d29019b3d1e593fcbb7b84e112
+- src/x11/input_router.hpp: 2edfe3c70050db3fe1ff9b48ce22a4520241032f44c340107b204becc6d1dd24
+- src/world/actors.cpp: 892577506ce4f3ff48027cbe3eedb06f5f3fa4ea0050305413d47a7732789cd8
+- src/world/actors.hpp: e41725efd05cf62b9194944c513c654cbbd39027cddc93d0c106bd308a7ce852
+- native/xprobe.c: 8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da
+- tests/native/input_state_observer_v2.py: 9a5322633b87ff37d23bf21fad0b911590a8c7d97445dafd41a2c75154528bc2
+- tests/native/test_input_state_observer_v2.py: 0f42c7c5c24b26000b762795df5b5b6d95d897c395850a1672c674f281ad41f0
+- proto/spatial/testing/v2/native_input_observer_v2.proto: 3be49622170f80b8aa12c5424522198d640e61e3b4e157ca481204b8126f37e3
+- server/patches/0013-native-input-observer-build-args.patch: 78853a54c1512b9153d22ddfb68bd11f2bae2548213382aa8ce7561dcd6a5cab
+- docs/M09_PREPARATION_STATUS_2026-10-20.txt: 94fc15588336999be1f4ec10d1b2fdab2d4a7fa29dab37c29f7b40c78f97fbbf
+- server/xlibre/spatialsecurity.c: 366e3edcaded5e7de0f671e93b3da3b7834b87baf4f3049637e8ae9dde0c4a04
+- server/xlibre/spatialsecurity.h: 9fe985a4a1b3591c18f3c1122dadfe137eb8a4638542a6460699970c67d06310
+- proto/spatial/security/v1/security.proto: 3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48
+- harness/probe.py: c5ff0b50e263d4c53f6823f202adfe9d3c8d3bb9bc824efa8eb8415d8effb019
+- tests/native/test_input_extension.py: 9f4bdcb159450f36f09e23001d7ec23922ea6f0335b9c13ef0870605568e338e
+
+SHA-256 pinned XLibre APIs:
+- include/os.h: 8bc5d84eedba477c4687d887166bec2fd2c9d778719d27b9d51f853aa9463628
+- include/fd_notify.h: 9da564050f8d2d691a33c32ebe7dd7e6c12f5b7cf8c7ae07f92dcacf10b7c2a9
+- os/connection.c: a4c082007ed84b339d7d3c97e815f69c6a664e70c841b01e7c6dc7c2911884f2
+- os/WaitFor.c: 2057f065d29e8198cee962482c91ce57d7c7c2000c743372ff908b9be166b38b
+- os/ospoll.c: 28e756070dd96faf190c1be4c5e092f84d432b3bf9537935c26bbe01974d1c3c
+- os/utils.c: d153ad16b247bfeae066c3bdb5f56f781f5109c39eab7291815107e95e277315
+- dix/main.c: 4f8caf236ad0d29b6f5796fcf3c12afb2190f119ca38a9640fe89b64d6f0f6b6
+- dix/extension.c: 2bad37460dc73e1e46edc021a90d556b70e8818096d97b8961df2f37f6c50375
+
+Earlier transport-only draft: commit 31fda7b844ebf7a58c4cebb74a07557dc42dec9e, path docs/M09_TRUSTED_OBSERVER_TRANSPORT_PLAN_2026-10-20.txt, SHA-256 aab8ee832cdb1760f53dc6a0ae76ce1da633247400fbca84de87b3fca898e3b9. That earlier draft proposes pipes and one arm frame but does not define pin discovery or a reply channel. Its identity trust flow is insufficient without this added setup round trip.
+
+No tests or build checks were selected or run. Source-only checks consisted of exact file inspection, line/reference review, and mechanical SHA-256 collection.

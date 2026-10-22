@@ -1,0 +1,92 @@
+M09 OBSERVER V2 NATIVE IDENTITY AND LIFETIME REVIEW
+Date: 2026-10-20
+Status: source review; API freeze incomplete; no qualification claim.
+Checkout: /home/dflanag3/src/m09-observer-v2-native-pins-20261020
+Branch/base: m09/observer-v2-native-pins-20261020 at 24cb6f4a7689fa44db4aa286335f22e391cba5e5
+Pinned XLibre: /home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/xserver-source-v6
+Pinned XLibre commit: f844d7a86c10fd5cc89083e7daf97b862b8ca1fd
+Previous report preserved before this correction at:
+/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/m09-observer-v2-native-pins-01/M09_OBSERVER_V2_NATIVE_IDENTITY_REVIEW_2026-10-20.pre-primary-correction.txt
+Previous report SHA256: 657169861fb446dd07563edf6252a787f22d92ce604e7a2ceceea896688d84bf
+
+SCOPE AND RESULT
+
+I corrected the earlier schema hash and traced the actual generic Xprobe, input tests, XACE extension policy, v2 draft, and pinned grab lifecycle. The M09 observer producer and its probe-launch/receipt path do not exist yet. Existing source establishes a contract/policy incompatibility for the current v2 choice of one application recipient, but it does not establish a live M09 runtime defect.
+
+No tests or builds were run. No server or test host was contacted. No production code changed. Compile, native, sanitizer, and independent receipt checks remain UNRUN.
+
+SOURCE HASHES
+
+All hashes below were recomputed directly from this checkout or pinned source tree during review.
+
+Checkout:
+- docs/M09_OBSERVER_V2_CONTRACT_DRAFT_2026-10-20.txt: 9301c35c1912eaff735cfdf6d4a183e215fd0aa442197ea0039fde6f95015f91
+- proto/spatial/testing/v2/native_input_observer_v2.proto: 9adf416488fead847a6637a2ff7c96dafc039ccb7340aad9c5428ec21f511377
+- tests/native/input_state_observer_v2.py: cb2620a6cbd916a0e7812aeab0fd846318c61b789e85b965ede696ef8d1d3d21
+- tests/native/test_input_state_observer_v2.py: b0198558b553b513b293694b770b34d5ee05fec8882017ef41c93cd072bc731b; not run.
+- tests/native/test_application_input.py: 237b8c62ce112c785bffb76a030e0b870def50b5a7879dfdc165d80c2cb5c791
+- tests/native/test_scoped_input.py: 7eb75dab75b85f33dd07fe08ea5e6246766e6e03478491d19fab6036101c5281
+- tests/native/test_input_extension.py: 9f4bdcb159450f36f09e23001d7ec23922ea6f0335b9c13ef0870605568e338e
+- tests/native/test_security_identity.py: ff01be7c2fca9645f538194c2572242b450b089d6d7e3c4743e40f2350ca89e6
+- harness/probe.py: c5ff0b50e263d4c53f6823f202adfe9d3c8d3bb9bc824efa8eb8415d8effb019
+- docs/M09_OBSERVER_FIXTURE_INTEGRATION_2026-10-20.txt: bd3ebe2e10080bdc6a56b968439c3f0a30efabef677888ff4bfda63c42fcb363
+- docs/M09_NATIVE_INPUT_OBSERVER_FIXTURE_CONTRACT_2026-10-20.txt: 893e468f04516476a20ab82779a39e397f403549b0483953e9134d19f2956147
+- native/xprobe.c: 8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da
+- server/xlibre/spatialpolicy.c: 5dcf853bc001d9ac66f8253c425d34454f49e351dc52396a68d496978277fc75
+- server/xlibre/spatialinputobserver_lifetime.h: 4142fa7e4f14ed098d525390c79820150241795e457b9966fd5f75ab629a1178
+- server/xlibre/spatialinputobserver_lifetime.c: 748287c4288c3a809791daedd4f5a0ddca2375d7cf50a74e685b46667a0ad26c
+- server/xlibre/spatialinputobserver_capture.h: 7a53423b7d730fab7263571ed1ba31b3d61bd12ceb158d76b0b29e53728bfd23
+- server/xlibre/spatialinputobserver_capture.c: 22adbf0ddd081242a7e72c9fa531c0322eb2f029d885ffec0e58a732cbdc6eec
+- server/xlibre/spatialinput.c: d59aefa90dd72a35d327dd8f6400bb28d7227f9090ea94c449ec61204a15c701
+- server/xlibre/spatialsecurity.c: 366e3edcaded5e7de0f671e93b3da3b7834b87baf4f3049637e8ae9dde0c4a04
+
+Pinned XLibre:
+- include/inputstr.h: 0349234e255d7873f29b0063f4a7681a405329e48bba5a5856c487572f94e6ab
+- dix/grabs.c: b5f45490c118a93f4526e1214c7e8636406318715d86e061b808ff3a5650b15c
+- dix/events.c: de0bed4c512176ca01f47246e98950a06c26762bd0aa7d77bbce2f0304aae694
+- dix/devices.c: fd73b86531e3bd074e315de66fa0c3005ec298ddceb103e414c30014f47357b9
+- dix/resource.c: a88d8267e6c0e2764dfca4a30ac4094a0f91a63fd4410cae661385170a28742a
+- dix/dixutils.c: 32e7b7c11a6286e195f20e062a9acd01724c8b47e139d4b8b3b9f9590fc92ef1
+- dix/dispatch.c: 33447b7cdf1f28e95a32a91161a597df44b12aac2d872a52ec491f7dfe475ab0
+- Xi/xiselectev.c: 02d593c2966925baadc74bbf8919f5711812e167034050db51a054e0417239e6
+- Xi/xigrabdev.c: 165f8c9c23c6d3070934c5f09474649505e2bfc1273daddb80b59af13b062abe
+- Xi/xipassivegrab.c: 2a3b6d8e2257be32fa942967bc06159e0d5776dbfea4b02fb7dc4f23e26e052a
+- Xi/extinit.c: 2ed86f6bddf6d1e8505889a1f18c2ef2220cf20e665b168bd4e9934d93745c42
+- dix/dix_priv.h declares dixLookupResourceOwner at lines 142-145 and dixLookupXIDOwner at lines 708-714.
+- dix/resource_priv.h defines dixClientForXID at lines 104-109.
+
+ACTUAL PROBE AND SECURITY FINDINGS
+
+There is no M09 producer or native fixture launch/receipt implementation. The integration summary says linking/arming the observer, authenticating probe provenance, and connecting native state to independent receipts remain unrun (M09_OBSERVER_FIXTURE_INTEGRATION lines 54-58). The fixture contract says the live descriptor collector and EventCallback integration are missing (M09_NATIVE_INPUT_OBSERVER_FIXTURE_CONTRACT lines 226-230). The v2 validator tests and synthetic records do not settle which X client will authenticate as the probe.
+
+The existing generic xprobe is a separate X process. `harness/probe.py` launches it with DISPLAY and inherited environment, but passes no role credential or probe authorization argument (lines 11-26). `native/xprobe.c` calls XOpenDisplay (line 172), creates its own target window (181-186), and selects XI2 events on that window using XIAllMasterDevices (87-100). This proves a generic probe can own a window and subscribe in the test topology where it runs. It does not prove that probe authenticates as APPLICATION under the M09 secured profile.
+
+The security-enabled policy resolves the role choice. `spatialpolicy.c:402-453` allows every extension to a privileged supervisor/compositor at line 404. For an application, the policy returns false unless the extension is explicitly allowlisted; the list contains BigRequests, XC-MISC, Shape, and selected Render requests (406-453). XInputExtension is absent. Therefore an APPLICATION probe cannot use XI2 selection under this policy. `test_application_input.py:11-14` also states its fixture selects no input events, so it supplies no contrary XI2 application proof. The generic XInput extension tests do not establish the M09 security role or credential.
+
+The v2 draft currently has one `expected_recipient` joined to `expected_application` (decoder lines 170-174). `ObserverPress.recipient` must equal it (379), as must `ProbeReceiptBatch.recipient` (388-389). The capture arm requires recipient index to equal the application popup owner (capture.c:97-100); captured EventCallback recipient must also equal that owner (200-210). The schema includes application identities for both recipient and window (proto lines 7-13; ObserverPress and ProbeReceiptBatch lines 96-105). The proposed fixture contract says a window owner must match the expected recipient and label (fixture contract lines 38-50).
+
+This is a confirmed incompatibility between the current draft contract/capture assumption and the secured XInput policy, not a confirmed production runtime defect. With an APPLICATION probe, the app/window-owner join is internally consistent, but the policy denies that client XI2 access. With a privileged probe, XI2 is allowed, but its role has no application label (spatialsecurity.c:150-164 and 408-410), and the current capture arm/callback insists the event recipient is the app window owner. The current capture code cannot represent the privileged independent probe as recipient. No M09 fixture exists to show a third approved route.
+
+Do not change schema or security policy based on the generic probe alone. Primary must choose and document a real M09 probe path. Any fix must preserve actual role, client, window-owner and receipt identity. Options require a reviewed design decision: add a narrowly authorized privileged observation path with distinct probe recipient and app window owner, or define another production-authorized XI2 receipt topology. Do not grant XInputExtension to ordinary applications as a shortcut. The existing capture output attempt and independent probe receipt remain distinct evidence.
+
+GRAB OWNER AND LIFETIME TRACE
+
+Pinned `GrabRec` has resource, device, window and confineTo fields, with no owner pointer (include/inputstr.h:180-199). `CreateGrab` allocates a GrabRec and assigns `FakeClientID(client->index)` (dix/grabs.c:218-254). It does not register that GrabRec as an X resource there. `AddPassiveGrabToList` separately registers passive grabs as `X11_RESTYPE_PASSIVEGRAB` (dix/grabs.c:529-568). Active explicit and implicit grabs can therefore carry a FakeClientID that has no resource-table entry.
+
+`dixLookupResourceOwner` is unsuitable as a universal owner resolver. Its implementation in dix/dixutils.c:224-246 first requires a registered resource via `dixLookupResourceByClass(..., RC_ANY, ...)`. That lookup returns failure when no matching resource entry exists (dix/resource.c:1196-1218). It can resolve registered passive grabs, but cannot be assumed to resolve active/implicit grabs.
+
+The pinned DIX already resolves a grab's client bits with `dixClientForXID(grab->resource)` (dix/grabs.c:95 and 644). Its helper maps the XID client index to `clients[index]`; it returns a live table pointer only when one currently occupies that slot (dix/resource_priv.h:104-109). For a sampled active grab, this value must still pass the observer's live-client checks: nonnull, expected index, Running/not gone, security role/application label valid, and current observer client epoch. Never use the XID's client bits alone as identity.
+
+The client teardown order supports a bounded synchronous sample. `CloseDownClient` calls `ReleaseActiveGrabs(client)` before it marks a retained client and invokes `ClientStateCallback` (dix/dispatch.c:3699-3731). The observer client callback invalidates its epoch for Retained/Gone states (lifetime.c:46-54). Device teardown frees its active grab before freeing device privates and the device itself (dix/devices.c:1039-1049). `DeactivatePointerGrab` and `DeactivateKeyboardGrab` free the active GrabRec (events.c:1664-1726 and 1783-1822). A passive grab's registered resource is freed when its window is destroyed (events.c:5944-5953), and normal registered-resource teardown also supplies resource callbacks.
+
+Smallest safe lifetime API is a synchronous value snapshot from a live, pinned DeviceIntPtr in server dispatch. Read `device->deviceGrab.grab` only during that call. If null, report proven no grab. If nonnull, copy its resource XID, resolve the current client slot with `dixClientForXID`, validate/pin that live client and epoch, pin the grab window and optional confine window through existing safe XID lookup/owner pins, and check the grab device pointer equals the live pinned device. Return no pointer. A failed owner/window/device join makes the snapshot incomplete. The device pin epoch prevents a later device-ID reuse from matching.
+
+No separate grab epoch or global grab lifetime registry is justified by the current proto: GrabIdentity carries resource, owner, window, device and optional confine window (proto lines 79-83). Do not add an abstract grab epoch. The synchronous sample relies on DIX's serialized dispatch and teardown ordering; primary should confirm the configured X server has no concurrent mutation path before freezing the helper. If that assumption fails, add only the specific lock or callback proven necessary.
+
+Focus remains an open API detail. Current lifetime snapshot compares native focus pointers only to NoneWin, PointerRootWin, FollowKeyboardWin, or OTHER and deliberately never dereferences OTHER (lifetime.c:231-252). The window teardown path updates focus/reversion before resource destruction (pinned dix/events.c around 5845-5953). A later synchronous focus pin may read the real focus window's XID, perform `dixLookupWindow`, require the returned pointer to equal the live focus pointer, then apply existing window owner/epoch pinning. It must distinguish sentinel focus kinds and invalidate on lookup mismatch. Do not retain the raw focus pointer. Confirm the precise ordering in the selected native focus transition path before adding code.
+
+HANDOFF
+
+The earlier report is preserved externally at the path above. This corrected report is the only checkout write. No schema, decoder, capture, security, build, test, or runtime files changed. No API is frozen and no native acceptance is claimed.
+
+Next bounded task: primary decides the secured probe role and delivery topology using this source evidence. Then review any explicit contract correction. Separately, finish tracing the focus transition order and confirm single-threaded dispatch assumptions for the exact configured server before implementing synchronous value pins in lifetime.c/.h. Do not add global grab tracking unless that source trace shows the synchronous sample can race or outlive native objects.

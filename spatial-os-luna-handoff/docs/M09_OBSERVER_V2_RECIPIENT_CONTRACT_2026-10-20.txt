@@ -1,0 +1,273 @@
+M09 OBSERVER V2 RECIPIENT CONTRACT REVISION
+Date: 2026-10-20
+Status: UNQUALIFIED. API freeze incomplete. Pure checks: 23/23 PASS. Native execution UNRUN.
+
+SOURCE AND SCOPE
+
+Host: rog-ally-x
+Checkout: /home/dflanag3/src/m09-observer-v2-recipient-contract-20261020
+Branch: m09/observer-v2-recipient-contract-20261020
+Base: 24cb6f4a7689fa44db4aa286335f22e391cba5e5
+
+This explicit revision corrects the unlocked v2 recipient contract.
+It owns the v2 schema, decoder, test source, existing draft note, and this additive note.
+No production, security, v1, CMake, serializer, lifetime, capture, locked test, or M08 file changes.
+No previous worker checkout changes. No native process, world, test host, or systemd operation runs.
+
+Primary supplied the topology decision after reviewing:
+  /home/dflanag3/src/m09-observer-v2-native-pins-20261020/spatial-os-luna-handoff/
+  docs/M09_OBSERVER_V2_NATIVE_IDENTITY_REVIEW_2026-10-20.txt
+Report SHA256: 28afa06859975fc1f660bbb35f048b7bf338d3f2db63690d3d22e8734ede01af
+Its mechanically checked source inventory is external at:
+  /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+  m09-observer-v2-native-pins-01/mechanically-verified-source-pins.json
+The report corrected a historical schema-hash transcription error in that inventory's claimed values.
+This revision preserves that earlier evidence. It uses the actual source bytes and corrected report.
+
+The reviewed transport plan remains pinned at 31fda7b844ebf7a58c4cebb74a07557dc42dec9e:
+  docs/M09_TRUSTED_OBSERVER_TRANSPORT_PLAN_2026-10-20.txt
+It requires a separate independent NativeClient and does not authorize broader XACE access.
+
+CONFIRMED CONTRACT INCOMPATIBILITY
+
+server/xlibre/spatialpolicy.c:402-453 denies XInputExtension to ordinary APPLICATION connections.
+server/xlibre/spatialsecurity.c:150-156 makes SUPERVISOR and COMPOSITOR connections privileged.
+Its input-controller predicate requires COMPOSITOR at lines 159-163.
+Its issuance checks require valid APP labels for APPLICATION and empty labels for other roles at 408-410.
+
+The old v2 draft required the probe recipient to carry the expected APP label.
+The existing v1 capture equates the popup owner with the callback recipient at capture.c:97-99 and205-210.
+That combines incompatible roles under the secured XI2 policy.
+No implemented M09 producer or live receipt topology proves another interpretation.
+This is a draft contract incompatibility. It is not an observed live M09 delivery failure.
+
+SELECTED TOPOLOGY
+
+An APPLICATION client owns the real mapped APP window.
+A separate authorized SUPERVISOR or COMPOSITOR NativeClient selects and reads XI2 on that APP window.
+A separate COMPOSITOR connection owns the old and peer actor seats.
+The private native capture observes an outgoing XI2 callback to the actual privileged probe.
+For this chosen fixture, the separately trusted expected grab owner is that probe.
+It validates the APP target window and owner independently.
+The NativeClient produces its own receipts from the XI2 events it actually reads.
+The supervisor relays original framed producer bytes without manufacturing event facts.
+Ordinary APP extension access remains unchanged.
+
+No code here establishes that XI2 delivery occurs to this probe during the APP's implicit grab.
+That behavior remains a required future native positive control.
+If delivery fails, preserve the failure and review the topology explicitly.
+Do not invent receipts or broaden APP extension access to conceal that failure.
+
+ADDITIVE UNLOCKED SCHEMA REVISION
+
+File: proto/spatial/testing/v2/native_input_observer_v2.proto
+Package and generated Python basename remain spatial.testing.v2 and native_input_observer_v2_pb2.
+V1 schemas, basename, generated-output ownership, and acceptance locks remain unchanged.
+
+ClientIdentity gains nested Role at field4.
+Its local enum copies the existing spatial.security.v1.Role numeric mapping:
+  ROLE_UNSPECIFIED=0, SUPERVISOR=1, BROKER=2, COMPOSITOR=3, APPLICATION=4.
+The pure tests compare that mapping to proto/spatial/security/v1/security.proto:7-13.
+Zero and unknown roles fail. BROKER is a real role but is not a privileged XI2 probe role.
+This local enum avoids changing or importing the production security schema generator.
+
+ObserverArmV2 gains expected_window_owner at field24.
+It carries the independently trusted APPLICATION client pin for the expected APP window.
+Existing expected_recipient now means the actual privileged probe recipient.
+Existing expected_seat_owner means the distinct COMPOSITOR seat-owner connection.
+ObserverArmV2 also gains required expected_grab_owner at field25.
+Primary corrected the earlier APP-grab-owner assumption after tracing actual DIX delivery.
+This pin explicitly matches the trusted probe or APP window-owner identity for the bounded fixture.
+An arbitrary third client, missing pin, stale epoch, wrong role, or wrong label fails.
+The three independent base client identities still cannot alias each other.
+The explicit grab-owner pin intentionally equals one chosen base client pin in all fields.
+The chosen XI2 topology defaults that pin to the privileged probe.
+A structurally valid APP-owner alternative requires an explicit trusted input and matching native assertions.
+It is not proof that such an alternate live topology works.
+The Arm accepted_command echoes all these independently supplied expectations exactly.
+
+WindowIdentity gains owner at field5.
+It carries the actual APP owner client pin, separately from outgoing-event recipient identity.
+The trusted expected_window.owner must match expected_window_owner exactly.
+Every observed window, focus, grab, batch, and per-event receipt window retains this owner join.
+A confine window, when present, also requires a valid APP owner matching its application label.
+This representation follows the existing native SpatialObserverWindowPin.owner shape.
+The future v2 producer must populate it from a live native owner pin.
+
+Client IDs remain actual native client-table indices.
+Object epochs remain native helper pins within the enclosing native observer session.
+Neither is the security protocol's connection_id, an actor ID, an XID, or a process ID.
+This revision invents no security connection ID and copies no credential material.
+Role fields are asserted metadata. They do not grant authority or authenticate a producer.
+
+DECODER INVARIANTS
+
+Expected arm and actor-seat bindings remain caller-supplied trusted inputs.
+The supervisor obtains them through reviewed authenticated context and private inherited pipes.
+It must never derive expected client identities from the artifact being validated.
+
+All three expected clients require positive index and native epoch.
+Their roles must be present and recognized.
+APPLICATION requires a valid nonempty, NUL-free APP identity within existing 256-byte label limits.
+Every non-APPLICATION role must omit the application field, including an explicitly empty message.
+The probe role must be SUPERVISOR or COMPOSITOR.
+The seat owner role must be COMPOSITOR.
+The target owner role must be APPLICATION with the expected APP identity.
+
+All three indices and all three client epochs must differ.
+This also keeps a COMPOSITOR probe distinct from the COMPOSITOR seat-owner connection.
+A reused native index with another epoch cannot represent two simultaneously live clients.
+Distinct clients cannot share the helper's monotonic client epoch in one native session.
+Do not compare unrelated actor, device, window, or spatial-generation integer domains for identity.
+
+The expected target retains exact XID, native epoch, spatial generation, APP label, and owner.
+An active grab owner equals the separately trusted expected_grab_owner pin exactly.
+The chosen fixture explicitly pins it to the privileged probe.
+It is never inferred from the window owner or an untrusted producer owner assertion.
+The grab's actual window/device/resource pins remain mandatory.
+Old and peer SeatContext.owner exactly match the trusted COMPOSITOR owner pin.
+ObserverPress.recipient and ProbeReceiptBatch.recipient exactly match the actual privileged probe.
+A receipt batch claiming the APP owner as its recipient fails even when its window is correct.
+
+Existing event tuples, device/source roles and attachments, epochs, held-state requirements,
+transition phases, old-release details/order, watermark ordinals, deadlines, and completeness checks remain.
+Existing caps remain four frames, 4096 bytes each, 16392 artifact bytes, 32 receipts, and ten seconds.
+Nothing here relaxes fail-closed handling of missing or incomplete producer facts.
+
+STABLE REJECTIONS AND CONTROLS
+
+New expected-context reasons include CLIENT_ROLE_INVALID, CLIENT_APPLICATION_INVALID,
+NON_APPLICATION_CLIENT_LABEL_PRESENT, PROBE_ROLE_INVALID, SEAT_OWNER_ROLE_INVALID,
+WINDOW_OWNER_ROLE_INVALID, WINDOW_OWNER_APPLICATION_JOIN, TARGET_WINDOW_OWNER_JOIN,
+NATIVE_CLIENT_INDEX_ALIAS, and NATIVE_CLIENT_EPOCH_ALIAS.
+New grab-owner reasons are EXPECTED_GRAB_OWNER_REQUIRED, GRAB_OWNER_IDENTITY_INVALID,
+and GRAB_OWNER_CONTEXT_JOIN. Existing observer, grab, seat, window, receipt, framing,
+deadline, and cancellation reasons remain.
+
+The old probe-label-required control is explicitly revised because the probe is now privileged.
+The successor control rejects an APP label on that privileged probe.
+All other inherited negative cases and the fresh-process v1 rejection remain present.
+
+Selected pure tests were recorded externally before edits in selected-checks-and-invariants.txt.
+New controls cover both privileged probe roles, production role mapping, missing/unknown roles,
+privileged APP labels, APP/BROKER probes, wrong APP/privileged target owners, wrong seat-owner roles,
+index/epoch aliases, stale pins, and owner/probe/grab/seat identity confusion.
+Positive fixtures use distinct live-client pins and APP-owned windows.
+Their canonical frames must pass the existing actual size caps.
+Tests assert the intended stable rejection code on otherwise valid records.
+
+REQUIRED FUTURE PRIVATE NATIVE APIS
+
+Current SpatialObserverPinClient only accepts live APPLICATION clients.
+Current SpatialObserverWindowMatches takes a recipient and requires it to own the window.
+Neither API proves the revised privileged-recipient topology.
+Keep the v1 behavior intact. Implement separate reviewed v2 value-pinning APIs later.
+
+A v2 client pin must read actual authenticated security role and APP label from live server state.
+It must validate Running/not gone, the current native index, session, and client epoch.
+Privileged selection scope is not an APPLICATION role label. Do not substitute one for the other.
+The current private security connection structure has the role; no public v2 getter is implemented here.
+A future private server-only getter must expose only the needed role/label facts, without credentials.
+
+A v2 target pin must resolve the actual APP window and its owner independently of the probe.
+A v2 callback match must validate the actual EventCallback recipient against the probe pin.
+It must separately validate the target window against its APP owner/window pin.
+Do not call the v1 owner-equals-recipient matcher with the privileged probe.
+
+Grab owner resolution remains synchronous and lifetime-safe.
+The reviewed native path uses the live active grab's resource client bits through dixClientForXID,
+then validates the actual live client, role, label, and native epoch against expected_grab_owner.
+Do not assume every active/implicit grab has a registered X resource for dixLookupResourceOwner.
+No raw pointer, fabricated grab epoch, or unvalidated client-slot identity may cross the API.
+Focus pinning and serialized-dispatch assumptions still need their own native source review.
+
+API FREEZE AND VALIDATION STATUS
+
+The revision does not freeze the API or prove native delivery.
+Private role/client/window pins, transition sampling, C serialization, transport, and actual probe receipts remain missing.
+Actual XI2 selection/delivery under an implicit grab, old releases, and native revocation remain UNRUN.
+M08 remains frozen and independent. No M09 native qualification is claimed.
+
+The completed pure-check evidence below does not qualify any native behavior.
+
+DIX-SOURCED GRAB OWNER CORRECTION
+
+Primary corrected its earlier instruction that grab.owner must equal the APP window owner.
+The earlier21PASS source, generated modules, and manifests remain in pre-grab-owner-correction/.
+Their canonical unit-run-01 and generation-run-01 evidence remains unchanged.
+
+Pinned source: xserver-source-v6/dix/events.c from XLibre f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+Source SHA256: de0bed4c512176ca01f47246e98950a06c26762bd0aa7d77bbce2f0304aae694.
+DeliverDeviceEvents at2888-2921 tries XI2 first and breaks after successful delivery.
+ActivateImplicitGrab at2153-2197 uses client->clientAsMask for resource and the target for window.
+At2166-2167 it identifies XI_ButtonPress as an XI2 grab.
+At2194 it activates the actual implicit grab.
+Thus a selected privileged XI2 recipient can own that grab on an APP-owned window.
+
+The fixture's APP window-owner pin and explicit grab-owner pin remain separate.
+The native grab window retains the APP owner even when grab.owner is the privileged probe.
+The new tests choose the probe as default, reject a different APP owner under that choice,
+and check an explicitly chosen APP owner as a pure structural alternative only.
+No owner is accepted merely because the producer supplies it.
+
+XI2-first delivery may prevent the APP's core events on that delivery path.
+This strict observer witness cannot prove ordinary APP core input delivery.
+Separate M09 native application-input checks remain mandatory and UNRUN.
+Actual XI2 delivery, implicit-grab identity, release routing, and APP behavior remain UNRUN.
+No security policy change or simulated delivery is authorized.
+
+ACTUAL PURE VALIDATION AND HANDOFF
+
+Evidence root:
+  /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+  m09-observer-v2-recipient-contract-01
+
+selected-checks-and-invariants.txt was written before edits and extended before the DIX correction.
+source-before/ preserves the predecessor source.
+pre-grab-owner-correction/ preserves the21PASS schema, decoder, tests, notes, and generated bindings.
+Original generation-run-01 and unit-run-01 remain unchanged.
+That21PASS result used the superseded grab-owner assumption and is not the final contract result.
+
+Actual protoc3.21.12 generated the revised v1/v2 bindings into generated-02/.
+Generation runner: generation-run-02. command.exit=0, wrapper.exit=0, terminal-status=COMPLETE.
+Python command: python3 -B spatial-os-luna-handoff/tests/native/test_input_state_observer_v2.py -v
+Working directory: the assigned successor worktree.
+PYTHONDONTWRITEBYTECODE=1. PYTHONPATH contains external generated-02 and this checkout's tests/native.
+Canonical unit runner: unit-run-02. command.exit=0, wrapper.exit=0, terminal-status=COMPLETE.
+Both jobs used the installed canonical bash run-command.sh within persistent tmux sessions.
+Both sessions retired. Full argv is recorded in each run's argv.nul and argv.shell-quoted.txt.
+The unit log reports23 methods in0.216s and OK. Zero failures, errors, or skips were reported.
+
+PASS: both privileged probe-role positives, production enum mapping, unchanged real framing caps,
+all13 predecessor methods, exact new role/label/index/epoch/domain rejections,
+explicit trusted grab-owner controls, alternate trusted APP-owner structural choice,
+independent receipt ordering, and fresh-process v1 rejection.
+FAILED: no failures in the final pure run.
+SUPERSEDED: the preserved21PASS run used an earlier incorrect grab-owner contract assumption.
+UNRUN: all native server/application/worldd/broker execution, native XI2 delivery/grab behavior,
+APP core input, C serialization interoperability, transport deadlines/reset/FD leakage,
+physical input, sanitizer/native integration, and M09 qualification.
+
+No security policy change, production build, test-host contact, commit, push, or integration occurred.
+Review the five changed paths, final source pins, explicit contract revision, and canonical receipts.
+Keep API freeze incomplete until the separate private native role/client/window/grab APIs are reviewed.
+Run actual XI2/implicit-grab and independent APP core-input controls later on authorized native qualification hosts.
+
+PRIVATE C ROLE TO WIRE MAPPING REQUIREMENT
+
+Primary reports a parallel private native-context helper draft with SpatialObserverNativeClientRole values:
+  INVALID=0, APPLICATION=1, SUPERVISOR=2, COMPOSITOR=3.
+Those internal values are not the wire/security Role values.
+This source contract retains SUPERVISOR=1, BROKER=2, COMPOSITOR=3, APPLICATION=4.
+The passing pure role-mapping guard still checks the actual production security schema.
+
+The future C producer must map explicitly:
+  internal APPLICATION1 to wire APPLICATION4;
+  internal SUPERVISOR2 to wire SUPERVISOR1;
+  internal COMPOSITOR3 to wire COMPOSITOR3;
+  internal INVALID0 or any unknown internal role to incomplete/rejection.
+Never cast the private C enum into the protobuf enum.
+The private helper has no BROKER role; do not fabricate one during serialization.
+No serializer_v2 exists yet. The private helper's separate compilation is not C/Python interoperability evidence.
+Future interoperability must validate the actual explicitly mapped C-produced protobuf bytes against this decoder.
+This note records the required interface boundary. It does not claim that helper's implementation or compilation passed.

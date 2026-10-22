@@ -1,0 +1,39 @@
+M09 native observer build integration - 2026-10-20
+
+Status: UNQUALIFIED; compile-only. This increment adds default-off native build linkage. It does not establish runtime integration or qualification.
+
+Source and build pins
+
+The branch is m09/native-observer-build-integration-20261020, based on 584ed4e17426a4a8cb9eed1f4ad462bb68d23bbd. The XLibre source is f844d7a86c10fd5cc89083e7daf97b862b8ca1fd, from the retained archive whose SHA-256 is 41ff429a0165eb4778517508560e2948a8dbc657d674e81b9450958171f5f4fa. The xorgproto input is 67469711055522b8adb2d795b01e7ba98cb8816c. The lock file pins the hashes of the reviewed observer components, schema overlay, and build patches. All 14 locked patches passed production-equivalent `git apply --check` followed by `git apply` on a fresh extraction before overlays were installed. Receipt: `/home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/git-apply-validation-v3.json`.
+
+Build behavior
+
+The Meson option `spatial_native_input_observer` defaults to false. Default builds do not compile or link observer sources, add client requests, alter public protocol, or change ordinary application permissions. With the option enabled, Meson generates protobuf-c bindings from the reviewed schema and links lifetime, capture, serializer, and generated binding into Xext. Build-local compiler flags enable the narrow startup integration. Xvfb uses whole-archive linkage for the observer static library so its extension lifecycle entry points are retained.
+
+SpatialInput initializes the lifetime tracker before capture, after extension state and screen hooks are ready. Initialization failures shut down any partially initialized capture and reset lifetime state, then fail extension startup with an explicit FatalError. Extension reset shuts capture down before resetting lifetime state. The primary source review checked this ordering against the helpers and pinned `dix/main.c`. Runtime callback teardown and repeated reset behavior remain unverified.
+
+Exact-source compile evidence
+
+Canonical run: `/home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/compile-run-11`. Command and wrapper exits are both zero, the runner reports COMPLETE, and the build process retired. Source/build receipt: `run-exact-final-source-v2.json`. Audit: `exact-final-source-audit-v2.json`. Frozen source and tool manifest: `final-input-manifest-v2.json`.
+
+The frozen `base.lock.json` SHA-256 is `18d25d04b13167d8d64089e571222f7f0cc448a2b180b40501e73f6c01968478`. All locked patch and overlay hashes matched the lock before and after compilation. The driver records equal pre-build and post-build source hashes. Each Xvfb profile compiled and linked with `-j2` from a fresh pinned extraction using the retained proto prefix.
+
+Default Debug Xvfb SHA-256: `7c13591317c33d48f6b034eee9b5b48aa80c8d622e50641e50943e3b4c2688a6`. Its compile graph contains no observer sources, and its binary contains no observer symbols.
+
+Observer Debug Xvfb SHA-256: `8bac348531c2f83cfdb57d73348258aae1c79ca15a5a86b7a038688454d2b5b6`. Its graph contains lifetime, capture, serializer, and generated protobuf-c sources. Its linked symbols include lifetime and capture initializers, serializer, and generated record packer.
+
+Observer ASan/UBSan Xvfb SHA-256: `14b6733ecd8f6f804becdbdd56775795f77824ad3232828a16dcfb788a760a06`. Its graph and linked symbols contain the same observer components.
+
+The upstream compile commands use selected `-Werror=` diagnostics, including implicit, nonnull, return-type, array-bounds, and pointer conversion checks. They do not set standalone `-Werror`. No global warning policy changed. No test executable or server ran on ROG. Runtime startup, reset, callback removal, default-off behavior, and interoperability remain UNRUN and require later scheduled tests on sb16 and sb16-2.
+
+Trust and proof boundaries
+
+This build adds no public X request, socket, file-descriptor interface, or arm interface. It does not authenticate supervisor context, fixture nonces, actor references, generation, receipt watermark, deadline, or provenance. A future trusted supervisor and authenticated channel must supply and validate those values. The current schema proves native down-bitmaps only. It does not prove complete focus, grab, capture, or release state. A held key or button remains represented by its actual bitmap and must not be treated as successful release.
+
+Recovery evidence
+
+The failed BI01 production patch check is preserved under `/home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/primary-git-patch-forward-01`. Earlier build attempts are retained in the artifact directory; compile-run-11 supersedes their reproducible build trees. Cleanup is recorded in `cleanup-superseded-builds-v2.json`, with exact paths and recovered logical bytes.
+
+Post-build note update
+
+This note was updated after compilation to report final receipt and binary hashes. It does not modify any locked build input or hash in the frozen source manifest.

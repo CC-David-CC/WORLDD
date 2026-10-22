@@ -1,0 +1,74 @@
+M09 OBSERVER V2 C WIRE INTEROP
+UNQUALIFIED ? PURE FIXTURE ONLY ? NO RUNTIME EVIDENCE
+Date: 2026-10-21
+
+Source pin and checkout
+- Host: ROG-Ally-X-RC72LA (ROG Ally X).
+- Branch: m09/observer-v2-c-wire-interop-20261021.
+- Checkout: /home/dflanag3/src/m09-observer-v2-c-wire-interop-20261021.
+- Base: b4201e428cd3120be81604d182a13b27399692de.
+- Schema/parser/collector/test prerequisites copied byte-for-byte from 133c317b9621e9d6e8cf5504071ff3a660b2b555:
+  proto/spatial/testing/v2/native_input_observer_v2.proto
+  tests/native/input_state_observer_v2.py
+  tests/native/test_input_state_observer_v2.py
+  tests/native/input_state_observer_v2_collect.py
+  tests/native/test_input_state_observer_v2_collect.py
+- Inspected v1 serializer: 584ed4e17426a4a8cb9eed1f4ad462bb68d23bbd.
+- Inspected native roles: 266cfe54d382144af8b6a770db33fb557bfecd13.
+- Generated protobuf-c and Python bindings are external under /home/dflanag3/spatial-artifacts/m09-observer-v2-c-wire-interop-20261021/schema-inspect-01.
+- External v1 decoder and generated v1 Python binding support the parser isolation test; both remain outside Git.
+
+Owned component and API
+- server/xlibre/spatialinputobserver_serialize_v2.h declares the bounded private encoder and native role mapping.
+- server/xlibre/spatialinputobserver_serialize_v2.c implements length-delimited protobuf-c encoding for exactly three server-origin records in order: Arm, NativeTransition, ObserverPress.
+- SpatialObserverSerializeServerRecordsV2 accepts three already-constructed records. It enforces protocol version 2, sequence 1/2/3, 16-byte session and arm IDs, shared native session epoch, Arm command ID joins, four complete transition snapshots in phases 1/2/3/4, ObserverPress ordinal and no overflow/disconnect, per-record 4096-byte and total output bounds. Failure leaves output_length zero.
+- SpatialObserverMapNativeRoleV2 maps native APPLICATION=1 to wire APPLICATION=4, SUPERVISOR=2 to wire SUPERVISOR=1, COMPOSITOR=3 to wire COMPOSITOR=3. It rejects unknown values.
+- SpatialObserverWriteServerRecordsV2 serializes before calling one sink with the whole bounded buffer. A sink refusal returns failure. An OS adapter must treat a failed/partial write as incomplete and must not claim a complete stream.
+- The C fixture reads three framed records and emits the component output. Python independently constructs expected bytes. Python alone builds the fourth ProbeReceiptBatch and joins it only in a test through the existing parser/validator.
+- The encoder does not authenticate a descriptor, grant authority, resolve live server objects, sample native state, or prove producer truth. Input records are producer assertions.
+
+Existing behavior and remaining integration
+- Existing code: v2 protobuf schema, Python v2 parser, collector, and their 49 pure checks from the pinned prerequisite.
+- Added here: private C serialization component, role mapping, C fixture, and six Python interoperability/rejection checks.
+- Missing later bridge work: authorized one-shot descriptor bootstrap; native capture producer and live pin resolution; mapping accepted command/worldd binding into server producer context; transport handoff and production build integration; native runtime qualification.
+- This branch does not touch v1, M08, locked acceptance tests, server startup, FD bootstrap, capture hooks, worldd, or gate profiles.
+
+Integration order and conflicts
+1. Review/adopt exact v2 schema/parser/collector prerequisite commit 133c317... as source files only; do not import its old branch history or alter contracts.
+2. Review this serializer component and fixture next. It depends on generated v2 protobuf-c bindings at build time; generated files stay out of Git.
+3. Implement descriptor bootstrap and native producer as a separate bridge increment. It must supply three complete server-origin records to this API.
+4. Add worldd binding and production transport only after the native producer contract is reviewed.
+5. Keep the independent fourth receipt producer separate. Do not make this server component fabricate ProbeReceiptBatch.
+
+Selected checks and evidence
+- Selected before execution: existing v2 parser checks (23), collector checks (26), and C/Python fixture checks (5). These cover parser semantics, collection semantics, exact wire interoperability, role mapping, malformed sequence/session/arm/epoch, incomplete transition count, output capacity, sink refusal, and C input framing limit.
+- ROG external Debug build: gcc -std=c11 -Wall -Wextra -Werror -O0 -g; PASS.
+- ROG external ASan/UBSan build: gcc -std=c11 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer; PASS.
+- Both profiles: 23 parser + 26 collector + 6 fixture checks passed.
+- Persistent tmux session: m09-wire-focused-20261021.
+- Canonical receipt directory: /home/dflanag3/spatial-artifacts/m09-observer-v2-c-wire-interop-20261021/receipt-focused-01.
+- command.exit=0, wrapper.exit=0. Logs and build outputs remain external.
+- No X server, world, broker, native session, host runtime, or test host was used. No test is native acceptance evidence.
+- Source guard and checkpoint status are recorded separately after this document is written.
+
+Final M09 gate remains pending
+- Review and integrate the complete bridge on a milestone branch.
+- Verify one-shot descriptor authorization, replay/closure behavior, producer sampling and epoch/role joins, checked transport authentication, worldd binding, and the independent receipt producer.
+- Run focused Debug and ASan/UBSan producer, descriptor, framing, lifetime, and sink tests.
+- Run required native acceptance and full M09 qualification on authorized hosts only after M08 ownership/gates permit it.
+- No M09 gate passed here. No implementation blocker remains for this bounded serializer-only component; live integration is intentionally unimplemented.
+
+Primary review repair checkpoint (2026-10-21)
+- Added descriptor-first recursive validation for initialized protobuf-c message graphs, null-byte consistency checks, repeated-message array checks, and oneof pointer checks before packing.
+- Documented caller preconditions, role-map failure behavior, output_length zeroing, and complete-sink acceptance semantics.
+- The C fixture now frees every successfully unpacked record through one cleanup path. It rejects noncanonical/overflow varints and has stable exit codes. Python assertions check each expected code and reject sanitizer diagnostics.
+- Added direct constructed-C malformed graph cases and a C-constructed valid three-record vector compared against independently built Python protobuf bytes.
+- Added valid-first-frame then malformed/truncated/oversized second and third frame cases to exercise cleanup.
+- Initial review-fix ASan exposed a stack-use-after-scope in the malformed nested-byte fixture itself. The full failure is retained externally at /home/dflanag3/spatial-artifacts/m09-observer-v2-c-wire-interop-20261021/asan-failure-review02.log; fixture lifetime was corrected. The final Debug and ASan/UBSan run passed.
+- Final persistent tmux session: m09-wire-review03-20261021. Canonical receipt: /home/dflanag3/spatial-artifacts/m09-observer-v2-c-wire-interop-20261021/receipt-focused-review03. command.exit=0, wrapper.exit=0. Final totals per profile: 23 parser, 26 collector, 6 C/Python fixture tests.
+- This remains UNQUALIFIED. The serializer does not establish pointer validity for arbitrary addresses, authenticate transport, grant authority, or prove live native facts.
+
+Primary review follow-up (2026-10-21)
+- A second review found a missing null guard for optional Arm.accepted_command. The serializer now rejects that initialized-but-incomplete graph before dereference; direct-C regression covers it.
+- The order/ID/epoch/output tests now create a fresh fixture for each mutation and separately verify a valid baseline, so each rejection exercises its intended condition.
+- Packaging/handoff remains source-only. No runtime or milestone integration was started.

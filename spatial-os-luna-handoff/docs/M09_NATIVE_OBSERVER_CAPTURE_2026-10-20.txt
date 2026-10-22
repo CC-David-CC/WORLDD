@@ -1,0 +1,149 @@
+M09 internal one-shot outgoing XI2 observer capture
+
+Status: SOURCE ONLY. Uncommitted. Primary review pending. All behavior/runtime checks remain UNRUN.
+This increment does not close balanced destroy, M09, or Spatial-M1 qualification.
+Branch: m09/native-observer-capture-20261020
+Base: e02e9368a77d7da4c300a0eb2d0cabf4242bc05e
+Worktree: /home/dflanag3/src/m09-native-observer-capture-20261020
+Host: rog-ally-x. No SB access, package changes, native server execution, or fixture execution.
+Owned files, relative to spatial-os-luna-handoff:
+- server/xlibre/spatialinputobserver_capture.c
+- server/xlibre/spatialinputobserver_capture.h
+- docs/M09_NATIVE_OBSERVER_CAPTURE_2026-10-20.txt
+Existing helpers, schemas, shared build files, base.lock, XACE, control APIs, and M08 files remain unchanged.
+External evidence: /home/dflanag3/spatial-artifacts/m09-native-observer-capture-20261020
+
+Pinned source interpretation
+
+XLibre baseline: f844d7a86c10fd5cc89083e7daf97b862b8ca1fd, with the existing ordered XACE patches/overlays.
+xorgproto baseline: 67469711055522b8adb2d795b01e7ba98cb8816c.
+include/dix.h EventInfoRec contains ClientPtr client, xEventPtr events, and int count.
+dix/events.c WriteEventsToClient() rejects gone/server recipients, adjusts sequence, and runs XKB filtering first.
+It then calls EventCallback before GenericEvent batch validation, byte swapping, or WriteToClient.
+The observer therefore receives native-order packets even when client->swapped is true.
+The record copies that swapped-recipient fact; it does not byte-swap the callback packet itself.
+The callback proves an output attempt only. WriteToClient can still fail or never reach the application.
+An independently correlated native probe receipt is mandatory for eventual acceptance.
+
+xorgproto include/X11/extensions/XI2proto.h defines the fixed xXIDeviceEvent header.
+It contains deviceid, sourceid, event XID, detail, time, sequence, flags, coordinates, and modifier/group fields.
+dix/eventconvert.c eventToDeviceEvent() sets GenericEvent, the XInput extension base, and XI2 event type.
+It allocates fixed header + full button mask + valuator mask + one FP3232 per set valuator bit.
+It copies native deviceid/sourceid directly. Master conversion preserves the originating slave sourceid.
+The internal observer obtains the live XInput base through CheckExtension("XInputExtension") during arming.
+No guessed IReqCode API or hard-coded extension offset is used.
+
+One-shot internal lifecycle and authority
+
+CaptureInit() requires a live lifetime-helper session and registers EventCallback, ClientStateCallback, and ResourceStateCallback.
+It uses static storage only. No callback-reachable heap allocation, raw object pointer cache, or deferred native access exists.
+Initialization rolls back partial registration. Failed callback removal prevents duplicate reinitialization.
+CaptureShutdown() disables capture, removes callbacks, and clears state. It must precede LifetimeReset().
+CaptureReset() explicitly discards the one-shot record and permits another arm; it retains the monotonic arm serial.
+Reentrant event observation freezes failure. Reset/shutdown during observation are rejected and freeze failure.
+No failed or collected record advances to a later event. Read() returns a value copy only.
+Read rejects an absent or changed lifetime-helper session and leaves invalid native-state sentinels.
+Copied historical records still require the expected process-session and arm identity at their eventual consumer.
+
+Arm requests are trusted server-local C inputs from the authenticated controlling integration.
+They are not an ordinary-client operation or a deserialized grant to enumerate devices.
+The caller must establish actor-to-native-device attribution through authenticated actor actions and independent XI2 preconditions.
+Supplying IDs, labels, or a model response does not create that authority or attribution.
+The helper resolves and pins old and peer quartets with four explicit native roles each.
+All eight IDs must be disjoint across actors. Each quartet's epochs, roles, pairing, attachment, live classes, and enabled state are checked.
+The popup is pinned to a running application connection with the exact recipient index and expected nonempty application/workspace labels.
+The button detail must be nonzero and supported by both peer pointer classes.
+No public wire interface, FD channel, protobuf writer, or control-operation bypass is implemented.
+
+Arming requires an empty global pending queue, no replayDev, and no playingEvents.
+It snapshots both quartets and rejects native frozen state, sync.other, pending input, replay-device state,
+and any sync.state other than actual GRAB_STATE_NOT_GRABBED or GRAB_STATE_THAWED.
+Existing async native grabs may remain on the old actor because held input is part of the witness precondition.
+The caller still must prove positive held-key/button/focus/grab preconditions for each selected regression.
+Arm failure freezes FAILED and requires explicit reset. It cannot silently retry after an earlier action.
+
+First relevant output and immutable snapshot
+
+Every armed EventCallback receives a monotonically increasing callback ordinal. Counter overflow freezes failure.
+A normal core-only event batch is ignored after a bounded scan of at most 64 headers.
+Any larger batch, malformed callback, or multi-event batch containing GenericEvent fails closed.
+Variable-size GenericEvent packets are never stepped through as a core-event array.
+A single XI2 ButtonPress is validated before any full header or variable payload access.
+The observer bounds declared packet size at 4096 bytes, validates the fixed header, exact native mask widths,
+all valuator bits, and exact payload length implied by FP3232 values.
+Only native-order XI2 ButtonPress packets are candidate observations. Raw input cannot substitute for them.
+EventCallback supplies no allocation capacity. The server producer must own memory covering its declared event length.
+These are internal server contracts, not a hardened parser for arbitrary client-owned memory.
+
+Relevance is explicit: any pinned peer device/source, the expected recipient index, the expected application label,
+or the expected popup XID identifies a candidate. The first such candidate freezes the result.
+A wrong pointer master/slave source, recipient, popup, or button detail freezes WRONG_TUPLE rather than skipping ahead.
+Synthetic XI2 ButtonPress fails before any extended-header/payload read, without requiring complete tuple relevance.
+Pinned ProcSendEvent() already rejects GenericEvent because its request carries only 32 event bytes.
+The observer still rejects any unexpected synthetic callback before trusting a declared variable length.
+Unrelated valid nonsynthetic XI2 ButtonPress output remains outside this arm.
+Malformed XI2 ButtonPress packets fail conservatively even when they cannot be assigned a complete relevant tuple.
+An action whose entire tuple changes to an unrelated actor/application cannot be identified by this callback alone.
+Trusted action-channel provenance remains required; do not claim this scoped observer proves every possible actor action.
+
+Before collection, the observer revalidates the popup/client epochs and labels against the actual callback recipient.
+It freshly snapshots old and peer native devices, rechecking hierarchy, epochs, and required classes.
+Each snapshot has a 1024-total-record pending-queue cap. Thus candidate validation uses at most two bounded queue passes,
+plus at most 64 event headers and a bounded native valuator-mask scan. There is no unbounded queue traversal.
+A missing/reused device, missing class, wrong label/lifetime, or queue-cap failure freezes failure with invalid native sentinels.
+No truncated or zero-filled missing evidence becomes a successful snapshot.
+The old snapshot contains complete down/postdown arrays, active grabs, focus classification, and freeze/replay facts.
+These facts are copied in the same outgoing callback without dispatching requests or retaining native pointers.
+COLLECTED means native collection completed. It does not mean input was balanced, authority was valid, or receipt occurred.
+Retained old input/focus/grabs remain visible for an independent release predicate to reject.
+
+Expected-recipient Retained/Gone callbacks and popup Freeing callbacks eagerly freeze lifetime failure.
+Device removal has no generic callback in this baseline. Fresh snapshot checks reject it at the candidate event.
+If no candidate arrives after device removal, the arm remains pending rather than producing a successful empty record.
+A future bounded timeout must reject that missing capture. Main-window destruction is not popup destruction.
+The successful/failed record is immutable until explicit reset or shutdown. Later peer output cannot replace it.
+
+Explicit missing integration
+
+The new C files are not linked, initialized, armed, or exported anywhere in the production build.
+Future reviewed startup integration calls CaptureInit() after LifetimeInit(), and CaptureShutdown() before LifetimeReset().
+It must add qualification-only source/overlay/build registration and preserve default production behavior.
+No such shared-file change is included here.
+
+The native popup epoch is not the production spatial surface generation. Resize/unmap/remap generation fencing remains external.
+The trusted caller must bind the world actor, application group, native source pair, target generation, and arm context.
+The observer does not invent a management API to obtain that mapping.
+Process-channel provenance, independent probe receipt history, first-receipt correlation, record transport,
+release predicates, revocation policy, and cleanup/timeouts remain unimplemented integration responsibilities.
+An internal arm serial/callback ordinal alone cannot establish which probe receipt corresponds to this output.
+The companion schema/reader remains separately owned. No existing field names or wire assertions are changed here.
+
+Compile/source checks and exact evidence
+
+The task selected actual Debug/SAN compilation, current-header dependency checks, source scope, whitespace, and data guard.
+Both final object compiles passed with -Werror using the actual configured pinned XACE tree from m09-native-observer-epochs-20261020.
+The new branch include directory comes first. Capture/lifetime/security header hashes must come from this branch.
+No fake target, stub header, or hand-written generated config was used.
+compile-header-receipt-source-reviewed.json records exact commands, objects, and every compiler dependency hash.
+compile-run-03-source-reviewed command.exit and wrapper.exit are zero; stderr.log is empty.
+The final job used tmux m09-capture-reviewed-compile-20261020 and the canonical runner under an external flock.
+One compiler ran at a time. No object, test, fixture, or native server executable ran.
+Native source excerpts/hashes and the final three-file diff are retained externally.
+This is object compilation only. Full linking, initialization, callbacks, behavior tests, and sanitizer runtime checks remain UNRUN.
+
+Required native regression plan: all UNRUN
+
+- Prove successful first expected output plus independent exact XI2 receipt; verify all four old device identities and complete native facts.
+- Freeze failure on the first wrong window, source, device, button, recipient, or application label, even if a later event matches.
+- Keep unrelated valid application output outside the arm. Reject relevant synthetic input.
+- Reject malformed fixed/variable lengths, excess/invalid mask bits, multiple GenericEvents, and oversized batches.
+- Exercise a swapped recipient and confirm native-order observer fields agree with the independently decoded received event.
+- Remove/recreate old or peer device IDs; kill/reuse the recipient client slot; destroy/recreate the popup XID; reject missing or changed lifetimes.
+- Require old native retained key, button, master focus, and native grab controls to remain visible while logical bookkeeping is clear.
+- Exercise slave focus/grabs, missing classes, frozen input, sync.other, pre-arm queued input, replay, and snapshot queue caps.
+- Exercise duplicate arm, reset/rearm, helper-session reset, failed setup/removal, ordinal exhaustion, and nested callback failure.
+- Demonstrate that later matching output never overwrites any earlier failure or frozen successful capture.
+- Verify no ordinary/confined client can arm or read the observer, including attempts to submit forged IDs/labels.
+Run behavior only on both released qualification hosts through production actor mechanisms and independently launched native probes.
+Preserve strict existing destroy/event-log expectations. No unrun requirement is passed by this source checkpoint.
+Next step: primary review these three files and source assumptions before any commit or integration.

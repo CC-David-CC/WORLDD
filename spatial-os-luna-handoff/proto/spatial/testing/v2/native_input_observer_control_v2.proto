@@ -1,0 +1,40 @@
+syntax = "proto3";
+package spatial.testing.v2;
+
+import "native_input_observer_v2.proto";
+
+// Private setup control. The oneof distinguishes frame kind before parsing.
+message ObserverControlEnvelopeV2 {
+  oneof message {
+    ObserverSetupRequestV2 setup_request = 1;
+    ObserverArmV2 arm = 2;
+  }
+}
+message ProbeMarkerPinV2 {
+  uint32 xid = 1;
+  uint64 window_epoch = 2;
+  ClientIdentity privileged_owner = 3;
+}
+message ObserverSetupRequestV2 {
+  bytes session_id = 1; bytes arm_id = 2;
+  uint64 old_native_seat_id = 3; uint64 peer_native_seat_id = 4;
+  uint32 target_xid = 5; uint32 probe_marker_xid = 6;
+  ApplicationIdentity expected_application = 7;
+  uint64 presentation_generation = 8; uint64 deadline_monotonic_ns = 9;
+  // Surface generation is independent of world presentation generation.
+  uint64 target_spatial_generation = 10;
+  ClientIdentity.Role expected_probe_role = 11;
+}
+message ObserverSetupReplyV2 {
+  bytes session_id = 1; bytes arm_id = 2;
+  uint64 native_session_epoch = 3;
+  uint64 old_native_seat_id = 4; uint64 peer_native_seat_id = 5;
+  repeated DeviceIdentity old_actor_devices = 6;
+  repeated DeviceIdentity peer_actor_devices = 7;
+  ClientIdentity compositor_seat_owner = 8;
+  WindowIdentity app_target = 9;
+  ClientIdentity app_target_owner = 10;
+  ProbeMarkerPinV2 probe_marker = 11;
+  // Echo every accepted selector. The supervisor compares independently.
+  ObserverSetupRequestV2 accepted_request = 12;
+}

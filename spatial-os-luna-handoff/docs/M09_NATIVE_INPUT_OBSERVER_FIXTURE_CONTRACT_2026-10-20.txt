@@ -1,0 +1,231 @@
+M09 qualification-only native input observer fixture contract
+
+Status: reviewed-repair source proposal. No native evidence or runtime pass.
+Base: 2adb49c115aa3877e44e3666caa719e6258f8ff9.
+Branch: m09/observer-contract-reviewed-20261020.
+Host: rog-ally-x. Test hosts remain untouched by this task.
+
+Explicit contract changes
+
+This uncommitted interface replaces the two rejected fixture drafts.
+Actor IDs and issuer IDs use the production 32-byte identity sizes.
+Both actors pin four native devices. Their device sets must be disjoint.
+Native lifetime pins use explicit uint64 object_epoch values.
+The old provisional 16-byte lifetime tokens are removed before integration.
+The envelope now pins the native helper session separately from fixture nonces.
+Client/window pins carry copied authenticated workspace/application labels.
+Window pins also require the spatial generation from future native integration.
+No locked acceptance contract, existing selector, or production status field changes.
+
+Production sources and native helper mapping
+
+proto/spatial/authority/v1/grants.proto defines ActorRef with issuer_id and actor_id.
+src/authority/store.cpp validates both identities at exactly 32 bytes.
+src/identity/issuer.cpp also validates persisted actor IDs at 32 bytes.
+The fixture Arm carries both ActorRef components for each actor without credentials.
+Its actor references require authenticated supervisor preconditions before arming.
+Device names, hierarchy attachment, and fixture bytes do not authenticate actors.
+
+The reviewed helper header is server/xlibre/spatialinputobserver_lifetime.h.
+Its companion worker owns that header and source in a separate worktree.
+DeviceSetPin.session maps to enclosing native_session.
+DevicePin.id, role, and epoch map to device_id, kind/seat_role, and object_epoch.
+Pointer master/slave and keyboard master/slave are four distinct typed roles.
+The identity also pins paired_or_attached from the independently checked hierarchy.
+Master pointer/keyboard pair with each other. Each slave attaches to its corresponding master.
+Native state identity includes this pairing so changed attachment fails correlation.
+
+ClientPin.index, epoch, and label map to client_id, object_epoch, and application_label.
+ApplicationLabel copies only SpatialSelectionNamespace workspace/application bytes.
+Each label is nonempty, at most 256 bytes, and contains no NUL.
+This follows production server/xlibre/spatialsecurity.c:395-398, valid_label().
+APPLICATION issuance requires valid_label() for both fields at :409-411.
+Nondefault selection-scope validation uses the same function at :514-516.
+server/xlibre/spatialsecurity.h:9 sets the 256-byte application-label bound.
+The bytes type does not imply UTF-8. Non-NUL bytes above ASCII remain valid.
+The epoch helper's bounds alone do not replace production issuance validation.
+These are authenticated application labels, not secrets or actor references.
+WindowPin.xid and epoch map to window_id and object_epoch.
+Its owner must match the expected recipient client pin and copied label.
+Future observer integration must obtain the additional spatial_generation separately.
+The helper alone does not implement that spatial-generation lookup.
+Object epochs are nonzero and unique within the native helper session.
+Numeric IDs, addresses, labels, or fixture nonces alone never establish object continuity.
+
+The helper session is a process-local uint64 serial. Another process may reuse it.
+A trusted supervisor must bind the descriptor to one retained server-process lifetime.
+The 16-byte session_id and arm_id are independent fixture nonces.
+They do not authenticate a server process or replace the native_session check.
+The parser requires separately supplied expected_native_session and exact trusted expected_arm.
+It checks every record against those pins and the expected fixture nonces.
+Process-channel provenance remains an obligation of the missing live integration.
+Never deserialize fixture pins into the native helper as authority.
+
+Framing and bounds
+
+The complete artifact contains exactly three length-delimited Protocol Buffer records.
+Their payload order is Arm, ObserverPress, ProbeReceiptBatch.
+Envelope protocol_version is one. stream_sequence is exactly one, two, three.
+Every record repeats the same fixture session, arm, and native_session.
+
+The finite decoder accepts immutable bytes only. It never reads a descriptor.
+Frame lengths must use canonical protobuf varints.
+Payload encodings must equal deterministic serialization after discarding unknown fields.
+This rejects unknown fields, duplicate scalar encodings, and noncanonical wire encodings.
+
+Source-checked protobuf-c ordering compatibility:
+The generated envelope field descriptor array is ordered by tags one through eight.
+Its arm/observer_press/probe_receipts fields precede native_session despite declaration order.
+Installed protobuf-c.h:686 requires descriptors sorted by tag number.
+ROG has libprotobuf-c-dev/libprotobuf-c1 version 1.4.1-1ubuntu4.
+Upstream v1.4.1 protobuf-c/protobuf-c.c:1472-1531 iterates that descriptor order when packing.
+oneof_field_pack() at :1156 selects the matching numeric field ID in that same traversal.
+unlabeled_field_pack() at :1218 omits default values, matching proto3 field omission.
+Generated wrappers call protobuf_c_message_pack() directly.
+Thus tag-eight declaration placement creates no source-level packing-order mismatch.
+No field declaration change is needed for this ordering check.
+Source URL: https://raw.githubusercontent.com/protobuf-c/protobuf-c/v1.4.1/protobuf-c/protobuf-c.c
+Its SHA256 is 5af483efb77b6c60afce921ff361cff5320b2a80698f6e7fb0356c49b48933a7.
+The fetched source and generated descriptor excerpts remain in external evidence.
+No serializer executed for this check. Actual C-to-Python byte interoperability remains UNRUN.
+The maximum payload is 4,096 bytes. There are exactly three records.
+The maximum whole artifact is 12,294 bytes, including length prefixes.
+The receipt batch contains at most 32 entries.
+Limits require exact positive integers and may only tighten these ceilings.
+Booleans, floats, zero, negatives, and excessive limits fail closed.
+Truncation, malformed frames, extra records, replay, and ordering mismatches fail.
+
+A deadline-aware descriptor collector remains unimplemented.
+It must bound reads, buffering, record counts, and elapsed time.
+Its completion protocol must establish the artifact end before accepting three frames.
+Stopping at frame three alone cannot detect later bytes on an open descriptor.
+The eventual collector must reject timeout, early EOF, overflow, truncation, and trailing bytes.
+This finite decoder makes no claim about live descriptor deadlines or EOF handling.
+
+Native snapshot requirements
+
+Arming requires authenticated ordinary XI2 precondition actions for both actors.
+Pin all four devices per actor from those receipts and checked hierarchy roles.
+Require idle pre-arm replay/frozen state under the reviewed lifetime contract.
+At observation, resolve all eight devices again and validate epochs and pairings.
+Check the recipient is Running and the surviving popup is mapped and realized.
+Check client/window ownership, labels, epochs, and spatial generation.
+Any invalidated arm, missing device, missing class, or changed lifetime must fail.
+Do not replace a removed old device with an empty native state.
+
+The observer captures its first qualifying outgoing XI_ButtonPress once.
+It copies the four old devices' actual corresponding native down arrays at that callback.
+Pinned XLibre f844d7a86c10fd5cc89083e7daf97b862b8ca1fd defines DOWN_LENGTH as 32 bytes.
+Keyboard devices report KeyClassRec.down. Pointer devices report ButtonClassRec.down.
+Each bitmap must report 256 bits, exactly 32 bytes, and state_complete true.
+All four typed old identities must occur exactly once.
+Any set bit fails. Short zero-filled data never counts as release.
+snapshot_complete means every required pin and native state check succeeded.
+This flag cannot substitute for those future native checks.
+Native focus/grab diagnostics and postdown arrays are outside this decoder's release assertion.
+
+Explicit proof boundary after main-window destruction:
+This schema records complete native key/button down bitmaps only.
+It does not encode native focus, grabs, capture, drag state, or their cancellation.
+Clear down arrays and a correlated peer press do not prove those controls were released.
+They cannot alone close every balanced-control requirement in root AGENTS.md.
+Existing strict surviving-window release-event selectors remain mandatory and unchanged.
+Their evidence does not fill the destroyed-target focus/grab/capture gap.
+Native focus/grab/capture proof after destruction remains pending source-backed integration.
+This increment invents no new focus/grab wire fields or native query API.
+
+Observer ordinal must equal one. Later events cannot replace the snapshot.
+The callback monotonic time must lie inside a positive, strictly increasing arm interval.
+The event must be nonsynthetic XI_ButtonPress with the exact nonzero button detail.
+Recipient, window, pointer master, source slave, and their lifetimes must match the arm.
+Overflow, disconnect, missing snapshots, and invalidated arms fail qualification.
+No fabricated protobuf fixture proves these native conditions occurred.
+
+Independent probe receipts
+
+Use reviewed probe source 9b24f170a04351115c5e0eb19352eb330591248d with --xi2-receipts.
+Existing core-mode selectors and their expectations stay unchanged.
+ProbeReceipt preserves receipt_ordinal, event_type, deviceid, sourceid, xid, detail, time, and synthetic.
+The batch preserves all XI2 key, button, and motion receipts from its watermark.
+Intervening releases, keys, and motion must not be filtered out.
+
+The supervisor drains prior receipts before arming and records the watermark.
+The batch starts at watermark plus one, with contiguous ordinals and no wraparound.
+The validator finds the first ButtonPress sharing the pinned peer pointer master or source slave.
+Using either identity detects wrong-pair presses before an apparently correct later press.
+That first candidate must be the final receipt and match both pinned identities exactly.
+Its target, type, detail, and X event time must match the observer tuple exactly.
+An earlier wrong peer press or later replacement fails.
+Synthetic input, unknown event types, invalid IDs, gaps, duplicates, and missing presses fail.
+
+The supervisor authenticates the independent probe channel.
+It attaches trusted recipient/window/device/source epochs in ProbeReceiptContext.
+Those epochs are supervisor context, not native fields received from the probe.
+The enclosing record binds the context to the fixture arm/session and native session.
+X event time is matched exactly. It is not compared with monotonic time.
+Only live channel integration can establish that the batch is complete and unfiltered.
+
+Generation proposal; shared CMake and Meson files remain unchanged
+
+The schema is standalone. Generate flat bindings from its directory.
+Use the same flat native_input_observer_pb2 import as both Python source files.
+
+CMake proposal:
+
+set(observer_schema_dir "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v1")
+set(observer_python_dir "${CMAKE_CURRENT_BINARY_DIR}/python")
+set(observer_python "${observer_python_dir}/native_input_observer_pb2.py")
+add_custom_command(OUTPUT "${observer_python}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${observer_python_dir}"
+  COMMAND protobuf::protoc --python_out=${observer_python_dir}
+          --proto_path=${observer_schema_dir} ${observer_schema_dir}/native_input_observer.proto
+  DEPENDS proto/spatial/testing/v1/native_input_observer.proto protobuf::protoc VERBATIM)
+add_custom_target(native-input-observer-python-protobuf ALL DEPENDS "${observer_python}")
+
+The future fixture target depends on this generation target.
+Its PYTHONPATH contains the build python directory and source tests/native directory.
+Registration and test execution remain for primary integration.
+
+Meson runs inside the patched XLibre tree, not the project checkout.
+The future qualified base.lock overlay must add this exact mapping:
+
+"proto/spatial/testing/v1/native_input_observer.proto": "Xext/spatial/native_input_observer.proto"
+
+Introduce this new option through a reviewed server patch to meson_options.txt:
+
+option('spatial_native_input_observer', type: 'boolean', value: false,
+       description: 'Enable qualification-only native input observation')
+
+Inside the existing server/xlibre/meson.build overlay, propose:
+
+if get_option('spatial_native_input_observer')
+  observer_proto_c = custom_target('native-input-observer-protobuf-c',
+    input: 'native_input_observer.proto',
+    output: ['native_input_observer.pb-c.c', 'native_input_observer.pb-c.h'],
+    command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
+              '--proto_path=' + meson.current_source_dir(),
+              meson.current_source_dir() / 'native_input_observer.proto'])
+  srcs_xext += observer_proto_c
+endif
+
+Future observer C sources must use this same qualification option.
+The existing Xext patch already includes source/build Xext/spatial directories.
+It links spatial_input_dep, which already resolves libprotobuf-c >=1.4.
+Generated C output names and include paths therefore stay flat.
+No overlay mapping, option, server patch, or shared build file changes in this increment.
+Never hand-encode protobuf or introduce a loadable observer module.
+
+Qualification status and remaining work
+
+External source-check receipts live under:
+/home/dflanag3/spatial-artifacts/m09-observer-contract-reviewed-20261020.
+Source checks generate real Python/protobuf-c bindings and compile/import actual modules.
+They include undefined-name lint and whitespace review. They execute no fixture cases.
+Both rejected task-run-01 and task-run-02 remain preserved in their original external artifact tree.
+
+All behavior tests remain UNRUN pending primary scheduling on sb16 and sb16-2.
+The live descriptor collector and observer EventCallback integration remain missing.
+Native serialization, arming transport, trusted process/probe provenance, and spatial-generation lookup remain missing.
+Required native controls include held key/button, ID reuse, client/window reuse, and frozen replay.
+Native class/lifetime evidence, application wire receipt, and phase qualification remain UNRUN.
+M08 remains unchanged. This source proposal does not complete M09 or Spatial-M1.

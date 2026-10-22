@@ -40,7 +40,10 @@
     "server/patches/0008-application-atom-privacy.patch",
     "server/patches/0009-private-configure-event-metadata.patch",
     "server/patches/0010-private-parent-metadata.patch",
-    "server/patches/0011-xlibre-child-pixel-isolation.patch"
+    "server/patches/0011-xlibre-child-pixel-isolation.patch",
+    "server/patches/0012-native-input-observer-option.patch",
+    "server/patches/0013-native-input-observer-build-args.patch",
+    "server/patches/0014-native-observer-xvfb-link-whole.patch"
   ],
   "overlays": {
     "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
@@ -51,6 +54,45 @@
     "server/xlibre/spatialpolicy.c": "Xext/spatial/spatialpolicy.c",
     "server/xlibre/spatialsecurity.h": "include/spatialsecurity.h",
     "proto/spatial/security/v1/security.proto": "Xext/spatial/security.proto",
-    "proto/spatial/security/v1/selection_scope.proto": "Xext/spatial/selection_scope.proto"
+    "proto/spatial/security/v1/selection_scope.proto": "Xext/spatial/selection_scope.proto",
+    "server/xlibre/spatialinputobserver_lifetime.c": "Xext/spatial/spatialinputobserver_lifetime.c",
+    "server/xlibre/spatialinputobserver_lifetime.h": "Xext/spatial/spatialinputobserver_lifetime.h",
+    "server/xlibre/spatialinputobserver_capture.c": "Xext/spatial/spatialinputobserver_capture.c",
+    "server/xlibre/spatialinputobserver_capture.h": "Xext/spatial/spatialinputobserver_capture.h",
+    "server/xlibre/spatialinputobserver_serialize.c": "Xext/spatial/spatialinputobserver_serialize.c",
+    "server/xlibre/spatialinputobserver_serialize.h": "Xext/spatial/spatialinputobserver_serialize.h",
+    "proto/spatial/testing/v1/native_input_observer.proto": "Xext/spatial/native_input_observer.proto"
+  },
+  "source_sha256": {
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/patches/0002-spatial-security.patch": "c5c94cd1cb375e829db7b0e0478dacb916dc9890e71b3c94243e701c3c99cb0b",
+    "server/patches/0003-server-shutdown.patch": "195e4b5475fb124535a5be1abbf1ea12723d6c8ba39ec5f463f5d3c24f6dd6b7",
+    "server/patches/0004-spatial-resource-policy.patch": "ad72bc7de29196c2fbec843df7d7eecf2de70e7a246b2bcf9b4f63cc30af1544",
+    "server/patches/0005-animated-cursor-cleanup.patch": "a51fa2ba79da0a92396b3675dcadccdd598cb78155c451b738d368ac5af12356",
+    "server/patches/0006-global-server-access.patch": "e98932d02c432f298b257b6f5f4dafb59fecfecacf1056ee1023753b0e940b07",
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch": "21e9efe8bcb7a23f0f7dbdb219a0ff8c986d30339a96988e017fa6ae46a95d29",
+    "server/patches/0008-application-atom-privacy.patch": "ec66f9c1536954df7c3c724f4f63b4a47145a1b98eb4ad3457f835ae245d579f",
+    "server/patches/0009-private-configure-event-metadata.patch": "3ad2a6c8d120cd9c5f55a5a904b993610851b0e948c6ea0d42a4567c018c466f",
+    "server/patches/0010-private-parent-metadata.patch": "e6aef6659ad89d227ed4d4cf11492d651822fa44ae44eb3b17506a04f5704483",
+    "server/patches/0011-xlibre-child-pixel-isolation.patch": "33668fea8798ceeaf18b71d1c3697545df3b2f667b0c04abe6d392388782f4ad",
+    "server/patches/0012-native-input-observer-option.patch": "4561bb5e0c59fa0d01d0f23bba02068b7e5f6217b71534b1eecb3100f623af51",
+    "server/patches/0013-native-input-observer-build-args.patch": "78853a54c1512b9153d22ddfb68bd11f2bae2548213382aa8ce7561dcd6a5cab",
+    "server/patches/0014-native-observer-xvfb-link-whole.patch": "3c1ccd66b20580737371fb963d27c3cf7ca7838dd9d819f5468ed8f5f2404aff",
+    "server/xlibre/spatialinput.c": "d59aefa90dd72a35d327dd8f6400bb28d7227f9090ea94c449ec61204a15c701",
+    "server/xlibre/spatialinput.h": "4d80f8ef30fcec45205f00249fecf96054d76d5c93771b6595e7c87bdb9206c1",
+    "server/xlibre/meson.build": "8100154942a5a83db81b3bdd92db0e17360e19b1c5372ba4b7382e8c31fe2ae8",
+    "proto/spatial/input/v1/input.proto": "46c28e6ad46aecad10f515994d7e97b85426f5a66fb00dab241ce4876b209815",
+    "server/xlibre/spatialsecurity.c": "366e3edcaded5e7de0f671e93b3da3b7834b87baf4f3049637e8ae9dde0c4a04",
+    "server/xlibre/spatialpolicy.c": "5dcf853bc001d9ac66f8253c425d34454f49e351dc52396a68d496978277fc75",
+    "server/xlibre/spatialsecurity.h": "9fe985a4a1b3591c18f3c1122dadfe137eb8a4638542a6460699970c67d06310",
+    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48",
+    "proto/spatial/security/v1/selection_scope.proto": "e6782b2424f2f2f2a39c4edfa2a4eaf2888a1b60a325a9bdb68184aa26a46e9d",
+    "server/xlibre/spatialinputobserver_lifetime.c": "67b18720826f412dfd4f5126cc2fe64676c5b2f00c23465a08aad45bee47bd60",
+    "server/xlibre/spatialinputobserver_lifetime.h": "6262ab7a8998c8e227f8e44594cd4d6dfec4fc00eb94fbb89b9053df47478a73",
+    "server/xlibre/spatialinputobserver_capture.c": "22adbf0ddd081242a7e72c9fa531c0322eb2f029d885ffec0e58a732cbdc6eec",
+    "server/xlibre/spatialinputobserver_capture.h": "7a53423b7d730fab7263571ed1ba31b3d61bd12ceb158d76b0b29e53728bfd23",
+    "server/xlibre/spatialinputobserver_serialize.c": "dfd6fb292f14f5d53c32eff411d567e1d14bb57a69fb1f56075eb47fef4472ef",
+    "server/xlibre/spatialinputobserver_serialize.h": "3939c475d49ea91329880a85a37af6d4f79073e4de8503a2ede971cb490b4d41",
+    "proto/spatial/testing/v1/native_input_observer.proto": "6e3a29a87f18a69efc65264480d15d847d7101767422a5969eb1a35029917722"
   }
 }

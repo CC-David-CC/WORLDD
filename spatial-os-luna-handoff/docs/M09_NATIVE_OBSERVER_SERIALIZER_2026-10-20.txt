@@ -1,0 +1,105 @@
+# M09 native observer serializer increment
+
+Status: source checkpoint candidate, unqualified. Runtime interoperability is UNRUN.
+
+## Source lineage and imported capture helpers
+
+This branch starts at `f5d74140a344f0451826a4e6a4fbee73e81e974b`.
+The XLibre base remains `f844d7a86c10fd5cc89083e7daf97b862b8ca1fd`.
+The XACE baseline stays active. No native XLibre linkage changed.
+
+The four capture helpers were copied from reviewed commit
+`bf2d8e0fece8b16afc6e41f828bffebcbfbcd30d`, without importing its history:
+
+- `spatialinputobserver_lifetime.c`: SHA-256 `748287c4288c3a809791daedd4f5a0ddca2375d7cf50a74e685b46667a0ad26c`
+- `spatialinputobserver_lifetime.h`: SHA-256 `4142fa7e4f14ed098d525390c79820150241795e457b9966fd5f75ab629a1178`
+- `spatialinputobserver_capture.c`: SHA-256 `8d7a464a45335957839473806263d5d263485a67b2bb546a3d3a3cc796c25671`
+- `spatialinputobserver_capture.h`: SHA-256 `c47985a0f27859a8ac2f41659cf95703d426fd8b6036cacd63818a4919fcbf16`
+
+Attribution: David <david@code.contractors>, commit subject ?capture first relevant native XI2 output and device state?.
+The only changes to these imported files add monotonic timestamps at successful arm
+and first relevant outgoing callback boundaries. The existing first-relevant-event
+failure behavior, callback budget, lifetime checks, and pointer-free capture remain.
+`clock_gettime(CLOCK_MONOTONIC)` supplies nanoseconds. Clock failure invalidates capture.
+
+## Contract and proof boundary
+
+`spatialinputobserver_serialize.c` uses generated protobuf-c bindings from the
+versioned schema. It emits exactly two canonical length-prefixed records:
+Arm sequence 1, then ObserverPress sequence 2. It emits no probe receipt record.
+The supervisor must append the independently collected ProbeReceiptBatch.
+
+The serializer rejects wrong capture phases, failures, sessions, device pins,
+roles, object epochs, labels, event tuples, timestamps, or incomplete native states.
+It checks recipient and popup label equality and requires all device roles once.
+It uses validated captured role sets to encode the schema's required pair fields.
+It verifies GenericEvent type (including no synthetic bit), nonzero XI extension,
+XI_ButtonPress tuple, fixed bitmap lengths, and consistency between the native
+GenericEvent length, captured packet byte count, and XI2 header/class bounds.
+The capture callback already checked the extension against the server's XI opcode
+and validated the raw packet; the serializer does not retain or reparse raw pointers.
+The lifetime pin path checked the live master pairing and slave attachment.
+The serializer copies the actual 32-byte key/button down arrays, including set bits.
+The parser must reject retained native input. COLLECTED does not mean release succeeded.
+
+The output buffer stays untouched and output length stays zero on rejection.
+The serializer packs into bounded local buffers before copying to caller storage.
+Each protobuf payload is limited to 4,096 bytes. Output capacity is checked exactly.
+
+Trusted context contains fixture nonces, actor and issuer references, spatial generation, receipt watermark, and deadline. The serializer authenticates none of them.
+Future supervisor/channel work must authenticate the context, bind native session to
+one retained server process, validate spatial generation against live authority, and
+bind its independent probe stream and EOF/deadline to this arm. Do not deserialize
+external epochs into native pins or expose an ordinary X client endpoint.
+
+The schema proves only native key/button down bitmaps. It does not prove focus,
+grab, capture, drag, or complete release cancellation. Those claims remain pending.
+The serializer is not linked into XLibre and has no descriptor or socket API.
+
+## Selected regressions and source validation
+
+The authored C-to-Python regression source covers:
+
+- Valid generated protobuf-c encoding of the two native records.
+- Retained key and button bitmaps preserved in output and rejected by the Python oracle.
+- Rejection of stale session and pin, invalid role, oversized label, wrong event tuple,
+  stale timestamp, and wrong capture phase.
+- Rejection of synthetic-bit and non-GenericEvent headers, truncated packet lengths,
+  and mismatched GenericEvent declared versus captured lengths.
+- Exact-capacity success, one-byte-short failure, and no partial output on failure.
+- Python-side stale native session, role, label, event tuple, and time mutations,
+  each checked against its intended parser rejection reason.
+- Exact immutable bytes from the two C frames plus a canonical test-only synthetic
+  receipt frame, validated against a fixed independently constructed expected context.
+  Held-key/button cases assert their nonzero bitmap before checking the parser's
+  retained-input rejection.
+
+The first primary source review rejected the earlier test source because it passed
+protobuf object lists into a bytes-only parser and derived its expected context from
+the candidate output. It also found missing XI2 header checks. Those defects were
+corrected in the source checkpoint. The review JSON is retained outside Git at
+`/home/dflanag3/spatial-artifacts/m09-native-observer-serializer-20261020/primary-source-review-01.json`
+with SHA-256 `c202c1c46d0df5a74877c329f71de5a33227f4e5359a6bd4065c2b66671ab684`.
+
+Compile-only checks use the retained configured headers and metadata for the pinned
+XLibre base. Debug and ASan/UBSan builds use `-Werror`. The first source build evidence remains at
+`/home/dflanag3/spatial-artifacts/m09-native-observer-serializer-20261020/compile-run-07`.
+After the primary review corrections, Debug and ASan/UBSan were rebuilt against
+the retained pinned XLibre headers and generated protobuf-c bindings. The canonical
+compile receipt is `/home/dflanag3/spatial-artifacts/m09-native-observer-serializer-20261020/compile-run-09`;
+both command and wrapper exits are zero. Debug binary SHA-256 is
+`dbae3f0875458c6f87862307f00eb70768cb1e22e694a763be86ea505b5286a4`.
+ASan/UBSan binary SHA-256 is
+`00aa53b41b001849d04ee63fdc6a3f305a63363f6d40e5bb4fe0e374ad57e440`.
+All five translation units compiled in both profiles with `-Werror`. Python test
+syntax was checked by parsing its source in memory. Neither fixture nor Python
+interoperability tests were executed on ROG.
+The C fixture fills a capture struct to test protobuf-c encoding; it does not claim a
+live native event. The Python regression adds a test-only receipt companion to exercise
+the existing three-record oracle. It does not prove probe-channel provenance. Runtime
+interoperability remains UNRUN until primary schedules it on sb16 and sb16-2.
+
+Remaining work includes default-off Meson/CMake linkage, safe output-FD ownership,
+trusted supervisor/probe provenance, real spatial-generation lookup, independent
+runtime interoperability on both hosts, and the focus/grab/capture proof gap.
+This source checkpoint does not qualify M09, M08, or Spatial-M1.

@@ -1,0 +1,321 @@
+M09 OBSERVER V2 CONTRACT REPAIR DRAFT
+Date: 2026-10-20
+Status: UNQUALIFIED. API FREEZE INCOMPLETE. Recipient revision pure tests: 23/23 PASS. Native runtime UNRUN.
+
+SCOPE AND SOURCE
+
+Host: rog-ally-x. No test host was contacted.
+Checkout: /home/dflanag3/src/m09-observer-v2-recipient-contract-20261020
+Branch: m09/observer-v2-recipient-contract-20261020
+Base: 24cb6f4a7689fa44db4aa286335f22e391cba5e5
+Reviewed plan: 31fda7b844ebf7a58c4cebb74a07557dc42dec9e:
+  docs/M09_TRUSTED_OBSERVER_TRANSPORT_PLAN_2026-10-20.txt
+
+The prior draft failed primary review. Its four files were preserved before repair.
+Archive root:
+  /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+  m09-observer-v2-contract-01/review-repair-01
+Original bytes live below original/. Original hashes are in original-manifest.json.
+The original tracked diff is empty because all four files were untracked.
+
+This successor revises four unlocked v2 files and adds the separate recipient-contract note.
+It changes no v1 or production source.
+All v1 sources, locked acceptance, M08 harnesses, and live51bad gates remain untouched.
+There is no native producer, serializer API, collector, transport, CMake change, or integration here.
+Read M09_OBSERVER_V2_RECIPIENT_CONTRACT_2026-10-20.txt for the explicit recipient revision.
+
+EXPLICIT DRAFT CONTRACT CHANGES
+
+The v2 schema basename is now native_input_observer_v2.proto.
+Its generated Python module is native_input_observer_v2_pb2.
+The v1 basename and spatial.testing.v1 package remain unchanged.
+The new package remains spatial.testing.v2.
+
+Arm now echoes the complete ObserverArmV2 accepted_command.
+That echo includes session, arm, deadline, watermark, event, client, device, and held-detail expectations.
+The separate private binding input is named ObserverActorSeatBindingV2.
+It includes session_id and arm_id to prevent a cross-session binding join.
+The future worldd binding writer must receive those supervisor nonces through private startup context.
+That nonce handoff does not exist yet.
+
+ClientIdentity includes native client index, object epoch, explicit security role, and any APP label.
+APPLICATION requires a valid APP label. Other roles must omit that label.
+The independent probe is SUPERVISOR or COMPOSITOR. The separate seat owner is COMPOSITOR.
+The target window owner is a separately pinned APPLICATION client.
+Its APP label matches the target window and expected application.
+Client indices and epochs are distinct among these three live clients.
+WindowIdentity.owner retains the actual APP owner separately from the privileged probe recipient.
+Actor issuer and actor IDs must each contain 32 bytes, matching src/authority/store.cpp.
+Application IDs follow the existing nonempty, 256-byte, NUL-free label boundary.
+
+Each snapshot carries the old seat context, including POST_PEER_BIND.
+POST_PEER_BIND also carries the peer seat context.
+Each snapshot carries the pinned application's actual controller seat relation.
+Do not derive that relation from a cached old-seat application pointer after cancellation.
+Resolve it through the live pinned application window and recipient instead.
+
+SeatContext carries actor, world actor, native seat, owner client, presentation generation,
+actual target and focus identities, application relation, and tracked keys/buttons.
+The target while buttons are held is the spatial capture target.
+DeviceSnapshot separately carries native grab identity. Zero buttons cannot establish capture clear.
+GrabIdentity requires the resource, live owner client, window, and device pins.
+A confine window, when present, also requires an application and lifetime identity.
+
+Native down and postdown bitmaps are both present. Each has exactly 256 bits and 32 bytes.
+The class must match the pinned device kind. Button count, down count, and state remain separate.
+The decoder checks bitmap lengths, legal details, and native button popcount.
+No valid flag can substitute for bitmap bytes.
+Completeness gates remain mandatory for native context, focus, grab, snapshot, and seat context.
+
+Every probe receipt carries its own device, source, window, epochs, generations, and application joins.
+A batch-wide peer epoch cannot substitute for old-release lifetime joins.
+The independent probe owns receipt ordinal and monotonic read timestamp production.
+X event time remains an exact peer-event tuple field, not the ordering clock.
+
+TRUSTED INPUTS AND BOUNDS
+
+validate_records() requires expected_arm and exactly two expected_bindings.
+The supervisor reads bindings from worldd's private inherited pipe before arming.
+It obtains ActorRefs from authenticated worldd context and native pins from the private native setup.
+It must never compose expected inputs by copying the artifact under validation.
+The decoder cross-checks both ActorRefs, world actor IDs, seats, application, presentation,
+session, and arm against those trusted inputs. It does not authenticate the caller or pipe.
+Supplying arbitrary matching fixture identities does not establish actor authority.
+Worldd's real control lease remains the authority for transfer.
+
+The artifact contains exactly four canonical frames in this order:
+  Arm, NativeTransition, ObserverPress, ProbeReceiptBatch.
+Envelope sequence is exactly 1 through 4. Protocol version is exactly 2.
+Every envelope joins session_id, arm_id, and native_session_epoch.
+
+Payload cap: 4096 bytes per frame. Artifact cap: 16392 bytes.
+Receipt cap: 32. Arm input cap: 4096 bytes.
+Binding input cap: 1024 bytes per binding; two canonical frames total at most 2052 bytes.
+Session and arm IDs contain 16 bytes each. Native object epochs are nonzero session-local pins.
+The absolute arm interval is positive and at most 10,000,000,000 nanoseconds.
+Custom decoder limits may only reduce the fixed caps.
+Canonical protobuf bytes reject unknown fields, duplicate scalar fields, and alternate encodings.
+Canonical varint prefixes use at most two bytes under the fixed frame cap.
+
+TRANSITION INVARIANTS
+
+The phase sequence is exactly:
+  PRE_CANCEL, POST_RELEASES_BEFORE_CONTEXT_CLEAR, POST_CANCEL, POST_PEER_BIND.
+Timestamps never decrease. All phases and receipts fit the absolute arm interval.
+Equal timestamps are permitted; phase and receipt ordinals preserve their local ordering.
+The native callback follows POST_PEER_BIND. The peer receipt follows that callback.
+
+PRE_CANCEL requires the old controller, actual target, actual focus, and held tracked state.
+The trusted arm names at least two held keycodes, including a modifier, and one held button.
+Native down bits must cover exactly those expected details across the old device set.
+Native down/postdown bits cannot introduce an unrequested held detail.
+The old master keyboard has actual resolved focus on the target.
+At least one old pointer has an actual native grab with complete owner/window pins.
+The fixture must establish these facts before arming. The decoder cannot identify a keymap modifier.
+The supervisor must resolve expected_modifier_keycode from the actual keymap used by the fixture.
+
+POST_RELEASES_BEFORE_CONTEXT_CLEAR retains old target/focus/application/controller context.
+Its tracked and native held state is clear. Native focus, grab, freeze, raw sync state,
+pending events, and replay state are clear before the private context is erased.
+POST_CANCEL has no old target, focus, application relation, controller relation, or tracked input.
+POST_PEER_BIND repeats those old-seat and old-device clear checks.
+The pinned application's controller changes from old to none to peer across those phases.
+
+POST_PEER_BIND samples inside bind_application(), after rebind_application(), before return.
+At that source location, BUTTON has not assigned the peer target/focus or sent the peer event.
+The peer therefore has the correct application/controller relation with empty target/focus/input.
+Requiring peer target/focus there would invent facts that the actual code has not set.
+Do not cancel another seat inside bind_application() to satisfy the witness.
+
+Every snapshot contains exactly the pinned devices, without duplicate IDs.
+Device joins include kind, master/slave role, pairing/attachment, and object epoch.
+The first three phases contain the old four devices. The final phase contains all eight.
+Every old device remains clear in the final snapshot.
+Native pending/replay global facts must also be clear after PRE_CANCEL.
+
+RECEIPT AND PEER EVENT INVARIANTS
+
+The observer event must be the requested XI2 ButtonPress and detail.
+Its device/source must equal the peer pointer master/slave pins, including attachments.
+Its recipient and window must equal the trusted client/window pins.
+No observer or probe overflow, disconnect, or synthetic event is accepted.
+
+The first receipt ordinal equals prearm_receipt_watermark + 1.
+Every following receipt ordinal is consecutive. Receipt timestamps never decrease.
+A receipt before PRE_CANCEL or after the deadline fails.
+The exact old release sequence follows cancel(): buttons in ascending order, then keycodes.
+Each old release has the expected old master/source pair and PRE_CANCEL held detail.
+No missing, additional, duplicate, or wrong-epoch release can satisfy the sequence.
+All releases precede the peer event in the independent probe stream.
+The decoder continues after the peer event and reports OLD_RELEASE_AFTER_PEER specifically.
+It does not stop scanning at the peer event.
+The independently received peer event matches type, detail, device, source, window, and X event time.
+
+The future probe/supervisor must drain prearm events before recording the trusted watermark.
+The drain must complete after all old held-input positive controls reach the probe.
+A read timestamp alone cannot prove when an already queued native event was generated.
+The decoder cannot detect a dishonest watermark, forged timestamp, or copied producer assertion.
+Native sampling, FD provenance, and independent delivery witnesses remain required.
+
+NATIVE SOURCE INSPECTION AND REMAINING WORK
+
+Inspected source manifest:
+  /home/dflanag3/spatial-artifacts/m09-native-observer-build-integration-20261020/
+  run-exact-final-source-v2.json
+Its pinned XLibre commit is f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+The historical f992575 linkage remains rejected. No linkage source was transplanted.
+Read-only native source root: the same artifact directory's xserver-source-v6.
+
+include/inputstr.h SHA256:
+  0349234e255d7873f29b0063f4a7681a405329e48bba5a5856c487572f94e6ab
+It defines GrabRec.resource, device, window, and confineTo.
+GrabRec has no direct owner-client field. Resolve resource ownership through the real X server API.
+Never dereference a stale window or serialize a pointer.
+The current lifetime snapshot only copies active_grab, without owner/window identity.
+Its OTHER focus classification intentionally does not dereference the window pointer.
+Those existing facts cannot populate complete GrabIdentity or native_focus.
+Keep completeness false until reviewed lifetime-safe native pinning exists.
+
+include/input.h defines DOWN_LENGTH as 256/8.
+dix/input_priv.h defines GRAB_STATE_NOT_GRABBED as 0.
+The raw sync field is checked against that pinned value, rather than ignored or coerced.
+The native owner must confirm focus-class availability, button counts, and bitmap interpretation
+against real device structs before freezing the API. Missing focus class is distinct from None.
+
+SeatRec fields and ApplicationInput.controller already exist in server/xlibre/spatialinput.c.
+No transition sampler currently copies them into this v2 schema.
+Actual capture ownership/window resolution, modifier keymap proof, arm-before-cancel enforcement,
+worldd binding nonce handoff, C serializer interoperability, and receipt production remain missing.
+The C serializer_v2 header/API requested by the larger plan is outside this bounded repair.
+API FREEZE REMAINS INCOMPLETE until these interfaces and native field mappings receive review.
+A structurally valid fixture never proves these native facts.
+
+SOURCE TESTS AND FUTURE BUILD HOOK
+
+The unlocked test source defines a positive structural fixture and specific negative controls.
+It asserts ObservationV2Error.code exactly, rather than accepting arbitrary exceptions.
+Named groups cover framing/caps, sessions/order, trusted binding joins, snapshots/context,
+PRE_CANCEL held proof, bitmap sizes, every old clear phase, capture/focus identities,
+observer tuples, receipt watermarks, stale details/epochs, ordering, overflow, and disconnect.
+A fresh-process v1 decoder rejection test protects the separate module contract.
+All 13 predecessor parser methods passed in the authorized ROG followup below.
+That historical result does not qualify the new recipient-contract revision.
+Static AST parsing alone was never test execution.
+
+Future additive CMake setup must generate from:
+  proto/spatial/testing/v2/native_input_observer_v2.proto
+Use that v2 directory as protoc's include root for the standalone schema.
+For Python, --python_out=EXTERNAL_GENERATED_V2_DIR produces native_input_observer_v2_pb2.py.
+For protobuf-c, the basename produces native_input_observer_v2.pb-c.[ch].
+Add the external generated Python directory to the separate v2 test environment.
+Preserve the v1 generator and native_input_observer_pb2.py.
+Use one generator per output. Do not commit generated bindings.
+No CMake command, protoc generation, or native runtime ran in this repair.
+Primary supplied externally generated v1/v2 bindings for the authorized pure parser run.
+
+The future collector must enforce the same absolute deadline before and after reads and EOF.
+The future transport must reject late/duplicate arms, resets, partial frames, and leaked FDs.
+Those runtime controls are not implemented or claimed by the finite decoder.
+Cleanup needs a separate bounded allowance. No permissive timeout reset is authorized.
+
+NEXT SAFE TASK
+
+Primary reviews the five revised source/doc paths and the external before/after diff.
+Primary already generated bindings externally. The authorized pure structural run passed.
+Review the corrected scoped-enum references and retained test evidence before checkpointing.
+Resolve parser failures before any checkpoint. No commit or push was made here.
+Then a native-owner review must settle missing pinning and serializer/collector interfaces.
+Freeze the source contract only after those remaining gaps are explicit and accepted.
+M08 qualification and all native M09 checks remain separate and pending.
+
+AUTHORIZED PURE PARSER FOLLOWUP (PREDECESSOR CONTRACT)
+
+Primary's original generated-binding run exposed unscoped nested enum references.
+Its 13 methods failed while creating the fixture with AttributeError: pb.POINTER.
+That failure evidence remains at primary-parser-checks-01/unit-run-01 under the task artifact root.
+The decoder and tests now use pb.DeviceIdentity.POINTER, KEYBOARD, MASTER, and SLAVE.
+No enum aliases or schema changes were introduced.
+Inverse-replacement hashes match the previous decoder and test source hashes exactly.
+This proves the code repair only changes those generated-symbol references.
+
+Selected checks were recorded before execution in:
+  review-repair-01/worker-parser-checks-02/selected-checks.txt
+Canonical run, relative to the task artifact root:
+  review-repair-01/worker-parser-checks-02/unit-run-01
+Task artifact root:
+  /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+  m09-observer-v2-contract-01
+
+Command: python3 -B spatial-os-luna-handoff/tests/native/test_input_state_observer_v2.py -v
+Working directory: this worktree.
+PYTHONDONTWRITEBYTECODE=1.
+PYTHONPATH contains primary-parser-checks-01/generated and this worktree's tests/native directory.
+The exact absolute argv is retained in argv.nul and argv.shell-quoted.txt.
+The installed run-command.sh ran inside tmux session m09-v2-parser-repair-02-01.
+command.exit=0. wrapper.exit=0. terminal-status=COMPLETE. The tmux session retired.
+The unittest log reports 13 methods, zero failures, zero errors, and OK in 0.153 seconds.
+
+PASS: positive structural fixture and actual canonical framing bounds; all existing negative controls;
+fresh-process v1 rejection; fixed v2 caps; trusted identity joins; bitmap and native assertion checks;
+exact release/peer tuples; receipt watermark and ordering controls.
+Exact ObservationV2Error.code assertions passed, including OLD_RELEASE_AFTER_PEER,
+PRE_CANCEL_NATIVE_HELD_JOIN, NATIVE_BITMAP_LENGTH, OLD_NATIVE_SYNC_REMAINS,
+OBSERVER_DEVICE_JOIN, RELEASE_DEVICE_JOIN, and RECEIPT_ORDINAL.
+FAILED: no failures remain in this repaired pure parser run.
+HISTORICAL FAILURE: primary's earlier run remains preserved separately.
+UNRUN: native/server/worldd/broker/application execution, transport checks, C interoperability,
+CMake integration, physical input, and all M09 native qualification.
+The native field and API incompleteness above remains unchanged.
+No commit, push, source integration, or test-host contact occurred.
+
+RECIPIENT CONTRACT SUCCESSOR REVISION
+
+Primary selected the distinct privileged NativeClient topology after the native identity review.
+The revision adds ClientIdentity.role, expected_window_owner, expected_grab_owner, and WindowIdentity.owner.
+Grab.owner joins the explicit trusted expected_grab_owner. The chosen fixture pins it to the privileged probe.
+The APP window owner remains independent. ObserverPress and ProbeReceiptBatch join the actual privileged probe.
+No security/XACE or v1 capture/lifetime behavior changes here.
+The old capture code equates APP owner and recipient. It cannot implement this revised topology.
+New private v2 role/client/window pinning and callback APIs remain required.
+Actual XI2 delivery to the separate probe during an APP implicit grab remains UNRUN.
+The additive recipient note records the source rationale, invariants, tests, and native limitations.
+This successor uses only its new worktree. The predecessor worktree and evidence remain unchanged.
+
+DIX-sourced followup: XI2 delivery is tried before core delivery and can stop that path.
+ActivateImplicitGrab sets grab.resource from the recipient's clientAsMask and grab.window from the target.
+A privileged XI2 probe may own the implicit grab on an APP-owned window.
+The expected_grab_owner pin is therefore required separately at ObserverArmV2 field25.
+The pure contract permits only an exact explicit probe or APP-window-owner trusted pin.
+It never infers grab ownership from producer data or window ownership.
+The chosen fixture uses the probe. An APP-owner structural alternative is not native evidence.
+This observer witness does not establish ordinary APP core-event delivery.
+Separate M09 native application checks must establish that behavior.
+The earlier21PASS bytes and pins were preserved before this correction in pre-grab-owner-correction/.
+
+RECIPIENT SUCCESSOR PURE VALIDATION
+
+Actual protoc3.21.12 generated v1/v2 Python bindings outside this checkout.
+Canonical generation-run-02 and unit-run-02 completed with command.exit=0 and wrapper.exit=0.
+Their tmux sessions retired. The unit log reports23 tests in0.216s, OK, no failures or errors.
+The23 methods retain all13 predecessor methods and add recipient/role/owner/grab controls.
+Both privileged probe-role fixtures pass actual frame/artifact caps unchanged.
+Exact rejection-code assertions passed for missing roles, wrong labels, client aliases, wrong domains,
+and missing/stale/mismatched expected grab-owner pins. Fresh-process v1 rejection also passed.
+Earlier21PASS source/generated/run bytes remain preserved as a superseded structural contract.
+They are not native delivery evidence.
+
+External evidence root:
+  /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+  m09-observer-v2-recipient-contract-01
+Selected checks: selected-checks-and-invariants.txt. Recovery notes: restart-notes.txt.
+Exact argv, exits, and logs: generation-run-02/ and unit-run-02/.
+Generated output pins: generation-manifest-02.json.
+Executed source pins: pre-execution-02-source-manifest.json.
+The source/test/schema bytes remain equal to those executed pins.
+No native checks, production builds, test hosts, commits, pushes, or integration occurred.
+API freeze, private native APIs, delivery under implicit grabs, and APP core input remain incomplete.
+
+The parallel private helper's reported client-role enum differs numerically from wire/security Role.
+Future C producers require an explicit internal-to-wire mapping and byte-level interoperability checks.
+Never cast the internal enum. See the recipient note's PRIVATE C ROLE TO WIRE MAPPING REQUIREMENT.
+No C serializer or C/Python interoperability is claimed by the23 pure parser passes.

@@ -1,0 +1,9 @@
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -13,4 +13,6 @@
+ option('xwin', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Enable XWin X server')
++option('spatial_native_input_observer', type: 'boolean', value: false,
++       description: 'Enable qualification-only native input observation')
+ option('xquartz', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Enable Xquartz X server')

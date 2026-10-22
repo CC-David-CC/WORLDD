@@ -1,0 +1,6 @@
+--- a/hw/vfb/meson.build
++++ b/hw/vfb/meson.build
+@@ -22,2 +22,3 @@
+     ],
++    link_whole: get_option('spatial_native_input_observer') ? [observer_library] : [],
+     install: true,

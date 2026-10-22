@@ -1,0 +1,84 @@
+M09 observer v2 stream collector
+Date: 2026-10-20
+Status: FOCUSED-PASS. Reviewed tooling increment. M09 API and qualification remain incomplete.
+
+Descriptor ownership
+
+collect() accepts native integer descriptors from zero through 0x7fffffff.
+Invalid types, booleans, negative values, and larger integers transfer no ownership.
+Those inputs raise FD_INVALID without closing a descriptor.
+A valid native integer transfers ownership before trusted-context validation.
+The collector attempts one close after success or failure.
+
+Kernel checks require a readable FIFO or connected AF_UNIX SOCK_STREAM socket.
+Write-only FIFOs raise FD_ACCESS_INVALID before waiting.
+Regular files, datagrams, internet sockets, and unconnected Unix sockets fail.
+Transport shape does not authenticate the producer.
+The supervisor must supply the trusted private descriptor.
+
+Cleanup semantics
+
+The collector temporarily makes blocking descriptors nonblocking.
+Cleanup closes the selector, restores the original blocking mode, and attempts descriptor closure.
+Each cleanup step still runs after an earlier cleanup OSError.
+An existing transport or semantic exception keeps its original identity.
+Otherwise, cleanup errors raise SELECTOR_CLOSE_FAILED, FD_RESTORE_FAILED, or FD_CLOSE_FAILED.
+The first cleanup error takes precedence when several cleanup steps fail.
+The collector never retries close, including Linux EINTR.
+A cleanup failure cannot turn an otherwise successful collection into PASS.
+
+Trusted inputs and bounds
+
+The caller supplies expected session, arm, native epoch, accepted arm, and actor-seat bindings.
+The collector snapshots mutable arm and binding messages before waiting.
+It derives no authority or expected state from artifact bytes.
+
+One absolute monotonic deadline covers collection and semantic validation.
+It uses the earlier caller timeout or trusted arm deadline.
+The timeout and positive arm interval cannot exceed ten seconds.
+Fragments, EINTR, and EAGAIN cannot reset the deadline.
+Checks surround waits, reads, EOF, and semantic decoding.
+Collection requires EOF and caps bytes at 16,392 before decoding.
+The unchanged v2 validator enforces four records, 4,096-byte frames, and 32 receipts.
+No schema, decoder, v1 behavior, production code, CMake registration, or locked test changed.
+
+Focused regression evidence
+
+The repaired tests create a fresh live fixture for each method.
+They import generated bindings only through the launcher's explicit PYTHONPATH.
+They contain no host-specific generated path or automatic fallback.
+Concurrent nonblocking pipe writers stop and join during test cleanup.
+The oversized-artifact regression explicitly narrows pipe capacity to 4,096 bytes.
+It checks byte-limit rejection, reader closure, broken-pipe observation, and writer retirement.
+Semantic and framing regressions require exact error codes.
+Retry checks require injected retries, valid results, and shrinking timeouts.
+They do not depend on an arbitrary read count.
+
+Selected checks were recorded before execution in the external SELECTED-CHECKS.txt.
+The final focused run passed 39 unittest methods: 26 collector methods and 13 unchanged parser methods.
+Failures: zero. Errors: zero. Skips: zero.
+Both command.exit and wrapper.exit contain zero.
+
+Evidence root:
+/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/m09-observer-v2-collector-01/primary-repair-01
+
+Final receipts: focused-tests-03/
+Exact launcher: launch-focused-tests-03.sh
+Selected command: python3 -B focused-tests.py
+The external driver loads both named unittest modules.
+Its stdout records explicit PYTHONPATH, loaded module paths, hashes, schema hashes, and source base.
+The launcher invokes the installed canonical run-command.sh through persistent tmux.
+
+Original source bytes, hashes, and HANDOFF.txt were preserved before repairs.
+reproductions-01 retains two failures and one error against the original collector.
+They reproduce native FD overflow, write-only FIFO delay, and false success after failed restoration.
+focused-tests-01 retains the first repaired 37-method pass.
+focused-tests-02 retains the 39-method pass before the final socket-fixture cleanup adjustment.
+Earlier worker receipts remain unchanged.
+
+Qualification limits
+
+All checks used Python pipes, sockets, fixtures, and short-lived writer threads on ROG.
+No production runtime or native application ran.
+Native X, worldd, broker, confinement, sanitizer, model, physical-input, and both test-host checks remain UNRUN.
+Transport checks do not establish native provenance or M09 qualification.

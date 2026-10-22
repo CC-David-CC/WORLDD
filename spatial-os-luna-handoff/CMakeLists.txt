@@ -582,6 +582,21 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v1
+            ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v1/native_input_observer.proto
+        DEPENDS proto/spatial/testing/v1/native_input_observer.proto protobuf::protoc VERBATIM)
+    add_custom_target(native-input-observer-python-protobuf ALL
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_pb2.py")
+    add_test(NAME native-input-observer-artifact COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_input_state_observer.py")
+    set_tests_properties(native-input-observer-artifact PROPERTIES TIMEOUT 20
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME native-input-observer-collector COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_input_state_observer_collector.py")
+    set_tests_properties(native-input-observer-collector PROPERTIES TIMEOUT 30
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME broker-instance-registry-provisioning COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_instance_registry.py")
     set_tests_properties(broker-instance-registry-provisioning PROPERTIES TIMEOUT 20)

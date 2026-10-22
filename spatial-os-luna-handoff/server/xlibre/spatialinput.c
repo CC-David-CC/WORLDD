@@ -26,6 +26,10 @@
 #include "spatialinput.h"
 #include "spatialsecurity.h"
 #include "input.pb-c.h"
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+#include "spatialinputobserver_lifetime.h"
+#include "spatialinputobserver_capture.h"
+#endif
 
 typedef Spatial__Input__V1__Request Request;
 typedef Spatial__Input__V1__Reply Reply;
@@ -608,6 +612,10 @@ static int dispatch(ClientPtr client)
 static void reset(ExtensionEntry *extension)
 {
     (void)extension;
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverCaptureShutdown();
+    SpatialObserverLifetimeReset();
+#endif
     active = FALSE;
     DeleteCallback(&ClientStateCallback, client_state, NULL);
     DeleteCallback(&DeviceAccessCallback, device_access, NULL);
@@ -634,5 +642,17 @@ void SpatialInputExtensionInit(void)
         state->unrealize = screen->UnrealizeWindow; screen->UnrealizeWindow = unrealize_window;
         state->destroy = screen->DestroyWindow; screen->DestroyWindow = destroy_window;
     }
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    if (!SpatialObserverLifetimeInit()) {
+        SpatialObserverCaptureShutdown();
+        SpatialObserverLifetimeReset();
+        FatalError("Cannot initialize native input observer lifetime\n");
+    }
+    if (!SpatialObserverCaptureInit()) {
+        SpatialObserverCaptureShutdown();
+        SpatialObserverLifetimeReset();
+        FatalError("Cannot initialize native input observer capture\n");
+    }
+#endif
     active = TRUE;
 }

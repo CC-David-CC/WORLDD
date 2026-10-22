@@ -1,0 +1,126 @@
+syntax = "proto3";
+package spatial.testing.v2;
+
+// Additive draft. Never reuse the v1 Python basename or v1 message package.
+message ActorPrincipalRef { bytes issuer_id = 1; bytes actor_id = 2; }
+message ApplicationIdentity { bytes workspace_id = 1; bytes application_id = 2; }
+message ClientIdentity {
+  // Protocol-local mapping of spatial.security.v1.Role. Check mapping during tests.
+  enum Role {
+    ROLE_UNSPECIFIED = 0; SUPERVISOR = 1; BROKER = 2;
+    COMPOSITOR = 3; APPLICATION = 4;
+  }
+  uint32 client_id = 1; uint64 native_object_epoch = 2;
+  // Present only for APPLICATION. Roles never confer authority through this record.
+  ApplicationIdentity application = 3; Role role = 4;
+}
+message WindowIdentity {
+  uint32 xid = 1; uint64 native_object_epoch = 2;
+  ApplicationIdentity application = 3; uint64 spatial_generation = 4;
+  // Actual APP owner; distinct from the outgoing XI2 recipient.
+  ClientIdentity owner = 5;
+}
+message DeviceIdentity {
+  enum Kind { KIND_UNSPECIFIED = 0; POINTER = 1; KEYBOARD = 2; }
+  enum Role { ROLE_UNSPECIFIED = 0; MASTER = 1; SLAVE = 2; }
+  uint32 device_id = 1; uint64 native_object_epoch = 2;
+  Kind kind = 3; Role role = 4; uint32 paired_or_attached = 5;
+}
+// Private one-shot control input. The inherited FD, not these IDs, is authority.
+message ObserverArmV2 {
+  bytes session_id = 1; bytes arm_id = 2;
+  uint64 arm_monotonic_ns = 3; uint64 deadline_monotonic_ns = 4;
+  uint64 prearm_receipt_watermark = 5;
+  ActorPrincipalRef old_actor = 6; ActorPrincipalRef peer_actor = 7;
+  uint64 old_world_actor_id = 8; uint64 peer_world_actor_id = 9;
+  uint64 old_native_seat_id = 10; uint64 peer_native_seat_id = 11;
+  ApplicationIdentity expected_application = 12;
+  uint64 presentation_generation = 13; WindowIdentity expected_window = 14;
+  uint32 expected_xi2_event_type = 15; uint32 expected_detail = 16;
+  repeated DeviceIdentity old_actor_devices = 17;
+  repeated DeviceIdentity peer_actor_devices = 18;
+  ClientIdentity expected_recipient = 19; // Independent SUPERVISOR/COMPOSITOR probe.
+  ClientIdentity expected_seat_owner = 20; // Separate COMPOSITOR connection.
+  repeated uint32 expected_held_keys = 21;
+  repeated uint32 expected_held_buttons = 22;
+  uint32 expected_modifier_keycode = 23;
+  // Independently trusted APP owner of expected_window, never the privileged probe.
+  ClientIdentity expected_window_owner = 24;
+  // Explicit trusted grab owner. Chosen XI2 fixture uses the privileged probe.
+  ClientIdentity expected_grab_owner = 25;
+}
+// Trusted worldd input, read on its private inherited pipe. Not an output frame.
+message ObserverActorSeatBindingV2 {
+  ActorPrincipalRef actor = 1; uint64 world_actor_id = 2;
+  ApplicationIdentity application = 3; uint64 presentation_generation = 4;
+  uint64 native_seat_id = 5; bytes session_id = 6; bytes arm_id = 7;
+}
+message NativeInputObservationRecordV2 {
+  uint32 protocol_version = 1; bytes session_id = 2; bytes arm_id = 3;
+  uint64 stream_sequence = 4; uint64 native_session_epoch = 5;
+  oneof payload {
+    Arm arm = 10; NativeTransition native_transition = 11;
+    ObserverPress observer_press = 12; ProbeReceiptBatch probe_receipts = 13;
+  }
+}
+// Echo the complete accepted command. The server independently resolves its pins.
+message Arm { ObserverArmV2 accepted_command = 1; }
+enum TransitionPhase {
+  TRANSITION_PHASE_UNSPECIFIED = 0; PRE_CANCEL = 1;
+  POST_RELEASES_BEFORE_CONTEXT_CLEAR = 2; POST_CANCEL = 3; POST_PEER_BIND = 4;
+}
+message SeatContext {
+  ActorPrincipalRef actor = 1; uint64 world_actor_id = 2;
+  uint64 native_seat_id = 3; ClientIdentity owner = 4;
+  uint64 presentation_generation = 5;
+  WindowIdentity target = 6; WindowIdentity focus = 7;
+  ApplicationIdentity application = 8;
+  uint64 application_controller_native_seat_id = 9;
+  bytes tracked_keys = 10; fixed32 tracked_buttons = 11;
+  bool complete = 12;
+}
+message NativeTransition { repeated TransitionSnapshot snapshots = 1; }
+message TransitionSnapshot {
+  TransitionPhase phase = 1; uint64 monotonic_ns = 2;
+  SeatContext old_seat = 3; SeatContext peer_seat = 4;
+  repeated DeviceSnapshot devices = 5;
+  bool complete = 6; uint32 failure_reason = 7;
+  bool global_pending = 8; bool replay_pending = 9; bool replay_in_progress = 10;
+  ApplicationIdentity application = 11; uint64 controller_native_seat_id = 12;
+}
+// Values must come from a live, pinned GrabRec. No pointer is serialized.
+message GrabIdentity {
+  uint32 resource = 1; ClientIdentity owner = 2; WindowIdentity window = 3;
+  DeviceIdentity device = 4; WindowIdentity confine_to = 5;
+}
+message DeviceSnapshot {
+  DeviceIdentity identity = 1;
+  bool bitmap_valid = 2; uint32 bitmap_bits = 3;
+  bytes down_bitmap = 4; bytes postdown_bitmap = 5;
+  uint32 num_buttons = 6; uint32 buttons_down = 7; uint32 button_state = 8;
+  bool active_grab = 9; GrabIdentity grab = 10; bool grab_complete = 11;
+  bool native_frozen = 12; bool frozen_by_other_grab = 13;
+  int32 native_sync_state = 14; uint32 pending_events = 15;
+  bool replay_device = 16; bool context_complete = 17;
+  bool has_focus_class = 18; uint32 focus_kind = 19; uint32 focus_revert = 20;
+  WindowIdentity native_focus = 21; bool focus_complete = 22;
+}
+message ObserverPress {
+  uint64 observer_ordinal = 1; uint64 callback_monotonic_ns = 2;
+  ClientIdentity recipient = 3; WindowIdentity window = 4;
+  DeviceIdentity device = 5; DeviceIdentity source = 6;
+  uint32 xi2_event_type = 7; uint32 detail = 8; uint32 event_time_ms = 9;
+  bool synthetic = 10; bool overflow = 11; bool disconnected = 12;
+}
+message ProbeReceiptBatch {
+  ClientIdentity recipient = 1; WindowIdentity window = 2;
+  repeated ProbeReceipt receipts = 3; bool overflow = 4; bool disconnected = 5;
+}
+// Each XI2 event carries its own lifetime joins, including old release events.
+// receipt_ordinal is the independent probe's counter after its prearm watermark.
+message ProbeReceipt {
+  uint64 receipt_ordinal = 1; uint64 monotonic_ns = 2;
+  uint32 event_type = 3; DeviceIdentity device = 4; DeviceIdentity source = 5;
+  WindowIdentity window = 6; uint32 detail = 7; uint32 event_time_ms = 8;
+  bool synthetic = 9;
+}

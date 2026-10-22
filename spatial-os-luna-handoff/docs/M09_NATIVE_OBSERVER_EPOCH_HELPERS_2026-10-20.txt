@@ -1,0 +1,225 @@
+M09 native grab, focus, and frozen-state snapshot follow-up
+
+Status: SOURCE-ONLY FOLLOW-UP. Uncommitted. Primary review pending. All runtime remains UNRUN.
+Branch: m09/native-observer-focus-state-20261020
+Base: df74792b32ebc5e5f5be2b8193231abfa4d8b37f
+Worktree: /home/dflanag3/src/m09-native-observer-focus-state-20261020
+Host: rog-ally-x. The previous reviewed checkout remains unchanged.
+Changed files only: spatialinputobserver_lifetime.c, its header, and this existing implementation note.
+No event observer, schema, wire operation, shared build file, base.lock, privilege, or application operation changed.
+External follow-up evidence: /home/dflanag3/spatial-artifacts/m09-native-observer-focus-state-20261020
+The historical epoch-helper record below retains its original paths and compilation receipts.
+
+Additional actual native facts
+
+SnapshotDevices() copies these facts in the same callback-local pass as the complete native down/postdown arrays:
+- deviceGrab.grab != NullGrab on every master/slave device, without dereferencing the grab.
+- deviceGrab.sync.frozen, sync.other != NullGrab, and the unmodified native sync.state integer.
+- Pending QdEventRec count for each freshly resolved device, using callback-local identity comparison only.
+- Whether syncEvents.replayDev identifies that device.
+- Presence of a focus class, its native revert value, and classification by real focus sentinels.
+The snapshot also records global pending-queue presence, replayDev presence, and syncEvents.playingEvents.
+The qualification-only SPATIAL_OBSERVER_MAX_PENDING_RECORDS cap is 1024 total queue records per snapshot.
+One global pass counts every record, including records unrelated to the four pinned devices.
+It performs at most 1024 record classifications and four device comparisons per classified record.
+Finding another queue record after that budget fails collection before reading its device field.
+Exactly 1024 records may be captured; 1025 or more never produce a valid snapshot.
+The caller retains valid == FALSE and the initial nonzero bitmap sentinels on failure.
+The cap never truncates evidence into success. It imposes no production queue limit or input-policy change.
+Missing keyboard focus classes remain invalid.
+A missing old device never becomes an empty/clear record.
+
+FocusClassRec.win is compared with NoneWin, PointerRootWin, and FollowKeyboardWin from pinned include/input.h.
+All other values classify as OTHER. OTHER does not assert that the pointer names a live window.
+The helper never dereferences a focus window, saved grab, sync.other, replayDev, or saved sync.event pointer.
+A pointer to saved sync.event is not a pending-input fact: devices allocate that buffer during creation.
+The helper traverses the server-owned pending queue synchronously and copies counts. It retains no queue/device pointer.
+The focus enum is a helper classification, not a native wire enum or a release-success flag.
+NOT_CAPTURED means no focus class was observed; it cannot satisfy a required keyboard-focus check.
+
+Exact source support and expected cancellation state
+
+Pinned XLibre remains f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+include/inputstr.h:481-499 defines actual GrabInfoRec.grab and sync state.
+include/inputstr.h:376-385 defines FocusClassRec, including the sentinel warning.
+include/inputstr.h:617-654 defines QdEventRec and global EventSyncInfoRec syncEvents.
+include/input.h:127-136 defines NullGrab, NoneWin, PointerRootWin, and FollowKeyboardWin.
+dix/input_priv.h:308-317 defines actual GRAB_STATE_* values. No assumed enumeration conversion occurs.
+dix/events.c DeactivatePointerGrab():1664 and DeactivateKeyboardGrab():1783 clear the active grab,
+set sync.state to GRAB_STATE_NOT_GRABBED, and clear matching sync.other references.
+Their freeze recomputation may process queued input. The observer records resulting state; it does not infer completion.
+
+Project server/xlibre/spatialinput.c cancel():274-300 releases native keys/buttons before clearing bookkeeping.
+It explicitly deactivates active grabs on the actor pointer master and keyboard master.
+It requests SetInputFocus(serverClient, seat->keyboard, None, RevertToNone, CurrentTime, FALSE).
+The intended observed post-cancel master-keyboard focus is therefore NoneWin, with revert RevertToNone.
+Do not substitute PointerRoot or OTHER for that master focus expectation.
+Pinned SetInputFocus():4869-4950 contains access/time/error paths. cancel() does not inspect its result.
+The source request alone cannot prove it succeeded. The future observer must evaluate the actual captured focus.
+
+cancel() does not explicitly reset the keyboard slave focus or explicitly deactivate slave grabs.
+InitFocusClassDeviceStruct() in dix/devices.c:1453-1472 initializes focus to PointerRootWin with revert None.
+An unmodified fresh actor keyboard slave therefore retains PointerRootWin. Do not require None on both keyboards blindly.
+Any broader slave sentinel allowance requires a reviewed native precondition and release oracle.
+FollowKeyboardWin is represented accurately but is not automatically classified as balanced release.
+A retained OTHER focus or slave grab must remain visible and fail any oracle that requires their release.
+Project clear_device_context():104-114 clears motion hints and XKB latches/locks; it does not reset focus.
+Current XInputRouter::execute() sends the native cancel, then clears logical focus/keys (src/x11/input_router.cpp:99-105).
+No releaseFocus symbol exists in this source tree. The actual cancellation paths above were inspected instead.
+This helper reads none of that router or SeatRec logical held/focus state.
+
+Required interpretation and remaining unknowns
+
+TRUE and valid == TRUE still mean complete collection, never released or balanced.
+Global queued/replay facts may describe another actor. Do not automatically fail old-actor release from a global flag alone.
+Legitimate post-arm frozen replay may set replay_in_progress while emitting the first peer event.
+Use exact old-device facts and the reviewed arming/first-event correlation before drawing an ordering conclusion.
+No first-event callback or independent receipt consumer uses these new fields yet.
+Their future record/schema integration and release predicate require separate review by the companion worker/primary.
+This increment does not copy XKB modifier latch/lock/group state or prove general spatial drag cancellation.
+Its active-grab facts cover native active input grabs, not every possible application-level drag mechanism.
+Full balanced destroy qualification therefore remains pending even after these source helpers compile.
+
+Compile-only verification and native controls
+
+The task selected Debug and ASan/UBSan object compilation, source scope, dependency hashes, whitespace, and data guard.
+Both object compilations passed with -Werror against the prior actual configured XACE source/header context.
+The new branch include path is first. Dependency checks require this branch's helper header and reject the old branch's header.
+compile-header-receipt-queue-cap.json records both exact commands, object hashes, and every compiler dependency hash.
+compile-run-02-queue-cap command.exit and wrapper.exit are zero; stderr.log is empty.
+The persistent job used tmux m09-focus-cap-compile-20261020 and the canonical runner under an external flock.
+One compiler ran at a time. No object, native server, test, or fixture executable ran.
+There was no SB connection, deployment, package modification, shared-source edit, commit, or push.
+Full linking and all native tests remain UNRUN.
+
+Future native controls must independently retain an actual old key, button, master focus, and active grab
+while logical bookkeeping is clear. Each must remain visible in the same immutable snapshot and fail release qualification.
+Also cover slave focus/grabs, missing focus classes, frozen queues, sync.other, replay, and pre-arm queued input.
+Queue-cap controls are source-defined and remain UNRUN: collect an empty queue, 1023 records, and exactly 1024 records;
+require complete matching-device counts at the limit; reject 1025 records with valid == FALSE and nonzero sentinels.
+Repeat at-limit and over-limit cases with entirely unrelated devices and with mixed matching/unrelated records.
+Verify that unrelated records consume the same total budget and that no partial counts escape as valid evidence.
+These controls require real server queue setup later; no simulated native-state test is claimed here.
+Reject sentinel confusion and prove the helper does not dereference real/sentinel/stale focus-window pointers.
+Preserve all existing strict destroy and surviving-window event-log assertions.
+Next safe step: primary review this three-file follow-up before checkpointing or integrating observer/event/schema code.
+
+Historical reviewed epoch-helper increment, retained for provenance
+
+M09 native observer epoch and snapshot helpers
+
+Status: SOURCE-REVIEWED IMPLEMENTATION. M09 UNQUALIFIED. All native runtime remains UNRUN.
+No event observer, qualification arm transport, or release-order evidence exists in this increment.
+M09, balanced destroy qualification, and Spatial-M1 remain pending.
+Branch: m09/native-observer-epochs-20261020
+Base: cd1fe4198a8df6f16cb27e2bf163b635478609f8
+Worktree: /home/dflanag3/src/m09-native-observer-epochs-20261020
+Host: rog-ally-x. No test-host connections, package changes, server execution, or native tests.
+Owned source files, relative to spatial-os-luna-handoff:
+- server/xlibre/spatialinputobserver_lifetime.c
+- server/xlibre/spatialinputobserver_lifetime.h
+- docs/M09_NATIVE_OBSERVER_EPOCH_HELPERS_2026-10-20.txt
+No existing source or build-registration file changed. The helpers are not linked or called yet.
+External evidence: /home/dflanag3/spatial-artifacts/m09-native-observer-epochs-20261020
+
+Implemented behavior and limits
+
+Four explicit roles preserve pointer/keyboard and master/slave identity separately.
+PinDevices() requires four distinct enabled, initialized real XLibre devices with matching roles and native hierarchy.
+It validates master pairing, each slave attachment, pointer button classes, keyboard key/XKB classes, and keyboard focus classes.
+Sized PRIVATE_DEVICE epochs use real per-object private storage. Client/window pins use their own sized private keys.
+Fresh native lookups plus session/epoch comparison reject device ID or allocator-address reuse.
+No native object pointer or private-storage address survives a helper call.
+Reset invalidates every pin. Session and epoch counters remain monotonic within this server process.
+Counter overflow disables collection. Private-key/callback initialization failures reject setup.
+Pins are server-local values, never an ordinary-client or deserialized wire capability.
+The future record layer must bind them to its distinct server-session identity. Numeric session_serial is process-local.
+
+SnapshotDevices() copies all four devices' complete corresponding down and postdown arrays.
+DOWN_LENGTH is MAX_BUTTONS/8, exactly 32 bytes at pinned include/input.h:126.
+KeyClassRec and ButtonClassRec use that width for both arrays. Compile-time assertions enforce this baseline.
+The pointer roles expose only button-class bitmaps. Keyboard roles expose only key-class bitmaps.
+Irrelevant class arrays must not be serialized as evidence of another class.
+Snapshot success means collection completed. It never asserts that held input was released.
+Any missing device/class, changed epoch/role/hierarchy, or invalid session returns FALSE with valid == FALSE.
+Failure outputs contain nonzero bitmap sentinels. Missing old devices never count as clear input.
+Consumers must check the return value, valid flag, identities, and complete relevant arrays before evaluating release.
+No SeatRec held-state or world logical-state value contributes to the snapshot.
+
+Client pins require a running authenticated APPLICATION connection with nonempty bounded workspace/application labels.
+They copy labels through the existing production security helpers and compare current labels during validation.
+Window pins require a live mapped/realized child window and the exact pinned owning application connection.
+ClientStateCallback invalidates epochs on Retained/Gone. ResourceStateCallback invalidates window epochs before resource deletion.
+These are object identity helpers, not an actor-authority or spatial-generation replacement.
+The future EventCallback layer still must validate the target generation, first peer event, recipient, actor source identity,
+disjoint old/peer sets, pre-arm frozen-state preconditions, and independent XI2 receipt correlation.
+The helpers do not independently establish which authenticated actor controls a given native quartet.
+The reviewed native precondition actions and receipt/hierarchy checks must establish that mapping.
+The companion protobuf schema/reader remains separately owned. This header defines no protobuf field names or wire operation.
+
+Real compilation context and source pins
+
+No preexisting XLibre dix-config.h was available on ROG. The source context was obtained and configured externally.
+XLibre: f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+xorgproto: 67469711055522b8adb2d795b01e7ba98cb8816c.
+source-archives.json records download URLs, archive SHA256 values, and extraction paths.
+All eleven base.lock patches and every existing overlay were applied to that exact XLibre context.
+The actual base.lock Meson options configured both native Xorg and Xvfb in Debug mode.
+Pinned xorgproto headers/pkg-config metadata were installed only into the external proto-prefix.
+No fake header, imported target, or hand-written configuration was used. No system package was installed.
+Generated dix-config.h SHA256: e78a20df0f1dd21f7a80c5fca329bf2f0087c5cb0265338be4ce1456425cbf17.
+The external source/header manifest records compiler dependencies, generated configuration, overlays, and maintained helper hashes.
+
+Selected checks were recorded in the worker task before execution:
+- Real Debug and ASan/UBSan object compilation checks API/type compatibility and sanitizer instrumentation compatibility.
+- Source data guard, whitespace checks, and owned-file scope checks protect source integrity.
+- Native reuse, missing-state, and retained-input controls require future qualification hosts and remain UNRUN.
+
+configure-run-01 command.exit and wrapper.exit are zero. Its stderr.log is empty.
+The configure job used tmux m09-epoch-headers-20261020 and the canonical runner under an external flock.
+compile-run-01 command.exit and wrapper.exit are zero. Its stderr.log is empty.
+That job used tmux m09-epoch-compile-20261020 and the canonical runner under a separate external flock.
+Exact commands, profiles, object paths, and hashes are in compile-receipt.json and compile-run-01/stdout.log.
+Both compilations use the real spatialinput.c compile_commands.json entry, replacing only the input/output paths,
+adding -Werror, and adding sanitizer flags for the sanitizer object. One compiler runs at a time.
+No object or server binary was executed. These are compile-only results, not sanitizer runtime passes.
+Full server linking and all runtime checks remain UNRUN.
+
+Exact proposed integration, not applied
+
+proposed-integration.patch records actual matching hunks for review. It does not change this source worktree.
+1. Add the helper header under SPATIAL_INPUT_OBSERVER_QUALIFICATION in spatialinput.c.
+2. Call LifetimeInit() at SpatialInputExtensionInit() entry, before root windows, callbacks, and any arming.
+   Initialization failure must fail the explicitly enabled qualification session.
+3. Call LifetimeReset() first in spatialinput reset, before other teardown can remove objects.
+4. Add a default-false spatial_input_observer_qualification XLibre Meson option in a new reviewed patch.
+5. Conditional Xext source linkage adds this C file and its private compile define only for that option.
+   The existing Xext static library must receive the proposed spatial_observer_c_args.
+6. Add this C/header as new base.lock overlays and the reviewed option/linkage patch to its ordered patch list.
+   Recompute and review input hashes. Do not silently reuse an earlier server binary or change unrelated pins.
+No broad XACE change, CallbackList migration, public symbol export, or ordinary-client device enumeration is required.
+Normal builds must keep the option disabled. Future observer/event/schema linkage needs its own review.
+
+Required native regression controls: all UNRUN
+
+- Hold one native key on the old keyboard slave/master while logical bookkeeping clears; the snapshot must preserve it.
+- Independently hold a native button while logical bookkeeping clears; preserve its full native state too.
+- Remove an old device or required class. Collection must fail rather than returning empty native evidence.
+- Recreate a device with the old numeric ID. A new zero/different private epoch must reject the old pin.
+- Swap pointer/keyboard roles, duplicate an ID, detach a slave, change pairing, or disable a device; reject each.
+- Reset the observer and test old pins. Exercise fail-closed session/epoch overflow through a reviewed qualification control.
+- Retain/close a client, reuse its client slot, mutate an application label, or supply a non-application client; reject each.
+- Destroy/recreate the popup XID, unmap it, change its owner/label, or substitute the main window; reject each.
+- Qualify first-peer-event ordering, pre-arm queued-event rejection, frozen replay, and complete independent XI2 receipt history.
+- Prove confined clients cannot configure or read this privileged observer and unrelated workspace metadata.
+Run affected Debug and ASan/UBSan native qualification on sb16 and sb16-2 only after primary releases them.
+Surviving-window event-log selectors may separately qualify revocation/seat closure. They cannot fill this destroy arm's missing data.
+
+Next safe task: primary review these three files and the proposed integration hunks before committing anything.
+Then integrate only the reviewed qualification build/startup linkage and test the native failure controls.
+The missing first-event observer and independent receipt contract remain a separate implementation increment.
+
+Primary review accepted the three-file unlinked source checkpoint.
+The EventCallback observer, live collector, and native negative controls remain required implementation work.
+The new protobuf contract must use these real native epochs and preserve separate fixture/session provenance.
+No milestone branch, active package, or normal server build is changed by this checkpoint.

@@ -1,0 +1,205 @@
+M09 PRIVATE OBSERVER SETUP CONTRACT: ESCALATED03 REPAIR
+Date: 2026-10-21
+Status: UNQUALIFIED. Setup pure checks28/28 PASS. Native bootstrap UNIMPLEMENTED/UNRUN.
+
+SCOPE AND PRESERVATION
+
+Checkout: /home/dflanag3/src/m09-observer-v2-setup-contract-20261020
+Branch: m09/observer-v2-setup-contract-20261020
+Base: 3b1d2c190dd51cddaf68bccf21033d013fd5ef57
+Host: rog-ally-x. No test-host contact, production execution, commit, push, or integration is authorized here.
+
+Own exactly four new paths: the control schema, setup validator, setup regression source, and this note.
+Existing artifact/v1 schemas, validators, collector, runtime, CMake, and locked acceptance remain unchanged.
+The setup/arm plan and primary's repair instructions define this additive unlocked contract revision.
+
+External evidence root:
+  /home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/
+  m09-observer-v2-setup-contract-01/primary-escalated-03
+Original stopped repair02 bytes are preserved under before/ with before-manifest.json.
+Its actual primary failure records are copied under preserved-primary-failure-02/.
+The original primary-focused-02/run-01 records also remain unchanged.
+That12-method run reported7pass,1failure,4errors. Earlier original10-method evidence also remains outside source.
+SELECTED_CHECKS.txt records this repair's invariants before execution.
+TASK_STATE.txt and RESTART.txt preserve recovery state.
+
+INITIAL DISCOVERY AND TRUST
+
+Setup is a separate typed prearm exchange. It is not an observation-artifact frame.
+Trusted inputs include session/arm IDs, authenticated worldd bindings, APP identity, and authorized target selectors.
+They also include independently launched privileged probe marker XID and security role.
+The APP target spatial generation and world presentation generation are separate trusted values.
+One trusted start/deadline pair is fixed before setup.
+No native session/client/window/device epoch is required for initial discovery.
+Those unknown native pins arrive only in the separate private SetupReply.
+An optional previously pinned native session epoch is a reuse check, not a bootstrap prerequisite.
+
+A worldd binding supplies actor principal, world actor ID, native seat ID, application, and presentation generation.
+The decoder does not invent another authority for the binding's world actor ID.
+Changing the sole trusted actor ID is legitimate initial input when no independent input contradicts it.
+After setup freezes that binding, a mismatched arm or changed binding is rejected.
+Every principal has32-byte issuer and actor IDs. Both actor principals, world IDs, and seat IDs are distinct.
+Binding protobufs are canonical and limited to1024bytes each.
+The APP label boundary remains nonempty, NUL-free, and at most256bytes per label component.
+
+Session and arm selectors each contain16bytes. Their domains differ even if their byte values happen to match.
+Native seat IDs and observer epochs have positive uint64 domains.
+XIDs, client indices, and device IDs have positive uint32 wire domains.
+Actual native lookup/lifetime validation remains a separate server responsibility.
+Trusted Python numeric inputs reject booleans and values outside their declared domains.
+
+CONTROL SCHEMA AND EXPLICIT REVISION
+
+Schema: proto/spatial/testing/v2/native_input_observer_control_v2.proto
+It imports native_input_observer_v2.proto by basename, matching the flat generated module layout.
+Generate both v2 files using their v2 directory as protoc's include root.
+No generated bindings belong in Git.
+
+ObserverControlEnvelopeV2 has explicit setup_request and arm oneof kinds.
+Only one setup request followed by one complete ObserverArmV2 is valid.
+The separate SetupReply never enters the artifact oneof or native observation stream.
+
+SetupRequest includes session/arm, old/peer seats, APP target XID, probe marker XID,
+APP identity, presentation generation, absolute deadline, target spatial generation, and expected privileged probe role.
+This repair adds target_spatial_generation(field10) and expected_probe_role(field11) to this new control schema.
+Presentation generation must not substitute for target spatial generation.
+
+SetupReply echoes every selector through accepted_request(field12).
+It supplies the actual native session epoch, both four-device seat sets, COMPOSITOR seat owner,
+APP target window and APPLICATION owner, and control-only ProbeMarkerPinV2.
+The marker contains only XID, native window epoch, and privileged owner.
+It carries no APP identity or target spatial generation.
+The existing APP-only artifact WindowIdentity remains unchanged.
+
+Each setup client pin requires positive index/epoch and the expected actual security role.
+Wire roles remain SUPERVISOR1, COMPOSITOR3, APPLICATION4. BROKER and unknown roles fail for these pins.
+Only APPLICATION carries an APP message. Privileged clients omit it, including an explicitly empty message.
+The probe, APP owner, and COMPOSITOR seat owner have distinct client indices and client epochs.
+The APP target's nested owner exactly joins the separately supplied APP target owner.
+The marker owner joins the configured independently launched probe role and marker XID.
+
+Each seat has exactly pointer master/slave and keyboard master/slave devices.
+Both master pairs and slave attachments are checked. All native epochs are positive.
+All eight actual device IDs are distinct across the two seats.
+The overlap regression copies the full coherent attachment graph before expecting an overlap rejection.
+One broken attachment cannot stand in for an independently tested overlap guard.
+
+IMMUTABLE CONTEXT AND COMPLETE ARM
+
+The validator snapshots every borrowed protobuf before retaining or validating its contents.
+ValidatedPins contains only integers, bytes, and tuples. It retains canonical serialized request/reply/bindings.
+It also freezes the start/deadline, selector domains, and canonical pin bytes.
+Standalone arm validation rechecks this frozen context against independently supplied trusted selectors and bindings.
+A caller mutation cannot silently alter an already validated pin context.
+Standalone validate_arm returns immutable canonical arm bytes from its validated defensive snapshot.
+Those returned bytes are an ObserverArmV2 payload, not a control-envelope frame.
+A future writer must wrap that payload unchanged in the required explicit arm envelope.
+It must not serialize a borrowed arm after validation.
+Serialized pin fields and binding/device tuples have explicit type and byte bounds.
+No pins or ActorRefs are learned from an observation artifact.
+These Python values do not authenticate their producer; native/private-FD provenance remains missing.
+
+The APP target blob is decoded as WindowIdentity. It is never decoded as ClientIdentity.
+Arm client, target, owner, device, actor, session, generation, and deadline fields join the frozen setup exactly.
+This setup implements the chosen strict XI2 fixture: recipient and expected grab owner both equal the probe pin.
+The general artifact decoder's explicitly trusted APP-grab alternative remains unchanged.
+
+HeldInputContext independently supplies held keys/buttons, modifier keycode, peer button, and prearm receipt watermark.
+The watermark uses the full uint64 domain, including zero. It must match exactly.
+Peer event type is XI2 ButtonPress, with the independently supplied peer-button detail.
+Held keys/buttons remain sorted and distinct within the artifact contract's ranges and receipt cap.
+Synthetic keycodes prove structure only. Real modifier-keymap semantics remain native UNRUN.
+The complete arm also passes the unchanged artifact v2 expected-input contract.
+Artifact rejection codes are translated to SetupError without losing their stable code.
+
+Framed control validation requires an independent complete expected_arm as well as held-input context.
+The actual arm frame must equal that expected arm exactly, then pass all frozen-pin and semantic checks.
+An empty, stale, mismatched, or ignored arm never satisfies complete control validation.
+The arm timestamp lies within the original interval and cannot be later than the sampled current monotonic time.
+No receipt-watermark positivity requirement or deadline restart is invented.
+
+BOUNDS, CANONICAL BYTES, AND TIME
+
+Every control-envelope payload and separate reply payload is at most4096bytes.
+Every canonical length prefix is minimal and at most2bytes under that cap.
+Exactly2control frames total at most8196bytes. A separate reply frame totals at most4098bytes.
+Reject partial/extra frames, wrong kinds, unknown fields, duplicate wire fields, and noncanonical encodings.
+Typed protobufs reject retained unknown fields and satisfy the same semantic and size checks.
+A typed protobuf cannot reconstruct duplicate wire bytes discarded before the caller supplied the object.
+Raw framed entrypoints compare original bytes against deterministic canonical serialization and reject those duplicates.
+Framing boundary fixtures test syntax/caps separately; fake oversized session IDs are not semantic identity positives.
+
+All timing uses the same host/boot CLOCK_MONOTONIC nanosecond domain.
+The caller fixes a positive start and a later deadline at most10seconds apart.
+Validate_setup and standalone validate_arm sample an injected clock before and after work.
+Validate_frames shares one non-resetting sampled budget across parse, setup, arm, and final acceptance.
+Samples must never decrease across stages. Expiry is inclusive: now>=deadline fails.
+A current sample before start, boolean value, negative value, or out-of-domain value fails.
+The safe finite test clock repeats its last value; accidental StopIteration cannot fake a valid clock.
+No wall clock or per-fragment timeout reset exists in this pure validator.
+
+IMPLEMENTED ERROR REGRESSIONS AND LIMITS
+
+The source fixes the actual WindowIdentity/ClientIdentity domain error.
+The256byte APP fixture updates all nested identities through coherent construction.
+The binding tests distinguish a new authoritative actor ID from an independently mismatched arm or seat selector.
+Clock fixtures supply stable repeated samples, while explicit expiry/backward controls still fail.
+Additional controls cover selector echoes, distinct generation domains, pin-role separation,
+frozen-context mutation, typed/raw canonical guards, exact frame limits, and strict complete-arm joins.
+
+Native setup/bootstrap, FD ownership, role getters, client/window/device epoch creation, C serialization,
+private server state transitions, probe receipts, application input, transport cleanup, and qualification remain unimplemented here.
+The future server must map its private C role enum explicitly to the wire security role values.
+Never cast internal APPLICATION1 or SUPERVISOR2 directly to wire APPLICATION4 or SUPERVISOR1.
+No C/Python interoperability, native delivery, or physical-input result is claimed by pure Python tests.
+M08's frozen full gates remain untouched.
+
+ACTUAL PURE CHECK RESULTS
+
+Fresh actual protoc3.21.12 generated v1, artifact-v2, and control-v2 Python modules into generated-01/ externally.
+No generated file was copied or edited to fix imports. Basename imports resolve through the explicit matching PYTHONPATH.
+Generation-run-01 completed with command.exit=0, wrapper.exit=0, and COMPLETE. Its tmux session retired.
+
+Final setup-run-04 reports28methods,0failures,0errors,0skips, OK in0.047seconds.
+It includes the reported WindowIdentity/ClientIdentity bug, coherent256byte APP identities,
+independent binding truth versus stale arms, stable clock fixtures, exact canonical/cap/time controls,
+zero/positive/full-uint64 watermarks, and immutable standalone validated-arm bytes.
+The executed schema/implementation/test hashes remain pinned in pre-execution-04-source-manifest.json.
+The final source code matches those pins. Later note edits do not change executed code.
+
+Unchanged baseline-run-01 reports56pure methods, all PASS, in0.445seconds:
+ 23artifact-v2 methods;21v1 parser methods;12collector methods.
+The assignment named26collector methods, but this base contains12collector methods and21v1 parser methods.
+The baseline launcher included the21v1 parser methods based on a mistaken inferred combined count.
+The actual selection/count was reported to primary. No26-method collector receipt is claimed.
+Every selected baseline module remains unchanged. No native program or production runtime executed.
+
+Historical failure: the stopped repair02 primary run had7pass,1failure,4errors.
+Escalated setup-run-01 had25pass and1fixture failure, with no errors.
+Its final-expiry control sampled1400before an arm timestamp1500, correctly hitting ARM_TIME_INVALID first.
+The fixture now samples1600so the otherwise valid arm reaches the final expiry guard.
+That failure log and source are retained. The guard was not weakened.
+Superseded setup-run-02 passed27methods before the immutable-output/pin-cap followup.
+Its successful source bytes remain under passed-setup-02-source/.
+
+Original serialized fixture records were reconstructed deterministically from the before/ source and original matching bindings.
+They are preserved under original-input-records/ with hashes, mutation notes, and exact clock sequences.
+This reconstruction ran after source/receipt preservation. It did not rerun the old tests or any native program.
+These are reproducible synthetic input bytes, not native observations.
+
+PASS: fresh protobuf generation/imports,28final setup methods,56unchanged baseline pure methods,
+AST parsing, four-file scope checks, and source/generated byte identity checks.
+FAILED: no failures remain in the final selected pure runs. Earlier failures remain separately preserved.
+UNRUN: native setup/bootstrap, C/Python serialization interoperability, FD provenance/ownership,
+native epoch liveness, actual modifier keymap, XI2/application input, transport cleanup, and M09 qualification.
+No test-host contact, production build, runtime, CTest, commit, push, or integration occurred.
+
+Canonical evidence directories retain exact argv.nul, readable argv, stdout/stderr, and runner-owned exits.
+Launchers use the installed spatial-worker-coordination run-command.sh inside persistent tmux.
+TASK_STATE.txt, RESTART.txt, and HANDOFF.txt identify recovery state and the next safe primary review.
+Keep API freeze incomplete until the separate native bootstrap/FD/state/serializer work receives review and qualification.
+
+Final source review added ByteSize checks before typed-message cloning or serialization.
+The28th method verifies that oversized typed requests, replies, and bindings fail before serialization.
+The original size caps remain unchanged. Setup-run-03's27PASS source is retained before this guard.
+Only the focused setup suite reran after this source change. Unchanged baselines were not repeated.

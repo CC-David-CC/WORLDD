@@ -1,0 +1,9 @@
+--- a/Xext/meson.build
++++ b/Xext/meson.build
+@@ -62,3 +62,5 @@
+     include_directories: [inc, include_directories('spatial')],
+-    dependencies: [common_dep, spatial_input_dep],
++    c_args: get_option('spatial_native_input_observer')
++        ? ['-DSPATIAL_NATIVE_INPUT_OBSERVER'] : [],
++    dependencies: xext_dependencies,
+ )

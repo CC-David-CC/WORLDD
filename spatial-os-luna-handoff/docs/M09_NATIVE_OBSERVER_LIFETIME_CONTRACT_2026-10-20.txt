@@ -1,0 +1,208 @@
+M09 native observer lifetime contract: source proposal
+
+Status: PRIMARY SOURCE-REVIEWED DESIGN. All implementation and runtime remain UNRUN.
+Branch: m09/native-observer-lifetimes-20261020
+Worktree: /home/dflanag3/src/m09-native-observer-lifetimes-20261020
+Base: 2adb49c115aa3877e44e3666caa719e6258f8ff9
+Owned source: this document only. No schema, reader, server, or checkpoint-worktree edits.
+Host: rog-ally-x. No builds, test-host access, native execution, commit, or push.
+External evidence: /home/dflanag3/spatial-artifacts/m09-native-observer-lifetimes-20261020
+source-sha256.json pins exact upstream files and URLs. source-excerpts.txt records selected lines.
+Upstream baseline remains f844d7a86c10fd5cc89083e7daf97b862b8ca1fd. Preserve XACE and existing callback APIs.
+
+Actual lifecycle APIs and ordering
+
+Paths here are relative to the pinned XLibre source, unless marked project.
+include/callback.h defines CallbackProcPtr as void (*)(CallbackListPtr *, void *, void *).
+AddCallback(CallbackListPtr *, CallbackProcPtr, void *) and DeleteCallback(...) return Bool.
+
+include/dixstruct.h:45-60 declares ClientStateCallback and NewClientInfoRec.
+Its call data contains ClientPtr client, xConnSetupPrefix *prefix, xConnSetup *setup.
+Read client->clientState: Initial, Running, Retained, or Gone.
+dix/dispatch.c NextAvailableClient() invokes the Initial callback after assigning the client slot (:3798).
+ProcEstablishConnection() invokes Running (:3917). CloseDownClient() invokes Retained or Gone (:3665/:3697).
+Gone precedes FreeClientResources(), clearing clients[index], and freeing PRIVATE_CLIENT storage (:3706-3723).
+ClientDestroyCallback also occurs after resource cleanup (:3708), but is unnecessary for this contract.
+Invalidate a pin on Retained as well as Gone. Retained resources do not imply a live application connection.
+
+There IS a resource callback. It is internal, declared in dix/resource_priv.h:160-173.
+ResourceStateInfoRec contains ResourceState state, XID id, RESTYPE type, void *value.
+The states are ResourceStateAdding and ResourceStateFreeing.
+dix/resource.c AddResource(XID, RESTYPE, void *) invokes Adding after inserting the record (:845).
+doFreeResource(ResourcePtr, Bool) invokes Freeing before the resource delete function (:893).
+Filter on X11_RESTYPE_WINDOW. Use value as WindowPtr only during that callback.
+dix/window.c registers windows through AddResource(..., X11_RESTYPE_WINDOW, pWin) (:633/:3269).
+No invented generic WindowStateCallback is needed.
+Project spatialinput.c already wraps ScreenRec RealizeWindow, UnrealizeWindow, DestroyWindow, and ResizeWindow.
+Those invalidate spatial generations and cancel seats. Resource lifetimes remain a separate observer identity.
+
+No generic device-removal callback was found in pinned dix/devices.c or include/input.h.
+DeviceAccessCallback checks authorization. DixCreateAccess in AddInputDevice() is not a destruction callback.
+RemoveDevice(DeviceIntPtr, BOOL) calls CloseOneDevice(), then CloseDevice() (:1191 onwards).
+CloseDevice() frees device classes, pending frozen events, PRIVATE_DEVICE storage, and the device (:995-1053).
+Project close_seat() disables then removes four devices. open_seat() creates actor master/slave pairs.
+Do not retain a DeviceIntPtr across these operations or infer identity from an address.
+
+Resolved startup and static linkage
+
+Pinned dix/main.c dix_main() initializes only serverClient first (:160-177).
+It calls dixResetPrivates(), then dixAllocatePrivates(&serverClient->devPrivates, PRIVATE_CLIENT).
+InitEvents() precedes InitOutput(). InitExtensions() follows InitOutput() at :199.
+Only after extension initialization does main create root windows (:225), initialize root state (:253),
+and call InitCoreDevices(), InitInput(), and InitAndStartDevices() (:259-261).
+Dispatch(), which admits normal application requests and arming, starts later at :288.
+mi/miinitext.c InitExtensions():253-267 invokes each registered extension init function directly.
+The existing project patch registers SpatialInputExtensionInit() in that static extension table.
+
+Initialize the observer directly from SpatialInputExtensionInit(), alongside its existing private-key registration.
+Register all observer PRIVATE_CLIENT, PRIVATE_WINDOW, and PRIVATE_DEVICE keys before registering observer callbacks.
+Treat registration failure as observer/session setup failure. Do not permit arming on a partially initialized observer.
+Enable arm handling only after those registrations complete. Process arms only through later fixture dispatch.
+Do not process an arm or snapshot while the init function runs; the root and core devices do not exist yet.
+This is an explicitly linked startup component, not a hot-loaded module or late private-key API.
+The precise helper function name is an implementation choice, not an existing server API.
+
+Existing serverClient storage is safe: dix/privates.c allocated_early[PRIVATE_CLIENT] uses fixupServerClient() (:227-232/:281-287).
+Registration calls dixReallocPrivates(), which extends storage and zeroes its new bytes (:136-145/:361-364).
+Existing devices, if any were created early by a backend, receive the same zeroed growth through fixupDevices().
+That function traverses inputInfo.devices and inputInfo.off_devices (:264-278).
+Normal core and actor devices are created later with the complete PRIVATE_DEVICE storage size.
+PRIVATE_WINDOW has no early-object fixup. Registration must precede root-window creation, as this call site does.
+CreateRootWindow() uses dixAllocateScreenObjectWithPrivates(..., PRIVATE_WINDOW) (dix/window.c:551-557).
+_dixInitScreenPrivates() zeroes the complete registered window-private region (dix/privates.c:643-663).
+Later application windows use the same allocation path. Epoch zero therefore has a defined initialization source.
+Do not cache private-storage addresses while other extension initializers may register further keys.
+Arming occurs after all extension initializers, so those relocations precede any pin.
+
+The observer must be compiled into the existing server Xext static library, not a loadable .so.
+Project server/xlibre/meson.build appends sources to srcs_xext; Xext/meson.build builds libxserver_xext statically.
+Pinned meson.build inc includes the source root, dix, and include (:649-666).
+Internal headers such as dix/resource_priv.h are therefore available to that in-tree source.
+libxserver contains libxserver_dix and libxserver_xext (meson.build:792-806).
+Xvfb links these libraries directly (hw/vfb/meson.build:9-23).
+Xorg link_whole includes libxserver (hw/xfree86/meson.build:58-74/:111-119).
+
+syncEvents is declared extern EventSyncInfoRec in include/inputstr.h:654.
+dix/events.c defines EventSyncInfoRec syncEvents at :271. It is global, not static.
+It lacks _X_EXPORT, as does internal ResourceStateCallback. That limits dynamic symbol visibility, not static-link references.
+The proposed in-tree observer and definitions are linked into the same final ELF. No dynamic lookup is needed.
+Existing exported APIs include dixRegisterPrivateKey, dixLookupDevice, dixLookupWindow, AddCallback, and DeleteCallback.
+Do not add _X_EXPORT, public headers, a dlsym lookup, or a core patch for this design.
+Actual compilation/linking remains UNRUN; the availability claim here follows the exact static source/link declarations.
+
+Shutdown also has a safe ordering: dix_main() calls CloseDownExtensions() after Dispatch() (:299),
+then frees resources, closes devices, and frees serverClient privates (:301-343).
+Invoke observer shutdown from the existing spatial-input extension reset before deleting observer callbacks.
+Invalidate all arms first, disable snapshots, detach callbacks, and release copied observer-owned records.
+No object pointer is retained, so subsequent resource/device destruction needs no observer callback.
+
+Smallest safe lifetime mechanism: object-private epochs
+
+A generic device-deletion notification is NOT required if the observer never caches object pointers.
+Use observer-owned nonzero monotonic epochs stored in each actual object's private storage.
+Register DevPrivateKeyRec keys with dixRegisterPrivateKey(key, PRIVATE_DEVICE, sizeof(uint64_t)).
+Register analogous PRIVATE_CLIENT and PRIVATE_WINDOW keys before application object creation.
+This signature and storage behavior are in include/privates.h:117, :177-183 and dix/privates.c:310 onwards.
+A sized dixLookupPrivate(&object->devPrivates, key) returns the object's inline private storage address.
+dixAllocatePrivates() zeroes fresh storage; CloseDevice() frees it with the device.
+New objects therefore begin at epoch zero even when their numeric IDs or allocator addresses are reused.
+Assign a fresh unique epoch only during explicit arming. Never repair an absent epoch during observation.
+Keep the counter nonzero, monotonic within the observer server session. Overflow must fail closed.
+Include the reviewed observer session identity in pins; never compare epochs across server resets.
+Private-key registration can relocate storage. Register all keys before arming and never cache private addresses.
+
+Persistent pins contain IDs, roles, epochs, session/arm identity, and copied labels. They contain no object pointers.
+At EventCallback, call dixLookupDevice(DeviceIntPtr *out, int id, ClientPtr client, Mask access_mode).
+It searches both live enabled and disabled lists and applies access checks (dix/devices.c:1244-1267).
+Use serverClient with DixReadAccess inside the privileged observer, then require enabled state and correct device role.
+Look up all old and peer devices anew. Require every stored epoch to match before reading any native bitmap.
+Missing devices, zero/new epochs, wrong roles, changed pairing, or source attachment mismatch invalidate the arm.
+A missing old device invalidates this destroyed-target arm. Device removal must never count as a clear native bitmap.
+Missing required keyboard/button classes also invalidate it. A NULL class must never count as an empty down bitmap.
+Only callback-local pointers may access key->down, button->down, focus, or grabs. Copy bytes into the record immediately.
+Do not dispatch requests, yield, register keys, or invoke mutating input operations while holding those local pointers.
+The observer runs in synchronous server dispatch. It must not add threads or deferred pointer dereferences.
+
+For the recipient, compare the callback ClientPtr's private epoch, Running state, and current authenticated application label.
+Resolve the popup with dixLookupWindow(WindowPtr *out, XID, ClientPtr, Mask), declared in include/dix.h:132.
+Require the popup private epoch, mapped/realized state, copied application label, and reviewed spatial-generation fence.
+ClientStateCallback invalidates matching armed client epochs on Retained/Gone, independently of callback registration order.
+ResourceStateCallback invalidates the armed popup epoch on Freeing. Main-window Freeing is the expected trigger.
+Never confuse the destroyed main-window pin with the surviving popup pin.
+Fresh lookup/epoch checks remain mandatory even when eager invalidation callbacks are present.
+Window/client numeric reuse must fail until explicitly rearmed with a new identity.
+
+No open_seat()/close_seat() notification or server-core patch is needed for this lazy epoch approach.
+Minimal overlay changes are observer initialization/reset linkage, its private keys, and existing callback registration.
+If implementation instead chooses cached seat/device tables, explicit pre-removal invalidation would be required.
+That larger alternative must cover every partial allocation failure, close path, and reset; it is not recommended.
+Epochs prove object continuity only. Native down arrays remain the independent release oracle.
+Nothing in this scheme derives held-state success from SeatRec or world actor bookkeeping.
+
+Peer sourceid, grabs, and frozen replay
+
+Project send_input() passes the actor pointer_slave or keyboard_slave to native event generation.
+dix/inpututils.c init_device_event():718-727 initializes deviceid and sourceid to that generating device's ID.
+mi/mieq.c CopyGetMasterEvent():394-433 copies that event and changes deviceid to the master.
+ChangeDeviceID():315 changes deviceid; it does not change sourceid.
+dix/eventconvert.c eventToDeviceEvent() copies both identities into the outgoing xXIDeviceEvent.
+Thus an XIAllMasterDevices observation should carry the actor master as deviceid and actor slave as sourceid.
+Xi/xiquerydevice.c GetDeviceUse():494-512 reports master pairing or slave attachment, not ownership by an actor identity.
+Do not infer actor identity solely from a device name or hierarchy attachment.
+Precondition each authenticated actor with an ordinary controlled XI2 action and independent probe receipt.
+Pin the receipt's master/source IDs and verify hierarchy roles, pairings, and private epochs at arming.
+Validate both pointer and keyboard source identities. Require four distinct devices per actor and disjoint actor sets.
+At the first peer press require the exact pinned peer pointer master/source pair and recipient/popup lifetimes.
+
+XI2 grabs retain these identities: dix/events.c DeliverOneGrabbedEvent():4284 converts EventToXI2(event),
+fixes target/coordinates to the grab window, checks XACE, and attempts recipient output.
+A grab may change recipient or event XID. It does not manufacture a different native source ID.
+Reject a changed recipient/target rather than silently selecting a later peer event.
+Core-only grabs produce no qualifying XI2 record; missing data must fail.
+
+Frozen events retain their native event fields. EnqueueEvent() stores the InternalEvent in QdEventRec.
+PlayReleasedEvents() later calls its saved device's processInputProc with that event.
+ComputeFreezes() may redeliver a saved grab event directly (:1330-1381). It does not rewrite sourceid.
+EventCallback observes only an output attempt, including one resulting from legitimate native replay.
+Do not reject native replay categorically or use DeviceEventCallback as proof of output.
+Before arming, require no preexisting frozen work: syncEvents.pending empty, replayDev NULL, playingEvents false,
+and all pinned devices unfrozen. These actual fields are declared in include/inputstr.h:617-654.
+This conservative qualification precondition excludes earlier queued peer presses masquerading as new input.
+After arming, a freeze/thaw control must snapshot at the first actual matching output, not at enqueue.
+Queued output without a correlated independent probe receipt never passes.
+This clarifies the earlier design's replay rejection: stale records/arms fail; legitimate post-arm native replay may qualify.
+
+Remaining implementation work and negative controls
+
+The companion schema/reader worker owns record transport. This note changes no schema or API.
+Primary review must confirm that the chosen record represents epochs and invalidation reasons without renaming established fields.
+Server reset, observer disabled state, dropped records, and truncated transport must invalidate all arms.
+No output record may preserve raw server pointers. Output buffering must not reenter dispatch or block input indefinitely.
+Prove ID reuse with a newly allocated device and fresh zero/changed epoch; do not rely on forcing allocator-address reuse.
+Add client-slot reuse, popup-XID reuse, popup destruction, actor-seat closure, and partial-allocation cleanup controls.
+Add wrong slave/master pairing, wrong authenticated actor precondition, and stale pre-arm frozen work controls.
+Keep independent held-native-key and held-native-button controls from the reviewed design.
+Those must fail even with clear logical state and successful peer output/receipt.
+
+Scope: this observer qualifies the destroyed-main-window arm while both actor seats and the popup survive.
+It does not qualify old-seat closure or disappearing native devices as successful release.
+Separate surviving-window native event-log selectors may qualify revocation/seat-close cases through their own mandatory releases.
+Their results cannot fill missing data in this destroyed-target observer, and this observer does not weaken their assertions.
+
+Initialization ordering and internal symbol availability are resolved at source level for the static linkage above.
+Still unverified: compile/link behavior of the future observer source and its exact initialization/reset call placement.
+Confirm the selected qualification protocol enforces one active arm and pins copied application labels/session identity.
+Confirm native XI2 probe source/time receipt fields and precondition actions on both required hosts later.
+All lifetime/control behavior described here is a proposed implementation contract, not runtime evidence.
+Next small task: implement the observer-private epoch helper and lifecycle invalidation in the test-only observer module.
+Review its reuse and missing-device controls before connecting its actual-bitmap snapshot to the companion reader.
+Do not change the frozen M08 candidate, XACE baseline, existing destroy expectations, or acceptance IDs.
+
+Primary review decision
+
+The startup/private-storage lifetime direction is accepted for implementation.
+Keep four explicit device identities per actor: pointer master/slave and keyboard master/slave.
+Require the complete native bitmap for each corresponding device class.
+A parser accepting only two devices or one-byte zero bitmaps cannot qualify this design.
+The first companion reader draft failed these checks and remains unaccepted.
+Its repair and meaningful regression checks must pass before integration.

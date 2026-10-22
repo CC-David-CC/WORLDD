@@ -1,0 +1,153 @@
+M09 independent native input-state witness: bounded design investigation
+
+Status: DESIGN ONLY. Primary source review completed. All implementation and runtime remain UNRUN.
+This work advances M09 requirements. It does not block or modify the M08 gate.
+Host: rog-ally-x. No test-host connection, build, package change, or native execution occurred.
+Branch: m09/native-input-state-witness-design-20261020
+Worktree: /home/dflanag3/src/m09-native-input-state-witness-design-20261020
+Base: b51adf7fdc3f6da8525d39822b908e5aafea23c9
+Owned file: this document only. The previous checkpoint worktree remains unchanged.
+External source evidence: /home/dflanag3/spatial-artifacts/m09-native-input-state-witness-design-20261020
+
+Pinned baseline and deployment linkage
+
+Project paths below are relative to spatial-os-luna-handoff.
+server/base.lock.json pins X11Libre/xserver commit f844d7a86c10fd5cc89083e7daf97b862b8ca1fd, tag xlibre-xserver-25.1.9.
+Its SHA256 is a472cdac3c7c40f0da9d07c36e4c46979ab1b1942a8ad82263c257656828dfd9.
+The lock orders eleven patches and maps server/xlibre/spatialinput.c into Xext/spatial/spatialinput.c.
+The overlay SHA256 is ad9199e0c2b5006d4d83422a174b021bb9163d2b168bb94b4353e4efd27c0b99.
+server/patches/0001-spatial-input.patch changes CheckMotion routing, extension registration, and Meson linkage.
+It does not change DeviceEventCallback or EventCallback placement.
+tools/build_xserver.py patched() hashes patches/overlays with the upstream commit into the source directory key.
+Its build receipt records effective_source, extension_sources, binary hashes, and the base lock.
+
+Historical linkage evidence is m08-current-xace-closure-audit-20261019/xace-closure-audit.json under spatial-artifacts.
+It records matching lock/extension hashes and Debug/sanitizer binaries on both required hosts.
+Recorded source key: 24653f6b961a77f03f321b64343200ef0d227e1b52e39ff83cda48d9934788e2.
+Recorded Debug Xvfb SHA256: dfd97979fc6363ad841bddc58a6884a1461aed1c83aa2cd9bfea9c4293ebe623.
+Recorded sanitizer Xvfb SHA256: 7a295f8b2d0b8a81a05488baedf806297462089a6b925d9e36b5c526389fd0de.
+These are historical receipts, not a fresh deployment check or current M08 gate evidence.
+Recheck exact extension_sources, wrapper, dependencies, and binary hashes before future witness qualification.
+Retain the XACE baseline. This design requires no CallbackList migration.
+
+Verified native source and ordering
+
+Upstream source was read at the exact pinned commit. Copies and hashes are external.
+See upstream-source-sha256.json for raw source URLs and SHA256 values.
+- mi/mieq.c:457, mieqProcessDeviceEvent(): processes the slave, then its master.
+- Xi/exevents.c:1834, ProcessDeviceEvent(): calls UpdateDeviceState() at :1861.
+- Xi/exevents.c:1889: DeviceEventCallback runs after that update, before grab/delivery selection.
+- dix/events.c:1146, EnqueueEvent(): also invokes DeviceEventCallback at :1170 for frozen queued events.
+- dix/events.c:6046, WriteEventsToClient(): rejects dead recipients and filters through XKB first.
+- dix/events.c:6097: EventCallback supplies recipient ClientPtr and outgoing event bytes before output.
+- include/inputstr.h:242, KeyClassRec.down; :358, ButtonClassRec.down, buttonsDown, state.
+- Xi/queryst.c: ProcXQueryDeviceState() reads those actual down arrays for native device queries.
+
+Project send_input() in server/xlibre/spatialinput.c:250 uses GetKeyboardEvents/GetPointerEvents and mieqProcessDeviceEvent().
+Buttons and motion pass POINTER_NORAW. Raw-event-only observation cannot prove button release.
+cancel():274 sends releases, clears bookkeeping, removes grabs/focus, and rebinds application devices.
+open_seat():384 creates distinct actor master/slave pairs. bind_application():302 changes the controlling seat.
+device_access():435 permits privileged access while denying unrelated ordinary clients.
+Existing SPATIAL-INPUT status returns SeatRec.keys/buttons, not DeviceInt down state (:579-583).
+Its seat operations are connection-owned. A supervisor cannot silently query another compositor's seat status.
+Do not reinterpret existing Reply.held_keys/held_buttons as independent native evidence.
+
+Minimal observer design to investigate
+
+Use a separate test-only EventCallback observer module in the XACE baseline build.
+No mutable DeviceEventCallback context or enqueue/delivery pairing is required for this XI2-only design.
+DeviceEventCallback may support optional held-state diagnostics. It must not determine accepted-event identity.
+
+Pinned xorgproto commit 67469711055522b8adb2d795b01e7ba98cb8816c defines xXIDeviceEvent in include/X11/extensions/XI2proto.h:960-984.
+It contains GenericEvent type/extension/length, evtype, deviceid, sourceid, event XID, detail, time, and flags.
+Pinned server dix/eventconvert.c eventToDeviceEvent():657-694 copies deviceid/sourceid from the native DeviceEvent.
+dix/events.c FixUpEventFromWindow():2691 dispatches XI2 target/coordinate fixup before event output.
+WriteEventsToClient() invokes EventCallback before client byte swapping (:6133 onwards).
+Thus the observer receives native-order XI2 bytes even for a swapped client.
+These fields identify the peer master device and originating slave without a DeviceEventCallback side channel.
+
+At the callback require count == 1 and an exact unsynthetic GenericEvent type.
+Require the live XInput extension opcode and XI_ButtonPress; reject raw, core, focus, and unrelated event types.
+Validate the bounded 32 + 4*length size before reading xXIDeviceEvent fields beyond the generic header.
+Require at least sizeof(xXIDeviceEvent), valid mask lengths, and a consistent variable payload size.
+Check the recipient's authenticated application label and pinned client lifetime, not its numeric index alone.
+Check event XID plus pinned window lifetime/generation and deviceid/sourceid against the prearmed peer hierarchy.
+Resolve pinned old devices only while live. Snapshot actual old master/slave key->down and button->down arrays.
+Include available native focus/grab state separately. Do not read SeatRec or world held-state as the release oracle.
+Freeze the snapshot at this first qualifying outgoing press. Later peer events must not overwrite it.
+Record monotonic observer ordinals; equal millisecond timestamps do not establish order.
+Reject unrelated, duplicate, replayed, or synthetic SendEvent events.
+
+This is an output-attempt observation before WriteToClient, not proof of receipt by itself.
+Require an independent XI2 probe receipt of that same first peer press on the surviving popup.
+Extend the probe's fixture record with sourceid, time, synthetic flag, and ordering data needed for correlation.
+Match both first qualifying records by recipient/target/device/source/type/detail and bounded arm interval.
+Reject ambiguous or missing correlation. Do not match timestamps alone or accept a later successful press.
+Current native/xprobe.c XI2 JSON reports deviceid but omits sourceid/time.
+Current WorldApplicationControlTests.probe() launches without --xi2 and requires xi2 == false.
+A new ordered-state selector must explicitly opt into --xi2 and assert XI2 readiness.
+Preserve existing core-mode destroy and reacquisition selectors without changing their expectations.
+
+Pin identities before destruction through privileged XIGetClientPointer and XIQueryDevice hierarchy data.
+Precondition each actor through ordinary control of the same application, then release and restore the old controller.
+This permits pinning both actor master/slave sets without granting clients enumeration authority.
+Require native held-key and held-button positive observations before arming the destroy trigger.
+Destroy the main window, submit peer input before waiting for cancellation, and capture the first accepted peer press.
+BUSY is not acceptance. A later successful retry still needs the first successful native-event record.
+The immutable snapshot must show all old key/button state clear before the peer event is emitted.
+A later snapshot, logical clearing, or peer progress cannot satisfy the invariant.
+This proves native server state ordering. It does not prove that a destroyed window received release events.
+
+Data authority and explicit missing contract
+
+Existing callbacks suffice for observation points. No server-core patch appears necessary from source inspection.
+Existing XI queries can provide device identities/current state, but cannot return an atomic historical delivery snapshot.
+Existing SPATIAL-INPUT status cannot express this independent observation or its event ordinal.
+Do not invent an implemented observer operation or silently extend production status semantics.
+A bounded test-only observation record needs explicit fixture-contract review before implementation.
+Prefer a supervisor-owned inherited descriptor and framed Protocol Buffer records over a new ordinary-client X operation.
+The descriptor, arming data, schema, bounded buffering, and failure behavior would be NEW fixture interfaces.
+They must be recorded explicitly. Existing security Bootstrap contains only protocol_version and supervisor_cookie.
+Do not add fields or flags without review. No new wire API is implemented by this note.
+Allow observer access only in an explicitly enabled qualification build/session. Keep it unavailable to confined clients.
+Record no secrets. Exhausted output, truncated records, missing snapshots, or disconnects must fail qualification.
+
+Required negative controls and uncertainties
+
+- Retain one native old key while clearing logical bookkeeping; successful peer input must still fail the witness.
+- Independently retain one native old button with clear logical bookkeeping; the witness must fail again.
+- Remove the snapshot, substitute fallback application devices, swap actor identities, or reuse a device ID; reject each case.
+- Exercise frozen input so enqueue callbacks cannot be mistaken for delivered peer input.
+- Require ordinary-client observation/configuration attempts to fail without exposing device metadata.
+Use a test-only controlled omission of native release, not a fabricated observer record, for held-state controls.
+No such fault point exists yet. It requires a separately reviewed, qualification-only mechanism.
+
+Outstanding source uncertainties: validate native XI2 device/source identities through grabs and frozen-event replay.
+No mutable callback-context pairing is needed. Still validate first-event correlation after XKB filtering.
+Confirm that precondition hierarchy queries identify the exact actor slave which appears as sourceid.
+All fields exist at the pinned baseline; no missing wire field requires DeviceEventCallback correlation.
+Define device lifetime pinning and removal invalidation before keeping any DeviceInt pointer between callbacks.
+An XID, client index, or device ID alone is reusable. Observer records need a validated session/lifetime identity.
+Confirm whether actual grab/focus snapshots cover all requested capture semantics; key/button evidence alone does not.
+Callback availability is established. Sound correlation, lifetime handling, and negative-control behavior remain unimplemented.
+
+Next smallest implementation task
+
+First review the fixture-only observer contract and correlation/lifetime design above.
+Then add one qualification-only EventCallback observer module, with no DIX core changes.
+Proposed files: a new server/xlibre native-observer C/header pair, its Meson linkage, a fixture protobuf schema,
+and a supervisor-side reader in tests/native. Amend base.lock overlays only through explicit review.
+Add explicit XI2 opt-in to the new core fixture selector and additive native/xprobe.c receipt fields.
+That probe fixture-pin change needs separate explicit review. Preserve all existing acceptance bytes and IDs.
+Keep normal server builds unchanged. Do not add general client enumeration or migrate XACE callbacks.
+Next add world application control fixture arming and the strict destroy-to-survivor ordered-state test.
+Keep all existing destroy assertions unchanged and retain the separate reacquisition-only selector.
+Focused tests must cover both actual held-state negative controls, missing/mismatched records, frozen input, and client denial.
+Run focused Debug and ASan/UBSan on both required hosts only after primary releases them.
+All implementation, builds, tests, native qualification, and broader M09 qualification remain UNRUN here.
+
+Primary review decision
+
+The EventCallback-only XI2 design is accepted as an implementation direction.
+The new qualification interface still needs explicit schema and lifetime-contract review.
+This design is not native execution evidence or permission to weaken existing selectors.
