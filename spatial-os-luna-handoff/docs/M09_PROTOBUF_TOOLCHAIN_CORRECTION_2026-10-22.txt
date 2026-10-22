@@ -1,0 +1,55 @@
+M09 reviewed Protobuf toolchain preparation correction - 2026-10-22
+
+Status: focused checks PASS. M09 UNQUALIFIED. M08 remains QUALIFIED.
+Parent source:747994e6a5b11512a761a34ddf13582c92d0433c.
+
+Reproduced preparation failures
+All four Debug/sanitizer Testing and production builds compiled in both attempts.
+Attempt01 reused Unix Makefiles. The required proof consumes Ninja generation recipes.
+Attempt02 used fresh Ninja caches. Its proof refused the changed protoc executable hash.
+The installed compiler and dependencies differ from the original M08 exact profile.
+All44 owning tool/dependency packages passed dpkg -V with empty output.
+Changed dependencies are Protobuf libraries and CMake's liblzma. Ninja is unchanged.
+
+Reviewed invariant and correction
+Keep the original M08 default contract and exact toolchain unchanged.
+Add ubuntu-noble-20261022 as one complete reviewed compiler/dependency profile.
+Accept only either complete profile. Reject mixed profiles and unknown hashes.
+Require Ninja Debug and a recognized measured profile before output creation or compilation.
+Record that choice in preparation provenance. Reject toolchain changes after preflight.
+Keep two independent clean generations, exact file coverage, candidate comparison, and post-generation integrity checks.
+The legacy default contract SHA256 remains:
+ea49006dd445fddfb20cb20a2c818f530fe420e8ac32d9d28705450522b21cb1.
+This explicit tooling contract correction changes no actor, input, XACE, or native oracle behavior.
+Independent helper reviewed the production change and identified one outdated fake verifier interface.
+Primary corrected that test fixture. Its subprocess, generated-contract, and proof-binding assertions remain.
+
+Selected regressions and results
+Both hosts passed19 verifier methods. These cover both profiles and tool/dependency tampering.
+Both hosts passed79 deployed-gate methods after the fixture correction.
+These cover early refusal, immutable preflight selection, provenance, deployment, and independent observer routing.
+All corrected command/wrapper receipts are0/0. Both exact test panes retired0.
+Verifier19 passes are retained from attempt01 using unchanged exact source/fixture hashes.
+Attempt01's static suite failed only the outdated fake verifier. Original failure remains unchanged.
+Attempt02 reran only affected static79. No skip or sanitizer coverage is claimed for these Python tests.
+The unchanged previously reviewed native32 Debug/sanitizer passes remain focused evidence.
+The full new-candidate M09 local, cross-host, acceptance, recovery, and primary review gate remains UNRUN.
+
+Evidence outside Git
+ROG and both test-host artifact root:
+/home/dflanag3/spatial-artifacts/m09-full-747994e6a5b1-20261022.
+Preparation failures:prepare-run-01,candidate-01,prepare-run-02,candidate-02.
+Tool integrity:observed-toolchain-package-01.json,toolchain-dependency-package-integrity-01.json.
+Legacy profile input:legacy-reviewed-toolchain-metadata-01.json.
+Required deterministic test fixture:tools/protobuf_toolchain_test_fixtures.json.
+Both hosts:toolchain-regression-evidence-01/protobuf-verifier.log and result.json.
+Both hosts:toolchain-regression-evidence-02/deployed-gate-static.log and result.json.
+Both hosts:toolchain-regression-run-02/command.exit and wrapper.exit.
+Frozen payload manifests pin source and fixtures for both attempts.
+No old proof or qualified M08 evidence was rewritten. No generated output enters Git.
+
+Next action
+Checkpoint this reviewed correction as UNQUALIFIED. Fast-forward the clean M09 integration branch.
+Freeze the resulting commit. Prepare a fresh candidate with Ninja and the selected exact toolchain.
+Run both full local gates, then required cross-host matrices and primary qualification review.
+Publish the completed qualification record through box-git after every required gate passes.

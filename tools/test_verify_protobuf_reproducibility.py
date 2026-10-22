@@ -1,4 +1,6 @@
 import pathlib
+import copy
+import json
 import contextlib
 import io
 import tempfile
@@ -9,6 +11,7 @@ import verify_protobuf_reproducibility as v
 
 SOURCE = pathlib.Path('/work/source')
 BUILD = pathlib.Path('/work/build')
+TOOL_FIXTURES = json.loads(pathlib.Path(__file__).with_name('protobuf_toolchain_test_fixtures.json').read_text())['profiles']
 
 class ReproTests(unittest.TestCase):
     def test_cpp_recipe_supports_separate_colon_output_and_include(self):
@@ -117,6 +120,58 @@ class ReproTests(unittest.TestCase):
                 v.load_contract(path)
 
 
+    def test_legacy_default_contract_and_toolchain_remain_unchanged(self):
+        self.assertEqual(v.canon_sha(v.DEFAULT_CONTRACT),
+            'ea49006dd445fddfb20cb20a2c818f530fe420e8ac32d9d28705450522b21cb1')
+        self.assertEqual(v.DEFAULT_TOOLCHAIN, v.REVIEWED_TOOLCHAINS['m08-20261021'])
+
+    def test_each_complete_reviewed_profile_loads_and_verifies(self):
+        for name, pins in v.REVIEWED_TOOLCHAINS.items():
+            with self.subTest(profile=name), tempfile.TemporaryDirectory() as td:
+                contract=copy.deepcopy(v.DEFAULT_CONTRACT);contract['toolchain']=copy.deepcopy(pins)
+                path=pathlib.Path(td)/'contract.json';path.write_text(json.dumps(contract))
+                loaded,_=v.load_contract(path)
+                self.assertEqual(v.reviewed_toolchain_name(loaded['toolchain']),name)
+                v.verify_toolchain(copy.deepcopy(TOOL_FIXTURES[name]),loaded)
+
+    def test_preflight_selects_only_a_complete_reviewed_measured_profile(self):
+        for name,pins in v.REVIEWED_TOOLCHAINS.items():
+            with self.subTest(profile=name), mock.patch.object(v,'measure_toolchain',return_value=copy.deepcopy(TOOL_FIXTURES[name])):
+                self.assertEqual(v.select_reviewed_toolchain(),pins)
+        changed=copy.deepcopy(TOOL_FIXTURES['ubuntu-noble-20261022'])
+        changed['protoc']['sha256']='0'*64
+        with mock.patch.object(v,'measure_toolchain',return_value=changed),self.assertRaises(v.Refusal):
+            v.select_reviewed_toolchain()
+
+    def test_mixed_reviewed_profiles_and_unknown_profile_are_rejected(self):
+        mixed=copy.deepcopy(v.DEFAULT_TOOLCHAIN)
+        mixed['protoc']=copy.deepcopy(v.REVIEWED_TOOLCHAINS['ubuntu-noble-20261022']['protoc'])
+        unknown=copy.deepcopy(v.DEFAULT_TOOLCHAIN);unknown['ninja']['sha256']='0'*64
+        for pins in (mixed,unknown):
+            with self.subTest(pins=pins),tempfile.TemporaryDirectory() as td:
+                contract=copy.deepcopy(v.DEFAULT_CONTRACT);contract['toolchain']=pins
+                path=pathlib.Path(td)/'contract.json';path.write_text(json.dumps(contract))
+                with self.assertRaises(v.Refusal):v.load_contract(path)
+                with self.assertRaises(v.Refusal):v.verify_toolchain(TOOL_FIXTURES['m08-20261021'],contract)
+
+    def test_current_measurements_do_not_satisfy_a_legacy_contract(self):
+        current=copy.deepcopy(TOOL_FIXTURES['ubuntu-noble-20261022'])
+        v.verify_toolchain(current,{'toolchain':v.REVIEWED_TOOLCHAINS['ubuntu-noble-20261022']})
+        with self.assertRaises(v.Refusal):v.verify_toolchain(current,v.DEFAULT_CONTRACT)
+
+    def test_each_profile_rejects_changed_or_missing_tool_dependencies(self):
+        for profile,pins in v.REVIEWED_TOOLCHAINS.items():
+            for name in pins:
+                for mutation in ('version','executable','dependency','missing-dependency','missing-tool'):
+                    with self.subTest(profile=profile,tool=name,mutation=mutation):
+                        measured=copy.deepcopy(TOOL_FIXTURES[profile])
+                        if mutation=='version':measured[name]['version']+=' changed'
+                        elif mutation=='executable':measured[name]['sha256']='0'*64
+                        elif mutation=='dependency':measured[name]['dependencies'][0]['sha256']='0'*64
+                        elif mutation=='missing-dependency':measured[name]['dependencies'].pop()
+                        else:measured.pop(name)
+                        with self.assertRaises(v.Refusal):v.verify_toolchain(measured,{'toolchain':pins})
+
     def test_outer_main_writes_proof_only_after_full_candidate_comparison(self):
         import contextlib
         import io
@@ -208,6 +263,14 @@ class ReproTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(v, 'recipes_for', side_effect=fake_recipes))
                 stack.enter_context(mock.patch.object(v, 'replay_round', side_effect=fake_replay))
                 stack.enter_context(mock.patch.object(v.subprocess, 'check_output', side_effect=fake_check_output))
+                # Mock one complete reviewed measurement; the outer-main fixture is host-independent.
+                measured=copy.deepcopy(TOOL_FIXTURES['m08-20261021'])
+                original_sha=v.sha_file
+                def fixture_sha(path):
+                    key=pathlib.Path(path).name
+                    return measured[key]['sha256'] if pathlib.Path(path) in (v.PROTOC,v.CMAKE,v.NINJA) else original_sha(path)
+                stack.enter_context(mock.patch.object(v,'sha_file',side_effect=fixture_sha))
+                stack.enter_context(mock.patch.object(v,'tool_deps',side_effect=lambda path:copy.deepcopy(measured[path.name]['dependencies'])))
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
                     self.assertEqual(v.main(['--contract', str(contract_path), '--artifact-root', str(parent / 'run')]), 0)

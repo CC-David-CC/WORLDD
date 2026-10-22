@@ -29,6 +29,28 @@ PINNED_TOOLS = {
 }
 DEFAULT_TOOLCHAIN = {name: {"version": values[0], "sha256": values[1], "closure_sha256": values[2]}
                     for name, values in PINNED_TOOLS.items()}
+# Complete reviewed profiles. Never accept a union of individually recognized tool pins.
+REVIEWED_TOOLCHAINS = {
+    "m08-20261021": DEFAULT_TOOLCHAIN,
+    "ubuntu-noble-20261022": {
+        "protoc": {
+                "version": "libprotoc 3.21.12",
+                "sha256": "95bb3996d5b48f94929ee510cfddb57fb543ae4d8d335909972cfb32347203fc",
+                "closure_sha256": "99363411646335022368a5b8d1ba28f33f94753cb9419bb5bc7dff2ebfc1e7c8"
+        },
+        "cmake": {
+                "version": "cmake version 3.28.3",
+                "sha256": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+                "closure_sha256": "043a77e165d5885cac9e36990c4657970877645189300a8cf66f6ee9b3e0059d"
+        },
+        "ninja": {
+                "version": "1.11.1",
+                "sha256": "5965527e09fe2b3787772aa4f711d6a36b393e7f2fcaa744a7a96c5a4ddf59cb",
+                "closure_sha256": "a89a3aa1a104c52b32551ed0e1d5c98eab76d1acab1d74d2aee1598d86742810"
+        }
+},
+}
+
 DEFAULT_CONTRACT = {
     "schema": 1, "candidate": CANDIDATE, "provenance_path": str(PROVENANCE),
     "provenance_sha256": PROVENANCE_SHA, "source_root": str(SOURCE), "build_dir": str(BUILD),
@@ -204,20 +226,45 @@ def tool_deps(path):
             deps.append({"path": str(dep), "sha256": sha_file(dep)})
     return sorted(deps, key=lambda x: x["path"])
 
-def require_tool_pin(name, version, digest, closure_digest):
-    need(name in PINNED_TOOLS, "unreviewed generator tool")
-    expected_version, expected_digest, expected_closure = PINNED_TOOLS[name]
-    need(version == expected_version, name + " version mismatch")
-    need(digest == expected_digest, name + " executable hash mismatch")
-    need(closure_digest == expected_closure, name + " dependency closure mismatch")
+def reviewed_toolchain_name(toolchain):
+    for name, expected in REVIEWED_TOOLCHAINS.items():
+        if toolchain == expected:
+            return name
+    raise Refusal("contract toolchain differs from every complete reviewed generator profile")
+
+def measure_toolchain():
+    tools = {}
+    for name, tool in (("protoc", PROTOC), ("cmake", CMAKE), ("ninja", NINJA)):
+        version = subprocess.check_output([str(tool), "--version"], text=True,
+            env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"}).splitlines()[0]
+        tools[name] = {"path": str(tool.resolve()), "version": version,
+            "sha256": sha_file(tool), "dependencies": tool_deps(tool)}
+    return tools
+
+def select_reviewed_toolchain():
+    tools = measure_toolchain()
+    need(set(tools) == set(PINNED_TOOLS), "toolchain inventory differs")
+    pins = {name: {"version": item["version"], "sha256": item["sha256"],
+        "closure_sha256": canon_sha(item["dependencies"])} for name, item in tools.items()}
+    reviewed_toolchain_name(pins)
+    return pins
+
+def require_tool_pin(name, version, digest, closure_digest, toolchain=None):
+    selected = DEFAULT_TOOLCHAIN if toolchain is None else toolchain
+    reviewed_toolchain_name(selected)
+    need(name in selected, "unreviewed generator tool")
+    expected = selected[name]
+    need(version == expected["version"], name + " version mismatch")
+    need(digest == expected["sha256"], name + " executable hash mismatch")
+    need(closure_digest == expected["closure_sha256"], name + " dependency closure mismatch")
 
 def verify_toolchain(tools, contract):
-    need(set(tools) == set(PINNED_TOOLS), "toolchain inventory differs")
+    selected = contract["toolchain"]
+    reviewed_toolchain_name(selected)
+    need(set(tools) == set(selected), "toolchain inventory differs")
     for name, item in tools.items():
-        require_tool_pin(name, item.get("version"), item.get("sha256"), canon_sha(item.get("dependencies")))
-        expected = contract["toolchain"][name]
-        need(item.get("version") == expected["version"] and item.get("sha256") == expected["sha256"] and
-             canon_sha(item.get("dependencies")) == expected["closure_sha256"], name + " differs from contract toolchain")
+        require_tool_pin(name, item.get("version"), item.get("sha256"),
+            canon_sha(item.get("dependencies")), selected)
 
 def remap(value, old, new):
     path = pathlib.Path(value)
@@ -367,8 +414,7 @@ def load_contract(path):
     need(type(contract["candidate"]) is str and re.fullmatch(r"[0-9a-f]{40}", contract["candidate"]), "invalid candidate pin")
     for key in ("provenance_sha256",):
         need(type(contract[key]) is str and re.fullmatch(r"[0-9a-f]{64}", contract[key]), "invalid contract digest: " + key)
-    need(contract["toolchain"] == {name: {"version": values[0], "sha256": values[1], "closure_sha256": values[2]}
-                                   for name, values in PINNED_TOOLS.items()}, "contract toolchain differs from reviewed generator")
+    reviewed_toolchain_name(contract["toolchain"])
     return contract, sha_bytes(payload)
 
 def main(argv=None):
@@ -414,15 +460,10 @@ def main(argv=None):
     cpp_actual = cpp_map(build)
     need(len(candidate_python) == contract["candidate_python_output_count"] and len(production_off_python) == contract["production_off_python_output_count"] and len(cpp_actual) == contract["cpp_output_count"],
          "candidate generated output inventory count mismatch")
-    version = subprocess.check_output([str(PROTOC), "--version"], text=True, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"}).strip()
-    cmake_version = subprocess.check_output([str(CMAKE), "--version"], text=True, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"}).splitlines()[0]
-    ninja_version = subprocess.check_output([str(NINJA), "--version"], text=True, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"}).strip()
-    tools = {}
-    for tool in (PROTOC, CMAKE, NINJA):
-        tools[tool.name] = {"path": str(tool.resolve()), "sha256": sha_file(tool), "dependencies": tool_deps(tool)}
-    tools["protoc"]["version"] = version
-    tools["cmake"]["version"] = cmake_version
-    tools["ninja"]["version"] = ninja_version
+    tools = measure_toolchain()
+    version = tools["protoc"]["version"]
+    cmake_version = tools["cmake"]["version"]
+    ninja_version = tools["ninja"]["version"]
     verify_toolchain(tools, contract)
     epoch = subprocess.check_output(["git", "-C", str(source.parent), "show", "-s", "--format=%ct", CANDIDATE],
                                     text=True, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"}).strip()

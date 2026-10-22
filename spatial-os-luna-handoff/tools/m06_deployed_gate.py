@@ -248,13 +248,36 @@ def validate_protobuf_reproducibility(proof, provenance, provenance_path, proof_
         raise RuntimeError("candidate generated C++ map differs from clean-generation output map")
     return {"path": str(proof_path.resolve()), "sha256": sha(proof_path)}
 
-def _protobuf_contract(tool_path, provenance_path, debug_build, production_off_python_runtime, artifact_parent):
-    spec = importlib.util.spec_from_file_location("spatial_protobuf_reproducibility", tool_path)
+def _load_protobuf_verifier():
+    if not PROTOBUF_PROOF_TOOL.is_file() or PROTOBUF_PROOF_TOOL.is_symlink():
+        raise RuntimeError("required Protobuf reproducibility verifier is missing or unsafe")
+    spec = importlib.util.spec_from_file_location("spatial_protobuf_reproducibility", PROTOBUF_PROOF_TOOL)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load the reviewed Protobuf reproducibility verifier")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    return module
+
+
+def _protobuf_preflight(debug_generator):
+    if debug_generator != "Ninja":
+        raise RuntimeError("Protobuf reproducibility requires a Ninja Debug generation graph before compilation")
+    module = _load_protobuf_verifier()
+    try:
+        tools = module.select_reviewed_toolchain()
+        return {"profile": module.reviewed_toolchain_name(tools), "tools": tools}
+    except module.Refusal as error:
+        raise RuntimeError("Protobuf toolchain preflight refused: " + str(error)) from error
+
+
+def _protobuf_contract(tool_path, provenance_path, debug_build, production_off_python_runtime, artifact_parent):
+    if Path(tool_path) != PROTOBUF_PROOF_TOOL:
+        raise RuntimeError("Protobuf verifier path differs from the reviewed preparation entrypoint")
+    module = _load_protobuf_verifier()
     provenance = json.loads(Path(provenance_path).read_text())
+    selected = provenance.get("protobuf_toolchain")
+    if selected != _protobuf_preflight("Ninja"):
+        raise RuntimeError("reviewed Protobuf toolchain changed after preparation preflight")
     source = ROOT.resolve(strict=True)
     build = Path(debug_build).resolve(strict=True)
     production_off = Path(production_off_python_runtime).resolve(strict=True)
@@ -274,7 +297,7 @@ def _protobuf_contract(tool_path, provenance_path, debug_build, production_off_p
         "production_off_python_output_count": len(production_python),
         "cpp_output_count": len(cpp_outputs),
         "round_output_count": len(candidate_python) + len(cpp_outputs),
-        "toolchain": module.DEFAULT_TOOLCHAIN,
+        "toolchain": selected["tools"],
     }
     if not source_count or not recipes or not candidate_python or not production_python or not cpp_outputs:
         raise RuntimeError("Protobuf reproducibility contract inputs are incomplete")
@@ -1693,6 +1716,7 @@ def prepare(a):
     build_generators = {profile: configure_generator_for_build(build_paths[profile]) for profile in PROFILES}
     production_generators = {profile: configure_generator_for_build(production_paths[profile])
                              for profile in PROFILES}
+    protobuf_toolchain = _protobuf_preflight(build_generators["Debug"])
     dest.mkdir(parents=True, exist_ok=False)
     cache_lock_handles = []
     if cache_paths:
@@ -1705,6 +1729,7 @@ def prepare(a):
     rec = dict(schema=2, attempt=attempt, status="building", candidate=commit, source_root=str(ROOT),
                runtime_bytecode_integrity_policy=RUNTIME_BYTECODE_INTEGRITY_POLICY,
                protobuf_reproducibility_policy={"version": 1, "required": True},
+               protobuf_toolchain=protobuf_toolchain,
                source_sha256=files, locked_files_verified=len(locked), builder=host,
                builder_hostname=actual_host, profiles={}, stage_history=[], runtime_manifest=runtime,
                cache_paths={group: {profile: str(path) for profile, path in rows.items()}

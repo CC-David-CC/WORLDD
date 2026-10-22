@@ -1,3 +1,15 @@
+## 2026-10-22: M09 full preparation toolchain correction passes focused checks
+
+M08 remains qualified. M09 remains UNQUALIFIED. Full M09 runtime qualification has not started.
+Both full preparation attempts compiled all four builds, then failed the required generation proof.
+The first used Makefiles. The second encountered an updated exact Protobuf toolchain.
+The reviewed correction preserves the M08 profile and adds one complete package-verified profile.
+Preparation now refuses incompatible generation graphs and unreviewed toolchains before compilation.
+Both hosts pass19 verifier and79 deployed-gate methods. The original failures remain preserved.
+Native focused evidence remains valid for unchanged source. A new clean candidate freeze is next.
+Read docs/M09_PROTOBUF_TOOLCHAIN_CORRECTION_2026-10-22.txt for contract details, evidence, and unrun gates.
+Historical entries below retain their dated status.
+
 ## 2026-10-22: M09 native witness connected; focused native matrix passes
 
 M08 remains qualified. M09 remains UNQUALIFIED. Full M09 qualification remains pending.

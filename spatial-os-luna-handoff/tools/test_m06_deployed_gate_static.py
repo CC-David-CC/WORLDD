@@ -724,11 +724,19 @@ class GateStaticTests(unittest.TestCase):
         debug = self.root / 'Debug'; (debug / 'python').mkdir(parents=True)
         off = self.root / 'production-off' / 'python'; off.mkdir(parents=True)
         provenance['source_root'] = str(source.resolve())
+        provenance['protobuf_toolchain'] = {'profile': 'test-reviewed', 'tools': {
+            name: {'version': 'test', 'sha256': '6' * 64, 'closure_sha256': '7' * 64}
+            for name in ('protoc', 'cmake', 'ninja')}}
         gate.write_json(provenance_path, provenance)
         proof['provenance_sha256'] = gate.sha(provenance_path)
         tool = self.root / 'verifier.py'
         tool.write_text('''from pathlib import Path
 DEFAULT_TOOLCHAIN={name:{"version":"test","sha256":"6"*64,"closure_sha256":"7"*64} for name in ("protoc","cmake","ninja")}
+class Refusal(ValueError): pass
+def select_reviewed_toolchain(): return DEFAULT_TOOLCHAIN
+def reviewed_toolchain_name(tools):
+    if tools != DEFAULT_TOOLCHAIN: raise Refusal("unknown toolchain")
+    return "test-reviewed"
 def recipes_for(build, source, expected_count=None): return ([{} for _ in range(2)], "recipe-pin")
 def generated_map(path, allow_bytecode_cache=False):
     return {"a_pb2.py":"1"*64} if Path(path)==Path("OFF_PATH") else {"a_pb2.py":"1"*64,"b_pb2.py":"2"*64}
@@ -1810,6 +1818,62 @@ def cpp_map(root): return {"src/a.pb.cc":"3"*64,"src/a.pb.h":"4"*64}
         with patch.object(gate, '_run_on_host', return_value=value):
             with self.assertRaisesRegex(RuntimeError, 'deployment/source pin mismatch'):
                 gate._validate_remote_deployment('sb16-2', dict(path='/deploy'), 'a' * 40)
+
+    def prepare_preflight_fixture(self):
+        candidate='a'*40
+        runtime=self.put('prepare-runtime.json',json.dumps({'candidate':candidate}))
+        paths={group:{profile:self.root/(group+'-'+profile) for profile in gate.PROFILES}
+            for group in ('build','production-off')}
+        args=SimpleNamespace(candidate=candidate,output=self.root/'output',attempt='attempt',
+            runtime_manifest=runtime,build_paths=None,configure_env=None)
+        return args,paths
+
+    def test_prepare_refuses_makefiles_generation_before_tools_or_builds(self):
+        args,paths=self.prepare_preflight_fixture()
+        with patch.object(gate.socket,'gethostname',return_value='ROG-Ally-X-RC72LA'), \
+             patch.object(gate,'source_pin',return_value=(args.candidate,{},{})), \
+             patch.object(gate,'runtime_files'),patch.object(gate,'_validated_build_paths',return_value=paths), \
+             patch.object(gate,'configure_generator_for_build',return_value='Unix Makefiles'), \
+             patch.object(gate,'_load_protobuf_verifier',side_effect=AssertionError('must refuse before tool measurement')), \
+             patch.object(gate,'run',side_effect=AssertionError('must refuse before build')):
+            with self.assertRaisesRegex(RuntimeError,'requires a Ninja Debug'):
+                gate.prepare(args)
+        self.assertFalse(args.output.exists())
+
+    def test_prepare_refuses_unknown_toolchain_before_output_or_compilation(self):
+        args,paths=self.prepare_preflight_fixture()
+        def refuse():raise ValueError('unreviewed profile')
+        module=SimpleNamespace(Refusal=ValueError,select_reviewed_toolchain=refuse)
+        with patch.object(gate.socket,'gethostname',return_value='ROG-Ally-X-RC72LA'), \
+             patch.object(gate,'source_pin',return_value=(args.candidate,{},{})), \
+             patch.object(gate,'runtime_files'),patch.object(gate,'_validated_build_paths',return_value=paths), \
+             patch.object(gate,'configure_generator_for_build',return_value='Ninja'), \
+             patch.object(gate,'_load_protobuf_verifier',return_value=module), \
+             patch.object(gate,'run',side_effect=AssertionError('must refuse before build')):
+            with self.assertRaisesRegex(RuntimeError,'toolchain preflight refused'):
+                gate.prepare(args)
+        self.assertFalse(args.output.exists())
+
+    def test_proof_contract_rejects_a_profile_change_after_preflight(self):
+        selected={'profile':'legacy','tools':{'fixture':'legacy'}}
+        provenance=self.put('profile-change-provenance.json',json.dumps({'protobuf_toolchain':selected}))
+        module=SimpleNamespace(Refusal=ValueError,select_reviewed_toolchain=lambda:{'fixture':'current'},
+            reviewed_toolchain_name=lambda tools:'current',recipes_for=lambda *args:(_ for _ in ()).throw(AssertionError('must refuse before recipes')))
+        with patch.object(gate,'_load_protobuf_verifier',return_value=module):
+            with self.assertRaisesRegex(RuntimeError,'changed after preparation preflight'):
+                gate._protobuf_contract(gate.PROTOBUF_PROOF_TOOL,provenance,self.root,self.root,self.root)
+
+    def test_proof_contract_keeps_the_exact_preflight_toolchain(self):
+        selected={'profile':'current','tools':{'fixture':'current'}}
+        provenance=self.put('same-profile-provenance.json',json.dumps({'candidate':'a'*40,
+            'source_sha256':{'schema.proto':'b'*64},'protobuf_toolchain':selected}))
+        module=SimpleNamespace(Refusal=ValueError,select_reviewed_toolchain=lambda:selected['tools'],
+            reviewed_toolchain_name=lambda tools:selected['profile'],recipes_for=lambda *args:([{'recipe':'fixture'}],'c'*64),
+            generated_map=lambda *args,**kwargs:{'one_pb2.py':'d'*64},cpp_map=lambda *args:{'one.pb.h':'e'*64})
+        with patch.object(gate,'_load_protobuf_verifier',return_value=module):
+            actual,contract=gate._protobuf_contract(gate.PROTOBUF_PROOF_TOOL,provenance,self.root,self.root,self.root)
+        self.assertIs(actual,module)
+        self.assertEqual(contract['toolchain'],selected['tools'])
 
     def test_crosshost_reconciliation_cannot_mark_phase_complete(self):
         tree = gate.ast.parse(Path(gate.__file__).read_text())
