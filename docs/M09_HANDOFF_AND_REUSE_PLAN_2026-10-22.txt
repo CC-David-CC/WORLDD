@@ -74,6 +74,11 @@ m09/ordered-revocation-continuity-20261020: da523be5e5870dac93b6a264d56dc38c945b
 m09/observer-fixture-integration-20261020: f5d74140a344f0451826a4e6a4fbee73e81e974b.
 These local ref pins were inspected during M08 handoff. Verify box-git and current worktree state before reuse.
 Prior observer parser/descriptor checks are focused evidence. Native M09 qualification remains pending.
+The balanced-destroy documentation checkpoint85771be is now BOX-GIT VERIFIED and scheduled for the publication follow-up.
+Its existing worktree has unpublished edits in acceptance.lock.json, native/xprobe.c, and test_world_application_control.py.
+It also has an untracked M09_BALANCED_DESTROY_REVOCATION_2026-10-20.txt.
+These edits were preserved byte-for-byte. Only the existing documentation commit was checkpointed.
+Inspect their exact diff and any surviving worker before integrating. Do not silently adopt the locked-test modification.
 
 Milestones after M09:
 M10 shared human and agent semantic actions.

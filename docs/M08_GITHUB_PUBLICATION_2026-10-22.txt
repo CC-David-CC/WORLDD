@@ -1,0 +1,31 @@
+M08 GITHUB PUBLICATION
+Date: 2026-10-22. Qualification: QUALIFIED_M08. M09 remains UNQUALIFIED.
+
+David authorized publication after the M08 qualification record completed.
+Qualified record commit: 26daef3974121288a514edc1bf3330abd2fa8c2b.
+Source and qualification tag: spatial-m08-2026-10-22.
+Published repository: https://github.com/CC-David-CC/WORLDD.
+Qualified source branch: m08/qualified-20261022.
+M09 handoff: docs/M09_HANDOFF_AND_REUSE_PLAN_2026-10-22.txt on that branch.
+
+The first publication atomically pushed and verified fourteen refs through box-git's existing fleet SSH identity.
+It includes qualified source, the reviewed repair branch, the qualification tag, six supporting source tags, and five M09 preparation branches.
+Supporting source tags use spatial-m08-source-20261022/ and identify cabinet-view-fixture,
+healthy-issuer-fixture, healthy-issuer-loader, additive-evidence-verifier,
+additive-local-receipt, and cabinet-selector-next-candidate.
+They preserve exact supporting commits. Draft and next-candidate source does not inherit M08 qualification.
+
+The existing GitHub main remains cc2275d18a1a1450db511e6c2171795ec20d1b71.
+No history was force-pushed, fetched from the recovery archive, or joined to the clean source lineage.
+The new qualified branch carries the clean source. Existing GitHub branches remain available.
+The configured clean box-git origin remains unchanged.
+
+The remaining local M09 documentation-only checkpoint85771be was then reviewed and pushed to box-git as UNQUALIFIED.
+The publication follow-up adds m09/balanced-destroy-revocation-20261020 and advances the qualified branch with this publication note.
+Its existing uncommitted native and locked-test edits remain unpublished and unchanged for M09 review.
+All six named M09 preparation branches remain unqualified.
+
+The M08 adoption record and83 byte-verified evidence records remain on r730 at:
+/mnt/data10tb/spatial-desktop/manifests/m08-qualified-580834-20261022-01.
+Raw generated evidence stays outside Git. The maintained qualification summary records its hashes and original host paths.
+Publication transport receipts remain external under the ROG original-context-correction-01 evidence directory and box-git administration receipts.
