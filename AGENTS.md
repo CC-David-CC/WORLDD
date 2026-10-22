@@ -34,7 +34,9 @@ Record contract changes explicitly. Do not silently change locked acceptance tes
 Use sb16 and sb16-2 as test boxes for worlds, applications, and native sessions.
 Do not install Codex or run coding agents on these test boxes.
 Do not use these test boxes for development builds or development worktrees.
-Use middle-child and a5500 for coding agents, orchestration, compilation, and development worktrees.
+Use middle-child for coding agents, orchestration, compilation, and development worktrees.
+Use rog-ally-x for additional development or artifact storage when its available resources are sufficient.
+Do not use a5500 for Spatial Desktop project work. Keep it free for David's other work.
 Coordinate development through local Git commits and branches on box-git.
 Use skills/spatial-worker-coordination/SKILL.md for worker assignment, handoff, checkpoint, and integration procedures.
 Use separate branches, checkouts, or linked worktrees for independent worker tasks.
@@ -439,3 +441,39 @@ Do not duplicate historical evidence into worker checkouts or test-host packages
 If deletion fails, create a machine-specific script with exact verified paths and safety checks.
 Preserve the failure log and tell David which script to run.
 David resumed M07 development on 2026-10-14.
+
+## Shared fleet artifact storage
+
+Read [FLEET_STORAGE.md](FLEET_STORAGE.md) before using fleet disks.
+David authorized these storage paths on r730 on 2026-10-18.
+Use `/mnt/data10tb/spatial-desktop` for current packages, manifests, concise results, and unresolved failure evidence.
+Use `/mnt/data2tb/spatial-desktop` for expendable transfers, scratch files, and caches.
+Verify each exact mount and filesystem UUID before writing. Do not write into an unmounted directory.
+Use r730 for project storage only. Keep builds, tests, worlds, and inference on their assigned hosts.
+Preserve other agents' files. Operate only within this project's marked directories.
+Keep only active packages, current logs, and required runtime fixtures on test boxes.
+Use local worker directories for active compilation and temporary packaging. Remove completed temporary stages after verification.
+Transfer retained artifacts to fleet storage through checked SSH operations.
+Transfer artifacts directly between LAN hosts. Never relay transfers through this Windows controller.
+Use this controller for orchestration only. Its connection can use Wi-Fi or 3G.
+Verify destination bytes and source pins before removing a required local copy.
+Keep source, tests, schemas, maintained documents, and concise result summaries in Git.
+Do not put generated logs, packages, images, databases, or build trees in Git.
+Do not archive obsolete reproducible logs merely because storage is available.
+After a replacement passes, keep its concise result and provenance. Remove superseded reproducible outputs.
+Preserve the evidence needed to diagnose unresolved failures. Remove it after resolution when its summary is sufficient.
+Record exact cleanup paths and measured recovered space.
+
+## Generated Protobuf code and Python bytecode
+
+David selected this policy on 2026-10-21.
+Require reproducible generation for shipped Protobuf source code.
+Pin schema inputs, generator tools, dependencies, flags, and the controlled generation environment.
+Generate independently in two clean source and output directories.
+Require identical file coverage and bytes between generations and the candidate artifacts.
+Keep integrity checks for generated source, handwritten source, schemas, executables, and libraries.
+Exclude mutable Python .pyc and .pyo files from runtime integrity hashes.
+Omit Python bytecode caches from new immutable deployment payloads.
+Ignore only bytecode hash entries when validating legacy provenance.
+Preserve original provenance and failed reports. Record any corrective validation as separate evidence.
+A reproducibility proof does not qualify a milestone by itself.
