@@ -159,8 +159,8 @@ def _remote_profile_pin(host, deployment, candidate, profile, provenance_sha256,
     check_script = (
         "import hashlib,json,pathlib,sys; r=pathlib.Path(sys.argv[1]); p=json.loads((r/'provenance.json').read_text()); "
         "q=p['profiles'][sys.argv[2]]; b=r/'build'/sys.argv[2]; "
-        "bad=[n for n,h in q['executables'].items() if hashlib.sha256((b/n).read_bytes()).hexdigest()!=h]; "
-        "bad += [n for n,h in q['runtime_files'].items() if n not in q['ctest_metadata'] and hashlib.sha256((b/n).read_bytes()).hexdigest()!=h]; "
+        "bad=[n for n,h in q['executables'].items() if pathlib.PurePosixPath(n).suffix not in ('.pyc','.pyo') and hashlib.sha256((b/n).read_bytes()).hexdigest()!=h]; "
+        "bad += [n for n,h in q['runtime_files'].items() if n not in q['ctest_metadata'] and pathlib.PurePosixPath(n).suffix not in ('.pyc','.pyo') and hashlib.sha256((b/n).read_bytes()).hexdigest()!=h]; "
         "print(json.dumps({'bad':bad})); sys.exit(bool(bad))")
     checked = json.loads(m06._run_on_host(host, ["python3", "-c", check_script, str(deployment), profile]).decode())
     if checked.get("bad"):

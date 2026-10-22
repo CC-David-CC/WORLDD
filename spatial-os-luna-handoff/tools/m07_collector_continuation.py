@@ -199,6 +199,7 @@ def _source_closure(gate, root, context):
     require(provenance.get('candidate') == receipt.get('candidate') == CANDIDATE
             and receipt.get('host') == context['host'] and receipt.get('status') == 'verified',
             'frozen deployment identity changed')
+    gate.require_deployed_protobuf_proof(root, provenance, receipt)
     for key, name in (('provenance_sha256', 'provenance.json'),
                       ('deployment_receipt_sha256', 'deployment-receipt.json')):
         require(gate.sha(root / name) == context[key], 'deployment provenance/receipt pin changed')
@@ -260,6 +261,7 @@ def _runtime_profile(gate, root, provenance, host, profile, metadata):
     production = root / 'production-off' / profile
     prepared = provenance['profiles'][profile]
     off = provenance['production_off'][profile]
+    gate.validate_runtime_bytecode_policy(provenance)
     for base, rows in ((build, prepared['executables']),
                        (build, {k: v for k, v in prepared['runtime_files'].items()
                                 if k not in prepared['ctest_metadata']}),
@@ -267,6 +269,8 @@ def _runtime_profile(gate, root, provenance, host, profile, metadata):
         require(bool(rows), 'empty runtime closure')
         for relative, pin in rows.items():
             require(not Path(relative).is_absolute() and '..' not in Path(relative).parts, 'unsafe runtime relative path')
+            if gate.is_runtime_bytecode(relative):
+                continue  # Legacy cache hashes are intentionally ignored under policy v1.
             require(digest(raw_file(base / relative)) == pin, 'runtime/generated artifact changed: ' + relative)
     for base, row in ((build, prepared), (production, off)):
         require(gate.generated_closure(base) == row['generated_binding_imports'], 'generated import closure changed')

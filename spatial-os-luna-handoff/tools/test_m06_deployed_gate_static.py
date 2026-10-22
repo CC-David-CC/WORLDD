@@ -273,9 +273,12 @@ class GateStaticTests(unittest.TestCase):
         build = self.root / 'build'
         self.put('build/runtime.textproto', 'configuration')
         self.put('build/python/nested/foo_pb2.py', '# generated')
+        cache = build / 'python/__pycache__/foo.cpython-312.pyc'; cache.parent.mkdir(parents=True); cache.write_bytes(b'generated cache')
+        legacy = build / 'python/__pycache__/foo.pyo'; legacy.write_bytes(b'legacy cache')
         self.put('build/CTestTestfile.cmake', '# registrations')
         kept = {Path(name).as_posix() for name in gate.retained_files(build)}
         self.assertTrue({'runtime.textproto', 'python/nested/foo_pb2.py', 'CTestTestfile.cmake'} <= kept)
+        self.assertFalse(any(name.endswith(('.pyc', '.pyo')) for name in kept))
 
     def test_missing_runtime_config_rejected(self):
         self.put('build/python/a_pb2.py', '# generated')
@@ -510,9 +513,237 @@ class GateStaticTests(unittest.TestCase):
         mount_patcher.start()
         self.addCleanup(mount_patcher.stop)
 
+    def _protobuf_proof_fixture(self, provenance_path):
+        provenance = {
+            "candidate": "c" * 40, "source_root": "/source",
+            "source_sha256": {"src/a.py": "a" * 64},
+            "profiles": {}, "production_off": {},
+        }
+        py_outputs = {"a_pb2.py": "1" * 64, "b_pb2.py": "2" * 64}
+        round_outputs = {"python/" + name: value for name, value in py_outputs.items()}
+        round_outputs.update({"src/a.pb.cc": "3" * 64, "src/a.pb.h": "4" * 64})
+        off_outputs = {"a_pb2.py": "1" * 64}
+        provenance["profiles"]["Debug"] = {"generated_python_sha256": {"python/" + k: v for k, v in py_outputs.items()}}
+        provenance["profiles"]["ASan-UBSan"] = {"generated_python_sha256": {"python/" + k: v for k, v in py_outputs.items()}}
+        provenance["production_off"]["Debug"] = {"runtime_files": {"python/" + k: v for k, v in off_outputs.items()}}
+        gate.write_json(provenance_path, provenance)
+        digest = "b" * 64
+        canonical = lambda value: __import__("hashlib").sha256(
+            json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+        contract = {"schema": 1, "candidate": provenance["candidate"],
+                    "provenance_path": str(provenance_path.resolve()),
+                    "provenance_sha256": gate.sha(provenance_path), "source_root": "/source",
+                    "build_dir": "/build/Debug", "production_off_python_path": "/production-off/Debug/python",
+                    "artifact_parent": str(provenance_path.parent.resolve()), "source_file_count": 1,
+                    "recipe_count": 67, "candidate_python_output_count": len(py_outputs),
+                    "production_off_python_output_count": len(off_outputs), "cpp_output_count": 2,
+                    "round_output_count": len(round_outputs),
+                    "toolchain": {name: {"version":"test", "sha256":"6"*64, "closure_sha256":"7"*64}
+                                  for name in ("protoc", "cmake", "ninja")}}
+        contract_path = provenance_path.parent / "protobuf-reproducibility-contract.json"
+        contract_bytes = json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        contract_path.write_bytes(contract_bytes)
+        comparison = {
+            "candidate_python_path": "/build/Debug/python", "candidate_python_output_count": len(py_outputs),
+            "candidate_python_manifest_sha256": canonical(py_outputs), "candidate_python_equal": True,
+            "production_off_python_path": "/production-off/Debug/python", "production_off_python_output_count": len(off_outputs),
+            "production_off_python_manifest_sha256": canonical(off_outputs), "production_off_subset_equal": True,
+            "cpp_build_path": "/build/Debug", "cpp_output_count": 2,
+            "cpp_manifest_sha256": canonical({k:v for k,v in round_outputs.items() if k.endswith((".pb.cc", ".pb.h"))}),
+            "cpp_equal": True}
+        return provenance, {
+            "schema": 1, "status": "PROTOBUF_REPRODUCIBILITY_PASSED",
+            "qualification": "UNQUALIFIED_M08", "qualification_effect": "NONE",
+            "candidate": provenance["candidate"], "provenance_sha256": gate.sha(provenance_path),
+            "source_manifest_sha256": canonical(provenance["source_sha256"]),
+            "recipes_sha256": digest, "inputs_sha256": digest,
+            "verifier_sha256": "5" * 64, "contract_schema": 1,
+            "contract": contract, "contract_sha256": __import__("hashlib").sha256(contract_bytes).hexdigest(),
+            "contract_manifest_sha256": canonical(contract),
+            "generator": {"protoc_path": "/usr/bin/protoc", "protoc_version": "test",
+                "protoc_sha256": digest, "closure_sha256": digest, "cmake_sha256": digest, "ninja_sha256": digest},
+            "round_a": {"output_count": len(round_outputs), "manifest_sha256": canonical(round_outputs)},
+            "round_b": {"output_count": len(round_outputs), "manifest_sha256": canonical(round_outputs)},
+            "rounds_equal": True, "round_a_outputs": round_outputs, "round_b_outputs": copy.deepcopy(round_outputs),
+            "candidate_output_comparison": comparison}
+
+    def test_protobuf_reproducibility_proof_is_bound_and_unqualified(self):
+        provenance_path = self.root / 'provenance.json'
+        provenance, proof = self._protobuf_proof_fixture(provenance_path)
+        proof_path = self.root / gate.PROTOBUF_PROOF_NAME
+        gate.write_json(proof_path, proof)
+        pin = gate.validate_protobuf_reproducibility(proof, provenance, provenance_path, proof_path)
+        self.assertEqual(pin['sha256'], gate.sha(proof_path))
+        self.assertIsNone(gate.require_deployed_protobuf_proof(self.root, provenance))
+        provenance['protobuf_reproducibility_policy'] = gate.PROTOBUF_REPRODUCIBILITY_POLICY
+        proof_path.unlink()
+        with self.assertRaisesRegex(RuntimeError, 'missing'):
+            gate.require_deployed_protobuf_proof(self.root, provenance)
+        gate.write_json(self.root / 'provenance.json', provenance)
+        proof['provenance_sha256'] = gate.sha(self.root / 'provenance.json')
+        contract_path = self.root / 'protobuf-reproducibility-contract.json'
+        contract = proof['contract']; contract['provenance_sha256'] = proof['provenance_sha256']
+        contract_bytes = json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+        contract_path.write_bytes(contract_bytes); proof['contract_sha256'] = __import__("hashlib").sha256(contract_bytes).hexdigest()
+        proof['contract_manifest_sha256'] = __import__("hashlib").sha256(json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+        gate.write_json(proof_path, proof)
+        receipt = {'protobuf_reproducibility': {'path': str(proof_path.resolve()), 'sha256': gate.sha(proof_path)}}
+        self.assertEqual(gate.require_deployed_protobuf_proof(self.root, provenance, receipt), receipt['protobuf_reproducibility'])
+        for key, value in [('candidate', 'd' * 40), ('rounds_equal', False)]:
+            changed = copy.deepcopy(proof); changed[key] = value
+            with self.assertRaises(RuntimeError): gate.validate_protobuf_reproducibility(changed, provenance, provenance_path, proof_path)
+        changed = copy.deepcopy(proof); changed['candidate_output_comparison']['candidate_python_equal'] = False
+        with self.assertRaisesRegex(RuntimeError, 'differ'):
+            gate.validate_protobuf_reproducibility(changed, provenance, provenance_path, proof_path)
+        changed = copy.deepcopy(proof); changed['round_a_outputs']['python/a_pb2.py'] = 'f' * 64
+        with self.assertRaisesRegex(RuntimeError, 'rounds differ'):
+            gate.validate_protobuf_reproducibility(changed, provenance, provenance_path, proof_path)
+        changed = copy.deepcopy(proof); changed['round_a']['manifest_sha256'] = 'f' * 64
+        with self.assertRaisesRegex(RuntimeError, 'round A summary'):
+            gate.validate_protobuf_reproducibility(changed, provenance, provenance_path, proof_path)
+        relocated = self.root / 'relocated'; relocated.mkdir()
+        relocated_provenance = relocated / 'provenance.json'; relocated_provenance.write_bytes(provenance_path.read_bytes())
+        relocated_contract = relocated / 'protobuf-reproducibility-contract.json'
+        relocated_contract.write_bytes((self.root / 'protobuf-reproducibility-contract.json').read_bytes())
+        relocated_proof = relocated / gate.PROTOBUF_PROOF_NAME; relocated_proof.write_bytes(proof_path.read_bytes())
+        self.assertEqual(gate.validate_protobuf_reproducibility(proof, provenance, relocated_provenance, relocated_proof)['sha256'], gate.sha(relocated_proof))
+        pretty = json.dumps(proof['contract'], indent=2).encode()
+        relocated_contract.write_bytes(pretty)
+        changed = copy.deepcopy(proof); changed['contract_sha256'] = __import__('hashlib').sha256(pretty).hexdigest()
+        gate.validate_protobuf_reproducibility(changed, provenance, relocated_provenance, relocated_proof)
+        changed_provenance = copy.deepcopy(provenance); changed_provenance['source_sha256']['src/a.py'] = 'e' * 64
+        with self.assertRaisesRegex(RuntimeError, 'source manifest'):
+            gate.validate_protobuf_reproducibility(proof, changed_provenance, provenance_path, proof_path)
+
+    def test_protobuf_prepare_hook_builds_contract_and_pins_emitted_proof(self):
+        provenance_path = self.root / 'provenance.json'
+        provenance, proof = self._protobuf_proof_fixture(provenance_path)
+        source = self.root / 'source'; source.mkdir()
+        debug = self.root / 'Debug'; (debug / 'python').mkdir(parents=True)
+        off = self.root / 'production-off' / 'python'; off.mkdir(parents=True)
+        provenance['source_root'] = str(source.resolve())
+        gate.write_json(provenance_path, provenance)
+        proof['provenance_sha256'] = gate.sha(provenance_path)
+        tool = self.root / 'verifier.py'
+        tool.write_text('''from pathlib import Path
+DEFAULT_TOOLCHAIN={name:{"version":"test","sha256":"6"*64,"closure_sha256":"7"*64} for name in ("protoc","cmake","ninja")}
+def recipes_for(build, source, expected_count=None): return ([{} for _ in range(2)], "recipe-pin")
+def generated_map(path, allow_bytecode_cache=False):
+    return {"a_pb2.py":"1"*64} if Path(path)==Path("OFF_PATH") else {"a_pb2.py":"1"*64,"b_pb2.py":"2"*64}
+def cpp_map(root): return {"src/a.pb.cc":"3"*64,"src/a.pb.h":"4"*64}
+'''.replace('OFF_PATH', str(off)))
+        dest = self.root / 'attempt'; dest.mkdir()
+        proof['candidate_output_comparison']['candidate_python_path'] = str(debug / 'python')
+        proof['candidate_output_comparison']['production_off_python_path'] = str(off)
+        proof['candidate_output_comparison']['cpp_build_path'] = str(debug)
+        def fake_run(command, **kwargs):
+            args = command
+            contract_path = Path(args[args.index('--contract') + 1])
+            contract_bytes = contract_path.read_bytes(); contract = json.loads(contract_bytes)
+            artifact = Path(args[args.index('--artifact-root') + 1]); artifact.mkdir()
+            local_proof = copy.deepcopy(proof)
+            local_proof['contract'] = contract
+            local_proof['contract_sha256'] = __import__('hashlib').sha256(contract_bytes).hexdigest()
+            local_proof['contract_manifest_sha256'] = __import__('hashlib').sha256(
+                json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+            local_proof['provenance_sha256'] = gate.sha(provenance_path)
+            p = artifact / gate.PROTOBUF_PROOF_NAME; p.write_text(json.dumps(local_proof))
+            return type('Result', (), {'returncode': 0, 'stderr': '',
+                'stdout': json.dumps({'status': local_proof['status'], 'proof_path': str(p),
+                                      'proof_sha256': gate.sha(p)})})()
+        with patch.object(gate, 'ROOT', source), \
+             patch.object(gate, 'PROTOBUF_PROOF_TOOL', tool), \
+             patch.object(gate.subprocess, 'run', side_effect=fake_run):
+            pin, emitted = gate.run_protobuf_reproducibility(
+                dest, provenance_path, debug, debug / 'python', off)
+        contract = json.loads((dest / 'protobuf-reproducibility-contract.json').read_text())
+        self.assertEqual(contract['candidate_python_output_count'], 2)
+        self.assertEqual(contract['production_off_python_output_count'], 1)
+        self.assertEqual(contract['cpp_output_count'], 2)
+        self.assertEqual(contract['recipe_count'], 2)
+        self.assertEqual(emitted.name, gate.PROTOBUF_PROOF_NAME)
+        self.assertEqual(pin['sha256'], gate.sha(emitted))
+
+    def test_m07_remote_profile_predicate_ignores_only_bytecode_cache(self):
+        deployment = self.root / 'deployment'
+        build = deployment / 'build' / 'Debug'
+        build.mkdir(parents=True)
+        payloads = {
+            'python/__pycache__/mod.cpython-312.pyc': b'old cache bytes',
+            'python/mod_pb2.py': b'generated source',
+            'python/handwritten.py': b'handwritten source',
+            'bin/runner': b'ELF bytes',
+            'CTestTestfile.cmake': b'metadata',
+        }
+        hashes = {}
+        for relative, raw in payloads.items():
+            path = build / relative; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            hashes[relative] = gate.sha(path)
+        executable_hash = gate.sha(build / 'bin/runner')
+        (build / 'python/__pycache__/mod.cpython-312.pyc').write_bytes(b'new regenerated cache bytes')
+        xserver = self.root / 'xace-wrapper'; xserver.write_bytes(b'xserver')
+        provenance = {
+            'profiles': {'Debug': {'executables': {'bin/runner': executable_hash,
+                    'python/__pycache__/mod.cpython-312.pyc': hashes['python/__pycache__/mod.cpython-312.pyc']},
+                'runtime_files': hashes, 'ctest_metadata': {'CTestTestfile.cmake': gate.sha(build/'CTestTestfile.cmake')}}},
+            'runtime_manifest': {'hosts': {'sb16': {'Debug': {'xace_wrapper': {'path': str(xserver), 'sha256': gate.sha(xserver)}}}}},
+        }
+        provenance_raw = json.dumps(provenance).encode(); provenance_hash = 'a' * 64; receipt_hash = 'b' * 64
+        (deployment / 'provenance.json').write_bytes(provenance_raw)
+        roles = {'SPATIAL_GEOMETRY_REMOTE_SOURCE': str(deployment/'source'),
+            'SPATIAL_GEOMETRY_REMOTE_BIN': str(build), 'SPATIAL_GEOMETRY_REMOTE_PYTHON': str(build/'python'),
+            'SPATIAL_GEOMETRY_REMOTE_XSERVER': str(xserver)}
+        def remote(host, argv):
+            if argv[0] == 'sha256sum':
+                path = argv[1]
+                if path.endswith('provenance.json'): return (provenance_hash+'  '+path+'\n').encode()
+                if path.endswith('deployment-receipt.json'): return (receipt_hash+'  '+path+'\n').encode()
+                return (gate.sha(xserver)+'  '+path+'\n').encode()
+            if argv[0] == 'cat': return provenance_raw
+            if argv[0] == 'python3':
+                result = subprocess.run([sys.executable, '-B', '-c', argv[2], argv[3], argv[4]],
+                    capture_output=True, check=False)
+                return result.stdout
+            raise AssertionError(argv)
+        roles = dict(roles, SPATIAL_GEOMETRY_REMOTE_SOURCE=str(deployment/'source'))
+        with patch.object(m07.m06, '_validate_remote_deployment'), patch.object(m07.m06, '_run_on_host', side_effect=remote):
+            result = m07._remote_profile_pin('sb16', deployment, 'candidate', 'Debug', provenance_hash, receipt_hash, roles)
+        self.assertEqual(result['profile'], 'Debug')
+        for relative in ('python/mod_pb2.py', 'python/handwritten.py', 'bin/runner'):
+            altered = payloads[relative] + b' changed'
+            (build/relative).write_bytes(altered)
+            hashes[relative] = '0' * 64
+            provenance_raw = json.dumps(provenance).encode()
+            with self.assertRaisesRegex(RuntimeError, 'differ from provenance'):
+                with patch.object(m07.m06, '_validate_remote_deployment'), patch.object(m07.m06, '_run_on_host', side_effect=remote):
+                    m07._remote_profile_pin('sb16', deployment, 'candidate', 'Debug', provenance_hash, receipt_hash, roles)
+            (build/relative).write_bytes(payloads[relative]); hashes[relative] = gate.sha(build/relative)
+            provenance['profiles']['Debug']['runtime_files'] = hashes
+            provenance['profiles']['Debug']['executables']['bin/runner'] = gate.sha(build/'bin/runner')
+            provenance_raw = json.dumps(provenance).encode()
+
+    def test_runtime_bytecode_policy_excludes_only_mutable_cache_files(self):
+        self.assertTrue(gate.validate_runtime_bytecode_policy({}) == 'legacy')
+        self.assertEqual(gate.validate_runtime_bytecode_policy({
+            'runtime_bytecode_integrity_policy': gate.RUNTIME_BYTECODE_INTEGRITY_POLICY}), 'v1')
+        with self.assertRaisesRegex(RuntimeError, 'unsupported runtime bytecode integrity policy'):
+            gate.validate_runtime_bytecode_policy({'runtime_bytecode_integrity_policy': {'version': 2}})
+        self.assertTrue(gate.is_runtime_bytecode('python/__pycache__/x.cpython-312.pyc'))
+        self.assertTrue(gate.is_runtime_bytecode('python/__pycache__/x.pyo'))
+        self.assertFalse(gate.is_runtime_bytecode('python/actor_session_pb2.py'))
+        self.assertFalse(gate.is_runtime_bytecode('python/handwritten.py'))
+
     def test_artifact_manifest_excludes_only_reviewed_clean_storage_volume(self):
         target, root, volume, image, ordinary, review = self._bounded_artifact_fixture()
         self._allow_root_owned_fixture_probes()
+        generated = target / 'python' / 'fixture_pb2.py'
+        generated.parent.mkdir()
+        generated.write_text('# reproducibly generated module\n')
+        cache = generated.parent / '__pycache__' / 'fixture_pb2.cpython-312.pyc'
+        cache.parent.mkdir()
+        cache.write_bytes(b'first cache bytes')
+        handwritten = target / 'python' / 'handwritten.py'
+        handwritten.write_text('VALUE = 1\n')
         external_img = target / 'other' / 'volume.img'
         external_img.parent.mkdir()
         external_img.write_bytes(b'ordinary image evidence')
@@ -526,6 +757,9 @@ class GateStaticTests(unittest.TestCase):
         self.assertEqual({row['path'] for row in manifest['exclusions']}, {
             'bounded-storage-git/volume.img', 'bounded-storage-git/volume'})
         self.assertIn('ordinary.log', manifest['sha256'])
+        self.assertIn('python/fixture_pb2.py', manifest['sha256'])
+        self.assertIn('python/handwritten.py', manifest['sha256'])
+        self.assertNotIn('python/__pycache__/fixture_pb2.cpython-312.pyc', manifest['sha256'])
         self.assertIn('other/volume.img', manifest['sha256'])
         self.assertIn('bounded-storage-git/review.json', manifest['sha256'])
         self.assertNotIn(image.resolve(), hashed)
@@ -913,11 +1147,17 @@ class GateStaticTests(unittest.TestCase):
         destination = self.root / 'runtime-production-off'
         self.put('production-off/runtime.textproto', 'fixture config')
         self.put('production-off/python/host_session_pb2.py', '# generated fixture')
-        self.put('production-off/spatial-host-session', 'fixture executable')
-        hashes = {str(path.relative_to(source)): gate.sha(path) for path in source.rglob('*') if path.is_file()}
+        cache = source / 'python/__pycache__/host_session_pb2.cpython-312.pyc'; cache.parent.mkdir(parents=True); cache.write_bytes(b'cache')
+        executable = self.put('production-off/spatial-host-session', 'fixture executable')
+        executable.chmod(0o755)
+        hashes = {name: gate.sha(source / name) for name in gate.retained_files(source)}
         gate.copy_runtime_closure(source, destination, hashes)
-        self.assertEqual({str(path.relative_to(destination)): gate.sha(path)
-                          for path in destination.rglob('*') if path.is_file()}, hashes)
+        packaged = {str(path.relative_to(destination)): gate.sha(path)
+                    for path in destination.rglob('*') if path.is_file()}
+        self.assertEqual(packaged, hashes)
+        self.assertFalse(any(name.endswith(('.pyc', '.pyo')) for name in packaged))
+        self.assertIn('python/host_session_pb2.py', packaged)
+        self.assertIn('spatial-host-session', packaged)
         (source / 'runtime.textproto').write_text('tampered')
         with self.assertRaisesRegex(RuntimeError, 'changed before packaging'):
             gate.copy_runtime_closure(source, destination, hashes)
@@ -1036,6 +1276,33 @@ class GateStaticTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'relocated CTest metadata changed'):
                 gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16',
                                                               'Debug', run_path, run_hash)
+
+    def test_crossstage_ignores_legacy_python_cache_but_pins_generated_source(self):
+        deployment, provenance, run_path, run_hash = self.crossstage_artifact_fixture()
+        for profile in ('Debug', 'ASan-UBSan'):
+            build = deployment / 'build' / profile
+            cache = build / 'python' / '__pycache__' / 'fixture_pb2.cpython-312.pyc'
+            cache.parent.mkdir()
+            cache.write_bytes(b'cache one')
+            relative = 'python/__pycache__/fixture_pb2.cpython-312.pyc'
+            provenance['profiles'][profile]['generated_python_sha256'][relative] = gate.sha(cache)
+            provenance['profiles'][profile]['executables'][relative] = gate.sha(cache)
+            provenance['profiles'][profile]['runtime_files'][relative] = gate.sha(cache)
+            production = deployment / 'production-off' / profile
+            prod_cache = production / 'python' / '__pycache__' / 'fixture_pb2.cpython-312.pyc'
+            prod_cache.parent.mkdir()
+            prod_cache.write_bytes(b'production cache one')
+            provenance['production_off'][profile]['runtime_files'][relative] = gate.sha(prod_cache)
+        with patch.object(gate, 'verify_runtime'), patch.object(gate, 'runtime_files', return_value=({}, [])), \
+             patch.object(gate, 'verify_production_client'):
+            for profile in ('Debug', 'ASan-UBSan'):
+                (deployment / 'build' / profile / 'python/__pycache__/fixture_pb2.cpython-312.pyc').write_bytes(b'cache regenerated')
+                (deployment / 'production-off' / profile / 'python/__pycache__/fixture_pb2.cpython-312.pyc').write_bytes(b'production cache regenerated')
+                gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16', profile, run_path, run_hash)
+            binding = deployment / 'build' / 'Debug' / 'python' / 'fixture_pb2.py'
+            binding.write_text('# generated bytes changed\n')
+            with self.assertRaisesRegex(RuntimeError, 'generated binding artifact changed'):
+                gate._validate_crossstage_profile_artifacts(deployment, provenance, 'sb16', 'Debug', run_path, run_hash)
 
     def test_runtime_helper_and_egl_drift_are_rejected_by_crossstage_authority_check(self):
         source, runtime, row, expected_host = self.runtime_fixture()

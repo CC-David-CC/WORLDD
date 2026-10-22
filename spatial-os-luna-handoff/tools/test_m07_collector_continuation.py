@@ -35,6 +35,53 @@ class Controls(unittest.TestCase):
         path.write_bytes(raw)
         return path, c.digest(raw)
 
+    def test_runtime_profile_ignores_legacy_bytecode_but_keeps_generated_source_pin(self):
+        provenance = {'runtime_bytecode_integrity_policy': g.RUNTIME_BYTECODE_INTEGRITY_POLICY,
+                      'runtime_manifest': {}, 'profiles': {}, 'production_off': {}}
+        for profile in g.PROFILES:
+            build = self.root / 'build' / profile
+            production = self.root / 'production-off' / profile
+            for base in (build, production):
+                (base / 'python').mkdir(parents=True)
+                (base / 'python' / 'fixture_pb2.py').write_text('# generated source\n')
+            build_cache = build / 'python' / '__pycache__' / 'fixture.cpython-312.pyc'
+            build_cache.parent.mkdir(); build_cache.write_bytes(b'initial build cache')
+            production_cache = production / 'python' / '__pycache__' / 'fixture.cpython-312.pyc'
+            production_cache.parent.mkdir(); production_cache.write_bytes(b'initial production cache')
+            (build / 'fixture-bin').write_bytes(b'ELF remains content pinned')
+            (build / 'runtime.textproto').write_text('runtime configuration')
+            (production / 'runtime.textproto').write_text('production configuration')
+            metadata_path = build / 'CTestTestfile.cmake'
+            metadata_path.write_text('registered tests')
+            binding_hashes = {str(path.relative_to(build)): g.sha(path)
+                              for path in (build / 'python').rglob('*') if path.is_file()}
+            provenance['profiles'][profile] = {
+                'executables': {'fixture-bin': g.sha(build / 'fixture-bin')},
+                'runtime_files': {'runtime.textproto': g.sha(build / 'runtime.textproto'),
+                    'python/__pycache__/fixture.cpython-312.pyc': g.sha(build_cache)},
+                'ctest_metadata': {'CTestTestfile.cmake': g.sha(metadata_path)},
+                'generated_python_sha256': binding_hashes,
+                'generated_binding_imports': g.generated_closure(build),
+            }
+            provenance['production_off'][profile] = {
+                'runtime_files': {'runtime.textproto': g.sha(production / 'runtime.textproto'),
+                    'python/__pycache__/fixture.cpython-312.pyc': g.sha(production_cache)},
+                'generated_binding_imports': g.generated_closure(production),
+            }
+        profile = 'Debug'
+        build = self.root / 'build' / profile
+        production = self.root / 'production-off' / profile
+        metadata_path = build / 'CTestTestfile.cmake'
+        metadata = {'after': {'CTestTestfile.cmake': g.sha(metadata_path)}}
+        (build / 'python/__pycache__/fixture.cpython-312.pyc').write_bytes(b'regenerated build cache')
+        (production / 'python/__pycache__/fixture.cpython-312.pyc').write_bytes(b'regenerated production cache')
+        with patch.object(g, 'verify_production_client'), patch.object(g, 'verify_runtime'):
+            c._runtime_profile(g, self.root, provenance, 'sb16', profile, metadata)
+            binding = build / 'python' / 'fixture_pb2.py'
+            binding.write_text('# changed generated module\n')
+            with self.assertRaisesRegex(RuntimeError, 'runtime/generated artifact changed'):
+                c._runtime_profile(g, self.root, provenance, 'sb16', profile, metadata)
+
     def test_selection_is_closed(self):
         self.assertEqual(c.selected_profiles(g, None), g.PROFILES)
         self.assertEqual(c.selected_profiles(g, ['ASan-UBSan']), ('ASan-UBSan',))

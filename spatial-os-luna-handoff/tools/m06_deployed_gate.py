@@ -10,6 +10,7 @@ import shutil
 import stat
 import shlex
 import hashlib
+import importlib.util
 import io
 import ipaddress
 import json
@@ -81,6 +82,262 @@ def sha(path: Path) -> str:
         for block in iter(lambda: f.read(1024 * 1024), b""):
             h.update(block)
     return h.hexdigest()
+
+
+RUNTIME_BYTECODE_INTEGRITY_POLICY = {"version": 1, "python_bytecode_sha256": "excluded", "generated_source_sha256": "required"}
+
+def is_runtime_bytecode(relative) -> bool:
+    """Recognize mutable Python bytecode only; generated source remains hash-pinned."""
+    return Path(relative).suffix in (".pyc", ".pyo")
+
+def validate_runtime_bytecode_policy(provenance):
+    policy = provenance.get("runtime_bytecode_integrity_policy")
+    if policy is None:  # Legacy provenance may contain mutable bytecode pins. Ignore those entries.
+        return "legacy"
+    if policy != RUNTIME_BYTECODE_INTEGRITY_POLICY:
+        raise RuntimeError("unsupported runtime bytecode integrity policy")
+    return "v1"
+
+PROTOBUF_REPRODUCIBILITY_POLICY = {"version": 1, "required": True}
+PROTOBUF_PROOF_NAME = "protobuf-reproducibility.json"
+PROTOBUF_PROOF_TOOL = ROOT.parent / "tools" / "verify_protobuf_reproducibility.py"
+
+
+def _protobuf_output_map(value, label):
+    if not isinstance(value, dict) or not value:
+        raise RuntimeError("Protobuf reproducibility " + label + " map is missing")
+    for name, digest in value.items():
+        path = Path(name)
+        if (not isinstance(name, str) or not name or path.is_absolute() or ".." in path.parts
+                or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)):
+            raise RuntimeError("Protobuf reproducibility " + label + " map is unsafe or malformed")
+    return value
+
+
+def _protobuf_manifest_sha(value):
+    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _protobuf_python_subset(value):
+    return {name.removeprefix("python/"): digest for name, digest in value.items()
+            if name.startswith("python/") and name.endswith(".py") and "__pycache__" not in name}
+
+
+def validate_protobuf_reproducibility(proof, provenance, provenance_path, proof_path, contract_path=None):
+    """Validate an unqualified proof against its maps and existing provenance pins."""
+    if not isinstance(proof, dict) or proof.get("schema") != 1:
+        raise RuntimeError("Protobuf reproducibility proof schema is invalid")
+    if (proof.get("status") != "PROTOBUF_REPRODUCIBILITY_PASSED"
+            or proof.get("qualification") != "UNQUALIFIED_M08"
+            or proof.get("qualification_effect") != "NONE"):
+        raise RuntimeError("Protobuf reproducibility proof is not an unqualified pass")
+    if proof.get("candidate") != provenance.get("candidate"):
+        raise RuntimeError("Protobuf reproducibility candidate mismatch")
+    provenance_path, proof_path = Path(provenance_path), Path(proof_path)
+    for label, path in (("provenance", provenance_path), ("proof", proof_path)):
+        if path.is_symlink() or not path.is_file():
+            raise RuntimeError("Protobuf reproducibility " + label + " must be a regular non-symlink file")
+    if proof.get("provenance_sha256") != sha(provenance_path):
+        raise RuntimeError("Protobuf reproducibility provenance pin mismatch")
+    verifier_sha = proof.get("verifier_sha256")
+    if not isinstance(verifier_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", verifier_sha):
+        raise RuntimeError("Protobuf reproducibility verifier pin is invalid")
+    contract = proof.get("contract")
+    contract_path = Path(contract_path) if contract_path is not None else proof_path.parent / "protobuf-reproducibility-contract.json"
+    contract_keys = {"schema", "candidate", "provenance_path", "provenance_sha256", "source_root",
+        "build_dir", "production_off_python_path", "artifact_parent", "source_file_count", "recipe_count",
+        "candidate_python_output_count", "production_off_python_output_count", "cpp_output_count",
+        "round_output_count", "toolchain"}
+    canonical_contract = json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if isinstance(contract, dict) else b""
+    if contract_path.exists() or contract_path.is_symlink():
+        contract_bytes_match = (not contract_path.is_symlink() and contract_path.is_file()
+            and proof.get("contract_sha256") == sha(contract_path)
+            and json.loads(contract_path.read_text()) == contract)
+    else:
+        # The verifier's no-argument default contract has canonical JSON bytes and no sidecar.
+        contract_bytes_match = proof.get("contract_sha256") == hashlib.sha256(canonical_contract).hexdigest()
+    if (proof.get("contract_schema") != 1 or not isinstance(contract, dict)
+            or set(contract) != contract_keys or not contract_bytes_match
+            or proof.get("contract_manifest_sha256") != _protobuf_manifest_sha(contract)):
+        raise RuntimeError("Protobuf reproducibility contract pin is invalid")
+    toolchain = contract.get("toolchain")
+    if (contract.get("schema") != 1 or contract.get("candidate") != proof.get("candidate")
+            or contract.get("provenance_sha256") != sha(provenance_path)
+            or contract.get("source_root") != provenance.get("source_root")
+            or type(contract.get("source_file_count")) is not int or contract["source_file_count"] <= 0
+            or type(contract.get("recipe_count")) is not int or contract["recipe_count"] <= 0
+            or not isinstance(toolchain, dict) or set(toolchain) != {"protoc", "cmake", "ninja"}
+            or any(not isinstance(row, dict) or set(row) != {"version", "sha256", "closure_sha256"}
+                   or not isinstance(row["version"], str) or not row["version"]
+                   or any(not re.fullmatch(r"[0-9a-f]{64}", str(row[key]))
+                          for key in ("sha256", "closure_sha256")) for row in toolchain.values())):
+        raise RuntimeError("Protobuf reproducibility contract does not bind the deployed candidate")
+    source_manifest = provenance.get("source_sha256")
+    if (not isinstance(source_manifest, dict) or not source_manifest
+            or any(not isinstance(name, str) or not name
+                   or not re.fullmatch(r"[0-9a-f]{64}", str(digest))
+                   for name, digest in source_manifest.items())):
+        raise RuntimeError("Protobuf reproducibility source manifest is incomplete")
+    if (proof.get("source_manifest_sha256") != _protobuf_manifest_sha(source_manifest)
+            or contract["source_file_count"] != len(source_manifest)):
+        raise RuntimeError("Protobuf reproducibility source manifest mismatch")
+    for key in ("recipes_sha256", "inputs_sha256"):
+        if not isinstance(proof.get(key), str) or not re.fullmatch(r"[0-9a-f]{64}", proof[key]):
+            raise RuntimeError("Protobuf reproducibility " + key + " is invalid")
+    generator = proof.get("generator")
+    generator_hashes = ("protoc_sha256", "closure_sha256", "cmake_sha256", "ninja_sha256")
+    if (not isinstance(generator, dict)
+            or not all(isinstance(generator.get(key), str) and generator[key] for key in
+                ("protoc_path", "protoc_version", *generator_hashes))
+            or not Path(generator.get("protoc_path", "")).is_absolute()
+            or any(not re.fullmatch(r"[0-9a-f]{64}", generator[key]) for key in generator_hashes)):
+        raise RuntimeError("Protobuf reproducibility generator pins are incomplete")
+    maps = [_protobuf_output_map(proof.get("round_a_outputs"), "round A"),
+            _protobuf_output_map(proof.get("round_b_outputs"), "round B")]
+    rounds = (proof.get("round_a"), proof.get("round_b"))
+    if proof.get("rounds_equal") is not True or maps[0] != maps[1]:
+        raise RuntimeError("independent Protobuf generation rounds differ")
+    for row, output_map, label in zip(rounds, maps, ("round A", "round B")):
+        if (not isinstance(row, dict) or type(row.get("output_count")) is not int
+                or row["output_count"] != len(output_map)
+                or row.get("manifest_sha256") != _protobuf_manifest_sha(output_map)):
+            raise RuntimeError("Protobuf reproducibility " + label + " summary differs from its output map")
+    comparison = proof.get("candidate_output_comparison")
+    if (not isinstance(comparison, dict) or comparison.get("candidate_python_equal") is not True
+            or comparison.get("production_off_subset_equal") is not True
+            or comparison.get("cpp_equal") is not True):
+        raise RuntimeError("shipped generated Protobuf outputs differ from clean generation")
+    map_fields = (
+        ("candidate_python_output_count", "candidate_python_manifest_sha256", "candidate_python_path"),
+        ("production_off_python_output_count", "production_off_python_manifest_sha256", "production_off_python_path"),
+        ("cpp_output_count", "cpp_manifest_sha256", "cpp_build_path"))
+    for count_key, manifest_key, path_key in map_fields:
+        if (not isinstance(comparison.get(path_key), str) or not Path(comparison[path_key]).is_absolute()
+                or type(comparison.get(count_key)) is not int or comparison[count_key] <= 0
+                or not re.fullmatch(r"[0-9a-f]{64}", str(comparison.get(manifest_key, "")))):
+            raise RuntimeError("Protobuf candidate output pin is incomplete: " + count_key)
+    if (contract["candidate_python_output_count"] != comparison["candidate_python_output_count"]
+            or contract["production_off_python_output_count"] != comparison["production_off_python_output_count"]
+            or contract["cpp_output_count"] != comparison["cpp_output_count"]
+            or contract["round_output_count"] != len(maps[0])
+            or comparison["candidate_python_path"] != str(Path(contract["build_dir"]) / "python")
+            or comparison["cpp_build_path"] != contract["build_dir"]
+            or comparison["production_off_python_path"] != contract["production_off_python_path"]):
+        raise RuntimeError("Protobuf reproducibility contract output inventory differs from proof")
+    generated_debug = _protobuf_python_subset(provenance.get("profiles", {}).get("Debug", {}).get("generated_python_sha256", {}))
+    generated_san = _protobuf_python_subset(provenance.get("profiles", {}).get("ASan-UBSan", {}).get("generated_python_sha256", {}))
+    round_python = {name.removeprefix("python/"): digest for name, digest in maps[0].items()
+                    if name.startswith("python/") and name.endswith(".py") and "__pycache__" not in name}
+    if not generated_debug or generated_debug != generated_san or round_python != generated_debug:
+        raise RuntimeError("reproduced generated Python files differ from pinned Debug/SAN provenance")
+    if (comparison["candidate_python_output_count"] != len(generated_debug)
+            or comparison["candidate_python_manifest_sha256"] != _protobuf_manifest_sha(generated_debug)):
+        raise RuntimeError("candidate generated Python map differs from provenance")
+    off_runtime = provenance.get("production_off", {}).get("Debug", {}).get("runtime_files", {})
+    off_python = _protobuf_python_subset(off_runtime)
+    if (not off_python or comparison["production_off_python_output_count"] != len(off_python)
+            or comparison["production_off_python_manifest_sha256"] != _protobuf_manifest_sha(off_python)
+            or not off_python.keys() <= generated_debug.keys()
+            or any(generated_debug[name] != digest for name, digest in off_python.items())):
+        raise RuntimeError("production-off generated Python subset differs from provenance")
+    cpp_map = {name: digest for name, digest in maps[0].items()
+               if name.endswith(".pb.cc") or name.endswith(".pb.h")}
+    if (comparison["cpp_output_count"] != len(cpp_map)
+            or comparison["cpp_manifest_sha256"] != _protobuf_manifest_sha(cpp_map)):
+        raise RuntimeError("candidate generated C++ map differs from clean-generation output map")
+    return {"path": str(proof_path.resolve()), "sha256": sha(proof_path)}
+
+def _protobuf_contract(tool_path, provenance_path, debug_build, production_off_python_runtime, artifact_parent):
+    spec = importlib.util.spec_from_file_location("spatial_protobuf_reproducibility", tool_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load the reviewed Protobuf reproducibility verifier")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    provenance = json.loads(Path(provenance_path).read_text())
+    source = ROOT.resolve(strict=True)
+    build = Path(debug_build).resolve(strict=True)
+    production_off = Path(production_off_python_runtime).resolve(strict=True)
+    source_count = len(provenance.get("source_sha256", {}))
+    recipes, _ = module.recipes_for(build, source)
+    candidate_python = module.generated_map(build / "python", allow_bytecode_cache=True)
+    production_python = module.generated_map(production_off, allow_bytecode_cache=True)
+    cpp_outputs = module.cpp_map(build)
+    contract = {
+        "schema": 1, "candidate": provenance["candidate"],
+        "provenance_path": str(Path(provenance_path).resolve(strict=True)),
+        "provenance_sha256": sha(provenance_path), "source_root": str(source),
+        "build_dir": str(build), "production_off_python_path": str(production_off),
+        "artifact_parent": str(Path(artifact_parent).resolve(strict=True)),
+        "source_file_count": source_count, "recipe_count": len(recipes),
+        "candidate_python_output_count": len(candidate_python),
+        "production_off_python_output_count": len(production_python),
+        "cpp_output_count": len(cpp_outputs),
+        "round_output_count": len(candidate_python) + len(cpp_outputs),
+        "toolchain": module.DEFAULT_TOOLCHAIN,
+    }
+    if not source_count or not recipes or not candidate_python or not production_python or not cpp_outputs:
+        raise RuntimeError("Protobuf reproducibility contract inputs are incomplete")
+    return module, contract
+
+
+def run_protobuf_reproducibility(dest, provenance_path, debug_build, candidate_python_generated, production_off_python_runtime):
+    if not PROTOBUF_PROOF_TOOL.is_file() or PROTOBUF_PROOF_TOOL.is_symlink():
+        raise RuntimeError("required Protobuf reproducibility verifier is missing or unsafe")
+    dest = Path(dest).resolve(strict=True)
+    artifact_root = dest / "protobuf-reproducibility-work"
+    contract_path = dest / "protobuf-reproducibility-contract.json"
+    module, contract = _protobuf_contract(PROTOBUF_PROOF_TOOL, provenance_path, debug_build,
+                                           production_off_python_runtime, dest)
+    if Path(candidate_python_generated).resolve(strict=True) != Path(debug_build).resolve(strict=True) / "python":
+        raise RuntimeError("candidate generated Python path differs from the reviewed Debug build")
+    contract_bytes = json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    with contract_path.open("xb") as stream:
+        stream.write(contract_bytes)
+    command = [sys.executable, "-B", str(PROTOBUF_PROOF_TOOL), "--contract", str(contract_path),
+               "--artifact-root", str(artifact_root)]
+    env = os.environ.copy()
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    result = subprocess.run(command, cwd=ROOT, env=env, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800)
+    if result.returncode or result.stderr.strip():
+        raise RuntimeError("Protobuf reproducibility verifier failed: " + result.stderr[-2000:])
+    try:
+        summary = json.loads(result.stdout)
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError("Protobuf reproducibility verifier returned invalid summary") from exc
+    proof_path = artifact_root / PROTOBUF_PROOF_NAME
+    if (summary.get("status") != "PROTOBUF_REPRODUCIBILITY_PASSED"
+            or Path(summary.get("proof_path", "")).resolve() != proof_path.resolve()
+            or not proof_path.is_file() or proof_path.is_symlink()
+            or summary.get("proof_sha256") != sha(proof_path)):
+        raise RuntimeError("Protobuf reproducibility verifier summary does not pin its proof")
+    proof = json.loads(proof_path.read_text())
+    pin = validate_protobuf_reproducibility(proof, json.loads(Path(provenance_path).read_text()),
+                                             provenance_path, proof_path, contract_path)
+    final_proof = dest / PROTOBUF_PROOF_NAME
+    if proof_path != final_proof:
+        shutil.copyfile(proof_path, final_proof)
+    if sha(final_proof) != pin["sha256"]:
+        raise RuntimeError("Protobuf reproducibility proof copy changed")
+    return {"path": str(final_proof), "sha256": sha(final_proof)}, final_proof
+
+def require_deployed_protobuf_proof(deployment, provenance, receipt=None):
+    policy = provenance.get("protobuf_reproducibility_policy")
+    if policy is None:  # Frozen legacy deployments keep their original source/runtime pins.
+        return None
+    if policy != PROTOBUF_REPRODUCIBILITY_POLICY:
+        raise RuntimeError("unsupported Protobuf reproducibility policy")
+    proof_path = Path(deployment) / PROTOBUF_PROOF_NAME
+    if not proof_path.is_file() or proof_path.is_symlink():
+        raise RuntimeError("required deployed Protobuf reproducibility proof is missing")
+    proof = json.loads(proof_path.read_text())
+    pin = validate_protobuf_reproducibility(proof, provenance,
+        Path(deployment) / "provenance.json", proof_path,
+        Path(deployment) / "protobuf-reproducibility-contract.json")
+    if receipt is not None and receipt.get("protobuf_reproducibility") != pin:
+        raise RuntimeError("deployment receipt Protobuf proof pin mismatch")
+    return pin
 
 def _pinned_regular_file(path, expected_sha256, label):
     path = Path(path)
@@ -1016,7 +1273,7 @@ def artifact_evidence_manifest(target, expected_storage_results=None):
             if path.is_symlink():
                 artifact_links.append(_retirement_marker_entry(target, relative, 'file'))
                 continue
-            if relative in excluded:
+            if relative in excluded or is_runtime_bytecode(relative):
                 continue
             if not stat.S_ISREG(path.lstat().st_mode):
                 raise RuntimeError('gate artifact is not a regular file: ' + relative)
@@ -1263,6 +1520,8 @@ def retained_files(build):
         if not path.is_file():
             continue
         rel = str(path.relative_to(build))
+        if is_runtime_bytecode(rel):
+            continue
         if (path.name == 'CTestTestfile.cmake' or 'python' in path.relative_to(build).parts
                 or path.suffix in ('.textproto', '.json', '.conf', '.cfg', '.ini', '.yaml', '.yml', '.toml')
                 or '.so' in path.name or os.access(path, os.X_OK)):
@@ -1405,6 +1664,8 @@ def prepare(a):
             fcntl.flock(lock, fcntl.LOCK_EX)
             cache_lock_handles.append(lock)
     rec = dict(schema=2, attempt=attempt, status="building", candidate=commit, source_root=str(ROOT),
+               runtime_bytecode_integrity_policy=RUNTIME_BYTECODE_INTEGRITY_POLICY,
+               protobuf_reproducibility_policy={"version": 1, "required": True},
                source_sha256=files, locked_files_verified=len(locked), builder=host,
                builder_hostname=actual_host, profiles={}, stage_history=[], runtime_manifest=runtime,
                cache_paths={group: {profile: str(path) for profile, path in rows.items()}
@@ -1460,9 +1721,11 @@ def prepare(a):
             runtime_directories = ensure_inventory_runtime_directories(
                 inventory, ROOT, build, (evidence, xserver_placeholder))
             inventory_inputs = verify_inventory_paths(inventory, ROOT, build, (evidence, xserver_placeholder))
-            generated = {str(p.relative_to(build)): sha(p) for p in (build / "python").rglob("*") if p.is_file()}
+            generated = {str(p.relative_to(build)): sha(p) for p in (build / "python").rglob("*")
+                         if p.is_file() and not is_runtime_bytecode(p.relative_to(build))}
             closure = generated_closure(build)
-            executables = {rel: sha(build / rel) for rel in rec_executables(build)}
+            executables = {rel: sha(build / rel) for rel in rec_executables(build)
+                           if not is_runtime_bytecode(rel)}
             dependencies = {}
             for rel in executables:
                 proc = subprocess.run(["ldd", str(build / rel)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -1476,7 +1739,8 @@ def prepare(a):
                 inventory=inventory, inventory_sha256=sha(logdir / "inventory.log"),
                 executables=executables, generated_python_sha256=generated,
                 generated_binding_imports=closure, ldd_dependencies=dependencies,
-                runtime_files={rel: sha(build / rel) for rel in sorted(keep)},
+                runtime_files={rel: sha(build / rel) for rel in sorted(keep)
+                               if not is_runtime_bytecode(rel)},
                 runtime_directories=runtime_directories,
                 ctest_metadata={str(p.relative_to(build)): sha(p) for p in ctest_metadata(build)})
             write_json(dest / "provenance.json", rec)
@@ -1505,7 +1769,8 @@ def prepare(a):
                 raise RuntimeError('BLOCKED production spatial-host-session missing from BUILD_TESTING=OFF')
             rec['production_off'][profile] = dict(generated_binding_imports=generated_closure(production),
                 client=verify_production_client(ROOT, production),
-                runtime_files={rel: sha(production / rel) for rel in sorted(retained_files(production))})
+                runtime_files={rel: sha(production / rel) for rel in sorted(retained_files(production))
+                               if not is_runtime_bytecode(rel)})
         if source_pin() != (commit, files, locked):
             raise RuntimeError('source changed during production build')
         # Copy runtime closure. Preserve original build trees for reproducibility.
@@ -1529,8 +1794,14 @@ def prepare(a):
         for name in rec['archive_directories']:
             _validate_archive_output_directory(name)
         write_json(dest / "provenance.json", rec)
+        protobuf_pin, protobuf_file = run_protobuf_reproducibility(
+            dest, dest / "provenance.json", build_paths["Debug"], build_paths["Debug"] / "python",
+            staged_off / "Debug" / "python")
         with tarfile.open(dest / "m06-artifacts.tar.gz", "w:gz") as tar:
-            for name, path in (("source", ROOT), ("build", staged_build), ("production-off", staged_off), ("provenance.json", dest / "provenance.json")):
+            for name, path in (("source", ROOT), ("build", staged_build), ("production-off", staged_off),
+                               ("provenance.json", dest / "provenance.json"),
+                               (PROTOBUF_PROOF_NAME, protobuf_file),
+                               ("protobuf-reproducibility-contract.json", dest / "protobuf-reproducibility-contract.json")):
                 if path.is_dir():
                     for member in path.rglob("*"):
                         if name == "source" and (not member.is_file() or str(member.relative_to(path)) not in files):
@@ -1583,6 +1854,8 @@ def verify_bundle(a):
         raise RuntimeError('archive/provenance directory manifest mismatch')
     if rec.get("candidate") != rec["runtime_manifest"].get("candidate"):
         raise RuntimeError("runtime candidate mismatch")
+    validate_runtime_bytecode_policy(rec)
+    protobuf_reproducibility_pin = require_deployed_protobuf_proof(out, rec)
     for name, expected in rec["source_sha256"].items():
         if sha(out / "source" / name) != expected:
             raise RuntimeError("source transfer mismatch: " + name)
@@ -1592,9 +1865,13 @@ def verify_bundle(a):
     for profile, row in rec["profiles"].items():
         build = out / "build" / profile
         for rel, expected in rec['production_off'][profile]['runtime_files'].items():
+            if is_runtime_bytecode(rel):
+                continue
             if sha(out / 'production-off' / profile / rel) != expected:
                 raise RuntimeError('production-off transfer mismatch: ' + rel)
         for rel, expected in row["runtime_files"].items():
+            if is_runtime_bytecode(rel):
+                continue
             if sha(build / rel) != expected:
                 raise RuntimeError("bundled runtime file transfer mismatch: " + rel)
         ensure_runtime_directories(build, row.get('runtime_directories', ()), require_empty=True)
@@ -1619,6 +1896,8 @@ def verify_bundle(a):
             shutil.copy2(path, saved)
             metadata_baseline[profile][rel] = sha(saved)
         for rel, expected in row["generated_python_sha256"].items():
+            if is_runtime_bytecode(rel):
+                continue
             if sha(build / rel) != expected:
                 raise RuntimeError("generated bytes changed during relocation")
     # External per-host runtime is a separate, verified provisioning dependency.
@@ -1633,7 +1912,8 @@ def verify_bundle(a):
     write_json(out / "deployment-receipt.json", dict(host=host, status=status, runtime=runtime_status,
         bundle_sha256=a.sha256, candidate=rec["candidate"], source_sha256=rec["source_sha256"],
         substitutions=substitutions, inventory_sha256=deployed_inventory,
-        metadata_baseline=metadata_baseline, verified_utc=time.time()))
+        metadata_baseline=metadata_baseline, protobuf_reproducibility=protobuf_reproducibility_pin,
+        verified_utc=time.time()))
     if status != "verified":
         raise RuntimeError("BLOCKED external runtime provisioning: " + repr(runtime_status))
     return 0
@@ -1798,6 +2078,7 @@ def gate(a):
     if receipt.get("host") != host or receipt.get("status") != "verified":
         raise RuntimeError("missing matching verified deployment receipt")
     rec = json.loads((root / "provenance.json").read_text())
+    protobuf_reproducibility_pin = require_deployed_protobuf_proof(root, rec, receipt)
     for name, expected in rec["source_sha256"].items():
         if sha(root / "source" / name) != expected:
             raise RuntimeError("deployed source pin mismatch: " + name)
@@ -1850,7 +2131,8 @@ def gate(a):
     storage_attempt_name = continuation['storage_attempt'] if continuation else out.name
     report = dict(status="running", phase_complete=False, host=host, candidate=rec["candidate"], attempt=out.name,
                   bundle_sha256=receipt["bundle_sha256"], requirement_suites=requirement_suites, stages=[], blockers=[], profiles={},
-                  required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost))
+                  required_tests=sorted(required), dedicated_crosshost=sorted(dedicated_crosshost),
+                  protobuf_reproducibility=protobuf_reproducibility_pin)
     report['selected_profiles'] = list(selected)
     if getattr(a, "copy_worker_helpers", False):
         report['copy_worker_helpers'] = True
@@ -1875,6 +2157,8 @@ def gate(a):
             build = builds / profile
             production = root / 'production-off' / profile
             for rel, expected in rec['production_off'][profile]['runtime_files'].items():
+                if is_runtime_bytecode(rel):
+                    continue
                 if sha(production / rel) != expected:
                     raise RuntimeError('production-off runtime mismatch: ' + rel)
             target = out / profile; target.mkdir()
@@ -1888,9 +2172,11 @@ def gate(a):
             wrapper_path = Path(profile_runtime["xace_wrapper"]["path"])
             env["SPATIAL_TEST_XSERVER"] = str(wrapper_path)
             for rel, expected in rec["profiles"][profile]["executables"].items():
+                if is_runtime_bytecode(rel):
+                    continue
                 if sha(build / rel) != expected: raise RuntimeError(profile + " deployed executable hash mismatch: " + rel)
             for rel, expected in rec["profiles"][profile]["runtime_files"].items():
-                if rel not in rec["profiles"][profile]["ctest_metadata"] and sha(build / rel) != expected:
+                if not is_runtime_bytecode(rel) and rel not in rec["profiles"][profile]["ctest_metadata"] and sha(build / rel) != expected:
                     raise RuntimeError(profile + " runtime file hash mismatch: " + rel)
             prepared = rec["profiles"][profile]
             ensure_runtime_directories(build, prepared.get('runtime_directories', ()), require_empty=False)
@@ -2066,11 +2352,13 @@ def gate(a):
             production = root / 'production-off' / profile
             report['production_off_rechecked'][profile] = all(
                 (production / name).is_file() and sha(production / name) == expected
-                for name, expected in rec['production_off'][profile]['runtime_files'].items())
+                for name, expected in rec['production_off'][profile]['runtime_files'].items()
+                if not is_runtime_bytecode(name))
             build = builds / profile
             report["profile_artifacts_rechecked"][profile] = all(
                 (build / name).is_file() and sha(build / name) == expected
-                for name, expected in row["runtime_files"].items() if name not in row["ctest_metadata"])
+                for name, expected in row["runtime_files"].items()
+                if name not in row["ctest_metadata"] and not is_runtime_bytecode(name))
         report["metadata_rechecked"] = {}
         report["storage_evidence_rechecked"] = {}
         for profile in selected:
@@ -2560,6 +2848,8 @@ def _validate_crossstage_profile_artifacts(deployment, provenance, host, profile
     off = provenance.get('production_off', {}).get(profile, {})
     if not prepared or not off:
         raise RuntimeError(host + ' ' + profile + ' provenance closure is incomplete')
+    validate_runtime_bytecode_policy(provenance)
+    validate_runtime_bytecode_policy(provenance)
     generated_hashes = prepared.get('generated_python_sha256')
     if not isinstance(generated_hashes, dict) or not generated_hashes:
         raise RuntimeError(host + ' ' + profile + ' generated Python hashes are missing')
@@ -2567,6 +2857,8 @@ def _validate_crossstage_profile_artifacts(deployment, provenance, host, profile
         rel_path = Path(rel)
         if rel_path.is_absolute() or '..' in rel_path.parts:
             raise RuntimeError(host + ' ' + profile + ' unsafe generated Python path: ' + rel)
+        if is_runtime_bytecode(rel):
+            continue
         path = build / rel_path
         if not path.is_file() or sha(path) != expected:
             raise RuntimeError(host + ' ' + profile + ' generated binding artifact changed: ' + rel)
@@ -2581,6 +2873,8 @@ def _validate_crossstage_profile_artifacts(deployment, provenance, host, profile
                 raise RuntimeError(host + ' ' + profile + ' unsafe provenance path: ' + rel)
             # The gate relocates CTest metadata and pins the exact post-relocation bytes below.
             if label == 'profile runtime' and rel in prepared.get('ctest_metadata', []):
+                continue
+            if is_runtime_bytecode(rel):
                 continue
             path = root / rel_path
             if not path.is_file() or sha(path) != expected:

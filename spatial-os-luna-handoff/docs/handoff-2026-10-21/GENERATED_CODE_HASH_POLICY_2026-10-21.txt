@@ -1,0 +1,9 @@
+Generated code hash policy, 2026-10-21
+
+Only mutable Python bytecode caches are excluded from integrity hashes: `.pyc` and `.pyo` files. The M06 artifact manifest omits those paths. New M06 runtime provenance omits them too. Legacy runtime and generated-Python hash maps ignore bytecode entries during verification. New provenance records `runtime_bytecode_integrity_policy` version 1.
+
+Generated Python bindings such as `*_pb2.py` remain content-hashed in generated-source, runtime, and archive manifests. Generated C++ `.pb.cc` and `.pb.h` outputs remain compared by the reproducibility proof. Pinned schemas, handwritten source, ELF executables, shared libraries, runtime configuration, and import closure remain checked. M06 and M07 validate generated imports and run behavior tests. Runtime import origin and path confinement checks remain active.
+
+New prepared bundles require an unqualified `PROTOBUF_REPRODUCIBILITY_PASSED` proof. M06 runs the pinned-source verifier before it creates the archive. The proof compares two independent clean generations with the shipped prepared Python bindings and configured Debug C++ outputs. It binds candidate provenance, source manifest, recipes, generator binaries, and all generated outputs. Deployment and local gate receipts retain the proof hash. Legacy frozen deployments keep their existing source/runtime pins and do not acquire retroactive proof claims.
+
+This policy does not make a milestone qualified. Focused checks run on ROG only. Target gates remain pending.
