@@ -1,7 +1,9 @@
 """Real protobuf transcript controls for the live final-window recognizer."""
 import ast
+import re
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import broker_pb2 as broker
 import grants_pb2 as grant
@@ -246,6 +248,61 @@ class GatewayTraceInstrumentationTests(unittest.TestCase):
         self.assertEqual(len(barriers), 1)
         barrier_calls = [ast.unparse(node.func) for node in ast.walk(barriers[0]) if isinstance(node, ast.Call)]
         self.assertIn('fence_held.set', barrier_calls)
+
+
+    def test_cabinet_gateway_registration_keeps_all_local_cases(self):
+        discovery_argv = ['cabinet-discovery'] + [
+            f'/unused/discovery-argument-{index}' for index in range(64)
+        ]
+        with patch('sys.argv', discovery_argv):
+            import test_actor_cabinet_gateway as gateway
+
+        suite = unittest.TestLoader().loadTestsFromModule(gateway)
+        selected = [case.id().rsplit('.', 1)[-1] for case in suite]
+        selected_names = set(selected)
+        cabinet_case = gateway.ActorCabinetGatewayTests
+        local_names = {
+            name for name, value in cabinet_case.__dict__.items()
+            if name.startswith('test_') and callable(value)
+        }
+        base_names = {
+            name for base in cabinet_case.__mro__[1:]
+            for name, value in base.__dict__.items()
+            if name.startswith('test_') and callable(value)
+        }
+
+        self.assertEqual(len(selected), 28)
+        self.assertEqual(selected_names, local_names)
+        self.assertFalse(selected_names & (base_names - local_names))
+        expected_unprefixed = {
+            'test_cabinet_view_move_and_use_authority_are_separate',
+            'test_cabinet_placement_requires_effective_file_authority',
+            'test_registered_worktree_scope_controls_cabinet_placement_and_file_use',
+        }
+        self.assertTrue(expected_unprefixed <= selected_names)
+        self.assertTrue({name for name in local_names
+                         if name.startswith('test_actor_cabinet_')} <= selected_names)
+
+        legacy_loader = unittest.TestLoader()
+        legacy_loader.testNamePatterns = ['*actor_cabinet_*']
+        # CMake executes this file as __main__, so -k matches the method name,
+        # not the imported module name containing "actor_cabinet".
+        with patch.object(cabinet_case, '__module__', '__main__'):
+            legacy_suite = legacy_loader.loadTestsFromModule(gateway)
+        legacy_names = {case.id().rsplit('.', 1)[-1] for case in legacy_suite}
+        self.assertEqual(legacy_names, {
+            name for name in selected_names if 'actor_cabinet_' in name
+        })
+        self.assertEqual(selected_names - legacy_names, expected_unprefixed)
+
+        cmake = Path(__file__).resolve().parents[2] / 'CMakeLists.txt'
+        source = cmake.read_text(encoding='utf-8')
+        registration = re.search(
+            r'add_test\(NAME workspace-actor-cabinet-gateway COMMAND(.*?)\)\s*'
+            r'set_tests_properties\(workspace-actor-cabinet-gateway',
+            source, re.DOTALL)
+        self.assertIsNotNone(registration)
+        self.assertRegex(registration.group(1), r'\$<TARGET_FILE:worldd>\s*$')
 
 
 if __name__ == '__main__':
