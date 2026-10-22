@@ -1,0 +1,22 @@
+--- a/os/utils.c
++++ b/os/utils.c
+@@ -50,6 +50,7 @@
+ 
+ #include <dix-config.h>
+ #include "spatialsecurity.h"
++#include "spatialinput.h"
+ 
+ #ifdef __CYGWIN__
+ #include <stdlib.h>
+@@ -439,6 +440,11 @@
+                 FatalError("-spatial-security-fd requires a sealed bootstrap descriptor\n");
+             SpatialSecurityConfigure(argv[i]);
+         }
++        else if (strcmp(argv[i], "-spatial-observer-fd") == 0) {
++            if (++i >= argc)
++                FatalError("-spatial-observer-fd requires an inherited endpoint\n");
++            SpatialInputObserverConfigure(argv[i]);
++        }
+         else if (argv[i][0] == ':') {
+             /* initialize display */
+             display = argv[i];

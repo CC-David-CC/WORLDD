@@ -100,7 +100,7 @@ class SecurityIdentityTests(unittest.TestCase):
         self.root = Path(self.temp.name); self.cookie = os.urandom(32); self.clients = []
         self.addCleanup(lambda:[client.close() for client in reversed(self.clients)])
 
-    def start(self, bootstrap=None, sealed=True, expect_ready=True):
+    def start(self, bootstrap=None, sealed=True, expect_ready=True, observer_fd=None, extra_server_args=()):
         geometry = screen_argument(self)
         binary = Path(os.environ['SPATIAL_TEST_XSERVER'])
         self.assertTrue(binary.is_absolute() and binary.name=='Xvfb' and os.access(binary,os.X_OK))
@@ -119,7 +119,12 @@ class SecurityIdentityTests(unittest.TestCase):
         # records this setting and keeps every identity assertion enabled.
         if os.environ.get('SPATIAL_SECURITY_TEST_CORE_ONLY') == '1': argv += ['-extension','GLX']
         env = {**os.environ,'LIBGL_ALWAYS_SOFTWARE':'1'}
-        try: proc = subprocess.Popen(argv,stdout=log,stderr=log,pass_fds=(config,outgoing),env=env)
+        inherited = (config, outgoing)
+        if observer_fd is not None:
+            argv += ['-spatial-observer-fd', str(observer_fd)]
+            inherited += (observer_fd,)
+        argv += list(extra_server_args)
+        try: proc = subprocess.Popen(argv,stdout=log,stderr=log,pass_fds=inherited,env=env)
         finally: os.close(config); os.close(outgoing)
         def close():
             timed_out = False

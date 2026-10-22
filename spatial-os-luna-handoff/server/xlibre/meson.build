@@ -26,12 +26,27 @@ if get_option('spatial_native_input_observer')
         command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
                   '--proto_path=' + meson.current_source_dir(),
                   meson.current_source_dir() / 'native_input_observer.proto'])
+    observer_v2_proto = custom_target('native-input-observer-v2-protobuf-c',
+        input: 'native_input_observer_v2.proto',
+        output: ['native_input_observer_v2.pb-c.c', 'native_input_observer_v2.pb-c.h'],
+        command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
+                  '--proto_path=' + meson.current_source_dir(),
+                  meson.current_source_dir() / 'native_input_observer_v2.proto'])
+    observer_control_proto = custom_target('native-input-observer-control-v2-protobuf-c',
+        input: ['native_input_observer_control_v2.proto', 'native_input_observer_v2.proto'],
+        output: ['native_input_observer_control_v2.pb-c.c', 'native_input_observer_control_v2.pb-c.h'],
+        command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
+                  '--proto_path=' + meson.current_source_dir(),
+                  meson.current_source_dir() / 'native_input_observer_control_v2.proto'])
     observer_library = static_library('xserver_native_input_observer',
         files('spatialinputobserver_lifetime.c',
               'spatialinputobserver_capture.c',
-              'spatialinputobserver_serialize.c'),
-        observer_proto,
+              'spatialinputobserver_serialize.c',
+              'spatialinputobserver_serialize_v2.c',
+              'spatialinputobserver_endpoint.c'),
+        observer_proto, observer_v2_proto, observer_control_proto,
         include_directories: [inc, include_directories('.')],
         dependencies: [common_dep, spatial_input_dep])
-    xext_dependencies += [declare_dependency(link_whole: observer_library)]
+    xext_dependencies += [declare_dependency(link_whole: observer_library,
+        sources: [observer_v2_proto[1], observer_control_proto[1]])]
 endif

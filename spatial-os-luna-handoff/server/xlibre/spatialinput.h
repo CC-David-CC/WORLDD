@@ -4,6 +4,7 @@
 #include "eventstr.h"
 #include "windowstr.h"
 void SpatialInputExtensionInit(void);
+void SpatialInputObserverConfigure(const char *descriptor);
 /* Bind authenticated application connections before their first request. */
 Bool SpatialInputAuthorizeClient(ClientPtr client);
 /* NULL means an ordinary device. An owned device always has an explicit route. */

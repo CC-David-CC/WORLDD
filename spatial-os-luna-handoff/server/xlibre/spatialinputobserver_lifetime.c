@@ -219,6 +219,25 @@ Bool SpatialObserverPinNativeClient(int index, SpatialObserverNativeClientPin *p
     return TRUE;
 }
 
+Bool SpatialObserverPinMarker(XID xid, SpatialObserverMarkerPin *pin)
+{
+    SpatialObserverMarkerPin value = {0};
+    WindowPtr window = NULL;
+    if (!pin) return FALSE;
+    memset(pin, 0, sizeof(*pin));
+    if (!ready || !xid || dixLookupWindow(&window, xid, serverClient, DixReadAccess) != Success ||
+        !window || !window->parent || !window->mapped || !window->realized) return FALSE;
+    ClientPtr owner = dixLookupXIDOwner(xid);
+    if (!owner || !SpatialObserverPinNativeClient(owner->index, &value.owner) ||
+        (value.owner.role != SPATIAL_OBSERVER_NATIVE_CLIENT_SUPERVISOR &&
+         value.owner.role != SPATIAL_OBSERVER_NATIVE_CLIENT_COMPOSITOR)) return FALSE;
+    value.epoch = pin_epoch(&window->devPrivates, &window_epoch_key);
+    if (!ready || !value.epoch) return FALSE;
+    value.session = session_serial; value.xid = xid;
+    *pin = value;
+    return TRUE;
+}
+
 static Bool pin_target_window(const SpatialObserverWindowPin *pin,
                               WindowPtr *window)
 {

@@ -149,7 +149,7 @@ class M09DeployedGateTests(unittest.TestCase):
         self.assertEqual(gate.M09_REQUIRED, {
             "application-control-lease", "application-observation",
             "world-application-control", "native-surface_identity",
-            "native-world_surface_groups"})
+            "native-world_surface_groups", "native-observer-endpoint"})
         self.assertEqual(gate.REQUIRED, gate.m08.REQUIRED | gate.M09_REQUIRED)
 
 

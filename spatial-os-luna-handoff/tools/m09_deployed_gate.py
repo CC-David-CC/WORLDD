@@ -31,6 +31,7 @@ M09_REQUIRED = frozenset({
     "world-application-control",
     "native-surface_identity",
     "native-world_surface_groups",
+    "native-observer-endpoint",
 })
 REQUIRED = frozenset(m08.REQUIRED) | M09_REQUIRED
 M09_CASES = {
@@ -51,8 +52,10 @@ M09_CASES = {
         "status": "EXISTING_CASE",
     },
     "balanced-transfer": {
-        "suites": ("world-application-control", "application-control-lease"),
+        "suites": ("world-application-control", "application-control-lease", "native-observer-endpoint"),
         "tests": (
+            "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_actual_server_receives_parent_owned_cloexec_endpoint",
+            "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_setup_resolves_real_native_seats_and_distinct_owners",
             "tests.core.test_world_application_control.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff",
             "tests.core.test_world_application_control.WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff",
             "tests.core.test_world_application_control.WorldApplicationControlTests.test_actor_revocation_releases_native_input",

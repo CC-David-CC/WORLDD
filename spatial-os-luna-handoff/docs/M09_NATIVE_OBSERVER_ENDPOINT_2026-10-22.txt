@@ -1,0 +1,101 @@
+M09 native observer endpoint - 2026-10-22
+
+Status: FOCUSED NATIVE ENDPOINT CHECKS PASS. M09 remains UNQUALIFIED.
+Goal: qualify the complete M09 application-group control milestone.
+Base: 756ea797e5b4a1423d964a1108b40607fb7880a8.
+Branch: m09/native-observer-endpoint-20261022.
+Host: ROG-Ally-X-RC72LA. Primary owns this checkout.
+Checkout: /home/dflanag3/src/m09-native-observer-endpoint-20261022.
+Runtime hosts: sb16 and sb16-2. No builds or coding agents ran there.
+David's current instructions authorize ROG and prohibit a5500. Older tracked host notes do not override those instructions.
+
+Implemented boundary
+--------------------
+The real XLibre server accepts a private inherited -spatial-observer-fd only in an enabled qualification build.
+Default builds recognize the option and refuse it explicitly.
+The endpoint must be a connected Unix seqpacket socket created by the direct launching parent.
+The server checks peer PID, UID, and GID. Each packet must carry matching kernel sender credentials.
+The server marks its descriptor CLOEXEC and nonblocking.
+Malformed, oversized, noncanonical, unknown-field, ancillary-rights, and unauthorized-sender packets close the endpoint.
+Received unexpected descriptors are closed. Ordinary X clients receive no observer API.
+A ten-second monotonic startup budget closes an unused endpoint.
+The hello reports a fresh 16-byte session nonce, native session epoch, and actual server process identity.
+One setup request resolves real seats, native device roles, immutable application identity, target generation,
+application window owner, compositor seat owner, and a separate privileged probe marker owner.
+Supplied object epochs are never accepted as native truth. Setup does not acquire application control.
+
+Launch-path correction
+----------------------
+Application-control fixtures directly call SecurityIdentityTests.start to launch the receipt-pinned Xvfb binary.
+They do not obtain that server through the outer with_test_display.py process.
+The optional endpoint is therefore passed in that fixture's explicit Popen pass_fds list.
+The existing sealed security bootstrap remains separate. Default fixture launches remain unchanged.
+No system xvfb-run script or normal login session was changed.
+
+Protocol and build changes
+--------------------------
+The testing v2 control schema adds endpoint hello/reply messages.
+It preserves existing setup and arm fields. The public actor and locked acceptance schemas are unchanged.
+The new default-off Meson closure generates v2/control protobuf-c sources once and links the private components.
+Generated headers are explicit dependency sources. Generated C files retain one build owner.
+All 15 XLibre patches apply to the pinned upstream archive.
+Native endpoint coverage is an additive M09 requirement. M08's dedicated 89-test harness inventory remains unchanged.
+
+Reproduced failures and corrections
+----------------------------------
+Both baseline test hosts rejected the missing launch option. Those failing native records remain preserved.
+An initial new patch lacked sufficient context. A generated diff against the exact pinned source corrected it.
+The initial symbol audit used nm -g and missed intentionally hidden native symbols. The full-symbol audit verified linkage.
+Two early core harness runs lacked generated imports. The established cabinet fixture dependency closure corrected that setup.
+The first native setup fixture requested another SUPERVISOR credential. Existing policy correctly returned FORBIDDEN.
+The corrected fixture uses a separate COMPOSITOR probe, which the reviewed v2 contract explicitly allows.
+A regression confirms that supervisor minting stays forbidden while the independent compositor grant succeeds.
+A /proc snapshot raced with descriptor closure. It now ignores only ENOENT for vanished descriptors.
+A regression preserves errors for unreadable descriptors. Positive inode, executable, EOF, and live-client checks remain strict.
+No production authorization rule or locked acceptance assertion was weakened.
+The new standard unified diff has two blank context lines, each represented by one space.
+Their exact bytes are pinned build inputs. They are preserved with a narrowly recorded Git whitespace exception.
+The manual commit still runs the source-data guard and records reviewed paths, tree, parent, identity, and receipts.
+
+Verified evidence
+-----------------
+ROG artifact root: /home/dflanag3/spatial-artifacts/m09-native-observer-endpoint-20261022.
+Assignment, ownership, capacity estimate, and selected checks: assignment-and-test-plan.json.
+Fresh default Debug, observer Debug, and observer ASan-UBSan Xvfb binaries linked successfully.
+The final build record is endpoint-build-03.json. Original failed build/audit records remain separate.
+Native input, endpoint, lifetime, and v2 serializer files also compile with standalone -Werror in both observer profiles.
+Two v2 schemas generate six files independently twice. Both output coverage and bytes match.
+The generated Python files also match the CMake fixture's candidate bindings.
+The final focused source run is focused-run-03, with command.exit=0 and wrapper.exit=0.
+Its 207 methods passed: M08 harness 89, M09 harness 8, v1 parser 21, v1 collector 12,
+v2 parser 23, v2 collector 26, and v2 setup validator 28.
+
+Each host retains the initial candidate under:
+/home/dflanag3/spatial-artifacts/m09-native-observer-endpoint-20261022-native-01.
+Its original endpoint suite failed at the fixture defects described above.
+Its related actor-binding 25 and surface-identity 15 methods passed in both profiles on both hosts.
+Those 160 related method executions remain valid; their production binaries and fixture sources were unchanged.
+The corrected endpoint test overlay is under:
+/home/dflanag3/spatial-artifacts/m09-native-observer-endpoint-20261022-correction-02.
+Each host passed all 27 endpoint checks in Debug and ASan-UBSan, totaling 108 corrected method executions.
+Each host's results-02/result.json and run-02 receipts record the exact commands and exits.
+The fixture overlay hashes and native source hashes are pinned separately. Original payloads were not overwritten.
+Package SHA256: e69133727446ac993c9bc2aff26fa516a89c29f77d5b7dce3d7053756959011f.
+Native tests verified the running executable's bytes, PID, parent, credentials, descriptor inode, and flags.
+A real independent X application verified that neither endpoint reached its exec environment.
+These checks use the real patched XLibre DIX input machinery with GLX disabled.
+They do not establish graphics, physical-device, worldd transfer, or full milestone qualification.
+
+Required next work
+------------------
+The private endpoint and native setup connection now work. The complete independent transfer witness remains unfinished.
+The current receiver accepts one setup and rejects further requests. It does not yet accept an arm or produce transition records.
+Next implement bounded arm validation against the accepted setup, live pins, and independent trusted actor-seat bindings.
+Add trusted worldd bindings on their separate private inherited channel.
+Capture native state before cancellation, after releases, after context clearing, and before peer delivery.
+Join the independent probe receipts with those server-origin facts. Never fabricate the receipt inside the server.
+Exercise two authenticated actors and two confined applications with main windows, dialogs, and popups.
+Run transfer, revocation, destruction, generation-replacement, and observation-race scenarios.
+Patch each reproduced failure at its owning layer. Preserve every failure record.
+Then freeze the candidate and complete both-host Debug/sanitizer, cumulative, and native M09 qualification.
+Keep the full goal active until the complete requirement-by-requirement audit passes.

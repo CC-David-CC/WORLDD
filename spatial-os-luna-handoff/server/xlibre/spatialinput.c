@@ -29,6 +29,8 @@
 #ifdef SPATIAL_NATIVE_INPUT_OBSERVER
 #include "spatialinputobserver_lifetime.h"
 #include "spatialinputobserver_capture.h"
+#include "spatialinputobserver_endpoint.h"
+#include "spatialinputobserver_serialize_v2.h"
 #endif
 
 typedef Spatial__Input__V1__Request Request;
@@ -609,10 +611,158 @@ static int dispatch(ClientPtr client)
     return Success;
 }
 
+
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+typedef Spatial__Testing__V2__ApplicationIdentity ObserverApplication;
+typedef Spatial__Testing__V2__ClientIdentity ObserverClient;
+typedef Spatial__Testing__V2__DeviceIdentity ObserverDevice;
+
+static void observer_application(ObserverApplication *wire, const SpatialSelectionNamespace *label)
+{
+    spatial__testing__v2__application_identity__init(wire);
+    wire->workspace_id.data = (uint8_t *)label->workspace;
+    wire->workspace_id.len = label->workspace_size;
+    wire->application_id.data = (uint8_t *)label->application;
+    wire->application_id.len = label->application_size;
+}
+
+static Bool observer_client(ObserverClient *wire, ObserverApplication *label,
+                            const SpatialObserverNativeClientPin *pin)
+{
+    spatial__testing__v2__client_identity__init(wire);
+    if (!SpatialObserverMapNativeRoleV2((int)pin->role, &wire->role)) return FALSE;
+    wire->client_id = (uint32_t)pin->index;
+    wire->native_object_epoch = pin->epoch;
+    if (pin->role == SPATIAL_OBSERVER_NATIVE_CLIENT_APPLICATION) {
+        observer_application(label, &pin->label);
+        wire->application = label;
+    }
+    return TRUE;
+}
+
+static Bool observer_devices(SeatRec *seat, ObserverDevice wire[4], ObserverDevice *pointers[4])
+{
+    int ids[4] = {seat->pointer->id, seat->pointer_slave->id,
+                  seat->keyboard->id, seat->keyboard_slave->id};
+    SpatialObserverDeviceSetPin pin;
+    SpatialObserverNativeState state;
+    if (!SpatialObserverPinDevices(ids, &pin) || !SpatialObserverSnapshotDevices(&pin, &state))
+        return FALSE;
+    for (unsigned i = 0; i < 4; ++i) {
+        spatial__testing__v2__device_identity__init(&wire[i]);
+        wire[i].device_id = (uint32_t)pin.devices[i].id;
+        wire[i].native_object_epoch = pin.devices[i].epoch;
+        wire[i].kind = i < 2 ? SPATIAL__TESTING__V2__DEVICE_IDENTITY__KIND__POINTER :
+                              SPATIAL__TESTING__V2__DEVICE_IDENTITY__KIND__KEYBOARD;
+        wire[i].role = (i == 0 || i == 2) ? SPATIAL__TESTING__V2__DEVICE_IDENTITY__ROLE__MASTER :
+                                          SPATIAL__TESTING__V2__DEVICE_IDENTITY__ROLE__SLAVE;
+        wire[i].paired_or_attached = (uint32_t)state.devices[i].paired_or_attached;
+        pointers[i] = &wire[i];
+    }
+    return TRUE;
+}
+
+Bool SpatialInputObserverSetup(const Spatial__Testing__V2__ObserverSetupRequestV2 *request,
+                              uint8_t *output, size_t capacity, size_t *length)
+{
+    SpatialObserverNativeClientPin seat_owner, app_owner;
+    SpatialObserverWindowPin target_pin;
+    SpatialObserverMarkerPin marker_pin;
+    SeatRec *old = NULL, *peer = NULL;
+    if (length) *length = 0;
+    if (!request || !output || !length || !active || !SpatialSecurityEnabled() ||
+        !request->old_native_seat_id || !request->peer_native_seat_id ||
+        request->old_native_seat_id == request->peer_native_seat_id ||
+        !request->presentation_generation || !request->expected_application ||
+        !request->target_xid || !request->probe_marker_xid ||
+        request->target_xid == request->probe_marker_xid ||
+        (request->expected_probe_role != SPATIAL__TESTING__V2__CLIENT_IDENTITY__ROLE__SUPERVISOR &&
+         request->expected_probe_role != SPATIAL__TESTING__V2__CLIENT_IDENTITY__ROLE__COMPOSITOR)) return FALSE;
+    for (SeatRec *seat = seats; seat; seat = seat->next) {
+        if (seat->id == request->old_native_seat_id) old = seat;
+        if (seat->id == request->peer_native_seat_id) peer = seat;
+    }
+    WindowPtr window = live_window(request->target_xid, request->target_spatial_generation);
+    if (!old || !peer || old->owner != peer->owner || !window ||
+        !SpatialObserverPinNativeClient(old->owner->index, &seat_owner) ||
+        seat_owner.role != SPATIAL_OBSERVER_NATIVE_CLIENT_COMPOSITOR ||
+        !SpatialObserverPinWindow(request->target_xid, &target_pin) ||
+        !SpatialObserverPinNativeClient(target_pin.owner.index, &app_owner) ||
+        !SpatialObserverPinMarker(request->probe_marker_xid, &marker_pin) ||
+        seat_owner.index == app_owner.index || seat_owner.index == marker_pin.owner.index ||
+        app_owner.index == marker_pin.owner.index) return FALSE;
+    const SpatialSelectionNamespace *actual = &target_pin.owner.label;
+    const ObserverApplication *expected = request->expected_application;
+    if (expected->workspace_id.len != actual->workspace_size ||
+        expected->application_id.len != actual->application_size ||
+        memcmp(expected->workspace_id.data, actual->workspace, actual->workspace_size) ||
+        memcmp(expected->application_id.data, actual->application, actual->application_size)) return FALSE;
+
+    ObserverApplication application = SPATIAL__TESTING__V2__APPLICATION_IDENTITY__INIT;
+    ObserverApplication seat_label, probe_label, app_label;
+    ObserverClient seat_client, probe_client, app_client;
+    if (!observer_client(&seat_client, &seat_label, &seat_owner) ||
+        !observer_client(&probe_client, &probe_label, &marker_pin.owner) ||
+        !observer_client(&app_client, &app_label, &app_owner) ||
+        probe_client.role != request->expected_probe_role) return FALSE;
+    observer_application(&application, actual);
+    ObserverDevice old_devices[4], peer_devices[4], *old_ptrs[4], *peer_ptrs[4];
+    if (!observer_devices(old, old_devices, old_ptrs) || !observer_devices(peer, peer_devices, peer_ptrs))
+        return FALSE;
+    for (unsigned i = 0; i < 4; ++i)
+        for (unsigned j = 0; j < 4; ++j)
+            if (old_devices[i].device_id == peer_devices[j].device_id) return FALSE;
+
+    Spatial__Testing__V2__WindowIdentity target = SPATIAL__TESTING__V2__WINDOW_IDENTITY__INIT;
+    Spatial__Testing__V2__ProbeMarkerPinV2 marker = SPATIAL__TESTING__V2__PROBE_MARKER_PIN_V2__INIT;
+    Spatial__Testing__V2__ObserverSetupReplyV2 setup = SPATIAL__TESTING__V2__OBSERVER_SETUP_REPLY_V2__INIT;
+    Spatial__Testing__V2__ObserverEndpointReplyV2 reply = SPATIAL__TESTING__V2__OBSERVER_ENDPOINT_REPLY_V2__INIT;
+    target.xid = request->target_xid;
+    target.native_object_epoch = target_pin.epoch;
+    target.spatial_generation = generation(window);
+    target.application = &application;
+    target.owner = &app_client;
+    marker.xid = marker_pin.xid;
+    marker.window_epoch = marker_pin.epoch;
+    marker.privileged_owner = &probe_client;
+    setup.session_id = request->session_id;
+    setup.arm_id = request->arm_id;
+    setup.native_session_epoch = SpatialObserverLifetimeSession();
+    setup.old_native_seat_id = old->id;
+    setup.peer_native_seat_id = peer->id;
+    setup.n_old_actor_devices = setup.n_peer_actor_devices = 4;
+    setup.old_actor_devices = old_ptrs;
+    setup.peer_actor_devices = peer_ptrs;
+    setup.compositor_seat_owner = &seat_client;
+    setup.app_target = &target;
+    setup.app_target_owner = &app_client;
+    setup.probe_marker = &marker;
+    setup.accepted_request = (Spatial__Testing__V2__ObserverSetupRequestV2 *)request;
+    reply.message_case = SPATIAL__TESTING__V2__OBSERVER_ENDPOINT_REPLY_V2__MESSAGE_SETUP_REPLY;
+    reply.setup_reply = &setup;
+    size_t bytes = spatial__testing__v2__observer_endpoint_reply_v2__get_packed_size(&reply);
+    if (!bytes || bytes > capacity ||
+        spatial__testing__v2__observer_endpoint_reply_v2__pack(&reply, output) != bytes) return FALSE;
+    *length = bytes;
+    return TRUE;
+}
+#endif
+
+void SpatialInputObserverConfigure(const char *descriptor)
+{
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverEndpointConfigure(descriptor);
+#else
+    (void)descriptor;
+    FatalError("Spatial observer endpoint requires an enabled qualification build\n");
+#endif
+}
+
 static void reset(ExtensionEntry *extension)
 {
     (void)extension;
 #ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverEndpointReset();
     SpatialObserverCaptureShutdown();
     SpatialObserverLifetimeReset();
 #endif
@@ -652,6 +802,10 @@ void SpatialInputExtensionInit(void)
         SpatialObserverCaptureShutdown();
         SpatialObserverLifetimeReset();
         FatalError("Cannot initialize native input observer capture\n");
+    }
+    if (!SpatialObserverEndpointInit()) {
+        SpatialObserverEndpointReset();
+        FatalError("Cannot initialize native observer endpoint\n");
     }
 #endif
     active = TRUE;

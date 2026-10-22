@@ -38,3 +38,19 @@ message ObserverSetupReplyV2 {
   // Echo every accepted selector. The supervisor compares independently.
   ObserverSetupRequestV2 accepted_request = 12;
 }
+
+// Private inherited endpoint identity. This is not an observation success record.
+message ObserverEndpointHelloV2 {
+  uint32 protocol_version = 1;
+  bytes session_id = 2;
+  uint64 native_session_epoch = 3;
+  uint32 server_pid = 4;
+  uint32 server_uid = 5;
+  uint32 server_gid = 6;
+}
+message ObserverEndpointReplyV2 {
+  oneof message {
+    ObserverEndpointHelloV2 hello = 1;
+    ObserverSetupReplyV2 setup_reply = 2;
+  }
+}

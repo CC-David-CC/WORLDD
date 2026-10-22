@@ -94,6 +94,14 @@ typedef struct {
 } SpatialObserverNativeClientPin;
 
 typedef struct {
+    uint64_t session, epoch;
+    XID xid;
+    SpatialObserverNativeClientPin owner;
+} SpatialObserverMarkerPin;
+Bool SpatialObserverPinMarker(XID xid, SpatialObserverMarkerPin *pin);
+
+
+typedef struct {
     Bool complete;
     SpatialObserverDevicePin device;
     Bool active_grab;

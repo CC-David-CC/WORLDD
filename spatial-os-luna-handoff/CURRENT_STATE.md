@@ -1,3 +1,12 @@
+## 2026-10-22: Live M09 observer endpoint and native setup pass focused checks
+
+The private channel now reaches the actual XLibre server on sb16 and sb16-2.
+Both hosts passed 27 endpoint checks in Debug and ASan-UBSan.
+Related native actor-binding and surface-identity regressions also passed in both profiles.
+M09 remains UNQUALIFIED. Arm validation, worldd bindings, native transition capture, and full qualification remain required.
+Read [native endpoint](docs/M09_NATIVE_OBSERVER_ENDPOINT_2026-10-22.txt) for source, evidence, scope, and next work.
+The active goal remains complete M09 qualification.
+
 ## 2026-10-22: M09 drafts integrated onto qualified M08
 
 Branch: `m09/integration-qualified-m08-20261022`.
