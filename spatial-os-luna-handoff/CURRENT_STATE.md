@@ -1,3 +1,15 @@
+## 2026-10-22: Authenticated M09 actor-to-device binding component passes on both hosts
+
+worldd now exports real authenticated actor/native-seat bindings through a private one-shot channel.
+The20 binding and13 presentation methods passed Debug and ASan-UBSan on both required hosts.
+Broader control checks exposed preserved witness-fixture contradictions.
+The privileged/core witness split exposed a real idle-seat reacquisition defect in worldd.
+A separate no-XI2 baseline reproduced its specific FORBIDDEN result on both hosts.
+The owning production repair and corrected native matrix remain pending.
+M08 remains qualified. M09 remains UNQUALIFIED.
+Native transition capture, independent receipt assembly, shared-query transport verification, and full qualification remain pending.
+Read [world input bindings](docs/M09_WORLD_INPUT_WITNESS_BINDINGS_2026-10-22.txt) and [legacy witness correction](docs/M09_LEGACY_WITNESS_CORRECTION_2026-10-22.txt).
+
 ## 2026-10-22: M09 native observer arm preconditions pass focused checks
 
 The private endpoint now validates one arm against live native identities and held input.

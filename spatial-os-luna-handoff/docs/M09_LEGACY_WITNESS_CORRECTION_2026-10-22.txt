@@ -1,0 +1,100 @@
+M09 legacy witness topology correction - 2026-10-22
+
+Status: WITNESS CORRECTION REVIEWED; REAL WORLDd DEFECT REPRODUCED. M09 remains UNQUALIFIED.
+External root: /home/dflanag3/spatial-artifacts/m09-worldd-observer-bindings-20261022.
+Production input routing, XACE policy, locked acceptance, and v2 recipient contracts are unchanged.
+This test-contract correction must remain a separate reviewed commit from the binding implementation.
+
+Preserved reproductions
+
+native-02 ran34 application-control methods on both hosts and both profiles.
+All four runs found the same three failures.
+The target-generation selector compared compositor generation7 with native server generation5.
+The two revocation selectors selected privileged XI2 events while expecting the core application to receive them.
+The application log contained focus changes but no expected button event.
+
+A stronger independent helper reviewed the exact pinned XLibre source and failing assertions.
+Compositor handles and native server generations have separate counters and purposes.
+DIX delivers selected XI2 events before its core fallback.
+An XI2 press can create a grab owned by its recipient.
+Two selected XI2 clients cannot reliably receive the same held-input stream.
+
+The first correction used query-only attribution and the application's existing XI2 receipt mode.
+Its immutable correction03 package and failed logs remain preserved.
+The confined probe refused startup with XI2 unavailable.
+The active extension policy intentionally hides XInput from applications.
+Broad XI2 admission would violate existing extension-isolation expectations.
+The helper's first recommendation missed that prerequisite; follow-up review corrected it.
+No extension-policy change was made.
+
+Corrected invariants
+
+Each generation is compared within its owning domain.
+The native generation must advance during the independently observed remap.
+The refreshed logical generation must advance beyond the captured pre-race logical handle.
+The actor receives STALE_TARGET. No stale press reaches the drained C application stream.
+Fresh re-aim uses the current logical generation and reaches the same real remapped XID.
+
+The ordinary application stays in core mode.
+A drained pre-observer C application phase proves input delivery and actual modifier/keycodes.
+A separate privileged XI2 recipient proves old/peer device and source attribution and event order.
+It must observe all required old releases before the peer's first accepted event.
+Held motion and final peer release must match the pinned source, target, and detail.
+The peer action is submitted before waiting for old releases.
+A BUSY reply proves no acquisition and permits a bounded release wait before retry.
+
+The peer releases input before observer teardown.
+An empty XI2 selection and a checked same-connection reply fence subscription removal.
+Closing a socket alone would not prove server-side removal before fresh input.
+After teardown, fresh core input must reach the same C application.
+Separate C-only ordered selectors cover observation revocation and actor revocation.
+Application maps, metadata, authority denial, and process continuity remain checked.
+The original ordering/source rejection oracles remain active.
+No native held/grab/focus clearance claim is inferred from receipt order alone.
+
+Selected verification
+
+correction04 runs the complete37-method application-control registration on each host/profile.
+It preserves original CTest resource wrappers, storage lanes, working directories, and helper lifecycle handling.
+The19-method wire suite checks exact framing, deadlines, devices/sources, ordering, query-only setup, and deselection fencing.
+Both hosts completed Debug and sanitizer correction04 runs. Debug failed2 of37; sanitizer failed1 of37.
+Both19-method wire runs passed. Cleanup was confirmed with no sanitizer diagnostics.
+The generation selector and both separate C core revocation selectors passed.
+The attributed selectors exposed the production idle-seat defect below.
+The corrected suite remains failed. No full M09 qualification is claimed.
+Debug and sanitizer binaries remain exactly those from native-02.
+
+correction04 package: test-correction-04.tar.gz.
+Bytes:2974092.
+SHA256:70b968bc5e2a38fc1e6f3cc6a0ebc33796c1ae363ed73f1d0a8098d0af9dbf75.
+The manifest proves exactly three source differences from the original payload.
+Each host uses m09-worldd-observer-bindings-20261022-native-correction-04.
+Original evidence and correction03 remain unchanged.
+
+Remaining qualification
+
+The v2 contract still requires its own privileged native recipient, native transition snapshots,
+lifetime joins, callback attempt, independently collected receipts, and full checked assembly.
+These legacy selectors cannot substitute for those producer facts or full M09 qualification.
+
+Reproduced production idle-seat defect
+
+Actors::refresh_authority treats a retained native actor ID as live legacy input.
+Two idle seats repeatedly rearm cancellation through renderer wait callbacks.
+A fresh broker application lease can then inherit a fabricated pending cancellation.
+The authorized pointer request returns FORBIDDEN with Application control authority changed.
+No authority was revoked during the isolated reacquisition reproduction.
+
+An independent stronger helper confirmed the exact scheduler and callback mechanism.
+The owning repair belongs in worldd authority refresh. It requires no kernel or XLibre policy change.
+Active focus, held input, logical reservations, and application reservations must retain revocation checks.
+Idle seat identity alone must not create a cancellation. Existing pending closure must remain intact.
+
+The no-XI2 baseline regression failed at the expected final acquisition on both hosts.
+Both Debug executions used unchanged native-02 binaries and checked relay replies.
+Each reported1 failure with the specific FORBIDDEN result; cleanup was confirmed.
+Their canonical native-run-01 receipts and evidence-baseline-01 remain under
+m09-worldd-observer-bindings-20261022-idle-baseline-01 on each host.
+Those failures prove reproduction, not product success.
+The source regression now also asserts each priming C press and the held reply's exact principal.
+The source inventory is now38 application-control methods. Its repaired runs remain UNRUN.

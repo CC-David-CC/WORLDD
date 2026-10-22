@@ -25,7 +25,7 @@ class NativeXI2Observer:
     """Privileged XI 2.0 witness. All reads share an absolute request deadline."""
     GENERIC_EVENT=35
     EVENT_NAMES={2:'key',3:'key',4:'button',5:'button',6:'motion'}
-    def __init__(self,client,window):
+    def __init__(self,client,window,select_events=True):
         self.client=client;self.window=window;self.events=[];self.closed=False
         self.opcode=None
         try:
@@ -37,13 +37,20 @@ class NativeXI2Observer:
             version,extra=self.request(self.opcode,struct.pack('<HH',2,0),minor=47)
             if extra or struct.unpack_from('<HH',version,8)!=(2,0):
                 raise AssertionError('XI 2.0 negotiation refused')
-            mask=bytearray(4)
-            for kind in self.EVENT_NAMES:mask[kind//8]|=1<<(kind%8)
-            # XIAllMasterDevices=1. Only device events use the 80-byte layout.
-            client.send(self.opcode,struct.pack('<IHHHH',window,1,0,1,1)+bytes(mask),minor=46)
-            self.request(43) # Surface selection errors before actor input starts.
+            if select_events:
+                mask=bytearray(4)
+                for kind in self.EVENT_NAMES:mask[kind//8]|=1<<(kind%8)
+                # XIAllMasterDevices=1. Only device events use the 80-byte layout.
+                client.send(self.opcode,struct.pack('<IHHHH',window,1,0,1,1)+bytes(mask),minor=46)
+                self.request(43) # Surface selection errors before actor input starts.
         except BaseException:
             self.close();raise
+    def deselect(self):
+        # Fence selection removal on this connection before another client sends input.
+        self.client.stream.settimeout(3.0)
+        try:self.client.send(self.opcode,struct.pack('<IHHHH',self.window,1,0,1,1)+bytes(4),minor=46)
+        finally:self.client.stream.setblocking(False)
+        self.request(43)
     def close(self):
         if not self.closed:self.closed=True;self.client.close()
     def _exact(self,size,deadline):
@@ -324,8 +331,12 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         return attribution
 
     def m09_begin_observed_control(self):
-        self.setup_world();app,surface=self.probe()
-        observe,control=self.grant_control(app)
+        app,surface,observe,control=self.begin_control()
+        # The independent C application proves actual keycodes and core delivery first.
+        before,codes=self.m09_hold_native_input(app)
+        self.control_action(self.viewer,unfocus=core.ActorStopRequest())
+        self.m09_assert_native_release(app,before,codes)
+        self.probe_command(app,'sync')
         observer=self.m09_start_xi2_observer(app)
         self.addCleanup(self.m09_release_probe,app)
         # Establish the actual peer pair/source under control before the ordered revocation phase.
@@ -340,8 +351,51 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertNotEqual(attribution['pointer'],peer_attribution['pointer'])
         self.assertNotEqual(attribution['pointer_source'],peer_attribution['pointer_source'])
         attribution['peer']=peer_attribution
-        self.until(lambda:self.probe_events(app),lambda rows:any(r.get('event')=='button' and r.get('pressed') for r in rows))
+        attribution['expected_keycodes']=codes
+        # XI2-first delivery intentionally makes the privileged observer the sole recipient.
         return app,surface,observe,control,observer,attribution
+    def m09_hold_observed_input(self,observer,attribution):
+        boundary=len(observer.events);codes=attribution['expected_keycodes']
+        self.send_key_event('Shift_L',True);self.send_key_event('a',True)
+        self.actor_aim(x=.05,z=-1)
+        events=observer.read_until(lambda rows:
+            {r['detail'] for r in rows[boundary:] if r['kind']=='key' and r['pressed']}>=codes and
+            any(r['kind']=='motion' and r['device']==attribution['pointer'] and
+                r['source']==attribution['pointer_source'] and r['window']==attribution['window']
+                for r in rows[boundary:]),3.0)
+        self.assertTrue(any(r['kind']=='button' and r['pressed'] and
+            r['device']==attribution['pointer'] for r in events[:boundary]),events)
+        self.m09_wait_xi2_key_presses(observer,codes,attribution)
+        return codes
+
+    def m09_observed_handoff_then_core_delivery(self,app,observer,attribution,codes):
+        # Submit before waiting for old releases. A BUSY reply proves no acquisition.
+        result=self.peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        if result.HasField('error'):
+            self.assertEqual(result.error.code,core.BUSY,result)
+            observer.read_until(lambda rows:
+                {r['detail'] for r in rows[attribution['boundary']:] if r['kind']=='key' and not r['pressed']}>=codes and
+                any(r['kind']=='button' and not r['pressed'] for r in rows[attribution['boundary']:]),3.0)
+            result=self.peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        self.assertTrue(result.HasField('action'),result)
+        events=observer.read_until(lambda rows:any(r['kind']=='button' and r['pressed'] and
+            r['device']==attribution['peer']['pointer'] for r in rows[attribution['boundary']:]),3.0)
+        self.m09_assert_xi2_order(observer,attribution,events,codes)
+        self.actor_pointer(False,self.peer)
+        self.control_action(self.peer,unfocus=core.ActorStopRequest())
+        observer.read_until(lambda rows:any(r['kind']=='button' and not r['pressed'] and r['detail']==1 and
+            r['device']==attribution['peer']['pointer'] and r['source']==attribution['peer']['pointer_source'] and
+            r['window']==attribution['window'] for r in rows[attribution['boundary']:]),3.0)
+        observer.deselect();observer.close()
+        # The privileged recipient is gone. Prove fresh input reaches the same C application.
+        boundary=len(self.probe_events(app))
+        self.actor_aim(self.peer);self.actor_pointer(True,self.peer);self.actor_pointer(False,self.peer)
+        self.send_key_event('b',True,self.peer);self.send_key_event('b',False,self.peer)
+        self.probe_command(app,'sync')
+        rows=self.probe_events(app)[boundary:]
+        self.assertTrue(any(r.get('event')=='button' and r.get('pressed') for r in rows),rows)
+        self.assertTrue(any(r.get('event')=='key' and r.get('pressed') and r.get('text_hex')=='62' for r in rows),rows)
+
     def m09_wait_xi2_key_presses(self,observer,codes,attribution):
         events=observer.read_until(lambda es:
             {e['detail'] for e in es if e['kind']=='key' and e['pressed']}>=codes,3.0)
@@ -430,13 +484,15 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         if trigger=='voluntary':self.control_action(self.viewer,unfocus=core.ActorStopRequest())
         elif trigger=='disconnect':self.viewer.close()
         elif trigger=='revoke':self.revoke_grant(self.peer,control)
+        elif trigger=='observation':self.revoke_grant(self.peer,observe)
+        elif trigger=='actor':self.revoke_viewer_identity(issuer.ACTOR_TARGET)
         elif trigger in ('unmap','destroy'):
             self.probe_command(app,trigger)
             self.until(lambda:self.probe_events(app),lambda rows:
                 any(r.get('event')==trigger and r.get('xid')==next(r['xid'] for r in rows if r.get('event')=='ready')
                     for r in rows[before:]))
         else:raise AssertionError('unknown M09 transfer trigger')
-        if trigger in ('disconnect','revoke'):
+        if trigger in ('disconnect','revoke','observation','actor'):
             # These paths must make progress without a harness wait for release.
             self.m09_peer_first_native_event(app,self.peer,log_boundary,codes)
             self.m09_assert_native_release(app,before,codes,inspect=False)
@@ -454,6 +510,52 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
             self.m09_peer_first_native_event(app,self.peer,log_boundary,codes)
             self.m09_assert_native_release(app,before,codes)
 
+    def test_two_idle_native_seats_reacquire_fresh_application_control(self):
+        self.setup_world(control_acquire_barrier=True);app,surface=self.probe();self.grant_control(app)
+        self.addCleanup(self.m09_release_probe,app)
+        ordered=sorted(((self.actor_state(self.viewer).id,self.viewer),
+                        (self.actor_state(self.peer).id,self.peer)),key=lambda item:item[0])
+        pointers=[]
+        for actor_id,peer in ordered:
+            boundary=len(self.probe_events(app))
+            self.actor_aim(peer);self.actor_pointer(True,peer)
+            self.probe_command(app,'sync')
+            rows=self.probe_events(app)[boundary:]
+            self.assertTrue(any(r.get('event')=='button' and r.get('pressed') and
+                r.get('button')==1 and r.get('xid')==surface['xid'] for r in rows),rows)
+            pointers.append(self.native_device(app))
+            self.actor_pointer(False,peer)
+            self.control_action(peer,unfocus=core.ActorStopRequest())
+            state=self.actor_state(peer)
+            self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons);self.assertFalse(state.HasField('focus'))
+        self.assertNotEqual(*pointers)
+        count=self.native_device_count();peer=ordered[0][1]
+        self.actor_aim(peer);self.probe_command(app,'sync');boundary=len(self.probe_events(app))
+        peer.sequence+=1;peer.action_sequence+=1
+        request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
+            action=core.ActorActionRequest(seq=peer.action_sequence,
+                pointer=core.ActorPointerRequest(button=1,pressed=True)))
+        self.relay.hold_next_control_acquire()
+        try:
+            peer.stream.sendall(frame(request))
+            self.assertTrue(self.relay.control_acquire_reply_seen.wait(5))
+            record=self.relay.control_acquire_record()
+            self.assertTrue(record.get('correlated_success'),record)
+            self.assertEqual(record['application'],app.SerializeToString(),record)
+            identity=self.second if peer is self.viewer else self.identity
+            self.assertEqual(record['principal'],self.principal(identity).SerializeToString(),record)
+            # BrokerClient::wait runs the production scheduler before sending acquisition.
+            # Both seats exist and are idle throughout that callback, without XI2 selection.
+        finally:self.relay.release_control_acquire()
+        reply=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
+        self.assertEqual(reply.request_id,request.request_id)
+        self.assertTrue(reply.HasField('action'),reply)
+        self.probe_command(app,'sync');rows=self.probe_events(app)[boundary:]
+        self.assertTrue(any(r.get('event')=='button' and r.get('pressed') for r in rows),rows)
+        self.assertEqual(self.native_device(app),pointers[0])
+        self.assertEqual(self.native_device_count(),count)
+        self.actor_pointer(False,peer)
+
     def test_target_generation_replacement_during_broker_authorization(self):
         self.setup_world(control_acquire_barrier=True);app,surface=self.probe();self.grant_control(app)
         self.actor_aim();self.actor_pointer(True)
@@ -468,6 +570,7 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         xid=next(r['xid'] for r in baseline if r.get('event')=='ready')
         controller=self.native.connect(self.native.supervisor.issue(security.COMPOSITOR,b'',b'').cookie)
         before_generation=self.native_target_generation(controller,xid)
+        logical_generation=self.world_process.management('surface.get',id=surface['id'])['generation']
 
         self.viewer.sequence+=1;self.viewer.action_sequence+=1
         request=session.WorldSessionRequest(protocol_version=1,request_id=self.viewer.sequence,
@@ -503,8 +606,10 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertEqual(reply.error.code,core.STALE_TARGET,reply)
         world_surface=self.world_process.management('surface.get',id=surface['id'])
         self.assertTrue(world_surface['mapped'])
-        self.assertEqual(world_surface['generation'],replaced_generation,
-                         'worldd did not adopt the independently observed native generation')
+        # Compositor handles and native server generations are independent domains.
+        self.assertEqual(world_surface['xid'],xid)
+        self.assertGreater(world_surface['generation'],logical_generation,
+                           'worldd retained the old logical surface generation after remap')
 
         # xprobe sync performs XSync, drains pending native events, then acknowledges.
         self.probe_command(app,'sync')
@@ -513,7 +618,10 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertEqual(len(drained_presses),len(baseline_presses),
                          'Stale input reached the replacement before the native drain boundary')
         boundary=len(drained)
-        self.actor_aim();self.actor_pointer(True);self.probe_command(app,'sync')
+        fresh_aim=self.actor_aim()
+        self.assertEqual(fresh_aim.hit.id,surface['id'])
+        self.assertEqual(fresh_aim.hit.generation,world_surface['generation'])
+        self.actor_pointer(True);self.probe_command(app,'sync')
         fresh=self.probe_events(app)[boundary:]
         fresh_presses=[r for r in fresh if r.get('event')=='button' and r.get('button')==1 and
                        r.get('pressed') and r.get('xid')==xid]
@@ -697,15 +805,35 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         state=self.actor_state()
         self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons);self.assertFalse(state.HasField('focus'))
 
+    def test_m09_observation_revocation_orders_core_application_input(self):
+        self.m09_run_balanced_transfer('observation')
+
+    def test_m09_actor_revocation_orders_core_application_input(self):
+        self.m09_run_balanced_transfer('actor')
+
+    def test_m09_query_only_attribution_preserves_core_delivery(self):
+        app,surface,observe,control=self.begin_control()
+        self.addCleanup(self.m09_release_probe,app)
+        ready=next(r for r in self.probe_events(app) if r.get('event')=='ready')
+        self.assertIs(ready['xi2'],False)
+        client=self.native.connect(self.native.cookie);self.addCleanup(client.close)
+        query=NativeXI2Observer(client,ready['xid'],select_events=False)
+        self.addCleanup(query.close)
+        self.assertEqual(query.controlled_devices()['pointer'],self.native_device(app))
+        before=len(self.probe_events(app))
+        self.send_key_event('a',True);self.send_key_event('a',False)
+        self.actor_pointer(False);self.probe_command(app,'sync')
+        rows=self.probe_events(app)[before:]
+        self.assertTrue(any(r.get('event')=='key' and r.get('pressed') for r in rows),rows)
+        self.assertTrue(any(r.get('event')=='key' and not r.get('pressed') for r in rows),rows)
+        self.assertTrue(any(r.get('event')=='button' and not r.get('pressed') for r in rows),rows)
+
     def test_m09_observation_revocation_balances_input_before_peer_event(self):
         app,surface,observe,control,observer,attribution=self.m09_begin_observed_control()
-        before,codes=self.m09_hold_native_input(app)
-        self.m09_wait_xi2_key_presses(observer,codes,attribution)
+        codes=self.m09_hold_observed_input(observer,attribution)
         self.actor_aim(self.peer)
-        log_boundary=len(self.probe_events(app))
         self.revoke_grant(self.peer,observe)
-        self.m09_peer_first_native_event(app,self.peer,log_boundary,codes,aim=False,observer=observer,attribution=attribution)
-        self.m09_assert_native_release(app,before,codes,inspect=False)
+        self.m09_observed_handoff_then_core_delivery(app,observer,attribution,codes)
         self.assertNotIn(surface['id'],self.visible(self.viewer))
         self.assertIn(surface['id'],self.visible(self.peer))
         self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.FORBIDDEN)
@@ -714,13 +842,10 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
 
     def test_m09_actor_revocation_balances_input_before_peer_event(self):
         app,surface,observe,control,observer,attribution=self.m09_begin_observed_control()
-        before,codes=self.m09_hold_native_input(app)
-        self.m09_wait_xi2_key_presses(observer,codes,attribution)
+        codes=self.m09_hold_observed_input(observer,attribution)
         self.actor_aim(self.peer)
-        log_boundary=len(self.probe_events(app))
         self.revoke_viewer_identity(issuer.ACTOR_TARGET)
-        self.m09_peer_first_native_event(app,self.peer,log_boundary,codes,aim=False,observer=observer,attribution=attribution)
-        self.m09_assert_native_release(app,before,codes,inspect=False)
+        self.m09_observed_handoff_then_core_delivery(app,observer,attribution,codes)
         self.denied(self.viewer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
         self.denied(self.viewer.act(observe=core.ActorObserveRequest(width=128,height=128)),core.UNAUTHORIZED)
         self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.UNAUTHORIZED)

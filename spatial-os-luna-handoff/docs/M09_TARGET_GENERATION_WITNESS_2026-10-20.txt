@@ -1,3 +1,14 @@
+2026-10-22 reviewed correction
+
+The original native runs reproduced an invalid cross-domain generation equality.
+The corrected test preserves native remap, STALE_TARGET, zero stale application
+presses, and fresh authorized input to the same remapped XID. It also checks the
+new aim uses the current logical surface generation. No production routing changed.
+The original failed native-02 payload and all four host/profile logs remain preserved.
+Corrected runtime results are pending. M09 remains UNQUALIFIED.
+
+Historical draft follows, with the generation invariant corrected explicitly.
+
 M09 TARGET GENERATION WITNESS
 Date: 2026-10-20
 Status: SOURCE DRAFT; RUNTIME UNRUN; UNQUALIFIED.
@@ -23,8 +34,9 @@ probe command receives an acknowledgement after `XSync` and native event drainin
 A separate authenticated COMPOSITOR X connection reads the server-owned target
 generation through SPATIAL-INPUT. The test requires that generation to advance
 before it releases the reply. It then requires worldd to return the specific
-STALE_TARGET error and, after that reply, requires worldd's refreshed surface
-generation to equal the independently read native generation.
+STALE_TARGET error. After that reply, the refreshed logical surface generation must
+advance from its captured pre-race value. Compositor handles and server generations
+are independent domains. Their numeric values must not be compared for equality.
 
 The test establishes a native synchronization boundary after rejection with the
 probe's existing `sync` command. That command performs XSync, drains queued X events,
@@ -89,7 +101,7 @@ Checks
 
 Review limits
 
-The relay holds the broker's real typed lease reply before worldd receives it. Source review shows the actor action blocks worldd's single management loop while waiting. Runtime must confirm the trusted compositor query observes the remap generation, worldd later adopts it, and native event drain and positive control behave as expected.
+The relay holds the broker's real typed lease reply before worldd receives it. Source review shows the actor action blocks worldd's single management loop while waiting. Runtime must confirm the trusted compositor query observes the remap generation, worldd refreshes its separate logical handle, and native event drain and positive control behave as expected.
 
 Next step
 

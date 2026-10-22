@@ -213,5 +213,16 @@ class XI2ObserverWireTests(unittest.TestCase):
                     [event('motion',False,22,24,0)]+events):
             with self.subTest(bad=bad),self.assertRaises(AssertionError):check(self,None,attribution,bad,{38,50})
 
+    def test_query_only_attribution_never_selects_or_grabs_input(self):
+        client=Client();query=NativeXI2Observer(client,99,select_events=False)
+        self.assertEqual([minor for _,minor,_ in client.sent],[0,47])
+        query.close();self.assertTrue(client.stream.closed)
+
+    def test_deselection_is_fenced_before_connection_close(self):
+        client=Client();observer=NativeXI2Observer(client,99);observer.deselect()
+        self.assertEqual([minor for _,minor,_ in client.sent],[0,47,46,0,46,0])
+        self.assertEqual(client.sent[-2][2],struct.pack('<IHHHH',99,1,0,1,1)+bytes(4))
+        self.assertFalse(client.stream.closed);observer.close()
+
 
 if __name__=='__main__':unittest.main()
