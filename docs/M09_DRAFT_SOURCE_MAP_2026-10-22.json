@@ -1,0 +1,202 @@
+{
+  "base": "11227a48907d5bc8c9bc4e992633fafdb73a9a89",
+  "branch": "m09/integration-qualified-m08-20261022",
+  "qualification": "UNQUALIFIED M09 drafts",
+  "transplanted_changes": [
+    {
+      "commit": "554a216d0896413dc7bd9e2d6bbd94aa6ba930b6",
+      "subject": "Select the full local cabinet gateway suite"
+    },
+    {
+      "commit": "6c4cce2c0c93260e7f1bfd06d5ee23b9eadde258",
+      "subject": "Complete cabinet instrumentation fixture protobuf dependencies"
+    },
+    {
+      "commit": "4f0aa15dffdadbcdedd809bcfe43335bc25f99f3",
+      "subject": "Document source-backed M09 control contract and qualification gaps"
+    },
+    {
+      "commit": "b38ead03643cb0907706423c52d38f443bdb1c51",
+      "subject": "Add native dialog and popup group identity witness"
+    },
+    {
+      "commit": "a10128a70f7a166f04e653c914c61ab485fe74a6",
+      "subject": "Place native group witness windows in distinct geometry"
+    },
+    {
+      "commit": "e37d78d0b5045fc3b195697821c7432743366546",
+      "subject": "Add draft M09 application control gate profile"
+    },
+    {
+      "commit": "2e1bebc2476bdb0141277c40107f2cc90d81fc6d",
+      "subject": "Keep the M09 gate additive while preserving M08 discovery Move M09 harness into its own package and validate its exact eight-test run separately. Keep M08 at its existing 89-ID inventory and document the remaining M09 source/runtime gaps."
+    },
+    {
+      "commit": "29bcf44dd7e9f52b11a01bf727bdcae515be15d2",
+      "subject": "Add M09 draft readiness audit"
+    },
+    {
+      "commit": "c12743c20ff8b411da4c64b5e78ba726a86925b9",
+      "subject": "Clarify M09 phase gate ordering"
+    },
+    {
+      "commit": "abc3f979f637f2e10232d36a21b658f9e74a4e73",
+      "subject": "Draft M09 native input handoff witnesses (UNQUALIFIED; runtime unrun)"
+    },
+    {
+      "commit": "85771be81795310eab8f08b4401baf883576cd86",
+      "subject": "docs: record M09 next increment review (UNQUALIFIED)"
+    },
+    {
+      "commit": "b51adf7fdc3f6da8525d39822b908e5aafea23c9",
+      "subject": "test: checkpoint M09 destroy reacquisition witness (UNQUALIFIED)"
+    },
+    {
+      "commit": "d493c2534a55061bbf39f2d25ef06bfe6d0e341c",
+      "subject": "Record reviewed M09 requirement and gate inventory"
+    },
+    {
+      "commit": "2adb49c115aa3877e44e3666caa719e6258f8ff9",
+      "subject": "Document M09 independent native input-state witness design"
+    },
+    {
+      "commit": "9b24f170a04351115c5e0eb19352eb330591248d",
+      "subject": "Add opt-in XI2 native probe receipt records"
+    },
+    {
+      "commit": "f5d74140a344f0451826a4e6a4fbee73e81e974b",
+      "subject": "test: integrate and verify bounded M09 observer fixtures"
+    },
+    {
+      "commit": "cd1fe4198a8df6f16cb27e2bf163b635478609f8",
+      "subject": "Record reviewed native observer lifetime and startup contract"
+    },
+    {
+      "commit": "df74792b32ebc5e5f5be2b8193231abfa4d8b37f",
+      "subject": "Add qualification-only native epoch and state snapshot helpers"
+    },
+    {
+      "commit": "e02e9368a77d7da4c300a0eb2d0cabf4242bc05e",
+      "subject": "test: capture bounded native focus grab and frozen input facts"
+    },
+    {
+      "commit": "bf2d8e0fece8b16afc6e41f828bffebcbfbcd30d",
+      "subject": "test: capture first relevant native XI2 output and device state"
+    },
+    {
+      "commit": "da523be5e5870dac93b6a264d56dc38c945b950a",
+      "subject": "Add ordered native revocation continuity scenarios"
+    },
+    {
+      "commit": "88ceabfd23d0106a2e0ae9bb8de0ed537c5a16d1",
+      "subject": "Repair M09 XI2 revocation witness attribution (UNQUALIFIED)"
+    },
+    {
+      "commit": "2d19e6a34d231d4a46b800153a109e22452c561b",
+      "subject": "Fix M09 device inventory padding and duplicate release order (UNQUALIFIED)"
+    },
+    {
+      "commit": "6f543e2a458316c04241dc7a539f5d70136c0efe",
+      "subject": "feat: serialize bounded M09 native observer records"
+    },
+    {
+      "commit": "584ed4e17426a4a8cb9eed1f4ad462bb68d23bbd",
+      "subject": "M09: repair native observer serializer regressions"
+    },
+    {
+      "commit": "f99257515aaa1da30572c53a2f7ef84507029c0a",
+      "subject": "Integrate default-off native input observer build linkage"
+    },
+    {
+      "commit": "499488301224536e3244989a74896d2b4998231d",
+      "subject": "Repair production patch application and pin exact native observer builds"
+    },
+    {
+      "commit": "133c317b9621e9d6e8cf5504071ff3a660b2b555",
+      "subject": "Combine reviewed v2 observer components and focused checks (UNQUALIFIED)"
+    },
+    {
+      "commit": "17cded2680c6bb5ef800f6c7a67432e541c51f00",
+      "subject": "Record native observer identity and grab lifetime review (UNQUALIFIED)"
+    },
+    {
+      "commit": "266cfe54d382144af8b6a770db33fb557bfecd13",
+      "subject": "Add private native grab and focus context value pins (UNQUALIFIED)"
+    },
+    {
+      "commit": "3b1d2c190dd51cddaf68bccf21033d013fd5ef57",
+      "subject": "M09: record reviewed private observer setup and arm plan (UNQUALIFIED)"
+    },
+    {
+      "commit": "5ed555eedf57d104d8ad606d70103c66467b90ac",
+      "subject": "M09: add reviewed private observer setup and arm validation"
+    },
+    {
+      "commit": "f327766a3a3f627b40afb6fb9d6cd17223276af0",
+      "subject": "Add native target-generation authorization race witness (UNQUALIFIED)"
+    },
+    {
+      "commit": "bc5e60e34171e6ed00df800e299270176f523be4",
+      "subject": "M09: add combined observation and controller survival witness"
+    },
+    {
+      "commit": "a68e748a44b0edb47a8e3ec349f9c74478e32d27",
+      "subject": "docs: plan trusted M09 observer transport"
+    },
+    {
+      "commit": "31fda7b844ebf7a58c4cebb74a07557dc42dec9e",
+      "subject": "docs: repair trusted M09 observer plan review findings"
+    },
+    {
+      "commit": "f37d4e0cd0f3e4e798b9473d45a406066c46c60a",
+      "subject": "M09: plan native observer binding increment"
+    },
+    {
+      "commit": "07de8c2947481df1ff4ed0cad04ea4970ad5d49b",
+      "subject": "M09: add bounded v2 C wire interop fixture"
+    },
+    {
+      "commit": "2640943595f9ec77454e51a5fcaabb8a4f46470f",
+      "subject": "M09: harden v2 C wire fixture validation"
+    },
+    {
+      "commit": "85d3cf064c18a59e9f011d329b116bf55174b347",
+      "subject": "M09: reject incomplete accepted arm inputs"
+    },
+    {
+      "commit": "a4fa96cafd1df090e345f72bae9717c5684299e6",
+      "subject": "docs: plan M09 descriptor bootstrap increment"
+    },
+    {
+      "commit": "90fb009562c861f888f7f34c11491b3dcd431b7b",
+      "subject": "docs: correct M09 component test invocation"
+    },
+    {
+      "commit": "4218abb75b4c4b3cd5a1142ba235ed706c6c0eeb",
+      "subject": "Trace production XLibre launch owner boundary"
+    },
+    {
+      "commit": "5e7de4ef089d4dcdfd5616f69b39031e07ceb61d",
+      "subject": "Clarify source scope in XLibre launch trace"
+    },
+    {
+      "commit": "d28cec460ab5bb552baa8899b7acab15d59f64d3",
+      "subject": "Document M09 native XLibre launch owner audit"
+    },
+    {
+      "commit": "0a553f026fbe26f1b991559cdf79c2e53c8e2522",
+      "subject": "Correct M09 Xvfb launch scope"
+    }
+  ],
+  "consolidated_imports": {
+    "133c317": "Complete reviewed v2 schema/parser/collector files replace earlier parallel imports.",
+    "f5d7414": "Complete reviewed v1 observer fixtures replace earlier parallel imports."
+  },
+  "integration_repairs": [
+    "Resolve additive timestamp and independent helper conflicts.",
+    "Refresh two lifetime source/header hashes after importing v2 context pins.",
+    "Use tuple concatenation in two M09 harness negative test inputs.",
+    "Correct draft comments that described now-present witnesses as missing."
+  ],
+  "preserved_dirty_worktree": "/home/dflanag3/src/m09-balanced-destroy-revocation-20261020"
+}

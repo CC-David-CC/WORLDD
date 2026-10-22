@@ -1,0 +1,98 @@
+M09 drafts integrated onto qualified M08 - 2026-10-22
+
+Status: reviewed draft integration with focused checks. M09 remains UNQUALIFIED.
+M08 remains qualified. Its branch, tag, frozen production candidate, and evidence are unchanged.
+
+Source and scope
+----------------
+Branch: m09/integration-qualified-m08-20261022.
+Base: 11227a48907d5bc8c9bc4e992633fafdb73a9a89, m08/qualified-20261022.
+Host: ROG-Ally-X-RC72LA. Primary owns the integration checkout.
+Checkout: /home/dflanag3/src/m09-integration-qualified-m08-20261022.
+Read M09_DRAFT_SOURCE_MAP_2026-10-22.json for original source commits and integration order.
+Only reviewed deltas were transplanted. Older draft M08 ancestry was not merged.
+Historical draft documents retain their original branches and evidence dates.
+This record and CURRENT_STATE.md describe the combined tree.
+
+Included work
+-------------
+The permanent cabinet selector includes all 28 local methods and its protobuf dependency closure.
+Native group tests cover main windows, dialogs, popups, and independent application identities.
+Control drafts add ordered revocation, same-application survivor reacquisition, and target-generation races.
+Observation drafts add a third independent controller and pinned process continuity.
+Observer v1/v2 components include schemas, parsers, collectors, setup validation, and C serializers.
+Native lifetime, device-context, and outgoing-event helpers remain qualification-only components.
+The production observer build option remains disabled by default. XACE remains active.
+The additive M09 gate remains a draft. Freeze its complete bridge coverage before qualification.
+
+Explicit locked-fixture review
+------------------------------
+native/xprobe.c adds a survivor command and opt-in XI2 receipts.
+The survivor creates a real independent popup on the same authenticated X connection.
+Receipts record actual XI2 event fields. They do not report native server device state.
+Default input event records retain their fields. Existing acceptance assertions were not changed.
+acceptance.lock.json changes only this witness hash and its explanatory notice.
+All 151 acceptance IDs and every other locked file hash remain unchanged.
+The imported destroy and XI2 receipt documents explain this additive fixture extension.
+The strict destroy-release test remains strict. The separate survivor test proves reacquisition only.
+A callback attempt or logical actor-state query does not prove native input release.
+Native device clearance after destruction still needs the independent bridge witness.
+
+Integration corrections
+-----------------------
+Shared capture conflicts retained the capture logic and added serializer timestamps.
+The target-generation conflict retained both independently required helpers.
+The v2 context import changed two lifetime source hashes. The lock now pins their actual bytes.
+The first M09 harness run failed before duplicate rejection because its test mixed tuples and lists.
+Two tuple-concatenation corrections fixed that setup. Its existing negative test now reaches all rejection checks.
+The original failing log remains external. All eight tests passed after correction.
+The additional input compile needed generated input.pb-c.h and its security schema import closure.
+Fresh external generation corrected the build setup. Failed compiler/setup logs remain preserved.
+Pre-existing dirty edits remain unchanged in the original balanced-destroy worktree.
+Their uncommitted release-order variation and lock notice were not silently adopted.
+The committed destroy checkpoint and later ordered-witness corrections supply the reviewed combined source.
+
+Selected checks and final results
+--------------------------------
+Selections and purposes were recorded before execution in external integration-plan.json.
+239 Python methods passed on ROG: M08 harness 89, M09 harness 8, cabinet instrumentation 15,
+XI2 wire 17, v1 parser 21, v1 collector 12, v2 parser 23, v2 collector 26, setup 28.
+Both sb16 and sb16-2 passed 5 v1 and 6 v2 serializer methods in Debug and ASan-UBSan.
+Those 44 host/profile method executions are offline component checks, not native control acceptance.
+No world or X server was started for these fixture checks.
+Fresh Debug CMake configuration and selected protobuf, instrumentation, and probe targets passed.
+All 14 XLibre patches applied to a fresh verified upstream archive. All 16 overlays matched their pins.
+Lifetime, capture, and serializer objects compiled in Debug and ASan-UBSan with -Werror.
+Native input compiled with the observer enabled and disabled in both profiles with -Werror.
+Both serializers linked their independent fixtures. The X probe compiled in both profiles.
+Three observer schemas generated nine Python/C files twice with identical coverage and bytes.
+The production input binding and its security closure also generated identically in two clean directories.
+Locked-file integrity, acceptance IDs, Python syntax, source selectors, and staged whitespace checks passed.
+These results do not establish a linked native server, live bridge, native cancellation, or M09 completion.
+
+Evidence
+--------
+ROG: /home/dflanag3/spatial-artifacts/m09-integration-qualified-m08-20261022.
+Plan: integration-plan.json. Original inventory: draft-commit-inventory.json.
+Runs: configure-run-01, focused-run-01, focused-run-02, patch-and-input-run-01,
+input-compile-run-02, and input-compile-run-03. Original failures remain in their first run logs.
+Focused results: focused-results-02.json. Integrity: source-inventory-checks.json.
+Generation: generation-proof.json. Patches: git-apply-validation-v3.json.
+Native input compilation: input-compile-results.json.
+Each test host: /home/dflanag3/spatial-artifacts/m09-integration-qualified-m08-20261022-interop-01.
+Each stores interop-results-01/result.json and canonical run-01 receipts.
+Both host command/wrapper exits were zero. Both tmux panes retired with status zero.
+Interop package SHA256: 71e3d91d719e9ac423e1f62f9eb8a8e02b5966a25500bc2ef7ec460ff0a89a96.
+Generated outputs, packages, and logs remain outside Git. No fleet cleanup was performed.
+
+Next bounded implementation
+---------------------------
+Read spatial-os-luna-handoff/docs/M09_NATIVE_SESSION_OWNER_CONFIGURATION_TRACE_2026-10-21.txt.
+Then read spatial-os-luna-handoff/docs/M09_DESCRIPTOR_BOOTSTRAP_NEXT_INCREMENT_PLAN_2026-10-21.txt.
+Implement the private one-shot observer endpoint in the verified actual XLibre launch owner.
+Keep arm authority, trusted worldd seat bindings, and independent probe receipts separate.
+Then connect live pins, transition snapshots, and bounded serializer output.
+Add descriptor ownership, replay, timeout, malformed-input, and teardown regressions before deployment.
+Run focused native application-control tests on sb16 and sb16-2 after reviewing that bridge.
+Freeze the complete contract-to-test map before the full M09 Debug/sanitizer and native phase gate.
+Full M09 qualification, live observer transport, native destroy clearance, and physical-input evidence remain pending or unrun.

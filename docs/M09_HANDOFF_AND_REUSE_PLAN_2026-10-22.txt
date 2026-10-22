@@ -1,3 +1,9 @@
+M09 integration update - 2026-10-22
+Use m09/integration-qualified-m08-20261022, based on qualified M08 11227a48907d5bc8c9bc4e992633fafdb73a9a89.
+Read M09_INTEGRATION_ON_QUALIFIED_M08_2026-10-22.txt and M09_DRAFT_SOURCE_MAP_2026-10-22.json.
+M08 remains qualified. M09 remains UNQUALIFIED. The live native witness bridge is next.
+Earlier draft inventory below remains historical provenance.
+
 M09 HANDOFF AND CONTROL REUSE PLAN
 Date: 2026-10-22. M08 QUALIFIED. M09 UNQUALIFIED.
 

@@ -1,0 +1,114 @@
+M09 NATIVE BINDING AND BOOTSTRAP INCREMENT
+Date: 2026-10-21
+Status: UNQUALIFIED / PLAN ONLY. No source implementation or runtime test ran.
+Branch: m09/native-binding-next-increment-plan-20261021
+Planning checkout: /home/dflanag3/src/m09-native-binding-next-increment-plan-20261021
+Base: b4201e428cd3120be81604d182a13b27399692de
+M08 source parent: c2bad0c37c14d6f76db853d11111651287192592
+
+PURPOSE
+
+Plan the next native M09 integration increment. Bind trusted worldd actor-seat context to one private X-server observation arm, discover live native identities, serialize v2 evidence, and relay it to the bounded collector. Keep the M08 candidate frozen. M09 remains separate until M08 qualifies.
+
+This note is source planning. It is not a source review, compile result, runtime result, or acceptance change. All M09 native integration and runtime results remain UNRUN. Do not start test-host work while primary owns the M08 gates.
+
+SOURCE PINS AND LINEAGE
+
+The planning checkout begins at handoff b4201e428cd3120be81604d182a13b27399692de. It is a clean M08-lineage checkout. The three requested M09 commits are present as Git objects, but they are not ancestors of this checkout:
+
+- 5ed555eedf57d104d8ad606d70103c66467b90ac adds the setup-control schema, Python setup validator, 28-method pure regression source, and setup contract. It has no native bootstrap.
+- bc5e60e34171e6ed00df800e299270176f523be4 adds observation/revocation survival witness changes. It adds no native producer or transport.
+- 133c317b9621e9d6e8cf5504071ff3a660b2b555 combines the v2 artifact schema, parser/collector Python sources, test sources, and notes. Its recorded 49 parser/collector checks are pure checks. It adds no server/worldd native producer.
+
+The exact diffs and their parent commits were read from Git objects. Transplant only reviewed changes onto the eventual qualified M08 source. Do not adopt any older M09 branch as the base.
+
+Additional prerequisites recorded by docs/M09_PREPARATION_STATUS_2026-10-20.txt and the corrected transport plan at 31fda7b844ebf7a58c4cebb74a07557dc42dec9e:
+
+- 2d19e6a34d231d4a46b800153a109e22452c561b: reviewed XI2 ordering repair; its authored native cases remain UNRUN.
+- 584ed4e17426a4a8cb9eed1f4ad462bb68d23bbd: reviewed v1 C serializer repair and compile evidence; v2 serialization and C/Python execution remain missing.
+- 499488301224536e3244989a74896d2b4998231d: reviewed default-off X server build linkage and compile evidence; server startup/reset and observer runtime remain UNRUN.
+- 266cfe54d382144af8b6a770db33fb557bfecd13: private native lifetime/context value pins; compile evidence only. Do not import the separate 17cded review note as implementation.
+- 31fda7b844ebf7a58c4cebb74a07557dc42dec9e: repaired transport plan, still a plan. It specifies inherited pipes and actor-seat bindings; it is not implementation or primary acceptance.
+
+Verify each branch, commit, and source ancestry again before integration. The listed changes use older source bases. Shared paths include the v2 schema/tests, XLibre input/lifetime/capture/serializer files, XLibre build patches, world input protocol, and native fixtures. Resolve those overlaps in dependency order. Preserve v1 wire behavior and every locked acceptance file.
+
+CURRENT SOURCE MAP: WHAT EXISTS
+
+Native X server, at the planning base:
+
+- server/xlibre/spatialinput.c: `open_seat()` creates the compositor-owned native seat and four devices; `cancel()` releases tracked input and clears native context; `bind_application()` sets the application controller and device association; `operate()` handles existing v1 input requests; `dispatch()` unpacks and replies; `SpatialInputExtensionInit()` and `reset()` own extension lifecycle.
+- server/xlibre/spatialinput.h exposes only `SpatialInputExtensionInit`, `SpatialInputAuthorizeClient`, and `SpatialInputRoute`. It has no observer arm, descriptor bootstrap, native epoch query, or output writer.
+- server/xlibre/spatialsecurity.h/.c provides `SpatialSecuritySameApplication`, `SpatialSecurityPrivileged`, `SpatialSecurityInputController`, and `SpatialSecuritySelectionNamespace`. Security protobuf role values are SUPERVISOR=1, BROKER=2, COMPOSITOR=3, APPLICATION=4.
+- server/xlibre/meson.build generates existing input/security protobuf-c code and links spatialinput.c. The v2 observer schema, serializer, transport, and default-off registration are absent at this planning base.
+
+Prepared, private native helpers, in their separate source pins:
+
+- `spatialinputobserver_lifetime.h`: `SpatialObserverLifetimeInit/Reset/Session`, `SpatialObserverPinDevices`, `SpatialObserverSnapshotDevices`, `SpatialObserverPinClient/ClientMatches`, `SpatialObserverPinWindow/WindowMatches`, `SpatialObserverPinNativeClient`, and `SpatialObserverSnapshotContextV2`. They return process-local epoch/value pins. They retain no DIX pointer in wire data.
+- `SpatialObserverNativeClientRole` values are INVALID=0, APPLICATION=1, SUPERVISOR=2, COMPOSITOR=3. The wire role values differ. Map explicitly: APPLICATION 1 to wire APPLICATION 4; SUPERVISOR 2 to wire SUPERVISOR 1; COMPOSITOR 3 to wire COMPOSITOR 3. Reject INVALID and unknown values. Never cast these enums.
+- `spatialinputobserver_capture.h/.c`: `SpatialObserverCaptureArm/Read/Reset` captures v1 arm and one callback event. It does not sample the ordered cancel/bind transitions required by v2.
+- `spatialinputobserver_serialize.h/.c`: `SpatialObserverSerialize` emits v1 Arm and ObserverPress records only. The independent probe supplies its own ProbeReceiptBatch. It is not the v2 transition serializer.
+
+World/compositor path, at the planning base:
+
+- src/world/actors.hpp/.cpp: `Actors::Actor` stores actor entity, optional authenticated `ActorRef`, application-control lease, and native input state. `authorize_input()` checks observation/control authority and acquires the broker lease. `release_input()` cancels input before release. `send_input()` rechecks control. `route_input()` turns authorized actor actions into renderer commands. No actor-seat binding is exported to an observer supervisor.
+- src/x11/input_router.hpp/.cpp: `XInputRouter::execute()` lazily issues native OPEN and maps actor entity ID to native `Seat.id`. `state()` returns actor input state but not `Seat.id`. There is no qualification-only ensure-seat operation or binding serializer.
+- src/render/presentation_inputs.cpp: `bind()`/`initialize()` create the scoped NativeInput/router; `input()`/`snapshot()` route existing commands. `src/render/presentation_server.cpp` handles private presentation attach/control frames. These bind a world presentation, not the M09 actor-to-seat witness context.
+- `NativeInput(int sealed_config_fd)` and `NativeChannel::connect_server()` authenticate the existing compositor input channel. They are not the observer arm/output capability. Do not reuse or weaken that credential path.
+
+M09 v2 contract sources, from the requested prep commits:
+
+- `tests/native/input_state_observer_setup_v2.py`: `validate_setup()`, `validate_arm()`, `validate_frames()`, `encode_control()`, `decode_control()`, and `decode_reply()` validate bounded setup/arm frames against caller-supplied trusted selectors and worldd bindings. Setup checks client/window/device epochs and roles; it does not authenticate the inherited FD.
+- `tests/native/input_state_observer_v2.py`: `validate_records()`, `decode_records()`, and `decode_and_validate()` enforce four ordered v2 artifact records, identity joins, transition state, and old-release-before-peer receipt ordering.
+- `tests/native/input_state_observer_v2_collect.py`: `collect()` owns one readable FIFO or Unix stream FD through EOF, applies one absolute arm-bounded deadline, validates the artifact, and closes once. Its 26 collector methods do not prove native FD provenance.
+- Proto files: `proto/spatial/testing/v2/native_input_observer_control_v2.proto` separates setup control from the artifact; `native_input_observer_v2.proto` defines four artifact records and trusted actor-seat bindings. Generated Python modules are build outputs and stay outside Git.
+
+MISSING INTEGRATION
+
+No source at the planning base connects these prepared contracts to real native state. Specifically missing are: a default-off inherited one-shot arm FD; a separate native-output FD; a test supervisor that owns and closes pipe endpoints; worldd-authenticated actor/seat binding records; a way to provision both seats before arming; v2 live pin discovery and explicit role mapping in the producer; real transition samples at cancel/rebind boundaries; v2 C serialization; byte-preserving joining of the independent NativeClient receipt; and C-to-Python interoperability and negative controls.
+
+BOUNDED IMPLEMENTATION ORDER
+
+Keep one owner per file set. Use sequential reviewable commits. The API contract freezes before dependent code.
+
+1. Rebase the reviewed v2 setup/artifact schema, validators, and pure regression sources onto qualified M08. Preserve v1. Verify source lineage and exact message bounds. The setup command, separate reply, actor-seat binding, and four-record artifact must remain distinct types.
+2. Add private server bootstrap and identity discovery. Add a default-off X server startup option and inherited anonymous arm-read/native-output-write pipes in the approved Xvfb fixture. Add transport lifecycle code beside the observer helpers and an owned supervisor fixture. Accept one arm only, before cancel begins. Reject duplicate, malformed, truncated, extra, stale-session, timeout, reset, and premature-EOF inputs. Keep every endpoint out of application environments and close it on all partial-startup/reset paths. Do not add a public X request or filesystem socket.
+3. Bind live pins and serialize v2. Resolve the supplied seat/device/client/window selectors on the X server, then compare current native epochs and roles. Keep presentation generation, spatial target generation, X window epoch, client epoch, device epoch, and observer session epoch separate. Populate the v2 transition, callback, and arm fields from live server values. Map internal roles explicitly as above. Reject incomplete joins. Relay no pointers and serialize no credentials. Keep C serializer output within the four-record schema and per-frame limits.
+4. Add the private worldd binding path. A qualification-only path creates both native actor seats before arm, then sends exactly two bounded `ObserverActorSeatBindingV2` frames through an inherited binding pipe. Each frame binds authenticated `ActorRef`, actor entity ID, application identity, presentation generation, and actual native seat ID. Existing worldd lease checks remain authoritative. Actor requests cannot choose the private operation. The X server independently verifies the seat owner, devices, application controller, and target generation.
+5. Join streams and prove the boundary. The trusted supervisor concatenates the server's original framed bytes and the independent NativeClient's original receipt bytes in schema order. It never fabricates a native or probe fact. Run fresh generated bindings and C/Python byte interoperability on ROG. Then request test-host runtime only after M08 releases both hosts.
+
+Proposed internal world/compositor API changes require explicit review before implementation: add a private `ensure_seat` renderer operation and return the existing native seat ID in the internal native-input result. `XInputRouter::ensure_seat(actor_id)` must only create/retrieve the existing seat; it sends no application input and grants no authority. Worldd may emit the private binding only after existing authorization has selected the application and verified the active control lease. These are proposed interfaces, not APIs present today. Do not expose them through ordinary actor requests.
+
+Expected file ownership for this bridge: `server/xlibre/spatialinputobserver_transport.[ch]` (new), `spatialinputobserver_serialize_v2.[ch]` (new), `spatialinput.c` and observer capture/lifetime integration, `server/xlibre/meson.build` plus the reviewed default-off XLibre patch, v2 proto definitions, the internal renderer protocol, `src/x11/input_router.[ch]`, `src/world/actors.[ch]`, the worldd qualification launch path, and new native supervisor/interoperability tests. Freeze the actual API and trim this list before assigning a writer. Do not combine acceptance-profile edits into this source increment.
+
+FOCUSED CHECKS TO RECORD BEFORE RUNNING
+
+ROG source/build scope only:
+
+- Fresh `protoc` and `protoc-c` generation for the v2 schemas; verify imports and output bounds. Generated files remain external.
+- Setup pure regression: `python3 -B -m unittest -v test_input_state_observer_setup_v2` with generated v2 modules on explicit PYTHONPATH. It covers canonical frames, trusted binding joins, role checks, immutable pins, deadlines, and malformed inputs.
+- Artifact parser/collector pure regressions: `python3 -B -m unittest -v test_input_state_observer_v2 test_input_state_observer_v2_collect` with fresh generated bindings. It covers four-record ordering, stale identities, limits, FD ownership, EOF, cleanup, and absolute deadlines.
+- New C/Python interoperability fixture: compare exact C-produced v2 bytes with independently constructed Python expected bytes; negative cases must assert the intended stable rejection code.
+- Debug and ASan-UBSan compile/link of the default-off XLibre server and worldd path against the pinned sources. Verify default-off behavior and generated dependency coverage. No native runtime on ROG is evidence of test-host behavior.
+
+These commands are plans; none ran for this task. Record failures and exact pins. Do not call pure tests native evidence.
+
+PROFILE, HOSTS, AND FINAL M09 GATE
+
+Development and compilation belong on ROG. sb16 and sb16-2 remain the only M09 runtime qualification hosts. Do not contact them until primary releases M08 ownership. Root status records M08 as UNQUALIFIED; this is the current scheduling blocker for M09 runtime, not a code pass.
+
+The additive M09 qualification draft at 2e1bebc2476bdb0141277c40107f2cc90d81fc6d requires five focused CTest registrations: application-control-lease, application-observation, world-application-control, native-surface_identity, and native-world_surface_groups. It adds a separate eight-case M09 harness and source-case preflight while preserving the existing 89-case M08 harness and locked acceptance inventory. The M09 control contract groups the final coverage into: application-group identity and dialog/popup ownership; independent controllers; ordered release before handoff; stale-generation rejection; observation/control authority separation; immediate revocation with process survival; and observation-race fencing. The exact profile is a draft and must be reviewed against current requirements before gate use.
+
+Before claiming M09, transplant and review all accepted prerequisites onto qualified M08; complete the native positive and held-state negative controls; verify independent XI2 receipts, focus/grab/capture/replay/frozen-state cancellation, descriptor cleanup/reset, target-generation races, and process continuity; update the additive gate inventory without modifying locked acceptance; freeze one combined candidate; run focused Debug and ASan-UBSan regressions on both hosts; then run the complete required cumulative M08 plus M09 gate on both hosts. Report passed, failed, blocked, pending, and unrun separately. M09 does not qualify Spatial-M1.
+
+ACTUAL BLOCKERS AND LIMITS
+
+- M08 has not qualified and still owns the test-host schedule.
+- The corrected one-shot transport plan is still PLAN ONLY; no primary review of a native implementation exists.
+- The three requested commits are older-lineage schema/test preparations, not an integrated producer.
+- Native fixture, v2 C/Python execution, real XI2 delivery/order, reset/FD-leak checks, both-host Debug/SAN runtime, and the complete M09 gate remain UNRUN.
+- Do not broaden XInputExtension for ordinary applications. The approved topology uses a distinct privileged NativeClient and a separate APP window owner.
+- Do not replace XACE, weaken existing authority checks, change acceptance locks, or merge this planning branch into M08.
+
+AUDIT RECORD
+
+Source inspected on ROG at base b4201e428cd3120be81604d182a13b27399692de, plus the exact M09 Git objects listed above. The M08 component instructions and current component state were read. No source, schema, test, build, runtime, test host, or acceptance contract was changed or exercised. This note is UNQUALIFIED / PLAN ONLY.

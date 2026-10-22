@@ -1,3 +1,6 @@
+M09 drafts are integrated on qualified M08 in m09/integration-qualified-m08-20261022. M09 remains UNQUALIFIED.
+Read ../../docs/M09_INTEGRATION_ON_QUALIFIED_M08_2026-10-22.txt for focused evidence and remaining native bridge work.
+
 M08 qualification accepted on 2026-10-22. M01-M08 are qualified. M09-M16 remain pending.
 Read ../../docs/M08_QUALIFIED_2026-10-22.txt for source, overlays, exact evidence, and scope.
 Read ../../docs/M09_HANDOFF_AND_REUSE_PLAN_2026-10-22.txt for the next milestone.

@@ -1,0 +1,210 @@
+M09 descriptor bootstrap next increment
+Status: PLAN ONLY / UNQUALIFIED / NO RUNTIME EVIDENCE
+Date: 2026-10-21
+
+Source pin and restart
+----------------------
+Base: 85d3cf064c18a59e9f011d329b116bf55174b347
+Branch: m09/descriptor-bootstrap-next-increment-plan-20261021
+Worktree: /home/dflanag3/src/m09-descriptor-bootstrap-next-increment-plan-20261021
+Owned file: spatial-os-luna-handoff/docs/M09_DESCRIPTOR_BOOTSTRAP_NEXT_INCREMENT_PLAN_2026-10-21.txt
+Development host: ROG-Ally-X-RC72LA, user dflanag3. This is a source plan only.
+Restart by SSH to ROG, cd to the worktree, verify git status --short --branch,
+then read this note and the base-pinned files cited below. Do not resume from a
+different branch or update the base implicitly.
+
+Checkpoint context
+------------------
+The primary review accepted 85d3cf06 as an OFFLINE COMPONENT ONLY. It verified
+fresh schema generation, GCC Debug and ASan/UBSan builds, and 23 parser + 26
+collector + 6 C/Python fixture checks per profile. Latest canonical evidence:
+/home/dflanag3/spatial-artifacts/m09-observer-v2-primary-validation-20261021/result.json
+That acceptance is not native runtime qualification. M09 remains UNQUALIFIED;
+native bridge is UNRUN. Historical serializer-doc receipt-focused-01/review03
+entries are superseded by worker review04 and the primary evidence above.
+
+Next bounded increment
+----------------------
+Implement only the private one-shot observer-arm descriptor handoff from the
+authorized supervisor launch path to the actual XLibre server process. First
+trace and document the exact configured process path into XLibre. The inspected
+base confirms SessionLaunch can launch an AuthoritySupervisorConfig child, but
+does not establish that this path launches the XLibre server. Do not wire an
+assumed path or invent an API.
+
+Keep the arm input endpoint separate from the existing supervisor native-config
+memfd and from ChildHandleServer. The former is launch configuration; the latter
+exports checked child pidfds over a private coordinator socket. Neither is an
+observer-arm API. Do not add a generic transport, change locked contracts, or
+start capture in this increment. The result should be one authorized inherited
+endpoint, consumed once by the intended server process, with fail-closed
+validation and explicit descriptor ownership.
+
+Confirmed source map
+--------------------
+* server/xlibre/spatialinputobserver_serialize_v2.h declares
+  SpatialObserverMapNativeRoleV2, SpatialObserverSerializeServerRecordsV2,
+  and SpatialObserverWriteServerRecordsV2. The serializer handles only Arm,
+  NativeTransition, ObserverPress. It grants no authority and proves no live
+  facts. It has no descriptor receiver or producer.
+* server/xlibre/spatialinput.h declares SpatialInputExtensionInit,
+  SpatialInputAuthorizeClient, and SpatialInputRoute. These are extension
+  initialization, client authorization, and input routing APIs, not observer
+  bootstrap APIs.
+* server/xlibre/spatialinput.c defines SpatialInputAuthorizeClient;
+  server/xlibre/spatialsecurity.c calls it. Do not treat client authorization
+  as authority to create an observer arm.
+* src/supervisor/session_launch.hpp declares spatial::supervisor::SessionLaunch.
+  Its constructor accepts an authorized AuthoritySupervisorConfig, borrowed
+  native descriptor, three standard streams, and a handle-channel flag. Its
+  record, stop, and checked receipt methods concern child lifecycle.
+* src/supervisor/session_launch.cpp creates management and optional
+  SOCK_SEQPACKET handle channels, duplicates a sealed native config with
+  CLOEXEC, marks descriptors CLOEXEC by default across exec, then exposes only
+  selected inherited descriptors. This is an ownership pattern to inspect, not
+  an observer endpoint.
+* src/supervisor/child_handle.hpp declares ChildHandleServer(int owned_socket,
+  pid_t parent) and pump(const AuthorityLaunch&). Its implementation
+  authenticates the parent and returns checked broker/world pidfds. Do not reuse
+  its protocol or channel for arm input.
+* src/supervisor/main.cpp parses supervisor config and distinct inherited
+  descriptors. Its native descriptor is supervisor configuration, not the
+  observer arm endpoint. Trace the actual configured server launch here and
+  through AuthoritySupervisorConfig before proposing edits.
+* proto/spatial/testing/v2/native_input_observer_v2.proto defines
+  ObserverArmV2, ObserverActorSeatBindingV2,
+  NativeInputObservationRecordV2, and the four record payloads.
+  The arm comment explicitly makes the inherited FD authority and IDs data.
+  Seat bindings are trusted worldd input on a separate private inherited pipe;
+  they are not output records.
+* tests/native/input_state_observer_v2_collect.py defines test-only collect.
+  It owns a valid FD, reads until EOF, validates the complete stream, and closes
+  once. This is not a production endpoint.
+* tests/native/input_state_observer_v2.py and
+  tests/native/input_state_observer_v2_collect.py are the parser/collector
+  semantics. tests/native/test_input_observer_v2_c_wire.py checks the C
+  serializer fixture and Python wire interoperability.
+
+Role and producer boundaries
+----------------------------
+The schema wire roles are SUPERVISOR=1, BROKER=2, COMPOSITOR=3,
+APPLICATION=4. The serializer native constants are APPLICATION=1,
+SUPERVISOR=2, COMPOSITOR=3. Use its checked explicit mapping:
+APPLICATION 1 -> wire APPLICATION 4; SUPERVISOR 2 -> wire SUPERVISOR 1;
+COMPOSITOR 3 -> wire COMPOSITOR 3. Reject unknown values. Equal integers do
+not imply equal roles.
+
+The server-origin serializer emits exactly three records. The fourth
+ProbeReceiptBatch must come from an independent probe producer. The server must
+not fabricate that receipt. A later stream assembler may join independently
+validated records, but cannot create missing evidence. The trusted worldd seat
+bindings also remain independent input on their own endpoint.
+
+One-shot and ownership invariants
+---------------------------------
+* Only the authorized launch owner may create and pass the endpoint. The
+  receiving process must be the verified intended XLibre server child.
+* The kernel-held endpoint conveys authority; session, arm, role, XID, and epoch
+  fields are validation/join data only.
+* Keep CLOEXEC as the default. Clear it only for the verified target descriptor.
+  Close the parent copy of the child endpoint after successful launch and close
+  unrelated child copies before exec. Do not leave duplicate writers that hide
+  EOF.
+* Accept at most one complete, bounded, valid arm for one launch/session.
+  Latch consumption before side effects. Reject repeats, replay on a duplicate
+  descriptor, stale launch/session, malformed/truncated input, wrong endpoint
+  type, extra descriptors, unauthorized sender, and timeout/EOF before a valid
+  arm. Never retry a rejected arm as a new authorization.
+* Close the arm input after consumption or rejection. On teardown, close every
+  owned endpoint once. Child exit or EOF revokes the transient channel; it does
+  not restore or transfer authority.
+* Do not begin observation or emit a success stream before arm validation and
+  independent live-pin resolution. Do not let the arm IDs substitute for that
+  resolution.
+* Keep the output writer lifecycle separate. A later complete stream requires
+  all expected records, including the separately produced fourth receipt, and
+  closure of every writer so the collector sees EOF. A retained duplicate writer
+  must produce bounded timeout, not success.
+
+Test plan for the eventual implementation
+-----------------------------------------
+These are required future checks, not run here.
+
+Pure checks, before native launch:
+* The accepted independent component validation invocation on ROG was:
+  python3 -B /home/dflanag3/spatial-artifacts/m09-observer-v2-primary-validation-20261021/validate.py
+  The script validated source 85d3cf064c18a59e9f011d329b116bf55174b347, with
+  preparation inputs from exact prerequisite 133c317b9621e9d6e8cf5504071ff3a660b2b555.
+  Current result.json is PRIMARY INDEPENDENT COMPONENT CHECKS PASS,
+  M09 UNQUALIFIED, native runtime UNRUN. Script SHA-256:
+  b009d17eeff465a74efc8e0e765731c246aadce77a5f0abab5f776a2994760d0.
+  Result SHA-256:
+  fc7ff38481af57aede0e98e684d05f3e0950fb64f070872aca5abda7b3179678.
+  It verifies five prerequisite files and runs 23 parser, 26 collector, and 6
+  C/Python fixture checks in Debug and ASan-UBSan.
+* The script requires a clean checkout exactly at 85d3cf, verifies five files
+  byte-identical to 133c317, isolates the v1 schema/parser outside the checkout,
+  and generates fresh v2 Python/C and v1 Python bindings under its external
+  generated directory. It requires protoc, protoc-c, pkg-config libprotobuf-c,
+  gcc, and Python protobuf. No generated binding is committed.
+* The script compiles the C fixture as Debug and ASan-UBSan, sets
+  PYTHONDONTWRITEBYTECODE=1, PYTHONPATH=<external generated>:<checkout>/spatial-os-luna-handoff/tests/native,
+  ASAN_OPTIONS=detect_leaks=1:halt_on_error=1, UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1,
+  and OBSERVER_V2_FIXTURE=<profile fixture binary>.
+* Exact per-file discovery command, run from the
+  <checkout>/spatial-os-luna-handoff directory:
+  python3 -B -m unittest discover -s <checkout>/spatial-os-luna-handoff/tests/native -p test_input_state_observer_v2.py -v
+  python3 -B -m unittest discover -s <checkout>/spatial-os-luna-handoff/tests/native -p test_input_state_observer_v2_collect.py -v
+  python3 -B -m unittest discover -s <checkout>/spatial-os-luna-handoff/tests/native -p test_input_observer_v2_c_wire.py -v
+  The primary script runs all three commands in both profiles with the generated
+  environment above and expects 23, 26, and 6 methods respectively.
+* To repeat, use a fresh clean checkout pinned to the same source and a new
+  external validation directory. The recorded validate.py asserts its original
+  result.json is absent, so do not rerun it against the existing evidence path.
+  Do not run native tests on test hosts or start X, world, or broker runtime.
+
+Native tests after the bridge exists, on the approved native qualification hosts
+and only after M08 releases them:
+* Positive case: authorized launch gives exactly one endpoint to the verified
+  XLibre child; a different child receives none. Verify descriptor flags and
+  /proc/<pid>/fd ownership from an independent witness.
+* Reject absent/closed endpoint, wrong FD type, aliased target FD, unexpected
+  SCM_RIGHTS descriptors, non-parent sender, truncated/oversized/malformed arm,
+  wrong session/arm/deadline/role, and EOF before one valid arm. Assert no
+  observation starts and no output success is recorded.
+* Replay same arm on same endpoint, duplicate endpoint, stale launch/session,
+  second arm, and restart attempts. They must fail closed; a fresh authorized
+  launch/session must succeed once.
+* Verify every parent/child FD copy closes on success, rejection, timeout, and
+  child death. A duplicated output writer must prevent EOF and hit the bounded
+  collector timeout; all-writers-closed with a valid four-record stream must
+  pass. Collector cleanup must close its owned FD once.
+* Verify native APPLICATION/SUPERVISOR/COMPOSITOR mapping and reject unknown
+  roles. Reused XIDs with changed native-object epoch must fail joins.
+* Verify ProbeReceiptBatch comes from an independent probe, and reject missing,
+  duplicate, out-of-order, replayed, or identity-mismatched receipts.
+
+Adjacent existing tests in tests/native/test_supervisor_child_handle.py
+cover parent credentials, unexpected descriptors, truncation, wrong launch
+snapshot, teardown, and checked pidfd transfer. They are useful ownership
+regressions, but do not test observer bootstrap.
+
+Integration order and conflicts
+-------------------------------
+1. Keep M08 frozen and XACE as the active baseline. No runtime, broker, or X
+   launch belongs in this source-only task.
+2. Accept the reviewed offline serializer checkpoint 85d3cf06 as a source
+   prerequisite only. It does not qualify the native bridge.
+3. Trace the real supervisor-to-XLibre child path and exact authorized launch
+   configuration. Stop if ownership or identity cannot be demonstrated.
+4. Implement and review only the one-shot arm FD handoff and receiver.
+5. Separately add live native pin/epoch resolution and the three server record
+   capture hooks, using the accepted serializer without changing its contract.
+6. Add trusted worldd seat-binding input on its own private channel.
+7. Add the independent probe receipt producer and bounded final stream assembly.
+8. Run native M09 gates only after M08 qualification releases test hosts. Keep
+   the locked acceptance contract unchanged; primary review precedes integration.
+
+No production bridge, runtime test, contract edit, or acceptance claim is part
+of this plan. Keep all generated evidence and builds outside Git. Preserve the
+source pin, receipt, logs, and branch for the next reviewer.

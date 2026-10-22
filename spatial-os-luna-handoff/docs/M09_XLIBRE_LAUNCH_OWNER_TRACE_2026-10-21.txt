@@ -1,0 +1,85 @@
+M09 XLIBRE LAUNCH OWNER TRACE
+Status: SOURCE TRACE / UNQUALIFIED / NO RUNTIME EVIDENCE
+Date: 2026-10-21
+
+Source pin and scope
+--------------------
+Base commit: 85d3cf064c18a59e9f011d329b116bf55174b347.
+Branch: m09/xlibre-launch-owner-trace-20261021.
+Host: ROG-Ally-X-RC72LA.
+This note records source inspection only. It does not claim a deployed or native process trace.
+The approved plan is commit 90fb009 in m09-descriptor-bootstrap-next-increment-plan-20261021.
+The accepted M09 source status is spatial-os-luna-handoff/docs/M09_OBSERVER_V2_C_WIRE_INTEROP_2026-10-21.txt.
+That status is offline-only. The observer bridge and native runtime remain UNRUN.
+
+Finding
+-------
+In the inspected pinned component source, no production XLibre server launch owner is established.
+It contains a production host-session owner for the compositor process, spatialwm.
+That process connects to a separately identified X server. HostSessionConfig has no X server executable, arguments, privilege profile, or observer-arm descriptor field.
+No production caller or configuration builder for the host-session executable was found in this pinned component source tree.
+This source search does not establish whether external deployment configuration provides a launcher.
+The identity of the real parent that constructs HostSessionConfig is therefore unresolved.
+
+Production host-session chain
+-----------------------------
+1. src/supervisor/host_session_main.cpp:166-182 parses CONFIG_FD, CONTROL_FD, and parent PID, checks the peer, parses the trusted config FD, and validates inherited descriptor aliases.
+   HostSessionConfig is documented as trusted parent input in proto/spatial/supervisor/v1/host_session.proto:9-23.
+   It names supervisor_executable, compositor_executable, compositor state, and sealed broker/compositor config FDs. It does not name an X server.
+2. host_session_main.cpp:185-205 constructs SessionCoordinator, starts presentation with compositor_executable, then starts configured worlds and the actor controller.
+   World supervisor launches are separate: session_coordinator.cpp:249-257 constructs SessionLaunch for each world executable and AuthoritySupervisorConfig.
+3. session_coordinator.cpp:103-110 implements start_presentation by constructing PresentationOwner from the configured executable, state path, and borrowed compositor-native FD.
+4. src/platform/presentation_owner.cpp:24-32 consumes the sealed compositor config and constructs RenderProcess with its display and descriptor.
+   compositor_native.proto:4-12 identifies that message as NativeCompositorConfig. It carries display number, compositor cookie, server ID, server PID, and server UID.
+   This is compositor authentication data. It is not observer-arm input.
+5. src/platform/render_process.cpp:15-58 forks and execs the configured presentation executable. Its Presentation mode passes --state-dir, --display, --native-security-fd, and --presentation-owner-pid.
+   It closes unrelated descriptors, clears CLOEXEC only on the compositor config FD, and opens a pidfd for the child.
+   The forked child begins with the host-session credentials. This code performs no explicit UID/GID transition. Final credentials could still depend on executable metadata, which this source path does not verify.
+   src/platform/render_process.cpp:66-76 waits for child exit, kills on timeout, reaps, and closes the pidfd.
+6. tests/native/test_host_session_production.py:165-175 supplies spatialwm as compositor_executable in a fixture. This confirms the intended executable role, not a production X server launch.
+
+SessionLaunch is not the missing X server owner. Its constructor accepts AuthoritySupervisorConfig and launches the configured authority supervisor with a sealed native config, management socket, and optional ChildHandleServer channel (src/supervisor/session_launch.cpp:145-208). It does not launch Xorg or spatialwm. Its inherited_source_fds belong to that supervisor launch. Reusing them would pass authority to the wrong process boundary.
+
+Configured XACE Xvfb qualification path
+---------------------------------------
+The existing deployed qualification path launches Xvfb under the test harness. It is not the native production session path.
+
+- tools/build_xserver.py:108-130 builds both Xvfb and Xorg from the locked XLibre source. The receipt records each path and hash.
+- tools/m06_deployed_gate.py:1233-1257 verifies the Xvfb receipt and the configured xace_wrapper script. It requires that script to exec the verified Xvfb binary with the explicit pinned graphics environment.
+- m06_deployed_gate.py:1887-1889 places runtime_manifest.hosts[host][profile].xace_wrapper.path in SPATIAL_TEST_XSERVER.
+- tools/with_test_display.py:10-36 validates that configured wrapper as an executable Xvfb, prepends its directory to PATH, then invokes xvfb-run. xvfb-run starts Xvfb through that PATH. The wrapper execs the verified binary.
+- This helper does not change UID. Xvfb inherits the effective identity of the test command that invokes it. The exact effective UID depends on the external test launcher and was not measured here.
+- No source in this chain launches Xorg for a native spatial session. Xorg is built but not selected by this test helper.
+
+The M06 production-off-startup stage is also not evidence of an X server session. tools/m06_deployed_gate.py:1774-1779 runs the host-session startup test separately. tests/core/test_host_session_startup.py:12-42 starts the executable with deliberately invalid or incomplete configuration and expects refusal. It does not start Xvfb or Xorg.
+
+XACE and observer endpoint boundary
+-----------------------------------
+server/xlibre/spatialinput.c:617-638 defines SpatialInputExtensionInit. It registers the SPATIAL-INPUT extension, client/device callbacks, and screen window hooks. It does not receive or parse an observer arm descriptor.
+server/xlibre/spatialsecurity.c:325-342 authenticates an X client cookie, assigns its connection label, then calls SpatialInputAuthorizeClient. That authorizes an X client. It does not authorize or bootstrap the server's observer producer.
+server/xlibre/spatialinputobserver_serialize_v2.h:27-48 declares native-role mapping and bounded serialization/write functions. The implementation in .c:32,147,260 serializes already constructed records. It has no descriptor endpoint or arm receiver.
+proto/spatial/testing/v2/native_input_observer_v2.proto:29-50 defines ObserverArmV2 as private one-shot control input and states that the inherited FD carries authority. The arm IDs are data. The schema's NativeInputObservationRecordV2 carries protocol_version and an Arm payload at lines 58-67.
+The M09 observer status note lines 33-34 explicitly leaves descriptor bootstrap, native capture, live pin resolution, worldd binding, and production transport for later bridge work.
+
+Proven versus unproven
+----------------------
+Source proves the host-session to spatialwm presentation chain, the separate authority supervisor launch chain, and the test-only XACE Xvfb wrapper chain described above.
+Source proves there is no X server executable field in HostSessionConfig and no observer-arm reader in the inspected production X server extension files.
+This component-source inspection does not prove which external parent starts the production host-session, whether external deployment configuration launches native Xorg, which user owns that server, or how a deployed spatialwm finds its display.
+No deployed runtime manifest was read. No test host was contacted. No process, descriptor, physical input, native Xserver, or worldd behavior was observed.
+M09 native launch-owner tracing is therefore not a runtime pass. XACE remains the active baseline. CallbackList migration is outside this task.
+
+Bounded proposal for primary review
+-----------------------------------
+Do not add the arm handoff to SessionLaunch, AuthoritySupervisorConfig, ChildHandleServer, CompositorConfig, or the X-client authorization callback. Those boundaries do not own the X server process.
+First identify and approve the actual production X server launcher and its privilege transition. The source currently does not name one. The next safe investigation is to trace the native-session entry command/configuration that should create Xorg, then confirm its executable, UID/GID, startup handshake, pidfd/process identity, and teardown owner from source and the accepted runtime configuration.
+
+Once that owner is established, the smallest bridge should add one private inherited endpoint only to that X server child. Keep CLOEXEC on all descriptors by default. Clear it only for the verified X server child. Close the parent's child-end copy after exec confirmation and close the child input after one consume or rejection. Do not let the compositor receive it.
+
+Use a single bounded NativeInputObservationRecordV2 with protocol_version 2 and exactly one Arm payload, unless primary review approves a different envelope. The server must validate complete parsing, size limits, session and arm IDs, monotonic arm/deadline ordering, deadline freshness, expected role and identities, and one-shot consumption before capture. It must independently resolve live native pins; arm fields cannot substitute for that check. Reject repeats, truncation, extra frames, EOF before one valid arm, stale launches, wrong child identity, and timeouts. Keep worldd seat binding on its separate private endpoint. Keep ProbeReceiptBatch independently produced.
+
+Required focused regressions after an owner is approved: only the verified X server child inherits the endpoint; compositor and sibling children do not. Check FD flags, /proc child ownership, one complete arm, replay, duplicate descriptors, stale launch/session, malformed and oversized frames, early EOF, timeout, and closure on success, rejection, and child exit. Assert no capture or success output before arm validation and live-pin resolution. Retain existing parser, collector, and serializer checks. Later native acceptance must independently prove the production owner, descriptor handoff, XACE server identity, worldd binding, and physical-input lifecycle.
+
+Separate future work
+--------------------
+The worldd seat-binding endpoint and its trusted producer remain separate from Xserver arm input. The independent ProbeReceiptBatch producer also remains separate. Neither is implemented or proven by this trace.

@@ -1,3 +1,15 @@
+## 2026-10-22: M09 drafts integrated onto qualified M08
+
+Branch: `m09/integration-qualified-m08-20261022`.
+Base: qualified M08 `11227a48907d5bc8c9bc4e992633fafdb73a9a89`.
+M08 remains qualified. M09 remains UNQUALIFIED.
+Combined drafts passed focused source, parser, collector, compiler, and serializer checks.
+The eight-test M09 harness setup bug is fixed. Its original failure remains external.
+Both test hosts passed offline serializer checks in Debug and ASan-UBSan.
+The live native observer bridge and full M09 qualification remain pending.
+Read [M09 integration](../docs/M09_INTEGRATION_ON_QUALIFIED_M08_2026-10-22.txt) for scope, evidence, and the next task.
+Historical entries below preserve their original dates and evidence.
+
 ## 2026-10-22: M08 qualified; M09 is next
 
 M01-M08 are qualified. M09-M16 remain pending. Spatial-M1 and LOCAL_READY remain incomplete.

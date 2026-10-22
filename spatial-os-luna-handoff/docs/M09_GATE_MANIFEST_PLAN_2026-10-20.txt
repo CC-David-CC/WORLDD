@@ -1,0 +1,94 @@
+# M09 gate manifest plan - 2026-10-20
+
+Status: SOURCE INVENTORY AND GATE DESIGN ONLY. No tests, builds, deployment, or runtime ran.
+Branch: m09/gate-manifest-plan-20261020
+Base: b51adf7fdc3f6da8525d39822b908e5aafea23c9
+Host: rog-ally-x. Qualification hosts were not contacted.
+
+## Contract and source state
+
+M09 is application-group control: one controller per application group, observers,
+concurrent independent applications, balanced input release, stale-generation denial,
+and immediate observation/control revocation. This is the M09 row in
+spatial-os-luna-handoff/docs/MILESTONES.md:153.
+
+Source review at this base found the following exact method selectors in
+the module paths shown in each fully qualified selector:
+
+| Requirement | Existing source selector(s) | Evidence needed | Inventory status |
+|---|---|---|---|
+| One controller per group | tests.core.test_world_application_control.WorldApplicationControlTests.test_one_application_has_one_actor_controller; tests.core.test_world_application_control.WorldApplicationControlTests.test_popup_uses_same_application_reservation | Competing actor denied on main/popup; then authorized handoff succeeds, with application-group identity held constant. | EXISTING-SOURCE; runtime UNRUN |
+| Authorized observers without control; real surface view | tests.core.test_world_application_control.WorldApplicationControlTests.test_observation_does_not_grant_control; tests.core.test_application_observation.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection; tests.core.test_application_observation.ApplicationObservationTests.test_observe_does_not_enable_input_control; tests.core.test_application_observation.ApplicationObservationTests.test_application_scope_filters_other_live_application | Observer receives only authorized live app pixels/metadata; input is denied; unrelated app stays filtered. | EXISTING-SOURCE; runtime UNRUN |
+| Independent concurrent applications | tests.core.test_world_application_control.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors | Two actors control distinct application groups at once; neither lease blocks or mutates the other. | EXISTING-SOURCE; runtime UNRUN |
+| Balanced releases on transfer/cancel | tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_voluntary_release_balances_input_before_peer_event; tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_disconnect_balances_input_before_peer_event; tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_authority_revocation_balances_input_before_peer_event; tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_unmap_balances_input_before_peer_event; tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_observation_revocation_balances_input_before_peer_event | Native probe event log must show held key/button/focus releases before first accepted peer press. The helper asserts this ordering at source lines 144-183; runtime is UNRUN. | EXISTING-SOURCE; runtime UNRUN |
+| Destroy/unmap group transfer | tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_destroy_releases_input_and_preserves_probe; tests.core.test_world_application_control.WorldApplicationControlTests.test_m09_destroy_reacquires_same_application_survivor | Strict destroy balance needs the same independent causal native witness. Reacquisition proves only same-app survivor behavior/process continuity. | EXISTING-SOURCE; UNRUN; MISSING-WITNESS for balance |
+| Stale generation denial | tests.core.test_world_application_control.WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels; tests.core.test_world_application_control.WorldApplicationControlTests.test_unmapped_capture_releases_reservation | Old surface generation is rejected before input side effects; refreshed target may proceed only after revalidation. Add explicit destroyed/reused-XID case if M09 review says generation reuse is not covered. | EXISTING-SOURCE; UNRUN; potential MISSING-WITNESS for XID reuse |
+| Immediate observation revocation | tests.core.test_application_observation.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process; tests.core.test_application_observation.ApplicationObservationTests.test_post_render_revocation_returns_fenced_denial_without_observation; tests.core.test_application_observation.ApplicationObservationTests.test_revocation_while_observation_reply_is_queued_closes_channel; tests.core.test_actor_pixels.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application; tests.core.test_actor_pixels.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply | Revoked observer receives no subsequent metadata/pixels, queued channels close/fence, application execution remains independently authorized. | EXISTING-SOURCE; runtime UNRUN |
+| Immediate control revocation and input cleanup | tests.core.test_world_application_control.WorldApplicationControlTests.test_observation_revocation_cancels_control; tests.core.test_world_application_control.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution; tests.core.test_world_application_control.WorldApplicationControlTests.test_actor_revocation_releases_native_input; tests.core.test_world_application_control.WorldApplicationControlTests.test_credential_revocation_releases_native_input; tests.core.test_world_application_control.WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input; tests.core.test_world_application_control.WorldApplicationControlTests.test_revocation_during_native_cancel_closes_actor_devices | Control/input ends promptly; no replay; process survives when its own authority remains. Include controlled race and native release evidence. | EXISTING-SOURCE; runtime UNRUN; native order evidence is source-present; runtime UNRUN |
+
+These are source selectors, not claims of execution. Fixture evidence: test_world_application_control.py:27-30 subclasses ApplicationObservationTests; test_application_observation.py:110 launches scoped_world with native=True. CMakeLists.txt:1673-1692 registers all three Python integration CTests with --native. They are not pure unit tests or independent server-device-state observers.
+
+The native balance gap is explicit in
+docs/M09_DESTROY_REACQUISITION_PENDING_2026-10-20.txt and
+docs/M09_NEXT_INCREMENT_REVIEW_2026-10-20.txt. The separate read-only design at
+/home/dflanag3/src/m09-native-input-state-witness-design-20261020/spatial-os-luna-handoff/docs/M09_NATIVE_INPUT_STATE_WITNESS_DESIGN_2026-10-20.txt
+proposes test-only X server callbacks and an independent native state snapshot.
+It is DESIGN ONLY. It requires an explicitly reviewed fixture contract, causal
+first-peer-event record, old actor device identity/lifetime pinning, and negative
+controls that retain a real key and button. No such observer API is implemented.
+Do not count reacquisition, SeatRec state, or a post-transfer query as balance proof.
+Direct pointer-capture state is also unavailable; button-plus-motion remains a proxy.
+
+## Smallest gate implementation
+
+1. Add tools/m09_deployed_gate.py as a thin adapter over m08_deployed_gate.py,
+   following M08's additive pattern (tools/m08_deployed_gate.py:24-58,106-121,229-251).
+   Inherit M08 requirements and its strict harness manifest. Preserve all prior
+   gate stages, artifact pinning, cleanup, recovery, and reporting behavior.
+2. Add a maintained M09 inventory manifest for exact unittest method IDs and
+   exact CTest names. Require the existing world-application-control,
+   application-observation, and actor-pixels registrations plus all inherited
+   M08 CTest requirements. Validate each selected method exists exactly once in
+   current source and appears in the M09 execution receipt. Do not treat broad
+   CTest success as proof that a required method was selected or ran.
+3. Extend the gate report with per-requirement existing_source, executed,
+   evidence_path, and status fields. Require immutable external receipts for
+   native balance, both required hosts, and both profiles. Survivor-window paths may use
+   strict native release-event order evidence. Destroyed-window balance needs an
+   independent native-state witness when release delivery cannot be observed.
+   Missing required evidence must block that requirement; do not downgrade the contract.
+4. Preserve M08's inherited full Debug and ASan-UBSan profiles, complete harness,
+   acceptance suite, native checks, recovery stages, and dedicated cross-host
+   cases on sb16 and sb16-2. Add exact M09 method validation to both profiles.
+   Keep cross-host checks assigned by the M08/M07 inherited adapter. Add an M09
+   cross-host case only if source review identifies an M09 contract that needs it.
+5. Do not assign all M14 physical device, M15 performance/soak, or general M1
+   acceptance work to M09. M09 needs its native application-control witnesses;
+   M14/M15 remain their own milestone gates. M09 gate success cannot imply M1 or
+   LOCAL_READY completion.
+
+A manifest can inventory these selectors now. Survivor-path release ordering is source-present but UNRUN. Keep the destroy requirement pending until primary review resolves the strict release selector and its surviving-target semantics.
+
+## Evidence boundary and current status
+
+- SOURCE REVIEWED: milestone contract, current M09 source selectors, current
+  CTest registration names, inherited M08 adapter structure, and pending native
+  witness limitation.
+- UNRUN: all M09 selectors, Debug and ASan-UBSan suites, harness, acceptance,
+  native qualification, recovery, cross-host scenarios, both-host deployment,
+  and all M09 evidence collection.
+- PENDING REVIEW: whether the strict destroy event-log evidence needs the separate
+  DeviceInt observer design. The reacquisition-only selector does not close this question.
+- OUT OF SCOPE HERE: source implementation, builds, runtime, commits, and pushes.
+
+The primary reviewer must reconcile this inventory with the frozen M08 candidate
+0b4cc5f659d32d5ff1104557315b0905983bb39d. Later M09 integration must carry
+qualified M08 repairs. Do not integrate older transitive M09 source blindly.
+
+Primary review corrections
+
+Source inventory is accepted for adapter planning. No runtime claim is accepted.
+An earlier escaped prose draft lost leading letters while removing control bytes.
+Validate named source paths and registration strings after any prose-byte repair.
+The device-state observer is required for the proposed destroyed-target proof,
+not automatically for every surviving-target path with strict native release events.

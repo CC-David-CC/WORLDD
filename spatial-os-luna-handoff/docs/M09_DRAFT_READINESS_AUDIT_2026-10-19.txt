@@ -1,0 +1,78 @@
+# M09 draft readiness audit
+Date: 2026-10-19
+Status: UNQUALIFIED; static source review only
+
+## Scope and current qualification
+
+This audit reads the M08 candidate at `5f3c4086510c184cd36b734e5b186f96c18f3f86`.
+The assigned branch is `m09/draft-readiness-audit-20261019`.
+The assigned ROG worktree is `/home/dflanag3/src/m09-draft-readiness-audit-20261019`.
+
+`CURRENT_STATE.md` and `docs/MILESTONES.md` report M01-M07 qualified.
+They report M08-M16 pending. The full M08 gate is UNRUN.
+This audit ran no build, test, probe, discovery, or native workload.
+Source and test presence below is not runtime evidence.
+
+## Draft pins and ancestry
+
+| Draft | Commit and parent | Changed paths | Relation to assigned M08 base |
+|---|---|---|---|
+| Control contract | `4f0aa15dffdadbcdedd809bcfe43335bc25f99f3`; parent `07991d839bf839c4e95022dedbceb5535f19ddaa` | `docs/M09_CONTROL_CONTRACT_DRAFT_2026-10-19.txt` | Not an ancestor of M08 base |
+| Gate profile | `2e1bebc2476bdb0141277c40107f2cc90d81fc6d`; parent `e37d78d0b5045fc3b195697821c7432743366546` | profile draft, `tools/m09_deployed_gate.py`, harness test moved to `tests/m09_harness/` | Not an ancestor of M08 base. Its parent descends from the control draft. |
+| Native group witness | `a10128a70f7a166f04e653c914c61ab485fe74a6`; parent `b38ead03643cb0907706423c52d38f443bdb1c51` | `tests/native/test_world_surface_groups.py` | Not an ancestor of M08 base |
+
+The three exact pins are present on ROG. None descends from the assigned M08 base.
+Transplant each change onto the post-M08 qualified source. Review the resulting tree.
+The drafts do not modify production code or locked acceptance files.
+The profile and native witness touch separate files. The profile's selectors depend on the native witness.
+
+## Requirements mapped to current source
+
+| Requirement | Source present at M08 base | Current source tests | Audit status |
+|---|---|---|---|
+| One controller per application group; independent applications run concurrently | `src/world/surfaces.cpp` groups surfaces by application identity. `src/world/actors.cpp` and `src/workspace/control.cpp` reserve one controller per application and return BUSY on contention. | `tests/core/test_application_control_lease.py`; `tests/core/test_world_application_control.py`; `tests/native/test_world_surface_groups.py` | Implemented in source; execution UNRUN here. |
+| Dialogs, menus, popups share their application's control | Native identity and transient grouping are present. The native group witness draft adds a named dialog/popup/foreign-hint case with distinct reachable geometry. | Existing cases cover same-application transient relationships, popup reservation, and group ownership. The named M09 dialog/popup case is absent at the M08 base. | Proposed witness; not integrated or run. |
+| Balanced input release before transfer; stale surface rejection | `src/world/actors.cpp` cancels native input before release. `src/x11/input_router.cpp` forwards server generations. `server/xlibre/spatialinput.c` checks live generations. | World control and native identity suites cover held input, handoff, cancellation, resize, remap, and reused XIDs. | Primitives implemented; combined cancellation-before-next-input and replace-during-broker-wait witnesses remain incomplete. |
+| Observation and control remain separate; read-only actors cannot control writable apps | `src/workspace/authority.cpp`, `src/workspace/store.cpp`, and `src/world/actors.cpp` perform separate application rights checks and revalidate observation. | `tests/core/test_world_application_control.py`; `tests/core/test_application_observation.py` | Source and focused cases present; M09 runtime evidence UNRUN. |
+| Revocation is immediate while authorized execution continues | Workspace lease revocation reaches worldd, which cancels input and releases the reservation. Process execution is checked separately. | Control lease and application observation suites cover separate revocation paths and process survival. | Source present; paired observation/control revocation, new-controller recovery, and native pixel witness remain gaps. |
+| Active X security baseline | The candidate contains the XACE-based XLibre patch and `server/xlibre/spatialinput.c`. | Native surface identity and scoped input suites exist. | Keep XACE for M09. CallbackList migration remains deferred. No M09 runtime claim follows from source presence. |
+
+## Draft review
+
+The control-contract draft is documentation only. Its source map broadly matches the current candidate.
+It correctly labels execution as UNRUN and calls out the missing dialog-specific witness.
+Its line references come from an older base. Refresh them after transplant.
+
+The gate-profile draft keeps M08's exact 89-ID harness inventory separate.
+It moves eight M09 harness cases to `tests/m09_harness/` and adds a separate invocation.
+It requires five CTest suites and exact source selectors. This is additive in intent.
+The harness and gate changes have not been executed. The profile also marks group, transfer,
+generation, paired-revocation, and post-revocation pixel evidence as gaps.
+
+The native-group draft changes only `tests/native/test_world_surface_groups.py`.
+It adds `test_dialog_popup_group_control_and_foreign_hint_use_connection_identity`.
+It places main, dialog, and popup windows in distinct reachable geometry, then checks group control,
+foreign-hint rejection, contention, and an independent application. This remains a proposed test.
+The commit's changed-file list confirms no production change.
+
+No draft changes `acceptance.lock.json` or weakens an existing oracle.
+Retain that property during transplant and review.
+
+## Remaining coverage before M09 qualification
+
+- Run the M09 source cases and five CTest registrations on both required hosts after M08 passes.
+- Add a native witness for all held input classes and release completion before the next controller's first event.
+- Cover target replacement during broker authorization and prove stale input cannot reach the replacement.
+- Cover controller observation and control revocation together, then authorize a second controller while the process stays live.
+- Witness that native application pixels stop after observation revocation.
+- Keep positive controls for authorized observation, read-only control of a read-only app, and simultaneous control of independent apps.
+- Repair production only when a reviewed regression reproduces a source defect.
+
+## Bounded order after M08 passes
+
+1. Freeze the qualified M08 source pin. Create the M09 branch from that pin.
+2. Transplant the contract and gate drafts. Preserve the M08 89-ID inventory and locked tests.
+3. Review and transplant the native group witness. Run its focused Debug and sanitizer checks on sb16 and sb16-2.
+4. Add only the missing M09 witnesses above. Assign production repair after a concrete failure identifies its owner.
+5. Run one complete M09 phase gate on both hosts in both profiles. Include all inherited M08 requirements in that gate.
+6. Report each passed, failed, blocked, pending, and unrun requirement separately.

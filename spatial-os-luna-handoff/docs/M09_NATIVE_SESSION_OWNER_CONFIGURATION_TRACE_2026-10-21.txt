@@ -1,0 +1,170 @@
+M09 native session owner configuration trace
+Status: SOURCE-ONLY / UNQUALIFIED / NO RUNTIME EVIDENCE
+Date: 2026-10-21
+
+Scope and pin
+-------------
+This note audits the saved ROG artifact and tracked launch configuration for
+the production XLibre server owner. It does not contact sb16 or sb16-2, launch
+a session, or inspect live processes.
+
+Checkout: /home/dflanag3/src/m09-native-session-owner-config-trace-20261021
+Branch: m09/native-session-owner-config-trace-20261021
+Base: 5e7de4ef089d4dcdfd5616f69b39031e07ceb61d
+That accepted source note is based on observer component 85d3cf064c18a59e9f011d329b116bf55174b347.
+Owned file: spatial-os-luna-handoff/docs/M09_NATIVE_SESSION_OWNER_CONFIGURATION_TRACE_2026-10-21.txt
+
+Normative M09 status
+--------------------
+docs/MILESTONES.md:153 defines M09 application-group control, including one
+controller per group, observers, balanced release on transfer, stale-generation
+denial, and immediate revocation. The accepted descriptor-bootstrap plan
+90fb009 requires tracing the configured authorized launch owner to the actual
+XLibre process before adding a one-shot observer-arm endpoint. It explicitly
+rejects assuming SessionLaunch launches XLibre.
+
+Finding: saved configuration identifies only the test X server
+---------------------------------------------------------------
+The saved ROG file
+/home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/runtime-manifest-candidate.json
+has SHA-256
+7fd11560eb27b13115d1e16323a0eceaf765d25ad5ee55a7423c52e942558bce.
+Its four host/profile rows (sb16 and sb16-2; Debug and ASan-UBSan) name an
+xace_wrapper and server_receipt. The wrapper paths end in
+m06-scoped-input-05/<profile>/server-launch/Xvfb. They identify the M06 test
+Xvfb wrapper and binary provenance, not a native Xorg session owner. No row
+names an Xorg launch owner, session service, UID/GID, observer-arm descriptor,
+or native startup handshake.
+
+Saved sb16 and sb16-2 full-gate setup observations have SHA-256
+c12bc2c99e17e01463a909fe8c2094c5d869f23fa2686c251190184f992f7187 and
+4298864e346ec30c6b1ab6bc41e5f953c3fd4afc347231fd0cf286a45a435bc7.
+They report setup READY. Their paired plan observations name the
+host-session-production-native suite. These are harness plans and setup
+receipts; they do not provide a deployed native-session command or owner.
+
+The tracked root file Loginsession arrangement.txt describes a future
+"start spatial X server" session entry and a later spatial-login.service
+concept. It contains no implemented command, service unit, executable path,
+identity transition, inherited descriptor list, or readiness protocol. The
+tracked M06 configuration tools point test execution at the Xvfb wrapper:
+tools/m06_deployed_gate.py verifies the wrapper and sets SPATIAL_TEST_XSERVER
+(lines 1235-1257, 1887-1889). tools/with_test_display.py requires an
+executable named Xvfb, places its directory on PATH, then invokes xvfb-run
+(lines 18-35). This is qualification-only display setup. Its process identity
+comes from the invoking harness; these files do not establish production Xorg
+credentials.
+
+What the current production session component does establish
+------------------------------------------------------------
+At this source pin,
+spatial-os-luna-handoff/proto/spatial/supervisor/v1/host_session.proto:9-23
+lets trusted HostSessionConfig name supervisor_executable and
+compositor_executable. It has native descriptors for broker, compositor, and
+world scopes, but no Xserver executable, Xserver arguments, privilege profile,
+or observer-arm descriptor.
+
+src/supervisor/host_session_main.cpp:173-189 parses the inherited config and
+starts SessionCoordinator with the configured supervisor, then starts the
+presentation process with compositor_executable. There is no Xorg launch in
+this chain. src/supervisor/session_coordinator.cpp:103-110 constructs
+PresentationOwner. src/platform/presentation_owner.cpp:22-33 duplicates the
+sealed compositor configuration, creates RenderProcess, and waits up to ten
+seconds for its ready message.
+
+src/platform/render_process.cpp:15-63 forks and execs the configured
+presentation executable with --state-dir, --display, --native-security-fd,
+and --presentation-owner-pid. The child inherits the host-session process
+credentials: this path has no setuid/setgid transition. It closes unrelated
+descriptors and clears CLOEXEC only on the compositor configuration FD.
+The parent retains the socket and pidfd, detects child exit, and waits or
+terminates during teardown (lines 64-76). These ownership and readiness facts
+apply to the compositor child only; they do not identify the Xorg owner.
+
+The test fixture makes this distinction concrete:
+tests/native/test_host_session_production.py:159-175 configures
+spatial-authority-supervisor and spatialwm from test fixture paths.
+Its launch_host method passes only the sealed host config, control socket,
+broker/compositor/world descriptors (lines 177-198). It does not launch Xorg.
+The suite name `host-session-production-native` therefore does not establish a
+production Xserver launch path.
+
+Conclusion and next bounded increment
+-------------------------------------
+No inspected tracked launch configuration or saved ROG runtime manifest names
+the production XLibre/Xorg launch owner. The saved manifest names the
+qualification Xvfb wrapper only. The external production owner remains
+unresolved; this scoped search does not prove that no host-specific external
+configuration exists elsewhere.
+
+M09 qualification target and bounded implementation
+-----------------------------------------------------
+The M09 milestone row in docs/MILESTONES.md:153 requires application-group
+control semantics. It does not require a physical display or an Xorg binary.
+No Xorg-only restriction appears in the inspected M09 contract or acceptance
+lock. M14 separately requires native devices, visible session, physical input,
+and cold-reboot evidence. A real patched Xvfb can exercise X server input,
+resource, and process-lifetime behavior for M09. It cannot prove physical
+scanout, GPU output, or device behavior.
+
+For M09 observer qualification, the existing configured XACE path is the
+intended XLibre process chain:
+1. tools/m06_deployed_gate.py:1235-1257 verifies the wrapper against the pinned
+   Xvfb build receipt. At 1887-1889 it sets SPATIAL_TEST_XSERVER to that wrapper.
+2. tools/with_test_display.py:18-35 validates the executable wrapper, adds its
+   directory to PATH, and calls xvfb-run. Its command uses subprocess.run with
+   no pass_fds argument. CPython Popen defaults to close_fds=True and an empty
+   pass_fds tuple, so a future arm descriptor will not propagate without an
+   explicit helper change.
+3. The ROG-installed /usr/bin/xvfb-run script has SHA-256
+   48ee444c30fdaaede4cc311644b30e554162e956f949b206858e37eb8ba1ae05.
+   This read-only ROG system file is not pinned by source or the runtime
+   manifest. Its lines 165-166 run Xvfb in a subshell that execs the server.
+   Lines 182-185 start the test command after server readiness.
+4. The verified wrapper is selected as Xvfb by PATH. m06_deployed_gate.py
+   validates its exact script to execve the receipt-pinned Xvfb binary with
+   the reviewed graphics environment. The wrapper therefore leads to the
+   actual intended XLibre server process, not to an Xorg session.
+
+The smallest M09 source increment is a test-launch-only endpoint handoff at
+with_test_display.py and the existing Xvfb wrapper boundary. An authorized M09
+fixture/controller creates the test arm. This helper only transports its FD.
+The helper must explicitly preserve the intended endpoint across subprocess
+launch. The server-side receiver must consume one bounded arm during
+startup. The wrapper must exec the receipt-verified Xvfb binary. The helper
+must close the endpoint before it execs the application test command. A focused
+native witness must prove the endpoint reached the actual Xvfb PID and was
+absent from the application process, and must verify the target executable,
+credentials, CLOEXEC state, one-shot rejection, and teardown.
+
+The system xvfb-run script is an additional trust boundary: the inspected ROG
+copy inherits the helper's descriptors while managing Xvfb. Its source does
+not close a passed descriptor in the parent after it forks the server. The
+test-host copy and package identity are not pinned in the saved runtime
+manifest, so their exact FD behavior must be established before qualification.
+The implementation must either close that duplicate in the controlled
+qualification launcher or document and test why the still-open copy remains
+inside the authorized trusted launch owner. Do not claim exclusive server
+custody until the independent witness confirms the parent, Xvfb child, and
+application descriptor state.
+
+This test-only endpoint handoff would provide M09 X server control evidence
+using the real patched Xvfb process with a software display. It would not
+prove physical scanout or integrate observer bootstrap into a final production
+spatial session. The external production Xorg/session owner remains unresolved
+as a separate session-integration question. That uncertainty does not block
+the M09 Xvfb qualification path. Keep the endpoint separate from
+HostSessionConfig's compositor/broker descriptors and SessionLaunch's existing
+native-config and child-handle channels. Preserve XACE as the active baseline.
+
+Worldd seat binding, independent live server identity resolution, probe
+receipt production, and native end-to-end observer qualification remain
+separate requirements. No production bridge or test is implemented here.
+
+Evidence limits
+---------------
+This is a read-only source/configuration audit on ROG. It establishes only the
+contents of the pinned tracked tree and saved artifact files named above. It
+does not establish current host service configuration, deployed process owner,
+UID, descriptor state, startup behavior, or native M09 qualification. Builds,
+tests, deployment, test-host access, and live runtime checks were not run.
