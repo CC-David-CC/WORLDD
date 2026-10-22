@@ -1,0 +1,99 @@
+M09 TARGET GENERATION WITNESS
+Date: 2026-10-20
+Status: SOURCE DRAFT; RUNTIME UNRUN; UNQUALIFIED.
+
+Source
+  Host: rog-ally-x
+  Worktree: /home/dflanag3/src/m09-target-generation-witness-20261020
+  Branch: m09/target-generation-witness-20261020
+  Base: abc3f979f637f2e10232d36a21b658f9e74a4e73
+  Frozen M08 reference: 51bad46c51dbd05ec0e755765099b4f389337b29
+
+Witness
+
+`test_target_generation_replacement_during_broker_authorization` uses the real world,
+workspace broker, X server, confined native probe, and application event stream. A
+test-only broker relay holds a response only after it verifies a typed successful
+control lease. It checks protocol version, request/reply IDs, a 32-byte lease ID,
+and exact principal and application bindings. It records those identities and the
+lease ID. An error or mismatched reply is recorded and forwarded without holding it.
+
+While the real reply is held, the probe unmaps and remaps its real X window. Each
+probe command receives an acknowledgement after `XSync` and native event draining.
+A separate authenticated COMPOSITOR X connection reads the server-owned target
+generation through SPATIAL-INPUT. The test requires that generation to advance
+before it releases the reply. It then requires worldd to return the specific
+STALE_TARGET error and, after that reply, requires worldd's refreshed surface
+generation to equal the independently read native generation.
+
+The test establishes a native synchronization boundary after rejection with the
+probe's existing `sync` command. That command performs XSync, drains queued X events,
+then acknowledges. The test compares native button events only across that drained
+boundary. It then sends a fresh actor aim and authorized input, drains again, and
+requires a new button event for the same XID. An initial successful native button
+press also proves control worked before the race.
+
+The causal order comes from production source. `worldd` handles management and actor
+frames in one synchronous `serve` loop (`src/world/server.cpp`). The held actor action blocks that loop inside
+broker acquisition, so the test uses no worldd management operation until the action
+returns. The native application and trusted compositor connection use the independent
+X server path during the wait. After release, `Actors::authorize_input` refreshes
+native surfaces and compares the captured generation before `renderer_->input`.
+The compositor's input path synchronously submits native X events and returns its
+reply before worldd returns the actor action. The probe's later XSync and queue drain
+therefore delimit the rejected action's native event effects before the positive
+control starts.
+
+The barrier uses synchronization events, not sleeps. It is active only for this new
+selector and times out below the broker's ten-second deadline. The test's `finally`
+releases it on every path after arming. Relay `close()` also releases it before join. Other
+application-control selectors retain their direct broker fixture. The production
+contract and implementation remain unchanged. The existing XACE baseline remains
+active.
+
+Source review
+
+`Actors::authorize_input` captures the surface handle before
+`BrokerClient::control_acquire`. After the broker response, it refreshes native
+surfaces and compares the current surface generation with the captured handle. A
+mismatch releases the control lease and returns STALE_TARGET before native input
+submission. `worldd`'s serve loop calls `handle_frame` synchronously and cannot serve
+management while that action waits. The `xprobe` `sync` command calls XSync, drains
+pending X events, then emits its acknowledgement. The trusted compositor role can
+read the server-owned generation over SPATIAL-INPUT.
+
+Existing adjacent coverage tests stale input after resize and verifies X-server
+remapping advances the target generation. No previous test combined replacement
+with the broker authorization response boundary and native input positive controls.
+
+Changed files
+
+- `tests/core/test_application_observation.py`: add a one-shot test relay barrier for
+a successful control-acquire reply.
+- `tests/core/test_world_application_control.py`: enable that relay only for the new
+native race selector; assert stale rejection, no replacement input, and fresh native
+input after re-aiming.
+- This handoff note.
+
+Selected runtime case (not run)
+
+`tests/core/test_world_application_control.py::test_target_generation_replacement_during_broker_authorization` checks that native input cannot reach a replacement generation while a fresh authorized request reaches the same application after re-aiming.
+
+Checks
+
+- Python AST parsing: PASS for both changed Python test files.
+- `git diff --check`: PASS.
+- Builds and tests: UNRUN by assignment.
+- Native runtime and both qualification hosts: UNRUN.
+- Commit and push: NOT PERFORMED by assignment.
+
+Review limits
+
+The relay holds the broker's real typed lease reply before worldd receives it. Source review shows the actor action blocks worldd's single management loop while waiting. Runtime must confirm the trusted compositor query observes the remap generation, worldd later adopts it, and native event drain and positive control behave as expected.
+
+Next step
+
+Primary reviews the three-file diff, then runs this selector in focused Debug and
+ASan/UBSan on both qualification hosts after the M08 gate releases them. Any source
+change invalidates affected evidence. Keep this draft separate from the frozen M08
+candidate.

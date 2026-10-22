@@ -1,0 +1,137 @@
+M09 observation revocation and application survival source witness
+Date: 2026-10-20
+Status: SOURCE IMPLEMENTED; SOURCE CHECKS RECORDED; RUNTIME UNRUN
+Host: ROG. Branch: m09/observation-revocation-survival-20261020.
+Base: f327766a3a3f627b40afb6fb9d6cd17223276af0.
+
+Exact selector
+==============
+`tests.core.test_actor_pixels.ActorPixelTests.test_observation_and_control_revocation_preserve_application_for_independent_controller`
+
+The existing `suite()` derives `ActorPixelTests` cases from `vars(ActorPixelTests)`.
+It therefore includes this directly declared selector without changing locked tests
+or CMake registration.
+
+Source-bound scenario
+====================
+A launches the native probe application and retains its execution authority. The
+fixture enrolls B and C through separate issuer keypairs. Three authenticated
+`SessionPeer` channels represent A, B, and C. A independently delegates workspace
+access, observation, and control rights to B and C. Only B's application control
+and observation grants are revoked. A and C roots remain valid.
+
+The witness captures B's empty world before launch, then protected pixels after
+delegation. B holds button 1, Shift_L, and `a`. The test records both held keycodes.
+C receives typed BUSY while B owns the lease. After revocation, the test immediately
+requests C control without an XSync or an intervening wait for releases. C presses
+unique key `c` and button 1 on the same application. The full probe stream, sliced
+at the acknowledged XSync baseline from before B's holds, must show B's button and
+both key releases before C's first fresh native button-1 press. Only then does the
+witness check B's empty pixels, absent surface metadata, typed FORBIDDEN control,
+and A's continuing protected view.
+
+The test pins the actual launched app process, worldd, spatialwm child, and X
+server by PID, `/proc` start ticks, executable SHA-256, and liveness through
+`geometry_process_identity.collect`. The native probe is found only by exact argv.
+Its direct parent must contain the launched probe command, share its PID namespace
+and cgroup, and descend from the known workspace broker PID. The compositor is
+found among worldd's direct children and must resolve to the fixture's actual
+`spatialwm` executable. This is not global process-name or arbitrary-Python
+search.
+
+Cleanup releases C's held inputs, requests probe shutdown, waits for the managed
+application, and asserts exit code zero.
+Each key, button, and stop reply must contain a successful action result.
+Cleanup preserves every returned error in its aggregate failure diagnostic.
+State inspection must return a state result. Stop is attempted even if inspection
+or an earlier release fails.
+
+Fixture API changes
+===================
+`WorldAuthorityTests.scoped_world` now accepts optional `peer_count=2` and forwards
+it to `WorldProcess(count=peer_count)`. Existing callers keep the same default.
+`ApplicationObservationTests.setup_world` uses this existing scoped fixture with
+three peers only for the new case. The draft's duplicate scoped-world implementation
+and its now-unneeded `subprocess` import were removed. The unsupported combination
+`include_third_actor=True, legacy=True` raises a clear `ValueError`.
+`PresentationPixelFenceTests.setup_world` accepts and forwards `include_third_actor`.
+This preserves the inherited combined test under whole-module unittest discovery.
+`RemoteNativeTests` inherits setup unchanged. `WorldApplicationControlTests` forwards
+all remaining positional and keyword arguments through its existing override.
+
+The actual fixture APIs use `ClientFixture.key`, `enroll`, `intent`, `decide`, and
+`claims`; the proto fields are `WorldAuthoritySeed.roots`,
+`WorldIdentityConfig.authority_directory`, and `ActorRef.issuer_id/actor_id`.
+The second and third actor records are signed separately. `setup_application`
+refreshes `owner_peer` before broker launch. Existing target-generation barrier
+and fixture tests are unchanged.
+
+Static source checks and limits
+===============================
+- AST parse of the three changed Python files: PASS.
+- Static method binding inspection: PASS. `ActorPixelTests` explicitly binds
+  `control_action`, `actor_aim`, `actor_pointer`, `send_key_event`, `actor_state`,
+  `probe`, `probe_events`, and `probe_command` from
+  `WorldApplicationControlTests`. This covers their helper dependencies without
+  changing the class inheritance or duplicating control fixture code.
+- Verified control helper signatures in source: `actor_pointer(pressed, peer=None)`,
+  `actor_aim(peer=None, x=0, y=0, z=-1)`, and
+  `send_key_event(name, pressed, peer=None)`.
+- `git diff --check`: PASS.
+- Exact combined selector and all related runtime selectors: UNRUN.
+- Builds, unit tests, native/runtime, world/broker/systemd/CTest, host contact,
+  and inference: UNRUN by instruction. This is not M09 qualification.
+
+Process discovery has explicit permission limits. `geometry_process_identity`
+uses its existing protobuf root witness for executable hashing when direct reads
+return EACCES. That helper does not expose privileged `/proc` status, cgroup,
+namespace, parent-chain, or child-list discovery. If those reads are denied, the
+respective process-discovery assertion is INCOMPLETE and must not be replaced by
+PID-only, surface-only, mapped-state, or fabricated evidence. The spatialwm
+identity assertion uses worldd's `/proc/.../children` and executable link; no
+separate privileged discovery API exists in this test seam.
+
+This component fixture constructs a real `RenderWorker` and `RenderProcess`, which
+forks/execs `spatialwm`. The witness now pins that process. Separate production
+native-session/compositor continuity remains UNRUN and must be covered by its
+actual full native fixture. This component test does not replace that requirement.
+
+Next primary qualification task
+===============================
+After the primary releases qualification-host ownership for this task, it should
+run the exact registered selector through the existing core test harness and its
+recorded Debug/SAN launch environment. The selector is the exact name above.
+Do not infer runtime success from these source checks.
+
+Primary source repair 03
+========================
+The prior repair omitted a subclass keyword and ignored cleanup error replies.
+It also accepted any button release and checked ordering only against the later key.
+The corrected witness requires the held button 1 release before C's button 1 press.
+It also requires each witnessed B key release before that first C press.
+The transition slice starts after the native B hold observation. The pre-B baseline
+remains intact. C acquisition follows revocation without a release wait or drain.
+The later unique c event still proves delivery to the original native window.
+
+This is a core native event-stream witness, not the separate trusted v2 observer.
+It does not authenticate server epochs or attribute native release cause.
+Autorepeat and actual native release semantics still require runtime review.
+No production, server, schema, acceptance lock, or setup-contract source changed.
+All runtime checks remain UNRUN. Static source checks do not prove native behavior.
+Prior repair02 source and worker records are preserved in the external directory:
+/home/dflanag3/spatial-artifacts/m08-storage-contention-repair-20261020/m09-observation-revocation-survival-01/primary-escalated-03
+The prior worker has exit.txt=0 and a terminal turn.completed event. Its tmux
+session is absent. Canonical command.exit and wrapper.exit receipts are absent.
+They were not reconstructed or claimed.
+
+The writable development probe requires effective workspace execution rights.
+B and C each receive `[WORKSPACE_ACCESS, *control.access.workspace.PROJECT]`,
+matching `WorldApplicationControlTests.grant_control` and `begin_control`.
+PROJECT includes file read/write and process execution rights. Each grant is
+independently delegated from A. B's execution grant remains separate from its
+revoked application observation and control grants. A's launch grant stays valid.
+Both setup paths use the existing development profile and resource funding.
+The shared fixture funds three A application reservations, preserving profile
+maximums and workspace/broker ceilings. This case uses the bootstrap application
+and one A-launched native probe. B and C do not launch more applications.
+Actual broker authorization and resource admission remain runtime UNRUN.

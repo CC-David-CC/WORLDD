@@ -1,0 +1,55 @@
+M09 optional XI2 probe receipt fixture
+Status: SOURCE REVIEWED. Runtime qualification UNRUN. M09 UNQUALIFIED.
+Branch: m09/xi2-probe-receipts-20261020.
+Base: 2adb49c115aa3877e44e3666caa719e6258f8ff9.
+
+The new --xi2-receipts flag explicitly enables XI2 and additional receipt records.
+Existing core mode and plain --xi2 retain their output fields and behavior.
+Receipt readiness adds xi2_receipts=true. The existing xi2=true field remains required.
+Each received XI2 key, button, or motion emits one xi2_receipt before its legacy event record.
+Receipt fields: receipt_ordinal, event_type, deviceid, sourceid, xid, detail, time, synthetic.
+receipt_ordinal starts at1 and increases across these input events for the probe process lifetime.
+Ordinal exhaustion terminates the fixture rather than wrapping.
+time preserves the native event's unsigned32-bit X timestamp. It is not a monotonic ordering oracle.
+synthetic reports Xlib send_event. Do not accept synthetic receipt records as native actor input.
+Focus events retain existing output. They do not receive the new receipt record.
+
+The supervisor must associate the process and X connection with its authenticated session and arm.
+The observer must pin client, window, and device lifetimes independently.
+Receipt fields alone do not establish those identities or reject stale pre-arm events.
+The new reader must reject missing, ambiguous, mismatched, replayed, and later replacement receipts.
+The receipt proves only what this independent X client received.
+It does not prove historical native down state, balanced release, or destroyed-window event delivery.
+Pair it with the server-side snapshot at the first qualifying peer event.
+
+Explicit fixture-pin migration
+
+Primary approved this additive fixture change for source review.
+acceptance.lock.json changes only native/xprobe.c's hash and this migration notice.
+All151 acceptance IDs, assertions, other fixture hashes, and predecessor metadata remain unchanged.
+No existing test selector changes. No M08 deployment or package changes.
+The existing independent witness log format remains JSON lines.
+The new observer component interface uses generated Protocol Buffers in its separate task.
+
+Selected checks
+
+Compile core and XI2 variants with strict warnings.
+Compile external core, XI2, and sanitizer probe executables without running them.
+Verify the lock changes only the reviewed fixture hash and notice.
+Run diff and repository source guards.
+
+Required runtime checks remain UNRUN.
+Verify unchanged default readiness and core/XI2 events.
+Verify receipt-mode key, button, motion, and matching device/source fields on both hosts.
+Verify increasing receipt ordinals across main and surviving popup windows.
+Verify synthetic-event rejection and exact first-peer-event correlation in the strict observer selector.
+Run focused Debug and ASan/UBSan only after the M08 gate releases both hosts.
+Do not count compilation as execution evidence.
+
+Completed compile-only checks
+
+Core, XI2, and XI2 ASan/UBSan external executables compiled and linked with -Wall -Wextra -Werror.
+Canonical command and wrapper receipts returned0/0. The compile tmux session retired.
+The baseline guard verified every locked file hash and all151 acceptance IDs remain unchanged.
+Evidence: /home/dflanag3/spatial-artifacts/m09-xi2-probe-receipts-20261020.
+No probe executable was run. All required runtime checks remain UNRUN.

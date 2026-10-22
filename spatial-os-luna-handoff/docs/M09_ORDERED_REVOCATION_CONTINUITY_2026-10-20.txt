@@ -1,0 +1,97 @@
+# M09 ordered revocation continuity
+
+Status: UNQUALIFIED SOURCE REPAIR. All runtime checks remain UNRUN.
+Host: rog-ally-x. No test host was contacted.
+Worktree: /home/dflanag3/src/m09-revocation-xi2-review-20261020.
+Branch: m09/revocation-xi2-review-20261020.
+Repair base: 88ceabfd23d0106a2e0ae9bb8de0ed537c5a16d1.
+Original base: da523be5e5870dac93b6a264d56dc38c945b950a.
+Owned files: tests/core/test_world_application_control.py, tests/core/test_m09_xi2_observer_wire.py, and this note.
+Artifacts: /home/dflanag3/spatial-artifacts/m09-revocation-xi2-review-20261020.
+Projected new output is below 1 MiB. ROG had 565 GiB available before worktree creation.
+
+## Rejected source and corrected witness
+
+Primary rejected the preceding implementation before runtime.
+The followup review is primary-source-review-03.json beneath the current artifact directory.
+Its SHA256 is f7f5cf925b6217bfb659632e7e7aa0d96d9dbded86f9e312ddb3c72fa0473c44.
+It identified the seven-field device unpack and duplicate-event position defects.
+The retained review is /home/dflanag3/spatial-artifacts/m09-ordered-revocation-continuity-20261020/primary-source-review-02.json.
+Its SHA256 is ef29dcfaa0be51b24d947abfd86cccb12dce5bb4a1f22803d81dcefc6bc6066a.
+Earlier failures and receipts remain unchanged.
+
+OR01: The key predicate now accepts the event list supplied by read_until.
+OR02: Device events require the fixed 80-byte header. sourceid remains at byte 52.
+Masks follow that header. Each set valuator bit requires one eight-byte FP3232 value.
+Malformed header, mask, payload, and excessive packet lengths fail explicitly.
+OR03: The observer selects events before either actor presses a button.
+A peer preflight acquires control, then queries its actual pointer and paired keyboard.
+The observed peer source must be a slave attached to that exact master pointer.
+The peer releases control before the viewer acquires it.
+The viewer query runs after successful control acquisition, avoiding the idle application pointer.
+Viewer key sources must attach to the queried paired keyboard.
+The final takeover requires the preflight peer pointer and source, not another available master.
+OR04: Each observer explicitly negotiates XI 2.0 before selection and device queries.
+The pinned server returns the requested 2.0 version when supported.
+Refusal, setup errors, and partial setup close the connection.
+Cleanup ownership starts immediately after NativeClient connection creation.
+
+OR05: The parser explicitly skips xXIDeviceInfo padding with <HHHHHBx.
+The positive wire case sends framed XIGetClientPointer and XIQueryDevice replies through the actual request reader.
+It parses four device records with padded names, button classes, and key classes.
+Malformed reply controls require their named parser errors. They do not accept arbitrary exceptions.
+OR06: The order assertion carries enumerate positions for each release and peer event.
+Equal duplicate releases keep their actual wire positions.
+A dedicated control rejects a duplicate old release after peer motion and before peer press.
+It requires the specific ordering assertion, with valid device and source identities.
+
+The request reader checks reply sequence and bounds payload size.
+It shares one absolute deadline across interleaved events, fragments, and reply payloads.
+It preserves queued XI2 events instead of using NativeClient.request after selection.
+NativeClient.request treats an event before its reply as an error.
+
+## Ordered revocation assertions
+
+Both scenarios hold Shift, a, button 1, and drag motion before revocation.
+One scenario revokes the observation grant. The other revokes the complete actor identity.
+Each submits peer takeover before waiting for the old releases.
+If takeover reports BUSY, it checks release before retrying the rejected request.
+The independent XI2 stream requires both key releases and the old button release.
+Each release must retain its original master and source identity.
+All releases must precede the first accepted peer native event, including preceding pointer motion.
+The peer button press must also appear with its pinned native identity.
+
+The confined C application stays in core mode. It receives no XInputExtension access.
+Its log independently checks application delivery and observable focus changes.
+Its sync command and mapped surface establish separate process and surface continuity.
+The revoked actor loses observation and control. The peer keeps its independent grants.
+No production policy, API, or locked acceptance contract changes.
+
+## Selected checks and remaining qualification
+
+The external selected-checks.txt records validation choices before execution.
+Source-only checks parse and compile both Python sources in memory.
+They also inspect tracked protobuf symbols, check whitespace, and run repository_data_guard.
+The canonical runner records exact command and wrapper exits outside the checkout.
+Final source receipts: source-checks-run-03 beneath the artifact directory.
+Earlier source checks and rejected-candidate receipts remain unchanged.
+Both exits must be zero. The tmux session must retire before checkpoint handoff.
+No product executable is built or run for this Python-only repair.
+
+The authored wire regression source contains 17 cases.
+It extracts the actual observer and three assertion methods without importing native fixtures.
+Cases cover nonempty masks, fixed source identity, conflicting IDs, malformed lengths, and missing or extra values.
+They cover version negotiation, version refusal, setup cleanup, fragmented deadlines, EOF, and select timeout.
+They cover interleaved events, reply sequence checks, predicate arguments, and source attachment rejection.
+The three new cases cover framed device parsing, malformed replies, and a duplicate late release.
+Ordering controls reject missing releases, late releases, early peer motion, and the wrong peer device or source.
+These cases remain UNRUN. AST compilation does not establish their behavioral results.
+
+Fixture, wire regression, native, Debug, sanitizer, and qualification results remain UNRUN.
+sb16 and sb16-2 remain reserved for frozen M08 gates.
+Next: primary reviews this branch against the pinned headers and server producer.
+After those hosts become available, run the wire source and both ordered scenarios in both required profiles on both hosts.
+
+XI2 delivery order does not prove complete native focus, grab, capture, modifier, or internal down-state cancellation.
+The v1 observer has no direct query for those states. Core focus and drag events remain limited observable proxies.
+That separate native-observer dependency remains incomplete. This repair does not complete M09 or Spatial-M1.

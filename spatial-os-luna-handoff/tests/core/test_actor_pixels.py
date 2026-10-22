@@ -5,13 +5,16 @@ import socket
 import struct
 import threading
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 import test_world_application_control as control
 import test_world_authority as world_authority
 import issuer_pb2 as issuer
+import geometry_native_pb2 as native_witness
 from harness.wire import frame
 from harness.oracles import pose
 from test_world_identity import receive
+from geometry_process_identity import collect
 
 core = control.core
 grant = control.grant
@@ -23,6 +26,11 @@ class ActorPixelTests(observation.ApplicationObservationTests):
     probe = control.WorldApplicationControlTests.probe
     probe_events = control.WorldApplicationControlTests.probe_events
     probe_command = control.WorldApplicationControlTests.probe_command
+    control_action = control.WorldApplicationControlTests.control_action
+    actor_aim = control.WorldApplicationControlTests.actor_aim
+    actor_pointer = control.WorldApplicationControlTests.actor_pointer
+    send_key_event = control.WorldApplicationControlTests.send_key_event
+    actor_state = control.WorldApplicationControlTests.actor_state
 
     def pixels(self, peer=None, width=127, height=95):
         request = core.ActorObserveRequest(include_pixels=True)
@@ -41,6 +49,84 @@ class ActorPixelTests(observation.ApplicationObservationTests):
     def rgb(self, observation, x, y):
         start = (y * observation.image.width + x) * 3
         return tuple(observation.image.rgb8[start:start + 3])
+
+    @staticmethod
+    def proc_start_ticks(pid):
+        value = Path(f'/proc/{pid}/stat').read_text()
+        fields = value[value.rfind(')') + 2:].split()
+        return int(fields[19])
+
+    def managed_probe_parent(self, probe_id):
+        # Match the real probe's complete argv, then pin its direct app parent.
+        matches = []
+        for entry in Path('/proc').iterdir():
+            if not entry.name.isdecimal():
+                continue
+            try:
+                argv = (entry / 'cmdline').read_bytes().rstrip(b'\0').split(b'\0')
+                if argv != [b'/project/probe', b'--id', probe_id.encode()]:
+                    continue
+                status = (entry / 'status').read_text()
+                cgroup = (entry / 'cgroup').read_text()
+            except OSError:
+                continue
+            parent = next((int(line.split()[1]) for line in status.splitlines() if line.startswith('PPid:')), 0)
+            if parent > 1:
+                matches.append((int(entry.name), parent, cgroup))
+        self.assertEqual(len(matches), 1, f'Expected one real native probe process for {probe_id}: {matches}')
+        probe_pid, app_pid, probe_cgroup = matches[0]
+        probe_status = Path(f'/proc/{probe_pid}/status').read_text()
+        app_status = Path(f'/proc/{app_pid}/status').read_text()
+        app_argv = Path(f'/proc/{app_pid}/cmdline').read_bytes().rstrip(b'\0').split(b'\0')
+        def namespace_pids(status):
+            line = next(line for line in status.splitlines() if line.startswith('NSpid:'))
+            return [int(value) for value in line.split()[1:]]
+        probe_namespace_pids = namespace_pids(probe_status)
+        app_namespace_pids = namespace_pids(app_status)
+        self.assertEqual(probe_namespace_pids[0], probe_pid, 'Probe discovery must use the host /proc PID')
+        self.assertEqual(app_namespace_pids[0], app_pid, 'Application discovery must use the host /proc PID')
+        app_command = b'\0'.join(app_argv)
+        self.assertIn(b'/project/probe', app_command, 'Probe parent must be the launched application command')
+        self.assertIn(probe_id.encode(), app_command, 'Probe parent command must contain this probe identity')
+        self.assertEqual(os.stat(f'/proc/{app_pid}/ns/pid').st_ino,
+                         os.stat(f'/proc/{probe_pid}/ns/pid').st_ino,
+                         'Managed app and probe must share their application PID namespace')
+        self.assertEqual(Path(f'/proc/{app_pid}/cgroup').read_text(), probe_cgroup,
+                         'Managed application and its native probe must share the production process scope')
+        broker_pid = self.broker.proc.pid
+        ancestor = app_pid
+        broker_descendant = False
+        for _ in range(16):
+            if ancestor == broker_pid:
+                broker_descendant = True
+                break
+            parent_status = Path(f'/proc/{ancestor}/status').read_text()
+            ancestor = next((int(line.split()[1]) for line in parent_status.splitlines()
+                             if line.startswith('PPid:')), 0)
+            if ancestor <= 1:
+                break
+        self.assertTrue(broker_descendant,
+                        f'Exact native probe parent {app_pid} must descend from known broker PID {broker_pid}')
+        return app_pid
+
+    def compositor_pid(self):
+        children = Path(f'/proc/{self.world_process.proc.pid}/task/{self.world_process.proc.pid}/children').read_text().split()
+        expected = (control.access.workspace.WORLD.parent / 'spatialwm').resolve(strict=True)
+        matches = []
+        for value in children:
+            pid = int(value)
+            try:
+                executable = Path(f'/proc/{pid}/exe').resolve(strict=True)
+            except OSError:
+                continue
+            if executable == expected:
+                matches.append(pid)
+        self.assertEqual(len(matches), 1, f'Expected one spatialwm child of worldd at {expected}: {matches}')
+        return matches[0]
+
+    def process_identity(self, pid):
+        ticks = self.proc_start_ticks(pid)
+        return collect([(pid, ticks)], protocol=native_witness)[0]
 
     def setup_pixels(self):
         self.setup_world()
@@ -98,6 +184,129 @@ class ActorPixelTests(observation.ApplicationObservationTests):
         self.assertEqual(self.pixels().image.rgb8, empty.image.rgb8)
         self.assertTrue(self.world_process.management('surface.get', id=surface['id'])['mapped'])
         self.assertNotEqual(self.pixels(self.peer).image.rgb8, empty.image.rgb8)
+
+    def test_observation_and_control_revocation_preserve_application_for_independent_controller(self):
+        self.setup_world(include_third_actor=True)
+        empty = self.pixels()
+        app, surface = self.probe()
+        self.addCleanup(self._release_probe, app)
+        probe_id = f'controlled-{self.probe_number}'
+        self.grant_viewer([grant.WORKSPACE_ACCESS, *control.access.workspace.PROJECT])
+        b_observe = self.grant_viewer([grant.APPLICATION_OBSERVE], app)
+        b_control = self.grant_viewer([grant.APPLICATION_CONTROL], app)
+        self.grant_viewer([grant.WORKSPACE_ACCESS, *control.access.workspace.PROJECT], claims=self.third)
+        self.grant_viewer([grant.APPLICATION_OBSERVE], app, claims=self.third)
+        self.grant_viewer([grant.APPLICATION_CONTROL], app, claims=self.third)
+
+        # A's own roots remain untouched. B and C have separate grants from A.
+        self.assertNotEqual(self.pixels().image.rgb8, empty.image.rgb8)
+        self.probe_command(app, 'sync')
+        baseline = self.probe_events(app)
+        before_event_count = len(baseline)
+        self.actor_aim(self.viewer)
+        self.actor_pointer(True, self.viewer)
+        self.send_key_event('Shift_L', True, self.viewer)
+        self.send_key_event('a', True, self.viewer)
+        held = self.until(lambda: self.probe_events(app), lambda rows:
+            any(r.get('event') == 'button' and r.get('pressed') and r.get('button') == 1 for r in rows[before_event_count:]) and
+            any(r.get('event') == 'key' and r.get('pressed') and r.get('keysym') == 0xffe1 for r in rows[before_event_count:]) and
+            any(r.get('event') == 'key' and r.get('pressed') and r.get('keysym') in (ord('a'), ord('A')) for r in rows[before_event_count:]))
+        b_keycodes = {row['keycode'] for row in held[before_event_count:]
+                      if row.get('event') == 'key' and row.get('pressed') and
+                      row.get('keysym') in (0xffe1, ord('a'), ord('A'))}
+        self.assertGreaterEqual(len(b_keycodes), 2, 'B must hold a modifier and a nonmodifier key')
+        self.assertGreater(len(held), before_event_count)
+
+        self.actor_aim(self.third_peer)
+        self.denied(self.third_peer.act(pointer=core.ActorPointerRequest(button=1, pressed=True)), core.BUSY)
+
+        app_pid = self.managed_probe_parent(probe_id)
+        compositor_pid = self.compositor_pid()
+        pinned = {
+            'application': self.process_identity(app_pid),
+            'worldd': self.process_identity(self.world_process.proc.pid),
+            'spatialwm': self.process_identity(compositor_pid),
+            'xserver': self.process_identity(self.native.server.pid),
+        }
+        self.revoke_grant(self.peer, b_control)
+        self.revoke_grant(self.peer, b_observe)
+
+        self.addCleanup(self._release_third_controller)
+        self.actor_aim(self.third_peer)
+        self.actor_pointer(True, self.third_peer)
+        self.send_key_event('c', True, self.third_peer)
+        rows = self.until(lambda: self.probe_events(app), lambda values:
+            any(r.get('event') == 'key' and r.get('pressed') and r.get('text_hex') == '63' for r in values[before_event_count:]))
+        fresh = rows[before_event_count:]
+        # Keep the pre-B baseline, but exclude events before B's holds were witnessed.
+        transition = fresh[len(held) - before_event_count:]
+        release_button = next((i for i, r in enumerate(transition)
+                               if r.get('event') == 'button' and not r.get('pressed')
+                               and r.get('button') == 1), None)
+        released_keys = {r.get('keycode') for r in transition if r.get('event') == 'key' and not r.get('pressed')}
+        c_button = next((i for i, r in enumerate(transition)
+                         if r.get('event') == 'button' and r.get('pressed')
+                         and r.get('button') == 1), None)
+        self.assertIsNotNone(release_button, 'B held button 1 must produce a real native release')
+        self.assertIsNotNone(c_button, 'C must produce a fresh native button 1 press')
+        self.assertTrue(b_keycodes.issubset(released_keys), 'B held keys must each produce a real native release')
+        self.assertLess(release_button, c_button, 'B button 1 release must precede C native button 1 press')
+        self.assertTrue(all(i < c_button for i, row in enumerate(transition)
+                            if row.get('event') == 'key' and not row.get('pressed') and row.get('keycode') in b_keycodes),
+                        'B key releases must precede C native button 1 press')
+        self.assertTrue(any(r.get('event') == 'key' and r.get('pressed') and r.get('text_hex') == '63'
+                            and r.get('xid') == next(v['xid'] for v in self.probe_events(app) if v.get('event') == 'ready')
+                            for r in fresh), 'C must deliver input to the same live native window')
+
+        hidden = self.pixels(self.viewer)
+        self.assertEqual(hidden.image.rgb8, empty.image.rgb8)
+        self.assertFalse(hidden.visible, 'Revoked observation must hide protected surface metadata')
+        self.assertNotEqual(self.pixels(self.peer).image.rgb8, empty.image.rgb8,
+                            'A retains valid application observation and execution authority')
+        denied = self.viewer.act(key=core.ActorKeyRequest(keysym='x', pressed=True))
+        self.denied(denied, core.FORBIDDEN)
+        self.assertFalse(denied.HasField('action'), 'Revoked control must not produce a successful actor action')
+
+        after = {
+            'application': self.process_identity(app_pid),
+            'worldd': self.process_identity(self.world_process.proc.pid),
+            'spatialwm': self.process_identity(compositor_pid),
+            'xserver': self.process_identity(self.native.server.pid),
+        }
+        self.assertEqual(after, pinned, 'Application, worldd, and X server identities must survive revocation')
+        self.assertEqual(self.world_process.management('surface.get', id=surface['id'])['mapped'], True)
+
+    def _release_third_controller(self):
+        failures = []
+        state = None
+        try:
+            inspection = self.third_peer.call(inspect=session.WorldSessionInspect())
+            self.assertTrue(inspection.HasField('state'), inspection)
+            state = inspection.state
+        except (AssertionError, OSError, EOFError) as error:
+            failures.append(f'state inspection: {error}')
+        if state is not None:
+            for key in list(state.held_keys):
+                try:
+                    self.control_action(self.third_peer, key=core.ActorKeyRequest(keysym=key, pressed=False))
+                except (AssertionError, OSError, EOFError) as error:
+                    failures.append(f'key {key!r}: {error}')
+            for button in list(state.held_buttons):
+                try:
+                    self.control_action(self.third_peer, pointer=core.ActorPointerRequest(button=button, pressed=False))
+                except (AssertionError, OSError, EOFError) as error:
+                    failures.append(f'button {button}: {error}')
+        try:
+            self.control_action(self.third_peer, stop=core.ActorStopRequest())
+        except (AssertionError, OSError, EOFError) as error:
+            failures.append(f'stop: {error}')
+        if failures:
+            self.fail('C input cleanup failed: ' + '; '.join(failures))
+
+    def _release_probe(self, app):
+        (self.data(app) / 'release').touch()
+        result = self.world_process.management('process.wait', id=app.application.decode(), timeout_seconds=5)
+        self.assertEqual(result['exit_code'], 0, f'Probe application exited unsuccessfully: {result}')
 
     def test_other_application_scope_does_not_export_its_pixels(self):
         self.setup_world()
@@ -221,9 +430,9 @@ class PresentationPixelFenceTests(ActorPixelTests):
         self.assertTrue(all(isinstance(value, bytes) for value in terms.scope.components))
         return terms
 
-    def setup_world(self, rights=None, legacy=False):
+    def setup_world(self, rights=None, legacy=False, include_third_actor=False):
         rights = [*control.access.ALL, grant.WORKSPACE_PRESENTATION_ATTACH] if rights is None else rights
-        return super().setup_world(rights=rights, legacy=legacy)
+        return super().setup_world(rights=rights, legacy=legacy, include_third_actor=include_third_actor)
 
     def setUp(self):
         super().setUp()

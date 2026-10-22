@@ -31,6 +31,9 @@ class BrokerRelay:
     def __init__(self, broker):
         self.broker=broker; self.proc=broker.proc
         self.stream,self.server=socket.socketpair();self.hook=None;self.calls=0;self.errors=[]
+        self._barrier_lock=threading.Lock();self._hold_control_acquire=False
+        self.control_acquire_reply_seen=threading.Event();self.control_acquire_entered=threading.Event()
+        self.control_acquire_release=threading.Event();self._control_acquire_record=None
         self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
 
     def read(self, stream, message):
@@ -45,12 +48,52 @@ class BrokerRelay:
         if size>1048576:raise AssertionError('Invalid relay frame')
         return message.FromString(exact(size))
 
+    def hold_next_control_acquire(self):
+        with self._barrier_lock:
+            self.control_acquire_reply_seen.clear();self.control_acquire_entered.clear()
+            self.control_acquire_release.clear();self._control_acquire_record=None
+            self._hold_control_acquire=True
+
+    def control_acquire_record(self):
+        with self._barrier_lock:
+            return dict(self._control_acquire_record or {})
+
+    def release_control_acquire(self):
+        self.control_acquire_release.set()
+
     def run(self):
         try:
             while True:
                 request=self.read(self.server,pb.Request)
                 self.broker.stream.sendall(frame(request))
                 reply=self.read(self.broker.stream,pb.Reply)
+                if request.HasField('control_acquire'):
+                    lease=reply.control_lease if reply.HasField('control_lease') else None
+                    correlated=bool(lease and reply.protocol_version==request.protocol_version==1 and
+                        reply.request_id==request.request_id and len(lease.id)==32 and
+                        request.control_acquire.HasField('principal') and request.control_acquire.HasField('application') and
+                        lease.HasField('principal') and lease.HasField('application') and
+                        lease.principal.SerializeToString()==request.control_acquire.principal.SerializeToString() and
+                        lease.application.SerializeToString()==request.control_acquire.application.SerializeToString())
+                    record={'request_protocol':request.protocol_version,'reply_protocol':reply.protocol_version,
+                        'request_id':request.request_id,'reply_id':reply.request_id,
+                        'principal':request.control_acquire.principal.SerializeToString(),
+                        'application':request.control_acquire.application.SerializeToString(),
+                        'lease_id':lease.id if lease else b'',
+                        'outcome':reply.WhichOneof('outcome'),'correlated_success':correlated}
+                    with self._barrier_lock:
+                        hold=self._hold_control_acquire
+                        if hold:
+                            self._control_acquire_record=record
+                            self._hold_control_acquire=False
+                    if hold:
+                        if correlated:
+                            self.control_acquire_entered.set()
+                            self.control_acquire_reply_seen.set()
+                            if not self.control_acquire_release.wait(8):
+                                raise AssertionError('Control-acquire reply barrier was not released')
+                        else:
+                            self.control_acquire_reply_seen.set()
                 if request.HasField('application_access'):
                     self.calls+=1
                     if self.hook:self.hook(self.calls,reply)
@@ -59,6 +102,7 @@ class BrokerRelay:
         except BaseException as error:self.errors.append(error)
 
     def close(self):
+        self.release_control_acquire()
         self.server.shutdown(socket.SHUT_RDWR);self.stream.close();self.server.close()
         self.thread.join(5)
         if self.thread.is_alive():raise AssertionError('Broker relay did not stop')
@@ -85,7 +129,9 @@ class ApplicationObservationTests(WorldIdentityFixture):
         self.expected_world_exit=0
         self.addCleanup(self.close_brokers)
 
-    def setup_world(self, rights=access.ALL, legacy=False):
+    def setup_world(self, rights=access.ALL, legacy=False, include_third_actor=False):
+        if include_third_actor and legacy:
+            raise ValueError('A third actor requires the scoped issuer authority fixture')
         configuration=os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
         if configuration:
             resources=text_format.Parse(access.Path(configuration).read_text(),pb.BrokerProcessConfig())
@@ -96,6 +142,12 @@ class ApplicationObservationTests(WorldIdentityFixture):
             path.write_text(text_format.MessageToString(resources));path.chmod(0o600)
             self.enterContext(patch.dict(os.environ,SPATIAL_TEST_BROKER_CONFIG=str(path)))
         self.enroll_second()
+        if include_third_actor:
+            self.third_key, self.third_public = self.key('third-independent-controller')
+            self.third_record = self.decide(self.owner_peer, self.enroll(self.owner_peer,
+                self.intent(public=self.third_public, label='Third independent controller'),
+                self.third_key, self.third_public)).enrollment
+            self.third = self.claims(self.third_record, self.info)
         self.setup_application(rights)
         with sqlite3.connect(self.execution/'execution.db') as db:
             self.project = access.Path(db.execute('SELECT path FROM worktrees WHERE id=?', ('tree-one',)).fetchone()[0])
@@ -107,8 +159,10 @@ class ApplicationObservationTests(WorldIdentityFixture):
         auth = self.root/'compositor.auth'; auth.write_bytes(data); auth.chmod(0o600)
         self.relay=BrokerRelay(self.broker);self.addCleanup(self.relay.close)
         with patch.dict(os.environ, SPATIAL_TEST_DISPLAY=':'+str(self.native.display), XAUTHORITY=str(auth), LIBGL_ALWAYS_SOFTWARE='1'):
-            self.world_process = self.scoped_world(session.REGISTERED_ACTORS, native=True, broker=self.relay,
-                roots=lambda:[self.terms(), self.terms(self.second, rights=[grant.WORLD_OBSERVE, grant.WORLD_NAVIGATE], depth=0)])
+            roots = lambda:[self.terms(), self.terms(self.second, rights=[grant.WORLD_OBSERVE, grant.WORLD_NAVIGATE], depth=0)] + (
+                [self.terms(self.third, rights=[grant.WORLD_OBSERVE, grant.WORLD_NAVIGATE], depth=0)] if include_third_actor else [])
+            self.world_process = self.scoped_world(session.REGISTERED_ACTORS, native=True,
+                broker=self.relay, roots=roots, peer_count=3 if include_third_actor else 2)
             if legacy:
                 old=self.world_process;old.close()
                 config=session.WorldIdentityConfig();text_format.Parse(old.config_path.read_text(),config)
@@ -124,6 +178,9 @@ class ApplicationObservationTests(WorldIdentityFixture):
         self.peer = self.world_process.peers[0]
         self.viewer = self.world_process.peers[1]
         self.assertTrue(self.authenticate_second(self.viewer).HasField('opened'))
+        if include_third_actor:
+            self.third_peer = self.world_process.peers[2]
+            self.assertTrue(self.authenticate(self.third_peer, self.third_record, self.third_key, self.third_public).HasField('opened'))
         self.world_process.management('workspace.available', id='one', available=True)
         self.assertTrue(self.peer.act(workspace_select=core.WorkspaceIdRequest(id='one')).HasField('action'))
         self.probe_number = 0
@@ -166,9 +223,9 @@ class ApplicationObservationTests(WorldIdentityFixture):
         self.assertTrue(any(json.loads(line).get('event')=='ready' for line in log.read_text().splitlines()))
         return app,value
 
-    def grant_viewer(self, rights, app=None, components=None):
+    def grant_viewer(self, rights, app=None, components=None, claims=None):
         scope = components if components is not None else ([] if app is None else [b'applications',app.application])
-        reply = self.delegate(self.peer,self.workspace_terms(self.second,rights=rights,depth=0,components=scope))
+        reply = self.delegate(self.peer,self.workspace_terms(claims or self.second,rights=rights,depth=0,components=scope))
         self.assertTrue(reply.HasField('grant'),reply);return reply.grant
 
     def visible(self, peer=None):
