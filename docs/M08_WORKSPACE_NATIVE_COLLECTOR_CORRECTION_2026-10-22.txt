@@ -1,0 +1,51 @@
+M08 WORKSPACE NATIVE COLLECTOR CONTRACT CORRECTION
+Date: 2026-10-22. Status: UNQUALIFIED.
+
+The one-line factory repair f9e425093e145288af88cc0a47ad838c3fe46109 reached native assertions.
+The actual sb16 Debug geometry test passed one method in 43.138 seconds.
+Its real delegated resource wrapper exited zero and removed its adapter scope.
+Both independent native observers retired. The enclosing gate then failed collection with exit2.
+The complete runtime log and failed canonical 2/2 gate receipts remain unchanged.
+
+Reproduced collector contract defect
+==================================
+m07_deployed_gate._scan_local_logs required boundary.stdout and boundary.stderr.
+NativeCrossHostTests.boundary() alone produces these files for separate boundary probes.
+Workspace cross-host cases do not call boundary(). Their local native observer produces
+observer-raw.stdout, observer.stderr, geometry-host-session.log, and cleanup-receipts.json.
+The peer observer produces peer-native.stderr and exact peer resource retirement records.
+The old synthetic collector fixture invented boundary logs and masked this mismatch.
+
+Explicit correction
+===================
+Require peer-native.stderr, observer.stderr, observer-raw.stdout, and exactly one geometry-host-session.log.
+Continue scanning every retained .log/.stderr/.stdout/.txt file for sanitizer diagnostics.
+Keep exact local and peer adapter/unit cleanup validation unchanged.
+This replaces an impossible producer requirement with actual observer output coverage.
+It does not suppress diagnostics, accept missing observer output, or change native assertions.
+No locked acceptance input or production source changes.
+
+Validation
+==========
+Both new producer-layout regressions failed against the old collector as expected.
+The corrected collector passed all 67 selected host-independent M06 static checks.
+The related M08 harness passed all 32 methods with its required generated Protobuf PYTHONPATH.
+The first M08 harness invocation omitted that import path and failed its discovery assertion.
+Its failed canonical record remains separate from the corrected successful 0/0 run.
+No runtime suite was repeated for that setup correction.
+
+External evidence root on ROG:
+/home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/packaging-cache-repair-01/original-context-correction-01
+See collector-repair-selected-checks.json, collector-static-selection.json,
+collector-before.stderr, collector-after.stderr, collector-tests-run-01,
+and collector-harness-run-02.
+
+Retained native output on sb16:
+/home/dflanag3/spatial-artifacts/m08-issuer-fixture-580834ceeda1-20261021/crosshost-evidence-580834-factory-01/workspace-geometry-native-crosshost/Debug/sb16-to-sb16-2/authority
+The exact failed gate runner ends workspace-workspace-geometry-native-crosshost-Debug-sb16-to-sb16-2-01-factory-01 under packaging-cache-repair-01/sb16.
+
+Next: run the corrected collector on this retained passing execution.
+Publish a separate collector-correction receipt tied to the original failed gate.
+Do not relabel the original gate exit or repeat the passing native test solely for collection.
+Then run the seven unrun native workspace rows serially with the reviewed fixture continuation.
+M08 remains unqualified pending all evidence and final review.

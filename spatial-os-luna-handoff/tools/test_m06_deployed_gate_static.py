@@ -243,8 +243,8 @@ class GateStaticTests(unittest.TestCase):
         evidence = self.root / "logs"
         observer = evidence / "authority-native-observer"
         observer.mkdir(parents=True)
-        for name in ("peer-native.stderr", "boundary.stdout", "boundary.stderr"):
-            (evidence / name).write_text("clean\\n")
+        (evidence / "peer-native.stderr").write_text("clean\\n")
+        (observer / "observer-raw.stdout").write_text("clean\\n")
         (evidence / "geometry-host-session.log").write_text("")
         (observer / "observer.stderr").write_text("clean\\n")
         records = m07._scan_local_logs((evidence,))
@@ -252,6 +252,30 @@ class GateStaticTests(unittest.TestCase):
                             for row in records))
         (observer / "observer.stderr").write_text("AddressSanitizer: heap-use-after-free\\n")
         with self.assertRaisesRegex(RuntimeError, "sanitizer diagnostic"):
+            m07._scan_local_logs((evidence,))
+
+    def test_m07_workspace_log_scan_uses_actual_observer_records(self):
+        evidence = self.root / "workspace-producer-logs"
+        observer = evidence / "authority-native-observer"
+        observer.mkdir(parents=True)
+        (evidence / "peer-native.stderr").write_text("clean\n")
+        for name in ("observer.stderr", "observer-raw.stdout", "geometry-host-session.log"):
+            (observer / name).write_text("clean\n")
+        records = m07._scan_local_logs((evidence,))
+        self.assertEqual({Path(row["path"]).name for row in records},
+                         {"peer-native.stderr", "observer.stderr", "observer-raw.stdout",
+                          "geometry-host-session.log"})
+        self.assertFalse((evidence / "boundary.stdout").exists())
+
+    def test_m07_workspace_log_scan_rejects_missing_observer_output(self):
+        evidence = self.root / "workspace-missing-observer-output"
+        observer = evidence / "authority-native-observer"
+        observer.mkdir(parents=True)
+        for name in ("peer-native.stderr", "boundary.stdout", "boundary.stderr"):
+            (evidence / name).write_text("clean\n")
+        for name in ("observer.stderr", "geometry-host-session.log"):
+            (observer / name).write_text("clean\n")
+        with self.assertRaisesRegex(RuntimeError, "required native/service logs"):
             m07._scan_local_logs((evidence,))
 
     def test_m07_configure_map_requires_all_geometry_placeholders(self):

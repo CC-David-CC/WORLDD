@@ -237,7 +237,8 @@ def _scan_local_logs(paths):
                 records.append(dict(path=str(path), sha256=m06.sha(path), bytes=path.stat().st_size))
     service_logs = [row for row in records if Path(row["path"]).name == "geometry-host-session.log"]
     names = {Path(row["path"]).name for row in records}
-    required_logs = {"peer-native.stderr", "boundary.stdout", "boundary.stderr", "observer.stderr"}
+    # Workspace cases run two native observers, not the separate boundary-probe tests.
+    required_logs = {"peer-native.stderr", "observer.stderr", "observer-raw.stdout"}
     if len(service_logs) != 1 or not required_logs.issubset(names):
         raise RuntimeError("local evidence lacks required native/service logs")
     return records
